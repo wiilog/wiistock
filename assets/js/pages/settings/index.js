@@ -4,9 +4,28 @@ import Flash, {INFO} from '../../flash';
 import {LOADING_CLASS} from "../../loading";
 import {initUserPage} from "./users/users";
 import {initializeImports} from "./data/imports.js";
-import {initializeStockArticlesTypesFreeFields, createFreeFieldsPage, initializeTraceMovementsFreeFields, initializeIotFreeFields} from "./free-fields";
 import {initializeRolesPage} from "./users/roles";
-import {initializeArrivalDisputeStatuses, initializeReceptionDisputeStatuses} from "./dispute-statuses";
+import {initializeRequestTemplates} from "./request-template";
+import {
+    initializeStockArticlesTypesFreeFields,
+    createFreeFieldsPage,
+    initializeTraceMovementsFreeFields,
+    initializeIotFreeFields,
+    initializeReceptionsFreeFields,
+} from "./free-fields";
+import {
+    initializeArrivalDisputeStatuses,
+    initializeReceptionDisputeStatuses,
+    initializePurchaseRequestStatuses,
+    initializeArrivalStatuses,
+    initializeDispatchStatuses,
+    initializeHandlingStatuses
+} from "./statuses";
+import {initializeAlertTemplate, initializeNotifications} from "./alert-template";
+import {onHeaderPageEditStop} from "./utils";
+
+global.triggerReminderEmails = triggerReminderEmails;
+global.saveTranslations = saveTranslations;
 
 const index = JSON.parse($(`input#settings`).val());
 let category = $(`input#category`).val();
@@ -16,7 +35,6 @@ let submenu = $(`input#submenu`).val();
 let currentForm = null;
 const forms = {};
 
-let editing = false;
 
 //keys are from url with / replaced by _
 //http://wiistock/parametrage/afficher/stock/receptions/champs_fixes_receptions => stock_receptions_champs_fixes_receptions
@@ -33,6 +51,10 @@ const initializers = {
     trace_arrivages_types_champs_libres: createFreeFieldsPage,
     trace_services_types_champs_libres: createFreeFieldsPage,
     trace_mouvements_champs_libres: initializeTraceMovementsFreeFields,
+    stock_receptions_champs_libres: initializeReceptionsFreeFields,
+    trace_services_modeles_demande: initializeRequestTemplates,
+    notifications_alertes: initializeAlertTemplate,
+    notifications_notifications_push: initializeNotifications,
     iot_types_champs_libres: initializeIotFreeFields,
     donnees_imports: initializeImports,
     stock_receptions_champs_fixes_receptions: initializeReceptionFixedFields,
@@ -45,14 +67,21 @@ const initializers = {
     stock_groupes_visibilite: initializeVisibilityGroup,
     utilisateurs_utilisateurs: initUserPage,
     trace_arrivages_statuts_litiges: initializeArrivalDisputeStatuses,
+    trace_acheminements_statuts: initializeDispatchStatuses,
+    trace_services_statuts: initializeHandlingStatuses,
     stock_receptions_statuts_litiges: initializeReceptionDisputeStatuses,
     utilisateurs_roles: initializeRolesPage,
-    stock_receptions_types_litiges : initializeTypesLitige,
-    trace_arrivages_types_litiges : initializeTypesLitige,
+    stock_receptions_types_litiges: initializeTypesLitige,
+    trace_arrivages_types_litiges: initializeTypesLitige,
+    trace_arrivages_statuts: initializeArrivalStatuses,
+    stock_demandes_statuts_achats: initializePurchaseRequestStatuses,
+    stock_demandes_modeles_demande_livraisons: initializeRequestTemplates,
+    stock_demandes_modeles_demande_collectes: initializeRequestTemplates,
 };
 
 const saveCallbacks = {
     global_apparence_site: () => location.reload(),
+    notifications_alertes: ($container, apiResult) => onHeaderPageEditStop($container, apiResult)
 };
 
 const slowOperations = [
@@ -70,13 +99,16 @@ $(function() {
     updateMenu(submenu || menu, canEdit);
 
     $(`.settings-item`).on(`click`, function() {
-        if (!editing || (editing && window.confirm("Vous avez des modifications en attente, souhaitez vous continuer ?"))) {
+        const editing = $(`.settings-content`).find(`.dataTables_wrapper`).is('.current-editing');
+        if (!editing || (editing && window.confirm("Vous avez des modifications en attente, souhaitez-vous continuer ?"))) {
             const selectedMenu = $(this).data(`menu`);
-
             $(`.settings-item.selected`).removeClass(`selected`);
             $(this).addClass(`selected`);
             updateMenu(selectedMenu, canEdit);
-            editing = false;
+
+            if(editing) {
+                window.location.reload();
+            }
         }
     });
 
@@ -86,9 +118,7 @@ $(function() {
         const config = {ignored: `[data-table-processing]`,};
 
         const data = Form.process(form.element, config);
-
         let hasErrors = false;
-
         if(data) {
             const fieldNames = Form.getFieldNames(form.element, config);
             data.set('__form_fieldNames', JSON.stringify(fieldNames));
@@ -99,6 +129,7 @@ $(function() {
                 if (datatable) {
                     const tableData = datatable.data();
                     tables[$(this).data(`table-processing`)] = tableData;
+                    tables[`category`] = $(this).data(`category`);
                     tablesToReload.push(datatable);
                     hasErrors = tableData.filter(row => !row).length > 0;
                 }
@@ -108,7 +139,6 @@ $(function() {
                 data.append(`datatables`, JSON.stringify(tables));
             }
         }
-
         if (!data || hasErrors) {
             return;
         }
@@ -125,24 +155,24 @@ $(function() {
         if(slow) {
             Flash.add(`info`, `Mise à jour des paramétrage en cours, cette opération peut prendre quelques minutes`, false);
         }
-
         $saveButton.pushLoader('white');
         await AJAX.route(`POST`, `settings_save`)
             .json(data)
             .then(result => {
                 if(result.success) {
                     let params = undefined;
-                    if (result && result.type) {
-                        params = {type: result.type};
+                    if (result && result.entity) {
+                        params = {entity: result.entity};
                     }
                     for(const table of tablesToReload) {
                         if(table.mode !== MODE_EDIT) {
-                            table.toggleEdit(STATE_VIEWING, true, params);
+                            table.toggleEdit(STATE_VIEWING, true, {params});
                         }
-                    }console.error(currentForm, saveCallbacks);
+                    }
 
                     if(saveCallbacks[currentForm]) {
-                        saveCallbacks[currentForm]();
+                        const $container = $(`[data-path=${currentForm}]`);
+                        saveCallbacks[currentForm]($container, result);
                     }
                 }
 
@@ -253,11 +283,9 @@ function initializeWorkingHours($container, canEdit) {
         save: SAVE_MANUALLY,
         needsPagingHide: true,
         onEditStart: () => {
-            editing = true;
             $managementButtons.removeClass('d-none')
         },
         onEditStop: () => {
-            editing = false;
             $managementButtons.addClass('d-none')
         },
         columns: [
@@ -279,6 +307,7 @@ function initializeOffDays($container, canEdit) {
         save: SAVE_MANUALLY,
         search: true,
         paging: true,
+        ordering: true,
         needsPagingHide: true,
         needsSearchHide: true,
         onInit: () => {
@@ -499,7 +528,8 @@ function initDeliveryRequestDefaultLocations() {
         updateAlreadyDefinedTypes();
     });
     const $lastDeliveryTypeSelect = $('select[name=deliveryType]').last();
-    $buttonNewTypeAssociation.prop('disabled', $lastDeliveryTypeSelect.data('length') < 1);
+
+    $buttonNewTypeAssociation.prop('disabled', $buttonNewTypeAssociation.is(`[data-keep-disabled]`) || $lastDeliveryTypeSelect.data('length') < 1);
 }
 
 function newTypeAssociation($button, type = undefined, location = undefined, firstLoad = false) {
@@ -590,8 +620,8 @@ function initializeInventoryFrequenciesTable(){
         },
         columns: [
             {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
-            {data: `label`, title: `Libellé<span class="d-none required-mark">*</span>`},
-            {data: `nb_months`, title: `Nombre de mois<span class="d-none required-mark">*</span>`},
+            {data: `label`, title: `Libellé`, required: true},
+            {data: `nb_months`, title: `Nombre de mois`, required: true},
         ],
         form: {
             actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
@@ -621,8 +651,8 @@ function initializeInventoryCategoriesTable(){
         },
         columns: [
             {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
-            {data: `label`, title: `Libellé<span class="d-none required-mark">*</span>`},
-            {data: `frequency`, title: `Fréquence<span class="d-none required-mark">*</span>`},
+            {data: `label`, title: `Libellé`, required: true},
+            {data: `frequency`, title: `Fréquence`, required: true},
         ],
         form: {
             actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
@@ -634,6 +664,8 @@ function initializeInventoryCategoriesTable(){
 
 function initializeTypesLitige(){
     $saveButton.addClass('d-none');
+    $discardButton.addClass('d-none');
+
     const table = EditableDatatable.create(`#table-types-litige`, {
         route: Routing.generate('types_litige_api', true),
         deleteRoute: `settings_delete_type_litige`,
@@ -645,13 +677,15 @@ function initializeTypesLitige(){
         scrollX: false,
         onEditStart: () => {
             $saveButton.removeClass('d-none');
+            $discardButton.removeClass('d-none');
         },
         onEditStop: () => {
             $saveButton.addClass('d-none');
+            $discardButton.addClass('d-none');
         },
         columns: [
             {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
-            {data: `label`, title: `Libellé`},
+            {data: `label`, title: `Libellé`, required: true},
             {data: `description`, title: `Description`},
         ],
         form: {
@@ -665,6 +699,7 @@ function initializeTypesLitige(){
 function initializeVisibilityGroup($container, canEdit) {
     const $addButton = $container.find(`.add-row-button`);
     const $tableHeader = $(`.wii-page-card-header`);
+    changePageTitle($container.find('.wii-title'), false);
 
     const table = EditableDatatable.create(`#table-visibility-group`, {
         route: Routing.generate(`settings_visibility_group_api`, true),
@@ -686,11 +721,13 @@ function initializeVisibilityGroup($container, canEdit) {
         onEditStop: () => {
             $managementButtons.addClass('d-none');
             $tableHeader.removeClass('d-none');
+
+            changePageTitle($container.find('.wii-title'), false);
         },
         columns: [
             {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
-            {data: `label`, title: `Libellé`},
-            {data: `description`, title: `Description`},
+            {data: `label`, title: `Libellé`, required: true},
+            {data: `description`, title: `Description`, required: true},
             {data: `actif`, title: `Actif`},
         ],
         form: {
@@ -703,5 +740,54 @@ function initializeVisibilityGroup($container, canEdit) {
 
     $addButton.on(`click`, function() {
         table.addRow(true);
+        changePageTitle($container.find('.wii-title'), true);
+    });
+}
+
+function appendSelectOptions(typeSelect, locationSelect, type, location) {
+    typeSelect
+        .append(new Option(type.label, type.id, false, true))
+        .trigger(`change`);
+
+    locationSelect
+        .append(new Option(location.label, location.id, false, true))
+        .trigger(`change`);
+}
+
+function triggerReminderEmails($button) {
+    $button.pushLoader(`primary`);
+    $.post(Routing.generate(`trigger_reminder_emails`), true).then(({success, msg}) => {
+        $button.popLoader()
+        Flash.add(success ? `success` : `danger`, msg);
+    });
+}
+
+function changePageTitle($title, add) {
+    $title.text(add ? 'Ajouter des groupes de visibilité' : 'Groupe de visibilité');
+}
+
+function saveTranslations($button) {
+    $button.pushLoader(`white`);
+    let $inputs = $('#translation').find('.translate');
+    let data = [];
+    $inputs.each(function () {
+        let name = $(this).attr('name');
+        let val = $(this).val();
+        data.push({id: name, val: val});
+    });
+
+    let path = Routing.generate('save_translations');
+    const $spinner = $('#spinnerSaveTranslations');
+    showBSAlert('Mise à jour de votre personnalisation des libellés : merci de patienter.', 'success', false);
+    loadSpinner($spinner);
+    $.post(path, JSON.stringify(data), (resp) => {
+        $button.popLoader();
+        $('html,body').animate({scrollTop: 0});
+        if (resp) {
+            location.reload();
+        } else {
+            hideSpinner($spinner);
+            showBSAlert('Une erreur est survenue lors de la personnalisation des libellés.', 'danger');
+        }
     });
 }

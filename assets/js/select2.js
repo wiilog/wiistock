@@ -30,6 +30,7 @@ const ROUTES = {
     keyboardPacks: `ajax_select_keyboard_pack`,
     businessUnit: `ajax_select_business_unit`,
     carrier: 'ajax_select_carrier',
+    types: 'ajax_select_types',
 }
 
 const INSTANT_SELECT_TYPES = {
@@ -72,7 +73,6 @@ export default class Select2 {
                     if (!ROUTES[type]) {
                         console.error(`No select route found for ${type}`);
                     }
-
                     config.ajax = {
                         url: Routing.generate(ROUTES[type]),
                         dataType: `json`,
@@ -92,17 +92,21 @@ export default class Select2 {
                                 };
                             } else {
                                 $search.removeClass(`is-invalid`);
-                                $element.attr("data-length", data.results.length);
+
+                                if(data.availableResults) {
+                                    $element.attr("data-length", data.availableResults);
+                                }
+
                                 return data;
                             }
                         }
                     };
 
-                    if (!INSTANT_SELECT_TYPES[type]) {
-                        config.minimumInputLength = 1;
+                    if ($element.is(`[data-min-length]`) || !INSTANT_SELECT_TYPES[type]) {
+                        const minLength = $element.data('min-length');
+                        config.minimumInputLength = minLength !== undefined ? minLength : 1;
                     }
                 }
-
                 const allowClear = !($element.is(`[multiple]`) || $element.is(`[data-no-empty-option]`));
 
                 $element.select2({
@@ -170,6 +174,12 @@ export default class Select2 {
                         .on(`keyup.select2-save-search`, `.select2-dropdown .select2-search__field`, () => {
                             search = $searchField.val();
                         });
+
+                    if ($element.is(`[data-no-search]`)) {
+                        $element.siblings('.select2-container')
+                            .find('.select2-dropdown .select2-search')
+                            .addClass('d-none') ;
+                    }
                 });
 
                 $element.on('select2:close', function (e) {

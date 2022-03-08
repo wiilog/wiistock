@@ -91,6 +91,8 @@ function initTableRefArticle() {
             pageTables.on('responsive-resize', function () {
                 resizeTable();
             });
+
+            window.pageTables = pageTables;
             return pageTables;
         });
 }

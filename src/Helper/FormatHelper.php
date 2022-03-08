@@ -10,6 +10,7 @@ use App\Entity\FreeField;
 use App\Entity\Handling;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorMessage;
+use App\Entity\LocationGroup;
 use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\ReferenceArticle;
@@ -30,7 +31,7 @@ class FormatHelper {
         4 => "Thursday",
         5 => "Friday",
         6 => "Saturday",
-        0 => "Sunday",
+        7 => "Sunday",
     ];
 
     public const WEEK_DAYS = [
@@ -40,7 +41,7 @@ class FormatHelper {
         4 => "Jeudi",
         5 => "Vendredi",
         6 => "Samedi",
-        0 => "Dimanche",
+        7 => "Dimanche",
     ];
 
     public const MONTHS = [
@@ -129,6 +130,10 @@ class FormatHelper {
 
     public static function location(?Emplacement $location, $else = "") {
         return $location ? $location->getLabel() : $else;
+    }
+
+    public static function locationGroup(?LocationGroup $locationGroup, $else = "") {
+        return $locationGroup ? $locationGroup->getLabel() : $else;
     }
 
     public static function user(?Utilisateur $user, $else = "") {

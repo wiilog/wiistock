@@ -2,15 +2,16 @@
 
 namespace App\Entity;
 
+use App\Repository\MenuRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\MenuRepository')]
+#[ORM\Entity(repositoryClass: MenuRepository::class)]
 class Menu {
 
     const DASHBOARDS = 'dashboard';
-    const TRACA = 'tracabilité';
+    const TRACA = 'traçabilité';
     const QUALI = 'qualité';
     const DEM = 'demande';
     const ORDRE = 'ordre';
@@ -30,6 +31,9 @@ class Menu {
 
     #[ORM\Column(type: 'string', nullable: true)]
     private ?string $translation = null;
+
+    #[ORM\Column(type: 'integer', nullable: true)]
+    private ?int $sorting = null;
 
     #[ORM\OneToMany(targetEntity: SubMenu::class, mappedBy: 'menu')]
     private Collection $subMenus;
@@ -62,6 +66,15 @@ class Menu {
 
     public function setTranslation(?string $translation): Menu {
         $this->translation = $translation;
+        return $this;
+    }
+
+    public function getSorting(): ?int {
+        return $this->sorting;
+    }
+
+    public function setSorting(?int $sorting): self {
+        $this->sorting = $sorting;
         return $this;
     }
 

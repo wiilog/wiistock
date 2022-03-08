@@ -6,6 +6,7 @@ use App\Entity\Emplacement;
 use App\Entity\IOT\Sensor;
 use App\Entity\LocationGroup;
 use App\Entity\Pack;
+use App\Entity\TrackingMovement;
 use DateTimeInterface;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
@@ -555,57 +556,43 @@ class PackRepository extends EntityRepository
     }
 
     /**
+     * @param int[] $waitingDays Number of days returned packs are waiting on their delivery point
      * @return Pack[]
      */
-    public function findOngoingOnDeliveryPoint(): array {
-        return $this->createQueryBuilder('pack')
+    public function findOngoingPacksOnDeliveryPoints(array $waitingDays): array {
+        if (empty($waitingDays)) {
+            throw new \RuntimeException("waitingDays shouldn't be empty");
+        }
+
+        $subQuery = $this->createQueryBuilder('pack')
+            ->addSelect('DATEDIFF(NOW(), IF(dropGroupLocation.id IS NULL, lastDrop.datetime, MIN(movement.datetime))) AS packWaitingDays')
+
             ->join('pack.lastDrop', 'lastDrop')
             ->join('pack.arrivage', 'arrival')
             ->join('lastDrop.emplacement', 'dropLocation')
+            ->leftJoin('dropLocation.locationGroup', 'dropGroupLocation')
+
+            ->join('pack.trackingMovements', 'movement')
+            ->join('movement.emplacement', 'movementLocation')
+            ->join('movement.type', 'movementType')
+            ->leftJoin('movementLocation.locationGroup', 'locationGroup')
+
             ->andWhere('arrival IS NOT NULL')
             ->andWhere('arrival.destinataire IS NOT NULL')
             ->andWhere('dropLocation.isDeliveryPoint = true')
+
+            ->andWhere('dropGroupLocation.id IS NULL OR dropGroupLocation.id = locationGroup.id')
+            ->andWhere('movementType.code = :dropType')
+
+            ->groupBy('pack')
+
+            ->having("packWaitingDays IN (:waitingDays)")
+
+            ->setParameter('dropType', TrackingMovement::TYPE_DEPOSE)
+            ->setParameter('waitingDays', $waitingDays);
+
+        return $subQuery
             ->getQuery()
             ->getResult();
-    }
-
-    /**
-     * Returns the delay (DateInterval) since the given pack is on its location group.
-     * If the current pack location has no group we take the delay since the pack is on the location.
-     */
-    public function getFirstDropForCurrentOngoing(Pack $pack): ?DateTime {
-        $lastDrop = $pack->getLastDrop();
-
-        if ($lastDrop) {
-            $location = $lastDrop->getEmplacement();
-            $locationGroup = $location ? $location->getLocationGroup() : null;
-
-            if ($locationGroup) {
-                $result = $this->createQueryBuilder('pack')
-                    ->select('MIN(movement.datetime) AS date')
-                    ->join('pack.trackingMovements', 'movement')
-                    ->join('movement.emplacement', 'location')
-                    ->join('location.locationGroup', 'locationGroup')
-                    ->andWhere('pack = :pack')
-                    ->andWhere('location.locationGroup = :locationGroup')
-                    ->setParameter('pack', $pack)
-                    ->setParameter('locationGroup', $locationGroup)
-                    ->setMaxResults(1)
-                    ->getQuery()
-                    ->getSingleScalarResult();
-
-                $arrivalDateOnGroup = $result
-                    ? new DateTime($result)
-                    : null;
-            }
-            else {
-                $arrivalDateOnGroup = $lastDrop->getDatetime();
-            }
-        }
-        else {
-            $arrivalDateOnGroup = null;
-        }
-
-        return $arrivalDateOnGroup;
     }
 }

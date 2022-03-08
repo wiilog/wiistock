@@ -23,7 +23,7 @@
             {{ form.select(setting('MVT_DEPOSE_DESTINATION'), "Emplacement de destination des arrivages", false, {
                 labelClass: 'wii-field-name',
                 value: location ? location.id,
-                items: location ? [{value: location.id, text: location.label}],
+                items: location ? [{value: location.id, label: location.label}],
                 type: 'location'
             }) }}
         </div>
@@ -34,7 +34,7 @@
             {{ form.select(setting('DROP_OFF_LOCATION_IF_CUSTOMS'), 'Emplacement de dépose des arrivages si champ "douane" coché', false, {
                 labelClass: 'wii-field-name',
                 value: location ? location.id,
-                items: location ? [{value: location.id, text: location.label}],
+                items: location ? [{value: location.id, label: location.label}],
                 type: 'location'
             }) }}
         </div>
@@ -55,7 +55,7 @@
             {{ form.select(setting('DROP_OFF_LOCATION_IF_EMERGENCY'), 'Emplacement de dépose des arrivages si urgence détectée', false, {
                 labelClass: 'wii-field-name',
                 value: location ? location.id,
-                items: location ? [{value: location.id, text: location.label}],
+                items: location ? [{value: location.id, label: location.label}],
                 type: 'location'
             }) }}
         </div>

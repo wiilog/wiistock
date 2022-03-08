@@ -11,8 +11,12 @@
     <div class="row settings-menu">
         {% for category_key, category in settings %}
             {% set settings_length = category.menus | length %}
-            {% set batched_settings = category.menus | batch(settings_length/2) %}
-            {% set ordered_settings = interleave(batched_settings[0], batched_settings[1] ?? []) %}
+            {% if settings_length > 4 %}
+                {% set batched_settings = category.menus | batch(settings_length/2) %}
+                {% set ordered_settings = interleave(batched_settings[0], batched_settings[1] ?? []) %}
+            {% else %}
+                {% set ordered_settings = category.menus %}
+            {% endif %}
 
             {% if category.right is not defined or hasRight(constant('App\\Entity\\Menu::PARAM'), category.right) %}
                 <div class="col-md-4 col-12 p-3">
@@ -21,10 +25,14 @@
                         <div class="settings-menus">
                             <div class="title">{{ category.label }}</div>
                             {% for menu, label in ordered_settings %}
-                                <a href="{{ path(label.route is defined ? label.route : 'settings_item', label.route is not defined ? {category: category_key, menu, submenu: submenu ?? null} : []) }}"
-                                   class="settings-item pb-1 {{ category.menus | length <= 4 ? 'full-size' }}">
-                                    {{ label is iterable ? label.label : label }}
-                                </a>
+                                {% if label is not iterable
+                                    or label.environment is not defined
+                                    or app.environment in label.environment %}
+                                    <a href="{{ path(label.route is defined ? label.route : 'settings_item', label.route is not defined ? {category: category_key, menu, submenu: submenu ?? null} : []) }}"
+                                       class="settings-item pb-1 {{ category.menus | length <= 4 ? 'full-size' }}">
+                                        {{ label is iterable ? label.label : label }}
+                                    </a>
+                                {% endif %}
                             {% endfor %}
                         </div>
                     </div>

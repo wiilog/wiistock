@@ -109,6 +109,8 @@ class SelectController extends AbstractController {
         $alreadyDefinedTypes = [];
         if($request->query->has('alreadyDefinedTypes')) {
             $alreadyDefinedTypes = explode(";", $request->query->get('alreadyDefinedTypes'));
+        } else if($request->query->has('deliveryType')) {
+            $alreadyDefinedTypes = $request->query->get('deliveryType');
         }
 
         $allTypesOption = [];
@@ -119,16 +121,18 @@ class SelectController extends AbstractController {
             ]];
         }
 
-        $results = $manager->getRepository(Type::class)->getForSelect(
+        $typeRepository = $manager->getRepository(Type::class);
+        $results = $typeRepository->getForSelect(
             CategoryType::DEMANDE_LIVRAISON,
             $request->query->get("term"),
-            $alreadyDefinedTypes
+            ['alreadyDefinedTypes' => $alreadyDefinedTypes]
         );
 
         $results = array_merge($results, $allTypesOption);
 
         return $this->json([
             "results" => $results,
+            "availableResults" => $typeRepository->countAvailableForSelect(CategoryType::DEMANDE_LIVRAISON, ['alreadyDefinedTypes' => $alreadyDefinedTypes]),
         ]);
     }
 
@@ -138,6 +142,25 @@ class SelectController extends AbstractController {
     public function collectType(Request $request, EntityManagerInterface $manager): Response {
         $results = $manager->getRepository(Type::class)->getForSelect(
             CategoryType::DEMANDE_COLLECTE,
+            $request->query->get("term")
+        );
+
+        return $this->json([
+            "results" => $results,
+        ]);
+    }
+
+    /**
+     * @Route("/select/types", name="ajax_select_types", options={"expose": true})
+     */
+    public function types(Request                $request,
+                          EntityManagerInterface $entityManager): Response {
+        $typeRepository = $entityManager->getRepository(Type::class);
+
+        $categoryType = $request->query->get('categoryType');
+
+        $results = $typeRepository->getForSelect(
+            $categoryType,
             $request->query->get("term")
         );
 

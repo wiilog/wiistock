@@ -1,0 +1,22 @@
+<div class="row">
+    <div class="col-6">
+        <div class="form-group">
+            <label class="wii-field-name">Type de demande/ordre</label>
+            <p class="wii-body-text">{{ constant('App\\Service\\NotificationService::READABLE_TYPES')[notification_template.type] }}</p>
+        </div>
+
+        <div class="form-group">
+            <label class="wii-field-name">Notification</label>
+            <textarea class="form-control data" name="content" rows="4">{{ notification_template.content }}</textarea>
+        </div>
+
+        {% include 'variables_dictionary.html.twig' %}
+    </div>
+    <div class="col-6">
+        <label class="wii-field-name">Exemple de notification</label>
+        <br>
+        <div class="phone-example">
+            <div class="notification"></div>
+        </div>
+    </div>
+</div>

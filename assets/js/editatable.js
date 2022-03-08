@@ -1,9 +1,10 @@
+import WysiwygManager from "./wysiwyg-manager";
+
 export const MODE_NO_EDIT = 1;
-export const MODE_MANUAL = 2;
-export const MODE_CLICK_EDIT = 3;
-export const MODE_ADD_ONLY = 4;
-export const MODE_EDIT = 5;
-export const MODE_CLICK_EDIT_AND_ADD = 6;
+export const MODE_CLICK_EDIT = 2;
+export const MODE_ADD_ONLY = 3;
+export const MODE_EDIT = 4;
+export const MODE_CLICK_EDIT_AND_ADD = 5;
 
 export const SAVE_FOCUS_OUT = 1;
 export const SAVE_MANUALLY = 2;
@@ -23,8 +24,18 @@ export default class EditableDatatable {
     static create(id, config) {
         const $element = $(id);
 
+        $element.closest(`.wii-box`).arrive(`.wii-one-line-wysiwyg`, function() {
+            WysiwygManager.initializeOneLineWYSIWYG($(document));
+        });
+
         if(config.name) {
             $element.attr(`data-table-processing`, config.name)
+        }
+
+        for(const column of config.columns) {
+            if(column.required) {
+                column.title += `<span class="d-none required-mark">*</span>`;
+            }
         }
 
         const datatable = new EditableDatatable();
@@ -87,8 +98,10 @@ export default class EditableDatatable {
         }
 
         if(clear && this.state !== STATE_ADD) {
-            this.table.clear();
-            this.toggleEdit(STATE_ADD).then(() => drawNewRow());
+            this.toggleEdit(STATE_ADD, true).then(() => {
+                this.table.clear();
+                drawNewRow();
+            });
         } else {
             this.table.row(':last').remove();
             drawNewRow();
@@ -102,19 +115,19 @@ export default class EditableDatatable {
         }
     }
 
-    toggleEdit(state = this.state === STATE_VIEWING ? STATE_EDIT : STATE_VIEWING, reload = false, params = undefined) {
+    toggleEdit(state = this.state === STATE_VIEWING ? STATE_EDIT : STATE_VIEWING, reload = false, {params, rowIndex} = {}) {
         this.state = state;
 
         if(reload) {
             return new Promise((resolve) => {
                 this.table = initEditatable(this, () => {
-                    applyState(this, state, params);
+                    applyState(this, state, params, rowIndex);
                     resolve();
                 });
             });
         }
         else {
-            applyState(this, state, params);
+            applyState(this, state, params, rowIndex);
             return new Promise((resolve) => resolve());
         }
     }
@@ -137,27 +150,38 @@ export default class EditableDatatable {
     }
 }
 
-function applyState(datatable, state, params) {
+function applyState(datatable, state, params, rowIndex) {
     const {config, element: $element} = datatable;
     const $datatableWrapper = $element.closest(`.dataTables_wrapper`);
     const $datatablePaging = $datatableWrapper.find(`.datatable-paging`);
     const $requiredMarks = $datatableWrapper.find('.required-mark');
 
     if (state !== STATE_VIEWING) {
+        $requiredMarks.removeClass('d-none');
+        $datatablePaging.addClass('d-none');
+        $datatableWrapper.addClass(`current-editing`);
+
         if (config.onEditStart) {
             config.onEditStart();
         }
 
-        $requiredMarks.removeClass('d-none');
-        $datatablePaging.addClass('d-none');
+        if (rowIndex !== undefined) {
+            $datatableWrapper
+                .find(`.subentities-table tbody tr`)
+                .eq(rowIndex)
+                .find(`input:not([type=checkbox], [type=hidden]):first`)
+                .focus();
+        }
     } else {
+        $requiredMarks.addClass('d-none');
+        $datatablePaging.removeClass('d-none');
+        $datatableWrapper.removeClass(`current-editing`);
+
         if (config.onEditStop) {
             config.onEditStop(params);
         }
-
-        $requiredMarks.addClass('d-none');
-        $datatablePaging.removeClass('d-none');
     }
+
 }
 
 function initEditatable(datatable, onDatatableInit = null) {
@@ -170,6 +194,11 @@ function initEditatable(datatable, onDatatableInit = null) {
         const datatable = $element.DataTable();
         url = datatable.ajax.url();
         datatable.clear().destroy();
+
+        $element.closest(`.wii-box`)
+            .find(`.dataTables_filter`)
+            .closest(`.col-auto`)
+            .remove();
     }
     else {
         url = config.route;
@@ -199,11 +228,17 @@ function initEditatable(datatable, onDatatableInit = null) {
         searching: config.search && datatable.state === STATE_VIEWING || false,
         scrollY: false,
         scrollX: true,
+        autoWidth: false,
         drawCallback: () => {
-            $parent.find(`.dataTables_wrapper`).css(`overflow-x`, `scroll`);
+            const $parent = datatable.element.closest(`.wii-box`);
+
+            $parent.find(`.dataTables_wrapper`)
+                .css(`overflow-x`, `scroll`);
+
             $parent.find(`.dataTables_scrollBody, .dataTables_scrollHead`)
-                .css(`overflow`, `visible`)
-                .css(`overflow-y`, `visible`);
+                .css('overflow', `visible`)
+                .css('overflow-y', 'visible')
+                .css('position', 'relative');
 
             const $rows = $(datatable.table.rows().nodes());
             $rows.each(function() {
@@ -217,7 +252,7 @@ function initEditatable(datatable, onDatatableInit = null) {
                 if ($row.find(`.add-row`).exists()) {
                     $row
                         .off(`click.${id}.addRow`)
-                        .on(`click.${id}.addRow`, () => {
+                        .on(`click.${id}.addRow`, 'td', () => {
                             onAddRowClicked(datatable);
                         });
                 }
@@ -232,9 +267,11 @@ function initEditatable(datatable, onDatatableInit = null) {
             if(config.mode === MODE_CLICK_EDIT || config.mode === MODE_CLICK_EDIT_AND_ADD) {
                 $rows
                     .off(`click.${id}.startEdit`)
-                    .on(`click.${id}.startEdit`, function() {
+                    .on(`click.${id}.startEdit`, 'td:not(.no-interaction)', function() {
                         if(datatable.state === STATE_VIEWING) {
-                            datatable.toggleEdit(STATE_EDIT, true);
+                            const $row = $(this).parent();
+                            const rowIndex = $rows.index($row);
+                            datatable.toggleEdit(STATE_EDIT, true, {rowIndex});
                         }
                     });
                 }
@@ -270,12 +307,10 @@ function initEditatable(datatable, onDatatableInit = null) {
                 .find('.dataTables_filter input')
                 .addClass('form-control');
 
-            const data = datatable.table.rows().data();
-            $parent.find(`.dataTables_paginate, .dataTables_length`)
-                .parent()
-                .toggleClass(`d-none`, !data || data.length <= 10);
-            $('.dataTables_filter')
-                .toggleClass(`d-none`, !data || data.length <= 10);
+            const data = datatable.table.rows().count();
+            setTimeout(() => $parent
+                .find(`.datatable-paging, .dataTables_filter`)
+                .toggleClass(`d-none`, data <= 10), 0)
 
         },
         initComplete: () => {

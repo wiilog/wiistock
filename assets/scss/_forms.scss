@@ -1,5 +1,31 @@
 @import "variables";
 
+.attachment-item, .attachement {
+    display: flex;
+    align-items: center;
+    width: 45%;
+    border: $grey solid 1px;
+    border-radius: 5px;
+    padding: 5px 10px;
+    margin-top: 5px;
+
+    &:not(.show) {
+        justify-content: space-between;
+    }
+
+    a:first-of-type {
+        display: block;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+    }
+
+    svg {
+        color: $blue !important;
+        font-size: 0.8rem;
+    }
+}
+
 .increase-decrease-field {
     display: flex;
     flex-direction: row;
@@ -44,6 +70,24 @@
 
 $wii-switch-height: $input-height;
 
+.wii-switch-compact {
+    input, input + label {
+        padding: 0 1px;
+        font-size: 0.8rem;
+    }
+}
+
+.wii-switch-small {
+    .wii-switch {
+        width: 100%;
+    }
+
+    input, input + label {
+        padding: 0 6px;
+        flex: 1 1 auto;
+    }
+}
+
 .wii-switch {
     display: inline-flex;
     padding: 0;
@@ -68,11 +112,6 @@ $wii-switch-height: $input-height;
         font-weight: normal;
         transition: all 200ms linear;
         font-size: 1rem;
-
-        .wii-switch-compact & {
-            padding: 0 1px;
-            font-size: 0.8rem;
-        }
 
         .wii-icon {
             display: inline-block;

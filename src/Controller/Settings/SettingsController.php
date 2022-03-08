@@ -14,27 +14,39 @@ use App\Entity\FreeField;
 use App\Entity\Import;
 use App\Entity\InventoryCategory;
 use App\Entity\InventoryFrequency;
+use App\Entity\IOT\AlertTemplate;
+use App\Entity\IOT\RequestTemplate;
 use App\Entity\MailerServer;
 use App\Entity\Menu;
 use App\Entity\Setting;
 use App\Entity\Statut;
+use App\Entity\Translation;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Entity\WorkFreeDay;
 use App\Helper\FormatHelper;
+use App\Repository\IOT\AlertTemplateRepository;
+use App\Repository\IOT\RequestTemplateRepository;
+use App\Repository\TypeRepository;
+use App\Service\CacheService;
 use App\Service\SettingsService;
 use App\Service\SpecificService;
+use App\Service\StatusService;
+use App\Service\TranslationService;
 use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Annotation\Route;
+use Twig\Environment;
 use WiiCommon\Helper\Stream;
 
 /**
@@ -48,7 +60,14 @@ class SettingsController extends AbstractController {
     /** @Required */
     public SpecificService $specificService;
 
+    /** @Required */
+    public Environment $twig;
+
+    /** @Required */
     public KernelInterface $kernel;
+
+    /** @Required */
+    public StatusService $statusService;
 
     public const SETTINGS = [
         self::CATEGORY_GLOBAL => [
@@ -63,7 +82,7 @@ class SettingsController extends AbstractController {
                 self::MENU_CLIENT => [
                     "label" => "Client application",
                     "save" => true,
-                    "env" => ["preprod"],
+                    "environment" => ["dev", "preprod"],
                 ],
                 self::MENU_LABELS => [
                     "label" => "Étiquettes",
@@ -110,15 +129,15 @@ class SettingsController extends AbstractController {
                             "label" => "Livraisons",
                             "save" => true,
                         ],
-                        self::MENU_DELIVERY_REQUEST_TEMPLATES => ["label" => "Livraisons - Modèle de demande"],
+                        self::MENU_DELIVERY_REQUEST_TEMPLATES => ["label" => "Livraisons - Modèle de demande", "wrapped" => false],
                         self::MENU_DELIVERY_TYPES_FREE_FIELDS => ["label" => "Livraisons - Types et champs libres", "wrapped" => false],
                         self::MENU_COLLECTS => [
                             "label" => "Collectes",
                             "save" => true,
                         ],
-                        self::MENU_COLLECT_REQUEST_TEMPLATES => ["label" => "Collectes - Modèle de demande"],
+                        self::MENU_COLLECT_REQUEST_TEMPLATES => ["label" => "Collectes - Modèle de demande", "wrapped" => false],
                         self::MENU_COLLECT_TYPES_FREE_FIELDS => ["label" => "Collectes - Types et champs libres", "wrapped" => false],
-                        self::MENU_PURCHASE_STATUSES => ["label" => "Achats - Statut"],
+                        self::MENU_PURCHASE_STATUSES => ["label" => "Achats - Statuts"],
                     ],
                 ],
                 self::MENU_VISIBILITY_GROUPS => ["label" => "Groupes de visibilité"],
@@ -140,9 +159,12 @@ class SettingsController extends AbstractController {
                             "label" => "Réceptions - Champs fixes",
                             "save" => true,
                         ],
-                        self::MENU_RECEPTIONS_FREE_FIELDS => ["label" => "Réceptions - Champs libres"],
+                        self::MENU_FREE_FIELDS => ["label" => "Réceptions - Champs libres"],
                         self::MENU_DISPUTE_STATUSES => ["label" => "Litiges - Statuts"],
-                        self::MENU_DISPUTE_TYPES => ["label" => "Litiges - Types"],
+                        self::MENU_DISPUTE_TYPES => [
+                            "label" => "Litiges - Types",
+                            "save" => true,
+                        ],
                     ],
                 ],
             ],
@@ -159,7 +181,7 @@ class SettingsController extends AbstractController {
                             "label" => "Configurations",
                             "save" => true,
                         ],
-                        self::MENU_STATUSES => ["label" => "Statuts"],
+                        self::MENU_STATUSES => ["label" => "Statuts", "wrapped" => false],
                         self::MENU_FIXED_FIELDS => [
                             "label" => "Champs fixes",
                             "save" => true,
@@ -190,7 +212,10 @@ class SettingsController extends AbstractController {
                             "save" => true,
                             "discard" => true,
                         ],
-                        self::MENU_STATUSES => ["label" => "Statuts"],
+                        self::MENU_STATUSES => [
+                            "label" => "Statuts",
+                            "wrapped" => false,
+                        ],
                         self::MENU_FIXED_FIELDS => [
                             "label" => "Champs fixes",
                             "save" => true,
@@ -203,19 +228,27 @@ class SettingsController extends AbstractController {
                 self::MENU_MOVEMENTS => [
                     "label" => "Mouvements",
                     "menus" => [
+                        self::MENU_CONFIGURATIONS => [
+                            "label" => "Configurations",
+                            "save" => true,
+                        ],
                         self::MENU_FREE_FIELDS => ["label" => "Champs libres"],
                     ],
                 ],
                 self::MENU_HANDLINGS => [
                     "label" => "Services",
                     "menus" => [
-                        self::MENU_STATUSES => ["label" => "Statuts"],
+                        self::MENU_CONFIGURATIONS => [
+                            "label" => "Configurations",
+                            "save" => true,
+                        ],
+                        self::MENU_STATUSES => ["label" => "Statuts", "wrapped" => false],
                         self::MENU_FIXED_FIELDS => [
                             "label" => "Champs fixes",
                             "save" => true,
                             "discard" => true,
                         ],
-                        self::MENU_REQUEST_TEMPLATES => ["label" => "Modèles de demande"],
+                        self::MENU_REQUEST_TEMPLATES => ["label" => "Modèles de demande", "wrapped" => false],
                         self::MENU_TYPES_FREE_FIELDS => ["label" => "Types et champs libres", "wrapped" => false],
                     ],
                 ],
@@ -272,7 +305,7 @@ class SettingsController extends AbstractController {
             "icon" => "menu-notification",
             "right" => Action::SETTINGS_NOTIFICATIONS,
             "menus" => [
-                self::MENU_ALERTS => ["label" => "Alertes"],
+                self::MENU_ALERTS => ["label" => "Alertes", "wrapped" => false],
                 self::MENU_PUSH_NOTIFICATIONS => ["label" => "Notifications push"],
             ],
         ],
@@ -282,16 +315,16 @@ class SettingsController extends AbstractController {
             "right" => Action::SETTINGS_USERS,
             "menus" => [
                 self::MENU_LANGUAGES => [
-                    "label" => "Langues",
-                    "route" => "settings_language",
-                ],
-                self::MENU_USERS => [
-                    "label" => "Utilisateurs",
+                    "label" => "Personnalisation des libellés",
                     "save" => false,
                 ],
                 self::MENU_ROLES => [
                     "label" => "Rôles",
-                    "save" => false
+                    "save" => false,
+                ],
+                self::MENU_USERS => [
+                    "label" => "Utilisateurs",
+                    "save" => false,
                 ],
             ],
         ],
@@ -333,7 +366,7 @@ class SettingsController extends AbstractController {
     private const MENU_CLIENT = "client";
     private const MENU_OFF_DAYS = "jours_non_travailles";
     private const MENU_LABELS = "etiquettes";
-    private const MENU_MAIL_SERVER = "serveur_mail";
+    private const MENU_MAIL_SERVER = "serveur_email";
 
     private const MENU_CONFIGURATIONS = "configurations";
     private const MENU_VISIBILITY_GROUPS = "groupes_visibilite";
@@ -410,8 +443,13 @@ class SettingsController extends AbstractController {
      * @Route("/utilisateurs/langues", name="settings_language")
      * @HasPermission({Menu::PARAM, Action::SETTINGS_USERS})
      */
-    public function language(): Response {
-        return $this->render("settings/utilisateurs/langues.html.twig");
+    public function language(EntityManagerInterface $manager): Response {
+        $translationRepository = $manager->getRepository(Translation::class);
+
+        return $this->render("settings/utilisateurs/langues.html.twig", [
+            'translations' => $translationRepository->findAll(),
+            'menusTranslations' => array_column($translationRepository->getMenus(), '1')
+        ]);
     }
 
     /**
@@ -452,6 +490,22 @@ class SettingsController extends AbstractController {
         ]);
     }
 
+    private function typeGenerator(string $category, $checkFirst = true): array {
+        $typeRepository = $this->manager->getRepository(Type::class);
+        $types = Stream::from($typeRepository->findByCategoryLabels([$category]))
+            ->map(fn(Type $type) => [
+                "label" => $type->getLabel(),
+                "value" => $type->getId(),
+            ])
+            ->toArray();
+
+        if ($checkFirst && !empty($types)) {
+            $types[0]["checked"] = true;
+        }
+
+        return $types;
+    }
+
     public function customValues(): array {
         $mailerServerRepository = $this->manager->getRepository(MailerServer::class);
         $typeRepository = $this->manager->getRepository(Type::class);
@@ -459,6 +513,9 @@ class SettingsController extends AbstractController {
         $freeFieldRepository = $this->manager->getRepository(FreeField::class);
         $frequencyRepository = $this->manager->getRepository(InventoryFrequency::class);
         $fixedFieldRepository = $this->manager->getRepository(FieldsParam::class);
+        $requestTemplateRepository = $this->manager->getRepository(RequestTemplate::class);
+        $alertTemplateRepository = $this->manager->getRepository(AlertTemplate::class);
+        $translationRepository = $this->manager->getRepository(Translation::class);
 
         return [
             self::CATEGORY_GLOBAL => [
@@ -499,36 +556,24 @@ class SettingsController extends AbstractController {
                 ],
                 self::MENU_REQUESTS => [
                     self::MENU_DELIVERIES => fn() => [
+                        "deliveryTypesCount" => $typeRepository->countAvailableForSelect(CategoryType::DEMANDE_LIVRAISON, []),
                         "deliveryTypeSettings" => json_encode($this->getDefaultDeliveryLocationsByType($this->manager)),
                     ],
-                    self::MENU_DELIVERY_TYPES_FREE_FIELDS => function() use ($typeRepository) {
-                        $types = Stream::from($typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]))
-                            ->map(fn(Type $type) => [
-                                "label" => $type->getLabel(),
-                                "value" => $type->getId(),
-                            ])
-                            ->toArray();
-
-                        $types[0]["checked"] = true;
-
-                        return [
-                            "types" => $types,
-                        ];
+                    self::MENU_DELIVERY_REQUEST_TEMPLATES => function() use ($requestTemplateRepository, $typeRepository) {
+                        return $this->getRequestTemplates($typeRepository, $requestTemplateRepository, Type::LABEL_DELIVERY);
                     },
-                    self::MENU_COLLECT_TYPES_FREE_FIELDS => function() use ($typeRepository) {
-                        $types = Stream::from($typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]))
-                            ->map(fn(Type $type) => [
-                                "label" => $type->getLabel(),
-                                "value" => $type->getId(),
-                            ])
-                            ->toArray();
-
-                        $types[0]["checked"] = true;
-
-                        return [
-                            "types" => $types,
-                        ];
+                    self::MENU_COLLECT_REQUEST_TEMPLATES => function() use ($requestTemplateRepository, $typeRepository) {
+                        return $this->getRequestTemplates($typeRepository, $requestTemplateRepository, Type::LABEL_COLLECT);
                     },
+                    self::MENU_DELIVERY_TYPES_FREE_FIELDS => fn() => [
+                        'types' => $this->typeGenerator(CategoryType::DEMANDE_LIVRAISON)
+                    ],
+                    self::MENU_COLLECT_TYPES_FREE_FIELDS => fn() => [
+                        'types' => $this->typeGenerator(CategoryType::DEMANDE_COLLECTE),
+                    ],
+                    self::MENU_PURCHASE_STATUSES => fn() => [
+                        'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_PURCHASE_REQUEST),
+                    ],
                 ],
                 self::MENU_INVENTORIES => [
                     self::MENU_CATEGORIES => fn() => [
@@ -545,15 +590,14 @@ class SettingsController extends AbstractController {
                 ],
                 self::MENU_RECEPTIONS => [
                     self::MENU_RECEPTIONS_STATUSES => fn() => [
-                        "receptionStatuses" => $statusRepository->findByCategorieName(CategorieStatut::RECEPTION, 'displayOrder')
+                        "receptionStatuses" => $statusRepository->findByCategorieName(CategorieStatut::RECEPTION, 'displayOrder'),
                     ],
-                    self::MENU_DISPUTE_STATUSES => function() {
-                        $treated = Statut::TREATED;
-                        $notTreated = Statut::NOT_TREATED;
-                        return [
-                            "optionsSelect" => "<option/><option value='{$treated}'>Traité</option><option value='{$notTreated}'>A traité</option>",
-                        ];
-                    }
+                    self::MENU_DISPUTE_STATUSES => fn() => [
+                        'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_RECEPTION_DISPUTE),
+                    ],
+                    self::MENU_FREE_FIELDS => fn() => [
+                        "type" => $typeRepository->findOneByLabel(Type::LABEL_RECEPTION),
+                    ],
                 ]
             ],
             self::CATEGORY_TRACKING => [
@@ -562,13 +606,13 @@ class SettingsController extends AbstractController {
                         "types" => Stream::from($typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]))
                             ->map(fn(Type $type) => [
                                 "value" => $type->getId(),
-                                "text" => $type->getLabel(),
+                                "label" => $type->getLabel(),
                             ])->toArray(),
                         "statuses" => Stream::from($statusRepository->findByCategorieName(CategorieStatut::DISPATCH))
                             ->filter(fn(Statut $status) => $status->getState() === Statut::NOT_TREATED)
                             ->map(fn(Statut $status) => [
                                 "value" => $status->getId(),
-                                "text" => $status->getNom(),
+                                "label" => $status->getNom(),
                             ])->toArray(),
                     ],
                     self::MENU_FIXED_FIELDS => function() use ($fixedFieldRepository) {
@@ -580,7 +624,7 @@ class SettingsController extends AbstractController {
                                 "field" => $emergencyField->getId(),
                                 "elements" => Stream::from($emergencyField->getElements())
                                     ->map(fn(string $element) => [
-                                        "text" => $element,
+                                        "label" => $element,
                                         "value" => $element,
                                         "selected" => true,
                                     ])
@@ -590,7 +634,7 @@ class SettingsController extends AbstractController {
                                 "field" => $businessField->getId(),
                                 "elements" => Stream::from($businessField->getElements())
                                     ->map(fn(string $element) => [
-                                        "text" => $element,
+                                        "label" => $element,
                                         "value" => $element,
                                         "selected" => true,
                                     ])
@@ -598,20 +642,14 @@ class SettingsController extends AbstractController {
                             ],
                         ];
                     },
-                    self::MENU_TYPES_FREE_FIELDS => function() use ($typeRepository) {
-                        $types = Stream::from($typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]))
-                            ->map(fn(Type $type) => [
-                                "label" => $type->getLabel(),
-                                "value" => $type->getId(),
-                            ])
-                            ->toArray();
-
-                        $types[0]["checked"] = true;
-
-                        return [
-                            "types" => $types,
-                        ];
-                    },
+                    self::MENU_TYPES_FREE_FIELDS => fn() => [
+                        'types' => $this->typeGenerator(CategoryType::DEMANDE_DISPATCH),
+                    ],
+                    self::MENU_STATUSES => fn() => [
+                        'types' => $this->typeGenerator(CategoryType::DEMANDE_DISPATCH, false),
+                        'categoryType' => CategoryType::DEMANDE_DISPATCH,
+                        'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_DISPATCH),
+                    ],
                 ],
                 self::MENU_ARRIVALS => [
                     self::MENU_FIXED_FIELDS => function() use ($fixedFieldRepository) {
@@ -622,7 +660,7 @@ class SettingsController extends AbstractController {
                                 "field" => $field->getId(),
                                 "elements" => Stream::from($field->getElements())
                                     ->map(fn(string $element) => [
-                                        "text" => $element,
+                                        "label" => $element,
                                         "value" => $element,
                                         "selected" => true,
                                     ])
@@ -630,28 +668,17 @@ class SettingsController extends AbstractController {
                             ],
                         ];
                     },
-                    self::MENU_TYPES_FREE_FIELDS => function() use ($typeRepository) {
-                        $types = Stream::from($typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]))
-                            ->map(fn(Type $type) => [
-                                "label" => $type->getLabel(),
-                                "value" => $type->getId(),
-                            ])
-                            ->toArray();
-
-                        $types[0]["checked"] = true;
-
-                        return [
-                            "types" => $types,
-                        ];
-                    },
-                    self::MENU_DISPUTE_STATUSES => function() {
-                        $treated = Statut::TREATED;
-                        $notTreated = Statut::NOT_TREATED;
-                        return [
-                            "optionsSelect" => "<option/><option value='{$treated}'>Traité</option><option value='{$notTreated}'>A traité</option>",
-
-                        ];
-                    }
+                    self::MENU_TYPES_FREE_FIELDS => fn() => [
+                        'types' => $this->typeGenerator(CategoryType::ARRIVAGE),
+                    ],
+                    self::MENU_DISPUTE_STATUSES => fn() => [
+                        'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_ARRIVAL_DISPUTE),
+                    ],
+                    self::MENU_STATUSES => fn() => [
+                        'types' => $this->typeGenerator(CategoryType::ARRIVAGE, false),
+                        'categoryType' => CategoryType::ARRIVAGE,
+                        'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_ARRIVAL),
+                    ],
                 ],
                 self::MENU_HANDLINGS => [
                     self::MENU_FIXED_FIELDS => function() use ($fixedFieldRepository) {
@@ -662,7 +689,7 @@ class SettingsController extends AbstractController {
                                 "field" => $field->getId(),
                                 "elements" => Stream::from($field->getElements())
                                     ->map(fn(string $element) => [
-                                        "text" => $element,
+                                        "label" => $element,
                                         "value" => $element,
                                         "selected" => true,
                                     ])
@@ -670,20 +697,17 @@ class SettingsController extends AbstractController {
                             ],
                         ];
                     },
-                    self::MENU_TYPES_FREE_FIELDS => function() use ($typeRepository) {
-                        $types = Stream::from($typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]))
-                            ->map(fn(Type $type) => [
-                                "label" => $type->getLabel(),
-                                "value" => $type->getId(),
-                            ])
-                            ->toArray();
-
-                        $types[0]["checked"] = true;
-
-                        return [
-                            "types" => $types,
-                        ];
+                    self::MENU_TYPES_FREE_FIELDS => fn() => [
+                        'types' => $this->typeGenerator(CategoryType::DEMANDE_HANDLING),
+                    ],
+                    self::MENU_REQUEST_TEMPLATES => function() use ($requestTemplateRepository, $typeRepository) {
+                        return $this->getRequestTemplates($typeRepository, $requestTemplateRepository, Type::LABEL_HANDLING);
                     },
+                    self::MENU_STATUSES => fn() => [
+                        'types' => $this->typeGenerator(CategoryType::DEMANDE_HANDLING, false),
+                        'categoryType' => CategoryType::DEMANDE_HANDLING,
+                        'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_HANDLING),
+                    ],
                 ],
                 self::MENU_MOVEMENTS => [
                     self::MENU_FREE_FIELDS => fn() => [
@@ -715,9 +739,18 @@ class SettingsController extends AbstractController {
                     ),
                 ],
             ],
+            self::CATEGORY_NOTIFICATIONS => [
+                self::MENU_ALERTS => function() use ($alertTemplateRepository) {
+                    return $this->getAlertTemplates($alertTemplateRepository);
+                },
+            ],
             self::CATEGORY_USERS => [
                 self::MENU_USERS => fn() => [
                     "newUser" => new Utilisateur(),
+                ],
+                self::MENU_LANGUAGES => fn() => [
+                    'translations' => $translationRepository->findAll(),
+                    'menusTranslations' => array_column($translationRepository->getMenus(), '1')
                 ],
             ],
         ];
@@ -860,8 +893,8 @@ class SettingsController extends AbstractController {
         if($edit) {
             $fixedFieldRepository = $this->manager->getRepository(FieldsParam::class);
 
-            $label = $type ? $type->getLabel() : null;
-            $description = $type ? $type->getDescription() : null;
+            $label = $type?->getLabel();
+            $description = $type?->getDescription();
             $color = $type ? $type->getColor() : "#000000";
 
             $data = [
@@ -915,20 +948,19 @@ class SettingsController extends AbstractController {
 
                 $data[] = [
                     "label" => "Envoi d'un email au demandeur",
-                    "value" => "<input name='pushNotifications' type='checkbox' class='data form-control mt-1' $mailsEnabled>",
+                    "value" => "<input name='mailRequester' type='checkbox' class='data form-control mt-1' $mailsEnabled>",
                 ];
             }
-
-            if($category === CategoryType::DEMANDE_DISPATCH) {
+            else if($category === CategoryType::DEMANDE_DISPATCH) {
                 $pickLocationOption = $type && $type->getPickLocation() ? "<option value='{$type->getPickLocation()->getId()}'>{$type->getPickLocation()->getLabel()}</option>" : "";
                 $dropLocationOption = $type && $type->getDropLocation() ? "<option value='{$type->getDropLocation()->getId()}'>{$type->getDropLocation()->getLabel()}</option>" : "";
 
                 $data = array_merge($data, [[
                     "label" => "Emplacement de prise par défaut",
-                    "value" => "<select name='pickLocation' data-s2='location' class='data form-control'>$pickLocationOption</select>",
+                    "value" => "<select name='pickLocation' data-s2='location' data-parent='body' class='data form-control'>$pickLocationOption</select>",
                 ], [
                     "label" => "Emplacement de dépose par défaut",
-                    "value" => "<select name='dropLocation' data-s2='location' class='data form-control'>$dropLocationOption</select>",
+                    "value" => "<select name='dropLocation' data-s2='location' data-parent='body' class='data form-control'>$dropLocationOption</select>",
                 ]]);
             }
 
@@ -959,7 +991,7 @@ class SettingsController extends AbstractController {
 
                 $data = array_merge($data, [
                     [
-                        'breakline' => true
+                        'breakline' => true,
                     ],
                     [
                         "label" => "Notifications push",
@@ -967,7 +999,7 @@ class SettingsController extends AbstractController {
                     ],
                     [
                         "label" => "Pour les valeurs",
-                        "value" => "<select name='notificationEmergencies' data-s2 data-no-empty-option multiple class='data form-control w-100'>$emergencyValues</select>",
+                        "value" => "<select name='notificationEmergencies' data-s2 data-parent='body' data-no-empty-option multiple class='data form-control w-100'>$emergencyValues</select>",
                         "hidden" => !$type || !$type->isNotificationsEnabled() || !$type->getNotificationsEmergencies(),
                     ],
                 ]);
@@ -1011,7 +1043,7 @@ class SettingsController extends AbstractController {
 
             if(in_array($category, [CategoryType::DEMANDE_HANDLING, CategoryType::DEMANDE_DISPATCH])) {
                 $hasNotificationsEmergencies = $type->isNotificationsEnabled() && $type->getNotificationsEmergencies();
-                if ($hasNotificationsEmergencies) {
+                if($hasNotificationsEmergencies) {
                     $data[] = [
                         "breakline" => true,
                     ];
@@ -1044,8 +1076,9 @@ class SettingsController extends AbstractController {
     /**
      * @Route("/champs-libres/api/{type}", name="settings_free_field_api", options={"expose"=true})
      */
-    public function freeFieldApi(Request $request, EntityManagerInterface $manager, ?Type $type = null): Response {
-        $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
+    public function freeFieldApi(Request $request, EntityManagerInterface $manager, UserService $userService, ?Type $type = null): Response {
+        $edit = $request->query->getBoolean("edit");
+        $hasEditRight = $userService->hasRightFunction(Menu::PARAM, Action::EDIT);
 
         $class = "form-control data";
 
@@ -1099,6 +1132,8 @@ class SettingsController extends AbstractController {
                             ],
                         ],
                     ]);
+
+                    $defaultValue = "<div class='wii-switch-small'>$defaultValue</div>";
                 }
             } else if($freeField->getTypage() === FreeField::TYPE_DATETIME || $freeField->getTypage() === FreeField::TYPE_DATE) {
                 $defaultValueDate = new DateTime(str_replace("/", "-", $freeField->getDefaultValue())) ?: null;
@@ -1166,7 +1201,8 @@ class SettingsController extends AbstractController {
             }
         }
 
-        if($edit || ($type && $type->getCategory()->getLabel() === CategoryType::MOUVEMENT_TRACA) || ($type && $type->getCategory()->getLabel() === CategoryType::SENSOR)) {
+        $typeFreePages = $type && in_array($type->getCategory()->getLabel(), [CategoryType::MOUVEMENT_TRACA, CategoryType::SENSOR, CategoryType::RECEPTION]);
+        if ($hasEditRight && ($edit || $typeFreePages)) {
             $rows[] = [
                 "actions" => "<span class='d-flex justify-content-start align-items-center add-row'><span class='wii-icon wii-icon-plus'></span></span>",
                 "label" => "",
@@ -1476,19 +1512,48 @@ class SettingsController extends AbstractController {
      * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK}, mode=HasPermission::IN_JSON)
      */
     public function deleteTypeLitige(EntityManagerInterface $entityManager, Type $entity): Response {
-        if($entity->getReceptions()->isEmpty()) {
+        if($entity->getDisputes()->isEmpty()) {
             $entityManager->remove($entity);
             $entityManager->flush();
             return $this->json([
                 "success" => true,
-                "msg" => "La ligne a bien été supprimée",
+                "msg" => "Le type de litige a bien été supprimé",
             ]);
         } else {
             return $this->json([
                 "success" => false,
-                "msg" => "Ce type de litige est lié à des réceptions. Vous ne pouvez pas le supprimer.",
+                "msg" => "Ce type de litige est utilisé, vous ne pouvez pas le supprimer.",
             ]);
         }
+    }
+
+    public function getRequestTemplates(TypeRepository $typeRepository, RequestTemplateRepository $requestTemplateRepository, string $templateType) {
+        $type = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::REQUEST_TEMPLATE, $templateType);
+
+        $templates = Stream::from($requestTemplateRepository->findBy(["type" => $type]))
+            ->map(fn(RequestTemplate $template) => [
+                "label" => $template->getName(),
+                "value" => $template->getId(),
+            ])
+            ->toArray();
+
+        return [
+            "type" => $templateType,
+            "templates" => $templates,
+        ];
+    }
+
+    public function getAlertTemplates(AlertTemplateRepository $alertTemplateRepository) {
+        $templates = Stream::from($alertTemplateRepository->findAll())
+            ->map(fn(AlertTemplate $template) => [
+                "label" => $template->getName(),
+                "value" => $template->getId(),
+            ])
+            ->toArray();
+
+        return [
+            "templates" => $templates,
+        ];
     }
 
     public function getDefaultDeliveryLocationsByType(EntityManagerInterface $entityManager): array {
@@ -1590,6 +1655,33 @@ class SettingsController extends AbstractController {
         ]);
     }
 
+    /**
+     * @Route("/personnalisation", name="save_translations", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
+     */
+    public function saveTranslations(Request $request,
+                                     EntityManagerInterface $entityManager,
+                                     TranslationService $translationService,
+                                     CacheService $cacheService): Response {
+        if($translations = json_decode($request->getContent(), true)) {
+            $translationRepository = $entityManager->getRepository(Translation::class);
+            foreach($translations as $translation) {
+                $translationObject = $translationRepository->find($translation['id']);
+                if($translationObject) {
+                    $translationObject
+                        ->setTranslation($translation['val'] ?: null)
+                        ->setUpdated(1);
+                } else {
+                    return new JsonResponse(false);
+                }
+            }
+            $entityManager->flush();
 
+            $cacheService->clear();
+            $translationService->generateTranslationsFile();
+            $translationService->cacheClearWarmUp();
 
+            return new JsonResponse(true);
+        }
+        throw new BadRequestHttpException();
+    }
 }

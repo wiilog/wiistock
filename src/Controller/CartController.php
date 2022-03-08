@@ -39,6 +39,7 @@ class CartController extends AbstractController
     public function cart(EntityManagerInterface $manager, GlobalParamService $globalParamService): Response {
         $typeRepository = $manager->getRepository(Type::class);
         $freeFieldRepository = $manager->getRepository(FreeField::class);
+        $settingRepository = $manager->getRepository(Setting::class);
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
@@ -81,31 +82,30 @@ class CartController extends AbstractController
             $referencesByBuyer[$buyerId]["references"][] = $reference;
         }
 
-
         ksort($referencesByBuyer);
 
         //add no buyer references at the end
-        array_push($referencesByBuyer, array_shift($referencesByBuyer));
+        $referencesByBuyer[] = array_shift($referencesByBuyer);
 
         $defaultDeliveryLocations = $globalParamService->getDefaultDeliveryLocationsByTypeId();
         $deliveryRequests = Stream::from($manager->getRepository(Demande::class)->getDeliveryRequestForSelect($currentUser))
             ->filter(fn(Demande $request) => $request->getType() && $request->getDestination())
             ->map(fn(Demande $request) => [
                 "value" => $request->getId(),
-                "text" => "{$request->getNumero()} - {$request->getType()->getLabel()} - {$request->getDestination()->getLabel()} - Créée le {$request->getCreatedAt()->format('d/m/Y H:i')}"
+                "label" => "{$request->getNumero()} - {$request->getType()->getLabel()} - {$request->getDestination()->getLabel()} - Créée le {$request->getCreatedAt()->format('d/m/Y H:i')}"
             ]);
 
         $collectRequests = Stream::from($manager->getRepository(Collecte::class)->getCollectRequestForSelect($currentUser))
             ->filter(fn(Collecte $request) => $request->getType() && $request->getPointCollecte())
             ->map(fn(Collecte $request) => [
                 "value" => $request->getId(),
-                "text" => "{$request->getNumero()} - {$request->getType()->getLabel()} - {$request->getPointCollecte()->getLabel()} - Créée le {$request->getDate()->format('d/m/Y H:i')}"
+                "label" => "{$request->getNumero()} - {$request->getType()->getLabel()} - {$request->getPointCollecte()->getLabel()} - Créée le {$request->getDate()->format('d/m/Y H:i')}"
             ]);
 
         $purchaseRequests = Stream::from($manager->getRepository(PurchaseRequest::class)->getPurchaseRequestForSelect($currentUser))
             ->map(fn(PurchaseRequest $request) => [
                 "value" => $request->getId(),
-                "text" => "{$request->getNumber()} - Créée le {$request->getCreationDate()->format('d/m/Y H:i')}",
+                "label" => "{$request->getNumber()} - Créée le {$request->getCreationDate()->format('d/m/Y H:i')}",
                 "number" => $request->getNumber(),
                 "requester" => $request->getRequester(),
                 "buyer" => $request->getBuyer(),
@@ -119,7 +119,9 @@ class CartController extends AbstractController
             "deliveryFreeFieldsTypes" => $deliveryFreeFields,
             "collectFreeFieldsTypes" => $collectFreeFields,
             "referencesByBuyer" => $referencesByBuyer,
-            "showTargetLocationPicking" => $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION)
+            "showTargetLocationPicking" => $settingRepository->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION),
+            "restrictedCollectLocations" => $settingRepository->getOneParamByLabel(Setting::MANAGE_LOCATION_COLLECTE_DROPDOWN_LIST),
+            "restrictedDeliveryLocations" => $settingRepository->getOneParamByLabel(Setting::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST),
         ]);
     }
 
@@ -210,19 +212,12 @@ class CartController extends AbstractController
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
 
-        switch ($data["requestType"]) {
-            case "delivery":
-                $response = $cartService->manageDeliveryRequest($data, $loggedUser, $entityManager);
-                break;
-            case "collect":
-                $response = $cartService->manageCollectRequest($data, $loggedUser, $entityManager);
-                break;
-            case "purchase":
-                $response = $cartService->managePurchaseRequest($data, $loggedUser, $entityManager);
-                break;
-            default:
-                throw new RuntimeException("Unsupported request type");
-        }
+        $response = match ($data["requestType"]) {
+            "delivery" => $cartService->manageDeliveryRequest($data, $loggedUser, $entityManager),
+            "collect" => $cartService->manageCollectRequest($data, $loggedUser, $entityManager),
+            "purchase" => $cartService->managePurchaseRequest($data, $loggedUser, $entityManager),
+            default => throw new RuntimeException("Unsupported request type"),
+        };
 
         if ($response["success"]) {
             $this->addFlash("success", $response['msg']);

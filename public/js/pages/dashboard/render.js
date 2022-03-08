@@ -733,10 +733,11 @@ function updateSimpleChartData(chart, data, label, stack = false,
                                {data: subData, label: lineChartLabel} = {data: undefined, label: undefined}, chartColors = []) {
     chart.data.datasets = [{data: [], label}];
     chart.data.labels = [];
-    const dataKeys = Object.keys(data).filter((key) => key !== 'stack');
-    if(data.chartData) {
-        delete data.chartData.hint;
+    if(data.hint) {
+        delete data.hint;
     }
+    const dataKeys = Object.keys(data).filter((key) => key !== 'stack');
+
     for(const key of dataKeys) {
         chart.data.labels.push(key);
         chart.data.datasets[0].data.push(data[key]);

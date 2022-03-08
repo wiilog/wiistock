@@ -1,4 +1,5 @@
 <?php
+//TODO WIIS-6693 supprimer le dossier des templates twig aussi ?
 
 namespace App\Controller\IOT;
 
@@ -28,7 +29,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
- * @Route("/parametrage/modele-demande")
+ * @Route("/ancien-parametrage/modele-demande")
  */
 class RequestTemplateController extends AbstractController
 {
@@ -128,8 +129,12 @@ class RequestTemplateController extends AbstractController
             ]);
         }
 
+        if (!($data = json_decode($request->getContent(), true))) {
+            $data = $request->request->all();
+        }
+
         $requestTemplate = $service->createRequestTemplate($data["type"]);
-        $service->updateRequestTemplate($requestTemplate, $request);
+        $service->updateRequestTemplate($requestTemplate, $data, $request->files->all());
 
         $manager->persist($requestTemplate);
         $manager->flush();
@@ -180,7 +185,11 @@ class RequestTemplateController extends AbstractController
 
         $requestTemplate = $requestTemplateRepository->find($data["id"]);
         if ($requestTemplate) {
-            $service->updateRequestTemplate($requestTemplate, $request);
+            if (!($data = json_decode($request->getContent(), true))) {
+                $data = $request->request->all();
+            }
+
+            $service->updateRequestTemplate($requestTemplate, $data, $request->files->all());
             $manager->flush();
 
             return $this->json([
@@ -302,7 +311,7 @@ class RequestTemplateController extends AbstractController
         $line = new RequestTemplateLine();
         $line->setRequestTemplate($requestTemplate);
 
-        $service->updateRequestTemplateLine($line, $data);
+        $service->updateRequestTemplateLine($line, $data, $request->files->all());
 
         $manager->persist($line);
         $manager->flush();
@@ -344,7 +353,7 @@ class RequestTemplateController extends AbstractController
 
         $line = $requestTemplateRepository->find($data["id"]);
         if ($line) {
-            $service->updateRequestTemplateLine($line, $data);
+            $service->updateRequestTemplateLine($line, $data, $request->files->all());
             $manager->flush();
 
             return $this->json([

@@ -22,7 +22,7 @@ function generateFreeFieldForm() {
         elements: `<input type="text" name="elements" required class="form-control data d-none" data-global-error="Eléments"/>`,
         defaultValue: () => {
             // executed each time we add a new row to calculate new id
-            const $booleanDefaultValue = $(JSON.parse($(`[name=default-value-template]`).val()));
+            const $booleanDefaultValue = $(`<div class="wii-switch-small">${JSON.parse($(`[name=default-value-template]`).val())}</div>`);
             $booleanDefaultValue.find(`[type=radio]`).each(function() {
                 const $input = $(this);
                 const $label = $booleanDefaultValue.find(`[for=${$input.attr(`id`)}]`);
@@ -47,13 +47,13 @@ function generateFreeFieldForm() {
     };
 }
 
-function generateFreeFieldColumns(appliesTo = false) {
+function generateFreeFieldColumns(canEdit = true, appliesTo = false) {
     return [
-        {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
-        {data: `label`, title: `Libellé<span class="d-none required-mark">*</span>`},
+        ...(canEdit ? [{data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false, width: `2%`}] : []),
+        {data: `label`, title: `Libellé`, required: true},
         ...(appliesTo ? [{data: `appliesTo`, title: `S'applique à`}] : []),
-        {data: `type`, title: `Typage<span class="d-none required-mark">*</span>`},
-        {data: `elements`, title: `Éléments<br><div class='wii-small-text'>(Séparés par des ';')</div>`},
+        {data: `type`, title: `Typage`, required: true},
+        {data: `elements`, title: `Éléments<br><div class='wii-small-text'>(Séparés par des ';')</div>`, className: `no-interaction`},
         {data: `defaultValue`, title: `Valeur par défaut`},
         {data: `displayedCreate`, title: `<div class='small-column'>Affiché à la création</div>`, width: `8%`},
         {data: `requiredCreate`, title: `<div class='small-column'>Obligatoire à la création</div>`, width: `8%`},
@@ -94,6 +94,7 @@ function onElementsChange() {
     const elements = $input.val().split(`;`);
 
     $defaultValue.empty();
+    $defaultValue.append(new Option("", null, false, false));
     for(const element of elements) {
         $defaultValue.append(new Option(element, element, false, false));
     }
@@ -104,20 +105,21 @@ function onElementsChange() {
 export function createFreeFieldsPage($container, canEdit) {
     createManagementPage($container, {
         name: `freeFields`,
-        edit: canEdit,
+        mode: canEdit ? MODE_CLICK_EDIT_AND_ADD : MODE_NO_EDIT,
+        newTitle: 'Ajouter un type et des champs libres',
         header: {
             route: (type, edit) => Routing.generate('settings_type_header', {type, edit}, true),
             delete: {
-                modal: '#modalDeleteType',
                 checkRoute: 'settings_types_check_delete',
                 selectedEntityLabel: 'type',
-                route: 'settings_types_delete'
+                route: 'settings_types_delete',
+                modalTitle: 'Supprimer le type',
             },
         },
         table: {
             route: (type) => Routing.generate('settings_free_field_api', {type}, true),
             deleteRoute: `settings_free_field_delete`,
-            columns: generateFreeFieldColumns(),
+            columns: generateFreeFieldColumns(canEdit),
             form: generateFreeFieldForm(),
         },
     });
@@ -136,20 +138,21 @@ export function createFreeFieldsPage($container, canEdit) {
 export function initializeStockArticlesTypesFreeFields($container, canEdit) {
     createManagementPage($container, {
         name: `freeFields`,
-        edit: canEdit,
+        mode: canEdit ? MODE_CLICK_EDIT_AND_ADD : MODE_NO_EDIT,
+        newTitle: 'Ajouter un type et des champs libres',
         header: {
             route: (type, edit) => Routing.generate('settings_type_header', {type, edit}, true),
             delete: {
-                modal: '#modalDeleteType',
                 checkRoute: 'settings_types_check_delete',
                 selectedEntityLabel: 'type',
-                route: 'settings_types_delete'
+                route: 'settings_types_delete',
+                modalTitle: 'Supprimer le type',
             },
         },
         table: {
             route: (type) => Routing.generate('settings_free_field_api', {type}, true),
             deleteRoute: `settings_free_field_delete`,
-            columns: generateFreeFieldColumns(true),
+            columns: generateFreeFieldColumns(canEdit, true),
             form: {
                 appliesTo: JSON.parse($(`#article-free-field-categories`).val()),
                 ...generateFreeFieldForm(),
@@ -181,7 +184,35 @@ export function initializeTraceMovementsFreeFields($container, canEdit) {
             $saveButton.removeClass('d-none');
             $discardButton.removeClass('d-none');
         },
-        columns: generateFreeFieldColumns(),
+        columns: generateFreeFieldColumns(canEdit),
+        form: generateFreeFieldForm(),
+    });
+
+    $container.on(`change`, `[name=type]`, defaultValueTypeChange);
+    $container.on(`keyup`, `[name=elements]`, onElementsChange);
+}
+
+export function initializeReceptionsFreeFields($container, canEdit) {
+    $saveButton.addClass('d-none');
+
+    const table = EditableDatatable.create(`#table-reception-free-fields`, {
+        route: Routing.generate(`settings_free_field_api`, {
+            type: $(`#table-reception-free-fields`).data(`type`),
+        }),
+        deleteRoute: `settings_free_field_delete`,
+        mode: canEdit ? MODE_CLICK_EDIT_AND_ADD : MODE_NO_EDIT,
+        save: SAVE_MANUALLY,
+        search: true,
+        paging: true,
+        onEditStart: () => {
+            $saveButton.removeClass('d-none');
+            $discardButton.removeClass('d-none');
+        },
+        onEditStop: () => {
+            $saveButton.removeClass('d-none');
+            $discardButton.removeClass('d-none');
+        },
+        columns: generateFreeFieldColumns(canEdit),
         form: generateFreeFieldForm(),
     });
 
@@ -192,11 +223,12 @@ export function initializeTraceMovementsFreeFields($container, canEdit) {
 export function initializeIotFreeFields($container, canEdit) {
     createManagementPage($container, {
         name: `freeFields`,
-        edit: canEdit ? MODE_CLICK_EDIT : MODE_NO_EDIT,
+        mode: canEdit ? MODE_CLICK_EDIT_AND_ADD : MODE_NO_EDIT,
+        newTitle: 'Ajouter un type et des champs libres',
         table: {
             route: (type) => Routing.generate('settings_free_field_api', {type}, true),
             deleteRoute: `settings_free_field_delete`,
-            columns: generateFreeFieldColumns(),
+            columns: generateFreeFieldColumns(canEdit),
             form: {
                 ...generateFreeFieldForm(),
             },

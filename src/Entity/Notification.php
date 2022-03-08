@@ -72,17 +72,12 @@ class Notification {
         return $this;
     }
 
-    /**
-     * @return AlertTemplate
-     */
-    public function getTemplate() {
+    public function getTemplate(): ?AlertTemplate {
         return $this->template;
     }
 
-    /**
-     * @param AlertTemplate $template
-     */
-    public function setTemplate(AlertTemplate $template): self {
+    public function setTemplate(?AlertTemplate $template): self
+    {
         $this->template = $template;
         return $this;
     }

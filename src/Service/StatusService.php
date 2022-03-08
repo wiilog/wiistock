@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Controller\Settings\StatusController;
 use App\Entity\CategorieStatut;
 use App\Entity\FiltreSup;
 use App\Entity\Statut;
@@ -10,18 +11,22 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
 use Twig\Environment as Twig_Environment;
+use WiiCommon\Helper\Stream;
 
 class StatusService {
 
     private $entityManager;
+
     private $security;
+
     private $templating;
+
     private $router;
 
     public function __construct(EntityManagerInterface $entityManager,
-                                Security $security,
-                                Twig_Environment $templating,
-                                RouterInterface $router) {
+                                Security               $security,
+                                Twig_Environment       $templating,
+                                RouterInterface        $router) {
         $this->entityManager = $entityManager;
         $this->security = $security;
         $this->templating = $templating;
@@ -54,18 +59,20 @@ class StatusService {
 
         $category = $status
             ? $status->getCategorie()
-            : $categoryStatusRepository->find($data['category']);
+            : $categoryStatusRepository->findOneBy(['nom' => $data['category']]);
 
-        $type = $typeRepository->find($data['type']);
+        $type = isset($data['type'])
+            ? $typeRepository->find($data['type'])
+            : $status?->getType();
 
         $defaults = $statusRepository->countDefaults($category, $type, $status);
         $drafts = $statusRepository->countDrafts($category, $type, $status);
         $disputes = $statusRepository->countDisputes($category, $type, $status);
-        $similarLabels = $statusRepository->countSimilarLabels($category, $data['label'], $data['type'], $status);
+        $similarLabels = $statusRepository->countSimilarLabels($category, $data['label'], $type, $status);
 
-        if ($similarLabels > 0) {
+        if($similarLabels > 0) {
             $message = 'Le statut "' . $data['label'] . '" existe déjà pour cette catégorie. Veuillez en choisir un autre.';
-        } else if ($data['defaultForCategory'] && $defaults > 0) {
+        } else if (!empty($data['defaultForCategory']) && $defaults > 0) {
             $message = 'Vous ne pouvez pas définir un statut par défaut pour cette entité et ce type, il en existe déjà un.';
         } else if (((int) $data['state']) === Statut::DRAFT && $drafts > 0) {
             $message = 'Vous ne pouvez pas définir un statut brouillon pour cette entité et ce type, il en existe déjà un.';
@@ -75,7 +82,7 @@ class StatusService {
 
         return [
             'success' => empty($message),
-            'message' => $message ?? null
+            'message' => $message ?? null,
         ];
     }
 
@@ -89,7 +96,7 @@ class StatusService {
         $statusArray = $queryResult['data'];
 
         $rows = [];
-        foreach ($statusArray as $status) {
+        foreach($statusArray as $status) {
             $rows[] = $this->dataRowStatus($status);
         }
 
@@ -120,46 +127,58 @@ class StatusService {
         ];
     }
 
-    public function getStatusStatesValues(): array {
-        return [
+    public function getStatusStatesValues(?string $mode = null): array {
+        return Stream::from([
             [
                 'label' => 'Brouillon',
                 'id' => Statut::DRAFT,
-                'code' => 'draft'
+                'code' => 'draft',
+                'modes' => [StatusController::MODE_PURCHASE_REQUEST, StatusController::MODE_DISPATCH],
+                'needMobileSyncDisabled' => true,
             ],
             [
                 'label' => 'À traiter',
                 'id' => Statut::NOT_TREATED,
-                'code' => 'notTreated'
+                'code' => 'notTreated',
             ],
             [
                 'label' => 'En cours',
                 'id' => Statut::IN_PROGRESS,
-                'code' => 'inProgress'
+                'code' => 'inProgress',
+                'modes' => [StatusController::MODE_PURCHASE_REQUEST, StatusController::MODE_HANDLING],
             ],
             [
                 'label' => 'Traité',
                 'id' => Statut::TREATED,
-                'code' => 'treated'
+                'code' => 'treated',
+                'needMobileSyncDisabled' => true,
             ],
             [
                 'label' => 'Litige',
                 'id' => Statut::DISPUTE,
-                'code' => 'dispute'
+                'code' => 'dispute',
+                'modes' => [StatusController::MODE_ARRIVAL],
             ],
             [
                 'label' => 'Partiel',
                 'id' => Statut::PARTIAL,
-                'code' => 'partial'
-            ]
-        ];
+                'code' => 'partial',
+                'modes' => [StatusController::MODE_DISPATCH],
+            ],
+        ])
+            ->filter(fn($state) => (
+                !isset($state['modes'])
+                || !$mode
+                || in_array($mode, $state['modes'])
+            ))
+            ->toArray();
     }
 
     public function getStatusStateLabel(int $stateId): ?string {
         $states = $this->getStatusStatesValues();
         $label = null;
-        foreach ($states as $state) {
-            if ($state['id'] === $stateId) {
+        foreach($states as $state) {
+            if($state['id'] === $stateId) {
                 $label = $state['label'];
                 break;
             }
@@ -170,13 +189,28 @@ class StatusService {
     public function getStatusStateCode(int $stateId): ?string {
         $states = $this->getStatusStatesValues();
         $label = null;
-        foreach ($states as $state) {
-            if ($state['id'] === $stateId) {
+        foreach($states as $state) {
+            if($state['id'] === $stateId) {
                 $label = $state['code'];
                 break;
             }
         }
         return $label;
+    }
+
+    public function getStatusStatesOptions(string $mode, ?int $selectedId = null, bool $prependEmpty = true): string {
+        $statesStream = Stream::from($this->getStatusStatesValues($mode))
+            ->map(function(array $state) use ($selectedId) {
+                $selected = isset($selectedId) && $state['id'] == $selectedId ? 'selected' : '';
+                $needMobileSyncDisabled = !empty($state['needMobileSyncDisabled']) ? 'data-need-mobile-sync-disabled=true' : '';
+                return "<option value='{$state['id']}' {$selected} {$needMobileSyncDisabled}>{$state['label']}</option>";
+            });
+
+        if($prependEmpty) {
+            $statesStream->prepend("<option/>");
+        }
+
+        return $statesStream->join('');
     }
 
 }

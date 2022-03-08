@@ -10,6 +10,7 @@ $(function () {
             $table.DataTable().columns.adjust().draw();
         });
     });
+    onToggleInputRadioOnRow();
 });
 
 function hideColumns(table, data) {
@@ -43,10 +44,10 @@ function extendsDateSort(name) {
             return madeDate.getTime() || 0;
         },
         [name + "-asc"]: function (a, b) {
-            return ((a < b) ? -1 : ((a > b) ? 1 : 0));
+            return ((a < b) ? 1 : ((a > b) ? -1 : 0));
         },
         [name + "-desc"]: function (a, b) {
-            return ((a < b) ? 1 : ((a > b) ? -1 : 0));
+            return ((a < b) ? -1 : ((a > b) ? 1 : 0));
         }
     });
 }
@@ -77,10 +78,6 @@ function initActionOnRow(row) {
             }
         });
     }
-}
-
-function showOrHideColumn(check) {
-    check.toggleClass('data');
 }
 
 function manageArticleAndRefSearch($input, $printButton) {
@@ -116,9 +113,15 @@ function manageArticleAndRefSearch($input, $printButton) {
     }
 }
 
-function toggleInputRadioOnRow(tr) {
-    const $checkbox = $(tr).find('input[type="checkbox"]');
-    $checkbox.prop('checked', !$checkbox.is(':checked')).trigger("change");
+function onToggleInputRadioOnRow() {
+    const $modal = $(`#modalColumnVisible`);
+    const $checkboxes = $modal.find(`input[type=checkbox]`);
+
+    $checkboxes.closest(`tr`).on(`click`, function () {
+        const $checkbox = $(this).find(`input[type=checkbox]`);
+        $checkbox.toggleClass(`data`);
+        $checkbox.prop(`checked`, !$checkbox.is(`:checked`));
+    });
 }
 
 function createDatatableDomFooter({information, length, pagination}) {
@@ -223,7 +226,7 @@ function datatableDrawCallback({   response,
     const recordsDisplay = response.fnRecordsDisplay();
     if(needsPagingHide && recordsDisplay !== undefined) {
         $table.parents('.dataTables_wrapper')
-            .find(`.dataTables_paginate, .dataTables_length`)
+            .find(`.dataTables_paginate, .dataTables_length, .dataTables_info`)
             .parent()
             .toggleClass(`d-none`, recordsDisplay <= 10);
     }

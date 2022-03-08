@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Controller\Settings\StatusController;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
@@ -11,13 +12,21 @@ use App\Entity\FieldsParam;
 use App\Entity\InventoryCategory;
 use App\Entity\InventoryFrequency;
 use App\Entity\FreeField;
+use App\Entity\IOT\AlertTemplate;
+use App\Entity\IOT\CollectRequestTemplate;
+use App\Entity\IOT\DeliveryRequestTemplate;
+use App\Entity\IOT\HandlingRequestTemplate;
+use App\Entity\IOT\RequestTemplate;
+use App\Entity\IOT\RequestTemplateLine;
 use App\Entity\MailerServer;
 use App\Entity\Setting;
 use App\Entity\Reception;
+use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\VisibilityGroup;
 use App\Entity\WorkFreeDay;
+use App\Service\IOT\AlertTemplateService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -45,6 +54,15 @@ class SettingsService {
     /** @Required */
     public AttachmentService $attachmentService;
 
+    /** @Required */
+    public RequestTemplateService $requestTemplateService;
+
+    /** @Required */
+    public AlertTemplateService $alertTemplateService;
+
+    /** @Required */
+    public StatusService $statusService;
+
     private array $settingsConstants;
 
     public function __construct() {
@@ -55,9 +73,14 @@ class SettingsService {
     }
 
     public function getSetting(array $settings, string $key): ?Setting {
-        if (!isset($settings[$key]) && in_array($key, $this->settingsConstants)) {
-            $setting = new Setting();
-            $setting->setLabel($key);
+        if (!isset($settings[$key])
+            && in_array($key, $this->settingsConstants)) {
+            $settingRepository = $this->manager->getRepository(Setting::class);
+            $setting = $settingRepository->findOneBy(['label' => $key]);
+            if (!$setting) {
+                $setting = new Setting();
+                $setting->setLabel($key);
+            }
             $settings[$key] = $setting;
 
             $this->manager->persist($setting);
@@ -75,18 +98,24 @@ class SettingsService {
         );
         $allFormSettingNames = json_decode($request->request->get('__form_fieldNames', '[]'), true);
 
-        $settings = $settingRepository->findByLabel(array_merge($settingNames, $allFormSettingNames));
+        $result = [];
 
+        $settings = $settingRepository->findByLabel(array_merge($settingNames, $allFormSettingNames));
         if($request->request->has("datatables")) {
-            $result = $this->saveDatatables(json_decode($request->request->get("datatables"), true), $request->request->all());
+            $this->saveDatatables(
+                json_decode($request->request->get("datatables"), true),
+                $request->request->all(),
+                $request->files->all(),
+                $result
+            );
         }
 
         $updated = [];
-        $this->saveCustom($request, $settings, $updated);
+        $this->saveCustom($request, $settings, $updated, $result);
         $this->saveStandard($request, $settings, $updated);
         $this->saveFiles($request, $settings, $updated);
 
-        $settingNamesToClear = array_diff($allFormSettingNames, $settingNames);
+        $settingNamesToClear = array_diff($allFormSettingNames, $settingNames, $updated);
         $settingToClear = !empty($settingNamesToClear) ? $settingRepository->findByLabel($settingNamesToClear) : [];
 
         $this->clearSettings($settingToClear);
@@ -99,10 +128,20 @@ class SettingsService {
         if (isset($result['type'])) {
             /** @var Type $type */
             $type = $result['type'];
-            $result['type'] = [
+            $result['entity'] = [
                 'id' => $type->getId(),
                 'label' => $type->getLabel()
             ];
+            unset($result['type']);
+        }
+        else if (isset($result['template'])) {
+            /** @var RequestTemplate $template */
+            $template = $result['template'];
+            $result['entity'] = [
+                'id' => $template->getId(),
+                'label' => $template->getName()
+            ];
+            unset($result['template']);
         }
         return $result;
     }
@@ -112,7 +151,7 @@ class SettingsService {
      *
      * @param Setting[] $settings Existing settings
      */
-    private function saveCustom(Request $request, array $settings, array &$updated): void {
+    private function saveCustom(Request $request, array $settings, array &$updated, array &$result): void {
         $data = $request->request;
 
         if($client = $data->get(Setting::APP_CLIENT)) {
@@ -131,20 +170,6 @@ class SettingsService {
             $mailer->setSenderMail($data->get("MAILER_SENDER_MAIL"));
         }
 
-        $logosToSave = [
-            [Setting::WEBSITE_LOGO, Setting::DEFAULT_WEBSITE_LOGO_VALUE],
-            [Setting::MOBILE_LOGO_LOGIN, Setting::DEFAULT_MOBILE_LOGO_LOGIN_VALUE],
-            [Setting::EMAIL_LOGO, Setting::DEFAULT_EMAIL_LOGO_VALUE],
-            [Setting::MOBILE_LOGO_HEADER, Setting::DEFAULT_MOBILE_LOGO_HEADER_VALUE],
-        ];
-        foreach ($logosToSave as [$settingLabel, $default]) {
-            $setting = $this->getSetting($settings, $settingLabel);
-            if (isset($setting)
-                && $this->saveDefaultImage($data, $request->files, $setting, $default)) {
-                $updated[] = $settingLabel;
-            }
-        }
-
         if ($data->has("en_attente_de_réception") && $data->has("réception_partielle") && $data->has("réception_totale") && $data->has("anomalie")) {
             $codes = [
                 Reception::STATUT_EN_ATTENTE => $data->get("en_attente_de_réception"),
@@ -159,18 +184,50 @@ class SettingsService {
             }
         }
 
-        if ($request->request->has("deliveryType")
-            && $request->request->has("deliveryRequestLocation")) {
-            $deliveryTypes = Stream::explode(',', $request->request->get("deliveryType", ''))
-                ->toArray();
-            $deliveryRequestLocations = Stream::explode(',', $request->request->get("deliveryRequestLocation", ''))
-                ->toArray();
+        if ($request->request->has("deliveryType") && $request->request->has("deliveryRequestLocation")) {
+            $deliveryTypes = explode(',', $request->request->get("deliveryType"));
+            $deliveryRequestLocations = explode(',', $request->request->get("deliveryRequestLocation"));
 
-            $setting = $this->getSetting($settings, Setting::DEFAULT_LOCATION_LIVRAISON);
+            $setting = $this->manager->getRepository(Setting::class)->findOneBy(["label" => Setting::DEFAULT_LOCATION_LIVRAISON]);
             $associatedTypesAndLocations = array_combine($deliveryTypes, $deliveryRequestLocations);
             $setting->setValue(json_encode($associatedTypesAndLocations));
 
-            $updated[] = Setting::DEFAULT_LOCATION_LIVRAISON;
+            $updated = array_merge($updated, [
+                Setting::DEFAULT_LOCATION_LIVRAISON,
+                "deliveryType",
+                "deliveryRequestLocation",
+            ]);
+        }
+
+        if ($request->request->getBoolean("alertTemplate")) {
+            $alertTemplateRepository = $this->manager->getRepository(AlertTemplate::class);
+            if(!$request->request->get("entity")) {
+                $template = new AlertTemplate();
+                $template->setType($request->request->get('type'));
+                $this->manager->persist($template);
+
+                $result['template'] = $template;
+            } else {
+                $template = $this->manager->find(AlertTemplate::class, $request->request->get("entity"));
+            }
+
+            $sameName = $alertTemplateRepository->findOneBy(["name" => $request->request->get("name")]);
+            if ($sameName && $sameName->getId() !== $template->getId()) {
+                throw new RuntimeException("Un modèle de demande avec le même nom existe déjà");
+            }
+
+            $this->alertTemplateService->updateAlertTemplate($request, $this->manager, $template);
+        }
+
+        if ($request->request->has("DISPATCH_OVERCONSUMPTION_BILL_TYPE") && $request->request->has("DISPATCH_OVERCONSUMPTION_BILL_STATUS")) {
+            $setting = $this->manager->getRepository(Setting::class)->findOneBy(["label" => Setting::DISPATCH_OVERCONSUMPTION_BILL_TYPE_AND_STATUS]);
+            $setting->setValue(
+                $request->request->get("DISPATCH_OVERCONSUMPTION_BILL_TYPE") . ";" .
+                $request->request->get("DISPATCH_OVERCONSUMPTION_BILL_STATUS")
+            );
+
+            $updated[] = "DISPATCH_OVERCONSUMPTION_BILL_TYPE";
+            $updated[] = "DISPATCH_OVERCONSUMPTION_BILL_STATUS";
         }
     }
 
@@ -205,16 +262,33 @@ class SettingsService {
                 $updated[] = $key;
             }
         }
+
+        $logosToSave = [
+            [Setting::FILE_WEBSITE_LOGO, Setting::DEFAULT_WEBSITE_LOGO_VALUE],
+            [Setting::FILE_MOBILE_LOGO_LOGIN, Setting::DEFAULT_MOBILE_LOGO_LOGIN_VALUE],
+            [Setting::FILE_EMAIL_LOGO, Setting::DEFAULT_EMAIL_LOGO_VALUE],
+            [Setting::FILE_MOBILE_LOGO_HEADER, Setting::DEFAULT_MOBILE_LOGO_HEADER_VALUE],
+            [Setting::FILE_WAYBILL_LOGO, null],
+            [Setting::FILE_OVERCONSUMPTION_LOGO, null],
+        ];
+
+        foreach ($logosToSave as [$settingLabel, $default]) {
+            $setting = $this->getSetting($settings, $settingLabel);
+            if (isset($default)
+                && !$request->request->getBoolean('keep-' . $settingLabel) && !$request->files->has($settingLabel)) {
+                $setting->setValue($default);
+            }
+            $updated[] = $settingLabel;
+        }
     }
 
 //    TODO WIIS-6693 mettre dans des services different ?
-    private function saveDatatables(array $tables, array $data): array {
-        $result = [];
+    private function saveDatatables(array $tables, array $data, array $files, array &$result): void {
         if(isset($tables["workingHours"])) {
             $ids = array_map(fn($day) => $day["id"], $tables["workingHours"]);
 
-            $freeFieldRepository = $this->manager->getRepository(DaysWorked::class);
-            $daysWorked = Stream::from($freeFieldRepository->findBy(["id" => $ids]))
+            $requestTemplateLineRepository = $this->manager->getRepository(DaysWorked::class);
+            $daysWorked = Stream::from($requestTemplateLineRepository->findBy(["id" => $ids]))
                 ->keymap(fn($day) => [$day->getId(), $day])
                 ->toArray();
 
@@ -237,9 +311,15 @@ class SettingsService {
         }
 
         if(isset($tables["offDays"])) {
+            $workFreeDayRepository = $this->manager->getRepository(WorkFreeDay::class);
             foreach(array_filter($tables["offDays"]) as $offDay) {
+                $date = DateTime::createFromFormat("Y-m-d", $offDay["day"]);
+                if($workFreeDayRepository->findBy(["day" => $date])) {
+                    throw new RuntimeException("Le jour " . $date->format("d/m/Y") . " est déjà renseigné");
+                }
+
                 $day = new WorkFreeDay();
-                $day->setDay(DateTime::createFromFormat("Y-m-d", $offDay["day"]));
+                $day->setDay($date);
 
                 $this->manager->persist($day);
             }
@@ -320,16 +400,16 @@ class SettingsService {
                     ->setNotificationsEmergencies(isset($data["notificationEmergencies"]) ? explode(",", $data["notificationEmergencies"]) : null)
                     ->setSendMail($data["mailRequester"] ?? false)
                     ->setColor($data["color"] ?? null);
-            } else {
-                $category = $categoryTypeRepository->findOneBy(["label" => CategoryType::MOUVEMENT_TRACA]);
+            } elseif(isset($tables["category"])) {
+                $category = $categoryTypeRepository->findOneBy(["label" => $tables["category"]]);
                 $type = $typeRepository->findOneBy([
-                    'label' => Type::LABEL_MVT_TRACA,
+                    'label' => $tables["category"],
                     'category' => $category
                 ]);
             }
 
-            $freeFieldRepository = $this->manager->getRepository(FreeField::class);
-            $freeFields = Stream::from($freeFieldRepository->findBy(["id" => $ids]))
+            $requestTemplateLineRepository = $this->manager->getRepository(FreeField::class);
+            $freeFields = Stream::from($requestTemplateLineRepository->findBy(["id" => $ids]))
                 ->keymap(fn($day) => [$day->getId(), $day])
                 ->toArray();
 
@@ -337,7 +417,7 @@ class SettingsService {
                 /** @var FreeField $freeField */
                 $freeField = isset($item["id"]) ? $freeFields[$item["id"]] : new FreeField();
 
-                $existing = $freeFieldRepository->findOneBy(["label" => $item["label"]]);
+                $existing = $requestTemplateLineRepository->findOneBy(["label" => $item["label"]]);
                 if($existing && $existing->getId() != $freeField->getId()) {
                     throw new RuntimeException("Un champ libre existe déjà avec le libellé {$item["label"]}");
                 }
@@ -345,7 +425,7 @@ class SettingsService {
                 $freeField->setLabel($item["label"])
                     ->setType($type)
                     ->setTypage($item["type"] ?? $freeField->getTypage())
-                    ->setCategorieCL(isset($item["category"]) ? $this->manager->find(CategorieCL::class, $item["category"]) : null)
+                    ->setCategorieCL(isset($item["category"]) ? $this->manager->find(CategorieCL::class, $item["category"]) : $type->getCategory()->getCategorieCLs()->first())
                     ->setDefaultValue($item["defaultValue"] ?? null)
                     ->setElements(isset($item["elements"]) ? explode(";", $item["elements"]) : null)
                     ->setDisplayedCreate($item["displayedCreate"])
@@ -378,10 +458,9 @@ class SettingsService {
             }
         }
 
-        if(isset($tables["visibilityGroup"])){
+        if(isset($tables["visibilityGroup"])) {
             foreach(array_filter($tables["visibilityGroup"]) as $visibilityGroupData) {
                 $visibilityGroupRepository = $this->manager->getRepository(VisibilityGroup::class);
-                $visibilityGroup = "";
                 if (isset($visibilityGroupData['visibilityGroupId'])){
                     $visibilityGroup = $visibilityGroupRepository->find($visibilityGroupData['visibilityGroupId']);
                 } else {
@@ -414,35 +493,102 @@ class SettingsService {
             }
         }
 
-        if(isset($tables["disputeStatuses"])){
-            foreach(array_filter($tables["disputeStatuses"]) as $statusData){
+        if(isset($tables["genericStatuses"])){
+            foreach(array_filter($tables["genericStatuses"]) as $statusData){
                 $statutRepository = $this->manager->getRepository(Statut::class);
                 $categoryRepository = $this->manager->getRepository(CategorieStatut::class);
+                $typeRepository = $this->manager->getRepository(Type::class);
 
-                if(!in_array($statusData['state'], [Statut::TREATED, Statut::NOT_TREATED])) {
+                if(!in_array($statusData['state'], [Statut::TREATED, Statut::NOT_TREATED, Statut::DRAFT, Statut::IN_PROGRESS, Statut::DISPUTE, Statut::PARTIAL])) {
                     throw new RuntimeException("L'état du statut est invalide");
                 }
 
                 if (isset($statusData['statusId'])){
-                    $statut = $statutRepository->find($statusData['statusId']);
+                    $status = $statutRepository->find($statusData['statusId']);
                 } else {
-                    $statut = new Statut();
-                    $categoryName = $statusData['mode'] === 'arrival' ? CategorieStatut::DISPUTE_ARR : CategorieStatut::LITIGE_RECEPT;
-                    $statut->setCategorie($categoryRepository->findOneBy(['nom' => $categoryName]));
-                }
-                $statut->setNom($statusData['label']);
-                $statut->setState($statusData['state']);
-                $statut->setComment($statusData['comment'] ?? null);
-                $statut->setDefaultForCategory($statusData['defaultStatut']);
-                $statut->setSendNotifToBuyer($statusData['sendMailBuyers']);
-                $statut->setSendNotifToDeclarant($statusData['sendMailRequesters']);
-                $statut->setSendNotifToRecipient($statusData['sendMailDest']);
-                $statut->setDisplayOrder($statusData['order']);
+                    $status = new Statut();
+                    $categoryName = match($statusData['mode']) {
+                        StatusController::MODE_ARRIVAL_DISPUTE => CategorieStatut::DISPUTE_ARR,
+                        StatusController::MODE_RECEPTION_DISPUTE => CategorieStatut::LITIGE_RECEPT,
+                        StatusController::MODE_PURCHASE_REQUEST => CategorieStatut::PURCHASE_REQUEST,
+                        StatusController::MODE_ARRIVAL => CategorieStatut::ARRIVAGE,
+                        StatusController::MODE_DISPATCH => CategorieStatut::DISPATCH,
+                        StatusController::MODE_HANDLING => CategorieStatut::HANDLING
+                    };
+                    $statusData['category'] = $categoryName;
+                    $status->setCategorie($categoryRepository->findOneBy(['nom' => $categoryName]));
 
-                $this->manager->persist($statut);
+                    // we set type only on creation
+                    if (isset($statusData['type'])) {
+                        $status->setType($typeRepository->find($statusData['type']));
+                    }
+                }
+
+                $validation = $this->statusService->validateStatusData($this->manager, $statusData, isset($statusData['statusId']) ? $status : null);
+
+                if (!$validation['success']) {
+                    throw new RuntimeException($validation['message']);
+                }
+
+                $status->setNom($statusData['label']);
+                $status->setState($statusData['state']);
+                $status->setComment($statusData['comment'] ?? null);
+                $status->setDefaultForCategory($statusData['defaultStatut'] ?? false);
+                $status->setSendNotifToBuyer($statusData['sendMailBuyers'] ?? false);
+                $status->setSendNotifToDeclarant($statusData['sendMailRequesters'] ?? false);
+                $status->setSendNotifToRecipient($statusData['sendMailDest'] ?? false);
+                $status->setNeedsMobileSync($statusData['needsMobileSync'] ?? false);
+                $status->setCommentNeeded($statusData['commentNeeded'] ?? false);
+                $status->setAutomaticReceptionCreation($statusData['automaticReceptionCreation'] ?? false);
+                $status->setDisplayOrder($statusData['order'] ?? 0);
+
+                $this->manager->persist($status);
             }
         }
-        return $result;
+
+        if(isset($tables["requestTemplates"])) {
+            $ids = array_map(fn($line) => $line["id"] ?? null, $tables["requestTemplates"]);
+            $requestTemplateRepository = $this->manager->getRepository(RequestTemplate::class);
+            $typeRepository = $this->manager->getRepository(Type::class);
+            if(!is_numeric($data["entity"])) {
+                $template = $data["entity"] === Type::LABEL_DELIVERY
+                    ? new DeliveryRequestTemplate()
+                    : ($data["entity"] === Type::LABEL_COLLECT
+                        ? new CollectRequestTemplate()
+                        : new HandlingRequestTemplate()
+                    );
+                $template->setType($typeRepository->findOneByCategoryLabelAndLabel(CategoryType::REQUEST_TEMPLATE, $data["entity"]));
+
+                $this->manager->persist($template);
+
+                $result['template'] = $template;
+            } else {
+                $template = $this->manager->find(RequestTemplate::class, $data["entity"]);
+            }
+
+            $sameName = $requestTemplateRepository->findOneBy(["name" => $data["name"]]);
+            if ($sameName && $sameName->getId() !== $template->getId()) {
+                throw new RuntimeException("Un modèle de demande avec le même nom existe déjà");
+            }
+
+            $this->requestTemplateService->updateRequestTemplate($template, $data, $files);
+
+            $requestTemplateLineRepository = $this->manager->getRepository(RequestTemplateLine::class);
+            $lines = Stream::from($requestTemplateLineRepository->findBy(["id" => $ids]))
+                ->keymap(fn($line) => [$line->getId(), $line])
+                ->toArray();
+
+            foreach(array_filter($tables["requestTemplates"]) as $item) {
+                /** @var FreeField $freeField */
+                $line = isset($item["id"]) ? $lines[$item["id"]] : new RequestTemplateLine();
+
+                $line->setRequestTemplate($template);
+
+                $this->requestTemplateService->updateRequestTemplateLine($line, $item);
+
+                $this->manager->persist($line);
+            }
+        }
     }
 
     /**
@@ -537,21 +683,6 @@ class SettingsService {
         foreach ($settings as $setting) {
             $setting->setValue(null);
         }
-    }
-
-    private function saveDefaultImage(InputBag $data,
-                                      FileBag $fileBag,
-                                      Setting $setting,
-                                      string $defaultValue): bool {
-
-        $defaultImageSaved = false;
-        $settingLabel = $setting->getLabel();
-        if(!$data->getBoolean('keep-' . $settingLabel) && !$fileBag->has($settingLabel)) {
-            $setting->setValue($defaultValue);
-            $defaultImageSaved = true;
-        }
-
-        return $defaultImageSaved;
     }
 
 }

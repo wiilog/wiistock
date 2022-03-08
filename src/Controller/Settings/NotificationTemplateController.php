@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\Settings;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
@@ -20,7 +20,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 
 /**
- * @Route("/modele-notification")
+ * @Route("/parametrage/modele-notification")
  */
 class NotificationTemplateController extends AbstractController
 {
@@ -30,7 +30,7 @@ class NotificationTemplateController extends AbstractController
      */
     public function index(): Response
     {
-        return $this->render('notification_template/index.html.twig', [
+        return $this->render('settings/notifications/index.html.twig', [
             'templateTypes' => AlertTemplate::TEMPLATE_TYPES
         ]);
     }
@@ -50,7 +50,7 @@ class NotificationTemplateController extends AbstractController
         foreach ($notificationTemplates as $notificationTemplate) {
             $rows[] = [
                 "type" => NotificationService::READABLE_TYPES[$notificationTemplate->getType()] ?? '',
-                "content" => $this->renderView("notification_template/list_content.html.twig", [
+                "content" => $this->renderView("settings/notifications/list_content.html.twig", [
                     "id" => $notificationTemplate->getId(),
                     "content" => $notificationTemplate->getContent(),
                 ]),
@@ -73,7 +73,7 @@ class NotificationTemplateController extends AbstractController
         if ($data = json_decode($request->getContent(), true)) {
             $notificationTemplate = PostHelper::entity($entityManager, $data, "id", NotificationTemplate::class);
 
-            return $this->json($this->renderView("notification_template/edit_content.html.twig", [
+            return $this->json($this->renderView("settings/notifications/edit_content.html.twig", [
                 "notification_template" => $notificationTemplate,
                 "dictionary" => NotificationService::DICTIONARIES[$notificationTemplate->getType()],
             ]));

@@ -8,6 +8,7 @@ import 'datatables.net-colreorder';
 import 'leaflet';
 import 'leaflet.smooth_marker_bouncing';
 import 'leaflet.polyline.snakeanim';
+import 'leaflet.markercluster'
 import 'leaflet-ant-path';
 import intlTelInput from 'intl-tel-input';
 import '@fortawesome/fontawesome-free/js/all.js';
@@ -86,6 +87,20 @@ function importJquery() {
             return oldAttr.apply(this, arguments);
         }
     };
+
+    jQuery.extend({
+        isValidSelector: function(selector) {
+            if (typeof(selector) !== 'string') {
+                return false;
+            }
+            try {
+                var $element = $(selector);
+            } catch(error) {
+                return false;
+            }
+            return true;
+        }
+    });
 }
 
 function importIntlTelInput() {

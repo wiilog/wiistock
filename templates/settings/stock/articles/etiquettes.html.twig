@@ -1,13 +1,18 @@
 {% import 'form.html.twig' as form %}
 
-
 <div class="wii-section">
+    <div class="row">
+        <div class="col-12 mb-3 wii-describe">
+            Indiquez ce que vous voulez afficher sur les étiquettes. Pour paramétrer le format de l'étiquette, retournez
+            dans le paramétrage "Global".
+        </div>
+    </div>
     <label class="wii-field-name">{{ form.label("Sur l'étiquette article", false) }}</label>
     <div class="row">
         <div class="col-md-6 col-12 my-1">
             {% set any_selected = setting_value('INCLUDE_DESTINATION_LOCATION_IN_ARTICLE_LABEL') or setting_value('INCLUDE_RECIPIENT_DROPZONE_LOCATION_IN_ARTICLE_LABEL') %}
 
-            {{ form.checkbox('SHOW_LOCATION', 'Afficher le destinataire', false, any_selected) }}
+            {{ form.checkbox('SHOW_LOCATION', 'Afficher l\'emplacement', false, any_selected) }}
 
             <div class="wii-radio-container ml-4 {{ not any_selected ? 'd-none' }}">
                 <div class="wii-radio mt-1">
@@ -56,7 +61,8 @@
         {{ form.select(setting('CL_USED_IN_LABELS'), 'Champ libre présent sur les étiquettes', false, {
             items: free_fields,
             value: setting_value('CL_USED_IN_LABELS'),
-            labelClass: 'wii-field-name'
+            labelClass: 'wii-field-name',
+            inputClass: 'w-25'
         }) }}
         <div class="my-1">
             {{ form.checkbox(setting('INCLUDE_BL_IN_LABEL'), 'Afficher le champ libre ci-dessus sur les étiquettes', false, setting_value('INCLUDE_BL_IN_LABEL')) }}

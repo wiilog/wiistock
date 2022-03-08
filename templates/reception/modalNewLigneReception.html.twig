@@ -62,9 +62,10 @@
                                     {{ not createDL ? 'disabled' }}>
                                     <option></option>
                                 </select>
+                                {% set isLocation = app.user.dropzone and app.user.dropzone is instanceof('App\\Entity\\Emplacement') %}
                                 <input hidden id="locationDemandeLivraisonValue"
-                                       data-id="{{ app.user.dropzone and needsCurrentUser ? app.user.dropzone.id }}"
-                                       data-text="{{ app.user.dropzone and needsCurrentUser ? app.user.dropzone.label }}">
+                                       data-id="{{ isLocation and needsCurrentUser ? app.user.dropzone.id }}"
+                                       data-text="{{ isLocation and needsCurrentUser ? app.user.dropzone.label }}">
                             </div>
                             <input type="hidden" name="restrictedLocations" value="{{ restrictedLocations }}">
                         </div>
@@ -126,7 +127,7 @@
                                        data-text="{{ reception.storageLocation ? reception.storageLocation.label }}">
                             </div>
                             <div class="col-4 form-group">
-                                <label for="origin">Emplacement d'origine'*</label>
+                                <label for="origin">Emplacement d'origine*</label>
                                 <select name="origin" class="data ajax-autocomplete-location-edit w-100 needed" id="origin">
                                 </select>
                                 <input hidden id="originTransfer"

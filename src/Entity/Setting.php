@@ -2,9 +2,10 @@
 
 namespace App\Entity;
 
+use App\Repository\SettingRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\SettingRepository')]
+#[ORM\Entity(repositoryClass: SettingRepository::class)]
 class Setting {
 
     const DEFAULT_WEBSITE_LOGO_VALUE = '/img/followGTwhite.svg';
@@ -47,16 +48,16 @@ class Setting {
     const DEFAULT_LOCATION_REFERENCE = 'DEFAULT_LOCATION_REFERENCE';
     // tableaux de bord
     const MVT_DEPOSE_DESTINATION = "MVT_DEPOSE_DESTINATION";
-    const OVERCONSUMPTION_LOGO = 'OVERCONSUMPTION_LOGO';
+    const FILE_OVERCONSUMPTION_LOGO = 'OVERCONSUMPTION_LOGO';
     const PREFILL_DUE_DATE_TODAY = 'PREFILL_DUE_DATE_TODAY';
     const PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER = 'PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER';
     const PACK_MUST_BE_NEW = 'PACK_MUST_BE_NEW';
     // apparence
     const FONT_FAMILY = 'FONT_FAMILY';
-    const WEBSITE_LOGO = 'WEBSITE_LOGO';
-    const EMAIL_LOGO = 'EMAIL_LOGO';
-    const MOBILE_LOGO_HEADER = 'MOBILE_LOGO_HEADER';
-    const MOBILE_LOGO_LOGIN = 'MOBILE_LOGO_LOGIN';
+    const FILE_WEBSITE_LOGO = 'WEBSITE_LOGO';
+    const FILE_EMAIL_LOGO = 'EMAIL_LOGO';
+    const FILE_MOBILE_LOGO_HEADER = 'MOBILE_LOGO_HEADER';
+    const FILE_MOBILE_LOGO_LOGIN = 'MOBILE_LOGO_LOGIN';
     const MAX_SESSION_TIME = 'MAX_SESSION_TIME';
     const DEFAULT_FONT_FAMILY = self::FONT_MYRIAD;
     const FONT_MONTSERRAT = 'Montserrat';
@@ -91,7 +92,8 @@ class Setting {
     const PREPARATION_DISPLAY_ARTICLES_WITHOUT_MANUAL = 'PREPARATION_DISPLAY_ARTICLES_WITHOUT_MANUAL';
     // document
     const DELIVERY_NOTE_LOGO = 'DELIVERY_NOTE_LOGO';
-    const WAYBILL_LOGO = 'WAYBILL_LOGO';
+    const FILE_WAYBILL_LOGO = 'WAYBILL_LOGO';
+
     // étiquettes
     const INCLUDE_BL_IN_LABEL = "INCLURE_BL_SUR_ETIQUETTE";
     const INCLUDE_QTT_IN_LABEL = "INCLURE_QTT_SUR_ETIQUETTE";

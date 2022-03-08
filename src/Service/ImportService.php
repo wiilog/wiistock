@@ -64,6 +64,7 @@ class ImportService
     public const FIELDS_TO_ASSOCIATE = [
         Import::ENTITY_ART => [
             "commentaire",
+            "barCode",
             "stockEntryDate",
             "expiryDate",
             "dateLastInventory",
@@ -119,6 +120,7 @@ class ImportService
         ],
         Import::ENTITY_ART_FOU => [
             "label",
+            "reference",
             "référence article de référence",
             "référence fournisseur"
         ],
@@ -1054,7 +1056,7 @@ class ImportService
         } else {
             $articleFournisseur->setFournisseur($fournisseur);
         }
-
+        $articleFournisseur->setVisible(true);
         $this->em->persist($articleFournisseur);
         $this->updateStats($stats, $newEntity);
     }

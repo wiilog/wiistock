@@ -18,7 +18,7 @@ class DeliveryRequestTemplate extends RequestTemplate {
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $comment = null;
 
-    #[ORM\OneToMany(targetEntity: RequestTemplateLine::class, mappedBy: 'deliveryRequestTemplate')]
+    #[ORM\OneToMany(targetEntity: RequestTemplateLine::class, mappedBy: 'deliveryRequestTemplate', cascade: ["remove"])]
     private Collection $lines;
 
     public function __construct() {

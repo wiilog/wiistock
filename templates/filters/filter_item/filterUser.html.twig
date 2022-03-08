@@ -6,7 +6,7 @@
         <div class="input-group w-100 cursor-default">
             <select class="form-control data ajax-autocomplete-user filter-select2"
                     data-s2="user"
-                    data-placeholder="Utilisateurs"
+                    data-placeholder="{{ placeholder is defined ? placeholder : 'Utilisateurs' }}"
                     name="{{ name }}"
                     multiple="multiple"
                     {{ disabled }}>

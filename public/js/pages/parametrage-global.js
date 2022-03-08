@@ -283,30 +283,6 @@ function getPrefixDemand(select) {
     }, 'json');
 }
 
-function saveTranslations() {
-    let $inputs = $('#translation').find('.translate');
-    let data = [];
-    $inputs.each(function () {
-        let name = $(this).attr('name');
-        let val = $(this).val();
-        data.push({id: name, val: val});
-    });
-
-    let path = Routing.generate('save_translations');
-    const $spinner = $('#spinnerSaveTranslations');
-    showBSAlert('Mise à jour de votre personnalisation des libellés : merci de patienter.', 'success', false);
-    loadSpinner($spinner);
-    $.post(path, JSON.stringify(data), (resp) => {
-        $('html,body').animate({scrollTop: 0});
-        if (resp) {
-            location.reload();
-        } else {
-            hideSpinner($spinner);
-            showBSAlert('Une erreur est survenue lors de la personnalisation des libellés.', 'danger');
-        }
-    });
-}
-
 function ajaxEncodage() {
     $.post(Routing.generate('save_encodage'), JSON.stringify($('select[name="param-type-encodage"]').val()), function () {
         showBSAlert('Mise à jour de vos préférences d\'encodage réussie.', 'success');
@@ -723,12 +699,4 @@ function appendSelectOptions(typeSelect, locationSelect, type, location) {
     locationSelect
         .append(new Option(location.label, location.id, false, true))
         .trigger(`change`);
-}
-
-function triggerReminderEmails($button) {
-    $button.pushLoader(`primary`)
-    $.post(Routing.generate(`trigger_reminder_emails`), true).then(({success, msg}) => {
-        $button.popLoader()
-        showBSAlert(msg, success ? `success` : `danger`);
-    });
 }

@@ -227,10 +227,17 @@ class StatutRepository extends EntityRepository {
             ->select("COUNT(s)")
             ->where("s.nom LIKE :label")
             ->andWhere("s.categorie = :category")
-            ->andWhere("s.type = :type")
             ->setParameter("category", $category)
-            ->setParameter("type", $type)
             ->setParameter("label", $label);
+
+        if ($type) {
+            $qb
+                ->andWhere("s.type = :type")
+                ->setParameter("type", $type);
+        }
+        else {
+            $qb->andWhere("s.type IS NULL");
+        }
 
         if ($current) {
             $qb->andWhere("s.id != :current")
@@ -369,9 +376,12 @@ class StatutRepository extends EntityRepository {
         ];
     }
 
+    /**
+     * @return Statut[]
+     */
     public function findStatusByType(string $categoryLabel,
                                      Type $type = null,
-                                     array $stateFilters = []) {
+                                     array $stateFilters = []): array {
         $qb = $this->createQueryBuilder('status')
             ->join('status.categorie', 'category')
             ->where('category.nom = :categoryLabel')

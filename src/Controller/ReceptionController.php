@@ -840,6 +840,7 @@ class ReceptionController extends AbstractController {
 
         $createDL = $settingRepository->findOneBy(['label' => Setting::CREATE_DL_AFTER_RECEPTION]);
         $needsCurrentUser = $settingRepository->getOneParamByLabel(Setting::REQUESTER_IN_DELIVERY);
+        $restrictedLocations = $settingRepository->getOneParamByLabel(Setting::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST);
 
         $defaultDisputeStatus = $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::LITIGE_RECEPT);
         return $this->render("reception/show.html.twig", [
@@ -852,7 +853,8 @@ class ReceptionController extends AbstractController {
             'defaultDeliveryLocations' => $globalParamService->getDefaultDeliveryLocationsByTypeId($entityManager),
             'defaultDisputeStatusId' => $defaultDisputeStatus[0] ?? null,
             'needsCurrentUser' => $needsCurrentUser,
-            'detailsHeader' => $receptionService->createHeaderDetailsConfig($reception)
+            'detailsHeader' => $receptionService->createHeaderDetailsConfig($reception),
+            'restrictedLocations' => $restrictedLocations
         ]);
     }
 

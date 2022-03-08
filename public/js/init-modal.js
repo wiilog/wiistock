@@ -32,7 +32,7 @@ let droppedFiles = [];
  *   - waitDatatable if true returned a Promise resolve whe Datatable is reloaded
  *   - keepLoading Keep loader on submit button after receiving ajax response
  */
-function InitModal($modal, submit, path, options= {}) {
+function InitModal($modal, submit, path, options = {}) {
     if(options.clearOnClose) {
         $modal.on('hidden.bs.modal', function () {
             clearModal($modal);
@@ -301,6 +301,7 @@ function ProcessForm($modal, isAttachmentForm = undefined, validator = undefined
     const dataValidator = validator
         ? (validator($modal) || {success: true, errorMessages: [], $isInvalidElements: []})
         : {success: true, errorMessages: [], $isInvalidElements: []};
+
     return {
         success: (
             dataArrayForm.success
@@ -355,7 +356,7 @@ function matchesAll(value, ...regexes) {
  * @return {{errorMessages: Array<string>, success: boolean, $isInvalidElements: Array<*>}}
  */
 function processInputsForm($modal, data, isAttachmentForm) {
-    const $inputs = $modal.find('.data:not([name^="savedFiles"])');
+    const $inputs = $modal.find('.data:not([name^="savedFiles"]):not([type=radio])');
     const $isInvalidElements = [];
     const missingInputNames = [];
 
@@ -415,7 +416,7 @@ function processInputsForm($modal, data, isAttachmentForm) {
             .trim();
 
         // validation données obligatoires
-        if ($input.hasClass('needed')
+        if (($input.hasClass('needed') && $input.is(`:not([type=radio])`))
             && $input.is(':disabled') === false
             && (val === undefined
                 || val === ''

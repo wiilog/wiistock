@@ -20,8 +20,6 @@ use WiiCommon\Helper\Stream;
 
 class PackService {
 
-    private const PACK_DELIVERIES_RIMINDER_DELAY = 15;
-
     /** @Required */
     public EntityManagerInterface $entityManager;
 
@@ -259,33 +257,36 @@ class PackService {
 
     public function launchPackDeliveryReminder(EntityManagerInterface $entityManager): void {
         $packRepository = $entityManager->getRepository(Pack::class);
-        $ongoingPacks = $packRepository->findOngoingOnDeliveryPoint();
-        foreach ($ongoingPacks as $pack) {
-            if ($pack->getArrivage() && $pack->getArrivage()->getDestinataire()) {
-                $arrival = $pack->getArrivage();
-                $receiver = $arrival->getDestinataire();
-                $firstDrop = $packRepository->getFirstDropForCurrentOngoing($pack);
-                if ($firstDrop) {
-                    $now = new DateTime();
-                    $ongoingDelay = $now->diff($firstDrop);
-                    if ($ongoingDelay->format('%a') >= self::PACK_DELIVERIES_RIMINDER_DELAY) {
-                        $lastDrop = $pack->getLastDrop();
-                        $this->mailerService->sendMail(
-                            'Follow GT // Colis non récupéré',
-                            $this->templating->render('mails/contents/mail-pack-delivery-done.html.twig', [
-                                'title' => 'Votre colis est présent dans votre magasin depuis plus de 15 jours',
-                                'orderNumber' => implode(', ', $arrival->getNumeroCommandeList()),
-                                'colis' => FormatHelper::pack($pack),
-                                'emplacement' => $lastDrop->getEmplacement(),
-                                'date' => $lastDrop->getDatetime(),
-                                'fournisseur' => FormatHelper::supplier($arrival->getFournisseur()),
-                                'pjs' => $arrival->getAttachments()
-                            ]),
-                            $receiver
-                        );
-                    }
-                }
-            }
+        $waitingDaysRequested = [7, 15, 30, 42];
+        $ongoingPacks = $packRepository->findOngoingPacksOnDeliveryPoints($waitingDaysRequested);
+        foreach ($ongoingPacks as $packData) {
+            $pack = $packData[0];
+            $waitingDays = $packData['packWaitingDays'];
+
+            $remindPosition = array_search($waitingDays, $waitingDaysRequested);
+            $titleSuffix = match($remindPosition) {
+                0 => ' - 1ère relance',
+                1 => ' - 2ème relance',
+                2 => ' - 3ème relance',
+                3 => ' - dernière relance',
+                default => ''
+            };
+            $arrival = $pack->getArrivage();
+            $lastDrop = $pack->getLastDrop();
+
+            $this->mailerService->sendMail(
+                "Follow GT // Colis non récupéré$titleSuffix",
+                $this->templating->render('mails/contents/mail-pack-delivery-done.html.twig', [
+                    'title' => 'Votre colis est toujours présent dans votre magasin',
+                    'orderNumber' => implode(', ', $arrival->getNumeroCommandeList()),
+                    'colis' => FormatHelper::pack($pack),
+                    'emplacement' => $lastDrop->getEmplacement(),
+                    'date' => $lastDrop->getDatetime(),
+                    'fournisseur' => FormatHelper::supplier($arrival->getFournisseur()),
+                    'pjs' => $arrival->getAttachments()
+                ]),
+                $arrival->getDestinataire()
+            );
         }
     }
 }

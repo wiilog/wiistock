@@ -3,38 +3,47 @@
 <div class="w-100">
     <div class="wii-box mt-15px management-header">
         <div class="header wii-title">{% block title %}{% endblock %}</div>
-        <div class="col-12 focus-shadow py-3">
+        <div class="focus-shadow p-3">
             <div class="row">
-                <div class="col">{% block filters %}{% endblock %}</div>
-                <div class="ml-auto col-auto">
-                    <button class="btn btn-primary mt-1 add-entity">
-                        <i class="fa fa-plus mr-2"></i> Ajouter un type
-                    </button>
-                </div>
+                {% set description = block('description') ?? '' %}
+                {% if description is not empty %}
+                    <div class="col-12 wii-describe mb-3">
+                        {{ description | raw }}
+                    </div>
+                {% endif %}
+                <div class="{{ block('filterCol') is defined ? block('filterCol') : 'col' }}">{% block filters %}{% endblock %}</div>
+                {% if can_edit %}
+                    <div class="ml-auto {{ block('filterColButton') is defined ? block('filterColButton') : 'col-auto' }}">
+                        {% block button %}{% endblock %}
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>
-
-    <div class="wii-box management-body">
-        <div class="row py-2">
-            <div class="ml-3 col-auto d-flex justify-content-center align-items-center">
-                <button class="btn btn-silent delete-main-entity">
-                    <i class="wii-icon wii-icon-trash text-primary"></i>
-                </button>
-            </div>
-            <div class="col">
-                <div class="row main-entity-content"></div>
-            </div>
-            <div class="mr-3 col-auto d-flex justify-content-center align-items-center">
-                <button class="btn btn-primary edit-button">
-                    <i class="fa fa-pen mr-2"></i> Modifier
-                </button>
+    <div class="wii-box management-body {{ hiddenBody ? 'd-none' }}">
+        <div class="wii-section py-2">
+            <div class="row">
+                {% if can_edit %}
+                    <div class="col-auto pt-1">
+                        <button class="btn btn-silent delete-main-entity">
+                            <i class="wii-icon wii-icon-trash text-primary"></i>
+                        </button>
+                    </div>
+                {% endif %}
+                <div class="col">
+                    <div class="row main-entity-content"></div>
+                </div>
+                {% if can_edit %}
+                    <div class="col-auto">
+                        <button class="btn btn-primary edit-button">
+                            <i class="fa fa-pen mr-2"></i> Modifier
+                        </button>
+                    </div>
+                {% endif %}
             </div>
         </div>
-
-        <div class="wii-section-title">{% block subtitle %}{% endblock %}</div>
-
-        <div class="p-3">
+        <div class="wii-section-title {{ block('subtitle') is empty ? 'd-none' }}">{% block subtitle %}{% endblock %}</div>
+        <div class="wii-section {{ block('subtitle') is empty ? 'd-none' }}">
             <div class="row">
                 <div class="col-12">
                     <table class="table subentities-table w-100"></table>
@@ -43,7 +52,7 @@
         </div>
 
         {% block footer %}{% endblock %}
-        {% include 'settings/common/delete-type.html.twig' %}
+        {% include 'settings/common/delete-entity.html.twig' %}
 
         <input type="hidden" name="default-value-template" value="{{ form.switch('defaultValue', null, false, [
             {label: 'Oui', value: '1'},

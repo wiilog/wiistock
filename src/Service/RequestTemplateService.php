@@ -60,18 +60,13 @@ class RequestTemplateService {
         }
     }
 
-    public function updateRequestTemplate(RequestTemplate $template, Request $request) {
-        if (!($data = json_decode($request->getContent(), true))) {
-            $data = $request->request->all();
-        }
-
+    public function updateRequestTemplate(RequestTemplate $template, array $data, array $files) {
         $typeRepository = $this->manager->getRepository(Type::class);
 
         $template->setName($data["name"]);
         if (!$template->getType()) {
             $template->setType($this->getType($data["type"]));
         }
-
         $this->freeFieldService->manageFreeFields($template, $data, $this->manager);
 
         if ($template instanceof HandlingRequestTemplate) {
@@ -86,7 +81,7 @@ class RequestTemplateService {
                 ->setDestination($data["destination"] ?? null)
                 ->setCarriedOutOperationCount(($data["carriedOutOperationCount"] ?? null) ?: null)
                 ->setComment($data["comment"] ?? null)
-                ->setAttachments($this->attachmentService->createAttachements($request->files));
+                ->setAttachments($this->attachmentService->createAttachements($files));
         } else if ($template instanceof DeliveryRequestTemplate) {
             $locationRepository = $this->manager->getRepository(Emplacement::class);
 

@@ -122,10 +122,10 @@ class ArticleQuantityNotifier {
     private function treatAlert(EntityManagerInterface $entityManager,
                                 Article $article)
     {
-        if ($article->getExpiryDate()) {
+        if (is_numeric($this->expiryDelay) && $article->getExpiryDate()) {
             $now = new DateTime("now");
             $expires = clone $now;
-            $expires->modify("{$this->expiryDelay}day");
+            $expires->modify("{$this->expiryDelay} day");
 
             $existing = $entityManager->getRepository(Alert::class)->findForArticle($article, Alert::EXPIRY);
 

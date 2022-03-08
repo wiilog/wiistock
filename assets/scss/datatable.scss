@@ -234,6 +234,13 @@ th.hideOrder {
     white-space: initial !important;
 }
 
+.icon-column {
+    max-width: 30px !important;
+    overflow: initial !important;
+    text-overflow: initial !important;
+    white-space: initial !important;
+}
+
 thead th.datatable-main-header, tbody th.datatable-main-header {
     color: $primary;
     font-size: 1.2rem;

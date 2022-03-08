@@ -1,0 +1,9 @@
+{% import 'form.html.twig' as form %}
+
+<div class="wii-section">
+    <div class="row">
+        <div class="col-md-6 col-12">
+            {{ form.checkbox(setting('REMOVE_HOURS_DATETIME'), 'Enlever les heures de la date attendue', false, setting_value('REMOVE_HOURS_DATETIME'))}}
+        </div>
+    </div>
+</div>

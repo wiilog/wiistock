@@ -1,6 +1,12 @@
 @import "variables";
 
-$select-height: subtract($input-height, 2px);
+$select-height: 36px;
+
+.select2-container,
+.select2-container .select2-selection__rendered,
+.select2-container > * {
+    @include font-size($input-font-size);
+}
 
 .select2-container--open .select2-selection:not(.is-invalid) {
     border-color: $primary !important;
@@ -49,6 +55,10 @@ $select-height: subtract($input-height, 2px);
     }
 }
 
+.select2-search.select2-search--inline:not(.filters-container .select2-search.select2-search--inline, .inline-select .select2-search.select2-search--inline) {
+    width: 100%;
+}
+
 .select2-fit-content + .select2 .select2-selection--multiple {
     max-height: none;
     overflow-y: hidden;
@@ -64,8 +74,9 @@ $select-height: subtract($input-height, 2px);
     }
 }
 
-.select2-search__field {
+.select2-search__field:not(.filters-container .select2-search__field) {
     min-width: 5em !important;
+    width: 100% !important;
     outline: none !important;
 
     &:focus {

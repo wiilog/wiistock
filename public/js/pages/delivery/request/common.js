@@ -8,6 +8,7 @@ function toggleLocationSelect($type, $modal = null) {
     const $locationSelector = $modal.find(`select[name="destination"]`);
     const $restrictedResults = $modal.find(`input[name="restrictedLocations"]`);
     const typeId = $type.val();
+
     if (typeId) {
         const defaultDeliveryLocations = $modal.find('[name="defaultDeliveryLocations"]').data('value');
         const userDropzone = $modal.find('[name="userDropzone"]').data('value');

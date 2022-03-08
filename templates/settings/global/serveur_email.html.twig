@@ -2,6 +2,11 @@
 
 <div class="wii-section">
     <div class="row">
+        <div class="col-12 mb-3 wii-describe">
+            Paramétrage pour l'envoi de mail à partir de Follow GT.
+        </div>
+    </div>
+    <div class="row">
         <div class="form-group col-md-6 col-12">
             {% set value = mailer_server.smtp is defined ? mailer_server.smtp %}
             {{ form.input('MAILER_URL', 'Serveur SMTP', true, value, {labelClass: 'wii-field-name w-75'}) }}
