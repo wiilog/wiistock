@@ -104,7 +104,7 @@ class RequestTemplateController extends AbstractController {
 
                 $data[] = [
                     "label" => "Commentaire",
-                    "value" => "<div class='editor-container data' data-wysiwyg='comment'>$comment</div>",
+                    "value" => "<div class='wii-one-line-wysiwyg ql-editor data' data-wysiwyg='comment'>$comment</div>",
                 ];
             }
             else if ($category === Type::LABEL_COLLECT) {
@@ -136,7 +136,7 @@ class RequestTemplateController extends AbstractController {
 
                 $data[] = [
                     "label" => "Commentaire",
-                    "value" => "<input name='comment' class='data form-control' value='$comment'>",
+                    "value" => "<div class='wii-one-line-wysiwyg ql-editor data' data-wysiwyg='comment'>$comment</div>",
                 ];
             } else if ($category === Type::LABEL_HANDLING) {
                 /**
@@ -275,7 +275,7 @@ class RequestTemplateController extends AbstractController {
 
                 $data[] = [
                     "label" => "Commentaire",
-                    "value" => "<div class='editor-container data' data-wysiwyg='comment'>$comment</div>",
+                    "value" => "<div class='wii-one-line-wysiwyg ql-editor data $creationMode' data-wysiwyg='comment'>$comment</div>",
                 ];
             }
         }

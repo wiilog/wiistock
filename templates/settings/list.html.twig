@@ -25,10 +25,14 @@
                         <div class="settings-menus">
                             <div class="title">{{ category.label }}</div>
                             {% for menu, label in ordered_settings %}
-                                <a href="{{ path(label.route is defined ? label.route : 'settings_item', label.route is not defined ? {category: category_key, menu, submenu: submenu ?? null} : []) }}"
-                                   class="settings-item pb-1 {{ category.menus | length <= 4 ? 'full-size' }}">
-                                    {{ label is iterable ? label.label : label }}
-                                </a>
+                                {% if label is not iterable
+                                    or label.environment is not defined
+                                    or app.environment in label.environment %}
+                                    <a href="{{ path(label.route is defined ? label.route : 'settings_item', label.route is not defined ? {category: category_key, menu, submenu: submenu ?? null} : []) }}"
+                                       class="settings-item pb-1 {{ category.menus | length <= 4 ? 'full-size' }}">
+                                        {{ label is iterable ? label.label : label }}
+                                    </a>
+                                {% endif %}
                             {% endfor %}
                         </div>
                     </div>

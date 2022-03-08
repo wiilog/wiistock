@@ -73,9 +73,14 @@ class SettingsService {
     }
 
     public function getSetting(array $settings, string $key): ?Setting {
-        if (!isset($settings[$key]) && in_array($key, $this->settingsConstants)) {
-            $setting = new Setting();
-            $setting->setLabel($key);
+        if (!isset($settings[$key])
+            && in_array($key, $this->settingsConstants)) {
+            $settingRepository = $this->manager->getRepository(Setting::class);
+            $setting = $settingRepository->findOneBy(['label' => $key]);
+            if (!$setting) {
+                $setting = new Setting();
+                $setting->setLabel($key);
+            }
             $settings[$key] = $setting;
 
             $this->manager->persist($setting);

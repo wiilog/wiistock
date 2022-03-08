@@ -59,7 +59,6 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
         onEditStart: () => {
             $managementButtons.removeClass('d-none');
             $tableHeader.addClass('d-none');
-            $pageBody.prepend('<div class="header wii-title">Ajouter des statuts</div>');
         },
         onEditStop: () => {
             $managementButtons.addClass('d-none');
@@ -71,10 +70,11 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
         form: getFormColumn(mode, statusStateOptions, categoryType),
     });
 
-    $addButton.on(`click`, function() {
-        $filtersContainer.addClass('d-none');
-        table.addRow(true);
-    });
+    $addButton
+        .off('click')
+        .on(`click`, function() {
+            table.addRow(true);
+        });
 
     $container.on('change', '[name=state]', function () {
         onStatusStateChange($(this));
@@ -93,7 +93,7 @@ function getStatusesColumn(mode) {
         {data: `comment`, title: `Commentaire litige`, modes: [MODE_ARRIVAL_DISPUTE, MODE_RECEPTION_DISPUTE]},
         {
             data: `defaultStatut`,
-            title: `Statut par défaut`,
+            title: `<div>Statut<br/>par défaut</div>`,
             modes: [MODE_ARRIVAL, MODE_ARRIVAL_DISPUTE, MODE_RECEPTION_DISPUTE, MODE_HANDLING, MODE_PURCHASE_REQUEST]},
         {
             data: `sendMailBuyers`,
@@ -166,9 +166,12 @@ function getFormColumn(mode, statusStateOptions, categoryType){
 
 function initializeStatusesByTypes($container, canEdit, mode) {
     const categoryType = $container.find('[name=category-type]').val();
-    const table = initializeStatuses($container, canEdit, mode, categoryType);
     const $typeFilters = $container.find('[name=type]');
-    const $addButton = $container.find('.add-row-button');
+    const $addButton = $container.find(`.add-row-button`);
+    const $filtersContainer = $container.find('.filters-container');
+    const $pageBody = $container.find('.page-body');
+
+    const table = initializeStatuses($container, canEdit, mode, categoryType);
 
     $typeFilters
         .off('change')
@@ -180,9 +183,9 @@ function initializeStatusesByTypes($container, canEdit, mode) {
         });
 
     $addButton
-        .off('click')
         .on('click', function() {
-            table.addRow(true);
+            $filtersContainer.addClass('d-none');
+            $pageBody.prepend('<div class="header wii-title">Ajouter des statuts</div>');
         });
 }
 

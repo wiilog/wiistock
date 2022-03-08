@@ -1,3 +1,5 @@
+import WysiwygManager from "./wysiwyg-manager";
+
 export const MODE_NO_EDIT = 1;
 export const MODE_CLICK_EDIT = 2;
 export const MODE_ADD_ONLY = 3;
@@ -21,6 +23,12 @@ export default class EditableDatatable {
 
     static create(id, config) {
         const $element = $(id);
+
+        console.error("huh", $element.closest(`.wii-box`))
+        $element.closest(`.wii-box`).arrive(`.wii-one-line-wysiwyg`, function() {
+            console.warn('yes')
+            WysiwygManager.initializeOneLineWYSIWYG($(document));
+        });
 
         if(config.name) {
             $element.attr(`data-table-processing`, config.name)
@@ -92,8 +100,10 @@ export default class EditableDatatable {
         }
 
         if(clear && this.state !== STATE_ADD) {
-            this.table.clear();
-            this.toggleEdit(STATE_ADD).then(() => drawNewRow());
+            this.toggleEdit(STATE_ADD, true).then(() => {
+                this.table.clear();
+                drawNewRow();
+            });
         } else {
             this.table.row(':last').remove();
             drawNewRow();
@@ -223,9 +233,10 @@ function initEditatable(datatable, onDatatableInit = null) {
         drawCallback: () => {
             const $parent = datatable.element.closest(`.wii-box`);
 
-            $parent.find(`.dataTables_wrapper, .dataTables_scrollBody, .dataTables_scrollHead`)
-                .css(`overflow-x`, `visible`)
-                .css(`overflow-y`, `visible`)
+            $parent.find(`.dataTables_scrollBody, .dataTables_scrollHead`)
+                .css('overflow', null)
+                .css('overflow-x', 'initial')
+                .css('overflow-y', 'visible');
 
             const $rows = $(datatable.table.rows().nodes());
             $rows.each(function() {
