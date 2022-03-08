@@ -24,9 +24,7 @@ export default class EditableDatatable {
     static create(id, config) {
         const $element = $(id);
 
-        console.error("huh", $element.closest(`.wii-box`))
         $element.closest(`.wii-box`).arrive(`.wii-one-line-wysiwyg`, function() {
-            console.warn('yes')
             WysiwygManager.initializeOneLineWYSIWYG($(document));
         });
 
