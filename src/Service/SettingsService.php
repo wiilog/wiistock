@@ -113,7 +113,7 @@ class SettingsService {
         $updated = [];
         $this->saveCustom($request, $settings, $updated, $result);
         $this->saveStandard($request, $settings, $updated);
-        $this->saveFiles($request, $settings, $updated);
+        $this->saveFiles($request, $settings, $allFormSettingNames, $updated);
 
         $settingNamesToClear = array_diff($allFormSettingNames, $settingNames, $updated);
         $settingToClear = !empty($settingNamesToClear) ? $settingRepository->findByLabel($settingNamesToClear) : [];
@@ -253,7 +253,7 @@ class SettingsService {
     /**
      * @param Setting[] $settings Existing settings
      */
-    private function saveFiles(Request $request, array $settings, array &$updated): void {
+    private function saveFiles(Request $request, array $settings, array $allFormSettingNames, array &$updated): void {
         foreach($request->files->all() as $key => $value) {
             $setting = $this->getSetting($settings, $key);
             if(isset($setting)) {
@@ -273,10 +273,13 @@ class SettingsService {
         ];
 
         foreach ($logosToSave as [$settingLabel, $default]) {
-            $setting = $this->getSetting($settings, $settingLabel);
-            if (isset($default)
-                && !$request->request->getBoolean('keep-' . $settingLabel) && !$request->files->has($settingLabel)) {
-                $setting->setValue($default);
+            if (in_array($settingLabel, $allFormSettingNames)) {
+                $setting = $this->getSetting($settings, $settingLabel);
+                if (isset($default)
+                    && !$request->request->getBoolean('keep-' . $settingLabel)
+                    && !$request->files->has($settingLabel)) {
+                    $setting->setValue($default);
+                }
             }
             $updated[] = $settingLabel;
         }
