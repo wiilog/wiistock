@@ -275,7 +275,7 @@ class RequestTemplateController extends AbstractController {
 
                 $data[] = [
                     "label" => "Commentaire",
-                    "value" => "<div class='wii-one-line-wysiwyg ql-editor data $creationMode' data-wysiwyg='comment'>$comment</div>",
+                    "value" => "<div class='wii-one-line-wysiwyg ql-editor data' data-wysiwyg='comment'>$comment</div>",
                 ];
             }
         }

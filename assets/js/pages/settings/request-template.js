@@ -29,7 +29,7 @@ export function initializeRequestTemplates($container, canEdit) {
                 {data: `reference`, title: `Référence`, required: true},
                 {data: `label`, title: `Libellé`},
                 {data: `location`, title: `Emplacement`},
-                {data: `quantityToTake`, title: quantityLabel },
+                {data: `quantityToTake`, title: quantityLabel, required: true},
             ],
             form: {
                 actions: `<button class="btn btn-silent delete-row"><i class="wii-icon wii-icon-trash text-primary"></i></button>`,
