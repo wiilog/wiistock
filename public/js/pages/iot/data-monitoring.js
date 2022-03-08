@@ -141,7 +141,7 @@ function initMap(element, callback) {
             }));
 
             map.fitBounds(globalBounds);
-
+            let markers = L.markerClusterGroup();
             sensors.forEach((sensor) => {
                 const dates = Object.keys(response[sensor]);
                 let polyline = [];
@@ -150,14 +150,14 @@ function initMap(element, callback) {
                     polyline.push(coordinates);
                     index++;
                     setTimeout(() => {
-                        Leaflet
+                        let marker = Leaflet
                             .marker(coordinates)
-                            .addTo(map)
                             .bounce(1)
                             .on('click', function () {
                                 this.bounce(1);
-                            })
-                            .bindPopup(`Capteur : ${sensor} <br> Date et heure : ${label}`);
+                            });
+                        marker.bindPopup(`Capteur : ${sensor} <br> Date et heure : ${label}`);
+                        markers.addLayer(marker);
                         if (iteration === dates.length - 1 && dates.length > 1) {
                             Leaflet
                                 .polyline(polyline, {color: 'blue', snakingSpeed: 500})
@@ -178,7 +178,7 @@ function initMap(element, callback) {
                     }, 200 * index);
                 });
             });
-
+            map.addLayer(markers);
             callback();
         } else {
             noMapData = true;

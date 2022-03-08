@@ -84,7 +84,7 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
 }
 
 function getStatusesColumn(mode) {
-    const singleRequester = [MODE_DISPATCH].includes(mode) ? ['', ''] : ['x', 's'];
+    const [x, s] = [MODE_DISPATCH, MODE_HANDLING, MODE_ARRIVAL_DISPUTE].includes(mode) ? ['', ''] : ['x', 's'];
     return [
         {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
         {data: `label`, title: `Libellé`, required: true},
@@ -102,13 +102,13 @@ function getStatusesColumn(mode) {
         },
         {
             data: `sendMailRequesters`,
-            title: `<div class='small-column'>Envoi d'emails au${singleRequester[0]} demandeur${singleRequester[1]}</div>`,
+            title: `<div class='small-column'>Envoi d'emails au${x} demandeur${s}</div>`,
             modes: [MODE_ARRIVAL_DISPUTE, MODE_RECEPTION_DISPUTE, MODE_HANDLING, MODE_PURCHASE_REQUEST, MODE_DISPATCH]
         },
         {
             data: `sendMailDest`,
             title: `<div class='small-column'>Envoi d'emails aux destinataires</div>`,
-            modes: [MODE_ARRIVAL_DISPUTE, MODE_HANDLING, MODE_DISPATCH]
+            modes: [MODE_HANDLING, MODE_DISPATCH]
         },
         {
             data: `automaticReceptionCreation`,
@@ -143,7 +143,7 @@ function getFormColumn(mode, statusStateOptions, categoryType){
                         style="min-width: 150px"
                         class='form-control data'
                         required
-                        data-s2='types'
+                        data-s2='types' data-parent="body"
                         data-no-search
                         data-min-length="0"
                         data-include-params-parent='tr'

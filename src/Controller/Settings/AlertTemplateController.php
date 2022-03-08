@@ -93,7 +93,7 @@ class AlertTemplateController extends AbstractController
                 }
                 $data[] = [
                     "label" => "Destinataire*",
-                    "value" => "<select data-s2 data-editable multiple name='receivers' class='data form-control' required>$users</select>",
+                    "value" => "<select data-s2 data-parent='body' data-editable multiple name='receivers' class='data form-control' required>$users</select>",
                 ];
 
                 $data[] = [
