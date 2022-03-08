@@ -14,7 +14,8 @@ $fa-font-path: '~@fortawesome/fontawesome-free/webfonts';
 @import "~datatables.net-buttons-dt/css/buttons.dataTables.css";
 @import "~leaflet/dist/leaflet.css";
 @import '~intl-tel-input/build/css/intlTelInput.css';
-
+@import "~leaflet.markercluster/dist/MarkerCluster.css";
+@import "~leaflet.markercluster/dist/MarkerCluster.Default.css";
 
 .dataTables_wrapper.no-footer .dataTables_scrollBody {
     border: none;

@@ -8,6 +8,7 @@ import 'datatables.net-colreorder';
 import 'leaflet';
 import 'leaflet.smooth_marker_bouncing';
 import 'leaflet.polyline.snakeanim';
+import 'leaflet.markercluster'
 import 'leaflet-ant-path';
 import intlTelInput from 'intl-tel-input';
 import '@fortawesome/fontawesome-free/js/all.js';
