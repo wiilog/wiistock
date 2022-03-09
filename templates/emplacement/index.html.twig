@@ -1,3 +1,5 @@
+{% import 'form.html.twig' as form %}
+
 {% extends 'layout.html.twig' %}
 
 {% block title %}Référentiel | Emplacements{% endblock %}
@@ -47,7 +49,7 @@
                         <span class="fa fa-angle-down"></span>
                     </button>
 
-                    <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
+                    <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right filters-container">
                         <div tabindex="0"
                              id="btnPrint"
                              class="dropdown-item printButton user-select-none disabled has-tooltip"
@@ -57,17 +59,12 @@
                             Imprimer les étiquettes
                         </div>
                         <div class="statut dropdown-item">
-                            <div class="checkbox pl-0 pointer filters-container">
-                                {% set checked = active ? 'checked' : '' %}
-                                <input onchange="saveFilters(PAGE_EMPLACEMENT, '#locationsTable')"
-                                       class="styled filter-checkbox"
-                                       id="actifInactif"
-                                       name="statut"
-                                       type="checkbox" {{ checked }}>
-                                <label for="actifInactif" class="pointer">
-                                    Statut emplacement actif
-                                </label>
-                            </div>
+                            {{ form.checkbox('statut', 'Statut emplacement actif', false, active, {
+                                inputClass: 'filter-checkbox',
+                                attributes: {
+                                    onchange: 'saveFilters(PAGE_EMPLACEMENT, "#locationsTable")',
+                                },
+                            }) }}
                         </div>
                     </div>
                 </div>
