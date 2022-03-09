@@ -4,6 +4,10 @@
     {{ (options.error ?? 'local') == 'global' ? 'data-global-error' }}
     {{ options.readonly ?? false ? 'readonly' }}
     {{ options.disabled ?? false ? 'disabled' }}
+
+    {% for key, value in options.attributes ?? [] %}
+        {{ key }}="{{ value }}"
+    {% endfor %}
 {% endmacro %}
 
 {% macro multiple_key(options) %}
@@ -90,7 +94,7 @@
     <div class="wii-checkbox {{ options.containerClass ?? '' }}">
         <input type="checkbox"
                id="{{ id }}"
-               class="data"
+               class="data {{ options.inputClass ?? '' }}"
               {{ required ? 'required' }}
               {{ _self.common_attributes(name, options) }}
               {{ _self.multiple_key(options) }}
