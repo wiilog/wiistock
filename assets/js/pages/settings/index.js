@@ -37,7 +37,7 @@ const forms = {};
 
 
 //keys are from url with / replaced by _
-//http://wiistock/parametrage/afficher/stock/receptions/champs_fixes_receptions => stock_receptions_champs_fixes_receptions
+//http://wiistock/parametrage/afficher/stock/receptions/champs_fixes => stock_receptions_champs_fixes
 const initializers = {
     global_heures_travaillees: initializeWorkingHours,
     global_jours_non_travailles: initializeOffDays,
@@ -57,7 +57,7 @@ const initializers = {
     notifications_notifications_push: initializeNotifications,
     iot_types_champs_libres: initializeIotFreeFields,
     donnees_imports: initializeImports,
-    stock_receptions_champs_fixes_receptions: initializeReceptionFixedFields,
+    stock_receptions_champs_fixes: initializeReceptionFixedFields,
     trace_acheminements_champs_fixes: initializeDispatchFixedFields,
     trace_arrivages_champs_fixes: initializeArrivalFixedFields,
     trace_services_champs_fixes: initializeHandlingFixedFields,
@@ -340,10 +340,10 @@ function initializeOffDays($container, canEdit) {
 }
 
 function initializeSiteAppearance() {
-    $('#upload-website-logo').on('change', () => updateImagePreview('#preview-website-logo', '#upload-website-logo'));
-    $('#upload-email-logo').on('change', () => updateImagePreview('#preview-email-logo', '#upload-email-logo'));
-    $('#upload-mobile-logo-login').on('change', () => updateImagePreview('#preview-mobile-logo-login', '#upload-mobile-logo-login'));
-    $('#upload-mobile-logo-header').on('change', () => updateImagePreview('#preview-mobile-logo-header', '#upload-mobile-logo-header'));
+    // $('#upload-website-logo').on('change', () => updateImagePreview('#preview-website-logo', '#upload-website-logo'));
+    // $('#upload-email-logo').on('change', () => updateImagePreview('#preview-email-logo', '#upload-email-logo'));
+    // $('#upload-mobile-logo-login').on('change', () => updateImagePreview('#preview-mobile-logo-login', '#upload-mobile-logo-login'));
+    // $('#upload-mobile-logo-header').on('change', () => updateImagePreview('#preview-mobile-logo-header', '#upload-mobile-logo-header'));
 }
 
 function initializeGlobalLabels() {

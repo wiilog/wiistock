@@ -21,10 +21,10 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Service\ArticleDataService;
 use App\Service\CSVExportService;
-use App\Service\GlobalParamService;
 use App\Service\RefArticleDataService;
 use App\Service\DemandeLivraisonService;
 use App\Service\FreeFieldService;
+use App\Service\SettingsService;
 use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -70,7 +70,7 @@ class DemandeController extends AbstractController
      * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function editApi(Request $request,
-                            GlobalParamService $globalParamService,
+                            SettingsService $settingsService,
                             EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
@@ -101,7 +101,7 @@ class DemandeController extends AbstractController
                 'types' => $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]),
                 'typeChampsLibres' => $typeChampLibre,
                 'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes,
-                'defaultDeliveryLocations' => $globalParamService->getDefaultDeliveryLocationsByTypeId($entityManager),
+                'defaultDeliveryLocations' => $settingsService->getDefaultDeliveryLocationsByTypeId($entityManager),
                 'restrictedLocations' => $settingRepository->getOneParamByLabel(Setting::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST),
             ]));
         }
@@ -212,12 +212,11 @@ class DemandeController extends AbstractController
      * @Route("/liste/{reception}/{filter}", name="demande_index", methods="GET|POST", options={"expose"=true})
      * @HasPermission({Menu::DEM, Action::DISPLAY_DEM_LIVR})
      */
-    public function index(EntityManagerInterface $entityManager,
-                          GlobalParamService $globalParamService,
+    public function index(EntityManagerInterface  $entityManager,
+                          SettingsService         $settingsService,
                           DemandeLivraisonService $deliveryRequestService,
-                          $reception = null,
-                          $filter = null): Response
-    {
+                                                  $reception = null,
+                                                  $filter = null): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
@@ -244,7 +243,7 @@ class DemandeController extends AbstractController
             'fields' => $fields,
             'filterStatus' => $filter,
             'receptionFilter' => $reception,
-            'defaultDeliveryLocations' => $globalParamService->getDefaultDeliveryLocationsByTypeId($entityManager),
+            'defaultDeliveryLocations' => $settingsService->getDefaultDeliveryLocationsByTypeId($entityManager),
             'restrictedLocations' => $settingRepository->getOneParamByLabel(Setting::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST),
         ]);
     }

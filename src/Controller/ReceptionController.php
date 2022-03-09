@@ -37,13 +37,13 @@ use App\Entity\CategoryType;
 use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use App\Service\DemandeLivraisonService;
-use App\Service\GlobalParamService;
 use App\Service\DisputeService;
 use App\Service\LivraisonsManagerService;
 use App\Service\MailerService;
 use App\Service\MouvementStockService;
 use App\Service\NotificationService;
 use App\Service\PreparationsManagerService;
+use App\Service\SettingsService;
 use App\Service\TrackingMovementService;
 use App\Service\PDFGeneratorService;
 use App\Service\ReceptionService;
@@ -376,10 +376,9 @@ class ReceptionController extends AbstractController {
      * @HasPermission({Menu::ORDRE, Action::DISPLAY_RECE})
      */
     public function index(EntityManagerInterface $entityManager,
-                          ReceptionService $receptionService,
-                          GlobalParamService $globalParamService,
-                          PurchaseRequest $purchaseRequest = null): Response
-    {
+                          ReceptionService       $receptionService,
+                          SettingsService        $settingsService,
+                          PurchaseRequest        $purchaseRequest = null): Response {
         $purchaseRequestLinesOrderNumbers = [];
         if ($purchaseRequest) {
             $purchaseRequestLinesOrderNumbers = $purchaseRequest->getPurchaseRequestLines()
@@ -413,7 +412,7 @@ class ReceptionController extends AbstractController {
             'typeChampLibres' => $typeChampLibre,
             'fieldsParam' => $fieldsParam,
             'statuts' => $statutRepository->findByCategorieName(CategorieStatut::RECEPTION),
-            'receptionLocation' => $globalParamService->getParamLocation(Setting::DEFAULT_LOCATION_RECEPTION),
+            'receptionLocation' => $settingsService->getParamLocation(Setting::DEFAULT_LOCATION_RECEPTION),
             'purchaseRequestFilter' => $purchaseRequest ? implode(',', $purchaseRequestLinesOrderNumbers) : 0,
             'purchaseRequest' => $purchaseRequest ? $purchaseRequest->getId() : '',
             'fields' => $fields,
@@ -816,13 +815,12 @@ class ReceptionController extends AbstractController {
      * @HasPermission({Menu::ORDRE, Action::DISPLAY_RECE})
      */
     public function show(EntityManagerInterface $entityManager,
-                         GlobalParamService $globalParamService,
+                         SettingsService $settingsService,
                          ReceptionService $receptionService,
                          Reception $reception): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
-        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
 
         $listTypesDL = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
@@ -850,7 +848,7 @@ class ReceptionController extends AbstractController {
             'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
             'typeChampsLibres' => $typeChampLibreDL,
             'createDL' => $createDL ? $createDL->getValue() : false,
-            'defaultDeliveryLocations' => $globalParamService->getDefaultDeliveryLocationsByTypeId($entityManager),
+            'defaultDeliveryLocations' => $settingsService->getDefaultDeliveryLocationsByTypeId($entityManager),
             'defaultDisputeStatusId' => $defaultDisputeStatus[0] ?? null,
             'needsCurrentUser' => $needsCurrentUser,
             'detailsHeader' => $receptionService->createHeaderDetailsConfig($reception),

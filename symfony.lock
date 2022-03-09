@@ -162,6 +162,9 @@
     "guzzlehttp/psr7": {
         "version": "1.8.2"
     },
+    "jetbrains/phpstorm-attributes": {
+        "version": "1.0"
+    },
     "knplabs/knp-snappy": {
         "version": "v1.2.1"
     },

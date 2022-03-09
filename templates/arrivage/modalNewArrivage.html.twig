@@ -225,10 +225,14 @@
                         </select>
                         <input type="hidden" name="defaultStatuses" value="{{ defaultStatuses|json_encode }}"/>
                         <div class="error-empty-status d-none">
-                            {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
+                            {% include 'utils/warningSelectEmpty.html.twig' with {
                                 array: [],
                                 warningLabel: 'Attention ! Aucun statut pour ce type',
-                                redirectPath: path('status_param_index'),
+                                redirectPath: path('settings_item', {
+                                    'category': constant('App\\Controller\\Settings\\SettingsController::CATEGORY_TRACKING'),
+                                    'menu': constant('App\\Controller\\Settings\\SettingsController::MENU_ARRIVALS'),
+                                    'submenu': constant('App\\Controller\\Settings\\SettingsController::MENU_STATUSES'),
+                                }),
                                 redirectLabel: 'Créer un statut'
                             } %}
                         </div>
@@ -340,7 +344,7 @@
                         </div>
                     {% else %}
                         <div class="col-12">
-                            {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
+                            {% include 'utils/warningSelectEmpty.html.twig' with {
                                 array: natures,
                                 warningLabel: 'Attention ! Aucune nature ' ~ ('arrivage.de colis'|trans) ~ ' n\'a été créée',
                                 redirectPath: path('nature_param_index'),

@@ -115,21 +115,6 @@ class TypeRepository extends EntityRepository
         return $query->execute();
     }
 
-    public function getOneIdAndLabelByCategoryLabel($category)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT t.id, t.label
-            FROM App\Entity\Type t
-            JOIN t.category c
-            WHERE c.label = :category"
-        );
-        $query->setParameter("category", $category);
-        $result = $query->execute();
-
-        return $result ? $result[0] : null;
-    }
-
     public function findOneByCategoryLabel($category)
     {
         $em = $this->getEntityManager();
@@ -156,18 +141,6 @@ class TypeRepository extends EntityRepository
         )->setParameter('label', $label);
 
         return $query->getSingleScalarResult();
-    }
-
-//    TODO WIIS-6693
-    public function countByLabelAndCategory($label, $category)
-    {
-        return $this->createQueryBuilder('type')
-            ->select('COUNT(type)')
-            ->andWhere('LOWER(t.label) = :label AND t.category = :category')
-            ->setParameter('label', $label)
-            ->setParameter('category', $category)
-            ->getQuery()
-            ->getSingleScalarResult();
     }
 
     public function isTypeUsed($typeId): bool
@@ -201,24 +174,6 @@ class TypeRepository extends EntityRepository
         return count(array_filter($resultsCount, function($count) {
             return ((int) $count) > 0;
         })) > 0;
-    }
-
-    public function countByLabelDiff($label, $typeLabel, $category)
-    {
-        $em = $this->getEntityManager();
-
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT count(t)
-            FROM App\Entity\Type t
-            WHERE t.label = :label AND t.label != :typeLabel AND t.category = :category"
-        )->setParameters([
-            'label' => $label,
-            'typeLabel' => $typeLabel,
-            'category' => $category
-        ]);
-
-        return $query->getSingleScalarResult();
     }
 
     public function findOneByLabel($label)
@@ -257,25 +212,6 @@ class TypeRepository extends EntityRepository
 
 		return $query->getOneOrNullResult();
 	}
-
-	public function getUniqueTypes($types, $search) {
-        $qb = $this->createQueryBuilder('type');
-
-        $qb->select('type.id AS id')
-            ->addSelect('type.label AS text')
-            ->leftJoin('type.category', 'category')
-            ->where('category.label = :category')
-            ->andWhere('type.label LIKE :search')
-            ->setParameter('category', CategoryType::DEMANDE_LIVRAISON)
-            ->setParameter('search', '%' . str_replace('_', '\_', $search) . '%');
-
-        if(!empty($types)) {
-            $qb->andWhere('type.id NOT IN (:types)')
-                ->setParameter('types', $types);
-        }
-
-        return $qb->getQuery()->getResult();
-    }
 
     public function getEntities($types): array {
         if(!is_array($types)) {

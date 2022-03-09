@@ -46,12 +46,12 @@
                         {% if wrapped %}
                             <div class="header wii-title">{{ item.label }}</div>
                             <div class="focus-shadow">
-                                {% include [path ~ key ~ '.html.twig', 'settings/todo.html.twig'] with {
+                                {% include path ~ key ~ '.html.twig' with {
                                     page: path ~ key ~ '.html.twig'
                                 } | merge(fetcher ? call(fetcher) : []) %}
                             </div>
                         {% else %}
-                            {% include [path ~ key ~ '.html.twig', 'settings/todo.html.twig'] with {
+                            {% include path ~ key ~ '.html.twig' with {
                                 page: path ~ key ~ '.html.twig'
                             } | merge(fetcher ? call(fetcher) : []) %}
                         {% endif %}

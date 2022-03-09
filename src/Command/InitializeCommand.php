@@ -2,7 +2,7 @@
 
 namespace App\Command;
 
-use App\Service\GlobalParamService;
+use App\Service\SettingsService;
 use App\Service\WiilockService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
@@ -14,7 +14,7 @@ class InitializeCommand extends Command {
     protected static $defaultName = "app:initialize";
 
     /** @Required */
-    public GlobalParamService $globalParamService;
+    public SettingsService $settingsService;
 
     /** @Required */
     public EntityManagerInterface $entityManager;
@@ -34,8 +34,8 @@ class InitializeCommand extends Command {
             $output->writeln("Dashboards were not locked");
         }
 
-        $this->globalParamService->generateScssFile();
-        $this->globalParamService->generateSessionConfig();
+        $this->settingsService->generateScssFile();
+        $this->settingsService->generateSessionConfig();
 
         $this->entityManager->flush();
 
