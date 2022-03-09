@@ -22,7 +22,6 @@ use App\Entity\ReferenceArticle;
 
 use App\Entity\TransferRequest;
 use App\Entity\Type;
-use App\Service\GlobalParamService;
 use App\Service\PDFGeneratorService;
 use App\Service\UserService;
 use App\Service\EmplacementDataService;
@@ -44,9 +43,6 @@ class LocationController extends AbstractController {
 
     /** @Required */
     public UserService $userService;
-
-    /** @Required */
-    public GlobalParamService $globalParamService;
 
     /**
      * @Route("/api", name="emplacement_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")

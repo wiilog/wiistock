@@ -39,7 +39,7 @@
                         </div>
                     </div>
                 {% else %}
-                    {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
+                    {% include 'utils/warningSelectEmpty.html.twig' with {
                         array: natures,
                         warningLabel: 'Attention ! Aucune nature de colis n\'a été créée',
                         redirectPath: path('nature_param_index'),
