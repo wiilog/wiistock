@@ -17,7 +17,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Service\CartService;
-use App\Service\GlobalParamService;
+use App\Service\SettingsService;
 use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -36,7 +36,8 @@ class CartController extends AbstractController
     /**
      * @Route("/", name="cart")
      */
-    public function cart(EntityManagerInterface $manager, GlobalParamService $globalParamService): Response {
+    public function cart(EntityManagerInterface $manager,
+                         SettingsService        $settingsService): Response {
         $typeRepository = $manager->getRepository(Type::class);
         $freeFieldRepository = $manager->getRepository(FreeField::class);
         $settingRepository = $manager->getRepository(Setting::class);
@@ -87,7 +88,7 @@ class CartController extends AbstractController
         //add no buyer references at the end
         $referencesByBuyer[] = array_shift($referencesByBuyer);
 
-        $defaultDeliveryLocations = $globalParamService->getDefaultDeliveryLocationsByTypeId();
+        $defaultDeliveryLocations = $settingsService->getDefaultDeliveryLocationsByTypeId($manager);
         $deliveryRequests = Stream::from($manager->getRepository(Demande::class)->getDeliveryRequestForSelect($currentUser))
             ->filter(fn(Demande $request) => $request->getType() && $request->getDestination())
             ->map(fn(Demande $request) => [

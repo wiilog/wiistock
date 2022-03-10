@@ -138,7 +138,7 @@ class DataHistoryController extends AbstractController {
             $title = 'Référentiel | Emplacements';
             $path = 'emplacement_index';
         } else if($entity instanceof LocationGroup) {
-            $title = "Référentiel | Groupe d'emplacement";
+            $title = "Référentiel | Groupe d'emplacements";
             $path = 'emplacement_index';
         } else if($entity instanceof Article) {
             $title = 'Stock | Articles';

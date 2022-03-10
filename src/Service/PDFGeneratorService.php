@@ -6,6 +6,7 @@ use App\Entity\Dispatch;
 use App\Entity\Setting;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use Knp\Snappy\PDF as PDFGenerator;
 use Twig\Error\LoaderError;
@@ -15,9 +16,6 @@ use Twig\Error\SyntaxError;
 class PDFGeneratorService {
 
     public const PREFIX_BARCODE_FILENAME = 'ETQ';
-
-    /** @var GlobalParamService */
-    private $globalParamService;
 
     /** @var Twig_Environment */
     private $templating;
@@ -29,12 +27,13 @@ class PDFGeneratorService {
 
     private $entityManager;
 
-    public function __construct(GlobalParamService $globalParamService,
-                                PDFGenerator $PDFGenerator,
+    #[Required]
+    public SettingsService $settingsService;
+
+    public function __construct(PDFGenerator $PDFGenerator,
                                 KernelInterface $kernel,
                                 Twig_Environment $templating,
                                 EntityManagerInterface $entityManager) {
-        $this->globalParamService = $globalParamService;
         $this->templating = $templating;
         $this->PDFGenerator = $PDFGenerator;
         $this->kernel = $kernel;
@@ -52,7 +51,7 @@ class PDFGeneratorService {
      * @throws SyntaxError
      */
     public function generatePDFBarCodes(string $title, array $barcodeConfigs): string {
-        $barcodeConfig = $this->globalParamService->getDimensionAndTypeBarcodeArray(true);
+        $barcodeConfig = $this->settingsService->getDimensionAndTypeBarcodeArray();
 
         $height = $barcodeConfig['height'];
         $width = $barcodeConfig['width'];

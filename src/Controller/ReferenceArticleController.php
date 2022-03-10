@@ -24,7 +24,7 @@ use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Helper\FormatHelper;
 use App\Service\AttachmentService;
-use App\Service\GlobalParamService;
+use App\Service\SettingsService;
 use App\Service\VisibleColumnService;
 use WiiCommon\Helper\Stream;
 use App\Service\MouvementStockService;
@@ -315,7 +315,7 @@ class ReferenceArticleController extends AbstractController
      * @HasPermission({Menu::STOCK, Action::DISPLAY_REFE})
      */
     public function index(RefArticleDataService $refArticleDataService,
-                          GlobalParamService $globalParamService,
+                          SettingsService $settingsService,
                           EntityManagerInterface $entityManager): Response {
 
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
@@ -364,7 +364,7 @@ class ReferenceArticleController extends AbstractController
             "searches" => $user->getRecherche(),
             'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes,
             'columnsVisibles' => $currentUser->getVisibleColumns()['reference'],
-            'defaultLocation' => $globalParamService->getParamLocation(Setting::DEFAULT_LOCATION_REFERENCE),
+            'defaultLocation' => $settingsService->getParamLocation(Setting::DEFAULT_LOCATION_REFERENCE),
             'typeChampsLibres' => $typeChampLibre,
             'types' => $types,
             'typeQuantite' => $typeQuantite,
@@ -656,14 +656,6 @@ class ReferenceArticleController extends AbstractController
     }
 
     /**
-     * @Route("/export-donnees", name="exports_params")
-     */
-    public function renderParams()
-    {
-        return $this->render('exports/exportsMenu.html.twig');
-    }
-
-    /**
      * @Route("/type-quantite", name="get_quantity_type", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
     public function getQuantityType(Request $request, EntityManagerInterface $entityManager)
@@ -818,7 +810,7 @@ class ReferenceArticleController extends AbstractController
      */
     public function newTemplate(EntityManagerInterface $entityManager,
                                 RefArticleDataService  $refArticleDataService,
-                                GlobalParamService     $globalParamService) {
+                                SettingsService        $settingsService) {
         $typeRepository = $entityManager->getRepository(Type::class);
         $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
@@ -843,7 +835,7 @@ class ReferenceArticleController extends AbstractController
             "new_reference" => new ReferenceArticle(),
             "submit_url" => $this->generateUrl("reference_article_new"),
             "types" => $types,
-            'defaultLocation' => $globalParamService->getParamLocation(Setting::DEFAULT_LOCATION_REFERENCE),
+            'defaultLocation' => $settingsService->getParamLocation(Setting::DEFAULT_LOCATION_REFERENCE),
             'draftDefaultReference' => $refArticleDataService->getDraftDefaultReference($entityManager),
             "stockManagement" => [
                 ReferenceArticle::STOCK_MANAGEMENT_FEFO,

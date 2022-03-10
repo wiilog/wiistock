@@ -4,55 +4,18 @@ namespace App\Service;
 
 use App\Controller\Settings\StatusController;
 use App\Entity\CategorieStatut;
-use App\Entity\FiltreSup;
 use App\Entity\Statut;
 use App\Entity\Type;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Routing\RouterInterface;
-use Symfony\Component\Security\Core\Security;
-use Twig\Environment as Twig_Environment;
+use JetBrains\PhpStorm\ArrayShape;
 use WiiCommon\Helper\Stream;
 
 class StatusService {
 
-    private $entityManager;
-
-    private $security;
-
-    private $templating;
-
-    private $router;
-
-    public function __construct(EntityManagerInterface $entityManager,
-                                Security               $security,
-                                Twig_Environment       $templating,
-                                RouterInterface        $router) {
-        $this->entityManager = $entityManager;
-        $this->security = $security;
-        $this->templating = $templating;
-        $this->router = $router;
-    }
-
-    public function updateStatus(EntityManagerInterface $entityManager, Statut $status, array $data): Statut {
-        $typeRepository = $entityManager->getRepository(Type::class);
-        $type = $typeRepository->find($data['type']);
-        $status
-            ->setNom($data['label'])
-            ->setState($data['state'])
-            ->setDefaultForCategory((bool)$data['defaultForCategory'])
-            ->setSendNotifToBuyer((bool)$data['sendMails'])
-            ->setCommentNeeded((bool)$data['commentNeeded'])
-            ->setNeedsMobileSync((bool)$data['needsMobileSync'])
-            ->setSendNotifToDeclarant((bool)$data['sendMailsDeclarant'])
-            ->setSendNotifToRecipient((bool)$data['sendMailsRecipient'])
-            ->setAutomaticReceptionCreation((bool)$data['automaticReceptionCreation'])
-            ->setDisplayOrder((int)$data['displayOrder'])
-            ->setComment($data['comment'])
-            ->setType($type);
-        return $status;
-    }
-
-    public function validateStatusData(EntityManagerInterface $entityManager, array $data, ?Statut $status = null): array {
+    #[ArrayShape(['success' => "bool", 'message' => "null|string"])]
+    public function validateStatusData(EntityManagerInterface $entityManager,
+                                       array $data,
+                                       ?Statut $status = null): array {
         $statusRepository = $entityManager->getRepository(Statut::class);
         $categoryStatusRepository = $entityManager->getRepository(CategorieStatut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -83,47 +46,6 @@ class StatusService {
         return [
             'success' => empty($message),
             'message' => $message ?? null,
-        ];
-    }
-
-    public function getDataForDatatable($params = null) {
-        $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
-        $statusRepository = $this->entityManager->getRepository(Statut::class);
-
-        $statusFilter = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_STATUS, $this->security->getUser());
-        $queryResult = $statusRepository->findByParamsAndFilters($params, $statusFilter);
-
-        $statusArray = $queryResult['data'];
-
-        $rows = [];
-        foreach($statusArray as $status) {
-            $rows[] = $this->dataRowStatus($status);
-        }
-
-        return [
-            'data' => $rows,
-            'recordsTotal' => $queryResult['total'],
-            'recordsFiltered' => $queryResult['count'],
-        ];
-    }
-
-    public function dataRowStatus($status) {
-
-        $url['edit'] = $this->router->generate('status_api_edit', ['id' => $status->getId()]);
-        return [
-            'id' => $status->getId() ?? '',
-            'category' => $status->getCategorie() ? $status->getCategorie()->getNom() : '',
-            'label' => $status->getNom() ?: '',
-            'comment' => $status->getComment() ?: '',
-            'state' => $this->getStatusStateLabel($status->getState()),
-            'defaultStatus' => $status->isDefaultForCategory() ? 'oui' : 'non',
-            'notifToDeclarant' => $status->getSendNotifToDeclarant() ? 'oui' : 'non',
-            'order' => $status->getDisplayOrder() ?? '',
-            'type' => $status->getType() ? $status->getType()->getLabel() : '',
-            'actions' => $this->templating->render('status/datatableStatusRow.html.twig', [
-                'url' => $url,
-                'statusId' => $status->getId(),
-            ]),
         ];
     }
 
