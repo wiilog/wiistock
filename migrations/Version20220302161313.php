@@ -38,6 +38,7 @@ final class Version20220302161313 extends AbstractMigration
 
         $newActions = [
             Action::SETTINGS_STOCK,
+            Action::SETTINGS_TRACING,
             Action::SETTINGS_TRACKING,
             Action::SETTINGS_MOBILE,
             Action::SETTINGS_DASHBOARDS,

@@ -169,10 +169,10 @@ class SettingsController extends AbstractController {
                 ],
             ],
         ],
-        self::CATEGORY_TRACKING => [
+        self::CATEGORY_TRACING => [
             "label" => "Trace",
             "icon" => "menu-trace",
-            "right" => Action::SETTINGS_TRACKING,
+            "right" => Action::SETTINGS_TRACING,
             "menus" => [
                 self::MENU_DISPATCHES => [
                     "label" => "Acheminements",
@@ -251,6 +251,29 @@ class SettingsController extends AbstractController {
                         self::MENU_REQUEST_TEMPLATES => ["label" => "Modèles de demande", "wrapped" => false],
                         self::MENU_TYPES_FREE_FIELDS => ["label" => "Types et champs libres", "wrapped" => false],
                     ],
+                ],
+            ],
+        ],
+        self::CATEGORY_TRACKING => [
+            "label" => "Track",
+            "icon" => "menu-track",
+            "right" => Action::SETTINGS_TRACKING,
+            "menus" => [
+                self::MENU_TRANSPORT_REQUESTS => [
+                    "label" => "Demandes",
+                    "menus" => [
+                        self::MENU_CONFIGURATIONS => ["label" => "Configurations", "save" => true],
+                        self::MENU_DELIVERY_TYPES_FREE_FIELDS => ["label" => "Livraions - Types & champs libres"],
+                        self::MENU_COLLECT_TYPES_FREE_FIELDS => ["label" => "Collectes - Types & champs libres"],
+                    ],
+                ],
+                self::MENU_ROUNDS => [
+                    "label" => "Tournées",
+                    "save" => true,
+                ],
+                self::MENU_TEMPERATURES => [
+                    "label" => "Températures",
+                    "save" => true,
                 ],
             ],
         ],
@@ -353,7 +376,8 @@ class SettingsController extends AbstractController {
 
     private const CATEGORY_GLOBAL = "global";
     private const CATEGORY_STOCK = "stock";
-    private const CATEGORY_TRACKING = "trace";
+    private const CATEGORY_TRACING = "trace";
+    private const CATEGORY_TRACKING = "track";
     private const CATEGORY_MOBILE = "mobile";
     private const CATEGORY_DASHBOARDS = "dashboards";
     private const CATEGORY_IOT = "iot";
@@ -393,6 +417,10 @@ class SettingsController extends AbstractController {
     private const MENU_FREE_FIELDS = "champs_libres";
     private const MENU_HANDLINGS = "services";
     private const MENU_REQUEST_TEMPLATES = "modeles_demande";
+
+    private const MENU_TRANSPORT_REQUESTS = "demande_transport";
+    private const MENU_ROUNDS = "tournees";
+    private const MENU_TEMPERATURES = "temperatures";
 
     private const MENU_DELIVERIES = "livraisons";
     private const MENU_DELIVERY_REQUEST_TEMPLATES = "modeles_demande_livraisons";
@@ -600,7 +628,7 @@ class SettingsController extends AbstractController {
                     ],
                 ]
             ],
-            self::CATEGORY_TRACKING => [
+            self::CATEGORY_TRACING => [
                 self::MENU_DISPATCHES => [
                     self::MENU_OVERCONSUMPTION_BILL => fn() => [
                         "types" => Stream::from($typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]))

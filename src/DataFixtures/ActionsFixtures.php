@@ -211,6 +211,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
         Menu::PARAM => [
             Action::SETTINGS_GLOBAL,
             Action::SETTINGS_STOCK,
+            Action::SETTINGS_TRACING,
             Action::SETTINGS_TRACKING,
             Action::SETTINGS_MOBILE,
             Action::SETTINGS_DASHBOARDS,

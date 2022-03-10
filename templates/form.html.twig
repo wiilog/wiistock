@@ -244,7 +244,7 @@
     <label class="{{ options.labelClass ?? '' }}">
         <span>{{ _self.label(label, required, labelOptions) }}</span>
         {{ _self.tooltip(options.tooltip ?? null, options.inline ?? false) }}
-        <textarea class="form-control w-100 data"
+        <textarea class="form-control minw-100 w-100 data"
                   {{ _self.common_attributes(name, options) }}
                   rows="{{ options.rows ?? 3 }}" style="resize: vertical"
                   {{ required ? 'required' }}>

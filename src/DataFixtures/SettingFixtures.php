@@ -193,7 +193,27 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             ],
             Setting::SEND_PACK_DELIVERY_REMIND => [
                 'default' => 0,
-                SpecificService::CLIENT_INEO_LAV => 1
+                SpecificService::CLIENT_INEO_LAV => true
+            ],
+            Setting::NON_BUSINESS_HOURS_MESSAGE => [
+                'default' => null,
+                SpecificService::CLIENT_CLB => true
+            ],
+            Setting::SHIPMENT_NOTE_COMPANY_DETAILS => [
+                'default' => null,
+                SpecificService::CLIENT_CLB => true
+            ],
+            Setting::SHIPMENT_NOTE_SENDER_DETAILS => [
+                'default' => null,
+                SpecificService::CLIENT_CLB => true
+            ],
+            Setting::SHIPMENT_NOTE_ORIGINATOR => [
+                'default' => null,
+                SpecificService::CLIENT_CLB => true
+            ],
+            Setting::FILE_SHIPMENT_NOTE_LOGO => [
+                'default' => null,
+                SpecificService::CLIENT_CLB => true
             ],
         ];
 

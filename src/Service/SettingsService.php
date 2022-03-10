@@ -270,6 +270,7 @@ class SettingsService {
             [Setting::FILE_MOBILE_LOGO_HEADER, Setting::DEFAULT_MOBILE_LOGO_HEADER_VALUE],
             [Setting::FILE_WAYBILL_LOGO, null],
             [Setting::FILE_OVERCONSUMPTION_LOGO, null],
+            [Setting::FILE_SHIPMENT_NOTE_LOGO, null],
         ];
 
         foreach ($logosToSave as [$settingLabel, $default]) {

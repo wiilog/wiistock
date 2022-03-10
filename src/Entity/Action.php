@@ -97,7 +97,8 @@ class Action {
     // menu paramétrage
     const SETTINGS_GLOBAL = 'afficher paramétrage global';
     const SETTINGS_STOCK = 'afficher stock';
-    const SETTINGS_TRACKING = 'afficher trace';
+    const SETTINGS_TRACING = 'afficher trace';
+    const SETTINGS_TRACKING = 'afficher track';
     const SETTINGS_MOBILE = 'afficher terminal mobile';
     const SETTINGS_DASHBOARDS = 'afficher dashboards';
     const SETTINGS_IOT = 'afficher iot';
