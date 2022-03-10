@@ -837,6 +837,8 @@ class SettingsController extends AbstractController {
     public function offDaysApi(Request $request, EntityManagerInterface $manager) {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
 
+        dump($request->request->all());
+        dump($request->query->all());
         $data = [];
         if(!$edit) {
             $workFreeDayRepository = $manager->getRepository(WorkFreeDay::class);
@@ -848,7 +850,7 @@ class SettingsController extends AbstractController {
                             <i class='wii-icon wii-icon-trash text-primary'></i>
                         </button>
                     " : "",
-                    "day" => FormatHelper::longDate($day->getDay()),
+                    "day" => "<span data-timestamp='{$day->getTimestamp()}'>" . FormatHelper::longDate($day->getDay()) . "</span>",
                 ];
             }
         }
