@@ -300,6 +300,14 @@ function initializeOffDays($container, canEdit) {
     const $addButton = $container.find(`.add-row-button`);
     const $tableHeader = $(`.wii-page-card-header`);
 
+    //add a custom sort to use the data-timestamp attribute
+    //to sort dates instead of sorting alphabetically
+    $.extend($.fn.dataTableExt.oSort, {
+        ["date-sort-pre"]: field => $(field).data(`timestamp`),
+        ["date-sort-asc"]: (a, b) => ((a < b) ? 1 : ((a > b) ? -1 : 0)),
+        ["date-sort-desc"]: (a, b) => ((a < b) ? -1 : ((a > b) ? 1 : 0)),
+    })
+
     const table = EditableDatatable.create(`#table-off-days`, {
         route: Routing.generate(`settings_off_days_api`, true),
         deleteRoute: `settings_off_days_delete`,
@@ -330,7 +338,8 @@ function initializeOffDays($container, canEdit) {
             day: `<input type="date" name="day" class="form-control data" data-global-error="Jour" required/>`,
         },
         columnDefs: [
-            {targets: 1, width: '100%'},
+            {targets: 1, width: `100%`},
+            {targets: 1, type: `date-sort`},
         ],
     });
 
