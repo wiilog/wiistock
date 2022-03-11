@@ -12,41 +12,87 @@ use WiiCommon\Helper\Stream;
 
 class StatusService {
 
-    #[ArrayShape(['success' => "bool", 'message' => "null|string"])]
-    public function validateStatusData(EntityManagerInterface $entityManager,
-                                       array $data,
-                                       ?Statut $status = null): array {
-        $statusRepository = $entityManager->getRepository(Statut::class);
-        $categoryStatusRepository = $entityManager->getRepository(CategorieStatut::class);
-        $typeRepository = $entityManager->getRepository(Type::class);
+    #[ArrayShape([
+        'success' => "bool",
+        'message' => "null|string"
+    ])]
+    public function validateStatusesData(array $persistedStatuses = []): array {
+        $defaults = $this->countDuplicateStatuses($persistedStatuses, fn(Statut $status) => $status->isDefaultForCategory());
+        $drafts = $this->countDuplicateStatuses($persistedStatuses, fn(Statut $status) => $status->isDraft());
+        $disputes = $this->countDuplicateStatuses($persistedStatuses, fn(Statut $status) => $status->isDispute());
+        $duplicateLabels = $this->countDuplicateLabelStatuses($persistedStatuses);
 
-        $category = $status
-            ? $status->getCategorie()
-            : $categoryStatusRepository->findOneBy(['nom' => $data['category']]);
-
-        $type = isset($data['type'])
-            ? $typeRepository->find($data['type'])
-            : $status?->getType();
-
-        $defaults = $statusRepository->countDefaults($category, $type, $status);
-        $drafts = $statusRepository->countDrafts($category, $type, $status);
-        $disputes = $statusRepository->countDisputes($category, $type, $status);
-        $similarLabels = $statusRepository->countSimilarLabels($category, $data['label'], $type, $status);
-
-        if($similarLabels > 0) {
-            $message = 'Le statut "' . $data['label'] . '" existe déjà pour cette catégorie. Veuillez en choisir un autre.';
-        } else if (!empty($data['defaultForCategory']) && $defaults > 0) {
-            $message = 'Vous ne pouvez pas définir un statut par défaut pour cette entité et ce type, il en existe déjà un.';
-        } else if (((int) $data['state']) === Statut::DRAFT && $drafts > 0) {
-            $message = 'Vous ne pouvez pas définir un statut brouillon pour cette entité et ce type, il en existe déjà un.';
-        } else if (((int) $data['state']) === Statut::DISPUTE && $disputes > 0) {
-            $message = 'Vous ne pouvez pas définir un statut litige pour cette entité et ce type, il en existe déjà un.';
+        if($duplicateLabels > 0) {
+            $message = "Il n'est pas possible d'avoir deux statuts identiques pour le même type";
+        }
+        else if ($defaults > 0) {
+            $message = "Il n'est pas possible d'avoir deux statuts par défaut pour le même type";
+        }
+        else if ($drafts > 0) {
+            $message = "Il n'est pas possible d'avoir deux statuts en état Brouillon pour le même type";
+        }
+        else if ($disputes > 0) {
+            $message = "Il n'est pas possible d'avoir deux statuts en état Litige pour le même type";
         }
 
         return [
             'success' => empty($message),
             'message' => $message ?? null,
         ];
+    }
+
+    private function countDuplicateStatuses(array $statuses, callable $condition): int {
+        $result = Stream::from($statuses)
+            ->filter(fn(Statut $status) => $condition($status))
+            ->reduce(function(array $carry, Statut $status): array {
+                $categoryLabel = $status->getCategorie()?->getNom() ?: 0;
+                $typeLabel = $status->getType()?->getLabel() ?: 0;
+
+                if (!isset($carry[$categoryLabel])) {
+                    $carry[$categoryLabel] = [];
+                }
+
+                if (!isset($carry[$categoryLabel][$typeLabel])) {
+                    $carry[$categoryLabel][$typeLabel] = -1;
+                }
+
+                $carry[$categoryLabel][$typeLabel]++;
+
+                return $carry;
+            }, []);
+
+        return Stream::from($result)
+            ->map(fn (array $typeResults) => Stream::from($typeResults)->sum())
+            ->sum();
+    }
+
+    private function countDuplicateLabelStatuses(array $statuses): int {
+        $result = Stream::from($statuses)
+            ->reduce(function(array $carry, Statut $status): array {
+                $categoryLabel = $status->getCategorie()?->getNom() ?: 0;
+                $typeLabel = $status->getType()?->getLabel() ?: 0;
+                $statusLabel = $status->getNom();
+
+                if (!isset($carry[$categoryLabel])) {
+                    $carry[$categoryLabel] = [];
+                }
+                if (!isset($carry[$categoryLabel][$typeLabel])) {
+                    $carry[$categoryLabel][$typeLabel] = [];
+                }
+                if (!isset($carry[$categoryLabel][$typeLabel][$statusLabel])) {
+                    $carry[$categoryLabel][$typeLabel][$statusLabel] = -1;
+                }
+                $carry[$categoryLabel][$typeLabel][$statusLabel]++;
+                return $carry;
+            }, []);
+
+        return Stream::from($result)
+            ->map(function (array $typeResults) {
+                return Stream::from($typeResults)
+                    ->map(fn(array $labelCount) => Stream::from($labelCount)->sum())
+                    ->sum();
+            })
+            ->sum();
     }
 
     public function getStatusStatesValues(?string $mode = null): array {
