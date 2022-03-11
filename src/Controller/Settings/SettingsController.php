@@ -21,6 +21,7 @@ use App\Entity\Menu;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Translation;
+use App\Entity\Transport\TemperatureRange;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
@@ -536,6 +537,7 @@ class SettingsController extends AbstractController {
 
     public function customValues(): array {
         $mailerServerRepository = $this->manager->getRepository(MailerServer::class);
+        $temperatureRepository = $this->manager->getRepository(TemperatureRange::class);
         $typeRepository = $this->manager->getRepository(Type::class);
         $statusRepository = $this->manager->getRepository(Statut::class);
         $freeFieldRepository = $this->manager->getRepository(FreeField::class);
@@ -741,6 +743,17 @@ class SettingsController extends AbstractController {
                     self::MENU_FREE_FIELDS => fn() => [
                         "type" => $typeRepository->findOneByLabel(Type::LABEL_MVT_TRACA),
                     ],
+                ],
+            ],
+            self::CATEGORY_TRACKING => [
+                self::MENU_TEMPERATURES => fn() => [
+                    "temperatureRanges" => Stream::from($temperatureRepository->findAll())
+                        ->map(fn(TemperatureRange $range) => [
+                            "label" => $range->getValue(),
+                            "value" => $range->getValue(),
+                            "selected" => true,
+                        ])
+                        ->toArray(),
                 ],
             ],
             self::CATEGORY_IOT => [

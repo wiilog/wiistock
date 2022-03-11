@@ -23,6 +23,7 @@ use App\Entity\Setting;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
+use App\Entity\Transport\TemperatureRange;
 use App\Entity\Type;
 use App\Entity\VisibilityGroup;
 use App\Entity\WorkFreeDay;
@@ -228,6 +229,39 @@ class SettingsService {
 
             $updated[] = "DISPATCH_OVERCONSUMPTION_BILL_TYPE";
             $updated[] = "DISPATCH_OVERCONSUMPTION_BILL_STATUS";
+        }
+
+        if($request->request->has("temperatureRanges")) {
+            $temperatureRepository = $this->manager->getRepository(TemperatureRange::class);
+            $existingRanges = Stream::from($temperatureRepository->findAll())
+                ->keymap(fn(TemperatureRange $range) => [$range->getValue(), $range])
+                ->toArray();
+            $removedRanges = Stream::from($existingRanges)->toArray();
+
+            dump($existingRanges, explode(",", $request->request->get("temperatureRanges")));
+            foreach(explode(",", $request->request->get("temperatureRanges")) as $temperatureRange) {
+                if(!isset($existingRanges[$temperatureRange])) {
+                    dump("huh", $temperatureRange);
+                    $range = new TemperatureRange();
+                    $range->setValue($temperatureRange);
+
+                    $this->manager->persist($range);
+                } else {
+                    unset($removedRanges[$temperatureRange]);
+                }
+            }
+
+            //loop the ranges that have been deleted to check
+            //if they were used somewhere else
+            foreach ($removedRanges as $entity) {
+                if(false /* TODO WIIS-6344 & WIIS-6345 : check if it was used in nature or location or elsewhere */) {
+                    throw new RuntimeException("La plage de température {$entity->getValue()} ne peut pas être supprimée car elle est utilisée par des natures ou emplacements");
+                } else {
+                    $this->manager->remove($entity);
+                }
+            }
+
+            $updated[] = "temperatureRanges";
         }
     }
 
