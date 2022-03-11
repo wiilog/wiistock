@@ -8,7 +8,7 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-12">
+        <div class="col-md-4 col-12">
             {% set location = setting_value('DEFAULT_LOCATION_RECEPTION', 'App\\Entity\\Emplacement') %}
 
             {{ form.select(setting('DEFAULT_LOCATION_RECEPTION'), "Emplacement de réception par défaut", false, {
