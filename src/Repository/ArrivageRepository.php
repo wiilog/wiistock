@@ -357,7 +357,8 @@ class ArrivageRepository extends EntityRepository
                     } else if ($column === 'buyers') {
                         $qb
                             ->leftJoin('arrival.acheteurs', 'ach2')
-                            ->orderBy('ach2.username', $order);
+                            ->orderBy('ach2.username', $order)
+                            ->groupBy('arrival.id, ach2.username');
                     } else if ($column === 'user') {
                         $qb
                             ->leftJoin('arrival.utilisateur', 'u2')
