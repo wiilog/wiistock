@@ -837,8 +837,6 @@ class SettingsController extends AbstractController {
     public function offDaysApi(Request $request, EntityManagerInterface $manager) {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
 
-        dump($request->request->all());
-        dump($request->query->all());
         $data = [];
         if(!$edit) {
             $workFreeDayRepository = $manager->getRepository(WorkFreeDay::class);

@@ -158,7 +158,7 @@
                 <option disabled selected>{{ options.placeholder }}</option>
             {% endif %}
 
-            {% for value, text in options.items ?? [] %}
+            {% for value, text in (options.items ?? []) is array ? options.items : [options.items] %}
                 {% if text.value is defined and text.label is defined %}
                     <option value="{{ text.value }}"
                             {{ (text.selected ?? false) or text.value in values ? 'selected' }}
