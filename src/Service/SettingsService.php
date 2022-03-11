@@ -632,7 +632,7 @@ class SettingsService {
     }
 
     public function changeClient(string $client) {
-        $configPath = "/etc/php7/php-fpm.conf";
+        $configPath = "/etc/php8/php-fpm.conf";
 
         //if we're not on a kubernetes pod => file doesn't exist => ignore
         if(!file_exists($configPath)) {
@@ -649,7 +649,7 @@ class SettingsService {
             //magie noire qui recharge la config php fpm sur les pods kubernetes :
             //pgrep recherche l'id du processus de php fpm
             //kill envoie un message USR2 (qui veut dire "recharge la configuration") à phpfpm
-            exec("kill -USR2 $(pgrep -o php-fpm7)");
+            exec("kill -USR2 $(pgrep -o php-fpm)");
         } catch(Exception $exception) {
             throw new RuntimeException("Une erreur est survenue lors du changement de client");
         }

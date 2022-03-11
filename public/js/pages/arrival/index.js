@@ -182,6 +182,9 @@ function initTableArrival(dispatchMode = false) {
                     updateArrivalPageLength();
                     $('.dispatch-mode-button').removeClass('d-none');
                     $('button[name=new-arrival]').attr('disabled', false);
+                    if(dispatchMode) {
+                        $(`.dispatch-mode-container`).find(`.cancel`).prop(`disabled`, false);
+                    }
                 },
                 createdRow: (row) => {
                     if (dispatchMode) {
