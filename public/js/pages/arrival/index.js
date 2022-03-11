@@ -171,6 +171,10 @@ function initTableArrival(dispatchMode = false) {
                         className: 'd-none'
                     },
                 ],
+                columnDefs: [{
+                    type: "customDate",
+                    targets: "creationDate"
+                }],
                 hideColumnConfig: {
                     columns,
                     tableFilter: 'arrivalsTable'

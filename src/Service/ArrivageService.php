@@ -79,9 +79,12 @@ class ArrivageService {
         $queryResult = $arrivalRepository->findByParamsAndFilters(
             $request->request,
             $filters,
-            $userIdArrivalFilter,
-            $this->security->getUser(),
-            $this->visibleColumnService
+            $this->visibleColumnService,
+            [
+                'userIdArrivalFilter' => $userIdArrivalFilter,
+                'user' => $this->security->getUser(),
+                'dispatchMode' => $dispatchMode
+            ]
         );
 
         $arrivals = $queryResult['data'];
