@@ -20,7 +20,7 @@ class StatusService {
         $defaults = $this->countDuplicateStatuses($persistedStatuses, fn(Statut $status) => $status->isDefaultForCategory());
         $drafts = $this->countDuplicateStatuses($persistedStatuses, fn(Statut $status) => $status->isDraft());
         $disputes = $this->countDuplicateStatuses($persistedStatuses, fn(Statut $status) => $status->isDispute());
-        $duplicateLabels = $this->countDuplicateLabelStatuses($persistedStatuses);
+        $duplicateLabels = $this->countDuplicateStatusLabels($persistedStatuses);
 
         if($duplicateLabels > 0) {
             $message = "Il n'est pas possible d'avoir deux statuts identiques pour le même type";
@@ -45,18 +45,18 @@ class StatusService {
         $result = Stream::from($statuses)
             ->filter(fn(Statut $status) => $condition($status))
             ->reduce(function(array $carry, Statut $status): array {
-                $categoryLabel = $status->getCategorie()?->getNom() ?: 0;
-                $typeLabel = $status->getType()?->getLabel() ?: 0;
+                $categoryId = $status->getCategorie()?->getId() ?: 0;
+                $typeId = $status->getType()?->getId() ?: 0;
 
-                if (!isset($carry[$categoryLabel])) {
-                    $carry[$categoryLabel] = [];
+                if (!isset($carry[$categoryId])) {
+                    $carry[$categoryId] = [];
                 }
 
-                if (!isset($carry[$categoryLabel][$typeLabel])) {
-                    $carry[$categoryLabel][$typeLabel] = -1;
+                if (!isset($carry[$categoryId][$typeId])) {
+                    $carry[$categoryId][$typeId] = -1;
                 }
 
-                $carry[$categoryLabel][$typeLabel]++;
+                $carry[$categoryId][$typeId]++;
 
                 return $carry;
             }, []);
@@ -66,23 +66,23 @@ class StatusService {
             ->sum();
     }
 
-    private function countDuplicateLabelStatuses(array $statuses): int {
+    private function countDuplicateStatusLabels(array $statuses): int {
         $result = Stream::from($statuses)
             ->reduce(function(array $carry, Statut $status): array {
-                $categoryLabel = $status->getCategorie()?->getNom() ?: 0;
-                $typeLabel = $status->getType()?->getLabel() ?: 0;
+                $categoryId = $status->getCategorie()?->getId() ?: 0;
+                $typeId = $status->getType()?->getId() ?: 0;
                 $statusLabel = $status->getNom();
 
-                if (!isset($carry[$categoryLabel])) {
-                    $carry[$categoryLabel] = [];
+                if (!isset($carry[$categoryId])) {
+                    $carry[$categoryId] = [];
                 }
-                if (!isset($carry[$categoryLabel][$typeLabel])) {
-                    $carry[$categoryLabel][$typeLabel] = [];
+                if (!isset($carry[$categoryId][$typeId])) {
+                    $carry[$categoryId][$typeId] = [];
                 }
-                if (!isset($carry[$categoryLabel][$typeLabel][$statusLabel])) {
-                    $carry[$categoryLabel][$typeLabel][$statusLabel] = -1;
+                if (!isset($carry[$categoryId][$typeId][$statusLabel])) {
+                    $carry[$categoryId][$typeId][$statusLabel] = -1;
                 }
-                $carry[$categoryLabel][$typeLabel][$statusLabel]++;
+                $carry[$categoryId][$typeId][$statusLabel]++;
                 return $carry;
             }, []);
 
