@@ -240,7 +240,8 @@ class UserController extends AbstractController {
                 ->setAddress($data['address'])
                 ->setDropzone($dropzone)
                 ->setEmail($data['email'])
-                ->setPhone($data['phoneNumber'] ?? '');
+                ->setPhone($data['phoneNumber'] ?? '')
+                ->setDeliverer($data['deliverer'] ?? false);
 
             $visibilityGroupsIds = is_string($data["visibility-group"]) ? explode(',', $data['visibility-group']) : $data["visibility-group"];
             if ($visibilityGroupsIds) {
@@ -465,7 +466,8 @@ class UserController extends AbstractController {
                 ->setStatus(true)
                 ->setDropzone($dropzone)
                 ->setAddress($data['address'])
-                ->setMobileLoginKey($uniqueMobileKey);
+                ->setMobileLoginKey($uniqueMobileKey)
+                ->setDeliverer($data['deliverer'] ?? false);
 
             if ($password !== '') {
                 $password = $encoder->hashPassword($utilisateur, $data['password']);
