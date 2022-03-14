@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\CategorieCL;
 use App\Entity\FreeField;
+use App\Entity\Type;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Helper\FormatHelper;
@@ -101,44 +102,39 @@ class FreeFieldService {
     }
 
     public function getFilledFreeFieldArray(EntityManagerInterface $entityManager,
-                                                                   $freeFieldEntity,
-                                            ?string                $categoryCLLabel,
+                                                                   $entity,
+                                            ?string                $categoryFFLabel,
                                             string                 $category) {
         $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
         $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
 
-        if (!empty($categoryCLLabel)) {
-            $categorieCL = $categorieCLRepository->findOneBy(['label' => $categoryCLLabel]);
-            $freeFieldResult = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
+        /*if (!empty($categoryFFLabel)) {
+            $categoryFF = $categorieCLRepository->findOneBy(['label' => $categoryFFLabel]);
+            $freeFieldResult = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categoryFF);
         }
         else {
             $freeFieldResult = $freeFieldsRepository->findByCategoryTypeLabels([$category]);
+        }*/
+
+        if(property_exists($entity, 'type') && $entity->getType() instanceof Type) {
+            $freeFieldResult = $freeFieldsRepository->findByTypeAndCategorieCLLabel($entity->getType(), CategorieCL::DEMANDE_DISPATCH);
+        } else {
+            $categoryFF = $categorieCLRepository->findOneBy(['label' => $categoryFFLabel]);
+            $freeFieldResult = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categoryFF);
         }
 
-        $freeFields = array_reduce($freeFieldResult, function(array $acc, $freeField) {
-            $id = $freeField instanceof FreeField ? $freeField->getId() : $freeField['id'];
-            $label = $freeField instanceof FreeField ? $freeField->getLabel() : $freeField['label'];
-            $typage = $freeField instanceof FreeField ? $freeField->getTypage() : $freeField['typage'];
+        dump($freeFieldResult);
 
-            $acc[$id] = [
-                'label' => $label,
-                'typage' => $typage
+        $freeFieldsDetails = [];
+        $freeFields = $entity->getFreeFields();
+        foreach ($freeFieldResult as $freeField) {
+            $entity = $freeFieldsRepository->find($freeField->getId());
+            $freeFieldsDetails[] = [
+                'label' => $freeField->getLabel(),
+                'value' => FormatHelper::freeField($freeFields[$freeField->getId()] ?? null, $entity)
             ];
-
-            return $acc;
-        }, []);
-
-        $detailsChampLibres = [];
-        foreach ($freeFieldEntity->getFreeFields() as $freeFieldId => $freeFieldValue) {
-            if ($freeFieldValue !== "" && $freeFieldValue !== null && isset($freeFields[$freeFieldId])) {
-                $freeFieldEntity = $freeFieldsRepository->find($freeFieldId);
-                $detailsChampLibres[] = [
-                    'label' => $freeFields[$freeFieldId]['label'],
-                    'value' => FormatHelper::freeField($freeFieldValue ?? '', $freeFieldEntity)
-                ];
-            }
         }
 
-        return $detailsChampLibres;
+        return $freeFieldsDetails;
     }
 }
