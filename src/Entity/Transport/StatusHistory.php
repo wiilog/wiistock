@@ -24,7 +24,7 @@ class StatusHistory
     #[ORM\Column(type: 'datetime')]
     private ?DateTime $date;
 
-    #[ORM\ManyToOne(targetEntity: Statut::class, inversedBy: 'statusHistories')]
+    #[ORM\ManyToOne(targetEntity: Statut::class, inversedBy: 'transportStatusHistories')]
     private ?Statut $status = null;
 
     public function __construct() {
