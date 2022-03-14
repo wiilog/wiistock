@@ -179,7 +179,7 @@ class ArrivageRepository extends EntityRepository
         return $query->execute();
     }
 
-    public function findByParamsAndFilters(InputBag $params, $filters, ?int $userIdArrivalFilter, Utilisateur $user, VisibleColumnService $visibleColumnService): array
+    public function findByParamsAndFilters(InputBag $params, array $filters, VisibleColumnService $visibleColumnService, array $options = []): array
     {
         $qb = $this->createQueryBuilder("arrival")
             ->addSelect('SUM(main_packs.weight) AS totalWeight')
@@ -190,11 +190,11 @@ class ArrivageRepository extends EntityRepository
             ->groupBy('arrival');
 
         // filtre arrivages de l'utilisateur
-        if ($userIdArrivalFilter) {
+        if ($options['userIdArrivalFilter']) {
             $qb
                 ->join('arrival.acheteurs', 'ach')
                 ->where('ach.id = :userId')
-                ->setParameter('userId', $user->getId());
+                ->setParameter('userId', $options['user']->getId());
         }
 
         $total = QueryCounter::count($qb, 'arrival');
@@ -309,7 +309,7 @@ class ArrivageRepository extends EntityRepository
                         "dropLocation" => "search_dropLocation.label LIKE :search_value",
                     ];
 
-                    $condition = $visibleColumnService->getSearchableColumns($conditions, 'arrival', $qb, $user, $search);
+                    $condition = $visibleColumnService->getSearchableColumns($conditions, 'arrival', $qb, $options['user'], $search);
 
                     $qb
                         ->andWhere($condition)
@@ -402,6 +402,10 @@ class ArrivageRepository extends EntityRepository
             if ($pageLength) {
                 $qb->setMaxResults($pageLength);
             }
+        }
+
+        if($options['dispatchMode']) {
+            $qb->orderBy("arrival.date", "DESC");
         }
 
         return [
