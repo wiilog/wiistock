@@ -8,6 +8,7 @@ use App\Entity\Type;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Helper\FormatHelper;
+use RuntimeException;
 use WiiCommon\Helper\Stream;
 
 class FreeFieldService {
@@ -103,38 +104,40 @@ class FreeFieldService {
 
     public function getFilledFreeFieldArray(EntityManagerInterface $entityManager,
                                                                    $entity,
-                                            ?string                $categoryFFLabel,
-                                            string                 $category) {
+                                            array                  $displayedOptions) {
         $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
-        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
+        $freeFieldCategoryRepository = $entityManager->getRepository(CategorieCL::class);
 
-        /*if (!empty($categoryFFLabel)) {
-            $categoryFF = $categorieCLRepository->findOneBy(['label' => $categoryFFLabel]);
-            $freeFieldResult = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categoryFF);
+
+        /** @var Type $type */
+        $type = $displayedOptions['type'] ?? null;
+
+        // for article & reference articles
+        $freeFieldCategoryLabel = $displayedOptions['freeFieldCategoryLabel'] ?? null;
+        $freeFieldCategory = $freeFieldCategoryLabel
+            ? $freeFieldCategoryRepository->findOneBy(['label' => $freeFieldCategoryLabel])
+            : null;
+
+        if (!isset($type) && !isset($freeFieldCategory)) {
+            throw new RuntimeException('Invalid options');
         }
-        else {
-            $freeFieldResult = $freeFieldsRepository->findByCategoryTypeLabels([$category]);
-        }*/
 
-        if(property_exists($entity, 'type') && $entity->getType() instanceof Type) {
-            $freeFieldResult = $freeFieldsRepository->findByTypeAndCategorieCLLabel($entity->getType(), CategorieCL::DEMANDE_DISPATCH);
-        } else {
-            $categoryFF = $categorieCLRepository->findOneBy(['label' => $categoryFFLabel]);
-            $freeFieldResult = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categoryFF);
+        $freeFieldCriteria = [];
+        if (isset($type)) {
+            $freeFieldCriteria['type'] = $type;
+        }
+        if (isset($freeFieldCategory)) {
+            $freeFieldCriteria['categorieCL'] = $freeFieldCategory;
         }
 
-        dump($freeFieldResult);
+        $freeFields = $freeFieldsRepository->findBy($freeFieldCriteria);
 
-        $freeFieldsDetails = [];
-        $freeFields = $entity->getFreeFields();
-        foreach ($freeFieldResult as $freeField) {
-            $entity = $freeFieldsRepository->find($freeField->getId());
-            $freeFieldsDetails[] = [
+        $freeFieldValues = $entity->getFreeFields();
+        return Stream::from($freeFields ?? [])
+            ->map(fn (FreeField $freeField) => [
                 'label' => $freeField->getLabel(),
-                'value' => FormatHelper::freeField($freeFields[$freeField->getId()] ?? null, $entity)
-            ];
-        }
-
-        return $freeFieldsDetails;
+                'value' => FormatHelper::freeField($freeFieldValues[$freeField->getId()] ?? null, $freeField)
+            ])
+            ->toArray();
     }
 }
