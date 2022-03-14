@@ -5,6 +5,10 @@ namespace App\Entity;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\PreparationOrder\Preparation;
+use App\Entity\Transport\TransportDeliveryOrderPack;
+use App\Entity\Transport\TransportRequest;
+use App\Entity\Transport\TransportRound;
+use App\Entity\Transport\Vehicle;
 use App\Repository\UtilisateurRepository;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -61,7 +65,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $token = null;
 
-    #[ORM\OneToMany(targetEntity: FiltreSup::class, mappedBy: 'user')]
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: FiltreSup::class)]
     private Collection $filtresSup;
 
     #[Assert\Length(min: 8, max: 4096, minMessage: 'Le mot de passe doit contenir 8 caractères minimum.', maxMessage: 'Le mot de passe est trop long.')]
@@ -83,61 +87,61 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $address = null;
 
-    #[ORM\OneToMany(targetEntity: Reception::class, mappedBy: 'utilisateur')]
+    #[ORM\OneToMany(mappedBy: 'utilisateur', targetEntity: Reception::class)]
     private Collection $receptions;
 
-    #[ORM\OneToMany(targetEntity: 'App\Entity\DeliveryRequest\Demande', mappedBy: 'utilisateur')]
+    #[ORM\OneToMany(mappedBy: 'utilisateur', targetEntity: 'App\Entity\DeliveryRequest\Demande')]
     private Collection $demandes;
 
-    #[ORM\OneToMany(targetEntity: Collecte::class, mappedBy: 'demandeur')]
+    #[ORM\OneToMany(mappedBy: 'demandeur', targetEntity: Collecte::class)]
     private Collection $collectes;
 
-    #[ORM\OneToMany(targetEntity: 'App\Entity\PreparationOrder\Preparation', mappedBy: 'utilisateur')]
+    #[ORM\OneToMany(mappedBy: 'utilisateur', targetEntity: 'App\Entity\PreparationOrder\Preparation')]
     private Collection $preparations;
 
-    #[ORM\OneToMany(targetEntity: Livraison::class, mappedBy: 'utilisateur')]
+    #[ORM\OneToMany(mappedBy: 'utilisateur', targetEntity: Livraison::class)]
     private Collection $livraisons;
 
-    #[ORM\OneToMany(targetEntity: MouvementStock::class, mappedBy: 'user')]
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: MouvementStock::class)]
     private Collection $mouvements;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $apiKey = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: false, unique: true)]
+    #[ORM\Column(type: 'string', length: 255, unique: true, nullable: false)]
     private ?string $mobileLoginKey = null;
 
-    #[ORM\OneToMany(targetEntity: Handling::class, mappedBy: 'requester')]
+    #[ORM\OneToMany(mappedBy: 'requester', targetEntity: Handling::class)]
     private Collection $handlings;
 
     #[ORM\ManyToMany(targetEntity: Dispatch::class, mappedBy: 'receivers')]
     private Collection $receivedDispatches;
 
-    #[ORM\OneToMany(targetEntity: Dispatch::class, mappedBy: 'requester')]
+    #[ORM\OneToMany(mappedBy: 'requester', targetEntity: Dispatch::class)]
     private Collection $requestedDispatches;
 
-    #[ORM\OneToMany(targetEntity: Dispatch::class, mappedBy: 'treatedBy')]
+    #[ORM\OneToMany(mappedBy: 'treatedBy', targetEntity: Dispatch::class)]
     private Collection $treatedDispatches;
 
-    #[ORM\OneToMany(targetEntity: Handling::class, mappedBy: 'treatedByHandling')]
+    #[ORM\OneToMany(mappedBy: 'treatedByHandling', targetEntity: Handling::class)]
     private Collection $treatedHandlings;
 
-    #[ORM\OneToMany(targetEntity: FiltreRef::class, mappedBy: 'utilisateur', orphanRemoval: true)]
+    #[ORM\OneToMany(mappedBy: 'utilisateur', targetEntity: FiltreRef::class, orphanRemoval: true)]
     private Collection $filters;
 
-    #[ORM\OneToMany(targetEntity: OrdreCollecte::class, mappedBy: 'utilisateur')]
+    #[ORM\OneToMany(mappedBy: 'utilisateur', targetEntity: OrdreCollecte::class)]
     private Collection $ordreCollectes;
 
-    #[ORM\OneToMany(targetEntity: Arrivage::class, mappedBy: 'destinataire')]
+    #[ORM\OneToMany(mappedBy: 'destinataire', targetEntity: Arrivage::class)]
     private Collection $arrivagesDestinataire;
 
-    #[ORM\OneToMany(targetEntity: Urgence::class, mappedBy: 'buyer')]
+    #[ORM\OneToMany(mappedBy: 'buyer', targetEntity: Urgence::class)]
     private Collection $emergencies;
 
     #[ORM\ManyToMany(targetEntity: Arrivage::class, mappedBy: 'acheteurs')]
     private Collection $arrivagesAcheteur;
 
-    #[ORM\OneToMany(targetEntity: Arrivage::class, mappedBy: 'utilisateur')]
+    #[ORM\OneToMany(mappedBy: 'utilisateur', targetEntity: Arrivage::class)]
     private Collection $arrivagesUtilisateur;
 
     #[ORM\Column(type: 'json', nullable: true)]
@@ -155,16 +159,16 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\JoinTable(name: 'user_handling_type')]
     private Collection $handlingTypes;
 
-    #[ORM\OneToMany(targetEntity: InventoryEntry::class, mappedBy: 'operator')]
+    #[ORM\OneToMany(mappedBy: 'operator', targetEntity: InventoryEntry::class)]
     private Collection $inventoryEntries;
 
     #[ORM\ManyToOne(targetEntity: InventoryCategoryHistory::class, inversedBy: 'operator')]
     private ?InventoryCategoryHistory $inventoryCategoryHistory = null;
 
-    #[ORM\OneToMany(targetEntity: DisputeHistoryRecord::class, mappedBy: 'user')]
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: DisputeHistoryRecord::class)]
     private Collection $disputeHistoryRecords;
 
-    #[ORM\OneToMany(targetEntity: ReceiptAssociation::class, mappedBy: 'user')]
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: ReceiptAssociation::class)]
     private Collection $receptionsTraca;
 
     #[ORM\ManyToMany(targetEntity: Dispute::class, mappedBy: 'buyers')]
@@ -191,13 +195,13 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\ManyToOne(targetEntity: LocationGroup::class, inversedBy: 'users')]
     private ?LocationGroup $locationGroupDropzone = null;
 
-    #[ORM\OneToMany(targetEntity: ReferenceArticle::class, mappedBy: 'userThatTriggeredEmergency')]
+    #[ORM\OneToMany(mappedBy: 'userThatTriggeredEmergency', targetEntity: ReferenceArticle::class)]
     private Collection $referencesEmergenciesTriggered;
 
     #[ORM\Column(type: 'json', nullable: true)]
     private ?array $secondaryEmails = [];
 
-    #[ORM\OneToMany(targetEntity: Dispute::class, mappedBy: 'reporter')]
+    #[ORM\OneToMany(mappedBy: 'reporter', targetEntity: Dispute::class)]
     private Collection $reportedDisputes;
 
     #[ORM\ManyToMany(targetEntity: ReferenceArticle::class, mappedBy: 'managers')]
@@ -206,20 +210,20 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\ManyToMany(targetEntity: Handling::class, mappedBy: 'receivers')]
     private Collection $receivedHandlings;
 
-    #[ORM\OneToMany(targetEntity: ReferenceArticle::class, mappedBy: 'buyer')]
+    #[ORM\OneToMany(mappedBy: 'buyer', targetEntity: ReferenceArticle::class)]
     private Collection $referencesBuyer;
 
-    #[ORM\OneToOne(targetEntity: Cart::class, mappedBy: 'user', cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(mappedBy: 'user', targetEntity: Cart::class, cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(nullable: true)]
     private ?Cart $cart = null;
 
-    #[ORM\OneToMany(targetEntity: PurchaseRequest::class, mappedBy: 'requester')]
+    #[ORM\OneToMany(mappedBy: 'requester', targetEntity: PurchaseRequest::class)]
     private ?Collection $purchaseRequestRequesters;
 
-    #[ORM\OneToMany(targetEntity: PurchaseRequest::class, mappedBy: 'buyer')]
+    #[ORM\OneToMany(mappedBy: 'buyer', targetEntity: PurchaseRequest::class)]
     private ?Collection $purchaseRequestBuyers;
 
-    #[ORM\OneToMany(targetEntity: SensorWrapper::class, mappedBy: 'manager')]
+    #[ORM\OneToMany(mappedBy: 'manager', targetEntity: SensorWrapper::class)]
     private Collection $sensorWrappers;
 
     #[ORM\ManyToMany(targetEntity: Notification::class, mappedBy: 'users')]
@@ -240,11 +244,26 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\Column(type: 'json', nullable: true)]
     private ?array $visibleColumns;
 
-    #[ORM\OneToMany(targetEntity: ReferenceArticle::class, mappedBy: 'editedBy')]
+    #[ORM\OneToMany(mappedBy: 'editedBy', targetEntity: ReferenceArticle::class)]
     private Collection $editedByReferenceArticles;
 
-    #[ORM\OneToMany(targetEntity: ReferenceArticle::class, mappedBy: 'createdBy')]
+    #[ORM\OneToMany(mappedBy: 'createdBy', targetEntity: ReferenceArticle::class)]
     private Collection $createdByReferenceArticles;
+
+    #[ORM\OneToMany(mappedBy: 'deliverer', targetEntity: Vehicle::class)]
+    private Collection $vehicles;
+
+    #[ORM\Column(type: 'boolean')]
+    private ?bool $deliverer = null;
+
+    #[ORM\OneToMany(mappedBy: 'createdBy', targetEntity: TransportRequest::class)]
+    private Collection $transportRequests;
+
+    #[ORM\OneToMany(mappedBy: 'deliverer', targetEntity: TransportRound::class)]
+    private Collection $transportRounds;
+
+    #[ORM\OneToMany(mappedBy: 'rejectedBy', targetEntity: TransportDeliveryOrderPack::class)]
+    private Collection $transportDeliveryOrderRejectedPacks;
 
     public function __construct() {
         $this->receptions = new ArrayCollection();
@@ -284,6 +303,10 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         $this->visibilityGroups = new ArrayCollection();
         $this->editedByReferenceArticles = new ArrayCollection();
         $this->createdByReferenceArticles = new ArrayCollection();
+        $this->vehicles = new ArrayCollection();
+        $this->transportRequests = new ArrayCollection();
+        $this->transportRounds = new ArrayCollection();
+        $this->transportDeliveryOrderRejectedPacks = new ArrayCollection();
 
         $this->recherche = Utilisateur::SEARCH_DEFAULT;
         $this->rechercheForArticle = Utilisateur::SEARCH_DEFAULT;
@@ -1741,6 +1764,138 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         $this->editedByReferenceArticles = new ArrayCollection();
         foreach($referenceArticles as $referenceArticle) {
             $this->addCreatedByReferenceArticle($referenceArticle);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Vehicle>
+     */
+    public function getVehicles(): Collection
+    {
+        return $this->vehicles;
+    }
+
+    public function addVehicle(Vehicle $vehicle): self
+    {
+        if (!$this->vehicles->contains($vehicle)) {
+            $this->vehicles[] = $vehicle;
+            $vehicle->setDeliverer($this);
+        }
+
+        return $this;
+    }
+
+    public function removeVehicle(Vehicle $vehicle): self
+    {
+        if ($this->vehicles->removeElement($vehicle)) {
+            // set the owning side to null (unless already changed)
+            if ($vehicle->getDeliverer() === $this) {
+                $vehicle->setDeliverer(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getDeliverer(): ?bool
+    {
+        return $this->deliverer;
+    }
+
+    public function setDeliverer(bool $deliverer): self
+    {
+        $this->deliverer = $deliverer;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, TransportRequest>
+     */
+    public function getTransportRequests(): Collection
+    {
+        return $this->transportRequests;
+    }
+
+    public function addTransportRequest(TransportRequest $transportRequest): self
+    {
+        if (!$this->transportRequests->contains($transportRequest)) {
+            $this->transportRequests[] = $transportRequest;
+            $transportRequest->setCreatedBy($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTransportRequest(TransportRequest $transportRequest): self
+    {
+        if ($this->transportRequests->removeElement($transportRequest)) {
+            // set the owning side to null (unless already changed)
+            if ($transportRequest->getCreatedBy() === $this) {
+                $transportRequest->setCreatedBy(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, TransportRound>
+     */
+    public function getTransportRounds(): Collection
+    {
+        return $this->transportRounds;
+    }
+
+    public function addTransportRound(TransportRound $transportRound): self
+    {
+        if (!$this->transportRounds->contains($transportRound)) {
+            $this->transportRounds[] = $transportRound;
+            $transportRound->setDeliverer($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTransportRound(TransportRound $transportRound): self
+    {
+        if ($this->transportRounds->removeElement($transportRound)) {
+            // set the owning side to null (unless already changed)
+            if ($transportRound->getDeliverer() === $this) {
+                $transportRound->setDeliverer(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, TransportDeliveryOrderPack>
+     */
+    public function getTransportDeliveryOrderRejectedPacks(): Collection
+    {
+        return $this->transportDeliveryOrderRejectedPacks;
+    }
+
+    public function addTransportDeliveryOrderRejectedPack(TransportDeliveryOrderPack $transportDeliveryOrderPack): self
+    {
+        if (!$this->transportDeliveryOrderRejectedPacks->contains($transportDeliveryOrderPack)) {
+            $this->transportDeliveryOrderRejectedPacks[] = $transportDeliveryOrderPack;
+            $transportDeliveryOrderPack->setRejectedBy($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTransportDeliveryOrderRejectedPack(TransportDeliveryOrderPack $transportDeliveryOrderPack): self
+    {
+        if ($this->transportDeliveryOrderRejectedPacks->removeElement($transportDeliveryOrderPack)) {
+            // set the owning side to null (unless already changed)
+            if ($transportDeliveryOrderPack->getRejectedBy() === $this) {
+                $transportDeliveryOrderPack->setRejectedBy(null);
+            }
         }
 
         return $this;

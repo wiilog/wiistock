@@ -12,6 +12,8 @@ use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorMessageTrait;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
+use App\Entity\Transport\TemperatureRange;
+use App\Entity\Transport\Vehicle;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
@@ -36,19 +38,19 @@ class Emplacement implements PairedEntity {
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $description = null;
 
-    #[ORM\OneToMany(targetEntity: Livraison::class, mappedBy: 'destination')]
+    #[ORM\OneToMany(mappedBy: 'destination', targetEntity: Livraison::class)]
     private Collection $livraisons;
 
-    #[ORM\OneToMany(targetEntity: 'App\Entity\DeliveryRequest\Demande', mappedBy: 'destination')]
+    #[ORM\OneToMany(mappedBy: 'destination', targetEntity: 'App\Entity\DeliveryRequest\Demande')]
     private Collection $demandes;
 
-    #[ORM\OneToMany(targetEntity: Collecte::class, mappedBy: 'pointCollecte')]
+    #[ORM\OneToMany(mappedBy: 'pointCollecte', targetEntity: Collecte::class)]
     private Collection $collectes;
 
-    #[ORM\OneToMany(targetEntity: Article::class, mappedBy: 'emplacement')]
+    #[ORM\OneToMany(mappedBy: 'emplacement', targetEntity: Article::class)]
     private Collection $articles;
 
-    #[ORM\OneToMany(targetEntity: ReferenceArticle::class, mappedBy: 'emplacement')]
+    #[ORM\OneToMany(mappedBy: 'emplacement', targetEntity: ReferenceArticle::class)]
     private Collection $referenceArticles;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
@@ -63,28 +65,28 @@ class Emplacement implements PairedEntity {
     #[ORM\Column(type: 'string', nullable: true)]
     private ?string $dateMaxTime = null;
 
-    #[ORM\OneToMany(targetEntity: Utilisateur::class, mappedBy: 'locationDropzone')]
+    #[ORM\OneToMany(mappedBy: 'locationDropzone', targetEntity: Utilisateur::class)]
     private Collection $utilisateurs;
 
     #[ORM\ManyToMany(targetEntity: Nature::class, inversedBy: 'emplacements')]
     private Collection $allowedNatures;
 
-    #[ORM\OneToMany(targetEntity: Dispatch::class, mappedBy: 'locationFrom')]
+    #[ORM\OneToMany(mappedBy: 'locationFrom', targetEntity: Dispatch::class)]
     private Collection $dispatchesFrom;
 
-    #[ORM\OneToMany(targetEntity: Dispatch::class, mappedBy: 'locationTo')]
+    #[ORM\OneToMany(mappedBy: 'locationTo', targetEntity: Dispatch::class)]
     private Collection $dispatchesTo;
 
-    #[ORM\OneToMany(targetEntity: Type::class, mappedBy: 'dropLocation')]
+    #[ORM\OneToMany(mappedBy: 'dropLocation', targetEntity: Type::class)]
     private Collection $dropTypes;
 
-    #[ORM\OneToMany(targetEntity: Type::class, mappedBy: 'pickLocation')]
+    #[ORM\OneToMany(mappedBy: 'pickLocation', targetEntity: Type::class)]
     private Collection $pickTypes;
 
     #[ORM\ManyToMany(targetEntity: LocationCluster::class, mappedBy: 'locations')]
     private Collection $clusters;
 
-    #[ORM\OneToMany(targetEntity: Arrivage::class, mappedBy: 'dropLocation')]
+    #[ORM\OneToMany(mappedBy: 'dropLocation', targetEntity: Arrivage::class)]
     private Collection $arrivals;
 
     #[ORM\ManyToMany(targetEntity: Type::class)]
@@ -95,33 +97,39 @@ class Emplacement implements PairedEntity {
     #[ORM\JoinTable(name: 'location_allowed_collect_type')]
     private Collection $allowedCollectTypes;
 
-    #[ORM\OneToMany(targetEntity: Pairing::class, mappedBy: 'location', cascade: ['remove'])]
+    #[ORM\OneToMany(mappedBy: 'location', targetEntity: Pairing::class, cascade: ['remove'])]
     private Collection $pairings;
 
-    #[ORM\OneToMany(targetEntity: DeliveryRequestTemplate::class, mappedBy: 'destination')]
+    #[ORM\OneToMany(mappedBy: 'destination', targetEntity: DeliveryRequestTemplate::class)]
     private Collection $deliveryRequestTemplates;
 
-    #[ORM\OneToMany(targetEntity: CollectRequestTemplate::class, mappedBy: 'collectPoint')]
+    #[ORM\OneToMany(mappedBy: 'collectPoint', targetEntity: CollectRequestTemplate::class)]
     private Collection $collectRequestTemplates;
 
     #[ORM\ManyToOne(targetEntity: LocationGroup::class, inversedBy: 'locations')]
     #[ORM\JoinColumn(onDelete: 'SET NULL')]
     private ?LocationGroup $locationGroup = null;
 
-    #[ORM\OneToMany(targetEntity: DeliveryRequest\DeliveryRequestArticleLine::class, mappedBy: 'targetLocationPicking')]
+    #[ORM\OneToMany(mappedBy: 'targetLocationPicking', targetEntity: DeliveryRequest\DeliveryRequestArticleLine::class)]
     private Collection $deliveryRequestArticleLines;
 
-    #[ORM\OneToMany(targetEntity: DeliveryRequest\DeliveryRequestReferenceLine::class, mappedBy: 'targetLocationPicking')]
+    #[ORM\OneToMany(mappedBy: 'targetLocationPicking', targetEntity: DeliveryRequest\DeliveryRequestReferenceLine::class)]
     private Collection $deliveryRequestReferenceLines;
 
-    #[ORM\OneToMany(targetEntity: PreparationOrder\PreparationOrderArticleLine::class, mappedBy: 'targetLocationPicking')]
+    #[ORM\OneToMany(mappedBy: 'targetLocationPicking', targetEntity: PreparationOrder\PreparationOrderArticleLine::class)]
     private Collection $preparationOrderArticleLines;
 
-    #[ORM\OneToMany(targetEntity: PreparationOrder\PreparationOrderReferenceLine::class, mappedBy: 'targetLocationPicking')]
+    #[ORM\OneToMany(mappedBy: 'targetLocationPicking', targetEntity: PreparationOrder\PreparationOrderReferenceLine::class)]
     private Collection $preparationOrderReferenceLines;
 
-    #[ORM\OneToMany(targetEntity: TransferOrder::class, mappedBy: 'dropLocation')]
+    #[ORM\OneToMany(mappedBy: 'dropLocation', targetEntity: TransferOrder::class)]
     private Collection $transferOrders;
+
+    #[ORM\OneToOne(mappedBy: 'location', targetEntity: Vehicle::class, cascade: ['persist', 'remove'])]
+    private ?Vehicle $vehicle = null;
+
+    #[ORM\ManyToMany(targetEntity: TemperatureRange::class, inversedBy: 'locations')]
+    private Collection $temperatureRanges;
 
     public function __construct() {
         $this->clusters = new ArrayCollection();
@@ -150,6 +158,7 @@ class Emplacement implements PairedEntity {
 
         $this->isOngoingVisibleOnMobile = false;
         $this->isActive = true;
+        $this->temperatureRanges = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -911,6 +920,50 @@ class Emplacement implements PairedEntity {
         $this->transferOrders = new ArrayCollection();
         foreach($transferOrders as $transferOrder) {
             $this->addTransferOrder($transferOrder);
+        }
+
+        return $this;
+    }
+
+    public function getVehicle(): ?Vehicle
+    {
+        return $this->vehicle;
+    }
+
+    public function setVehicle(?Vehicle $vehicle): self {
+        if($this->vehicle && $this->vehicle->getLocation() !== $this) {
+            $oldVehicle = $this->vehicle;
+            $this->vehicle = null;
+            $oldVehicle->setLocation(null);
+        }
+        $this->vehicle = $vehicle;
+        if($this->vehicle && $this->vehicle->getLocation() !== $this) {
+            $this->vehicle->setLocation($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, TemperatureRange>
+     */
+    public function getTemperatureRanges(): Collection
+    {
+        return $this->temperatureRanges;
+    }
+
+    public function addTemperatureRange(TemperatureRange $temperatureRange): self {
+        if (!$this->temperatureRanges->contains($temperatureRange)) {
+            $this->temperatureRanges[] = $temperatureRange;
+            $temperatureRange->addLocation($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTemperatureRange(TemperatureRange $temperatureRange): self {
+        if ($this->temperatureRanges->removeElement($temperatureRange)) {
+            $temperatureRange->removeLocation($this);
         }
 
         return $this;
