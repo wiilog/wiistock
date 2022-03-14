@@ -45,7 +45,7 @@ class LocationGroupController extends AbstractController {
         if ($sameLabel) {
             return $this->json([
                 "success" => false,
-                "msg" => "Un groupe d'emplacement avec le même nom existe déjà",
+                "msg" => "Un groupe d'emplacements avec le même nom existe déjà",
             ]);
         } elseif ($sameLocationLabel) {
             return $this->json([
@@ -145,7 +145,13 @@ class LocationGroupController extends AbstractController {
         $locationGroupRepository = $manager->getRepository(LocationGroup::class);
 
         $group = $locationGroupRepository->find($data["id"]);
-        if ($group) {
+
+        if(!$group->getUsers()->isEmpty()) {
+            return $this->json([
+                "success" => false,
+                "msg" => "Ce groupe d'emplacements est utilisé en tant que dropzone sur un ou plusieurs utilisateurs, vous ne pouvez pas le supprimer.",
+            ]);
+        } else {
             $manager->remove($group);
             $manager->flush();
 
@@ -154,8 +160,6 @@ class LocationGroupController extends AbstractController {
                 "msg" => "Groupe d'emplacements supprimé avec succès",
             ]);
         }
-
-        throw new NotFoundHttpException();
     }
 
 }

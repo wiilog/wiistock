@@ -171,6 +171,10 @@ function initTableArrival(dispatchMode = false) {
                         className: 'd-none'
                     },
                 ],
+                columnDefs: [{
+                    type: "customDate",
+                    targets: "creationDate"
+                }],
                 hideColumnConfig: {
                     columns,
                     tableFilter: 'arrivalsTable'
@@ -181,6 +185,10 @@ function initTableArrival(dispatchMode = false) {
                 initCompleteCallback: () => {
                     updateArrivalPageLength();
                     $('.dispatch-mode-button').removeClass('d-none');
+                    $('button[name=new-arrival]').attr('disabled', false);
+                    if(dispatchMode) {
+                        $(`.dispatch-mode-container`).find(`.cancel`).prop(`disabled`, false);
+                    }
                 },
                 createdRow: (row) => {
                     if (dispatchMode) {

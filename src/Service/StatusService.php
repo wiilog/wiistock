@@ -4,80 +4,35 @@ namespace App\Service;
 
 use App\Controller\Settings\StatusController;
 use App\Entity\CategorieStatut;
-use App\Entity\FiltreSup;
 use App\Entity\Statut;
 use App\Entity\Type;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Routing\RouterInterface;
-use Symfony\Component\Security\Core\Security;
-use Twig\Environment as Twig_Environment;
+use JetBrains\PhpStorm\ArrayShape;
 use WiiCommon\Helper\Stream;
 
 class StatusService {
 
-    private $entityManager;
+    #[ArrayShape([
+        'success' => "bool",
+        'message' => "null|string"
+    ])]
+    public function validateStatusesData(array $persistedStatuses = []): array {
+        $defaults = $this->countDuplicateStatuses($persistedStatuses, fn(Statut $status) => $status->isDefaultForCategory());
+        $drafts = $this->countDuplicateStatuses($persistedStatuses, fn(Statut $status) => $status->isDraft());
+        $disputes = $this->countDuplicateStatuses($persistedStatuses, fn(Statut $status) => $status->isDispute());
+        $duplicateLabels = $this->countDuplicateStatusLabels($persistedStatuses);
 
-    private $security;
-
-    private $templating;
-
-    private $router;
-
-    public function __construct(EntityManagerInterface $entityManager,
-                                Security               $security,
-                                Twig_Environment       $templating,
-                                RouterInterface        $router) {
-        $this->entityManager = $entityManager;
-        $this->security = $security;
-        $this->templating = $templating;
-        $this->router = $router;
-    }
-
-    public function updateStatus(EntityManagerInterface $entityManager, Statut $status, array $data): Statut {
-        $typeRepository = $entityManager->getRepository(Type::class);
-        $type = $typeRepository->find($data['type']);
-        $status
-            ->setNom($data['label'])
-            ->setState($data['state'])
-            ->setDefaultForCategory((bool)$data['defaultForCategory'])
-            ->setSendNotifToBuyer((bool)$data['sendMails'])
-            ->setCommentNeeded((bool)$data['commentNeeded'])
-            ->setNeedsMobileSync((bool)$data['needsMobileSync'])
-            ->setSendNotifToDeclarant((bool)$data['sendMailsDeclarant'])
-            ->setSendNotifToRecipient((bool)$data['sendMailsRecipient'])
-            ->setAutomaticReceptionCreation((bool)$data['automaticReceptionCreation'])
-            ->setDisplayOrder((int)$data['displayOrder'])
-            ->setComment($data['comment'])
-            ->setType($type);
-        return $status;
-    }
-
-    public function validateStatusData(EntityManagerInterface $entityManager, array $data, ?Statut $status = null): array {
-        $statusRepository = $entityManager->getRepository(Statut::class);
-        $categoryStatusRepository = $entityManager->getRepository(CategorieStatut::class);
-        $typeRepository = $entityManager->getRepository(Type::class);
-
-        $category = $status
-            ? $status->getCategorie()
-            : $categoryStatusRepository->findOneBy(['nom' => $data['category']]);
-
-        $type = isset($data['type'])
-            ? $typeRepository->find($data['type'])
-            : $status?->getType();
-
-        $defaults = $statusRepository->countDefaults($category, $type, $status);
-        $drafts = $statusRepository->countDrafts($category, $type, $status);
-        $disputes = $statusRepository->countDisputes($category, $type, $status);
-        $similarLabels = $statusRepository->countSimilarLabels($category, $data['label'], $type, $status);
-
-        if($similarLabels > 0) {
-            $message = 'Le statut "' . $data['label'] . '" existe déjà pour cette catégorie. Veuillez en choisir un autre.';
-        } else if (!empty($data['defaultForCategory']) && $defaults > 0) {
-            $message = 'Vous ne pouvez pas définir un statut par défaut pour cette entité et ce type, il en existe déjà un.';
-        } else if (((int) $data['state']) === Statut::DRAFT && $drafts > 0) {
-            $message = 'Vous ne pouvez pas définir un statut brouillon pour cette entité et ce type, il en existe déjà un.';
-        } else if (((int) $data['state']) === Statut::DISPUTE && $disputes > 0) {
-            $message = 'Vous ne pouvez pas définir un statut litige pour cette entité et ce type, il en existe déjà un.';
+        if($duplicateLabels > 0) {
+            $message = "Il n'est pas possible d'avoir deux statuts identiques pour le même type";
+        }
+        else if ($defaults > 0) {
+            $message = "Il n'est pas possible d'avoir deux statuts par défaut pour le même type";
+        }
+        else if ($drafts > 0) {
+            $message = "Il n'est pas possible d'avoir deux statuts en état Brouillon pour le même type";
+        }
+        else if ($disputes > 0) {
+            $message = "Il n'est pas possible d'avoir deux statuts en état Litige pour le même type";
         }
 
         return [
@@ -86,45 +41,58 @@ class StatusService {
         ];
     }
 
-    public function getDataForDatatable($params = null) {
-        $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
-        $statusRepository = $this->entityManager->getRepository(Statut::class);
+    private function countDuplicateStatuses(array $statuses, callable $condition): int {
+        $result = Stream::from($statuses)
+            ->filter(fn(Statut $status) => $condition($status))
+            ->reduce(function(array $carry, Statut $status): array {
+                $categoryId = $status->getCategorie()?->getId() ?: 0;
+                $typeId = $status->getType()?->getId() ?: 0;
 
-        $statusFilter = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_STATUS, $this->security->getUser());
-        $queryResult = $statusRepository->findByParamsAndFilters($params, $statusFilter);
+                if (!isset($carry[$categoryId])) {
+                    $carry[$categoryId] = [];
+                }
 
-        $statusArray = $queryResult['data'];
+                if (!isset($carry[$categoryId][$typeId])) {
+                    $carry[$categoryId][$typeId] = -1;
+                }
 
-        $rows = [];
-        foreach($statusArray as $status) {
-            $rows[] = $this->dataRowStatus($status);
-        }
+                $carry[$categoryId][$typeId]++;
 
-        return [
-            'data' => $rows,
-            'recordsTotal' => $queryResult['total'],
-            'recordsFiltered' => $queryResult['count'],
-        ];
+                return $carry;
+            }, []);
+
+        return Stream::from($result)
+            ->map(fn (array $typeResults) => Stream::from($typeResults)->sum())
+            ->sum();
     }
 
-    public function dataRowStatus($status) {
+    private function countDuplicateStatusLabels(array $statuses): int {
+        $result = Stream::from($statuses)
+            ->reduce(function(array $carry, Statut $status): array {
+                $categoryId = $status->getCategorie()?->getId() ?: 0;
+                $typeId = $status->getType()?->getId() ?: 0;
+                $statusLabel = $status->getNom();
 
-        $url['edit'] = $this->router->generate('status_api_edit', ['id' => $status->getId()]);
-        return [
-            'id' => $status->getId() ?? '',
-            'category' => $status->getCategorie() ? $status->getCategorie()->getNom() : '',
-            'label' => $status->getNom() ?: '',
-            'comment' => $status->getComment() ?: '',
-            'state' => $this->getStatusStateLabel($status->getState()),
-            'defaultStatus' => $status->isDefaultForCategory() ? 'oui' : 'non',
-            'notifToDeclarant' => $status->getSendNotifToDeclarant() ? 'oui' : 'non',
-            'order' => $status->getDisplayOrder() ?? '',
-            'type' => $status->getType() ? $status->getType()->getLabel() : '',
-            'actions' => $this->templating->render('status/datatableStatusRow.html.twig', [
-                'url' => $url,
-                'statusId' => $status->getId(),
-            ]),
-        ];
+                if (!isset($carry[$categoryId])) {
+                    $carry[$categoryId] = [];
+                }
+                if (!isset($carry[$categoryId][$typeId])) {
+                    $carry[$categoryId][$typeId] = [];
+                }
+                if (!isset($carry[$categoryId][$typeId][$statusLabel])) {
+                    $carry[$categoryId][$typeId][$statusLabel] = -1;
+                }
+                $carry[$categoryId][$typeId][$statusLabel]++;
+                return $carry;
+            }, []);
+
+        return Stream::from($result)
+            ->map(function (array $typeResults) {
+                return Stream::from($typeResults)
+                    ->map(fn(array $labelCount) => Stream::from($labelCount)->sum())
+                    ->sum();
+            })
+            ->sum();
     }
 
     public function getStatusStatesValues(?string $mode = null): array {

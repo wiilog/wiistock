@@ -1,12 +1,11 @@
-import {createManagementPage, fireRemoveMainEntityButton, createManagementHeaderPage, loadItems} from "./utils";
-import EditableDatatable, {SAVE_MANUALLY, STATE_EDIT, STATE_VIEWING} from "../../editatable";
+import {createManagementHeaderPage} from "./utils";
 
 global.addPhoneNumber = addPhoneNumber;
 global.deletePhoneNumber = deletePhoneNumber;
 global.initTelInput = initTelInput;
 global.onTemplateTypeChange = onTemplateTypeChange;
 
-export function initializeAlertTemplate($container, canEdit) {
+export function initializeAlertTemplate($container) {
     createManagementHeaderPage($container, {
         name: `alertTemplates`,
         newTitle: 'Ajouter un modèle d\'alerte',

@@ -71,6 +71,8 @@ export function createManagementPage($container, config) {
             }
 
             loadItems($container, config, selectedEntity);
+
+            $container.find(`.delete-main-entity`).removeClass(`d-none`);
         },
     });
 
@@ -90,6 +92,7 @@ export function createManagementPage($container, config) {
     $addButton.on(`click`, function() {
         selectedEntity = null;
 
+        $container.find(`.delete-main-entity`).addClass(`d-none`);
         $pageBody.removeClass('d-none');
 
         if (config.newTitle) {

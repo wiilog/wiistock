@@ -30,6 +30,7 @@ use App\Service\IOT\AlertTemplateService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use JetBrains\PhpStorm\ArrayShape;
 use ReflectionClass;
 use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
@@ -113,7 +114,7 @@ class SettingsService {
         $updated = [];
         $this->saveCustom($request, $settings, $updated, $result);
         $this->saveStandard($request, $settings, $updated);
-        $this->saveFiles($request, $settings, $updated);
+        $this->saveFiles($request, $settings, $allFormSettingNames, $updated);
 
         $settingNamesToClear = array_diff($allFormSettingNames, $settingNames, $updated);
         $settingToClear = !empty($settingNamesToClear) ? $settingRepository->findByLabel($settingNamesToClear) : [];
@@ -253,7 +254,7 @@ class SettingsService {
     /**
      * @param Setting[] $settings Existing settings
      */
-    private function saveFiles(Request $request, array $settings, array &$updated): void {
+    private function saveFiles(Request $request, array $settings, array $allFormSettingNames, array &$updated): void {
         foreach($request->files->all() as $key => $value) {
             $setting = $this->getSetting($settings, $key);
             if(isset($setting)) {
@@ -273,10 +274,13 @@ class SettingsService {
         ];
 
         foreach ($logosToSave as [$settingLabel, $default]) {
-            $setting = $this->getSetting($settings, $settingLabel);
-            if (isset($default)
-                && !$request->request->getBoolean('keep-' . $settingLabel) && !$request->files->has($settingLabel)) {
-                $setting->setValue($default);
+            if (in_array($settingLabel, $allFormSettingNames)) {
+                $setting = $this->getSetting($settings, $settingLabel);
+                if (isset($default)
+                    && !$request->request->getBoolean('keep-' . $settingLabel)
+                    && !$request->files->has($settingLabel)) {
+                    $setting->setValue($default);
+                }
             }
             $updated[] = $settingLabel;
         }
@@ -494,55 +498,73 @@ class SettingsService {
         }
 
         if(isset($tables["genericStatuses"])){
-            foreach(array_filter($tables["genericStatuses"]) as $statusData){
-                $statutRepository = $this->manager->getRepository(Statut::class);
+            $statusesData = array_filter($tables["genericStatuses"]);
+
+            if (!empty($statusesData)) {
+                $statusRepository = $this->manager->getRepository(Statut::class);
                 $categoryRepository = $this->manager->getRepository(CategorieStatut::class);
                 $typeRepository = $this->manager->getRepository(Type::class);
 
-                if(!in_array($statusData['state'], [Statut::TREATED, Statut::NOT_TREATED, Statut::DRAFT, Statut::IN_PROGRESS, Statut::DISPUTE, Statut::PARTIAL])) {
-                    throw new RuntimeException("L'état du statut est invalide");
-                }
+                $categoryName = match ($statusesData[0]['mode']) {
+                    StatusController::MODE_ARRIVAL_DISPUTE => CategorieStatut::DISPUTE_ARR,
+                    StatusController::MODE_RECEPTION_DISPUTE => CategorieStatut::LITIGE_RECEPT,
+                    StatusController::MODE_PURCHASE_REQUEST => CategorieStatut::PURCHASE_REQUEST,
+                    StatusController::MODE_ARRIVAL => CategorieStatut::ARRIVAGE,
+                    StatusController::MODE_DISPATCH => CategorieStatut::DISPATCH,
+                    StatusController::MODE_HANDLING => CategorieStatut::HANDLING
+                };
 
-                if (isset($statusData['statusId'])){
-                    $status = $statutRepository->find($statusData['statusId']);
-                } else {
-                    $status = new Statut();
-                    $categoryName = match($statusData['mode']) {
-                        StatusController::MODE_ARRIVAL_DISPUTE => CategorieStatut::DISPUTE_ARR,
-                        StatusController::MODE_RECEPTION_DISPUTE => CategorieStatut::LITIGE_RECEPT,
-                        StatusController::MODE_PURCHASE_REQUEST => CategorieStatut::PURCHASE_REQUEST,
-                        StatusController::MODE_ARRIVAL => CategorieStatut::ARRIVAGE,
-                        StatusController::MODE_DISPATCH => CategorieStatut::DISPATCH,
-                        StatusController::MODE_HANDLING => CategorieStatut::HANDLING
-                    };
-                    $statusData['category'] = $categoryName;
-                    $status->setCategorie($categoryRepository->findOneBy(['nom' => $categoryName]));
+                $category = $categoryRepository->findOneBy(['nom' => $categoryName]);
+                $persistedStatuses = $statusRepository->findBy([
+                    'categorie' => $category
+                ]);
 
-                    // we set type only on creation
-                    if (isset($statusData['type'])) {
-                        $status->setType($typeRepository->find($statusData['type']));
+                foreach ($statusesData as $statusData) {
+                    if (!in_array($statusData['state'], [Statut::TREATED, Statut::NOT_TREATED, Statut::DRAFT, Statut::IN_PROGRESS, Statut::DISPUTE, Statut::PARTIAL])) {
+                        throw new RuntimeException("L'état du statut est invalide");
                     }
-                }
 
-                $validation = $this->statusService->validateStatusData($this->manager, $statusData, isset($statusData['statusId']) ? $status : null);
+                    if (isset($statusData['statusId'])) {
+                        $status = Stream::from($persistedStatuses)
+                            ->filter(fn (Statut $status) => $status->getId() == $statusData['statusId'])
+                            ->first();
+
+                        if (!$status) {
+                            $status = $statusRepository->find($statusData['statusId']);
+                            $persistedStatuses[] = $status;
+                        }
+                    }
+                    else {
+                        $status = new Statut();
+                        $statusData['category'] = $categoryName;
+                        $status->setCategorie($category);
+
+                        // we set type only on creation
+                        if (isset($statusData['type'])) {
+                            $status->setType($typeRepository->find($statusData['type']));
+                        }
+                        $persistedStatuses[] = $status;
+                    }
+
+                    $status->setNom($statusData['label']);
+                    $status->setState($statusData['state']);
+                    $status->setComment($statusData['comment'] ?? null);
+                    $status->setDefaultForCategory($statusData['defaultStatut'] ?? false);
+                    $status->setSendNotifToBuyer($statusData['sendMailBuyers'] ?? false);
+                    $status->setSendNotifToDeclarant($statusData['sendMailRequesters'] ?? false);
+                    $status->setSendNotifToRecipient($statusData['sendMailDest'] ?? false);
+                    $status->setNeedsMobileSync($statusData['needsMobileSync'] ?? false);
+                    $status->setCommentNeeded($statusData['commentNeeded'] ?? false);
+                    $status->setAutomaticReceptionCreation($statusData['automaticReceptionCreation'] ?? false);
+                    $status->setDisplayOrder($statusData['order'] ?? 0);
+
+                    $this->manager->persist($status);
+                }
+                $validation = $this->statusService->validateStatusesData($persistedStatuses);
 
                 if (!$validation['success']) {
                     throw new RuntimeException($validation['message']);
                 }
-
-                $status->setNom($statusData['label']);
-                $status->setState($statusData['state']);
-                $status->setComment($statusData['comment'] ?? null);
-                $status->setDefaultForCategory($statusData['defaultStatut'] ?? false);
-                $status->setSendNotifToBuyer($statusData['sendMailBuyers'] ?? false);
-                $status->setSendNotifToDeclarant($statusData['sendMailRequesters'] ?? false);
-                $status->setSendNotifToRecipient($statusData['sendMailDest'] ?? false);
-                $status->setNeedsMobileSync($statusData['needsMobileSync'] ?? false);
-                $status->setCommentNeeded($statusData['commentNeeded'] ?? false);
-                $status->setAutomaticReceptionCreation($statusData['automaticReceptionCreation'] ?? false);
-                $status->setDisplayOrder($statusData['order'] ?? 0);
-
-                $this->manager->persist($status);
             }
         }
 
@@ -610,7 +632,7 @@ class SettingsService {
     }
 
     public function changeClient(string $client) {
-        $configPath = "/etc/php7/php-fpm.conf";
+        $configPath = "/etc/php8/php-fpm.conf";
 
         //if we're not on a kubernetes pod => file doesn't exist => ignore
         if(!file_exists($configPath)) {
@@ -627,7 +649,7 @@ class SettingsService {
             //magie noire qui recharge la config php fpm sur les pods kubernetes :
             //pgrep recherche l'id du processus de php fpm
             //kill envoie un message USR2 (qui veut dire "recharge la configuration") à phpfpm
-            exec("kill -USR2 $(pgrep -o php-fpm7)");
+            exec("kill -USR2 $(pgrep -o php-fpm)");
         } catch(Exception $exception) {
             throw new RuntimeException("Une erreur est survenue lors du changement de client");
         }
@@ -683,6 +705,111 @@ class SettingsService {
         foreach ($settings as $setting) {
             $setting->setValue(null);
         }
+    }
+
+    #[ArrayShape(["logo" => "mixed", "height" => "mixed", "width" => "mixed", "isCode128" => "mixed"])]
+    public function getDimensionAndTypeBarcodeArray(): array {
+        $settingRepository = $this->manager->getRepository(Setting::class);
+
+        return [
+            "logo" => $settingRepository->getOneParamByLabel(Setting::LABEL_LOGO),
+            "height" => $settingRepository->getOneParamByLabel(Setting::LABEL_HEIGHT) ?? 0,
+            "width" => $settingRepository->getOneParamByLabel(Setting::LABEL_WIDTH) ?? 0,
+            "isCode128" => $settingRepository->getOneParamByLabel(Setting::BARCODE_TYPE_IS_128),
+        ];
+    }
+
+    public function getParamLocation(string $label) {
+        $settingRepository = $this->manager->getRepository(Setting::class);
+        $emplacementRepository = $this->manager->getRepository(Emplacement::class);
+
+        $locationId = $settingRepository->getOneParamByLabel($label);
+
+        if ($locationId) {
+            $location = $emplacementRepository->find($locationId);
+
+            if ($location) {
+                $resp = [
+                    'id' => $locationId,
+                    'text' => $location->getLabel()
+                ];
+            }
+        }
+
+        return $resp ?? null;
+    }
+
+    public function generateScssFile(?Setting $font = null) {
+        $projectDir = $this->kernel->getProjectDir();
+        $scssFile = $projectDir . '/assets/scss/_customFont.scss';
+
+        if(!$font) {
+            $settingRepository = $this->manager->getRepository(Setting::class);
+            $param = $settingRepository->findOneBy(['label' => Setting::FONT_FAMILY]);
+            $font = $param ? $param->getValue() : Setting::DEFAULT_FONT_FAMILY;
+        } else {
+            $font = $font->getValue();
+        }
+
+        file_put_contents($scssFile, "\$mainFont: \"$font\";");
+    }
+
+    public function getDefaultDeliveryLocationsByType(EntityManagerInterface $entityManager): array {
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
+
+        $defaultDeliveryLocationsParam = $settingRepository->getOneParamByLabel(Setting::DEFAULT_LOCATION_LIVRAISON);
+        $defaultDeliveryLocationsIds = json_decode($defaultDeliveryLocationsParam, true) ?: [];
+
+        $defaultDeliveryLocations = [];
+        foreach($defaultDeliveryLocationsIds as $typeId => $locationId) {
+            if($typeId !== 'all' && $typeId) {
+                $type = $typeRepository->find($typeId);
+            }
+            if($locationId) {
+                $location = $locationRepository->find($locationId);
+            }
+
+            if (isset($location)) {
+                $defaultDeliveryLocations[] = [
+                    'location' => [
+                        'label' => $location->getLabel(),
+                        'id' => $location->getId(),
+                    ],
+                    'type' => isset($type)
+                        ? [
+                            'label' => $type->getLabel(),
+                            'id' => $type->getId(),
+                        ]
+                        : null,
+                ];
+            }
+        }
+        return $defaultDeliveryLocations;
+    }
+
+    public function getDefaultDeliveryLocationsByTypeId(EntityManagerInterface $entityManager): array {
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
+
+        $defaultDeliveryLocationsParam = $settingRepository->getOneParamByLabel(Setting::DEFAULT_LOCATION_LIVRAISON);
+        $defaultDeliveryLocationsIds = json_decode($defaultDeliveryLocationsParam, true) ?: [];
+
+        $defaultDeliveryLocations = [];
+        foreach ($defaultDeliveryLocationsIds as $typeId => $locationId) {
+            if ($locationId) {
+                $location = $locationRepository->find($locationId);
+            }
+
+            $defaultDeliveryLocations[$typeId] = isset($location)
+                ? [
+                    'label' => $location->getLabel(),
+                    'id' => $location->getId()
+                ]
+                : null;
+        }
+        return $defaultDeliveryLocations;
     }
 
 }
