@@ -104,8 +104,11 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $apiKey = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: false, unique: true)]
+    #[ORM\Column(type: 'string', length: 255, unique: true, nullable: false)]
     private ?string $mobileLoginKey = null;
+
+    #[ORM\Column(type: "boolean", nullable: false, options: ["default" => false])]
+    private ?bool $deliverer = null;
 
     #[ORM\OneToMany(targetEntity: Handling::class, mappedBy: 'requester')]
     private Collection $handlings;
@@ -1354,6 +1357,15 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
 
     public function setMobileLoginKey(?string $mobileLoginKey): self {
         $this->mobileLoginKey = $mobileLoginKey;
+        return $this;
+    }
+
+    public function isDeliverer(): ?bool {
+        return $this->deliverer;
+    }
+
+    public function setDeliverer(?bool $deliverer): self {
+        $this->deliverer = $deliverer;
         return $this;
     }
 

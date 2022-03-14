@@ -1,5 +1,5 @@
 <div class="modal-header">
-    <h5 class="modal-title">Supprimer le groupe d'emplacement</h5>
+    <h5 class="modal-title">Supprimer le groupe d'emplacements</h5>
     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
         <span aria-hidden="true">&times;</span>
     </button>
@@ -8,9 +8,9 @@
     <div class="row">
         <div class="col-12">
             {% if group.activePairings is not empty %}
-                Ce groupe d'emplacement possède une association active, vous ne pouvez pas le supprimer.
+                Ce groupe d'emplacement spossède une association active, vous ne pouvez pas le supprimer.
             {% else %}
-                Vous êtes sur le point de supprimer le groupe d'emplacement <strong>{{ group.label }}</strong>.
+                Vous êtes sur le point de supprimer le groupe d'emplacements <strong>{{ group.label }}</strong>.
             {% endif %}
         </div>
     </div>

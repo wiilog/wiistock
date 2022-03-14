@@ -1,14 +1,22 @@
-{% include 'parametrage_global/warningSelectEmpty.html.twig' with {
+{% include 'utils/warningSelectEmpty.html.twig' with {
     array: disputeTypes,
     warningLabel: 'Attention ! Aucun type de litige n\'a été créé',
-    redirectPath: path('types_index'),
+    redirectPath: path('settings_item', {
+        'category': constant('App\\Controller\\Settings\\SettingsController::CATEGORY_TRACKING'),
+        'menu': constant('App\\Controller\\Settings\\SettingsController::MENU_ARRIVALS'),
+        'submenu': constant('App\\Controller\\Settings\\SettingsController::MENU_DISPUTE_TYPES'),
+    }),
     redirectLabel: 'Aller vers la page de types'
 } %}
 
-{% include 'parametrage_global/warningSelectEmpty.html.twig' with {
+{% include 'utils/warningSelectEmpty.html.twig' with {
     array: disputeStatuses,
     warningLabel: 'Attention ! Aucun statut de litige n\'a été créé',
-    redirectPath: path('status_param_index'),
+    redirectPath: path('settings_item', {
+        'category': constant('App\\Controller\\Settings\\SettingsController::CATEGORY_TRACKING'),
+        'menu': constant('App\\Controller\\Settings\\SettingsController::MENU_ARRIVALS'),
+        'submenu': constant('App\\Controller\\Settings\\SettingsController::MENU_DISPUTE_STATUSES'),
+    }),
     redirectLabel: 'Aller vers la page des statuts'
 } %}
 
@@ -88,10 +96,14 @@
     </div>
     <div class="form-group col-4">
         <label class="wii-field-name">Statut*</label>
-        {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
+        {% include 'utils/warningSelectEmpty.html.twig' with {
             array: disputeStatuses,
             warningLabel: 'Attention ! Aucun statut de litige n\'a été créé',
-            redirectPath: path('status_param_index'),
+            redirectPath: path('settings_item', {
+                'category': constant('App\\Controller\\Settings\\SettingsController::CATEGORY_TRACKING'),
+                'menu': constant('App\\Controller\\Settings\\SettingsController::MENU_ARRIVALS'),
+                'submenu': constant('App\\Controller\\Settings\\SettingsController::MENU_DISPUTE_STATUSES'),
+            }),
             redirectLabel: 'Aller vers la page des statuts'
         } %}
 

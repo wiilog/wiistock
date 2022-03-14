@@ -36,14 +36,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
  */
 class TransferRequestController extends AbstractController {
 
-    private $userService;
-    private $service;
-
-    public function __construct(UserService $us, TransferRequestService $service) {
-        $this->userService = $us;
-        $this->service = $service;
-    }
-
     /**
      * @Route("/liste", name="transfer_request_index", options={"expose"=true}, methods={"GET", "POST"})
      * @HasPermission({Menu::DEM, Action::DISPLAY_TRANSFER_REQ})
@@ -61,9 +53,10 @@ class TransferRequestController extends AbstractController {
      * @Route("/api", name="transfer_request_api", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::DISPLAY_TRANSFER_REQ}, mode=HasPermission::IN_JSON)
      */
-    public function api(Request $request): Response {
+    public function api(Request $request,
+                        TransferRequestService $transferRequestService): Response {
 
-        $data = $this->service->getDataForDatatable($request->request);
+        $data = $transferRequestService->getDataForDatatable($request->request);
 
         return new JsonResponse($data);
     }
@@ -113,12 +106,13 @@ class TransferRequestController extends AbstractController {
      * @Route("/voir/{id}", name="transfer_request_show", options={"expose"=true}, methods={"GET", "POST"})
      * @HasPermission({Menu::DEM, Action::DISPLAY_TRANSFER_REQ})
      */
-    public function show(TransferRequest $transfer): Response {
+    public function show(TransferRequest $transfer,
+                         TransferRequestService $transferRequestService): Response {
 
         return $this->render('transfer/request/show.html.twig', [
             'transfer' => $transfer,
             'modifiable' => FormatHelper::status($transfer->getStatus()) == TransferRequest::DRAFT,
-            'detailsConfig' => $this->service->createHeaderDetailsConfig($transfer)
+            'detailsConfig' => $transferRequestService->createHeaderDetailsConfig($transfer)
         ]);
     }
 

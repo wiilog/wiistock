@@ -60,7 +60,7 @@ class ReceptionService
     public FormService $formService;
 
     /** @Required  */
-    public GlobalParamService $globalParamService;
+    public SettingsService $settingsService;
 
     /** @Required  */
     public VisibleColumnService $visibleColumnService;
@@ -146,7 +146,7 @@ class ReceptionService
         }
 
         if ($fromImport && (!isset($data['location']) || empty($data['location']))) {
-            $defaultLocation = $this->globalParamService->getParamLocation(Setting::DEFAULT_LOCATION_RECEPTION);
+            $defaultLocation = $this->settingsService->getParamLocation(Setting::DEFAULT_LOCATION_RECEPTION);
             if (isset($defaultLocation)) {
                 $location = $emplacementRepository->find(intval($defaultLocation['id']));
                 $reception

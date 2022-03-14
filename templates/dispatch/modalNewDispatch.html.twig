@@ -129,10 +129,14 @@
                                 {% endfor %}
                             </select>
                             <div class="error-empty-status d-none">
-                                {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
+                                {% include 'utils/warningSelectEmpty.html.twig' with {
                                     array: [],
                                     warningLabel: 'Aucun statut brouillon pour ce type',
-                                    redirectPath: path('status_param_index'),
+                                    redirectPath: path('settings_item', {
+                                        'category': constant('App\\Controller\\Settings\\SettingsController::CATEGORY_TRACKING'),
+                                        'menu': constant('App\\Controller\\Settings\\SettingsController::MENU_DISPATCHES'),
+                                        'submenu': constant('App\\Controller\\Settings\\SettingsController::MENU_STATUSES'),
+                                    }),
                                     redirectLabel: 'Aller vers la création des statuts'
                                 } %}
                             </div>

@@ -24,10 +24,14 @@
                         </div>
                     </div>
                 {% else %}
-                    {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
+                    {% include 'utils/warningSelectEmpty.html.twig' with {
                         array: [],
                         warningLabel: 'Vous n\'avez pas configuré de statut à traiter pour ce ' ~ ('acheminement.type d\'acheminement'|trans),
-                        redirectPath: path('status_param_index'),
+                        redirectPath: path('settings_item', {
+                            'category': constant('App\\Controller\\Settings\\SettingsController::CATEGORY_TRACKING'),
+                            'menu': constant('App\\Controller\\Settings\\SettingsController::MENU_DISPATCHES'),
+                            'submenu': constant('App\\Controller\\Settings\\SettingsController::MENU_STATUSES'),
+                        }),
                         redirectLabel: 'Aller vers la création des statuts'
                     } %}
                 {% endif %}

@@ -84,7 +84,7 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
 }
 
 function getStatusesColumn(mode) {
-    const [x, s] = [MODE_DISPATCH, MODE_HANDLING, MODE_ARRIVAL_DISPUTE].includes(mode) ? ['', ''] : ['x', 's'];
+    const [x, s] = [MODE_DISPATCH, MODE_HANDLING, MODE_PURCHASE_REQUEST, MODE_ARRIVAL_DISPUTE].includes(mode) ? ['', ''] : ['x', 's'];
     return [
         {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
         {data: `label`, title: `Libellé`, required: true},

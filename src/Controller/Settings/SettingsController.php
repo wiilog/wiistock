@@ -8,7 +8,6 @@ use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\DaysWorked;
-use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
 use App\Entity\FreeField;
 use App\Entity\Import;
@@ -18,7 +17,6 @@ use App\Entity\IOT\AlertTemplate;
 use App\Entity\IOT\RequestTemplate;
 use App\Entity\MailerServer;
 use App\Entity\Menu;
-use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Translation;
 use App\Entity\Transport\TemperatureRange;
@@ -31,6 +29,7 @@ use App\Repository\IOT\AlertTemplateRepository;
 use App\Repository\IOT\RequestTemplateRepository;
 use App\Repository\TypeRepository;
 use App\Service\CacheService;
+use App\Service\PackService;
 use App\Service\SettingsService;
 use App\Service\SpecificService;
 use App\Service\StatusService;
@@ -47,6 +46,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Annotation\Route;
+use Throwable;
 use Twig\Environment;
 use WiiCommon\Helper\Stream;
 
@@ -69,6 +69,9 @@ class SettingsController extends AbstractController {
 
     /** @Required */
     public StatusService $statusService;
+
+    /** @Required */
+    public SettingsService $settingsService;
 
     public const SETTINGS = [
         self::CATEGORY_GLOBAL => [
@@ -156,7 +159,7 @@ class SettingsController extends AbstractController {
                             "label" => "Réceptions - Statuts",
                             "save" => true,
                         ],
-                        self::MENU_RECEPTIONS_FIXED_FIELDS => [
+                        self::MENU_FIXED_FIELDS => [
                             "label" => "Réceptions - Champs fixes",
                             "save" => true,
                         ],
@@ -376,8 +379,8 @@ class SettingsController extends AbstractController {
     ];
 
     private const CATEGORY_GLOBAL = "global";
-    private const CATEGORY_STOCK = "stock";
-    private const CATEGORY_TRACING = "trace";
+    public const CATEGORY_STOCK = "stock";
+    public const CATEGORY_TRACING = "trace";
     private const CATEGORY_TRACKING = "track";
     private const CATEGORY_MOBILE = "mobile";
     private const CATEGORY_DASHBOARDS = "dashboards";
@@ -400,23 +403,21 @@ class SettingsController extends AbstractController {
     private const MENU_FREQUENCIES = "frequences";
     private const MENU_CATEGORIES = "categories";
     private const MENU_ARTICLES = "articles";
-    private const MENU_RECEPTIONS = "receptions";
+    public const MENU_RECEPTIONS = "receptions";
     private const MENU_RECEPTIONS_STATUSES = "statuts_receptions";
-    private const MENU_RECEPTIONS_FIXED_FIELDS = "champs_fixes_receptions";
-    private const MENU_RECEPTIONS_FREE_FIELDS = "champs_libres_receptions";
-    private const MENU_DISPUTE_STATUSES = "statuts_litiges";
-    private const MENU_DISPUTE_TYPES = "types_litiges";
-    private const MENU_REQUESTS = "demandes";
+    public const MENU_DISPUTE_STATUSES = "statuts_litiges";
+    public const MENU_DISPUTE_TYPES = "types_litiges";
+    public const MENU_REQUESTS = "demandes";
 
-    private const MENU_DISPATCHES = "acheminements";
-    private const MENU_STATUSES = "statuts";
+    public const MENU_DISPATCHES = "acheminements";
+    public const MENU_STATUSES = "statuts";
     private const MENU_FIXED_FIELDS = "champs_fixes";
     private const MENU_WAYBILL = "lettre_voiture";
     private const MENU_OVERCONSUMPTION_BILL = "bon_surconsommation";
-    private const MENU_ARRIVALS = "arrivages";
+    public const MENU_ARRIVALS = "arrivages";
     private const MENU_MOVEMENTS = "mouvements";
     private const MENU_FREE_FIELDS = "champs_libres";
-    private const MENU_HANDLINGS = "services";
+    public const MENU_HANDLINGS = "services";
     private const MENU_REQUEST_TEMPLATES = "modeles_demande";
 
     private const MENU_TRANSPORT_REQUESTS = "demande_transport";
@@ -429,7 +430,7 @@ class SettingsController extends AbstractController {
     private const MENU_COLLECTS = "collectes";
     private const MENU_COLLECT_REQUEST_TEMPLATES = "modeles_demande_collectes";
     private const MENU_COLLECT_TYPES_FREE_FIELDS = "types_champs_libres_collectes";
-    private const MENU_PURCHASE_STATUSES = "statuts_achats";
+    public const MENU_PURCHASE_STATUSES = "statuts_achats";
 
     private const MENU_PREPARATIONS = "preparations";
     private const MENU_VALIDATION = "validation";
@@ -503,8 +504,9 @@ class SettingsController extends AbstractController {
             }
         }
 
-        if(!$parent) {
-            throw new NotFoundHttpException();
+        if(!$parent
+            || isset($submenu) && !isset($parent['menus'][$submenu])) {
+            throw new NotFoundHttpException('La page est introuvable');
         }
 
         return $this->render("settings/category.html.twig", [
@@ -587,7 +589,7 @@ class SettingsController extends AbstractController {
                 self::MENU_REQUESTS => [
                     self::MENU_DELIVERIES => fn() => [
                         "deliveryTypesCount" => $typeRepository->countAvailableForSelect(CategoryType::DEMANDE_LIVRAISON, []),
-                        "deliveryTypeSettings" => json_encode($this->getDefaultDeliveryLocationsByType($this->manager)),
+                        "deliveryTypeSettings" => json_encode($this->settingsService->getDefaultDeliveryLocationsByType($this->manager)),
                     ],
                     self::MENU_DELIVERY_REQUEST_TEMPLATES => function() use ($requestTemplateRepository, $typeRepository) {
                         return $this->getRequestTemplates($typeRepository, $requestTemplateRepository, Type::LABEL_DELIVERY);
@@ -887,7 +889,7 @@ class SettingsController extends AbstractController {
                             <i class='wii-icon wii-icon-trash text-primary'></i>
                         </button>
                     " : "",
-                    "day" => FormatHelper::longDate($day->getDay()),
+                    "day" => "<span data-timestamp='{$day->getTimestamp()}'>" . FormatHelper::longDate($day->getDay()) . "</span>",
                 ];
             }
         }
@@ -1597,42 +1599,6 @@ class SettingsController extends AbstractController {
         ];
     }
 
-    public function getDefaultDeliveryLocationsByType(EntityManagerInterface $entityManager): array {
-
-        $typeRepository = $entityManager->getRepository(Type::class);
-        $locationRepository = $entityManager->getRepository(Emplacement::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
-
-        $defaultDeliveryLocationsParam = $settingRepository->getOneParamByLabel(Setting::DEFAULT_LOCATION_LIVRAISON);
-        $defaultDeliveryLocationsIds = json_decode($defaultDeliveryLocationsParam, true) ?: [];
-
-        $defaultDeliveryLocations = [];
-        foreach($defaultDeliveryLocationsIds as $typeId => $locationId) {
-            if($typeId !== 'all' && $typeId) {
-                $type = $typeRepository->find($typeId);
-            }
-            if($locationId) {
-                $location = $locationRepository->find($locationId);
-            }
-
-            if (isset($location)) {
-                $defaultDeliveryLocations[] = [
-                    'location' => [
-                        'label' => $location->getLabel(),
-                        'id' => $location->getId(),
-                    ],
-                    'type' => isset($type)
-                        ? [
-                            'label' => $type->getLabel(),
-                            'id' => $type->getId(),
-                        ]
-                        : null,
-                ];
-            }
-        }
-        return $defaultDeliveryLocations;
-    }
-
     /**
      * @Route("/groupes_visibilite-api", name="settings_visibility_group_api", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK})
@@ -1724,5 +1690,26 @@ class SettingsController extends AbstractController {
             return new JsonResponse(true);
         }
         throw new BadRequestHttpException();
+    }
+
+    /**
+     * @Route("/trigger-reminder-emails", name="trigger_reminder_emails", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
+     */
+    public function triggerReminderEmails(EntityManagerInterface $manager, PackService $packService): Response
+    {
+        try {
+            $packService->launchPackDeliveryReminder($manager);
+            $response = [
+                'success' => true,
+                'msg' => "Les mails de relance ont bien été envoyés"
+            ];
+        } catch (Throwable) {
+            $response = [
+                'success' => false,
+                'msg' => "Une erreur est survenue lors de l'envoi des mails de relance"
+            ];
+        }
+
+        return $this->json($response);
     }
 }
