@@ -2,6 +2,9 @@
 
 namespace App\Entity;
 
+use App\Entity\Transport\TemperatureRange;
+use App\Entity\Transport\TransportCollectRequestNature;
+use App\Entity\Transport\TransportDeliveryRequestNature;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -12,44 +15,63 @@ class Nature {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    private $id;
+    private ?int $id = null;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    private $label;
+    private ?string $label = null;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    private $code;
+    private ?string $code = null;
 
-    #[ORM\OneToMany(targetEntity: Pack::class, mappedBy: 'nature')]
-    private $packs;
+    #[ORM\OneToMany(mappedBy: 'nature', targetEntity: Pack::class)]
+    private Collection $packs;
 
     #[ORM\Column(type: 'integer', nullable: true)]
-    private $defaultQuantity;
+    private ?int $defaultQuantity = null;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    private $prefix;
+    private ?string $prefix = null;
 
     #[ORM\Column(type: 'string', length: 32, nullable: true)]
-    private $color;
+    private ?string $color = null;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    private $description;
+    private ?string $description = null;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
-    private $needsMobileSync;
+    private ?bool $needsMobileSync = null;
 
     #[ORM\ManyToMany(targetEntity: Emplacement::class, mappedBy: 'allowedNatures')]
-    private $emplacements;
+    private Collection $emplacements;
 
     #[ORM\Column(type: 'boolean', nullable: true, options: ['default' => 1])]
-    private $displayed;
+    private ?bool $displayed = null;
 
     #[ORM\Column(type: 'boolean', nullable: true, options: ['default' => 0])]
-    private $defaultForDispatch;
+    private ?bool $defaultForDispatch = null;
+
+    #[ORM\Column(type: 'boolean')]
+    private ?bool $displayedOnForms = null;
+
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $allowedForms = [];
+
+    #[ORM\OneToMany(mappedBy: 'nature', targetEntity: TransportDeliveryRequestNature::class)]
+    private Collection $transportDeliveryRequestNatures;
+
+    #[ORM\OneToMany(mappedBy: 'nature', targetEntity: TransportCollectRequestNature::class)]
+    private Collection $transportCollectRequestNatures;
+
+    #[ORM\ManyToMany(targetEntity: TemperatureRange::class, inversedBy: 'natures')]
+    #[ORM\JoinTable(name: 'location_temperature_range')]
+    private Collection $temperatureRanges;
 
     public function __construct() {
         $this->packs = new ArrayCollection();
         $this->emplacements = new ArrayCollection();
+        $this->transportDeliveryRequestNatures = new ArrayCollection();
+        $this->transportCollectRequestNatures = new ArrayCollection();
+        $this->temperatureRanges = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -175,7 +197,7 @@ class Nature {
     }
 
     /**
-     * @return Collection|Emplacement[]
+     * @return Collection
      */
     public function getEmplacements(): Collection {
         return $this->emplacements;
@@ -194,6 +216,115 @@ class Nature {
         if($this->emplacements->contains($emplacement)) {
             $this->emplacements->removeElement($emplacement);
             $emplacement->removeAllowedNature($this);
+        }
+
+        return $this;
+    }
+
+    public function getDisplayedOnForms(): ?bool
+    {
+        return $this->displayedOnForms;
+    }
+
+    public function setDisplayedOnForms(bool $displayedOnForms): self
+    {
+        $this->displayedOnForms = $displayedOnForms;
+
+        return $this;
+    }
+
+    public function getAllowedForms(): ?array
+    {
+        return $this->allowedForms;
+    }
+
+    public function setAllowedForms(?array $allowedForms): self
+    {
+        $this->allowedForms = $allowedForms;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, TransportDeliveryRequestNature>
+     */
+    public function getTransportDeliveryRequestNatures(): Collection
+    {
+        return $this->transportDeliveryRequestNatures;
+    }
+
+    public function addTransportDeliveryRequestNature(TransportDeliveryRequestNature $transportDeliveryRequestNature): self
+    {
+        if (!$this->transportDeliveryRequestNatures->contains($transportDeliveryRequestNature)) {
+            $this->transportDeliveryRequestNatures[] = $transportDeliveryRequestNature;
+            $transportDeliveryRequestNature->setNature($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTransportDeliveryRequestNature(TransportDeliveryRequestNature $transportDeliveryRequestNature): self
+    {
+        if ($this->transportDeliveryRequestNatures->removeElement($transportDeliveryRequestNature)) {
+            // set the owning side to null (unless already changed)
+            if ($transportDeliveryRequestNature->getNature() === $this) {
+                $transportDeliveryRequestNature->setNature(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, TransportCollectRequestNature>
+     */
+    public function getTransportCollectRequestNatures(): Collection
+    {
+        return $this->transportCollectRequestNatures;
+    }
+
+    public function addTransportCollectRequestNature(TransportCollectRequestNature $transportCollectRequestNature): self
+    {
+        if (!$this->transportCollectRequestNatures->contains($transportCollectRequestNature)) {
+            $this->transportCollectRequestNatures[] = $transportCollectRequestNature;
+            $transportCollectRequestNature->setNature($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTransportCollectRequestNature(TransportCollectRequestNature $transportCollectRequestNature): self
+    {
+        if ($this->transportCollectRequestNatures->removeElement($transportCollectRequestNature)) {
+            // set the owning side to null (unless already changed)
+            if ($transportCollectRequestNature->getNature() === $this) {
+                $transportCollectRequestNature->setNature(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, TemperatureRange>
+     */
+    public function getTemperatureRanges(): Collection
+    {
+        return $this->temperatureRanges;
+    }
+
+    public function addTemperatureRange(TemperatureRange $temperatureRange): self {
+        if (!$this->temperatureRanges->contains($temperatureRange)) {
+            $this->temperatureRanges[] = $temperatureRange;
+            $temperatureRange->addNature($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTemperatureRange(TemperatureRange $temperatureRange): self {
+        if ($this->temperatureRanges->removeElement($temperatureRange)) {
+            $temperatureRange->removeNature($this);
         }
 
         return $this;

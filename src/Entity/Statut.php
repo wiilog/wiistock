@@ -5,6 +5,10 @@ namespace App\Entity;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\IOT\HandlingRequestTemplate;
 use App\Entity\PreparationOrder\Preparation;
+use App\Entity\Transport\StatusHistory;
+use App\Entity\Transport\TransportOrder;
+use App\Entity\Transport\TransportRequest;
+use App\Entity\Transport\TransportRound;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -42,34 +46,34 @@ class Statut {
     #[ORM\ManyToOne(targetEntity: CategorieStatut::class, inversedBy: 'statuts')]
     private ?CategorieStatut $categorie = null;
 
-    #[ORM\OneToMany(targetEntity: Article::class, mappedBy: 'statut')]
+    #[ORM\OneToMany(mappedBy: 'statut', targetEntity: Article::class)]
     private Collection $articles;
 
-    #[ORM\OneToMany(targetEntity: Reception::class, mappedBy: 'statut')]
+    #[ORM\OneToMany(mappedBy: 'statut', targetEntity: Reception::class)]
     private Collection $receptions;
 
-    #[ORM\OneToMany(targetEntity: 'App\Entity\DeliveryRequest\Demande', mappedBy: 'statut')]
+    #[ORM\OneToMany(mappedBy: 'statut', targetEntity: 'App\Entity\DeliveryRequest\Demande')]
     private Collection $demandes;
 
-    #[ORM\OneToMany(targetEntity: 'App\Entity\PreparationOrder\Preparation', mappedBy: 'statut')]
+    #[ORM\OneToMany(mappedBy: 'statut', targetEntity: 'App\Entity\PreparationOrder\Preparation')]
     private Collection $preparations;
 
-    #[ORM\OneToMany(targetEntity: Livraison::class, mappedBy: 'statut')]
+    #[ORM\OneToMany(mappedBy: 'statut', targetEntity: Livraison::class)]
     private Collection $livraisons;
 
-    #[ORM\OneToMany(targetEntity: Collecte::class, mappedBy: 'statut')]
+    #[ORM\OneToMany(mappedBy: 'statut', targetEntity: Collecte::class)]
     private Collection $collectes;
 
-    #[ORM\OneToMany(targetEntity: ReferenceArticle::class, mappedBy: 'statut')]
+    #[ORM\OneToMany(mappedBy: 'statut', targetEntity: ReferenceArticle::class)]
     private Collection $referenceArticles;
 
-    #[ORM\OneToMany(targetEntity: Handling::class, mappedBy: 'status')]
+    #[ORM\OneToMany(mappedBy: 'status', targetEntity: Handling::class)]
     private Collection $handlings;
 
-    #[ORM\OneToMany(targetEntity: Dispatch::class, mappedBy: 'statut')]
+    #[ORM\OneToMany(mappedBy: 'statut', targetEntity: Dispatch::class)]
     private Collection $dispatches;
 
-    #[ORM\OneToMany(targetEntity: Dispute::class, mappedBy: 'status')]
+    #[ORM\OneToMany(mappedBy: 'status', targetEntity: Dispute::class)]
     private Collection $disputes;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
@@ -78,13 +82,13 @@ class Statut {
     #[ORM\Column(type: 'boolean', nullable: true, options: ['default' => true])]
     private ?bool $commentNeeded = null;
 
-    #[ORM\OneToMany(targetEntity: Arrivage::class, mappedBy: 'statut')]
+    #[ORM\OneToMany(mappedBy: 'statut', targetEntity: Arrivage::class)]
     private Collection $arrivages;
 
-    #[ORM\OneToMany(targetEntity: TransferRequest::class, mappedBy: 'status')]
+    #[ORM\OneToMany(mappedBy: 'status', targetEntity: TransferRequest::class)]
     private Collection $transferRequests;
 
-    #[ORM\OneToMany(targetEntity: TransferOrder::class, mappedBy: 'status')]
+    #[ORM\OneToMany(mappedBy: 'status', targetEntity: TransferOrder::class)]
     private Collection $transferOrders;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
@@ -105,11 +109,23 @@ class Statut {
     #[ORM\Column(type: 'boolean', nullable: false, options: ['default' => false])]
     private ?bool $defaultForCategory = false;
 
-    #[ORM\OneToMany(targetEntity: PurchaseRequest::class, mappedBy: 'status')]
+    #[ORM\OneToMany(mappedBy: 'status', targetEntity: PurchaseRequest::class)]
     private Collection $purchaseRequests;
 
-    #[ORM\OneToMany(targetEntity: HandlingRequestTemplate::class, mappedBy: 'requestStatus')]
+    #[ORM\OneToMany(mappedBy: 'requestStatus', targetEntity: HandlingRequestTemplate::class)]
     private Collection $handlingRequestStatusTemplates;
+
+    #[ORM\OneToMany(mappedBy: 'status', targetEntity: TransportRequest::class)]
+    private Collection $transportRequests;
+
+    #[ORM\OneToMany(mappedBy: 'status', targetEntity: TransportRound::class)]
+    private Collection $transportRounds;
+
+    #[ORM\OneToMany(mappedBy: 'status', targetEntity: TransportOrder::class)]
+    private Collection $transportOrders;
+
+    #[ORM\OneToMany(mappedBy: 'status', targetEntity: StatusHistory::class)]
+    private Collection $transportStatusHistories;
 
     public function __construct() {
         $this->articles = new ArrayCollection();
@@ -128,6 +144,10 @@ class Statut {
 
         $this->purchaseRequests = new ArrayCollection();
         $this->handlingRequestStatusTemplates = new ArrayCollection();
+        $this->transportRequests = new ArrayCollection();
+        $this->transportRounds = new ArrayCollection();
+        $this->transportOrders = new ArrayCollection();
+        $this->transportStatusHistories = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -727,6 +747,126 @@ class Statut {
             // set the owning side to null (unless already changed)
             if($handlingRequestStatusTemplate->getRequestStatus() === $this) {
                 $handlingRequestStatusTemplate->setRequestStatus(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, TransportRequest>
+     */
+    public function getTransportRequests(): Collection
+    {
+        return $this->transportRequests;
+    }
+
+    public function addTransportRequest(TransportRequest $transportRequest): self
+    {
+        if (!$this->transportRequests->contains($transportRequest)) {
+            $this->transportRequests[] = $transportRequest;
+            $transportRequest->setStatus($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTransportRequest(TransportRequest $transportRequest): self
+    {
+        if ($this->transportRequests->removeElement($transportRequest)) {
+            // set the owning side to null (unless already changed)
+            if ($transportRequest->getStatus() === $this) {
+                $transportRequest->setStatus(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, TransportRound>
+     */
+    public function getTransportRounds(): Collection
+    {
+        return $this->transportRounds;
+    }
+
+    public function addTransportRound(TransportRound $transportRound): self
+    {
+        if (!$this->transportRounds->contains($transportRound)) {
+            $this->transportRounds[] = $transportRound;
+            $transportRound->setStatus($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTransportRound(TransportRound $transportRound): self
+    {
+        if ($this->transportRounds->removeElement($transportRound)) {
+            // set the owning side to null (unless already changed)
+            if ($transportRound->getStatus() === $this) {
+                $transportRound->setStatus(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, TransportOrder>
+     */
+    public function getTransportOrders(): Collection
+    {
+        return $this->transportOrders;
+    }
+
+    public function addTransportOrder(TransportOrder $transportOrder): self
+    {
+        if (!$this->transportOrders->contains($transportOrder)) {
+            $this->transportOrders[] = $transportOrder;
+            $transportOrder->setStatus($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTransportOrder(TransportOrder $transportOrder): self
+    {
+        if ($this->transportOrders->removeElement($transportOrder)) {
+            // set the owning side to null (unless already changed)
+            if ($transportOrder->getStatus() === $this) {
+                $transportOrder->setStatus(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, StatusHistory>
+     */
+    public function getTransportStatusHistories(): Collection
+    {
+        return $this->transportStatusHistories;
+    }
+
+    public function addTransportStatusHistory(StatusHistory $transportStatusHistory): self
+    {
+        if (!$this->transportStatusHistories->contains($transportStatusHistory)) {
+            $this->transportStatusHistories[] = $transportStatusHistory;
+            $transportStatusHistory->setStatus($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTransportStatusHistory(StatusHistory $transportStatusHistory): self
+    {
+        if ($this->transportStatusHistories->removeElement($transportStatusHistory)) {
+            // set the owning side to null (unless already changed)
+            if ($transportStatusHistory->getStatus() === $this) {
+                $transportStatusHistory->setStatus(null);
             }
         }
 
