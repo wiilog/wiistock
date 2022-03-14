@@ -5,6 +5,8 @@ namespace App\Entity;
 use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorMessageTrait;
+use App\Entity\Transport\TransportDeliveryOrderPack;
+use App\Entity\Transport\TransportRequestHistory;
 use App\Helper\FormatHelper;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -37,15 +39,15 @@ class Pack implements PairedEntity {
     #[ORM\ManyToOne(targetEntity: Nature::class, inversedBy: 'packs')]
     private ?Nature $nature = null;
 
-    #[ORM\OneToOne(targetEntity: TrackingMovement::class, inversedBy: 'linkedPackLastDrop')]
+    #[ORM\OneToOne(inversedBy: 'linkedPackLastDrop', targetEntity: TrackingMovement::class)]
     #[ORM\JoinColumn(nullable: true)]
     private ?TrackingMovement $lastDrop = null;
 
-    #[ORM\OneToOne(targetEntity: TrackingMovement::class, inversedBy: 'linkedPackLastTracking')]
+    #[ORM\OneToOne(inversedBy: 'linkedPackLastTracking', targetEntity: TrackingMovement::class)]
     #[ORM\JoinColumn(nullable: true)]
     private ?TrackingMovement $lastTracking = null;
 
-    #[ORM\OneToMany(targetEntity: TrackingMovement::class, mappedBy: 'pack')]
+    #[ORM\OneToMany(mappedBy: 'pack', targetEntity: TrackingMovement::class)]
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
     #[ORM\OrderBy(['datetime' => 'DESC', 'id' => 'DESC'])]
     private Collection $trackingMovements;
@@ -65,17 +67,17 @@ class Pack implements PairedEntity {
     #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $groupIteration = null;
 
-    #[ORM\OneToMany(targetEntity: DispatchPack::class, mappedBy: 'pack', orphanRemoval: true)]
+    #[ORM\OneToMany(mappedBy: 'pack', targetEntity: DispatchPack::class, orphanRemoval: true)]
     private Collection $dispatchPacks;
 
-    #[ORM\OneToMany(targetEntity: LocationClusterRecord::class, mappedBy: 'pack', cascade: ['remove'])]
+    #[ORM\OneToMany(mappedBy: 'pack', targetEntity: LocationClusterRecord::class, cascade: ['remove'])]
     private Collection $locationClusterRecords;
 
-    #[ORM\OneToOne(targetEntity: Article::class, inversedBy: 'trackingPack')]
+    #[ORM\OneToOne(inversedBy: 'trackingPack', targetEntity: Article::class)]
     #[ORM\JoinColumn(nullable: true)]
     private ?Article $article = null;
 
-    #[ORM\OneToOne(targetEntity: ReferenceArticle::class, inversedBy: 'trackingPack')]
+    #[ORM\OneToOne(inversedBy: 'trackingPack', targetEntity: ReferenceArticle::class)]
     #[ORM\JoinColumn(nullable: true)]
     private ?ReferenceArticle $referenceArticle = null;
 
@@ -83,17 +85,23 @@ class Pack implements PairedEntity {
     #[ORM\JoinColumn(nullable: true)]
     private ?Pack $parent = null;
 
-    #[ORM\OneToMany(targetEntity: Pack::class, mappedBy: 'parent')]
+    #[ORM\OneToMany(mappedBy: 'parent', targetEntity: Pack::class)]
     private ?Collection $children;
 
-    #[ORM\OneToMany(targetEntity: TrackingMovement::class, mappedBy: 'packParent')]
+    #[ORM\OneToMany(mappedBy: 'packParent', targetEntity: TrackingMovement::class)]
     private ?Collection $childTrackingMovements;
 
-    #[ORM\OneToMany(targetEntity: Pairing::class, mappedBy: 'pack', cascade: ['remove'])]
+    #[ORM\OneToMany(mappedBy: 'pack', targetEntity: Pairing::class, cascade: ['remove'])]
     private Collection $pairings;
 
     #[ORM\Column(type: 'boolean')]
     private bool $deliveryDone = false;
+
+    #[ORM\OneToMany(mappedBy: 'pack', targetEntity: TransportRequestHistory::class)]
+    private Collection $transportRequestHistories;
+
+    #[ORM\OneToMany(mappedBy: 'pack', targetEntity: TransportDeliveryOrderPack::class)]
+    private Collection $transportDeliveryOrderPacks;
 
     public function __construct() {
         $this->disputes = new ArrayCollection();
@@ -104,6 +112,8 @@ class Pack implements PairedEntity {
         $this->childTrackingMovements = new ArrayCollection();
         $this->pairings = new ArrayCollection();
         $this->sensorMessages = new ArrayCollection();
+        $this->transportRequestHistories = new ArrayCollection();
+        $this->transportDeliveryOrderPacks = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -569,6 +579,66 @@ class Pack implements PairedEntity {
 
     public function setIsDeliveryDone(bool $deliveryDone): self {
         $this->deliveryDone = $deliveryDone;
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, TransportRequestHistory>
+     */
+    public function getTransportRequestHistories(): Collection
+    {
+        return $this->transportRequestHistories;
+    }
+
+    public function addTransportRequestHistory(TransportRequestHistory $transportRequestHistory): self
+    {
+        if (!$this->transportRequestHistories->contains($transportRequestHistory)) {
+            $this->transportRequestHistories[] = $transportRequestHistory;
+            $transportRequestHistory->setPack($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTransportRequestHistory(TransportRequestHistory $transportRequestHistory): self
+    {
+        if ($this->transportRequestHistories->removeElement($transportRequestHistory)) {
+            // set the owning side to null (unless already changed)
+            if ($transportRequestHistory->getPack() === $this) {
+                $transportRequestHistory->setPack(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, TransportDeliveryOrderPack>
+     */
+    public function getTransportDeliveryOrderPacks(): Collection
+    {
+        return $this->transportDeliveryOrderPacks;
+    }
+
+    public function addTransportDeliveryOrderPack(TransportDeliveryOrderPack $transportDeliveryOrderPack): self
+    {
+        if (!$this->transportDeliveryOrderPacks->contains($transportDeliveryOrderPack)) {
+            $this->transportDeliveryOrderPacks[] = $transportDeliveryOrderPack;
+            $transportDeliveryOrderPack->setPack($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTransportDeliveryOrderPack(TransportDeliveryOrderPack $transportDeliveryOrderPack): self
+    {
+        if ($this->transportDeliveryOrderPacks->removeElement($transportDeliveryOrderPack)) {
+            // set the owning side to null (unless already changed)
+            if ($transportDeliveryOrderPack->getPack() === $this) {
+                $transportDeliveryOrderPack->setPack(null);
+            }
+        }
+
         return $this;
     }
 

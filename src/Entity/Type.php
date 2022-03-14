@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\IOT\RequestTemplate;
 use App\Entity\IOT\Sensor;
+use App\Entity\Transport\TransportRequest;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -30,17 +31,6 @@ class Type {
     const LABEL_SENSOR = 'capteur';
     const LABEL_DELIVERY = 'livraison';
     const LABEL_COLLECT = 'collecte';
-    const PRESET_COLORS = [
-        '#D76433',
-        '#D7B633',
-        '#A5D733',
-        '#33D7D1',
-        '#33A5D7',
-        '#3353D7',
-        '#6433D7',
-        '#D73353',
-    ];
-    const DEFAULT_COLOR = '#3353D7';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -53,28 +43,28 @@ class Type {
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $description = null;
 
-    #[ORM\OneToMany(targetEntity: 'FreeField', mappedBy: 'type')]
+    #[ORM\OneToMany(mappedBy: 'type', targetEntity: 'FreeField')]
     private Collection $champsLibres;
 
-    #[ORM\OneToMany(targetEntity: ReferenceArticle::class, mappedBy: 'type')]
+    #[ORM\OneToMany(mappedBy: 'type', targetEntity: ReferenceArticle::class)]
     private Collection $referenceArticles;
 
-    #[ORM\OneToMany(targetEntity: Article::class, mappedBy: 'type')]
+    #[ORM\OneToMany(mappedBy: 'type', targetEntity: Article::class)]
     private Collection $articles;
 
     #[ORM\ManyToOne(targetEntity: CategoryType::class, inversedBy: 'types')]
     private ?CategoryType $category = null;
 
-    #[ORM\OneToMany(targetEntity: Reception::class, mappedBy: 'type')]
+    #[ORM\OneToMany(mappedBy: 'type', targetEntity: Reception::class)]
     private Collection $receptions;
 
-    #[ORM\OneToMany(targetEntity: 'App\Entity\DeliveryRequest\Demande', mappedBy: 'type')]
+    #[ORM\OneToMany(mappedBy: 'type', targetEntity: 'App\Entity\DeliveryRequest\Demande')]
     private Collection $demandesLivraison;
 
-    #[ORM\OneToMany(targetEntity: Dispute::class, mappedBy: 'type')]
+    #[ORM\OneToMany(mappedBy: 'type', targetEntity: Dispute::class)]
     private Collection $disputes;
 
-    #[ORM\OneToMany(targetEntity: Collecte::class, mappedBy: 'type')]
+    #[ORM\OneToMany(mappedBy: 'type', targetEntity: Collecte::class)]
     private Collection $collectes;
 
     #[ORM\ManyToMany(targetEntity: Utilisateur::class, mappedBy: 'deliveryTypes')]
@@ -89,16 +79,16 @@ class Type {
     #[ORM\Column(type: 'boolean', nullable: true)]
     private ?bool $sendMail = null;
 
-    #[ORM\OneToMany(targetEntity: Dispatch::class, mappedBy: 'type')]
+    #[ORM\OneToMany(mappedBy: 'type', targetEntity: Dispatch::class)]
     private Collection $dispatches;
 
-    #[ORM\OneToMany(targetEntity: Arrivage::class, mappedBy: 'type')]
+    #[ORM\OneToMany(mappedBy: 'type', targetEntity: Arrivage::class)]
     private Collection $arrivals;
 
-    #[ORM\OneToMany(targetEntity: Statut::class, mappedBy: 'type', orphanRemoval: true)]
+    #[ORM\OneToMany(mappedBy: 'type', targetEntity: Statut::class, orphanRemoval: true)]
     private Collection $statuts;
 
-    #[ORM\OneToMany(targetEntity: Handling::class, mappedBy: 'type')]
+    #[ORM\OneToMany(mappedBy: 'type', targetEntity: Handling::class)]
     private Collection $handlings;
 
     #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'dropTypes')]
@@ -107,7 +97,7 @@ class Type {
     #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'pickTypes')]
     private ?Emplacement $pickLocation = null;
 
-    #[ORM\OneToOne(targetEntity: AverageRequestTime::class, mappedBy: 'type', cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(mappedBy: 'type', targetEntity: AverageRequestTime::class, cascade: ['persist', 'remove'])]
     private ?AverageRequestTime $averageRequestTime = null;
 
     #[ORM\Column(type: 'boolean', options: ['default' => 0])]
@@ -116,17 +106,23 @@ class Type {
     #[ORM\Column(type: 'json', nullable: true)]
     private ?array $notificationsEmergencies = [];
 
-    #[ORM\OneToMany(targetEntity: RequestTemplate::class, mappedBy: 'type')]
+    #[ORM\OneToMany(mappedBy: 'type', targetEntity: RequestTemplate::class)]
     private Collection $requestTemplates;
 
-    #[ORM\OneToMany(targetEntity: RequestTemplate::class, mappedBy: 'requestType')]
+    #[ORM\OneToMany(mappedBy: 'requestType', targetEntity: RequestTemplate::class)]
     private Collection $requestTypeTemplates;
 
-    #[ORM\OneToMany(targetEntity: 'App\Entity\IOT\Sensor', mappedBy: 'type')]
+    #[ORM\OneToMany(mappedBy: 'type', targetEntity: 'App\Entity\IOT\Sensor')]
     private Collection $sensors;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $color = null;
+
+    #[ORM\OneToMany(mappedBy: 'type', targetEntity: TransportRequest::class)]
+    private Collection $transportRequests;
+
+    #[ORM\OneToOne(targetEntity: Attachment::class, cascade: ['persist', 'remove'])]
+    private ?Attachment $image = null;
 
     public function __construct() {
         $this->champsLibres = new ArrayCollection();
@@ -146,6 +142,7 @@ class Type {
         $this->requestTemplates = new ArrayCollection();
         $this->requestTypeTemplates = new ArrayCollection();
         $this->sensors = new ArrayCollection();
+        $this->transportRequests = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -771,6 +768,48 @@ class Type {
 
     public function setColor(?string $color): self {
         $this->color = $color;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, TransportRequest>
+     */
+    public function getTransportRequests(): Collection
+    {
+        return $this->transportRequests;
+    }
+
+    public function addTransportRequest(TransportRequest $transportRequest): self
+    {
+        if (!$this->transportRequests->contains($transportRequest)) {
+            $this->transportRequests[] = $transportRequest;
+            $transportRequest->setType($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTransportRequest(TransportRequest $transportRequest): self
+    {
+        if ($this->transportRequests->removeElement($transportRequest)) {
+            // set the owning side to null (unless already changed)
+            if ($transportRequest->getType() === $this) {
+                $transportRequest->setType(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getImage(): ?Attachment
+    {
+        return $this->image;
+    }
+
+    public function setImage(?Attachment $image): self
+    {
+        $this->image = $image;
 
         return $this;
     }
