@@ -1360,12 +1360,13 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         return $this;
     }
 
-    public function getDeliverer(): ?bool {
+    public function isDeliverer(): ?bool {
         return $this->deliverer;
     }
 
-    public function setDeliverer(?bool $deliverer): void {
+    public function setDeliverer(?bool $deliverer): self {
         $this->deliverer = $deliverer;
+        return $this;
     }
 
     /**

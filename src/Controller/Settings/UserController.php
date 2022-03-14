@@ -158,7 +158,6 @@ class UserController extends AbstractController {
             $loggedUser = $this->getUser();
 
             $typeRepository = $entityManager->getRepository(Type::class);
-            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $visibilityGroupRepository = $entityManager->getRepository(VisibilityGroup::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $roleRepository = $entityManager->getRepository(Role::class);
