@@ -125,11 +125,12 @@ class Emplacement implements PairedEntity {
     #[ORM\OneToMany(mappedBy: 'dropLocation', targetEntity: TransferOrder::class)]
     private Collection $transferOrders;
 
-    #[ORM\OneToOne(mappedBy: 'location', targetEntity: Vehicle::class, cascade: ['persist', 'remove'])]
-    private ?Vehicle $vehicle = null;
-
     #[ORM\ManyToMany(targetEntity: TemperatureRange::class, inversedBy: 'locations')]
     private Collection $temperatureRanges;
+
+    #[ORM\ManyToOne(targetEntity: Vehicle::class, inversedBy: 'locations')]
+    #[ORM\JoinColumn(onDelete: 'SET NULL')]
+    private ?Vehicle $vehicle = null;
 
     public function __construct() {
         $this->clusters = new ArrayCollection();
@@ -925,25 +926,6 @@ class Emplacement implements PairedEntity {
         return $this;
     }
 
-    public function getVehicle(): ?Vehicle
-    {
-        return $this->vehicle;
-    }
-
-    public function setVehicle(?Vehicle $vehicle): self {
-        if($this->vehicle && $this->vehicle->getLocation() !== $this) {
-            $oldVehicle = $this->vehicle;
-            $this->vehicle = null;
-            $oldVehicle->setLocation(null);
-        }
-        $this->vehicle = $vehicle;
-        if($this->vehicle && $this->vehicle->getLocation() !== $this) {
-            $this->vehicle->setLocation($this);
-        }
-
-        return $this;
-    }
-
     /**
      * @return Collection<int, TemperatureRange>
      */
@@ -965,6 +947,18 @@ class Emplacement implements PairedEntity {
         if ($this->temperatureRanges->removeElement($temperatureRange)) {
             $temperatureRange->removeLocation($this);
         }
+
+        return $this;
+    }
+
+    public function getVehicle(): ?Vehicle
+    {
+        return $this->vehicle;
+    }
+
+    public function setVehicle(?Vehicle $vehicle): self
+    {
+        $this->vehicle = $vehicle;
 
         return $this;
     }

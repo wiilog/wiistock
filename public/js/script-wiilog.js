@@ -154,7 +154,7 @@ function showRow(button, path, modal) {
  *
  * @param {Document} button
  * @param {string} path le chemin pris pour envoyer les données.
- * @param {Document} modal la modalde modification
+ * @param {Document} modal la modale de modification
  * @param {Document|string} submit le bouton de validation du form pour le edit
  * @param setMaxQuantity
  * @param afterLoadingEditModal
@@ -470,7 +470,7 @@ function saveFilters(page, tableSelector, callback) {
     if ($filterDateExpectedPicker) {
         $filterDateExpectedPicker.format('DD/MM/YYYY');
     }
-    console.log(params);
+
     $.post(path, JSON.stringify(params), function (response) {
         if (response) {
             if (callback) {

@@ -8,6 +8,7 @@ use App\Entity\LocationGroup;
 use App\Entity\OrdreCollecte;
 use App\Entity\Pack;
 use App\Entity\PreparationOrder\Preparation;
+use App\Entity\Transport\Vehicle;
 use App\Repository\IOT\PairingRepository;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -56,6 +57,9 @@ class Pairing {
 
     #[ORM\ManyToMany(targetEntity: SensorMessage::class, inversedBy: 'pairings')]
     private Collection $sensorMessages;
+
+    #[ORM\ManyToOne(targetEntity: Vehicle::class, inversedBy: 'pairings')]
+    private $vehicle;
 
     public function __construct() {
         $this->sensorMessages = new ArrayCollection();
@@ -243,6 +247,18 @@ class Pairing {
         } else {
             return null;
         }
+    }
+
+    public function getVehicle(): ?Vehicle
+    {
+        return $this->vehicle;
+    }
+
+    public function setVehicle(?Vehicle $vehicle): self
+    {
+        $this->vehicle = $vehicle;
+
+        return $this;
     }
 
 }

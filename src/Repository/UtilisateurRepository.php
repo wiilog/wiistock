@@ -35,6 +35,10 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
                 ->leftJoin('user.locationGroupDropzone', 'locationGroup_dropzone');
         }
 
+        if(isset($options['delivererOnly']) && $options['delivererOnly']) {
+            $qb->andWhere("user.deliverer = 1");
+        }
+
         return $qb
             ->andWhere("user.username LIKE :term")
             ->andWhere('user.status = 1')

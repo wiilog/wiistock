@@ -26,7 +26,7 @@ export async function findRoute(token, addresses) {
     };
 
     const result = await AJAX.url(`GET`, FIND_ROUTE, params).json();
-console.log(result);
+
     return {
         distance: result.directions[0].summary.totalLength * 1.60934,
         time: result.directions[0].summary.totalDriveTime,

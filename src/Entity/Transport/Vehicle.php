@@ -3,8 +3,11 @@
 namespace App\Entity\Transport;
 
 use App\Entity\Emplacement;
+use App\Entity\IOT\Pairing;
 use App\Entity\Utilisateur;
 use App\Repository\VehicleRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: VehicleRepository::class)]
@@ -21,8 +24,17 @@ class Vehicle
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'vehicles')]
     private ?Utilisateur $deliverer = null;
 
-    #[ORM\OneToOne(inversedBy: 'vehicle', targetEntity: Emplacement::class, cascade: ['persist', 'remove'])]
-    private ?Emplacement $location = null;
+    #[ORM\OneToMany(mappedBy: 'vehicle', targetEntity: Emplacement::class)]
+    private Collection $locations;
+
+    #[ORM\OneToMany(mappedBy: 'vehicle', targetEntity: Pairing::class)]
+    private Collection $pairings;
+
+    public function __construct()
+    {
+        $this->locations = new ArrayCollection();
+        $this->pairings = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -56,14 +68,75 @@ class Vehicle
         return $this;
     }
 
-    public function getLocation(): ?Emplacement
+    /**
+     * @return Collection<int, Emplacement>
+     */
+    public function getLocations(): Collection
     {
-        return $this->location;
+        return $this->locations;
     }
 
-    public function setLocation(?Emplacement $location): self
+    public function addLocation(Emplacement $location): self
     {
-        $this->location = $location;
+        if (!$this->locations->contains($location)) {
+            $this->locations[] = $location;
+            $location->setVehicle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLocation(Emplacement $location): self
+    {
+        if ($this->locations->removeElement($location)) {
+            // set the owning side to null (unless already changed)
+            if ($location->getVehicle() === $this) {
+                $location->setVehicle(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setLocations(?array $locations): self {
+        foreach($this->getLocations()->toArray() as $location) {
+            $this->removeLocation($location);
+        }
+
+        $this->locations = new ArrayCollection();
+        foreach($locations as $location) {
+            $this->addLocation($location);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Pairing>
+     */
+    public function getPairings(): Collection
+    {
+        return $this->pairings;
+    }
+
+    public function addPairing(Pairing $pairing): self
+    {
+        if (!$this->pairings->contains($pairing)) {
+            $this->pairings[] = $pairing;
+            $pairing->setVehicle($this);
+        }
+
+        return $this;
+    }
+
+    public function removePairing(Pairing $pairing): self
+    {
+        if ($this->pairings->removeElement($pairing)) {
+            // set the owning side to null (unless already changed)
+            if ($pairing->getVehicle() === $this) {
+                $pairing->setVehicle(null);
+            }
+        }
 
         return $this;
     }

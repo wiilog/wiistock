@@ -183,6 +183,11 @@ parameters:
                     isTranslation: true
                     title: Natures de colis
                     path: 'nature_param_index'
+                -   label: 'Véhicules'
+                    path: 'vehicle_index'
+                    rights:
+                        menu: App\Entity\Menu::REFERENTIEL
+                        action: App\Entity\Action::DISPLAY_TRAN
 
         -   label: 'IoT.IoT'
             isTranslation: true

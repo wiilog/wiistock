@@ -1052,7 +1052,6 @@ function initSecondStep(html, component) {
 
         $input.on(`change`, function() {
             updateImagePreview($preview, $input, $title, $delete, function ($input) {
-                console.log('huh');
                 if ($input.files.length >= 1 && $input.files[0]) {
                     const reader = new FileReader();
                     reader.readAsDataURL($input.files[0]);
