@@ -73,8 +73,6 @@ class AppExtension extends AbstractExtension {
     public function getTests() {
         return [
             new TwigTest('instanceof', [$this, 'isInstanceOf']),
-            new TwigTest('array', 'is_array'),
-            new TwigTest('object', 'is_object'),
         ];
     }
 
