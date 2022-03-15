@@ -7,7 +7,6 @@ use App\Repository\FreeFieldRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Doctrine\ORM\Mapping\OneToMany;
 
 #[ORM\Entity(repositoryClass: FreeFieldRepository::class)]
 class FreeField implements Serializable {

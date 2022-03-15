@@ -4,7 +4,7 @@ namespace App\Entity\Transport;
 
 use App\Entity\Statut;
 use App\Entity\Traits\AttachmentTrait;
-use App\Repository\TransportOrderRepository;
+use App\Repository\Transport\TransportOrderRepository;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;

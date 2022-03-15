@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\Transport;
 
-use App\Entity\StatusHistory;
+use App\Entity\Transport\StatusHistory;
 use Doctrine\ORM\EntityRepository;
 
 /**

@@ -6,7 +6,6 @@ namespace DoctrineMigrations;
 
 use App\Entity\Action;
 use App\Entity\Menu;
-use App\Entity\Setting;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 

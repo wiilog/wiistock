@@ -2,7 +2,7 @@
 
 namespace App\Entity\Transport;
 
-use App\Repository\TransportRequestContactRepository;
+use App\Repository\Transport\TransportRequestContactRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TransportRequestContactRepository::class)]

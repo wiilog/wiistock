@@ -8,7 +8,6 @@ use App\Entity\FiltreSup;
 use App\Entity\FreeField;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
-use phpDocumentor\Reflection\Types\Boolean;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
 use App\Service\VisibleColumnService;

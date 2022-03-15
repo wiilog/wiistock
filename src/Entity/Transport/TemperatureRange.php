@@ -4,7 +4,7 @@ namespace App\Entity\Transport;
 
 use App\Entity\Emplacement;
 use App\Entity\Nature;
-use App\Repository\TemperatureRangeRepository;
+use App\Repository\Transport\TemperatureRangeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;

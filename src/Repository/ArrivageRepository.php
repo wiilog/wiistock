@@ -6,7 +6,6 @@ use App\Entity\Arrivage;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField;
 use App\Entity\Statut;
-use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
 use App\Service\VisibleColumnService;
 use DateTime;

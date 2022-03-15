@@ -3,7 +3,6 @@
 namespace App\Repository;
 
 use App\Entity\Article;
-use App\Entity\CategoryType;
 use App\Entity\FreeField;
 use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\Demande;

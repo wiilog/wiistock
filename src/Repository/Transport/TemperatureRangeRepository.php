@@ -11,6 +11,4 @@ use Doctrine\ORM\EntityRepository;
  * @method TemperatureRange[]    findAll()
  * @method TemperatureRange[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class TemperatureRangeRepository extends EntityRepository {
-
-}
+class TemperatureRangeRepository extends EntityRepository {}

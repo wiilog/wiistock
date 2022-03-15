@@ -15,7 +15,6 @@ use App\Entity\ReferenceArticle;
 use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
-use App\Helper\FormatHelper;
 use App\Helper\QueryCounter;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;

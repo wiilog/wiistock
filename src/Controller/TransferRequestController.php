@@ -18,7 +18,6 @@ use WiiCommon\Helper\Stream;
 use App\Service\TransferRequestService;
 use DateTime;
 use App\Service\CSVExportService;
-use App\Service\UserService;
 
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;

@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\Transport;
 
-use App\Entity\TransportOrder;
+use App\Entity\Transport\TransportOrder;
 use Doctrine\ORM\EntityRepository;
 
 /**

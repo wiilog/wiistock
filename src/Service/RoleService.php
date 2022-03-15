@@ -11,8 +11,6 @@ use Symfony\Component\HttpFoundation\Request;
 use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
-use Psr\Cache\InvalidArgumentException;
 
 class RoleService
 {

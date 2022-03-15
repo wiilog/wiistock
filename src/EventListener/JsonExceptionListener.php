@@ -3,7 +3,6 @@
 namespace App\EventListener;
 
 use App\Exception\JsonException;
-use HttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 

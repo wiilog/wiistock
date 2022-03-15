@@ -11,7 +11,6 @@ use App\Entity\Collecte;
 use App\Entity\CollecteReference;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
-use App\Entity\FreeField;
 use App\Entity\IOT\Pairing;
 use App\Entity\OrdreCollecte;
 use App\Entity\ReferenceArticle;

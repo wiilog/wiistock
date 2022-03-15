@@ -4,7 +4,7 @@ namespace App\Entity\Transport;
 
 use App\Entity\Emplacement;
 use App\Entity\Utilisateur;
-use App\Repository\VehicleRepository;
+use App\Repository\Transport\VehicleRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: VehicleRepository::class)]

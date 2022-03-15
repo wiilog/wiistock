@@ -20,7 +20,6 @@ use App\Entity\DispatchPack;
 use App\Entity\Setting;
 use App\Entity\Attachment;
 use App\Entity\Statut;
-use App\Entity\TrackingMovement;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;

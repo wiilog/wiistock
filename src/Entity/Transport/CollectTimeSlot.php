@@ -2,7 +2,7 @@
 
 namespace App\Entity\Transport;
 
-use App\Repository\CollectTimeSlotRepository;
+use App\Repository\Transport\CollectTimeSlotRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;

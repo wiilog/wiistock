@@ -4,7 +4,7 @@ namespace App\Entity\Transport;
 
 use App\Entity\Pack;
 use App\Entity\Utilisateur;
-use App\Repository\TransportDeliveryOrderPackRepository;
+use App\Repository\Transport\TransportDeliveryOrderPackRepository;
 use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 
