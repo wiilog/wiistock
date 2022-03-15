@@ -138,7 +138,8 @@ class ImportService
             "status",
             "dispatchTypes",
             "deliveryTypes",
-            "handlingTypes"
+            "handlingTypes",
+            "deliverer"
         ],
         Import::ENTITY_DELIVERY => [
             "articleCode",
@@ -836,6 +837,10 @@ class ImportService
                     'status' => [
                         'needed' => $this->fieldIsNeeded('status', Import::ENTITY_USER),
                         'value' => $corresp['status'] ?? null,
+                    ],
+                    'deliverer' => [
+                        'needed' => $this->fieldIsNeeded('deliverer', Import::ENTITY_USER),
+                        'value' => $corresp['deliverer'] ?? null,
                     ],
                 ];
                 break;
@@ -1609,6 +1614,15 @@ class ImportService
 
         if(isset($data['address'])) {
             $user->setAddress($data['address']);
+        }
+
+        if(!empty($data['deliverer'])) {
+            $value = $data['deliverer'];
+            if ($value !== 'oui' && $value !== 'non') {
+                $this->throwError('La valeur saisie pour le champ Livreur est invalide (autorisé : "oui" ou "non")');
+            } else {
+                $user->setDeliverer($value === 'oui');
+            }
         }
 
         if(isset($data['deliveryTypes'])) {

@@ -172,6 +172,7 @@ class UserService
             FormatHelper::entity($user->getHandlingTypes()->toArray(), 'label', ' , '),
             $dropzone instanceof Emplacement ? FormatHelper::location($dropzone) : FormatHelper::locationGroup($dropzone),
             FormatHelper::entity($user->getVisibilityGroups()->toArray(), "label", ' / '),
+            FormatHelper::bool($user->isDeliverer()),
             $user->getStatus() ? 'Actif' : 'Inactif'
         ]);
     }

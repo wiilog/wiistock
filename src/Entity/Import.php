@@ -129,6 +129,7 @@ class Import {
 
 
         'role' => 'Rôle',
+        'deliverer' => 'Livreur',
         'username' => 'Nom d\'utilisateur',
         'email' => 'Email',
         'secondaryEmail' => 'Email 2',
@@ -179,7 +180,7 @@ class Import {
     #[ORM\Column(type: 'string', length: 64)]
     private $entity;
 
-    #[ORM\OneToOne(targetEntity: 'Attachment', inversedBy: 'importCsv')]
+    #[ORM\OneToOne(inversedBy: 'importCsv', targetEntity: 'Attachment')]
     private $csvFile;
 
     #[ORM\ManyToOne(targetEntity: Statut::class)]

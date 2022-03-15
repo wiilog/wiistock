@@ -362,7 +362,8 @@ class UserController extends AbstractController {
             'Types de service',
             'Dropzone',
             'Groupe(s) de visibilité',
-            'Statut'
+            'Livreur',
+            'Statut',
         ];
 
         return $CSVExportService->streamResponse(
