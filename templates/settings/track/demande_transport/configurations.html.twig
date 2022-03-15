@@ -3,7 +3,7 @@
 <div class="wii-section-title">Demande sous-traitée</div>
 <div class="wii-section">
     <div class="row">
-        <div class="col-md-4 col-12 d-flex align-items-center my-1">
+        <div class="col-lg-4 col-12 d-flex align-items-center my-1">
             {{ form.textarea(setting('NON_BUSINESS_HOURS_MESSAGE'), 'Message paramétrable si la date et heure de la demande sont hors horaires travaillés', false, setting_value('NON_BUSINESS_HOURS_MESSAGE'), {
                 labelClass: 'wii-field-name w-100',
             }) }}
@@ -14,22 +14,22 @@
 <div class="wii-section-title">Bon de transport</div>
 <div class="wii-section">
     <div class="row">
-        <div class="col-md-4 col-12 my-1">
+        <div class="col-lg-4 col-12 my-1">
             {{ form.textarea(setting('SHIPMENT_NOTE_COMPANY_DETAILS'), 'Coordonnées société', false, setting_value('SHIPMENT_NOTE_COMPANY_DETAILS'), {
                 labelClass: 'wii-field-name w-100',
             }) }}
         </div>
-        <div class="col-md-4 col-12 my-1">
+        <div class="col-lg-4 col-12 my-1">
             {{ form.input(setting('SHIPMENT_NOTE_ORIGINATOR'), "Donneur d'ordre", false, setting_value('SHIPMENT_NOTE_ORIGINATOR'), {
                 labelClass: 'wii-field-name w-100',
             }) }}
         </div>
-        <div class="col-md-4 col-12 my-1">
+        <div class="col-lg-4 col-12 my-1">
             {{ form.image(setting('FILE_SHIPMENT_NOTE_LOGO'), "Logo sur bon de transport", false, setting_value('FILE_SHIPMENT_NOTE_LOGO'), {
                 labelClass: 'wii-field-name w-100',
             }) }}
         </div>
-        <div class="col-md-4 col-12 my-1">
+        <div class="col-lg-4 col-12 my-1">
             {{ form.textarea(setting('SHIPMENT_NOTE_SENDER_DETAILS'), 'Pré-remplir la date du jour dans le champ à échéance Du et échéance Au', false, setting_value('SHIPMENT_NOTE_SENDER_DETAILS'), {
                 labelClass: 'wii-field-name w-100',
             }) }}

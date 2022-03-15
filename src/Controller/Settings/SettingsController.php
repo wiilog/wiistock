@@ -263,14 +263,14 @@ class SettingsController extends AbstractController {
             "icon" => "menu-track",
             "right" => Action::SETTINGS_TRACKING,
             "menus" => [
-//                self::MENU_TRANSPORT_REQUESTS => [
-//                    "label" => "Demandes",
-//                    "menus" => [
-//                        self::MENU_CONFIGURATIONS => ["label" => "Configurations", "save" => true],
+                self::MENU_TRANSPORT_REQUESTS => [
+                    "label" => "Demandes",
+                    "menus" => [
+                        self::MENU_CONFIGURATIONS => ["label" => "Configurations", "save" => true],
 //                        self::MENU_DELIVERY_TYPES_FREE_FIELDS => ["label" => "Livraions - Types & champs libres"],
 //                        self::MENU_COLLECT_TYPES_FREE_FIELDS => ["label" => "Collectes - Types & champs libres"],
-//                    ],
-//                ],
+                    ],
+                ],
 //                self::MENU_ROUNDS => [
 //                    "label" => "Tournées",
 //                    "save" => true,
@@ -420,7 +420,7 @@ class SettingsController extends AbstractController {
     public const MENU_HANDLINGS = "services";
     private const MENU_REQUEST_TEMPLATES = "modeles_demande";
 
-//    private const MENU_TRANSPORT_REQUESTS = "demande_transport";
+    private const MENU_TRANSPORT_REQUESTS = "demande_transport";
 //    private const MENU_ROUNDS = "tournees";
     private const MENU_TEMPERATURES = "temperatures";
 

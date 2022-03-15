@@ -331,7 +331,7 @@ class SettingsService {
 
             foreach($tables["workingHours"] as $workingHour) {
                 $hours = $workingHour["hours"] ?? null;
-                if($hours && !preg_match("/^\d{2,2}:\d{2,2}-\d{2,2}:\d{2,2}(;\d{2,2}:\d{2,2}-\d{2,2}:\d{2,2})?$/", $hours)) {
+                if($hours && !preg_match("/^\d{2}:\d{2}-\d{2}:\d{2}(;\d{2}:\d{2}-\d{2}:\d{2})?$/", $hours)) {
                     throw new RuntimeException("Le champ horaires doit être au format HH:MM-HH:MM;HH:MM-HH:MM");
                 }
 

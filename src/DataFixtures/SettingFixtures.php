@@ -197,23 +197,18 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             ],
             Setting::NON_BUSINESS_HOURS_MESSAGE => [
                 'default' => null,
-                SpecificService::CLIENT_CLB => true
             ],
             Setting::SHIPMENT_NOTE_COMPANY_DETAILS => [
                 'default' => null,
-                SpecificService::CLIENT_CLB => true
             ],
             Setting::SHIPMENT_NOTE_SENDER_DETAILS => [
                 'default' => null,
-                SpecificService::CLIENT_CLB => true
             ],
             Setting::SHIPMENT_NOTE_ORIGINATOR => [
                 'default' => null,
-                SpecificService::CLIENT_CLB => true
             ],
             Setting::FILE_SHIPMENT_NOTE_LOGO => [
                 'default' => null,
-                SpecificService::CLIENT_CLB => true
             ],
         ];
 
