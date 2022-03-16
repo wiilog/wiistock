@@ -88,6 +88,11 @@ parameters:
                     rights:
                         menu: App\Entity\Menu::DEM
                         action: App\Entity\Action::DISPLAY_PURCHASE_REQUESTS
+                -   label: 'Transport'
+                    path: 'transport_request_index'
+                    rights:
+                        menu: App\Entity\Menu::DEM
+                        action: App\Entity\Action::DISPLAY_TRANSPORT
 
         -   label: 'Ordre'
             icon: 'ordre'
@@ -119,6 +124,26 @@ parameters:
                     rights:
                         menu: App\Entity\Menu::ORDRE
                         action: App\Entity\Action::DISPLAY_RECE
+                -   label: 'Transport'
+                    path: 'transport_order_index'
+                    rights:
+                        menu: App\Entity\Menu::ORDRE
+                        action: App\Entity\Action::DISPLAY_TRANSPORT
+                -   label: 'Planning'
+                    path: 'transport_planning_index'
+                    rights:
+                        menu: App\Entity\Menu::ORDRE
+                        action: App\Entity\Action::DISPLAY_TRANSPORT_PLANNING
+                -   label: 'Tournée'
+                    path: 'transport_round_index'
+                    rights:
+                        menu: App\Entity\Menu::ORDRE
+                        action: App\Entity\Action::DISPLAY_TRANSPORT_ROUND
+                -   label: 'Sous-traitance'
+                    path: 'transport_subcontract_index'
+                    rights:
+                        menu: App\Entity\Menu::ORDRE
+                        action: App\Entity\Action::DISPLAY_TRANSPORT_SUBCONTRACT
 
         -   label: 'Stock'
             icon: 'stock'
