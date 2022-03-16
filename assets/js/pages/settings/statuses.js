@@ -84,7 +84,9 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
 }
 
 function getStatusesColumn(mode) {
-    const [x, s] = [MODE_DISPATCH, MODE_HANDLING, MODE_PURCHASE_REQUEST, MODE_ARRIVAL_DISPUTE].includes(mode) ? ['', ''] : ['x', 's'];
+    const singleRequester = [MODE_DISPATCH, MODE_HANDLING, MODE_PURCHASE_REQUEST, MODE_ARRIVAL_DISPUTE].includes(mode) ? ['', ''] : ['x', 's'];
+    const singleBuyer = [MODE_PURCHASE_REQUEST].includes(mode) ? [`à`, `l'acheteur`] : [`aux`, `acheteurs`];
+
     return [
         {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
         {data: `label`, title: `Libellé`, required: true},
@@ -97,12 +99,12 @@ function getStatusesColumn(mode) {
             modes: [MODE_ARRIVAL, MODE_ARRIVAL_DISPUTE, MODE_RECEPTION_DISPUTE, MODE_HANDLING, MODE_PURCHASE_REQUEST]},
         {
             data: `sendMailBuyers`,
-            title: `<div class='small-column'>Envoi d'emails aux acheteurs</div>`,
+            title: `<div class='small-column'>Envoi d'emails ${singleBuyer[0]} ${singleBuyer[1]}</div>`,
             modes: [MODE_ARRIVAL_DISPUTE, MODE_RECEPTION_DISPUTE, MODE_PURCHASE_REQUEST]
         },
         {
             data: `sendMailRequesters`,
-            title: `<div class='small-column'>Envoi d'emails au${x} demandeur${s}</div>`,
+            title: `<div class='small-column'>Envoi d'emails au${singleRequester[0]} demandeur${singleRequester[1]}</div>`,
             modes: [MODE_ARRIVAL_DISPUTE, MODE_RECEPTION_DISPUTE, MODE_HANDLING, MODE_PURCHASE_REQUEST, MODE_DISPATCH]
         },
         {
