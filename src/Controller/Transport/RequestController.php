@@ -10,6 +10,9 @@ use Symfony\Component\Routing\Annotation\Route;
 #[Route("transport/demande")]
 class RequestController extends AbstractController {
 
+    /**
+     * Called in /index.html.twig
+     */
     #[Route("/liste", name: "transport_request_index", methods: "GET")]
     public function index(): Response {
         // TODO

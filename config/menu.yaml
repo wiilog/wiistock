@@ -2,7 +2,7 @@ parameters:
     menu_config:
         -   label: 'Accueil'
             icon: 'accueil'
-            path: 'accueil'
+            path: 'app_index'
 
         -   label: 'Traçabilité'
             icon: 'traca'
