@@ -583,6 +583,7 @@ class ArrivageController extends AbstractController {
                     $entityManager->remove($pack);
                 }
                 $arrivage->getPacks()->clear();
+                $entityManager->flush();
 
                 foreach ($arrivage->getAttachments() as $attachement) {
                     $this->attachmentService->removeAndDeleteAttachment($attachement, $arrivage);

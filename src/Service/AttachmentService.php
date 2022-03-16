@@ -147,6 +147,8 @@ class AttachmentService {
 
     public function deleteAttachment(Attachment $attachment) {
         $path = $this->getServerPath($attachment);
-        unlink($path);
+        if(file_exists($path)) {
+            unlink($path);
+        }
     }
 }
