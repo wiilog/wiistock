@@ -14,6 +14,7 @@ use App\Entity\LocationGroup;
 use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\ReferenceArticle;
+use App\Entity\Role;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -64,6 +65,12 @@ class FormatHelper {
         ReferenceArticle::QUANTITY_TYPE_ARTICLE => 'Article',
     ];
 
+    private const LANDING_PAGE_LABELS = [
+        Role::LANDING_PAGE_DASHBOARD => 'Dashboard',
+        Role::LANDING_PAGE_TRANSPORT_PLANNING => 'Planning',
+        Role::LANDING_PAGE_TRANSPORT_REQUEST => 'Demande de transport',
+    ];
+
     public static function parseDatetime(?string $date, array $expectedFormats = ["Y-m-d H:i:s", "d/m/Y H:i:s", "Y-m-d H:i", "d/m/Y H:i"]): ?DateTimeInterface {
         if (empty($date)) {
             return null;
@@ -84,6 +91,10 @@ class FormatHelper {
 
     public static function quantityTypeLabel(?string $quantityType, string $else = ""): string {
         return self::QUANTITY_TYPE_LABELS[$quantityType] ?? $else;
+    }
+
+    public static function landingPageLabel(?string $landingPage, string $else = ""): string {
+        return self::LANDING_PAGE_LABELS[$landingPage] ?? $else;
     }
 
     public static function handlingRequester(Handling $handling, $else = ""): string {

@@ -9,6 +9,10 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: 'App\Repository\RoleRepository')]
 class Role {
 
+    public const LANDING_PAGE_DASHBOARD = 'dashboard';
+    public const LANDING_PAGE_TRANSPORT_PLANNING = 'transport_planning';
+    public const LANDING_PAGE_TRANSPORT_REQUEST = 'transport_request';
+
     public const NO_ACCESS_USER = 'aucun accès';
     public const SUPER_ADMIN = 'super admin';
     public const CLIENT_UTIL = 'Client utilisation';
@@ -32,6 +36,9 @@ class Role {
 
     #[ORM\Column(type: 'boolean')]
     private ?bool $isMailSendAccountCreation = false;
+
+    #[ORM\Column(type: 'string', options: ["default" => self::LANDING_PAGE_DASHBOARD])]
+    private ?string $landingPage = self::LANDING_PAGE_DASHBOARD;
 
     public function __construct() {
         $this->actions = new ArrayCollection();
@@ -137,6 +144,15 @@ class Role {
 
     public function setQuantityType(?string $quantityType): self {
         $this->quantityType = $quantityType;
+        return $this;
+    }
+
+    public function getLandingPage(): ?string {
+        return $this->landingPage;
+    }
+
+    public function setLandingPage(string $landingPage): self {
+        $this->landingPage = $landingPage;
         return $this;
     }
 

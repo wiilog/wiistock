@@ -65,6 +65,19 @@ class Action {
     const EDIT_DRAFT_PURCHASE_REQUEST = "modifier demandes d'achat brouillon";
     const DELETE_ONGOING_PURCHASE_REQUESTS = "supprimer demandes d'achat à traiter et en cours";
     const TRACK_SENSOR = "suivre un capteur";
+
+    const DISPLAY_TRANSPORT = 'afficher transport';
+    const CREATE_TRANSPORT = 'créer transport';
+    const EDIT_TRANSPORT = 'modifier transport';
+    const DELETE_TRANSPORT = 'supprimer transport';
+    const DISPLAY_TRANSPORT_PLANNING = 'afficher planning';
+    const SCHEDULE_TRANSPORT_ROUND = 'Planifier une tournée';
+    const DISPLAY_TRANSPORT_ROUND = 'afficher tournée';
+    const EDIT_TRANSPORT_ROUND = 'modifier tournée';
+    const DISPLAY_TRANSPORT_SUBCONTRACT = 'afficher sous-traitance';
+    const EDIT_TRANSPORT_SUBCONTRACT = 'modifier sous-traitance';
+
+
     // menu ordre
     const DISPLAY_ORDRE_COLL = 'afficher collectes';
     const DISPLAY_ORDRE_LIVR = 'afficher livraisons';
@@ -90,6 +103,7 @@ class Action {
     const DISPLAY_EMPL = 'afficher emplacements';
     const DISPLAY_CHAU = 'afficher chauffeurs';
     const DISPLAY_TRAN = 'afficher transporteurs';
+    const DISPLAY_VEHICLE = 'afficher véhicule';
     // menu IOT
     const DISPLAY_SENSOR = 'afficher capteurs';
     const DISPLAY_TRIGGER = 'afficher actionneurs';
@@ -112,6 +126,7 @@ class Action {
     const MODULE_ACCESS_UNGROUP = 'Accès Dégroupage';
     const MODULE_ACCESS_HAND = 'Accès Demande';
     const MODULE_NOTIFICATIONS = 'Activer les notifications';
+    const MODULE_TRACK = 'Accès Track';
     const DEMO_MODE = 'Mode découverte';
 
     #[ORM\Id]
