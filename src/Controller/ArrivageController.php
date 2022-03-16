@@ -118,7 +118,7 @@ class ArrivageController extends AbstractController {
             'modalNewConfig' => [
                 'defaultStatuses' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::ARRIVAGE),
                 'statuses' => $statuses,
-            ]
+            ],
         ]);
     }
 
