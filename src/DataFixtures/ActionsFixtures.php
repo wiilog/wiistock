@@ -137,7 +137,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::DELETE_TREATED_PURCHASE_REQUESTS,
             ],
             self::SUB_MENU_TRANSPORT => [
-                Action::DISPLAY_TRANSPORT_PLANNING,
+                Action::DISPLAY_TRANSPORT,
                 Action::CREATE_TRANSPORT,
                 Action::EDIT_TRANSPORT,
                 Action::DELETE_TRANSPORT,
