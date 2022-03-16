@@ -192,12 +192,21 @@ function initializeStatusesByTypes($container, canEdit, mode) {
 function onStatusStateChange($select) {
     const $form = $select.closest('tr');
     const $needMobileSync = $form.find('[name=needsMobileSync]');
-    const needsToDisabled = $select
+    const $automaticReceptionCreation = $form.find('[name=automaticReceptionCreation]');
+    const disabledNeedMobileSync = $select
         .find(`option[value=${$select.val()}]`)
         .data('need-mobile-sync-disabled');
+    const disabledAutomaticReceptionCreation = $select
+        .find(`option[value=${$select.val()}]`)
+        .data('automatic-reception-creation-disabled');
 
-    $needMobileSync.prop('disabled', Boolean(needsToDisabled));
-    if (needsToDisabled) {
+    $needMobileSync.prop('disabled', Boolean(disabledNeedMobileSync));
+    if (disabledNeedMobileSync) {
         $needMobileSync.prop('checked', false);
+    }
+
+    $automaticReceptionCreation.prop(`disabled`, Boolean(disabledAutomaticReceptionCreation));
+    if (disabledAutomaticReceptionCreation) {
+        $automaticReceptionCreation.prop('checked', false);
     }
 }
