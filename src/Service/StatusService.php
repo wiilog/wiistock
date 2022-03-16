@@ -100,17 +100,20 @@ class StatusService {
                 'code' => 'draft',
                 'modes' => [StatusController::MODE_PURCHASE_REQUEST, StatusController::MODE_DISPATCH],
                 'needMobileSyncDisabled' => true,
+                'automaticReceptionCreationDisabled' => true
             ],
             [
                 'label' => 'À traiter',
                 'id' => Statut::NOT_TREATED,
                 'code' => 'notTreated',
+                'automaticReceptionCreationDisabled' => true
             ],
             [
                 'label' => 'En cours',
                 'id' => Statut::IN_PROGRESS,
                 'code' => 'inProgress',
                 'modes' => [StatusController::MODE_PURCHASE_REQUEST, StatusController::MODE_HANDLING],
+                'automaticReceptionCreationDisabled' => true
             ],
             [
                 'label' => 'Traité',
@@ -167,8 +170,13 @@ class StatusService {
         $statesStream = Stream::from($this->getStatusStatesValues($mode))
             ->map(function(array $state) use ($selectedId) {
                 $selected = isset($selectedId) && $state['id'] == $selectedId ? 'selected' : '';
-                $needMobileSyncDisabled = !empty($state['needMobileSyncDisabled']) ? 'data-need-mobile-sync-disabled=true' : '';
-                return "<option value='{$state['id']}' {$selected} {$needMobileSyncDisabled}>{$state['label']}</option>";
+                $needMobileSyncDisabled = !empty($state['needMobileSyncDisabled'])
+                    ? 'data-need-mobile-sync-disabled=true'
+                    : '';
+                $automaticReceptionCreationDisabled = !empty($state['automaticReceptionCreationDisabled'])
+                    ? 'data-automatic-reception-creation-disabled=true'
+                    : '';
+                return "<option value='{$state['id']}' {$selected} {$needMobileSyncDisabled} {$automaticReceptionCreationDisabled}>{$state['label']}</option>";
             });
 
         if($prependEmpty) {

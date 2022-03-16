@@ -159,14 +159,19 @@ class SettingsService {
         }
 
         if($data->has("MAILER_URL")) {
-            $mailer = $this->manager->getRepository(MailerServer::class)->findOneBy([]);
-            $mailer->setSmtp($data->get("MAILER_URL"));
-            $mailer->setUser($data->get("MAILER_USER"));
-            $mailer->setPassword($data->get("MAILER_PASSWORD"));
-            $mailer->setPort($data->get("MAILER_PORT"));
-            $mailer->setProtocol($data->get("MAILER_PROTOCOL"));
-            $mailer->setSenderName($data->get("MAILER_SENDER_NAME"));
-            $mailer->setSenderMail($data->get("MAILER_SENDER_MAIL"));
+            $mailer = $this->manager->getRepository(MailerServer::class)->findOneBy([]) ?? new MailerServer();
+            $mailer
+                ->setSmtp($data->get("MAILER_URL"))
+                ->setUser($data->get("MAILER_USER"))
+                ->setPassword($data->get("MAILER_PASSWORD"))
+                ->setPort($data->get("MAILER_PORT"))
+                ->setProtocol($data->get("MAILER_PROTOCOL"))
+                ->setSenderName($data->get("MAILER_SENDER_NAME"))
+                ->setSenderMail($data->get("MAILER_SENDER_MAIL"));
+
+            if(!$mailer->getId()) {
+                $this->manager->persist($mailer);
+            }
         }
 
         if ($data->has("en_attente_de_réception") && $data->has("réception_partielle") && $data->has("réception_totale") && $data->has("anomalie")) {
