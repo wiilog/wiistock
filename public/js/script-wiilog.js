@@ -30,7 +30,8 @@ const STATUT_INACTIF = 'consommé';
 const STATUT_EN_TRANSIT = 'en transit';
 
 /** Constants which define a valid barcode */
-const BARCODE_VALID_REGEX = /^[A-Za-z0-9_ \/\-]{1,24}$/;
+const BARCODE_VALID_REGEX = $('#BARCODE_VALID_REGEX').val();
+
 
 // alert modals config
 const AUTO_HIDE_DEFAULT_DELAY = 2000;

@@ -63,6 +63,7 @@ class SettingsService {
 
     /** @Required */
     public StatusService $statusService;
+    public const CHARACTER_VALID_REGEX = '/^[A-Za-z0-9_-]{1,21}$/';
 
     private array $settingsConstants;
 
