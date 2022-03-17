@@ -40,7 +40,7 @@ class VehicleService {
 
     public function dataRowVehicle(Vehicle $vehicle): array {
         return [
-            'registration' => $vehicle->getRegistration(),
+            'registrationNumber' => $vehicle->getRegistrationNumber(),
             'deliverer' => FormatHelper::user($vehicle->getDeliverer()),
             'locations' => Stream::from($vehicle->getLocations())->map(fn(Emplacement $location) => $location->getLabel())->join(', '),
             'actions' => $this->templating->render('vehicle/actions.html.twig', [

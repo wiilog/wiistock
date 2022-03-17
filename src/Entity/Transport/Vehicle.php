@@ -3,23 +3,29 @@
 namespace App\Entity\Transport;
 
 use App\Entity\Emplacement;
+use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\Pairing;
+use App\Entity\IOT\SensorMessage;
+use App\Entity\IOT\SensorMessageTrait;
 use App\Entity\Utilisateur;
 use App\Repository\Transport\VehicleRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: VehicleRepository::class)]
-class Vehicle
+class Vehicle implements PairedEntity
 {
+    use SensorMessageTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
     #[ORM\Column(type: 'string', length: 255)]
-    private ?string $registration = null;
+    private ?string $registrationNumber = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'vehicles')]
     private ?Utilisateur $deliverer = null;
@@ -41,14 +47,14 @@ class Vehicle
         return $this->id;
     }
 
-    public function getRegistration(): ?string
+    public function getRegistrationNumber(): ?string
     {
-        return $this->registration;
+        return $this->registrationNumber;
     }
 
-    public function setRegistration(string $registration): self
+    public function setRegistrationNumber(string $registrationNumber): self
     {
-        $this->registration = $registration;
+        $this->registrationNumber = $registrationNumber;
 
         return $this;
     }
@@ -139,5 +145,16 @@ class Vehicle
         }
 
         return $this;
+    }
+
+    public function getActivePairing(): ?Pairing {
+        $criteria = Criteria::create();
+        return $this->pairings
+            ->matching(
+                $criteria
+                    ->andWhere(Criteria::expr()->eq('active', true))
+                    ->setMaxResults(1)
+            )
+            ->first() ?: null;
     }
 }

@@ -956,9 +956,12 @@ class Emplacement implements PairedEntity {
         return $this->vehicle;
     }
 
-    public function setVehicle(?Vehicle $vehicle): self
-    {
+    public function setVehicle(?Vehicle $vehicle): self {
+        if($this->vehicle && $this->vehicle !== $vehicle) {
+            $this->vehicle->removeLocation($this);
+        }
         $this->vehicle = $vehicle;
+        $vehicle?->addLocation($this);
 
         return $this;
     }

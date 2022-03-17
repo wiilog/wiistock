@@ -15,12 +15,12 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-#[Route('/vehicle')]
+#[Route('/vehicule')]
 class VehicleController extends AbstractController
 {
 
-    #[Route('/liste', name: 'vehicle_index', options: ['expose' => true], methods: 'GET')]
-    //TODO Ajouter HasPermission
+    #[Route('/liste', name: 'vehicle_index', methods: 'GET')]
+    #[HasPermission([Menu::REFERENTIEL, Action::DISPLAY_VEHICLE])]
     public function index(): Response
     {
         return $this->render('vehicle/index.html.twig', [
@@ -29,7 +29,7 @@ class VehicleController extends AbstractController
     }
 
     #[Route('/api', name: 'vehicle_api', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
-    //TODO Ajouter HasPermission
+    #[HasPermission([Menu::REFERENTIEL, Action::DISPLAY_VEHICLE], mode: HasPermission::IN_JSON)]
     public function api(Request $request, VehicleService $vehicleService): Response
     {
         $data = $vehicleService->getDataForDatatable($request->request);
@@ -38,12 +38,13 @@ class VehicleController extends AbstractController
     }
 
     #[Route('/new', name: 'vehicle_new', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::REFERENTIEL, Action::CREATE], mode: HasPermission::IN_JSON)]
     public function new(Request $request, EntityManagerInterface $manager): Response
     {
         $data = json_decode($request->getContent(), true);
 
-        $registration = $data['registration'];
-        $existing = $manager->getRepository(Vehicle::class)->findOneBy(['registration' => $registration]);
+        $registrationNumber = $data['registrationNumber'];
+        $existing = $manager->getRepository(Vehicle::class)->findOneBy(['registrationNumber' => $registrationNumber]);
 
         if ($existing) {
             return $this->json([
@@ -54,7 +55,7 @@ class VehicleController extends AbstractController
             $deliverer = $manager->find(Utilisateur::class, $data['deliverer']);
             $locations = $manager->getRepository(Emplacement::class)->findBy(['id' => $data['locations']]);
             $vehicle = (new Vehicle())
-                ->setRegistration($registration)
+                ->setRegistrationNumber($registrationNumber)
                 ->setDeliverer($deliverer)
                 ->setLocations($locations);
 
@@ -89,8 +90,8 @@ class VehicleController extends AbstractController
         $data = json_decode($request->getContent(), true);
         $vehicle = $manager->find(Vehicle::class, $data['id']);
 
-        $registration = $data['registration'];
-        $existing = $manager->getRepository(Vehicle::class)->findOneBy(['registration' => $registration]);
+        $registrationNumber = $data['registrationNumber'];
+        $existing = $manager->getRepository(Vehicle::class)->findOneBy(['registrationNumber' => $registrationNumber]);
         if ($existing && $existing !== $vehicle) {
             return $this->json([
                 'success' => false,
@@ -100,7 +101,7 @@ class VehicleController extends AbstractController
             $deliverer = $manager->find(Utilisateur::class, $data['deliverer']);
             $locations = $manager->getRepository(Emplacement::class)->findBy(['id' => $data['locations']]);
             $vehicle
-                ->setRegistration($registration)
+                ->setRegistrationNumber($registrationNumber)
                 ->setDeliverer($deliverer)
                 ->setLocations($locations);
 
@@ -136,8 +137,6 @@ class VehicleController extends AbstractController
     {
         $data = json_decode($request->getContent(), true);
         $vehicle = $manager->find(Vehicle::class, $data['id']);
-
-        /*$vehicle->setLocations([]);*/
 
         $manager->remove($vehicle);
         $manager->flush();

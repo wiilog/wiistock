@@ -1,7 +1,5 @@
-let vehicleTable;
-
 $(function() {
-    initVehicleTable();
+    const vehicleTable = initVehicleTable();
 
     const $modalNewVehicle = $(`#modalNewVehicle`);
     const $submitNewVehicle = $modalNewVehicle.find(`button.submit`);
@@ -20,20 +18,20 @@ $(function() {
 });
 
 function initVehicleTable() {
-    vehicleTable = initDataTable(`vehicleTable_id`, {
+    return initDataTable(`vehicleTable_id`, {
         processing: true,
         serverSide: true,
         paging: true,
-        order: [[`deliverer`, `desc`]],
+        order: [[`registrationNumber`, `desc`]],
         ajax: {
             url: Routing.generate(`vehicle_api`, true),
             type: `POST`
         },
         columns: [
             {data: `actions`, title: ``, className: `noVis`, orderable: false},
-            {data: `registration`, title: `Immatriculation`},
+            {data: `registrationNumber`, title: `Immatriculation`},
             {data: `deliverer`, title: `Livreur`},
-            {data: `locations`, title: `Emplacements`},
+            {data: `locations`, title: `Emplacements`, orderable: false},
         ],
         rowConfig: {
             needsRowClickAction: true,

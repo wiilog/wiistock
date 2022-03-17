@@ -36,7 +36,7 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
         }
 
         if(isset($options['delivererOnly']) && $options['delivererOnly']) {
-            $qb->andWhere("user.deliverer = 1");
+            $qb->andWhere("user.deliverer = true");
         }
 
         return $qb

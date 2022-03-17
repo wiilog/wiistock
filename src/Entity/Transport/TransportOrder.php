@@ -31,7 +31,7 @@ class TransportOrder
     private ?string $subcontractor = null;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    private ?string $registration = null;
+    private ?string $registrationNumber = null;
 
     #[ORM\Column(type: 'datetime')]
     private ?DateTime $startedAt = null;
@@ -112,14 +112,14 @@ class TransportOrder
         return $this;
     }
 
-    public function getRegistration(): ?string
+    public function getRegistrationNumber(): ?string
     {
-        return $this->registration;
+        return $this->registrationNumber;
     }
 
-    public function setRegistration(?string $registration): self
+    public function setRegistrationNumber(?string $registrationNumber): self
     {
-        $this->registration = $registration;
+        $this->registrationNumber = $registrationNumber;
 
         return $this;
     }

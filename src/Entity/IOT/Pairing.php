@@ -59,7 +59,7 @@ class Pairing {
     private Collection $sensorMessages;
 
     #[ORM\ManyToOne(targetEntity: Vehicle::class, inversedBy: 'pairings')]
-    private $vehicle;
+    private ?Vehicle $vehicle = null;
 
     public function __construct() {
         $this->sensorMessages = new ArrayCollection();
@@ -211,6 +211,22 @@ class Pairing {
         return $this;
     }
 
+    public function getVehicle(): ?Vehicle {
+        return $this->vehicle;
+    }
+
+    public function setVehicle(?Vehicle $vehicle): self {
+        if($this->vehicle && $this->vehicle !== $vehicle) {
+            $this->vehicle->removePairing($this);
+        }
+        $this->vehicle = $vehicle;
+        if($vehicle) {
+            $vehicle->addPairing($this);
+        }
+
+        return $this;
+    }
+
     public function setEntity($entity) {
         if($entity === null) {
             $this->setLocation(null);
@@ -218,6 +234,7 @@ class Pairing {
             $this->setPack(null);
             $this->setPreparationOrder(null);
             $this->setCollectOrder(null);
+            $this->setVehicle(null);
         } else if($entity instanceof Emplacement) {
             $this->setLocation($entity);
         } else if($entity instanceof Article) {
@@ -228,6 +245,8 @@ class Pairing {
             $this->setPreparationOrder($entity);
         } else if($entity instanceof OrdreCollecte) {
             $this->setCollectOrder($entity);
+        } else if($entity instanceof Vehicle) {
+            $this->setVehicle($entity);
         }
     }
 
@@ -244,21 +263,11 @@ class Pairing {
             return $this->preparationOrder;
         } else if($this->getCollectOrder() !== null) {
             return $this->collectOrder;
+        } else if($this->getVehicle() !== null) {
+            return $this->vehicle;
         } else {
             return null;
         }
-    }
-
-    public function getVehicle(): ?Vehicle
-    {
-        return $this->vehicle;
-    }
-
-    public function setVehicle(?Vehicle $vehicle): self
-    {
-        $this->vehicle = $vehicle;
-
-        return $this;
     }
 
 }
