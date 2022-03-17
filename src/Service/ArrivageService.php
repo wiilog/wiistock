@@ -189,8 +189,7 @@ class ArrivageService {
             $freeFields = $this->freeFieldService->getFilledFreeFieldArray(
                 $this->entityManager,
                 $arrival,
-                null,
-                CategoryType::ARRIVAGE
+                ['type' => $arrival->getType()]
             );
 
             $this->mailerService->sendMail(
@@ -360,8 +359,7 @@ class ArrivageService {
         $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
             $this->entityManager,
             $arrivage,
-            null,
-            CategoryType::ARRIVAGE
+            ['type' => $arrivage->getType()]
         );
 
         $config = [
