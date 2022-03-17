@@ -20,6 +20,8 @@ class CategorieCL {
     const MVT_TRACA = 'mouvement traca';
     const SENSOR = 'capteur';
     const AUCUNE = 'aucune';
+    const DELIVERY_TRANSPORT_REQUEST = 'demande transport livraison';
+    const COLLECT_TRANSPORT_REQUEST = 'demande transport collecte';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

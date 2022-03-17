@@ -28,6 +28,8 @@ class CategorieCLFixtures extends Fixture implements FixtureGroupInterface
             CategorieCL::DEMANDE_LIVRAISON => CategoryType::DEMANDE_LIVRAISON,
             CategorieCL::DEMANDE_DISPATCH => CategoryType::DEMANDE_DISPATCH,
             CategorieCL::DEMANDE_HANDLING => CategoryType::DEMANDE_HANDLING,
+			CategorieCL::COLLECT_TRANSPORT_REQUEST => CategoryType::COLLECT_TRANSPORT_REQUEST,
+			CategorieCL::DELIVERY_TRANSPORT_REQUEST => CategoryType::DELIVERY_TRANSPORT_REQUEST,
 			CategorieCL::DEMANDE_COLLECTE => CategoryType::DEMANDE_COLLECTE,
             CategorieCL::ARRIVAGE => CategoryType::ARRIVAGE,
 			CategorieCL::MVT_TRACA => CategoryType::MOUVEMENT_TRACA,

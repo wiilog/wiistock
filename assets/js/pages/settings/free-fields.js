@@ -103,12 +103,13 @@ function onElementsChange() {
 }
 
 export function createFreeFieldsPage($container, canEdit) {
+    const category = $container.find('.management-body').data('category');
     createManagementPage($container, {
         name: `freeFields`,
         mode: canEdit ? MODE_CLICK_EDIT_AND_ADD : MODE_NO_EDIT,
         newTitle: 'Ajouter un type et des champs libres',
         header: {
-            route: (type, edit) => Routing.generate('settings_type_header', {type, edit}, true),
+            route: (type, edit) => Routing.generate('settings_type_header', {type, edit, category}, true),
             delete: {
                 checkRoute: 'settings_types_check_delete',
                 selectedEntityLabel: 'type',
@@ -136,12 +137,13 @@ export function createFreeFieldsPage($container, canEdit) {
 }
 
 export function initializeStockArticlesTypesFreeFields($container, canEdit) {
+    const category = $container.find('.management-body').data('category');
     createManagementPage($container, {
         name: `freeFields`,
         mode: canEdit ? MODE_CLICK_EDIT_AND_ADD : MODE_NO_EDIT,
         newTitle: 'Ajouter un type et des champs libres',
         header: {
-            route: (type, edit) => Routing.generate('settings_type_header', {type, edit}, true),
+            route: (type, edit) => Routing.generate('settings_type_header', {type, edit, category}, true),
             delete: {
                 checkRoute: 'settings_types_check_delete',
                 selectedEntityLabel: 'type',

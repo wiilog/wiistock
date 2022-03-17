@@ -72,7 +72,7 @@ export function createManagementPage($container, config) {
 
             loadItems($container, config, selectedEntity);
 
-            $container.find(`.delete-main-entity`).removeClass(`d-none`);
+            $container.find(`.delete-main-entity`).parent().removeClass(`d-none`);
         },
     });
 
@@ -92,7 +92,7 @@ export function createManagementPage($container, config) {
     $addButton.on(`click`, function() {
         selectedEntity = null;
 
-        $container.find(`.delete-main-entity`).addClass(`d-none`);
+        $container.find(`.delete-main-entity`).parent().addClass(`d-none`);
         $pageBody.removeClass('d-none');
 
         if (config.newTitle) {
