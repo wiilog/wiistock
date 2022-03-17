@@ -84,6 +84,7 @@ $icons: (
     'user': "../../public/svg/user.svg",
     'menu-donnees': "../../public/svg/menu-donnees.svg",
     "menu-track": "../../public/svg/menu-track.svg",
+    'transport': "../../public/svg/transport.svg",
 );
 
 @each $iconName, $iconPath in $icons {
