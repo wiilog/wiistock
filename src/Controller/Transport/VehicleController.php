@@ -52,7 +52,7 @@ class VehicleController extends AbstractController
                 'msg' => 'Un véhicule avec cette immatriculation existe déjà'
             ]);
         } else {
-            $deliverer = $manager->find(Utilisateur::class, $data['deliverer']);
+            $deliverer = isset($data['deliverer']) ? $manager->find(Utilisateur::class, $data['deliverer']) : null;
             $locations = $manager->getRepository(Emplacement::class)->findBy(['id' => $data['locations']]);
             $vehicle = (new Vehicle())
                 ->setRegistrationNumber($registrationNumber)
@@ -98,7 +98,7 @@ class VehicleController extends AbstractController
                 'msg' => 'Un véhicule avec cette immatriculation existe déjà'
             ]);
         } else {
-            $deliverer = $manager->find(Utilisateur::class, $data['deliverer']);
+            $deliverer = isset($data['deliverer']) ? $manager->find(Utilisateur::class, $data['deliverer']) : null;
             $locations = $manager->getRepository(Emplacement::class)->findBy(['id' => $data['locations']]);
             $vehicle
                 ->setRegistrationNumber($registrationNumber)
