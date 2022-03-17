@@ -186,16 +186,23 @@
                     and app.user is defined
                     and app.user
                     and app.user.username is defined %}
-                    <a class="col col-lg-auto user d-flex align-items-center"
-                       href="{{ path('settings_item', {
-                           'category': constant('App\\Controller\\Settings\\SettingsController::CATEGORY_USERS'),
-                           'menu': constant('App\\Controller\\Settings\\SettingsController::MENU_USERS'),
-                           'open-modal': 'edit',
-                           'modal-edit-id': app.user.id
-                       }) }}">
-                        <div class="profile-picture">{{ app.user.username | first | upper }}</div>
-                        <div class="flex-fill text-center text-truncate">{{ app.user.username }}</div>
-                    </a>
+                    {% if hasRight(constant('App\\Entity\\Menu::PARAM'), constant('App\\Entity\\Action::SETTINGS_USERS')) %}
+                        <a class="col col-lg-auto user d-flex align-items-center"
+                           href="{{ path('settings_item', {
+                               'category': constant('App\\Controller\\Settings\\SettingsController::CATEGORY_USERS'),
+                               'menu': constant('App\\Controller\\Settings\\SettingsController::MENU_USERS'),
+                               'open-modal': 'edit',
+                               'modal-edit-id': app.user.id
+                           }) }}">
+                            <div class="profile-picture">{{ app.user.username | first | upper }}</div>
+                            <div class="flex-fill text-center text-truncate">{{ app.user.username }}</div>
+                        </a>
+                    {% else %}
+                        <div class="col col-lg-auto user d-flex align-items-center user-select-none">
+                            <div class="profile-picture">{{ app.user.username | first | upper }}</div>
+                            <div class="flex-fill text-center text-truncate">{{ app.user.username }}</div>
+                        </div>
+                    {% endif %}
                     <nav id="main-nav" class="text-white col-auto dropdown dropleft">
                         <div class="menu-button rounded pointer"
                              data-toggle="dropdown"
