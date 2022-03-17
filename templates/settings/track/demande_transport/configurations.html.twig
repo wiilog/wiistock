@@ -7,6 +7,9 @@
         <div class="col-lg-4 col-12 d-flex align-items-center my-1">
             {{ form.textarea(setting('NON_BUSINESS_HOURS_MESSAGE'), null, false, setting_value('NON_BUSINESS_HOURS_MESSAGE'), {
                 labelClass: 'wii-field-name w-100',
+                labelOptions: {
+                    removeIfEmpty: true
+                }
             }) }}
         </div>
     </div>
