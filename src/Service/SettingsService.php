@@ -465,7 +465,7 @@ class SettingsService {
                 }
 
                 $freeField->setLabel($item["label"])
-                    ->setType($type)
+                    ->setType($type ?? null)
                     ->setTypage($item["type"] ?? $freeField->getTypage())
                     ->setCategorieCL(isset($item["category"]) ? $this->manager->find(CategorieCL::class, $item["category"]) : $type->getCategory()->getCategorieCLs()->first())
                     ->setDefaultValue($item["defaultValue"] ?? null)

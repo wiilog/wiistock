@@ -4,9 +4,11 @@ namespace App\Service;
 
 use App\Entity\CategorieCL;
 use App\Entity\FreeField;
+use App\Entity\Type;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Helper\FormatHelper;
+use RuntimeException;
 use WiiCommon\Helper\Stream;
 
 class FreeFieldService {
@@ -101,44 +103,41 @@ class FreeFieldService {
     }
 
     public function getFilledFreeFieldArray(EntityManagerInterface $entityManager,
-                                                                   $freeFieldEntity,
-                                            ?string                $categoryCLLabel,
-                                            string                 $category) {
+                                                                   $entity,
+                                            array                  $displayedOptions) {
         $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
-        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
+        $freeFieldCategoryRepository = $entityManager->getRepository(CategorieCL::class);
 
-        if (!empty($categoryCLLabel)) {
-            $categorieCL = $categorieCLRepository->findOneBy(['label' => $categoryCLLabel]);
-            $freeFieldResult = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
-        }
-        else {
-            $freeFieldResult = $freeFieldsRepository->findByCategoryTypeLabels([$category]);
-        }
 
-        $freeFields = array_reduce($freeFieldResult, function(array $acc, $freeField) {
-            $id = $freeField instanceof FreeField ? $freeField->getId() : $freeField['id'];
-            $label = $freeField instanceof FreeField ? $freeField->getLabel() : $freeField['label'];
-            $typage = $freeField instanceof FreeField ? $freeField->getTypage() : $freeField['typage'];
+        /** @var Type $type */
+        $type = $displayedOptions['type'] ?? null;
 
-            $acc[$id] = [
-                'label' => $label,
-                'typage' => $typage
-            ];
+        // for article & reference articles
+        $freeFieldCategoryLabel = $displayedOptions['freeFieldCategoryLabel'] ?? null;
+        $freeFieldCategory = $freeFieldCategoryLabel
+            ? $freeFieldCategoryRepository->findOneBy(['label' => $freeFieldCategoryLabel])
+            : null;
 
-            return $acc;
-        }, []);
-
-        $detailsChampLibres = [];
-        foreach ($freeFieldEntity->getFreeFields() as $freeFieldId => $freeFieldValue) {
-            if ($freeFieldValue !== "" && $freeFieldValue !== null && isset($freeFields[$freeFieldId])) {
-                $freeFieldEntity = $freeFieldsRepository->find($freeFieldId);
-                $detailsChampLibres[] = [
-                    'label' => $freeFields[$freeFieldId]['label'],
-                    'value' => FormatHelper::freeField($freeFieldValue ?? '', $freeFieldEntity)
-                ];
-            }
+        if (!isset($type) && !isset($freeFieldCategory)) {
+            throw new RuntimeException('Invalid options');
         }
 
-        return $detailsChampLibres;
+        $freeFieldCriteria = [];
+        if (isset($type)) {
+            $freeFieldCriteria['type'] = $type;
+        }
+        if (isset($freeFieldCategory)) {
+            $freeFieldCriteria['categorieCL'] = $freeFieldCategory;
+        }
+
+        $freeFields = $freeFieldsRepository->findBy($freeFieldCriteria);
+
+        $freeFieldValues = $entity->getFreeFields();
+        return Stream::from($freeFields ?? [])
+            ->map(fn (FreeField $freeField) => [
+                'label' => $freeField->getLabel(),
+                'value' => FormatHelper::freeField($freeFieldValues[$freeField->getId()] ?? null, $freeField)
+            ])
+            ->toArray();
     }
 }

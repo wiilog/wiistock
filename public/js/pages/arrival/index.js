@@ -101,6 +101,7 @@ $(function () {
     });
 
     $dispatchModeContainer.find(`.cancel`).on(`click`, function() {
+        $dispatchModeContainer.find(`.validate`).prop(`disabled`, true);
         $(this).pushLoader(`primary`);
         arrivalsTable.clear().destroy();
         initTableArrival(false).then((returnedArrivalsTable) => {

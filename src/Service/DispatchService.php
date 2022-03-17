@@ -226,8 +226,7 @@ class DispatchService {
         $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
             $this->entityManager,
             $dispatch,
-            CategorieCL::DEMANDE_DISPATCH,
-            CategoryType::DEMANDE_DISPATCH
+            ['type' => $dispatch->getType()],
         );
         $receiverDetails = [
             "label" => "Destinataire(s)",
@@ -423,8 +422,7 @@ class DispatchService {
             $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
                 $this->entityManager,
                 $dispatch,
-                CategorieCL::DEMANDE_DISPATCH,
-                CategoryType::DEMANDE_DISPATCH
+                ['type' => $dispatch->getType()]
             );
 
             if (!empty($receiverEmailUses)) {

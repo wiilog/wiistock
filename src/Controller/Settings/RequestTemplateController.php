@@ -366,8 +366,7 @@ class RequestTemplateController extends AbstractController {
             $freeFieldValues = $freeFieldService->getFilledFreeFieldArray(
                 $entityManager,
                 $template,
-                null,
-                $template->getRequestType()->getCategory()->getLabel()
+                ['type' => $template->getRequestType()]
             );
 
             $data = array_merge($data, $freeFieldValues);
