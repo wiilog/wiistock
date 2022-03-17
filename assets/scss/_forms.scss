@@ -83,7 +83,7 @@ $wii-switch-height: $input-height;
     }
 
     input, input + label {
-        padding: 0 6px;
+        padding: 0 6px !important;
         flex: 1 1 auto;
     }
 }

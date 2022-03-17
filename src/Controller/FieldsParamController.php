@@ -7,7 +7,6 @@ use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\FieldsParam;
 use App\Entity\Menu;
-use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

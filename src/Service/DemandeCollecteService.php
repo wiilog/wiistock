@@ -11,7 +11,6 @@ use App\Entity\Collecte;
 use App\Entity\CollecteReference;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
-use App\Entity\FreeField;
 use App\Entity\IOT\Pairing;
 use App\Entity\OrdreCollecte;
 use App\Entity\ReferenceArticle;
@@ -170,8 +169,7 @@ class DemandeCollecteService
         $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
             $this->entityManager,
             $collecte,
-            CategorieCL::DEMANDE_COLLECTE,
-            CategoryType::DEMANDE_COLLECTE
+            ['type' => $collecte->getType()]
         );
 
         return array_merge(

@@ -21,7 +21,8 @@
     {% set removeIfEmpty = options.removeIfEmpty ?? false %}
 
     {% if label or not removeIfEmpty %}
-        <span class="d-inline-flex align-items-center field-label">
+        <span class="d-inline-flex align-items-center field-label"
+              style="margin-bottom: 5px">
             {% if label is iterable %}
                 {% if label.wiiIcon is defined %}
                     <span class="mr-2 wii-icon wii-icon-{{ label.wiiIcon }}"></span>
@@ -57,8 +58,7 @@
         {% if label %}<label class="{{ options.labelClass ?? '' }}">{{ _self.label(label, required, labelOptions) }}</label>{% endif %}
         {{ _self.tooltip(options.tooltip ?? null, options.inline ?? false) }}
         <div class="{{ options.expanded ?? false ? 'wii-expanded-switch' : 'wii-switch' }} text-truncate"
-             data-title="{{ label | striptags }}{{ required ? '*' }}"
-             style="margin-top: 5px;">
+             data-title="{{ label | striptags }}{{ required ? '*' }}">
             {% for switch in switches %}
                 {% set id = random(100000, 10000000) %}
 
@@ -69,7 +69,9 @@
                        value="{{ switch.value ?? '' }}"
                        {{ required ? 'required' }}
                        {{ switch.checked ?? false ? 'checked' }}>
-                <label for="{{ name }}-{{ id }}">{{ _self.label(switch.label, false) }}</label>
+                <label for="{{ name }}-{{ id }}" class="d-inline-flex align-items-center">
+                    {{ switch.label }}
+                </label>
             {% endfor %}
         </div>
     </label>
@@ -101,7 +103,9 @@
               {{ _self.multiple_key(options) }}
               {{ {on: 1, off: 0}[value] ?? value ? 'checked' }}>
         <label class="{{ options.labelClass ?? '' }}" for="{{ id }}">
-            <span>{{ _self.label(label, required, labelOptions) }}</span>
+            <span class="d-inline-flex align-items-center">
+                {{ label }}
+            </span>
         </label>
         {{ _self.tooltip(options.tooltip ?? null, options.inline ?? false) }}
     </div>
@@ -119,7 +123,9 @@
                     {{ _self.common_attributes(name, options) }}
                     {{ _self.multiple_key(options) }}
                     {{ (item.checked ?? false) ? 'checked' }} />
-                <label class="{{ options.labelClass ?? '' }} pointer" for="radio-{{ id }}">{{ _self.label(item.label, false, labelOptions) }}</label>
+                <label class="{{ options.labelClass ?? '' }} pointer d-inline-flex align-items-center" for="radio-{{ id }}">
+                    {{ item.label }}
+                </label>
                 {{ _self.tooltip(options.tooltip ?? null, options.inline ?? false) }}
             </div>
         {% endfor %}
@@ -252,7 +258,7 @@
     <label class="{{ options.labelClass ?? '' }}">
         <span>{{ _self.label(label, required, labelOptions) }}</span>
         {{ _self.tooltip(options.tooltip ?? null, options.inline ?? false) }}
-        <textarea class="form-control w-100 data"
+        <textarea class="form-control minw-100 w-100 data"
                   {{ _self.common_attributes(name, options) }}
                   rows="{{ options.rows ?? 3 }}" style="resize: vertical"
                   {{ required ? 'required' }}>

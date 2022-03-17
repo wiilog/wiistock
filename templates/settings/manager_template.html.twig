@@ -20,7 +20,10 @@
             </div>
         </div>
     </div>
-    <div class="wii-box management-body {{ hiddenBody ? 'd-none' }}">
+    {% set category = category ?? null %}
+    <div class="wii-box management-body {{ hiddenBody ? 'd-none' }}"
+         {% if category is not empty %}data-category="{{ category }}"{% endif %}
+    >
         <div class="wii-section py-2">
             <div class="row">
                 {% if can_edit %}

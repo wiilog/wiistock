@@ -4,7 +4,6 @@ namespace App\Controller\Api\Mobile;
 
 use App\Annotation as Wii;
 use App\Entity\Dispatch;
-use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
@@ -17,7 +16,6 @@ use App\Entity\InventoryMission;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Livraison;
 use App\Entity\Handling;
-use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\Setting;
 use App\Entity\TrackingMovement;
@@ -28,11 +26,9 @@ use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\TransferOrder;
-use App\Entity\Translation;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 
-use App\Helper\FormatHelper;
 use App\Service\ArrivageService;
 use App\Service\EmplacementDataService;
 use App\Service\MobileApiService;

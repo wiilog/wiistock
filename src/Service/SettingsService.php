@@ -21,8 +21,8 @@ use App\Entity\IOT\RequestTemplateLine;
 use App\Entity\MailerServer;
 use App\Entity\Setting;
 use App\Entity\Reception;
-use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
+use App\Entity\Transport\TemperatureRange;
 use App\Entity\Type;
 use App\Entity\VisibilityGroup;
 use App\Entity\WorkFreeDay;
@@ -36,8 +36,6 @@ use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
-use Symfony\Component\HttpFoundation\FileBag;
-use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Process\Process;
@@ -161,14 +159,19 @@ class SettingsService {
         }
 
         if($data->has("MAILER_URL")) {
-            $mailer = $this->manager->getRepository(MailerServer::class)->findOneBy([]);
-            $mailer->setSmtp($data->get("MAILER_URL"));
-            $mailer->setUser($data->get("MAILER_USER"));
-            $mailer->setPassword($data->get("MAILER_PASSWORD"));
-            $mailer->setPort($data->get("MAILER_PORT"));
-            $mailer->setProtocol($data->get("MAILER_PROTOCOL"));
-            $mailer->setSenderName($data->get("MAILER_SENDER_NAME"));
-            $mailer->setSenderMail($data->get("MAILER_SENDER_MAIL"));
+            $mailer = $this->manager->getRepository(MailerServer::class)->findOneBy([]) ?? new MailerServer();
+            $mailer
+                ->setSmtp($data->get("MAILER_URL"))
+                ->setUser($data->get("MAILER_USER"))
+                ->setPassword($data->get("MAILER_PASSWORD"))
+                ->setPort($data->get("MAILER_PORT"))
+                ->setProtocol($data->get("MAILER_PROTOCOL"))
+                ->setSenderName($data->get("MAILER_SENDER_NAME"))
+                ->setSenderMail($data->get("MAILER_SENDER_MAIL"));
+
+            if(!$mailer->getId()) {
+                $this->manager->persist($mailer);
+            }
         }
 
         if ($data->has("en_attente_de_réception") && $data->has("réception_partielle") && $data->has("réception_totale") && $data->has("anomalie")) {
@@ -230,6 +233,40 @@ class SettingsService {
             $updated[] = "DISPATCH_OVERCONSUMPTION_BILL_TYPE";
             $updated[] = "DISPATCH_OVERCONSUMPTION_BILL_STATUS";
         }
+
+        if($request->request->has("temperatureRanges")) {
+            $temperatureRepository = $this->manager->getRepository(TemperatureRange::class);
+            $existingRanges = Stream::from($temperatureRepository->findAll())
+                ->keymap(fn(TemperatureRange $range) => [$range->getValue(), $range])
+                ->toArray();
+            $removedRanges = Stream::from($existingRanges)->toArray();
+            $submittedTemperatureRanges = Stream::explode(",", $request->request->get("temperatureRanges"))
+                ->unique()
+                ->toArray();
+
+            foreach($submittedTemperatureRanges as $temperatureRange) {
+                if(!isset($existingRanges[$temperatureRange])) {
+                    $range = new TemperatureRange();
+                    $range->setValue($temperatureRange);
+
+                    $this->manager->persist($range);
+                } else {
+                    unset($removedRanges[$temperatureRange]);
+                }
+            }
+
+            //loop the ranges that have been deleted to check
+            //if they were used somewhere else
+            foreach ($removedRanges as $entity) {
+                if(false /* TODO WIIS-6344 & WIIS-6345 : check if it was used in nature or location or elsewhere */) {
+                    throw new RuntimeException("La plage de température {$entity->getValue()} ne peut pas être supprimée car elle est utilisée par des natures ou emplacements");
+                } else {
+                    $this->manager->remove($entity);
+                }
+            }
+
+            $updated[] = "temperatureRanges";
+        }
     }
 
     /**
@@ -271,6 +308,7 @@ class SettingsService {
             [Setting::FILE_MOBILE_LOGO_HEADER, Setting::DEFAULT_MOBILE_LOGO_HEADER_VALUE],
             [Setting::FILE_WAYBILL_LOGO, null],
             [Setting::FILE_OVERCONSUMPTION_LOGO, null],
+            [Setting::FILE_SHIPMENT_NOTE_LOGO, null],
         ];
 
         foreach ($logosToSave as [$settingLabel, $default]) {
@@ -298,7 +336,7 @@ class SettingsService {
 
             foreach($tables["workingHours"] as $workingHour) {
                 $hours = $workingHour["hours"] ?? null;
-                if($hours && !preg_match("/^\d{2,2}:\d{2,2}-\d{2,2}:\d{2,2}(;\d{2,2}:\d{2,2}-\d{2,2}:\d{2,2})?$/", $hours)) {
+                if($hours && !preg_match("/^\d{2}:\d{2}-\d{2}:\d{2}(;\d{2}:\d{2}-\d{2}:\d{2})?$/", $hours)) {
                     throw new RuntimeException("Le champ horaires doit être au format HH:MM-HH:MM;HH:MM-HH:MM");
                 }
 
@@ -427,9 +465,12 @@ class SettingsService {
                 }
 
                 $freeField->setLabel($item["label"])
-                    ->setType($type)
+                    ->setType($type ?? null)
                     ->setTypage($item["type"] ?? $freeField->getTypage())
-                    ->setCategorieCL(isset($item["category"]) ? $this->manager->find(CategorieCL::class, $item["category"]) : $type->getCategory()->getCategorieCLs()->first())
+                    ->setCategorieCL(isset($item["category"])
+                        ? $this->manager->find(CategorieCL::class, $item["category"])
+                        : ($type?->getCategory()->getCategorieCLs()->first() ?: null)
+                    )
                     ->setDefaultValue($item["defaultValue"] ?? null)
                     ->setElements(isset($item["elements"]) ? explode(";", $item["elements"]) : null)
                     ->setDisplayedCreate($item["displayedCreate"])

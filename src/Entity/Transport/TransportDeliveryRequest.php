@@ -2,7 +2,7 @@
 
 namespace App\Entity\Transport;
 
-use App\Repository\TransportDeliveryRequestRepository;
+use App\Repository\Transport\TransportDeliveryRequestRepository;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;

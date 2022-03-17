@@ -254,7 +254,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     private Collection $vehicles;
 
     #[ORM\Column(type: "boolean", nullable: false, options: ["default" => false])]
-    private ?bool $deliverer = null;
+    private ?bool $deliverer = false;
 
     #[ORM\OneToMany(mappedBy: 'createdBy', targetEntity: TransportRequest::class)]
     private Collection $transportRequests;

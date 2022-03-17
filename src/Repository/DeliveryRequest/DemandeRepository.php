@@ -5,7 +5,6 @@ namespace App\Repository\DeliveryRequest;
 use App\Entity\Article;
 use App\Entity\AverageRequestTime;
 use App\Entity\DeliveryRequest\Demande;
-use App\Entity\Dispatch;
 use App\Entity\Reception;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;

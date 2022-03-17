@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\Transport;
 
-use App\Entity\TransportRequestContact;
+use App\Entity\Transport\TransportRequestContact;
 use Doctrine\ORM\EntityRepository;
 
 /**

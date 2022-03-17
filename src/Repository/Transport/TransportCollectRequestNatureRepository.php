@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\Transport;
 
-use App\Entity\TransportCollectRequestNature;
+use App\Entity\Transport\TransportCollectRequestNature;
 use Doctrine\ORM\EntityRepository;
 
 /**

@@ -19,15 +19,10 @@ use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
-use App\Repository\FreeFieldRepository;
-use App\Repository\FieldsParamRepository;
-use App\Repository\SettingRepository;
-use App\Repository\StatutRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
@@ -231,8 +226,7 @@ class DispatchService {
         $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
             $this->entityManager,
             $dispatch,
-            CategorieCL::DEMANDE_DISPATCH,
-            CategoryType::DEMANDE_DISPATCH
+            ['type' => $dispatch->getType()],
         );
         $receiverDetails = [
             "label" => "Destinataire(s)",
@@ -428,8 +422,7 @@ class DispatchService {
             $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
                 $this->entityManager,
                 $dispatch,
-                CategorieCL::DEMANDE_DISPATCH,
-                CategoryType::DEMANDE_DISPATCH
+                ['type' => $dispatch->getType()]
             );
 
             if (!empty($receiverEmailUses)) {

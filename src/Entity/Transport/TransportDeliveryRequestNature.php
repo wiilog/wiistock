@@ -3,7 +3,7 @@
 namespace App\Entity\Transport;
 
 use App\Entity\Nature;
-use App\Repository\TransportDeliveryRequestNatureRepository;
+use App\Repository\Transport\TransportDeliveryRequestNatureRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TransportDeliveryRequestNatureRepository::class)]

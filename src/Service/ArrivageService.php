@@ -6,7 +6,6 @@ use App\Entity\Arrivage;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\Emplacement;
-use App\Entity\Fournisseur;
 use App\Entity\FreeField;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
@@ -17,7 +16,6 @@ use App\Entity\Urgence;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use DateTime;
-use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
@@ -189,8 +187,7 @@ class ArrivageService {
             $freeFields = $this->freeFieldService->getFilledFreeFieldArray(
                 $this->entityManager,
                 $arrival,
-                null,
-                CategoryType::ARRIVAGE
+                ['type' => $arrival->getType()]
             );
 
             $this->mailerService->sendMail(
@@ -360,8 +357,7 @@ class ArrivageService {
         $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
             $this->entityManager,
             $arrivage,
-            null,
-            CategoryType::ARRIVAGE
+            ['type' => $arrivage->getType()]
         );
 
         $config = [

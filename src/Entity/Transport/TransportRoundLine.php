@@ -2,7 +2,7 @@
 
 namespace App\Entity\Transport;
 
-use App\Repository\TransportRoundLineRepository;
+use App\Repository\Transport\TransportRoundLineRepository;
 use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 

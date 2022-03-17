@@ -142,6 +142,12 @@ class Setting {
         'label' => "1252 Europe de l'ouest Windows",
     ];
 
+    const NON_BUSINESS_HOURS_MESSAGE = 'NON_BUSINESS_HOURS_MESSAGE';
+    const SHIPMENT_NOTE_COMPANY_DETAILS = 'SHIPMENT_NOTE_COMPANY_DETAILS';
+    const SHIPMENT_NOTE_SENDER_DETAILS = 'SHIPMENT_NOTE_SENDER_DETAILS';
+    const SHIPMENT_NOTE_ORIGINATOR = 'SHIPMENT_NOTE_ORIGINATOR';
+    const FILE_SHIPMENT_NOTE_LOGO = 'FILE_SHIPMENT_NOTE_LOGO';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]

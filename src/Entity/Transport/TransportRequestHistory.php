@@ -4,7 +4,7 @@ namespace App\Entity\Transport;
 
 use App\Entity\Pack;
 use App\Entity\Traits\AttachmentTrait;
-use App\Repository\TransportRequestHistoryRepository;
+use App\Repository\Transport\TransportRequestHistoryRepository;
 use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 

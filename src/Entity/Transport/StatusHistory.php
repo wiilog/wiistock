@@ -3,7 +3,7 @@
 namespace App\Entity\Transport;
 
 use App\Entity\Statut;
-use App\Repository\StatusHistoryRepository;
+use App\Repository\Transport\StatusHistoryRepository;
 use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 

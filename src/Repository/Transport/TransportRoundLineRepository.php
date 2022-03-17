@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\Transport;
 
-use App\Entity\TransportRoundLine;
+use App\Entity\Transport\TransportRoundLine;
 use Doctrine\ORM\EntityRepository;
 
 /**

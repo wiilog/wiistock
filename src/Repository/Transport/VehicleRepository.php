@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\Transport;
 
 use App\Entity\Transport\Vehicle;
 use App\Helper\QueryCounter;

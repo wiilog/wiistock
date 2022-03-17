@@ -8,7 +8,6 @@ use App\Entity\Arrivage;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
-use App\Entity\Dispatch;
 use App\Entity\Emplacement;
 use App\Entity\FreeField;
 use App\Entity\Chauffeur;
@@ -28,7 +27,6 @@ use App\Service\VisibleColumnService;
 use WiiCommon\Helper\Stream;
 use App\Service\ArrivageService;
 use App\Service\AttachmentService;
-use App\Service\DispatchService;
 use App\Service\FieldsParamService;
 use App\Service\TrackingMovementService;
 use App\Service\PackService;
@@ -118,7 +116,7 @@ class ArrivageController extends AbstractController {
             'modalNewConfig' => [
                 'defaultStatuses' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::ARRIVAGE),
                 'statuses' => $statuses,
-            ]
+            ],
         ]);
     }
 
@@ -583,6 +581,7 @@ class ArrivageController extends AbstractController {
                     $entityManager->remove($pack);
                 }
                 $arrivage->getPacks()->clear();
+                $entityManager->flush();
 
                 foreach ($arrivage->getAttachments() as $attachement) {
                     $this->attachmentService->removeAndDeleteAttachment($attachement, $arrivage);

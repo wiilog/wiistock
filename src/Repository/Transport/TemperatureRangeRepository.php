@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\Transport;
 
-use App\Entity\TemperatureRange;
+use App\Entity\Transport\TemperatureRange;
 use Doctrine\ORM\EntityRepository;
 
 /**

@@ -5,7 +5,7 @@ namespace App\Entity\Transport;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Repository\TransportRequestRepository;
+use App\Repository\Transport\TransportRequestRepository;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;

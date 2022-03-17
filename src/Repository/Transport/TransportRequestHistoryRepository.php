@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\Transport;
 
-use App\Entity\TransportRequestHistory;
+use App\Entity\Transport\TransportRequestHistory;
 use Doctrine\ORM\EntityRepository;
 
 /**

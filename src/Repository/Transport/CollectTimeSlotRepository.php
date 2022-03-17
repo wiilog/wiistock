@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\Transport;
 
-use App\Entity\CollectTimeSlot;
+use App\Entity\Transport\CollectTimeSlot;
 use Doctrine\ORM\EntityRepository;
 
 /**

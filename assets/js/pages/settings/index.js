@@ -47,6 +47,8 @@ const initializers = {
     stock_articles_types_champs_libres: initializeStockArticlesTypesFreeFields,
     stock_demandes_types_champs_libres_livraisons: createFreeFieldsPage,
     stock_demandes_types_champs_libres_collectes: createFreeFieldsPage,
+    track_demande_transport_types_champs_libres_livraisons: createFreeFieldsPage,
+    track_demande_transport_types_champs_libres_collectes: createFreeFieldsPage,
     trace_acheminements_types_champs_libres: createFreeFieldsPage,
     trace_arrivages_types_champs_libres: createFreeFieldsPage,
     trace_services_types_champs_libres: createFreeFieldsPage,

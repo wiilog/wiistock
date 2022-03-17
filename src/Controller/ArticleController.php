@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\ArticleFournisseur;
-use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\FreeField;
@@ -21,7 +20,6 @@ use App\Entity\Utilisateur;
 
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;
-use App\Service\CSVExportService;
 use App\Service\DemandeLivraisonService;
 use App\Service\MouvementStockService;
 use App\Service\PDFGeneratorService;
@@ -29,7 +27,6 @@ use App\Service\ArticleDataService;
 use App\Service\PreparationsManagerService;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
-use App\Service\FreeFieldService;
 use App\Annotation\HasPermission;
 
 use App\Service\VisibleColumnService;
@@ -42,7 +39,6 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use App\Helper\FormatHelper;
 use WiiCommon\Helper\Stream;
 
 /**

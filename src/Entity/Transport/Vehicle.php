@@ -5,7 +5,7 @@ namespace App\Entity\Transport;
 use App\Entity\Emplacement;
 use App\Entity\IOT\Pairing;
 use App\Entity\Utilisateur;
-use App\Repository\VehicleRepository;
+use App\Repository\Transport\VehicleRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;

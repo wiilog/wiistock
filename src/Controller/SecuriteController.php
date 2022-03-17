@@ -88,7 +88,7 @@ class SecuriteController extends AbstractController {
         if($loggedUser && $loggedUser instanceof Utilisateur) {
             $loggedUser->setLastLogin(new DateTime('now'));
             $entityManager->flush();
-            return $this->redirectToRoute('accueil');
+            return $this->redirectToRoute('app_index');
         }
 
         $error = $authenticationUtils->getLastAuthenticationError();

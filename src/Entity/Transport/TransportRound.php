@@ -4,7 +4,7 @@ namespace App\Entity\Transport;
 
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
-use App\Repository\TransportRoundRepository;
+use App\Repository\Transport\TransportRoundRepository;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;

@@ -4,7 +4,6 @@ namespace App\Controller\Settings;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
-use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\FieldsParam;
 use App\Entity\FreeField;
@@ -367,8 +366,7 @@ class RequestTemplateController extends AbstractController {
             $freeFieldValues = $freeFieldService->getFilledFreeFieldArray(
                 $entityManager,
                 $template,
-                null,
-                $template->getRequestType()->getCategory()->getLabel()
+                ['type' => $template->getRequestType()]
             );
 
             $data = array_merge($data, $freeFieldValues);

@@ -20,7 +20,6 @@ use App\Entity\DispatchPack;
 use App\Entity\Setting;
 use App\Entity\Attachment;
 use App\Entity\Statut;
-use App\Entity\TrackingMovement;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -248,6 +247,15 @@ class DispatchController extends AbstractController {
         $emergency = $post->get('emergency');
         $projectNumber = $post->get('projectNumber');
         $businessUnit = $post->get('businessUnit');
+        $statusId = $post->get('status');
+
+        $status = $statusId ? $statutRepository->find($statusId) : null;
+        if (!isset($status) || $status?->getCategorie()?->getNom() !== CategorieStatut::DISPATCH) {
+            return new JsonResponse([
+                'success' => false,
+                'msg' => 'Veuillez renseigner un statut valide.'
+            ]);
+        }
 
         if(!$locationTake || !$locationDrop) {
             return new JsonResponse([
@@ -272,7 +280,7 @@ class DispatchController extends AbstractController {
         $dispatchNumber = $uniqueNumberService->create($entityManager, Dispatch::PREFIX_NUMBER, Dispatch::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
         $dispatch
             ->setCreationDate($date)
-            ->setStatut($statutRepository->find($post->get('status')))
+            ->setStatut($status)
             ->setType($type)
             ->setRequester($utilisateurRepository->find($post->get('requester')))
             ->setLocationFrom($locationTake)

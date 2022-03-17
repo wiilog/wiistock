@@ -9,7 +9,7 @@
     <div class="px-lg-3 w-100">
         <div class="row align-items-center {{ withOnlyLogo ? 'justify-content-center' }}">
             <div class="col-12 col-lg-auto d-flex align-items-end justify-content-center">
-                <a class="position-relative" href="{{ path('accueil') }}">
+                <a class="position-relative" href="{{ path('app_index') }}">
                     <img src="{{ logo('website') }}" alt="Follow GT" height="100" class="sizeLogo"/>
                 </a>
                 <span class="web-version d-none d-lg-inline">{{ web_version }}</span>
@@ -68,6 +68,10 @@
                     {% set hasTransferRights = (
                         hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_TRANSFER_REQ'))
                         and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE'))
+                    ) %}
+                    {% set hasTransportRights = (
+                        hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_TRANSPORT'))
+                        and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE_TRANSPORT'))
                     ) %}
                     {% set hasPurchaseRequestRights = (
                         hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE'))
@@ -157,8 +161,18 @@
                                         <span class="flex-fill align-self-center">Achat</span>
                                     </a>
                                 {% endif %}
+                                {% if hasTransportRights %}
+                                    {% set isCurrentPage = (app.request.attributes.get('_route') == 'transport_request_index') %}
+                                    <a onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new'}, event)" }}"
+                                       href="{{ path('transport_request_index', {'open-modal': 'new'}) }}"
+                                       title="Transport">
+                                        <span class="wii-icon wii-icon-transport quick-menu-icon mx-2"></span>
+                                        <span class="flex-fill align-self-center">Transport</span>
+                                    </a>
+                                {% endif %}
                                 {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) and app.user.role.label == constant('App\\Entity\\Role::CLIENT_UTIL') %}
-                                    <a class="d-flex align-items-start" href="https://forms.office.com/Pages/ResponsePage.aspx?id=NhgDLW_TpECPU10VG8Uz0ORO07yh8_dHp_ZRkVcMgQJURjJHVzA5RjNHSEFXTkM4T1lWSllSSkFZVy4u" >
+                                    <a class="d-flex align-items-start"
+                                       href="https://forms.office.com/Pages/ResponsePage.aspx?id=NhgDLW_TpECPU10VG8Uz0ORO07yh8_dHp_ZRkVcMgQJURjJHVzA5RjNHSEFXTkM4T1lWSllSSkFZVy4u">
                                         <span class="wii-icon wii-icon-add quick-menu-icon mx-2"></span>
                                         <span class="flex-fill align-self-center">Créer un article</span>
                                     </a>

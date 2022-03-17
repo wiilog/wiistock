@@ -26,6 +26,10 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
     private const SUB_MENU_DISPATCHES = 'acheminements';
     private const SUB_MENU_TRANSFERS = 'transferts';
     private const SUB_MENU_PURCHASE_REQUESTS = 'achats';
+    private const SUB_MENU_TRANSPORT = 'transport';
+    private const SUB_MENU_TRANSPORT_PLANNING = 'planning';
+    private const SUB_MENU_TRANSPORT_ROUND = 'tournée';
+    private const SUB_MENU_TRANSPORT_SUBCONTRACT = 'sous-traitance';
     private const SUB_MENU_PREPARATIONS = 'préparations';
     private const SUB_MENU_RECEPTIONS = 'réceptions';
     private const SUB_MENU_REFERENCES = 'références';
@@ -132,6 +136,12 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::DELETE_ONGOING_PURCHASE_REQUESTS,
                 Action::DELETE_TREATED_PURCHASE_REQUESTS,
             ],
+            self::SUB_MENU_TRANSPORT => [
+                Action::DISPLAY_TRANSPORT,
+                Action::CREATE_TRANSPORT,
+                Action::EDIT_TRANSPORT,
+                Action::DELETE_TRANSPORT,
+            ],
         ],
         Menu::ORDRE => [
             self::SUB_MENU_GENERAL => [
@@ -157,6 +167,22 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
             self::SUB_MENU_RECEPTIONS => [
                 Action::DISPLAY_RECE,
                 Action::CREATE_REF_FROM_RECEP,
+            ],
+            self::SUB_MENU_TRANSPORT => [
+                Action::DISPLAY_TRANSPORT,
+                Action::EDIT_TRANSPORT,
+            ],
+            self::SUB_MENU_TRANSPORT_PLANNING => [
+                Action::DISPLAY_TRANSPORT_PLANNING,
+                Action::SCHEDULE_TRANSPORT_ROUND,
+            ],
+            self::SUB_MENU_TRANSPORT_ROUND => [
+                Action::DISPLAY_TRANSPORT_ROUND,
+                Action::EDIT_TRANSPORT_ROUND,
+            ],
+            self::SUB_MENU_TRANSPORT_SUBCONTRACT => [
+                Action::DISPLAY_TRANSPORT_SUBCONTRACT,
+                Action::EDIT_TRANSPORT_SUBCONTRACT,
             ],
         ],
         Menu::STOCK => [
@@ -195,6 +221,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
             Action::DISPLAY_EMPL,
             Action::DISPLAY_CHAU,
             Action::DISPLAY_TRAN,
+            Action::DISPLAY_VEHICLE,
             Action::CREATE,
             Action::EDIT,
             Action::DELETE,
@@ -211,6 +238,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
         Menu::PARAM => [
             Action::SETTINGS_GLOBAL,
             Action::SETTINGS_STOCK,
+            Action::SETTINGS_TRACING,
             Action::SETTINGS_TRACKING,
             Action::SETTINGS_MOBILE,
             Action::SETTINGS_DASHBOARDS,
@@ -227,6 +255,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::MODULE_ACCESS_TRACA,
                 Action::MODULE_ACCESS_HAND,
                 Action::MODULE_NOTIFICATIONS,
+                Action::MODULE_TRACK,
                 Action::DEMO_MODE,
             ],
             self::SUB_MENU_TRACKING => [
