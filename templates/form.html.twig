@@ -58,6 +58,7 @@
         {% if label %}<label class="{{ options.labelClass ?? '' }}">{{ _self.label(label, required, labelOptions) }}</label>{% endif %}
         {{ _self.tooltip(options.tooltip ?? null, options.inline ?? false) }}
         <div class="{{ options.expanded ?? false ? 'wii-expanded-switch' : 'wii-switch' }} text-truncate"
+             data-name="{{ name }}"
              data-title="{{ label | striptags }}{{ required ? '*' }}">
             {% for switch in switches %}
                 {% set id = random(100000, 10000000) %}

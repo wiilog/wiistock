@@ -271,12 +271,21 @@ function addNewEntity($container, entity) {
     }
     else {
         const inputId = `entity-${Math.floor(Math.random() * 1000000)}`;
-        $container.find(`[name=entity] + label:last`).after(`
+        const $newEntity = $(`
             <input type="radio" id="${inputId}" name="entity" value="${entity.id}" class="data" checked>
             <label for="${inputId}">
                 <span class="d-inline-flex align-items-center field-label nowrap">${entity.label}</span>
             </label>
         `);
+        const $switchContainer = $container.find(`.wii-expanded-switch[data-name=entity]`);
+        const $lastEntity = $switchContainer.find(`[name=entity] + label:last`);
+
+        if ($lastEntity.exists()) {
+            $lastEntity.after($newEntity);
+        }
+        else {
+            $switchContainer.html($newEntity);
+        }
 
         $container.find(`#${entity.id}`).prop(`checked`, true);
     }
