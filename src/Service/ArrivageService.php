@@ -79,9 +79,12 @@ class ArrivageService {
         $queryResult = $arrivalRepository->findByParamsAndFilters(
             $request->request,
             $filters,
-            $userIdArrivalFilter,
-            $this->security->getUser(),
-            $this->visibleColumnService
+            $this->visibleColumnService,
+            [
+                'userIdArrivalFilter' => $userIdArrivalFilter,
+                'user' => $this->security->getUser(),
+                'dispatchMode' => $dispatchMode
+            ]
         );
 
         $arrivals = $queryResult['data'];
@@ -186,8 +189,7 @@ class ArrivageService {
             $freeFields = $this->freeFieldService->getFilledFreeFieldArray(
                 $this->entityManager,
                 $arrival,
-                null,
-                CategoryType::ARRIVAGE
+                ['type' => $arrival->getType()]
             );
 
             $this->mailerService->sendMail(
@@ -357,8 +359,7 @@ class ArrivageService {
         $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
             $this->entityManager,
             $arrivage,
-            null,
-            CategoryType::ARRIVAGE
+            ['type' => $arrivage->getType()]
         );
 
         $config = [

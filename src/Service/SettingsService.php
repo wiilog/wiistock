@@ -162,14 +162,19 @@ class SettingsService {
         }
 
         if($data->has("MAILER_URL")) {
-            $mailer = $this->manager->getRepository(MailerServer::class)->findOneBy([]);
-            $mailer->setSmtp($data->get("MAILER_URL"));
-            $mailer->setUser($data->get("MAILER_USER"));
-            $mailer->setPassword($data->get("MAILER_PASSWORD"));
-            $mailer->setPort($data->get("MAILER_PORT"));
-            $mailer->setProtocol($data->get("MAILER_PROTOCOL"));
-            $mailer->setSenderName($data->get("MAILER_SENDER_NAME"));
-            $mailer->setSenderMail($data->get("MAILER_SENDER_MAIL"));
+            $mailer = $this->manager->getRepository(MailerServer::class)->findOneBy([]) ?? new MailerServer();
+            $mailer
+                ->setSmtp($data->get("MAILER_URL"))
+                ->setUser($data->get("MAILER_USER"))
+                ->setPassword($data->get("MAILER_PASSWORD"))
+                ->setPort($data->get("MAILER_PORT"))
+                ->setProtocol($data->get("MAILER_PROTOCOL"))
+                ->setSenderName($data->get("MAILER_SENDER_NAME"))
+                ->setSenderMail($data->get("MAILER_SENDER_MAIL"));
+
+            if(!$mailer->getId()) {
+                $this->manager->persist($mailer);
+            }
         }
 
         if ($data->has("en_attente_de_réception") && $data->has("réception_partielle") && $data->has("réception_totale") && $data->has("anomalie")) {
@@ -428,7 +433,7 @@ class SettingsService {
                 }
 
                 $freeField->setLabel($item["label"])
-                    ->setType($type)
+                    ->setType($type ?? null)
                     ->setTypage($item["type"] ?? $freeField->getTypage())
                     ->setCategorieCL(isset($item["category"]) ? $this->manager->find(CategorieCL::class, $item["category"]) : $type->getCategory()->getCategorieCLs()->first())
                     ->setDefaultValue($item["defaultValue"] ?? null)
@@ -499,55 +504,73 @@ class SettingsService {
         }
 
         if(isset($tables["genericStatuses"])){
-            foreach(array_filter($tables["genericStatuses"]) as $statusData){
-                $statutRepository = $this->manager->getRepository(Statut::class);
+            $statusesData = array_filter($tables["genericStatuses"]);
+
+            if (!empty($statusesData)) {
+                $statusRepository = $this->manager->getRepository(Statut::class);
                 $categoryRepository = $this->manager->getRepository(CategorieStatut::class);
                 $typeRepository = $this->manager->getRepository(Type::class);
 
-                if(!in_array($statusData['state'], [Statut::TREATED, Statut::NOT_TREATED, Statut::DRAFT, Statut::IN_PROGRESS, Statut::DISPUTE, Statut::PARTIAL])) {
-                    throw new RuntimeException("L'état du statut est invalide");
-                }
+                $categoryName = match ($statusesData[0]['mode']) {
+                    StatusController::MODE_ARRIVAL_DISPUTE => CategorieStatut::DISPUTE_ARR,
+                    StatusController::MODE_RECEPTION_DISPUTE => CategorieStatut::LITIGE_RECEPT,
+                    StatusController::MODE_PURCHASE_REQUEST => CategorieStatut::PURCHASE_REQUEST,
+                    StatusController::MODE_ARRIVAL => CategorieStatut::ARRIVAGE,
+                    StatusController::MODE_DISPATCH => CategorieStatut::DISPATCH,
+                    StatusController::MODE_HANDLING => CategorieStatut::HANDLING
+                };
 
-                if (isset($statusData['statusId'])){
-                    $status = $statutRepository->find($statusData['statusId']);
-                } else {
-                    $status = new Statut();
-                    $categoryName = match($statusData['mode']) {
-                        StatusController::MODE_ARRIVAL_DISPUTE => CategorieStatut::DISPUTE_ARR,
-                        StatusController::MODE_RECEPTION_DISPUTE => CategorieStatut::LITIGE_RECEPT,
-                        StatusController::MODE_PURCHASE_REQUEST => CategorieStatut::PURCHASE_REQUEST,
-                        StatusController::MODE_ARRIVAL => CategorieStatut::ARRIVAGE,
-                        StatusController::MODE_DISPATCH => CategorieStatut::DISPATCH,
-                        StatusController::MODE_HANDLING => CategorieStatut::HANDLING
-                    };
-                    $statusData['category'] = $categoryName;
-                    $status->setCategorie($categoryRepository->findOneBy(['nom' => $categoryName]));
+                $category = $categoryRepository->findOneBy(['nom' => $categoryName]);
+                $persistedStatuses = $statusRepository->findBy([
+                    'categorie' => $category
+                ]);
 
-                    // we set type only on creation
-                    if (isset($statusData['type'])) {
-                        $status->setType($typeRepository->find($statusData['type']));
+                foreach ($statusesData as $statusData) {
+                    if (!in_array($statusData['state'], [Statut::TREATED, Statut::NOT_TREATED, Statut::DRAFT, Statut::IN_PROGRESS, Statut::DISPUTE, Statut::PARTIAL])) {
+                        throw new RuntimeException("L'état du statut est invalide");
                     }
-                }
 
-                $validation = $this->statusService->validateStatusData($this->manager, $statusData, isset($statusData['statusId']) ? $status : null);
+                    if (isset($statusData['statusId'])) {
+                        $status = Stream::from($persistedStatuses)
+                            ->filter(fn (Statut $status) => $status->getId() == $statusData['statusId'])
+                            ->first();
+
+                        if (!$status) {
+                            $status = $statusRepository->find($statusData['statusId']);
+                            $persistedStatuses[] = $status;
+                        }
+                    }
+                    else {
+                        $status = new Statut();
+                        $statusData['category'] = $categoryName;
+                        $status->setCategorie($category);
+
+                        // we set type only on creation
+                        if (isset($statusData['type'])) {
+                            $status->setType($typeRepository->find($statusData['type']));
+                        }
+                        $persistedStatuses[] = $status;
+                    }
+
+                    $status->setNom($statusData['label']);
+                    $status->setState($statusData['state']);
+                    $status->setComment($statusData['comment'] ?? null);
+                    $status->setDefaultForCategory($statusData['defaultStatut'] ?? false);
+                    $status->setSendNotifToBuyer($statusData['sendMailBuyers'] ?? false);
+                    $status->setSendNotifToDeclarant($statusData['sendMailRequesters'] ?? false);
+                    $status->setSendNotifToRecipient($statusData['sendMailDest'] ?? false);
+                    $status->setNeedsMobileSync($statusData['needsMobileSync'] ?? false);
+                    $status->setCommentNeeded($statusData['commentNeeded'] ?? false);
+                    $status->setAutomaticReceptionCreation($statusData['automaticReceptionCreation'] ?? false);
+                    $status->setDisplayOrder($statusData['order'] ?? 0);
+
+                    $this->manager->persist($status);
+                }
+                $validation = $this->statusService->validateStatusesData($persistedStatuses);
 
                 if (!$validation['success']) {
                     throw new RuntimeException($validation['message']);
                 }
-
-                $status->setNom($statusData['label']);
-                $status->setState($statusData['state']);
-                $status->setComment($statusData['comment'] ?? null);
-                $status->setDefaultForCategory($statusData['defaultStatut'] ?? false);
-                $status->setSendNotifToBuyer($statusData['sendMailBuyers'] ?? false);
-                $status->setSendNotifToDeclarant($statusData['sendMailRequesters'] ?? false);
-                $status->setSendNotifToRecipient($statusData['sendMailDest'] ?? false);
-                $status->setNeedsMobileSync($statusData['needsMobileSync'] ?? false);
-                $status->setCommentNeeded($statusData['commentNeeded'] ?? false);
-                $status->setAutomaticReceptionCreation($statusData['automaticReceptionCreation'] ?? false);
-                $status->setDisplayOrder($statusData['order'] ?? 0);
-
-                $this->manager->persist($status);
             }
         }
 
@@ -615,7 +638,7 @@ class SettingsService {
     }
 
     public function changeClient(string $client) {
-        $configPath = "/etc/php7/php-fpm.conf";
+        $configPath = "/etc/php8/php-fpm.conf";
 
         //if we're not on a kubernetes pod => file doesn't exist => ignore
         if(!file_exists($configPath)) {
@@ -632,7 +655,7 @@ class SettingsService {
             //magie noire qui recharge la config php fpm sur les pods kubernetes :
             //pgrep recherche l'id du processus de php fpm
             //kill envoie un message USR2 (qui veut dire "recharge la configuration") à phpfpm
-            exec("kill -USR2 $(pgrep -o php-fpm7)");
+            exec("kill -USR2 $(pgrep -o php-fpm)");
         } catch(Exception $exception) {
             throw new RuntimeException("Une erreur est survenue lors du changement de client");
         }

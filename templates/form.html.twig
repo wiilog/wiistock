@@ -57,7 +57,8 @@
         {% if label %}<label class="{{ options.labelClass ?? '' }}">{{ _self.label(label, required, labelOptions) }}</label>{% endif %}
         {{ _self.tooltip(options.tooltip ?? null, options.inline ?? false) }}
         <div class="{{ options.expanded ?? false ? 'wii-expanded-switch' : 'wii-switch' }} text-truncate"
-             data-title="{{ label | striptags }}{{ required ? '*' }}">
+             data-title="{{ label | striptags }}{{ required ? '*' }}"
+             style="margin-top: 5px;">
             {% for switch in switches %}
                 {% set id = random(100000, 10000000) %}
 
@@ -157,7 +158,10 @@
                 <option disabled selected>{{ options.placeholder }}</option>
             {% endif %}
 
-            {% for value, text in (options.items ?? []) is array ? options.items : [options.items] %}
+            {% set definedItems = options.items ?? [] %}
+            {% set items = (definedItems is iterable) ? definedItems : [definedItems] %}
+
+            {% for value, text in items %}
                 {% if text.value is defined and text.label is defined %}
                     <option value="{{ text.value }}"
                             {{ (text.selected ?? false) or text.value in values ? 'selected' }}

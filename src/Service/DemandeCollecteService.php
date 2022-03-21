@@ -170,8 +170,7 @@ class DemandeCollecteService
         $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
             $this->entityManager,
             $collecte,
-            CategorieCL::DEMANDE_COLLECTE,
-            CategoryType::DEMANDE_COLLECTE
+            ['type' => $collecte->getType()]
         );
 
         return array_merge(

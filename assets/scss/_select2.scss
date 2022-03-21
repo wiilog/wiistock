@@ -95,10 +95,6 @@ $select-height: 36px;
 .select2-dropdown {
     border: 1px solid $grey !important;
     border-radius: 4px !important;
-
-    .hidden-selected-options & .select2-results__option[aria-selected] {
-        display: none;
-    }
 }
 
 .new-item-container {
