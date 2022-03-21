@@ -95,6 +95,10 @@ $select-height: 36px;
 .select2-dropdown {
     border: 1px solid $grey !important;
     border-radius: 4px !important;
+
+    .hidden-dropdown & {
+        display: none;
+    }
 }
 
 .new-item-container {
