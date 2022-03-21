@@ -5,5 +5,7 @@
     {% include 'filters/filter_item/filterColis.html.twig' %}
     {% include 'filters/filter_item/filterLocation.html.twig' %}
     {% include 'filters/filter_item/filterStatus.html.twig' %}
-    {% include 'filters/filter_item/filterUser.html.twig' %}
+    {% include 'filters/filter_item/filterUser.html.twig' with {
+        placeholder: 'Opérateurs'
+    } %}
 {% endblock %}
