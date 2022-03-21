@@ -361,7 +361,7 @@ class RequestTemplateController extends AbstractController {
             if (strip_tags($template->getComment())) {
                 $data[] = [
                     "label" => "Commentaire",
-                    "value" => $template->getComment()
+                    "value" => "<div class='ql-editor'>{$template->getComment()}</div>",
                 ];
             }
 
