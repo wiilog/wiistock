@@ -36,8 +36,6 @@ use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
-use Symfony\Component\HttpFoundation\FileBag;
-use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Process\Process;
@@ -45,6 +43,7 @@ use Symfony\Component\Yaml\Yaml;
 use WiiCommon\Helper\Stream;
 
 class SettingsService {
+    public const CHARACTER_VALID_REGEX = '^[A-Za-z0-9\_\-]{1,24}$';
 
     /**  @Required */
     public EntityManagerInterface $manager;
@@ -63,7 +62,6 @@ class SettingsService {
 
     /** @Required */
     public StatusService $statusService;
-    public const CHARACTER_VALID_REGEX = '/^[A-Za-z0-9_-]{1,21}$/';
 
     private array $settingsConstants;
 

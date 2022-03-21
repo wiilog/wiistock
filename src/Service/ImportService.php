@@ -1924,7 +1924,7 @@ class ImportService
         if ($isNewEntity) {
             if (isset($data['name'])) {
                 if ((strlen($data['name'])) > 21) {
-                    $this->throwError("La valeur saisie pour le champ nom ne doit pas dépasser 21 caractères");
+                    $this->throwError("La valeur saisie pour le champ nom ne doit pas dépasser 24 caractères");
                 } elseif (!preg_match(SettingsService::CHARACTER_VALID_REGEX, $data['name'])) {
                     $this->throwError("Le champ nom ne doit pas contenir de caractères spéciaux");
                 } else {
