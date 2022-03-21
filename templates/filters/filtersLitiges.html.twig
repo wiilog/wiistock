@@ -4,7 +4,9 @@
     {% include 'filters/filter_item/filterDate.html.twig' %}
     {% include 'filters/filter_item/filterStatus.html.twig' %}
     {% include 'filters/filter_item/filterOriginLitige.html.twig' %}
-    {% include 'filters/filter_item/filterUser.html.twig' %}
+    {% include 'filters/filter_item/filterUser.html.twig' with {
+        placeholder: 'Acheteurs'
+    } %}
     {% include 'filters/filter_item/filterDisputeNumber.html.twig' %}
     {% include 'filters/filter_item/filterDeclarant.html.twig' %}
     {% include 'filters/filter_item/filterType.html.twig' %}
