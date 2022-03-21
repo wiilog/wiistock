@@ -277,6 +277,8 @@ $wii-switch-height: $input-height;
 
 .select2-selection--multiple .select2-search__field {
     padding: 0 5px !important;
+    // Correctif de la tache WIIS-7066
+    width: 100% !important;
 }
 
 .checkbox-filter .row {

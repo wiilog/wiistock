@@ -3,8 +3,6 @@ $(document).ready(() => {
 
     initDateTimePicker();
     Select2Old.location($('.ajax-autocomplete-emplacements'), {}, "Emplacement", 3);
-    Select2Old.user($('.filterService select[name="requesters"]'), "Demandeurs");
-    Select2Old.user($('.filterService select[name="operators"]'), "Opérateurs");
 
     // applique les filtres si pré-remplis
     let val = $('#filterStatus').val();
