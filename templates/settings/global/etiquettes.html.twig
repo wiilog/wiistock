@@ -11,8 +11,8 @@
             {% set qr = constant('App\\Entity\\Setting::QR_CODE') %}
             {% set ean = constant('App\\Entity\\Setting::CODE_128') %}
             {{ form.switch(setting('BARCODE_TYPE_IS_128'), 'Type d\'étiquette', false, [
-                {label: {text: ean['label']}, value: ean['value'] ? 1 : 0, checked: setting_value('BARCODE_TYPE_IS_128') == ean['value'] },
-                {label: {text: qr['label']}, value: qr['value'] ? 1 : 0, checked: setting_value('BARCODE_TYPE_IS_128') == qr['value'] },
+                {label: ean['label'], value: ean['value'] ? 1 : 0, checked: setting_value('BARCODE_TYPE_IS_128') == ean['value'] },
+                {label: qr['label'], value: qr['value'] ? 1 : 0, checked: setting_value('BARCODE_TYPE_IS_128') == qr['value'] },
             ], {labelClass: "wii-field-name"}) }}
         </div>
 
