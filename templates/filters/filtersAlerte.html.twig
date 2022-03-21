@@ -7,6 +7,8 @@
     {% include 'filters/filter_item/filterTypeMultiple.html.twig' with {disabled: isPreFilled ? 'disabled'}%}
     {% include 'filters/filter_item/filterAlert.html.twig' with {disabled: isPreFilled ? 'disabled'}%}
     {% include 'filters/filter_item/filterUser.html.twig' with {
+        name: 'managers',
+        placeholder: 'Gestionnaires',
         disabled: isPreFilled ? 'disabled',
         managers: managersFilter is defined and managersFilter is not empty ? managersFilter : []
     }%}

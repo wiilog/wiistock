@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Alert;
 use App\Entity\Article;
+use App\Entity\FiltreSup;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
@@ -102,7 +103,7 @@ class AlertRepository extends EntityRepository {
                     $queryBuilder->andWhere('a.type = :alert')
                         ->setParameter('alert', $value);
                     break;
-                case 'utilisateurs':
+                case FiltreSup::FIELD_MANAGERS:
                     $value = explode(',', $filter['value']);
 
                     $or = $queryBuilder->expr()->orX();
