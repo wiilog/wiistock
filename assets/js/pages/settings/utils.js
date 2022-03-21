@@ -53,6 +53,10 @@ export function createManagementPage($container, config) {
                     toggleCreationForm($pageHeader, $itemContainer, $itemContainer.hasClass('creation-mode'));
                 });
             }
+
+            if(config.onEditStart) {
+                config.onEditStart();
+            }
         },
         onEditStop: (apiResult) => {
             $managementButtons.addClass('d-none');
@@ -74,6 +78,10 @@ export function createManagementPage($container, config) {
             loadItems($container, config, selectedEntity);
 
             $container.find(`.delete-main-entity`).removeClass(`d-none`);
+
+            if(config.onEditStop) {
+                config.onEditStop();
+            }
         },
     });
 
