@@ -216,72 +216,70 @@ function eachInputs(form, config, callback) {
 }
 
 function treatInputError($input, errors, form) {
-    if ($input.attr(`type`) !== `radio`) {
-        if ($input.attr(`type`) === `number`) {
-            let val = parseInt($input.val());
-            let min = parseInt($input.attr('min'));
-            let max = parseInt($input.attr('max'));
+    if ($input.attr(`type`) === `number`) {
+        let val = parseInt($input.val());
+        let min = parseInt($input.attr('min'));
+        let max = parseInt($input.attr('max'));
 
-            if (!isNaN(val) && (val > max || val < min)) {
-                let message = `La valeur `;
-                if (!isNaN(min) && !isNaN(max)) {
-                    message += min > max
-                        ? `doit être inférieure à ${max}.`
-                        : `doit être comprise entre ${min} et ${max}.`;
-                } else if (!isNaN(max)) {
-                    message += `doit être inférieure à ${max}.`;
-                } else if (!isNaN(min)) {
-                    message += `doit être supérieure à ${min}.`;
-                } else {
-                    message += `est invalide`;
-                }
-
-                errors.push({
-                    elements: [$input],
-                    message,
-                });
-            }
-        } else if ($input.attr(`type`) === `tel`) {
-            const regex = /^(?:(?:\+|00)33[\s.-]{0,3}(?:\(0\)[\s.-]{0,3})?|0)[1-9](?:(?:[\s.-]?\d{2}){4}|\d{2}(?:[\s.-]?\d{3}){2})$/;
-            if ($input.val() && !$input.val().match(regex)) {
-                errors.push({
-                    elements: [$input],
-                    message: `Le numéro de téléphone n'est pas valide`,
-                });
-            }
-        }
-
-        if ($input.data(`repeat`)) {
-            const $toRepeat = $form.find(`input[name="${$input.data(`repeat`)}"`);
-
-            if ($input.val() !== $toRepeat.val()) {
-                errors.push({
-                    elements: [$input, $toRepeat],
-                    message: `Les champs ne sont pas identiques`,
-                });
-            }
-        }
-
-        if ($input.is(`[required]`) || $input.is(`[data-required]`) || $input.is(`.needed`)) {
-            if (([`radio`, `checkbox`].includes($input.attr(`type`)) && !$input.is(`:checked`))) {
-                errors.push({
-                    elements: [$input.closest(`.wii-radio, .wii-checkbox, .wii-switch`)],
-                    message: `Vous devez sélectionner au moins un élément`,
-                });
+        if (!isNaN(val) && (val > max || val < min)) {
+            let message = `La valeur `;
+            if (!isNaN(min) && !isNaN(max)) {
+                message += min > max
+                    ? `doit être inférieure à ${max}.`
+                    : `doit être comprise entre ${min} et ${max}.`;
+            } else if (!isNaN(max)) {
+                message += `doit être inférieure à ${max}.`;
+            } else if (!isNaN(min)) {
+                message += `doit être supérieure à ${min}.`;
             } else {
-                const valueIsEmpty = (
-                    $input.is(`[data-wysiwyg]`) ? !$input.find(`.ql-editor`).text() :  // for wysuwyg fields
-                        ($input.is(`select[multiple]`) && Array.isArray($input.val())) ? $input.val().length === 0 : // for select2 multiple
-                            !$input.val() // other fiels
-                );
+                message += `est invalide`;
+            }
 
-                if (valueIsEmpty) {
-                    if (!$input.is(`[type="file"]`) || form instanceof Form && !form.uploads[$input.attr(`name`)]) {
-                        errors.push({
-                            elements: [$input],
-                            message: `Ce champ est requis`,
-                        });
-                    }
+            errors.push({
+                elements: [$input],
+                message,
+            });
+        }
+    } else if ($input.attr(`type`) === `tel`) {
+        const regex = /^(?:(?:\+|00)33[\s.-]{0,3}(?:\(0\)[\s.-]{0,3})?|0)[1-9](?:(?:[\s.-]?\d{2}){4}|\d{2}(?:[\s.-]?\d{3}){2})$/;
+        if ($input.val() && !$input.val().match(regex)) {
+            errors.push({
+                elements: [$input],
+                message: `Le numéro de téléphone n'est pas valide`,
+            });
+        }
+    }
+
+    if ($input.data(`repeat`)) {
+        const $toRepeat = $form.find(`input[name="${$input.data(`repeat`)}"`);
+
+        if ($input.val() !== $toRepeat.val()) {
+            errors.push({
+                elements: [$input, $toRepeat],
+                message: `Les champs ne sont pas identiques`,
+            });
+        }
+    }
+
+    if ($input.is(`[required]`) || $input.is(`[data-required]`) || $input.is(`.needed`)) {
+        if (([`radio`, `checkbox`].includes($input.attr(`type`)) && !$input.is(`:checked`))) {
+            errors.push({
+                elements: [$input.closest(`.wii-radio, .wii-checkbox, .wii-switch`)],
+                message: `Vous devez sélectionner au moins un élément`,
+            });
+        } else {
+            const valueIsEmpty = (
+                $input.is(`[data-wysiwyg]`) ? !$input.find(`.ql-editor`).text() :  // for wysuwyg fields
+                    ($input.is(`select[multiple]`) && Array.isArray($input.val())) ? $input.val().length === 0 : // for select2 multiple
+                        !$input.val() // other fiels
+            );
+
+            if (valueIsEmpty) {
+                if (!$input.is(`[type="file"]`) || form instanceof Form && !form.uploads[$input.attr(`name`)]) {
+                    errors.push({
+                        elements: [$input],
+                        message: `Ce champ est requis`,
+                    });
                 }
             }
         }

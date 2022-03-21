@@ -434,7 +434,7 @@ function processInputsForm($modal, data, isAttachmentForm) {
         }
         else if ($input.hasClass('is-barcode')
             && !isBarcodeValid($input)) {
-            errorMessages.push(`Le champ ${label} doit contenir au maximum 21 caractères, lettres ou chiffres uniquement, pas d’accent.`);
+            errorMessages.push(`Le champ ${label} doit contenir au maximum 24 caractères, lettres ou chiffres uniquement, pas d’accent.`);
             $isInvalidElements.push($input);
             if ($input.is(':not(input)')) {
                 $isInvalidElements.push($input.parent());
@@ -787,8 +787,10 @@ function createFormData(object) {
  * @return {boolean}
  */
 function isBarcodeValid($input) {
+    /** Constants which define a valid barcode */
+    const regex = new RegExp($('#BARCODE_VALID_REGEX').val());
     const value = $input.val();
-    return Boolean(!value || BARCODE_VALID_REGEX.test(value));
+    return Boolean(!value || regex.test(value));
 }
 
 /**

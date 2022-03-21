@@ -255,8 +255,8 @@ class RequestTemplateController extends AbstractController {
                     "value" =>
                         "
                                 <div class='wii-switch bigger' data-title='Destination'>
-                                    <input type='radio' class='data' name='destination' value='0' content='Destruction' $destructCheck>
-                                    <input type='radio' class='data' name='destination' value='1' content='Mise en stock' $stockCheck>
+                                    <input type='radio' class='data' name='destination' value='0' content='Destruction' required $destructCheck>
+                                    <input type='radio' class='data' name='destination' value='1' content='Mise en stock' required $stockCheck>
                                 </div>
                             "
                 ];
