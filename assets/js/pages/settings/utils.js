@@ -40,6 +40,7 @@ export function createManagementPage($container, config) {
         search: true,
         paging: true,
         columns: config.table.columns,
+        minimumRows: config.table.minimumRows,
         onEditStart: () => {
             $editButton.addClass('d-none');
             $addButton.addClass('d-none');

@@ -124,16 +124,22 @@ $(function() {
             data.set('__form_fieldNames', JSON.stringify(fieldNames));
 
             const tables = {};
-            form.element.find(`[data-table-processing]`).each(function() {
-                const datatable = EditableDatatable.of(this);
-                if (datatable) {
-                    const tableData = datatable.data();
-                    tables[$(this).data(`table-processing`)] = tableData;
-                    tables[`category`] = $(this).data(`category`);
-                    tablesToReload.push(datatable);
-                    hasErrors = tableData.filter(row => !row).length > 0;
-                }
-            });
+
+            try {
+                form.element.find(`[data-table-processing]`).each(function () {
+                    const datatable = EditableDatatable.of(this);
+                    if (datatable) {
+                        const tableData = datatable.data();
+                        tables[$(this).data(`table-processing`)] = tableData;
+                        tables[`category`] = $(this).data(`category`);
+                        tablesToReload.push(datatable);
+                        hasErrors = tableData.filter(row => !row).length > 0;
+                    }
+                });
+            } catch(error) {
+                Flash.add(`danger`, error);
+                return;
+            }
 
             if(Object.entries(tables).length) {
                 data.append(`datatables`, JSON.stringify(tables));
