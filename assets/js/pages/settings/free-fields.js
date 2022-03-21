@@ -123,6 +123,9 @@ export function createFreeFieldsPage($container, canEdit) {
             columns: generateFreeFieldColumns(canEdit),
             form: generateFreeFieldForm(),
         },
+        onEditStop: () => {
+            $container.find(`[type=radio]:checked + label`).text($container.find(`[name="label"]`).val());
+        }
     });
 
     $container.on(`change`, `[name=type]`, defaultValueTypeChange);
@@ -160,6 +163,9 @@ export function initializeStockArticlesTypesFreeFields($container, canEdit) {
                 ...generateFreeFieldForm(),
             },
         },
+        onEditStop: () => {
+            $container.find(`[type=radio]:checked + label`).text($container.find(`[name="label"]`).val());
+        }
     });
 
     $container.on(`change`, `[name=type]`, defaultValueTypeChange);

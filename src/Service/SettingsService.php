@@ -433,7 +433,7 @@ class SettingsService {
                 if ($type->getCategory()->getLabel() !== CategoryType::SENSOR && empty($data["label"])) {
                     throw new RuntimeException("Vous devez saisir un libellé pour le type");
                 }
-
+dump($data["label"]);
                 $type->setLabel($data["label"] ?? $type->getLabel())
                     ->setDescription($data["description"] ?? null)
                     ->setPickLocation(isset($data["pickLocation"]) ? $this->manager->find(Emplacement::class, $data["pickLocation"]) : null)
