@@ -71,7 +71,11 @@
                        {{ required ? 'required' }}
                        {{ switch.checked ?? false ? 'checked' }}>
                 <label for="{{ name }}-{{ id }}" class="d-inline-flex align-items-center">
-                    {{ switch.label }}
+                    {% if switch.label is iterable %}
+                        {{ switch.label.text }}
+                    {% else %}
+                        {{ switch.label }}
+                    {% endif %}
                 </label>
             {% endfor %}
         </div>
