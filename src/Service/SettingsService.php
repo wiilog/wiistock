@@ -434,7 +434,7 @@ class SettingsService {
                 if ($type->getCategory()->getLabel() !== CategoryType::SENSOR && empty($data["label"])) {
                     throw new RuntimeException("Vous devez saisir un libellé pour le type");
                 }
-dump($data["label"]);
+
                 $type->setLabel($data["label"] ?? $type->getLabel())
                     ->setDescription($data["description"] ?? null)
                     ->setPickLocation(isset($data["pickLocation"]) ? $this->manager->find(Emplacement::class, $data["pickLocation"]) : null)
@@ -443,6 +443,12 @@ dump($data["label"]);
                     ->setNotificationsEmergencies(isset($data["notificationEmergencies"]) ? explode(",", $data["notificationEmergencies"]) : null)
                     ->setSendMail($data["mailRequester"] ?? false)
                     ->setColor($data["color"] ?? null);
+
+                if($files["logo"]) {
+                    $type->setLogo($this->attachmentService->createAttachements([$files["logo"]])[0]);
+                } else if(!$data["keep-logo"]) {
+                    $type->setLogo(null);
+                }
             } elseif(isset($tables["category"])) {
                 $category = $categoryTypeRepository->findOneBy(["label" => $tables["category"]]);
                 $type = $typeRepository->findOneBy([
