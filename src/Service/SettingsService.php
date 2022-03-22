@@ -130,7 +130,7 @@ class SettingsService {
             $type = $result['type'];
             $result['entity'] = [
                 'id' => $type->getId(),
-                'label' => $type->getLabel()
+                'label' => $type->getLabel(),
             ];
             unset($result['type']);
         }
@@ -139,7 +139,7 @@ class SettingsService {
             $template = $result['template'];
             $result['entity'] = [
                 'id' => $template->getId(),
-                'label' => $template->getName()
+                'label' => $template->getName(),
             ];
             unset($result['template']);
         }
@@ -258,8 +258,9 @@ class SettingsService {
 
             //loop the ranges that have been deleted to check
             //if they were used somewhere else
+            /** @var TemperatureRange $entity */
             foreach ($removedRanges as $entity) {
-                if(false /* TODO WIIS-6344 & WIIS-6345 : check if it was used in nature or location or elsewhere */) {
+                if(!$entity->getLocations()->isEmpty() || !$entity->getNatures()->isEmpty()) {
                     throw new RuntimeException("La plage de température {$entity->getValue()} ne peut pas être supprimée car elle est utilisée par des natures ou emplacements");
                 } else {
                     $this->manager->remove($entity);
@@ -411,7 +412,7 @@ class SettingsService {
 
                     $alreadyCreatedType = $typeRepository->count([
                         'label' => $data["label"],
-                        'category' => $category
+                        'category' => $category,
                     ]);
 
                     if ($alreadyCreatedType > 0) {
@@ -447,7 +448,7 @@ class SettingsService {
                 $category = $categoryTypeRepository->findOneBy(["label" => $tables["category"]]);
                 $type = $typeRepository->findOneBy([
                     'label' => $tables["category"],
-                    'category' => $category
+                    'category' => $category,
                 ]);
             }
 
@@ -558,7 +559,7 @@ class SettingsService {
 
                 $category = $categoryRepository->findOneBy(['nom' => $categoryName]);
                 $persistedStatuses = $statusRepository->findBy([
-                    'categorie' => $category
+                    'categorie' => $category,
                 ]);
 
                 foreach ($statusesData as $statusData) {
@@ -773,7 +774,7 @@ class SettingsService {
             if ($location) {
                 $resp = [
                     'id' => $locationId,
-                    'text' => $location->getLabel()
+                    'text' => $location->getLabel(),
                 ];
             }
         }
@@ -847,7 +848,7 @@ class SettingsService {
             $defaultDeliveryLocations[$typeId] = isset($location)
                 ? [
                     'label' => $location->getLabel(),
-                    'id' => $location->getId()
+                    'id' => $location->getId(),
                 ]
                 : null;
         }
