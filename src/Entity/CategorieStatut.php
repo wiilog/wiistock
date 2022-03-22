@@ -27,6 +27,10 @@ class CategorieStatut {
     const TRANSFER_REQUEST = 'demande de transfert';
     const PURCHASE_REQUEST = 'demande d\'achat';
     const TRANSFER_ORDER = 'ordre de transfert';
+    const TRANSPORT_REQUEST_DELIVERY = 'demande de transport livraison';
+    const TRANSPORT_REQUEST_COLLECT = 'demande de transport collecte';
+    const TRANSPORT_ORDER_DELIVERY = 'ordre de transport livraison';
+    const TRANSPORT_ORDER_COLLECT = 'ordre de transport collecte';
     const IMPORT = 'import';
 
     #[ORM\Id]

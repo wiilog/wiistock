@@ -16,6 +16,18 @@ class TransportOrder
 
     use AttachmentTrait;
 
+    public const CATEGORY = 'transportOrder';
+
+    public const STATUS_TO_CONTACT = 'Patient à contacter';
+    public const STATUS_TO_ASSIGN = 'À affecter';
+    public const STATUS_ASSIGNED = 'Affectée';
+    public const STATUS_ONGOING = 'En cours';
+    public const STATUS_FINISHED = 'Terminée';
+    public const STATUS_DEPOSITED = 'Objets déposés';
+    public const STATUS_CANCELLED = 'Annulée';
+    public const STATUS_NOT_DELIVERED = 'Non livrée';
+    public const STATUS_NOT_COLLECTED = 'Non collectée';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
