@@ -302,6 +302,34 @@ function initializeWorkingHours($container, canEdit) {
             {data: `worked`, title: `Travaillé`},
         ],
     });
+    initializeHourShifts($container, canEdit);
+}
+
+function initializeHourShifts($container, canEdit) {
+    const table = EditableDatatable.create(`#table-hour-shifts`, {
+        route: Routing.generate('settings_hour_shift_api', true),
+        mode: canEdit ? MODE_CLICK_EDIT_AND_ADD : MODE_NO_EDIT,
+        save: SAVE_MANUALLY,
+        needsPagingHide: true,
+        onEditStart: () => {
+            $managementButtons.removeClass('d-none')
+        },
+        onEditStop: () => {
+            $managementButtons.addClass('d-none')
+        },
+        columns: [
+            {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
+            {data: 'id', name: 'id', title: '', className: 'noVis hideOrder d-none', orderable: false},
+            {data: `name`, title: `Nom du créneau`},
+            {data: `hours`, title: `Heures<br><div class='wii-small-text'>Horaires sous la forme HH:MM-HH:MM</div>`},
+        ],
+        form: {
+            actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
+            id: ``,
+            name: "<input name='name' class='form-control data' data-global-error='Nom du créneau'/>",
+            hours: "<input name='hours' class='form-control data' data-global-error='Heures'/>",
+        },
+    });
 }
 
 function initializeOffDays($container, canEdit) {
