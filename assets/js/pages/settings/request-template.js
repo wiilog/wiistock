@@ -38,6 +38,7 @@ export function initializeRequestTemplates($container, canEdit) {
                 location: `<div class="template-location"></div>`,
                 quantityToTake: `<input type="number" name="quantityToTake" required class="form-control data" data-global-error="${quantityLabel}"/>`,
             },
+            minimumRows: 1,
         },
     });
 

@@ -264,6 +264,7 @@ class RequestTemplateController extends AbstractController {
             } else if ($category === Type::LABEL_HANDLING) {
                 $data[] = [
                     "label" => "",
+                    "wide" => true,
                     "value" => $this->renderView('attachment/attachment.html.twig', [
                         'isNew' => false,
                         'attachments' => $template?->getAttachments(),
@@ -275,6 +276,7 @@ class RequestTemplateController extends AbstractController {
 
                 $data[] = [
                     "label" => "Commentaire",
+                    "wide" => true,
                     "value" => "<div class='wii-one-line-wysiwyg ql-editor data' data-wysiwyg='comment'>$comment</div>",
                 ];
             }
@@ -360,7 +362,7 @@ class RequestTemplateController extends AbstractController {
             if (strip_tags($template->getComment())) {
                 $data[] = [
                     "label" => "Commentaire",
-                    "value" => $template->getComment()
+                    "value" => "<div class='ql-editor'>{$template->getComment()}</div>",
                 ];
             }
 

@@ -4,6 +4,8 @@
     {% include 'filters/filter_item/filterDate.html.twig' %}
     {% include 'filters/filter_item/filterStatus.html.twig' %}
     {% include 'filters/filter_item/filterDemand.html.twig' %}
-    {% include 'filters/filter_item/filterUser.html.twig' %}
+    {% include 'filters/filter_item/filterUser.html.twig' with {
+        placeholder: 'Opérateur'
+    } %}
     {% include 'filters/filter_item/filterType.html.twig' %}
 {% endblock %}

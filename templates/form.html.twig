@@ -69,7 +69,13 @@
                        value="{{ switch.value ?? '' }}"
                        {{ required ? 'required' }}
                        {{ switch.checked ?? false ? 'checked' }}>
-                <label for="{{ name }}-{{ id }}">{{ _self.label(switch.label, false) }}</label>
+                <label for="{{ name }}-{{ id }}" class="d-inline-flex align-items-center">
+                    {% if switch.label is iterable %}
+                        {{ switch.label.text }}
+                    {% else %}
+                        {{ switch.label }}
+                    {% endif %}
+                </label>
             {% endfor %}
         </div>
     </label>

@@ -702,6 +702,7 @@ function displayFiltersSup(data) {
             case 'dispatchNumber':
             case 'emergencyMultiple':
             case 'businessUnit':
+            case 'managers':
                 let valuesElement = element.value.split(',');
                 let $select = $(`.filter-select2[name="${element.field}"]`);
                 $select.find('option').prop('selected', false);

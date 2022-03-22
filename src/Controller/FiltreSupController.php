@@ -93,6 +93,7 @@ class FiltreSupController extends AbstractController
                 'receivers' => FiltreSup::FIELD_RECEIVERS,
                 'requesters' => FiltreSup::FIELD_REQUESTERS,
                 'buyers' => FiltreSup::FIELD_BUYERS,
+                'managers' => FiltreSup::FIELD_MANAGERS,
                 'operators' => FiltreSup::FIELD_OPERATORS,
                 'dispatchNumber' => FiltreSup::FIELD_DISPATCH_NUMBER,
                 'emergencyMultiple' => FiltreSup::FIELD_EMERGENCY_MULTIPLE,
