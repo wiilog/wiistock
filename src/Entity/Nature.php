@@ -50,7 +50,7 @@ class Nature {
     #[ORM\Column(type: 'boolean', nullable: true, options: ['default' => 0])]
     private ?bool $defaultForDispatch = null;
 
-    #[ORM\Column(type: 'boolean')]
+    #[ORM\Column(type: 'boolean', nullable: true)]
     private ?bool $displayedOnForms = null;
 
     #[ORM\Column(type: 'json', nullable: true)]

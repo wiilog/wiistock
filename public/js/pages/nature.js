@@ -1,38 +1,45 @@
-let pathNature = Routing.generate('nature_param_api', true);
-let tableNatureConfig = {
-    ajax: {
-        "url": pathNature,
-        "type": "POST"
-    },
-    order: [['Label', 'asc']],
-    columns: [
-        {"data": 'Actions', 'title': '', className: 'noVis', orderable: false},
-        {"data": 'Label', 'title': 'Libellé'},
-        {"data": 'Code', 'title': 'Code'},
-        {"data": 'Quantité par défaut', 'title': 'Quantité par défaut'},
-        {"data": 'Préfixe', 'title': 'Préfixe'},
-        {"data": 'Couleur', 'title': 'Couleur'},
-        {"data": 'description', 'title': 'Description'},
-        {"data": 'mobileSync', 'title': 'Synchronisation nomade'},
-        {"data": 'displayed', 'title': 'Affichage sur les formulaires'},
-    ],
-    rowConfig: {
-        needsRowClickAction: true
-    },
-};
-let tableNature = initDataTable('tableNatures', tableNatureConfig);
+$(function () {
+    const table = initNatureTable();
 
-let modalNewNature = $("#modalNewNature");
-let submitNewNature = $("#submitNewNature");
-let urlNewNature = Routing.generate('nature_new', true);
-InitModal(modalNewNature, submitNewNature, urlNewNature, {tables: [tableNature]});
+    let modalNewNature = $("#modalNewNature");
+    let submitNewNature = $("#submitNewNature");
+    let urlNewNature = Routing.generate('nature_new', true);
+    InitModal(modalNewNature, submitNewNature, urlNewNature, {tables: [table]});
 
-let modalEditNature = $('#modalEditNature');
-let submitEditNature = $('#submitEditNature');
-let urlEditNature = Routing.generate('nature_edit', true);
-InitModal(modalEditNature, submitEditNature, urlEditNature, {tables: [tableNature]});
+    let modalEditNature = $('#modalEditNature');
+    let submitEditNature = $('#submitEditNature');
+    let urlEditNature = Routing.generate('nature_edit', true);
+    InitModal(modalEditNature, submitEditNature, urlEditNature, {tables: [table]});
 
-let modalDeleteNature = $("#modalDeleteNature");
-let submitDeleteNature = $("#submitDeleteNature");
-let urlDeleteNature = Routing.generate('nature_delete', true)
-InitModal(modalDeleteNature, submitDeleteNature, urlDeleteNature, {tables: [tableNature]});
+    let modalDeleteNature = $("#modalDeleteNature");
+    let submitDeleteNature = $("#submitDeleteNature");
+    let urlDeleteNature = Routing.generate('nature_delete', true)
+    InitModal(modalDeleteNature, submitDeleteNature, urlDeleteNature, {tables: [table]});
+});
+
+function initNatureTable() {
+    let pathNature = Routing.generate('nature_param_api', true);
+    let tableNatureConfig = {
+        ajax: {
+            url: pathNature,
+            type: "POST"
+        },
+        order: [['label', 'asc']],
+        columns: [
+            {data: 'actions', title: '', className: 'noVis', orderable: false},
+            {data: 'label', title: 'Libellé'},
+            {data: 'code', title: 'Code'},
+            {data: 'defaultQuantity', title: 'Quantité par défaut'},
+            {data: 'prefix', title: 'Préfixe'},
+            {data: 'color', title: 'Couleur'},
+            {data: 'description', title: 'Description'},
+            {data: 'mobileSync', title: 'Synchronisation nomade'},
+            {data: 'displayed', title: 'Affichage sur les formulaires'},
+            {data: 'temperatures', title: 'Températures', orderable: false},
+        ],
+        rowConfig: {
+            needsRowClickAction: true
+        },
+    };
+    return initDataTable('tableNatures', tableNatureConfig);
+}

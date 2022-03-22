@@ -1,4 +1,4 @@
-<form method="" class="modal fade" id="modalNewNature" role="dialog" aria-hidden="true">
+<form class="modal fade" id="modalNewNature" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -13,38 +13,26 @@
                         <label>Label*</label>
                         <input type="text" class="data form-control needed" name="label">
                     </div>
-                </div>
-                <div class="row">
                     <div class="form-group col-12">
                         <label>Code*</label>
                         <input type="text" class="data form-control needed" name="code">
                     </div>
-                </div>
-                <div class="row">
                     <div class="form-group col-12">
                         <label>Description</label>
                         <input type="text" class="data form-control" name="description">
                     </div>
-                </div>
-                <div class="row">
                     <div class="form-group col-12">
                         <label>Quantité par défaut*</label>
                         <input type="number" class="data form-control needed" name="quantity" min="0">
                     </div>
-                </div>
-                <div class="row">
                     <div class="form-group col-12">
                         <label>Couleur*</label>
                         <input type="color" class="data form-control needed" name="color">
                     </div>
-                </div>
-                <div class="row">
                     <div class="form-group col-12">
                         <label>Préfixe</label>
                         <input type="text" class="data form-control" name="prefix">
                     </div>
-                </div>
-                <div class="row">
                     <div class="form-group col-12">
                         <label>Synchronisation nomade ?</label>
                         <label class="switch ml-3">
@@ -52,8 +40,6 @@
                             <span class="slider round"></span>
                         </label>
                     </div>
-                </div>
-                <div class="row">
                     <div class="form-group col-12">
                         <label>Affichage sur les formulaires ?</label>
                         <label class="switch ml-3">
@@ -61,14 +47,20 @@
                             <span class="slider round"></span>
                         </label>
                     </div>
-                </div>
-                <div class="row">
-                    <div class="form-group col-12 mb-0">
+                    <div class="form-group col-12">
                         <label>Nature par défaut (acheminements)</label>
                         <label class="switch ml-3">
                             <input class="checkbox data" type="checkbox" name="defaultForDispatch">
                             <span class="slider round"></span>
                         </label>
+                    </div>
+                    <div class="form-group col-12">
+                        <label>Températures</label>
+                        <select name="allowedTemperatures" class="form-control data w-100" data-s2 multiple>
+                            {% for temperature in temperatures %}
+                                <option value="{{ temperature.id }}">{{ temperature.value }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
                 </div>
             </div>
