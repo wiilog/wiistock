@@ -12,7 +12,6 @@
             {% set location = setting_value('DEFAULT_LOCATION_RECEPTION', 'App\\Entity\\Emplacement') %}
 
             {{ form.select(setting('DEFAULT_LOCATION_RECEPTION'), "Emplacement de réception par défaut", false, {
-                labelClass: 'wii-field-name',
                 value: location ? location.id : null,
                 items: location ? [{value: location.id, label: location.label}] : null,
                 type: 'location'

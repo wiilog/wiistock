@@ -4,7 +4,11 @@
 
 
 {% block page_content %}
-    {% include 'transport/request/new.html.twig' %}
+    {% include 'transport/request/new.html.twig' with {
+        collectRequest: newCollectRequest,
+        transportRequest: newTransportRequest,
+        request: newRequest
+    } %}
 {% endblock %}
 
 
