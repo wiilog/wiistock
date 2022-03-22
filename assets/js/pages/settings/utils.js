@@ -160,7 +160,7 @@ function loadItems($container, config, type, edit = false) {
                             const wiiTextBody = `<span class="wii-body-text">${value}</span>`;
                             const fixedClass = item.class;
                             const noFullWidth = item.noFullWidth;
-                            console.log(item);
+
                             $itemContainer.append(`
                                 <div class="main-entity-content-item ${item.wide ? `col-md-6` : (isBigger ? "col-md-4" : "col-md-3")} col-12 ${item.hidden ? `d-none` : ``} ${fixedClass}"
                                      ${data}>
