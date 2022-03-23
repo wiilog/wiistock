@@ -1,3 +1,9 @@
+{% macro custom_attributes(attributes = []) %}
+    {% for key, value in attributes %}
+        {{ key }}="{{ value }}"
+    {% endfor %}
+{% endmacro %}
+
 {% macro common_attributes(name, options) %}
     name="{{ name }}"
     {% if options.onChange is defined %}onchange="{{ options.onChange }}"{% endif %}
@@ -5,9 +11,7 @@
     {{ options.readonly ?? false ? 'readonly' }}
     {{ options.disabled ?? false ? 'disabled' }}
 
-    {% for key, value in options.attributes ?? [] %}
-        {{ key }}="{{ value }}"
-    {% endfor %}
+    {{ _self.custom_attributes(options.attributes ?? []) }}
 {% endmacro %}
 
 {% macro multiple_key(options) %}
@@ -22,11 +26,7 @@
         <span class="d-inline-flex align-items-center field-label {{ inline ? 'text-nowrap' :  'wii-field-name' }}"
               {% if not inline %}style="margin-bottom: 5px"{% endif %}>
             {% if label is iterable %}
-                {% if label.wiiIcon is defined %}
-                    <span class="mr-2 wii-icon wii-icon-{{ label.wiiIcon }}"></span>
-                {% elseif label.faIcon is defined %}
-                    <i class="mr-2 {{ label.faIcon }}"></i>
-                {% elseif label.url is defined %}
+                {% if label.url is defined %}
                     <img src="{{ label.url }}" alt="{{ label.alt ?? '' }}" width="15px" class="mr-2">
                 {% endif %}
 
@@ -60,20 +60,31 @@
              data-title="{{ label | striptags }}{{ required ? '*' }}">
             {% for switch in switches %}
                 {% set id = random(100000, 10000000) %}
+                {% set disabled = switch.disabled ?? false %}
 
                 <input type="radio"
                        id="{{ name }}-{{ id }}"
                        name="{{ name }}"
                        class="data"
                        value="{{ switch.value ?? '' }}"
+                       {{ disabled ? 'disabled' }}
                        {{ required ? 'required' }}
-                       {{ switch.checked ?? false ? 'checked' }}>
-                <label for="{{ name }}-{{ id }}" class="d-inline-flex align-items-center">
-                    {% if switch.label is iterable %}
-                        {{ switch.label.text }}
-                    {% else %}
-                        {{ switch.label }}
-                    {% endif %}
+                       {{ switch.checked ?? false ? 'checked' }}/>
+
+                <label for="{{ name }}-{{ id }}"
+                       {{ _self.custom_attributes(switch.attributes ?? []) }}>
+                    <span class="d-inline-flex align-items-center ">
+                        {% if switch.wiiIcon ?? false %}
+                            <span class="mr-2 wii-icon wii-icon-{{ switch.wiiIcon }}"></span>
+                        {% elseif switch.iconUrl is defined %}
+                            <img src="{{ switch.iconUrl }}" alt="" width="15px" class="mr-2">
+                        {% endif %}
+                        {% if switch.label is iterable %}
+                            {{ switch.label.text }}
+                        {% else %}
+                            {{ switch.label }}
+                        {% endif %}
+                    </span>
                 </label>
             {% endfor %}
         </div>
@@ -266,7 +277,7 @@
         <textarea class="form-control minw-100 w-100 data"
                   {{ _self.common_attributes(name, options) }}
                   rows="{{ options.rows ?? 3 }}"
-                  style="{{ resizeVertical ? 'resize: vertical;' }} {{ options.style ?? '' }}"
+                  style="{{ resizeVertical ? 'resize: vertical;' : 'resize: none;' }} {{ options.style ?? '' }}"
                   {{ required ? 'required' }}>
             {{- value | raw -}}
         </textarea>

@@ -14,6 +14,7 @@ class UniqueNumberService
     const MAX_RETRY = 5;
     const DATE_COUNTER_FORMAT_DEFAULT = 'YmdCCCC';
     const DATE_COUNTER_FORMAT_RECEPTION = 'ymdCCCC';
+    const DATE_COUNTER_FORMAT_TRANSPORT_REQUEST = 'ymd-CCCC';
 
     const ENTITIES_NUMBER_WITHOUT_DASH = [
         Reception::class
@@ -43,18 +44,18 @@ class UniqueNumberService
             throw new Exception("Undefined getLastNumberByDate for $entity " . "repository");
         }
 
-        preg_match('/([^C]*)(C+)/', $format, $matches);
+        preg_match('/([^C]*)-?(C+)/', $format, $matches);
         if (empty($matches)) {
             throw new Exception('Invalid number format');
         }
 
         $dateFormat = $matches[1];
         $counterFormat = $matches[2];
-        $counterLen = strlen($counterFormat);
 
-        $dateStr = $date->format(substr($format, 0, -1 * $counterLen));
+        $dateStr = $date->format($dateFormat);
         $lastNumber = $entityRepository->getLastNumberByDate($dateStr, $prefix);
 
+        $counterLen = strlen($counterFormat);
         $lastCounter = (
             (!empty($lastNumber) && $counterLen <= strlen($lastNumber))
                 ? (int) substr($lastNumber, -$counterLen, $counterLen)

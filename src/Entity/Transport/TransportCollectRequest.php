@@ -11,10 +11,6 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: TransportCollectRequestRepository::class)]
 class TransportCollectRequest extends TransportRequest
 {
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
-    private ?int $id = null;
 
     #[ORM\Column(type: 'datetime')]
     private ?DateTime $expectedAt = null;
@@ -35,11 +31,6 @@ class TransportCollectRequest extends TransportRequest
     {
         parent::__construct();
         $this->transportCollectRequestNatures = new ArrayCollection();
-    }
-
-    public function getId(): ?int
-    {
-        return $this->id;
     }
 
     public function getExpectedAt(): ?DateTime

@@ -1,0 +1,92 @@
+{% import 'form.html.twig' as form %}
+
+{% set contact = request.contact %}
+
+<div class="row justify-content-center">
+    <div class="col-auto">
+        {{ form.switch('requestType', null, true, [
+            {
+                value: constant('App\\Entity\\Transport\\TransportRequest::DISCR_COLLECT'),
+                label: 'Collecte',
+                wiiIcon: 'cart-collect'
+            },
+            {
+                value: constant('App\\Entity\\Transport\\TransportRequest::DISCR_DELIVERY'),
+                label: 'Livraison',
+                wiiIcon: 'cart-delivery'
+            },
+        ]) }}
+    </div>
+</div>
+
+<div class="wii-section-title my-3 d-flex align-items-center">
+    <i class="wii-icon wii-icon-user bg-primary mr-1"></i>
+    Informations Patient
+</div>
+<div class="row">
+    <div class="col-md-6 col-12">
+        <div class="row">
+            <div class="col-12 mb-2">
+                {{ form.input('contactName', 'Patient', true, contact.name) }}
+            </div>
+            <div class="col-12 mb-2">
+                {{ form.input('contactFileNumber', 'N° dossier', true, contact.fileNumber) }}
+            </div>
+            <div class="col-12 mb-2">
+                {{ form.textarea('contactContact', 'Contact', true, contact.contact, {
+                    style: 'min-height: 104px;',
+                    resizeVertical: false,
+                }) }}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-12">
+        <div class="row">
+            <div class="col-12 mb-2">
+                <div class="d-flex">
+                    {{ form.textarea('contactAddress', 'Adresse', true, contact.address, {
+                        style: 'min-height: 104px;',
+                        resizeVertical: false,
+                    }) }}
+                </div>
+            </div>
+            <div class="col-12 mb-2">
+                {{ form.textarea('contactPersonToContact', 'Personne à prévenir', true, contact.personToContact, {
+                    style: 'min-height: 104px;',
+                    resizeVertical: false,
+                }) }}
+            </div>
+        </div>
+    </div>
+    <div class="col-12 mb-2">
+        {{ form.textarea('contactObservation', 'Remarque', false, contact.observation, {
+            style: 'min-height: 104px;',
+            resizeVertical: false,
+        }) }}
+    </div>
+</div>
+
+<div class="wii-section-title my-3 d-none"
+     data-request-type>
+    <div class="d-flex align-items-center">
+        <i class="wii-icon wii-icon-cart-collect bg-primary mr-1"></i>
+        Service
+    </div>
+</div>
+<div class="row d-none"
+     data-request-type>
+    <div class="col-auto">
+        {{ form.switch('type', null, true, types|map((type) => {
+            value: type.id,
+            label: type.label,
+            disabled: true,
+            attributes: {
+                'data-request-type': (
+                    type.category.label == constant('App\\Entity\\CategoryType::DELIVERY_TRANSPORT_REQUEST')
+                        ? constant('App\\Entity\\Transport\\TransportDeliveryRequest::DISCR_DELIVERY')
+                        : constant('App\\Entity\\Transport\\TransportDeliveryRequest::DISCR_COLLECT')
+                )
+            }
+        }), {expanded: true}) }}
+    </div>
+</div>

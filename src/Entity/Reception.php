@@ -19,7 +19,7 @@ class Reception {
     use AttachmentTrait;
     use CommentTrait;
 
-    const PREFIX_NUMBER = 'R';
+    const NUMBER_PREFIX = 'R';
     const STATUT_EN_ATTENTE = 'en attente de réception';
     const STATUT_RECEPTION_PARTIELLE = 'réception partielle';
     const STATUT_RECEPTION_TOTALE = 'réception totale';

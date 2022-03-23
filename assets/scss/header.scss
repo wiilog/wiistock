@@ -272,7 +272,6 @@
         background-color: $black;
         min-width: $iconMinSize;
         min-height: $iconMinSize;
-        margin-top: calc((#{$itemMinHeight} - #{$iconMinSize} - #{$itemYPadding * 2}) / 2);
         display: inline-block;
     }
 
@@ -280,7 +279,7 @@
         display: block;
         padding: $itemYPadding 0.5rem;
         font-size: 0.8rem;
-        min-height: $itemMinHeight;
+        height: $itemMinHeight;
         font-weight: 100;
 
         &:hover {

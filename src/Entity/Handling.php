@@ -15,7 +15,7 @@ class Handling {
     use FreeFieldsManagerTrait;
 
     const CATEGORIE = 'service';
-    const PREFIX_NUMBER = 'S';
+    const NUMBER_PREFIX = 'S';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

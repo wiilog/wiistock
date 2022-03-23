@@ -5,13 +5,13 @@
 
 {% block page_content %}
     {% include 'transport/request/new.html.twig' with {
-        collectRequest: newCollectRequest,
-        transportRequest: newTransportRequest,
-        request: newRequest
+        request: newRequest,
+        types: types
     } %}
 {% endblock %}
 
 
 {% block javascripts %}
     {{ parent() }}
+    {{ encore_entry_script_tags('transport-request-index') }}
 {% endblock %}

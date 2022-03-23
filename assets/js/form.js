@@ -251,6 +251,7 @@ function treatInputError($input, errors, form) {
     }
 
     if ($input.data(`repeat`)) {
+        const $form = getFormElement(form);
         const $toRepeat = $form.find(`input[name="${$input.data(`repeat`)}"`);
 
         if ($input.val() !== $toRepeat.val()) {
@@ -264,7 +265,7 @@ function treatInputError($input, errors, form) {
     if ($input.is(`[required]`) || $input.is(`[data-required]`) || $input.is(`.needed`)) {
         if (([`radio`, `checkbox`].includes($input.attr(`type`)) && !$input.is(`:checked`))) {
             errors.push({
-                elements: [$input.closest(`.wii-radio, .wii-checkbox, .wii-switch`)],
+                elements: [$input.closest(`.wii-radio, .wii-checkbox, .wii-switch, .wii-expanded-switch`)],
                 message: `Vous devez sélectionner au moins un élément`,
             });
         } else {

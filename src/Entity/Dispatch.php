@@ -14,7 +14,7 @@ class Dispatch {
     use FreeFieldsManagerTrait;
 
     const CATEGORIE = 'acheminements';
-    const PREFIX_NUMBER = 'A';
+    const NUMBER_PREFIX = 'A';
     /**
      * @var [string => bool] Associate field name to bool, if TRUE we saved it in user entity
      */
