@@ -343,20 +343,23 @@ function clearModal(modal) {
         }
     })
 
-    let inputs = $modal.find('.modal-body').find(".data,.data-array");
+    let $inputs = $modal.find('.modal-body').find(".data,.data-array");
     // on vide tous les inputs (sauf les disabled et les input hidden)
-    inputs.each(function () {
-        if ($(this).attr('disabled') !== 'disabled' && $(this).attr('type') !== 'hidden' && !$(this).hasClass('no-clear')) {
-            if ($(this).hasClass('needs-default')) {
-                $(this).val($(this).data('init'));
-            } else {
-                $(this).val("");
+    $inputs.each(function () {
+        const $input = $(this);
+        if (!$input.closest('.wii-switch')) {
+            if ($input.attr('disabled') !== 'disabled' && $input.attr('type') !== 'hidden' && !$input.hasClass('no-clear')) {
+                if ($input.hasClass('needs-default')) {
+                    $input.val($input.data('init'));
+                } else {
+                    $input.val("");
+                }
             }
+            // on enlève les classes is-invalid
+            $input.removeClass('is-invalid');
+            $input.next().find('.select2-selection').removeClass('is-invalid');
+            //TODO protection ?
         }
-        // on enlève les classes is-invalid
-        $(this).removeClass('is-invalid');
-        $(this).next().find('.select2-selection').removeClass('is-invalid');
-        //TODO protection ?
     });
     // on vide tous les select2
     let selects = $modal

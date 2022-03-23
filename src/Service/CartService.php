@@ -170,7 +170,7 @@ class CartService {
             );
             $number = $this->uniqueNumberService->create(
                 $manager,
-                Demande::PREFIX_NUMBER,
+                Demande::NUMBER_PREFIX,
                 Demande::class,
                 UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT
             );

@@ -27,7 +27,7 @@ use WiiCommon\Helper\Stream;
 class Demande implements PairedEntity {
 
     const CATEGORIE = 'demande';
-    const PREFIX_NUMBER = 'DL';
+    const NUMBER_PREFIX = 'DL';
     const STATUT_BROUILLON = 'brouillon';
     const STATUT_PREPARE = 'préparé';
     const STATUT_INCOMPLETE = 'partiellement préparé';

@@ -1,5 +1,5 @@
-<div class="modal fade" role="dialog" id="modalNewTransfer" data-modal-type="new">
-    <div class="modal-dialog" role="document">
+<div class="modal fade" role="dialog" id="modalNewTransportRequest" data-modal-type="new">
+    <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title wii-title">Demande de transport</h5>
@@ -8,11 +8,14 @@
                 </button>
             </div>
             <div class="modal-body">
-{# TODO #}
+                {% include 'transport/request/form.html.twig' with {
+                    request: newRequest,
+                    types: types
+                } %}
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
-                <button type="button" id="submitNewTransfer" class="btn btn-success">Créer la demande</button>
+                <button type="submit" class="btn btn-success">Enregistrer</button>
             </div>
         </div>
     </div>

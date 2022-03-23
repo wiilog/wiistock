@@ -1,0 +1,13 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Demande | Transport | Détails{% endblock %}
+
+
+{% block page_content %}
+Id demande de transport : {{ request.id }}
+{% endblock %}
+
+
+{% block javascripts %}
+    {{ parent() }}
+{% endblock %}

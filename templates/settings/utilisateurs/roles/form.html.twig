@@ -36,7 +36,7 @@
                 <div class="wii-section role-header">
                     <div class="row align-items-end">
                         <div class="col-xl-auto col-12 my-1">
-                            {{ form.input('label', 'Libellé', true, role.label, {labelClass: 'wii-field-name'}) }}
+                            {{ form.input('label', 'Libellé', true, role.label) }}
                         </div>
                         <div class="col-xl-auto col-12 my-1">
                             {% set quantityTypeValues = [
@@ -47,8 +47,7 @@
                                 'quantityType',
                                 'Ajout quantité',
                                 true,
-                                quantityTypeValues | map((value) => {label: value | format_helper('quantityTypeLabel'), value: value, checked: value == role.quantityType}),
-                                {labelClass: 'wii-field-name'}
+                                quantityTypeValues | map((value) => {label: value | format_helper('quantityTypeLabel'), value: value, checked: value == role.quantityType})
                             ) }}
                         </div>
                         <div class="col-xl-auto col-12 my-1">
@@ -61,8 +60,7 @@
                                 'landingPage',
                                 'Accueil',
                                 true,
-                                landingPageValues | map((value) => {label: value | format_helper('landingPageLabel'), value: value, checked: value == role.landingPage}),
-                                {labelClass: 'wii-field-name'}
+                                landingPageValues | map((value) => {label: value | format_helper('landingPageLabel'), value: value, checked: value == role.landingPage})
                             ) }}
                         </div>
                         <div class="col-xl-4 col-12 my-1 pb-xl-2">

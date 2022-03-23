@@ -14,7 +14,16 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: TransportRequestRepository::class)]
 #[ORM\InheritanceType('JOINED')]
 #[ORM\DiscriminatorColumn(name: 'discr', type: 'string')]
+#[ORM\DiscriminatorMap([
+      self::DISCR_DELIVERY => TransportDeliveryRequest::class,
+      self::DISCR_COLLECT => TransportCollectRequest::class
+ ])]
 abstract class TransportRequest {
+
+    public const NUMBER_PREFIX = 'DTR';
+
+    public const DISCR_DELIVERY = 'delivery';
+    public const DISCR_COLLECT = 'collect';
 
     public const CATEGORY = 'transportRequest';
 
@@ -63,12 +72,13 @@ abstract class TransportRequest {
     private Collection $statusHistories;
 
     #[ORM\OneToOne(targetEntity: TransportRequestContact::class, cascade: ['persist', 'remove'])]
-    private ?TransportRequestContact $transportRequestContact = null;
+    private ?TransportRequestContact $contact = null;
 
     public function __construct() {
         $this->transportOrders = new ArrayCollection();
         $this->transportRequestHistories = new ArrayCollection();
         $this->statusHistories = new ArrayCollection();
+        $this->contact = new TransportRequestContact();
     }
 
     public function getId(): ?int {
@@ -228,12 +238,12 @@ abstract class TransportRequest {
         return $this;
     }
 
-    public function getTransportRequestContact(): ?TransportRequestContact {
-        return $this->transportRequestContact;
+    public function getContact(): ?TransportRequestContact {
+        return $this->contact;
     }
 
-    public function setTransportRequestContact(?TransportRequestContact $transportRequestContact): self {
-        $this->transportRequestContact = $transportRequestContact;
+    public function setContact(?TransportRequestContact $contact): self {
+        $this->contact = $contact;
 
         return $this;
     }

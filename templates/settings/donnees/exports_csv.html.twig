@@ -6,8 +6,7 @@
             Pour gérer le bon encodage des caractères spéciaux sur les fichiers exportés.
         </div>
         <div class="col-4">
-            {{ form.select(setting('USES_UTF8'), " Encodage des exports CSV", false, {
-                labelClass: "wii-field-name",
+            {{ form.select(setting('USES_UTF8'), "Encodage des exports CSV", false, {
                 items:setting('ENCODING_VALUES'),
                 value: setting_value('USES_UTF8'),
             }) }}

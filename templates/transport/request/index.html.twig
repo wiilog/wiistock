@@ -32,10 +32,14 @@
         </div>
     </div>
 
-    {% include 'transport/request/new.html.twig' %}
+    {% include 'transport/request/new.html.twig' with {
+        request: newRequest,
+        types: types
+    } %}
 {% endblock %}
 
 
 {% block javascripts %}
     {{ parent() }}
+    {{ encore_entry_script_tags('transport-request-index') }}
 {% endblock %}
