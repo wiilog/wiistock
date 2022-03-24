@@ -445,7 +445,7 @@ class SettingsService {
                     ->setSendMail($data["mailRequester"] ?? false)
                     ->setColor($data["color"] ?? null);
 
-                if($files["logo"]) {
+                if(isset($files["logo"])) {
                     $type->setLogo($this->attachmentService->createAttachements([$files["logo"]])[0]);
                 } else if(!$data["keep-logo"]) {
                     $type->setLogo(null);

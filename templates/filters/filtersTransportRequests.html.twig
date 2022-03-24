@@ -13,6 +13,11 @@
         placeholder: 'Statut',
         names: true,
     } %}
-    Transport : {% include 'filters/filter_item/filterCategory.html.twig' %}
-    Type : {% include 'filters/filter_item/filterTypeIcon.html.twig' %}
+    Transport&nbsp;: {% include 'filters/filter_item/filterCategory.html.twig' with { types: types } %}
+    {% if types is not empty %}
+        Type&nbsp;:
+        {% include 'filters/filter_item/filterTypeIcon.html.twig' with {
+            types: types
+        } %}
+    {% endif %}
 {% endblock %}
