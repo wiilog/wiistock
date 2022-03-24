@@ -2,16 +2,13 @@
 
 namespace App\Controller\Transport;
 
-use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
-use App\Entity\Statut;
 use App\Entity\Transport\TransportRequest;
 use App\Entity\Type;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use WiiCommon\Helper\Stream;
 
 
 #[Route("transport/demande")]
@@ -53,6 +50,13 @@ class RequestController extends AbstractController {
                 TransportRequest::STATUS_NOT_DELIVERED,
                 TransportRequest::STATUS_NOT_COLLECTED,
             ],
+        ]);
+    }
+
+    #[Route("/voir/{transportRequest}", name: "transport_request_show", methods: "GET")]
+    public function show(TransportRequest $transportRequest): Response {
+        return $this->render('transport/request/show.html.twig', [
+            'transportRequest' => $transportRequest,
         ]);
     }
 

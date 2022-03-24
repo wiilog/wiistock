@@ -20,6 +20,7 @@ Encore
     .addEntry('settings-data-inventories-imports', './assets/js/pages/settings/data/inventories-imports.js')
     .addEntry('settings-users-roles-form', './assets/js/pages/settings/users/roles/form.js')
     .addEntry('vehicle', './assets/js/pages/vehicle.js')
+    .addEntry('transport-request-show', './assets/js/pages/transport/request/show.js')
     .autoProvidejQuery()
 
     // When enabled, Webpack "splits" your files into smaller pieces for greater optimization.
