@@ -78,7 +78,6 @@ class NatureController extends AbstractController
                 ->setLabel($data['label'])
                 ->setPrefix($data['prefix'] ?? null)
                 ->setColor($data['color'])
-                ->setDisplayed($data['displayed'])
                 ->setNeedsMobileSync($data['mobileSync'] ?? false)
                 ->setDefaultQuantity($data['quantity'])
                 ->setDescription($data['description'] ?? null)
@@ -94,7 +93,7 @@ class NatureController extends AbstractController
             if($data['displayedOnForms']) {
                 $allowedForms = [];
                 if($data[Nature::ARRIVAL_CODE]) {
-                    $allowedForms[Nature::ARRIVAL_CODE] = [];
+                    $allowedForms[Nature::ARRIVAL_CODE] = 'all';
                 }
 
                 if($data[Nature::TRANSPORT_COLLECT_CODE]) {
@@ -196,7 +195,6 @@ class NatureController extends AbstractController
                 ->setLabel($data['label'])
                 ->setPrefix($data['prefix'] ?? null)
                 ->setDefaultQuantity($data['quantity'])
-                ->setDisplayed($data['displayed'])
                 ->setNeedsMobileSync($data['mobileSync'] ?? false)
                 ->setDescription($data['description'] ?? null)
                 ->setColor($data['color'])
@@ -214,7 +212,7 @@ class NatureController extends AbstractController
             if($data['displayedOnForms']) {
                 $allowedForms = [];
                 if($data[Nature::ARRIVAL_CODE]) {
-                    $allowedForms[] = Nature::ARRIVAL_CODE;
+                    $allowedForms[Nature::ARRIVAL_CODE] = 'all';
                 }
 
                 if($data[Nature::TRANSPORT_COLLECT_CODE]) {

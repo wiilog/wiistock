@@ -734,9 +734,7 @@ class ArrivageController extends AbstractController {
             'acheteurs' => $acheteursNames,
             'disputeStatuses' => $statutRepository->findByCategorieName(CategorieStatut::DISPUTE_ARR, 'displayOrder'),
             'allColis' => $arrivage->getPacks(),
-            'natures' => $natureRepository->findBy([
-                'displayed' => true
-            ]),
+            'natures' => $natureRepository->findByAllowedForms([Nature::ARRIVAL_CODE]),
             'printColis' => $printColis,
             'printArrivage' => $printArrivage,
             'canBeDeleted' => $arrivageRepository->countUnsolvedDisputesByArrivage($arrivage) == 0,
