@@ -146,7 +146,7 @@ class RequestController extends AbstractController {
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_TRANSPORT_REQUESTS, $this->getUser());
 
         $queryResult = $transportRepository->findByParamAndFilters($request->request, $filters);
-dump($queryResult);
+
         $transportRequests = $queryResult['data'];
 
         $rows = [];
