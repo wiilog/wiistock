@@ -319,15 +319,13 @@ function initializeHourShifts($container, canEdit) {
         },
         columns: [
             {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
-            {data: 'id', name: 'id', title: '', className: 'noVis hideOrder d-none', orderable: false},
             {data: `name`, title: `Nom du créneau`},
             {data: `hours`, title: `Heures<br><div class='wii-small-text'>Horaires sous la forme HH:MM-HH:MM</div>`},
         ],
         form: {
             actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
-            id: ``,
-            name: "<input name='name' class='form-control data' data-global-error='Nom du créneau'/>",
-            hours: "<input name='hours' class='form-control data' data-global-error='Heures'/>",
+            name: `<input name='name' class='form-control data' data-global-error='Nom du créneau'/>`,
+            hours: `<input name='hours' class='form-control data' data-global-error='Heures'/>`,
         },
     });
 }

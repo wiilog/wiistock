@@ -365,7 +365,6 @@ class SettingsService
         }
 
         if (isset($tables["hourShifts"])) {
-
             $editShift = function(CollectTimeSlot $shift, array $edition) {
                 $hours = $edition["hours"] ?? null;
                 if ($hours && !preg_match("/^\d{2}:\d{2}-\d{2}:\d{2}$/", $hours)) {
@@ -382,11 +381,13 @@ class SettingsService
 
             $newShifts = Stream::from($tables["hourShifts"])
                 ->filter(fn(array $shift) => !isset($shift['id']))
+                ->filter(fn(array $shift) => isset($shift['name']))
                 ->toArray();
 
             $existingShifts = Stream::from($tables["hourShifts"])
                 ->filter(fn(array $shift) => isset($shift['id']))
-                ->keymap(fn(array $shift) => [$shift->getId(), $shift])
+                ->filter(fn(array $shift) => isset($shift['name']))
+                ->keymap(fn(array $shift) => [$shift['id'], $shift])
                 ->toArray();
 
             foreach ($hourShiftsRepository->findAll() as $existingShift) {

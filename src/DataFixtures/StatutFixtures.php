@@ -48,10 +48,6 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
             CategorieStatut::TRANSFER_ORDER,
             CategorieStatut::IMPORT,
             CategorieStatut::PURCHASE_REQUEST,
-            CategorieStatut::TRANSPORT_REQUEST_DELIVERY,
-            CategorieStatut::TRANSPORT_REQUEST_COLLECT,
-            CategorieStatut::TRANSPORT_ORDER_DELIVERY,
-            CategorieStatut::TRANSPORT_ORDER_COLLECT,
         ];
 
         $categoriesStatus = [

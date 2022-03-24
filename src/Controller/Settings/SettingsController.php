@@ -923,14 +923,12 @@ class SettingsController extends AbstractController
                             <i class='wii-icon wii-icon-trash text-primary'></i>
                         </button>
                     " : "",
-                    "id" => $shift->getId(),
-                    "name" => "<input name='name' class='$class' data-global-error='Nom du créneau' value='{$shift->getName()}'/>",
+                    "name" => "<input name='id' type='hidden' value='{$shift->getId()}'><input name='name' class='$class' data-global-error='Nom du créneau' value='{$shift->getName()}'/>",
                     "hours" => "<input name='hours' class='$class' data-global-error='Heures' value='{$hours}'/>",
                 ];
             } else {
                 $data[] = [
                     "actions" => "",
-                    "id" => $shift->getId(),
                     "name" => $shift->getName(),
                     "hours" => $hours,
                 ];
