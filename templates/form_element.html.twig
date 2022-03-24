@@ -1,7 +1,13 @@
 {% import 'form.html.twig' as form %}
 
+{% dump element %}
 {% if element == 'switch' %}
     {{ form.switch(arguments[0], arguments[1], arguments[2], arguments[3], arguments[4] ?? {}) }}
 {% elseif element == 'radio' %}
     {{ form.radio(arguments[0], arguments[1], arguments[2], arguments[3], arguments[4] ?? {}) }}
+{% elseif element == 'image' %}
+    {{ form.image(arguments[0], arguments[1], arguments[2], arguments[3], arguments[4] ?? {}) }}
+{% else %}
+    {# TODO: implémenter l'élément #}
+    {{ 'Une erreur est survenue lors du chargement du formulaire' }}
 {% endif %}

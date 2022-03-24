@@ -17,6 +17,7 @@ use App\Entity\IOT\AlertTemplate;
 use App\Entity\IOT\RequestTemplate;
 use App\Entity\MailerServer;
 use App\Entity\Menu;
+use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Translation;
 use App\Entity\Transport\TemperatureRange;
@@ -267,7 +268,7 @@ class SettingsController extends AbstractController {
                     "label" => "Demandes",
                     "menus" => [
                         self::MENU_CONFIGURATIONS => ["label" => "Configurations", "save" => true],
-                        self::MENU_DELIVERY_TYPES_FREE_FIELDS => ["label" => "Livraions - Types & champs libres", "wrapped" => false],
+                        self::MENU_DELIVERY_TYPES_FREE_FIELDS => ["label" => "Livraisons - Types & champs libres", "wrapped" => false],
                         self::MENU_COLLECT_TYPES_FREE_FIELDS => ["label" => "Collectes - Types & champs libres", "wrapped" => false],
                     ],
                 ],
@@ -548,6 +549,7 @@ class SettingsController extends AbstractController {
         $requestTemplateRepository = $this->manager->getRepository(RequestTemplate::class);
         $alertTemplateRepository = $this->manager->getRepository(AlertTemplate::class);
         $translationRepository = $this->manager->getRepository(Translation::class);
+        $settingRepository = $this->manager->getRepository(Setting::class);
 
         return [
             self::CATEGORY_GLOBAL => [
@@ -765,6 +767,17 @@ class SettingsController extends AbstractController {
                         ->toArray(),
                 ],
                 self::MENU_TRANSPORT_REQUESTS => [
+                    self::MENU_CONFIGURATIONS => fn() => [
+                        "transportDeliveryRequestEmergencies" =>
+                            Stream::from(explode(',', $settingRepository->getOneParamByLabel(Setting::TRANSPORT_DELIVERY_REQUEST_EMERGENCIES)))
+                                ->filter(fn(string $value) => $value)
+                                ->keymap(fn(string $value) => [$value, [
+                                    "value" => $value,
+                                    "label" => $value,
+                                    "selected" => true,
+                                ]])
+                                ->toArray(),
+                    ],
                     self::MENU_DELIVERY_TYPES_FREE_FIELDS => fn() => [
                         "types" => $this->typeGenerator(CategoryType::DELIVERY_TRANSPORT_REQUEST),
                         'category' => CategoryType::DELIVERY_TRANSPORT_REQUEST,
@@ -957,7 +970,7 @@ class SettingsController extends AbstractController {
 
             $label = $type?->getLabel();
             $description = $type?->getDescription();
-            $color = $type ? $type->getColor() : "#000000";
+            $color = $type?->getColor() ?: "#000000";
 
             $data = [
                 [
@@ -1066,6 +1079,21 @@ class SettingsController extends AbstractController {
                     ],
                 ]);
             }
+
+            if(in_array($categoryLabel, [CategoryType::DELIVERY_TRANSPORT_REQUEST, CategoryType::COLLECT_TRANSPORT_REQUEST])) {
+                $data[] = [
+                    "label" => "Logo",
+                    "value" => $this->renderView("form_element.html.twig", [
+                        "element" => "image",
+                        "arguments" => [
+                            "logo",
+                            null,
+                            false,
+                            $type?->getLogo()?->getFullPath(),
+                        ],
+                    ]),
+                ];
+            }
         } else {
             $data = [[
                 "label" => "Description",
@@ -1126,6 +1154,13 @@ class SettingsController extends AbstractController {
                         "value" => join(", ", $type?->getNotificationsEmergencies() ?: []),
                     ];
                 }
+            }
+
+            if(in_array($categoryLabel, [CategoryType::DELIVERY_TRANSPORT_REQUEST, CategoryType::COLLECT_TRANSPORT_REQUEST])) {
+                $data[] = [
+                    "label" => "Logo",
+                    "value" => $type?->getLogo() ? "<img src='{$type?->getLogo()?->getFullPath()}' alt='Logo du type' width='30'>" : "",
+                ];
             }
         }
 

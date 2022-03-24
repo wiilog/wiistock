@@ -1,0 +1,10 @@
+<div class="col-auto m-1 pr-0">
+    <div class="input-group wii-expanded-switch">
+        {% for category in categories %}
+            <input type="radio" id="category-filter-{{ category.category }}" name="type" class="data" value="{{ category.category }}" checked="">
+            <label for="category-filter-{{ category.category }}" class="d-inline-flex align-items-center">
+                <span class="wii-icon wii-icon-{{ category.icon }} mr-2 wii-icon-20px"></span> {{ category.label }}
+            </label>
+        {% endfor %}
+    </div>
+</div>

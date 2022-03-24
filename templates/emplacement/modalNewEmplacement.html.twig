@@ -34,6 +34,15 @@
                 </div>
 
                 <div class="form-group">
+                    <label>Températures autorisées</label>
+                    <select name="allowedTemperatures" class="form-control data select2 w-100" multiple>
+                        {% for temperature in temperatures %}
+                            <option value="{{ temperature.id }}">{{ temperature.value }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
                     <label>Types de livraisons autorisés</label>
                     <select name="allowedDeliveryTypes" class="form-control data needs-default select2 w-100" data-default-all multiple>
                         {% for type in deliveryTypes %}

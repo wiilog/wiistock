@@ -21,6 +21,7 @@ use App\Entity\Nature;
 use App\Entity\ReferenceArticle;
 
 use App\Entity\TransferRequest;
+use App\Entity\Transport\TemperatureRange;
 use App\Entity\Type;
 use App\Service\PDFGeneratorService;
 use App\Service\UserService;
@@ -68,12 +69,14 @@ class LocationController extends AbstractController {
         $typeRepository = $entityManager->getRepository(Type::class);
         $deliveryTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
         $collectTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]);
+        $temperatures = $entityManager->getRepository(TemperatureRange::class)->findBy([]);
 
         return $this->render("emplacement/index.html.twig", [
             "active" => $active,
             "natures" => $allNatures,
             "deliveryTypes" => $deliveryTypes,
             "collectTypes" => $collectTypes,
+            "temperatures" => $temperatures
         ]);
     }
 
@@ -85,6 +88,7 @@ class LocationController extends AbstractController {
         if ($data = json_decode($request->getContent(), true)) {
             $naturesRepository = $entityManager->getRepository(Nature::class);
             $typeRepository = $entityManager->getRepository(Type::class);
+            $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
 
             $errorResponse = $this->checkLocationLabel($data["Label"] ?? null);
             if ($errorResponse) {
@@ -115,6 +119,13 @@ class LocationController extends AbstractController {
                 }
             }
 
+            if (!empty($data['allowedTemperatures'])) {
+                foreach ($data['allowedTemperatures'] as $allowedTemperatureId) {
+                    $emplacement
+                        ->addTemperatureRange($temperatureRangeRepository->find($allowedTemperatureId));
+                }
+            }
+
             $entityManager->persist($emplacement);
             $entityManager->flush();
 
@@ -142,12 +153,14 @@ class LocationController extends AbstractController {
             $emplacement = $emplacementRepository->find($data['id']);
             $deliveryTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
             $collectTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]);
+            $temperatures = $entityManager->getRepository(TemperatureRange::class)->findBy([]);
 
             return $this->json($this->renderView("emplacement/modalEditEmplacementContent.html.twig", [
                 "location" => $emplacement,
                 "natures" => $allNatures,
                 "deliveryTypes" => $deliveryTypes,
                 "collectTypes" => $collectTypes,
+                "temperatures" => $temperatures
             ]));
         }
 
@@ -163,6 +176,8 @@ class LocationController extends AbstractController {
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $naturesRepository = $entityManager->getRepository(Nature::class);
             $typeRepository = $entityManager->getRepository(Type::class);
+            $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
+
             $errorResponse = $this->checkLocationLabel($data["Label"] ?? null, $data['id']);
             if ($errorResponse) {
                 return $errorResponse;
@@ -185,13 +200,21 @@ class LocationController extends AbstractController {
                 ->setAllowedDeliveryTypes($typeRepository->findBy(["id" => $data["allowedDeliveryTypes"]]))
                 ->setAllowedCollectTypes($typeRepository->findBy(["id" => $data["allowedCollectTypes"]]));
 
-            $emplacement
-                ->getAllowedNatures()->clear();
+            $emplacement->getAllowedNatures()->clear();
 
             if (!empty($data['allowed-natures'])) {
                 foreach ($data['allowed-natures'] as $allowedNatureId) {
                     $emplacement
                         ->addAllowedNature($naturesRepository->find($allowedNatureId));
+                }
+            }
+
+            $emplacement->getTemperatureRanges()->clear();
+
+            if (!empty($data['allowedTemperatures'])) {
+                foreach ($data['allowedTemperatures'] as $allowedTemperatureId) {
+                    $emplacement
+                        ->addTemperatureRange($temperatureRangeRepository->find($allowedTemperatureId));
                 }
             }
 

@@ -15,11 +15,14 @@ use App\Entity\Utilisateur;
 use App\Service\UniqueNumberService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use App\Entity\CategorieStatut;
+use App\Entity\Statut;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use WiiCommon\Helper\Stream;
 
 
 #[Route("transport/demande")]
@@ -31,14 +34,40 @@ class RequestController extends AbstractController {
     #[Route("/liste", name: "transport_request_index", methods: "GET")]
     public function index(EntityManagerInterface $entityManager): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
+        $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
         $types = $typeRepository->findByCategoryLabels([
             CategoryType::COLLECT_TRANSPORT_REQUEST,
             CategoryType::DELIVERY_TRANSPORT_REQUEST
         ]);
 
+
         return $this->render('transport/request/index.html.twig', [
             'newRequest' => new TransportDeliveryRequest(),
-            'types' => $types
+            'categories' => [
+                [
+                    "category" => CategoryType::DELIVERY_TRANSPORT_REQUEST,
+                    "icon" => "cart-delivery",
+                    "label" => "Livraison",
+                ], [
+                    "category" => CategoryType::COLLECT_TRANSPORT_REQUEST,
+                    "icon" => "cart-collect",
+                    "label" => "Collecte" ,
+                ],
+            ],
+            'types' => $types,
+            'statuts' => [
+                TransportRequest::STATUS_AWAITING_VALIDATION,
+                TransportRequest::STATUS_TO_PREPARE,
+                TransportRequest::STATUS_TO_DELIVER,
+                TransportRequest::STATUS_AWAITING_PLANNING,
+                TransportRequest::STATUS_TO_COLLECT,
+                TransportRequest::STATUS_ONGOING,
+                TransportRequest::STATUS_FINISHED,
+                TransportRequest::STATUS_DEPOSITED,
+                TransportRequest::STATUS_CANCELLED,
+                TransportRequest::STATUS_NOT_DELIVERED,
+                TransportRequest::STATUS_NOT_COLLECTED,
+            ],
         ]);
     }
 

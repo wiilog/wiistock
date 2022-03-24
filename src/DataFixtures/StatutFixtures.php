@@ -138,7 +138,6 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
 				Import::STATUS_DRAFT => Statut::DRAFT
 			],
             CategorieStatut::TRANSPORT_REQUEST_DELIVERY => [
-                TransportRequest::STATUS_CREATED,
                 TransportRequest::STATUS_AWAITING_VALIDATION,
                 TransportRequest::STATUS_TO_PREPARE,
                 TransportRequest::STATUS_TO_DELIVER,
@@ -148,12 +147,12 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
                 TransportRequest::STATUS_NOT_DELIVERED,
             ],
             CategorieStatut::TRANSPORT_REQUEST_COLLECT => [
-                TransportRequest::STATUS_CREATED,
                 TransportRequest::STATUS_AWAITING_VALIDATION,
                 TransportRequest::STATUS_AWAITING_PLANNING,
                 TransportRequest::STATUS_TO_COLLECT,
                 TransportRequest::STATUS_ONGOING,
-                TransportRequest::STATUS_FINISHED_DEPOSITED,
+                TransportRequest::STATUS_FINISHED,
+                TransportRequest::STATUS_DEPOSITED,
                 TransportRequest::STATUS_CANCELLED,
                 TransportRequest::STATUS_NOT_COLLECTED,
             ],
