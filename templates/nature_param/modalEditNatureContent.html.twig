@@ -44,12 +44,22 @@
             <span class="slider round"></span>
         </label>
     </div>
-    <div class="form-group col-12 mb-0">
+    <div class="form-group col-12">
         <label>Nature par défaut (acheminements)</label>
         {% set checkedDefaultForDispatch = nature.defaultForDispatch ? 'checked' %}
         <label class="switch ml-3">
             <input class="checkbox data" type="checkbox" name="defaultForDispatch" {{ checkedDefaultForDispatch }}>
             <span class="slider round"></span>
         </label>
+    </div>
+
+    <div class="form-group col-12">
+        <label>Températures</label>
+        <select name="allowedTemperatures" class="form-control data w-100" data-s2 multiple>
+            {% for temperature in temperatures %}
+                {% set selected = (temperature in nature.temperatureRanges ? 'selected') %}
+                <option value="{{ temperature.id }}" {{ selected }}>{{ temperature.value }}</option>
+            {% endfor %}
+        </select>
     </div>
 </div>

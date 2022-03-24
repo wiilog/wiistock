@@ -6,12 +6,14 @@ use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 
 use App\Entity\Nature;
+use App\Entity\Transport\TemperatureRange;
 use Doctrine\ORM\EntityManagerInterface;
 
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
 
 use Twig\Environment as Twig_Environment;
+use WiiCommon\Helper\Stream;
 
 class EmplacementDataService {
 
@@ -64,15 +66,14 @@ class EmplacementDataService {
 
     public function dataRowEmplacement(Emplacement $emplacement) {
         $url['edit'] = $this->router->generate('emplacement_edit', ['id' => $emplacement->getId()]);
-        $allowedNatures = implode(
-            ';',
-            array_map(
-                function(Nature $nature) {
-                    return $nature->getLabel();
-                },
-                $emplacement->getAllowedNatures()->toArray()
-            )
-        );
+
+        $allowedNatures = Stream::from($emplacement->getAllowedNatures())
+            ->map(fn(Nature $nature) => $nature->getLabel())
+            ->join(", ");
+
+        $allowedTemperatures = Stream::from($emplacement->getTemperatureRanges())
+            ->map(fn(TemperatureRange $temperature) => $temperature->getValue())
+            ->join(", ");
 
         $linkedGroup = $emplacement->getLocationGroup();
         $groupLastMessage = $linkedGroup ? $linkedGroup->getLastMessage() : null;
@@ -95,6 +96,7 @@ class EmplacementDataService {
             'maxDelay' => $emplacement->getDateMaxTime() ?? '',
             'active' => $emplacement->getIsActive() ? 'actif' : 'inactif',
             'allowedNatures' => $allowedNatures,
+            'allowedTemperatures' => $allowedTemperatures,
             'actions' => $this->templating->render('emplacement/datatableEmplacementRow.html.twig', [
                 'url' => $url,
                 'emplacementId' => $emplacement->getId(),

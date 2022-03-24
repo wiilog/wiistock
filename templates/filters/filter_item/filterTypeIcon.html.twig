@@ -3,7 +3,10 @@
         {% for type in types %}
             <input type="radio" id="type-filter-{{ type.id }}" name="type" class="data" value="{{ type.id }}" checked="">
             <label for="type-filter-{{ type.id }}" class="d-inline-flex align-items-center">
-                <img src="{{ type.logo ? type.logo.fullPath }}" class="mr-2" width="15"> {{ type.label }}
+                {% if type.logo %}
+                    <img src="{{ type.logo ? type.logo.fullPath }}" class="mr-2" width="15">
+                {% endif %}
+                {{ type.label }}
             </label>
         {% endfor %}
     </div>

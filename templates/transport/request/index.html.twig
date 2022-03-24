@@ -33,8 +33,9 @@
     </div>
 
     {% include 'transport/request/new.html.twig' with {
-        request: newRequest,
-        types: types
+        collectRequest: newCollectRequest,
+        transportRequest: newTransportRequest,
+        request: newRequest
     } %}
 {% endblock %}
 
