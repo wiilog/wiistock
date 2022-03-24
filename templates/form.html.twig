@@ -107,7 +107,9 @@
               {{ _self.multiple_key(options) }}
               {{ {on: 1, off: 0}[value] ?? value ? 'checked' }}>
         <label class="{{ options.labelClass ?? '' }}" for="{{ id }}">
-            <span>{{ _self.label(label, required, labelOptions) }}</span>
+            <span class="d-inline-flex align-items-center">
+                {{ label | raw }}
+            </span>
         </label>
         {{ _self.tooltip(options.tooltip ?? null, options.inline ?? false) }}
     </div>
