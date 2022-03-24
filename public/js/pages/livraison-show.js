@@ -16,7 +16,6 @@ $(function () {
             {data: 'reference', title: 'Référence'},
             {data: 'label', title: 'Libellé'},
             {data: 'location', title: 'Emplacement'},
-            {data: 'targetLocationPicking', title: 'Emplacement cible picking', visible: Number($(`input[name=showTargetLocationPicking]`).val())},
             {data: 'quantity', title: 'Quantité'},
         ],
         rowConfig: {
