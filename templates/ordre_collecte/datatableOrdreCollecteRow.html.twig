@@ -7,7 +7,8 @@
            data-quantity="{{ quantity }}"
            data-ref-id="{{ refArticleId is defined ? refArticleId }}"
            data-id="{{ id }}"
-           data-emplacement="{{ location }}">
+           data-emplacement="{{ location }}"
+           data-is-destruct="{{ isDestruct }}">
     {% if modifiable %}
         <div class="action-on-click d-none sr-only"
              onclick="toggleCheck($(this))">
