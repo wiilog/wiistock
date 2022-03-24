@@ -2,9 +2,16 @@
 
 namespace App\Repository\Transport;
 
+use App\Entity\Dispatch;
+use App\Entity\FiltreSup;
+use App\Entity\FreeField;
 use App\Entity\Transport\TransportRequest;
+use App\Entity\Utilisateur;
+use App\Helper\QueryCounter;
+use App\Service\VisibleColumnService;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityRepository;
+use Symfony\Component\HttpFoundation\InputBag;
 
 /**
  * @method TransportRequest|null find($id, $lockMode = null, $lockVersion = null)
@@ -13,6 +20,56 @@ use Doctrine\ORM\EntityRepository;
  * @method TransportRequest[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
 class TransportRequestRepository extends EntityRepository {
+
+    public function findByParamAndFilters(InputBag $params, $filters) {
+        $qb = $this->createQueryBuilder("transport_request");
+
+        $total = QueryCounter::count($qb, "transport_request");
+
+        // filtres sup
+        foreach ($filters as $filter) {
+            switch ($filter['field']) {
+                case FiltreSup::FIELD_DATE_MIN:
+                    $qb->andWhere('transport_request.expectedAt >= :dateMin')
+                        ->setParameter('dateMin', $filter['value'] . ' 00:00:00');
+                    break;
+                case FiltreSup::FIELD_DATE_MAX:
+                    $qb->andWhere('transport_request.expectedAt <= :dateMax')
+                        ->setParameter('dateMax', $filter['value'] . ' 23:59:59');
+                    break;
+                case FiltreSup::FIELD_STATUT:
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->join('transport_request.status', 'filter_status')
+                        ->andWhere('filter_status.id IN (:status)')
+                        ->setParameter('status', $value);
+                    break;
+                case FiltreSup::FIELD_TYPE:
+                    $qb
+                        ->andWhere("transport_request.type = :filter_type_value")
+                        ->setParameter("filter_type_value", $filter['value']);
+                    break;
+            }
+        }
+
+        // compte éléments filtrés
+        $countFiltered = QueryCounter::count($qb, "transport_request");
+
+        if ($params->getInt('start')) {
+            $qb->setFirstResult($params->getInt('start'));
+        }
+        if ($params->getInt('length')) {
+            $qb->setMaxResults($params->getInt('length'));
+        }
+
+        $qb->orderBy("transport_request.expectedAt", "ASC");
+
+        return [
+            "data" => $qb->getQuery()->getResult(),
+            "count" => $countFiltered,
+            "total" => $total,
+        ];
+    }
 
     public function getLastNumberByDate(string $date): ?string {
         $result = $this->createQueryBuilder('request')

@@ -2,6 +2,11 @@
 
 {% block title %}Demande | Transport{% endblock %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('transport-request-index') }}
+{% endblock %}
+
 {% block page_filter %}
     {% include 'filters/filtersTransportRequests.html.twig' with {
         page: 'PAGE_TRANSPORT_REQUESTS',
@@ -25,7 +30,7 @@
                 {% endif %}
             </div>
         </div>
-        <div class="row">
+        <div class="row transport-table">
             <div class="col-12">
                 <table id="tableTransportRequests" class="table w-100"></table>
             </div>

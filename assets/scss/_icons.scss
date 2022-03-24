@@ -94,18 +94,24 @@ $icons: (
     }
 }
 
+$wiiIconSizes: 10, 15, 20, 25, 30, 35, 40, 45, 50;
+$wiiIconColors: (
+    primary: #3353D7
+);
 
+@each $size in $wiiIconSizes {
+    .wii-icon-#{$size}px {
+        display: inline-block;
+        width: #{$size}px;
+        height: #{$size}px;
+    }
 
-.wii-icon-15px {
-    background-color: $primary;
-    width: 15px;
-    height: 15px;
-    display: inline-block;
-}
-
-.wii-icon-20px {
-    background-color: $primary;
-    width: 20px;
-    height: 20px;
-    display: inline-block;
+    @each $key, $val in $wiiIconColors {
+        .wii-icon-#{$size}px-#{$key} {
+            display: inline-block;
+            width: #{$size}px;
+            height: #{$size}px;
+            background: $val;
+        }
+    }
 }

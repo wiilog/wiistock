@@ -71,6 +71,7 @@ class FiltreSup {
     const PAGE_ALERTE = 'alerte';
     const PAGE_NOTIFICATIONS = 'notifications';
     const PAGE_ENCOURS = 'encours';
+    const PAGE_TRANSPORT_REQUESTS = 'transportRequest';
     const PAGE_IMPORT = 'import';
 
     #[ORM\Id]

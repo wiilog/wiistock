@@ -1,0 +1,52 @@
+<div class="transport-request-card">
+    <div class="dropdown dropright">
+        <a href="#" class="d-flex" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <img alt="Actions" src="{{ asset('svg/dotsblack.svg') }}" height="20px" width="8px">
+        </a>
+        <div class="dropdown-menu dropdown-follow-gt pointer">
+            <a href="{{ path('transport_request_show', {transportRequest: request.id}) }}" class="d-none action-on-click"></a>
+            <a class="dropdown-item pointer" data-id="2650" data-target="#modalListColis" data-toggle="modal" onclick="listColis($(this))">
+                B
+            </a>
+        </div>
+    </div>
+
+    <div>
+        {% if request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
+            <span class="transport-category">
+                <span class="wii-icon wii-icon-cart-delivery wii-icon-25px-primary mx-1"></span>
+                Livraison
+            </span>
+        {% endif %}
+
+        {% if request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') or request.collect %}
+            <span class="transport-category">
+                <span class="wii-icon wii-icon-cart-collect wii-icon-25px-primary mx-1"></span>
+                Collecte
+            </span>
+        {% endif %}
+
+        {{ request.number }}
+    </div>
+
+    <div>
+        <span class="transport-badge {{ constant('App\\Entity\\Transport\\TransportRequest::STATUS_COLOR')[request.status.nom] }}">
+            {{ request.status.nom }}
+        </span><br>
+
+        {% if request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
+            {% if request.status.nom == constant('App\\Entity\\Transport\\TransportRequest::STATUS_TO_PREPARE') %}
+            {% endif %}
+            À faire à : <b>x</b>
+            Estimée à : <b>d</b>
+        {% elseif request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') %}
+            Planifié le : <b>{{ request.expectedAt | format_helper('longDate', true) }}</b>
+            Estimée à : <b>{{ request.timeSlot.name }}</b>
+        {% endif %}
+    </div>
+
+    <div>
+        Livraison
+        {{ request.number }}
+    </div>
+</div>

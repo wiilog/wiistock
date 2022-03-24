@@ -15,9 +15,9 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\InheritanceType('JOINED')]
 #[ORM\DiscriminatorColumn(name: 'discr', type: 'string')]
 #[ORM\DiscriminatorMap([
-      self::DISCR_DELIVERY => TransportDeliveryRequest::class,
-      self::DISCR_COLLECT => TransportCollectRequest::class
- ])]
+    self::DISCR_DELIVERY => TransportDeliveryRequest::class,
+    self::DISCR_COLLECT => TransportCollectRequest::class,
+])]
 abstract class TransportRequest {
 
     public const NUMBER_PREFIX = 'DTR';
@@ -39,6 +39,19 @@ abstract class TransportRequest {
     public const STATUS_NOT_DELIVERED = 'Non livrée';
     public const STATUS_NOT_COLLECTED = 'Non collectée';
 
+    public const STATUS_COLOR = [
+        self::STATUS_AWAITING_VALIDATION => "to-validate",
+        self::STATUS_AWAITING_PLANNING => "preparing",
+        self::STATUS_TO_DELIVER => "preparing",
+        self::STATUS_TO_PREPARE => "preparing",
+        self::STATUS_TO_COLLECT => "preparing",
+        self::STATUS_ONGOING => "ongoing",
+        self::STATUS_FINISHED => "finished",
+        self::STATUS_CANCELLED => "finished",
+        self::STATUS_NOT_DELIVERED => "cancelled",
+        self::STATUS_NOT_COLLECTED => "cancelled",
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
@@ -55,6 +68,12 @@ abstract class TransportRequest {
 
     #[ORM\Column(type: 'datetime')]
     private ?DateTime $createdAt = null;
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?DateTime $validationDate = null;
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?DateTime $expectedAt = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'transportRequests')]
     private ?Utilisateur $createdBy = null;
@@ -129,6 +148,26 @@ abstract class TransportRequest {
 
     public function setCreatedAt(DateTime $createdAt): self {
         $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    public function getValidationDate(): ?DateTime {
+        return $this->validationDate;
+    }
+
+    public function setValidationDate(?DateTime $validationDate): self {
+        $this->validationDate = $validationDate;
+
+        return $this;
+    }
+
+    public function getExpectedAt(): ?DateTime {
+        return $this->expectedAt;
+    }
+
+    public function setExpectedAt(DateTime $expectedAt): self {
+        $this->expectedAt = $expectedAt;
 
         return $this;
     }

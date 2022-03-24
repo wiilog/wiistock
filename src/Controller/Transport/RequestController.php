@@ -2,16 +2,15 @@
 
 namespace App\Controller\Transport;
 
-use App\Entity\CategorieStatut;
+use App\Entity\Action;
 use App\Entity\CategoryType;
-use App\Entity\Statut;
+use App\Entity\FiltreSup;
+use App\Entity\Menu;
 use App\Entity\Transport\TransportRequest;
 use App\Entity\Type;
+use App\Helper\FormatHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Annotation\HasPermission;
-use App\Entity\Action;
-use App\Entity\Menu;
-use App\Entity\Reception;
 use App\Entity\Transport\TransportCollectRequest;
 use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\Utilisateur;
@@ -22,18 +21,14 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use WiiCommon\Helper\Stream;
 
 
 #[Route("transport/demande")]
 class RequestController extends AbstractController {
 
-    /**
-     * Called in /index.html.twig
-     */
     #[Route("/liste", name: "transport_request_index", methods: "GET")]
-    public function index(EntityManagerInterface $manager): Response {
-        $categoryTypeRepository = $manager->getRepository(CategoryType::class);
+    #[HasPermission([Menu::DEM, Action::DISPLAY_TRANSPORT])]
+    public function index(Request $request, EntityManagerInterface $manager): Response {
         $typeRepository = $manager->getRepository(Type::class);
 
         return $this->render('transport/request/index.html.twig', [
@@ -64,6 +59,7 @@ class RequestController extends AbstractController {
                 TransportRequest::STATUS_NOT_DELIVERED,
                 TransportRequest::STATUS_NOT_COLLECTED,
             ],
+            'newRequest' => new TransportDeliveryRequest(),
         ]);
     }
 
@@ -138,6 +134,62 @@ class RequestController extends AbstractController {
             "redirect" => $this->generateUrl('transport_request_show', [
                 "transportRequest" => $transportRequest->getId()
             ])
+        ]);
+    }
+
+    #[Route('/api', name: 'transport_request_api', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_TRANSPORT], mode: HasPermission::IN_JSON)]
+    public function api(Request $request, EntityManagerInterface $manager): Response {
+        $filtreSupRepository = $manager->getRepository(FiltreSup::class);
+        $transportRepository = $manager->getRepository(TransportRequest::class);
+
+        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_TRANSPORT_REQUESTS, $this->getUser());
+
+        $queryResult = $transportRepository->findByParamAndFilters($request->request, $filters);
+dump($queryResult);
+        $transportRequests = $queryResult['data'];
+
+        $rows = [];
+        $previousDate = null;
+        $currentRow = [];
+
+        function insertCurrentRow(&$rows, &$currentRow) {
+            if($currentRow) {
+                $rows[] = [
+                    "content" => "<div class='transport-request-row'>" . join($currentRow) . "</div>",
+                ];
+
+                $currentRow = [];
+            }
+        }
+
+        foreach ($transportRequests as $request) {
+            if($request->getExpectedAt()->format("dmY") != $previousDate) {
+                if($previousDate != null) {
+                    insertCurrentRow($rows, $currentRow);
+                }
+
+                $previousDate = $request->getExpectedAt()->format("dmY");
+                $rows[] = [
+                    "content" => "<span class='transport-list-date'>" . FormatHelper::longDate($request->getExpectedAt()) . "</span>",
+                ];
+            }
+
+            if(count($currentRow) == 2) {
+                insertCurrentRow($rows, $currentRow);
+            }
+
+            $currentRow[] = $this->renderView("transport/request/list_card.html.twig", [
+                "request" => $request,
+            ]);
+        }
+
+        insertCurrentRow($rows, $currentRow);
+
+        return $this->json([
+            "data" => $rows,
+            "recordsTotal" => $queryResult["total"],
+            "recordsFiltered" => $queryResult["count"],
         ]);
     }
 

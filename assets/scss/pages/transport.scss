@@ -1,0 +1,83 @@
+@import "../variables";
+
+.transport-table {
+    .dataTables_scrollHead, .dataTables_scrollBody {
+        th, td {
+            border: none !important;
+            border-bottom: none !important;
+        }
+
+        tr {
+            cursor: initial !important;
+
+            &:hover {
+                background: white !important;
+            }
+        }
+    }
+
+    .transport-request-row {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        max-width: initial !important;
+    }
+
+    .transport-list-date {
+        color: $primary;
+        font-weight: 600;
+        font-size: 1.2rem;
+    }
+}
+
+.transport-request-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid $grey;
+    width: calc(50% - 12px);
+    border-radius: 4px;
+    padding: 10px 5px;
+
+    .transport-category {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: bold;
+        font-size: 1.2rem;
+    }
+
+    .transport-badge {
+        border-radius: 4px;
+        color: black;
+
+        &.type {
+            color: $greyForm;
+            background: #F2F3F7;
+        }
+
+        &.preparing {
+            background: #EAEDFA;
+        }
+
+        &.to-validate {
+            background: #F5D8CB;
+        }
+
+        &.subcontracted {
+            background: #CBE8F5;
+        }
+
+        &.ongoing {
+            background: #D8CBF5;
+        }
+
+        &.finished {
+            background: #CCF0EB;
+        }
+
+        &.cancelled {
+            background: #F8DDE3;
+        }
+    }
+}
