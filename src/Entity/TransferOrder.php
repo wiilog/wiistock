@@ -4,7 +4,7 @@ namespace App\Entity;
 
 use App\Entity\Interfaces\Serializable;
 use App\Helper\FormatHelper;
-use DateTimeInterface;
+use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -25,45 +25,45 @@ class TransferOrder implements Serializable {
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private ?int $id = null;
 
     /**
      * @ORM\Column(type="string", length=255, unique=true)
      */
-    private $number;
+    private ?string $number = null;
 
     /**
      * @var Statut|null
      * @ORM\ManyToOne(targetEntity=Statut::class, inversedBy="transferOrders")
      * @ORM\JoinColumn(nullable=false)
      */
-    private $status;
+    private ?Statut $status = null;
 
     /**
      * @ORM\OneToOne(targetEntity=TransferRequest::class, inversedBy="order")
      * @ORM\JoinColumn(nullable=false)
      */
-    private $request;
+    private ?TransferRequest $request = null;
 
     /**
      * @ORM\ManyToOne(targetEntity=Utilisateur::class)
      */
-    private $operator;
+    private ?Utilisateur $operator = null;
 
     /**
      * @ORM\Column(type="datetime")
      */
-    private $creationDate;
+    private ?DateTime $creationDate = null;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
      */
-    private $transferDate;
+    private ?DateTime $transferDate = null;
 
     /**
      * @ORM\OneToMany(targetEntity=MouvementStock::class, mappedBy="transferOrder")
      */
-    private $stockMovements;
+    private Collection $stockMovements;
 
     /**
      * @ORM\ManyToOne(targetEntity=Emplacement::class, inversedBy="transferOrders")
@@ -95,11 +95,11 @@ class TransferOrder implements Serializable {
         return $this;
     }
 
-    public function getCreationDate(): ?DateTimeInterface {
+    public function getCreationDate(): ?DateTime {
         return $this->creationDate;
     }
 
-    public function setCreationDate(DateTimeInterface $creationDate): self {
+    public function setCreationDate(DateTime $creationDate): self {
         $this->creationDate = $creationDate;
         return $this;
     }
@@ -113,11 +113,11 @@ class TransferOrder implements Serializable {
         return $this;
     }
 
-    public function getTransferDate(): ?DateTimeInterface {
+    public function getTransferDate(): ?DateTime {
         return $this->transferDate;
     }
 
-    public function setTransferDate(?DateTimeInterface $transferDate): self {
+    public function setTransferDate(?DateTime $transferDate): self {
         $this->transferDate = $transferDate;
         return $this;
     }
