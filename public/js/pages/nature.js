@@ -42,7 +42,6 @@ function initNatureTable() {
             {data: `color`, title: `Couleur`},
             {data: `description`, title: `Description`},
             {data: `needsMobileSync`, title: `Synchronisation nomade`},
-            {data: `displayed`, title: `Affiché en création d'arrivage`},
             {data: `displayedOnForms`, title: `Affichage sur les formulaires`},
             {data: `temperatures`, title: `Températures`, orderable: false},
         ],

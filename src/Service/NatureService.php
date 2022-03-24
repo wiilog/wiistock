@@ -44,7 +44,6 @@ class NatureService
             'defaultQuantity' => $nature->getDefaultQuantity() ?? 'Non définie',
             'prefix' => $nature->getPrefix() ?? 'Non défini',
             'needsMobileSync' => FormatHelper::bool($nature->getNeedsMobileSync()),
-            'displayed' => FormatHelper::bool($nature->getDisplayed()),
             'displayedOnForms' => FormatHelper::bool($nature->getDisplayedOnForms()),
             'color' => $nature->getColor() ? '<div style="background-color:' . $nature->getColor() . ';"><br></div>' : 'Non définie',
             'description' => $nature->getDescription() ?? 'Non définie',
