@@ -17,6 +17,7 @@ use App\Entity\IOT\AlertTemplate;
 use App\Entity\IOT\RequestTemplate;
 use App\Entity\MailerServer;
 use App\Entity\Menu;
+use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Translation;
 use App\Entity\Transport\TemperatureRange;
@@ -548,6 +549,7 @@ class SettingsController extends AbstractController {
         $requestTemplateRepository = $this->manager->getRepository(RequestTemplate::class);
         $alertTemplateRepository = $this->manager->getRepository(AlertTemplate::class);
         $translationRepository = $this->manager->getRepository(Translation::class);
+        $settingRepository = $this->manager->getRepository(Setting::class);
 
         return [
             self::CATEGORY_GLOBAL => [
@@ -765,6 +767,17 @@ class SettingsController extends AbstractController {
                         ->toArray(),
                 ],
                 self::MENU_TRANSPORT_REQUESTS => [
+                    self::MENU_CONFIGURATIONS => fn() => [
+                        "transportDeliveryRequestEmergencies" =>
+                            Stream::from(explode(',', $settingRepository->getOneParamByLabel(Setting::TRANSPORT_DELIVERY_REQUEST_EMERGENCIES)))
+                                ->filter(fn(string $value) => $value)
+                                ->keymap(fn(string $value) => [$value, [
+                                    "value" => $value,
+                                    "label" => $value,
+                                    "selected" => true,
+                                ]])
+                                ->toArray(),
+                    ],
                     self::MENU_DELIVERY_TYPES_FREE_FIELDS => fn() => [
                         "types" => $this->typeGenerator(CategoryType::DELIVERY_TRANSPORT_REQUEST),
                         'category' => CategoryType::DELIVERY_TRANSPORT_REQUEST,
