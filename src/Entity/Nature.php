@@ -12,6 +12,20 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: 'App\Repository\NatureRepository')]
 class Nature {
 
+    public const ARRIVAL_CODE = 'arrival';
+    public const TRANSPORT_COLLECT_CODE = 'transportCollect';
+    public const TRANSPORT_DELIVERY_CODE = 'transportDelivery';
+
+    private const ARRIVAL_LABEL = 'Arrivage';
+    private const TRANSPORT_COLLECT_LABEL = 'Transport - Collecte';
+    private const TRANSPORT_DELIVERY_LABEL = 'Transport - Livraison';
+
+    public const ENTITIES = [
+        self::ARRIVAL_CODE => self::ARRIVAL_LABEL,
+        self::TRANSPORT_COLLECT_CODE => self::TRANSPORT_COLLECT_LABEL,
+        self::TRANSPORT_DELIVERY_CODE => self::TRANSPORT_DELIVERY_LABEL,
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
