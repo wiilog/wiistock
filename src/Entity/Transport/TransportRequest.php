@@ -18,7 +18,6 @@ abstract class TransportRequest {
 
     public const CATEGORY = 'transportRequest';
 
-    public const STATUS_CREATED = 'Création';
     public const STATUS_AWAITING_VALIDATION = 'En attente validation';
     public const STATUS_AWAITING_PLANNING = 'En attente de plannification';
     public const STATUS_TO_PREPARE = 'À préparer';
@@ -26,7 +25,7 @@ abstract class TransportRequest {
     public const STATUS_TO_COLLECT = 'À collecter';
     public const STATUS_ONGOING = 'En cours';
     public const STATUS_FINISHED = 'Terminée';
-    public const STATUS_FINISHED_DEPOSITED = 'Terminée - Objets déposés';
+    public const STATUS_DEPOSITED = 'Objets déposés';
     public const STATUS_CANCELLED = 'Annulée';
     public const STATUS_NOT_DELIVERED = 'Non livrée';
     public const STATUS_NOT_COLLECTED = 'Non collectée';

@@ -96,9 +96,16 @@ $icons: (
 
 
 
-.wii-icon-20px {
+.wii-icon-15px {
     background-color: $primary;
     width: 15px;
     height: 15px;
+    display: inline-block;
+}
+
+.wii-icon-20px {
+    background-color: $primary;
+    width: 20px;
+    height: 20px;
     display: inline-block;
 }

@@ -122,7 +122,7 @@ class Type {
     private Collection $transportRequests;
 
     #[ORM\OneToOne(targetEntity: Attachment::class, cascade: ['persist', 'remove'])]
-    private ?Attachment $image = null;
+    private ?Attachment $logo = null;
 
     public function __construct() {
         $this->champsLibres = new ArrayCollection();
@@ -802,14 +802,12 @@ class Type {
         return $this;
     }
 
-    public function getImage(): ?Attachment
-    {
-        return $this->image;
+    public function getLogo(): ?Attachment {
+        return $this->logo;
     }
 
-    public function setImage(?Attachment $image): self
-    {
-        $this->image = $image;
+    public function setLogo(?Attachment $logo): self {
+        $this->logo = $logo;
 
         return $this;
     }

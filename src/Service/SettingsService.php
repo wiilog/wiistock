@@ -444,6 +444,12 @@ class SettingsService {
                     ->setNotificationsEmergencies(isset($data["notificationEmergencies"]) ? explode(",", $data["notificationEmergencies"]) : null)
                     ->setSendMail($data["mailRequester"] ?? false)
                     ->setColor($data["color"] ?? null);
+
+                if($files["logo"]) {
+                    $type->setLogo($this->attachmentService->createAttachements([$files["logo"]])[0]);
+                } else if(!$data["keep-logo"]) {
+                    $type->setLogo(null);
+                }
             } elseif(isset($tables["category"])) {
                 $category = $categoryTypeRepository->findOneBy(["label" => $tables["category"]]);
                 $type = $typeRepository->findOneBy([

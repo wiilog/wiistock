@@ -1,0 +1,18 @@
+{% extends 'filters/filters.html.twig' %}
+
+{% block filters %}
+    {% include 'filters/filter_item/filterDate.html.twig' %}
+    {% include 'filters/filter_item/filterUser.html.twig' with {
+        name: 'requester',
+        placeholder: 'Demandeur'
+    } %}
+    {% include 'filters/filter_item/filterFileNumber.html.twig' %}
+    {% include 'filters/filter_item/filterContact.html.twig' %}
+    {% include 'filters/filter_item/filterStatus.html.twig' with {
+        name: 'statut',
+        placeholder: 'Statut',
+        names: true,
+    } %}
+    Transport : {% include 'filters/filter_item/filterCategory.html.twig' %}
+    Type : {% include 'filters/filter_item/filterTypeIcon.html.twig' %}
+{% endblock %}
