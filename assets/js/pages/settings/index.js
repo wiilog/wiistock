@@ -6,6 +6,7 @@ import {initUserPage} from "./users/users";
 import {initializeImports} from "./data/imports.js";
 import {initializeRolesPage} from "./users/roles";
 import {initializeRequestTemplates} from "./request-template";
+import {initializeTransportRound} from "./transport-round";
 import {
     initializeStockArticlesTypesFreeFields,
     createFreeFieldsPage,
@@ -79,6 +80,7 @@ const initializers = {
     stock_demandes_statuts_achats: initializePurchaseRequestStatuses,
     stock_demandes_modeles_demande_livraisons: initializeRequestTemplates,
     stock_demandes_modeles_demande_collectes: initializeRequestTemplates,
+    track_tournees: initializeTransportRound,
 };
 
 const saveCallbacks = {

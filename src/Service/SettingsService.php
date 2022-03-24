@@ -22,8 +22,11 @@ use App\Entity\MailerServer;
 use App\Entity\Setting;
 use App\Entity\Reception;
 use App\Entity\Statut;
+use App\Entity\Transport\CollectTimeSlot;
 use App\Entity\Transport\TemperatureRange;
+use App\Entity\Transport\TransportRoundStartingHour;
 use App\Entity\Type;
+use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Entity\WorkFreeDay;
 use App\Service\IOT\AlertTemplateService;
@@ -96,6 +99,8 @@ class SettingsService {
             array_keys($request->request->all()),
             array_keys($request->files->all()),
         );
+
+
         $allFormSettingNames = json_decode($request->request->get('__form_fieldNames', '[]'), true);
 
         $result = [];
@@ -109,7 +114,6 @@ class SettingsService {
                 $result
             );
         }
-
         $updated = [];
         $this->saveCustom($request, $settings, $updated, $result);
         $this->saveStandard($request, $settings, $updated);
@@ -366,6 +370,59 @@ class SettingsService {
                 $day->setDay($date);
 
                 $this->manager->persist($day);
+            }
+        }
+
+
+        if (isset($tables["startingHours"])) {
+            $userRepository = $this->manager->getRepository(Utilisateur::class);
+            $editShift = function(TransportRoundStartingHour $shift, array $edition) use ($userRepository) {
+                $hour = $edition["hour"] ?? null;
+                if ($hour) {
+                    if (!preg_match("/^\d{2}:\d{2}$/", $hour)) {
+                        throw new RuntimeException("Le champ horaire doit être au format HH:MM");
+                    }
+                    $shift
+                        ->setHour($hour);
+
+                    $userIds = explode(',', $edition['deliverers']);
+                    $users = $userRepository->findBy([
+                        'id' => $userIds
+                    ]);
+                    foreach ($users as $user) {
+                        $shift->addDeliverer($user);
+                    }
+                } else {
+                    throw new RuntimeException("Veuillez renseigner tous les champs des heures de départ.");
+                }
+            };
+
+            $hourShiftsRepository = $this->manager->getRepository(TransportRoundStartingHour::class);
+
+            $newShifts = Stream::from($tables["startingHours"])
+                ->filter(fn(array $shift) => !empty($shift) && !isset($shift['id']))
+                ->toArray();
+
+            $existingShifts = Stream::from($tables["startingHours"])
+                ->filter(fn(array $shift) => isset($shift['id']))
+                ->keymap(fn(array $shift) => [$shift->getId(), $shift])
+                ->toArray();
+
+            foreach ($hourShiftsRepository->findAll() as $existingShift) {
+                if (!empty($existingShifts[$existingShift->getId()])) {
+                    $editShift($existingShift, $existingShifts[$existingShift->getId()]);
+                } else {
+                    foreach ($existingShift->getDeliverers() as $deliverer) {
+                        $deliverer->setTransportRoundStartingHour(null);
+                    }
+                    $this->manager->remove($existingShift);
+                }
+            }
+
+            foreach ($newShifts as $hourShifts) {
+                $shift = new TransportRoundStartingHour();
+                $this->manager->persist($shift);
+                $editShift($shift, $hourShifts);
             }
         }
 

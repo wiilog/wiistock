@@ -8,6 +8,7 @@ use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\DaysWorked;
+use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
 use App\Entity\FreeField;
 use App\Entity\Import;
@@ -17,9 +18,13 @@ use App\Entity\IOT\AlertTemplate;
 use App\Entity\IOT\RequestTemplate;
 use App\Entity\MailerServer;
 use App\Entity\Menu;
+use App\Entity\Nature;
+use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Translation;
+use App\Entity\Transport\CollectTimeSlot;
 use App\Entity\Transport\TemperatureRange;
+use App\Entity\Transport\TransportRoundStartingHour;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
@@ -27,6 +32,7 @@ use App\Entity\WorkFreeDay;
 use App\Helper\FormatHelper;
 use App\Repository\IOT\AlertTemplateRepository;
 use App\Repository\IOT\RequestTemplateRepository;
+use App\Repository\SettingRepository;
 use App\Repository\TypeRepository;
 use App\Service\CacheService;
 use App\Service\PackService;
@@ -271,10 +277,11 @@ class SettingsController extends AbstractController {
                         self::MENU_COLLECT_TYPES_FREE_FIELDS => ["label" => "Collectes - Types & champs libres", "wrapped" => false],
                     ],
                 ],
-//                self::MENU_ROUNDS => [
-//                    "label" => "Tournées",
-//                    "save" => true,
-//                ],
+                self::MENU_ROUNDS => [
+                    "label" => "Tournées",
+                    "save" => true,
+                    "discard" => true,
+                ],
                 self::MENU_TEMPERATURES => [
                     "label" => "Températures",
                     "save" => true,
@@ -421,7 +428,7 @@ class SettingsController extends AbstractController {
     private const MENU_REQUEST_TEMPLATES = "modeles_demande";
 
     private const MENU_TRANSPORT_REQUESTS = "demande_transport";
-//    private const MENU_ROUNDS = "tournees";
+    private const MENU_ROUNDS = "tournees";
     private const MENU_TEMPERATURES = "temperatures";
 
     private const MENU_DELIVERIES = "livraisons";
@@ -521,6 +528,22 @@ class SettingsController extends AbstractController {
         ]);
     }
 
+    private function smartWorkflowEndingMotives(SettingRepository $settingRepository): array {
+        $smartItems = [];
+
+        $items = explode(',', $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_COLLECT_REJECT_MOTIVES));
+        $values = explode(',', $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_COLLECT_WORKFLOW_ENDING_MOTIVE));
+
+        foreach ($items as $item) {
+            $smartItems[$item] = [
+                "value" => $item,
+                "label" => $item,
+                "selected" => in_array($item, $values),
+            ];
+        }
+        return $smartItems;
+    }
+
     private function typeGenerator(string $category, $checkFirst = true): array {
         $typeRepository = $this->manager->getRepository(Type::class);
         $types = Stream::from($typeRepository->findByCategoryLabels([$category]))
@@ -540,6 +563,9 @@ class SettingsController extends AbstractController {
     public function customValues(): array {
         $mailerServerRepository = $this->manager->getRepository(MailerServer::class);
         $temperatureRepository = $this->manager->getRepository(TemperatureRange::class);
+        $natureRepository = $this->manager->getRepository(Nature::class);
+        $locationsRepository = $this->manager->getRepository(Emplacement::class);
+        $settingRepository = $this->manager->getRepository(Setting::class);
         $typeRepository = $this->manager->getRepository(Type::class);
         $statusRepository = $this->manager->getRepository(Statut::class);
         $freeFieldRepository = $this->manager->getRepository(FreeField::class);
@@ -755,6 +781,72 @@ class SettingsController extends AbstractController {
                 ],
             ],
             self::CATEGORY_TRACKING => [
+                self::MENU_ROUNDS => fn() => [
+                    "packRejectMotives" =>
+                        Stream::from(explode(',', $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_PACK_REJECT_MOTIVES)))
+                            ->filter(fn(string $value) => $value)
+                            ->keymap(fn(string $value) => [$value, [
+                            "value" => $value,
+                            "label" => $value,
+                            "selected" => true,
+                        ]])
+                        ->toArray(),
+                    "deliveryRejectMotives" =>
+                        Stream::from(explode(',', $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_DELIVERY_REJECT_MOTIVES)))
+                            ->filter(fn(string $value) => $value)
+                            ->keymap(fn(string $value) => [$value, [
+                                "value" => $value,
+                                "label" => $value,
+                                "selected" => true,
+                            ]])
+                            ->toArray(),
+                    "collectRejectMotives" =>
+                        Stream::from(explode(',', $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_COLLECT_REJECT_MOTIVES)))
+                            ->filter(fn(string $value) => $value)
+                            ->keymap(fn(string $value) => [$value, [
+                                "value" => $value,
+                                "label" => $value,
+                                "selected" => true,
+                            ]])
+                            ->toArray(),
+                    "collectWorkflowEndingMotives" => $this->smartWorkflowEndingMotives($settingRepository),
+                    "transportRoundEndLocations" =>
+                        Stream::from(explode(',', $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_END_ROUND_LOCATIONS)))
+                            ->filter(fn(string $value) => $value)
+                            ->keymap(fn(string $value) => [$value, [
+                                "value" => $value,
+                                "label" => $locationsRepository->find($value)->getLabel(),
+                                "selected" => true,
+                            ]])
+                            ->toArray(),
+                    "transportRoundCollectedPacksLocations" =>
+                        Stream::from(explode(',', $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_COLLECTED_PACKS_LOCATIONS)))
+                            ->filter(fn(string $value) => $value)
+                            ->keymap(fn(string $value) => [$value, [
+                                "value" => $value,
+                                "label" => $locationsRepository->find($value)->getLabel(),
+                                "selected" => true,
+                            ]])
+                            ->toArray(),
+                    "transportRoundRejectedPacksLocations" =>
+                        Stream::from(explode(',', $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_REJECTED_PACKS_LOCATIONS)))
+                            ->filter(fn(string $value) => $value)
+                            ->keymap(fn(string $value) => [$value, [
+                                "value" => $value,
+                                "label" => $locationsRepository->find($value)->getLabel(),
+                                "selected" => true,
+                            ]])
+                            ->toArray(),
+                    "transportRoundNeededNaturesToDrop" =>
+                        Stream::from(explode(',', $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_NEEDED_NATURES_TO_DROP)))
+                            ->filter(fn(string $value) => $value)
+                            ->keymap(fn(string $value) => [$value, [
+                                "value" => $value,
+                                "label" => $natureRepository->find($value)->getLabel(),
+                                "selected" => true,
+                            ]])
+                            ->toArray(),
+                ],
                 self::MENU_TEMPERATURES => fn() => [
                     "temperatureRanges" => Stream::from($temperatureRepository->findAll())
                         ->map(fn(TemperatureRange $range) => [
@@ -880,6 +972,64 @@ class SettingsController extends AbstractController {
                 ];
             }
         }
+
+        return $this->json([
+            "data" => $data,
+            "recordsTotal" => count($data),
+            "recordsFiltered" => count($data),
+        ]);
+    }
+
+    /**
+     * @Route("/heures-depart-api", name="settings_starting_hours_api", options={"expose"=true})
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_GLOBAL})
+     */
+    public function startingHoursApi(Request $request, EntityManagerInterface $manager) {
+        $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
+        $class = "form-control data";
+
+        $hourShiftsRepository = $manager->getRepository(TransportRoundStartingHour::class);
+
+        $data = [];
+        foreach ($hourShiftsRepository->findAll() as $shift) {
+            $hour = $shift->getHour();
+            $deliverers = "<select name='deliverers' data-s2='user' class='$class' data-global-error='Livreur(s)' multiple='multiple'/>";
+            foreach ($shift->getDeliverers() as $deliverer) {
+                $id = $deliverer->getId();
+                $name = $deliverer->getUsername();
+                $deliverers .= "<option value='$id' selected>$name</option>";
+            }
+            $deliverers .= "</select>";
+
+            if ($edit) {
+                $data[] = [
+                    "actions" => $this->canDelete() ? "
+                        <button class='btn btn-silent delete-row' data-id='{$shift->getId()}'>
+                            <i class='wii-icon wii-icon-trash text-primary'></i>
+                        </button>
+                    " : "",
+                    "id" => $shift->getId(),
+                    "hour" => "<input name='hour' class='$class' data-global-error='Heure' value='{$hour}'/>",
+                    "deliverers" => $deliverers,
+                ];
+            } else {
+                $data[] = [
+                    "actions" => "",
+                    "id" => $shift->getId(),
+                    "hour" => $hour,
+                    "deliverers" => Stream::from($shift->getDeliverers())
+                        ->map(fn(Utilisateur $utilisateur) => $utilisateur->getUsername())
+                        ->join(','),
+                ];
+            }
+        }
+
+        $data[] = [
+            "actions" => "<span class='d-flex justify-content-start align-items-center add-row'><span class='wii-icon wii-icon-plus'></span></span>",
+            "id" => "",
+            "hour" => "",
+            "deliverers" => ""
+        ];
 
         return $this->json([
             "data" => $data,
