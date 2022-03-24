@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Nature;
 use App\Helper\QueryCounter;
 use Doctrine\ORM\EntityRepository;
+use JetBrains\PhpStorm\ArrayShape;
 use Symfony\Component\HttpFoundation\InputBag;
 
 /**
@@ -111,5 +112,19 @@ class NatureRepository extends EntityRepository
         return array_map(function(array $nature) {
             return $nature['label'];
         }, $query->getResult());
+    }
+
+    /**
+     * @param string[] $forms
+     * @return Nature[]
+     */
+    public function findByAllowedForms(array $forms): array {
+        $qb = $this->createQueryBuilder('nature');
+
+        foreach ($forms as $form) {
+            $qb->orWhere("JSON_EXTRACT(nature.allowedForms, '$.\"$form\"') IS NOT NULL");
+        }
+
+        return $qb->getQuery()->getResult();
     }
 }
