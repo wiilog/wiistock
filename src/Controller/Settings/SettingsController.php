@@ -1584,7 +1584,7 @@ class SettingsController extends AbstractController
                         </button>
                         ",
                     "label" => $category->getLabel(),
-                    "frequency" => $category->getFrequency()->getLabel(),
+                    "frequency" => $category->getFrequency()?->getLabel(),
                 ];
             }
         }
