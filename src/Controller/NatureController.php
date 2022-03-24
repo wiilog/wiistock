@@ -7,6 +7,7 @@ use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Menu;
 use App\Entity\Nature;
+use App\Entity\Transport\TemperatureRange;
 use App\Service\UserService;
 
 use Doctrine\ORM\EntityManagerInterface;
@@ -31,9 +32,12 @@ class NatureController extends AbstractController
     /**
      * @Route("/", name="nature_param_index")
      */
-    public function index()
+    public function index(EntityManagerInterface $manager)
     {
-        return $this->render('nature_param/index.html.twig');
+        $temperatures = $manager->getRepository(TemperatureRange::class)->findBy([]);
+        return $this->render('nature_param/index.html.twig', [
+            'temperatures' => $temperatures
+        ]);
     }
 
     /**
@@ -50,15 +54,16 @@ class NatureController extends AbstractController
 
             $rows[] =
                 [
-                    'Label' => $nature->getLabel(),
-                    'Code' => $nature->getCode(),
-                    'Quantité par défaut' => $nature->getDefaultQuantity() ?? 'Non définie',
-                    'Préfixe' => $nature->getPrefix() ?? 'Non défini',
+                    'label' => $nature->getLabel(),
+                    'code' => $nature->getCode(),
+                    'defaultQuantity' => $nature->getDefaultQuantity() ?? 'Non définie',
+                    'prefix' => $nature->getPrefix() ?? 'Non défini',
                     'mobileSync' => $nature->getNeedsMobileSync() ? 'Oui' : 'Non',
                     'displayed' => $nature->getDisplayed() ? 'Oui' : 'Non',
-                    'Couleur' => $nature->getColor() ? '<div style="background-color:' . $nature->getColor() . ';"><br></div>' : 'Non définie',
+                    'color' => $nature->getColor() ? '<div style="background-color:' . $nature->getColor() . ';"><br></div>' : 'Non définie',
                     'description' => $nature->getDescription() ?? 'Non définie',
-                    'Actions' => $this->renderView('nature_param/datatableNatureRow.html.twig', [
+                    'temperatures' => Stream::from($nature->getTemperatureRanges())->map(fn(TemperatureRange $temperature) => $temperature->getValue())->join(", "),
+                    'actions' => $this->renderView('nature_param/datatableNatureRow.html.twig', [
                         'url' => $url,
                         'natureId' => $nature->getId(),
                     ]),
@@ -74,14 +79,14 @@ class NatureController extends AbstractController
      */
     public function new(Request $request, TranslatorInterface $translator, EntityManagerInterface $entityManager): Response {
         if ($data = json_decode($request->getContent(), true)) {
-            $em = $this->getDoctrine()->getManager();
-
             if(preg_match("[[,;]]", $data['label'])) {
                 return $this->json([
                     "success" => false,
-                    "msg" => "Le label d'une nature ne peut pas contenir ; ou ,",
+                    "msg" => "Le libellé d'une nature ne peut pas contenir ; ou ,",
                 ]);
             }
+
+            $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
 
             $nature = new Nature();
             $nature
@@ -93,6 +98,13 @@ class NatureController extends AbstractController
                 ->setDefaultQuantity($data['quantity'])
                 ->setDescription($data['description'] ?? null)
                 ->setCode($data['code']);
+
+            if (!empty($data['allowedTemperatures'])) {
+                foreach ($data['allowedTemperatures'] as $allowedTemperatureId) {
+                    $nature
+                        ->addTemperatureRange($temperatureRangeRepository->find($allowedTemperatureId));
+                }
+            }
 
             $natures = $entityManager->getRepository(Nature::class)->findAll();
 
@@ -114,8 +126,8 @@ class NatureController extends AbstractController
                 $nature->setDefaultForDispatch(false);
             }
 
-            $em->persist($nature);
-            $em->flush();
+            $entityManager->persist($nature);
+            $entityManager->flush();
 
             return new JsonResponse([
                 'success' => true,
@@ -130,14 +142,17 @@ class NatureController extends AbstractController
      * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function apiEdit(Request $request,
-                            EntityManagerInterface $entityManager): Response
+                            EntityManagerInterface $manager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
-            $natureRepository = $entityManager->getRepository(Nature::class);
+            $natureRepository = $manager->getRepository(Nature::class);
             $nature = $natureRepository->find($data['id']);
+
+            $temperatures = $manager->getRepository(TemperatureRange::class)->findBy([]);
 
             $json = $this->renderView('nature_param/modalEditNatureContent.html.twig', [
                 'nature' => $nature,
+                'temperatures' => $temperatures
             ]);
 
             return new JsonResponse($json);
@@ -154,6 +169,7 @@ class NatureController extends AbstractController
     {
         if ($data = json_decode($request->getContent(), true)) {
             $natureRepository = $entityManager->getRepository(Nature::class);
+            $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
             $currentNature = $natureRepository->find($data['nature']);
             $natureLabel = $currentNature->getLabel();
 
@@ -173,6 +189,15 @@ class NatureController extends AbstractController
                 ->setDescription($data['description'] ?? null)
                 ->setColor($data['color'])
                 ->setCode($data['code']);
+
+            $currentNature->getTemperatureRanges()->clear();
+
+            if (!empty($data['allowedTemperatures'])) {
+                foreach ($data['allowedTemperatures'] as $allowedTemperatureId) {
+                    $currentNature
+                        ->addTemperatureRange($temperatureRangeRepository->find($allowedTemperatureId));
+                }
+            }
 
             $natures = $natureRepository->findAll();
 
@@ -198,7 +223,7 @@ class NatureController extends AbstractController
 
             return new JsonResponse([
                 'success' => true,
-                'msg' => 'La nature "' . $natureLabel . '" a bien été modifiée.'
+                'msg' => "La nature <strong>$natureLabel</strong> a bien été modifiée."
             ]);
         }
         throw new BadRequestHttpException();
@@ -208,7 +233,7 @@ class NatureController extends AbstractController
      * @Route("/verification", name="nature_check_delete", options={"expose"=true}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::PARAM, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
-    public function checkStatusCanBeDeleted(Request $request,
+    public function checkNatureCanBeDeleted(Request $request,
                                             EntityManagerInterface $entityManager): Response
     {
         if ($typeId = json_decode($request->getContent(), true)) {
