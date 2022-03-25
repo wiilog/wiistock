@@ -2,7 +2,10 @@
 
 namespace App\Controller\Transport;
 
+use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
+use App\Entity\FreeField;
+use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\Transport\TransportRequest;
 use App\Entity\Type;
 use Doctrine\ORM\EntityManagerInterface;
@@ -54,9 +57,15 @@ class RequestController extends AbstractController {
     }
 
     #[Route("/voir/{transportRequest}", name: "transport_request_show", methods: "GET")]
-    public function show(TransportRequest $transportRequest): Response {
+    public function show(TransportRequest $transportRequest, EntityManagerInterface $manager): Response {
+        $categoryFF = $transportRequest instanceof TransportDeliveryRequest
+            ? CategorieCL::DELIVERY_TRANSPORT_REQUEST
+            : CategorieCL::COLLECT_TRANSPORT_REQUEST;
+        $freeFields = $manager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($transportRequest->getType(), $categoryFF);
+
         return $this->render('transport/request/show.html.twig', [
             'transportRequest' => $transportRequest,
+            'freeFields' => $freeFields
         ]);
     }
 
