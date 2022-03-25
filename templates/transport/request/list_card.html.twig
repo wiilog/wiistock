@@ -1,63 +1,138 @@
-{% set order = request.orders | last %}
+{% set order = (request.orders | last) ?: null %}
+{% set transportRound = order ? (order.transportRoundLines | last) ?: null : null %}
 
-<div class="transport-request-card">
-    <div class="dropdown dropright">
-        <a href="#" class="d-flex" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            <img alt="Actions" src="{{ asset('svg/dotsblack.svg') }}" height="20px" width="8px">
-        </a>
-        <div class="dropdown-menu dropdown-follow-gt pointer">
-            <a href="{{ path('transport_request_show', {transportRequest: request.id}) }}" class="d-none action-on-click"></a>
-            <a class="dropdown-item pointer" data-id="2650" data-target="#modalListColis" data-toggle="modal" onclick="listColis($(this))">
-                B
-            </a>
+<div class="transport-request-container col-12 col-xl-6 p-1">
+    <a href="{{ path('transport_request_show', {transportRequest: request.id}) }}" class="transport-request-card">
+        <div class="dropdown dropright">
+            <div class="d-flex" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <img alt="Actions" src="{{ asset('svg/dotsblack.svg') }}" height="20px" width="8px">
+            </div>
+            <div class="dropdown-menu dropdown-follow-gt pointer">
+                <div class="dropdown-item pointer">
+                    <i class="fas fa-print mr-2"></i> Imprimer les étiquettes
+                </div>
+                {% if order %}
+                    <div class="dropdown-item pointer">
+                        <i class="fas fa-file mr-2"></i> Générer bon de transport
+                    </div>
+                    <div class="dropdown-item pointer">
+                        <i class="fas fa-ban mr-2"></i> Annuler
+                    </div>
+                {% else %}
+                    <div class="dropdown-item pointer">
+                        <i class="fas fa-trash mr-2"></i> Supprimer
+                    </div>
+                {% endif %}
+            </div>
         </div>
-    </div>
 
-    <div class="transport-category-container">
-        {% if request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
-            <span class="transport-category">
+        <div class="transport-category-container">
+            {% if request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
+                <span class="transport-category">
                 <span class="wii-icon wii-icon-cart-delivery wii-icon-25px-primary mr-1"></span>
                 Livraison
             </span>
-        {% endif %}
+            {% endif %}
 
-        {% if request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') or request.collect %}
-            <span class="transport-category">
+            {% if request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') or request.collect %}
+                <span class="transport-category">
                 <span class="wii-icon wii-icon-cart-collect wii-icon-25px-primary mr-1"></span>
                 Collecte
             </span>
-        {% endif %}
+            {% endif %}
 
-        {{ request.number }}
-    </div>
+            {{ request.number }}
+        </div>
 
-    <div class="transport-details-container">
+        <div class="transport-details-container">
         <span class="transport-badge {{ constant('App\\Entity\\Transport\\TransportRequest::STATUS_COLOR')[request.status.nom] }}">
             {{ request.status.nom }}
         </span><br>
 
-        {% if request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
-            À faire à : <span class="transport-value">{{ request.expectedAt | date('H:i') }}</span><br>
-            Estimée à : <span class="transport-value">{% if not order %}
-                -
-            {% elseif order.subcontracted %}
-                Non disponible
-            {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ASSIGNED') %}
-                {{ order.transportRoundLines.estimatedAt | date('H:i') }}
-            {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ONGOING') %}
-            {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_FINISHED') %}
-            {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_CANCELLED') %}
-            {% endif %}</span>
+            {% if request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
+                À faire à : <span class="text-nowrap">
+                    <span class="transport-value">{{ request.expectedAt | date('H:i') }}</span>
+                    {% if request.emergency %}
+                        <img src="{{ asset('svg/reference_article/security-threshold.svg') }}" width=15 alt="Urgent" title="Urgent"/>
+                    {% endif %}
+                </span>
+                <br>
 
-            Estimée à : <span class="transport-value">d</span>
-        {% elseif request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') %}
-            Planifié le : <span class="transport-value">{{ request.expectedAt | format_helper('longDate', true) }}</span><br>
-            Estimée à : <span class="transport-value">{{ request.timeSlot.name }}</span>
-        {% endif %}
-    </div>
+                {% if not order or order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ASSIGNED') %}
+                    Estimée à : <span class="transport-value">{{ request.expectedAt | date('H:i') }}</span>
+                {% elseif order.subcontracted %}
+                    Estimation <span class="transport-value">non disponible</span>
+                {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ONGOING') %}
+                    Estimée à : <span
+                        class="transport-value">{{ transportRound ? transportRound.estimatedAt | date('H:i') : 'Heure indisponible' }}</span>
+                {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_FINISHED') %}
+                    Fait à : <span
+                        class="transport-value">{{ transportRound ? transportRound.fullfilledAt | date('H:i') : 'Heure indisponible' }}</span>
+                {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_NOT_DELIVERED') %}
+                    Non livré le : <span
+                        class="transport-value">{{ transportRound ? transportRound.rejectedAt | date('d/m/Y H:i') : 'Heure indisponible' }}</span>
+                {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_CANCELLED') %}
+                    Annulée le : <span
+                        class="transport-value">{{ transportRound ? transportRound.cancelledAt | date('d/m/Y H:i') : 'Heure indisponible' }}</span>
+                {% else %}
+                    Heure indisponible
+                {% endif %}
+                </span>
+            {% elseif request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') %}
+                Planifié le : <span class="transport-value">
+                {% if not order or order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_TO_CONTACT') %}
+                    -
+                {% else %}
+                    {{ request.expectedAt | format_helper('longDate', true) }}
+                {% endif %}
+            </span><br>
 
-    <div class="transport-creation-container wii-small-text">
-        Créée le : {{ request.createdAt | format_helper('longDate', true) }}<br>
-        Par : {{ request.createdBy }}<br>
-    </div>
+                {% if not order or order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ASSIGNED') %}
+                    Estimée à : <span class="transport-value">-</span>
+                {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ASSIGNED') %}
+                    Estimée à : <span class="transport-value">{{ request.timeSlot.name }}</span>
+                {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ONGOING') %}
+                    Estimée à : <span
+                        class="transport-value">{{ transportRound ? transportRound.estimatedAt | date('H:i') : 'Heure indisponible' }}</span>
+                {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_FINISHED') %}
+                    Fait à : <span
+                        class="transport-value">{{ transportRound ? transportRound.fullfilledAt | date('H:i') : 'Heure indisponible' }}</span>
+                {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_NOT_COLLECTED') %}
+                    Non collecté le :{{ transportRound ? transportRound.rejectedAt | date('d/m/Y H:i') : 'Heure indisponible' }}
+                {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_CANCELLED') %}
+                    Annulée le : <span
+                        class="transport-value">{{ transportRound ? transportRound.cancelledAt | date('d/m/Y H:i') : 'Heure indisponible' }}</span>
+                {% else %}
+                    Heure indisponible
+                {% endif %}
+            {% endif %}
+        </div>
+
+        <div class="transport-creation-contact">
+            <span class="transport-badge type">
+                {% if request.type.logo %}
+                    <img src="{{ request.type.logo.fullPath }}" width="18" height="18" class="mr-2"
+                         alt="Logo type {{ request.type.label }}"/>
+                {% endif %}
+
+                {{ request.type.label }}
+            </span><br>
+
+            {{ request.contact.name }}<br>
+            <span class="wii-small-text">N° dossier {{ request.contact.fileNumber }}</span>
+        </div>
+
+        <div class="transport-creation-container wii-small-text">
+            {% if order and order.isRejected %}
+                <img src="{{ asset('svg/rejected-delivery.svg') }}" class="transport-status-icon"
+                     alt="Livraison rejetée" title="Livraison rejetée">
+            {% elseif order and order.hasRejectedPacks %}
+                <img src="{{ asset('svg/rejected-pack.svg') }}" class="transport-status-icon" alt="Colis rejeté"
+                     title="Colis rejeté">
+            {% endif %}
+
+            Créée le : {{ request.createdAt | format_helper('longDate', true, true) }}<br>
+            Par : {{ request.createdBy }}<br>
+        </div>
+    </a>
 </div>

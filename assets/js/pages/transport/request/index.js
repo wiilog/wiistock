@@ -19,6 +19,8 @@ $(function() {
         processing: true,
         ordering: false,
         searching: false,
+        //remove empty div with mb-2 that leaves a blank space
+        drawCallback: () => $(`.row.mb-2 .col-auto.d-none`).parent().remove(),
         rowConfig: {
             needsRowClickAction: true
         },

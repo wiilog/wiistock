@@ -70,7 +70,7 @@ class TransportDeliveryOrderPack {
         return $this;
     }
 
-    public function getRejected(): ?bool {
+    public function isRejected(): ?bool {
         return $this->rejected;
     }
 

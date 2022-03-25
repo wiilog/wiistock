@@ -21,6 +21,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use WiiCommon\Helper\Stream;
 
 
 #[Route("transport/demande")]
@@ -40,7 +41,7 @@ class RequestController extends AbstractController {
                 ], [
                     "category" => CategoryType::COLLECT_TRANSPORT_REQUEST,
                     "icon" => "cart-collect",
-                    "label" => "Collecte" ,
+                    "label" => "Collecte",
                 ],
             ],
             'types' => $typeRepository->findByCategoryLabels([
@@ -72,9 +73,11 @@ class RequestController extends AbstractController {
 
     #[Route("/new", name: "transport_request_new", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::CREATE_TRANSPORT], mode: HasPermission::IN_JSON)]
-    public function new(Request $request,
-                        EntityManagerInterface $entityManager,
-                        UniqueNumberService $uniqueNumberService): JsonResponse {
+    public function new(
+        Request                $request,
+        EntityManagerInterface $entityManager,
+        UniqueNumberService    $uniqueNumberService
+    ): JsonResponse {
 
         $typeRepository = $entityManager->getRepository(Type::class);
 
@@ -94,8 +97,7 @@ class RequestController extends AbstractController {
         if ($transportRequestType === TransportRequest::DISCR_DELIVERY) {
             $transportRequest = new TransportDeliveryRequest();
             $type = $typeRepository->findOneByCategoryLabel(CategoryType::DELIVERY_TRANSPORT_REQUEST, $typeStr);
-        }
-        else { //if ($requestType === TransportRequest::DISCR_COLLECT)
+        } else { //if ($requestType === TransportRequest::DISCR_COLLECT)
             $transportRequest = new TransportCollectRequest();
             $type = $typeRepository->findOneByCategoryLabel(CategoryType::COLLECT_TRANSPORT_REQUEST, $typeStr);
         }
@@ -124,7 +126,6 @@ class RequestController extends AbstractController {
             ->setObservation($request->request->get('contactObservation'));
 
 
-
         $entityManager->persist($transportRequest);
         $entityManager->flush();
 
@@ -132,8 +133,8 @@ class RequestController extends AbstractController {
             "success" => true,
             "message" => "Votre demande de transport a bien été créée",
             "redirect" => $this->generateUrl('transport_request_show', [
-                "transportRequest" => $transportRequest->getId()
-            ])
+                "transportRequest" => $transportRequest->getId(),
+            ]),
         ]);
     }
 
@@ -147,26 +148,18 @@ class RequestController extends AbstractController {
 
         $queryResult = $transportRepository->findByParamAndFilters($request->request, $filters);
 
-        $transportRequests = $queryResult['data'];
+        $transportRequests = [];
+        foreach ($queryResult["data"] as $request) {
+            $transportRequests[$request->getExpectedAt()->format("dmY")][] = $request;
+        }
 
         $rows = [];
         $previousDate = null;
         $currentRow = [];
 
         function insertCurrentRow(&$rows, &$currentRow) {
-            if($currentRow) {
-                $row = "<div class='transport-request-row'>" . join($currentRow) . "</div>";
-                if(!$rows) {
-                    $export = "<button type='button'
-                            class='btn btn-primary split-button'
-                            onclick='saveExportFile(`export_dispatches_csv`)'>
-                        <i class='fa fa-file-csv mr-2' style='padding: 0 2px'></i>
-                        Exporter au format CSV
-                    </button>";
-
-                    $row = "<div class='d-flex justify-content-between'>$row $export</div>";
-                }
-
+            if ($currentRow) {
+                $row = "<div class='transport-request-row row no-gutters'>" . join($currentRow) . "</div>";
                 $rows[] = [
                     "content" => $row,
                 ];
@@ -175,28 +168,57 @@ class RequestController extends AbstractController {
             }
         }
 
-        foreach ($transportRequests as $request) {
-            if($request->getExpectedAt()->format("dmY") != $previousDate) {
-                if($previousDate != null) {
-                    insertCurrentRow($rows, $currentRow);
-                }
+        foreach ($transportRequests as $date => $requests) {
+            $date = DateTime::createFromFormat("dmY", $date);
+            $date = FormatHelper::longDate($request->getExpectedAt());
 
-                $previousDate = $request->getExpectedAt()->format("dmY");
-                $rows[] = [
-                    "content" => "<span class='transport-list-date'>" . FormatHelper::longDate($request->getExpectedAt()) . "</span>",
-                ];
+            $counts = Stream::from($requests)
+                ->map(fn(TransportRequest $request) => get_class($request))
+                ->reduce(function($carry, $class) {
+                    $carry[$class] = ($carry[$class] ?? 0) + 1;
+                    return $carry;
+                }, []);
+
+            $deliveryCount = $counts[TransportDeliveryRequest::class] ?? null;
+            if($deliveryCount) {
+                $s = $deliveryCount > 1 ? "s" : "";
+                $deliveryCount = "<span class='wii-icon wii-icon-cart-delivery wii-icon-15px-primary mr-1'></span> $deliveryCount livraison$s";
             }
 
-            if(count($currentRow) == 2) {
-                insertCurrentRow($rows, $currentRow);
+            $collectCount = $counts[TransportCollectRequest::class] ?? null;
+            if($collectCount) {
+                $s = $collectCount > 1 ? "s" : "";
+                $collectCount = "<span class='wii-icon wii-icon-cart-collect wii-icon-15px-primary mr-1'></span> $collectCount collecte$s";
+            }
+dump($counts);
+
+            $row = "<div class='transport-list-date px-1 pb-2 pt-3'>$date <div class='transport-counts'>$deliveryCount $collectCount</div></div>";
+
+            if(!$rows) {
+                $export = "<span>
+                    <button type='button' class='btn btn-primary mr-1'
+                            onclick='saveExportFile(`transport_requests_export`)'>
+                        <i class='fa fa-file-csv mr-2' style='padding: 0 2px'></i>
+                        Exporter au format CSV
+                    </button>
+                </span>";
+
+                $row = "<div class='d-flex justify-content-between'>$row $export</div>";
             }
 
-            $currentRow[] = $this->renderView("transport/request/list_card.html.twig", [
-                "request" => $request,
-            ]);
+            $rows[] = [
+                "content" => $row,
+            ];
+
+            foreach ($requests as $request) {
+                $currentRow[] = $this->renderView("transport/request/list_card.html.twig", [
+                    "request" => $request,
+                ]);
+            }
+
+            insertCurrentRow($rows, $currentRow);
         }
 
-        insertCurrentRow($rows, $currentRow);
 
         return $this->json([
             "data" => $rows,

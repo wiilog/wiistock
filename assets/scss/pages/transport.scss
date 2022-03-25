@@ -1,10 +1,19 @@
 @import "../variables";
 
 .transport-table {
-    .dataTables_scrollHead, .dataTables_scrollBody {
+    .dataTables_scrollHead {
+        display: none;
+    }
+
+    .dataTables_scrollBody {
         th, td {
             border: none !important;
             border-bottom: none !important;
+            padding: 0 !important;
+
+            & > * {
+                max-width: initial !important;
+            }
         }
 
         tr {
@@ -20,22 +29,36 @@
         display: flex;
         justify-content: space-between;
         width: 100%;
-        max-width: initial !important;
     }
 
     .transport-list-date {
         color: $primary;
         font-weight: 600;
         font-size: 1.2rem;
+
+        .transport-counts {
+            display: inline-block;
+            color: black;
+            font-weight: normal;
+            margin-left: 20px;
+
+            .wii-icon:not(:first-child) {
+                margin-left: 10px;
+            }
+        }
     }
 }
 
+.transport-request-container:first-child {
+    margin-top: 0 !important;
+}
+
 .transport-request-card {
+    position: relative;
     display: flex;
     justify-content: space-between;
     align-items: center;
     border: 1px solid $grey;
-    width: calc(50% - 12px);
     border-radius: 4px;
     padding: 10px 5px;
 
@@ -45,28 +68,34 @@
 
     .transport-category-container, .transport-details-container, .transport-creation-container {
         margin: 0 16px;
+        white-space: normal;
     }
 
-    .transport-details-container {
-        flex: 1 1 auto;
+    .transport-details-container, .transport-creation-contact {
+        width: 25%;
+        font-size: 1rem;
     }
 
     .transport-category {
         display: flex;
-        justify-content: center;
         align-items: center;
         font-weight: bold;
         font-size: 1.2rem;
     }
 
     .transport-badge {
-        display: inline-block;
-        padding: 3px 8px;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        padding: 3px 12px;
         border-radius: 4px;
         color: black;
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+        white-space: normal;
 
         &.type {
-            color: $greyForm;
+            color: #666666;
             background: #F2F3F7;
         }
 
@@ -96,6 +125,13 @@
     }
 
     .transport-value {
-        font-weight:bold;
+        font-weight: bold;
+    }
+
+    .transport-status-icon {
+        position: absolute;
+        top: 10px; right: 10px;
+        width: 20px;
+        height: 20px;
     }
 }

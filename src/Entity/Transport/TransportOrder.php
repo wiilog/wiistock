@@ -10,6 +10,7 @@ use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: TransportOrderRepository::class)]
 class TransportOrder {
@@ -206,6 +207,18 @@ class TransportOrder {
         }
 
         return $this;
+    }
+
+    public function isRejected(): bool {
+        return Stream::from($this->getPacks())
+            ->filter(fn(TransportDeliveryOrderPack $pack) => !$pack->isRejected())
+            ->isEmpty();
+    }
+
+    public function hasRejectedPacks(): bool {
+        return Stream::from($this->getPacks())
+            ->filter(fn(TransportDeliveryOrderPack $pack) => $pack->isRejected())
+            ->count();
     }
 
     /**
