@@ -39,6 +39,18 @@
     border-radius: 4px;
     padding: 10px 5px;
 
+    .transport-category-container {
+        width: 120px;
+    }
+
+    .transport-category-container, .transport-details-container, .transport-creation-container {
+        margin: 0 16px;
+    }
+
+    .transport-details-container {
+        flex: 1 1 auto;
+    }
+
     .transport-category {
         display: flex;
         justify-content: center;
@@ -48,6 +60,8 @@
     }
 
     .transport-badge {
+        display: inline-block;
+        padding: 3px 8px;
         border-radius: 4px;
         color: black;
 
@@ -79,5 +93,9 @@
         &.cancelled {
             background: #F8DDE3;
         }
+    }
+
+    .transport-value {
+        font-weight:bold;
     }
 }

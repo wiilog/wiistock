@@ -2,7 +2,7 @@
 
 namespace App\Repository\Transport;
 
-use App\Entity\Transport\StatusHistory;
+use App\Entity\StatusHistory;
 use Doctrine\ORM\EntityRepository;
 
 /**

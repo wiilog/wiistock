@@ -98,11 +98,8 @@ class Pack implements PairedEntity {
     #[ORM\Column(type: 'boolean')]
     private bool $deliveryDone = false;
 
-    #[ORM\OneToMany(mappedBy: 'pack', targetEntity: TransportRequestHistory::class)]
-    private Collection $transportRequestHistories;
-
-    #[ORM\OneToMany(mappedBy: 'pack', targetEntity: TransportDeliveryOrderPack::class)]
-    private Collection $transportDeliveryOrderPacks;
+    #[ORM\OneToOne(mappedBy: 'pack', targetEntity: TransportDeliveryOrderPack::class)]
+    private ?TransportDeliveryOrderPack $transportDeliveryOrderPack = null;
 
     public function __construct() {
         $this->disputes = new ArrayCollection();
@@ -113,8 +110,6 @@ class Pack implements PairedEntity {
         $this->childTrackingMovements = new ArrayCollection();
         $this->pairings = new ArrayCollection();
         $this->sensorMessages = new ArrayCollection();
-        $this->transportRequestHistories = new ArrayCollection();
-        $this->transportDeliveryOrderPacks = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -583,61 +578,19 @@ class Pack implements PairedEntity {
         return $this;
     }
 
-    /**
-     * @return Collection<int, TransportRequestHistory>
-     */
-    public function getTransportRequestHistories(): Collection
-    {
-        return $this->transportRequestHistories;
+    public function getTransportDeliveryOrderPack(): ?TransportDeliveryOrderPack {
+        return $this->transportDeliveryOrderPack;
     }
 
-    public function addTransportRequestHistory(TransportRequestHistory $transportRequestHistory): self
-    {
-        if (!$this->transportRequestHistories->contains($transportRequestHistory)) {
-            $this->transportRequestHistories[] = $transportRequestHistory;
-            $transportRequestHistory->setPack($this);
+    public function setTransportDeliveryOrderPack(?TransportDeliveryOrderPack $transportDeliveryOrderPack): self {
+        if($this->transportDeliveryOrderPack && $this->transportDeliveryOrderPack->getPack() !== $this) {
+            $oldTransportDeliveryOrderPack = $this->transportDeliveryOrderPack;
+            $this->transportDeliveryOrderPack = null;
+            $oldTransportDeliveryOrderPack->setPack(null);
         }
-
-        return $this;
-    }
-
-    public function removeTransportRequestHistory(TransportRequestHistory $transportRequestHistory): self
-    {
-        if ($this->transportRequestHistories->removeElement($transportRequestHistory)) {
-            // set the owning side to null (unless already changed)
-            if ($transportRequestHistory->getPack() === $this) {
-                $transportRequestHistory->setPack(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, TransportDeliveryOrderPack>
-     */
-    public function getTransportDeliveryOrderPacks(): Collection
-    {
-        return $this->transportDeliveryOrderPacks;
-    }
-
-    public function addTransportDeliveryOrderPack(TransportDeliveryOrderPack $transportDeliveryOrderPack): self
-    {
-        if (!$this->transportDeliveryOrderPacks->contains($transportDeliveryOrderPack)) {
-            $this->transportDeliveryOrderPacks[] = $transportDeliveryOrderPack;
-            $transportDeliveryOrderPack->setPack($this);
-        }
-
-        return $this;
-    }
-
-    public function removeTransportDeliveryOrderPack(TransportDeliveryOrderPack $transportDeliveryOrderPack): self
-    {
-        if ($this->transportDeliveryOrderPacks->removeElement($transportDeliveryOrderPack)) {
-            // set the owning side to null (unless already changed)
-            if ($transportDeliveryOrderPack->getPack() === $this) {
-                $transportDeliveryOrderPack->setPack(null);
-            }
+        $this->transportDeliveryOrderPack = $transportDeliveryOrderPack;
+        if($this->transportDeliveryOrderPack && $this->transportDeliveryOrderPack->getPack() !== $this) {
+            $this->transportDeliveryOrderPack->setPack($this);
         }
 
         return $this;

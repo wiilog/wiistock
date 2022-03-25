@@ -155,8 +155,20 @@ class RequestController extends AbstractController {
 
         function insertCurrentRow(&$rows, &$currentRow) {
             if($currentRow) {
+                $row = "<div class='transport-request-row'>" . join($currentRow) . "</div>";
+                if(!$rows) {
+                    $export = "<button type='button'
+                            class='btn btn-primary split-button'
+                            onclick='saveExportFile(`export_dispatches_csv`)'>
+                        <i class='fa fa-file-csv mr-2' style='padding: 0 2px'></i>
+                        Exporter au format CSV
+                    </button>";
+
+                    $row = "<div class='d-flex justify-content-between'>$row $export</div>";
+                }
+
                 $rows[] = [
-                    "content" => "<div class='transport-request-row'>" . join($currentRow) . "</div>",
+                    "content" => $row,
                 ];
 
                 $currentRow = [];

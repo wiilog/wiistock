@@ -1,3 +1,5 @@
+{% set order = request.orders | last %}
+
 <div class="transport-request-card">
     <div class="dropdown dropright">
         <a href="#" class="d-flex" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -11,17 +13,17 @@
         </div>
     </div>
 
-    <div>
+    <div class="transport-category-container">
         {% if request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
             <span class="transport-category">
-                <span class="wii-icon wii-icon-cart-delivery wii-icon-25px-primary mx-1"></span>
+                <span class="wii-icon wii-icon-cart-delivery wii-icon-25px-primary mr-1"></span>
                 Livraison
             </span>
         {% endif %}
 
         {% if request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') or request.collect %}
             <span class="transport-category">
-                <span class="wii-icon wii-icon-cart-collect wii-icon-25px-primary mx-1"></span>
+                <span class="wii-icon wii-icon-cart-collect wii-icon-25px-primary mr-1"></span>
                 Collecte
             </span>
         {% endif %}
@@ -29,24 +31,33 @@
         {{ request.number }}
     </div>
 
-    <div>
+    <div class="transport-details-container">
         <span class="transport-badge {{ constant('App\\Entity\\Transport\\TransportRequest::STATUS_COLOR')[request.status.nom] }}">
             {{ request.status.nom }}
         </span><br>
 
         {% if request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
-            {% if request.status.nom == constant('App\\Entity\\Transport\\TransportRequest::STATUS_TO_PREPARE') %}
-            {% endif %}
-            À faire à : <b>x</b>
-            Estimée à : <b>d</b>
+            À faire à : <span class="transport-value">{{ request.expectedAt | date('H:i') }}</span><br>
+            Estimée à : <span class="transport-value">{% if not order %}
+                -
+            {% elseif order.subcontracted %}
+                Non disponible
+            {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ASSIGNED') %}
+                {{ order.transportRoundLines.estimatedAt | date('H:i') }}
+            {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ONGOING') %}
+            {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_FINISHED') %}
+            {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_CANCELLED') %}
+            {% endif %}</span>
+
+            Estimée à : <span class="transport-value">d</span>
         {% elseif request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') %}
-            Planifié le : <b>{{ request.expectedAt | format_helper('longDate', true) }}</b>
-            Estimée à : <b>{{ request.timeSlot.name }}</b>
+            Planifié le : <span class="transport-value">{{ request.expectedAt | format_helper('longDate', true) }}</span><br>
+            Estimée à : <span class="transport-value">{{ request.timeSlot.name }}</span>
         {% endif %}
     </div>
 
-    <div>
-        Livraison
-        {{ request.number }}
+    <div class="transport-creation-container wii-small-text">
+        Créée le : {{ request.createdAt | format_helper('longDate', true) }}<br>
+        Par : {{ request.createdBy }}<br>
     </div>
 </div>
