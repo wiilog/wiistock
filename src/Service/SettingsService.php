@@ -504,7 +504,7 @@ class SettingsService
 
                 if(isset($files["logo"])) {
                     $type->setLogo($this->attachmentService->createAttachements([$files["logo"]])[0]);
-                } else if(!$data["keep-logo"]) {
+                } else if(isset($data["keep-logo"]) && !$data["keep-logo"]) {
                     $type->setLogo(null);
                 }
             } elseif(isset($tables["category"])) {
