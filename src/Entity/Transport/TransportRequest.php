@@ -120,11 +120,7 @@ abstract class TransportRequest {
     }
 
     public function setType(?Type $type): self {
-        if ($this->type && $this->type !== $type) {
-            $this->type->removeTransportRequest($this);
-        }
         $this->type = $type;
-        $type?->addTransportRequest($this);
 
         return $this;
     }
@@ -281,6 +277,20 @@ abstract class TransportRequest {
         $this->contact = $contact;
 
         return $this;
+    }
+
+    public function canBeDeleted(): bool {
+        $canDeleteIfDelivery =
+            $this instanceof TransportDeliveryRequest
+            && !$this->getTransportRound()
+            && in_array($this->getStatus()?->getCode(), [TransportRequest::STATUS_TO_DELIVER, TransportRequest::STATUS_TO_PREPARE]);
+
+        $canDeleteIfCollect =
+            $this instanceof TransportCollectRequest
+            && !$this->getTransportRound()
+            && in_array($this->getStatus()?->getCode(), [TransportRequest::STATUS_TO_COLLECT, TransportRequest::STATUS_AWAITING_PLANNING]);
+
+        return $canDeleteIfCollect && $canDeleteIfDelivery;
     }
 
 }
