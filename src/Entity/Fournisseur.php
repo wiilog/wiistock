@@ -3,11 +3,12 @@
 namespace App\Entity;
 
 use App\Helper\FormatHelper;
+use App\Repository\FournisseurRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\FournisseurRepository')]
+#[ORM\Entity(repositoryClass: FournisseurRepository::class)]
 class Fournisseur {
 
     const REF_A_DEFINIR = 'A DEFINIR';

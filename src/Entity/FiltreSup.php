@@ -2,9 +2,10 @@
 
 namespace App\Entity;
 
+use App\Repository\FiltreSupRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\FiltreSupRepository')]
+#[ORM\Entity(repositoryClass: FiltreSupRepository::class)]
 class FiltreSup {
 
     const FIELD_DATE_MIN = 'dateMin';

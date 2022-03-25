@@ -2,9 +2,10 @@
 
 namespace App\Entity;
 
+use App\Repository\DispatchPackRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\DispatchPackRepository')]
+#[ORM\Entity(repositoryClass: DispatchPackRepository::class)]
 class DispatchPack {
 
     #[ORM\Id]

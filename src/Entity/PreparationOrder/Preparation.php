@@ -13,13 +13,14 @@ use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
+use App\Repository\PreparationOrder\PreparationRepository;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\PreparationOrder\PreparationRepository')]
+#[ORM\Entity(repositoryClass: PreparationRepository::class)]
 class Preparation implements PairedEntity {
 
     use SensorMessageTrait;

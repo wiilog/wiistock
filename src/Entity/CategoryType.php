@@ -2,11 +2,12 @@
 
 namespace App\Entity;
 
+use App\Repository\CategoryTypeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\CategoryTypeRepository')]
+#[ORM\Entity(repositoryClass: CategoryTypeRepository::class)]
 class CategoryType {
 
     const RECEPTION = 'réception';

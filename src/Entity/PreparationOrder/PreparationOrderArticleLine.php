@@ -4,9 +4,10 @@ namespace App\Entity\PreparationOrder;
 
 use App\Entity\Article;
 use App\Entity\Emplacement;
+use App\Repository\PreparationOrder\PreparationOrderArticleLineRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\PreparationOrder\PreparationOrderArticleLineRepository')]
+#[ORM\Entity(repositoryClass: PreparationOrderArticleLineRepository::class)]
 class PreparationOrderArticleLine {
 
     #[ORM\Id]

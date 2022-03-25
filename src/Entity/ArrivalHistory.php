@@ -2,9 +2,10 @@
 
 namespace App\Entity;
 
+use App\Repository\ArrivalHistoryRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\ArrivalHistoryRepository')]
+#[ORM\Entity(repositoryClass: ArrivalHistoryRepository::class)]
 class ArrivalHistory {
 
     #[ORM\Id]

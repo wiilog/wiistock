@@ -2,9 +2,10 @@
 
 namespace App\Entity;
 
+use App\Repository\MailerServerRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\MailerServerRepository')]
+#[ORM\Entity(repositoryClass: MailerServerRepository::class)]
 class MailerServer {
 
     #[ORM\Id]

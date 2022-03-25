@@ -9,11 +9,12 @@ use App\Entity\Transport\StatusHistory;
 use App\Entity\Transport\TransportOrder;
 use App\Entity\Transport\TransportRequest;
 use App\Entity\Transport\TransportRound;
+use App\Repository\StatutRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\StatutRepository')]
+#[ORM\Entity(repositoryClass: StatutRepository::class)]
 class Statut {
 
     const DRAFT = 0;

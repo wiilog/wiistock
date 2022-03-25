@@ -2,9 +2,10 @@
 
 namespace App\Entity;
 
+use App\Repository\DaysWorkedRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\DaysWorkedRepository')]
+#[ORM\Entity(repositoryClass: DaysWorkedRepository::class)]
 class DaysWorked {
 
     #[ORM\Id]

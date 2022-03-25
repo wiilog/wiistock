@@ -8,12 +8,13 @@ use App\Entity\IOT\SensorMessageTrait;
 use App\Entity\Transport\TransportDeliveryOrderPack;
 use App\Entity\Transport\TransportRequestHistory;
 use App\Helper\FormatHelper;
+use App\Repository\PackRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\PackRepository')]
+#[ORM\Entity(repositoryClass: PackRepository::class)]
 class Pack implements PairedEntity {
 
     use SensorMessageTrait;
