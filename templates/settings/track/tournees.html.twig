@@ -95,7 +95,7 @@
 
 <div class="wii-section row">
     <div class="col-8">
-        {{ form.select(constant('App\\Entity\\Setting::TRANSPORT_ROUND_PACK_REJECT_MOTIVES'), "Motifs d'écartements", false, {
+        {{ form.select(setting('TRANSPORT_ROUND_PACK_REJECT_MOTIVES'), "Motifs d'écartements", false, {
             type: null,
             editable: true,
             noEmptyOption: true,
@@ -114,7 +114,7 @@
 
 <div class="wii-section row">
     <div class="col-8 mb-3">
-        {{ form.select(constant('App\\Entity\\Setting::TRANSPORT_ROUND_DELIVERY_REJECT_MOTIVES'), "Motifs de non livraison", false, {
+        {{ form.select(setting('TRANSPORT_ROUND_DELIVERY_REJECT_MOTIVES'), "Motifs de non livraison", false, {
             type: null,
             editable: true,
             noEmptyOption: true,
@@ -126,7 +126,7 @@
         }) }}
     </div>
     <div class="col-8">
-        {{ form.select(constant('App\\Entity\\Setting::TRANSPORT_ROUND_COLLECT_REJECT_MOTIVES'), "Motifs de non collecte", false, {
+        {{ form.select(setting('TRANSPORT_ROUND_COLLECT_REJECT_MOTIVES'), "Motifs de non collecte", false, {
             type: null,
             editable: true,
             multiple: true,
@@ -138,7 +138,7 @@
         }) }}
     </div>
     <div class="col-4">
-        {{ form.select(constant('App\\Entity\\Setting::TRANSPORT_ROUND_COLLECT_WORKFLOW_ENDING_MOTIVE'), "Fin du workflow collecte pour les motifs", false, {
+        {{ form.select(setting('TRANSPORT_ROUND_COLLECT_WORKFLOW_ENDING_MOTIVE'), "Fin du workflow collecte pour les motifs", false, {
             type: null,
             multiple: true,
             noEmptyOption: true,
