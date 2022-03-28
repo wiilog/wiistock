@@ -8,6 +8,7 @@ use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\DaysWorked;
+use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
 use App\Entity\FreeField;
 use App\Entity\Import;
@@ -17,11 +18,13 @@ use App\Entity\IOT\AlertTemplate;
 use App\Entity\IOT\RequestTemplate;
 use App\Entity\MailerServer;
 use App\Entity\Menu;
+use App\Entity\Nature;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Translation;
 use App\Entity\Transport\CollectTimeSlot;
 use App\Entity\Transport\TemperatureRange;
+use App\Entity\Transport\TransportRoundStartingHour;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
@@ -29,6 +32,7 @@ use App\Entity\WorkFreeDay;
 use App\Helper\FormatHelper;
 use App\Repository\IOT\AlertTemplateRepository;
 use App\Repository\IOT\RequestTemplateRepository;
+use App\Repository\SettingRepository;
 use App\Repository\Transport\CollectTimeSlotRepository;
 use App\Repository\TypeRepository;
 use App\Service\CacheService;
@@ -56,8 +60,7 @@ use WiiCommon\Helper\Stream;
 /**
  * @Route("/parametrage")
  */
-class SettingsController extends AbstractController
-{
+class SettingsController extends AbstractController {
 
     /** @Required */
     public EntityManagerInterface $manager;
@@ -137,14 +140,22 @@ class SettingsController extends AbstractController
                             "label" => "Livraisons",
                             "save" => true,
                         ],
-                        self::MENU_DELIVERY_REQUEST_TEMPLATES => ["label" => "Livraisons - Modèle de demande", "wrapped" => false],
-                        self::MENU_DELIVERY_TYPES_FREE_FIELDS => ["label" => "Livraisons - Types et champs libres", "wrapped" => false],
+                        self::MENU_DELIVERY_REQUEST_TEMPLATES => [
+                            "label" => "Livraisons - Modèle de demande", "wrapped" => false,
+                        ],
+                        self::MENU_DELIVERY_TYPES_FREE_FIELDS => [
+                            "label" => "Livraisons - Types et champs libres", "wrapped" => false,
+                        ],
                         self::MENU_COLLECTS => [
                             "label" => "Collectes",
                             "save" => true,
                         ],
-                        self::MENU_COLLECT_REQUEST_TEMPLATES => ["label" => "Collectes - Modèle de demande", "wrapped" => false],
-                        self::MENU_COLLECT_TYPES_FREE_FIELDS => ["label" => "Collectes - Types et champs libres", "wrapped" => false],
+                        self::MENU_COLLECT_REQUEST_TEMPLATES => [
+                            "label" => "Collectes - Modèle de demande", "wrapped" => false,
+                        ],
+                        self::MENU_COLLECT_TYPES_FREE_FIELDS => [
+                            "label" => "Collectes - Types et champs libres", "wrapped" => false,
+                        ],
                         self::MENU_PURCHASE_STATUSES => ["label" => "Achats - Statuts"],
                     ],
                 ],
@@ -271,14 +282,19 @@ class SettingsController extends AbstractController
                     "label" => "Demandes",
                     "menus" => [
                         self::MENU_CONFIGURATIONS => ["label" => "Configurations", "save" => true],
-                        self::MENU_DELIVERY_TYPES_FREE_FIELDS => ["label" => "Livraisons - Types & champs libres", "wrapped" => false],
-                        self::MENU_COLLECT_TYPES_FREE_FIELDS => ["label" => "Collectes - Types & champs libres", "wrapped" => false],
+                        self::MENU_DELIVERY_TYPES_FREE_FIELDS => [
+                            "label" => "Livraisons - Types & champs libres", "wrapped" => false,
+                        ],
+                        self::MENU_COLLECT_TYPES_FREE_FIELDS => [
+                            "label" => "Collectes - Types & champs libres", "wrapped" => false,
+                        ],
                     ],
                 ],
-//                self::MENU_ROUNDS => [
-//                    "label" => "Tournées",
-//                    "save" => true,
-//                ],
+                self::MENU_ROUNDS => [
+                    "label" => "Tournées",
+                    "save" => true,
+                    "discard" => true,
+                ],
                 self::MENU_TEMPERATURES => [
                     "label" => "Températures",
                     "save" => true,
@@ -425,7 +441,7 @@ class SettingsController extends AbstractController
     private const MENU_REQUEST_TEMPLATES = "modeles_demande";
 
     private const MENU_TRANSPORT_REQUESTS = "demande_transport";
-//    private const MENU_ROUNDS = "tournees";
+    private const MENU_ROUNDS = "tournees";
     private const MENU_TEMPERATURES = "temperatures";
 
     private const MENU_DELIVERIES = "livraisons";
@@ -467,8 +483,7 @@ class SettingsController extends AbstractController
     /**
      * @Route("/", name="settings_index")
      */
-    public function index(): Response
-    {
+    public function index(): Response {
         return $this->render("settings/list.html.twig", [
             "settings" => self::SETTINGS,
         ]);
@@ -478,8 +493,7 @@ class SettingsController extends AbstractController
      * @Route("/utilisateurs/langues", name="settings_language")
      * @HasPermission({Menu::PARAM, Action::SETTINGS_USERS})
      */
-    public function language(EntityManagerInterface $manager): Response
-    {
+    public function language(EntityManagerInterface $manager): Response {
         $translationRepository = $manager->getRepository(Translation::class);
 
         return $this->render("settings/utilisateurs/langues.html.twig", [
@@ -491,8 +505,7 @@ class SettingsController extends AbstractController
     /**
      * @Route("/afficher/{category}/{menu}/{submenu}", name="settings_item", options={"expose"=true})
      */
-    public function item(string $category, ?string $menu = null, ?string $submenu = null): Response
-    {
+    public function item(string $category, ?string $menu = null, ?string $submenu = null): Response {
         if ($submenu) {
             $parent = self::SETTINGS[$category]["menus"][$menu] ?? null;
             $path = "settings/$category/$menu/";
@@ -528,8 +541,23 @@ class SettingsController extends AbstractController
         ]);
     }
 
-    private function typeGenerator(string $category, $checkFirst = true): array
-    {
+    private function smartWorkflowEndingMotives(SettingRepository $settingRepository): array {
+        $smartItems = [];
+
+        $items = explode(',', $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_COLLECT_REJECT_MOTIVES));
+        $values = explode(',', $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_COLLECT_WORKFLOW_ENDING_MOTIVE));
+
+        foreach ($items as $item) {
+            $smartItems[$item] = [
+                "value" => $item,
+                "label" => $item,
+                "selected" => in_array($item, $values),
+            ];
+        }
+        return $smartItems;
+    }
+
+    private function typeGenerator(string $category, $checkFirst = true): array {
         $typeRepository = $this->manager->getRepository(Type::class);
         $types = Stream::from($typeRepository->findByCategoryLabels([$category]))
             ->map(fn(Type $type) => [
@@ -545,10 +573,12 @@ class SettingsController extends AbstractController
         return $types;
     }
 
-    public function customValues(): array
-    {
+    public function customValues(): array {
         $mailerServerRepository = $this->manager->getRepository(MailerServer::class);
         $temperatureRepository = $this->manager->getRepository(TemperatureRange::class);
+        $natureRepository = $this->manager->getRepository(Nature::class);
+        $locationsRepository = $this->manager->getRepository(Emplacement::class);
+        $settingRepository = $this->manager->getRepository(Setting::class);
         $typeRepository = $this->manager->getRepository(Type::class);
         $statusRepository = $this->manager->getRepository(Statut::class);
         $freeFieldRepository = $this->manager->getRepository(FreeField::class);
@@ -575,7 +605,7 @@ class SettingsController extends AbstractController
                             ->keymap(fn(FreeField $field) => [$field->getLabel(), $field->getLabel()])
                             ->toArray(),
                     ],
-                    self::MENU_TYPES_FREE_FIELDS => function () use ($typeRepository) {
+                    self::MENU_TYPES_FREE_FIELDS => function() use ($typeRepository) {
                         $categoryType = CategoryType::ARTICLE;
                         $types = Stream::from($typeRepository->findByCategoryLabels([$categoryType]))
                             ->map(fn(Type $type) => [
@@ -587,7 +617,9 @@ class SettingsController extends AbstractController
                         $types[0]["checked"] = true;
 
                         $categorieCLRepository = $this->manager->getRepository(CategorieCL::class);
-                        $categories = Stream::from($categorieCLRepository->findByLabel([CategorieCL::ARTICLE, CategorieCL::REFERENCE_ARTICLE]))
+                        $categories = Stream::from($categorieCLRepository->findByLabel([
+                            CategorieCL::ARTICLE, CategorieCL::REFERENCE_ARTICLE,
+                        ]))
                             ->map(fn(CategorieCL $category) => "<option value='{$category->getId()}'>{$category->getLabel()}</option>")
                             ->join("");
 
@@ -603,10 +635,10 @@ class SettingsController extends AbstractController
                         "deliveryTypesCount" => $typeRepository->countAvailableForSelect(CategoryType::DEMANDE_LIVRAISON, []),
                         "deliveryTypeSettings" => json_encode($this->settingsService->getDefaultDeliveryLocationsByType($this->manager)),
                     ],
-                    self::MENU_DELIVERY_REQUEST_TEMPLATES => function () use ($requestTemplateRepository, $typeRepository) {
+                    self::MENU_DELIVERY_REQUEST_TEMPLATES => function() use ($requestTemplateRepository, $typeRepository) {
                         return $this->getRequestTemplates($typeRepository, $requestTemplateRepository, Type::LABEL_DELIVERY);
                     },
-                    self::MENU_COLLECT_REQUEST_TEMPLATES => function () use ($requestTemplateRepository, $typeRepository) {
+                    self::MENU_COLLECT_REQUEST_TEMPLATES => function() use ($requestTemplateRepository, $typeRepository) {
                         return $this->getRequestTemplates($typeRepository, $requestTemplateRepository, Type::LABEL_COLLECT);
                     },
                     self::MENU_DELIVERY_TYPES_FREE_FIELDS => fn() => [
@@ -661,7 +693,7 @@ class SettingsController extends AbstractController
                                 "label" => $status->getNom(),
                             ])->toArray(),
                     ],
-                    self::MENU_FIXED_FIELDS => function () use ($fixedFieldRepository) {
+                    self::MENU_FIXED_FIELDS => function() use ($fixedFieldRepository) {
                         $emergencyField = $fixedFieldRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY);
                         $businessField = $fixedFieldRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_BUSINESS_UNIT);
 
@@ -699,7 +731,7 @@ class SettingsController extends AbstractController
                     ],
                 ],
                 self::MENU_ARRIVALS => [
-                    self::MENU_FIXED_FIELDS => function () use ($fixedFieldRepository) {
+                    self::MENU_FIXED_FIELDS => function() use ($fixedFieldRepository) {
                         $field = $fixedFieldRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_BUSINESS_UNIT);
 
                         return [
@@ -729,7 +761,7 @@ class SettingsController extends AbstractController
                     ],
                 ],
                 self::MENU_HANDLINGS => [
-                    self::MENU_FIXED_FIELDS => function () use ($fixedFieldRepository) {
+                    self::MENU_FIXED_FIELDS => function() use ($fixedFieldRepository) {
                         $field = $fixedFieldRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_EMERGENCY);
 
                         return [
@@ -749,7 +781,7 @@ class SettingsController extends AbstractController
                         'types' => $this->typeGenerator(CategoryType::DEMANDE_HANDLING),
                         'category' => CategoryType::DEMANDE_HANDLING,
                     ],
-                    self::MENU_REQUEST_TEMPLATES => function () use ($requestTemplateRepository, $typeRepository) {
+                    self::MENU_REQUEST_TEMPLATES => function() use ($requestTemplateRepository, $typeRepository) {
                         return $this->getRequestTemplates($typeRepository, $requestTemplateRepository, Type::LABEL_HANDLING);
                     },
                     self::MENU_STATUSES => fn() => [
@@ -765,6 +797,86 @@ class SettingsController extends AbstractController
                 ],
             ],
             self::CATEGORY_TRACKING => [
+                self::MENU_ROUNDS => fn() => [
+                    "packRejectMotives" =>
+                        Stream::from(explode(',', $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_PACK_REJECT_MOTIVES)))
+                            ->filter(fn(string $value) => $value)
+                            ->keymap(fn(string $value) => [
+                                $value, [
+                                    "value" => $value,
+                                    "label" => $value,
+                                    "selected" => true,
+                                ],
+                            ])
+                            ->toArray(),
+                    "deliveryRejectMotives" =>
+                        Stream::from(explode(',', $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_DELIVERY_REJECT_MOTIVES)))
+                            ->filter(fn(string $value) => $value)
+                            ->keymap(fn(string $value) => [
+                                $value, [
+                                    "value" => $value,
+                                    "label" => $value,
+                                    "selected" => true,
+                                ],
+                            ])
+                            ->toArray(),
+                    "collectRejectMotives" =>
+                        Stream::from(explode(',', $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_COLLECT_REJECT_MOTIVES)))
+                            ->filter(fn(string $value) => $value)
+                            ->keymap(fn(string $value) => [
+                                $value, [
+                                    "value" => $value,
+                                    "label" => $value,
+                                    "selected" => true,
+                                ],
+                            ])
+                            ->toArray(),
+                    "collectWorkflowEndingMotives" => $this->smartWorkflowEndingMotives($settingRepository),
+                    "transportRoundEndLocations" =>
+                        Stream::from(explode(',', $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_END_ROUND_LOCATIONS)))
+                            ->filter(fn(string $value) => $value)
+                            ->keymap(fn(string $value) => [
+                                $value, [
+                                    "value" => $value,
+                                    "label" => $locationsRepository->find($value)->getLabel(),
+                                    "selected" => true,
+                                ],
+                            ])
+                            ->toArray(),
+                    "transportRoundCollectedPacksLocations" =>
+                        Stream::from(explode(',', $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_COLLECTED_PACKS_LOCATIONS)))
+                            ->filter(fn(string $value) => $value)
+                            ->keymap(fn(string $value) => [
+                                $value, [
+                                    "value" => $value,
+                                    "label" => $locationsRepository->find($value)->getLabel(),
+                                    "selected" => true,
+                                ],
+                            ])
+                            ->toArray(),
+                    "transportRoundRejectedPacksLocations" =>
+                        Stream::from(explode(',', $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_REJECTED_PACKS_LOCATIONS)))
+                            ->filter(fn(string $value) => $value)
+                            ->keymap(fn(string $value) => [
+                                $value, [
+                                    "value" => $value,
+                                    "label" => $locationsRepository->find($value)->getLabel(),
+                                    "selected" => true,
+                                ],
+                            ])
+                            ->toArray(),
+                    "transportRoundNeededNaturesToDrop" =>
+                        Stream::from(explode(',', $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_NEEDED_NATURES_TO_DROP)))
+                            ->filter(fn(string $value) => $value)
+                            ->keymap(fn(string $value) => [
+                                $value, [
+                                    "value" => $value,
+                                    "label" => $natureRepository->find($value)->getLabel(),
+                                    "selected" => true,
+                                ],
+                            ])
+                            ->toArray(),
+                ],
                 self::MENU_TEMPERATURES => fn() => [
                     "temperatureRanges" => Stream::from($temperatureRepository->findAll())
                         ->map(fn(TemperatureRange $range) => [
@@ -779,11 +891,13 @@ class SettingsController extends AbstractController
                         "transportDeliveryRequestEmergencies" =>
                             Stream::from(explode(',', $settingRepository->getOneParamByLabel(Setting::TRANSPORT_DELIVERY_REQUEST_EMERGENCIES)))
                                 ->filter(fn(string $value) => $value)
-                                ->keymap(fn(string $value) => [$value, [
-                                    "value" => $value,
-                                    "label" => $value,
-                                    "selected" => true,
-                                ]])
+                                ->keymap(fn(string $value) => [
+                                    $value, [
+                                        "value" => $value,
+                                        "label" => $value,
+                                        "selected" => true,
+                                    ],
+                                ])
                                 ->toArray(),
                     ],
                     self::MENU_DELIVERY_TYPES_FREE_FIELDS => fn() => [
@@ -797,7 +911,7 @@ class SettingsController extends AbstractController
                 ],
             ],
             self::CATEGORY_IOT => [
-                self::MENU_TYPES_FREE_FIELDS => function () use ($typeRepository) {
+                self::MENU_TYPES_FREE_FIELDS => function() use ($typeRepository) {
                     $types = Stream::from($typeRepository->findByCategoryLabels([CategoryType::SENSOR]))
                         ->map(fn(Type $type) => [
                             "label" => $type->getLabel(),
@@ -816,12 +930,15 @@ class SettingsController extends AbstractController
                 self::MENU_IMPORTS => fn() => [
                     "statuts" => $statusRepository->findByCategoryNameAndStatusCodes(
                         CategorieStatut::IMPORT,
-                        [Import::STATUS_PLANNED, Import::STATUS_IN_PROGRESS, Import::STATUS_CANCELLED, Import::STATUS_FINISHED]
+                        [
+                            Import::STATUS_PLANNED, Import::STATUS_IN_PROGRESS, Import::STATUS_CANCELLED,
+                            Import::STATUS_FINISHED,
+                        ]
                     ),
                 ],
             ],
             self::CATEGORY_NOTIFICATIONS => [
-                self::MENU_ALERTS => function () use ($alertTemplateRepository) {
+                self::MENU_ALERTS => function() use ($alertTemplateRepository) {
                     return $this->getAlertTemplates($alertTemplateRepository);
                 },
             ],
@@ -841,8 +958,7 @@ class SettingsController extends AbstractController
      * @Route("/enregistrer", name="settings_save", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function save(Request $request): Response
-    {
+    public function save(Request $request): Response {
         try {
             $result = $this->service->save($request);
         } catch (RuntimeException $exception) {
@@ -865,8 +981,7 @@ class SettingsController extends AbstractController
      * @Route("/enregistrer/champ-fixe/{field}", name="settings_save_field_param", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function saveFieldParam(Request $request, EntityManagerInterface $manager, FieldsParam $field): Response
-    {
+    public function saveFieldParam(Request $request, EntityManagerInterface $manager, FieldsParam $field): Response {
         $field->setElements(explode(",", $request->request->get("elements")));
         $manager->flush();
 
@@ -880,8 +995,7 @@ class SettingsController extends AbstractController
      * @Route("/heures-travaillees-api", name="settings_working_hours_api", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::SETTINGS_GLOBAL})
      */
-    public function workingHoursApi(Request $request, EntityManagerInterface $manager)
-    {
+    public function workingHoursApi(Request $request, EntityManagerInterface $manager) {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
         $class = "form-control data";
 
@@ -916,8 +1030,7 @@ class SettingsController extends AbstractController
      * @Route("/creneaux-horaires-api", name="settings_hour_shift_api", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::SETTINGS_GLOBAL})
      */
-    public function hourShiftsApi(Request $request, EntityManagerInterface $manager)
-    {
+    public function hourShiftsApi(Request $request, EntityManagerInterface $manager) {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
         $class = "form-control data";
 
@@ -963,11 +1076,68 @@ class SettingsController extends AbstractController
     }
 
     /**
+     * @Route("/heures-depart-api", name="settings_starting_hours_api", options={"expose"=true})
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_GLOBAL})
+     */
+    public function startingHoursApi(Request $request, EntityManagerInterface $manager) {
+        $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
+        $class = "form-control data";
+
+        $hourShiftsRepository = $manager->getRepository(TransportRoundStartingHour::class);
+
+        $data = [];
+        foreach ($hourShiftsRepository->findAll() as $shift) {
+            $hour = $shift->getHour();
+            $deliverers = "<select name='deliverers' data-s2='user' class='$class' data-global-error='Livreur(s)' multiple='multiple'/>";
+            foreach ($shift->getDeliverers() as $deliverer) {
+                $id = $deliverer->getId();
+                $name = $deliverer->getUsername();
+                $deliverers .= "<option value='$id' selected>$name</option>";
+            }
+            $deliverers .= "</select>";
+
+            if ($edit) {
+                $data[] = [
+                    "actions" => $this->canDelete() ? "
+                        <button class='btn btn-silent delete-row' data-id='{$shift->getId()}'>
+                            <i class='wii-icon wii-icon-trash text-primary'></i>
+                        </button>
+                    " : "",
+                    "id" => $shift->getId(),
+                    "hour" => "<input name='hour' class='$class' data-global-error='Heure' value='{$hour}'/>",
+                    "deliverers" => $deliverers,
+                ];
+            } else {
+                $data[] = [
+                    "actions" => "",
+                    "id" => $shift->getId(),
+                    "hour" => $hour,
+                    "deliverers" => Stream::from($shift->getDeliverers())
+                        ->map(fn(Utilisateur $utilisateur) => $utilisateur->getUsername())
+                        ->join(','),
+                ];
+            }
+        }
+
+        $data[] = [
+            "actions" => "<span class='d-flex justify-content-start align-items-center add-row'><span class='wii-icon wii-icon-plus'></span></span>",
+            "id" => "",
+            "hour" => "",
+            "deliverers" => "",
+        ];
+
+        return $this->json([
+            "data" => $data,
+            "recordsTotal" => count($data),
+            "recordsFiltered" => count($data),
+        ]);
+    }
+
+    /**
      * @Route("/jours-non-travailles-api", name="settings_off_days_api", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::SETTINGS_GLOBAL})
      */
-    public function offDaysApi(Request $request, EntityManagerInterface $manager)
-    {
+    public function offDaysApi(Request $request, EntityManagerInterface $manager) {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
 
         $data = [];
@@ -997,8 +1167,7 @@ class SettingsController extends AbstractController
      * @Route("/jours-non-travailles/supprimer/{entity}", name="settings_off_days_delete", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::DELETE})
      */
-    public function deleteOffDay(EntityManagerInterface $manager, WorkFreeDay $entity)
-    {
+    public function deleteOffDay(EntityManagerInterface $manager, WorkFreeDay $entity) {
         $manager->remove($entity);
         $manager->flush();
 
@@ -1011,8 +1180,7 @@ class SettingsController extends AbstractController
     /**
      * @Route("/champs-libres/header/{type}", name="settings_type_header", options={"expose"=true})
      */
-    public function typeHeader(Request $request, ?Type $type = null): Response
-    {
+    public function typeHeader(Request $request, ?Type $type = null): Response {
         $categoryTypeRepository = $this->manager->getRepository(CategoryType::class);
 
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
@@ -1089,17 +1257,21 @@ class SettingsController extends AbstractController
                     "label" => "Envoi d'un email au demandeur",
                     "value" => "<input name='mailRequester' type='checkbox' class='data form-control mt-1' $mailsEnabled>",
                 ];
-            } else if ($categoryLabel === CategoryType::DEMANDE_DISPATCH) {
-                $pickLocationOption = $type && $type->getPickLocation() ? "<option value='{$type->getPickLocation()->getId()}'>{$type->getPickLocation()->getLabel()}</option>" : "";
-                $dropLocationOption = $type && $type->getDropLocation() ? "<option value='{$type->getDropLocation()->getId()}'>{$type->getDropLocation()->getLabel()}</option>" : "";
+            } else {
+                if ($categoryLabel === CategoryType::DEMANDE_DISPATCH) {
+                    $pickLocationOption = $type && $type->getPickLocation() ? "<option value='{$type->getPickLocation()->getId()}'>{$type->getPickLocation()->getLabel()}</option>" : "";
+                    $dropLocationOption = $type && $type->getDropLocation() ? "<option value='{$type->getDropLocation()->getId()}'>{$type->getDropLocation()->getLabel()}</option>" : "";
 
-                $data = array_merge($data, [[
-                    "label" => "Emplacement de prise par défaut",
-                    "value" => "<select name='pickLocation' data-s2='location' data-parent='body' class='data form-control'>$pickLocationOption</select>",
-                ], [
-                    "label" => "Emplacement de dépose par défaut",
-                    "value" => "<select name='dropLocation' data-s2='location' data-parent='body' class='data form-control'>$dropLocationOption</select>",
-                ]]);
+                    $data = array_merge($data, [
+                        [
+                            "label" => "Emplacement de prise par défaut",
+                            "value" => "<select name='pickLocation' data-s2='location' data-parent='body' class='data form-control'>$pickLocationOption</select>",
+                        ], [
+                            "label" => "Emplacement de dépose par défaut",
+                            "value" => "<select name='dropLocation' data-s2='location' data-parent='body' class='data form-control'>$dropLocationOption</select>",
+                        ],
+                    ]);
+                }
             }
 
             if (in_array($categoryLabel, [CategoryType::DEMANDE_HANDLING, CategoryType::DEMANDE_DISPATCH])) {
@@ -1110,9 +1282,18 @@ class SettingsController extends AbstractController
                         "Notifications push",
                         false,
                         [
-                            ["label" => "Désactiver", "value" => 0, "checked" => !$type || !$type->isNotificationsEnabled()],
-                            ["label" => "Activer", "value" => 1, "checked" => $type && $type->isNotificationsEnabled() && !$type->getNotificationsEmergencies()],
-                            ["label" => "Activer seulement si urgence", "value" => 2, "checked" => $type && $type->isNotificationsEnabled() && $type->getNotificationsEmergencies()],
+                            [
+                                "label" => "Désactiver", "value" => 0,
+                                "checked" => !$type || !$type->isNotificationsEnabled(),
+                            ],
+                            [
+                                "label" => "Activer", "value" => 1,
+                                "checked" => $type && $type->isNotificationsEnabled() && !$type->getNotificationsEmergencies(),
+                            ],
+                            [
+                                "label" => "Activer seulement si urgence", "value" => 2,
+                                "checked" => $type && $type->isNotificationsEnabled() && $type->getNotificationsEmergencies(),
+                            ],
                         ],
                     ],
                 ]);
@@ -1143,7 +1324,9 @@ class SettingsController extends AbstractController
                 ]);
             }
 
-            if(in_array($categoryLabel, [CategoryType::DELIVERY_TRANSPORT_REQUEST, CategoryType::COLLECT_TRANSPORT_REQUEST])) {
+            if (in_array($categoryLabel, [
+                CategoryType::DELIVERY_TRANSPORT_REQUEST, CategoryType::COLLECT_TRANSPORT_REQUEST,
+            ])) {
                 $data[] = [
                     "label" => "Logo",
                     "value" => $this->renderView("form_element.html.twig", [
@@ -1158,10 +1341,12 @@ class SettingsController extends AbstractController
                 ];
             }
         } else {
-            $data = [[
-                "label" => "Description",
-                "value" => $type?->getDescription(),
-            ]];
+            $data = [
+                [
+                    "label" => "Description",
+                    "value" => $type?->getDescription(),
+                ],
+            ];
 
             if ($categoryLabel === CategoryType::ARTICLE) {
                 $data[] = [
@@ -1185,13 +1370,15 @@ class SettingsController extends AbstractController
             }
 
             if ($categoryLabel === CategoryType::DEMANDE_DISPATCH) {
-                $data = array_merge($data, [[
-                    "label" => "Emplacement de prise par défaut",
-                    "value" => FormatHelper::location($type?->getPickLocation()),
-                ], [
-                    "label" => "Emplacement de dépose par défaut",
-                    "value" => FormatHelper::location($type?->getDropLocation()),
-                ]]);
+                $data = array_merge($data, [
+                    [
+                        "label" => "Emplacement de prise par défaut",
+                        "value" => FormatHelper::location($type?->getPickLocation()),
+                    ], [
+                        "label" => "Emplacement de dépose par défaut",
+                        "value" => FormatHelper::location($type?->getDropLocation()),
+                    ],
+                ]);
             }
 
             if (in_array($categoryLabel, [CategoryType::DEMANDE_HANDLING, CategoryType::DEMANDE_DISPATCH])) {
@@ -1219,7 +1406,9 @@ class SettingsController extends AbstractController
                 }
             }
 
-            if(in_array($categoryLabel, [CategoryType::DELIVERY_TRANSPORT_REQUEST, CategoryType::COLLECT_TRANSPORT_REQUEST])) {
+            if (in_array($categoryLabel, [
+                CategoryType::DELIVERY_TRANSPORT_REQUEST, CategoryType::COLLECT_TRANSPORT_REQUEST,
+            ])) {
                 $data[] = [
                     "label" => "Logo",
                     "value" => $type?->getLogo() ? "<img src='{$type?->getLogo()?->getFullPath()}' alt='Logo du type' width='30'>" : "",
@@ -1236,15 +1425,16 @@ class SettingsController extends AbstractController
     /**
      * @Route("/champs-libres/api/{type}", name="settings_free_field_api", options={"expose"=true})
      */
-    public function freeFieldApi(Request $request, EntityManagerInterface $manager, UserService $userService, ?Type $type = null): Response
-    {
+    public function freeFieldApi(Request $request, EntityManagerInterface $manager, UserService $userService, ?Type $type = null): Response {
         $edit = $request->query->getBoolean("edit");
         $hasEditRight = $userService->hasRightFunction(Menu::PARAM, Action::EDIT);
 
         $class = "form-control data";
 
         $categorieCLRepository = $manager->getRepository(CategorieCL::class);
-        $categories = Stream::from($categorieCLRepository->findByLabel([CategorieCL::ARTICLE, CategorieCL::REFERENCE_ARTICLE]))
+        $categories = Stream::from($categorieCLRepository->findByLabel([
+            CategorieCL::ARTICLE, CategorieCL::REFERENCE_ARTICLE,
+        ]))
             ->map(fn(CategorieCL $category) => "<option value='{$category->getId()}'>{$category->getLabel()}</option>")
             ->join("");
 
@@ -1253,20 +1443,32 @@ class SettingsController extends AbstractController
         foreach ($freeFields as $freeField) {
             if ($freeField->getTypage() === FreeField::TYPE_BOOL) {
                 $typageCLFr = "Oui/Non";
-            } else if ($freeField->getTypage() === FreeField::TYPE_NUMBER) {
-                $typageCLFr = "Nombre";
-            } else if ($freeField->getTypage() === FreeField::TYPE_TEXT) {
-                $typageCLFr = "Texte";
-            } else if ($freeField->getTypage() === FreeField::TYPE_LIST) {
-                $typageCLFr = "Liste";
-            } else if ($freeField->getTypage() === FreeField::TYPE_DATE) {
-                $typageCLFr = "Date";
-            } else if ($freeField->getTypage() === FreeField::TYPE_DATETIME) {
-                $typageCLFr = "Date et heure";
-            } else if ($freeField->getTypage() === FreeField::TYPE_LIST_MULTIPLE) {
-                $typageCLFr = "Liste multiple";
             } else {
-                $typageCLFr = "";
+                if ($freeField->getTypage() === FreeField::TYPE_NUMBER) {
+                    $typageCLFr = "Nombre";
+                } else {
+                    if ($freeField->getTypage() === FreeField::TYPE_TEXT) {
+                        $typageCLFr = "Texte";
+                    } else {
+                        if ($freeField->getTypage() === FreeField::TYPE_LIST) {
+                            $typageCLFr = "Liste";
+                        } else {
+                            if ($freeField->getTypage() === FreeField::TYPE_DATE) {
+                                $typageCLFr = "Date";
+                            } else {
+                                if ($freeField->getTypage() === FreeField::TYPE_DATETIME) {
+                                    $typageCLFr = "Date et heure";
+                                } else {
+                                    if ($freeField->getTypage() === FreeField::TYPE_LIST_MULTIPLE) {
+                                        $typageCLFr = "Liste multiple";
+                                    } else {
+                                        $typageCLFr = "";
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             $defaultValue = null;
@@ -1288,39 +1490,51 @@ class SettingsController extends AbstractController
                             false,
                             [
                                 ["label" => "Oui", "value" => 1, "checked" => $freeField->getDefaultValue()],
-                                ["label" => "Non", "value" => 0, "checked" => $freeField->getDefaultValue() !== null && !$freeField->getDefaultValue()],
-                                ["label" => "Aucune", "value" => null, "checked" => $freeField->getDefaultValue() === null],
+                                [
+                                    "label" => "Non", "value" => 0,
+                                    "checked" => $freeField->getDefaultValue() !== null && !$freeField->getDefaultValue(),
+                                ],
+                                [
+                                    "label" => "Aucune", "value" => null,
+                                    "checked" => $freeField->getDefaultValue() === null,
+                                ],
                             ],
                         ],
                     ]);
 
                     $defaultValue = "<div class='wii-switch-small'>$defaultValue</div>";
                 }
-            } else if ($freeField->getTypage() === FreeField::TYPE_DATETIME || $freeField->getTypage() === FreeField::TYPE_DATE) {
-                $defaultValueDate = new DateTime(str_replace("/", "-", $freeField->getDefaultValue())) ?: null;
-                if (!$edit) {
-                    $defaultValue = $defaultValueDate ? $defaultValueDate->format('d/m/Y H:i') : "";
-                } else {
-                    if ($freeField->getTypage() === FreeField::TYPE_DATETIME) {
-                        $defaultValueDate = $defaultValueDate ? $defaultValueDate->format("Y-m-d\\TH:i") : "";
-                        $defaultValue = "<input type='datetime-local' name='defaultValue' class='$class' value='$defaultValueDate'/>";
+            } else {
+                if ($freeField->getTypage() === FreeField::TYPE_DATETIME || $freeField->getTypage() === FreeField::TYPE_DATE) {
+                    $defaultValueDate = new DateTime(str_replace("/", "-", $freeField->getDefaultValue())) ?: null;
+                    if (!$edit) {
+                        $defaultValue = $defaultValueDate ? $defaultValueDate->format('d/m/Y H:i') : "";
                     } else {
-                        $defaultValueDate = $defaultValueDate ? $defaultValueDate->format("Y-m-d") : "";
-                        $defaultValue = "<input type='date' name='defaultValue' class='$class' value='$defaultValueDate'/>";
+                        if ($freeField->getTypage() === FreeField::TYPE_DATETIME) {
+                            $defaultValueDate = $defaultValueDate ? $defaultValueDate->format("Y-m-d\\TH:i") : "";
+                            $defaultValue = "<input type='datetime-local' name='defaultValue' class='$class' value='$defaultValueDate'/>";
+                        } else {
+                            $defaultValueDate = $defaultValueDate ? $defaultValueDate->format("Y-m-d") : "";
+                            $defaultValue = "<input type='date' name='defaultValue' class='$class' value='$defaultValueDate'/>";
+                        }
                     }
-                }
-            } else if ($edit && $freeField->getTypage() === FreeField::TYPE_LIST) {
-                $options = Stream::from($freeField->getElements())
-                    ->map(fn(string $value) => "<option value='$value' " . ($value === $freeField->getDefaultValue() ? "selected" : "") . ">$value</option>")
-                    ->join("");
-
-                $defaultValue = "<select name='defaultValue' class='form-control data' data-global-error='Valeur par défaut'>$options</select>";
-            } else if ($freeField->getTypage() !== FreeField::TYPE_LIST_MULTIPLE) {
-                if (!$edit) {
-                    $defaultValue = $freeField->getDefaultValue();
                 } else {
-                    $inputType = $freeField->getTypage() === FreeField::TYPE_NUMBER ? "number" : "text";
-                    $defaultValue = "<input type='$inputType' name='defaultValue' class='$class' value='{$freeField->getDefaultValue()}'/>";
+                    if ($edit && $freeField->getTypage() === FreeField::TYPE_LIST) {
+                        $options = Stream::from($freeField->getElements())
+                            ->map(fn(string $value) => "<option value='$value' " . ($value === $freeField->getDefaultValue() ? "selected" : "") . ">$value</option>")
+                            ->join("");
+
+                        $defaultValue = "<select name='defaultValue' class='form-control data' data-global-error='Valeur par défaut'>$options</select>";
+                    } else {
+                        if ($freeField->getTypage() !== FreeField::TYPE_LIST_MULTIPLE) {
+                            if (!$edit) {
+                                $defaultValue = $freeField->getDefaultValue();
+                            } else {
+                                $inputType = $freeField->getTypage() === FreeField::TYPE_NUMBER ? "number" : "text";
+                                $defaultValue = "<input type='$inputType' name='defaultValue' class='$class' value='{$freeField->getDefaultValue()}'/>";
+                            }
+                        }
+                    }
                 }
             }
 
@@ -1350,7 +1564,8 @@ class SettingsController extends AbstractController
                     "id" => $freeField->getId(),
                     "actions" => "<button class='btn btn-silent delete-row' data-id='{$freeField->getId()}'><i class='wii-icon wii-icon-trash text-primary'></i></button>",
                     "label" => $freeField->getLabel() ?: 'Non défini',
-                    "appliesTo" => $freeField->getCategorieCL() ? ucfirst($freeField->getCategorieCL()->getLabel()) : "",
+                    "appliesTo" => $freeField->getCategorieCL() ? ucfirst($freeField->getCategorieCL()
+                        ->getLabel()) : "",
                     "type" => $typageCLFr,
                     "displayedCreate" => ($freeField->getDisplayedCreate() ? "oui" : "non"),
                     "requiredCreate" => ($freeField->isRequiredCreate() ? "oui" : "non"),
@@ -1361,7 +1576,10 @@ class SettingsController extends AbstractController
             }
         }
 
-        $typeFreePages = $type && in_array($type->getCategory()->getLabel(), [CategoryType::MOUVEMENT_TRACA, CategoryType::SENSOR, CategoryType::RECEPTION]);
+        $typeFreePages = $type
+            && in_array($type->getCategory()->getLabel(), [
+                CategoryType::MOUVEMENT_TRACA, CategoryType::SENSOR, CategoryType::RECEPTION,
+            ]);
         if ($hasEditRight && ($edit || $typeFreePages)) {
             $rows[] = [
                 "actions" => "<span class='d-flex justify-content-start align-items-center add-row'><span class='wii-icon wii-icon-plus'></span></span>",
@@ -1385,8 +1603,7 @@ class SettingsController extends AbstractController
      * @Route("/champ-libre/supprimer/{entity}", name="settings_free_field_delete", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::DELETE})
      */
-    public function deleteFreeField(EntityManagerInterface $manager, FreeField $entity)
-    {
+    public function deleteFreeField(EntityManagerInterface $manager, FreeField $entity) {
         $manager->remove($entity);
         $manager->flush();
 
@@ -1399,8 +1616,7 @@ class SettingsController extends AbstractController
     /**
      * @Route("/champ-fixe/{entity}", name="settings_fixed_field_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
-    public function fixedFieldApi(Request $request, EntityManagerInterface $entityManager, string $entity): Response
-    {
+    public function fixedFieldApi(Request $request, EntityManagerInterface $entityManager, string $entity): Response {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
 
         $class = "form-control data";
@@ -1451,13 +1667,11 @@ class SettingsController extends AbstractController
     }
 
 
-    private function canEdit(): bool
-    {
+    private function canEdit(): bool {
         return $this->userService->hasRightFunction(Menu::PARAM, Action::EDIT);
     }
 
-    private function canDelete(): bool
-    {
+    private function canDelete(): bool {
         return $this->userService->hasRightFunction(Menu::PARAM, Action::DELETE);
     }
 
@@ -1465,8 +1679,7 @@ class SettingsController extends AbstractController
      * @Route("/frequences-api", name="settings_frequencies_api", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK}, mode=HasPermission::IN_JSON)
      */
-    public function frequenciesApi(Request $request, EntityManagerInterface $manager)
-    {
+    public function frequenciesApi(Request $request, EntityManagerInterface $manager) {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
         $data = [];
         $inventoryFrequencyRepository = $manager->getRepository(InventoryFrequency::class);
@@ -1513,8 +1726,7 @@ class SettingsController extends AbstractController
      * @Route("/frequences/supprimer/{entity}", name="settings_delete_frequency", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK}, mode=HasPermission::IN_JSON)
      */
-    public function deleteFrequency(EntityManagerInterface $entityManager, InventoryFrequency $entity): Response
-    {
+    public function deleteFrequency(EntityManagerInterface $entityManager, InventoryFrequency $entity): Response {
         if ($entity->getCategories()->isEmpty()) {
             $entityManager->remove($entity);
             $entityManager->flush();
@@ -1535,8 +1747,7 @@ class SettingsController extends AbstractController
      * @Route("/categories-api", name="settings_categories_api", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK}, mode=HasPermission::IN_JSON)
      */
-    public function categoriesApi(Request $request, EntityManagerInterface $manager)
-    {
+    public function categoriesApi(Request $request, EntityManagerInterface $manager) {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
         $class = "form-control data";
 
@@ -1557,7 +1768,7 @@ class SettingsController extends AbstractController
                 $selectedFrequency = $category->getFrequency()->getLabel();
                 $emptySelected = empty($selectedFrequency) ? 'selected' : '';
                 $frequencySelectContent = Stream::from($frequencyOptions)
-                    ->map(function (array $n) use ($selectedFrequency) {
+                    ->map(function(array $n) use ($selectedFrequency) {
                         $selected = $n['label'] === $selectedFrequency ? "selected" : '';
                         return "<option value='{$n["id"]}' {$selected}>{$n["label"]}</option>";
                     })
@@ -1606,8 +1817,7 @@ class SettingsController extends AbstractController
      * @Route("/categories/supprimer/{entity}", name="settings_delete_category", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK}, mode=HasPermission::IN_JSON)
      */
-    public function deleteCategory(EntityManagerInterface $entityManager, InventoryCategory $entity): Response
-    {
+    public function deleteCategory(EntityManagerInterface $entityManager, InventoryCategory $entity): Response {
         if (!$entity->getRefArticle()->isEmpty()) {
             return $this->json([
                 "success" => false,
@@ -1633,8 +1843,7 @@ class SettingsController extends AbstractController
      * @Route("/types-litige-api", name="types_litige_api", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK}, mode=HasPermission::IN_JSON)
      */
-    public function typesLitigeApi(Request $request, EntityManagerInterface $manager)
-    {
+    public function typesLitigeApi(Request $request, EntityManagerInterface $manager) {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
         $data = [];
         $typeRepository = $manager->getRepository(Type::class);
@@ -1680,8 +1889,7 @@ class SettingsController extends AbstractController
      * @Route("/types_litiges/supprimer/{entity}", name="settings_delete_type_litige", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK}, mode=HasPermission::IN_JSON)
      */
-    public function deleteTypeLitige(EntityManagerInterface $entityManager, Type $entity): Response
-    {
+    public function deleteTypeLitige(EntityManagerInterface $entityManager, Type $entity): Response {
         if ($entity->getDisputes()->isEmpty()) {
             $entityManager->remove($entity);
             $entityManager->flush();
@@ -1697,8 +1905,7 @@ class SettingsController extends AbstractController
         }
     }
 
-    public function getRequestTemplates(TypeRepository $typeRepository, RequestTemplateRepository $requestTemplateRepository, string $templateType)
-    {
+    public function getRequestTemplates(TypeRepository $typeRepository, RequestTemplateRepository $requestTemplateRepository, string $templateType) {
         $type = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::REQUEST_TEMPLATE, $templateType);
 
         $templates = Stream::from($requestTemplateRepository->findBy(["type" => $type]))
@@ -1714,8 +1921,7 @@ class SettingsController extends AbstractController
         ];
     }
 
-    public function getAlertTemplates(AlertTemplateRepository $alertTemplateRepository)
-    {
+    public function getAlertTemplates(AlertTemplateRepository $alertTemplateRepository) {
         $templates = Stream::from($alertTemplateRepository->findAll())
             ->map(fn(AlertTemplate $template) => [
                 "label" => $template->getName(),
@@ -1732,8 +1938,7 @@ class SettingsController extends AbstractController
      * @Route("/groupes_visibilite-api", name="settings_visibility_group_api", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK})
      */
-    public function visibiliteGroupApi(Request $request, EntityManagerInterface $manager)
-    {
+    public function visibiliteGroupApi(Request $request, EntityManagerInterface $manager) {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
 
         $data = [];
@@ -1775,8 +1980,7 @@ class SettingsController extends AbstractController
      * @Route("/groupes_visibilite/supprimer/{entity}", name="settings_visibility_group_delete", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::DELETE})
      */
-    public function deleteVisibilityGroup(EntityManagerInterface $manager, VisibilityGroup $entity)
-    {
+    public function deleteVisibilityGroup(EntityManagerInterface $manager, VisibilityGroup $entity) {
         $visibilityGroup = $manager->getRepository(VisibilityGroup::class)->find($entity);
         if ($visibilityGroup->getArticleReferences()->isEmpty()) {
             $manager->remove($entity);
@@ -1796,11 +2000,12 @@ class SettingsController extends AbstractController
     /**
      * @Route("/personnalisation", name="save_translations", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      */
-    public function saveTranslations(Request                $request,
-                                     EntityManagerInterface $entityManager,
-                                     TranslationService     $translationService,
-                                     CacheService           $cacheService): Response
-    {
+    public function saveTranslations(
+        Request $request,
+        EntityManagerInterface $entityManager,
+        TranslationService $translationService,
+        CacheService $cacheService
+    ): Response {
         if ($translations = json_decode($request->getContent(), true)) {
             $translationRepository = $entityManager->getRepository(Translation::class);
             foreach ($translations as $translation) {
@@ -1827,8 +2032,7 @@ class SettingsController extends AbstractController
     /**
      * @Route("/trigger-reminder-emails", name="trigger_reminder_emails", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      */
-    public function triggerReminderEmails(EntityManagerInterface $manager, PackService $packService): Response
-    {
+    public function triggerReminderEmails(EntityManagerInterface $manager, PackService $packService): Response {
         try {
             $packService->launchPackDeliveryReminder($manager);
             $response = [
@@ -1844,4 +2048,5 @@ class SettingsController extends AbstractController
 
         return $this->json($response);
     }
+
 }

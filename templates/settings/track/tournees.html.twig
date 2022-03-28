@@ -1,0 +1,209 @@
+{% import 'form.html.twig' as form %}
+
+<div class="wii-section-title">
+    Calcul kilométrage et durée
+</div>
+
+<div class="wii-section row">
+    <div class="col-4">
+        {{ form.textarea(
+            setting('TRANSPORT_ROUND_KM_START_POINT'),
+            'Point de départ km',
+            false,
+            setting_value('TRANSPORT_ROUND_KM_START_POINT'),
+            {
+                labelClass: 'wii-field-name w-100',
+            }
+        ) }}
+    </div>
+    <div class="col-4">
+        {{ form.textarea(
+            setting('TRANSPORT_ROUND_HOURLY_BILLING_START_POINT'),
+            'Point de départ calcul des horaires',
+            false,
+            setting_value('TRANSPORT_ROUND_HOURLY_BILLING_START_POINT'),
+            {
+                labelClass: 'wii-field-name w-100',
+            }
+        ) }}
+    </div>
+    <div class="col-4">
+        {{ form.textarea(
+            setting('TRANSPORT_ROUND_END_POINT'),
+            'Point d\'arrivée',
+            false,
+            setting_value('TRANSPORT_ROUND_END_POINT'),
+            {
+                labelClass: 'wii-field-name w-100',
+            }
+        ) }}
+    </div>
+    <div class="col-12 my-3">
+        <div class="wii-field-name">
+            Heure(s) de départ
+        </div>
+    </div>
+    <div class="col-12">
+        <table id="table-starting-hours" data-table-processing="startingHours"></table>
+    </div>
+    <div class="col-12 my-3">
+        <div class="wii-field-name">
+            Temps de passage moyen <span class="wii-small-text">(minutes)</span>
+        </div>
+    </div>
+    <div class="col-4">
+        {{ form.number(
+            setting('TRANSPORT_ROUND_DELIVERY_AVERAGE_TIME'),
+            'Livraison',
+            false,
+            setting_value('TRANSPORT_ROUND_DELIVERY_AVERAGE_TIME'),
+            {
+                labelClass: 'wii-field-name w-100',
+                buttons: false
+            }
+        ) }}
+    </div>
+    <div class="col-4">
+        {{ form.number(
+            setting('TRANSPORT_ROUND_COLLECT_AVERAGE_TIME'),
+            'Collecte',
+            false,
+            setting_value('TRANSPORT_ROUND_COLLECT_AVERAGE_TIME'),
+            {
+                labelClass: 'wii-field-name w-100',
+                buttons: false
+            }
+        ) }}
+    </div>
+    <div class="col-4">
+        {{ form.number(
+            setting('TRANSPORT_ROUND_DELIVERY_COLLECT_AVERAGE_TIME'),
+            'Livraison/Collecte',
+            false,
+            setting_value('TRANSPORT_ROUND_DELIVERY_COLLECT_AVERAGE_TIME'),
+            {
+                labelClass: 'wii-field-name w-100',
+                buttons: false
+            }
+        ) }}
+    </div>
+</div>
+
+<div class="wii-section-title">
+    Colis écartés
+</div>
+
+<div class="wii-section row">
+    <div class="col-8">
+        {{ form.select(constant('App\\Entity\\Setting::TRANSPORT_ROUND_PACK_REJECT_MOTIVES'), "Motifs d'écartements", false, {
+            type: null,
+            editable: true,
+            noEmptyOption: true,
+            multiple: true,
+            values: packRejectMotives,
+            items: packRejectMotives,
+            placeholder: 'Ajoutez des éléments',
+            labelClass: 'wii-field-name w-100',
+        }) }}
+    </div>
+</div>
+
+<div class="wii-section-title">
+    Collectes/Livraisons
+</div>
+
+<div class="wii-section row">
+    <div class="col-8 mb-3">
+        {{ form.select(constant('App\\Entity\\Setting::TRANSPORT_ROUND_DELIVERY_REJECT_MOTIVES'), "Motifs de non livraison", false, {
+            type: null,
+            editable: true,
+            noEmptyOption: true,
+            multiple: true,
+            values: deliveryRejectMotives,
+            items: deliveryRejectMotives,
+            placeholder: 'Ajoutez des éléments',
+            labelClass: 'wii-field-name w-100',
+        }) }}
+    </div>
+    <div class="col-8">
+        {{ form.select(constant('App\\Entity\\Setting::TRANSPORT_ROUND_COLLECT_REJECT_MOTIVES'), "Motifs de non collecte", false, {
+            type: null,
+            editable: true,
+            multiple: true,
+            noEmptyOption: true,
+            values: collectRejectMotives,
+            items: collectRejectMotives,
+            placeholder: 'Ajoutez des éléments',
+            labelClass: 'wii-field-name w-100',
+        }) }}
+    </div>
+    <div class="col-4">
+        {{ form.select(constant('App\\Entity\\Setting::TRANSPORT_ROUND_COLLECT_WORKFLOW_ENDING_MOTIVE'), "Fin du workflow collecte pour les motifs", false, {
+            type: null,
+            multiple: true,
+            noEmptyOption: true,
+            values: collectWorkflowEndingMotives,
+            items: collectWorkflowEndingMotives,
+            placeholder: 'Ajoutez des éléments',
+            labelClass: 'wii-field-name w-100',
+        }) }}
+    </div>
+</div>
+
+<div class="wii-section-title">
+    Conditions de fin de tournée
+</div>
+
+<div class="wii-section row">
+    <div class="col-8 mb-3">
+        {{ form.select(setting('TRANSPORT_ROUND_END_ROUND_LOCATIONS'), 'Emplacements de fin de tournée', false, {
+            labelClass: 'wii-field-name w-100',
+            items: transportRoundEndLocations,
+            values: transportRoundEndLocations,
+            type: 'location',
+            multiple: true
+        }) }}
+    </div>
+    <div class="col-8 mb-3">
+        {{ form.select(setting('TRANSPORT_ROUND_NEEDED_NATURES_TO_DROP'), 'Natures de colis obligatoires à déposer', false, {
+            labelClass: 'wii-field-name w-100',
+            items: transportRoundNeededNaturesToDrop,
+            values: transportRoundNeededNaturesToDrop,
+            type: 'nature',
+            multiple: true
+        }) }}
+    </div>
+</div>
+
+<div class="wii-section-title">
+    Dépose des objets collectés
+</div>
+
+<div class="wii-section row">
+    <div class="col-8">
+        {{ form.select(setting('TRANSPORT_ROUND_COLLECTED_PACKS_LOCATIONS'), 'Emplacements de dépose des objets collectés', false, {
+            labelClass: 'wii-field-name w-100',
+            items: transportRoundCollectedPacksLocations,
+            values: transportRoundCollectedPacksLocations,
+            type: 'location',
+            multiple: true
+        }) }}
+    </div>
+</div>
+
+<div class="wii-section-title">
+    Dépose des colis non livrés
+</div>
+
+<div class="wii-section row">
+    <div class="col-8">
+        {{ form.select(setting('TRANSPORT_ROUND_REJECTED_PACKS_LOCATIONS'), 'Emplacements de retour des colis non livrés', false, {
+            labelClass: 'wii-field-name w-100',
+            items: transportRoundRejectedPacksLocations,
+            values: transportRoundRejectedPacksLocations,
+            type: 'location',
+            multiple: true
+        }) }}
+    </div>
+</div>
+

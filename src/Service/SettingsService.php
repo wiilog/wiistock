@@ -24,7 +24,9 @@ use App\Entity\Reception;
 use App\Entity\Statut;
 use App\Entity\Transport\CollectTimeSlot;
 use App\Entity\Transport\TemperatureRange;
+use App\Entity\Transport\TransportRoundStartingHour;
 use App\Entity\Type;
+use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Entity\WorkFreeDay;
 use App\Service\IOT\AlertTemplateService;
@@ -43,8 +45,8 @@ use Symfony\Component\Process\Process;
 use Symfony\Component\Yaml\Yaml;
 use WiiCommon\Helper\Stream;
 
-class SettingsService
-{
+class SettingsService {
+
     public const CHARACTER_VALID_REGEX = '^[A-Za-z0-9\_\-]{1,24}$';
 
     /**  @Required */
@@ -67,16 +69,14 @@ class SettingsService
 
     private array $settingsConstants;
 
-    public function __construct()
-    {
+    public function __construct() {
         $reflectionClass = new ReflectionClass(Setting::class);
         $this->settingsConstants = Stream::from($reflectionClass->getConstants())
             ->filter(fn($settingLabel) => is_string($settingLabel))
             ->toArray();
     }
 
-    public function getSetting(array $settings, string $key): ?Setting
-    {
+    public function getSetting(array $settings, string $key): ?Setting {
         if (!isset($settings[$key])
             && in_array($key, $this->settingsConstants)) {
             $settingRepository = $this->manager->getRepository(Setting::class);
@@ -93,14 +93,15 @@ class SettingsService
         return $settings[$key] ?? null;
     }
 
-    public function save(Request $request): array
-    {
+    public function save(Request $request): array {
         $settingRepository = $this->manager->getRepository(Setting::class);
 
         $settingNames = array_merge(
             array_keys($request->request->all()),
             array_keys($request->files->all()),
         );
+
+
         $allFormSettingNames = json_decode($request->request->get('__form_fieldNames', '[]'), true);
 
         $result = [];
@@ -114,7 +115,6 @@ class SettingsService
                 $result
             );
         }
-
         $updated = [];
         $this->saveCustom($request, $settings, $updated, $result);
         $this->saveStandard($request, $settings, $updated);
@@ -138,14 +138,16 @@ class SettingsService
                 'label' => $type->getLabel(),
             ];
             unset($result['type']);
-        } else if (isset($result['template'])) {
-            /** @var RequestTemplate $template */
-            $template = $result['template'];
-            $result['entity'] = [
-                'id' => $template->getId(),
-                'label' => $template->getName(),
-            ];
-            unset($result['template']);
+        } else {
+            if (isset($result['template'])) {
+                /** @var RequestTemplate $template */
+                $template = $result['template'];
+                $result['entity'] = [
+                    'id' => $template->getId(),
+                    'label' => $template->getName(),
+                ];
+                unset($result['template']);
+            }
         }
         return $result;
     }
@@ -155,8 +157,7 @@ class SettingsService
      *
      * @param Setting[] $settings Existing settings
      */
-    private function saveCustom(Request $request, array $settings, array &$updated, array &$result): void
-    {
+    private function saveCustom(Request $request, array $settings, array &$updated, array &$result): void {
         $data = $request->request;
 
         if ($client = $data->get(Setting::APP_CLIENT)) {
@@ -198,7 +199,8 @@ class SettingsService
             $deliveryTypes = explode(',', $request->request->get("deliveryType"));
             $deliveryRequestLocations = explode(',', $request->request->get("deliveryRequestLocation"));
 
-            $setting = $this->manager->getRepository(Setting::class)->findOneBy(["label" => Setting::DEFAULT_LOCATION_LIVRAISON]);
+            $setting = $this->manager->getRepository(Setting::class)
+                ->findOneBy(["label" => Setting::DEFAULT_LOCATION_LIVRAISON]);
             $associatedTypesAndLocations = array_combine($deliveryTypes, $deliveryRequestLocations);
             $setting->setValue(json_encode($associatedTypesAndLocations));
 
@@ -230,7 +232,8 @@ class SettingsService
         }
 
         if ($request->request->has("DISPATCH_OVERCONSUMPTION_BILL_TYPE") && $request->request->has("DISPATCH_OVERCONSUMPTION_BILL_STATUS")) {
-            $setting = $this->manager->getRepository(Setting::class)->findOneBy(["label" => Setting::DISPATCH_OVERCONSUMPTION_BILL_TYPE_AND_STATUS]);
+            $setting = $this->manager->getRepository(Setting::class)
+                ->findOneBy(["label" => Setting::DISPATCH_OVERCONSUMPTION_BILL_TYPE_AND_STATUS]);
             $setting->setValue(
                 $request->request->get("DISPATCH_OVERCONSUMPTION_BILL_TYPE") . ";" .
                 $request->request->get("DISPATCH_OVERCONSUMPTION_BILL_STATUS")
@@ -265,7 +268,7 @@ class SettingsService
             //if they were used somewhere else
             /** @var TemperatureRange $entity */
             foreach ($removedRanges as $entity) {
-                if(!$entity->getLocations()->isEmpty() || !$entity->getNatures()->isEmpty()) {
+                if (!$entity->getLocations()->isEmpty() || !$entity->getNatures()->isEmpty()) {
                     throw new RuntimeException("La plage de température {$entity->getValue()} ne peut pas être supprimée car elle est utilisée par des natures ou emplacements");
                 } else {
                     $this->manager->remove($entity);
@@ -279,8 +282,7 @@ class SettingsService
     /**
      * @param Setting[] $settings Existing settings
      */
-    private function saveStandard(Request $request, array $settings, array &$updated): void
-    {
+    private function saveStandard(Request $request, array $settings, array &$updated): void {
         foreach ($request->request->all() as $key => $value) {
             $setting = $this->getSetting($settings, $key);
             if (isset($setting) && !in_array($key, $updated)) {
@@ -299,8 +301,7 @@ class SettingsService
     /**
      * @param Setting[] $settings Existing settings
      */
-    private function saveFiles(Request $request, array $settings, array $allFormSettingNames, array &$updated): void
-    {
+    private function saveFiles(Request $request, array $settings, array $allFormSettingNames, array &$updated): void {
         foreach ($request->files->all() as $key => $value) {
             $setting = $this->getSetting($settings, $key);
             if (isset($setting)) {
@@ -333,9 +334,8 @@ class SettingsService
         }
     }
 
-//    TODO WIIS-6693 mettre dans des services different ?
-    private function saveDatatables(array $tables, array $data, array $files, array &$result): void
-    {
+    //    TODO WIIS-6693 mettre dans des services different ?
+    private function saveDatatables(array $tables, array $data, array $files, array &$result): void {
         if (isset($tables["workingHours"])) {
             $ids = Stream::from($tables["workingHours"])
                 ->filter(fn(array $day) => !empty($day))
@@ -343,9 +343,11 @@ class SettingsService
                 ->toArray();
 
             $daysWorkedRepository = $this->manager->getRepository(DaysWorked::class);
-            $days = empty($ids) ? [] : Stream::from($daysWorkedRepository->findBy(["id" => $ids]))
-                ->keymap(fn($day) => [$day->getId(), $day])
-                ->toArray();
+            $days = empty($ids)
+                ? []
+                : Stream::from($daysWorkedRepository->findBy(["id" => $ids]))
+                    ->keymap(fn($day) => [$day->getId(), $day])
+                    ->toArray();
 
             foreach ($tables["workingHours"] as $workingHour) {
                 $hours = $workingHour["hours"] ?? null;
@@ -358,8 +360,10 @@ class SettingsService
                         ->setWorked($workingHour["worked"]);
                     if ($day->isWorked() && !$day->getTimes()) {
                         throw new RuntimeException("Le champ horaires de travail est requis pour les jours travaillés");
-                    } else if (!$day->isWorked()) {
-                        $day->setTimes(null);
+                    } else {
+                        if (!$day->isWorked()) {
+                            $day->setTimes(null);
+                        }
                     }
                 }
             }
@@ -423,6 +427,59 @@ class SettingsService
                 $day->setDay($date);
 
                 $this->manager->persist($day);
+            }
+        }
+
+
+        if (isset($tables["startingHours"])) {
+            $userRepository = $this->manager->getRepository(Utilisateur::class);
+            $editShift = function(TransportRoundStartingHour $shift, array $edition) use ($userRepository) {
+                $hour = $edition["hour"] ?? null;
+                if ($hour) {
+                    if (!preg_match("/^\d{2}:\d{2}$/", $hour)) {
+                        throw new RuntimeException("Le champ horaire doit être au format HH:MM");
+                    }
+                    $shift
+                        ->setHour($hour);
+
+                    $userIds = explode(',', $edition['deliverers']);
+                    $users = $userRepository->findBy([
+                        'id' => $userIds,
+                    ]);
+                    foreach ($users as $user) {
+                        $shift->addDeliverer($user);
+                    }
+                } else {
+                    throw new RuntimeException("Veuillez renseigner tous les champs des heures de départ.");
+                }
+            };
+
+            $hourShiftsRepository = $this->manager->getRepository(TransportRoundStartingHour::class);
+
+            $newShifts = Stream::from($tables["startingHours"])
+                ->filter(fn(array $shift) => !empty($shift) && !isset($shift['id']))
+                ->toArray();
+
+            $existingShifts = Stream::from($tables["startingHours"])
+                ->filter(fn(array $shift) => isset($shift['id']))
+                ->keymap(fn(array $shift) => [$shift->getId(), $shift])
+                ->toArray();
+
+            foreach ($hourShiftsRepository->findAll() as $existingShift) {
+                if (!empty($existingShifts[$existingShift->getId()])) {
+                    $editShift($existingShift, $existingShifts[$existingShift->getId()]);
+                } else {
+                    foreach ($existingShift->getDeliverers() as $deliverer) {
+                        $deliverer->setTransportRoundStartingHour(null);
+                    }
+                    $this->manager->remove($existingShift);
+                }
+            }
+
+            foreach ($newShifts as $hourShifts) {
+                $shift = new TransportRoundStartingHour();
+                $this->manager->persist($shift);
+                $editShift($shift, $hourShifts);
             }
         }
 
@@ -502,12 +559,14 @@ class SettingsService
                     ->setSendMail($data["mailRequester"] ?? false)
                     ->setColor($data["color"] ?? null);
 
-                if(isset($files["logo"])) {
+                if (isset($files["logo"])) {
                     $type->setLogo($this->attachmentService->createAttachements([$files["logo"]])[0]);
-                } else if(isset($data["keep-logo"]) && !$data["keep-logo"]) {
-                    $type->setLogo(null);
+                } else {
+                    if (isset($data["keep-logo"]) && !$data["keep-logo"]) {
+                        $type->setLogo(null);
+                    }
                 }
-            } elseif(isset($tables["category"])) {
+            } else if (isset($tables["category"])) {
                 $category = $categoryTypeRepository->findOneBy(["label" => $tables["category"]]);
                 $type = $typeRepository->findOneBy([
                     'label' => $tables["category"],
@@ -587,7 +646,8 @@ class SettingsService
         if (isset($tables["typesLitigeTable"])) {
             foreach (array_filter($tables["typesLitigeTable"]) as $typeLitigeData) {
                 $typeLitigeRepository = $this->manager->getRepository(Type::class);
-                $categoryLitige = $this->manager->getRepository(CategoryType::class)->findOneBy(['label' => CategoryType::DISPUTE]);
+                $categoryLitige = $this->manager->getRepository(CategoryType::class)
+                    ->findOneBy(['label' => CategoryType::DISPUTE]);
 
                 if (isset($typeLitigeData['typeLitigeId'])) {
                     $typeLitige = $typeLitigeRepository->find($typeLitigeData['typeLitigeId']);
@@ -626,7 +686,10 @@ class SettingsService
                 ]);
 
                 foreach ($statusesData as $statusData) {
-                    if (!in_array($statusData['state'], [Statut::TREATED, Statut::NOT_TREATED, Statut::DRAFT, Statut::IN_PROGRESS, Statut::DISPUTE, Statut::PARTIAL])) {
+                    if (!in_array($statusData['state'], [
+                        Statut::TREATED, Statut::NOT_TREATED, Statut::DRAFT, Statut::IN_PROGRESS, Statut::DISPUTE,
+                        Statut::PARTIAL,
+                    ])) {
                         throw new RuntimeException("L'état du statut est invalide");
                     }
 
@@ -724,8 +787,7 @@ class SettingsService
      *
      * @param string[] $updated
      */
-    private function postSaveTreatment(array $updated): void
-    {
+    private function postSaveTreatment(array $updated): void {
         if (array_intersect($updated, [Setting::FONT_FAMILY])) {
             $this->generateFontSCSS();
             $this->yarnBuild();
@@ -737,8 +799,7 @@ class SettingsService
         }
     }
 
-    public function changeClient(string $client)
-    {
+    public function changeClient(string $client) {
         $configPath = "/etc/php8/php-fpm.conf";
 
         //if we're not on a kubernetes pod => file doesn't exist => ignore
@@ -762,8 +823,7 @@ class SettingsService
         }
     }
 
-    public function generateFontSCSS()
-    {
+    public function generateFontSCSS() {
         $path = "{$this->kernel->getProjectDir()}/assets/scss/_customFont.scss";
 
         $font = $this->manager->getRepository(Setting::class)
@@ -772,8 +832,7 @@ class SettingsService
         file_put_contents($path, "\$mainFont: \"$font\";");
     }
 
-    public function generateSessionConfig()
-    {
+    public function generateSessionConfig() {
         $sessionLifetime = $this->manager->getRepository(Setting::class)
             ->getOneParamByLabel(Setting::MAX_SESSION_TIME);
 
@@ -787,15 +846,13 @@ class SettingsService
         file_put_contents($generated, Yaml::dump($config));
     }
 
-    public function yarnBuild()
-    {
+    public function yarnBuild() {
         $env = $_SERVER["APP_ENV"] == "dev" ? "dev" : "production";
         $process = Process::fromShellCommandline("yarn build:only:$env");
         $process->run();
     }
 
-    public function cacheClear(): void
-    {
+    public function cacheClear(): void {
         $env = $this->kernel->getEnvironment();
         $application = new Application($this->kernel);
         $application->setAutoExit(false);
@@ -812,16 +869,14 @@ class SettingsService
     /**
      * @param Setting[] $settings
      */
-    private function clearSettings(array $settings): void
-    {
+    private function clearSettings(array $settings): void {
         foreach ($settings as $setting) {
             $setting->setValue(null);
         }
     }
 
     #[ArrayShape(["logo" => "mixed", "height" => "mixed", "width" => "mixed", "isCode128" => "mixed"])]
-    public function getDimensionAndTypeBarcodeArray(): array
-    {
+    public function getDimensionAndTypeBarcodeArray(): array {
         $settingRepository = $this->manager->getRepository(Setting::class);
 
         return [
@@ -832,8 +887,7 @@ class SettingsService
         ];
     }
 
-    public function getParamLocation(string $label)
-    {
+    public function getParamLocation(string $label) {
         $settingRepository = $this->manager->getRepository(Setting::class);
         $emplacementRepository = $this->manager->getRepository(Emplacement::class);
 
@@ -853,8 +907,7 @@ class SettingsService
         return $resp ?? null;
     }
 
-    public function generateScssFile(?Setting $font = null)
-    {
+    public function generateScssFile(?Setting $font = null) {
         $projectDir = $this->kernel->getProjectDir();
         $scssFile = $projectDir . '/assets/scss/_customFont.scss';
 
@@ -869,8 +922,7 @@ class SettingsService
         file_put_contents($scssFile, "\$mainFont: \"$font\";");
     }
 
-    public function getDefaultDeliveryLocationsByType(EntityManagerInterface $entityManager): array
-    {
+    public function getDefaultDeliveryLocationsByType(EntityManagerInterface $entityManager): array {
         $typeRepository = $entityManager->getRepository(Type::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
@@ -905,8 +957,7 @@ class SettingsService
         return $defaultDeliveryLocations;
     }
 
-    public function getDefaultDeliveryLocationsByTypeId(EntityManagerInterface $entityManager): array
-    {
+    public function getDefaultDeliveryLocationsByTypeId(EntityManagerInterface $entityManager): array {
         $locationRepository = $entityManager->getRepository(Emplacement::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
 
