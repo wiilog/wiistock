@@ -2,17 +2,17 @@
 
 namespace App\Entity\Transport;
 
+use App\Entity\Attachment;
+use App\Entity\Emplacement;
 use App\Entity\Pack;
 use App\Entity\Traits\AttachmentTrait;
+use App\Entity\Utilisateur;
 use App\Repository\Transport\TransportHistoryRepository;
 use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TransportHistoryRepository::class)]
-class TransportHistory
-{
-
-    use AttachmentTrait;
+class TransportHistory {
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -29,41 +29,100 @@ class TransportHistory
     private ?TransportOrder $transportOrder = null;
 
     #[ORM\Column(type: 'string', length: 255)]
-    private ?string $category = null;
+    private ?string $type = null;
+
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
+    private ?Utilisateur $user = null;
+
+    #[ORM\ManyToOne(targetEntity: TransportRound::class)]
+    private ?TransportRound $round = null;
+
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
+    private ?Utilisateur $deliverer = null;
 
     #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: 'transportRequestHistories')]
     private ?Pack $pack = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $reason = null;
+
+    #[ORM\Column(type: 'text', nullable: true)]
     private ?string $comment = null;
+
+    #[ORM\OneToOne(targetEntity: Emplacement::class)]
+    private ?Emplacement $location = null;
+
+    #[ORM\OneToOne(targetEntity: Attachment::class)]
+    private ?Attachment $attachment = null;
 
     #[ORM\OneToOne(targetEntity: StatusHistory::class, cascade: ['persist', 'remove'])]
     private ?StatusHistory $statusHistory = null;
 
-    public function getId(): ?int
-    {
+    public function getId(): ?int {
         return $this->id;
     }
 
-    public function getDate(): ?DateTime
-    {
+    public function getDate(): ?DateTime {
         return $this->date;
     }
 
-    public function setDate(DateTime $date): self
-    {
+    public function setDate(DateTime $date): self {
         $this->date = $date;
 
         return $this;
     }
 
-    public function getPack(): ?Pack
-    {
+    public function getUser(): ?Utilisateur {
+        return $this->user;
+    }
+
+    public function setUser(?Utilisateur $user): self {
+        $this->user = $user;
+        return $this;
+    }
+
+    public function getRound(): ?TransportRound {
+        return $this->round;
+    }
+
+    public function setRound(?TransportRound $round): self {
+        $this->round = $round;
+        return $this;
+    }
+
+    public function getDeliverer(): ?Utilisateur {
+        return $this->deliverer;
+    }
+
+    public function setDeliverer(?Utilisateur $deliverer): self {
+        $this->deliverer = $deliverer;
+        return $this;
+    }
+
+    public function getLocation(): ?Emplacement {
+        return $this->location;
+    }
+
+    public function setLocation(?Emplacement $location): self {
+        $this->location = $location;
+        return $this;
+    }
+
+    public function getAttachment(): ?Attachment {
+        return $this->attachment;
+    }
+
+    public function setAttachment(?Attachment $attachment): self {
+        $this->attachment = $attachment;
+        return $this;
+    }
+
+    public function getPack(): ?Pack {
         return $this->pack;
     }
 
     public function setPack(?Pack $pack): self {
-        if($this->pack && $this->pack !== $pack) {
+        if ($this->pack && $this->pack !== $pack) {
             $this->pack->removeTransportHistory($this);
         }
         $this->pack = $pack;
@@ -72,37 +131,41 @@ class TransportHistory
         return $this;
     }
 
-    public function getComment(): ?string
-    {
+    public function getReason(): ?string {
+        return $this->reason;
+    }
+
+    public function setReason(?string $reason): self {
+        $this->reason = $reason;
+        return $this;
+    }
+
+    public function getComment(): ?string {
         return $this->comment;
     }
 
-    public function setComment(?string $comment): self
-    {
+    public function setComment(?string $comment): self {
         $this->comment = $comment;
 
         return $this;
     }
 
-    public function getCategory(): ?string
-    {
-        return $this->category;
+    public function getType(): ?string {
+        return $this->type;
     }
 
-    public function setCategory(string $category): self
-    {
-        $this->category = $category;
+    public function setType(string $type): self {
+        $this->type = $type;
 
         return $this;
     }
 
-    public function getTransportRequest(): ?TransportRequest
-    {
+    public function getTransportRequest(): ?TransportRequest {
         return $this->transportRequest;
     }
 
     public function setTransportRequest(?TransportRequest $transportRequest): self {
-        if($this->transportRequest && $this->transportRequest !== $transportRequest) {
+        if ($this->transportRequest && $this->transportRequest !== $transportRequest) {
             $this->transportRequest->removeTransportHistory($this);
         }
         $this->transportRequest = $transportRequest;
@@ -111,13 +174,12 @@ class TransportHistory
         return $this;
     }
 
-    public function getTransportOrder(): ?TransportOrder
-    {
+    public function getTransportOrder(): ?TransportOrder {
         return $this->transportOrder;
     }
 
     public function setTransportOrder(?TransportOrder $transportOrder): self {
-        if($this->transportOrder && $this->transportOrder !== $transportOrder) {
+        if ($this->transportOrder && $this->transportOrder !== $transportOrder) {
             $this->transportOrder->removeTransportHistory($this);
         }
         $this->transportOrder = $transportOrder;
@@ -126,15 +188,14 @@ class TransportHistory
         return $this;
     }
 
-    public function getStatusHistory(): ?StatusHistory
-    {
+    public function getStatusHistory(): ?StatusHistory {
         return $this->statusHistory;
     }
 
-    public function setStatusHistory(?StatusHistory $statusHistory): self
-    {
+    public function setStatusHistory(?StatusHistory $statusHistory): self {
         $this->statusHistory = $statusHistory;
 
         return $this;
     }
+
 }

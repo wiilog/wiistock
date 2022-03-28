@@ -204,7 +204,7 @@ abstract class TransportRequest {
     /**
      * @return Collection<int, StatusHistory>
      */
-    public function getStatusHistories(): Collection {
+    public function getHistory(): Collection {
         return $this->statusHistories;
     }
 
