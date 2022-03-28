@@ -7,10 +7,10 @@
 <div class="wii-section row">
     <div class="col-4">
         {{ form.textarea(
-            setting('TRANSPORT_ROUND_START_POINT_KM'),
-            'Livraison',
+            setting('TRANSPORT_ROUND_KM_START_POINT'),
+            'Point de départ km',
             false,
-            setting_value('TRANSPORT_ROUND_START_POINT_KM'),
+            setting_value('TRANSPORT_ROUND_KM_START_POINT'),
             {
                 labelClass: 'wii-field-name w-100',
             }
@@ -18,10 +18,10 @@
     </div>
     <div class="col-4">
         {{ form.textarea(
-            setting('TRANSPORT_ROUND_START_POINT_HOURLY_CALCUL'),
-            'Collecte',
+            setting('TRANSPORT_ROUND_HOURLY_BILLING_START_POINT'),
+            'Point de départ calcul des horaires',
             false,
-            setting_value('TRANSPORT_ROUND_START_POINT_HOURLY_CALCUL'),
+            setting_value('TRANSPORT_ROUND_HOURLY_BILLING_START_POINT'),
             {
                 labelClass: 'wii-field-name w-100',
             }
@@ -29,10 +29,10 @@
     </div>
     <div class="col-4">
         {{ form.textarea(
-            setting('TRANSPORT_ROUND_DELIVERY_END_POINT'),
-            'Livraison/Collecte',
+            setting('TRANSPORT_ROUND_END_POINT'),
+            'Point d\'arrivée',
             false,
-            setting_value('TRANSPORT_ROUND_DELIVERY_END_POINT'),
+            setting_value('TRANSPORT_ROUND_END_POINT'),
             {
                 labelClass: 'wii-field-name w-100',
             }
