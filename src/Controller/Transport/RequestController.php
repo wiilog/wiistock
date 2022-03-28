@@ -190,7 +190,6 @@ class RequestController extends AbstractController {
                 $s = $collectCount > 1 ? "s" : "";
                 $collectCount = "<span class='wii-icon wii-icon-cart-collect wii-icon-15px-primary mr-1'></span> $collectCount collecte$s";
             }
-dump($counts);
 
             $row = "<div class='transport-list-date px-1 pb-2 pt-3'>$date <div class='transport-counts'>$deliveryCount $collectCount</div></div>";
 
@@ -203,7 +202,7 @@ dump($counts);
                     </button>
                 </span>";
 
-                $row = "<div class='d-flex justify-content-between'>$row $export</div>";
+                $row = "<div class='d-flex flex-column-reverse flex-md-row justify-content-between'>$row $export</div>";
             }
 
             $rows[] = [

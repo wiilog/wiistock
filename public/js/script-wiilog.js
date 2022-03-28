@@ -23,6 +23,7 @@ const PAGE_RECEIPT_ASSOCIATION = 'receipt_association';
 const PAGE_DISPATCHES = 'acheminement';
 const PAGE_STATUS = 'status';
 const PAGE_EMPLACEMENT = 'emplacement';
+const PAGE_TRANSPORT_REQUESTS = 'transportRequest';
 const PAGE_URGENCES = 'urgences';
 const PAGE_NOTIFICATIONS = 'notifications';
 const STATUT_ACTIF = 'disponible';
@@ -442,7 +443,8 @@ function saveFilters(page, tableSelector, callback) {
         'filter-select2': ($input) => ($input.select2('data') || [])
                 .filter(({id, text}) => (id.trim() && text.trim()))
                 .map(({id, text}) => ({id, text})),
-        'filter-checkbox': ($input) => $input.is(':checked')
+        'filter-checkbox': ($input) => $input.is(':checked'),
+        'filter-switch': ($input) => $input.closest(`.wii-expanded-switch, .wii-switch`).find(':checked').val(),
     };
 
     let params = {
@@ -686,96 +688,103 @@ function warningEmptyDatesForCsv() {
 
 function displayFiltersSup(data) {
     data.forEach(function (element) {
-        switch (element.field) {
-            case 'utilisateurs':
-            case 'declarants':
-            case 'providers':
-            case 'reference':
-            case 'statut':
-            case 'carriers':
-            case 'emplacement':
-            case 'demCollecte':
-            case 'disputeNumber':
-            case 'demande':
-            case 'multipleTypes':
-            case 'receivers':
-            case 'requesters':
-            case 'commandList':
-            case 'operators':
-            case 'dispatchNumber':
-            case 'emergencyMultiple':
-            case 'businessUnit':
-            case 'managers':
-                let valuesElement = element.value.split(',');
-                let $select = $(`.filter-select2[name="${element.field}"]`);
-                $select.find('option').prop('selected', false);
-                valuesElement.forEach((value) => {
-                    let valueArray = value.split(':');
-                    let id = valueArray[0];
-                    let name = valueArray[1];
-                    const $optionToSelect = $select.find(`option[value="${name}"]`).length > 0
-                        ? $select.find(`option[value="${name}"]`)
-                        : $select.find(`option[value="${id}"]`).length > 0
-                            ? $select.find(`option[value="${id}"]`)
-                            : null;
-                    if ($optionToSelect) {
-                        $optionToSelect.prop('selected', true);
-                        $select.trigger('change');
+        const $element = $(`.filters [name="${element.field}"]`);
+        if($element.is(`.filter-switch`)) {
+            $(`.filter-switch[name="${element.field}"][value="${element.value}"]`)
+                .prop(`checked`, true)
+                .trigger(`change`);
+        } else {
+            //TODO refacto !!!!!!
+            switch (element.field) {
+                case 'utilisateurs':
+                case 'declarants':
+                case 'providers':
+                case 'reference':
+                case 'statut':
+                case 'carriers':
+                case 'emplacement':
+                case 'demCollecte':
+                case 'disputeNumber':
+                case 'demande':
+                case 'multipleTypes':
+                case 'receivers':
+                case 'requesters':
+                case 'commandList':
+                case 'operators':
+                case 'dispatchNumber':
+                case 'emergencyMultiple':
+                case 'businessUnit':
+                case 'managers':
+                    let valuesElement = element.value.split(',');
+                    let $select = $(`.filter-select2[name="${element.field}"]`);
+                    $select.find('option').prop('selected', false);
+                    valuesElement.forEach((value) => {
+                        let valueArray = value.split(':');
+                        let id = valueArray[0];
+                        let name = valueArray[1];
+                        const $optionToSelect = $select.find(`option[value="${name}"]`).length > 0
+                            ? $select.find(`option[value="${name}"]`)
+                            : $select.find(`option[value="${id}"]`).length > 0
+                                ? $select.find(`option[value="${id}"]`)
+                                : null;
+                        if ($optionToSelect) {
+                            $optionToSelect.prop('selected', true);
+                            $select.trigger('change');
+                        } else {
+                            let option = new Option(name, id, true, true);
+                            $select.append(option).trigger('change');
+                        }
+                    });
+                    break;
+
+                // multiple
+                case 'natures':
+                    let valuesElement2 = element.value.split(',');
+                    let $select2 = $(`.filter-select2[name="${element.field}"]`);
+                    let ids = [];
+                    valuesElement2.forEach((value) => {
+                        let valueArray = value.split(':');
+                        let id = valueArray[0];
+                        ids.push(id);
+                    });
+                    $select2.val(ids).trigger('change');
+                    break;
+
+                case 'emergency':
+                case 'customs':
+                case 'frozen':
+                    if (element.value === '1') {
+                        $('#' + element.field + '-filter').attr('checked', 'checked');
                     }
-                    else {
-                        let option = new Option(name, id, true, true);
-                        $select.append(option).trigger('change');
+                    break;
+
+                case 'litigeOrigin':
+                    const text = element.value || '';
+                    const id = text.replace('é', 'e').substring(0, 3).toUpperCase();
+                    $(`.filter-checkbox[name="${element.field}"]`).val(id).trigger('change');
+                    break;
+
+                case 'dateMin':
+                case 'dateMax':
+                    const sourceFormat = (element.value && element.value.indexOf('/') > -1)
+                        ? 'DD/MM/YYYY'
+                        : 'YYYY-MM-DD';
+                    const $fieldDate = $(`.filter-input[name="${element.field}"]`);
+                    const dateValue = moment(element.value, sourceFormat).format('DD/MM/YYYY');
+                    if ($fieldDate.data("DateTimePicker")) {
+                        $fieldDate.data("DateTimePicker").date(dateValue);
+                    } else {
+                        $fieldDate.val(dateValue);
                     }
-                });
-                break;
+                    break;
 
-            // multiple
-            case 'natures':
-                let valuesElement2 = element.value.split(',');
-                let $select2 = $(`.filter-select2[name="${element.field}"]`);
-                let ids = [];
-                valuesElement2.forEach((value) => {
-                    let valueArray = value.split(':');
-                    let id = valueArray[0];
-                    ids.push(id);
-                });
-                $select2.val(ids).trigger('change');
-                break;
-
-            case 'emergency':
-            case 'customs':
-            case 'frozen':
-                if (element.value === '1') {
-                    $('#' + element.field + '-filter').attr('checked', 'checked');
-                }
-                break;
-
-            case 'litigeOrigin':
-                const text = element.value || '';
-                const id = text.replace('é', 'e').substring(0, 3).toUpperCase();
-                $(`.filter-checkbox[name="${element.field}"]`).val(id).trigger('change');
-                break;
-
-            case 'dateMin':
-            case 'dateMax':
-                const sourceFormat = (element.value && element.value.indexOf('/') > -1)
-                    ? 'DD/MM/YYYY'
-                    : 'YYYY-MM-DD';
-                const $fieldDate = $(`.filter-input[name="${element.field}"]`);
-                const dateValue = moment(element.value, sourceFormat).format('DD/MM/YYYY');
-                if ($fieldDate.data("DateTimePicker")) {
-                    $fieldDate.data("DateTimePicker").date(dateValue);
-                } else {
-                    $fieldDate.val(dateValue);
-                }
-                break;
-
-            default:
-                const $fieldWithId = $('#' + element.field);
-                const $field = $fieldWithId.length > 0
-                    ? $fieldWithId
-                    : $('.filters-container').find(`[name="${element.field}"]`);
-                $field.val(element.value);
+                default:
+                    const $fieldWithId = $('#' + element.field);
+                    const $field = $fieldWithId.length > 0
+                        ? $fieldWithId
+                        : $('.filters-container').find(`[name="${element.field}"]`);
+                    $field.val(element.value);
+            }
         }
     });
 }

@@ -49,6 +49,9 @@ class FiltreSupController extends AbstractController
                 'alert' => FiltreSup::FIELD_ALERT,
                 'subject' => FiltreSup::FIELD_SUBJECT,
                 'destination' => FiltreSup::FIELD_DESTINATION,
+                'fileNumber' => FiltreSup::FIELD_FILE_NUMBER,
+                'category' => FiltreSup::FIELD_CATEGORY,
+                'contact' => FiltreSup::FIELD_CONTACT,
             ];
 
             foreach ($filterLabels as $filterLabel => $filterName) {

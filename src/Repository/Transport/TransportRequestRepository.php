@@ -25,7 +25,7 @@ class TransportRequestRepository extends EntityRepository {
         $qb = $this->createQueryBuilder("transport_request");
 
         $total = QueryCounter::count($qb, "transport_request");
-
+dump($filters);
         // filtres sup
         foreach ($filters as $filter) {
             switch ($filter['field']) {
@@ -44,10 +44,26 @@ class TransportRequestRepository extends EntityRepository {
                         ->andWhere('filter_status.id IN (:status)')
                         ->setParameter('status', $value);
                     break;
+                case FiltreSup::FIELD_CATEGORY:
+                    $qb->join("transport_request.type", "filter_category_type")
+                        ->join("filter_category_type.category", "filter_category")
+                        ->andWhere("filter_category.label LIKE :filter_category_value")
+                        ->setParameter("filter_category_value", $filter['value']);
+                    break;
                 case FiltreSup::FIELD_TYPE:
                     $qb
                         ->andWhere("transport_request.type = :filter_type_value")
                         ->setParameter("filter_type_value", $filter['value']);
+                    break;
+                case FiltreSup::FIELD_FILE_NUMBER:
+                    $qb->join("transport_request.contact", "filter_contact_file_number")
+                        ->andWhere("filter_contact_file_number.fileNumber LIKE :filter_file_number")
+                        ->setParameter("filter_file_number", "%" . $filter['value'] . "%");
+                    break;
+                case FiltreSup::FIELD_CONTACT:
+                    $qb->join("transport_request.contact", "filter_contact")
+                        ->andWhere("filter_contact.name = :filter_contact_name")
+                        ->setParameter("filter_contact_name", "%" . $filter['value'] . "%");
                     break;
             }
         }
