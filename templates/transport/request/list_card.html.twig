@@ -18,8 +18,15 @@
                     <div class="dropdown-item pointer">
                         <i class="fas fa-ban mr-2"></i> Annuler
                     </div>
-                {% else %}
-                    <div class="dropdown-item pointer">
+                {% elseif request.canBeDeleted %}
+                    <div class="dropdown-item pointer"
+                         onclick="Modal.registerDeletionConfirmationModal(
+                             $('#modalDeleteTransportRequest'),
+                             'delete_transport_request',
+                             'Voulez-vous réellement supprimer cette demande de transport ?',
+                             'Supprimer la demande de transport',
+                             {'transportRequest' : {{ request.id }}}
+                         )">
                         <i class="fas fa-trash mr-2"></i> Supprimer
                     </div>
                 {% endif %}

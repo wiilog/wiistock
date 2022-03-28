@@ -21,6 +21,8 @@
     <div class="m-0 m-md-4 wii-page-card transport-table">
         <table id="tableTransportRequests" class="table w-100"></table>
     </div>
+    
+    {% include 'transport/request/delete.html.twig' %}
 
     {% include 'transport/request/new.html.twig' with {
         newRequest: newRequest,
