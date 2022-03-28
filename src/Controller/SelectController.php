@@ -11,6 +11,7 @@ use App\Entity\IOT\Pairing;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\LocationGroup;
+use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\Setting;
 use App\Entity\PurchaseRequest;
@@ -205,6 +206,16 @@ class SelectController extends AbstractController {
      */
     public function packs(Request $request, EntityManagerInterface $manager): Response {
         $results = $manager->getRepository(Pack::class)->getForSelect($request->query->get("term"));
+        return $this->json([
+            "results" => $results,
+        ]);
+    }
+
+    /**
+     * @Route("/select/nature", name="ajax_select_natures", options={"expose": true})
+     */
+    public function natures(Request $request, EntityManagerInterface $manager): Response {
+        $results = $manager->getRepository(Nature::class)->getForSelect($request->query->get("term"));
         return $this->json([
             "results" => $results,
         ]);
