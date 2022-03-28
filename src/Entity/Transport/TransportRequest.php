@@ -10,6 +10,7 @@ use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use JetBrains\PhpStorm\Pure;
 
 #[ORM\Entity(repositoryClass: TransportRequestRepository::class)]
 #[ORM\InheritanceType('JOINED')]
@@ -47,6 +48,9 @@ abstract class TransportRequest {
     #[ORM\Column(type: 'string', length: 255)]
     private ?string $number = null;
 
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?DateTime $expectedAt = null;
+
     #[ORM\ManyToOne(targetEntity: Type::class, inversedBy: 'transportRequests')]
     private ?Type $type = null;
 
@@ -74,11 +78,11 @@ abstract class TransportRequest {
     #[ORM\OneToOne(targetEntity: TransportRequestContact::class, cascade: ['persist', 'remove'])]
     private ?TransportRequestContact $contact = null;
 
-    public function __construct() {
+    #[Pure] public function __construct() {
         $this->transportOrders = new ArrayCollection();
         $this->transportRequestHistories = new ArrayCollection();
         $this->statusHistories = new ArrayCollection();
-        $this->contact = new TransportRequestContact();
+        $this->contact = $this->contact ?? new TransportRequestContact();
     }
 
     public function getId(): ?int {
@@ -248,4 +252,12 @@ abstract class TransportRequest {
         return $this;
     }
 
+    public function getExpectedAt(): ?DateTime {
+        return $this->expectedAt;
+    }
+
+    public function setExpectedAt(?DateTime $expectedAt): self {
+        $this->expectedAt = $expectedAt;
+        return $this;
+    }
 }

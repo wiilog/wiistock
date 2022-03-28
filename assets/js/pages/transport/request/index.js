@@ -1,7 +1,7 @@
 import Form from "../../../form";
 import AJAX from "../../../ajax";
 import Flash from "../../../flash";
-import {onRequestTypeChange} from "./form";
+import {onRequestTypeChange, onTypeChange} from "./form";
 
 $(function() {
     const $modalNewTransportRequest = $("#modalNewTransportRequest");
@@ -21,7 +21,7 @@ function submitTransportRequest(form, data) {
 
     AJAX.route(`POST`, 'transport_request_new')
         .json(data)
-        .then(({success, message, redirect}) => {
+        .then(({success, message}) => {
             $submit.popLoader();
             Flash.add(
                 success ? 'success' : 'danger',
@@ -34,6 +34,9 @@ function submitTransportRequest(form, data) {
 function initializeNewForm($form) {
     $form.find('[name=requestType]').on('change', function () {
         onRequestTypeChange($(this));
+    });
+    $form.find('[name=type]').on('change', function () {
+        onTypeChange($(this));
     });
 }
 

@@ -2,14 +2,14 @@
 
 namespace App\EventListener;
 
-use App\Exception\JsonException;
+use App\Exceptions\FormException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 
-class JsonExceptionListener {
+class FormExceptionListener {
 
     public function onKernelException(ExceptionEvent $event) {
-        if($event->getThrowable() instanceof JsonException) {
+        if($event->getThrowable() instanceof FormException) {
             $event->allowCustomResponseCode();
             $event->setResponse(new JsonResponse([
                 "success" => false,

@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\Reception;
+use App\Entity\Transport\TransportRequest;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -14,10 +15,11 @@ class UniqueNumberService
     const MAX_RETRY = 5;
     const DATE_COUNTER_FORMAT_DEFAULT = 'YmdCCCC';
     const DATE_COUNTER_FORMAT_RECEPTION = 'ymdCCCC';
-    const DATE_COUNTER_FORMAT_TRANSPORT_REQUEST = 'ymd-CCCC';
+    const DATE_COUNTER_FORMAT_TRANSPORT_REQUEST = 'ymd-CC';
 
     const ENTITIES_NUMBER_WITHOUT_DASH = [
-        Reception::class
+        Reception::class,
+        TransportRequest::class
     ];
 
     /** @Required */

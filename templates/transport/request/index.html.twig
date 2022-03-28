@@ -34,7 +34,9 @@
 
     {% include 'transport/request/new.html.twig' with {
         request: newRequest,
-        types: types
+        types: types,
+        natures: natures,
+        temperatures: temperatures,
     } %}
 {% endblock %}
 

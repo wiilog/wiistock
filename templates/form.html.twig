@@ -41,7 +41,7 @@
 {% macro tooltip(tooltip, inline) %}
     {% if tooltip is not null %}
         <sup class="input-tooltip" onclick="event.preventDefault()">
-            <img src="{{ asset('svg/reference_article/information.svg') }}"
+            <img src="{{ asset('svg/information.svg') }}"
                  alt="Icône information"
                  width="{{ inline ? '15px' : '10px' }}"
                  class="has-tooltip"
@@ -76,7 +76,7 @@
                     <span class="d-inline-flex align-items-center ">
                         {% if switch.wiiIcon ?? false %}
                             <span class="mr-2 wii-icon wii-icon-{{ switch.wiiIcon }}"></span>
-                        {% elseif switch.iconUrl is defined %}
+                        {% elseif switch.iconUrl ?? false %}
                             <img src="{{ switch.iconUrl }}" alt="" width="15px" class="mr-2">
                         {% endif %}
                         {% if switch.label is iterable %}
@@ -91,37 +91,38 @@
     </label>
 {% endmacro %}
 
-{% macro slider(name, label, required, checked = false, options = {}) %}
-    {% set inline = options.inline ?? false %}
-    {{ _self.label(label, required, inline, options.labelOptions ?? {}) }}
-    <label class="switch">
-        <input class="checkbox data"
-               type="checkbox"
-               {{ required ? 'required' }}
-               {{ _self.common_attributes(name, options) }}
-               {{ _self.multiple_key(options) }}
-               {{ checked ? 'checked' }}>
-        <span class="slider round"></span>
-    </label>
-{% endmacro %}
-
 {% macro checkbox(name, label, required, value = true, options = {}) %}
+    {% set isSlider = options.slider ?? false %}
     {% set id = options.id ?? ('checkbox-' ~ random(100000, 10000000)) %}
-    <div class="wii-checkbox {{ options.containerClass ?? '' }}">
+    {% set checkboxClass = isSlider ? 'switch' : 'wii-checkbox' %}
+    {% set containerTag = isSlider ? 'label' : 'div' %}
+    <{{ containerTag }} class="{{ checkboxClass }} {{ options.containerClass ?? '' }}">
         <input type="checkbox"
                id="{{ id }}"
-               class="data {{ options.inputClass ?? '' }}"
+               class="checkbox data {{ options.inputClass ?? '' }}"
               {{ required ? 'required' }}
               {{ _self.common_attributes(name, options) }}
               {{ _self.multiple_key(options) }}
               {{ {on: 1, off: 0}[value] ?? value ? 'checked' }}>
-        <label class="{{ options.labelClass ?? '' }}" for="{{ id }}">
+        {% if isSlider %}
+            <span class="slider round"></span>
+        {% else %}
+            <label class="user-select-none pointer {{ options.labelClass ?? '' }}" for="{{ id }}">
+                <span class="d-inline-flex align-items-center">
+                    {{ label }}
+                </span>
+            </label>
+            {{ _self.tooltip(options.tooltip ?? null, options.inline ?? false) }}
+        {% endif %}
+    </{{ containerTag }}>
+    {% if isSlider %}
+        <label class="user-select-none pointer {{ options.labelClass ?? '' }}" for="{{ id }}">
             <span class="d-inline-flex align-items-center">
                 {{ label }}
             </span>
         </label>
         {{ _self.tooltip(options.tooltip ?? null, options.inline ?? false) }}
-    </div>
+    {% endif %}
 {% endmacro %}
 
 {% macro radio(name, label, required, items, options = {}) %}
@@ -250,7 +251,9 @@
             {% if options.buttons ?? true %}
                 <button class="decrease" {{ disabled }}></button>
             {% endif %}
-            <input type="number" data-no-arrow class="form-control {{ not (options.buttons ?? true) ? 'text-left w-100' : 'w-50 p-0' }} {{ not disabled ? 'data' }}"
+            <input type="number"
+                   data-no-arrow
+                   class="form-control {{ not (options.buttons ?? true) ? 'text-left w-100' : 'w-50 p-0' }} {{ not disabled ? 'data' }}"
                    placeholder="{{ options.placeholder ?? '' }}"
                    value="{{ value }}"
                    {{ required and not disabled ? 'required' }}

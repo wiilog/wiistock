@@ -10,7 +10,9 @@
             <div class="modal-body">
                 {% include 'transport/request/form.html.twig' with {
                     request: newRequest,
-                    types: types
+                    types: types,
+                    natures: natures,
+                    temperatures: temperatures,
                 } %}
             </div>
             <div class="modal-footer">

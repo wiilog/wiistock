@@ -60,7 +60,7 @@
                                          width="10px">
                                     <span class="wii-small-text ml-2 d-flex align-items-center">
                                         Synchronisation nomade
-                                        <sup><img src="{{ asset('svg/reference_article/information.svg') }}"
+                                        <sup><img src="{{ asset('svg/information.svg') }}"
                                                   alt="Icône information"
                                                   width="10px"
                                                   class="has-tooltip"
@@ -129,7 +129,7 @@
                         <div class="d-flex">
                             <div class="col-auto d-flex">
                                 {% set isReferenceManagementQuantity = referenceArticle.typeQuantite == constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_REFERENCE') %}
-                                <img src="{{ asset('svg/reference_article/' ~ (isReferenceManagementQuantity ? 'pack.svg' : 'article.svg')) }}"
+                                <img src="{{ asset('svg/' ~ (isReferenceManagementQuantity ? 'pack.svg' : 'reference_article/article.svg')) }}"
                                      alt="Icône colis" width="20px">
                                 <span class="wii-field-name ml-3">
                                     Quantité gérée à {{ isReferenceManagementQuantity ? 'la référence' : 'l\'article' }}
@@ -267,7 +267,7 @@
                                 </div>
                             </div>
                             <div class="col-6 d-flex">
-                                <img src="{{ asset('svg/reference_article/calendar.svg') }}" alt="Icône calendrier" width="20px">
+                                <img src="{{ asset('svg/calendar.svg') }}" alt="Icône calendrier" width="20px">
                                 <div class="box-item ml-3">
                                     <span class="wii-field-name">Date de dernier inventaire</span>
                                     <span class="wii-body-text">

@@ -20,7 +20,7 @@ class TransportCollectRequestNature
     #[ORM\ManyToOne(targetEntity: TransportCollectRequest::class, inversedBy: 'transportCollectRequestNatures')]
     private ?TransportCollectRequest $transportCollectRequest = null;
 
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $quantityToCollect = null;
 
     #[ORM\Column(type: 'integer', nullable: true)]
@@ -66,7 +66,7 @@ class TransportCollectRequestNature
         return $this->quantityToCollect;
     }
 
-    public function setQuantityToCollect(int $quantityToCollect): self
+    public function setQuantityToCollect(?int $quantityToCollect): self
     {
         $this->quantityToCollect = $quantityToCollect;
 

@@ -6,12 +6,18 @@ use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\CategoryType;
 use App\Entity\Menu;
+use App\Entity\Nature;
 use App\Entity\Reception;
+use App\Entity\Transport\TemperatureRange;
 use App\Entity\Transport\TransportCollectRequest;
+use App\Entity\Transport\TransportCollectRequestNature;
 use App\Entity\Transport\TransportDeliveryRequest;
+use App\Entity\Transport\TransportDeliveryRequestNature;
 use App\Entity\Transport\TransportRequest;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Helper\FormatHelper;
+use App\Service\TransportService;
 use App\Service\UniqueNumberService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -33,12 +39,8 @@ class RequestController extends AbstractController {
     #[Route("/liste", name: "transport_request_index", methods: "GET")]
     public function index(EntityManagerInterface $entityManager): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
-        $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
-        $types = $typeRepository->findByCategoryLabels([
-            CategoryType::COLLECT_TRANSPORT_REQUEST,
-            CategoryType::DELIVERY_TRANSPORT_REQUEST
-        ]);
-
+        $natureRepository = $entityManager->getRepository(Nature::class);
+        $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
 
         return $this->render('transport/request/index.html.twig', [
             'newRequest' => new TransportDeliveryRequest(),
@@ -53,7 +55,15 @@ class RequestController extends AbstractController {
                     "label" => "Collecte" ,
                 ],
             ],
-            'types' => $types,
+            'types' => $typeRepository->findByCategoryLabels([
+                CategoryType::COLLECT_TRANSPORT_REQUEST,
+                CategoryType::DELIVERY_TRANSPORT_REQUEST
+            ]),
+            'natures' => $natureRepository->findByAllowedForms([
+                Nature::TRANSPORT_COLLECT_CODE,
+                Nature::TRANSPORT_DELIVERY_CODE
+            ]),
+            'temperatures' => $temperatureRangeRepository->findAll(),
             'statuts' => [
                 TransportRequest::STATUS_AWAITING_VALIDATION,
                 TransportRequest::STATUS_TO_PREPARE,
@@ -81,66 +91,15 @@ class RequestController extends AbstractController {
     #[HasPermission([Menu::DEM, Action::CREATE_TRANSPORT], mode: HasPermission::IN_JSON)]
     public function new(Request $request,
                         EntityManagerInterface $entityManager,
-                        UniqueNumberService $uniqueNumberService): JsonResponse {
+                        TransportService $transportService): JsonResponse {
 
-        $typeRepository = $entityManager->getRepository(Type::class);
+        $transportService->persistTransportRequest($entityManager, $this->getUser(), $request);
 
-        /** @var Utilisateur $loggedUser */
-        $loggedUser = $this->getUser();
-
-        $transportRequestType = $request->request->get('requestType');
-        if (!in_array($transportRequestType, [TransportRequest::DISCR_COLLECT, TransportRequest::DISCR_DELIVERY])) {
-            return $this->json([
-                "message" => "Veuillez sélectionner un type de demande de transport",
-                "success" => false,
-            ]);
-        }
-
-        $typeStr = $request->request->get('type');
-
-        if ($transportRequestType === TransportRequest::DISCR_DELIVERY) {
-            $transportRequest = new TransportDeliveryRequest();
-            $type = $typeRepository->findOneByCategoryLabel(CategoryType::DELIVERY_TRANSPORT_REQUEST, $typeStr);
-        }
-        else { //if ($requestType === TransportRequest::DISCR_COLLECT)
-            $transportRequest = new TransportCollectRequest();
-            $type = $typeRepository->findOneByCategoryLabel(CategoryType::COLLECT_TRANSPORT_REQUEST, $typeStr);
-        }
-
-        if (!isset($type)) {
-            return $this->json([
-                "message" => "Veuillez sélectionner un type pour votre demande de transport",
-                "success" => false,
-            ]);
-        }
-
-        $number = $uniqueNumberService->create($entityManager, TransportRequest::NUMBER_PREFIX, TransportRequest::class, UniqueNumberService::DATE_COUNTER_FORMAT_TRANSPORT_REQUEST);
-        $transportRequest
-            ->setType($type)
-            ->setNumber($number)
-            ->setCreatedAt(new DateTime())
-            ->setCreatedBy($loggedUser);
-
-        $contact = $transportRequest->getContact();
-        $contact
-            ->setName($request->request->get('contactName'))
-            ->setFileNumber($request->request->get('contactFileNumber'))
-            ->setContact($request->request->get('contactContact'))
-            ->setAddress($request->request->get('contactAddress'))
-            ->setPersonToContact($request->request->get('contactPersonToContact'))
-            ->setObservation($request->request->get('contactObservation'));
-
-
-
-        $entityManager->persist($transportRequest);
         $entityManager->flush();
 
         return $this->json([
             "success" => true,
             "message" => "Votre demande de transport a bien été créée",
-            "redirect" => $this->generateUrl('transport_request_show', [
-                "transportRequest" => $transportRequest->getId()
-            ])
         ]);
     }
 

@@ -71,7 +71,15 @@ class FormatHelper {
         Role::LANDING_PAGE_TRANSPORT_REQUEST => 'Demande de transport',
     ];
 
-    public static function parseDatetime(?string $date, array $expectedFormats = ["Y-m-d H:i:s", "d/m/Y H:i:s", "Y-m-d H:i", "d/m/Y H:i"]): ?DateTimeInterface {
+    public static function parseDatetime(?string $date, array $expectedFormats = [
+        "Y-m-d H:i:s",
+        "d/m/Y H:i:s",
+        "Y-m-d H:i",
+        "Y-m-d\TH:i",
+        "d/m/Y H:i",
+        "Y-m-d",
+        "d/m/Y"
+    ]): ?DateTime {
         if (empty($date)) {
             return null;
         }
