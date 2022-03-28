@@ -6,7 +6,7 @@ use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorMessageTrait;
 use App\Entity\Transport\TransportDeliveryOrderPack;
-use App\Entity\Transport\TransportRequestHistory;
+use App\Entity\Transport\TransportHistory;
 use App\Helper\FormatHelper;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -97,7 +97,7 @@ class Pack implements PairedEntity {
     #[ORM\Column(type: 'boolean')]
     private bool $deliveryDone = false;
 
-    #[ORM\OneToMany(mappedBy: 'pack', targetEntity: TransportRequestHistory::class)]
+    #[ORM\OneToMany(mappedBy: 'pack', targetEntity: TransportHistory::class)]
     private Collection $transportRequestHistories;
 
     #[ORM\OneToMany(mappedBy: 'pack', targetEntity: TransportDeliveryOrderPack::class)]
@@ -583,29 +583,29 @@ class Pack implements PairedEntity {
     }
 
     /**
-     * @return Collection<int, TransportRequestHistory>
+     * @return Collection<int, TransportHistory>
      */
     public function getTransportRequestHistories(): Collection
     {
         return $this->transportRequestHistories;
     }
 
-    public function addTransportRequestHistory(TransportRequestHistory $transportRequestHistory): self
+    public function addTransportHistory(TransportHistory $transportHistory): self
     {
-        if (!$this->transportRequestHistories->contains($transportRequestHistory)) {
-            $this->transportRequestHistories[] = $transportRequestHistory;
-            $transportRequestHistory->setPack($this);
+        if (!$this->transportRequestHistories->contains($transportHistory)) {
+            $this->transportRequestHistories[] = $transportHistory;
+            $transportHistory->setPack($this);
         }
 
         return $this;
     }
 
-    public function removeTransportRequestHistory(TransportRequestHistory $transportRequestHistory): self
+    public function removeTransportHistory(TransportHistory $transportHistory): self
     {
-        if ($this->transportRequestHistories->removeElement($transportRequestHistory)) {
+        if ($this->transportRequestHistories->removeElement($transportHistory)) {
             // set the owning side to null (unless already changed)
-            if ($transportRequestHistory->getPack() === $this) {
-                $transportRequestHistory->setPack(null);
+            if ($transportHistory->getPack() === $this) {
+                $transportHistory->setPack(null);
             }
         }
 

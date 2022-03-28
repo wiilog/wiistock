@@ -4,12 +4,12 @@ namespace App\Entity\Transport;
 
 use App\Entity\Pack;
 use App\Entity\Traits\AttachmentTrait;
-use App\Repository\Transport\TransportRequestHistoryRepository;
+use App\Repository\Transport\TransportHistoryRepository;
 use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: TransportRequestHistoryRepository::class)]
-class TransportRequestHistory
+#[ORM\Entity(repositoryClass: TransportHistoryRepository::class)]
+class TransportHistory
 {
 
     use AttachmentTrait;
@@ -22,20 +22,20 @@ class TransportRequestHistory
     #[ORM\Column(type: 'datetime')]
     private ?DateTime $date = null;
 
-    #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: 'transportRequestHistories')]
-    private ?Pack $pack = null;
-
-    #[ORM\Column(type: 'text', nullable: true)]
-    private ?string $comment = null;
-
-    #[ORM\Column(type: 'string', length: 255)]
-    private ?string $category = null;
-
     #[ORM\ManyToOne(targetEntity: TransportRequest::class, inversedBy: 'transportRequestHistories')]
     private ?TransportRequest $transportRequest = null;
 
     #[ORM\ManyToOne(targetEntity: TransportOrder::class, inversedBy: 'transportRequestHistories')]
     private ?TransportOrder $transportOrder = null;
+
+    #[ORM\Column(type: 'string', length: 255)]
+    private ?string $category = null;
+
+    #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: 'transportRequestHistories')]
+    private ?Pack $pack = null;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $comment = null;
 
     #[ORM\OneToOne(targetEntity: StatusHistory::class, cascade: ['persist', 'remove'])]
     private ?StatusHistory $statusHistory = null;
@@ -64,10 +64,10 @@ class TransportRequestHistory
 
     public function setPack(?Pack $pack): self {
         if($this->pack && $this->pack !== $pack) {
-            $this->pack->removeTransportRequestHistory($this);
+            $this->pack->removeTransportHistory($this);
         }
         $this->pack = $pack;
-        $pack?->addTransportRequestHistory($this);
+        $pack?->addTransportHistory($this);
 
         return $this;
     }
@@ -103,10 +103,10 @@ class TransportRequestHistory
 
     public function setTransportRequest(?TransportRequest $transportRequest): self {
         if($this->transportRequest && $this->transportRequest !== $transportRequest) {
-            $this->transportRequest->removeTransportRequestHistory($this);
+            $this->transportRequest->removeTransportHistory($this);
         }
         $this->transportRequest = $transportRequest;
-        $transportRequest?->addTransportRequestHistory($this);
+        $transportRequest?->addTransportHistory($this);
 
         return $this;
     }
@@ -118,10 +118,10 @@ class TransportRequestHistory
 
     public function setTransportOrder(?TransportOrder $transportOrder): self {
         if($this->transportOrder && $this->transportOrder !== $transportOrder) {
-            $this->transportOrder->removeTransportRequestHistory($this);
+            $this->transportOrder->removeTransportHistory($this);
         }
         $this->transportOrder = $transportOrder;
-        $transportOrder?->addTransportRequestHistory($this);
+        $transportOrder?->addTransportHistory($this);
 
         return $this;
     }
