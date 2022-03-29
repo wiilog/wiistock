@@ -20,7 +20,7 @@ class TransportRequestRepository extends EntityRepository {
             ->where('request.number LIKE :value')
             ->orderBy('request.createdAt', Criteria::DESC)
             ->addOrderBy('request.number', Criteria::DESC)
-            ->setParameter('value', TransportRequest::NUMBER_PREFIX . '-' . $date . '%')
+            ->setParameter('value', $date . '%')
             ->getQuery()
             ->execute();
         return $result ? $result[0]['number'] : null;

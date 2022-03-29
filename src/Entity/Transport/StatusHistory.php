@@ -87,7 +87,7 @@ class StatusHistory
         if($this->status && $this->status !== $status) {
             $this->status->removeTransportStatusHistory($this);
         }
-        $this->transportRequest = $status;
+        $this->status = $status;
         $status?->addTransportStatusHistory($this);
 
         return $this;

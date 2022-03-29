@@ -28,14 +28,14 @@ class UniqueNumberService
     /**
      * getLastNumberByPrefixAndDate() function must be implemented in current entity repository with $prefix and $date params
      * @param EntityManagerInterface $entityManager
-     * @param string $prefix - Prefix of the entity unique number => Available in chosen entity
+     * @param string|null $prefix - Prefix of the entity unique number => Available in chosen entity
      * @param string $format - Format of the entity unique number => Available in UniqueNumberService
      * @param string $entity - Chosen entity to generate unique number => Format Entity::class
      * @return string
      * @throws Exception
      */
     public function create(EntityManagerInterface $entityManager,
-                           string                 $prefix,
+                           ?string                $prefix,
                            string                 $entity,
                            string                 $format): string {
 

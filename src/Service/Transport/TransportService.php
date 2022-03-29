@@ -2,172 +2,217 @@
 
 namespace App\Service\Transport;
 
-use App\Entity\Pack;
+use App\Entity\CategorieStatut;
+use App\Entity\CategoryType;
+use App\Entity\Nature;
 use App\Entity\Statut;
-use App\Entity\Transport\StatusHistory;
+use App\Entity\Transport\TemperatureRange;
 use App\Entity\Transport\TransportCollectRequest;
+use App\Entity\Transport\TransportCollectRequestNature;
 use App\Entity\Transport\TransportDeliveryRequest;
+use App\Entity\Transport\TransportDeliveryRequestNature;
 use App\Entity\Transport\TransportOrder;
-use App\Entity\Transport\TransportHistory;
-use App\Entity\Transport\TransportRound;
+use App\Entity\Transport\TransportRequest;
+use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
+use App\Service\FreeFieldService;
+use App\Service\StatusHistoryService;
+use App\Service\UniqueNumberService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Routing\RouterInterface;
+use JetBrains\PhpStorm\ArrayShape;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\Service\Attribute\Required;
-use WiiCommon\Helper\Stream;
 
 class TransportService {
 
-    public const TIMELINE = "TIMELINE";
-    public const INFORMATION = "INFORMATION";
-    public const WARNING = "WARNING";
-    public const COMMENT = "COMMENT";
-    public const ATTACHMENT = "ATTACHMENT";
-
-    public const CREATED = "CREATED";
-    public const CREATED_BOTH = "CREATED_BOTH";
-    public const AFFECTED_ROUND = "AFFECTED_ROUND";
-    public const CONTACT_VALIDATED = "CONTACT_VALIDATED";
-    public const PREPARED_DELIVERY = "PREPARED_DELIVERY";
-    public const ONGOING = "ONGOING";
-    public const REJECTED_PACK = "REJECTED_PACK";
-    public const FINISHED = "FINISHED";
-    public const FINISHED_BOTH = "FINISHED_BOTH";
-    public const ADD_COMMENT = "ADD_COMMENT";
-    public const ADD_ATTACHMENT = "ADD_ATTACHMENT";
-    public const FAILED = "FAILED";
-    public const PACKS_FAILED = "PACKS_FAILED";
-    public const PACKS_DEPOSITED = "PACKS_DEPOSITED";
-    public const NO_MONITORING = "NO_MONITORING";
-    public const SUBCONTRACT_UPDATE = "SUBCONTRACT_UPDATE";
-    public const AWAITING_VALIDATION = "AWAITING_VALIDATION";
-    public const SUBCONTRACTED = "SUBCONTRACTED";
-    public const REJECTED_DELIVERY = "REJECTED_DELIVERY";
-    public const CANCELLED = "CANCELLED";
-
-    private const CATEGORY = [
-        self::TIMELINE => [],
-        self::INFORMATION => [],
-        self::WARNING => [],
-        self::COMMENT => [],
-        self::ATTACHMENT => [],
-    ];
-
-    public const CONTENT = [
-        self::CREATED => "{user} a créé la {category}",
-        self::CREATED_BOTH => "{user} a créé la livraison et une collecte",
-        self::AFFECTED_ROUND => "{user} a affecté la {category} à la tournée {round} et au livreur {deliverer}",
-        self::CONTACT_VALIDATED => "{user} a validé la date de collecte avec le patient",
-        self::PREPARED_DELIVERY => "{user} a préparé la livraison",
-        self::ONGOING => "{user} a débuté la {category}",
-        self::REJECTED_PACK => "{user} a écarté le colis {pack} ({reason})",
-        self::FINISHED => "{user} a terminé la {category}",
-        self::FINISHED_BOTH => "{user} a terminé la livraison et une collecte",
-        self::ADD_COMMENT => "{user} a ajouté un commentaire {comment}",
-        self::ADD_ATTACHMENT => "{user} a ajouté une pièce-jointe {attachment}",
-        self::FAILED => "{user} n'a pas pu effectuer la {category}",
-        self::PACKS_FAILED => "{user} a déposé le colis {pack} sur {location}",
-        self::PACKS_DEPOSITED => "{user} a déposé les objets sur {location}",
-        self::NO_MONITORING => "Le suivi en temps réel n'est pas disponible car la livraison est un horaire non ouvré {message}",
-        self::SUBCONTRACT_UPDATE => "{user} a indiqué que la livraison était {status} le {statusDate}",
-        self::AWAITING_VALIDATION => "La demande est en attente de validation",
-        self::SUBCONTRACTED => "La demande a été sous-traitée",
-        self::REJECTED_DELIVERY => "La livraison a été rejetée de la tournée",
-        self::CANCELLED => "{user} a annulé la {category}",
-    ];
+    #[Required]
+    public UniqueNumberService $uniqueNumberService;
 
     #[Required]
-    public EntityManagerInterface $manager;
+    public StatusHistoryService $statusHistoryService;
 
     #[Required]
-    public RouterInterface $router;
+    public TransportHistoryService $transportHistoryService;
 
-    public function updateStatus(TransportDeliveryRequest|TransportOrder $transport, Statut $status) {
-        $history = (new StatusHistory())
-            ->setStatus($status)
-            ->setDate(new DateTime());
+    #[Required]
+    public FreeFieldService $freeFieldService;
 
-        $transport->setStatus($status);
+    public function persistTransportRequest(EntityManagerInterface $entityManager,
+                                            Utilisateur $user,
+                                            Request $request): TransportRequest {
 
-        if ($transport instanceof TransportDeliveryRequest) {
-            $history->setTransportRequest($transport);
-        } else {
-            $history->setTransportOrder($transport);
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $natureRepository = $entityManager->getRepository(Nature::class);
+        $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
+
+        $transportRequestType = $request->request->get('requestType');
+        if (!in_array($transportRequestType, [TransportRequest::DISCR_COLLECT, TransportRequest::DISCR_DELIVERY])) {
+            throw new FormException("Veuillez sélectionner un type de demande de transport");
         }
 
-        $this->manager->persist($history);
-    }
+        $typeStr = $request->request->get('type');
+        $expectedAtStr = $request->request->get('expectedAt');
 
-    public function updateHistory(array|TransportDeliveryRequest|TransportOrder $transports, string $category, array $params = []) {
-        $transports = is_array($transports) ? $transports : [$transports];
+        if ($transportRequestType === TransportRequest::DISCR_DELIVERY) {
+            $categoryType = CategoryType::DELIVERY_TRANSPORT_REQUEST;
+            $transportRequest = new TransportDeliveryRequest();
+            $transportRequest
+                ->setEmergency($request->request->get('emergency') ?: null);
+        }
+        else if ($transportRequestType === TransportRequest::DISCR_COLLECT) {
+            $categoryType = CategoryType::COLLECT_TRANSPORT_REQUEST;
+            $transportRequest = new TransportCollectRequest();
+        }
+        else {
+            throw new \RuntimeException('Unknown request type');
+        }
 
-        $history = new TransportHistory();
-        foreach($transports as $transport) {
-            if ($transport instanceof TransportDeliveryRequest) {
-                $history->setTransportRequest($transport);
-            } else {
-                $history->setTransportOrder($transport);
+        $type = $typeRepository->findOneByCategoryLabel($categoryType, $typeStr);
+        if (!isset($type)) {
+            throw new FormException("Veuillez sélectionner un type pour votre demande de transport");
+        }
+
+        $number = $this->uniqueNumberService->create(
+            $entityManager,
+            null,
+            TransportRequest::class,
+            UniqueNumberService::DATE_COUNTER_FORMAT_TRANSPORT_REQUEST
+        );
+
+        $expectedAt = FormatHelper::parseDatetime($expectedAtStr);
+
+        if (!$expectedAt) {
+            throw new FormException("Le format de date est invalide");
+        }
+
+        ['status' => $status, 'subcontracted' => $subcontracted] = $this->getStatusRequest($entityManager, $transportRequestType, $expectedAt);
+        $statusHistory = $this->statusHistoryService->updateStatus($entityManager, $transportRequest, $status);
+        $this->transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_REQUEST_CREATION, [
+            'history' => $statusHistory
+        ]);
+
+        $transportRequest
+            ->setType($type)
+            ->setNumber($number)
+            ->setExpectedAt($expectedAt)
+            ->setCreatedAt(new DateTime())
+            ->setCreatedBy($user);
+
+        $this->freeFieldService->manageFreeFields($transportRequest, $request->request->all(), $entityManager);
+
+        $contact = $transportRequest->getContact();
+        $contact
+            ->setName($request->request->get('contactName'))
+            ->setFileNumber($request->request->get('contactFileNumber'))
+            ->setContact($request->request->get('contactContact'))
+            ->setAddress($request->request->get('contactAddress'))
+            ->setPersonToContact($request->request->get('contactPersonToContact'))
+            ->setObservation($request->request->get('contactObservation'));
+
+        if ($status->getCode() !== TransportRequest::STATUS_AWAITING_VALIDATION) {
+            $this->persistTransportOrder($entityManager, $transportRequest, $subcontracted);
+        }
+
+        $lines = json_decode($request->request->get('lines', '[]'), true) ?: [];
+        foreach ($lines as $line) {
+            $selected = $line['selected'] ?? false;
+            $natureId = $line['natureId'] ?? null;
+            $quantity = $line['quantity'] ?? null;
+            $temperatureId = $line['temperature'] ?? null;
+            $nature = $natureId ? $natureRepository->find($natureId) : null;
+            if ($selected && $nature) {
+                if ($transportRequestType === TransportRequest::DISCR_DELIVERY) {
+                    $temperature = $temperatureId ? $temperatureRangeRepository->find($temperatureId) : null;
+                    $line = new TransportDeliveryRequestNature();
+                    $line->setTemperatureRange($temperature);
+                    $transportRequest->addTransportDeliveryRequestNature($line);
+                }
+                else if ($transportRequestType === TransportRequest::DISCR_COLLECT) {
+                    $line = new TransportCollectRequestNature();
+                    $line->setQuantityToCollect($quantity);
+                    $transportRequest->addTransportCollectRequestNature($line);
+                }
+                else {
+                    throw new \RuntimeException('Unknown request type');
+                }
+
+                $line->setNature($nature);
+
+                $entityManager->persist($line);
             }
         }
 
-        $history->setType($category)
-            ->setDate(new DateTime())
-            ->setUser($params["user"] ?? null)
-            ->setPack($params["pack"] ?? null)
-            ->setRound($params["round"] ?? null)
-            ->setDeliverer($params["deliverer"] ?? null)
-            ->setReason($params["reason"] ?? null)
-            ->setAttachment($params["attachment"] ?? null)
-            ->setStatusHistory($params["history"] ?? null)
-            ->setLocation($params["location"] ?? null);
+        $entityManager->persist($transportRequest);
 
-        $this->manager->persist($history);
+        return $transportRequest;
     }
 
-    private function formatEntity(mixed $entity): ?string {
-        //TODO: remplacer les ??? par les bonnes classes pour la WIIS-6401
-        return match (gettype($entity)) {
-            "object" => match (get_class($entity)) {
-                Utilisateur::class => "<span class='???'>{$entity->getUsername()}</span>",
-                Pack::class => $entity->getCode(),
-                TransportRound::class => "<span class='???'>{$entity->getNumber()}</span>",
-                DateTime::class => $entity->format("d/m/Y H:i"),
-            },
-            "string" => class_exists($entity) ? match ($entity) {
-                TransportDeliveryRequest::class => "livraison",
-                TransportCollectRequest::class => "collect",
-            } : $entity,
-            "NULL", "unknown type" => null,
-            default => $entity,
-        };
+    public function persistTransportOrder(EntityManagerInterface $entityManager,
+                                          TransportRequest $transportRequest,
+                                          bool $subcontracted = false): TransportOrder {
+        $statusRepository = $entityManager->getRepository(Statut::class);
+
+
+        if ($transportRequest instanceof TransportDeliveryRequest) {
+            $categoryStatusName = CategorieStatut::TRANSPORT_ORDER_DELIVERY;
+            $statusCode = $subcontracted ? TransportOrder::STATUS_SUBCONTRACTED : TransportOrder::STATUS_TO_ASSIGN;
+        }
+        else if ($transportRequest instanceof TransportCollectRequest) {
+            $categoryStatusName = CategorieStatut::TRANSPORT_ORDER_COLLECT;
+            $statusCode = TransportOrder::STATUS_TO_CONTACT;
+        }
+        else {
+            throw new \RuntimeException('Unknown request type');
+        }
+
+        $transportOrder = new TransportOrder();
+
+        $status = $statusRepository->findOneByCategorieNameAndStatutCode($categoryStatusName, $statusCode);
+        $statusHistory = $this->statusHistoryService->updateStatus($entityManager, $transportOrder, $status);
+        $this->transportHistoryService->persistTransportHistory($entityManager, $transportOrder, TransportHistoryService::TYPE_REQUEST_CREATION, [
+            'history' => $statusHistory
+        ]);
+
+        $transportOrder
+            ->setCreatedAt(new DateTime())
+            ->setSubcontracted($subcontracted);
+
+        $entityManager->persist($transportOrder);
+
+        return $transportOrder;
     }
 
-    private function formatHistory(TransportHistory $history): string {
-        $replace = [
-            "{category}" => $this->formatEntity(get_class($history->getTransportRequest())),
-            "{user}" => $this->formatEntity($history->getUser()),
-            "{pack}" => $this->formatEntity($history->getPack()),
-            "{round}" => $this->formatEntity($history->getRound()),
-            "{deliverer}" => $this->formatEntity($history->getDeliverer()),
-            "{reason}" => $this->formatEntity($history->getReason()),
-            "{status}" => $this->formatEntity($history->getStatusHistory()->getStatus()),
-            "{statusDate}" => $this->formatEntity($history->getStatusHistory()->getDate()),
-            "{comment}" => $this->formatEntity($history->getComment()),
+    #[ArrayShape(["status" => Statut::class, "subcontracted" => "bool"])]
+    private function getStatusRequest(EntityManagerInterface $entityManager,
+                                      string $transportRequestType,
+                                      DateTime $expectedAt): array {
+        $statusRepository = $entityManager->getRepository(Statut::class);
+        $status = [];
+        $now = new DateTime();
+
+        // TODO
+        if ($transportRequestType === TransportRequest::DISCR_DELIVERY) {
+            $category = CategorieStatut::TRANSPORT_REQUEST_DELIVERY;
+            $code = TransportRequest::STATUS_TO_PREPARE;
+            $subcontracted = false;
+        }
+        else if ($transportRequestType === TransportRequest::DISCR_COLLECT) {
+            $category = CategorieStatut::TRANSPORT_REQUEST_COLLECT;
+            $code = TransportRequest::STATUS_AWAITING_PLANNING;
+            $subcontracted = false;
+        }
+        else {
+            throw new \RuntimeException('Unknown request type');
+        }
+
+        $status = $statusRepository->findOneByCategorieNameAndStatutCode($category, $code);
+
+        return [
+            'status' => $status,
+            'subcontracted' => $subcontracted
         ];
-
-        return str_replace(array_keys($replace), array_values($replace), self::CONTENT[$history->getType()]);
     }
-
-    public function retrieveHistory(TransportDeliveryRequest|TransportOrder $transport): array {
-        return Stream::from($transport->getHistory())
-            ->map(fn(TransportHistory $history) => [
-                "type" => self::CATEGORY[$history->getType()],
-                "text" => $this->formatHistory($history),
-                "date" => FormatHelper::longDate($history->getDate(), false, true),
-            ])
-            ->toArray();
-    }
-
 }

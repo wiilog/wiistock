@@ -173,6 +173,7 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
                 TransportOrder::STATUS_DEPOSITED,
                 TransportOrder::STATUS_CANCELLED,
                 TransportOrder::STATUS_NOT_COLLECTED,
+                TransportOrder::STATUS_SUBCONTRACTED,
             ],
         ];
 

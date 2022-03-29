@@ -11,30 +11,28 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TransportOrderRepository::class)]
-class TransportOrder
-{
-
+class TransportOrder {
     use AttachmentTrait;
+
+    public const NUMBER_PREFIX = 'OTR';
 
     public const CATEGORY = 'transportOrder';
 
     public const STATUS_TO_CONTACT = 'Patient à contacter';
     public const STATUS_TO_ASSIGN = 'À affecter';
-    public const STATUS_ASSIGNED = 'Affectée';
+    public const STATUS_ASSIGNED = 'Affecté';
     public const STATUS_ONGOING = 'En cours';
-    public const STATUS_FINISHED = 'Terminée';
+    public const STATUS_FINISHED = 'Terminé';
     public const STATUS_DEPOSITED = 'Objets déposés';
-    public const STATUS_CANCELLED = 'Annulée';
-    public const STATUS_NOT_DELIVERED = 'Non livrée';
-    public const STATUS_NOT_COLLECTED = 'Non collectée';
+    public const STATUS_CANCELLED = 'Annulé';
+    public const STATUS_NOT_DELIVERED = 'Non livré';
+    public const STATUS_NOT_COLLECTED = 'Non collecté';
+    public const STATUS_SUBCONTRACTED = 'Sous-traité';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
-
-    #[ORM\Column(type: 'string', length: 255)]
-    private ?string $number = null;
 
     #[ORM\ManyToOne(targetEntity: Statut::class, inversedBy: 'transportOrders')]
     private ?Statut $status = null;
@@ -46,6 +44,9 @@ class TransportOrder
     private ?string $registrationNumber = null;
 
     #[ORM\Column(type: 'datetime')]
+    private ?DateTime $createdAt = null;
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $startedAt = null;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
@@ -85,18 +86,6 @@ class TransportOrder
         return $this->id;
     }
 
-    public function getNumber(): ?string
-    {
-        return $this->number;
-    }
-
-    public function setNumber(string $number): self
-    {
-        $this->number = $number;
-
-        return $this;
-    }
-
     public function getStatus(): ?Statut
     {
         return $this->status;
@@ -132,6 +121,18 @@ class TransportOrder
     public function setRegistrationNumber(?string $registrationNumber): self
     {
         $this->registrationNumber = $registrationNumber;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): ?DateTime
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(DateTime $createdAt): self
+    {
+        $this->createdAt = $createdAt;
 
         return $this;
     }
