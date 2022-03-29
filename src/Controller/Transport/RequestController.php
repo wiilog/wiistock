@@ -37,17 +37,17 @@ class RequestController extends AbstractController {
         return $this->render('transport/request/index.html.twig', [
             'categories' => [
                 [
-                    "category" => CategoryType::DELIVERY_TRANSPORT_REQUEST,
+                    "category" => CategoryType::DELIVERY_TRANSPORT,
                     "icon" => "cart-delivery",
                     "label" => "Livraison",
                 ], [
-                    "category" => CategoryType::COLLECT_TRANSPORT_REQUEST,
+                    "category" => CategoryType::COLLECT_TRANSPORT,
                     "icon" => "cart-collect",
                     "label" => "Collecte",
                 ],
             ],
             'types' => $typeRepository->findByCategoryLabels([
-                CategoryType::DELIVERY_TRANSPORT_REQUEST, CategoryType::COLLECT_TRANSPORT_REQUEST,
+                CategoryType::DELIVERY_TRANSPORT, CategoryType::COLLECT_TRANSPORT,
             ]),
             'statuts' => [
                 TransportRequest::STATUS_AWAITING_VALIDATION,
@@ -69,8 +69,8 @@ class RequestController extends AbstractController {
     #[Route("/voir/{transportRequest}", name: "transport_request_show", methods: "GET")]
     public function show(TransportRequest $transportRequest, EntityManagerInterface $manager): Response {
         $categoryFF = $transportRequest instanceof TransportDeliveryRequest
-            ? CategorieCL::DELIVERY_TRANSPORT_REQUEST
-            : CategorieCL::COLLECT_TRANSPORT_REQUEST;
+            ? CategorieCL::DELIVERY_TRANSPORT
+            : CategorieCL::COLLECT_TRANSPORT;
         $freeFields = $manager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($transportRequest->getType(), $categoryFF);
 
         return $this->render('transport/request/show.html.twig', [
@@ -104,10 +104,10 @@ class RequestController extends AbstractController {
 
         if ($transportRequestType === TransportRequest::DISCR_DELIVERY) {
             $transportRequest = new TransportDeliveryRequest();
-            $type = $typeRepository->findOneByCategoryLabel(CategoryType::DELIVERY_TRANSPORT_REQUEST, $typeStr);
+            $type = $typeRepository->findOneByCategoryLabel(CategoryType::DELIVERY_TRANSPORT, $typeStr);
         } else { //if ($requestType === TransportRequest::DISCR_COLLECT)
             $transportRequest = new TransportCollectRequest();
-            $type = $typeRepository->findOneByCategoryLabel(CategoryType::COLLECT_TRANSPORT_REQUEST, $typeStr);
+            $type = $typeRepository->findOneByCategoryLabel(CategoryType::COLLECT_TRANSPORT, $typeStr);
         }
 
         if (!isset($type)) {
@@ -162,23 +162,11 @@ class RequestController extends AbstractController {
         }
 
         $rows = [];
-        $previousDate = null;
         $currentRow = [];
-
-        function insertCurrentRow(&$rows, &$currentRow) {
-            if ($currentRow) {
-                $row = "<div class='transport-request-row row no-gutters'>" . join($currentRow) . "</div>";
-                $rows[] = [
-                    "content" => $row,
-                ];
-
-                $currentRow = [];
-            }
-        }
 
         foreach ($transportRequests as $date => $requests) {
             $date = DateTime::createFromFormat("dmY", $date);
-            $date = FormatHelper::longDate($request->getExpectedAt());
+            $date = FormatHelper::longDate($date);
 
             $counts = Stream::from($requests)
                 ->map(fn(TransportRequest $request) => get_class($request))
@@ -223,7 +211,14 @@ class RequestController extends AbstractController {
                 ]);
             }
 
-            insertCurrentRow($rows, $currentRow);
+            if ($currentRow) {
+                $row = "<div class='transport-row row no-gutters'>" . join($currentRow) . "</div>";
+                $rows[] = [
+                    "content" => $row,
+                ];
+
+                $currentRow = [];
+            }
         }
 
 

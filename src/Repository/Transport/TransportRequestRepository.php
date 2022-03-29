@@ -25,7 +25,7 @@ class TransportRequestRepository extends EntityRepository {
         $qb = $this->createQueryBuilder("transport_request");
 
         $total = QueryCounter::count($qb, "transport_request");
-dump($filters);
+
         // filtres sup
         foreach ($filters as $filter) {
             switch ($filter['field']) {

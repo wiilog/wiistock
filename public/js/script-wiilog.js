@@ -24,6 +24,7 @@ const PAGE_DISPATCHES = 'acheminement';
 const PAGE_STATUS = 'status';
 const PAGE_EMPLACEMENT = 'emplacement';
 const PAGE_TRANSPORT_REQUESTS = 'transportRequest';
+const PAGE_TRANSPORT_ORDERS = 'transportOrders';
 const PAGE_URGENCES = 'urgences';
 const PAGE_NOTIFICATIONS = 'notifications';
 const STATUT_ACTIF = 'disponible';

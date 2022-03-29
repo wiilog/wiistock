@@ -18,14 +18,14 @@ class TypeFixtures extends Fixture implements FixtureGroupInterface
 
     	$categoriesTypes = [
             CategoryType::DEMANDE_DISPATCH => [Type::LABEL_STANDARD],
-            CategoryType::COLLECT_TRANSPORT_REQUEST => [],
-            CategoryType::DELIVERY_TRANSPORT_REQUEST => [],
+            CategoryType::COLLECT_TRANSPORT => [],
+            CategoryType::DELIVERY_TRANSPORT => [],
             CategoryType::DEMANDE_HANDLING => [Type::LABEL_STANDARD],
             CategoryType::ARTICLE => [Type::LABEL_STANDARD],
-			CategoryType::RECEPTION => [Type::LABEL_RECEPTION],
-			CategoryType::DEMANDE_LIVRAISON => [Type::LABEL_STANDARD],
-			CategoryType::DEMANDE_COLLECTE => [Type::LABEL_STANDARD],
-			CategoryType::DISPUTE => [
+            CategoryType::RECEPTION => [Type::LABEL_RECEPTION],
+            CategoryType::DEMANDE_LIVRAISON => [Type::LABEL_STANDARD],
+            CategoryType::DEMANDE_COLLECTE => [Type::LABEL_STANDARD],
+            CategoryType::DISPUTE => [
 				Type::LABEL_MANQUE_BL,
 				Type::LABEL_MANQUE_INFO_BL,
 				Type::LABEL_ECART_QTE,

@@ -22,8 +22,8 @@ class CategoryType {
     const TRANSFER_REQUEST = 'demande transfert';
     const SENSOR = 'capteur';
     const REQUEST_TEMPLATE = 'modèle demande';
-    const DELIVERY_TRANSPORT_REQUEST = 'demande transport livraison';
-    const COLLECT_TRANSPORT_REQUEST = 'demande transport collecte';
+    const DELIVERY_TRANSPORT = 'demande transport livraison';
+    const COLLECT_TRANSPORT = 'demande transport collecte';
 
     public const ALL = [
         self::RECEPTION,
@@ -38,8 +38,8 @@ class CategoryType {
         self::TRANSFER_REQUEST,
         self::SENSOR,
         self::REQUEST_TEMPLATE,
-        self::DELIVERY_TRANSPORT_REQUEST,
-        self::COLLECT_TRANSPORT_REQUEST,
+        self::DELIVERY_TRANSPORT,
+        self::COLLECT_TRANSPORT,
     ];
 
     #[ORM\Id]

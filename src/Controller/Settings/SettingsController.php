@@ -901,12 +901,12 @@ class SettingsController extends AbstractController {
                                 ->toArray(),
                     ],
                     self::MENU_DELIVERY_TYPES_FREE_FIELDS => fn() => [
-                        "types" => $this->typeGenerator(CategoryType::DELIVERY_TRANSPORT_REQUEST),
-                        'category' => CategoryType::DELIVERY_TRANSPORT_REQUEST,
+                        "types" => $this->typeGenerator(CategoryType::DELIVERY_TRANSPORT),
+                        'category' => CategoryType::DELIVERY_TRANSPORT,
                     ],
                     self::MENU_COLLECT_TYPES_FREE_FIELDS => fn() => [
-                        "types" => $this->typeGenerator(CategoryType::COLLECT_TRANSPORT_REQUEST),
-                        'category' => CategoryType::COLLECT_TRANSPORT_REQUEST,
+                        "types" => $this->typeGenerator(CategoryType::COLLECT_TRANSPORT),
+                        'category' => CategoryType::COLLECT_TRANSPORT,
                     ],
                 ],
             ],
@@ -1324,9 +1324,7 @@ class SettingsController extends AbstractController {
                 ]);
             }
 
-            if (in_array($categoryLabel, [
-                CategoryType::DELIVERY_TRANSPORT_REQUEST, CategoryType::COLLECT_TRANSPORT_REQUEST,
-            ])) {
+            if(in_array($categoryLabel, [CategoryType::DELIVERY_TRANSPORT, CategoryType::COLLECT_TRANSPORT])) {
                 $data[] = [
                     "label" => "Logo",
                     "value" => $this->renderView("form_element.html.twig", [
@@ -1406,9 +1404,7 @@ class SettingsController extends AbstractController {
                 }
             }
 
-            if (in_array($categoryLabel, [
-                CategoryType::DELIVERY_TRANSPORT_REQUEST, CategoryType::COLLECT_TRANSPORT_REQUEST,
-            ])) {
+            if(in_array($categoryLabel, [CategoryType::DELIVERY_TRANSPORT, CategoryType::COLLECT_TRANSPORT])) {
                 $data[] = [
                     "label" => "Logo",
                     "value" => $type?->getLogo() ? "<img src='{$type?->getLogo()?->getFullPath()}' alt='Logo du type' width='30'>" : "",

@@ -41,8 +41,8 @@ class NatureController extends AbstractController
 
         $temperatures = $manager->getRepository(TemperatureRange::class)->findBy([]);
         $types = [
-            'transportCollect' => $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::COLLECT_TRANSPORT_REQUEST),
-            'transportDelivery' => $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::DELIVERY_TRANSPORT_REQUEST)
+            'transportCollect' => $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::COLLECT_TRANSPORT),
+            'transportDelivery' => $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::DELIVERY_TRANSPORT)
         ];
         return $this->render('nature_param/index.html.twig', [
             'temperatures' => $temperatures,
@@ -156,8 +156,8 @@ class NatureController extends AbstractController
 
             $temperatures = $manager->getRepository(TemperatureRange::class)->findBy([]);
             $types = [
-                'transportCollect' => $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::COLLECT_TRANSPORT_REQUEST),
-                'transportDelivery' => $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::DELIVERY_TRANSPORT_REQUEST)
+                'transportCollect' => $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::COLLECT_TRANSPORT),
+                'transportDelivery' => $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::DELIVERY_TRANSPORT)
             ];
 
             $json = $this->renderView('nature_param/modalEditNatureContent.html.twig', [
