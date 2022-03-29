@@ -5,12 +5,14 @@ namespace App\Repository\Transport;
 use App\Entity\Dispatch;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField;
+use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\Transport\TransportRequest;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
 use App\Service\VisibleColumnService;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Query\Expr\Join;
 use Symfony\Component\HttpFoundation\InputBag;
 
 /**
@@ -22,7 +24,9 @@ use Symfony\Component\HttpFoundation\InputBag;
 class TransportRequestRepository extends EntityRepository {
 
     public function findByParamAndFilters(InputBag $params, $filters) {
-        $qb = $this->createQueryBuilder("transport_request");
+        $qb = $this->createQueryBuilder("transport_request")
+            ->leftJoin(TransportDeliveryRequest::class, "delivery", Join::WITH, "transport_request.id = delivery.id")
+            ->where("delivery.collect IS NULL");
 
         $total = QueryCounter::count($qb, "transport_request");
 

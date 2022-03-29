@@ -18,7 +18,9 @@ class TransportOrderRepository extends EntityRepository {
 
     public function findByParamAndFilters(InputBag $params, $filters) {
         $qb = $this->createQueryBuilder("transport_order")
-            ->join("transport_order.request", "transport_request");
+            ->join("transport_order.request", "transport_request")
+            ->andWhere("transport_order.subcontracted = false");
+
         $total = QueryCounter::count($qb, "transport_order");
 
         foreach ($filters as $filter) {
