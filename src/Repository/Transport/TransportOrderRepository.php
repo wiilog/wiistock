@@ -19,10 +19,8 @@ class TransportOrderRepository extends EntityRepository {
     public function findByParamAndFilters(InputBag $params, $filters) {
         $qb = $this->createQueryBuilder("transport_order")
             ->join("transport_order.request", "transport_request");
-
         $total = QueryCounter::count($qb, "transport_order");
 
-        // filtres sup
         foreach ($filters as $filter) {
             switch ($filter['field']) {
                 case FiltreSup::FIELD_DATE_MIN:
@@ -36,7 +34,7 @@ class TransportOrderRepository extends EntityRepository {
                 case FiltreSup::FIELD_STATUT:
                     $value = explode(',', $filter['value']);
                     $qb
-                        ->join('transport_request.status', 'filter_status')
+                        ->join('transport_order.status', 'filter_status')
                         ->andWhere('filter_status.id IN (:status)')
                         ->setParameter('status', $value);
                     break;
