@@ -75,14 +75,14 @@
                             {label: {wiiIcon: 'cart-purchase', text: 'Achat'}, value: 'purchase'},
                         ]) }}
 
-                        <div class="mt-2">
+                        <div class="mt-3">
                             {{ form.radio('addOrCreate', null, true, [
                                 {label: 'Ajouter à une de mes demandes en brouillon', value: 'add'},
                                 {label: 'Créer une nouvelle demande', value: 'create'},
                             ]) }}
                         </div>
 
-                        <div class="sub-form existing-delivery d-none">
+                        <div class="sub-form existing-delivery mt-3 d-none">
                             <div class="my-delivery-requests pb-2">
                                 <div class="section">Ma demande de livraison</div>
                                 {{ form.select('existingDelivery', 'Mes livraisons', true, {
@@ -109,7 +109,7 @@
                             </div>
                         </div>
 
-                        <div class="sub-form create-delivery d-none">
+                        <div class="sub-form create-delivery mt-3 d-none">
                             <div class="section">Ma nouvelle demande de livraison</div>
 
                             <div class="row mt-2">
@@ -131,7 +131,7 @@
                                     }) }}
                                 </div>
                                 <div class="col-12">
-                                    <span class="toggle-collapsible wii-subtitle mt-2 expanded">Champs libres</span>
+                                    <span class="toggle-collapsible wii-subtitle mt-3 expanded">Champs libres</span>
                                     <div class="collapsible expanded free-fields-container mb-2">
                                         {% for type in deliveryFreeFieldsTypes %}
                                             <div class="d-none" data-type="{{ type.typeId }}">
@@ -213,7 +213,7 @@
                                         placeholder: 'Renseigner un objet',
                                     }) }}
                                 </div>
-                                <div class="col-md-6 col-12 mt-2">
+                                <div class="col-xxl-6 col-12 mt-2">
                                     {{ form.select('location', 'Point de collecte', true, {
                                         type: 'location',
                                         placeholder: 'Sélectionnez un emplacement',
@@ -222,7 +222,7 @@
                                         disabled: true,
                                     }) }}
                                 </div>
-                                <div class="col-md-6 col-12 mt-2 wii-switch-compact">
+                                <div class="col-xxl-6 col-12 mt-2 wii-switch-compact">
                                     {{ form.switch('destination', 'Destination', true, [
                                         {label: 'Destruction', value: 'destruction'},
                                         {label: 'Mise en stock', value: 'stock'},
