@@ -21,11 +21,10 @@ class TransportDeliveryRequest extends TransportRequest
     #[ORM\OneToMany(mappedBy: 'transportDeliveryRequest', targetEntity: TransportDeliveryRequestNature::class)]
     private Collection $transportDeliveryRequestNatures;
 
-    #[ORM\ManyToOne(targetEntity: TransportRound::class, inversedBy: 'transportDeliveryRequests')]
-    private ?TransportRound $transportRound = null;
+    #[ORM\OneToOne(inversedBy: 'delivery', targetEntity: TransportCollectRequest::class, cascade: ['persist', 'remove'])]
+    private ?TransportCollectRequest $collect = null;
 
-    public function __construct()
-    {
+    public function __construct() {
         parent::__construct();
         $this->transportDeliveryRequestNatures = new ArrayCollection();
     }
@@ -47,8 +46,7 @@ class TransportDeliveryRequest extends TransportRequest
         return $this->emergency;
     }
 
-    public function setEmergency(?string $emergency): self
-    {
+    public function setEmergency(?string $emergency): self {
         $this->emergency = $emergency;
 
         return $this;
@@ -57,13 +55,11 @@ class TransportDeliveryRequest extends TransportRequest
     /**
      * @return Collection<int, TransportDeliveryRequestNature>
      */
-    public function getTransportDeliveryRequestNatures(): Collection
-    {
+    public function getTransportDeliveryRequestNatures(): Collection {
         return $this->transportDeliveryRequestNatures;
     }
 
-    public function addTransportDeliveryRequestNature(TransportDeliveryRequestNature $transportDeliveryRequestNature): self
-    {
+    public function addTransportDeliveryRequestNature(TransportDeliveryRequestNature $transportDeliveryRequestNature): self {
         if (!$this->transportDeliveryRequestNatures->contains($transportDeliveryRequestNature)) {
             $this->transportDeliveryRequestNatures[] = $transportDeliveryRequestNature;
             $transportDeliveryRequestNature->setTransportDeliveryRequest($this);
@@ -72,8 +68,7 @@ class TransportDeliveryRequest extends TransportRequest
         return $this;
     }
 
-    public function removeTransportDeliveryRequestNature(TransportDeliveryRequestNature $transportDeliveryRequestNature): self
-    {
+    public function removeTransportDeliveryRequestNature(TransportDeliveryRequestNature $transportDeliveryRequestNature): self {
         if ($this->transportDeliveryRequestNatures->removeElement($transportDeliveryRequestNature)) {
             // set the owning side to null (unless already changed)
             if ($transportDeliveryRequestNature->getTransportDeliveryRequest() === $this) {
@@ -84,18 +79,22 @@ class TransportDeliveryRequest extends TransportRequest
         return $this;
     }
 
-    public function getTransportRound(): ?TransportRound
-    {
-        return $this->transportRound;
+    public function getCollect(): ?TransportCollectRequest {
+        return $this->collect;
     }
 
-    public function setTransportRound(?TransportRound $transportRound): self {
-        if($this->transportRound && $this->transportRound !== $transportRound) {
-            $this->transportRound->removeTransportDeliveryRequest($this);
+    public function setCollect(?TransportCollectRequest $collect): self {
+        if($this->collect && $this->collect->getDelivery() !== $this) {
+            $oldCollect = $this->collect;
+            $this->collect = null;
+            $oldCollect->setDelivery(null);
         }
-        $this->transportRound = $transportRound;
-        $transportRound?->addTransportDeliveryRequest($this);
+        $this->collect = $collect;
+        if($this->collect && $this->collect->getDelivery() !== $this) {
+            $this->collect->setDelivery($this);
+        }
 
         return $this;
     }
+
 }

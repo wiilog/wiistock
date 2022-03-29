@@ -10,13 +10,14 @@ use App\Entity\IOT\SensorWrapper;
 use App\Entity\Traits\CommentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Helper\FormatHelper;
+use App\Repository\CollecteRepository;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use WiiCommon\Helper\Stream;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\CollecteRepository')]
+#[ORM\Entity(repositoryClass: CollecteRepository::class)]
 class Collecte implements Serializable, PairedEntity {
 
     const CATEGORIE = 'collecte';

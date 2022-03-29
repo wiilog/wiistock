@@ -2,11 +2,12 @@
 
 namespace App\Entity;
 
+use App\Repository\CategorieCLRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\CategorieCLRepository')]
+#[ORM\Entity(repositoryClass: CategorieCLRepository::class)]
 class CategorieCL {
 
     const REFERENCE_ARTICLE = 'référence article';

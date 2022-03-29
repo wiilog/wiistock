@@ -1,10 +1,12 @@
+@import "variables";
+
 .modal {
     overflow: auto !important;
-}
 
-.modal-body {
-    label {
-        color: $greyForm;
+    .modal-body {
+        label {
+            color: $greyForm;
+        }
     }
 }
 

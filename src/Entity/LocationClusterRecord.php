@@ -3,9 +3,10 @@
 
 namespace App\Entity;
 
+use App\Repository\LocationClusterRecordRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\LocationClusterRecordRepository')]
+#[ORM\Entity(repositoryClass: LocationClusterRecordRepository::class)]
 class LocationClusterRecord {
 
     /**

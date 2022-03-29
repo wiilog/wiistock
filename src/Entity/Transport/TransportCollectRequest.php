@@ -23,11 +23,10 @@ class TransportCollectRequest extends TransportRequest
     #[ORM\OneToMany(mappedBy: 'transportCollectRequest', targetEntity: TransportCollectRequestNature::class)]
     private Collection $transportCollectRequestNatures;
 
-    #[ORM\OneToOne(targetEntity: TransportDeliveryRequest::class, cascade: ['persist', 'remove'])]
-    private ?TransportDeliveryRequest $transportDeliveryRequest = null;
+    #[ORM\OneToOne(mappedBy: 'collect', targetEntity: TransportDeliveryRequest::class, cascade: ['persist', 'remove'])]
+    private ?TransportDeliveryRequest $delivery = null;
 
-    public function __construct()
-    {
+    public function __construct() {
         parent::__construct();
         $this->transportCollectRequestNatures = new ArrayCollection();
     }
@@ -62,7 +61,7 @@ class TransportCollectRequest extends TransportRequest
     }
 
     public function setTimeSlot(?CollectTimeSlot $timeSlot): self {
-        if($this->timeSlot && $this->timeSlot !== $timeSlot) {
+        if ($this->timeSlot && $this->timeSlot !== $timeSlot) {
             $this->timeSlot->removeTransportCollectRequest($this);
         }
         $this->timeSlot = $timeSlot;
@@ -74,13 +73,11 @@ class TransportCollectRequest extends TransportRequest
     /**
      * @return Collection<int, TransportCollectRequestNature>
      */
-    public function getTransportCollectRequestNatures(): Collection
-    {
+    public function getTransportCollectRequestNatures(): Collection {
         return $this->transportCollectRequestNatures;
     }
 
-    public function addTransportCollectRequestNature(TransportCollectRequestNature $transportCollectRequestNature): self
-    {
+    public function addTransportCollectRequestNature(TransportCollectRequestNature $transportCollectRequestNature): self {
         if (!$this->transportCollectRequestNatures->contains($transportCollectRequestNature)) {
             $this->transportCollectRequestNatures[] = $transportCollectRequestNature;
             $transportCollectRequestNature->setTransportCollectRequest($this);
@@ -89,8 +86,7 @@ class TransportCollectRequest extends TransportRequest
         return $this;
     }
 
-    public function removeTransportCollectRequestNature(TransportCollectRequestNature $transportCollectRequestNature): self
-    {
+    public function removeTransportCollectRequestNature(TransportCollectRequestNature $transportCollectRequestNature): self {
         if ($this->transportCollectRequestNatures->removeElement($transportCollectRequestNature)) {
             // set the owning side to null (unless already changed)
             if ($transportCollectRequestNature->getTransportCollectRequest() === $this) {
@@ -101,15 +97,22 @@ class TransportCollectRequest extends TransportRequest
         return $this;
     }
 
-    public function getTransportDeliveryRequest(): ?TransportDeliveryRequest
-    {
-        return $this->transportDeliveryRequest;
+    public function getDelivery(): ?TransportDeliveryRequest {
+        return $this->delivery;
     }
 
-    public function setTransportDeliveryRequest(?TransportDeliveryRequest $transportDeliveryRequest): self
-    {
-        $this->transportDeliveryRequest = $transportDeliveryRequest;
+    public function setDelivery(?TransportDeliveryRequest $delivery): self {
+        if($this->delivery && $this->delivery->getCollect() !== $this) {
+            $oldDelivery = $this->delivery;
+            $this->delivery = null;
+            $oldDelivery->setCollect(null);
+        }
+        $this->delivery = $delivery;
+        if($this->delivery && $this->delivery->getCollect() !== $this) {
+            $this->delivery->setCollect($this);
+        }
 
         return $this;
     }
+
 }

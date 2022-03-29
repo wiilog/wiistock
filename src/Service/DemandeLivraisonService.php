@@ -263,7 +263,7 @@ class DemandeLivraisonService
         $destination = $emplacementRepository->find($data['destination']);
         $number = $this->uniqueNumberService->create(
             $entityManager,
-            Demande::PREFIX_NUMBER,
+            Demande::NUMBER_PREFIX,
             Demande::class,
             UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT
         );

@@ -73,13 +73,13 @@ class ImportService
             "batch",
             "prixUnitaire",
             "quantite",
-            "référence article de référence",
-            "référence article fournisseur",
-            "référence fournisseur"
+            "referenceReference",
+            "articleFournisseurReference",
+            "fournisseurReference"
         ],
         Import::ENTITY_REF => [
             "buyer",
-            "catégorie d'inventaire",
+            "catInv",
             "commentaire",
             "emergencyComment",
             "dateLastInventory",
@@ -121,8 +121,8 @@ class ImportService
         Import::ENTITY_ART_FOU => [
             "label",
             "reference",
-            "référence article de référence",
-            "référence fournisseur"
+            "referenceReference",
+            "fournisseurReference"
         ],
         Import::ENTITY_USER => [
             "address",
@@ -561,374 +561,17 @@ class ImportService
         return $resRow;
     }
 
-    private function getDataToCheck(string $entity, array $corresp)
+    private function getDataToCheck(string $entity, array $corresp): array
     {
-        switch ($entity) {
-            case Import::ENTITY_FOU:
-                $dataToCheck = [
-                    'codeReference' => [
-                        'needed' => $this->fieldIsNeeded('codeReference', Import::ENTITY_FOU),
-                        'value' => $corresp['codeReference'] ?? null
-                    ],
-                    'nom' => [
-                        'needed' => $this->fieldIsNeeded('nom', Import::ENTITY_FOU),
-                        'value' => $corresp['nom'] ?? null
-                    ],
-                    'possibleCustoms' => [
-                        'needed' => $this->fieldIsNeeded('possibleCustoms', Import::ENTITY_FOU),
-                        'value' => $corresp['possibleCustoms'] ?? null
-                    ],
-                    'urgent' => [
-                        'needed' => $this->fieldIsNeeded('urgent', Import::ENTITY_FOU),
-                        'value' => $corresp['urgent'] ?? null
-                    ],
-                ];
-                break;
-            case Import::ENTITY_RECEPTION:
-                $dataToCheck = [
-                    'orderNumber' => [
-                        'needed' => $this->fieldIsNeeded('orderNumber', Import::ENTITY_RECEPTION),
-                        'value' => $corresp['orderNumber'] ?? null
-                    ],
-                    'référence' => [
-                        'needed' => $this->fieldIsNeeded('référence', Import::ENTITY_RECEPTION),
-                        'value' => $corresp['référence'] ?? null
-                    ],
-                    'location' => [
-                        'needed' => $this->fieldIsNeeded('location', Import::ENTITY_RECEPTION),
-                        'value' => $corresp['location'] ?? null
-                    ],
-                    'storageLocation' => [
-                        'needed' => $this->fieldIsNeeded('storageLocation', Import::ENTITY_RECEPTION),
-                        'value' => $corresp['storageLocation'] ?? null
-                    ],
-                    'fournisseur' => [
-                        'needed' => $this->fieldIsNeeded('fournisseur', Import::ENTITY_RECEPTION),
-                        'value' => $corresp['fournisseur'] ?? null
-                    ],
-                    'transporteur' => [
-                        'needed' => $this->fieldIsNeeded('transporteur', Import::ENTITY_RECEPTION),
-                        'value' => $corresp['transporteur'] ?? null
-                    ],
-                    'commentaire' => [
-                        'needed' => $this->fieldIsNeeded('commentaire', Import::ENTITY_RECEPTION),
-                        'value' => $corresp['commentaire'] ?? null
-                    ],
-                    'anomalie' => [
-                        'needed' => $this->fieldIsNeeded('anomalie', Import::ENTITY_RECEPTION),
-                        'value' => $corresp['anomalie'] ?? null
-                    ],
-                    'quantité à recevoir' => [
-                        'needed' => $this->fieldIsNeeded('quantité à recevoir', Import::ENTITY_RECEPTION),
-                        'value' => $corresp['quantité à recevoir'] ?? null
-                    ],
-                    'orderDate' => [
-                        'needed' => $this->fieldIsNeeded('orderDate', Import::ENTITY_RECEPTION),
-                        'value' => $corresp['orderDate'] ?? null
-                    ],
-                    'manualUrgent' => [
-                        'needed' => $this->fieldIsNeeded('manualUrgent', Import::ENTITY_RECEPTION),
-                        'value' => $corresp['manualUrgent'] ?? null
-                    ],
-                    'expectedDate' => [
-                        'needed' => $this->fieldIsNeeded('expectedDate', Import::ENTITY_RECEPTION),
-                        'value' => $corresp['expectedDate'] ?? null
-                    ]
-                ];
-                break;
-            case Import::ENTITY_ART_FOU:
-                $dataToCheck = [
-                    'reference' => [
-                        'needed' => $this->fieldIsNeeded('reference', Import::ENTITY_ART_FOU),
-                        'value' => $corresp['reference'] ?? null
-                    ],
-                    'label' => [
-                        'needed' => $this->fieldIsNeeded('label', Import::ENTITY_ART_FOU),
-                        'value' => $corresp['label'] ?? null
-                    ],
-                    'referenceReference' => [
-                        'needed' => $this->fieldIsNeeded('referenceReference', Import::ENTITY_ART_FOU),
-                        'value' => $corresp['référence article de référence'] ?? null
-                    ],
-                    'fournisseurReference' => [
-                        'needed' => $this->fieldIsNeeded('fournisseurReference', Import::ENTITY_ART_FOU),
-                        'value' => $corresp['référence fournisseur'] ?? null
-                    ],
-                ];
-                break;
-            case Import::ENTITY_REF:
-                $dataToCheck = [
-                    'libelle' => [
-                        'needed' => $this->fieldIsNeeded('libelle', Import::ENTITY_REF),
-                        'value' => $corresp['libelle'] ?? null,
-                    ],
-                    'reference' => [
-                        'needed' => $this->fieldIsNeeded('reference', Import::ENTITY_REF),
-                        'value' => $corresp['reference'] ?? null,
-                    ],
-                    'buyer' => [
-                        'needed' => $this->fieldIsNeeded('buyer', Import::ENTITY_REF),
-                        'value' => $corresp['buyer'] ?? null,
-                    ],
-                    'quantiteStock' => [
-                        'needed' => $this->fieldIsNeeded('quantiteStock', Import::ENTITY_REF),
-                        'value' => $corresp['quantiteStock'] ?? null,
-                    ],
-                    'prixUnitaire' => [
-                        'needed' => $this->fieldIsNeeded('prixUnitaire', Import::ENTITY_REF),
-                        'value' => $corresp['prixUnitaire'] ?? null,
-                    ],
-                    'limitSecurity' => [
-                        'needed' => $this->fieldIsNeeded('limitSecurity', Import::ENTITY_REF),
-                        'value' => $corresp['limitSecurity'] ?? null,
-                    ],
-                    'limitWarning' => [
-                        'needed' => $this->fieldIsNeeded('limitWarning', Import::ENTITY_REF),
-                        'value' => $corresp['limitWarning'] ?? null,
-                    ],
-                    'typeQuantite' => [
-                        'needed' => $this->fieldIsNeeded('typeQuantite', Import::ENTITY_REF),
-                        'value' => $corresp['typeQuantite'] ?? null,
-                    ],
-                    'typeLabel' => [
-                        'needed' => $this->fieldIsNeeded('typeLabel', Import::ENTITY_REF),
-                        'value' => $corresp['type'] ?? null,
-                    ],
-                    'emplacement' => [
-                        'needed' => $this->fieldIsNeeded('emplacement', Import::ENTITY_REF),
-                        'value' => $corresp['emplacement'] ?? null,
-                    ],
-                    'catInv' => [
-                        'needed' => $this->fieldIsNeeded('catInv', Import::ENTITY_REF),
-                        'value' => $corresp['catégorie d\'inventaire'] ?? null,
-                    ],
-                    'commentaire' => [
-                        'needed' => $this->fieldIsNeeded('commentaire', Import::ENTITY_REF),
-                        'value' => $corresp['commentaire'] ?? null
-                    ],
-                    'emergencyComment' => [
-                        'needed' => $this->fieldIsNeeded('emergencyComment', Import::ENTITY_REF),
-                        'value' => $corresp['emergencyComment'] ?? null,
-                    ],
-                    'dateLastInventory' => [
-                        'needed' => $this->fieldIsNeeded('dateLastInventory', Import::ENTITY_REF),
-                        'value' => $corresp['dateLastInventory'] ?? null,
-                    ],
-                    'status' => [
-                        'needed' => $this->fieldIsNeeded('status', Import::ENTITY_REF),
-                        'value' => $corresp['status'] ?? null,
-                    ],
-                    'needsMobileSync' => [
-                        'needed' => $this->fieldIsNeeded('needsMobileSync', Import::ENTITY_REF),
-                        'value' => $corresp['needsMobileSync'] ?? null,
-                    ],
-                    'managers' => [
-                        'needed' => $this->fieldIsNeeded('managers', Import::ENTITY_REF),
-                        'value' => $corresp['managers'] ?? null,
-                    ],
-                    'visibilityGroups' => [
-                        'needed' => $this->fieldIsNeeded('visibilityGroups', Import::ENTITY_REF),
-                        'value' => $corresp['visibilityGroups'] ?? null,
-                    ]
-                ];
-                break;
-            case Import::ENTITY_ART:
-                $dataToCheck = [
-                    'label' => [
-                        'needed' => $this->fieldIsNeeded('catInv', Import::ENTITY_ART),
-                        'value' => $corresp['label'] ?? null,
-                    ],
-                    'quantite' => [
-                        'needed' => $this->fieldIsNeeded('quantite', Import::ENTITY_ART),
-                        'value' => $corresp['quantite'] ?? null,
-                    ],
-                    'prixUnitaire' => [
-                        'needed' => $this->fieldIsNeeded('prixUnitaire', Import::ENTITY_ART),
-                        'value' => $corresp['prixUnitaire'] ?? null,
-                    ],
-                    'barCode' => [
-                        'needed' => $this->fieldIsNeeded('barCode', Import::ENTITY_ART),
-                        'value' => $corresp['barCode'] ?? null,
-                    ],
-                    'articleFournisseurReference' => [
-                        'needed' => $this->fieldIsNeeded('articleFournisseurReference', Import::ENTITY_ART),
-                        'value' => $corresp['référence article fournisseur'] ?? null,
-                    ],
-                    'referenceReference' => [
-                        'needed' => $this->fieldIsNeeded('referenceReference', Import::ENTITY_ART),
-                        'value' => $corresp['référence article de référence'] ?? null,
-                    ],
-                    'fournisseurReference' => [
-                        'needed' => $this->fieldIsNeeded('fournisseurReference', Import::ENTITY_ART),
-                        'value' => $corresp['référence fournisseur'] ?? null,
-                    ],
-                    'emplacement' => [
-                        'needed' => $this->fieldIsNeeded('emplacement', Import::ENTITY_ART),
-                        'value' => $corresp['emplacement'] ?? null,
-                    ],
-                    'batch' => [
-                        'needed' => $this->fieldIsNeeded('batch', Import::ENTITY_ART),
-                        'value' => $corresp['batch'] ?? null,
-                    ],
-                    'expiryDate' => [
-                        'needed' => $this->fieldIsNeeded('expiryDate', Import::ENTITY_ART),
-                        'value' => $corresp['expiryDate'] ?? null,
-                    ],
-                    'stockEntryDate' => [
-                        'needed' => $this->fieldIsNeeded('stockEntryDate', Import::ENTITY_ART),
-                        'value' => $corresp['stockEntryDate'] ?? null,
-                    ],
-                ];
-                break;
-            case Import::ENTITY_USER:
-                $dataToCheck = [
-                    'role' => [
-                        'needed' => $this->fieldIsNeeded('role', Import::ENTITY_USER),
-                        'value' => $corresp['role'] ?? null,
-                    ],
-                    'username' => [
-                        'needed' => $this->fieldIsNeeded('username', Import::ENTITY_USER),
-                        'value' => $corresp['username'] ?? null,
-                    ],
-                    'email' => [
-                        'needed' => $this->fieldIsNeeded('email', Import::ENTITY_USER),
-                        'value' => $corresp['email'] ?? null,
-                    ],
-                    'secondaryEmail' => [
-                        'needed' => $this->fieldIsNeeded('secondaryEmail', Import::ENTITY_USER),
-                        'value' => $corresp['secondaryEmail'] ?? null,
-                    ],
-                    'lastEmail' => [
-                        'needed' => $this->fieldIsNeeded('lastEmail', Import::ENTITY_USER),
-                        'value' => $corresp['lastEmail'] ?? null,
-                    ],
-                    'phone' => [
-                        'needed' => $this->fieldIsNeeded('phone', Import::ENTITY_USER),
-                        'value' => $corresp['phone'] ?? null,
-                    ],
-                    'mobileLoginKey' => [
-                        'needed' => $this->fieldIsNeeded('mobileLoginKey', Import::ENTITY_USER),
-                        'value' => $corresp['mobileLoginKey'] ?? null,
-                    ],
-                    'address' => [
-                        'needed' => $this->fieldIsNeeded('address', Import::ENTITY_USER),
-                        'value' => $corresp['address'] ?? null,
-                    ],
-                    'deliveryTypes' => [
-                        'needed' => $this->fieldIsNeeded('deliveryTypes', Import::ENTITY_USER),
-                        'value' => $corresp['deliveryTypes'] ?? null,
-                    ],
-                    'dispatchTypes' => [
-                        'needed' => $this->fieldIsNeeded('dispatchTypes', Import::ENTITY_USER),
-                        'value' => $corresp['dispatchTypes'] ?? null,
-                    ],
-                    'handlingTypes' => [
-                        'needed' => $this->fieldIsNeeded('handlingTypes', Import::ENTITY_USER),
-                        'value' => $corresp['handlingTypes'] ?? null,
-                    ],
-                    'dropzone' => [
-                        'needed' => $this->fieldIsNeeded('dropzone', Import::ENTITY_USER),
-                        'value' => $corresp['dropzone'] ?? null,
-                    ],
-                    'visibilityGroup' => [
-                        'needed' => $this->fieldIsNeeded('visibilityGroup', Import::ENTITY_USER),
-                        'value' => $corresp['visibilityGroup'] ?? null,
-                    ],
-                    'status' => [
-                        'needed' => $this->fieldIsNeeded('status', Import::ENTITY_USER),
-                        'value' => $corresp['status'] ?? null,
-                    ],
-                    'deliverer' => [
-                        'needed' => $this->fieldIsNeeded('deliverer', Import::ENTITY_USER),
-                        'value' => $corresp['deliverer'] ?? null,
-                    ],
-                ];
-                break;
-            case Import::ENTITY_DELIVERY:
-                $dataToCheck = [
-                    'articleReference' => [
-                        'needed' => $this->fieldIsNeeded('articleReference', Import::ENTITY_DELIVERY),
-                        'value' => $corresp['articleReference'] ?? null
-                    ],
-                    'quantityDelivery' => [
-                        'needed' => $this->fieldIsNeeded('quantityDelivery', Import::ENTITY_DELIVERY),
-                        'value' => $corresp['quantityDelivery'] ?? null
-                    ],
-                    'articleCode' => [
-                        'needed' => $this->fieldIsNeeded('articleCode', Import::ENTITY_DELIVERY),
-                        'value' => $corresp['articleCode'] ?? null
-                    ],
-                    'status' => [
-                        'needed' => $this->fieldIsNeeded('status', Import::ENTITY_DELIVERY),
-                        'value' => $corresp['status'] ?? null
-                    ],
-                    'type' => [
-                        'needed' => $this->fieldIsNeeded('type', Import::ENTITY_DELIVERY),
-                        'value' => $corresp['type'] ?? null
-                    ],
-                    'requester' => [
-                        'needed' => $this->fieldIsNeeded('requester', Import::ENTITY_DELIVERY),
-                        'value' => $corresp['requester'] ?? null
-                    ],
-                    'destination' => [
-                        'needed' => $this->fieldIsNeeded('destination', Import::ENTITY_DELIVERY),
-                        'value' => $corresp['destination'] ?? null
-                    ],
-                    'commentaire' => [
-                        'needed' => $this->fieldIsNeeded('commentaire', Import::ENTITY_DELIVERY),
-                        'value' => $corresp['commentaire'] ?? null
-                    ],
-                    'targetLocationPicking' => [
-                        'needed' => $this->fieldIsNeeded('targetLocationPicking', Import::ENTITY_DELIVERY),
-                        'value' => $corresp['targetLocationPicking'] ?? null,
-                    ],
-                ];
-                break;
-            case Import::ENTITY_LOCATION:
-                $dataToCheck = [
-                    'name' => [
-                        'needed' => $this->fieldIsNeeded('name', Import::ENTITY_LOCATION),
-                        'value' => $corresp['name'] ?? null,
-                    ],
-                    'description' => [
-                        'needed' => $this->fieldIsNeeded('description', Import::ENTITY_LOCATION),
-                        'value' => $corresp['description'] ?? null,
-                    ],
-                    'dateMaxTime' => [
-                        'needed' => $this->fieldIsNeeded('dateMaxTime', Import::ENTITY_LOCATION),
-                        'value' => $corresp['dateMaxTime'] ?? null,
-                    ],
-                    'allowedPackNatures' => [
-                        'needed' => $this->fieldIsNeeded('allowedPackNatures', Import::ENTITY_LOCATION),
-                        'value' => $corresp['allowedPackNatures'] ?? null,
-                    ],
-                    'allowedDeliveryTypes' => [
-                        'needed' => $this->fieldIsNeeded('allowedDeliveryTypes', Import::ENTITY_LOCATION),
-                        'value' => $corresp['allowedDeliveryTypes'] ?? null,
-                    ],
-                    'allowedCollectTypes' => [
-                        'needed' => $this->fieldIsNeeded('allowedCollectTypes', Import::ENTITY_LOCATION),
-                        'value' => $corresp['allowedCollectTypes'] ?? null,
-                    ],
-                    'isDeliveryPoint' => [
-                        'needed' => $this->fieldIsNeeded('isDeliveryPoint', Import::ENTITY_LOCATION),
-                        'value' => $corresp['isDeliveryPoint'] ?? null,
-                    ],
-                    'isOngoingVisibleOnMobile' => [
-                        'needed' => $this->fieldIsNeeded('isOngoingVisibleOnMobile', Import::ENTITY_LOCATION),
-                        'value' => $corresp['isOngoingVisibleOnMobile'] ?? null,
-                    ],
-                    'isActive' => [
-                        'needed' => $this->fieldIsNeeded('isActive', Import::ENTITY_LOCATION),
-                        'value' => $corresp['isActive'] ?? null,
-                    ],
-                ];
-                break;
-            default:
-                $dataToCheck = [];
-        }
-
-        return $dataToCheck;
+        return Stream::from(ImportService::FIELDS_TO_ASSOCIATE[$entity])
+            ->keymap(fn(string $field) => [
+                $field,
+                [
+                    'needed' => $this->fieldIsNeeded($field, $entity),
+                    'value' => $corresp[$field],
+                ]
+            ])
+            ->toArray();
     }
 
     private function fopenLogFile() {
@@ -1894,7 +1537,7 @@ class ImportService
 
         $number = $this->uniqueNumberService->create(
             $this->em,
-            Demande::PREFIX_NUMBER,
+            Demande::NUMBER_PREFIX,
             Demande::class,
             UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT
         );

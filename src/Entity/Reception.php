@@ -6,20 +6,21 @@ use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\CommentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
+use App\Repository\ReceptionRepository;
 use DateTime;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\ReceptionRepository')]
+#[ORM\Entity(repositoryClass: ReceptionRepository::class)]
 class Reception {
 
     use FreeFieldsManagerTrait;
     use AttachmentTrait;
     use CommentTrait;
 
-    const PREFIX_NUMBER = 'R';
+    const NUMBER_PREFIX = 'R';
     const STATUT_EN_ATTENTE = 'en attente de réception';
     const STATUT_RECEPTION_PARTIELLE = 'réception partielle';
     const STATUT_RECEPTION_TOTALE = 'réception totale';

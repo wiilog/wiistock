@@ -5,13 +5,14 @@ namespace App\Entity;
 use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorMessageTrait;
+use App\Repository\OrdreCollecteRepository;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\OrdreCollecteRepository')]
+#[ORM\Entity(repositoryClass: OrdreCollecteRepository::class)]
 class OrdreCollecte implements PairedEntity {
 
     use SensorMessageTrait;

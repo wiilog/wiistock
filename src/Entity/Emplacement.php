@@ -14,13 +14,14 @@ use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Transport\TemperatureRange;
 use App\Entity\Transport\Vehicle;
+use App\Repository\EmplacementRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
 
 
-#[ORM\Entity(repositoryClass: 'App\Repository\EmplacementRepository')]
+#[ORM\Entity(repositoryClass: EmplacementRepository::class)]
 class Emplacement implements PairedEntity {
 
     use SensorMessageTrait;

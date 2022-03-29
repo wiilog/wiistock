@@ -2,9 +2,10 @@
 
 namespace App\Entity;
 
+use App\Repository\WiilockRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\WiilockRepository')]
+#[ORM\Entity(repositoryClass: WiilockRepository::class)]
 class Wiilock {
 
     public const DASHBOARD_FED_KEY = 'dashboard_is_being_fed';

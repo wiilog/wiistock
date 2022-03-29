@@ -3,18 +3,19 @@
 namespace App\Entity;
 
 use App\Entity\Traits\FreeFieldsManagerTrait;
+use App\Repository\DispatchRepository;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\DispatchRepository')]
+#[ORM\Entity(repositoryClass: DispatchRepository::class)]
 class Dispatch {
 
     use FreeFieldsManagerTrait;
 
     const CATEGORIE = 'acheminements';
-    const PREFIX_NUMBER = 'A';
+    const NUMBER_PREFIX = 'A';
     /**
      * @var [string => bool] Associate field name to bool, if TRUE we saved it in user entity
      */

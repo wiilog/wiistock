@@ -21,7 +21,7 @@ class TransportRound
     #[ORM\Column(type: 'string', length: 255)]
     private ?string $number = null;
 
-    #[ORM\ManyToOne(targetEntity: Statut::class, inversedBy: 'transportRounds')]
+    #[ORM\ManyToOne(targetEntity: Statut::class)]
     private ?Statut $status = null;
 
     #[ORM\Column(type: 'datetime')]
@@ -55,7 +55,7 @@ class TransportRound
     private ?string $estimatedTime = null;
 
     #[ORM\OneToMany(mappedBy: 'transportRound', targetEntity: TransportRoundLine::class)]
-    private Collection|null $transportRoundLines = null;
+    private Collection $transportRoundLines;
 
     #[ORM\OneToMany(mappedBy: 'transportRound', targetEntity: TransportDeliveryRequest::class)]
     private Collection $transportDeliveryRequests;

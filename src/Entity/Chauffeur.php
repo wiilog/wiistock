@@ -2,11 +2,12 @@
 
 namespace App\Entity;
 
+use App\Repository\ChauffeurRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\ChauffeurRepository')]
+#[ORM\Entity(repositoryClass: ChauffeurRepository::class)]
 class Chauffeur {
 
     #[ORM\Id]

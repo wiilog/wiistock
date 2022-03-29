@@ -455,7 +455,7 @@ class DemandeRepository extends EntityRepository
             ->where('delivery_request.numero LIKE :value')
             ->orderBy('delivery_request.createdAt', 'DESC')
             ->addOrderBy('delivery_request.numero', 'DESC')
-            ->setParameter('value', Demande::PREFIX_NUMBER . '-' . $date . '%')
+            ->setParameter('value', Demande::NUMBER_PREFIX . '-' . $date . '%')
             ->getQuery()
             ->execute();
         return $result ? $result[0]['numero'] : null;

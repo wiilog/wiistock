@@ -2,9 +2,10 @@
 
 namespace App\Entity;
 
+use App\Repository\AttachmentRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\AttachmentRepository')]
+#[ORM\Entity(repositoryClass: AttachmentRepository::class)]
 class Attachment {
 
     const MAIN_PATH = '/uploads/attachements';

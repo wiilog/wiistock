@@ -9,6 +9,7 @@ use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\CommentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Entity\Traits\LitePropertiesSetterTrait;
+use App\Repository\ReferenceArticleRepository;
 use DateTime;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -16,7 +17,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use WiiCommon\Helper\Stream;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\ReferenceArticleRepository')]
+#[ORM\Entity(repositoryClass: ReferenceArticleRepository::class)]
 class ReferenceArticle {
 
     use FreeFieldsManagerTrait;
