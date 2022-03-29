@@ -8,6 +8,7 @@ use App\Entity\PreparationOrder\Preparation;
 use App\Entity\Transport\TransportDeliveryOrderPack;
 use App\Entity\Transport\TransportRequest;
 use App\Entity\Transport\TransportRound;
+use App\Entity\Transport\TransportRoundStartingHour;
 use App\Entity\Transport\Vehicle;
 use App\Repository\UtilisateurRepository;
 use DateTime;
@@ -264,6 +265,9 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
 
     #[ORM\OneToMany(mappedBy: 'rejectedBy', targetEntity: TransportDeliveryOrderPack::class)]
     private Collection $transportDeliveryOrderRejectedPacks;
+
+    #[ORM\ManyToOne(targetEntity: TransportRoundStartingHour::class, inversedBy: 'deliverers')]
+    private $TransportRoundStartingHour;
 
     public function __construct() {
         $this->receptions = new ArrayCollection();
@@ -1894,6 +1898,18 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
                 $transportDeliveryOrderPack->setRejectedBy(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getTransportRoundStartingHour(): ?TransportRoundStartingHour
+    {
+        return $this->TransportRoundStartingHour;
+    }
+
+    public function setTransportRoundStartingHour(?TransportRoundStartingHour $TransportRoundStartingHour): self
+    {
+        $this->TransportRoundStartingHour = $TransportRoundStartingHour;
 
         return $this;
     }
