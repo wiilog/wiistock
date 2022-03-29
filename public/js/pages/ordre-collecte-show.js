@@ -55,10 +55,11 @@ $submitFinishCollecte.on('click', function () {
 function toggleCheck($elem) {
     const $ordreCollecteIntels = $elem.parent('.d-flex').find('.ordre-collecte-data');
     const isManagedByRef = !($ordreCollecteIntels.data('byArticle') === 1);
+    const isDestruct = $ordreCollecteIntels.data('is-destruct');
     const quantity = $ordreCollecteIntels.data('quantity');
     const barCode = $ordreCollecteIntels.data('bar-code');
     const id = $ordreCollecteIntels.data('ref-id');
-    if (isManagedByRef) {
+    if (isDestruct || isManagedByRef) {
         $elem
             .parents('tr')
             .toggleClass('active')
