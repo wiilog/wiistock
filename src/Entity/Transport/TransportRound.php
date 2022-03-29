@@ -57,13 +57,9 @@ class TransportRound
     #[ORM\OneToMany(mappedBy: 'transportRound', targetEntity: TransportRoundLine::class)]
     private Collection $transportRoundLines;
 
-    #[ORM\OneToMany(mappedBy: 'transportRound', targetEntity: TransportDeliveryRequest::class)]
-    private Collection $transportDeliveryRequests;
-
     public function __construct()
     {
         $this->transportRoundLines = new ArrayCollection();
-        $this->transportDeliveryRequests = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -245,36 +241,6 @@ class TransportRound
             // set the owning side to null (unless already changed)
             if ($transportRoundLine->getTransportRound() === $this) {
                 $transportRoundLine->setTransportRound(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, TransportDeliveryRequest>
-     */
-    public function getTransportDeliveryRequests(): Collection
-    {
-        return $this->transportDeliveryRequests;
-    }
-
-    public function addTransportDeliveryRequest(TransportDeliveryRequest $transportDeliveryRequest): self
-    {
-        if (!$this->transportDeliveryRequests->contains($transportDeliveryRequest)) {
-            $this->transportDeliveryRequests[] = $transportDeliveryRequest;
-            $transportDeliveryRequest->setTransportRound($this);
-        }
-
-        return $this;
-    }
-
-    public function removeTransportDeliveryRequest(TransportDeliveryRequest $transportDeliveryRequest): self
-    {
-        if ($this->transportDeliveryRequests->removeElement($transportDeliveryRequest)) {
-            // set the owning side to null (unless already changed)
-            if ($transportDeliveryRequest->getTransportRound() === $this) {
-                $transportDeliveryRequest->setTransportRound(null);
             }
         }
 

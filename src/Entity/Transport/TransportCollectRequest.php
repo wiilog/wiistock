@@ -11,11 +11,6 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: TransportCollectRequestRepository::class)]
 class TransportCollectRequest extends TransportRequest
 {
-    #[ORM\Column(type: 'datetime')]
-    private ?DateTime $expectedAt = null;
-
-    #[ORM\Column(type: 'datetime', nullable: true)]
-    private ?DateTime $validationDate = null;
 
     #[ORM\ManyToOne(targetEntity: CollectTimeSlot::class, inversedBy: 'transportCollectRequests')]
     private ?CollectTimeSlot $timeSlot = null;
@@ -29,30 +24,6 @@ class TransportCollectRequest extends TransportRequest
     public function __construct() {
         parent::__construct();
         $this->transportCollectRequestNatures = new ArrayCollection();
-    }
-
-    public function getExpectedAt(): ?DateTime
-    {
-        return $this->expectedAt;
-    }
-
-    public function setExpectedAt(DateTime $expectedAt): self
-    {
-        $this->expectedAt = $expectedAt;
-
-        return $this;
-    }
-
-    public function getValidationDate(): ?DateTime
-    {
-        return $this->validationDate;
-    }
-
-    public function setValidationDate(?DateTime $validationDate): self
-    {
-        $this->validationDate = $validationDate;
-
-        return $this;
     }
 
     public function getTimeSlot(): ?CollectTimeSlot

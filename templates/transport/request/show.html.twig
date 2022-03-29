@@ -12,7 +12,7 @@
     {% set requestType = request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') ? 'Livraison' : 'Collecte' %}
     <div class="wii-box-container">
         <div class="row">
-            <div class="col-md-4 col-12">
+            <div class="col-lg-4 col-md-6 col-12">
                 <div class="wii-box transport-details">
                     <div class="d-flex align-items-center mr-3">
                         <div class="mx-2">
@@ -124,7 +124,7 @@
                         </div>
                     {% else %}
                         <div class="content">
-                            <span class="ra-small-text">Aucun champ libre renseigné</span>
+                            <span class="ra-mdall-text">Aucun champ libre renseigné</span>
                         </div>
                     {% endif %}
                     <div class="header">
@@ -174,7 +174,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-4 col-12">
+            <div class="col-lg-4 col-md-6 col-12">
                 <div class="wii-box">
                     <div class="header wii-title">Colis</div>
                     <div class="">A REMPLIR</div>{# TODO REMOVE #}
@@ -184,7 +184,7 @@
                     <div class="">A REMPLIR</div>{# TODO REMOVE #}
                 </div>
             </div>
-            <div class="col-md-4 col-12">
+            <div class="col-lg-4 col-md-6 col-12">
                 <div class="wii-box">
                     <div class="header wii-title">Données</div>
                     <div class="">A REMPLIR</div>{# TODO REMOVE #}

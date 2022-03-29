@@ -29,8 +29,6 @@ abstract class TransportRequest {
 
     public const CATEGORY = 'transportRequest';
 
-    public const NUMBER_PREFIX = 'DTR';
-
     public const STATUS_AWAITING_VALIDATION = 'En attente validation';
     public const STATUS_AWAITING_PLANNING = 'En attente de plannification';
     public const STATUS_TO_PREPARE = 'À préparer';

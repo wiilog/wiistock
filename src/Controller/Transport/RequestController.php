@@ -6,7 +6,7 @@ use App\Entity\CategorieCL;
 use App\Entity\Action;
 use App\Entity\CategoryType;
 use App\Entity\FreeField;
-use App\Entity\Transport\StatusHistory;
+use App\Entity\StatusHistory;
 use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
@@ -158,8 +158,9 @@ class RequestController extends AbstractController {
         $queryResult = $transportRepository->findByParamAndFilters($request->request, $filters);
 
         $transportRequests = [];
-        foreach ($queryResult["data"] as $request) {
-            $transportRequests[$request->getExpectedAt()->format("dmY")][] = $request;
+        foreach ($queryResult["data"] as $transportRequest) {
+            dump($transportRequest);
+            $transportRequests[$transportRequest->getExpectedAt()->format("dmY")][] = $transportRequest;
         }
 
         $rows = [];
@@ -179,7 +180,7 @@ class RequestController extends AbstractController {
 
         foreach ($transportRequests as $date => $requests) {
             $date = DateTime::createFromFormat("dmY", $date);
-            $date = FormatHelper::longDate($request->getExpectedAt());
+            $date = FormatHelper::longDate($date);
 
             $counts = Stream::from($requests)
                 ->map(fn(TransportRequest $request) => get_class($request))
@@ -218,9 +219,9 @@ class RequestController extends AbstractController {
                 "content" => $row,
             ];
 
-            foreach ($requests as $request) {
+            foreach ($requests as $transportRequest) {
                 $currentRow[] = $this->renderView("transport/request/list_card.html.twig", [
-                    "request" => $request,
+                    "request" => $transportRequest,
                 ]);
             }
 
@@ -260,13 +261,13 @@ class RequestController extends AbstractController {
 
     #[Route("/{transportRequest}/status-history-api", name: "status_history_api", options: ['expose' => true], methods: "GET")]
     public function statusHistoryApi(TransportRequest $transportRequest) {
-        $round = !$transportRequest->getTransportOrders()->isEmpty() && !$transportRequest->getTransportOrders()->first()->getTransportRoundLines()->isEmpty()
-                ? $transportRequest->getTransportOrders()->first()->getTransportRoundLines()->last()
+        $round = !$transportRequest->getOrders()->isEmpty() && !$transportRequest->getOrders()->first()->getTransportRoundLines()->isEmpty()
+                ? $transportRequest->getOrders()->first()->getTransportRoundLines()->last()
                 : null;
         return $this->json([
             "success" => true,
             "template" => $this->renderView('transport/request/timeline.html.twig', [
-                "statusesHistory" => Stream::from($transportRequest->getStatusHistories())->map(fn(StatusHistory $statusHistory) => [
+                "statusesHistory" => Stream::from($transportRequest->getStatusHistory())->map(fn(StatusHistory $statusHistory) => [
                     "status" => FormatHelper::status($statusHistory->getStatus()),
                     "date" => FormatHelper::longDate($statusHistory->getDate(), true, true)
                 ])->toArray(),
