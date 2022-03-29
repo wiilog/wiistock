@@ -262,20 +262,22 @@ class OrdreCollecteService
                     );
                 }
             }
+
+            foreach ($articlesToAdd as $article) {
+                $article->setStockEntryDate($date);
+                $this->persistMouvementsFromStock(
+                    $user,
+                    $article,
+                    $date,
+                    $demandeCollecte->getPointCollecte(),
+                    $article->getEmplacement(),
+                    $article->getQuantite(),
+                    $ordreCollecte,
+                    $fromNomade
+                );
+            }
         }
-        foreach ($articlesToAdd as $article) {
-            $article->setStockEntryDate($date);
-            $this->persistMouvementsFromStock(
-                $user,
-                $article,
-                $date,
-                $demandeCollecte->getPointCollecte(),
-                $article->getEmplacement(),
-                $article->getQuantite(),
-                $ordreCollecte,
-                $fromNomade
-            );
-        }
+
 		$this->entityManager->flush();
 
 		$partialCollect = !empty($rowsToRemove);
