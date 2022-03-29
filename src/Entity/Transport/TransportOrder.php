@@ -60,7 +60,7 @@ class TransportOrder
     #[ORM\ManyToOne(targetEntity: TransportRequest::class, inversedBy: 'transportOrders')]
     private ?TransportRequest $transportRequest = null;
 
-    #[ORM\OneToMany(mappedBy: 'transportOrder', targetEntity: TransportRequestHistory::class)]
+    #[ORM\OneToMany(mappedBy: 'transportOrder', targetEntity: TransportHistory::class)]
     private Collection $transportRequestHistories;
 
     #[ORM\OneToMany(mappedBy: 'transportOrder', targetEntity: TransportDeliveryOrderPack::class)]
@@ -200,29 +200,29 @@ class TransportOrder
     }
 
     /**
-     * @return Collection<int, TransportRequestHistory>
+     * @return Collection<int, TransportHistory>
      */
     public function getTransportRequestHistories(): Collection
     {
         return $this->transportRequestHistories;
     }
 
-    public function addTransportRequestHistory(TransportRequestHistory $transportRequestHistory): self
+    public function addTransportHistory(TransportHistory $transportHistory): self
     {
-        if (!$this->transportRequestHistories->contains($transportRequestHistory)) {
-            $this->transportRequestHistories[] = $transportRequestHistory;
-            $transportRequestHistory->setTransportOrder($this);
+        if (!$this->transportRequestHistories->contains($transportHistory)) {
+            $this->transportRequestHistories[] = $transportHistory;
+            $transportHistory->setTransportOrder($this);
         }
 
         return $this;
     }
 
-    public function removeTransportRequestHistory(TransportRequestHistory $transportRequestHistory): self
+    public function removeTransportHistory(TransportHistory $transportHistory): self
     {
-        if ($this->transportRequestHistories->removeElement($transportRequestHistory)) {
+        if ($this->transportRequestHistories->removeElement($transportHistory)) {
             // set the owning side to null (unless already changed)
-            if ($transportRequestHistory->getTransportOrder() === $this) {
-                $transportRequestHistory->setTransportOrder(null);
+            if ($transportHistory->getTransportOrder() === $this) {
+                $transportHistory->setTransportOrder(null);
             }
         }
 
@@ -292,7 +292,7 @@ class TransportOrder
     /**
      * @return Collection<int, StatusHistory>
      */
-    public function getStatusHistories(): Collection
+    public function getHistory(): Collection
     {
         return $this->statusHistories;
     }

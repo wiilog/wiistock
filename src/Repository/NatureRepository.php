@@ -73,6 +73,16 @@ class NatureRepository extends EntityRepository
             ->getResult();
     }
 
+    public function getForSelect(?string $term): array {
+        return $this->createQueryBuilder('nature')
+            ->select("nature.id AS id")
+            ->addSelect("nature.label AS text")
+            ->andWhere('nature.label LIKE :term')
+            ->setParameter("term", "%$term%")
+            ->getQuery()
+            ->getResult();
+    }
+
     public function countUsedById($id)
     {
         $entityManager = $this->getEntityManager();

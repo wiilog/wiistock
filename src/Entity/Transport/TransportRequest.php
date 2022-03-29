@@ -69,7 +69,7 @@ abstract class TransportRequest {
     #[ORM\OneToMany(mappedBy: 'transportRequest', targetEntity: TransportOrder::class)]
     private Collection $transportOrders;
 
-    #[ORM\OneToMany(mappedBy: 'transportRequest', targetEntity: TransportRequestHistory::class)]
+    #[ORM\OneToMany(mappedBy: 'transportRequest', targetEntity: TransportHistory::class)]
     private Collection $transportRequestHistories;
 
     #[ORM\OneToMany(mappedBy: 'transportRequest', targetEntity: StatusHistory::class)]
@@ -189,26 +189,26 @@ abstract class TransportRequest {
     }
 
     /**
-     * @return Collection<int, TransportRequestHistory>
+     * @return Collection<int, TransportHistory>
      */
     public function getTransportRequestHistories(): Collection {
         return $this->transportRequestHistories;
     }
 
-    public function addTransportRequestHistory(TransportRequestHistory $transportRequestHistory): self {
-        if (!$this->transportRequestHistories->contains($transportRequestHistory)) {
-            $this->transportRequestHistories[] = $transportRequestHistory;
-            $transportRequestHistory->setTransportRequest($this);
+    public function addTransportHistory(TransportHistory $transportHistory): self {
+        if (!$this->transportRequestHistories->contains($transportHistory)) {
+            $this->transportRequestHistories[] = $transportHistory;
+            $transportHistory->setTransportRequest($this);
         }
 
         return $this;
     }
 
-    public function removeTransportRequestHistory(TransportRequestHistory $transportRequestHistory): self {
-        if ($this->transportRequestHistories->removeElement($transportRequestHistory)) {
+    public function removeTransportHistory(TransportHistory $transportHistory): self {
+        if ($this->transportRequestHistories->removeElement($transportHistory)) {
             // set the owning side to null (unless already changed)
-            if ($transportRequestHistory->getTransportRequest() === $this) {
-                $transportRequestHistory->setTransportRequest(null);
+            if ($transportHistory->getTransportRequest() === $this) {
+                $transportHistory->setTransportRequest(null);
             }
         }
 
@@ -218,7 +218,7 @@ abstract class TransportRequest {
     /**
      * @return Collection<int, StatusHistory>
      */
-    public function getStatusHistories(): Collection {
+    public function getHistory(): Collection {
         return $this->statusHistories;
     }
 
