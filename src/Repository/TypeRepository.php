@@ -114,19 +114,24 @@ class TypeRepository extends EntityRepository
         return $query->execute();
     }
 
-    public function findOneByCategoryLabel($category)
+    public function findOneByCategoryLabel(string $category, int $type = null): ?Type
     {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT t
-            FROM App\Entity\Type t
-            JOIN t.category c
-            WHERE c.label = :category"
-        );
-        $query->setParameter("category", $category);
-        $result = $query->execute();
+        $queryBuilder = $this->createQueryBuilder('type')
+            ->join('type.category', 'category')
+            ->andWhere('category.label = :category')
+            ->setParameter("category", $category);
 
-        return $result ? $result[0] : null;
+        if (isset($type)) {
+            $queryBuilder
+                ->andWhere('type.id = :type')
+                ->setParameter("type", $type);
+        }
+
+        $result = $queryBuilder
+            ->getQuery()
+            ->execute();
+
+        return !empty($result) ? $result[0] : null;
     }
 
     public function countByLabel($label)

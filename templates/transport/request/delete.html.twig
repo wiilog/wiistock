@@ -1,22 +1,19 @@
-<div class="modal fade" role="dialog" id="modalNewTransportRequest" data-modal-type="new">
-    <div class="modal-dialog modal-lg" role="document">
+<form method="" class="modal fade" id="modalDeleteTransportRequest" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title wii-title">Demande de transport</h5>
+                <h5 class="modal-title wii-title"></h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
-                {% include 'transport/request/form.html.twig' with {
-                    request: newRequest,
-                    types: types
-                } %}
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
-                <button type="submit" class="btn btn-success">Enregistrer</button>
+                <button name='request' type="button"
+                        class="btn btn-danger data confirm">Supprimer</button>
             </div>
         </div>
     </div>
-</div>
+</form>

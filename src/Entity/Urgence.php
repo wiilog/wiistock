@@ -3,10 +3,11 @@
 namespace App\Entity;
 
 use App\Helper\FormatHelper;
+use App\Repository\UrgenceRepository;
 use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\UrgenceRepository')]
+#[ORM\Entity(repositoryClass: UrgenceRepository::class)]
 class Urgence {
 
     public const ARRIVAL_EMERGENCY_TRIGGERING_FIELDS = [

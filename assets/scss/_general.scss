@@ -846,6 +846,12 @@ label.required:after {
         margin-left: -$modal-inner-padding;
         margin-right: -$modal-inner-padding;
     }
+
+    .wii-icon {
+        display: inline-block;
+        height: 12px;
+        width: 12px;
+    }
 }
 
 .text-regular {

@@ -1894,7 +1894,7 @@ class ImportService
 
         $number = $this->uniqueNumberService->create(
             $this->em,
-            Demande::PREFIX_NUMBER,
+            Demande::NUMBER_PREFIX,
             Demande::class,
             UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT
         );

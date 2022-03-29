@@ -16,6 +16,7 @@ use App\Entity\Traits\CommentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Repository\DeliveryRequest\DemandeRepository;
 use DateTime;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -23,11 +24,11 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use WiiCommon\Helper\Stream;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\DeliveryRequest\DemandeRepository')]
+#[ORM\Entity(repositoryClass: DemandeRepository::class)]
 class Demande implements PairedEntity {
 
     const CATEGORIE = 'demande';
-    const PREFIX_NUMBER = 'DL';
+    const NUMBER_PREFIX = 'DL';
     const STATUT_BROUILLON = 'brouillon';
     const STATUT_PREPARE = 'préparé';
     const STATUT_INCOMPLETE = 'partiellement préparé';

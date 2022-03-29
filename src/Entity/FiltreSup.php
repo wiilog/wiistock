@@ -2,9 +2,10 @@
 
 namespace App\Entity;
 
+use App\Repository\FiltreSupRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\FiltreSupRepository')]
+#[ORM\Entity(repositoryClass: FiltreSupRepository::class)]
 class FiltreSup {
 
     const FIELD_DATE_MIN = 'dateMin';
@@ -16,7 +17,10 @@ class FiltreSup {
     const FIELD_DECLARANTS = 'declarants';
     const FIELD_CARRIERS = 'carriers';
     const FIELD_PROVIDERS = 'providers';
+    const FIELD_CATEGORY = 'category';
     const FIELD_TYPE = 'type';
+    const FIELD_FILE_NUMBER = 'fieldNumber';
+    const FIELD_CONTACT = 'contact';
     const FIELD_EMPLACEMENT = 'emplacement';
     const FIELD_COLIS = 'colis';
     const FIELD_REFERENCE = 'reference';
@@ -71,6 +75,7 @@ class FiltreSup {
     const PAGE_ALERTE = 'alerte';
     const PAGE_NOTIFICATIONS = 'notifications';
     const PAGE_ENCOURS = 'encours';
+    const PAGE_TRANSPORT_REQUESTS = 'transportRequest';
     const PAGE_IMPORT = 'import';
 
     #[ORM\Id]

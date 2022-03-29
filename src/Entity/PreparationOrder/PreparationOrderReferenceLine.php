@@ -4,9 +4,10 @@ namespace App\Entity\PreparationOrder;
 
 use App\Entity\Emplacement;
 use App\Entity\ReferenceArticle;
+use App\Repository\PreparationOrder\PreparationOrderReferenceLineRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\PreparationOrder\PreparationOrderReferenceLineRepository')]
+#[ORM\Entity(repositoryClass: PreparationOrderReferenceLineRepository::class)]
 class PreparationOrderReferenceLine {
 
     #[ORM\Id]

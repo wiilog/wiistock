@@ -119,9 +119,6 @@ class Type {
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $color = null;
 
-    #[ORM\OneToMany(mappedBy: 'type', targetEntity: TransportRequest::class)]
-    private Collection $transportRequests;
-
     #[ORM\OneToOne(targetEntity: Attachment::class, cascade: ['persist', 'remove'])]
     private ?Attachment $logo = null;
 
@@ -143,7 +140,6 @@ class Type {
         $this->requestTemplates = new ArrayCollection();
         $this->requestTypeTemplates = new ArrayCollection();
         $this->sensors = new ArrayCollection();
-        $this->transportRequests = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -168,7 +164,7 @@ class Type {
     }
 
     public function addChampLibre(FreeField $champLibre): self {
-        if(!$this->champsLibres->contains($champLibre)) {
+        if (!$this->champsLibres->contains($champLibre)) {
             $this->champsLibres[] = $champLibre;
             $champLibre->setType($this);
         }
@@ -177,10 +173,10 @@ class Type {
     }
 
     public function removeChampLibre(FreeField $champLibre): self {
-        if($this->champsLibres->contains($champLibre)) {
+        if ($this->champsLibres->contains($champLibre)) {
             $this->champsLibres->removeElement($champLibre);
             // set the owning side to null (unless already changed)
-            if($champLibre->getType() === $this) {
+            if ($champLibre->getType() === $this) {
                 $champLibre->setType(null);
             }
         }
@@ -196,7 +192,7 @@ class Type {
     }
 
     public function addReferenceArticle(ReferenceArticle $referenceArticle): self {
-        if(!$this->referenceArticles->contains($referenceArticle)) {
+        if (!$this->referenceArticles->contains($referenceArticle)) {
             $this->referenceArticles[] = $referenceArticle;
             $referenceArticle->setType($this);
         }
@@ -205,10 +201,10 @@ class Type {
     }
 
     public function removeReferenceArticle(ReferenceArticle $referenceArticle): self {
-        if($this->referenceArticles->contains($referenceArticle)) {
+        if ($this->referenceArticles->contains($referenceArticle)) {
             $this->referenceArticles->removeElement($referenceArticle);
             // set the owning side to null (unless already changed)
-            if($referenceArticle->getType() === $this) {
+            if ($referenceArticle->getType() === $this) {
                 $referenceArticle->setType(null);
             }
         }
@@ -234,7 +230,7 @@ class Type {
     }
 
     public function addArticle(Article $article): self {
-        if(!$this->articles->contains($article)) {
+        if (!$this->articles->contains($article)) {
             $this->articles[] = $article;
             $article->setType($this);
         }
@@ -243,10 +239,10 @@ class Type {
     }
 
     public function removeArticle(Article $article): self {
-        if($this->articles->contains($article)) {
+        if ($this->articles->contains($article)) {
             $this->articles->removeElement($article);
             // set the owning side to null (unless already changed)
-            if($article->getType() === $this) {
+            if ($article->getType() === $this) {
                 $article->setType(null);
             }
         }
@@ -262,7 +258,7 @@ class Type {
     }
 
     public function addReception(Reception $reception): self {
-        if(!$this->receptions->contains($reception)) {
+        if (!$this->receptions->contains($reception)) {
             $this->receptions[] = $reception;
             $reception->setType($this);
         }
@@ -271,10 +267,10 @@ class Type {
     }
 
     public function removeReception(Reception $reception): self {
-        if($this->receptions->contains($reception)) {
+        if ($this->receptions->contains($reception)) {
             $this->receptions->removeElement($reception);
             // set the owning side to null (unless already changed)
-            if($reception->getType() === $this) {
+            if ($reception->getType() === $this) {
                 $reception->setType(null);
             }
         }
@@ -290,7 +286,7 @@ class Type {
     }
 
     public function addCommentaire(Dispute $commentaire): self {
-        if(!$this->disputes->contains($commentaire)) {
+        if (!$this->disputes->contains($commentaire)) {
             $this->disputes[] = $commentaire;
             $commentaire->setType($this);
         }
@@ -299,10 +295,10 @@ class Type {
     }
 
     public function removeCommentaire(Dispute $commentaire): self {
-        if($this->disputes->contains($commentaire)) {
+        if ($this->disputes->contains($commentaire)) {
             $this->disputes->removeElement($commentaire);
             // set the owning side to null (unless already changed)
-            if($commentaire->getType() === $this) {
+            if ($commentaire->getType() === $this) {
                 $commentaire->setType(null);
             }
         }
@@ -311,7 +307,7 @@ class Type {
     }
 
     public function addDispute(Dispute $dispute): self {
-        if(!$this->disputes->contains($dispute)) {
+        if (!$this->disputes->contains($dispute)) {
             $this->disputes[] = $dispute;
             $dispute->setType($this);
         }
@@ -320,10 +316,10 @@ class Type {
     }
 
     public function removeDispute(Dispute $dispute): self {
-        if($this->disputes->contains($dispute)) {
+        if ($this->disputes->contains($dispute)) {
             $this->disputes->removeElement($dispute);
             // set the owning side to null (unless already changed)
-            if($dispute->getType() === $this) {
+            if ($dispute->getType() === $this) {
                 $dispute->setType(null);
             }
         }
@@ -339,7 +335,7 @@ class Type {
     }
 
     public function addDemandesLivraison(Demande $demandesLivraison): self {
-        if(!$this->demandesLivraison->contains($demandesLivraison)) {
+        if (!$this->demandesLivraison->contains($demandesLivraison)) {
             $this->demandesLivraison[] = $demandesLivraison;
             $demandesLivraison->setType($this);
         }
@@ -348,10 +344,10 @@ class Type {
     }
 
     public function removeDemandesLivraison(Demande $demandesLivraison): self {
-        if($this->demandesLivraison->contains($demandesLivraison)) {
+        if ($this->demandesLivraison->contains($demandesLivraison)) {
             $this->demandesLivraison->removeElement($demandesLivraison);
             // set the owning side to null (unless already changed)
-            if($demandesLivraison->getType() === $this) {
+            if ($demandesLivraison->getType() === $this) {
                 $demandesLivraison->setType(null);
             }
         }
@@ -367,7 +363,7 @@ class Type {
     }
 
     public function addCollecte(Collecte $collecte): self {
-        if(!$this->collectes->contains($collecte)) {
+        if (!$this->collectes->contains($collecte)) {
             $this->collectes[] = $collecte;
             $collecte->setType($this);
         }
@@ -376,10 +372,10 @@ class Type {
     }
 
     public function removeCollecte(Collecte $collecte): self {
-        if($this->collectes->contains($collecte)) {
+        if ($this->collectes->contains($collecte)) {
             $this->collectes->removeElement($collecte);
             // set the owning side to null (unless already changed)
-            if($collecte->getType() === $this) {
+            if ($collecte->getType() === $this) {
                 $collecte->setType(null);
             }
         }
@@ -398,7 +394,7 @@ class Type {
     }
 
     public function addChampsLibre(FreeField $champsLibre): self {
-        if(!$this->champsLibres->contains($champsLibre)) {
+        if (!$this->champsLibres->contains($champsLibre)) {
             $this->champsLibres[] = $champsLibre;
             $champsLibre->setType($this);
         }
@@ -407,10 +403,10 @@ class Type {
     }
 
     public function removeChampsLibre(FreeField $champsLibre): self {
-        if($this->champsLibres->contains($champsLibre)) {
+        if ($this->champsLibres->contains($champsLibre)) {
             $this->champsLibres->removeElement($champsLibre);
             // set the owning side to null (unless already changed)
-            if($champsLibre->getType() === $this) {
+            if ($champsLibre->getType() === $this) {
                 $champsLibre->setType(null);
             }
         }
@@ -426,7 +422,7 @@ class Type {
     }
 
     public function addDeliveryUser(Utilisateur $user): self {
-        if(!$this->deliveryUsers->contains($user)) {
+        if (!$this->deliveryUsers->contains($user)) {
             $this->deliveryUsers[] = $user;
             $user->addDeliveryType($this);
         }
@@ -435,7 +431,7 @@ class Type {
     }
 
     public function removeDeliveryUser(Utilisateur $user): self {
-        if($this->deliveryUsers->contains($user)) {
+        if ($this->deliveryUsers->contains($user)) {
             $this->deliveryUsers->removeElement($user);
             $user->removeDeliveryType($this);
         }
@@ -451,7 +447,7 @@ class Type {
     }
 
     public function addDispatchUser(Utilisateur $user): self {
-        if(!$this->dispatchUsers->contains($user)) {
+        if (!$this->dispatchUsers->contains($user)) {
             $this->dispatchUsers[] = $user;
             $user->addDispatchType($this);
         }
@@ -460,7 +456,7 @@ class Type {
     }
 
     public function removeDispatchUser(Utilisateur $user): self {
-        if($this->dispatchUsers->contains($user)) {
+        if ($this->dispatchUsers->contains($user)) {
             $this->dispatchUsers->removeElement($user);
             $user->removeDispatchType($this);
         }
@@ -476,7 +472,7 @@ class Type {
     }
 
     public function addHandlingUser(Utilisateur $user): self {
-        if(!$this->handlingUsers->contains($user)) {
+        if (!$this->handlingUsers->contains($user)) {
             $this->handlingUsers[] = $user;
             $user->addHandlingType($this);
         }
@@ -485,7 +481,7 @@ class Type {
     }
 
     public function removeHandlingUser(Utilisateur $user): self {
-        if($this->handlingUsers->contains($user)) {
+        if ($this->handlingUsers->contains($user)) {
             $this->handlingUsers->removeElement($user);
             $user->removeHandlingType($this);
         }
@@ -511,7 +507,7 @@ class Type {
     }
 
     public function addDispatch(Dispatch $dispatch): self {
-        if(!$this->dispatches->contains($dispatch)) {
+        if (!$this->dispatches->contains($dispatch)) {
             $this->dispatches[] = $dispatch;
             $dispatch->setType($this);
         }
@@ -520,10 +516,10 @@ class Type {
     }
 
     public function removeDispatch(Dispatch $dispatch): self {
-        if($this->dispatches->contains($dispatch)) {
+        if ($this->dispatches->contains($dispatch)) {
             $this->dispatches->removeElement($dispatch);
             // set the owning side to null (unless already changed)
-            if($dispatch->getType() === $this) {
+            if ($dispatch->getType() === $this) {
                 $dispatch->setType(null);
             }
         }
@@ -539,7 +535,7 @@ class Type {
     }
 
     public function addArrival(Arrivage $arrival): self {
-        if(!$this->arrivals->contains($arrival)) {
+        if (!$this->arrivals->contains($arrival)) {
             $this->arrivals[] = $arrival;
             $arrival->setType($this);
         }
@@ -548,10 +544,10 @@ class Type {
     }
 
     public function removeArrival(Arrivage $arrival): self {
-        if($this->arrivals->contains($arrival)) {
+        if ($this->arrivals->contains($arrival)) {
             $this->arrivals->removeElement($arrival);
             // set the owning side to null (unless already changed)
-            if($arrival->getType() === $this) {
+            if ($arrival->getType() === $this) {
                 $arrival->setType(null);
             }
         }
@@ -567,7 +563,7 @@ class Type {
     }
 
     public function addStatut(Statut $statut): self {
-        if(!$this->statuts->contains($statut)) {
+        if (!$this->statuts->contains($statut)) {
             $this->statuts[] = $statut;
             $statut->setType($this);
         }
@@ -576,10 +572,10 @@ class Type {
     }
 
     public function removeStatut(Statut $statut): self {
-        if($this->statuts->contains($statut)) {
+        if ($this->statuts->contains($statut)) {
             $this->statuts->removeElement($statut);
             // set the owning side to null (unless already changed)
-            if($statut->getType() === $this) {
+            if ($statut->getType() === $this) {
                 $statut->setType(null);
             }
         }
@@ -595,7 +591,7 @@ class Type {
     }
 
     public function addHandling(Handling $handling): self {
-        if(!$this->handlings->contains($handling)) {
+        if (!$this->handlings->contains($handling)) {
             $this->handlings[] = $handling;
             $handling->setType($this);
         }
@@ -604,10 +600,10 @@ class Type {
     }
 
     public function removeHandling(Handling $handling): self {
-        if($this->handlings->contains($handling)) {
+        if ($this->handlings->contains($handling)) {
             $this->handlings->removeElement($handling);
             // set the owning side to null (unless already changed)
-            if($handling->getType() === $this) {
+            if ($handling->getType() === $this) {
                 $handling->setType(null);
             }
         }
@@ -643,7 +639,7 @@ class Type {
         $this->averageRequestTime = $averageRequestTime;
 
         // set the owning side of the relation if necessary
-        if($averageRequestTime->getType() !== $this) {
+        if ($averageRequestTime->getType() !== $this) {
             $averageRequestTime->setType($this);
         }
 
@@ -691,7 +687,7 @@ class Type {
     }
 
     public function addRequestTemplate(RequestTemplate $requestTemplate): self {
-        if(!$this->requestTemplates->contains($requestTemplate)) {
+        if (!$this->requestTemplates->contains($requestTemplate)) {
             $this->requestTemplates[] = $requestTemplate;
             $requestTemplate->setType($this);
         }
@@ -700,9 +696,9 @@ class Type {
     }
 
     public function removeRequestTemplate(RequestTemplate $requestTemplate): self {
-        if($this->requestTemplates->removeElement($requestTemplate)) {
+        if ($this->requestTemplates->removeElement($requestTemplate)) {
             // set the owning side to null (unless already changed)
-            if($requestTemplate->getType() === $this) {
+            if ($requestTemplate->getType() === $this) {
                 $requestTemplate->setType(null);
             }
         }
@@ -718,7 +714,7 @@ class Type {
     }
 
     public function addRequestTypeTemplate(RequestTemplate $requestTypeTemplate): self {
-        if(!$this->requestTypeTemplates->contains($requestTypeTemplate)) {
+        if (!$this->requestTypeTemplates->contains($requestTypeTemplate)) {
             $this->requestTypeTemplates[] = $requestTypeTemplate;
             $requestTypeTemplate->setRequestType($this);
         }
@@ -727,9 +723,9 @@ class Type {
     }
 
     public function removeRequestTypeTemplate(RequestTemplate $requestTypeTemplate): self {
-        if($this->requestTypeTemplates->removeElement($requestTypeTemplate)) {
+        if ($this->requestTypeTemplates->removeElement($requestTypeTemplate)) {
             // set the owning side to null (unless already changed)
-            if($requestTypeTemplate->getRequestType() === $this) {
+            if ($requestTypeTemplate->getRequestType() === $this) {
                 $requestTypeTemplate->setRequestType(null);
             }
         }
@@ -745,7 +741,7 @@ class Type {
     }
 
     public function addSensor(Sensor $sensor): self {
-        if(!$this->sensors->contains($sensor)) {
+        if (!$this->sensors->contains($sensor)) {
             $this->sensors[] = $sensor;
             $sensor->setType($this);
         }
@@ -754,8 +750,8 @@ class Type {
     }
 
     public function removeSensor(Sensor $sensor): self {
-        if($this->sensors->removeElement($sensor)) {
-            if($sensor->getType() === $this) {
+        if ($this->sensors->removeElement($sensor)) {
+            if ($sensor->getType() === $this) {
                 $sensor->setType(null);
             }
         }
@@ -769,36 +765,6 @@ class Type {
 
     public function setColor(?string $color): self {
         $this->color = $color;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, TransportRequest>
-     */
-    public function getTransportRequests(): Collection
-    {
-        return $this->transportRequests;
-    }
-
-    public function addTransportRequest(TransportRequest $transportRequest): self
-    {
-        if (!$this->transportRequests->contains($transportRequest)) {
-            $this->transportRequests[] = $transportRequest;
-            $transportRequest->setType($this);
-        }
-
-        return $this;
-    }
-
-    public function removeTransportRequest(TransportRequest $transportRequest): self
-    {
-        if ($this->transportRequests->removeElement($transportRequest)) {
-            // set the owning side to null (unless already changed)
-            if ($transportRequest->getType() === $this) {
-                $transportRequest->setType(null);
-            }
-        }
 
         return $this;
     }

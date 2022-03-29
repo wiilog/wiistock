@@ -4,18 +4,19 @@ namespace App\Entity;
 
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\Traits\FreeFieldsManagerTrait;
+use App\Repository\HandlingRepository;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\HandlingRepository')]
+#[ORM\Entity(repositoryClass: HandlingRepository::class)]
 class Handling {
 
     use FreeFieldsManagerTrait;
 
     const CATEGORIE = 'service';
-    const PREFIX_NUMBER = 'S';
+    const NUMBER_PREFIX = 'S';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

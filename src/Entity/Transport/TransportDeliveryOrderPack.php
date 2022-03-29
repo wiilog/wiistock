@@ -9,18 +9,18 @@ use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TransportDeliveryOrderPackRepository::class)]
-class TransportDeliveryOrderPack
-{
+class TransportDeliveryOrderPack {
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: 'transportDeliveryOrderPacks')]
+    #[ORM\OneToOne(inversedBy: 'transportDeliveryOrderPack', targetEntity: Pack::class)]
     private ?Pack $pack = null;
 
-    #[ORM\ManyToOne(targetEntity: TransportOrder::class, inversedBy: 'transportDeliveryOrderPacks')]
-    private ?TransportOrder $transportOrder = null;
+    #[ORM\ManyToOne(targetEntity: TransportOrder::class, inversedBy: 'packs')]
+    private ?TransportOrder $order = null;
 
     #[ORM\Column(type: 'boolean')]
     private ?bool $rejected = null;
@@ -34,60 +34,58 @@ class TransportDeliveryOrderPack
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $returnedAt = null;
 
-    public function getId(): ?int
-    {
+    public function getId(): ?int {
         return $this->id;
     }
 
-    public function getPack(): ?Pack
-    {
+    public function getPack(): ?Pack {
         return $this->pack;
     }
 
     public function setPack(?Pack $pack): self {
-        if($this->pack && $this->pack !== $pack) {
-            $this->pack->removeTransportDeliveryOrderPack($this);
+        if($this->pack && $this->pack->getTransportDeliveryOrderPack() !== $this) {
+            $oldPack = $this->pack;
+            $this->pack = null;
+            $oldPack->setTransportDeliveryOrderPack(null);
         }
         $this->pack = $pack;
-        $pack?->addTransportDeliveryOrderPack($this);
-
-        return $this;
-    }
-
-    public function getTransportOrder(): ?TransportOrder
-    {
-        return $this->transportOrder;
-    }
-
-    public function setTransportOrder(?TransportOrder $transportOrder): self {
-        if($this->transportOrder && $this->transportOrder !== $transportOrder) {
-            $this->transportOrder->removeTransportDeliveryOrderPack($this);
+        if($this->pack && $this->pack->getTransportDeliveryOrderPack() !== $this) {
+            $this->pack->setTransportDeliveryOrderPack($this);
         }
-        $this->transportOrder = $transportOrder;
-        $transportOrder?->addTransportDeliveryOrderPack($this);
 
         return $this;
     }
 
-    public function getRejected(): ?bool
-    {
+    public function getOrder(): ?TransportOrder {
+        return $this->order;
+    }
+
+    public function setOrder(?TransportOrder $order): self {
+        if ($this->order && $this->order !== $order) {
+            $this->order->removePack($this);
+        }
+        $this->order = $order;
+        $order?->addPack($this);
+
+        return $this;
+    }
+
+    public function isRejected(): ?bool {
         return $this->rejected;
     }
 
-    public function setRejected(bool $rejected): self
-    {
+    public function setRejected(bool $rejected): self {
         $this->rejected = $rejected;
 
         return $this;
     }
 
-    public function getRejectedBy(): ?Utilisateur
-    {
+    public function getRejectedBy(): ?Utilisateur {
         return $this->rejectedBy;
     }
 
     public function setRejectedBy(?Utilisateur $rejectedBy): self {
-        if($this->rejectedBy && $this->rejectedBy !== $rejectedBy) {
+        if ($this->rejectedBy && $this->rejectedBy !== $rejectedBy) {
             $this->rejectedBy->removeTransportDeliveryOrderRejectedPack($this);
         }
         $this->rejectedBy = $rejectedBy;
@@ -96,27 +94,24 @@ class TransportDeliveryOrderPack
         return $this;
     }
 
-    public function getRejectReason(): ?string
-    {
+    public function getRejectReason(): ?string {
         return $this->rejectReason;
     }
 
-    public function setRejectReason(?string $rejectReason): self
-    {
+    public function setRejectReason(?string $rejectReason): self {
         $this->rejectReason = $rejectReason;
 
         return $this;
     }
 
-    public function getReturnedAt(): ?DateTime
-    {
+    public function getReturnedAt(): ?DateTime {
         return $this->returnedAt;
     }
 
-    public function setReturnedAt(?DateTime $returnedAt): self
-    {
+    public function setReturnedAt(?DateTime $returnedAt): self {
         $this->returnedAt = $returnedAt;
 
         return $this;
     }
+
 }

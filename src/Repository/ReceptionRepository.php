@@ -39,7 +39,7 @@ class ReceptionRepository extends EntityRepository
             ->orderBy('reception.date', 'DESC')
             ->addOrderBy('reception.number', 'DESC')
             ->addOrderBy('reception.id', 'DESC')
-            ->setParameter('value', Reception::PREFIX_NUMBER . $date . '%')
+            ->setParameter('value', Reception::NUMBER_PREFIX . $date . '%')
             ->getQuery()
             ->execute();
         return $result ? $result[0]['number'] : null;

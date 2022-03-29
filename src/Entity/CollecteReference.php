@@ -2,9 +2,10 @@
 
 namespace App\Entity;
 
+use App\Repository\CollecteReferenceRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\CollecteReferenceRepository')]
+#[ORM\Entity(repositoryClass: CollecteReferenceRepository::class)]
 class CollecteReference {
 
     #[ORM\Id]

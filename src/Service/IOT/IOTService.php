@@ -176,7 +176,7 @@ class IOTService
 
             $this->uniqueNumberService->createWithRetry(
                 $entityManager,
-                Demande::PREFIX_NUMBER,
+                Demande::NUMBER_PREFIX,
                 Demande::class,
                 UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT,
                 function (string $number) use ($request, $entityManager) {
@@ -207,7 +207,7 @@ class IOTService
 
             $this->uniqueNumberService->createWithRetry(
                 $entityManager,
-                Handling::PREFIX_NUMBER,
+                Handling::NUMBER_PREFIX,
                 Handling::class,
                 UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT,
                 function (string $number) use ($request, $entityManager) {

@@ -2,13 +2,14 @@
 
 namespace App\Entity;
 
+use App\Repository\ImportRepository;
 use DateTime;
 use DateTime as WiiDateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\ImportRepository')]
+#[ORM\Entity(repositoryClass: ImportRepository::class)]
 class Import {
 
     const STATUS_DRAFT = 'brouillon';

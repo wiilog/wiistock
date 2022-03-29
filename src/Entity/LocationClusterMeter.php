@@ -3,10 +3,11 @@
 
 namespace App\Entity;
 
+use App\Repository\LocationClusterMeterRepository;
 use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\LocationClusterMeterRepository')]
+#[ORM\Entity(repositoryClass: LocationClusterMeterRepository::class)]
 class LocationClusterMeter {
 
     /**

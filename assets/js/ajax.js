@@ -68,7 +68,10 @@ export default class AJAX {
 
         const config = {
             method: this.method,
-            body
+            body,
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
+            }
         };
 
         return [url, config];

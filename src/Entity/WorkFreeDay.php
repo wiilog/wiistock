@@ -3,10 +3,11 @@
 
 namespace App\Entity;
 
+use App\Repository\WorkFreeDayRepository;
 use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\WorkFreeDayRepository')]
+#[ORM\Entity(repositoryClass: WorkFreeDayRepository::class)]
 class WorkFreeDay {
 
     #[ORM\Id]

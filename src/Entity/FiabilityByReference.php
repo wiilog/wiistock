@@ -2,9 +2,10 @@
 
 namespace App\Entity;
 
+use App\Repository\FiabilityByReferenceRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\FiabilityByReferenceRepository')]
+#[ORM\Entity(repositoryClass: FiabilityByReferenceRepository::class)]
 class FiabilityByReference {
 
     #[ORM\Id]

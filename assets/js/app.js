@@ -25,6 +25,7 @@ import "./utils";
 
 import BrowserSupport from './support';
 import Wiistock from './general';
+import Modal from './modal';
 import WysiwygManager from './wysiwyg-manager';
 import {LOADING_CLASS, wrapLoadingOnActionButton} from './loading';
 
@@ -55,6 +56,7 @@ function importWiistock() {
     global.LOADING_CLASS = LOADING_CLASS;
 
     global.Wiistock = Wiistock;
+    global.Modal = Modal;
     global.wrapLoadingOnActionButton = wrapLoadingOnActionButton;
     global.WysiwygManager = WysiwygManager;
 

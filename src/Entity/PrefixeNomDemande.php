@@ -2,9 +2,10 @@
 
 namespace App\Entity;
 
+use App\Repository\PrefixeNomDemandeRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\PrefixeNomDemandeRepository')]
+#[ORM\Entity(repositoryClass: PrefixeNomDemandeRepository::class)]
 class PrefixeNomDemande {
 
     const TYPE_LIVRAISON = 'livraison';
