@@ -52,7 +52,9 @@ $(function() {
             event.stopPropagation();
 
             $input.prop(`checked`, false);
-            $(`.filters [name="type"] + label`).removeClass(`d-none`).addClass(`d-inline-flex`);
+            if ($input.attr('name') === 'category') {
+                $(`.filters [name="type"] + label`).removeClass(`d-none`).addClass(`d-inline-flex`);
+            }
         }
     });
 

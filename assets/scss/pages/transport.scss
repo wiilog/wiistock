@@ -62,6 +62,9 @@
     border-radius: 4px;
     padding: 10px 5px;
 
+    div,tbody,tr,td {
+        cursor: pointer !important;
+    }
     .transport-content {
         flex: 1 1 auto;
         margin-left: 15px;

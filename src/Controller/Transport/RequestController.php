@@ -237,9 +237,6 @@ class RequestController extends AbstractController {
     #[Route("/supprimer/{transportRequest}", name: "delete_transport_request", options: ['expose' => true], methods: "DELETE")]
     public function delete(TransportRequest $transportRequest, EntityManagerInterface $entityManager): Response {
 
-
-        $wasInATransportRound = $transportRequest->getTransportRound();
-
         $success = $transportRequest->canBeDeleted();
 
         if ($success) {
@@ -251,10 +248,12 @@ class RequestController extends AbstractController {
             $msg = 'Le statut de cette demande rends impossible sa suppression.';
         }
 
+
         return $this->json([
             'success' => $success,
             'msg' => $msg,
             "reload" => true,
+            'redirect' => $this->generateUrl('transport_request_index')
         ]);
     }
 

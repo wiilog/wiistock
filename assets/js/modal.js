@@ -16,6 +16,9 @@ export default class Modal {
                         if (result.success || !keepOnError) {
                             $modal.modal('hide');
                         }
+                        if (result.redirect) {
+                            window.location.href = result.redirect;
+                        }
                     })
             })
         });

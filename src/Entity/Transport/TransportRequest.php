@@ -11,6 +11,7 @@ use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: TransportRequestRepository::class)]
 #[ORM\InheritanceType('JOINED')]
@@ -280,17 +281,21 @@ abstract class TransportRequest {
     }
 
     public function canBeDeleted(): bool {
+
+        $wasInARound = Stream::from($this->orders)
+            ->some(fn(TransportOrder $order) => !$order->getTransportRoundLines()->isEmpty());
+
         $canDeleteIfDelivery =
             $this instanceof TransportDeliveryRequest
-            && !$this->getTransportRound()
+            && !$wasInARound
             && in_array($this->getStatus()?->getCode(), [TransportRequest::STATUS_TO_DELIVER, TransportRequest::STATUS_TO_PREPARE]);
 
         $canDeleteIfCollect =
             $this instanceof TransportCollectRequest
-            && !$this->getTransportRound()
+            && !$wasInARound
             && in_array($this->getStatus()?->getCode(), [TransportRequest::STATUS_TO_COLLECT, TransportRequest::STATUS_AWAITING_PLANNING]);
 
-        return $canDeleteIfCollect && $canDeleteIfDelivery;
+        return !$canDeleteIfCollect && !$canDeleteIfDelivery;
     }
 
 }

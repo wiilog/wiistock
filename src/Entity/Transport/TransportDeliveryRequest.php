@@ -20,9 +20,6 @@ class TransportDeliveryRequest extends TransportRequest {
     #[ORM\OneToOne(inversedBy: 'delivery', targetEntity: TransportCollectRequest::class, cascade: ['persist', 'remove'])]
     private ?TransportCollectRequest $collect = null;
 
-    #[ORM\ManyToOne(targetEntity: TransportRound::class, inversedBy: 'transportDeliveryRequests')]
-    private ?TransportRound $transportRound = null;
-
     public function __construct() {
         parent::__construct();
         $this->transportDeliveryRequestNatures = new ArrayCollection();
@@ -79,20 +76,6 @@ class TransportDeliveryRequest extends TransportRequest {
         if($this->collect && $this->collect->getDelivery() !== $this) {
             $this->collect->setDelivery($this);
         }
-
-        return $this;
-    }
-
-    public function getTransportRound(): ?TransportRound {
-        return $this->transportRound;
-    }
-
-    public function setTransportRound(?TransportRound $transportRound): self {
-        if ($this->transportRound && $this->transportRound !== $transportRound) {
-            $this->transportRound->removeTransportDeliveryRequest($this);
-        }
-        $this->transportRound = $transportRound;
-        $transportRound?->addTransportDeliveryRequest($this);
 
         return $this;
     }
