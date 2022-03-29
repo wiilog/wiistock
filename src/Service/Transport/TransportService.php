@@ -18,6 +18,7 @@ use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
 use App\Service\FreeFieldService;
+use App\Service\SettingsService;
 use App\Service\StatusHistoryService;
 use App\Service\UniqueNumberService;
 use DateTime;
@@ -30,6 +31,9 @@ class TransportService {
 
     #[Required]
     public UniqueNumberService $uniqueNumberService;
+
+    #[Required]
+    public SettingsService $settingsService;
 
     #[Required]
     public StatusHistoryService $statusHistoryService;
@@ -190,18 +194,34 @@ class TransportService {
                                       string $transportRequestType,
                                       DateTime $expectedAt): array {
         $statusRepository = $entityManager->getRepository(Statut::class);
-        $status = [];
         $now = new DateTime();
 
-        // TODO
+        $diff = $now->diff($expectedAt);
         if ($transportRequestType === TransportRequest::DISCR_DELIVERY) {
             $category = CategorieStatut::TRANSPORT_REQUEST_DELIVERY;
-            $code = TransportRequest::STATUS_TO_PREPARE;
-            $subcontracted = false;
+
+            $isWorked = $this->settingsService->isWorked($entityManager, $expectedAt);
+            if (!$isWorked || $now > $expectedAt) {
+                $code = TransportRequest::STATUS_SUBCONTRACTED;
+                $subcontracted = true;
+            }
+            else if ($diff->days == 0) {
+                $code = TransportRequest::STATUS_AWAITING_VALIDATION;
+                $subcontracted = false;
+            }
+            else if ($expectedAt >= $now) {
+                $code = TransportRequest::STATUS_TO_PREPARE;
+                $subcontracted = false;
+            }
+            else {
+                throw new \RuntimeException('Unavailable expected date');
+            }
         }
         else if ($transportRequestType === TransportRequest::DISCR_COLLECT) {
             $category = CategorieStatut::TRANSPORT_REQUEST_COLLECT;
-            $code = TransportRequest::STATUS_AWAITING_PLANNING;
+            $code = $diff->days == 0
+                ? TransportRequest::STATUS_AWAITING_VALIDATION
+                : TransportRequest::STATUS_AWAITING_PLANNING;
             $subcontracted = false;
         }
         else {

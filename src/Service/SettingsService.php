@@ -29,6 +29,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Entity\WorkFreeDay;
+use App\Helper\FormatHelper;
 use App\Service\IOT\AlertTemplateService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -978,6 +979,48 @@ class SettingsService {
                 : null;
         }
         return $defaultDeliveryLocations;
+    }
+
+    public function isWorked(EntityManagerInterface $entityManager, DateTime $toCheck): bool {
+        $daysWorkedRepository = $entityManager->getRepository(DaysWorked::class);
+        $workFreeDayRepository = $entityManager->getRepository(WorkFreeDay::class);
+
+        $dayIndex = $toCheck->format('N');
+        $day = strtolower(FormatHelper::ENGLISH_WEEK_DAYS[$dayIndex]);
+
+        $dayWorked = $daysWorkedRepository->findOneBy(['day' => $day]);
+        $workFreeDay = $workFreeDayRepository->findOneBy(['day' => $toCheck]);
+
+        $isWorked = false;
+
+        if (!$workFreeDay && $dayWorked->isWorked()) {
+            $hourToCheck = $toCheck->format('G');
+            $minutesToCheck = $toCheck->format('i');
+
+            foreach ($dayWorked->getTimesArray() as $range) {
+                [$begin, $end] = $range;
+                preg_match("/^(\d{2}):(\d{2})$/", $begin, $matches);
+                [, $beginHour, $beginMinutes] = $matches;
+
+                preg_match("/^(\d{2}):(\d{2})$/", $end, $matches);
+                [, $endHour, $endMinutes] = $matches;
+
+                $beginInPast = (
+                    ($hourToCheck > $beginHour
+                    || ($hourToCheck == $beginHour && $minutesToCheck >= $beginMinutes))
+                );
+                $endInFuture = (
+                    ($hourToCheck < $endHour
+                    || ($hourToCheck == $endHour && $minutesToCheck <= $endMinutes))
+                );
+                if ($beginInPast && $endInFuture) {
+                    $isWorked = true;
+                    break;
+                }
+            }
+        }
+
+        return $isWorked;
     }
 
 }

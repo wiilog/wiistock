@@ -39,6 +39,7 @@ abstract class TransportRequest {
     public const STATUS_CANCELLED = 'Annulée';
     public const STATUS_NOT_DELIVERED = 'Non livrée';
     public const STATUS_NOT_COLLECTED = 'Non collectée';
+    public const STATUS_SUBCONTRACTED = 'Sous-traitée';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
