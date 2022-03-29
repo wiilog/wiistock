@@ -18,6 +18,8 @@ abstract class TransportRequest {
 
     public const CATEGORY = 'transportRequest';
 
+    public const NUMBER_PREFIX = 'DTR';
+
     public const STATUS_AWAITING_VALIDATION = 'En attente validation';
     public const STATUS_AWAITING_PLANNING = 'En attente de plannification';
     public const STATUS_TO_PREPARE = 'À préparer';
@@ -29,6 +31,21 @@ abstract class TransportRequest {
     public const STATUS_CANCELLED = 'Annulée';
     public const STATUS_NOT_DELIVERED = 'Non livrée';
     public const STATUS_NOT_COLLECTED = 'Non collectée';
+
+    public const DELIVERY_STATUSES = [
+        TransportRequest::STATUS_TO_PREPARE,
+        TransportRequest::STATUS_TO_DELIVER,
+        TransportRequest::STATUS_ONGOING,
+        TransportRequest::STATUS_FINISHED,
+    ];
+
+    public const COLLECT_STATUSES = [
+        TransportRequest::STATUS_AWAITING_PLANNING,
+        TransportRequest::STATUS_TO_COLLECT,
+        TransportRequest::STATUS_ONGOING,
+        TransportRequest::STATUS_FINISHED,
+        TransportRequest::STATUS_DEPOSITED,
+    ];
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

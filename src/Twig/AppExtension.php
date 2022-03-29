@@ -67,6 +67,7 @@ class AppExtension extends AbstractExtension {
             new TwigFilter('ellipsis', [$this, 'ellipsis']),
             new TwigFilter("format_helper", [$this, "formatHelper"]),
             new TwigFilter("json_decode", "json_decode"),
+            new TwigFilter("flip", [$this, "flip"]),
         ];
     }
 
@@ -205,5 +206,9 @@ class AppExtension extends AbstractExtension {
     public function isInstanceOf($entity, string $class): bool {
         $reflexionClass = new ReflectionClass($class);
         return $reflexionClass->isInstance($entity);
+    }
+
+    public function flip(array $array): array {
+        return array_flip($array);
     }
 }

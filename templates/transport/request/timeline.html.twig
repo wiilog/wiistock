@@ -1,0 +1,45 @@
+{% set statuses = transportRequest is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest')
+    ? constant('App\\Entity\\Transport\\TransportRequest::DELIVERY_STATUSES')
+    : constant('App\\Entity\\Transport\\TransportRequest::COLLECT_STATUSES') %}
+{% set cancelledStatusName = constant('App\\Entity\\Transport\\TransportRequest::STATUS_CANCELLED') %}
+{% set requestStatusName = transportRequest.status.nom %}
+{% set lastStatus = null %}
+
+{% for history in statusesHistory %}
+    {% set lastStatus = history['status'] %}
+    {% set state = (requestStatusName == history['status'] and requestStatusName == cancelledStatusName)
+        ? 'cancelled'
+        : (history['status'] == cancelledStatusName
+            ? 'cancelled'
+            : (requestStatusName == history['status'] and loop.last
+                ? 'current'
+                : 'past'))
+    %}
+    <div class="history-line">
+        <div class="history-date">
+            <div class="title-left {{ state }}">{{ history['status'] }}</div>
+        </div>
+        <div class="history-status
+            {{ loop.last ? 'last-status-history'}}
+            {{ loop.last and statuses|last == lastStatus ? 'last' }}
+            {{ state }}">
+            <div class="title-right {{ state }} {{ not history['date'] ? 'bg-transparent' }}">{{ history['date'] }}</div>
+        </div>
+    </div>
+{% endfor %}
+
+{% set start = statuses|flip[lastStatus] %}
+{% for remainingStatus in statuses|slice(start + 1) %}
+    {% set finishedStatusName = constant('App\\Entity\\Transport\\TransportRequest::STATUS_FINISHED') %}
+    {% set state = 'future' %}
+    <div class="history-line">
+        <div class="history-date">
+            <div class="title-left {{ state }}">{{ remainingStatus }}</div>
+        </div>
+        <div class="history-status {{ loop.last ? 'last' }} {{ state }}">
+            <div class="title-right {{ round and remainingStatus == finishedStatusName ? state : 'bg-transparent' }}">
+                {{ round and remainingStatus == finishedStatusName ? 'Estimée au ' ~ round.estimatedAt|format_helper('date') }}
+            </div>
+        </div>
+    </div>
+{% endfor %}
