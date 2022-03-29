@@ -112,7 +112,8 @@
     <div class="col-md-6 col-12">
         {% set expectedAtValue = request.expectedAt ? request.expectedAt|date('Y-m-d\\TH:i') %}
         {{ form.input('expectedAt', 'Date et heure de livraison', true, expectedAtValue, {
-            type: 'datetime-local'
+            type: 'datetime-local',
+            min: 'now' | date('Y-m-d\\TH:i'),
         }) }}
     </div>
     <div class="col-md-6 col-12">
@@ -133,7 +134,8 @@
     <div class="col-md-6 col-12">
         {% set expectedAtValue = request.expectedAt ? request.expectedAt|date('Y-m-d') %}
         {{ form.input('expectedAt', 'Date de collecte', true, expectedAtValue, {
-            type: 'date'
+            type: 'date',
+            min: 'now' | date('Y-m-d'),
         }) }}
     </div>
 </div>

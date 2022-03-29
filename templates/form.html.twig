@@ -10,6 +10,8 @@
     {{ (options.error ?? 'local') == 'global' ? 'data-global-error' }}
     {{ options.readonly ?? false ? 'readonly' }}
     {{ options.disabled ?? false ? 'disabled' }}
+    {% if options.min is defined and options.min is not null %}min="{{ options.min }}"{% endif %}
+    {% if options.max is defined and options.max is not null %}max="{{ options.max }}"{% endif %}
 
     {{ _self.custom_attributes(options.attributes ?? []) }}
 {% endmacro %}
@@ -259,9 +261,7 @@
                    {{ required and not disabled ? 'required' }}
                    {{ disabled }}
                    {{ _self.common_attributes(name, options) }}
-                   {{ _self.multiple_key(options) }}
-                   {% if options.min is defined and options.min is not null %}min="{{ options.min }}"{% endif %}
-                   {% if options.max is defined and options.max is not null %}max="{{ options.max }}"{% endif %}>
+                   {{ _self.multiple_key(options) }}>
                {% if options.buttons ?? true %}
                    <button class="increase" {{ disabled }}></button>
                {% endif %}
