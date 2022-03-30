@@ -131,7 +131,6 @@ class LivraisonController extends AbstractController
                         "reference" => $article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
                         "label" => $article->getLabel() ?: '',
                         "location" => FormatHelper::location($article->getEmplacement()),
-                        "targetLocationPicking" => FormatHelper::location($articleLine->getTargetLocationPicking()),
                         "quantity" => $articleLine->getPickedQuantity(),
                         "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
                             'id' => $article->getId(),
@@ -148,7 +147,6 @@ class LivraisonController extends AbstractController
                         "reference" => $reference->getReference(),
                         "label" => $reference->getLibelle(),
                         "location" =>  FormatHelper::location($reference->getEmplacement()),
-                        "targetLocationPicking" => FormatHelper::location($referenceLine->getTargetLocationPicking()),
                         "quantity" => $referenceLine->getPickedQuantity(),
                         "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
                             'refArticleId' => $reference->getId(),
@@ -180,7 +178,6 @@ class LivraisonController extends AbstractController
         return $this->render('livraison/show.html.twig', [
             'demande' => $demande,
             'livraison' => $livraison,
-            'showTargetLocationPicking' => $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION),
             'preparation' => $livraison->getPreparation(),
             'finished' => $livraison->isCompleted(),
             'headerConfig' => [

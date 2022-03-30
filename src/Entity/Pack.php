@@ -53,13 +53,13 @@ class Pack implements PairedEntity {
 
     /**
      * @ORM\OneToOne(targetEntity=TrackingMovement::class, inversedBy="linkedPackLastDrop")
-     * @ORM\JoinColumn(nullable=true)
+     * @ORM\JoinColumn(nullable=true, onDelete="SET NULL")
      */
     private ?TrackingMovement $lastDrop = null;
 
     /**
      * @ORM\OneToOne(targetEntity=TrackingMovement::class, inversedBy="linkedPackLastTracking")
-     * @ORM\JoinColumn(nullable=true)
+     * @ORM\JoinColumn(nullable=true, onDelete="SET NULL")
      */
     private ?TrackingMovement $lastTracking = null;
 

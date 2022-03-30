@@ -325,7 +325,7 @@ class TransferOrderController extends AbstractController {
                 "origine",
                 "destination",
                 "date de création",
-                "date de transfert",
+                "date de traitement",
                 "commentaire",
                 "référence",
                 "code barre"

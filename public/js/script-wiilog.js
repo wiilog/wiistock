@@ -468,7 +468,7 @@ function saveFilters(page, tableSelector, callback) {
     if ($filterDateExpectedPicker) {
         $filterDateExpectedPicker.format('DD/MM/YYYY');
     }
-    console.log(params);
+
     $.post(path, JSON.stringify(params), function (response) {
         if (response) {
             if (callback) {
