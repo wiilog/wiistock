@@ -2,7 +2,7 @@
 {% set order = order ?? ((request.orders | last) ?: null) %}
 {% set transportRound = order ? (order.transportRoundLines | last) ?: null : null %}
 
-<div class="transport-request-container col-12 col-xl-6 p-1">
+<div class="transport-request-container col-12 col-xxl-6 p-1">
     <a href="{{ path('transport_request_show', {transportRequest: request.id}) }}" class="transport-request-card">
         <div class="dropdown dropright">
             <div class="d-flex" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">

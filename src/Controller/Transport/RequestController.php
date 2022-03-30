@@ -131,12 +131,10 @@ class RequestController extends AbstractController {
         $transportRepository = $manager->getRepository(TransportRequest::class);
 
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_TRANSPORT_REQUESTS, $this->getUser());
-
         $queryResult = $transportRepository->findByParamAndFilters($request->request, $filters);
 
         $transportRequests = [];
         foreach ($queryResult["data"] as $transportRequest) {
-            dump($transportRequest);
             $transportRequests[$transportRequest->getExpectedAt()->format("dmY")][] = $transportRequest;
         }
 
