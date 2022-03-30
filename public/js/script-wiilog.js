@@ -344,10 +344,11 @@ function clearModal(modal) {
     })
 
     let $inputs = $modal.find('.modal-body').find(".data,.data-array");
+    console.log($inputs);
     // on vide tous les inputs (sauf les disabled et les input hidden)
     $inputs.each(function () {
         const $input = $(this);
-        if (!$input.closest('.wii-switch')) {
+        if (!$input.closest('.wii-switch').exists()) {
             if ($input.attr('disabled') !== 'disabled' && $input.attr('type') !== 'hidden' && !$input.hasClass('no-clear')) {
                 if ($input.hasClass('needs-default')) {
                     $input.val($input.data('init'));

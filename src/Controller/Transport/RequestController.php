@@ -11,9 +11,11 @@ use App\Entity\Transport\TemperatureRange;
 use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\Transport\TransportRequest;
 use App\Entity\Type;
+use App\Entity\Utilisateur;
 use App\Service\Transport\TransportService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -83,7 +85,17 @@ class RequestController extends AbstractController {
                         EntityManagerInterface $entityManager,
                         TransportService $transportService): JsonResponse {
 
-        $transportService->persistTransportRequest($entityManager, $this->getUser(), $request);
+        /** @var Utilisateur $user */
+        $user = $this->getUser();
+        $data = $request->request;
+
+        $deliveryData = $data->has('delivery') ? json_decode($data->get('delivery'), true) : null;
+        if (is_array($deliveryData) && !empty($deliveryData)) {
+            $deliveryData['requestType'] = TransportRequest::DISCR_DELIVERY;
+            $transportDeliveryRequest = $transportService->persistTransportRequest($entityManager, $user, new InputBag($deliveryData));
+        }
+
+        $transportService->persistTransportRequest($entityManager, $user, $data, $transportDeliveryRequest ?? null);
 
         $entityManager->flush();
 

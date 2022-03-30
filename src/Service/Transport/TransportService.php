@@ -4,6 +4,7 @@ namespace App\Service\Transport;
 
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\IOT\DeliveryRequestTemplate;
 use App\Entity\Nature;
 use App\Entity\Statut;
 use App\Entity\Transport\TemperatureRange;
@@ -24,6 +25,7 @@ use App\Service\UniqueNumberService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use JetBrains\PhpStorm\ArrayShape;
+use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\Service\Attribute\Required;
 
@@ -46,29 +48,35 @@ class TransportService {
 
     public function persistTransportRequest(EntityManagerInterface $entityManager,
                                             Utilisateur $user,
-                                            Request $request): TransportRequest {
+                                            InputBag $data,
+                                            ?TransportDeliveryRequest $mainDelivery = null): TransportRequest {
 
         $typeRepository = $entityManager->getRepository(Type::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
         $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
 
-        $transportRequestType = $request->request->get('requestType');
-        if (!in_array($transportRequestType, [TransportRequest::DISCR_COLLECT, TransportRequest::DISCR_DELIVERY])) {
+        $transportRequestType = $data->get('requestType');
+        if (($mainDelivery && $transportRequestType !== TransportRequest::DISCR_COLLECT)
+            || !in_array($transportRequestType, [TransportRequest::DISCR_COLLECT, TransportRequest::DISCR_DELIVERY])) {
             throw new FormException("Veuillez sélectionner un type de demande de transport");
         }
 
-        $typeStr = $request->request->get('type');
-        $expectedAtStr = $request->request->get('expectedAt');
+        $typeStr = $data->get('type');
+        $expectedAtStr = $data->get('expectedAt');
 
         if ($transportRequestType === TransportRequest::DISCR_DELIVERY) {
             $categoryType = CategoryType::DELIVERY_TRANSPORT_REQUEST;
             $transportRequest = new TransportDeliveryRequest();
             $transportRequest
-                ->setEmergency($request->request->get('emergency') ?: null);
+                ->setEmergency($data->get('emergency') ?: null);
         }
         else if ($transportRequestType === TransportRequest::DISCR_COLLECT) {
             $categoryType = CategoryType::COLLECT_TRANSPORT_REQUEST;
             $transportRequest = new TransportCollectRequest();
+
+            if ($mainDelivery) {
+                $transportRequest->setTransportDeliveryRequest($mainDelivery);
+            }
         }
         else {
             throw new \RuntimeException('Unknown request type');
@@ -86,10 +94,16 @@ class TransportService {
             UniqueNumberService::DATE_COUNTER_FORMAT_TRANSPORT_REQUEST
         );
 
-        $expectedAt = FormatHelper::parseDatetime($expectedAtStr);
+        if ($mainDelivery) {
+            $expectedAt = clone $mainDelivery->getExpectedAt();
+            $expectedAt->setTime(0, 0);
+        }
+        else {
+            $expectedAt = FormatHelper::parseDatetime($expectedAtStr);
 
-        if (!$expectedAt) {
-            throw new FormException("Le format de date est invalide");
+            if (!$expectedAt) {
+                throw new FormException("Le format de date est invalide");
+            }
         }
 
         ['status' => $status, 'subcontracted' => $subcontracted] = $this->getStatusRequest($entityManager, $transportRequestType, $expectedAt);
@@ -105,22 +119,27 @@ class TransportService {
             ->setCreatedAt(new DateTime())
             ->setCreatedBy($user);
 
-        $this->freeFieldService->manageFreeFields($transportRequest, $request->request->all(), $entityManager);
+        $this->freeFieldService->manageFreeFields($transportRequest, $data->all(), $entityManager);
 
-        $contact = $transportRequest->getContact();
-        $contact
-            ->setName($request->request->get('contactName'))
-            ->setFileNumber($request->request->get('contactFileNumber'))
-            ->setContact($request->request->get('contactContact'))
-            ->setAddress($request->request->get('contactAddress'))
-            ->setPersonToContact($request->request->get('contactPersonToContact'))
-            ->setObservation($request->request->get('contactObservation'));
+        if ($mainDelivery) {
+            $transportRequest->setContact($mainDelivery->getContact());
+        }
+        else {
+            $contact = $transportRequest->getContact();
+            $contact
+                ->setName($data->get('contactName'))
+                ->setFileNumber($data->get('contactFileNumber'))
+                ->setContact($data->get('contactContact'))
+                ->setAddress($data->get('contactAddress'))
+                ->setPersonToContact($data->get('contactPersonToContact'))
+                ->setObservation($data->get('contactObservation'));
+        }
 
         if ($status->getCode() !== TransportRequest::STATUS_AWAITING_VALIDATION) {
             $this->persistTransportOrder($entityManager, $transportRequest, $subcontracted);
         }
 
-        $lines = json_decode($request->request->get('lines', '[]'), true) ?: [];
+        $lines = json_decode($data->get('lines', '[]'), true) ?: [];
         foreach ($lines as $line) {
             $selected = $line['selected'] ?? false;
             $natureId = $line['natureId'] ?? null;

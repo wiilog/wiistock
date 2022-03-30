@@ -76,7 +76,7 @@ abstract class TransportRequest {
     #[ORM\OneToMany(mappedBy: 'transportRequest', targetEntity: StatusHistory::class)]
     private Collection $statusHistories;
 
-    #[ORM\OneToOne(targetEntity: TransportRequestContact::class, cascade: ['persist', 'remove'])]
+    #[ORM\ManyToOne(targetEntity: TransportRequestContact::class, cascade: ['persist', 'remove'])]
     private ?TransportRequestContact $contact = null;
 
     #[Pure] public function __construct() {
