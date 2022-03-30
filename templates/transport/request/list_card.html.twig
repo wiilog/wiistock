@@ -21,13 +21,13 @@
                     </div>
                 {% elseif request.canBeDeleted %}
                     <div class="dropdown-item pointer"
-                         onclick="Modal.registerDeletionConfirmationModal(
-                             $('#modalDeleteTransportRequest'),
-                             'delete_transport_request',
-                             'Voulez-vous réellement supprimer cette demande de transport ?',
-                             'Supprimer la demande de transport',
-                             {'transportRequest' : {{ request.id }}}
-                         )">
+                         onclick="Modal.confirm({
+                             method: 'DELETE',
+                             route: 'delete_transport_request',
+                             message: 'Voulez-vous réellement supprimer cette demande de transport ?',
+                             title: 'Supprimer la demande de transport',
+                             params: {transportRequest: {{ request.id }}}
+                         })">
                         <i class="fas fa-trash mr-2"></i> Supprimer
                     </div>
                 {% endif %}
@@ -55,9 +55,11 @@
                     </div>
                 </td>
                 <td class="transport-details-container">
-                    <span class="transport-badge {{ constant('App\\Entity\\Transport\\TransportRequest::STATUS_COLOR')[entity.status.nom] }}">
-                        {{ entity.status.nom }}
-                    </span>
+                    {% if request.status %}
+                        <span class="transport-badge {{ constant('App\\Entity\\Transport\\TransportRequest::STATUS_COLOR')[entity.status.nom] }}">
+                            {{ entity.status.nom }}
+                        </span>
+                    {% endif %}
                 </td>
                 <td class="transport-creation-contact">
                     <span class="transport-badge type">
@@ -71,7 +73,9 @@
                 </td>
             </tr>
             <tr>
-                <td class="transport-category-container"><div>{{ prefix }}{{ request.number }}</div></td>
+                <td class="transport-category-container">
+                    <div>{{ prefix }}{{ request.number }}</div>
+                </td>
                 <td class="transport-details-container">
                     {% if request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
                         À faire à : <span class="text-nowrap">

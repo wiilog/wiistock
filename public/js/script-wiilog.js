@@ -345,8 +345,8 @@ function clearModal(modal) {
         }
     })
 
-    let $inputs = $modal.find('.modal-body').find(".data,.data-array");
-    console.log($inputs);
+    let $inputs = $modal.find('.modal-body').find(".data:not([type=radio]),.data-array:not([type=radio])");
+
     // on vide tous les inputs (sauf les disabled et les input hidden)
     $inputs.each(function () {
         const $input = $(this);

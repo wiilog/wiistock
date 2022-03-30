@@ -56,6 +56,7 @@ abstract class TransportRequest {
         self::STATUS_CANCELLED => "finished",
         self::STATUS_NOT_DELIVERED => "cancelled",
         self::STATUS_NOT_COLLECTED => "cancelled",
+        self::STATUS_SUBCONTRACTED => "subcontracted",
     ];
 
     public const DELIVERY_STATUSES = [

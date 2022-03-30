@@ -38,7 +38,7 @@ $(function() {
             onCloseTransportRequestForm(form);
         })
         .onSubmit((data) => {
-            submitTransportRequest(form, data);
+            submitTransportRequest(form, data, table);
         });
 
     initializeNewForm($modalNewTransportRequest);
@@ -47,8 +47,9 @@ $(function() {
 /**
  * @param {Form} form
  * @param {FormData} data
+ * @param data
  */
-function submitTransportRequest(form, data) {
+function submitTransportRequest(form, data, table) {
     const $modal = form.element;
     const $submit = $modal.find('[type=submit]');
     const collectLinked = Boolean(Number(data.get('collectLinked')));
@@ -57,25 +58,29 @@ function submitTransportRequest(form, data) {
         saveDeliveryForLinkedCollect($modal, data);
     }
     else {
-        $submit.pushLoader('white');
-        AJAX.route(`POST`, 'transport_request_new')
-            .json(data)
-            .then(({success, message}) => {
-                $submit.popLoader();
-                Flash.add(
-                    success ? 'success' : 'danger',
-                    message || `Une erreur s'est produite`
-                );
-            });
+        wrapLoadingOnActionButton($submit, () => {
+            return AJAX.route(`POST`, 'transport_request_new')
+                .json(data)
+                .then(({success, message}) => {
+                    Flash.add(
+                        success ? 'success' : 'danger',
+                        message || `Une erreur s'est produite`
+                    );
+                    $modal.modal('hide');
+                    table.ajax.reload();
+                });
+        });
     }
 }
 
 function initializeNewForm($form) {
     $form.find('[name=requestType]').on('change', function () {
-        onRequestTypeChange($(this));
+        const $requestType = $(this);
+        onRequestTypeChange($requestType.closest('.modal'), $requestType.val());
     });
     $form.find('[name=type]').on('change', function () {
-        onTypeChange($(this));
+        const $type = $(this);
+        onTypeChange($type.closest('.modal'), $type.val());
     });
 }
 
@@ -87,9 +92,16 @@ function onCloseTransportRequestForm(form) {
     $requestType
         .prop('checked', false)
         .prop('disabled', false);
+    const $type = $modal.find('[name=type]');
+    $type
+        .prop('checked', false)
+        .prop('disabled', false);
 
     $modal.find('.contact-container .data, [name=expectedAt]')
         .prop('disabled', false);
+
+    onRequestTypeChange($modal, null);
+    onTypeChange($modal, null);
 }
 
 function saveDeliveryForLinkedCollect($modal, data) {
@@ -103,7 +115,8 @@ function saveDeliveryForLinkedCollect($modal, data) {
         .prop('checked', false)
         .prop('disabled', true);
     $requestType
-        .filter('[value=collect]').prop('checked', true)
+        .filter('[value=collect]')
+        .prop('checked', true)
         .trigger('change');
 
     $modal

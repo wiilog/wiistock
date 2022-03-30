@@ -136,8 +136,10 @@ class RequestController extends AbstractController {
 
         $transportRequests = [];
         foreach ($queryResult["data"] as $transportRequest) {
-            dump($transportRequest);
-            $transportRequests[$transportRequest->getExpectedAt()->format("dmY")][] = $transportRequest;
+            $expectedAtStr = $transportRequest->getExpectedAt()?->format("dmY");
+            if ($expectedAtStr) {
+                $transportRequests[$expectedAtStr][] = $transportRequest;
+            }
         }
 
         $rows = [];
@@ -241,10 +243,12 @@ class RequestController extends AbstractController {
         return $this->json([
             "success" => true,
             "template" => $this->renderView('transport/request/timeline.html.twig', [
-                "statusesHistory" => Stream::from($transportRequest->getStatusHistory())->map(fn(StatusHistory $statusHistory) => [
-                    "status" => FormatHelper::status($statusHistory->getStatus()),
-                    "date" => FormatHelper::longDate($statusHistory->getDate(), true, true)
-                ])->toArray(),
+                "statusesHistory" => Stream::from($transportRequest->getStatusHistory())
+                    ->map(fn(StatusHistory $statusHistory) => [
+                        "status" => FormatHelper::status($statusHistory->getStatus()),
+                        "date" => FormatHelper::longDate($statusHistory->getDate(), true, true)
+                    ])
+                    ->toArray(),
                 "transportRequest" => $transportRequest,
                 "round" => $round
             ]),
