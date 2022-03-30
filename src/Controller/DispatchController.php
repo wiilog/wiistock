@@ -1086,7 +1086,7 @@ class DispatchController extends AbstractController {
      * @param Dispatch $dispatch
      * @return JsonResponse
      */
-    public function apiDeliveryNote(Request $request,
+    public function apiDeliveryNote(Request $request, EntityManagerInterface $manager,
                                     TranslatorInterface $translator,
                                     Dispatch $dispatch): JsonResponse {
         /** @var Utilisateur $loggedUser */
@@ -1136,7 +1136,7 @@ class DispatchController extends AbstractController {
             []
         );
 
-        $fieldsParamRepository = $this->getDoctrine()->getRepository(FieldsParam::class);
+        $fieldsParamRepository = $manager->getRepository(FieldsParam::class);
 
         $html = $this->renderView('dispatch/modalPrintDeliveryNoteContent.html.twig', array_merge($deliveryNoteData, [
             'dispatchEmergencyValues' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY),
@@ -1478,8 +1478,7 @@ class DispatchController extends AbstractController {
     /**
      * @Route("/bon-de-surconsommation/{dispatch}", name="generate_overconsumption_bill", options={"expose"=true}, methods="POST")
      */
-    public function updateOverconsumption(DispatchService $dispatchService, UserService $userService, Dispatch $dispatch): Response {
-        $entityManager = $this->getDoctrine()->getManager();
+    public function updateOverconsumption(EntityManagerInterface $entityManager, DispatchService $dispatchService, UserService $userService, Dispatch $dispatch): Response {
         $settingRepository = $entityManager->getRepository(Setting::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
 

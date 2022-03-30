@@ -134,9 +134,8 @@ class FiltreRefController extends AbstractController
             $filter = $filtreRefRepository->find($filterId);
 
             if ($filter) {
-                $em = $this->getDoctrine()->getManager();
-                $em->remove($filter);
-                $em->flush();
+                $entityManager->remove($filter);
+                $entityManager->flush();
                 $success = true;
                 $message = null;
             }

@@ -382,7 +382,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         return null;
     }
 
-    public function getRoles() {
+    public function getRoles(): array {
         return $this->roles;
     }
 
@@ -394,7 +394,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     public function eraseCredentials() {
     }
 
-    public function isEqualTo(UserInterface $user) {
+    public function isEqualTo(UserInterface $user): bool {
         if(!$user instanceof Utilisateur) {
             return false;
         }
@@ -1912,6 +1912,10 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         $this->TransportRoundStartingHour = $TransportRoundStartingHour;
 
         return $this;
+    }
+
+    public function getUserIdentifier(): string {
+        return $this->getEmail();
     }
 
 }

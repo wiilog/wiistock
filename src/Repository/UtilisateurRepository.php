@@ -9,6 +9,7 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bridge\Doctrine\Security\User\UserLoaderInterface;
 use Symfony\Component\HttpFoundation\InputBag;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
  * @method Utilisateur|null find($id, $lockMode = null, $lockVersion = null)
@@ -274,6 +275,10 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
         ))
             ->getQuery()
             ->getResult();
+    }
+
+    public function loadUserByIdentifier(string $identifier): ?UserInterface {
+        return $this->findOneBy(["email" => $identifier]);
     }
 
 }

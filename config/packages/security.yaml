@@ -1,60 +1,58 @@
 security:
-    # https://symfony.com/doc/current/security.html#where-do-users-come-from-user-providers
-    access_denied_url:    ~ # Example: /foo/error403
+    access_denied_url: ~
+    enable_authenticator_manager: true
 
-    encoders:
-        App\Entity\Utilisateur: bcrypt
-        Symfony\Component\Security\Core\User\User:
-            algorithm: bcrypt
-            cost: 12
+    password_hashers:
+        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
 
     providers:
-        my_in_memory_provider:
-            memory:
-                users:
-                    admin_api:
-                        password:           $2y$12$qcxKW2DmvSqeKHdR4RPnvOWNu19JndkoLQCorzoilu7.bevQ0tPVm
-                        roles:              ROLE_API
-        our_db_provider:
+        db_provider:
             entity:
                 class: App\Entity\Utilisateur
-        in_memory: { memory: ~ }
+                property: email
 
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
+
         nomade_apk:
             pattern: ^/telecharger/nomade.apk$
             security: false
+
         api_logos:
             pattern: ^/api/logos$
             security: false
+
         main:
-            provider: our_db_provider
+            lazy: true
+            provider: db_provider
             pattern: ^/
+
             form_login:
                 login_path: login
                 use_forward: false
                 check_path: login
-                provider: our_db_provider
+                provider: db_provider
                 default_target_path: app_index
                 always_use_default_target_path: false
-                csrf_token_generator: security.csrf.token_manager
+                enable_csrf: true
                 use_referer: true
+
             remember_me:
                 secret: '%kernel.secret%'
                 lifetime: 604800 # 1 semaine
+
+            entry_point: 'form_login'
             logout: true
-            anonymous: true
             switch_user: true #role to use: a:2:{i:0;s:9:"ROLE_USER";i:1;s:22:"ROLE_ALLOWED_TO_SWITCH";}
 
-        # default:
-        #     anonymous: ~
-        #     logout: ~
-        #     guard:
-        #         authenticators:
-        #             - App\Security\TokenAuthenticator
+            # default:
+            #     anonymous: ~
+            #     logout: ~
+            #     guard:
+            #         authenticators:
+            #             - App\Security\TokenAuthenticator
 
             # activate different ways to authenticate
             # https://symfony.com/doc/current/security.html#firewalls-authentication
@@ -65,28 +63,16 @@ security:
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control: # /!\ il faut bien faire attention à l'ordre dans lequel on écrit les règles d'accès /!\
-        # - { path: ^/login, role: IS_AUTHENTICATED_ANONYMOUSLY, requires_channel: https}
-        # - { path: ^/register, role: IS_AUTHENTICATED_ANONYMOUSLY, requires_channel: https}
-        # - { path: ^/check_last_login, role: IS_AUTHENTICATED_ANONYMOUSLY, requires_channel: https}
-        # - { path: ^/tests, roles: ROLE_API, requires_channel: https}
-        # - { path: ^/stock/admin, roles: ROLE_STOCK_ADMIN, requires_channel: https}
-        # - { path: ^/stock, roles: ROLE_STOCK, requires_channel: https}
-        # - { path: ^/parc/admin, roles: ROLE_PARC_ADMIN, requires_channel: https}
-        # - { path: ^/parc, roles: ROLE_PARC, requires_channel: https}
-        # - { path: ^/admin, roles: ROLE_ADMIN, requires_channel: https}
-        # - { path: ^/super/admin, roles: ROLE_SUPER_ADMIN, requires_channel: https}
-        # - { path: ^/, role: IS_AUTHENTICATED_REMEMBERED, requires_channel: https}
-        # - { path: ^/tests, roles: ROLE_API }
-        - { path: ^/api, role: IS_AUTHENTICATED_ANONYMOUSLY }
-        - { path: ^/login, role: IS_AUTHENTICATED_ANONYMOUSLY }
-        - { path: ^/register, role: IS_AUTHENTICATED_ANONYMOUSLY }
-        - { path: ^/oubli, role: IS_AUTHENTICATED_ANONYMOUSLY }
-        - { path: ^/change-password, role: IS_AUTHENTICATED_ANONYMOUSLY }
-        - { path: ^/change-password-in-bdd, role: IS_AUTHENTICATED_ANONYMOUSLY }
-        - { path: ^/verifier-email, role: IS_AUTHENTICATED_ANONYMOUSLY }
-        - { path: ^/check_last_login, role: IS_AUTHENTICATED_ANONYMOUSLY }
-        - { path: ^/dashboard/sync, role: IS_AUTHENTICATED_ANONYMOUSLY }
-        - { path: ^/dashboard/statistics, role: IS_AUTHENTICATED_ANONYMOUSLY }
-        - { path: ^/dashboard/externe, role: IS_AUTHENTICATED_ANONYMOUSLY }
-        - { path: ^/verification-connexion, role: IS_AUTHENTICATED_ANONYMOUSLY }
-        - { path: ^/, role: IS_AUTHENTICATED_REMEMBERED }
+        - { path: ^/api, role: PUBLIC_ACCESS }
+        - { path: ^/login, role: PUBLIC_ACCESS }
+        - { path: ^/register, role: PUBLIC_ACCESS }
+        - { path: ^/oubli, role: PUBLIC_ACCESS }
+        - { path: ^/change-password, role: PUBLIC_ACCESS }
+        - { path: ^/change-password-in-bdd, role: PUBLIC_ACCESS }
+        - { path: ^/verifier-email, role: PUBLIC_ACCESS }
+        - { path: ^/check_last_login, role: PUBLIC_ACCESS }
+        - { path: ^/dashboard/sync, role: PUBLIC_ACCESS }
+        - { path: ^/dashboard/statistics, role: PUBLIC_ACCESS }
+        - { path: ^/dashboard/externe, role: PUBLIC_ACCESS }
+        - { path: ^/verification-connexion, role: PUBLIC_ACCESS }
+        - { path: ^/, role: IS_AUTHENTICATED_FULLY }

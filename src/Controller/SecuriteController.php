@@ -6,12 +6,12 @@ use App\Entity\Role;
 use App\Service\MailerService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Form\UtilisateurType;
 use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use App\Service\PasswordService;
 use Symfony\Component\HttpFoundation\Response;
@@ -23,9 +23,6 @@ use DateTime;
 
 class SecuriteController extends AbstractController {
 
-    /**
-     * @var UserPasswordEncoderInterface
-     */
     private $passwordService;
 
     /**
@@ -50,7 +47,7 @@ class SecuriteController extends AbstractController {
 
     public function __construct(PasswordService $passwordService,
                                 UserService $userService,
-                                UserPasswordEncoderInterface $passwordEncoder,
+                                UserPasswordHasherInterface $passwordEncoder,
                                 MailerService $mailerService,
                                 Twig_Environment $templating) {
         $this->passwordService = $passwordService;
@@ -134,7 +131,7 @@ class SecuriteController extends AbstractController {
                 $form->get("plainPassword")->get("second")->addError(new FormError($check["message"]));
             } else {
                 $uniqueMobileKey = $this->userService->createUniqueMobileLoginKey($entityManager);
-                $password = $this->passwordEncoder->encodePassword($user, $user->getPlainPassword());
+                $password = $this->passwordEncoder->hashPassword($user, $user->getPlainPassword());
                 $user
                     ->setStatus(true)
                     ->setPassword($password)
@@ -203,13 +200,12 @@ class SecuriteController extends AbstractController {
 
                 if($result['response'] == true) {
                     if($password !== '') {
-                        $password = $this->passwordEncoder->encodePassword($user, $password);
+                        $password = $this->passwordEncoder->hashPassword($user, $password);
                         $user->setPassword($password);
                         $user->setToken(null);
 
-                        $em = $this->getDoctrine()->getManager();
-                        $em->persist($user);
-                        $em->flush();
+                        $entityManager->persist($user);
+                        $entityManager->flush();
 
                         return new JsonResponse('ok');
                     }

@@ -90,7 +90,7 @@ class LocationController extends AbstractController {
             $typeRepository = $entityManager->getRepository(Type::class);
             $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
 
-            $errorResponse = $this->checkLocationLabel($data["Label"] ?? null);
+            $errorResponse = $this->checkLocationLabel($entityManager, $data["Label"] ?? null);
             if ($errorResponse) {
                 return $errorResponse;
             }
@@ -178,7 +178,7 @@ class LocationController extends AbstractController {
             $typeRepository = $entityManager->getRepository(Type::class);
             $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
 
-            $errorResponse = $this->checkLocationLabel($data["Label"] ?? null, $data['id']);
+            $errorResponse = $this->checkLocationLabel($entityManager, $data["Label"] ?? null, $data['id']);
             if ($errorResponse) {
                 return $errorResponse;
             }
@@ -233,9 +233,9 @@ class LocationController extends AbstractController {
      * @Route("/verification", name="emplacement_check_delete", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::REFERENTIEL, Action::DISPLAY_EMPL}, mode=HasPermission::IN_JSON)
      */
-    public function checkEmplacementCanBeDeleted(Request $request): Response {
+    public function checkEmplacementCanBeDeleted(Request $request, EntityManagerInterface $manager): Response {
         if ($emplacementId = json_decode($request->getContent(), true)) {
-            $isUsedBy = $this->isEmplacementUsed($emplacementId);
+            $isUsedBy = $this->isEmplacementUsed($manager, $emplacementId);
             if (empty($isUsedBy)) {
                 $delete = true;
                 $html = $this->renderView('emplacement/modalDeleteEmplacementRight.html.twig');
@@ -252,8 +252,7 @@ class LocationController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    private function isEmplacementUsed(int $emplacementId): array {
-        $entityManager = $this->getDoctrine()->getManager();
+    private function isEmplacementUsed(EntityManagerInterface $entityManager, int $emplacementId): array {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
         $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);
@@ -311,7 +310,7 @@ class LocationController extends AbstractController {
                 $emplacement = $emplacementRepository->find($emplacementId);
 
                 if ($emplacement) {
-                    $usedEmplacement = $this->isEmplacementUsed($emplacementId);
+                    $usedEmplacement = $this->isEmplacementUsed($entityManager, $emplacementId);
 
                     if (!empty($usedEmplacement)) {
                         $emplacement->setIsActive(false);
@@ -383,10 +382,10 @@ class LocationController extends AbstractController {
         );
     }
 
-    private function checkLocationLabel(?string $label, $locationId = null) {
+    private function checkLocationLabel(EntityManagerInterface $entityManager, ?string $label, $locationId = null) {
         $labelTrimmed = $label ? trim($label) : null;
         if (!empty($labelTrimmed)) {
-            $emplacementRepository = $this->getDoctrine()->getRepository(Emplacement::class);
+            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $emplacementAlreadyExist = $emplacementRepository->countByLabel($label, $locationId);
             if ($emplacementAlreadyExist) {
                 return new JsonResponse([

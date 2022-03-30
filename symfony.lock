@@ -234,9 +234,6 @@
     "phpspec/prophecy": {
         "version": "1.13.0"
     },
-    "phpstan/phpstan": {
-        "version": "1.4.6"
-    },
     "phpunit/php-code-coverage": {
         "version": "9.2.6"
     },
@@ -292,9 +289,6 @@
     },
     "ralouphie/getallheaders": {
         "version": "3.0.3"
-    },
-    "rector/rector": {
-        "version": "0.12.16"
     },
     "scienta/doctrine-json-functions": {
         "version": "4.3.0"
@@ -577,9 +571,6 @@
     "symfony/polyfill-mbstring": {
         "version": "v1.22.0"
     },
-    "symfony/polyfill-php73": {
-        "version": "v1.22.0"
-    },
     "symfony/polyfill-php80": {
         "version": "v1.22.0"
     },
@@ -628,9 +619,6 @@
         "version": "v5.2.2"
     },
     "symfony/security-csrf": {
-        "version": "v5.2.2"
-    },
-    "symfony/security-guard": {
         "version": "v5.2.2"
     },
     "symfony/security-http": {

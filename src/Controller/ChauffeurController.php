@@ -154,8 +154,7 @@ class ChauffeurController extends AbstractController
             if ($data['transporteur']) {
             	$chauffeur->setTransporteur($transporteurRepository->find($data['transporteur']));
 			}
-            $em = $this->getDoctrine()->getManager();
-            $em->flush();
+            $entityManager->flush();
 
             return new JsonResponse([
                 'success' => true,
@@ -177,7 +176,7 @@ class ChauffeurController extends AbstractController
 			$chauffeur = $chauffeurRepository->find($chauffeurId);
 
 			// on vérifie que le chauffeur n'est plus utilisé
-			$chauffeurIsUsed = $this->isChauffeurInUse($chauffeur);
+			$chauffeurIsUsed = $this->isChauffeurInUse($entityManager, $chauffeur);
 
 			if (!$chauffeurIsUsed) {
 				$delete = true;
@@ -193,11 +192,9 @@ class ChauffeurController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    public function isChauffeurInUse($chauffeur)
+    public function isChauffeurInUse(EntityManagerInterface $manager, $chauffeur)
 	{
-	    $entityManager = $this->getDoctrine()->getManager();
-        $arrivageRepository = $entityManager->getRepository(Arrivage::class);
-		return $arrivageRepository->countByChauffeur($chauffeur) > 0;
+		return $manager->getRepository(Arrivage::class)->countByChauffeur($chauffeur) > 0;
 	}
 
     /**
@@ -212,7 +209,7 @@ class ChauffeurController extends AbstractController
 				$chauffeur = $chauffeurRepository->find($chauffeurId);
 
 				// on vérifie que le chauffeur n'est plus utilisé
-				$isUsedChauffeur = $this->isChauffeurInUse($chauffeur);
+				$isUsedChauffeur = $this->isChauffeurInUse($entityManager, $chauffeur);
 
 				if ($isUsedChauffeur) {
 					return new JsonResponse([
@@ -221,7 +218,6 @@ class ChauffeurController extends AbstractController
                     ]);
 				}
 
-				$entityManager = $this->getDoctrine()->getManager();
 				$entityManager->remove($chauffeur);
 				$entityManager->flush();
 

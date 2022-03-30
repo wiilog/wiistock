@@ -15,11 +15,6 @@ class DumpRoutingCommand extends DumpCommand {
         parent::__construct($extractor, $serializer, $kernel->getProjectDir());
     }
 
-    protected function configure() {
-        parent::configure();
-        $this->setName(self::$defaultName);
-    }
-
     protected function execute(InputInterface $input, OutputInterface $output): int {
         $url = explode("://", $_SERVER["APP_URL"]);
         $target = "public/generated/routes.json";

@@ -561,14 +561,13 @@ class UserController extends AbstractController {
     /**
      * @Route("/taille-page-arrivage", name="update_user_page_length_for_arrivage", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
-    public function updateUserPageLengthForArrivage(Request $request)
+    public function updateUserPageLengthForArrivage(Request $request, EntityManagerInterface $manager)
     {
         if ($data = json_decode($request->getContent(), true)) {
             /** @var Utilisateur $user */
             $user = $this->getUser();
             $user->setPageLengthForArrivage($data);
-            $em = $this->getDoctrine()->getManager();
-            $em->flush();
+            $manager->flush();
         }
         return new JsonResponse();
     }

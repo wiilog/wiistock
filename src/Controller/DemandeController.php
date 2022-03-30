@@ -148,10 +148,9 @@ class DemandeController extends AbstractController
                     ->setDestination($emplacement)
                     ->setType($type)
                     ->setCommentaire($data['commentaire']);
-                $em = $this->getDoctrine()->getManager();
-                $em->flush();
+                $entityManager->flush();
                 $champLibreService->manageFreeFields($demande, $data, $entityManager);
-                $em->flush();
+                $entityManager->flush();
                 $response = [
                     'success' => true,
                     'entete' => $this->renderView('demande/demande-show-header.html.twig', [

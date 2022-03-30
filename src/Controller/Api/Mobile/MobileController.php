@@ -747,7 +747,7 @@ class MobileController extends AbstractFOSRestController
                     return $preparationArray;
                 })
                 ->toArray();
-            $resData['data']['articlesPrepa'] = $this->getArticlesPrepaArrays($insertedPrepasIds, true);
+            $resData['data']['articlesPrepa'] = $this->getArticlesPrepaArrays($entityManager, $insertedPrepasIds, true);
             $resData['data']['articlesPrepaByRefArticle'] = $articleRepository->getArticlePrepaForPickingByUser($nomadUser, $insertedPrepasIds);
         }
 
@@ -1577,7 +1577,7 @@ class MobileController extends AbstractFOSRestController
             // get article linked to a ReferenceArticle where type_quantite === 'article'
             $articlesPrepaByRefArticle = $articleRepository->getArticlePrepaForPickingByUser($user, [], $displayPickingLocation);
 
-            $articlesPrepa = $this->getArticlesPrepaArrays($preparations);
+            $articlesPrepa = $this->getArticlesPrepaArrays($entityManager, $preparations);
             /// collecte
             $collectes = $ordreCollecteRepository->getMobileCollecte($user);
 
@@ -2294,9 +2294,8 @@ class MobileController extends AbstractFOSRestController
         return new JsonResponse($resData, $statusCode);
     }
 
-    private function getArticlesPrepaArrays(array $preparations, bool $isIdArray = false): array
+    private function getArticlesPrepaArrays(EntityManagerInterface $entityManager, array $preparations, bool $isIdArray = false): array
     {
-        $entityManager = $this->getDoctrine()->getManager();
         /** @var ReferenceArticleRepository $referenceArticleRepository */
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         /** @var ArticleRepository $articleRepository */
