@@ -37,8 +37,8 @@ class NotificationRepository extends EntityRepository {
 
         // prise en compte des paramètres issus du datatable
         if(!empty($params)) {
-            if(!empty($params->get('search'))) {
-                $search = $params->get('search')['value'];
+            if(!empty($params->all('search'))) {
+                $search = $params->all('search')['value'];
                 if(!empty($search)) {
                     $qb
                         ->andWhere($qb->expr()->orX(

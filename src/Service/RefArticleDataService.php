@@ -139,7 +139,7 @@ class RefArticleDataService {
         $currentUserSearches = $currentUser->getSearches();
         $currentUserIndexes = $currentUser->getPageIndexes();
         if ($params->has('search')) {
-            $currentUserSearches['reference'] = $params->get('search');
+            $currentUserSearches['reference'] = $params->all('search');
             $currentUser->setSearches($currentUserSearches);
             $this->entityManager->flush();
         } else {
@@ -148,8 +148,8 @@ class RefArticleDataService {
 
         if ($params->has('start') && $params->has('length')) {
             $currentUserIndexes['reference'] =
-                intval(intval($params->get('start')) / intval($params->get('length')))
-                * intval($params->get('length'));
+                intval(intval($params->all('start')) / intval($params->all('length')))
+                * intval($params->all('length'));
             $currentUser->setPageIndexes($currentUserIndexes);
             $this->entityManager->flush();
         }
@@ -634,16 +634,16 @@ class RefArticleDataService {
     public function getAlerteDataByParams(InputBag $params, Utilisateur $user) {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $alertRepository = $this->entityManager->getRepository(Alert::class);
-        if ($params->has('managers') && !empty($params->get('managers')) ||
-            $params->has('referenceTypes') && !empty($params->get('referenceTypes'))) {
+        if ($params->has('managers') && !empty($params->all('managers')) ||
+            $params->has('referenceTypes') && !empty($params->all('referenceTypes'))) {
             $filters = [
                 [
                     'field' => 'multipleTypes',
-                    'value' => $params->get('referenceTypes')
+                    'value' => $params->all('referenceTypes')
                 ],
                 [
                     'field' => 'utilisateurs',
-                    'value' => $params->get('managers')
+                    'value' => $params->all('managers')
                 ]
             ];
         } else {

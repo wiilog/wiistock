@@ -617,11 +617,11 @@ class ReferenceArticleRepository extends EntityRepository {
         // compte éléments filtrés
         $countQuery = QueryCounter::count($queryBuilder, "ra");
 
-        if (!empty($params) && !empty($params->get('order'))) {
-            $order = $params->get('order')[0]['dir'];
+        if (!empty($params) && !empty($params->all('order'))) {
+            $order = $params->all('order')[0]['dir'];
             if (!empty($order)) {
-                $columnIndex = $params->get('order')[0]['column'];
-                $columnName = $params->get('columns')[$columnIndex]['data'];
+                $columnIndex = $params->all('order')[0]['column'];
+                $columnName = $params->all('columns')[$columnIndex]['data'];
                 $column = self::DtToDbLabels[$columnName] ?? $columnName;
 
                 $orderAddSelect = [];

@@ -186,8 +186,8 @@ class DemandeRepository extends EntityRepository
 
 		//Filter search
         if (!empty($params)) {
-            if (!empty($params->get('search'))) {
-                $search = $params->get('search')['value'];
+            if (!empty($params->all('search'))) {
+                $search = $params->all('search')['value'];
                 if (!empty($search)) {
                     $conditions = [
                         "createdAt" => "DATE_FORMAT(delivery_request.createdAt, '%d/%m/%Y') LIKE :search_value",
@@ -212,12 +212,12 @@ class DemandeRepository extends EntityRepository
                 }
             }
 
-            if (!empty($params->get('order')))
+            if (!empty($params->all('order')))
             {
-                $order = $params->get('order')[0]['dir'];
+                $order = $params->all('order')[0]['dir'];
                 if (!empty($order))
                 {
-                    $column = $params->get('columns')[$params->get('order')[0]['column']]['data'];
+                    $column = $params->all('columns')[$params->all('order')[0]['column']]['data'];
                     if ($column === 'type') {
                         $qb
                             ->leftJoin('delivery_request.type', 'order_type')

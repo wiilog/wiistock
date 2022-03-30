@@ -106,8 +106,8 @@ class DispatchRepository extends EntityRepository
             }
         }
         if (!empty($params)) {
-            if (!empty($params->get('search'))) {
-                $search = $params->get('search')['value'];
+            if (!empty($params->all('search'))) {
+                $search = $params->all('search')['value'];
                 if (!empty($search)) {
                     $conditions = [
                         "creationDate" => "DATE_FORMAT(dispatch.creationDate, '%e/%m/%Y') LIKE :search_value",
@@ -137,10 +137,10 @@ class DispatchRepository extends EntityRepository
                         ->setParameter('search_value', '%' . $search . '%');
                 }
             }
-            if (!empty($params->get('order'))) {
-                $order = $params->get('order')[0]['dir'];
+            if (!empty($params->all('order'))) {
+                $order = $params->all('order')[0]['dir'];
                 if (!empty($order)) {
-                    $column = $params->get('columns')[$params->get('order')[0]['column']]['data'];
+                    $column = $params->all('columns')[$params->all('order')[0]['column']]['data'];
                     if ($column === 'status') {
                         $qb
                             ->leftJoin('dispatch.statut', 'sort_status')

@@ -130,11 +130,11 @@ class InvMissionService
                 : $this->dataRowRefMission($data, $mission);
         }
 
-        $index = intval($params->get('order')[0]['column']);
+        $index = intval($params->all('order')[0]['column']);
         if ($rows) {
         	$columnName = array_keys($rows[0])[$index];
         	$column = array_column($rows, $columnName);
-        	array_multisort($column, $params->get('order')[0]['dir'] === "asc" ? SORT_ASC : SORT_DESC, $rows);
+        	array_multisort($column, $params->all('order')[0]['dir'] === "asc" ? SORT_ASC : SORT_DESC, $rows);
 		}
         return [
             'data' => $rows,

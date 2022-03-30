@@ -262,8 +262,8 @@ class DisputeRepository extends EntityRepository
 
 		//Filter search
 		if (!empty($params)) {
-			if (!empty($params->get('search'))) {
-				$search = $params->get('search')['value'];
+			if (!empty($params->all('search'))) {
+				$search = $params->all('search')['value'];
 				if (!empty($search)) {
                     $conditions = [
                         'disputeNumber' => "dispute.number LIKE :search_value",
@@ -290,11 +290,11 @@ class DisputeRepository extends EntityRepository
 				}
 			}
 
-			if (!empty($params->get('order'))) {
-                foreach ($params->get('order') as $sort) {
+			if (!empty($params->all('order'))) {
+                foreach ($params->all('order') as $sort) {
                     $order = $sort['dir'];
                     if (!empty($order)) {
-                        $column = self::DtToDbLabels[$params->get('columns')[$sort['column']]['data']];
+                        $column = self::DtToDbLabels[$params->all('columns')[$sort['column']]['data']];
 
                         if ($column === 'type') {
                             $qb->addOrderBy('t.label', $order);
@@ -324,11 +324,11 @@ class DisputeRepository extends EntityRepository
         $countFiltered = QueryCounter::count($qb, 'dispute');
 
         $disputes = $this->distinctDisputes($qb->getQuery()->getResult());
-        $length = $params && !empty($params->get('length'))
-            ? $params->get('length')
+        $length = $params && !empty($params->all('length'))
+            ? $params->all('length')
             : -1;
-        $start = $params && !empty($params->get('start'))
-            ? $params->get('start')
+        $start = $params && !empty($params->all('start'))
+            ? $params->all('start')
             : 0;
         $disputes = array_slice($disputes, $start, $length);
 		return [
