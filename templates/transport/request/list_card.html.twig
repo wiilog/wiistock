@@ -2,7 +2,7 @@
 {% set order = order ?? ((request.orders | last) ?: null) %}
 {% set transportRound = order ? (order.transportRoundLines | last) ?: null : null %}
 
-<div class="transport-request-container col-12 col-xxl-6 p-1">
+<div class="transport-request-container col-12 col-xl-6 p-1">
     <a href="{{ path('transport_request_show', {transportRequest: request.id}) }}" class="transport-request-card">
         <div class="dropdown dropright">
             <div class="d-flex" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -142,7 +142,7 @@
                     {{ request.contact.name }}<br>
                     <span class="wii-small-text">N° dossier {{ request.contact.fileNumber }}</span>
                 </td>
-                <td class="wii-small-text">
+                <td class="wii-small-text" style="white-space: normal !important;">
                     {% if order and order.isRejected %}
                         <img src="{{ asset('svg/rejected-delivery.svg') }}" class="transport-status-icon"
                              alt="Livraison rejetée" title="Livraison rejetée">
