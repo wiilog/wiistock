@@ -9,7 +9,8 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TransportCollectRequestRepository::class)]
-class TransportCollectRequest extends TransportRequest {
+class TransportCollectRequest extends TransportRequest
+{
 
     #[ORM\ManyToOne(targetEntity: CollectTimeSlot::class, inversedBy: 'transportCollectRequests')]
     private ?CollectTimeSlot $timeSlot = null;
@@ -25,7 +26,8 @@ class TransportCollectRequest extends TransportRequest {
         $this->transportCollectRequestNatures = new ArrayCollection();
     }
 
-    public function getTimeSlot(): ?CollectTimeSlot {
+    public function getTimeSlot(): ?CollectTimeSlot
+    {
         return $this->timeSlot;
     }
 
@@ -82,6 +84,13 @@ class TransportCollectRequest extends TransportRequest {
         }
 
         return $this;
+    }
+
+    public function canBeDeleted(): bool {
+        return (
+            !$this->isInRound()
+            && in_array($this->getStatus()?->getCode(), [TransportRequest::STATUS_TO_COLLECT, TransportRequest::STATUS_AWAITING_PLANNING])
+        );
     }
 
 }

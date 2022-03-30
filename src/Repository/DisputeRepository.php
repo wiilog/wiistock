@@ -386,13 +386,13 @@ class DisputeRepository extends EntityRepository
 		return array_column($result, 'reference');
 	}
 
-    public function getLastNumberByDate(string $date, string $prefix): ?string {
+    public function getLastNumberByDate(string $date, ?string $prefix): ?string {
         $result = $this->createQueryBuilder('dispute')
             ->select('dispute.number AS number')
             ->where('dispute.number LIKE :value')
             ->orderBy('dispute.creationDate', 'DESC')
             ->addOrderBy('dispute.number', 'DESC')
-            ->setParameter('value', $prefix . '-' . $date . '%')
+            ->setParameter('value', ($prefix ? ($prefix . '-') : '') . $date . '%')
             ->getQuery()
             ->execute();
         return $result ? $result[0]['number'] : null;

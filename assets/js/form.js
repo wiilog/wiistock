@@ -4,23 +4,45 @@ import Flash from "./flash";
 export default class Form {
 
     submitCallback;
+    openCallback;
     processors = [];
     uploads = {};
 
-    static create(selector) {
-        const form = new Form();
-        form.element = $(selector);
+    static create(selector, {clearOnOpen} = {}) {
+        const $form = $(selector);
+        let form = $form.data('form');
+        if (!form || !(form instanceof Form)) {
+            form = new Form();
 
-        WysiwygManager.initializeWYSIWYG(form.element);
-        form.element.on(`click`, `[type="submit"]`, function() {
-            const result = Form.process(form, {
-                button: $(this),
+            form.element = $form;
+            $form.data('form', form);
+
+            WysiwygManager.initializeWYSIWYG(form.element);
+            form.element.on(`click`, `[type="submit"]`, function () {
+                const result = Form.process(form, {
+                    button: $(this),
+                });
+
+                if (result && form.submitCallback) {
+                    form.submitCallback(result);
+                }
             });
 
-            if(result && form.submitCallback) {
-                form.submitCallback(result);
-            }
-        });
+            form.element.on('shown.bs.modal', function () {
+                if (clearOnOpen) {
+                    form.clear();
+                }
+                if (form.openCallback) {
+                    form.openCallback();
+                }
+            });
+
+            form.element.on('hidden.bs.modal', function () {
+                if (form.closeCallback) {
+                    form.closeCallback();
+                }
+            });
+        }
 
         return form;
     }
@@ -30,9 +52,24 @@ export default class Form {
         return this;
     }
 
+    onOpen(callback = null) {
+        this.openCallback = callback;
+        return this;
+    }
+
+    onClose(callback = null) {
+        this.closeCallback = callback;
+        return this;
+    }
+
     onSubmit(callback = null) {
         this.submitCallback = callback;
         return this;
+    }
+
+    clear() {
+        clearFormError(this);
+        clearModal(this.element)
     }
 
     static getFieldNames(form, config = {}) {

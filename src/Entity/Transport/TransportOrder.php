@@ -17,25 +17,25 @@ class TransportOrder {
 
     use AttachmentTrait;
 
+    public const NUMBER_PREFIX = 'OTR';
+
     public const CATEGORY = 'transportOrder';
 
     public const STATUS_TO_CONTACT = 'Patient à contacter';
     public const STATUS_TO_ASSIGN = 'À affecter';
-    public const STATUS_ASSIGNED = 'Affectée';
+    public const STATUS_ASSIGNED = 'Affecté';
     public const STATUS_ONGOING = 'En cours';
-    public const STATUS_FINISHED = 'Terminée';
+    public const STATUS_FINISHED = 'Terminé';
     public const STATUS_DEPOSITED = 'Objets déposés';
-    public const STATUS_CANCELLED = 'Annulée';
-    public const STATUS_NOT_DELIVERED = 'Non livrée';
-    public const STATUS_NOT_COLLECTED = 'Non collectée';
+    public const STATUS_CANCELLED = 'Annulé';
+    public const STATUS_NOT_DELIVERED = 'Non livré';
+    public const STATUS_NOT_COLLECTED = 'Non collecté';
+    public const STATUS_SUBCONTRACTED = 'Sous-traité';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
-
-    #[ORM\Column(type: 'string', length: 255)]
-    private ?string $number = null;
 
     #[ORM\ManyToOne(targetEntity: Statut::class)]
     private ?Statut $status = null;
@@ -47,6 +47,9 @@ class TransportOrder {
     private ?string $registrationNumber = null;
 
     #[ORM\Column(type: 'datetime')]
+    private ?DateTime $createdAt = null;
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $startedAt = null;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
@@ -61,7 +64,7 @@ class TransportOrder {
     #[ORM\ManyToOne(targetEntity: TransportRequest::class, inversedBy: 'orders')]
     private ?TransportRequest $request = null;
 
-    #[ORM\OneToMany(mappedBy: 'order', targetEntity: TransportRequestHistory::class)]
+    #[ORM\OneToMany(mappedBy: 'order', targetEntity: TransportHistory::class)]
     private Collection $history;
 
     #[ORM\OneToMany(mappedBy: 'order', targetEntity: TransportDeliveryOrderPack::class)]
@@ -82,16 +85,6 @@ class TransportOrder {
 
     public function getId(): ?int {
         return $this->id;
-    }
-
-    public function getNumber(): ?string {
-        return $this->number;
-    }
-
-    public function setNumber(string $number): self {
-        $this->number = $number;
-
-        return $this;
     }
 
     public function getStatus(): ?Statut {
@@ -124,6 +117,16 @@ class TransportOrder {
 
     public function setRegistrationNumber(?string $registrationNumber): self {
         $this->registrationNumber = $registrationNumber;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): ?DateTime {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(DateTime $createdAt): self {
+        $this->createdAt = $createdAt;
 
         return $this;
     }
@@ -183,26 +186,26 @@ class TransportOrder {
     }
 
     /**
-     * @return Collection<int, TransportRequestHistory>
+     * @return Collection<int, TransportHistory>
      */
     public function getHistory(): Collection {
         return $this->history;
     }
 
-    public function addHistory(TransportRequestHistory $transportRequestHistory): self {
-        if (!$this->history->contains($transportRequestHistory)) {
-            $this->history[] = $transportRequestHistory;
-            $transportRequestHistory->setOrder($this);
+    public function addHistory(TransportHistory $transportHistory): self {
+        if (!$this->history->contains($transportHistory)) {
+            $this->history[] = $transportHistory;
+            $transportHistory->setOrder($this);
         }
 
         return $this;
     }
 
-    public function removeHistory(TransportRequestHistory $transportRequestHistory): self {
-        if ($this->history->removeElement($transportRequestHistory)) {
+    public function removeHistory(TransportHistory $transportHistory): self {
+        if ($this->history->removeElement($transportHistory)) {
             // set the owning side to null (unless already changed)
-            if ($transportRequestHistory->getOrder() === $this) {
-                $transportRequestHistory->setOrder(null);
+            if ($transportHistory->getOrder() === $this) {
+                $transportHistory->setOrder(null);
             }
         }
 

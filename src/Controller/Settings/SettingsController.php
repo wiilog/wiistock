@@ -563,6 +563,7 @@ class SettingsController extends AbstractController {
             ->map(fn(Type $type) => [
                 "label" => $type->getLabel(),
                 "value" => $type->getId(),
+                "iconUrl" => $type->getLogo()?->getFullPath()
             ])
             ->toArray();
 

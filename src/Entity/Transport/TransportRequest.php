@@ -11,6 +11,7 @@ use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use JetBrains\PhpStorm\Pure;
 use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: TransportRequestRepository::class)]
@@ -40,6 +41,7 @@ abstract class TransportRequest {
     public const STATUS_CANCELLED = 'Annulée';
     public const STATUS_NOT_DELIVERED = 'Non livrée';
     public const STATUS_NOT_COLLECTED = 'Non collectée';
+    public const STATUS_SUBCONTRACTED = 'Sous-traitée';
 
     public const STATUS_COLOR = [
         self::STATUS_AWAITING_VALIDATION => "to-validate",
@@ -52,6 +54,21 @@ abstract class TransportRequest {
         self::STATUS_CANCELLED => "finished",
         self::STATUS_NOT_DELIVERED => "cancelled",
         self::STATUS_NOT_COLLECTED => "cancelled",
+    ];
+
+    public const DELIVERY_STATUSES = [
+        TransportRequest::STATUS_TO_PREPARE,
+        TransportRequest::STATUS_TO_DELIVER,
+        TransportRequest::STATUS_ONGOING,
+        TransportRequest::STATUS_FINISHED,
+    ];
+
+    public const COLLECT_STATUSES = [
+        TransportRequest::STATUS_AWAITING_PLANNING,
+        TransportRequest::STATUS_TO_COLLECT,
+        TransportRequest::STATUS_ONGOING,
+        TransportRequest::STATUS_FINISHED,
+        TransportRequest::STATUS_DEPOSITED,
     ];
 
     #[ORM\Id]
@@ -86,20 +103,20 @@ abstract class TransportRequest {
     #[ORM\OneToMany(mappedBy: 'request', targetEntity: TransportOrder::class)]
     private Collection $orders;
 
-    #[ORM\OneToMany(mappedBy: 'request', targetEntity: TransportRequestHistory::class)]
+    #[ORM\OneToMany(mappedBy: 'request', targetEntity: TransportHistory::class)]
     private Collection $history;
 
     #[ORM\OneToMany(mappedBy: 'transportRequest', targetEntity: StatusHistory::class)]
     private Collection $statusHistory;
 
-    #[ORM\OneToOne(targetEntity: TransportRequestContact::class, cascade: ['persist', 'remove'])]
+    #[ORM\ManyToOne(targetEntity: TransportRequestContact::class, cascade: ['persist', 'remove'])]
     private ?TransportRequestContact $contact = null;
 
     public function __construct() {
         $this->orders = new ArrayCollection();
         $this->history = new ArrayCollection();
         $this->statusHistory = new ArrayCollection();
-        $this->contact = new TransportRequestContact();
+        $this->contact = $this->contact ?? new TransportRequestContact();
     }
 
     public function getId(): ?int {
@@ -217,13 +234,13 @@ abstract class TransportRequest {
     }
 
     /**
-     * @return Collection<int, TransportRequestHistory>
+     * @return Collection<int, TransportHistory>
      */
     public function getHistory(): Collection {
         return $this->history;
     }
 
-    public function addHistory(TransportRequestHistory $history): self {
+    public function addHistory(TransportHistory $history): self {
         if (!$this->history->contains($history)) {
             $this->history[] = $history;
             $history->setRequest($this);
@@ -232,7 +249,7 @@ abstract class TransportRequest {
         return $this;
     }
 
-    public function removeHistory(TransportRequestHistory $history): self {
+    public function removeHistory(TransportHistory $history): self {
         if ($this->history->removeElement($history)) {
             // set the owning side to null (unless already changed)
             if ($history->getRequest() === $this) {
@@ -280,22 +297,10 @@ abstract class TransportRequest {
         return $this;
     }
 
-    public function canBeDeleted(): bool {
-
-        $wasInARound = Stream::from($this->orders)
-            ->some(fn(TransportOrder $order) => !$order->getTransportRoundLines()->isEmpty());
-
-        $canDeleteIfDelivery =
-            $this instanceof TransportDeliveryRequest
-            && !$wasInARound
-            && in_array($this->getStatus()?->getCode(), [TransportRequest::STATUS_TO_DELIVER, TransportRequest::STATUS_TO_PREPARE]);
-
-        $canDeleteIfCollect =
-            $this instanceof TransportCollectRequest
-            && !$wasInARound
-            && in_array($this->getStatus()?->getCode(), [TransportRequest::STATUS_TO_COLLECT, TransportRequest::STATUS_AWAITING_PLANNING]);
-
-        return !$canDeleteIfCollect && !$canDeleteIfDelivery;
+    public function isInRound(): bool {
+        return Stream::from($this->orders)->some(fn(TransportOrder $order) => !$order->getTransportRoundLines()->isEmpty());
     }
+
+    public abstract function canBeDeleted(): bool;
 
 }

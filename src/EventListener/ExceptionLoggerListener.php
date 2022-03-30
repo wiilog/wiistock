@@ -2,7 +2,7 @@
 
 namespace App\EventListener;
 
-use App\Exception\JsonException;
+use App\Exceptions\FormException;
 use App\Service\ExceptionLoggerService;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
@@ -16,7 +16,7 @@ class ExceptionLoggerListener {
     }
 
     public function onKernelException(ExceptionEvent $event) {
-        if($event->getThrowable() instanceof JsonException || $event->getThrowable() instanceof AccessDeniedException) {
+        if($event->getThrowable() instanceof FormException || $event->getThrowable() instanceof AccessDeniedException) {
             return;
         }
 

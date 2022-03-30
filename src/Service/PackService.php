@@ -8,7 +8,7 @@ use App\Entity\FiltreSup;
 use App\Entity\Pack;
 use App\Entity\TrackingMovement;
 use App\Entity\Nature;
-use App\Exception\JsonException;
+use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
 use App\Repository\NatureRepository;
 use App\Repository\PackRepository;
@@ -229,7 +229,7 @@ class PackService {
 
         $totalPacks = Stream::from($colisByNatures)->sum();
         if($totalPacks > 500) {
-            throw new JsonException("Vous ne pouvez pas ajouter plus de 500 colis");
+            throw new FormException("Vous ne pouvez pas ajouter plus de 500 colis");
         }
 
         $now = new DateTime('now');

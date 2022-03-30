@@ -145,6 +145,7 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
                 TransportRequest::STATUS_FINISHED,
                 TransportRequest::STATUS_CANCELLED,
                 TransportRequest::STATUS_NOT_DELIVERED,
+                TransportRequest::STATUS_SUBCONTRACTED,
             ],
             CategorieStatut::TRANSPORT_REQUEST_COLLECT => [
                 TransportRequest::STATUS_AWAITING_VALIDATION,
@@ -163,6 +164,7 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
                 TransportOrder::STATUS_FINISHED,
                 TransportOrder::STATUS_CANCELLED,
                 TransportOrder::STATUS_NOT_DELIVERED,
+                TransportOrder::STATUS_SUBCONTRACTED,
             ],
             CategorieStatut::TRANSPORT_ORDER_COLLECT => [
                 TransportOrder::STATUS_TO_CONTACT,

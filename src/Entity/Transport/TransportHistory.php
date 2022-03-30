@@ -2,15 +2,17 @@
 
 namespace App\Entity\Transport;
 
+use App\Entity\Emplacement;
 use App\Entity\Pack;
 use App\Entity\StatusHistory;
 use App\Entity\Traits\AttachmentTrait;
-use App\Repository\Transport\TransportRequestHistoryRepository;
+use App\Entity\Utilisateur;
+use App\Repository\Transport\TransportHistoryRepository;
 use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: TransportRequestHistoryRepository::class)]
-class TransportRequestHistory {
+#[ORM\Entity(repositoryClass: TransportHistoryRepository::class)]
+class TransportHistory {
 
     use AttachmentTrait;
 
@@ -19,23 +21,38 @@ class TransportRequestHistory {
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
+    #[ORM\Column(type: 'datetime')]
+    private ?DateTime $date = null;
+
     #[ORM\ManyToOne(targetEntity: TransportRequest::class, inversedBy: 'history')]
     private ?TransportRequest $request = null;
 
     #[ORM\ManyToOne(targetEntity: TransportOrder::class, inversedBy: 'history')]
     private ?TransportOrder $order = null;
 
-    #[ORM\Column(type: 'datetime')]
-    private ?DateTime $date = null;
+    #[ORM\Column(type: 'string', length: 255)]
+    private ?string $type = null;
 
-    #[ORM\ManyToOne(targetEntity: Pack::class)]
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
+    private ?Utilisateur $user = null;
+
+    #[ORM\ManyToOne(targetEntity: TransportRound::class)]
+    private ?TransportRound $round = null;
+
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
+    private ?Utilisateur $deliverer = null;
+
+    #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: 'transportHistory')]
     private ?Pack $pack = null;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $reason = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $comment = null;
 
-    #[ORM\Column(type: 'string', length: 255)]
-    private ?string $category = null;
+    #[ORM\OneToOne(targetEntity: Emplacement::class)]
+    private ?Emplacement $location = null;
 
     #[ORM\OneToOne(targetEntity: StatusHistory::class, cascade: ['persist', 'remove'])]
     private ?StatusHistory $statusHistory = null;
@@ -54,17 +71,62 @@ class TransportRequestHistory {
         return $this;
     }
 
+    public function getUser(): ?Utilisateur {
+        return $this->user;
+    }
+
+    public function setUser(?Utilisateur $user): self {
+        $this->user = $user;
+        return $this;
+    }
+
+    public function getRound(): ?TransportRound {
+        return $this->round;
+    }
+
+    public function setRound(?TransportRound $round): self {
+        $this->round = $round;
+        return $this;
+    }
+
+    public function getDeliverer(): ?Utilisateur {
+        return $this->deliverer;
+    }
+
+    public function setDeliverer(?Utilisateur $deliverer): self {
+        $this->deliverer = $deliverer;
+        return $this;
+    }
+
+    public function getLocation(): ?Emplacement {
+        return $this->location;
+    }
+
+    public function setLocation(?Emplacement $location): self {
+        $this->location = $location;
+        return $this;
+    }
+
     public function getPack(): ?Pack {
         return $this->pack;
     }
 
     public function setPack(?Pack $pack): self {
         if ($this->pack && $this->pack !== $pack) {
-            $this->pack->removeTransportRequestHistory($this);
+            $this->pack->removeTransportHistory($this);
         }
         $this->pack = $pack;
-        $pack?->addTransportRequestHistory($this);
+        $pack?->addTransportHistory($this);
 
+        return $this;
+    }
+
+    public function getReason(): ?string {
+        return $this->reason;
+    }
+
+    public function setReason(?string $reason): self {
+        $this->reason = $reason;
         return $this;
     }
 
@@ -78,12 +140,12 @@ class TransportRequestHistory {
         return $this;
     }
 
-    public function getCategory(): ?string {
-        return $this->category;
+    public function getType(): ?string {
+        return $this->type;
     }
 
-    public function setCategory(string $category): self {
-        $this->category = $category;
+    public function setType(string $type): self {
+        $this->type = $type;
 
         return $this;
     }

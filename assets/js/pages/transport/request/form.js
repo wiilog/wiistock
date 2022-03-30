@@ -8,6 +8,8 @@ export function onRequestTypeChange($requestType) {
         .prop('checked', false)
         .prop('disabled', true);
 
+    $form.find('[data-type]').addClass('d-none');
+
     if (requestType) {
         const $specificItemsToDisplay = $specificsItems.filter(`[data-request-type=""], [data-request-type="${requestType}"]`);
         $specificItemsToDisplay.removeClass('d-none');
@@ -24,4 +26,25 @@ export function onRequestTypeChange($requestType) {
     else {
         $specificsItems.filter(`[data-request-type=""]`).addClass('d-none');
     }
+}
+
+export function onTypeChange($type) {
+    const type = $type.val();
+    const $form = $type.closest('.modal');
+    $form
+        .find('[data-type]')
+        .addClass('d-none');
+
+    $form
+        .find('[data-type]')
+        .find('[type=checkbox]')
+        .prop('checked', false)
+
+    $form.find(`[data-type]`).each(function() {
+        const $element = $(this);
+        const allowedTypes = $element.data('type');
+        if (allowedTypes.some((t) => (t == type))) {
+            $element.removeClass('d-none');
+        }
+    });
 }

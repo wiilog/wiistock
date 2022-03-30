@@ -1,17 +1,21 @@
 {% import 'form.html.twig' as form %}
 
 {% set contact = request.contact %}
+{% set DISCR_DELIVERY = constant('App\\Entity\\Transport\\TransportDeliveryRequest::DISCR_DELIVERY') %}
+{% set DISCR_COLLECT = constant('App\\Entity\\Transport\\TransportDeliveryRequest::DISCR_COLLECT') %}
+{% set DISCR_DELIVERY = constant('App\\Entity\\Transport\\TransportDeliveryRequest::DISCR_DELIVERY') %}
+{% set DISCR_COLLECT = constant('App\\Entity\\Transport\\TransportDeliveryRequest::DISCR_COLLECT') %}
 
 <div class="row justify-content-center">
     <div class="col-auto">
         {{ form.switch('requestType', null, true, [
             {
-                value: constant('App\\Entity\\Transport\\TransportRequest::DISCR_COLLECT'),
+                value: DISCR_COLLECT,
                 label: 'Collecte',
                 wiiIcon: 'cart-collect'
             },
             {
-                value: constant('App\\Entity\\Transport\\TransportRequest::DISCR_DELIVERY'),
+                value: DISCR_DELIVERY,
                 label: 'Livraison',
                 wiiIcon: 'cart-delivery'
             },
@@ -23,7 +27,7 @@
     <i class="wii-icon wii-icon-user bg-primary mr-1"></i>
     Informations Patient
 </div>
-<div class="row">
+<div class="row contact-container">
     <div class="col-md-6 col-12">
         <div class="row">
             <div class="col-12 mb-2">
@@ -80,13 +84,155 @@
             value: type.id,
             label: type.label,
             disabled: true,
+            iconUrl: type.logo ? type.logo.fullPath : false,
             attributes: {
                 'data-request-type': (
                     type.category.label == constant('App\\Entity\\CategoryType::DELIVERY_TRANSPORT')
-                        ? constant('App\\Entity\\Transport\\TransportDeliveryRequest::DISCR_DELIVERY')
-                        : constant('App\\Entity\\Transport\\TransportDeliveryRequest::DISCR_COLLECT')
+                        ? DISCR_DELIVERY
+                        : DISCR_COLLECT
                 )
             }
         }), {expanded: true}) }}
     </div>
+    <div class="col-12 mt-1"
+         data-request-type="{{ DISCR_DELIVERY }}">
+        {{ form.checkbox('collectLinked', 'Faire une collecte en même temps que la livraison', false, false, {
+            slider: true
+        }) }}
+    </div>
+</div>
+
+<div class="wii-section-title my-3 d-none"
+     data-request-type>
+    <div class="d-flex align-items-center">
+        <i class="wii-icon wii-icon-calendar bg-primary mr-1"></i>
+        Date
+    </div>
+</div>
+<div class="row d-none"
+     data-request-type="{{ DISCR_DELIVERY }}">
+    <div class="col-md-6 col-12">
+        {% set expectedAtValue = request.expectedAt ? request.expectedAt|date('Y-m-d\\TH:i') %}
+        {{ form.input('expectedAt', 'Date et heure de livraison', true, expectedAtValue, {
+            type: 'datetime-local',
+        }) }}
+    </div>
+    <div class="col-md-6 col-12">
+        {% set emergenciesValues = setting_value('TRANSPORT_DELIVERY_REQUEST_EMERGENCIES')
+            | split(',')
+            | filter((label) => label)
+            | map((label) => ({
+                label: label,
+                value: label
+            })) %}
+        {{ form.select('emergency', 'Urgence', false, {
+            items: [{label: 'Non urgent', value: ''}]|merge(emergenciesValues)
+        }) }}
+    </div>
+</div>
+<div class="row d-none"
+     data-request-type="{{ DISCR_COLLECT }}">
+    <div class="col-md-6 col-12">
+        {% set expectedAtValue = request.expectedAt ? request.expectedAt|date('Y-m-d') %}
+        {{ form.input('expectedAt', 'Date de collecte', true, expectedAtValue, {
+            type: 'date',
+            min: 'now' | date('Y-m-d'),
+        }) }}
+    </div>
+</div>
+
+<div class="wii-section-title my-3 d-none"
+     data-request-type>
+    <div class="d-flex align-items-center">
+        <i class="wii-icon wii-icon-pack bg-primary mr-1"></i>
+        Colis
+    </div>
+</div>
+<div class="row d-none"
+     data-request-type>
+    <div class="col-12 wii-describe"
+         data-request-type="{{ DISCR_COLLECT }}">
+        Laisser vide si quantité non connue
+    </div>
+    <div class="col-12">
+        <div class="row">
+            {% for lineIndex, nature in natures %}
+                {% set allowedForms = nature.allowedForms ?? {} %}
+                {% set natureTypeCollect = allowedForms[constant('App\\Entity\\Nature::TRANSPORT_COLLECT_CODE')] ?? [] %}
+                {% set natureTypeDelivery = allowedForms[constant('App\\Entity\\Nature::TRANSPORT_DELIVERY_CODE')] ?? [] %}
+                {% set natureType = natureTypeCollect|merge(natureTypeDelivery) %}
+                {% if natureType is not empty %}
+                    {% set multipleKey = {
+                        key: 'lines',
+                        index: lineIndex
+                    } %}
+                    <div class="col-md-6 col-12 d-none"
+                         data-type="{{ natureType|json_encode }}">
+                        <div class="row align-items-center my-2">
+                            <div class="col">
+                                {{ form.checkbox('selected', nature.label, false, false, {
+                                    multipleKey: multipleKey,
+                                }) }}
+                                <input type="hidden"
+                                       value="{{ nature.id }}"
+                                       class="data"
+                                       name="natureId"
+                                       {{ form.multiple_key({
+                                           multipleKey: multipleKey,
+                                       }) }}/>
+                            </div>
+                            <div class="col-lg-6 col-7"
+                                 data-request-type="{{ DISCR_COLLECT }}">
+                                {{ form.number('quantity', null, false, null, {
+                                    labelClass: 'w-100',
+                                    multipleKey: multipleKey,
+                                }) }}
+                            </div>
+                            {% if nature.temperatureRanges is not empty %}
+                                <div class="col-auto"
+                                     data-request-type="{{ DISCR_DELIVERY }}">
+                                    {{ form.select('temperature', null, false, {
+                                        items: nature.temperatureRanges|map((temperature, key) => ({
+                                            label: temperature.value,
+                                            value: temperature.id,
+                                            selected: key == 0
+                                        })),
+                                        multipleKey: multipleKey,
+                                    }) }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    <div class="col-12"
+         data-request-type="{{ DISCR_DELIVERY }}">
+        {{ form.checkbox('printLabels', 'Imprimer les étiquettes', false, false, {
+            slider: true
+        }) }}
+    </div>
+</div>
+
+<div class="wii-section-title mt-3 d-none"
+     data-request-type>
+    <i class="wii-icon wii-icon-info bg-primary mr-1"></i>
+    Autres informations
+</div>
+<div class="row free-fields-container">
+    {% for type in types %}
+        <div class="col-12 d-none"
+             data-type="{{ [type.id] | json_encode }}">
+{#            TODO actionType & requiredType pour la modification #}
+            {% include 'free_field/freeFieldsEdit.html.twig' with {
+                freeFields: type.champsLibres,
+                freeFieldValues: [],
+                colType: 'col-md-6 col-12',
+                requiredType: 'requiredCreate',
+                actionType: 'new',
+                disabledNeeded: true
+            } %}
+        </div>
+    {% endfor %}
 </div>

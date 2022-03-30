@@ -107,6 +107,6 @@ services:
         tags:
             - { name: 'kernel.event_listener', event: 'kernel.exception', priority: 1 }
 
-    App\EventListener\JsonExceptionListener:
+    App\EventListener\FormExceptionListener:
         tags:
             - { name: 'kernel.event_listener', event: 'kernel.exception', priority: 2 }

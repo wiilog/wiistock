@@ -25,7 +25,8 @@ class TransportDeliveryRequest extends TransportRequest {
         $this->transportDeliveryRequestNatures = new ArrayCollection();
     }
 
-    public function getEmergency(): ?string {
+    public function getEmergency(): ?string
+    {
         return $this->emergency;
     }
 
@@ -78,6 +79,13 @@ class TransportDeliveryRequest extends TransportRequest {
         }
 
         return $this;
+    }
+
+    public function canBeDeleted(): bool {
+        return (
+            !$this->isInRound()
+            && in_array($this->getStatus()?->getCode(), [TransportRequest::STATUS_TO_DELIVER, TransportRequest::STATUS_TO_PREPARE])
+        );
     }
 
 }

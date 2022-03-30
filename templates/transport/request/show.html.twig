@@ -12,7 +12,7 @@
     {% set requestType = request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') ? 'Livraison' : 'Collecte' %}
     <div class="wii-box-container">
         <div class="row">
-            <div class="col-4">
+            <div class="col-lg-4 col-md-6 col-12">
                 <div class="wii-box transport-details">
                     <div class="d-flex align-items-center mr-3">
                         <div class="mx-2">
@@ -73,12 +73,17 @@
                             <span class="wii-describe">{{ request.type|format_helper('type') }}</span>
                         </div>
                     </div>
-                    <div class="header timeline d-flex justify-content-center">
+                    {% set statusName = request.status|format_helper('status') %}
+                    <div class="header timeline d-flex justify-content-center
+                        {{ statusName == constant('App\\Entity\\Transport\\TransportRequest::STATUS_CANCELLED') ? 'bg-red-light' : 'bg-green-light' }}">
                         <img src="{{ asset('svg/timeline-status.svg') }}" alt="Icône statut timeline" width="15px" class="mr-2">
                         <span>{{ requestType }} <strong>{{ request.status|format_helper('status') }}</strong></span>
                     </div>
-                    <div class="content">
-                        <strong class="red">INTEGRER TIMELINE ICI</strong>
+                    <div class="content status-history-container">
+                        <div class="d-flex align-items-center justify-content-center">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <span class="ml-3">Génération de la timeline en cours...</span>
+                        </div>
                     </div>
                     <div class="header">
                         <img src="{{ asset('svg/reference_article/calendar.svg') }}" alt="Icône calendrier" width="15px">
@@ -119,7 +124,7 @@
                         </div>
                     {% else %}
                         <div class="content">
-                            <span class="ra-small-text">Aucun champ libre renseigné</span>
+                            <span class="ra-mdall-text">Aucun champ libre renseigné</span>
                         </div>
                     {% endif %}
                     <div class="header">
@@ -169,7 +174,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-4">
+            <div class="col-lg-4 col-md-6 col-12">
                 <div class="wii-box">
                     <div class="header wii-title">Colis</div>
                     <div class="">A REMPLIR</div>{# TODO REMOVE #}
@@ -179,7 +184,7 @@
                     <div class="">A REMPLIR</div>{# TODO REMOVE #}
                 </div>
             </div>
-            <div class="col-4">
+            <div class="col-lg-4 col-md-6 col-12">
                 <div class="wii-box">
                     <div class="header wii-title">Données</div>
                     <div class="">A REMPLIR</div>{# TODO REMOVE #}
@@ -188,6 +193,8 @@
         </div>
     </div>
     {% include 'transport/request/delete.html.twig' %}
+
+    <input type="hidden" value="{{ request.id }}" name="transportRequestId">
 {% endblock %}
 
 {% block javascripts %}

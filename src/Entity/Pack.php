@@ -6,7 +6,7 @@ use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorMessageTrait;
 use App\Entity\Transport\TransportDeliveryOrderPack;
-use App\Entity\Transport\TransportRequestHistory;
+use App\Entity\Transport\TransportHistory;
 use App\Helper\FormatHelper;
 use App\Repository\PackRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -97,6 +97,9 @@ class Pack implements PairedEntity {
 
     #[ORM\Column(type: 'boolean')]
     private bool $deliveryDone = false;
+
+    #[ORM\OneToMany(mappedBy: 'pack', targetEntity: TransportHistory::class)]
+    private Collection $transportHistory;
 
     #[ORM\OneToOne(mappedBy: 'pack', targetEntity: TransportDeliveryOrderPack::class)]
     private ?TransportDeliveryOrderPack $transportDeliveryOrderPack = null;
@@ -591,6 +594,35 @@ class Pack implements PairedEntity {
         $this->transportDeliveryOrderPack = $transportDeliveryOrderPack;
         if($this->transportDeliveryOrderPack && $this->transportDeliveryOrderPack->getPack() !== $this) {
             $this->transportDeliveryOrderPack->setPack($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, TransportHistory>
+     */
+    public function getTransportHistories(): Collection {
+        return $this->transportHistory;
+    }
+
+    public function addTransportHistory(TransportHistory $transportHistory): self
+    {
+        if (!$this->transportHistory->contains($transportHistory)) {
+            $this->transportHistory[] = $transportHistory;
+            $transportHistory->setPack($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTransportHistory(TransportHistory $transportHistory): self
+    {
+        if ($this->transportHistory->removeElement($transportHistory)) {
+            // set the owning side to null (unless already changed)
+            if ($transportHistory->getPack() === $this) {
+                $transportHistory->setPack(null);
+            }
         }
 
         return $this;

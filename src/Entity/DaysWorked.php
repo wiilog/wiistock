@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\DaysWorkedRepository;
 use Doctrine\ORM\Mapping as ORM;
+use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: DaysWorkedRepository::class)]
 class DaysWorked {
@@ -41,6 +42,16 @@ class DaysWorked {
 
     public function getTimes(): ?string {
         return $this->times;
+    }
+
+    /**
+     * @return array 12:00-14:00;15:00-16:00 => [[12:00, 14:00], [15:00, 16:00]]
+     */
+    public function getTimesArray(): array {
+        return Stream::explode(';', $this->times ?? '')
+            ->filter()
+            ->map(fn($day) => Stream::explode('-', $day)->toArray())
+            ->toArray();
     }
 
     public function setTimes(?string $times): self {

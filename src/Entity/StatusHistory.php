@@ -79,7 +79,7 @@ class StatusHistory {
     }
 
     public function setStatus(?Statut $status): self {
-        $this->transportRequest = $status;
+        $this->status = $status;
 
         return $this;
     }
