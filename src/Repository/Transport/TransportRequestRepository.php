@@ -34,11 +34,11 @@ class TransportRequestRepository extends EntityRepository {
         foreach ($filters as $filter) {
             switch ($filter['field']) {
                 case FiltreSup::FIELD_DATE_MIN:
-                    $qb->andWhere('transport_request.expectedAt >= :dateMin')
+                    $qb->andWhere('delivery.expectedAt >= :dateMin')
                         ->setParameter('dateMin', $filter['value'] . ' 00:00:00');
                     break;
                 case FiltreSup::FIELD_DATE_MAX:
-                    $qb->andWhere('transport_request.expectedAt <= :dateMax')
+                    $qb->andWhere('delivery.expectedAt <= :dateMax')
                         ->setParameter('dateMax', $filter['value'] . ' 23:59:59');
                     break;
                 case FiltreSup::FIELD_STATUT:
@@ -82,7 +82,7 @@ class TransportRequestRepository extends EntityRepository {
             $qb->setMaxResults($params->getInt('length'));
         }
 
-        $qb->orderBy("transport_request.expectedAt", "ASC");
+        $qb->orderBy("delivery.expectedAt", "ASC");
 
         return [
             "data" => $qb->getQuery()->getResult(),

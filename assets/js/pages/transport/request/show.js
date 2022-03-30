@@ -8,7 +8,7 @@ $(function () {
 });
 
 function getStatusHistory(transportRequestId) {
-    $.get(Routing.generate(`status_history_api`, {transportRequest: transportRequestId}, true))
+    $.get(Routing.generate(`transport_request_status_history_api`, {transportRequest: transportRequestId}, true))
         .then(({template}) => {
             const $statusHistoryContainer = $(`.status-history-container`);
             $statusHistoryContainer.empty().append(template);

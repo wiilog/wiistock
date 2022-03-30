@@ -23,11 +23,15 @@ const $CONFIRMATION_MODAL = $(`
 `);
 
 export default class Modal {
-    static confirm({ajax, message, title, action, discard, table, keepOnError}) {
+    static confirm({ajax, message, title, action, discard, table, keepOnError, cancelled}) {
         keepOnError = keepOnError === undefined ? true : keepOnError;
         discard = discard === undefined ? true : discard;
-        const {label: actionLabel, color: actionColor} = action;
+
+        const {label: actionLabel, color: actionColor, click: actionClick} = action;
         let $modal = $(`#${confirmationModalId}`);
+
+        let confirmed = false;
+
         if (!$modal.exists()) {
             $('body').append($CONFIRMATION_MODAL);
             $modal = $CONFIRMATION_MODAL;
@@ -54,9 +58,16 @@ export default class Modal {
 
         $modal.on('hidden.bs.modal', function() {
             $modal.remove();
+            if (!confirmed && cancelled) {
+                cancelled();
+            }
         });
 
         $action.off('click').on('click', () => {
+            if (actionClick) {
+                confirmed = true;
+                actionClick();
+            }
             if (ajax) {
                 const {method, route, params} = ajax;
                 wrapLoadingOnActionButton($action, () => {

@@ -1,5 +1,5 @@
 import Form from "../../../form";
-import AJAX from "../../../ajax";
+import AJAX, {GET, POST} from "../../../ajax";
 import Flash from "../../../flash";
 import {onRequestTypeChange, onTypeChange} from "./form";
 
@@ -59,23 +59,39 @@ function submitTransportRequest(form, data, table) {
     }
     else {
         wrapLoadingOnActionButton($submit, () => {
-            return AJAX.route(`POST`, 'transport_request_new')
-                .json(data)
-                .then(({success, message, validationMessage}) => {
-                    Modal.confirm({
-                        message: validationMessage,
-                        action: {
-                            color: 'success',
-                            label: 'Fermer'
-                        },
-                        discard: false,
-                    })
-                    Flash.add(
-                        success ? 'success' : 'danger',
-                        message || `Une erreur s'est produite`
-                    );
-                    $modal.modal('hide');
-                    table.ajax.reload();
+            return canSubmit($modal)
+                .then((can) => {
+                    if (can) {
+                        return AJAX.route(POST, 'transport_request_new')
+                            .json(data)
+                            .then(({success, message, validationMessage}) => {
+                                if (validationMessage) {
+                                    Modal.confirm({
+                                        message: validationMessage,
+                                        action: {
+                                            color: 'success',
+                                            label: 'Fermer',
+                                            click: () => {
+                                                $modal.modal('hide');
+                                            }
+                                        },
+                                        cancelled: () => {
+                                            $modal.modal('hide');
+                                        },
+                                        discard: false,
+                                    });
+                                }
+                                else {
+                                    $modal.modal('hide');
+                                }
+                                Flash.add(
+                                    success ? 'success' : 'danger',
+                                    message || `Une erreur s'est produite`
+                                );
+                                table.ajax.reload();
+                            });
+                    }
+                    return false;
                 });
         });
     }
@@ -136,5 +152,46 @@ function saveDeliveryForLinkedCollect($modal, data) {
         .find('[data-request-type=collect] [name=expectedAt]')
         .val(deliveryExpectedAt)
         .prop('disabled', true);
+}
+
+function canSubmit($form) {
+    const $expectedAt = $form.find('[name=expectedAt]:not(:hidden)');
+    const $fileNumber = $form.find('[name=contactFileNumber]');
+    const $requestType = $form.find('[name=requestType]:checked');
+    const requestType = $requestType.val();
+
+    if (requestType === 'collect') {
+        return AJAX.route(GET, 'transport_request_collect_already_exists', {
+            expectedAt: $expectedAt.val(),
+            fileNumber: $fileNumber.val()
+        })
+            .json()
+            .then(({exists}) => {
+                if (exists) {
+                    return new Promise((resolve) => {
+                        Modal.confirm({
+                            message: `Il existe déjà une demande de collecte en cours pour ce patient.
+                                    Cliquez sur "Continuer" pour valider quand même sa création`,
+                            action: {
+                                color: 'success',
+                                label: 'Continuer',
+                                click: () => {
+                                    resolve(true);
+                                }
+                            },
+                            cancelled: () => {
+                                resolve(false);
+                            }
+                        });
+                    });
+                }
+                else {
+                    return new Promise(((resolve) => {resolve(true)}));
+                }
+            })
+    }
+    else {
+        return new Promise(((resolve) => {resolve(true)}))
+    }
 }
 

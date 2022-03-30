@@ -9,8 +9,10 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TransportCollectRequestRepository::class)]
-class TransportCollectRequest extends TransportRequest
-{
+class TransportCollectRequest extends TransportRequest {
+
+    #[ORM\Column(type: 'date', nullable: true)]
+    protected ?DateTime $expectedAt = null;
 
     #[ORM\ManyToOne(targetEntity: CollectTimeSlot::class, inversedBy: 'transportCollectRequests')]
     private ?CollectTimeSlot $timeSlot = null;

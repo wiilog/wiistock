@@ -17,8 +17,8 @@ use App\Entity\Transport\TemperatureRange;
 use App\Entity\Transport\TransportHistory;
 use App\Entity\Transport\TransportRequest;
 use App\Entity\Type;
+use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
-use App\Service\SettingsService;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Transport\TransportCollectRequest;
 use App\Entity\Utilisateur;
@@ -234,7 +234,7 @@ class RequestController extends AbstractController {
         ]);
     }
 
-    #[Route("/supprimer/{transportRequest}", name: "delete_transport_request", options: ['expose' => true], methods: "DELETE")]
+    #[Route("/supprimer/{transportRequest}", name: "transport_request_delete", options: ['expose' => true], methods: "DELETE")]
     public function delete(TransportRequest $transportRequest, EntityManagerInterface $entityManager): Response {
 
         $success = $transportRequest->canBeDeleted();
@@ -257,7 +257,7 @@ class RequestController extends AbstractController {
         ]);
     }
 
-    #[Route("/{transportRequest}/status-history-api", name: "status_history_api", options: ['expose' => true], methods: "GET")]
+    #[Route("/{transportRequest}/status-history-api", name: "transport_request_status_history_api", options: ['expose' => true], methods: "GET")]
     public function statusHistoryApi(TransportRequest $transportRequest) {
         $round = !$transportRequest->getOrders()->isEmpty() && !$transportRequest->getOrders()->first()->getTransportRoundLines()->isEmpty()
             ? $transportRequest->getOrders()->first()->getTransportRoundLines()->last()
@@ -287,6 +287,27 @@ class RequestController extends AbstractController {
                     ->sort(fn(TransportHistory $h1, TransportHistory $h2) => $h2->getDate() <=> $h1->getDate())
                     ->toArray()
             ]),
+        ]);
+    }
+
+
+    #[Route("/collect-already-exists", name: "transport_request_collect_already_exists", options: ['expose' => true], methods: "GET")]
+    public function collectAlreadyExists(EntityManagerInterface $entityManager,
+                                         Request $request): JsonResponse {
+        $transportCollectRequestRepository = $entityManager->getRepository(TransportCollectRequest::class);
+
+        $expectedAtStr = $request->query->get('expectedAt', '');
+        $fileNumber = $request->query->get('fileNumber');
+
+        $expectedAtValidation = preg_match("/^\d{4}-\d{2}-\d{2}$/", $expectedAtStr);
+        if (empty($expectedAtValidation) || empty($fileNumber)) {
+            throw new FormException('Requête invalide');
+        }
+
+        $result = $transportCollectRequestRepository->findByFileNumber(new DateTime($expectedAtStr), $fileNumber);
+
+        return $this->json([
+            'exists' => !empty($result),
         ]);
     }
 

@@ -100,8 +100,7 @@ abstract class TransportRequest {
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $validationDate = null;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
-    private ?DateTime $expectedAt = null;
+    protected ?DateTime $expectedAt = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'transportRequests')]
     private ?Utilisateur $createdBy = null;

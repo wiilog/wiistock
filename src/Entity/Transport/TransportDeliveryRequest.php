@@ -11,6 +11,9 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: TransportDeliveryRequestRepository::class)]
 class TransportDeliveryRequest extends TransportRequest {
 
+    #[ORM\Column(type: 'date', nullable: true)]
+    protected ?DateTime $expectedAt = null;
+
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $emergency = null;
 
