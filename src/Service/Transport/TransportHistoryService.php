@@ -89,10 +89,10 @@ class TransportHistoryService {
         $history = new TransportHistory();
         foreach($transports as $transport) {
             if ($transport instanceof TransportRequest) {
-                $history->setTransportRequest($transport);
+                $history->setRequest($transport);
             }
             else if ($transport instanceof TransportOrder) {
-                $history->setTransportOrder($transport);
+                $history->setOrder($transport);
             }
             else {
                 throw new \RuntimeException('Unavailable transport type');
@@ -137,7 +137,7 @@ class TransportHistoryService {
 
     private function formatHistory(TransportHistory $history): string {
         $replace = [
-            "{category}" => $this->formatEntity(get_class($history->getTransportRequest())),
+            "{category}" => $this->formatEntity(get_class($history->getRequest())),
             "{user}" => $this->formatEntity($history->getUser()),
             "{pack}" => $this->formatEntity($history->getPack()),
             "{round}" => $this->formatEntity($history->getRound()),
