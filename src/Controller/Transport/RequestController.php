@@ -14,6 +14,7 @@ use App\Entity\FiltreSup;
 use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\Transport\TemperatureRange;
+use App\Entity\Transport\TransportHistory;
 use App\Entity\Transport\TransportRequest;
 use App\Entity\Type;
 use App\Helper\FormatHelper;
@@ -270,8 +271,21 @@ class RequestController extends AbstractController {
                         "date" => FormatHelper::longDate($statusHistory->getDate(), true, true)
                     ])
                     ->toArray(),
-                "transportRequest" => $transportRequest,
+                "request" => $transportRequest,
                 "round" => $round
+            ]),
+        ]);
+    }
+
+    #[Route("/{transportRequest}/transport-history-api", name: "transport_history_api", options: ['expose' => true], methods: "GET")]
+    public function transportHistoryApi(TransportRequest $transportRequest) {
+        return $this->json([
+            "success" => true,
+            "template" => $this->renderView('transport/request/history.html.twig', [
+                "request" => $transportRequest,
+                "history" => Stream::from($transportRequest->getHistory())
+                    ->sort(fn(TransportHistory $h1, TransportHistory $h2) => $h2->getDate() <=> $h1->getDate())
+                    ->toArray()
             ]),
         ]);
     }

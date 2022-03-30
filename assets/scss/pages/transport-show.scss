@@ -157,6 +157,8 @@
                 &:after {
                     border: 3px solid $red;
                     outline: 2px solid $white;
+                    left: -9px;
+                    top: 17px;
                 }
             }
 
@@ -194,4 +196,88 @@
 
 .bg-red-light {
     background-color: rgba($red, 0.1) !important;
+}
+
+.transport-history-container {
+    max-height: 800px;
+    overflow-y: auto;
+
+    .history-line {
+        display: flex;
+        align-items: center;
+
+        & > * {
+            flex: 1;
+            padding: 12px 0;
+            color: $black;
+
+            .title-right {
+                font-size: 15px;
+                color: $black !important;
+                border-radius: 5px;
+                width: fit-content;
+                margin-left: 3px;
+                min-height: 30px;
+                background-color: #F2F3F7;
+                padding: 8px 10px 12px;
+
+                .summary {
+                    display: flex;
+                    align-items: center;
+                    margin-bottom: 10px;
+                }
+
+                .comment {
+                    margin-left: 30px;
+                    border-left: 3px solid $grey;
+                    padding-left: 8px;
+                    width: 80%;
+                }
+
+                .attachments {
+                    margin-left: 24px;
+                    padding-right: 70px;
+
+                    .attachment-line {
+                        display: flex;
+                        flex-direction: column;
+                    }
+
+                    img {
+                        max-width: 230px;
+                    }
+                }
+            }
+        }
+
+        .history-content {
+            position: relative;
+            z-index: 1;
+
+            .date {
+                margin-left: 25px;
+            }
+
+            &:after {
+                content: "";
+                position: absolute;
+                background-color: $white;
+            }
+
+            &.last:before {
+                height: 50% !important;
+            }
+
+            &:before {
+                content: "";
+                position: absolute;
+                background-color: $grey;
+                left: 20px;
+                top: 16px;
+                width: 2px;
+                height: 100%;
+                z-index: -1;
+            }
+        }
+    }
 }

@@ -10,7 +10,7 @@
 
 {% block page_content %}
     {% set requestType = request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') ? 'Livraison' : 'Collecte' %}
-    <div class="wii-box-container">
+    <div class="wii-box-container mb-4">
         <div class="row">
             <div class="col-lg-4 col-md-6 col-12">
                 <div class="wii-box transport-details">
@@ -81,7 +81,7 @@
                     </div>
                     {% set statusName = request.status|format_helper('status') %}
                     <div class="header timeline d-flex justify-content-center
-                        {{ statusName == constant('App\\Entity\\Transport\\TransportRequest::STATUS_CANCELLED') ? 'bg-red-light' : 'bg-green-light' }}">
+                        {{ statusName in constant('App\\Entity\\Transport\\TransportRequest::CANCELED_STATUSES') ? 'bg-red-light' : 'bg-green-light' }}">
                         <img src="{{ asset('svg/timeline-status.svg') }}" alt="Icône statut timeline" width="15px" class="mr-2">
                         <span>{{ requestType }} <strong>{{ request.status|format_helper('status') }}</strong></span>
                     </div>
@@ -92,7 +92,7 @@
                         </div>
                     </div>
                     <div class="header">
-                        <img src="{{ asset('svg/reference_article/calendar.svg') }}" alt="Icône calendrier" width="15px">
+                        <img src="{{ asset('svg/calendar.svg') }}" alt="Icône calendrier" width="15px">
                         <span class="wii-field-name ml-2">Dates</span>
                     </div>
                     <div class="row content">
@@ -102,7 +102,7 @@
                         </div>
                     </div>
                     <div class="header">
-                        <img src="{{ asset('svg/reference_article/information.svg') }}" alt="Icône information" width="15px">
+                        <img src="{{ asset('svg/information.svg') }}" alt="Icône information" width="15px">
                         <span class="wii-field-name ml-2">Autres informations</span>
                     </div>
                     {% if request.freeFields|length > 0 and freeFields|length > 0 %}
@@ -187,7 +187,12 @@
                 </div>
                 <div class="wii-box">
                     <div class="header wii-title">Historique de transport</div>
-                    <div class="">A REMPLIR</div>{# TODO REMOVE #}
+                    <div class="content bordered transport-history-container">
+                        <div class="d-flex align-items-center justify-content-center">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <span class="ml-3">Génération de l'historique de transport en cours...</span>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="col-lg-4 col-md-6 col-12">
