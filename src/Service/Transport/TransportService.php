@@ -4,9 +4,9 @@ namespace App\Service\Transport;
 
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
-use App\Entity\IOT\DeliveryRequestTemplate;
 use App\Entity\Nature;
 use App\Entity\Statut;
+use App\Entity\Transport\CollectTimeSlot;
 use App\Entity\Transport\TemperatureRange;
 use App\Entity\Transport\TransportCollectRequest;
 use App\Entity\Transport\TransportCollectRequestNature;
@@ -65,13 +65,13 @@ class TransportService {
         $expectedAtStr = $data->get('expectedAt');
 
         if ($transportRequestType === TransportRequest::DISCR_DELIVERY) {
-            $categoryType = CategoryType::DELIVERY_TRANSPORT_REQUEST;
+            $categoryType = CategoryType::DELIVERY_TRANSPORT;
             $transportRequest = new TransportDeliveryRequest();
             $transportRequest
                 ->setEmergency($data->get('emergency') ?: null);
         }
         else if ($transportRequestType === TransportRequest::DISCR_COLLECT) {
-            $categoryType = CategoryType::COLLECT_TRANSPORT_REQUEST;
+            $categoryType = CategoryType::COLLECT_TRANSPORT;
             $transportRequest = new TransportCollectRequest();
 
             if ($mainDelivery) {
@@ -253,5 +253,26 @@ class TransportService {
             'status' => $status,
             'subcontracted' => $subcontracted
         ];
+    }
+
+    public function getTimeslot(EntityManagerInterface $manager, DateTime $date): ?CollectTimeSlot {
+        $timeSlotRepository = $manager->getRepository(CollectTimeSlot::class);
+        $timeSlots = $timeSlotRepository->findAll();
+
+        $hour = $date->format("H");
+        $minute = $date->format("i");
+        foreach($timeSlots as $timeSlot) {
+            [$startHour, $startMinute] = explode(":", $timeSlot->getStart());
+            [$endHour, $endMinute] = explode(":", $timeSlot->getEnd());
+
+            $isAfterStart = $hour > $startHour || ($hour == $startHour && $minute >= $startMinute);
+            $isBeforeEnd = $hour < $endHour || ($hour == $endHour && $minute <= $endMinute);
+
+            if ($isAfterStart && $isBeforeEnd) {
+                return $timeSlot;
+            }
+        }
+
+        return null;
     }
 }

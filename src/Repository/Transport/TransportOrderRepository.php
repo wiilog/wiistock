@@ -16,7 +16,7 @@ use Symfony\Component\HttpFoundation\InputBag;
  */
 class TransportOrderRepository extends EntityRepository {
 
-    public function findByParamAndFilters(InputBag $params, $filters) {
+    public function findByParamAndFilters(InputBag $params, $filters, bool $subcontracts = false) {
         $qb = $this->createQueryBuilder("transport_order")
             ->join("transport_order.request", "transport_request")
             ->andWhere("transport_order.subcontracted = false");

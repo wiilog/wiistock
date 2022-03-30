@@ -27,11 +27,15 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
 
 #[Route("transport/demande")]
 class RequestController extends AbstractController {
+
+    #[Required]
+    public TransportService $transportService;
 
     /**
      * Used in AppController::index for landing page
@@ -182,7 +186,9 @@ class RequestController extends AbstractController {
 
             foreach ($requests as $transportRequest) {
                 $currentRow[] = $this->renderView("transport/request/list_card.html.twig", [
+                    "prefix" => "DTR",
                     "request" => $transportRequest,
+                    "timeSlot" => $this->transportService->getTimeSlot($manager, $transportRequest->getExpectedAt()),
                 ]);
             }
 

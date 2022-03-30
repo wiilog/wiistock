@@ -123,6 +123,7 @@ class OrderController extends AbstractController {
 
             foreach ($orders as $order) {
                 $currentRow[] = $this->renderView("transport/request/list_card.html.twig", [
+                    "prefix" => "OTR",
                     "request" => $order->getRequest(),
                     "order" => $order,
                 ]);

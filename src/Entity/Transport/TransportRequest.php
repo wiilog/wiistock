@@ -46,6 +46,8 @@ abstract class TransportRequest {
     public const STATUS_COLOR = [
         self::STATUS_AWAITING_VALIDATION => "to-validate",
         self::STATUS_AWAITING_PLANNING => "preparing",
+        TransportOrder::STATUS_TO_ASSIGN => "preparing",
+        TransportOrder::STATUS_ASSIGNED => "preparing",
         self::STATUS_TO_DELIVER => "preparing",
         self::STATUS_TO_PREPARE => "preparing",
         self::STATUS_TO_COLLECT => "preparing",

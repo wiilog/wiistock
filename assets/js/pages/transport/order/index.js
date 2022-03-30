@@ -1,8 +1,6 @@
 import {initializeFilters} from "../common";
 
 $(function() {
-    const $modalNewTransportRequest = $("#modalNewTransportRequest");
-
     initializeFilters(PAGE_TRANSPORT_ORDERS)
 
     let table = initDataTable('tableTransportOrders', {
