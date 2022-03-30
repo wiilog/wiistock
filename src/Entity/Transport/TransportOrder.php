@@ -2,6 +2,7 @@
 
 namespace App\Entity\Transport;
 
+use App\Entity\StatusHistory;
 use App\Entity\Statut;
 use App\Entity\Traits\AttachmentTrait;
 use App\Repository\Transport\TransportOrderRepository;
@@ -9,9 +10,11 @@ use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: TransportOrderRepository::class)]
 class TransportOrder {
+
     use AttachmentTrait;
 
     public const NUMBER_PREFIX = 'OTR';
@@ -34,7 +37,7 @@ class TransportOrder {
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(targetEntity: Statut::class, inversedBy: 'transportOrders')]
+    #[ORM\ManyToOne(targetEntity: Statut::class)]
     private ?Statut $status = null;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
@@ -58,41 +61,38 @@ class TransportOrder {
     #[ORM\Column(type: 'boolean')]
     private ?bool $subcontracted = null;
 
-    #[ORM\ManyToOne(targetEntity: TransportRequest::class, inversedBy: 'transportOrders')]
-    private ?TransportRequest $transportRequest = null;
+    #[ORM\ManyToOne(targetEntity: TransportRequest::class, inversedBy: 'orders')]
+    private ?TransportRequest $request = null;
 
-    #[ORM\OneToMany(mappedBy: 'transportOrder', targetEntity: TransportHistory::class)]
-    private Collection $transportRequestHistories;
+    #[ORM\OneToMany(mappedBy: 'order', targetEntity: TransportHistory::class)]
+    private Collection $history;
 
-    #[ORM\OneToMany(mappedBy: 'transportOrder', targetEntity: TransportDeliveryOrderPack::class)]
-    private Collection $transportDeliveryOrderPacks;
+    #[ORM\OneToMany(mappedBy: 'order', targetEntity: TransportDeliveryOrderPack::class)]
+    private Collection $packs;
 
-    #[ORM\OneToMany(mappedBy: 'transportOrder', targetEntity: TransportRoundLine::class)]
+    #[ORM\OneToMany(mappedBy: 'order', targetEntity: TransportRoundLine::class)]
     private Collection $transportRoundLines;
 
     #[ORM\OneToMany(mappedBy: 'transportOrder', targetEntity: StatusHistory::class)]
-    private Collection $statusHistories;
+    private Collection $statusHistory;
 
-    public function __construct()
-    {
-        $this->transportRequestHistories = new ArrayCollection();
-        $this->transportDeliveryOrderPacks = new ArrayCollection();
+    public function __construct() {
+        $this->history = new ArrayCollection();
+        $this->packs = new ArrayCollection();
         $this->transportRoundLines = new ArrayCollection();
-        $this->statusHistories = new ArrayCollection();
+        $this->statusHistory = new ArrayCollection();
     }
 
-    public function getId(): ?int
-    {
+    public function getId(): ?int {
         return $this->id;
     }
 
-    public function getStatus(): ?Statut
-    {
+    public function getStatus(): ?Statut {
         return $this->status;
     }
 
     public function setStatus(?Statut $status): self {
-        if($this->status && $this->status !== $status) {
+        if ($this->status && $this->status !== $status) {
             $this->status->removeTransportOrder($this);
         }
         $this->status = $status;
@@ -101,101 +101,86 @@ class TransportOrder {
         return $this;
     }
 
-    public function getSubcontractor(): ?string
-    {
+    public function getSubcontractor(): ?string {
         return $this->subcontractor;
     }
 
-    public function setSubcontractor(?string $subcontractor): self
-    {
+    public function setSubcontractor(?string $subcontractor): self {
         $this->subcontractor = $subcontractor;
 
         return $this;
     }
 
-    public function getRegistrationNumber(): ?string
-    {
+    public function getRegistrationNumber(): ?string {
         return $this->registrationNumber;
     }
 
-    public function setRegistrationNumber(?string $registrationNumber): self
-    {
+    public function setRegistrationNumber(?string $registrationNumber): self {
         $this->registrationNumber = $registrationNumber;
 
         return $this;
     }
 
-    public function getCreatedAt(): ?DateTime
-    {
+    public function getCreatedAt(): ?DateTime {
         return $this->createdAt;
     }
 
-    public function setCreatedAt(DateTime $createdAt): self
-    {
+    public function setCreatedAt(DateTime $createdAt): self {
         $this->createdAt = $createdAt;
 
         return $this;
     }
 
-    public function getStartedAt(): ?DateTime
-    {
+    public function getStartedAt(): ?DateTime {
         return $this->startedAt;
     }
 
-    public function setStartedAt(DateTime $startedAt): self
-    {
+    public function setStartedAt(DateTime $startedAt): self {
         $this->startedAt = $startedAt;
 
         return $this;
     }
 
-    public function getTreatedAt(): ?DateTime
-    {
+    public function getTreatedAt(): ?DateTime {
         return $this->treatedAt;
     }
 
-    public function setTreatedAt(?DateTime $treatedAt): self
-    {
+    public function setTreatedAt(?DateTime $treatedAt): self {
         $this->treatedAt = $treatedAt;
 
         return $this;
     }
 
-    public function getComment(): ?string
-    {
+    public function getComment(): ?string {
         return $this->comment;
     }
 
-    public function setComment(?string $comment): self
-    {
+    public function setComment(?string $comment): self {
         $this->comment = $comment;
 
         return $this;
     }
 
-    public function getSubcontracted(): ?bool
-    {
+    public function getSubcontracted(): ?bool {
         return $this->subcontracted;
     }
 
-    public function setSubcontracted(bool $subcontracted): self
-    {
+    public function setSubcontracted(bool $subcontracted): self {
         $this->subcontracted = $subcontracted;
 
         return $this;
     }
 
-    public function getTransportRequest(): ?TransportRequest
-    {
-        return $this->transportRequest;
+    public function getRequest(): ?TransportRequest {
+        return $this->request;
     }
 
-    public function setTransportRequest(?TransportRequest $transportRequest): self {
-        if($this->transportRequest && $this->transportRequest !== $transportRequest) {
-            $this->transportRequest->removeTransportOrder($this);
+    public function setRequest(?TransportRequest $request): self {
+        if ($this->request && $this->request !== $request) {
+            $this->request->removeOrder($this);
         }
-        $this->transportRequest = $transportRequest;
-        $transportRequest?->addTransportOrder($this);
+        $this->request = $request;
+        $request?->addOrder($this);
 
         return $this;
     }
@@ -203,57 +188,63 @@ class TransportOrder {
     /**
      * @return Collection<int, TransportHistory>
      */
-    public function getTransportRequestHistories(): Collection
-    {
-        return $this->transportRequestHistories;
+    public function getHistory(): Collection {
+        return $this->history;
     }
 
-    public function addTransportHistory(TransportHistory $transportHistory): self
-    {
-        if (!$this->transportRequestHistories->contains($transportHistory)) {
-            $this->transportRequestHistories[] = $transportHistory;
-            $transportHistory->setTransportOrder($this);
+    public function addHistory(TransportHistory $transportHistory): self {
+        if (!$this->history->contains($transportHistory)) {
+            $this->history[] = $transportHistory;
+            $transportHistory->setOrder($this);
         }
 
         return $this;
     }
 
-    public function removeTransportHistory(TransportHistory $transportHistory): self
-    {
-        if ($this->transportRequestHistories->removeElement($transportHistory)) {
+    public function removeHistory(TransportHistory $transportHistory): self {
+        if ($this->history->removeElement($transportHistory)) {
             // set the owning side to null (unless already changed)
-            if ($transportHistory->getTransportOrder() === $this) {
-                $transportHistory->setTransportOrder(null);
+            if ($transportHistory->getOrder() === $this) {
+                $transportHistory->setOrder(null);
             }
         }
 
         return $this;
     }
 
+    public function isRejected(): bool {
+        return Stream::from($this->getPacks())
+            ->filter(fn(TransportDeliveryOrderPack $pack) => !$pack->isRejected())
+            ->isEmpty();
+    }
+
+    public function hasRejectedPacks(): bool {
+        return Stream::from($this->getPacks())
+            ->filter(fn(TransportDeliveryOrderPack $pack) => $pack->isRejected())
+            ->count();
+    }
+
     /**
      * @return Collection<int, TransportDeliveryOrderPack>
      */
-    public function getTransportDeliveryOrderPacks(): Collection
-    {
-        return $this->transportDeliveryOrderPacks;
+    public function getPacks(): Collection {
+        return $this->packs;
     }
 
-    public function addTransportDeliveryOrderPack(TransportDeliveryOrderPack $transportDeliveryOrderPack): self
-    {
-        if (!$this->transportDeliveryOrderPacks->contains($transportDeliveryOrderPack)) {
-            $this->transportDeliveryOrderPacks[] = $transportDeliveryOrderPack;
-            $transportDeliveryOrderPack->setTransportOrder($this);
+    public function addPack(TransportDeliveryOrderPack $pack): self {
+        if (!$this->packs->contains($pack)) {
+            $this->packs[] = $pack;
+            $pack->setOrder($this);
         }
 
         return $this;
     }
 
-    public function removeTransportDeliveryOrderPack(TransportDeliveryOrderPack $transportDeliveryOrderPack): self
-    {
-        if ($this->transportDeliveryOrderPacks->removeElement($transportDeliveryOrderPack)) {
+    public function removePack(TransportDeliveryOrderPack $pack): self {
+        if ($this->packs->removeElement($pack)) {
             // set the owning side to null (unless already changed)
-            if ($transportDeliveryOrderPack->getTransportOrder() === $this) {
-                $transportDeliveryOrderPack->setTransportOrder(null);
+            if ($pack->getOrder() === $this) {
+                $pack->setOrder(null);
             }
         }
 
@@ -263,27 +254,24 @@ class TransportOrder {
     /**
      * @return Collection<int, TransportRoundLine>
      */
-    public function getTransportRoundLines(): Collection
-    {
+    public function getTransportRoundLines(): Collection {
         return $this->transportRoundLines;
     }
 
-    public function addTransportRoundLine(TransportRoundLine $transportRoundLine): self
-    {
+    public function addTransportRoundLine(TransportRoundLine $transportRoundLine): self {
         if (!$this->transportRoundLines->contains($transportRoundLine)) {
             $this->transportRoundLines[] = $transportRoundLine;
-            $transportRoundLine->setTransportOrder($this);
+            $transportRoundLine->setOrder($this);
         }
 
         return $this;
     }
 
-    public function removeTransportRoundLine(TransportRoundLine $transportRoundLine): self
-    {
+    public function removeTransportRoundLine(TransportRoundLine $transportRoundLine): self {
         if ($this->transportRoundLines->removeElement($transportRoundLine)) {
             // set the owning side to null (unless already changed)
-            if ($transportRoundLine->getTransportOrder() === $this) {
-                $transportRoundLine->setTransportOrder(null);
+            if ($transportRoundLine->getOrder() === $this) {
+                $transportRoundLine->setOrder(null);
             }
         }
 
@@ -293,24 +281,21 @@ class TransportOrder {
     /**
      * @return Collection<int, StatusHistory>
      */
-    public function getHistory(): Collection
-    {
-        return $this->statusHistories;
+    public function getStatusHistory(): Collection {
+        return $this->statusHistory;
     }
 
-    public function addStatusHistory(StatusHistory $statusHistory): self
-    {
-        if (!$this->statusHistories->contains($statusHistory)) {
-            $this->statusHistories[] = $statusHistory;
+    public function addStatusHistory(StatusHistory $statusHistory): self {
+        if (!$this->statusHistory->contains($statusHistory)) {
+            $this->statusHistory[] = $statusHistory;
             $statusHistory->setTransportOrder($this);
         }
 
         return $this;
     }
 
-    public function removeStatusHistory(StatusHistory $statusHistory): self
-    {
-        if ($this->statusHistories->removeElement($statusHistory)) {
+    public function removeStatusHistory(StatusHistory $statusHistory): self {
+        if ($this->statusHistory->removeElement($statusHistory)) {
             // set the owning side to null (unless already changed)
             if ($statusHistory->getTransportOrder() === $this) {
                 $statusHistory->setTransportOrder(null);
@@ -319,4 +304,5 @@ class TransportOrder {
 
         return $this;
     }
+
 }

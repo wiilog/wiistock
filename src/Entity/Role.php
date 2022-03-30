@@ -2,11 +2,12 @@
 
 namespace App\Entity;
 
+use App\Repository\RoleRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\RoleRepository')]
+#[ORM\Entity(repositoryClass: RoleRepository::class)]
 class Role {
 
     public const LANDING_PAGE_DASHBOARD = 'dashboard';

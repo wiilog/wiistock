@@ -3,11 +3,12 @@
 namespace App\Entity;
 
 use App\Entity\Dashboard\Page;
+use App\Repository\ActionRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\ActionRepository')]
+#[ORM\Entity(repositoryClass: ActionRepository::class)]
 class Action {
 
     const LIST = 'lister';

@@ -2,12 +2,13 @@
 
 namespace App\Entity;
 
+use App\Repository\DisputeRepository;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\DisputeRepository')]
+#[ORM\Entity(repositoryClass: DisputeRepository::class)]
 class Dispute {
 
     // origine du litige

@@ -2,9 +2,10 @@
 
 namespace App\Entity;
 
+use App\Repository\LatePackRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\LatePackRepository')]
+#[ORM\Entity(repositoryClass: LatePackRepository::class)]
 class LatePack {
 
     #[ORM\Id]

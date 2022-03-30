@@ -21,7 +21,7 @@ class TransportRound
     #[ORM\Column(type: 'string', length: 255)]
     private ?string $number = null;
 
-    #[ORM\ManyToOne(targetEntity: Statut::class, inversedBy: 'transportRounds')]
+    #[ORM\ManyToOne(targetEntity: Statut::class)]
     private ?Statut $status = null;
 
     #[ORM\Column(type: 'datetime')]
@@ -55,15 +55,11 @@ class TransportRound
     private ?string $estimatedTime = null;
 
     #[ORM\OneToMany(mappedBy: 'transportRound', targetEntity: TransportRoundLine::class)]
-    private Collection|null $transportRoundLines = null;
-
-    #[ORM\OneToMany(mappedBy: 'transportRound', targetEntity: TransportDeliveryRequest::class)]
-    private Collection $transportDeliveryRequests;
+    private Collection $transportRoundLines;
 
     public function __construct()
     {
         $this->transportRoundLines = new ArrayCollection();
-        $this->transportDeliveryRequests = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -245,36 +241,6 @@ class TransportRound
             // set the owning side to null (unless already changed)
             if ($transportRoundLine->getTransportRound() === $this) {
                 $transportRoundLine->setTransportRound(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, TransportDeliveryRequest>
-     */
-    public function getTransportDeliveryRequests(): Collection
-    {
-        return $this->transportDeliveryRequests;
-    }
-
-    public function addTransportDeliveryRequest(TransportDeliveryRequest $transportDeliveryRequest): self
-    {
-        if (!$this->transportDeliveryRequests->contains($transportDeliveryRequest)) {
-            $this->transportDeliveryRequests[] = $transportDeliveryRequest;
-            $transportDeliveryRequest->setTransportRound($this);
-        }
-
-        return $this;
-    }
-
-    public function removeTransportDeliveryRequest(TransportDeliveryRequest $transportDeliveryRequest): self
-    {
-        if ($this->transportDeliveryRequests->removeElement($transportDeliveryRequest)) {
-            // set the owning side to null (unless already changed)
-            if ($transportDeliveryRequest->getTransportRound() === $this) {
-                $transportDeliveryRequest->setTransportRound(null);
             }
         }
 

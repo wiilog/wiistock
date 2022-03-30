@@ -2,11 +2,9 @@
 
 namespace App\Entity\Transport;
 
-use App\Entity\Attachment;
-use App\Entity\Emplacement;
 use App\Entity\Pack;
+use App\Entity\StatusHistory;
 use App\Entity\Traits\AttachmentTrait;
-use App\Entity\Utilisateur;
 use App\Repository\Transport\TransportHistoryRepository;
 use DateTime;
 use Doctrine\ORM\Mapping as ORM;
@@ -14,46 +12,30 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: TransportHistoryRepository::class)]
 class TransportHistory {
 
+    use AttachmentTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
+    #[ORM\ManyToOne(targetEntity: TransportRequest::class, inversedBy: 'history')]
+    private ?TransportRequest $request = null;
+
+    #[ORM\ManyToOne(targetEntity: TransportOrder::class, inversedBy: 'history')]
+    private ?TransportOrder $order = null;
+
     #[ORM\Column(type: 'datetime')]
     private ?DateTime $date = null;
 
-    #[ORM\ManyToOne(targetEntity: TransportRequest::class, inversedBy: 'transportRequestHistories')]
-    private ?TransportRequest $transportRequest = null;
-
-    #[ORM\ManyToOne(targetEntity: TransportOrder::class, inversedBy: 'transportRequestHistories')]
-    private ?TransportOrder $transportOrder = null;
-
-    #[ORM\Column(type: 'string', length: 255)]
-    private ?string $type = null;
-
-    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
-    private ?Utilisateur $user = null;
-
-    #[ORM\ManyToOne(targetEntity: TransportRound::class)]
-    private ?TransportRound $round = null;
-
-    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
-    private ?Utilisateur $deliverer = null;
-
-    #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: 'transportRequestHistories')]
+    #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: 'transportHistory')]
     private ?Pack $pack = null;
-
-    #[ORM\Column(type: 'text', nullable: true)]
-    private ?string $reason = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $comment = null;
 
-    #[ORM\OneToOne(targetEntity: Emplacement::class)]
-    private ?Emplacement $location = null;
-
-    #[ORM\OneToOne(targetEntity: Attachment::class)]
-    private ?Attachment $attachment = null;
+    #[ORM\Column(type: 'string', length: 255)]
+    private ?string $category = null;
 
     #[ORM\OneToOne(targetEntity: StatusHistory::class, cascade: ['persist', 'remove'])]
     private ?StatusHistory $statusHistory = null;
@@ -72,51 +54,6 @@ class TransportHistory {
         return $this;
     }
 
-    public function getUser(): ?Utilisateur {
-        return $this->user;
-    }
-
-    public function setUser(?Utilisateur $user): self {
-        $this->user = $user;
-        return $this;
-    }
-
-    public function getRound(): ?TransportRound {
-        return $this->round;
-    }
-
-    public function setRound(?TransportRound $round): self {
-        $this->round = $round;
-        return $this;
-    }
-
-    public function getDeliverer(): ?Utilisateur {
-        return $this->deliverer;
-    }
-
-    public function setDeliverer(?Utilisateur $deliverer): self {
-        $this->deliverer = $deliverer;
-        return $this;
-    }
-
-    public function getLocation(): ?Emplacement {
-        return $this->location;
-    }
-
-    public function setLocation(?Emplacement $location): self {
-        $this->location = $location;
-        return $this;
-    }
-
-    public function getAttachment(): ?Attachment {
-        return $this->attachment;
-    }
-
-    public function setAttachment(?Attachment $attachment): self {
-        $this->attachment = $attachment;
-        return $this;
-    }
-
     public function getPack(): ?Pack {
         return $this->pack;
     }
@@ -131,15 +68,6 @@ class TransportHistory {
         return $this;
     }
 
-    public function getReason(): ?string {
-        return $this->reason;
-    }
-
-    public function setReason(?string $reason): self {
-        $this->reason = $reason;
-        return $this;
-    }
-
     public function getComment(): ?string {
         return $this->comment;
     }
@@ -150,40 +78,40 @@ class TransportHistory {
         return $this;
     }
 
-    public function getType(): ?string {
-        return $this->type;
+    public function getCategory(): ?string {
+        return $this->category;
     }
 
-    public function setType(string $type): self {
-        $this->type = $type;
+    public function setCategory(string $category): self {
+        $this->category = $category;
 
         return $this;
     }
 
-    public function getTransportRequest(): ?TransportRequest {
-        return $this->transportRequest;
+    public function getRequest(): ?TransportRequest {
+        return $this->request;
     }
 
-    public function setTransportRequest(?TransportRequest $transportRequest): self {
-        if ($this->transportRequest && $this->transportRequest !== $transportRequest) {
-            $this->transportRequest->removeTransportHistory($this);
+    public function setRequest(?TransportRequest $request): self {
+        if ($this->request && $this->request !== $request) {
+            $this->request->removeHistory($this);
         }
-        $this->transportRequest = $transportRequest;
-        $transportRequest?->addTransportHistory($this);
+        $this->request = $request;
+        $request?->addHistory($this);
 
         return $this;
     }
 
-    public function getTransportOrder(): ?TransportOrder {
-        return $this->transportOrder;
+    public function getOrder(): ?TransportOrder {
+        return $this->order;
     }
 
-    public function setTransportOrder(?TransportOrder $transportOrder): self {
-        if ($this->transportOrder && $this->transportOrder !== $transportOrder) {
-            $this->transportOrder->removeTransportHistory($this);
+    public function setOrder(?TransportOrder $order): self {
+        if ($this->order && $this->order !== $order) {
+            $this->order->removeHistory($this);
         }
-        $this->transportOrder = $transportOrder;
-        $transportOrder?->addTransportHistory($this);
+        $this->order = $order;
+        $order?->addHistory($this);
 
         return $this;
     }

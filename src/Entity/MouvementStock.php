@@ -3,10 +3,11 @@
 namespace App\Entity;
 
 use App\Entity\PreparationOrder\Preparation;
+use App\Repository\MouvementStockRepository;
 use DateTimeInterface;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\MouvementStockRepository')]
+#[ORM\Entity(repositoryClass: MouvementStockRepository::class)]
 class MouvementStock {
 
     const TYPE_ENTREE = 'entrée';

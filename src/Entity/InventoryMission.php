@@ -2,11 +2,12 @@
 
 namespace App\Entity;
 
+use App\Repository\InventoryMissionRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\InventoryMissionRepository')]
+#[ORM\Entity(repositoryClass: InventoryMissionRepository::class)]
 class InventoryMission {
 
     #[ORM\Id]

@@ -3,12 +3,13 @@
 namespace App\Entity;
 
 use App\Entity\Traits\FreeFieldsManagerTrait;
+use App\Repository\DispatchRepository;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\DispatchRepository')]
+#[ORM\Entity(repositoryClass: DispatchRepository::class)]
 class Dispatch {
 
     use FreeFieldsManagerTrait;

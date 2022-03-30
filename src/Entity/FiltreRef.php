@@ -2,9 +2,10 @@
 
 namespace App\Entity;
 
+use App\Repository\FiltreRefRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\FiltreRefRepository')]
+#[ORM\Entity(repositoryClass: FiltreRefRepository::class)]
 class FiltreRef {
 
     const FIXED_FIELD_REF_ART_FOURN = 'référence article fournisseur';

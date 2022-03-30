@@ -116,18 +116,6 @@ class Statut {
     #[ORM\OneToMany(mappedBy: 'requestStatus', targetEntity: HandlingRequestTemplate::class)]
     private Collection $handlingRequestStatusTemplates;
 
-    #[ORM\OneToMany(mappedBy: 'status', targetEntity: TransportRequest::class)]
-    private Collection $transportRequests;
-
-    #[ORM\OneToMany(mappedBy: 'status', targetEntity: TransportRound::class)]
-    private Collection $transportRounds;
-
-    #[ORM\OneToMany(mappedBy: 'status', targetEntity: TransportOrder::class)]
-    private Collection $transportOrders;
-
-    #[ORM\OneToMany(mappedBy: 'status', targetEntity: StatusHistory::class)]
-    private Collection $transportStatusHistories;
-
     public function __construct() {
         $this->articles = new ArrayCollection();
         $this->receptions = new ArrayCollection();
@@ -145,10 +133,6 @@ class Statut {
 
         $this->purchaseRequests = new ArrayCollection();
         $this->handlingRequestStatusTemplates = new ArrayCollection();
-        $this->transportRequests = new ArrayCollection();
-        $this->transportRounds = new ArrayCollection();
-        $this->transportOrders = new ArrayCollection();
-        $this->transportStatusHistories = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -748,126 +732,6 @@ class Statut {
             // set the owning side to null (unless already changed)
             if($handlingRequestStatusTemplate->getRequestStatus() === $this) {
                 $handlingRequestStatusTemplate->setRequestStatus(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, TransportRequest>
-     */
-    public function getTransportRequests(): Collection
-    {
-        return $this->transportRequests;
-    }
-
-    public function addTransportRequest(TransportRequest $transportRequest): self
-    {
-        if (!$this->transportRequests->contains($transportRequest)) {
-            $this->transportRequests[] = $transportRequest;
-            $transportRequest->setStatus($this);
-        }
-
-        return $this;
-    }
-
-    public function removeTransportRequest(TransportRequest $transportRequest): self
-    {
-        if ($this->transportRequests->removeElement($transportRequest)) {
-            // set the owning side to null (unless already changed)
-            if ($transportRequest->getStatus() === $this) {
-                $transportRequest->setStatus(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, TransportRound>
-     */
-    public function getTransportRounds(): Collection
-    {
-        return $this->transportRounds;
-    }
-
-    public function addTransportRound(TransportRound $transportRound): self
-    {
-        if (!$this->transportRounds->contains($transportRound)) {
-            $this->transportRounds[] = $transportRound;
-            $transportRound->setStatus($this);
-        }
-
-        return $this;
-    }
-
-    public function removeTransportRound(TransportRound $transportRound): self
-    {
-        if ($this->transportRounds->removeElement($transportRound)) {
-            // set the owning side to null (unless already changed)
-            if ($transportRound->getStatus() === $this) {
-                $transportRound->setStatus(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, TransportOrder>
-     */
-    public function getTransportOrders(): Collection
-    {
-        return $this->transportOrders;
-    }
-
-    public function addTransportOrder(TransportOrder $transportOrder): self
-    {
-        if (!$this->transportOrders->contains($transportOrder)) {
-            $this->transportOrders[] = $transportOrder;
-            $transportOrder->setStatus($this);
-        }
-
-        return $this;
-    }
-
-    public function removeTransportOrder(TransportOrder $transportOrder): self
-    {
-        if ($this->transportOrders->removeElement($transportOrder)) {
-            // set the owning side to null (unless already changed)
-            if ($transportOrder->getStatus() === $this) {
-                $transportOrder->setStatus(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, StatusHistory>
-     */
-    public function getTransportStatusHistories(): Collection
-    {
-        return $this->transportStatusHistories;
-    }
-
-    public function addTransportStatusHistory(StatusHistory $transportStatusHistory): self
-    {
-        if (!$this->transportStatusHistories->contains($transportStatusHistory)) {
-            $this->transportStatusHistories[] = $transportStatusHistory;
-            $transportStatusHistory->setStatus($this);
-        }
-
-        return $this;
-    }
-
-    public function removeTransportStatusHistory(StatusHistory $transportStatusHistory): self
-    {
-        if ($this->transportStatusHistories->removeElement($transportStatusHistory)) {
-            // set the owning side to null (unless already changed)
-            if ($transportStatusHistory->getStatus() === $this) {
-                $transportStatusHistory->setStatus(null);
             }
         }
 

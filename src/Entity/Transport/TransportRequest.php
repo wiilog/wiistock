@@ -2,6 +2,7 @@
 
 namespace App\Entity\Transport;
 
+use App\Entity\StatusHistory;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -11,14 +12,15 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use JetBrains\PhpStorm\Pure;
+use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: TransportRequestRepository::class)]
 #[ORM\InheritanceType('JOINED')]
 #[ORM\DiscriminatorColumn(name: 'discr', type: 'string')]
 #[ORM\DiscriminatorMap([
-      self::DISCR_DELIVERY => TransportDeliveryRequest::class,
-      self::DISCR_COLLECT => TransportCollectRequest::class
- ])]
+    self::DISCR_DELIVERY => TransportDeliveryRequest::class,
+    self::DISCR_COLLECT => TransportCollectRequest::class,
+])]
 abstract class TransportRequest {
 
     public const NUMBER_PREFIX = 'DTR';
@@ -41,6 +43,34 @@ abstract class TransportRequest {
     public const STATUS_NOT_COLLECTED = 'Non collectée';
     public const STATUS_SUBCONTRACTED = 'Sous-traitée';
 
+    public const STATUS_COLOR = [
+        self::STATUS_AWAITING_VALIDATION => "to-validate",
+        self::STATUS_AWAITING_PLANNING => "preparing",
+        self::STATUS_TO_DELIVER => "preparing",
+        self::STATUS_TO_PREPARE => "preparing",
+        self::STATUS_TO_COLLECT => "preparing",
+        self::STATUS_ONGOING => "ongoing",
+        self::STATUS_FINISHED => "finished",
+        self::STATUS_CANCELLED => "finished",
+        self::STATUS_NOT_DELIVERED => "cancelled",
+        self::STATUS_NOT_COLLECTED => "cancelled",
+    ];
+
+    public const DELIVERY_STATUSES = [
+        TransportRequest::STATUS_TO_PREPARE,
+        TransportRequest::STATUS_TO_DELIVER,
+        TransportRequest::STATUS_ONGOING,
+        TransportRequest::STATUS_FINISHED,
+    ];
+
+    public const COLLECT_STATUSES = [
+        TransportRequest::STATUS_AWAITING_PLANNING,
+        TransportRequest::STATUS_TO_COLLECT,
+        TransportRequest::STATUS_ONGOING,
+        TransportRequest::STATUS_FINISHED,
+        TransportRequest::STATUS_DEPOSITED,
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
@@ -49,17 +79,20 @@ abstract class TransportRequest {
     #[ORM\Column(type: 'string', length: 255)]
     private ?string $number = null;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
-    private ?DateTime $expectedAt = null;
-
-    #[ORM\ManyToOne(targetEntity: Type::class, inversedBy: 'transportRequests')]
+    #[ORM\ManyToOne(targetEntity: Type::class)]
     private ?Type $type = null;
 
-    #[ORM\ManyToOne(targetEntity: Statut::class, inversedBy: 'transportRequests')]
+    #[ORM\ManyToOne(targetEntity: Statut::class)]
     private ?Statut $status = null;
 
     #[ORM\Column(type: 'datetime')]
     private ?DateTime $createdAt = null;
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?DateTime $validationDate = null;
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?DateTime $expectedAt = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'transportRequests')]
     private ?Utilisateur $createdBy = null;
@@ -67,22 +100,22 @@ abstract class TransportRequest {
     #[ORM\Column(type: 'json', nullable: true)]
     private ?array $freeFields = [];
 
-    #[ORM\OneToMany(mappedBy: 'transportRequest', targetEntity: TransportOrder::class)]
-    private Collection $transportOrders;
+    #[ORM\OneToMany(mappedBy: 'request', targetEntity: TransportOrder::class)]
+    private Collection $orders;
 
-    #[ORM\OneToMany(mappedBy: 'transportRequest', targetEntity: TransportHistory::class)]
-    private Collection $transportRequestHistories;
+    #[ORM\OneToMany(mappedBy: 'request', targetEntity: TransportHistory::class)]
+    private Collection $history;
 
     #[ORM\OneToMany(mappedBy: 'transportRequest', targetEntity: StatusHistory::class)]
-    private Collection $statusHistories;
+    private Collection $statusHistory;
 
     #[ORM\ManyToOne(targetEntity: TransportRequestContact::class, cascade: ['persist', 'remove'])]
     private ?TransportRequestContact $contact = null;
 
-    #[Pure] public function __construct() {
-        $this->transportOrders = new ArrayCollection();
-        $this->transportRequestHistories = new ArrayCollection();
-        $this->statusHistories = new ArrayCollection();
+    public function __construct() {
+        $this->orders = new ArrayCollection();
+        $this->history = new ArrayCollection();
+        $this->statusHistory = new ArrayCollection();
         $this->contact = $this->contact ?? new TransportRequestContact();
     }
 
@@ -105,11 +138,7 @@ abstract class TransportRequest {
     }
 
     public function setType(?Type $type): self {
-        if ($this->type && $this->type !== $type) {
-            $this->type->removeTransportRequest($this);
-        }
         $this->type = $type;
-        $type?->addTransportRequest($this);
 
         return $this;
     }
@@ -119,12 +148,7 @@ abstract class TransportRequest {
     }
 
     public function setStatus(?Statut $status): self {
-        if ($this->status && $this->status !== $status) {
-            $this->status->removeTransportRequest($this);
-        }
         $this->status = $status;
-        $status?->addTransportRequest($this);
-
         return $this;
     }
 
@@ -134,6 +158,26 @@ abstract class TransportRequest {
 
     public function setCreatedAt(DateTime $createdAt): self {
         $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    public function getValidationDate(): ?DateTime {
+        return $this->validationDate;
+    }
+
+    public function setValidationDate(?DateTime $validationDate): self {
+        $this->validationDate = $validationDate;
+
+        return $this;
+    }
+
+    public function getExpectedAt(): ?DateTime {
+        return $this->expectedAt;
+    }
+
+    public function setExpectedAt(DateTime $expectedAt): self {
+        $this->expectedAt = $expectedAt;
 
         return $this;
     }
@@ -165,24 +209,24 @@ abstract class TransportRequest {
     /**
      * @return Collection<int, TransportOrder>
      */
-    public function getTransportOrders(): Collection {
-        return $this->transportOrders;
+    public function getOrders(): Collection {
+        return $this->orders;
     }
 
-    public function addTransportOrder(TransportOrder $transportOrder): self {
-        if (!$this->transportOrders->contains($transportOrder)) {
-            $this->transportOrders[] = $transportOrder;
-            $transportOrder->setTransportRequest($this);
+    public function addOrder(TransportOrder $transportOrder): self {
+        if (!$this->orders->contains($transportOrder)) {
+            $this->orders[] = $transportOrder;
+            $transportOrder->setRequest($this);
         }
 
         return $this;
     }
 
-    public function removeTransportOrder(TransportOrder $transportOrder): self {
-        if ($this->transportOrders->removeElement($transportOrder)) {
+    public function removeOrder(TransportOrder $transportOrder): self {
+        if ($this->orders->removeElement($transportOrder)) {
             // set the owning side to null (unless already changed)
-            if ($transportOrder->getTransportRequest() === $this) {
-                $transportOrder->setTransportRequest(null);
+            if ($transportOrder->getRequest() === $this) {
+                $transportOrder->setRequest(null);
             }
         }
 
@@ -192,24 +236,24 @@ abstract class TransportRequest {
     /**
      * @return Collection<int, TransportHistory>
      */
-    public function getTransportRequestHistories(): Collection {
-        return $this->transportRequestHistories;
+    public function getHistory(): Collection {
+        return $this->history;
     }
 
-    public function addTransportHistory(TransportHistory $transportHistory): self {
-        if (!$this->transportRequestHistories->contains($transportHistory)) {
-            $this->transportRequestHistories[] = $transportHistory;
-            $transportHistory->setTransportRequest($this);
+    public function addHistory(TransportHistory $history): self {
+        if (!$this->history->contains($history)) {
+            $this->history[] = $history;
+            $history->setRequest($this);
         }
 
         return $this;
     }
 
-    public function removeTransportHistory(TransportHistory $transportHistory): self {
-        if ($this->transportRequestHistories->removeElement($transportHistory)) {
+    public function removeHistory(TransportHistory $history): self {
+        if ($this->history->removeElement($history)) {
             // set the owning side to null (unless already changed)
-            if ($transportHistory->getTransportRequest() === $this) {
-                $transportHistory->setTransportRequest(null);
+            if ($history->getRequest() === $this) {
+                $history->setRequest(null);
             }
         }
 
@@ -219,13 +263,13 @@ abstract class TransportRequest {
     /**
      * @return Collection<int, StatusHistory>
      */
-    public function getHistory(): Collection {
-        return $this->statusHistories;
+    public function getStatusHistory(): Collection {
+        return $this->statusHistory;
     }
 
     public function addStatusHistory(StatusHistory $statusHistory): self {
-        if (!$this->statusHistories->contains($statusHistory)) {
-            $this->statusHistories[] = $statusHistory;
+        if (!$this->statusHistory->contains($statusHistory)) {
+            $this->statusHistory[] = $statusHistory;
             $statusHistory->setTransportRequest($this);
         }
 
@@ -233,7 +277,7 @@ abstract class TransportRequest {
     }
 
     public function removeStatusHistory(StatusHistory $statusHistory): self {
-        if ($this->statusHistories->removeElement($statusHistory)) {
+        if ($this->statusHistory->removeElement($statusHistory)) {
             // set the owning side to null (unless already changed)
             if ($statusHistory->getTransportRequest() === $this) {
                 $statusHistory->setTransportRequest(null);
@@ -253,12 +297,10 @@ abstract class TransportRequest {
         return $this;
     }
 
-    public function getExpectedAt(): ?DateTime {
-        return $this->expectedAt;
+    public function isInRound(): bool {
+        return Stream::from($this->orders)->some(fn(TransportOrder $order) => !$order->getTransportRoundLines()->isEmpty());
     }
 
-    public function setExpectedAt(?DateTime $expectedAt): self {
-        $this->expectedAt = $expectedAt;
-        return $this;
-    }
+    public abstract function canBeDeleted(): bool;
+
 }

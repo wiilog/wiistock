@@ -2,9 +2,10 @@
 
 namespace App\Entity;
 
+use App\Repository\FieldsParamRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\FieldsParamRepository')]
+#[ORM\Entity(repositoryClass: FieldsParamRepository::class)]
 class FieldsParam {
 
     const ENTITY_CODE_RECEPTION = 'réception';

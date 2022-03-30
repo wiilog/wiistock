@@ -3,9 +3,10 @@
 namespace App\Entity;
 
 use App\Helper\FormatHelper;
+use App\Repository\InventoryEntryRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\InventoryEntryRepository')]
+#[ORM\Entity(repositoryClass: InventoryEntryRepository::class)]
 class InventoryEntry {
 
     #[ORM\Id]

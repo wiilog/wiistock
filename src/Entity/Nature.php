@@ -5,11 +5,12 @@ namespace App\Entity;
 use App\Entity\Transport\TemperatureRange;
 use App\Entity\Transport\TransportCollectRequestNature;
 use App\Entity\Transport\TransportDeliveryRequestNature;
+use App\Repository\NatureRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\NatureRepository')]
+#[ORM\Entity(repositoryClass: NatureRepository::class)]
 class Nature {
 
     public const ARRIVAL_CODE = 'arrival';

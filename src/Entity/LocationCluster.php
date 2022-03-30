@@ -3,12 +3,13 @@
 
 namespace App\Entity;
 
+use App\Repository\LocationClusterRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\LocationClusterRepository')]
+#[ORM\Entity(repositoryClass: LocationClusterRepository::class)]
 class LocationCluster {
 
     public const CLUSTER_CODE_ADMIN_DASHBOARD_1 = 'ADMIN_DASHBOARD_1';

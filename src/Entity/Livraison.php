@@ -4,11 +4,12 @@ namespace App\Entity;
 
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\PreparationOrder\Preparation;
+use App\Repository\LivraisonRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\LivraisonRepository')]
+#[ORM\Entity(repositoryClass: LivraisonRepository::class)]
 class Livraison {
 
     const CATEGORIE = 'livraison';
