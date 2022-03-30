@@ -27,7 +27,6 @@ use WiiCommon\Helper\Stream;
 #[Route("transport/ordre")]
 class OrderController extends AbstractController {
 
-
     #[Route("/liste", name: "transport_order_index", methods: "GET")]
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_TRANSPORT])]
     public function index(Request $request, EntityManagerInterface $manager): Response {
@@ -123,7 +122,8 @@ class OrderController extends AbstractController {
             ];
 
             foreach ($orders as $order) {
-                $currentRow[] = $this->renderView("transport/order/list_card.html.twig", [
+                $currentRow[] = $this->renderView("transport/request/list_card.html.twig", [
+                    "request" => $order->getRequest(),
                     "order" => $order,
                 ]);
             }
