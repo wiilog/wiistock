@@ -343,7 +343,7 @@
                                             </div>
                                         {% endif %}
                                     {% else %}
-                                        <div class="col-12 col-md-6 reference mt-3 {{ reference.typeQuantite != 'reference' ? 'd-none' }}">
+                                        <div class="col-12 col-md-6 reference mt-3 {{ reference.id and reference.typeQuantite != 'reference' ? 'd-none' }}">
                                             <label class="w-100">
                                                 <span class="icon wii-field-name">
                                                     <img src="{{ asset('svg/reference_article/location.svg') }}" class="icon" alt="Image emplacement">
