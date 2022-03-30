@@ -106,10 +106,10 @@ abstract class TransportRequest {
     #[ORM\OneToMany(mappedBy: 'request', targetEntity: TransportOrder::class)]
     private Collection $orders;
 
-    #[ORM\OneToMany(mappedBy: 'request', targetEntity: TransportHistory::class)]
+    #[ORM\OneToMany(mappedBy: 'request', targetEntity: TransportHistory::class, cascade: ['remove'])]
     private Collection $history;
 
-    #[ORM\OneToMany(mappedBy: 'transportRequest', targetEntity: StatusHistory::class)]
+    #[ORM\OneToMany(mappedBy: 'transportRequest', targetEntity: StatusHistory::class, cascade: ['remove'])]
     private Collection $statusHistory;
 
     #[ORM\ManyToOne(targetEntity: TransportRequestContact::class, cascade: ['persist', 'remove'])]

@@ -75,7 +75,7 @@ class TransportService {
             $transportRequest = new TransportCollectRequest();
 
             if ($mainDelivery) {
-                $transportRequest->setTransportDeliveryRequest($mainDelivery);
+                $transportRequest->setDelivery($mainDelivery);
             }
         }
         else {

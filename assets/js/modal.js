@@ -13,9 +13,9 @@ const $CONFIRMATION_MODAL = $(`
                 <div class="modal-body">
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-outline-secondary discard" data-dismiss="modal">Annuler</button>
                     <button name='request' type="button"
-                            class="btn btn-danger data confirm">Supprimer</button>
+                            class="btn data confirm">Supprimer</button>
                 </div>
             </div>
         </div>
@@ -23,9 +23,10 @@ const $CONFIRMATION_MODAL = $(`
 `);
 
 export default class Modal {
-    static confirm({method, route, message, title, params, actionLabel, table, keepOnError}) {
+    static confirm({ajax, message, title, action, discard, table, keepOnError}) {
         keepOnError = keepOnError === undefined ? true : keepOnError;
-
+        discard = discard === undefined ? true : discard;
+        const {label: actionLabel, color: actionColor} = action;
         let $modal = $(`#${confirmationModalId}`);
         if (!$modal.exists()) {
             $('body').append($CONFIRMATION_MODAL);
@@ -35,28 +36,45 @@ export default class Modal {
         const $action = $modal.find('button.confirm');
         const $title = $modal.find('.modal-title');
         const $message = $modal.find('.modal-body');
+        const $discard = $modal.find('button.discard');
 
-        $title.text(title);
-        $message.text(message);
-        $action.text(actionLabel);
+        if (title) {
+            $title.text(title);
+        }
+
+        $message.html(message);
+
+        $action
+            .addClass(`btn-${actionColor}`)
+            .text(actionLabel);
+
+        if (!discard) {
+            $discard.addClass('d-none');
+        }
 
         $modal.on('hidden.bs.modal', function() {
             $modal.remove();
         });
 
         $action.off('click').on('click', () => {
-            wrapLoadingOnActionButton($action, () => {
-                return AJAX.route(method, route, params)
-                    .json()
-                    .then((result) => {
-                        if (result.success || !keepOnError) {
-                            $modal.modal('hide');
-                        }
-                        if (result.redirect) {
-                            window.location.href = result.redirect;
-                        }
-                    });
-            });
+            if (ajax) {
+                const {method, route, params} = ajax;
+                wrapLoadingOnActionButton($action, () => {
+                    return AJAX.route(method, route, params)
+                        .json()
+                        .then((result) => {
+                            if (result.success || !keepOnError) {
+                                $modal.modal('hide');
+                            }
+                            if (result.redirect) {
+                                window.location.href = result.redirect;
+                            }
+                        });
+                });
+            }
+            else {
+                $modal.modal('hide');
+            }
         });
 
         $modal.modal('show');

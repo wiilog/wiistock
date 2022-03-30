@@ -61,7 +61,15 @@ function submitTransportRequest(form, data, table) {
         wrapLoadingOnActionButton($submit, () => {
             return AJAX.route(`POST`, 'transport_request_new')
                 .json(data)
-                .then(({success, message}) => {
+                .then(({success, message, validationMessage}) => {
+                    Modal.confirm({
+                        message: validationMessage,
+                        action: {
+                            color: 'success',
+                            label: 'Fermer'
+                        },
+                        discard: false,
+                    })
                     Flash.add(
                         success ? 'success' : 'danger',
                         message || `Une erreur s'est produite`

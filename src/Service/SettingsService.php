@@ -981,7 +981,7 @@ class SettingsService {
         return $defaultDeliveryLocations;
     }
 
-    public function isWorked(EntityManagerInterface $entityManager, DateTime $toCheck): bool {
+    public function isWorked(EntityManagerInterface $entityManager, DateTime $toCheck, bool $timeCheck = true): bool {
         $daysWorkedRepository = $entityManager->getRepository(DaysWorked::class);
         $workFreeDayRepository = $entityManager->getRepository(WorkFreeDay::class);
 
@@ -996,6 +996,10 @@ class SettingsService {
         if (!$workFreeDay && $dayWorked->isWorked()) {
             $hourToCheck = $toCheck->format('G');
             $minutesToCheck = $toCheck->format('i');
+
+            if (!$timeCheck) {
+                return true;
+            }
 
             foreach ($dayWorked->getTimesArray() as $range) {
                 [$begin, $end] = $range;

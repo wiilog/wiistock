@@ -7,6 +7,7 @@ use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\CategoryType;
 use App\Entity\FreeField;
+use App\Entity\Setting;
 use App\Entity\StatusHistory;
 use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\FiltreSup;
@@ -16,6 +17,7 @@ use App\Entity\Transport\TemperatureRange;
 use App\Entity\Transport\TransportRequest;
 use App\Entity\Type;
 use App\Helper\FormatHelper;
+use App\Service\SettingsService;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Transport\TransportCollectRequest;
 use App\Entity\Utilisateur;
@@ -103,6 +105,8 @@ class RequestController extends AbstractController {
                         EntityManagerInterface $entityManager,
                         TransportService $transportService): JsonResponse {
 
+        $settingRepository = $entityManager->getRepository(Setting::class);
+
         /** @var Utilisateur $user */
         $user = $this->getUser();
         $data = $request->request;
@@ -114,13 +118,31 @@ class RequestController extends AbstractController {
             $transportDeliveryRequest = $transportService->persistTransportRequest($entityManager, $user, new InputBag($deliveryData));
         }
 
-        $transportService->persistTransportRequest($entityManager, $user, $data, $transportDeliveryRequest ?? null);
+        $transportRequest = $transportService->persistTransportRequest($entityManager, $user, $data, $transportDeliveryRequest ?? null);
+
+        $mainTransportRequest = $transportDeliveryRequest ?? $transportRequest;
+        $validationMessage = null;
+        if ($mainTransportRequest->getStatus()?->getCode() === TransportRequest::STATUS_AWAITING_VALIDATION) {
+            $validationMessage = 'Votre demande de transport est en attente de validation';
+        }
+        else if ($mainTransportRequest->getStatus()?->getCode() === TransportRequest::STATUS_SUBCONTRACTED) {
+            $settingMessage = $settingRepository->getOneParamByLabel(Setting::NON_BUSINESS_HOURS_MESSAGE);
+            $validationMessage = "
+                <div class='text-center'>
+                    Votre demande de transport va être prise en compte
+                    Le suivi en temps réel n'est pas disponible car elle est sur un horaire non ouvré.
+                    <br/>
+                    {$settingMessage}
+                </div>
+            ";
+        }
 
         $entityManager->flush();
 
         return $this->json([
             "success" => true,
             "message" => "Votre demande de transport a bien été créée",
+            'validationMessage' => $validationMessage
         ]);
     }
 

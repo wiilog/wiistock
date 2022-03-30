@@ -34,11 +34,17 @@
                                     {% elseif request.canBeDeleted %}
                                         <div class="dropdown-item pointer"
                                              onclick="Modal.confirm({
-                                                 method: 'DELETE',
-                                                 route: 'delete_transport_request',
+                                                 ajax: {
+                                                     method: 'DELETE',
+                                                     route: 'delete_transport_request',
+                                                     params: {transportRequest: {{ request.id }}},
+                                                 },
                                                  message: 'Voulez-vous réellement supprimer cette demande de transport ?',
                                                  title: 'Supprimer la demande de transport',
-                                                 params: {transportRequest: {{ request.id }}}
+                                                 action: {
+                                                     color: 'danger',
+                                                     label: 'Supprimer'
+                                                 },
                                              })">
                                             <i class="fas fa-trash mr-2"></i> Supprimer
                                         </div>
