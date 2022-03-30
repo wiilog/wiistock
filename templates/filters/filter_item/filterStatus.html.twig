@@ -5,7 +5,7 @@
                     name="statut"
                     multiple="multiple"
                     data-s2
-                    data-placeholder="Statuts"
+                    data-placeholder="{{ placeholder ?? 'Statuts' }}"
                     data-no-empty-option
                     {{ disabled }}>
                 {% if names is defined and names %}

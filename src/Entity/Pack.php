@@ -41,11 +41,11 @@ class Pack implements PairedEntity {
     private ?Nature $nature = null;
 
     #[ORM\OneToOne(inversedBy: 'linkedPackLastDrop', targetEntity: TrackingMovement::class)]
-    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\JoinColumn(nullable: true, onDelete: "SET NULL")]
     private ?TrackingMovement $lastDrop = null;
 
     #[ORM\OneToOne(inversedBy: 'linkedPackLastTracking', targetEntity: TrackingMovement::class)]
-    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\JoinColumn(nullable: true, onDelete: "SET NULL")]
     private ?TrackingMovement $lastTracking = null;
 
     #[ORM\OneToMany(mappedBy: 'pack', targetEntity: TrackingMovement::class)]
