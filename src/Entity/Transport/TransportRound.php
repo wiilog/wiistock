@@ -85,11 +85,7 @@ class TransportRound
     }
 
     public function setStatus(?Statut $status): self {
-        if($this->status && $this->status !== $status) {
-            $this->status->removeTransportRound($this);
-        }
         $this->status = $status;
-        $status?->addTransportRound($this);
 
         return $this;
     }

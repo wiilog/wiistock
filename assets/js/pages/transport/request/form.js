@@ -1,6 +1,4 @@
-export function onRequestTypeChange($requestType) {
-    const requestType = $requestType.val();
-    const $form = $requestType.closest('.modal');
+export function onRequestTypeChange($form, requestType) {
     const $specificsItems = $form.find(`[data-request-type]`);
     $specificsItems.addClass('d-none');
     const $types = $form
@@ -28,9 +26,7 @@ export function onRequestTypeChange($requestType) {
     }
 }
 
-export function onTypeChange($type) {
-    const type = $type.val();
-    const $form = $type.closest('.modal');
+export function onTypeChange($form, type) {
     $form
         .find('[data-type]')
         .addClass('d-none');

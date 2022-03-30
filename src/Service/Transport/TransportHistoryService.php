@@ -106,7 +106,7 @@ class TransportHistoryService {
             ->setRound($params["round"] ?? null)
             ->setDeliverer($params["deliverer"] ?? null)
             ->setReason($params["reason"] ?? null)
-            ->setAttachment($params["attachment"] ?? null)
+            ->setAttachments($params["attachments"] ?? [])
             ->setStatusHistory($params["history"] ?? null)
             ->setLocation($params["location"] ?? null);
 

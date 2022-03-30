@@ -15,7 +15,7 @@ class TransportCollectRequest extends TransportRequest
     #[ORM\ManyToOne(targetEntity: CollectTimeSlot::class, inversedBy: 'transportCollectRequests')]
     private ?CollectTimeSlot $timeSlot = null;
 
-    #[ORM\OneToMany(mappedBy: 'transportCollectRequest', targetEntity: TransportCollectRequestNature::class)]
+    #[ORM\OneToMany(mappedBy: 'transportCollectRequest', targetEntity: TransportCollectRequestNature::class, cascade: ['remove'])]
     private Collection $transportCollectRequestNatures;
 
     #[ORM\OneToOne(mappedBy: 'collect', targetEntity: TransportDeliveryRequest::class, cascade: ['persist', 'remove'])]

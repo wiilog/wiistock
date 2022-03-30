@@ -92,11 +92,7 @@ class TransportOrder {
     }
 
     public function setStatus(?Statut $status): self {
-        if ($this->status && $this->status !== $status) {
-            $this->status->removeTransportOrder($this);
-        }
         $this->status = $status;
-        $status?->addTransportOrder($this);
 
         return $this;
     }

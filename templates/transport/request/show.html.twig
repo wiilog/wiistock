@@ -33,13 +33,19 @@
                                         </div>
                                     {% elseif request.canBeDeleted %}
                                         <div class="dropdown-item pointer"
-                                             onclick="Modal.registerDeletionConfirmationModal(
-                                                 $('#modalDeleteTransportRequest'),
-                                                 'delete_transport_request',
-                                                 'Voulez-vous réellement supprimer cette demande de transport ?',
-                                                 'Supprimer la demande de transport',
-                                                 {'transportRequest' : {{ request.id }}}
-                                                 )">
+                                             onclick="Modal.confirm({
+                                                 ajax: {
+                                                     method: 'DELETE',
+                                                     route: 'delete_transport_request',
+                                                     params: {transportRequest: {{ request.id }}},
+                                                 },
+                                                 message: 'Voulez-vous réellement supprimer cette demande de transport ?',
+                                                 title: 'Supprimer la demande de transport',
+                                                 action: {
+                                                     color: 'danger',
+                                                     label: 'Supprimer'
+                                                 },
+                                             })">
                                             <i class="fas fa-trash mr-2"></i> Supprimer
                                         </div>
                                     {% endif %}

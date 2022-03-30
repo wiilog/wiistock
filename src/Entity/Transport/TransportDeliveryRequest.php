@@ -14,7 +14,7 @@ class TransportDeliveryRequest extends TransportRequest {
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $emergency = null;
 
-    #[ORM\OneToMany(mappedBy: 'transportDeliveryRequest', targetEntity: TransportDeliveryRequestNature::class)]
+    #[ORM\OneToMany(mappedBy: 'transportDeliveryRequest', targetEntity: TransportDeliveryRequestNature::class, cascade: ['remove'])]
     private Collection $transportDeliveryRequestNatures;
 
     #[ORM\OneToOne(inversedBy: 'delivery', targetEntity: TransportCollectRequest::class, cascade: ['persist', 'remove'])]
