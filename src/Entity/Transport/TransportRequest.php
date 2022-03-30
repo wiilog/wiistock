@@ -103,7 +103,7 @@ abstract class TransportRequest {
     #[ORM\Column(type: 'json', nullable: true)]
     private ?array $freeFields = [];
 
-    #[ORM\OneToMany(mappedBy: 'request', targetEntity: TransportOrder::class)]
+    #[ORM\OneToMany(mappedBy: 'request', targetEntity: TransportOrder::class, cascade: ['persist', 'remove'])]
     private Collection $orders;
 
     #[ORM\OneToMany(mappedBy: 'request', targetEntity: TransportHistory::class, cascade: ['remove'])]
