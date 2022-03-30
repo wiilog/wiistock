@@ -4,6 +4,7 @@ $(function () {
     const transportRequestId = $(`input[name=transportRequestId]`).val();
 
     getStatusHistory(transportRequestId);
+    getTransportHistory(transportRequestId);
 });
 
 function getStatusHistory(transportRequestId) {
@@ -20,4 +21,12 @@ function getStatusHistory(transportRequestId) {
                 setTimeout(() => $currentTitleLeft.css(`transform`, `none`), 300);
             });
         });
+}
+
+function getTransportHistory(transportRequestId) {
+    $.get(Routing.generate(`transport_history_api`, {transportRequest: transportRequestId}, true))
+        .then(({template}) => {
+            const $transportHistoryContainer = $(`.transport-history-container`);
+            $transportHistoryContainer.empty().append(template);
+        })
 }

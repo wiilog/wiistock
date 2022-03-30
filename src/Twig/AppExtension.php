@@ -3,8 +3,10 @@
 namespace App\Twig;
 
 use App\Entity\Setting;
+use App\Entity\Transport\TransportHistory;
 use App\Service\FieldsParamService;
 use App\Service\SpecificService;
+use App\Service\Transport\TransportHistoryService;
 use App\Service\UserService;
 use App\Helper\FormatHelper;
 use Doctrine\ORM\EntityManagerInterface;
@@ -43,6 +45,9 @@ class AppExtension extends AbstractExtension {
      */
     public KernelInterface $kernel;
 
+    /** @Required */
+    public TransportHistoryService $transportHistoryService;
+
     private array $settingsCache = [];
 
     public function getFunctions() {
@@ -56,6 +61,7 @@ class AppExtension extends AbstractExtension {
             new TwigFunction('setting_value', [$this, 'settingValue']),
             new TwigFunction('call', [$this, 'call']),
             new TwigFunction('interleave', [$this, 'interleave']),
+            new TwigFunction('formatHistory', [$this, 'formatHistory']),
         ];
     }
 
@@ -210,5 +216,9 @@ class AppExtension extends AbstractExtension {
 
     public function flip(array $array): array {
         return array_flip($array);
+    }
+
+    public function formatHistory(TransportHistory $history): ?string {
+        return $this->transportHistoryService->formatHistory($history);
     }
 }

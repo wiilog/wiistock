@@ -74,6 +74,12 @@ abstract class TransportRequest {
         TransportRequest::STATUS_DEPOSITED,
     ];
 
+    public const CANCELED_STATUSES = [
+        self::STATUS_CANCELLED,
+        self::STATUS_NOT_DELIVERED,
+        self::STATUS_NOT_COLLECTED
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]

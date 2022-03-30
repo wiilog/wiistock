@@ -2,7 +2,9 @@
 
 namespace App\Service\Transport;
 
+use App\Entity\Attachment;
 use App\Entity\Pack;
+use App\Entity\Statut;
 use App\Entity\Transport\TransportCollectRequest;
 use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\Transport\TransportOrder;
@@ -12,7 +14,10 @@ use App\Entity\Transport\TransportRound;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use DateTime;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
+use RuntimeException;
+use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
@@ -64,8 +69,8 @@ class TransportHistoryService {
         self::TYPE_DROP_REJECTED_PACK => "{user} a écarté le colis {pack} ({reason})",
         self::TYPE_FINISHED => "{user} a terminé la {category}",
         self::TYPE_FINISHED_BOTH => "{user} a terminé la livraison et une collecte",
-        self::TYPE_ADD_COMMENT => "{user} a ajouté un commentaire {comment}",
-        self::TYPE_ADD_ATTACHMENT => "{user} a ajouté une pièce-jointe {attachment}",
+        self::TYPE_ADD_COMMENT => "{user} a laissé un commentaire",
+        self::TYPE_ADD_ATTACHMENT => "{user} a ajouté des pièces jointes",
         self::TYPE_FAILED => "{user} n'a pas pu effectuer la {category}",
         self::TYPE_PACKS_FAILED => "{user} a déposé le colis {pack} sur {location}",
         self::TYPE_PACKS_DEPOSITED => "{user} a déposé les objets sur {location}",
@@ -79,6 +84,9 @@ class TransportHistoryService {
 
     #[Required]
     public RouterInterface $router;
+
+    #[Required]
+    public KernelInterface $kernel;
 
     public function persistTransportHistory(EntityManagerInterface                $entityManager,
                                             array|TransportRequest|TransportOrder $transports,
@@ -95,7 +103,7 @@ class TransportHistoryService {
                 $history->setOrder($transport);
             }
             else {
-                throw new \RuntimeException('Unavailable transport type');
+                throw new RuntimeException('Unavailable transport type');
             }
         }
 
@@ -116,26 +124,62 @@ class TransportHistoryService {
     }
 
     private function formatEntity(mixed $entity): ?string {
-        //TODO: remplacer les ??? par les bonnes classes pour la WIIS-6401
-        return match (gettype($entity)) {
-            "object" => match (get_class($entity)) {
-                Utilisateur::class => "<span class='???'>{$entity->getUsername()}</span>",
-                Pack::class => $entity->getCode(),
-                TransportRound::class => "<span class='???'>{$entity->getNumber()}</span>",
-                DateTime::class => $entity->format("d/m/Y H:i"),
-            },
-            "string" => class_exists($entity)
-                ? match ($entity) {
-                    TransportDeliveryRequest::class => "livraison",
-                    TransportCollectRequest::class => "collect",
+        switch (gettype($entity)) {
+            case "object":
+                if($entity instanceof Utilisateur) {
+                    return "<span class='text-primary font-weight-bold'>{$entity->getUsername()}</span>";
                 }
-                : $entity,
-            "NULL", "unknown type" => null,
-            default => $entity,
-        };
+                else if($entity instanceof Pack) {
+                    return $entity->getCode();
+                }
+                else if($entity instanceof TransportRound) {
+                    return "<span class='text-primary underlined'>{$entity->getNumber()}</span>";
+                }
+                else if($entity instanceof DateTime) {
+                    return FormatHelper::datetime($entity);
+                }
+                else if($entity instanceof Statut) {
+                    return FormatHelper::status($entity);
+                }
+                else if($entity instanceof Collection) {
+                    if ($entity->get(0) instanceof Attachment) {
+                        $formatedValue = Stream::from($entity)->map(function(Attachment $attachment) {
+                            $name = $attachment->getOriginalName();
+                            $path = $this->kernel->getProjectDir() . '/public/uploads/attachements/' . $attachment->getFileName();
+
+                            return
+                                "<div class='attachment-line'>
+                                    <img src='$path' alt='$name'>
+                                    <span class='text-primary underlined'>$name</span>
+                                </div>";
+                        })->join(";");
+                    } else {
+                        return "";
+                    }
+                }
+                else {
+                    throw new RuntimeException("Unkown class");
+                }
+            break;
+            case "string":
+                if(class_exists($entity)) {
+                    return match ($entity) {
+                        TransportDeliveryRequest::class => "livraison",
+                        TransportCollectRequest::class => "collecte",
+                    };
+                } else {
+                    return $entity;
+                }
+            case "NULL":
+                return null;
+            default:
+                return $entity;
+        }
+
+        return $formatedValue;
     }
 
-    private function formatHistory(TransportHistory $history): string {
+    public function formatHistory(TransportHistory $history): string {
         $replace = [
             "{category}" => $this->formatEntity(get_class($history->getRequest())),
             "{user}" => $this->formatEntity($history->getUser()),
@@ -143,9 +187,10 @@ class TransportHistoryService {
             "{round}" => $this->formatEntity($history->getRound()),
             "{deliverer}" => $this->formatEntity($history->getDeliverer()),
             "{reason}" => $this->formatEntity($history->getReason()),
-            "{status}" => $this->formatEntity($history->getStatusHistory()->getStatus()),
-            "{statusDate}" => $this->formatEntity($history->getStatusHistory()->getDate()),
+            "{status}" => $this->formatEntity($history->getStatusHistory()?->getStatus()),
+            "{statusDate}" => $this->formatEntity($history->getStatusHistory()?->getDate()),
             "{comment}" => $this->formatEntity($history->getComment()),
+            "{attachments}" => $this->formatEntity($history->getAttachments())
         ];
 
         return str_replace(array_keys($replace), array_values($replace), self::CONTENT[$history->getType()]);

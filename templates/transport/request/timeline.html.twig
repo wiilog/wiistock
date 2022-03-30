@@ -1,8 +1,8 @@
-{% set statuses = transportRequest is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest')
+{% set statuses = request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest')
     ? constant('App\\Entity\\Transport\\TransportRequest::DELIVERY_STATUSES')
     : constant('App\\Entity\\Transport\\TransportRequest::COLLECT_STATUSES') %}
-{% set cancelledStatusName = constant('App\\Entity\\Transport\\TransportRequest::STATUS_CANCELLED') %}
-{% set requestStatusName = transportRequest.status.nom %}
+{% set cancelledStatusesName = constant('App\\Entity\\Transport\\TransportRequest::CANCELED_STATUSES') %}
+{% set requestStatusName = request.status.nom %}
 
 {% set lastHistory = statusesHistory is not empty ? statusesHistory|last : null %}
 {% set lastStatus = lastHistory ? lastHistory['status'] : null %}
@@ -10,9 +10,9 @@
 {% set followingStatuses = followingStatusIndex is not null ? statuses|slice(followingStatusIndex + 1) : [] %}
 
 {% for history in statusesHistory %}
-    {% set state = (requestStatusName == history['status'] and requestStatusName == cancelledStatusName)
+    {% set state = (requestStatusName == history['status'] and requestStatusName in cancelledStatusesName)
         ? 'cancelled'
-        : (history['status'] == cancelledStatusName
+        : (history['status'] in cancelledStatusesName
             ? 'cancelled'
             : (requestStatusName == history['status'] and loop.last
                 ? 'current'
