@@ -647,8 +647,19 @@ function onFlyFormSubmit(path, button, toHide, buttonAdd, $select = null) {
     }
 }
 
-function initDateTimePicker(dateInput = '#dateMin, #dateMax, #expectedDate', format = 'DD/MM/YYYY', minDate = false, defaultHours = null, defaultMinutes = null, disableDates = null) {
-    let options = {
+/**
+ * @param {string} dateInput
+ * @param {string} format
+ * @param {{}|{
+ *      minDate: boolean,
+ *      defaultHours: number|null,
+ *      defaultMinutes: number|null,
+ *      disableDates: boolean|null,
+ *      setTodayDate: boolean,
+ * }} options
+ */
+function initDateTimePicker(dateInput = '#dateMin, #dateMax, #expectedDate', format = 'DD/MM/YYYY', options = {}) {
+    let config = {
         format: format,
         useCurrent: false,
         locale: moment.locale('fr'),
@@ -663,20 +674,21 @@ function initDateTimePicker(dateInput = '#dateMin, #dateMax, #expectedDate', for
             selectMonth: 'Choisir le mois',
             selectYear: 'Choisir l\'année',
             selectDecade: 'Choisir la décennie',
-        }
+        },
+        ...(options.setTodayDate ? {defaultDate: moment()} : null)
     };
-    if (disableDates) {
-        options.disabledDates = disableDates;
+    if (options.disableDates) {
+        config.disabledDates = options.disableDates;
     }
-    if (minDate) {
-        options.minDate = moment().subtract(1, "days").hours(23).minutes(59).seconds(59);
+    if (options.minDate) {
+        config.minDate = moment().subtract(1, "days").hours(23).minutes(59).seconds(59);
     }
-    if (defaultHours !== null && defaultMinutes !== null) {
-        options.defaultDate = moment().hours(defaultHours).minutes(defaultMinutes);
+    if (options.defaultHours && options.defaultMinutes) {
+        config.defaultDate = moment().hours(options.defaultHours).minutes(options.defaultMinutes);
     }
 
     $(dateInput).data("dtp-initialized", "true");
-    $(dateInput).datetimepicker(options);
+    $(dateInput).datetimepicker(config);
 }
 
 
