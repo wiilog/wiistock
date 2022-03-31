@@ -398,8 +398,9 @@ class SelectController extends AbstractController {
     public function collectableArticles(Request $request, EntityManagerInterface $entityManager): Response
     {
         $search = $request->query->get('term');
+        $reference = $entityManager->find(ReferenceArticle::class, $request->query->get('referenceArticle'));
         $articleRepository = $entityManager->getRepository(Article::class);
-        $articles = $articleRepository->getCollectableArticlesForSelect($search);
+        $articles = $articleRepository->getCollectableArticlesForSelect($search, $reference);
 
         return $this->json([
             "results" => $articles

@@ -502,8 +502,7 @@ class DemandeLivraisonService
         $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
             $this->entityManager,
             $demande,
-            CategorieCL::DEMANDE_LIVRAISON,
-            CategoryType::DEMANDE_LIVRAISON
+            ['type' => $demande->getType()],
         );
 
         return array_merge(

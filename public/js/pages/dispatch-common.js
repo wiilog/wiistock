@@ -1,9 +1,10 @@
 function initNewDispatchEditor(modal) {
     clearModal(modal);
-    onDispatchTypeChange($("[name=type]"));
+    const $modal = $(modal);
+    onDispatchTypeChange($modal.find("[name=type]"));
 
-    const $operatorSelect = $(modal).find(`select[name=requester]`);
-    const $loggedUserInput = $(modal).find('input[hidden][name="logged-user"]');
+    const $operatorSelect = $modal.find(`select[name=requester]`);
+    const $loggedUserInput = $modal.find('input[hidden][name="logged-user"]');
     let option = new Option($loggedUserInput.data('username'), $loggedUserInput.data('id'), true, true);
     $operatorSelect
         .val(null)

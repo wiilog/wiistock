@@ -44,6 +44,7 @@ class FiltreSup
     const FIELD_BUYERS = 'buyers';
     const FIELD_ALERT = 'alert';
 	const FIELD_DISPATCH_NUMBER = 'dispatchNumber';
+	const FIELD_MANAGERS = 'managers';
 
 	const PAGE_PURCHASE_REQUEST = 'rpurchase';
 	const PAGE_TRANSFER_REQUEST = 'rtransfer';

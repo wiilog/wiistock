@@ -8,6 +8,7 @@ use App\Service\SpecificService;
 use App\Service\UserService;
 use Twig\TwigFunction;
 use Twig\Extension\AbstractExtension;
+use WiiCommon\Helper\Stream;
 
 class MenuExtension extends AbstractExtension
 {
@@ -70,11 +71,27 @@ class MenuExtension extends AbstractExtension
     }
 
     private function hasRight(array $permissions, array $item) {
-        $rightIsset = isset($item["rights"]);
-        $key = $rightIsset
-            ? $this->roleService->getPermissionKey(constant($item["rights"]["menu"]), constant($item["rights"]["action"]))
-            : null;
-        return !$rightIsset || !empty($permissions[$key]);
+        if (isset($item["rights"])) {
+            if (is_array($item["rights"]) && array_values($item["rights"]) === $item["rights"]) {
+                $permission = $this->getRightsFromActions($permissions, $item["rights"])
+                    ->reduce(fn(bool $carry, bool $right) => $carry && $right, true);
+            }
+            else {
+                $key = $this->roleService->getPermissionKey(constant($item["rights"]["menu"]), constant($item["rights"]["action"]));
+                $permission = $permissions[$key] ?? false;
+            }
+        }
+        if (isset($item["rightsOR"])) {
+            $permission = $this->getRightsFromActions($permissions, $item["rightsOR"])
+                ->some(fn(bool$right) => $right);
+        }
+        return $permission ?? true;
+    }
+
+    private function getRightsFromActions(array $permissions, array $actions): Stream {
+        return Stream::from($actions)
+            ->map(fn(array $action) => $this->roleService->getPermissionKey(constant($action["menu"]), constant($action["action"])))
+            ->map(fn(string $key) => $permissions[$key] ?? false);
     }
 
 }

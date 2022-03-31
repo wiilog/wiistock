@@ -208,26 +208,25 @@ parameters:
         -   label: 'Paramétrage'
             icon: 'parametre'
             path: 'settings_index'
-#
-#        -   label: 'ancien paramétrage lo'
-#            icon: 'parametre'
-#            sub:
-#                -   label: 'Export de données'
-#                    path: 'exports_params'
-#                -   label: 'Inventaire'
-#                    path: 'inventaire_param_index'
-#                -   label: 'Statuts'
-#                    path: 'status_param_index'
-#                    isTranslation: true
-#                -   label: 'Champs fixes'
-#                    path: 'fields_param_index'
-#                -   label: 'Modèles de demandes'
-#                    path: 'request_template_index'
-#                -   label: 'Modèles de notifications'
-#                    path: 'notification_template_index'
-#                -   label: 'Documentation'
-#                    url: 'https://wiilog.fr/doc/'
-#                    isExtern: 'true'
+            rightsOR:
+                -   menu: App\Entity\Menu::PARAM
+                    action: App\Entity\Action::SETTINGS_GLOBAL
+                -   menu: App\Entity\Menu::PARAM
+                    action: App\Entity\Action::SETTINGS_STOCK
+                -   menu: App\Entity\Menu::PARAM
+                    action: App\Entity\Action::SETTINGS_TRACKING
+                -   menu: App\Entity\Menu::PARAM
+                    action: App\Entity\Action::SETTINGS_MOBILE
+                -   menu: App\Entity\Menu::PARAM
+                    action: App\Entity\Action::SETTINGS_DASHBOARDS
+                -   menu: App\Entity\Menu::PARAM
+                    action: App\Entity\Action::SETTINGS_IOT
+                -   menu: App\Entity\Menu::PARAM
+                    action: App\Entity\Action::SETTINGS_NOTIFICATIONS
+                -   menu: App\Entity\Menu::PARAM
+                    action: App\Entity\Action::SETTINGS_USERS
+                -   menu: App\Entity\Menu::PARAM
+                    action: App\Entity\Action::SETTINGS_DATA
 
         -   label: 'Déconnexion'
             icon: 'deco'

@@ -293,18 +293,14 @@ class TransferRequestController extends AbstractController {
      */
     public function removeArticle(Request $request, EntityManagerInterface $manager) {
 
-        if($data = json_decode($request->getContent())) {
+        if($data = json_decode($request->getContent(), true)) {
             $transerRepository = $manager->getRepository(TransferRequest::class);
-            $transfer = $transerRepository->find($data->transfer);
+            $transfer = $transerRepository->find($data['transfer']);
 
             if(array_key_exists(ReferenceArticle::QUANTITY_TYPE_REFERENCE, $data)) {
-                $transfer->removeReference($manager
-                    ->getRepository(ReferenceArticle::class)
-                    ->find($data->reference));
+                $transfer->removeReference($manager->find(ReferenceArticle::class, $data['reference']));
             } elseif(array_key_exists(ReferenceArticle::QUANTITY_TYPE_ARTICLE, $data)) {
-                $transfer->removeArticle($manager
-                    ->getRepository(Article::class)
-                    ->find($data->article));
+                $transfer->removeArticle($manager->find(Article::class, $data['article']));
             }
 
             $manager->flush();

@@ -29,8 +29,6 @@ const STATUT_ACTIF = 'disponible';
 const STATUT_INACTIF = 'consommé';
 const STATUT_EN_TRANSIT = 'en transit';
 
-/** Constants which define a valid barcode */
-const BARCODE_VALID_REGEX = /^[A-Za-z0-9_ \/\-]{1,24}$/;
 
 // alert modals config
 const AUTO_HIDE_DEFAULT_DELAY = 2000;
@@ -470,7 +468,7 @@ function saveFilters(page, tableSelector, callback) {
     if ($filterDateExpectedPicker) {
         $filterDateExpectedPicker.format('DD/MM/YYYY');
     }
-    console.log(params);
+
     $.post(path, JSON.stringify(params), function (response) {
         if (response) {
             if (callback) {
@@ -704,6 +702,7 @@ function displayFiltersSup(data) {
             case 'dispatchNumber':
             case 'emergencyMultiple':
             case 'businessUnit':
+            case 'managers':
                 let valuesElement = element.value.split(',');
                 let $select = $(`.filter-select2[name="${element.field}"]`);
                 $select.find('option').prop('selected', false);

@@ -212,7 +212,7 @@ class TransferOrderService {
             'requester' => FormatHelper::user($transfer->getRequest()->getRequester()),
             'operator' => FormatHelper::user($transfer->getOperator()),
             'creationDate' => FormatHelper::datetime($transfer->getCreationDate()),
-            'validationDate' => FormatHelper::datetime($transfer->getTransferDate()),
+            'transferDate' => FormatHelper::datetime($transfer->getTransferDate()),
             'actions' => $this->templating->render('transfer/request/actions.html.twig', [
                 'url' => $url,
             ]),

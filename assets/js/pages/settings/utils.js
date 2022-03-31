@@ -40,6 +40,7 @@ export function createManagementPage($container, config) {
         search: true,
         paging: true,
         columns: config.table.columns,
+        minimumRows: config.table.minimumRows,
         onEditStart: () => {
             $editButton.addClass('d-none');
             $addButton.addClass('d-none');
@@ -151,8 +152,9 @@ function loadItems($container, config, type, edit = false) {
                             const wiiTextBody = `<span class="wii-body-text">${value}</span>`;
                             const fixedClass = item.class;
                             const noFullWidth = item.noFullWidth;
+
                             $itemContainer.append(`
-                                <div class="main-entity-content-item ${isBigger ? "col-md-4" : "col-md-3"} col-12 ${item.hidden ? `d-none` : ``} ${fixedClass}"
+                                <div class="main-entity-content-item ${item.wide ? `col-md-6` : (isBigger ? "col-md-4" : "col-md-3")} col-12 ${item.hidden ? `d-none` : ``} ${fixedClass}"
                                      ${data}>
                                     <div class="d-flex align-items-center py-2 w-100">
                                         ${item.icon ? `<img src="/svg/reference_article/${item.icon}.svg" alt="Icône" width="20px">` : ``}

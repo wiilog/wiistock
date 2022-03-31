@@ -330,8 +330,7 @@ class ReceptionService
         $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
             $this->entityManager,
             $reception,
-            null,
-            CategoryType::RECEPTION
+            ['type' => $reception->getType()]
         );
 
         $config = [

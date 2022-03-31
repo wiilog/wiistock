@@ -36,8 +36,6 @@ use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
-use Symfony\Component\HttpFoundation\FileBag;
-use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Process\Process;
@@ -45,6 +43,7 @@ use Symfony\Component\Yaml\Yaml;
 use WiiCommon\Helper\Stream;
 
 class SettingsService {
+    public const CHARACTER_VALID_REGEX = '^[A-Za-z0-9\_\- ]{1,24}$';
 
     /**  @Required */
     public EntityManagerInterface $manager;
@@ -161,14 +160,19 @@ class SettingsService {
         }
 
         if($data->has("MAILER_URL")) {
-            $mailer = $this->manager->getRepository(MailerServer::class)->findOneBy([]);
-            $mailer->setSmtp($data->get("MAILER_URL"));
-            $mailer->setUser($data->get("MAILER_USER"));
-            $mailer->setPassword($data->get("MAILER_PASSWORD"));
-            $mailer->setPort($data->get("MAILER_PORT"));
-            $mailer->setProtocol($data->get("MAILER_PROTOCOL"));
-            $mailer->setSenderName($data->get("MAILER_SENDER_NAME"));
-            $mailer->setSenderMail($data->get("MAILER_SENDER_MAIL"));
+            $mailer = $this->manager->getRepository(MailerServer::class)->findOneBy([]) ?? new MailerServer();
+            $mailer
+                ->setSmtp($data->get("MAILER_URL"))
+                ->setUser($data->get("MAILER_USER"))
+                ->setPassword($data->get("MAILER_PASSWORD"))
+                ->setPort($data->get("MAILER_PORT"))
+                ->setProtocol($data->get("MAILER_PROTOCOL"))
+                ->setSenderName($data->get("MAILER_SENDER_NAME"))
+                ->setSenderMail($data->get("MAILER_SENDER_MAIL"));
+
+            if(!$mailer->getId()) {
+                $this->manager->persist($mailer);
+            }
         }
 
         if ($data->has("en_attente_de_réception") && $data->has("réception_partielle") && $data->has("réception_totale") && $data->has("anomalie")) {
@@ -427,7 +431,7 @@ class SettingsService {
                 }
 
                 $freeField->setLabel($item["label"])
-                    ->setType($type)
+                    ->setType($type ?? null)
                     ->setTypage($item["type"] ?? $freeField->getTypage())
                     ->setCategorieCL(isset($item["category"]) ? $this->manager->find(CategorieCL::class, $item["category"]) : $type->getCategory()->getCategorieCLs()->first())
                     ->setDefaultValue($item["defaultValue"] ?? null)

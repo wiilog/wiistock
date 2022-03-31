@@ -6,5 +6,8 @@
     {% include 'filters/filter_item/filterStatus.html.twig' with {
         placeholder: 'Type',
     } %}
-    {% include 'filters/filter_item/filterUser.html.twig' %}
+    {% include 'filters/filter_item/filterUser.html.twig' with {
+        placeholder: 'Opérateur'
+    } %}
 {% endblock %}
+

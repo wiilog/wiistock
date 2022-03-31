@@ -75,6 +75,10 @@ export default class EditableDatatable {
             data.push(result instanceof FormData ? result.asObject() : result);
         });
 
+        if(this.config.minimumRows > data.length) {
+            throw `Minimum de ${this.config.minimumRows} ligne(s) nécessaire pour enregistrer`;
+        }
+
         return data;
     }
 

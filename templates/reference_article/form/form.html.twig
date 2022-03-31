@@ -82,7 +82,6 @@
                                  background-color: {{ reference.image ? "#FFFFFF" : "#F5F5F7" }};
                                  background-size: {{ reference.image ? 'cover' : '50%' }}">
                             <span class="edit-button"></span>
-                            {% if not partialEdit %}
                                 <div class="col-12 d-flex align-items-center justify-content-end mt-3">
                                     <div class="buttons mt-2">
                                         <button class="btn btn-primary edit-image">
@@ -96,13 +95,10 @@
                                            accept="image/png, image/jpeg, image/jpg, image/svg, image/gif"
                                            hidden>
                                 </div>
-                            {% endif %}
                         </div>
-                        {% if not partialEdit %}
                             <div class="wii-small-text">
                                 Importer une photo <br>de ce produit (max 10mo)
                             </div>
-                        {% endif %}
                     </div>
                     <div class="col-md-8 col-12">
                         {% if not partialEdit %}
@@ -347,7 +343,7 @@
                                             </div>
                                         {% endif %}
                                     {% else %}
-                                        <div class="col-12 col-md-6 reference mt-3 {{ reference.typeQuantite != 'reference' ? 'd-none' }}">
+                                        <div class="col-12 col-md-6 reference mt-3 {{ reference.id and reference.typeQuantite != 'reference' ? 'd-none' }}">
                                             <label class="w-100">
                                                 <span class="icon wii-field-name">
                                                     <img src="{{ asset('svg/reference_article/location.svg') }}" class="icon" alt="Image emplacement">
