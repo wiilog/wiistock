@@ -38,7 +38,6 @@ class TransportRequestRepository extends EntityRepository {
             ->setParameter('transport_request_status_value', [TransportRequest::STATUS_AWAITING_VALIDATION]);
 
         $total = QueryCounter::count($qb, "transport_request");
-        dump($filters);
 
         // filtres sup
         foreach ($filters as $filter) {

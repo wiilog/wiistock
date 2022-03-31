@@ -29,7 +29,6 @@ class TransportOrderRepository extends EntityRepository {
 
         $total = QueryCounter::count($qb, "transport_order");
 
-        dump($filters);
         foreach ($filters as $filter) {
             switch ($filter['field']) {
                 case FiltreSup::FIELD_DATE_MIN:
