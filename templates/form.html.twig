@@ -111,7 +111,7 @@
         {% else %}
             <label class="user-select-none pointer {{ options.labelClass ?? '' }}" for="{{ id }}">
                 <span class="d-inline-flex align-items-center">
-                    {{ label }}
+                    {{ label | raw }}
                 </span>
             </label>
             {{ _self.tooltip(options.tooltip ?? null, options.inline ?? false) }}

@@ -53,10 +53,15 @@ abstract class TransportRequest {
         self::STATUS_TO_COLLECT => "preparing",
         self::STATUS_ONGOING => "ongoing",
         self::STATUS_FINISHED => "finished",
-        self::STATUS_CANCELLED => "finished",
+        TransportOrder::STATUS_FINISHED => "finished",
+        self::STATUS_CANCELLED => "cancelled",
+        TransportOrder::STATUS_CANCELLED => "cancelled",
         self::STATUS_NOT_DELIVERED => "cancelled",
+        TransportOrder::STATUS_NOT_DELIVERED => "cancelled",
         self::STATUS_NOT_COLLECTED => "cancelled",
+        TransportOrder::STATUS_NOT_COLLECTED => "cancelled",
         self::STATUS_SUBCONTRACTED => "subcontracted",
+        TransportOrder::STATUS_SUBCONTRACTED => "subcontracted",
     ];
 
     public const DELIVERY_STATUSES = [

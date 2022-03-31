@@ -148,8 +148,8 @@ class RefArticleDataService {
 
         if ($params->has('start') && $params->has('length')) {
             $currentUserIndexes['reference'] =
-                intval(intval($params->all('start')) / intval($params->all('length')))
-                * intval($params->all('length'));
+                intval(intval($params->get('start')) / intval($params->get('length')))
+                * intval($params->get('length'));
             $currentUser->setPageIndexes($currentUserIndexes);
             $this->entityManager->flush();
         }
@@ -634,16 +634,16 @@ class RefArticleDataService {
     public function getAlerteDataByParams(InputBag $params, Utilisateur $user) {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $alertRepository = $this->entityManager->getRepository(Alert::class);
-        if ($params->has('managers') && !empty($params->all('managers')) ||
-            $params->has('referenceTypes') && !empty($params->all('referenceTypes'))) {
+        if ($params->has('managers') && !empty($params->get('managers')) ||
+            $params->has('referenceTypes') && !empty($params->get('referenceTypes'))) {
             $filters = [
                 [
                     'field' => 'multipleTypes',
-                    'value' => $params->all('referenceTypes')
+                    'value' => $params->get('referenceTypes')
                 ],
                 [
                     'field' => 'utilisateurs',
-                    'value' => $params->all('managers')
+                    'value' => $params->get('managers')
                 ]
             ];
         } else {

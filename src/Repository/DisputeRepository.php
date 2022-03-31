@@ -324,11 +324,11 @@ class DisputeRepository extends EntityRepository
         $countFiltered = QueryCounter::count($qb, 'dispute');
 
         $disputes = $this->distinctDisputes($qb->getQuery()->getResult());
-        $length = $params && !empty($params->all('length'))
-            ? $params->all('length')
+        $length = $params && !empty($params->get('length'))
+            ? $params->get('length')
             : -1;
-        $start = $params && !empty($params->all('start'))
-            ? $params->all('start')
+        $start = $params && !empty($params->get('start'))
+            ? $params->get('start')
             : 0;
         $disputes = array_slice($disputes, $start, $length);
 		return [

@@ -50,14 +50,14 @@ class TransportRequestRepository extends EntityRepository {
                     $value = explode(',', $filter['value']);
                     $qb
                         ->join('transport_request.status', 'filter_status')
-                        ->andWhere('filter_status.id IN (:status)')
+                        ->andWhere('filter_status.nom IN (:status)')
                         ->setParameter('status', $value);
                     break;
                 case FiltreSup::FIELD_CATEGORY:
                     $qb->join("transport_request.type", "filter_category_type")
                         ->join("filter_category_type.category", "filter_category")
                         ->andWhere("filter_category.label LIKE :filter_category_value")
-                        ->setParameter("filter_category_value", $filter['value']);
+                        ->setParameter("filter_category_value","%".$filter['value']."%");
                     break;
                 case FiltreSup::FIELD_TYPE:
                     $qb
