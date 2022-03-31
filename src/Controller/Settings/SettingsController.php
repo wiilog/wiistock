@@ -1408,7 +1408,9 @@ class SettingsController extends AbstractController {
             if(in_array($categoryLabel, [CategoryType::DELIVERY_TRANSPORT, CategoryType::COLLECT_TRANSPORT])) {
                 $data[] = [
                     "label" => "Logo",
-                    "value" => $type?->getLogo() ? "<img src='{$type?->getLogo()?->getFullPath()}' alt='Logo du type' width='30'>" : "",
+                    "value" => $type?->getLogo()
+                        ? "<img src='{$type?->getLogo()?->getFullPath()}' alt='Logo du type' style='max-height: 30px; max-width: 30px;'>"
+                        : "",
                 ];
             }
         }
