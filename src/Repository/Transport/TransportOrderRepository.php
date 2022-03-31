@@ -3,9 +3,12 @@
 namespace App\Repository\Transport;
 
 use App\Entity\FiltreSup;
+use App\Entity\Transport\TransportCollectRequest;
+use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\Transport\TransportOrder;
 use App\Helper\QueryCounter;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Query\Expr\Join;
 use Symfony\Component\HttpFoundation\InputBag;
 
 /**
@@ -19,6 +22,8 @@ class TransportOrderRepository extends EntityRepository {
     public function findByParamAndFilters(InputBag $params, $filters, bool $subcontracts = false) {
         $qb = $this->createQueryBuilder("transport_order")
             ->join("transport_order.request", "transport_request")
+            ->leftJoin(TransportDeliveryRequest::class, "delivery", Join::WITH, "transport_request.id = delivery.id")
+            ->leftJoin(TransportCollectRequest::class, "collect", Join::WITH, "transport_request.id = collect.id")
             ->andWhere("transport_order.subcontracted = false");
 
         $total = QueryCounter::count($qb, "transport_order");
@@ -26,12 +31,14 @@ class TransportOrderRepository extends EntityRepository {
         foreach ($filters as $filter) {
             switch ($filter['field']) {
                 case FiltreSup::FIELD_DATE_MIN:
-                    $qb->andWhere('transport_request.expectedAt >= :dateMin')
-                        ->setParameter('dateMin', $filter['value'] . ' 00:00:00');
+                    $qb->andWhere('delivery.expectedAt >= :datetimeMin OR collect.expectedAt >= :dateMin')
+                        ->setParameter('datetimeMin', $filter['value'] . ' 00:00:00')
+                        ->setParameter('dateMin', $filter['value']);
                     break;
                 case FiltreSup::FIELD_DATE_MAX:
-                    $qb->andWhere('transport_request.expectedAt <= :dateMax')
-                        ->setParameter('dateMax', $filter['value'] . ' 23:59:59');
+                    $qb->andWhere('delivery.expectedAt <= :datetimeMax OR collect.expectedAt <= :dateMax')
+                        ->setParameter('datetimeMax', $filter['value'] . ' 23:59:59')
+                        ->setParameter('dateMax', $filter['value']);
                     break;
                 case FiltreSup::FIELD_STATUT:
                     $value = explode(',', $filter['value']);
@@ -74,7 +81,8 @@ class TransportOrderRepository extends EntityRepository {
             $qb->setMaxResults($params->getInt('length'));
         }
 
-        $qb->orderBy("transport_request.expectedAt", "ASC");
+        $qb->orderBy("delivery.expectedAt", "ASC");
+        $qb->addOrderBy("collect.expectedAt", "ASC");
 
         return [
             "data" => $qb->getQuery()->getResult(),
