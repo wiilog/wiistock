@@ -99,9 +99,7 @@ class ArrivageController extends AbstractController {
             'users' => $utilisateurRepository->findBy(['status' => true], ['username'=> 'ASC']),
             'fournisseurs' => $fournisseurRepository->findBy([], ['nom' => 'ASC']),
             'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
-            'natures' => $natureRepository->findBy([
-                'displayed' => true
-            ]),
+            'natures' => $natureRepository->findByAllowedForms([Nature::ARRIVAL_CODE]),
             'statuts' => $statuses,
             'typesArrival' => $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]),
             'fieldsParam' => $fieldsParam,
