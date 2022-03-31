@@ -14,9 +14,9 @@ class RedirectService {
     private $session;
     private $router;
 
-    public function __construct(RequestStack $stack, SessionInterface $session, RouterInterface $router) {
+    public function __construct(RequestStack $stack, RouterInterface $router) {
         $this->stack = $stack;
-        $this->session = $session;
+        $this->session = $stack->getCurrentRequest()->getSession();
         $this->router = $router;
     }
 
