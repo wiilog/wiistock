@@ -128,11 +128,12 @@ class RequestController extends AbstractController {
         }
         else if ($mainTransportRequest->getStatus()?->getCode() === TransportRequest::STATUS_SUBCONTRACTED) {
             $settingMessage = $settingRepository->getOneParamByLabel(Setting::NON_BUSINESS_HOURS_MESSAGE);
+            $settingMessage = $settingMessage ? "<br/><br/>$settingMessage" : '';
             $validationMessage = "
                 <div class='text-center'>
-                    Votre demande de transport va être prise en compte
-                    Le suivi en temps réel n'est pas disponible car elle est sur un horaire non ouvré.
+                    Votre demande de transport va être prise en compte.
                     <br/>
+                    Le suivi en temps réel n'est pas disponible car elle est sur un horaire non ouvré.
                     {$settingMessage}
                 </div>
             ";
