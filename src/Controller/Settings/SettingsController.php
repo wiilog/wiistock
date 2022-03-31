@@ -1206,7 +1206,7 @@ class SettingsController extends AbstractController {
             $color = $type?->getColor() ?: "#000000";
             $label = htmlspecialchars($label);
             $description = htmlspecialchars($description);
-            dump($label);
+
             $data = [
                 [
                     "type" => "hidden",
