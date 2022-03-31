@@ -18,7 +18,7 @@ export function initializeTransportRound($container, canEdit) {
             actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
             id: ``,
             hour: "<input name='hour' class='form-control data' data-global-error='Heure'/>",
-            deliverers: "<select name='deliverers' data-s2='user' class='form-control data' data-global-error='Livreur(s)' multiple='multiple'/></select>",
+            deliverers: "<select name='deliverers' data-s2='user' data-parent=\"body\" class='form-control data' data-global-error='Livreur(s)' multiple='multiple'/></select>",
         },
     });
 
