@@ -1204,6 +1204,8 @@ class SettingsController extends AbstractController {
             $label = $type?->getLabel();
             $description = $type?->getDescription();
             $color = $type?->getColor() ?: "#000000";
+            $label = htmlspecialchars($label);
+            $description = htmlspecialchars($description);
 
             $data = [
                 [
@@ -1214,11 +1216,11 @@ class SettingsController extends AbstractController {
                 ],
                 [
                     "label" => "Libellé*",
-                    "value" => "<input name='label' class='data form-control' required value='$label'>",
+                    "value" => "<input name='label' class='data form-control' required value=\"$label\">",
                 ],
                 [
                     "label" => "Description",
-                    "value" => "<input name='description' class='data form-control' value='$description'>",
+                    "value" => "<input name='description' class='data form-control' value=\"$description\">",
                 ],
             ];
 
