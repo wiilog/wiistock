@@ -62,6 +62,12 @@
                             </div>
                         </div>
                     </div>
+                    {% if request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') and request.emergency != "" %}
+                        <div class="d-flex align-items-start content bordered" style="background-color: #fa9bae">
+                            <i class="fas fa-exclamation-triangle mr-2 red"></i>
+                            <strong>Urgence - {{ request.emergency }}</strong>
+                        </div>
+                    {% endif %}
                     <div class="d-flex align-items-center content bordered">
                         <div class="d-flex align-items-center mr-4">
                             {% if request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
@@ -98,7 +104,13 @@
                     <div class="row content">
                         <div class="col-6 d-flex flex-column">
                             <span class="wii-field-name">Date et heure attendue</span>
-                            <span class="wii-field-text">{{ request.expectedAt|format_helper('longDate', true, true) }}</span>
+                            <span class="wii-field-text">
+                                {{ request.expectedAt|format_helper(
+                                    request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') ? 'longDate' : 'date',
+                                    "",
+                                    false
+                                ) }}
+                            </span>
                         </div>
                     </div>
                     <div class="header">
