@@ -1766,7 +1766,7 @@ class SettingsController extends AbstractController {
 
         foreach ($inventoryCategoryRepository->findAll() as $category) {
             if ($edit) {
-                $selectedFrequency = $category->getFrequency()->getLabel();
+                $selectedFrequency = $category->getFrequency()?->getLabel();
                 $emptySelected = empty($selectedFrequency) ? 'selected' : '';
                 $frequencySelectContent = Stream::from($frequencyOptions)
                     ->map(function(array $n) use ($selectedFrequency) {

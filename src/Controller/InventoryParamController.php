@@ -60,7 +60,7 @@ class InventoryParamController extends AbstractController
             $rows[] =
                 [
                     'Label' => $category->getLabel(),
-                    'Frequence' => $category->getFrequency()->getLabel(),
+                    'Frequence' => $category->getFrequency()?->getLabel(),
                     'Actions' => $this->renderView('inventaire_param/datatableCategoryRow.html.twig', [
                         'url' => $url,
                         'categoryId' => $category->getId(),
