@@ -47,8 +47,7 @@ use Symfony\Component\Yaml\Yaml;
 use WiiCommon\Helper\Stream;
 
 class SettingsService {
-
-    public const CHARACTER_VALID_REGEX = '^[A-Za-z0-9\_\-]{1,24}$';
+    public const CHARACTER_VALID_REGEX = '^[A-Za-z0-9\_\- ]{1,24}$';
 
     /**  @Required */
     public EntityManagerInterface $manager;
@@ -849,8 +848,12 @@ class SettingsService {
 
     public function yarnBuild() {
         $env = $_SERVER["APP_ENV"] == "dev" ? "dev" : "production";
-        $process = Process::fromShellCommandline("yarn build:only:$env");
-        $process->run();
+        $process = Process::fromShellCommandline("yarn build:only:$env")
+            ->setWorkingDirectory($this->kernel->getProjectDir());
+
+        if($process->run() != 0) {
+            throw new RuntimeException($process->getOutput());
+        }
     }
 
     public function cacheClear(): void {
