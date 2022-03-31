@@ -1214,11 +1214,11 @@ class SettingsController extends AbstractController {
                 ],
                 [
                     "label" => "Libellé*",
-                    "value" => "<input name='label' class='data form-control' required value='$label'>",
+                    "value" => "<input name='label' class='data form-control' required value=$label>",
                 ],
                 [
                     "label" => "Description",
-                    "value" => "<input name='description' class='data form-control' value='$description'>",
+                    "value" => "<input name='description' class='data form-control' value=$description>",
                 ],
             ];
 
