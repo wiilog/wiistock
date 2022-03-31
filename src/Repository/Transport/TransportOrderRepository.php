@@ -10,6 +10,7 @@ use App\Helper\QueryCounter;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
 use Symfony\Component\HttpFoundation\InputBag;
+use WiiCommon\Helper\Stream;
 
 /**
  * @method TransportOrder|null find($id, $lockMode = null, $lockVersion = null)
@@ -28,6 +29,7 @@ class TransportOrderRepository extends EntityRepository {
 
         $total = QueryCounter::count($qb, "transport_order");
 
+        dump($filters);
         foreach ($filters as $filter) {
             switch ($filter['field']) {
                 case FiltreSup::FIELD_DATE_MIN:
@@ -41,7 +43,10 @@ class TransportOrderRepository extends EntityRepository {
                         ->setParameter('dateMax', $filter['value']);
                     break;
                 case FiltreSup::FIELD_STATUT:
-                    $value = explode(',', $filter['value']);
+                    $value = Stream::explode(",", $filter['value'])
+                        ->map(fn($line) => explode(":", $line))
+                        ->toArray();
+
                     $qb
                         ->join('transport_order.status', 'filter_status')
                         ->andWhere('filter_status.id IN (:status)')
@@ -65,8 +70,15 @@ class TransportOrderRepository extends EntityRepository {
                     break;
                 case FiltreSup::FIELD_CONTACT:
                     $qb->join("transport_request.contact", "filter_contact")
-                        ->andWhere("filter_contact.name = :filter_contact_name")
+                        ->andWhere("filter_contact.name LIKE :filter_contact_name")
                         ->setParameter("filter_contact_name", "%" . $filter['value'] . "%");
+                    break;
+                case FiltreSup::FIELD_REQUESTERS:
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->join('transport_request.createdBy', 'filter_requester')
+                        ->andWhere('filter_requester.id in (:filter_requester_values)')
+                        ->setParameter('filter_requester_values', $value);
                     break;
             }
         }

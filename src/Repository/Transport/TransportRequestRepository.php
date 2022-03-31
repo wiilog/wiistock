@@ -15,6 +15,7 @@ use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
 use Symfony\Component\HttpFoundation\InputBag;
+use WiiCommon\Helper\Stream;
 
 /**
  * @method TransportRequest|null find($id, $lockMode = null, $lockVersion = null)
@@ -37,6 +38,7 @@ class TransportRequestRepository extends EntityRepository {
             ->setParameter('transport_request_status_value', [TransportRequest::STATUS_AWAITING_VALIDATION]);
 
         $total = QueryCounter::count($qb, "transport_request");
+        dump($filters);
 
         // filtres sup
         foreach ($filters as $filter) {
@@ -52,7 +54,10 @@ class TransportRequestRepository extends EntityRepository {
                         ->setParameter('dateMax', $filter['value']);
                     break;
                 case FiltreSup::FIELD_STATUT:
-                    $value = explode(',', $filter['value']);
+                    $value = Stream::explode(",", $filter['value'])
+                        ->map(fn($line) => explode(":", $line))
+                        ->toArray();
+
                     $qb
                         ->andWhere('transport_request_status.nom IN (:filter_status_value)')
                         ->setParameter('filter_status_value', $value);
@@ -75,8 +80,15 @@ class TransportRequestRepository extends EntityRepository {
                     break;
                 case FiltreSup::FIELD_CONTACT:
                     $qb->join("transport_request.contact", "filter_contact")
-                        ->andWhere("filter_contact.name = :filter_contact_name")
+                        ->andWhere("filter_contact.name LIKE :filter_contact_name")
                         ->setParameter("filter_contact_name", "%" . $filter['value'] . "%");
+                    break;
+                case FiltreSup::FIELD_REQUESTERS:
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->join('transport_request.createdBy', 'filter_requester')
+                        ->andWhere('filter_requester.id in (:filter_requester_values)')
+                        ->setParameter('filter_requester_values', $value);
                     break;
             }
         }
