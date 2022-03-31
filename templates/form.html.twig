@@ -281,6 +281,7 @@
                   {{ _self.common_attributes(name, options) }}
                   rows="{{ options.rows ?? 3 }}"
                   style="{{ resizeVertical ? 'resize: vertical;' : 'resize: none;' }} {{ options.style ?? '' }}"
+                  {% if options.placeholder %}placeholder="{{ options.placeholder }}"{% endif %}
                   {{ required ? 'required' }}>
             {{- value | raw -}}
         </textarea>
