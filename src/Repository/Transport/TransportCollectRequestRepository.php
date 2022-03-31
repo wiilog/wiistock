@@ -3,7 +3,7 @@
 namespace App\Repository\Transport;
 
 use App\Entity\Transport\TransportCollectRequest;
-use DateTime;
+use App\Entity\Transport\TransportRequest;
 use Doctrine\ORM\EntityRepository;
 
 /**
@@ -17,13 +17,19 @@ class TransportCollectRequestRepository extends EntityRepository {
     /**
      * @return array<TransportCollectRequest>
      */
-    public function findByFileNumber(DateTime $dateTime, string $fileNumber): array {
+    public function findOngoingByFileNumber(string $fileNumber): array {
         return $this->createQueryBuilder('request')
             ->join('request.contact', 'contact')
+            ->join('request.status', 'status')
             ->andWhere('contact.fileNumber = :fileNumber')
-            ->andWhere('request.expectedAt = :expectedAt')
+            ->andWhere('status.code IN (:ongoing_status)')
             ->setParameter('fileNumber', $fileNumber)
-            ->setParameter('expectedAt', $dateTime->format('Y-m-d'))
+            ->setParameter('ongoing_status', [
+                TransportRequest::STATUS_AWAITING_VALIDATION,
+                TransportRequest::STATUS_AWAITING_PLANNING,
+                TransportRequest::STATUS_TO_COLLECT,
+                TransportRequest::STATUS_ONGOING,
+            ])
             ->getQuery()
             ->getResult();
     }

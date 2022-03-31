@@ -296,15 +296,13 @@ class RequestController extends AbstractController {
                                          Request $request): JsonResponse {
         $transportCollectRequestRepository = $entityManager->getRepository(TransportCollectRequest::class);
 
-        $expectedAtStr = $request->query->get('expectedAt', '');
         $fileNumber = $request->query->get('fileNumber');
 
-        $expectedAtValidation = preg_match("/^\d{4}-\d{2}-\d{2}$/", $expectedAtStr);
-        if (empty($expectedAtValidation) || empty($fileNumber)) {
+        if (empty($fileNumber)) {
             throw new FormException('Requête invalide');
         }
 
-        $result = $transportCollectRequestRepository->findByFileNumber(new DateTime($expectedAtStr), $fileNumber);
+        $result = $transportCollectRequestRepository->findOngoingByFileNumber($fileNumber);
 
         return $this->json([
             'exists' => !empty($result),

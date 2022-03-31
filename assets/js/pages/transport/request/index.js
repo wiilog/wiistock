@@ -157,16 +157,12 @@ function saveDeliveryForLinkedCollect($modal, data) {
 }
 
 function canSubmit($form) {
-    const $expectedAt = $form.find('[name=expectedAt]:not(:hidden)');
     const $fileNumber = $form.find('[name=contactFileNumber]');
     const $requestType = $form.find('[name=requestType]:checked');
     const requestType = $requestType.val();
 
     if (requestType === 'collect') {
-        return AJAX.route(GET, 'transport_request_collect_already_exists', {
-            expectedAt: $expectedAt.val(),
-            fileNumber: $fileNumber.val()
-        })
+        return AJAX.route(GET, 'transport_request_collect_already_exists', {fileNumber: $fileNumber.val()})
             .json()
             .then(({exists}) => {
                 if (exists) {
