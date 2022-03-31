@@ -29,8 +29,13 @@ class TransportRequestRepository extends EntityRepository {
         $qb = $this->createQueryBuilder("transport_request")
             ->leftJoin(TransportDeliveryRequest::class, "delivery", Join::WITH, "transport_request.id = delivery.id")
             ->leftJoin(TransportCollectRequest::class, "collect", Join::WITH, "transport_request.id = collect.id")
-            ->leftJoin("collect.delivery", "collectDelivery")
-            ->where("collect IS NULL OR collectDelivery IS NULL");
+            ->leftJoin("collect.delivery", "collect_delivery")
+            ->leftJoin('transport_request.orders', 'transport_order')
+            ->join('transport_request.status', 'transport_request_status')
+            ->andWhere("(collect IS NULL OR collect_delivery IS NULL)")
+            ->andWhere('(transport_order IS NULL OR transport_order.subcontracted = false)')
+            ->andWhere('transport_request_status.code NOT IN (:transport_request_status_value)')
+            ->setParameter('transport_request_status_value', [TransportRequest::STATUS_AWAITING_VALIDATION]);
 
         $total = QueryCounter::count($qb, "transport_request");
         dump($filters);
@@ -54,9 +59,8 @@ class TransportRequestRepository extends EntityRepository {
                         ->toArray();
 
                     $qb
-                        ->join('transport_request.status', 'filter_status')
-                        ->andWhere('filter_status.nom IN (:status)')
-                        ->setParameter('status', $value);
+                        ->andWhere('transport_request_status.nom IN (:filter_status_value)')
+                        ->setParameter('filter_status_value', $value);
                     break;
                 case FiltreSup::FIELD_CATEGORY:
                     $qb->join("transport_request.type", "filter_category_type")
@@ -99,8 +103,7 @@ class TransportRequestRepository extends EntityRepository {
             $qb->setMaxResults($params->getInt('length'));
         }
 
-        $qb->orderBy("delivery.expectedAt", "ASC");
-        $qb->addOrderBy("collect.expectedAt", "ASC");
+        $qb->orderBy("CASE WHEN delivery.expectedAt IS NOT NULL THEN delivery.expectedAt ELSE collect.expectedAt END", "ASC");
 
         return [
             "data" => $qb->getQuery()->getResult(),
