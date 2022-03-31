@@ -30,12 +30,7 @@ class TransportRequestRepository extends EntityRepository {
             ->leftJoin(TransportDeliveryRequest::class, "delivery", Join::WITH, "transport_request.id = delivery.id")
             ->leftJoin(TransportCollectRequest::class, "collect", Join::WITH, "transport_request.id = collect.id")
             ->leftJoin("collect.delivery", "collect_delivery")
-            ->leftJoin('transport_request.orders', 'transport_order')
-            ->join('transport_request.status', 'transport_request_status')
-            ->andWhere("(collect IS NULL OR collect_delivery IS NULL)")
-            ->andWhere('(transport_order IS NULL OR transport_order.subcontracted = false)')
-            ->andWhere('transport_request_status.code NOT IN (:transport_request_status_value)')
-            ->setParameter('transport_request_status_value', [TransportRequest::STATUS_AWAITING_VALIDATION]);
+            ->andWhere("(collect IS NULL OR collect_delivery IS NULL)");
 
         $total = QueryCounter::count($qb, "transport_request");
 
@@ -58,7 +53,8 @@ class TransportRequestRepository extends EntityRepository {
                         ->toArray();
 
                     $qb
-                        ->andWhere('transport_request_status.nom IN (:filter_status_value)')
+                        ->join('transport_request.status', 'filter_status')
+                        ->andWhere('filter_status.nom IN (:filter_status_value)')
                         ->setParameter('filter_status_value', $value);
                     break;
                 case FiltreSup::FIELD_CATEGORY:
