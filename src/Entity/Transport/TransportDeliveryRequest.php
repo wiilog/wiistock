@@ -87,7 +87,12 @@ class TransportDeliveryRequest extends TransportRequest {
     public function canBeDeleted(): bool {
         return (
             !$this->isInRound()
-            && in_array($this->getStatus()?->getCode(), [TransportRequest::STATUS_TO_DELIVER, TransportRequest::STATUS_TO_PREPARE])
+            && in_array($this->getStatus()?->getCode(), [
+                TransportRequest::STATUS_TO_DELIVER,
+                TransportRequest::STATUS_TO_PREPARE,
+                TransportRequest::STATUS_AWAITING_VALIDATION,
+                TransportRequest::STATUS_SUBCONTRACTED,
+            ])
         );
     }
 

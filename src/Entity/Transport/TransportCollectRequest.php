@@ -91,7 +91,11 @@ class TransportCollectRequest extends TransportRequest {
     public function canBeDeleted(): bool {
         return (
             !$this->isInRound()
-            && in_array($this->getStatus()?->getCode(), [TransportRequest::STATUS_TO_COLLECT, TransportRequest::STATUS_AWAITING_PLANNING])
+            && in_array($this->getStatus()?->getCode(), [
+                TransportRequest::STATUS_TO_COLLECT,
+                TransportRequest::STATUS_AWAITING_PLANNING,
+                TransportRequest::STATUS_AWAITING_VALIDATION,
+            ])
         );
     }
 
