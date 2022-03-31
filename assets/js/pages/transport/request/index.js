@@ -15,6 +15,8 @@ $(function() {
         serverSide: true,
         ordering: false,
         searching: false,
+        pageLength: 24,
+        lengthMenu: [24, 48, 72, 96],
         ajax: {
             url: Routing.generate(`transport_request_api`),
             type: "POST"
