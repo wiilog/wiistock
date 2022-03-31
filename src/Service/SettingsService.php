@@ -849,8 +849,12 @@ class SettingsService {
 
     public function yarnBuild() {
         $env = $_SERVER["APP_ENV"] == "dev" ? "dev" : "production";
-        $process = Process::fromShellCommandline("yarn build:only:$env");
-        $process->run();
+        $process = Process::fromShellCommandline("yarn build:only:$env")
+            ->setWorkingDirectory($this->kernel->getProjectDir());
+
+        if($process->run() != 0) {
+            throw new RuntimeException($process->getOutput());
+        }
     }
 
     public function cacheClear(): void {
