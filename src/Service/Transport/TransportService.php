@@ -201,6 +201,7 @@ class TransportService {
 
         $transportOrder
             ->setCreatedAt(new DateTime())
+            ->setRequest($transportRequest)
             ->setSubcontracted($subcontracted);
 
         $entityManager->persist($transportOrder);
