@@ -157,7 +157,7 @@ class TransportOrder {
         return $this;
     }
 
-    public function getSubcontracted(): ?bool {
+    public function isSubcontracted(): ?bool {
         return $this->subcontracted;
     }
 

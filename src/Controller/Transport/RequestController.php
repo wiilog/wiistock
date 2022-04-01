@@ -24,6 +24,7 @@ use App\Entity\Transport\TransportCollectRequest;
 use App\Entity\Utilisateur;
 use DateTime;
 use App\Service\Transport\TransportService;
+use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -262,9 +263,23 @@ class RequestController extends AbstractController {
         $round = !$transportRequest->getOrders()->isEmpty() && !$transportRequest->getOrders()->first()->getTransportRoundLines()->isEmpty()
             ? $transportRequest->getOrders()->first()->getTransportRoundLines()->last()
             : null;
+
+        if ($transportRequest instanceof TransportDeliveryRequest) {
+            $statusWorkflow = $transportRequest->isSubcontracted()
+                ? TransportRequest::SUBCONTRACT_STATUS_WORKFLOW
+                : TransportRequest::DELIVERY_CLASSIC_STATUS_WORKFLOW;
+        }
+        else if ($transportRequest instanceof TransportCollectRequest) {
+            $statusWorkflow = TransportRequest::COLLECT_STATUS_WORKFLOW;
+        }
+        else {
+            throw new RuntimeException('Unkown transport request type');
+        }
+
         return $this->json([
             "success" => true,
-            "template" => $this->renderView('transport/request/timeline.html.twig', [
+            "template" => $this->renderView('transport/request/timelines/status-history.html.twig', [
+                "statusWorkflow" => $statusWorkflow,
                 "statusesHistory" => Stream::from($transportRequest->getStatusHistory())
                     ->map(fn(StatusHistory $statusHistory) => [
                         "status" => FormatHelper::status($statusHistory->getStatus()),
@@ -281,7 +296,7 @@ class RequestController extends AbstractController {
     public function transportHistoryApi(TransportRequest $transportRequest) {
         return $this->json([
             "success" => true,
-            "template" => $this->renderView('transport/request/history.html.twig', [
+            "template" => $this->renderView('transport/request/timelines/transport-history.html.twig', [
                 "request" => $transportRequest,
                 "history" => Stream::from($transportRequest->getHistory())
                     ->sort(fn(TransportHistory $h1, TransportHistory $h2) => $h2->getDate() <=> $h1->getDate())

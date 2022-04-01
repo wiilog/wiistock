@@ -64,14 +64,20 @@ abstract class TransportRequest {
         TransportOrder::STATUS_SUBCONTRACTED => "subcontracted",
     ];
 
-    public const DELIVERY_STATUSES = [
+    public const DELIVERY_CLASSIC_STATUS_WORKFLOW = [
         TransportRequest::STATUS_TO_PREPARE,
         TransportRequest::STATUS_TO_DELIVER,
         TransportRequest::STATUS_ONGOING,
         TransportRequest::STATUS_FINISHED,
     ];
 
-    public const COLLECT_STATUSES = [
+    public const SUBCONTRACT_STATUS_WORKFLOW = [
+        TransportRequest::STATUS_SUBCONTRACTED,
+        TransportRequest::STATUS_ONGOING,
+        TransportRequest::STATUS_FINISHED,
+    ];
+
+    public const COLLECT_STATUS_WORKFLOW = [
         TransportRequest::STATUS_AWAITING_PLANNING,
         TransportRequest::STATUS_TO_COLLECT,
         TransportRequest::STATUS_ONGOING,
@@ -312,6 +318,11 @@ abstract class TransportRequest {
 
     public function isInRound(): bool {
         return Stream::from($this->orders)->some(fn(TransportOrder $order) => !$order->getTransportRoundLines()->isEmpty());
+    }
+
+    public function isSubcontracted(): bool {
+        $lastOrder = $this->getOrders()->last() ?: null;
+        return $lastOrder?->isSubcontracted() ?: false;
     }
 
     public abstract function canBeDeleted(): bool;

@@ -1,13 +1,10 @@
-{% set statuses = request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest')
-    ? constant('App\\Entity\\Transport\\TransportRequest::DELIVERY_STATUSES')
-    : constant('App\\Entity\\Transport\\TransportRequest::COLLECT_STATUSES') %}
 {% set cancelledStatusesName = constant('App\\Entity\\Transport\\TransportRequest::CANCELED_STATUSES') %}
 {% set requestStatusName = request.status.nom %}
 
 {% set lastHistory = statusesHistory is not empty ? statusesHistory|last : null %}
 {% set lastStatus = lastHistory ? lastHistory['status'] : null %}
-{% set followingStatusIndex = lastStatus is not null ? ((statuses|flip)[lastStatus] ?? null) : 0 %}
-{% set followingStatuses = followingStatusIndex is not null ? statuses|slice(followingStatusIndex + 1) : [] %}
+{% set followingStatusIndex = lastStatus is not null ? ((statusWorkflow|flip)[lastStatus] ?? null) : 0 %}
+{% set followingStatuses = followingStatusIndex is not null ? statusWorkflow|slice(followingStatusIndex + 1) : [] %}
 
 {% for history in statusesHistory %}
     {% set state = (requestStatusName == history['status'] and requestStatusName in cancelledStatusesName)
