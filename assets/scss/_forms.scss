@@ -277,7 +277,7 @@ $wii-switch-height: $input-height;
 
 .select2-selection--multiple .select2-search__field {
     padding: 0 5px !important;
-    width: 100% !important; // WIIS-7066
+    //WIIS-7131 pas de width 100%
 }
 
 .checkbox-filter .row {

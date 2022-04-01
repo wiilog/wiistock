@@ -94,7 +94,7 @@ class OrdreCollecteController extends AbstractController
         return $this->render('ordre_collecte/show.html.twig', [
             'collecte' => $ordreCollecte,
             'finished' => $ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_TRAITE,
-            'detailsConfig' => $ordreCollecteService->createHeaderDetailsConfig($ordreCollecte)
+            'detailsConfig' => $ordreCollecteService->createHeaderDetailsConfig($ordreCollecte),
         ]);
     }
 

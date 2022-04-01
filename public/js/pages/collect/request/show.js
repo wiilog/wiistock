@@ -43,14 +43,14 @@ $(function (){
 
 });
 
-function ajaxGetCollecteArticle(select) {
+function ajaxGetCollecteArticle(select, collect) {
     let $selection = $('#selection');
     let $editNewArticle = $('#editNewArticle');
     let modalNewArticle = '#modalNewArticle';
     let data = {};
     data['referenceArticle'] = $(select).val();
 
-    let path = Routing.generate('get_collecte_article_by_refArticle', true);
+    let path = Routing.generate('get_collecte_article_by_refArticle', {collect});
     let params = JSON.stringify(data);
     $.post(path, params).then((data) => {
         $selection.html(data.selection);

@@ -6,6 +6,7 @@ use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\CategoryType;
+use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\FreeField;
 use App\Entity\DeliveryRequest\Demande;
@@ -66,7 +67,7 @@ class ArticleDataService
         $this->visibleColumnService = $visibleColumnService;
     }
 
-    public function getCollecteArticleOrNoByRefArticle($refArticle, Utilisateur $user)
+    public function getCollecteArticleOrNoByRefArticle(Collecte $collect, ReferenceArticle $refArticle, Utilisateur $user)
     {
         $role = $user->getRole();
 
@@ -78,7 +79,8 @@ class ArticleDataService
         } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
             $data = [
                 'selection' => $this->templating->render('collecte/newRefArticleByQuantiteRefContentTemp.html.twig', [
-                    'roleIsHandlingArticles' => $role->getQuantityType() === ReferenceArticle::QUANTITY_TYPE_ARTICLE
+                    "collect" => $collect,
+                    'roleIsHandlingArticles' => $role->getQuantityType() === ReferenceArticle::QUANTITY_TYPE_ARTICLE,
                 ]),
             ];
         } else {
