@@ -435,6 +435,10 @@ class SettingsService {
             $userRepository = $this->manager->getRepository(Utilisateur::class);
             $editShift = function(TransportRoundStartingHour $shift, array $edition) use ($userRepository) {
                 $hour = $edition["hour"] ?? null;
+                if(!$edition['deliverers']) {
+                    throw new RuntimeException("Aucun livreur n'a été sélectionné");
+                }
+
                 if ($hour) {
                     if (!preg_match("/^\d{2}:\d{2}$/", $hour)) {
                         throw new RuntimeException("Le champ horaire doit être au format HH:MM");

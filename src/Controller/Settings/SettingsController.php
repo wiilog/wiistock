@@ -1089,7 +1089,7 @@ class SettingsController extends AbstractController {
         $data = [];
         foreach ($hourShiftsRepository->findAll() as $shift) {
             $hour = $shift->getHour();
-            $deliverers = "<select name='deliverers' required data-s2='user' class='$class' data-global-error='Livreur(s)' multiple='multiple'/>";
+            $deliverers = "<select name='deliverers' required data-s2='user' data-parent='body' class='$class' data-global-error='Livreur(s)' multiple='multiple'/>";
             foreach ($shift->getDeliverers() as $deliverer) {
                 $id = $deliverer->getId();
                 $name = $deliverer->getUsername();
