@@ -19,7 +19,11 @@ $(function() {
         lengthMenu: [24, 48, 72, 96],
         ajax: {
             url: Routing.generate(`transport_request_api`),
-            type: "POST"
+            type: "POST",
+            data: data => {
+                data.dateMin = $(`.filters [name="dateMin"]`).val();
+                data.dateMax = $(`.filters [name="dateMax"]`).val();
+            }
         },
         domConfig: {
             removeInfo: true
