@@ -29,18 +29,26 @@ class TransportOrderRepository extends EntityRepository {
 
         $total = QueryCounter::count($qb, "transport_order");
 
+        if($params->get("dateMin")) {
+            $date = \DateTime::createFromFormat("d/m/Y", $params->get("dateMin"));
+            $date = $date->format("Y-m-d");
+
+            $qb->andWhere('delivery.expectedAt >= :datetimeMin OR collect.expectedAt >= :dateMin')
+                ->setParameter('datetimeMin', "$date 00:00:00")
+                ->setParameter('dateMin', $date);
+        }
+
+        if($params->get("dateMax")) {
+            $date = \DateTime::createFromFormat("d/m/Y", $params->get("dateMax"));
+            $date = $date->format("Y-m-d");
+
+            $qb->andWhere('delivery.expectedAt <= :datetimeMax OR collect.expectedAt <= :dateMax')
+                ->setParameter('datetimeMax', "$date 23:59:59")
+                ->setParameter('dateMax', $date);
+        }
+
         foreach ($filters as $filter) {
             switch ($filter['field']) {
-                case FiltreSup::FIELD_DATE_MIN:
-                    $qb->andWhere('delivery.expectedAt >= :datetimeMin OR collect.expectedAt >= :dateMin')
-                        ->setParameter('datetimeMin', $filter['value'] . ' 00:00:00')
-                        ->setParameter('dateMin', $filter['value']);
-                    break;
-                case FiltreSup::FIELD_DATE_MAX:
-                    $qb->andWhere('delivery.expectedAt <= :datetimeMax OR collect.expectedAt <= :dateMax')
-                        ->setParameter('datetimeMax', $filter['value'] . ' 23:59:59')
-                        ->setParameter('dateMax', $filter['value']);
-                    break;
                 case FiltreSup::FIELD_STATUT:
                     $value = Stream::explode(",", $filter['value'])
                         ->map(fn($line) => explode(":", $line))
@@ -92,8 +100,7 @@ class TransportOrderRepository extends EntityRepository {
             $qb->setMaxResults($params->getInt('length'));
         }
 
-        $qb->orderBy("delivery.expectedAt", "ASC");
-        $qb->addOrderBy("collect.expectedAt", "ASC");
+        $qb->orderBy("CASE WHEN delivery.expectedAt IS NOT NULL THEN delivery.expectedAt ELSE collect.expectedAt END", "DESC");
 
         return [
             "data" => $qb->getQuery()->getResult(),

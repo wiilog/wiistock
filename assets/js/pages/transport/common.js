@@ -4,6 +4,7 @@ export function initializeFilters(page) {
     initDateTimePicker('#dateMin, #dateMax', 'DD/MM/YYYY', {
         setTodayDate: true
     });
+
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(page);
     $.post(path, params, function (data) {
