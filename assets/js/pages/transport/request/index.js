@@ -43,8 +43,8 @@ $(function() {
         .addProcessor((_, errors, $form) => {
             validateNatureForm($form, errors)
         })
-        .onClose(() => {
-            onCloseTransportRequestForm(form);
+        .onOpen(() => {
+            onOpenTransportRequestForm(form);
         })
         .onSubmit((data) => {
             submitTransportRequest(form, data, table);
@@ -117,7 +117,7 @@ function initializeNewForm($form) {
     });
 }
 
-function onCloseTransportRequestForm(form) {
+function onOpenTransportRequestForm(form) {
     const $modal = form.element;
 
     $modal.find('delivery').remove();
@@ -133,8 +133,10 @@ function onCloseTransportRequestForm(form) {
     $modal.find('.contact-container .data, [name=expectedAt]')
         .prop('disabled', false);
 
-    onRequestTypeChange($modal, null);
-    onTypeChange($modal, null);
+    $requestType
+        .filter('[value=collect]')
+        .prop('checked', true)
+        .trigger('change')
 }
 
 function saveDeliveryForLinkedCollect($modal, data) {
