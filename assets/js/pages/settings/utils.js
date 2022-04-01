@@ -154,7 +154,7 @@ function loadItems($container, config, type, edit = false) {
                             const noFullWidth = item.noFullWidth;
 
                             $itemContainer.append(`
-                                <div class="main-entity-content-item ${item.wide ? `col-md-6` : (isBigger ? "col-md-4" : "col-md-3")} col-12 ${item.hidden ? `d-none` : ``} ${fixedClass}"
+                                <div class="main-entity-content-item ${item.wide ? `col-md-6` : (isBigger ? "col-md-4" : "col-md-3")} col-12 ${item.hidden ? `d-none` : ``} ${fixedClass ? fixedClass : ''}"
                                      ${data}>
                                     <div class="d-flex align-items-center py-2 w-100">
                                         ${item.icon ? `<img src="/svg/reference_article/${item.icon}.svg" alt="Icône" width="20px">` : ``}
