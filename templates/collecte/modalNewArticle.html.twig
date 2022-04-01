@@ -16,7 +16,7 @@
                             {{ 'reference.référence'|trans }}*
                         </label>
                         <select class="ajax-autocomplete data form-control needed"
-                            onchange="ajaxGetCollecteArticle($(this))" id="reference" name="referenceArticle">
+                            onchange="ajaxGetCollecteArticle($(this), {{ collecte.id }})" id="reference" name="referenceArticle">
                         </select>
                     </div>
                     <div id='selection' class="col-12 clear p-0">

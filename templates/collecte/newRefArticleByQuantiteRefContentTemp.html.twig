@@ -1,4 +1,4 @@
-{% if roleIsHandlingArticles %}
+{% if roleIsHandlingArticles and collect.isStock %}
     <div class="form-group mt-2 col-12">
         <label for="article-to-pick">Code article (laisser vide pour créer un nouvel article)</label>
         <select class="form-control data" id="article-to-pick" name="article-to-pick"
