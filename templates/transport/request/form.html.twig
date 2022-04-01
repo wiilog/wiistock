@@ -155,7 +155,7 @@
         Laisser vide si quantité non connue
     </div>
     <div class="col-12">
-        <div class="row">
+        <div class="row request-line-container">
             {% for lineIndex, nature in natures %}
                 {% set allowedForms = nature.allowedForms ?? {} %}
                 {% set natureTypeCollect = allowedForms[constant('App\\Entity\\Nature::TRANSPORT_COLLECT_CODE')] ?? [] %}
@@ -172,14 +172,13 @@
                             <div class="col">
                                 {{ form.checkbox('selected', nature.label, false, false, {
                                     multipleKey: multipleKey,
+                                    error: 'global'
                                 }) }}
                                 <input type="hidden"
                                        value="{{ nature.id }}"
                                        class="data"
                                        name="natureId"
-                                       {{ form.multiple_key({
-                                           multipleKey: multipleKey,
-                                       }) }}/>
+                                       {{ form.multiple_key({multipleKey: multipleKey}) }}/>
                             </div>
                             <div class="col-lg-6 col-7"
                                  data-request-type="{{ DISCR_COLLECT }}">

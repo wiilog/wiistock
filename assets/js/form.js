@@ -185,7 +185,8 @@ export default class Form {
         $parent.find(`.invalid-feedback`).remove();
         if($field.is(`[data-global-error]`)) {
             const label = $field.data(`global-error`) || $parent.find(`.field-label`).text();
-            Flash.add(`danger`, `${label} : ${message}`);
+            const prefixMessage = label ? `${label} : ` : '';
+            Flash.add(`danger`, `${prefixMessage}${message}`);
         } else {
             $parent.append(`<span class="invalid-feedback">${message}</span>`);
         }

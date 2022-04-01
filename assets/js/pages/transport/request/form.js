@@ -44,3 +44,14 @@ export function onTypeChange($form, type) {
         }
     });
 }
+
+export function validateNatureForm($form, errors) {
+    const $lineContainer = $form.find('.request-line-container');
+    const $natureChecks = $lineContainer.find('[name=selected]');
+    if (!$natureChecks.filter(':checked').exists()) {
+        errors.push({
+            elements: [$natureChecks],
+            message: `Vous devez sélectionner au moins une nature de colis dans vote demande`,
+        });
+    }
+}

@@ -1,7 +1,7 @@
 import Form from "../../../form";
 import AJAX, {GET, POST} from "../../../ajax";
 import Flash from "../../../flash";
-import {onRequestTypeChange, onTypeChange} from "./form";
+import {onRequestTypeChange, onTypeChange, validateNatureForm} from "./form";
 
 import {initializeFilters} from "../common";
 
@@ -36,6 +36,9 @@ $(function() {
 
     const form = Form
         .create($modalNewTransportRequest)
+        .addProcessor((_, errors, $form) => {
+            validateNatureForm($form, errors)
+        })
         .onClose(() => {
             onCloseTransportRequestForm(form);
         })
@@ -192,4 +195,3 @@ function canSubmit($form) {
         return new Promise(((resolve) => {resolve(true)}))
     }
 }
-
