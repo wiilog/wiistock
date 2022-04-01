@@ -105,11 +105,11 @@
                         <div class="col-6 d-flex flex-column">
                             <span class="wii-field-name">Date et heure attendue</span>
                             <span class="wii-field-text">
-                                {{ request.expectedAt|format_helper(
-                                    request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') ? 'longDate' : 'date',
-                                    "",
-                                    false
-                                ) }}
+                                {% if request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
+                                    {{ request.expectedAt|format_helper('longDate', false, true) }}
+                                {% else %}
+                                    {{ request.expectedAt|format_helper('date') }}
+                                {% endif %}
                             </span>
                         </div>
                     </div>
