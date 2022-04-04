@@ -1,4 +1,4 @@
-import '../../../../scss/pages/transport-show.scss';
+import '../../../../scss/pages/transport/show.scss';
 
 $(function () {
     const transportRequestId = $(`input[name=transportRequestId]`).val();
