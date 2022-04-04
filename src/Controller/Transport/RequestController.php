@@ -131,8 +131,7 @@ class RequestController extends AbstractController {
             $settingMessage = $settingMessage ? "<br/><br/>$settingMessage" : '';
             $validationMessage = "
                 <div class='text-center'>
-                    Votre demande de transport va être prise en compte.
-                    <br/>
+                    Votre demande de transport va être prise en compte.<br/>
                     Le suivi en temps réel n'est pas disponible car elle est sur un horaire non ouvré.
                     {$settingMessage}
                 </div>
