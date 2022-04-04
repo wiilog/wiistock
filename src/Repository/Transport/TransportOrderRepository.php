@@ -56,7 +56,7 @@ class TransportOrderRepository extends EntityRepository {
 
                     $qb
                         ->join('transport_order.status', 'filter_status')
-                        ->andWhere('filter_status.id IN (:status)')
+                        ->andWhere('filter_status.nom IN (:status)')
                         ->setParameter('status', $value);
                     break;
                 case FiltreSup::FIELD_CATEGORY:
