@@ -3,6 +3,7 @@ import Flash from "./flash";
 
 export default class Form {
 
+    element;
     submitCallback;
     openCallback;
     processors = [];
@@ -70,6 +71,11 @@ export default class Form {
     clear() {
         clearFormError(this);
         clearModal(this.element)
+    }
+
+    on(event, selector, callback) {
+        this.element.on(event, selector, callback);
+        return this;
     }
 
     static getFieldNames(form, config = {}) {

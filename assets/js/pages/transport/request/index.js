@@ -1,7 +1,7 @@
 import Form from "../../../form";
 import AJAX, {GET, POST} from "../../../ajax";
 import Flash from "../../../flash";
-import {onRequestTypeChange, onTypeChange, validateNatureForm} from "./form";
+import {onRequestTypeChange, onTypeChange, validateNatureForm, onNatureCheckChange} from "./form";
 
 import {initializeFilters} from "../common";
 
@@ -45,6 +45,9 @@ $(function() {
         })
         .onOpen(() => {
             onOpenTransportRequestForm(form);
+        })
+        .on('change', '.nature-item [name=selected]', function () {
+            onNatureCheckChange($(this));
         })
         .onSubmit((data) => {
             submitTransportRequest(form, data, table);
