@@ -73,13 +73,13 @@
                             {% if request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
                                 <img class="mr-2" src="{{ asset('svg/delivery.svg') }}" width="20px">
                             {% else %}
-                                <img src="{{ asset('svg/collect.svg') }}" width="30px">
+                                <img class="mr-2" src="{{ asset('svg/collect.svg') }}" width="30px">
                             {% endif %}
                             <strong>{{ requestType }}</strong>
                         </div>
                         <div class="d-flex align-items-center">
                             {% if request.type.logo %}
-                                <img src="{{ app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ request.type.logo.fileName }}"
+                                <img class="mr-2" src="{{ app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ request.type.logo.fileName }}"
                                     alt="Image type {{ request.type|format_helper('type') }}" width="15px">
                             {% endif %}
                             <span class="wii-describe">{{ request.type|format_helper('type') }}</span>
@@ -103,7 +103,7 @@
                     </div>
                     <div class="row content">
                         <div class="col-6 d-flex flex-column">
-                            <span class="wii-field-name">Date et heure attendue</span>
+                            <span class="wii-field-name">Date attendue</span>
                             <span class="wii-field-text">
                                 {% if request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
                                     {{ request.expectedAt|format_helper('longDate', false, true) }}
@@ -112,6 +112,14 @@
                                 {% endif %}
                             </span>
                         </div>
+                        {% if request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') and request.expectedAt is not null %}
+                            <div class="col-6 d-flex flex-column">
+                                <span class="wii-field-name">Date validée avec le patient</span>
+                                <span class="wii-field-text">
+                                        {{ request.expectedAt|format_helper('date') }}
+                                </span>
+                            </div>
+                        {% endif %}
                     </div>
                     <div class="header">
                         <img src="{{ asset('svg/information.svg') }}" alt="Icône information" width="15px">
@@ -142,7 +150,7 @@
                         </div>
                     {% else %}
                         <div class="content">
-                            <span class="ra-mdall-text">Aucun champ libre renseigné</span>
+                            <span class="wii-small-text">Aucun champ libre renseigné</span>
                         </div>
                     {% endif %}
                     <div class="header">
@@ -192,7 +200,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-lg-4 col-md-6 col-12">
+            <div class="col-lg-4 col-md-6 col-12 p-0">
                 <div class="wii-box">
                     <div class="header wii-title">Colis</div>
                     <div class="">A REMPLIR</div>{# TODO REMOVE #}
@@ -208,7 +216,7 @@
                 </div>
             </div>
             <div class="col-lg-4 col-md-6 col-12">
-                <div class="wii-box">
+                <div class="wii-box mr-3">
                     <div class="header wii-title">Données</div>
                     <div class="">A REMPLIR</div>{# TODO REMOVE #}
                 </div>
