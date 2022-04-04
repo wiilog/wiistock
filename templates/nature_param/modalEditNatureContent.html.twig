@@ -4,32 +4,32 @@
     </div>
 
     <div class="form-group col-md-6 col-12">
-        <label>Label*</label>
+        <label class="wii-field-name">Label*</label>
         <input type="text" class="data form-control needed" name="label" value="{{ nature.label }}">
     </div>
     <div class="form-group col-md-6 col-12">
-        <label>Code*</label>
+        <label class="wii-field-name">Code*</label>
         <input type="text" class="data form-control needed" name="code" value="{{ nature.code }}">
     </div>
     <div class="form-group col-md-6 col-12">
-        <label>Description</label>
+        <label class="wii-field-name">Description</label>
         <input type="text" class="data form-control" name="description" value="{{ nature.description }}">
     </div>
     <div class="form-group col-md-6 col-12">
-        <label>Quantité par défaut*</label>
+        <label class="wii-field-name">Quantité par défaut*</label>
         <input type="number" class="data form-control needed" name="quantity"
                value="{{ nature.defaultQuantity is defined ? nature.defaultQuantity : '' }}" min="0">
     </div>
     <div class="form-group col-md-6 col-12">
-        <label>Couleur*</label>
+        <label class="wii-field-name">Couleur*</label>
         <input type="color" class="data form-control needed" name="color" value="{{ nature.color ? nature.color : '' }}">
     </div>
     <div class="form-group col-md-6 col-12">
-        <label for="code">Préfixe</label>
+        <label class="wii-field-name">Préfixe</label>
         <input type="text" class="data form-control" name="prefix" value="{{ nature.prefix ? nature.prefix : '' }}">
     </div>
     <div class="form-group col-md-6 col-12">
-        <label>Températures</label>
+        <label class="wii-field-name">Températures</label>
         <sup><img src="{{ asset('svg/information.svg') }}"
                   alt="Icône information"
                   width="10px"
@@ -44,29 +44,33 @@
         </select>
     </div>
     <div class="form-group col-12">
-        <label>Synchronisation nomade ?</label>
-        {% set checkedSync = nature.needsMobileSync ? 'checked' %}
-        <label class="switch ml-3">
-            <input class="checkbox data" type="checkbox" name="mobileSync" {{ checkedSync }}>
-            <span class="slider round"></span>
-        </label>
+        <div class="wii-checkbox pl-0 pointer">
+            {% set checked = nature.needsMobileSync ? 'checked' %}
+            <label class="pointer d-flex align-items-center wii-field-name">
+                Synchronisation nomade ?
+                <input class="checkbox data ml-2" type="checkbox" name="mobileSync" {{ checked }}>
+            </label>
+        </div>
     </div>
+
     <div class="form-group col-12">
-        <label>Nature par défaut (acheminements)</label>
-        {% set checkedDefaultForDispatch = nature.defaultForDispatch ? 'checked' %}
-        <label class="switch ml-3">
-            <input class="checkbox data" type="checkbox" name="defaultForDispatch" {{ checkedDefaultForDispatch }}>
-            <span class="slider round"></span>
-        </label>
+        <div class="wii-checkbox pl-0 pointer">
+            {% set checked = nature.defaultForDispatch ? 'checked' %}
+            <label class="pointer d-flex align-items-center wii-field-name">
+                Nature par défaut (acheminements)
+                <input class="checkbox data ml-2" type="checkbox" name="defaultForDispatch" {{ checked }}>
+            </label>
+        </div>
     </div>
 
     <div class="form-group col-12 d-flex align-items-center">
-        <label>Affichage sur les formulaires</label>
-        {% set checked = nature.displayedOnForms ? 'checked' %}
-        <label class="switch ml-2">
-            <input class="checkbox data" type="checkbox" name="displayedOnForms" {{ checked }} onchange="toggleEntitiesContainer($(this))">
-            <span class="slider round"></span>
-        </label>
+        <div class="wii-checkbox pl-0 pointer">
+            {% set checked = nature.displayedOnForms ? 'checked' %}
+            <label class="pointer d-flex align-items-center wii-field-name">
+                Affichage sur les formulaires ?
+                <input class="checkbox data ml-2" type="checkbox" name="displayedOnForms" {{ checked }} onchange="toggleEntitiesContainer($(this))">
+            </label>
+        </div>
     </div>
 
     {% set hide = not nature.displayedOnForms ? 'd-none' %}
@@ -74,25 +78,29 @@
         {% for index, entity in constant('App\\Entity\\Nature::ENTITIES') %}
             {% set checked = index in nature.allowedForms|keys %}
             <div class="d-flex mb-1">
-                <div class="form-group col-auto d-flex align-items-center mb-2">
-                    <label class="font-size-mini pointer">
+                <div class="form-group col-4 d-flex align-items-center mb-2">
+                    <label class="font-size-mini pointer wii-field-name">
                         <input class="checkbox data-array mr-2" {{ checked ? 'checked' }}
                                type="checkbox" name="{{ index }}" data-identifier="{{ entity }}" onclick="toggleTypes($(this));">
                         {{ entity }}
                     </label>
                 </div>
                 {% if index != constant('App\\Entity\\Nature::ARRIVAL_CODE') %}
-                    <div class="col-4 types-container form-group mb-0">
-                        <label class="d-none">Types de {{ entity }}</label>
-                        <select name="{{ index }}Types" class="data form-control w-100 {{ checked ? 'needed' }}" data-s2 {{ not checked ? 'disabled' }} multiple>
-                            {% for type in (types[index] ?? []) %}
-                                {% set selected = type['id'] in nature.allowedForms[index] ?? [] ? 'selected' %}
-                                <option value="{{ type['id'] }}" {{ selected }}>{{ type['label'] }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="input-group-append col-3">
-                        <button class="btn btn-primary select-all-types w-100" type="button" onclick="selectAllTypes($(this))">Tous les types</button>
+                    <div class="col-8 input-group flex-nowrap no-gutters">
+                        <div class="types-container form-group mb-0 flex-fill col-6">
+                            <label class="d-none">Types de {{ entity }}</label>
+                            <select name="{{ index }}Types" class="data form-control h-100 w-100 {{ checked ? 'needed' }}"
+                                    data-s2 {{ not checked ? 'disabled' }} multiple>
+                                {% for type in (types[index] ?? []) %}
+                                    {% set selected = type['id'] in nature.allowedForms[index] ?? [] ? 'selected' %}
+                                    <option value="{{ type['id'] }}" {{ selected }}>{{ type['label'] }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="input-group-append col-4">
+                            <button class="btn btn-primary select-all-types w-100" type="button" onclick="selectAllTypes($(this))">Tous les types
+                            </button>
+                        </div>
                     </div>
                 {% endif %}
             </div>

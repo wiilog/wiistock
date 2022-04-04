@@ -68,7 +68,7 @@ function toggleEntitiesContainer($input) {
 }
 
 function toggleTypes($checkbox) {
-    const $typeSelect = $checkbox.parents(`.form-group`).siblings(`.types-container`).find(`select`);
+    const $typeSelect = $checkbox.parents(`.form-group`).siblings(`.input-group`).find(`.types-container select`);
 
     $typeSelect.val(null).trigger(`change`).prop(`disabled`, !$checkbox.is(`:checked`));
     $typeSelect.toggleClass(`needed`, $checkbox.is(`:checked`))

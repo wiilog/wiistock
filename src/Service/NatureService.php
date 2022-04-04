@@ -5,6 +5,7 @@ namespace App\Service;
 
 use App\Entity\Nature;
 use App\Entity\Transport\TemperatureRange;
+use App\Entity\Type;
 use App\Helper\FormatHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -19,7 +20,8 @@ class NatureService
     /** @Required */
     public EntityManagerInterface $manager;
 
-    public function getDataForDatatable(InputBag $params) {
+    public function getDataForDatatable(InputBag $params)
+    {
         $natureRepository = $this->manager->getRepository(Nature::class);
         $queryResult = $natureRepository->findByParams($params);
 
@@ -37,14 +39,25 @@ class NatureService
         ];
     }
 
-    public function dataRowNature(Nature $nature): array {
+    public function dataRowNature(Nature $nature): array
+    {
+        $typeRepository = $this->manager->getRepository(Type::class);
+
         return [
             'label' => $nature->getLabel(),
             'code' => $nature->getCode(),
             'defaultQuantity' => $nature->getDefaultQuantity() ?? 'Non définie',
             'prefix' => $nature->getPrefix() ?? 'Non défini',
             'needsMobileSync' => FormatHelper::bool($nature->getNeedsMobileSync()),
-            'displayedOnForms' => FormatHelper::bool($nature->getDisplayedOnForms()),
+            'displayedOnForms' => !empty($nature->getAllowedForms())
+                ? Stream::from($nature->getAllowedForms())
+                    ->map(fn(array|string $types, string $index) => Nature::ENTITIES[$index] . (is_array($types)
+                            ? (' : ' . Stream::from($typeRepository->findBy(['id' => $types]))
+                                    ->map(fn(Type $type) => $type->getLabel())
+                                    ->join(", "))
+                            : ''))
+                    ->join("; ")
+                : 'non',
             'color' => $nature->getColor() ? '<div style="background-color:' . $nature->getColor() . ';"><br></div>' : 'Non définie',
             'description' => $nature->getDescription() ?? 'Non définie',
             'temperatures' => Stream::from($nature->getTemperatureRanges())->map(fn(TemperatureRange $temperature) => $temperature->getValue())->join(", "),
@@ -54,12 +67,13 @@ class NatureService
         ];
     }
 
-    public function serializeNature(Nature $nature): array {
+    public function serializeNature(Nature $nature): array
+    {
         return [
             'id' => $nature->getId(),
             'label' => $nature->getLabel(),
             'color' => $nature->getColor(),
-            'hide' => (bool) !$nature->getNeedsMobileSync()
+            'hide' => !$nature->getNeedsMobileSync()
         ];
     }
 }
