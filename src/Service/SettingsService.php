@@ -101,7 +101,6 @@ class SettingsService {
             array_keys($request->files->all()),
         );
 
-
         $allFormSettingNames = json_decode($request->request->get('__form_fieldNames', '[]'), true);
 
         $result = [];

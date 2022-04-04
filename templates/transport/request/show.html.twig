@@ -117,34 +117,12 @@
                         <img src="{{ asset('svg/information.svg') }}" alt="Icône information" width="15px">
                         <span class="wii-field-name ml-2">Autres informations</span>
                     </div>
-                    {% if request.freeFields|length > 0 and freeFields|length > 0 %}
-                        <div class="row content flex-wrap">
-                            {% for freeField in freeFields %}
-                                {% set value = request.freeFields[freeField.id] ?? (freeField.defaultValue ?? '') %}
-                                <div class="col-6 box-item mb-3">
-                                    <span class="wii-field-name">{{ freeField.label }}</span>
-                                    {% if freeField.typage == constant('App\\Entity\\FreeField::TYPE_DATE') %}
-                                        <span class="wii-body-text">{{ value | replace({'/': '-'}) | date('d/m/Y') }}</span>
-                                    {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_DATETIME') %}
-                                        <span class="wii-body-text">{{ value | replace({'/': '-'}) | date('d/m/Y H:i') }}</span>
-                                    {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_BOOL') %}
-                                        <span class="wii-body-text">{{ value == 1 ? 'Oui' : 'Non' }}</span>
-                                    {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_LIST_MULTIPLE') %}
-                                        {% set entityValuesArray = value|split(';') %}
-                                        {% set valids = freeField.elements | filter(element => element in entityValuesArray) %}
-                                        {% set values = valids | join (', ') %}
-                                        <span class="wii-body-text">{{ values }}</span>
-                                    {% else %}
-                                        <span class="wii-body-text">{{ value }}</span>
-                                    {% endif %}
-                                </div>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <div class="content">
-                            <span class="ra-mdall-text">Aucun champ libre renseigné</span>
-                        </div>
-                    {% endif %}
+                    {% include 'free_field/freeFieldsShow.html.twig' with {
+                        containerClass: 'content text-center',
+                        emptyLabel: 'Aucun champ libre renseigné',
+                        values: request.freeFields,
+                        freeFields: freeFields
+                    } %}
                     <div class="header">
                         <img src="{{ asset('svg/user.svg') }}" alt="Icône utilisateur" width="15px">
                         <span class="wii-field-name ml-2">Informations patient</span>
