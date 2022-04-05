@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\ArticleFournisseur;
+use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\FreeField;
@@ -462,9 +463,9 @@ class ArticleController extends AbstractController
     }
 
     /**
-     * @Route("/get-article-collecte", name="get_collecte_article_by_refArticle", options={"expose"=true})
+     * @Route("/get-article-collecte/{collect}", name="get_collecte_article_by_refArticle", options={"expose"=true})
      */
-    public function getCollecteArticleByRefArticle(Request $request, EntityManagerInterface $entityManager): Response
+    public function getCollecteArticleByRefArticle(Request $request, EntityManagerInterface $entityManager, Collecte $collect): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
@@ -474,7 +475,7 @@ class ArticleController extends AbstractController
                 $refArticle = $referenceArticleRepository->find($data['referenceArticle']);
             }
             if ($refArticle) {
-                $json = $this->articleDataService->getCollecteArticleOrNoByRefArticle($refArticle, $this->getUser());
+                $json = $this->articleDataService->getCollecteArticleOrNoByRefArticle($collect, $refArticle, $this->getUser());
             } else {
                 $json = false; //TODO gérer erreur retour
             }
