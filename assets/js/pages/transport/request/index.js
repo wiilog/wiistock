@@ -1,7 +1,7 @@
 import Form from "../../../form";
 import AJAX, {GET, POST} from "../../../ajax";
 import Flash from "../../../flash";
-import {onRequestTypeChange, onTypeChange, validateNatureForm, onNatureCheckChange} from "./form";
+import {onRequestTypeChange, onTypeChange, validateNatureForm, onNatureCheckChange, cancelRequest} from "./common";
 
 import {initializeFilters} from "../common";
 
@@ -54,6 +54,12 @@ $(function() {
         });
 
     initializeNewForm($modalNewTransportRequest);
+
+    $(document).arrive('.cancel-request', function (){
+        $(this).on('click', function(){
+            cancelRequest($(this).data('transport-request-id'));
+        })
+    });
 });
 
 /**

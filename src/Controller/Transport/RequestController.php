@@ -5,16 +5,19 @@ namespace App\Controller\Transport;
 use App\Entity\CategorieCL;
 use App\Annotation\HasPermission;
 use App\Entity\Action;
+use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\FreeField;
 use App\Entity\Setting;
 use App\Entity\StatusHistory;
+use App\Entity\Statut;
 use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\Transport\TemperatureRange;
 use App\Entity\Transport\TransportHistory;
+use App\Entity\Transport\TransportOrder;
 use App\Entity\Transport\TransportRequest;
 use App\Entity\Type;
 use App\Exceptions\FormException;
@@ -320,6 +323,47 @@ class RequestController extends AbstractController {
 
         return $this->json([
             'exists' => !empty($result),
+        ]);
+    }
+
+    #[Route("/annuler/{transportRequest}", name: "transport_request_cancel", options: ['expose' => true], methods: "POST")]
+    public function cancel(TransportRequest $transportRequest, EntityManagerInterface $entityManager): Response {
+
+        $success = $transportRequest->canBeCancelled();
+        $statusRepository = $entityManager->getRepository(Statut::class);
+        if ($transportRequest instanceof TransportDeliveryRequest) {
+            $categoryRequest = CategorieStatut::TRANSPORT_REQUEST_DELIVERY;
+            $categoryOrder = CategorieStatut::TRANSPORT_ORDER_DELIVERY;
+        }
+        else if ($transportRequest instanceof TransportCollectRequest) {
+            $categoryRequest = CategorieStatut::TRANSPORT_REQUEST_COLLECT;
+            $categoryOrder = CategorieStatut::TRANSPORT_ORDER_COLLECT;
+        }
+        else {
+            throw new \RuntimeException('Unknown request type');
+        }
+
+        $statusRequest = $statusRepository->findOneByCategorieNameAndStatutCode($categoryRequest, TransportRequest::STATUS_CANCELLED);
+        $statusOrder = $statusRepository->findOneByCategorieNameAndStatutCode($categoryOrder, TransportOrder::STATUS_CANCELLED);
+
+        if ($success) {
+            $msg = 'Demande annulée.';
+            $transportRequest->setStatus($statusRequest);
+            if($transportRequest->getOrders()->last() !== false){
+                $transportRequest->getOrders()->last()->setStatus($statusOrder);
+            }
+
+            $entityManager->flush();
+        }
+        else {
+            $msg = 'Le statut de cette demande rends impossible son annulation.';
+        }
+
+        return $this->json([
+            'success' => $success,
+            'msg' => $msg,
+            "reload" => true,
+            'redirect' => $this->generateUrl('transport_request_index')
         ]);
     }
 

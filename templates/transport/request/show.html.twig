@@ -24,11 +24,11 @@
                                     <div class="dropdown-item pointer">
                                         <i class="fas fa-print mr-2"></i> Imprimer les étiquettes
                                     </div>
-                                    {% if request.orders|length > 0 %}
+                                    {% if request.orders|length > 0 and request.canBeCancelled %}
                                         <div class="dropdown-item pointer">
                                             <i class="fas fa-file mr-2"></i> Générer bon de transport
                                         </div>
-                                        <div class="dropdown-item pointer">
+                                        <div class="dropdown-item pointer data-request-id cancel-request" data-transport-request-id="{{ request.id }}">
                                             <i class="fas fa-ban mr-2"></i> Annuler
                                         </div>
                                     {% elseif request.canBeDeleted %}
