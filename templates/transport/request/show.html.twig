@@ -44,17 +44,17 @@
                                         <div class="dropdown-item pointer"
                                              onclick="Modal.confirm({
                                                  ajax: {
-                                                     method: 'DELETE',
-                                                     route: 'transport_request_delete',
-                                                     params: {transportRequest: {{ request.id }}},
+                                                 method: 'DELETE',
+                                                 route: 'transport_request_delete',
+                                                 params: {transportRequest: {{ request.id }}},
                                                  },
                                                  message: 'Voulez-vous réellement supprimer cette demande de transport ?',
                                                  title: 'Supprimer la demande de transport',
                                                  action: {
-                                                     color: 'danger',
-                                                     label: 'Supprimer'
+                                                 color: 'danger',
+                                                 label: 'Supprimer'
                                                  },
-                                             })">
+                                                 })">
                                             <i class="fas fa-trash mr-2"></i> Supprimer
                                         </div>
                                     {% endif %}
@@ -64,7 +64,8 @@
                         <div class="d-flex py-2 w-100 justify-content-between">
                             <div class="d-flex flex-column">
                                 <span class="wii-title" title="Acheminement">Transport</span>
-                                <span class="wii-medium-text">{{ constant('App\\Entity\\Transport\\TransportRequest::NUMBER_PREFIX') ~ request.number }}</span>
+                                <span
+                                    class="wii-medium-text">{{ constant('App\\Entity\\Transport\\TransportRequest::NUMBER_PREFIX') ~ request.number }}</span>
                             </div>
                             <div class="d-flex align-items-center justify-content-end">
                                 <strong>{{ request.createdBy|format_helper('user') }}</strong>
@@ -88,7 +89,8 @@
                         </div>
                         <div class="d-flex align-items-center">
                             {% if request.type.logo %}
-                                <img src="{{ app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ request.type.logo.fileName }}"
+                                <img
+                                    src="{{ app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ request.type.logo.fileName }}"
                                     alt="Image type {{ request.type|format_helper('type') }}" width="15px">
                             {% endif %}
                             <span class="wii-describe">{{ request.type|format_helper('type') }}</span>
@@ -181,8 +183,30 @@
             </div>
             <div class="col-lg-4 col-md-6 col-12">
                 <div class="wii-box">
-                    <div class="header wii-title">Colis</div>
-                    <div class="">A REMPLIR</div>{# TODO REMOVE #}
+                    <div class="header {{ packsCount == 0 ? 'optioned' }} d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <span class="wii-title">Colis</span>
+                            <div>
+                                <span class="wii-describe ml-3">{{ packsCount == 0 ? 'Colisage non fait' : (packsCount ~ ' colis') }}</span>
+                            </div>
+                            {% if hasRejectedPacks %}
+                                <div>
+                                    <img src="{{ asset('svg/rejected-pack.svg') }}" class="ml-3 my-auto" width="25px" height="25px">
+                                </div>
+                            {% endif %}
+                        </div>
+                        {% if packsCount > 0 %}
+                            <button class="btn btn-sm btn-primary print-barcodes">
+                                <i class="wii-icon wii-icon-printer-white mr-2"></i>Imprimer les étiquettes
+                            </button>
+                        {% endif %}
+                    </div>
+                    <div class="bordered packs-container">
+                        <div class="content d-flex align-items-center justify-content-center">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <span class="ml-3">Génération de la liste des colis en cours...</span>
+                        </div>
+                    </div>
                 </div>
                 <div class="wii-box">
                     <div class="header wii-title">Historique de transport</div>

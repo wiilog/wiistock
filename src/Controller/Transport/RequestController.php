@@ -9,11 +9,14 @@ use App\Entity\CategoryType;
 use App\Entity\FreeField;
 use App\Entity\Setting;
 use App\Entity\StatusHistory;
+use App\Entity\Transport\TransportCollectRequestLine;
+use App\Entity\Transport\TransportDeliveryOrderPack;
 use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\Transport\TemperatureRange;
+use App\Entity\Transport\TransportDeliveryRequestLine;
 use App\Entity\Transport\TransportHistory;
 use App\Entity\Transport\TransportRequest;
 use App\Entity\Type;
@@ -100,6 +103,14 @@ class RequestController extends AbstractController {
             : CategorieCL::COLLECT_TRANSPORT;
         $freeFields = $freeFieldRepository->findByTypeAndCategorieCLLabel($transportRequest->getType(), $categoryFF);
 
+        $packsCount = !$transportRequest->getOrders()->isEmpty()
+            ? $transportRequest->getOrders()->first()->getPacks()->count()
+            : null;
+
+        $hasRejectedPacks = !$transportRequest->getOrders()->isEmpty()
+            && Stream::from($transportRequest->getOrders()->first()->getPacks())
+                ->some(fn(TransportDeliveryOrderPack $pack) => $pack->isRejected());
+
         return $this->render('transport/request/show.html.twig', [
             'request' => $transportRequest,
             'freeFields' => $freeFields,
@@ -111,6 +122,8 @@ class RequestController extends AbstractController {
                 Nature::TRANSPORT_DELIVERY_CODE
             ]),
             "temperatures" => $temperatureRangeRepository->findAll(),
+            "packsCount" => $packsCount,
+            "hasRejectedPacks" => $hasRejectedPacks
         ]);
     }
 
@@ -329,6 +342,33 @@ class RequestController extends AbstractController {
                 "history" => Stream::from($transportRequest->getHistory())
                     ->sort(fn(TransportHistory $h1, TransportHistory $h2) => $h2->getDate() <=> $h1->getDate())
                     ->toArray()
+            ]),
+        ]);
+    }
+
+    #[Route("/{transportRequest}/transport-packs-api", name: "transport_packs_api", options: ['expose' => true], methods: "GET")]
+    public function transportPacksApi(TransportRequest $transportRequest) {
+        $transportCollectRequestLines = $transportRequest->getLines()->filter(fn($line) => $line instanceof TransportCollectRequestLine);
+        $transportDeliveryRequestLines = $transportRequest->getLines()->filter(fn($line) => $line instanceof TransportDeliveryRequestLine);
+
+        $packs = !$transportRequest->getOrders()->isEmpty() ? $transportRequest->getOrders()->first()->getPacks() : [];
+        $associatedNaturesAndPacks = Stream::from($packs)
+            ->keymap(function(TransportDeliveryOrderPack $transportDeliveryOrderPack) use ($packs) {
+                $nature = $transportDeliveryOrderPack->getPack()->getNature();
+                return [
+                    $nature->getLabel(), Stream::from($packs)
+                        ->filter(fn(TransportDeliveryOrderPack $pack) => $pack->getPack()->getNature() === $nature)
+                        ->toArray()
+                ];
+        })->toArray();
+
+        return $this->json([
+            "success" => true,
+            "template" => $this->renderView('transport/request/packs.html.twig', [
+                "transportCollectRequestLines" => $transportCollectRequestLines,
+                "transportDeliveryRequestLines" => $transportDeliveryRequestLines,
+                "associatedNaturesAndPacks" => $associatedNaturesAndPacks,
+                "transportRequest" => $transportRequest
             ]),
         ]);
     }

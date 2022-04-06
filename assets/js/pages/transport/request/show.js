@@ -8,27 +8,25 @@ $(function () {
 
     getStatusHistory(transportRequestId);
     getTransportHistory(transportRequestId);
+    getPacks(transportRequestId);
 
     const $modalTransportRequest = $("#modalTransportRequest");
     const form = initializeForm($modalTransportRequest, true);
     form.onSubmit((data) => {
         submitTransportRequestEdit(form, data);
     });
+
+    $(`.print-barcodes`).on(`click`, () => printBarcodes());
 });
 
-function getStatusHistory(transportRequest) {
-    $.get(Routing.generate(`transport_request_status_history_api`, {transportRequest}, true))
+function getStatusHistory(transportRequestId) {
+    $.get(Routing.generate(`transport_request_status_history_api`, {transportRequest: transportRequestId}, true))
         .then(({template}) => {
             const $statusHistoryContainer = $(`.status-history-container`);
             $statusHistoryContainer.empty().append(template);
             $statusHistoryContainer.animate({
                 scrollTop: $statusHistoryContainer.find(`.last-status-history`).offset().top
-            }, 1000, () => {
-                const $currentTitleLeft = $statusHistoryContainer.find(`.title-left.current`);
-                $currentTitleLeft.css(`transform`, `scale(1.2)`);
-                $currentTitleLeft.css(`transition`, `transform 330ms ease-in-out`);
-                setTimeout(() => $currentTitleLeft.css(`transform`, `none`), 300);
-            });
+            }, 1000);
         });
 }
 
@@ -37,7 +35,15 @@ function getTransportHistory(transportRequestId) {
         .then(({template}) => {
             const $transportHistoryContainer = $(`.transport-history-container`);
             $transportHistoryContainer.empty().append(template);
-        })
+        });
+}
+
+function getPacks(transportRequestId) {
+    $.get(Routing.generate(`transport_packs_api`, {transportRequest: transportRequestId}, true))
+        .then(({template}) => {
+            const $packsContainer = $(`.packs-container`);
+            $packsContainer.empty().append(template);
+        });
 }
 
 function submitTransportRequestEdit(form, data) {
@@ -58,4 +64,8 @@ function submitTransportRequestEdit(form, data) {
                 table.ajax.reload();
             });
     });
+}
+
+function printBarcodes() {
+    return window.confirm(`A faire`);
 }
