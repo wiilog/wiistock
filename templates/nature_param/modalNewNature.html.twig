@@ -49,44 +49,48 @@
                     </div>
                     <div class="form-group col-12">
                         <div class="wii-checkbox pl-0 pointer">
-                            <label class="pointer d-flex align-items-center wii-field-name">
-                                Synchronisation nomade ?
+                            <label class="pointer d-flex align-items-center">
                                 <input class="checkbox data ml-2" type="checkbox" name="mobileSync">
+                                Synchronisation nomade ?
                             </label>
                         </div>
                     </div>
                     <div class="form-group col-12">
                         <div class="wii-checkbox pl-0 pointer">
-                            <label class="pointer d-flex align-items-center wii-field-name">
-                                Nature par défaut (acheminements)
+                            <label class="pointer d-flex align-items-center">
                                 <input class="checkbox data ml-2" type="checkbox" name="defaultForDispatch">
+                                Nature par défaut (acheminements)
                             </label>
                         </div>
                     </div>
                     <div class="form-group col-12 d-flex align-items-center">
                         <div class="wii-checkbox pl-0 pointer">
-                            <label class="pointer d-flex align-items-center wii-field-name">
-                                Affichage sur les formulaires ?
+                            <label class="pointer d-flex align-items-center">
                                 <input class="checkbox data ml-2" type="checkbox" name="displayedOnForms" onchange="toggleEntitiesContainer($(this))">
+                                Affichage sur les formulaires ?
                             </label>
                         </div>
                     </div>
-                    <div class="col-12 entities-container d-none">
+                    <div class="col entities-container ml-3 d-none">
                         {% for index, entity in constant('App\\Entity\\Nature::ENTITIES') %}
-                            <div class="d-flex mb-1">
+                            <div class="d-flex mb-1 entity-item">
                                 <div class="form-group col-4 d-flex align-items-center mb-2">
-                                    <label class="d-flex align-items-center font-size-mini pointer mr-2 wii-field-name">
+                                    <label class="d-flex align-items-center font-size-mini pointer mr-2">
                                         <input class="checkbox data mr-2" type="checkbox" name="{{ index }}"
                                                onclick="toggleTypes($(this))">
                                         {{ entity }}
                                     </label>
                                 </div>
                                 {% if index != constant('App\\Entity\\Nature::ARRIVAL_CODE') %}
-                                    <div class="col-8 input-group flex-nowrap no-gutters">
-                                        <div class="types-container form-group mb-0 flex-fill col-6">
-                                            <label class="d-none">Types de {{ entity }}</label>
-                                            <select name="{{ index }}Types" class="data form-control h-100 w-100" data-s2
-                                                    data-placeholder="Sélectionnez un ou plusieurs types" disabled multiple>
+                                    <div class="input-group row no-gutters">
+                                        <div class="col-6">
+                                            <select name="{{ index }}Types"
+                                                    class="data form-control w-100"
+                                                    title="Types de {{ entity }}"
+                                                    data-s2
+                                                    data-placeholder="Sélectionnez un ou plusieurs types"
+                                                    disabled
+                                                    multiple>
                                                 {% for type in (types[index] ?? []) %}
                                                     <option value="{{ type['id'] }}">{{ type['label'] }}</option>
                                                 {% endfor %}

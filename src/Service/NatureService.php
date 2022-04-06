@@ -51,11 +51,16 @@ class NatureService
             'needsMobileSync' => FormatHelper::bool($nature->getNeedsMobileSync()),
             'displayedOnForms' => !empty($nature->getAllowedForms())
                 ? Stream::from($nature->getAllowedForms())
-                    ->map(fn(array|string $types, string $index) => Nature::ENTITIES[$index] . (is_array($types)
-                            ? (' : ' . Stream::from($typeRepository->findBy(['id' => $types]))
-                                    ->map(fn(Type $type) => $type->getLabel())
-                                    ->join(", "))
-                            : ''))
+                    ->map(fn(array|string $types, string $index) =>
+                        Nature::ENTITIES[$index] .
+                        (
+                            is_array($types)
+                                ? (' : ' . Stream::from($typeRepository->findBy(['id' => $types]))
+                                        ->map(fn(Type $type) => $type->getLabel())
+                                        ->join(", "))
+                                : ''
+                        )
+                    )
                     ->join("; ")
                 : 'non',
             'color' => $nature->getColor() ? '<div style="background-color:' . $nature->getColor() . ';"><br></div>' : 'Non définie',

@@ -46,9 +46,9 @@
     <div class="form-group col-12">
         <div class="wii-checkbox pl-0 pointer">
             {% set checked = nature.needsMobileSync ? 'checked' %}
-            <label class="pointer d-flex align-items-center wii-field-name">
-                Synchronisation nomade ?
+            <label class="pointer d-flex align-items-center">
                 <input class="checkbox data ml-2" type="checkbox" name="mobileSync" {{ checked }}>
+                Synchronisation nomade ?
             </label>
         </div>
     </div>
@@ -56,9 +56,9 @@
     <div class="form-group col-12">
         <div class="wii-checkbox pl-0 pointer">
             {% set checked = nature.defaultForDispatch ? 'checked' %}
-            <label class="pointer d-flex align-items-center wii-field-name">
-                Nature par défaut (acheminements)
+            <label class="pointer d-flex align-items-center">
                 <input class="checkbox data ml-2" type="checkbox" name="defaultForDispatch" {{ checked }}>
+                Nature par défaut (acheminements)
             </label>
         </div>
     </div>
@@ -66,31 +66,34 @@
     <div class="form-group col-12 d-flex align-items-center">
         <div class="wii-checkbox pl-0 pointer">
             {% set checked = nature.displayedOnForms ? 'checked' %}
-            <label class="pointer d-flex align-items-center wii-field-name">
-                Affichage sur les formulaires ?
+            <label class="pointer d-flex align-items-center">
                 <input class="checkbox data ml-2" type="checkbox" name="displayedOnForms" {{ checked }} onchange="toggleEntitiesContainer($(this))">
+                Affichage sur les formulaires ?
             </label>
         </div>
     </div>
 
     {% set hide = not nature.displayedOnForms ? 'd-none' %}
-    <div class="col-12 entities-container {{ hide }}">
+    <div class="col entities-container ml-3 {{ hide }}">
         {% for index, entity in constant('App\\Entity\\Nature::ENTITIES') %}
             {% set checked = index in nature.allowedForms|keys %}
-            <div class="d-flex mb-1">
+            <div class="d-flex mb-1 entity-item">
                 <div class="form-group col-4 d-flex align-items-center mb-2">
-                    <label class="font-size-mini pointer wii-field-name">
+                    <label class="font-size-mini pointer">
                         <input class="checkbox data-array mr-2" {{ checked ? 'checked' }}
                                type="checkbox" name="{{ index }}" data-identifier="{{ entity }}" onclick="toggleTypes($(this));">
                         {{ entity }}
                     </label>
                 </div>
                 {% if index != constant('App\\Entity\\Nature::ARRIVAL_CODE') %}
-                    <div class="col-8 input-group flex-nowrap no-gutters">
-                        <div class="types-container form-group mb-0 flex-fill col-6">
-                            <label class="d-none">Types de {{ entity }}</label>
-                            <select name="{{ index }}Types" class="data form-control h-100 w-100 {{ checked ? 'needed' }}"
-                                    data-s2 {{ not checked ? 'disabled' }} multiple>
+                    <div class="input-group row no-gutters">
+                        <div class="col-6">
+                            <select name="{{ index }}Types"
+                                    class="data form-control w-100 {{ checked ? 'needed' }}"
+                                    title="Types de {{ entity }}"
+                                    data-s2
+                                    {{ not checked ? 'disabled' }}
+                                    multiple>
                                 {% for type in (types[index] ?? []) %}
                                     {% set selected = type['id'] in nature.allowedForms[index] ?? [] ? 'selected' %}
                                     <option value="{{ type['id'] }}" {{ selected }}>{{ type['label'] }}</option>
