@@ -9,13 +9,16 @@ use App\Entity\CategoryType;
 use App\Entity\FreeField;
 use App\Entity\Setting;
 use App\Entity\StatusHistory;
+use App\Entity\Transport\TransportCollectRequestLine;
 use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\Transport\TemperatureRange;
+use App\Entity\Transport\TransportDeliveryRequestLine;
 use App\Entity\Transport\TransportHistory;
 use App\Entity\Transport\TransportRequest;
+use App\Entity\Transport\TransportRequestLine;
 use App\Entity\Type;
 use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
@@ -100,8 +103,19 @@ class RequestController extends AbstractController {
             : CategorieCL::COLLECT_TRANSPORT;
         $freeFields = $freeFieldRepository->findByTypeAndCategorieCLLabel($transportRequest->getType(), $categoryFF);
 
+        $selectedLines = Stream::from($transportRequest->getLines())
+            ->keymap(fn(TransportRequestLine $line) => [
+                $line->getNature()?->getId() ?: 0,
+                $line instanceof TransportDeliveryRequestLine
+                    ? $line->getTemperatureRange()?->getId()
+                    : ($line instanceof TransportCollectRequestLine ? $line->getQuantityToCollect() : null)
+            ])
+            ->filter(fn($_, $key) => $key !== 0)
+            ->toArray();
+
         return $this->render('transport/request/show.html.twig', [
             'request' => $transportRequest,
+            'selectedLines' => $selectedLines,
             'freeFields' => $freeFields,
             "types" => $typeRepository->findByCategoryLabels([
                 CategoryType::DELIVERY_TRANSPORT, CategoryType::COLLECT_TRANSPORT,

@@ -47,7 +47,7 @@ function onFormOpened(form, editForm) {
         .prop('checked', true)
         .trigger('change');
 
-    if (editForm) {
+    if (!editForm) {
         $modal
             .find('.contact-container .data, [name=expectedAt]')
             .prop('disabled', false);

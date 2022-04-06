@@ -9,10 +9,13 @@ $(function () {
     getStatusHistory(transportRequestId);
     getTransportHistory(transportRequestId);
 
-    const $modalTransportRequest = $("#modalTransportRequest");
-    const form = initializeForm($modalTransportRequest, true);
-    form.onSubmit((data) => {
-        submitTransportRequestEdit(form, data);
+    const $modals = $("#modalTransportDeliveryRequest, #modalTransportCollectRequest");
+    $modals.each(function() {
+        const $modal = $(this);
+        const form = initializeForm($modal, true);
+        form.onSubmit((data) => {
+            submitTransportRequestEdit(form, data);
+        });
     });
 });
 
@@ -43,9 +46,13 @@ function getTransportHistory(transportRequestId) {
 function submitTransportRequestEdit(form, data) {
     const $modal = form.element;
     const $submit = $modal.find('[type=submit]');
+
+    const $transportRequest = $modal.find('[name=transportRequest]');
+    const transportRequest = $transportRequest.val();
+
     wrapLoadingOnActionButton($submit, () => {
         return AJAX
-            .route(POST, 'transport_request_edit')
+            .route(POST, 'transport_request_edit', {transportRequest})
             .json(data)
             .then(({success, message}) => {
                 if (success) {
