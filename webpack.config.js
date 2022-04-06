@@ -1,5 +1,6 @@
 const Encore = require('@symfony/webpack-encore');
 const CopyPlugin = require('copy-webpack-plugin');
+const path = require('path');
 
 // Manually configure the runtime environment if not already configured yet by the "encore" command.
 // It's useful when you use tools that rely on webpack.config.js file.
@@ -27,6 +28,11 @@ Encore
 
     // When enabled, Webpack "splits" your files into smaller pieces for greater optimization.
     .splitEntryChunks()
+
+    .addAliases({
+        '@app': path.resolve(__dirname, 'assets/js'),
+        '@styles': path.resolve(__dirname, 'assets/scss')
+    })
 
     // will require an extra script tag for runtime.js
     // but, you probably want this, unless you're building a single-page app

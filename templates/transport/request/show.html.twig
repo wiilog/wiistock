@@ -10,6 +10,8 @@
 
 {% block page_content %}
     {% set requestType = request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') ? 'Livraison' : 'Collecte' %}
+    {% set request_collect = request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') ? request : null %}
+    {% set request_delivery = request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') ? request : null %}
     <div class="wii-box-container mb-4">
         <div class="row">
             <div class="col-lg-4 col-md-6 col-12">
@@ -24,6 +26,13 @@
                                     <div class="dropdown-item pointer">
                                         <i class="fas fa-print mr-2"></i> Imprimer les étiquettes
                                     </div>
+                                    {% if request.canBeUpdated %}
+                                        <div class="dropdown-item pointer"
+                                             data-target="#modalTransportRequest"
+                                             data-toggle="modal">
+                                            <i class="fa fa-pen mr-2"></i> Modifier
+                                        </div>
+                                    {% endif %}
                                     {% if request.orders|length > 0 %}
                                         <div class="dropdown-item pointer">
                                             <i class="fas fa-file mr-2"></i> Générer bon de transport
@@ -194,6 +203,12 @@
         </div>
     </div>
     {% include 'transport/request/delete.html.twig' %}
+    {% include 'transport/request/form.html.twig' with {
+        request: request,
+        types: types,
+        natures: natures,
+        temperatures: temperatures,
+    } %}
 
     <input type="hidden" value="{{ request.id }}" name="transportRequestId">
 {% endblock %}

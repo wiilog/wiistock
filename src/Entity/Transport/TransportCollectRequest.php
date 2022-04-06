@@ -4,8 +4,6 @@ namespace App\Entity\Transport;
 
 use App\Repository\Transport\TransportCollectRequestRepository;
 use DateTime;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TransportCollectRequestRepository::class)]
@@ -17,19 +15,10 @@ class TransportCollectRequest extends TransportRequest {
     #[ORM\ManyToOne(targetEntity: CollectTimeSlot::class, inversedBy: 'transportCollectRequests')]
     private ?CollectTimeSlot $timeSlot = null;
 
-    #[ORM\OneToMany(mappedBy: 'transportCollectRequest', targetEntity: TransportCollectRequestNature::class, cascade: ['remove'])]
-    private Collection $transportCollectRequestNatures;
-
     #[ORM\OneToOne(mappedBy: 'collect', targetEntity: TransportDeliveryRequest::class, cascade: ['persist', 'remove'])]
     private ?TransportDeliveryRequest $delivery = null;
 
-    public function __construct() {
-        parent::__construct();
-        $this->transportCollectRequestNatures = new ArrayCollection();
-    }
-
-    public function getTimeSlot(): ?CollectTimeSlot
-    {
+    public function getTimeSlot(): ?CollectTimeSlot {
         return $this->timeSlot;
     }
 
@@ -39,33 +28,6 @@ class TransportCollectRequest extends TransportRequest {
         }
         $this->timeSlot = $timeSlot;
         $timeSlot?->addTransportCollectRequest($this);
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, TransportCollectRequestNature>
-     */
-    public function getTransportCollectRequestNatures(): Collection {
-        return $this->transportCollectRequestNatures;
-    }
-
-    public function addTransportCollectRequestNature(TransportCollectRequestNature $transportCollectRequestNature): self {
-        if (!$this->transportCollectRequestNatures->contains($transportCollectRequestNature)) {
-            $this->transportCollectRequestNatures[] = $transportCollectRequestNature;
-            $transportCollectRequestNature->setTransportCollectRequest($this);
-        }
-
-        return $this;
-    }
-
-    public function removeTransportCollectRequestNature(TransportCollectRequestNature $transportCollectRequestNature): self {
-        if ($this->transportCollectRequestNatures->removeElement($transportCollectRequestNature)) {
-            // set the owning side to null (unless already changed)
-            if ($transportCollectRequestNature->getTransportCollectRequest() === $this) {
-                $transportCollectRequestNature->setTransportCollectRequest(null);
-            }
-        }
 
         return $this;
     }
@@ -97,6 +59,15 @@ class TransportCollectRequest extends TransportRequest {
                 TransportRequest::STATUS_AWAITING_VALIDATION,
             ])
         );
+    }
+
+    public function canBeUpdated(): bool {
+        return in_array($this->getStatus()?->getCode(), [
+            TransportRequest::STATUS_AWAITING_VALIDATION,
+            TransportRequest::STATUS_TO_PREPARE,
+            TransportRequest::STATUS_TO_DELIVER,
+            TransportRequest::STATUS_SUBCONTRACTED,
+        ]);
     }
 
 }

@@ -1,4 +1,4 @@
-import '../../../scss/pages/transport/common.scss';
+import '@styles/pages/transport/common.scss';
 
 export function initializeFilters(page) {
     initDateTimePicker('#dateMin, #dateMax', 'DD/MM/YYYY', {
