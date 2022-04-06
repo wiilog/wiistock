@@ -1,7 +1,12 @@
 import '../../../../scss/pages/transport/show.scss';
+import {cancelRequest} from "./common";
 
 $(function () {
     const transportRequestId = $(`input[name=transportRequestId]`).val();
+
+    $('.cancel-request').on('click', function(){
+        cancelRequest($(this).data('transport-request-id'));
+    });
 
     getStatusHistory(transportRequestId);
     getTransportHistory(transportRequestId);

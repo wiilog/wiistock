@@ -99,4 +99,15 @@ class TransportCollectRequest extends TransportRequest {
         );
     }
 
+    public function canBeCancelled(): bool {
+        return (
+            $this->isInRound()
+            && in_array($this->getStatus()?->getCode(), [
+                TransportRequest::STATUS_TO_COLLECT,
+                TransportRequest::STATUS_ONGOING,
+                TransportRequest::STATUS_AWAITING_PLANNING,
+            ])
+        );
+    }
+
 }

@@ -27,7 +27,7 @@ export default class Modal {
         keepOnError = keepOnError === undefined ? true : keepOnError;
         discard = discard === undefined ? true : discard;
 
-        const {label: actionLabel, color: actionColor, click: actionClick} = action;
+        const {label: actionLabel, color: actionColor, click: actionClick, cancelButtonName: actionCancelButtonName} = action;
         let $modal = $(`#${confirmationModalId}`);
 
         let confirmed = false;
@@ -44,6 +44,10 @@ export default class Modal {
 
         if (title) {
             $title.text(title);
+        }
+
+        if(actionCancelButtonName){
+            $discard.text(actionCancelButtonName);
         }
 
         $message.html(message);

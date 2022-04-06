@@ -79,3 +79,19 @@ export function onNatureCheckChange($input) {
         }
     }
 }
+export function cancelRequest($id){
+    Modal.confirm({
+        ajax: {
+            method: 'POST',
+            route: 'transport_request_cancel',
+            params: {transportRequest: $id},
+            },
+    message: 'Voulez-vous réellement annuler cette demande de transport ?',
+        title: 'Annuler la demande de transport',
+        action: {
+            color: 'danger',
+            label: 'Annuler',
+            cancelButtonName: 'Fermer',
+        }
+    })
+}

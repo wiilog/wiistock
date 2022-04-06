@@ -327,4 +327,6 @@ abstract class TransportRequest {
 
     public abstract function canBeDeleted(): bool;
 
+    public abstract function canBeCancelled(): bool;
+
 }
