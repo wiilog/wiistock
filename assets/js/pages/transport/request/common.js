@@ -89,8 +89,9 @@ export function cancelRequest($id){
     message: 'Voulez-vous réellement annuler cette demande de transport ?',
         title: 'Annuler la demande de transport',
         action: {
-        color: 'danger',
-            label: 'Annuler'
+            color: 'danger',
+            label: 'Annuler',
+            cancelButtonName: 'Fermer',
         }
     })
 }
