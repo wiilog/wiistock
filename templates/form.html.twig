@@ -75,7 +75,7 @@
 
                 <label for="{{ name }}-{{ id }}"
                        {{ _self.custom_attributes(switch.attributes ?? []) }}>
-                    <span class="d-inline-flex align-items-center ">
+                    <span class="d-inline-flex align-items-center">
                         {% if switch.wiiIcon ?? false %}
                             <span class="mr-2 wii-icon wii-icon-{{ switch.wiiIcon }}"></span>
                         {% elseif switch.iconUrl ?? false %}
@@ -111,7 +111,7 @@
         {% else %}
             <label class="user-select-none pointer {{ options.labelClass ?? '' }}" for="{{ id }}">
                 <span class="d-inline-flex align-items-center">
-                    {{ label }}
+                    {{ label | raw }}
                 </span>
             </label>
             {{ _self.tooltip(options.tooltip ?? null, options.inline ?? false) }}

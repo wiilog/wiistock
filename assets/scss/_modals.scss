@@ -2,12 +2,6 @@
 
 .modal {
     overflow: auto !important;
-
-    .modal-body {
-        label {
-            color: $greyForm;
-        }
-    }
 }
 
 .error-msg, .password-error-msg, .row-error-msg {

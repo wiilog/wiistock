@@ -3,6 +3,7 @@ import Flash from "./flash";
 
 export default class Form {
 
+    element;
     submitCallback;
     openCallback;
     processors = [];
@@ -70,6 +71,11 @@ export default class Form {
     clear() {
         clearFormError(this);
         clearModal(this.element)
+    }
+
+    on(event, selector, callback) {
+        this.element.on(event, selector, callback);
+        return this;
     }
 
     static getFieldNames(form, config = {}) {
@@ -185,7 +191,8 @@ export default class Form {
         $parent.find(`.invalid-feedback`).remove();
         if($field.is(`[data-global-error]`)) {
             const label = $field.data(`global-error`) || $parent.find(`.field-label`).text();
-            Flash.add(`danger`, `${label} : ${message}`);
+            const prefixMessage = label ? `${label} : ` : '';
+            Flash.add(`danger`, `${prefixMessage}${message}`);
         } else {
             $parent.append(`<span class="invalid-feedback">${message}</span>`);
         }

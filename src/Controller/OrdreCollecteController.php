@@ -94,7 +94,7 @@ class OrdreCollecteController extends AbstractController
         return $this->render('ordre_collecte/show.html.twig', [
             'collecte' => $ordreCollecte,
             'finished' => $ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_TRAITE,
-            'detailsConfig' => $ordreCollecteService->createHeaderDetailsConfig($ordreCollecte)
+            'detailsConfig' => $ordreCollecteService->createHeaderDetailsConfig($ordreCollecte),
         ]);
     }
 
@@ -106,7 +106,7 @@ class OrdreCollecteController extends AbstractController
                            OrdreCollecte $ordreCollecte,
                            OrdreCollecteService $ordreCollecteService): Response
     {
-        $rows = $request->request->get('rows');
+        $rows = $request->request->all('rows');
         if (!empty($rows) && ($ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER)) {
 
             $date = new DateTime('now');

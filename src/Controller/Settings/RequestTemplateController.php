@@ -223,8 +223,7 @@ class RequestTemplateController extends AbstractController {
                             freeFields: [free_field],
                             freeFieldValues: value,
                             colType: "col-12",
-                            requiredType: "requiredCreate",
-                            actionType: "new",
+                            actionType: "edit",
                             disabledNeeded: true,
                             showLabels: false,
                         } %}

@@ -1,7 +1,7 @@
 import Form from "../../../form";
 import AJAX, {GET, POST} from "../../../ajax";
 import Flash from "../../../flash";
-import {onRequestTypeChange, onTypeChange} from "./form";
+import {onRequestTypeChange, onTypeChange, validateNatureForm, onNatureCheckChange} from "./form";
 
 import {initializeFilters} from "../common";
 
@@ -15,9 +15,15 @@ $(function() {
         serverSide: true,
         ordering: false,
         searching: false,
+        pageLength: 24,
+        lengthMenu: [24, 48, 72, 96],
         ajax: {
             url: Routing.generate(`transport_request_api`),
-            type: "POST"
+            type: "POST",
+            data: data => {
+                data.dateMin = $(`.filters [name="dateMin"]`).val();
+                data.dateMax = $(`.filters [name="dateMax"]`).val();
+            }
         },
         domConfig: {
             removeInfo: true
@@ -34,8 +40,14 @@ $(function() {
 
     const form = Form
         .create($modalNewTransportRequest)
-        .onClose(() => {
-            onCloseTransportRequestForm(form);
+        .addProcessor((_, errors, $form) => {
+            validateNatureForm($form, errors)
+        })
+        .onOpen(() => {
+            onOpenTransportRequestForm(form);
+        })
+        .on('change', '.nature-item [name=selected]', function () {
+            onNatureCheckChange($(this));
         })
         .onSubmit((data) => {
             submitTransportRequest(form, data, table);
@@ -108,7 +120,7 @@ function initializeNewForm($form) {
     });
 }
 
-function onCloseTransportRequestForm(form) {
+function onOpenTransportRequestForm(form) {
     const $modal = form.element;
 
     $modal.find('delivery').remove();
@@ -124,8 +136,10 @@ function onCloseTransportRequestForm(form) {
     $modal.find('.contact-container .data, [name=expectedAt]')
         .prop('disabled', false);
 
-    onRequestTypeChange($modal, null);
-    onTypeChange($modal, null);
+    $requestType
+        .filter('[value=collect]')
+        .prop('checked', true)
+        .trigger('change')
 }
 
 function saveDeliveryForLinkedCollect($modal, data) {
@@ -155,16 +169,12 @@ function saveDeliveryForLinkedCollect($modal, data) {
 }
 
 function canSubmit($form) {
-    const $expectedAt = $form.find('[name=expectedAt]:not(:hidden)');
     const $fileNumber = $form.find('[name=contactFileNumber]');
     const $requestType = $form.find('[name=requestType]:checked');
     const requestType = $requestType.val();
 
     if (requestType === 'collect') {
-        return AJAX.route(GET, 'transport_request_collect_already_exists', {
-            expectedAt: $expectedAt.val(),
-            fileNumber: $fileNumber.val()
-        })
+        return AJAX.route(GET, 'transport_request_collect_already_exists', {fileNumber: $fileNumber.val()})
             .json()
             .then(({exists}) => {
                 if (exists) {
@@ -194,4 +204,3 @@ function canSubmit($form) {
         return new Promise(((resolve) => {resolve(true)}))
     }
 }
-

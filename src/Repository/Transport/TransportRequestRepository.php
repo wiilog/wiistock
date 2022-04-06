@@ -5,6 +5,7 @@ namespace App\Repository\Transport;
 use App\Entity\Dispatch;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField;
+use App\Entity\Transport\TransportCollectRequest;
 use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\Transport\TransportRequest;
 use App\Entity\Utilisateur;
@@ -14,6 +15,7 @@ use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
 use Symfony\Component\HttpFoundation\InputBag;
+use WiiCommon\Helper\Stream;
 
 /**
  * @method TransportRequest|null find($id, $lockMode = null, $lockVersion = null)
@@ -26,33 +28,48 @@ class TransportRequestRepository extends EntityRepository {
     public function findByParamAndFilters(InputBag $params, $filters) {
         $qb = $this->createQueryBuilder("transport_request")
             ->leftJoin(TransportDeliveryRequest::class, "delivery", Join::WITH, "transport_request.id = delivery.id")
-            ->where("delivery.collect IS NULL");
+            ->leftJoin(TransportCollectRequest::class, "collect", Join::WITH, "transport_request.id = collect.id")
+            ->leftJoin("collect.delivery", "collect_delivery")
+            ->andWhere("(collect IS NULL OR collect_delivery IS NULL)");
 
         $total = QueryCounter::count($qb, "transport_request");
+
+        if($params->get("dateMin")) {
+            $date = \DateTime::createFromFormat("d/m/Y", $params->get("dateMin"));
+            $date = $date->format("Y-m-d");
+
+            $qb->andWhere('delivery.expectedAt >= :datetimeMin OR collect.expectedAt >= :dateMin')
+                ->setParameter('datetimeMin', "$date 00:00:00")
+                ->setParameter('dateMin', $date);
+        }
+
+        if($params->get("dateMax")) {
+            $date = \DateTime::createFromFormat("d/m/Y", $params->get("dateMax"));
+            $date = $date->format("Y-m-d");
+
+            $qb->andWhere('delivery.expectedAt <= :datetimeMax OR collect.expectedAt <= :dateMax')
+                ->setParameter('datetimeMax', "$date 23:59:59")
+                ->setParameter('dateMax', $date);
+        }
 
         // filtres sup
         foreach ($filters as $filter) {
             switch ($filter['field']) {
-                case FiltreSup::FIELD_DATE_MIN:
-                    $qb->andWhere('delivery.expectedAt >= :dateMin')
-                        ->setParameter('dateMin', $filter['value'] . ' 00:00:00');
-                    break;
-                case FiltreSup::FIELD_DATE_MAX:
-                    $qb->andWhere('delivery.expectedAt <= :dateMax')
-                        ->setParameter('dateMax', $filter['value'] . ' 23:59:59');
-                    break;
                 case FiltreSup::FIELD_STATUT:
-                    $value = explode(',', $filter['value']);
+                    $value = Stream::explode(",", $filter['value'])
+                        ->map(fn($line) => explode(":", $line))
+                        ->toArray();
+
                     $qb
                         ->join('transport_request.status', 'filter_status')
-                        ->andWhere('filter_status.id IN (:status)')
-                        ->setParameter('status', $value);
+                        ->andWhere('filter_status.nom IN (:filter_status_value)')
+                        ->setParameter('filter_status_value', $value);
                     break;
                 case FiltreSup::FIELD_CATEGORY:
                     $qb->join("transport_request.type", "filter_category_type")
                         ->join("filter_category_type.category", "filter_category")
                         ->andWhere("filter_category.label LIKE :filter_category_value")
-                        ->setParameter("filter_category_value", $filter['value']);
+                        ->setParameter("filter_category_value","%".$filter['value']."%");
                     break;
                 case FiltreSup::FIELD_TYPE:
                     $qb
@@ -66,8 +83,15 @@ class TransportRequestRepository extends EntityRepository {
                     break;
                 case FiltreSup::FIELD_CONTACT:
                     $qb->join("transport_request.contact", "filter_contact")
-                        ->andWhere("filter_contact.name = :filter_contact_name")
+                        ->andWhere("filter_contact.name LIKE :filter_contact_name")
                         ->setParameter("filter_contact_name", "%" . $filter['value'] . "%");
+                    break;
+                case FiltreSup::FIELD_REQUESTERS:
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->join('transport_request.createdBy', 'filter_requester')
+                        ->andWhere('filter_requester.id in (:filter_requester_values)')
+                        ->setParameter('filter_requester_values', $value);
                     break;
             }
         }
@@ -82,7 +106,7 @@ class TransportRequestRepository extends EntityRepository {
             $qb->setMaxResults($params->getInt('length'));
         }
 
-        $qb->orderBy("delivery.expectedAt", "ASC");
+        $qb->orderBy("CASE WHEN delivery.expectedAt IS NOT NULL THEN delivery.expectedAt ELSE collect.expectedAt END", "DESC");
 
         return [
             "data" => $qb->getQuery()->getResult(),

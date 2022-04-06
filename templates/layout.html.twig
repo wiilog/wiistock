@@ -1,7 +1,7 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-    <input type="hidden" id="BARCODE_VALID_REGEX" value={{ constant("App\\Service\\SettingsService::CHARACTER_VALID_REGEX") }}>
+    <input type="hidden" id="BARCODE_VALID_REGEX" value="{{ constant("App\\Service\\SettingsService::CHARACTER_VALID_REGEX")|e('html') }}">
     <div class="wrapper {% block wrapperClass '' %}">
         <div class="header-container">
             {% include 'header.html.twig' with {

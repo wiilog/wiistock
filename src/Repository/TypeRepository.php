@@ -11,6 +11,8 @@ use App\Entity\Handling;
 use App\Entity\Dispute;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
+use App\Entity\Transport\TransportHistory;
+use App\Entity\Transport\TransportRequest;
 use App\Entity\Type;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -158,6 +160,8 @@ class TypeRepository extends EntityRepository {
             ['class' => ReferenceArticle::class, 'where' => 'item.type = :id'],
             ['class' => Handling::class, 'where' => 'item.type = :id'],
             ['class' => Dispatch::class, 'where' => 'item.type = :id'],
+            ['class' => TransportRequest::class, 'where' => 'item.type = :id'],
+            ['class' => TransportHistory::class, 'where' => 'item.type = :id'],
         ];
 
         $resultsCount = array_map(function(array $table) use ($entityManager, $typeId) {

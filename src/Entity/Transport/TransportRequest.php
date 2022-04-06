@@ -31,7 +31,7 @@ abstract class TransportRequest {
     public const CATEGORY = 'transportRequest';
 
     public const STATUS_AWAITING_VALIDATION = 'En attente validation';
-    public const STATUS_AWAITING_PLANNING = 'En attente de plannification';
+    public const STATUS_AWAITING_PLANNING = 'En attente de planification';
     public const STATUS_TO_PREPARE = 'À préparer';
     public const STATUS_TO_DELIVER = 'À livrer';
     public const STATUS_TO_COLLECT = 'À collecter';
@@ -53,20 +53,31 @@ abstract class TransportRequest {
         self::STATUS_TO_COLLECT => "preparing",
         self::STATUS_ONGOING => "ongoing",
         self::STATUS_FINISHED => "finished",
-        self::STATUS_CANCELLED => "finished",
+        TransportOrder::STATUS_FINISHED => "finished",
+        self::STATUS_CANCELLED => "cancelled",
+        TransportOrder::STATUS_CANCELLED => "cancelled",
         self::STATUS_NOT_DELIVERED => "cancelled",
+        TransportOrder::STATUS_NOT_DELIVERED => "cancelled",
         self::STATUS_NOT_COLLECTED => "cancelled",
+        TransportOrder::STATUS_NOT_COLLECTED => "cancelled",
         self::STATUS_SUBCONTRACTED => "subcontracted",
+        TransportOrder::STATUS_SUBCONTRACTED => "subcontracted",
     ];
 
-    public const DELIVERY_STATUSES = [
+    public const DELIVERY_CLASSIC_STATUS_WORKFLOW = [
         TransportRequest::STATUS_TO_PREPARE,
         TransportRequest::STATUS_TO_DELIVER,
         TransportRequest::STATUS_ONGOING,
         TransportRequest::STATUS_FINISHED,
     ];
 
-    public const COLLECT_STATUSES = [
+    public const SUBCONTRACT_STATUS_WORKFLOW = [
+        TransportRequest::STATUS_SUBCONTRACTED,
+        TransportRequest::STATUS_ONGOING,
+        TransportRequest::STATUS_FINISHED,
+    ];
+
+    public const COLLECT_STATUS_WORKFLOW = [
         TransportRequest::STATUS_AWAITING_PLANNING,
         TransportRequest::STATUS_TO_COLLECT,
         TransportRequest::STATUS_ONGOING,
@@ -307,6 +318,11 @@ abstract class TransportRequest {
 
     public function isInRound(): bool {
         return Stream::from($this->orders)->some(fn(TransportOrder $order) => !$order->getTransportRoundLines()->isEmpty());
+    }
+
+    public function isSubcontracted(): bool {
+        $lastOrder = $this->getOrders()->last() ?: null;
+        return $lastOrder?->isSubcontracted() ?: false;
     }
 
     public abstract function canBeDeleted(): bool;

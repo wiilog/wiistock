@@ -147,13 +147,13 @@ class TransportService {
             $temperatureId = $line['temperature'] ?? null;
             $nature = $natureId ? $natureRepository->find($natureId) : null;
             if ($selected && $nature) {
-                if ($transportRequestType === TransportRequest::DISCR_DELIVERY) {
+                if ($transportRequest instanceof TransportDeliveryRequest) {
                     $temperature = $temperatureId ? $temperatureRangeRepository->find($temperatureId) : null;
                     $line = new TransportDeliveryRequestNature();
                     $line->setTemperatureRange($temperature);
                     $transportRequest->addTransportDeliveryRequestNature($line);
                 }
-                else if ($transportRequestType === TransportRequest::DISCR_COLLECT) {
+                else if ($transportRequest instanceof TransportCollectRequest) {
                     $line = new TransportCollectRequestNature();
                     $line->setQuantityToCollect($quantity);
                     $transportRequest->addTransportCollectRequestNature($line);
@@ -166,6 +166,11 @@ class TransportService {
 
                 $entityManager->persist($line);
             }
+        }
+
+        if (($transportRequest instanceof TransportDeliveryRequest && $transportRequest->getTransportDeliveryRequestNatures()->isEmpty())
+            || ($transportRequest instanceof TransportCollectRequest && $transportRequest->getTransportCollectRequestNatures()->isEmpty())) {
+            throw new FormException('Vous devez sélectionner au moins une nature de colis dans vote demande');
         }
 
         $entityManager->persist($transportRequest);
@@ -201,6 +206,7 @@ class TransportService {
 
         $transportOrder
             ->setCreatedAt(new DateTime())
+            ->setRequest($transportRequest)
             ->setSubcontracted($subcontracted);
 
         $entityManager->persist($transportOrder);
