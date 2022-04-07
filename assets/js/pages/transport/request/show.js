@@ -1,5 +1,7 @@
-import '../../../../scss/pages/transport/show.scss';
-import {cancelRequest} from "./common";
+import '@styles/pages/transport/show.scss';
+import {initializeForm, cancelRequest} from "@app/pages/transport/request/common";
+import AJAX, {POST} from "@app/ajax";
+import Flash from "@app/flash";
 
 $(function () {
     const transportRequestId = $(`input[name=transportRequestId]`).val();
@@ -10,10 +12,19 @@ $(function () {
 
     getStatusHistory(transportRequestId);
     getTransportHistory(transportRequestId);
+
+    const $modals = $("#modalTransportDeliveryRequest, #modalTransportCollectRequest");
+    $modals.each(function() {
+        const $modal = $(this);
+        const form = initializeForm($modal, true);
+        form.onSubmit((data) => {
+            submitTransportRequestEdit(form, data);
+        });
+    });
 });
 
-function getStatusHistory(transportRequestId) {
-    $.get(Routing.generate(`transport_request_status_history_api`, {transportRequest: transportRequestId}, true))
+function getStatusHistory(transportRequest) {
+    $.get(Routing.generate(`transport_request_status_history_api`, {transportRequest}, true))
         .then(({template}) => {
             const $statusHistoryContainer = $(`.status-history-container`);
             $statusHistoryContainer.empty().append(template);
@@ -34,4 +45,28 @@ function getTransportHistory(transportRequestId) {
             const $transportHistoryContainer = $(`.transport-history-container`);
             $transportHistoryContainer.empty().append(template);
         })
+}
+
+function submitTransportRequestEdit(form, data) {
+    const $modal = form.element;
+    const $submit = $modal.find('[type=submit]');
+
+    const $transportRequest = $modal.find('[name=transportRequest]');
+    const transportRequest = $transportRequest.val();
+
+    wrapLoadingOnActionButton($submit, () => {
+        return AJAX
+            .route(POST, 'transport_request_edit', {transportRequest})
+            .json(data)
+            .then(({success, message}) => {
+                if (success) {
+                    $modal.modal('hide');
+                }
+                Flash.add(
+                    success ? 'success' : 'danger',
+                    message || `Une erreur s'est produite`
+                );
+                table.ajax.reload();
+            });
+    });
 }

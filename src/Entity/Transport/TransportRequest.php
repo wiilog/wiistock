@@ -11,7 +11,6 @@ use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use JetBrains\PhpStorm\Pure;
 use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: TransportRequestRepository::class)]
@@ -131,12 +130,19 @@ abstract class TransportRequest {
     #[ORM\ManyToOne(targetEntity: TransportRequestContact::class, cascade: ['persist', 'remove'])]
     private ?TransportRequestContact $contact = null;
 
+    #[ORM\OneToMany(mappedBy: 'request', targetEntity: TransportRequestLine::class, cascade: ['remove'])]
+    private Collection $lines;
+
     public function __construct() {
         $this->orders = new ArrayCollection();
         $this->history = new ArrayCollection();
         $this->statusHistory = new ArrayCollection();
+        $this->lines = new ArrayCollection();
         $this->contact = $this->contact ?? new TransportRequestContact();
     }
+
+    public abstract function canBeDeleted(): bool;
+    public abstract function canBeUpdated(): bool;
 
     public function getId(): ?int {
         return $this->id;
@@ -325,7 +331,46 @@ abstract class TransportRequest {
         return $lastOrder?->isSubcontracted() ?: false;
     }
 
-    public abstract function canBeDeleted(): bool;
+    /**
+     * @return Collection<int, TransportRequestLine>
+     */
+    public function getLines(): Collection {
+        return $this->lines;
+    }
+
+    public function addLine(TransportRequestLine $line): self {
+        if (!$this->lines->contains($line)) {
+            $this->lines[] = $line;
+            $line->setRequest($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLine(TransportRequestLine $line): self {
+        if ($this->lines->removeElement($line)) {
+            // set the owning side to null (unless already changed)
+            if ($line->getRequest() === $this) {
+                $line->setRequest(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setLines(?array $lines): self {
+        foreach($this->getLines()->toArray() as $line) {
+            $this->removeLine($line);
+        }
+
+        $this->lines = new ArrayCollection();
+        foreach($lines as $line) {
+            $this->addLine($line);
+        }
+
+        return $this;
+    }
+
 
     public abstract function canBeCancelled(): bool;
 

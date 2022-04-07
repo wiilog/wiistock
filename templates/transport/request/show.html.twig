@@ -10,6 +10,8 @@
 
 {% block page_content %}
     {% set requestType = request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') ? 'Livraison' : 'Collecte' %}
+    {% set request_delivery = request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') ? request : null %}
+    {% set request_collect = request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') ? request : request_delivery.collect %}
     <div class="wii-box-container mb-4">
         <div class="row">
             <div class="col-lg-4 col-md-6 col-12">
@@ -24,6 +26,22 @@
                                     <div class="dropdown-item pointer">
                                         <i class="fas fa-print mr-2"></i> Imprimer les étiquettes
                                     </div>
+                                    {% if request.canBeUpdated %}
+                                        {% if request_delivery is not null %}
+                                            <div class="dropdown-item pointer"
+                                                 data-target="#modalTransportDeliveryRequest"
+                                                 data-toggle="modal">
+                                                <i class="fa fa-pen mr-2"></i> Modifier la livraison
+                                            </div>
+                                        {% endif %}
+                                        {% if request_collect is not null %}
+                                            <div class="dropdown-item pointer"
+                                                 data-target="#modalTransportCollectRequest"
+                                                 data-toggle="modal">
+                                                <i class="fa fa-pen mr-2"></i> Modifier la collecte
+                                            </div>
+                                        {% endif %}
+                                    {% endif %}
                                     {% if request.orders|length > 0 and request.canBeCancelled %}
                                         <div class="dropdown-item pointer">
                                             <i class="fas fa-file mr-2"></i> Générer bon de transport
@@ -69,14 +87,18 @@
                         </div>
                     {% endif %}
                     <div class="d-flex align-items-center content bordered">
-                        <div class="d-flex align-items-center mr-4">
-                            {% if request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
-                                <img class="mr-2" src="{{ asset('svg/delivery.svg') }}" width="20px">
-                            {% else %}
-                                <img src="{{ asset('svg/collect.svg') }}" width="30px">
-                            {% endif %}
-                            <strong>{{ requestType }}</strong>
-                        </div>
+                        {% if request_delivery is not null %}
+                            <div class="d-flex align-items-center mr-4">
+                                <img class="mr-2" src="{{ asset('svg/delivery.svg') }}" alt="" width="20px"/>
+                                <strong>Livraison</strong>
+                            </div>
+                        {% endif %}
+                        {% if request_collect is not null %}
+                            <div class="d-flex align-items-center mr-4">
+                                <img src="{{ asset('svg/collect.svg') }}" alt="" width="30px">
+                                <strong>Collecte</strong>
+                            </div>
+                        {% endif %}
                         <div class="d-flex align-items-center">
                             {% if request.type.logo %}
                                 <img src="{{ app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ request.type.logo.fileName }}"
@@ -194,6 +216,27 @@
         </div>
     </div>
     {% include 'transport/request/delete.html.twig' %}
+
+    {% if request_delivery is not null %}
+        {% include 'transport/request/form.html.twig' with {
+            id: 'modalTransportDeliveryRequest',
+            request: request_delivery,
+            types: types,
+            natures: natures,
+            temperatures: temperatures,
+            selectedLines: selectedLines,
+        } %}
+    {% endif %}
+    {% if request_collect is not null %}
+        {% include 'transport/request/form.html.twig' with {
+            id: 'modalTransportCollectRequest',
+            request: request_collect,
+            types: types,
+            natures: natures,
+            temperatures: temperatures,
+            selectedLines: selectedLines,
+        } %}
+    {% endif %}
 
     <input type="hidden" value="{{ request.id }}" name="transportRequestId">
 {% endblock %}

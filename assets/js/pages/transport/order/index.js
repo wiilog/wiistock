@@ -1,4 +1,4 @@
-import {initializeFilters} from "../common";
+import {initializeFilters} from "@app/pages/transport/common";
 
 $(function() {
     initializeFilters(PAGE_TRANSPORT_ORDERS)

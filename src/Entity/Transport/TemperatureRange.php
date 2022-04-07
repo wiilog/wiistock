@@ -23,7 +23,7 @@ class TemperatureRange
     #[ORM\ManyToMany(targetEntity: Emplacement::class, mappedBy: 'temperatureRanges')]
     private Collection $locations;
 
-    #[ORM\OneToMany(mappedBy: 'temperatureRange', targetEntity: TransportDeliveryRequestNature::class)]
+    #[ORM\OneToMany(mappedBy: 'temperatureRange', targetEntity: TransportDeliveryRequestLine::class)]
     private Collection $transportDeliveryRequestNatures;
 
     #[ORM\ManyToMany(targetEntity: Nature::class, mappedBy: 'temperatureRanges')]
@@ -81,14 +81,14 @@ class TemperatureRange
     }
 
     /**
-     * @return Collection<int, TransportDeliveryRequestNature>
+     * @return Collection<int, TransportDeliveryRequestLine>
      */
     public function getTransportDeliveryRequestNatures(): Collection
     {
         return $this->transportDeliveryRequestNatures;
     }
 
-    public function addTransportDeliveryRequestNature(TransportDeliveryRequestNature $transportDeliveryRequestNature): self
+    public function addTransportDeliveryRequestNature(TransportDeliveryRequestLine $transportDeliveryRequestNature): self
     {
         if (!$this->transportDeliveryRequestNatures->contains($transportDeliveryRequestNature)) {
             $this->transportDeliveryRequestNatures[] = $transportDeliveryRequestNature;
@@ -98,7 +98,7 @@ class TemperatureRange
         return $this;
     }
 
-    public function removeTransportDeliveryRequestNature(TransportDeliveryRequestNature $transportDeliveryRequestNature): self
+    public function removeTransportDeliveryRequestNature(TransportDeliveryRequestLine $transportDeliveryRequestNature): self
     {
         if ($this->transportDeliveryRequestNatures->removeElement($transportDeliveryRequestNature)) {
             // set the owning side to null (unless already changed)

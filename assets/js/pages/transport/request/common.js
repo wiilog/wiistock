@@ -1,6 +1,91 @@
-import '../../../../scss/pages/transport/form.scss';
+import '@styles/pages/transport/form.scss';
+import Form from "@app/form";
 
-export function onRequestTypeChange($form, requestType) {
+
+export function initializeForm($form, editForm = false) {
+    const form = Form
+        .create($form)
+        .addProcessor((_, errors, $form) => {
+            validateNatureForm($form, errors)
+        })
+        .onOpen(() => {
+            onFormOpened(form, editForm);
+        });
+
+    form
+        .on('change', '[name=requestType]', function () {
+            const $requestType = $(this);
+            onRequestTypeChange($requestType.closest('.modal'), $requestType.val());
+        })
+        .on('change', '[name=type]', function () {
+            const $type = $(this);
+            onTypeChange($type.closest('.modal'), $type.val());
+        })
+        .on('change', '.nature-item [name=selected]', function () {
+            onNatureCheckChange($(this));
+        });
+
+    return form;
+}
+
+function onFormOpened(form, editForm) {
+    const $modal = form.element;
+
+    $modal.find('delivery').remove();
+    const $requestType = $modal.find('[name=requestType]');
+    $requestType
+        .prop('checked', false)
+        .prop('disabled', false);
+
+    const $type = $modal.find('[name=type]');
+    $type
+        .prop('checked', false)
+        .prop('disabled', false);
+
+    $requestType
+        .filter('[value=collect]')
+        .prop('checked', true)
+        .trigger('change');
+
+    if (!editForm) {
+        $modal
+            .find('.contact-container .data, [name=expectedAt]')
+            .prop('disabled', false);
+    }
+}
+
+function onNatureCheckChange($input) {
+    const $container = $input.closest('.nature-item');
+    const $toDisplay = $container.find('[data-nature-is-selected]');
+    if ($input.prop('checked')) {
+        $toDisplay.removeClass('d-none');
+    }
+    else {
+        $toDisplay.addClass('d-none');
+        const $quantity = $toDisplay.find('[name=quantity]');
+        if ($quantity.exists()) {
+            $toDisplay.val('');
+        }
+        else {
+            const $temperature = $toDisplay.find('[name=temperature]');
+            $temperature
+                .val(null)
+                .trigger('change');
+        }
+    }
+}
+
+function validateNatureForm($form, errors) {
+    const $lineContainer = $form.find('.request-line-container');
+    const $natureChecks = $lineContainer.find('[name=selected]');
+    if (!$natureChecks.filter(':checked').exists()) {
+        errors.push({
+            elements: [$natureChecks],
+            message: `Vous devez sélectionner au moins une nature de colis dans vote demande`,
+        });
+    }
+}
+function onRequestTypeChange($form, requestType) {
     const $specificsItems = $form.find(`[data-request-type]`);
     $specificsItems.addClass('d-none');
     const $types = $form
@@ -28,7 +113,7 @@ export function onRequestTypeChange($form, requestType) {
     }
 }
 
-export function onTypeChange($form, type) {
+function onTypeChange($form, type) {
     $form
         .find('[data-type]')
         .addClass('d-none');
@@ -48,45 +133,14 @@ export function onTypeChange($form, type) {
     });
 }
 
-export function validateNatureForm($form, errors) {
-    const $lineContainer = $form.find('.request-line-container');
-    const $natureChecks = $lineContainer.find('[name=selected]');
-    if (!$natureChecks.filter(':checked').exists()) {
-        errors.push({
-            elements: [$natureChecks],
-            message: `Vous devez sélectionner au moins une nature de colis dans vote demande`,
-        });
-    }
-}
-
-export function onNatureCheckChange($input) {
-    const $container = $input.closest('.nature-item');
-    const $toDisplay = $container.find('[data-nature-is-selected]');
-    if ($input.prop('checked')) {
-        $toDisplay.removeClass('d-none');
-    }
-    else {
-        $toDisplay.addClass('d-none');
-        const $quantity = $toDisplay.find('[name=quantity]');
-        if ($quantity.exists()) {
-            $toDisplay.val('');
-        }
-        else {
-            const $temperature = $toDisplay.find('[name=temperature]');
-            $temperature
-                .val(null)
-                .trigger('change');
-        }
-    }
-}
 export function cancelRequest($id){
     Modal.confirm({
         ajax: {
             method: 'POST',
             route: 'transport_request_cancel',
             params: {transportRequest: $id},
-            },
-    message: 'Voulez-vous réellement annuler cette demande de transport ?',
+        },
+        message: 'Voulez-vous réellement annuler cette demande de transport ?',
         title: 'Annuler la demande de transport',
         action: {
             color: 'danger',

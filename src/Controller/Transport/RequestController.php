@@ -10,15 +10,18 @@ use App\Entity\CategoryType;
 use App\Entity\FreeField;
 use App\Entity\Setting;
 use App\Entity\StatusHistory;
+use App\Entity\Transport\TransportCollectRequestLine;
 use App\Entity\Statut;
 use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\Transport\TemperatureRange;
+use App\Entity\Transport\TransportDeliveryRequestLine;
 use App\Entity\Transport\TransportHistory;
 use App\Entity\Transport\TransportOrder;
 use App\Entity\Transport\TransportRequest;
+use App\Entity\Transport\TransportRequestLine;
 use App\Entity\Type;
 use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
@@ -91,15 +94,40 @@ class RequestController extends AbstractController {
     }
 
     #[Route("/voir/{transportRequest}", name: "transport_request_show", methods: "GET")]
-    public function show(TransportRequest $transportRequest, EntityManagerInterface $manager): Response {
+    public function show(TransportRequest $transportRequest,
+                         EntityManagerInterface $entityManager): Response {
+        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $natureRepository = $entityManager->getRepository(Nature::class);
+        $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
+
         $categoryFF = $transportRequest instanceof TransportDeliveryRequest
             ? CategorieCL::DELIVERY_TRANSPORT
             : CategorieCL::COLLECT_TRANSPORT;
-        $freeFields = $manager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($transportRequest->getType(), $categoryFF);
+        $freeFields = $freeFieldRepository->findByTypeAndCategorieCLLabel($transportRequest->getType(), $categoryFF);
+
+        $selectedLines = Stream::from($transportRequest->getLines())
+            ->keymap(fn(TransportRequestLine $line) => [
+                $line->getNature()?->getId() ?: 0,
+                $line instanceof TransportDeliveryRequestLine
+                    ? $line->getTemperatureRange()?->getId()
+                    : ($line instanceof TransportCollectRequestLine ? $line->getQuantityToCollect() : null)
+            ])
+            ->filter(fn($_, $key) => $key !== 0)
+            ->toArray();
 
         return $this->render('transport/request/show.html.twig', [
             'request' => $transportRequest,
+            'selectedLines' => $selectedLines,
             'freeFields' => $freeFields,
+            "types" => $typeRepository->findByCategoryLabels([
+                CategoryType::DELIVERY_TRANSPORT, CategoryType::COLLECT_TRANSPORT,
+            ]),
+            "natures" => $natureRepository->findByAllowedForms([
+                Nature::TRANSPORT_COLLECT_CODE,
+                Nature::TRANSPORT_DELIVERY_CODE
+            ]),
+            "temperatures" => $temperatureRangeRepository->findAll(),
         ]);
     }
 
@@ -147,6 +175,22 @@ class RequestController extends AbstractController {
             "success" => true,
             "message" => "Votre demande de transport a bien été créée",
             'validationMessage' => $validationMessage
+        ]);
+    }
+
+    #[Route("/edit/{transportRequest}", name: "transport_request_edit", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::EDIT_TRANSPORT], mode: HasPermission::IN_JSON)]
+    public function edit(Request $request,
+                         EntityManagerInterface $entityManager,
+                         TransportService $transportService,
+                         TransportRequest $transportRequest): JsonResponse {
+
+        $transportService->updateTransportRequest($entityManager, $transportRequest, $request->request);
+        $entityManager->flush();
+
+        return $this->json([
+            "success" => true,
+            "message" => "Votre demande de transport a bien été mise à jour",
         ]);
     }
 
@@ -228,7 +272,6 @@ class RequestController extends AbstractController {
                 $currentRow = [];
             }
         }
-
 
         return $this->json([
             "data" => $rows,

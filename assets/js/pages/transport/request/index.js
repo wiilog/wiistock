@@ -1,12 +1,10 @@
-import Form from "../../../form";
-import AJAX, {GET, POST} from "../../../ajax";
-import Flash from "../../../flash";
-import {onRequestTypeChange, onTypeChange, validateNatureForm, onNatureCheckChange, cancelRequest} from "./common";
-
-import {initializeFilters} from "../common";
+import AJAX, {GET, POST} from "@app/ajax";
+import Flash from "@app/flash";
+import {initializeForm, cancelRequest} from "@app/pages/transport/request/common";
+import {initializeFilters} from "@app/pages/transport/common";
 
 $(function() {
-    const $modalNewTransportRequest = $("#modalNewTransportRequest");
+    const $modalTransportRequest = $("#modalTransportRequest");
 
     initializeFilters(PAGE_TRANSPORT_REQUESTS)
 
@@ -38,22 +36,10 @@ $(function() {
         ],
     });
 
-    const form = Form
-        .create($modalNewTransportRequest)
-        .addProcessor((_, errors, $form) => {
-            validateNatureForm($form, errors)
-        })
-        .onOpen(() => {
-            onOpenTransportRequestForm(form);
-        })
-        .on('change', '.nature-item [name=selected]', function () {
-            onNatureCheckChange($(this));
-        })
-        .onSubmit((data) => {
-            submitTransportRequest(form, data, table);
-        });
-
-    initializeNewForm($modalNewTransportRequest);
+    const form = initializeForm($modalTransportRequest);
+    form.onSubmit((data) => {
+        submitTransportRequest(form, data, table);
+    });
 
     $(document).arrive('.cancel-request', function (){
         $(this).on('click', function(){
@@ -99,53 +85,20 @@ function submitTransportRequest(form, data, table) {
                                         discard: false,
                                     });
                                 }
-                                else {
+                                else if (success) {
                                     $modal.modal('hide');
+                                    table.ajax.reload();
                                 }
                                 Flash.add(
                                     success ? 'success' : 'danger',
                                     message || `Une erreur s'est produite`
                                 );
-                                table.ajax.reload();
                             });
                     }
                     return false;
                 });
         });
     }
-}
-
-function initializeNewForm($form) {
-    $form.find('[name=requestType]').on('change', function () {
-        const $requestType = $(this);
-        onRequestTypeChange($requestType.closest('.modal'), $requestType.val());
-    });
-    $form.find('[name=type]').on('change', function () {
-        const $type = $(this);
-        onTypeChange($type.closest('.modal'), $type.val());
-    });
-}
-
-function onOpenTransportRequestForm(form) {
-    const $modal = form.element;
-
-    $modal.find('delivery').remove();
-    const $requestType = $modal.find('[name=requestType]');
-    $requestType
-        .prop('checked', false)
-        .prop('disabled', false);
-    const $type = $modal.find('[name=type]');
-    $type
-        .prop('checked', false)
-        .prop('disabled', false);
-
-    $modal.find('.contact-container .data, [name=expectedAt]')
-        .prop('disabled', false);
-
-    $requestType
-        .filter('[value=collect]')
-        .prop('checked', true)
-        .trigger('change')
 }
 
 function saveDeliveryForLinkedCollect($modal, data) {
