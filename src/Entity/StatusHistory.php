@@ -17,9 +17,11 @@ class StatusHistory {
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: TransportOrder::class, inversedBy: 'statusHistory')]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?TransportOrder $transportOrder = null;
 
     #[ORM\ManyToOne(targetEntity: TransportRequest::class, inversedBy: 'statusHistory')]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?TransportRequest $transportRequest = null;
 
     #[ORM\Column(type: 'datetime')]

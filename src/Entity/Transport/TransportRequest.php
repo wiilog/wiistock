@@ -121,10 +121,10 @@ abstract class TransportRequest {
     #[ORM\OneToMany(mappedBy: 'request', targetEntity: TransportOrder::class, cascade: ['persist', 'remove'])]
     private Collection $orders;
 
-    #[ORM\OneToMany(mappedBy: 'request', targetEntity: TransportHistory::class, cascade: ['remove'])]
+    #[ORM\OneToMany(mappedBy: 'request', targetEntity: TransportHistory::class)]
     private Collection $history;
 
-    #[ORM\OneToMany(mappedBy: 'transportRequest', targetEntity: StatusHistory::class, cascade: ['remove'])]
+    #[ORM\OneToMany(mappedBy: 'transportRequest', targetEntity: StatusHistory::class)]
     private Collection $statusHistory;
 
     #[ORM\ManyToOne(targetEntity: TransportRequestContact::class, cascade: ['persist', 'remove'])]
@@ -141,8 +141,9 @@ abstract class TransportRequest {
         $this->contact = $this->contact ?? new TransportRequestContact();
     }
 
-    public abstract function canBeDeleted(): bool;
     public abstract function canBeUpdated(): bool;
+    public abstract function canBeDeleted(): bool;
+    public abstract function canBeCancelled(): bool;
 
     public function getId(): ?int {
         return $this->id;
@@ -371,7 +372,5 @@ abstract class TransportRequest {
         return $this;
     }
 
-
-    public abstract function canBeCancelled(): bool;
 
 }

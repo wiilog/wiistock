@@ -1,13 +1,17 @@
 import '@styles/pages/transport/show.scss';
-import {initializeForm, cancelRequest} from "@app/pages/transport/request/common";
+import {initializeForm, cancelRequest, deleteRequest} from "@app/pages/transport/request/common";
+import "@app/pages/transport/common";
 import AJAX, {POST} from "@app/ajax";
 import Flash from "@app/flash";
 
 $(function () {
     const transportRequestId = $(`input[name=transportRequestId]`).val();
 
-    $('.cancel-request').on('click', function(){
-        cancelRequest($(this).data('transport-request-id'));
+    $('.cancel-request-button').on('click', function(){
+        cancelRequest($(this).data('request-id'));
+    });
+    $('.delete-request-button').on('click', function(){
+        deleteRequest($(this).data('request-id'));
     });
 
     getStatusHistory(transportRequestId);

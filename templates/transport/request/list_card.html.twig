@@ -12,28 +12,22 @@
                 <div class="dropdown-item pointer">
                     <i class="fas fa-print mr-2"></i> Imprimer les étiquettes
                 </div>
+
+                {# TODO gérer condition affichage #}
+                <div class="dropdown-item pointer">
+                    <i class="fas fa-file mr-2"></i> Générer bon de transport
+                </div>
+
                 {% if request.canBeCancelled %}
-                    <div class="dropdown-item pointer">
-                        <i class="fas fa-file mr-2"></i> Générer bon de transport
-                    </div>
-                    <div class="dropdown-item pointer data-request-id cancel-request" data-transport-request-id="{{ request.id }}">
+                    <div class="dropdown-item pointer cancel-request-button"
+                         data-request-id="{{ request.id }}">
                         <i class="fas fa-ban mr-2"></i> Annuler
                     </div>
-                {% elseif request.canBeDeleted %}
-                    <div class="dropdown-item pointer"
-                         onclick="Modal.confirm({
-                             ajax: {
-                                 method: 'DELETE',
-                                 route: 'transport_request_delete',
-                                 params: {transportRequest: {{ request.id }}},
-                             },
-                             message: 'Voulez-vous réellement supprimer cette demande de transport ?',
-                             title: 'Supprimer la demande de transport',
-                             action: {
-                                 color: 'danger',
-                                 label: 'Supprimer'
-                             }
-                         })">
+                {% endif %}
+
+                {% if request.canBeDeleted %}
+                    <div class="dropdown-item pointer delete-request-button"
+                         data-request-id="{{ request.id }}">
                         <i class="fas fa-trash mr-2"></i> Supprimer
                     </div>
                 {% endif %}
@@ -47,16 +41,16 @@
                     <div>
                         {% if request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
                             <span class="transport-category">
-                            <span class="wii-icon wii-icon-cart-delivery wii-icon-25px-primary mr-1"></span>
-                            Livraison
-                        </span>
+                                <span class="wii-icon wii-icon-cart-delivery wii-icon-25px-primary mr-1"></span>
+                                Livraison
+                            </span>
                         {% endif %}
 
                         {% if request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') or request.collect %}
                             <span class="transport-category">
-                            <span class="wii-icon wii-icon-cart-collect wii-icon-25px-primary mr-1"></span>
-                            Collecte
-                        </span>
+                                <span class="wii-icon wii-icon-cart-collect wii-icon-25px-primary mr-1"></span>
+                                Collecte
+                            </span>
                         {% endif %}
                     </div>
                 </td>

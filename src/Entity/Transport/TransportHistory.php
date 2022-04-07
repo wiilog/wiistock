@@ -25,9 +25,11 @@ class TransportHistory {
     private ?DateTime $date = null;
 
     #[ORM\ManyToOne(targetEntity: TransportRequest::class, inversedBy: 'history')]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?TransportRequest $request = null;
 
     #[ORM\ManyToOne(targetEntity: TransportOrder::class, inversedBy: 'history')]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?TransportOrder $order = null;
 
     #[ORM\Column(type: 'string', length: 255)]
@@ -37,6 +39,7 @@ class TransportHistory {
     private ?Utilisateur $user = null;
 
     #[ORM\ManyToOne(targetEntity: TransportRound::class)]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?TransportRound $round = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class)]

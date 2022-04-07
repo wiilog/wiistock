@@ -133,19 +133,37 @@ function onTypeChange($form, type) {
     });
 }
 
-export function cancelRequest($id){
+export function cancelRequest(transportRequest){
     Modal.confirm({
         ajax: {
             method: 'POST',
             route: 'transport_request_cancel',
-            params: {transportRequest: $id},
+            params: {transportRequest},
         },
         message: 'Voulez-vous réellement annuler cette demande de transport ?',
         title: 'Annuler la demande de transport',
-        action: {
+        validateButton: {
             color: 'danger',
             label: 'Annuler',
-            cancelButtonName: 'Fermer',
+        },
+        cancelButton: {
+            label: 'Fermer',
         }
-    })
+    });
+}
+
+export function deleteRequest(transportRequest){
+    Modal.confirm({
+        ajax: {
+            method: 'DELETE',
+            route: 'transport_request_delete',
+            params: {transportRequest},
+        },
+        message: 'Voulez-vous réellement supprimer cette demande de transport ?',
+        title: 'Supprimer la demande de transport',
+        validateButton: {
+            color: 'danger',
+            label: 'Supprimer'
+        }
+    });
 }

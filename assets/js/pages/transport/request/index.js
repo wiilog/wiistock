@@ -1,6 +1,6 @@
 import AJAX, {GET, POST} from "@app/ajax";
 import Flash from "@app/flash";
-import {initializeForm, cancelRequest} from "@app/pages/transport/request/common";
+import {initializeForm, cancelRequest, deleteRequest} from "@app/pages/transport/request/common";
 import {initializeFilters} from "@app/pages/transport/common";
 
 $(function() {
@@ -41,10 +41,16 @@ $(function() {
         submitTransportRequest(form, data, table);
     });
 
-    $(document).arrive('.cancel-request', function (){
+    $(document).arrive('.cancel-request-button', function (){
         $(this).on('click', function(){
-            cancelRequest($(this).data('transport-request-id'));
-        })
+            cancelRequest($(this).data('request-id'));
+        });
+    });
+
+    $(document).arrive('.delete-request-button', function (){
+        $(this).on('click', function(){
+            deleteRequest($(this).data('request-id'));
+        });
     });
 });
 
@@ -72,17 +78,19 @@ function submitTransportRequest(form, data, table) {
                                 if (validationMessage) {
                                     Modal.confirm({
                                         message: validationMessage,
-                                        action: {
+                                        validateButton: {
                                             color: 'success',
                                             label: 'Fermer',
                                             click: () => {
                                                 $modal.modal('hide');
                                             }
                                         },
+                                        cancelButton: {
+                                            hidden: true
+                                        },
                                         cancelled: () => {
                                             $modal.modal('hide');
                                         },
-                                        discard: false,
                                     });
                                 }
                                 else if (success) {
@@ -141,7 +149,7 @@ function canSubmit($form) {
                         Modal.confirm({
                             message: `Il existe déjà une demande de collecte en cours pour ce patient.
                                     Cliquez sur "Continuer" pour valider quand même sa création`,
-                            action: {
+                            validateButton: {
                                 color: 'success',
                                 label: 'Continuer',
                                 click: () => {

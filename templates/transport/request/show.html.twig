@@ -42,28 +42,22 @@
                                             </div>
                                         {% endif %}
                                     {% endif %}
-                                    {% if request.orders|length > 0 and request.canBeCancelled %}
-                                        <div class="dropdown-item pointer">
-                                            <i class="fas fa-file mr-2"></i> Générer bon de transport
-                                        </div>
-                                        <div class="dropdown-item pointer data-request-id cancel-request" data-transport-request-id="{{ request.id }}">
+
+                                    {# TODO gérer condition affichage #}
+                                    <div class="dropdown-item pointer">
+                                        <i class="fas fa-file mr-2"></i> Générer bon de transport
+                                    </div>
+
+                                    {% if request.canBeCancelled %}
+                                        <div class="dropdown-item pointer cancel-request-button"
+                                             data-request-id="{{ request.id }}">
                                             <i class="fas fa-ban mr-2"></i> Annuler
                                         </div>
-                                    {% elseif request.canBeDeleted %}
-                                        <div class="dropdown-item pointer"
-                                             onclick="Modal.confirm({
-                                                 ajax: {
-                                                     method: 'DELETE',
-                                                     route: 'transport_request_delete',
-                                                     params: {transportRequest: {{ request.id }}},
-                                                 },
-                                                 message: 'Voulez-vous réellement supprimer cette demande de transport ?',
-                                                 title: 'Supprimer la demande de transport',
-                                                 action: {
-                                                     color: 'danger',
-                                                     label: 'Supprimer'
-                                                 },
-                                             })">
+                                    {% endif %}
+
+                                    {% if request.canBeDeleted %}
+                                        <div class="dropdown-item pointer delete-request-button"
+                                             data-request-id="{{ request.id }}">
                                             <i class="fas fa-trash mr-2"></i> Supprimer
                                         </div>
                                     {% endif %}
@@ -86,25 +80,52 @@
                             <strong>Urgence - {{ request.emergency }}</strong>
                         </div>
                     {% endif %}
-                    <div class="d-flex align-items-center content bordered">
+                    <div class="content bordered">
                         {% if request_delivery is not null %}
-                            <div class="d-flex align-items-center mr-4">
-                                <img class="mr-2" src="{{ asset('svg/delivery.svg') }}" alt="" width="20px"/>
-                                <strong>Livraison</strong>
+                            <div class="row align-items-center">
+                                <div class="col-4">
+                                    <div class="d-flex align-items-center">
+                                        <img class="mr-2" src="{{ asset('svg/delivery.svg') }}" alt="" width="20px"/>
+                                        <strong>Livraison</strong>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="d-flex align-items-center">
+                                        {% if request_delivery.type.logo %}
+                                            <img src="{{ app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ request_delivery.type.logo.fileName }}"
+                                                 alt="Image type {{ request_delivery.type|format_helper('type') }}"
+                                                 class="mr-2"
+                                                 width="20px">
+                                        {% endif %}
+                                        <span class="wii-describe">{{ request_delivery.type|format_helper('type') }}</span>
+                                    </div>
+                                </div>
                             </div>
                         {% endif %}
                         {% if request_collect is not null %}
-                            <div class="d-flex align-items-center mr-4">
-                                <img src="{{ asset('svg/collect.svg') }}" alt="" width="30px">
-                                <strong>Collecte</strong>
+                            <div class="row align-items-center {{ request_delivery is not null ? 'mt-2' }}">
+                                <div class="col-4">
+                                    <div class="d-flex align-items-center">
+                                        <img class="mr-2" src="{{ asset('svg/collect.svg') }}" alt="" width="20px">
+                                        <strong>Collecte</strong>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="d-flex align-items-center">
+                                        {% if request_collect.type.logo %}
+                                            <img src="{{ app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ request_collect.type.logo.fileName }}"
+                                                 alt="Image type {{ request_collect.type|format_helper('type') }}"
+                                                 class="mr-2"
+                                                 width="20px">
+                                        {% endif %}
+                                        <span class="wii-describe">{{ request_collect.type|format_helper('type') }}</span>
+                                    </div>
+                                </div>
                             </div>
                         {% endif %}
+                    </div>
+                    <div class="d-flex align-items-center ">
                         <div class="d-flex align-items-center">
-                            {% if request.type.logo %}
-                                <img src="{{ app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ request.type.logo.fileName }}"
-                                    alt="Image type {{ request.type|format_helper('type') }}" width="15px">
-                            {% endif %}
-                            <span class="wii-describe">{{ request.type|format_helper('type') }}</span>
                         </div>
                     </div>
                     {% set statusName = request.status|format_helper('status') %}

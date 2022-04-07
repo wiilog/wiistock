@@ -23,11 +23,11 @@ const $CONFIRMATION_MODAL = $(`
 `);
 
 export default class Modal {
-    static confirm({ajax, message, title, action, discard, table, keepOnError, cancelled}) {
+    static confirm({ajax, message, title, validateButton, cancelButton, table, keepOnError, cancelled}) {
         keepOnError = keepOnError === undefined ? true : keepOnError;
-        discard = discard === undefined ? true : discard;
 
-        const {label: actionLabel, color: actionColor, click: actionClick, cancelButtonName: actionCancelButtonName} = action;
+        const {label: validateLabel, color: validateColor, click: validateClick} = validateButton || {};
+        const {hidden: cancelHidden, label: cancelLabel} = cancelButton || {};
         let $modal = $(`#${confirmationModalId}`);
 
         let confirmed = false;
@@ -37,27 +37,25 @@ export default class Modal {
             $modal = $CONFIRMATION_MODAL;
         }
 
-        const $action = $modal.find('button.confirm');
+        const $validateButton = $modal.find('button.confirm');
         const $title = $modal.find('.modal-title');
         const $message = $modal.find('.modal-body');
-        const $discard = $modal.find('button.discard');
+        const $cancelButton = $modal.find('button.discard');
 
         if (title) {
             $title.text(title);
         }
 
-        if(actionCancelButtonName){
-            $discard.text(actionCancelButtonName);
-        }
-
         $message.html(message);
 
-        $action
-            .addClass(`btn-${actionColor}`)
-            .text(actionLabel);
+        $validateButton
+            .addClass(`btn-${validateColor || 'success'}`)
+            .text(validateLabel || 'Confirmer');
 
-        if (!discard) {
-            $discard.addClass('d-none');
+        $cancelButton.text(cancelLabel || 'Annuler');
+
+        if (cancelHidden) {
+            $cancelButton.addClass('d-none');
         }
 
         $modal.on('hidden.bs.modal', function() {
@@ -67,14 +65,14 @@ export default class Modal {
             }
         });
 
-        $action.off('click').on('click', () => {
-            if (actionClick) {
+        $validateButton.off('click').on('click', () => {
+            if (validateClick) {
                 confirmed = true;
-                actionClick();
+                validateClick();
             }
             if (ajax) {
                 const {method, route, params} = ajax;
-                wrapLoadingOnActionButton($action, () => {
+                wrapLoadingOnActionButton($validateButton, () => {
                     return AJAX.route(method, route, params)
                         .json()
                         .then((result) => {
