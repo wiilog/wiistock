@@ -68,6 +68,7 @@ abstract class TransportRequest {
         TransportRequest::STATUS_TO_DELIVER,
         TransportRequest::STATUS_ONGOING,
         TransportRequest::STATUS_FINISHED,
+        TransportRequest::STATUS_DEPOSITED,
     ];
 
     public const SUBCONTRACT_STATUS_WORKFLOW = [
