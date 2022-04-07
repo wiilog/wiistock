@@ -251,7 +251,7 @@
         {{ _self.tooltip(options.tooltip ?? null, inline) }}
         {% if options.buttons ?? true %}<span class="increase-decrease-field" style="min-width: 120px;">{% endif %}
             {% if options.buttons ?? true %}
-                <button class="decrease" {{ disabled }}></button>
+                <button type="button" class="decrease" {{ disabled }}></button>
             {% endif %}
             <input type="number"
                    data-no-arrow
@@ -263,7 +263,7 @@
                    {{ _self.common_attributes(name, options) }}
                    {{ _self.multiple_key(options) }}>
                {% if options.buttons ?? true %}
-                   <button class="increase" {{ disabled }}></button>
+                   <button type="button" class="increase" {{ disabled }}></button>
                {% endif %}
         {% if options.buttons ?? true %}</span>{% endif %}
     </label>

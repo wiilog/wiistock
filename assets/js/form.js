@@ -19,30 +19,31 @@ export default class Form {
             $form.data('form', form);
 
             WysiwygManager.initializeWYSIWYG(form.element);
-            form.element.on(`click`, `[type="submit"]`, function () {
-                const result = Form.process(form, {
-                    button: $(this),
+            form.element
+                .on(`click`, '[type=submit]', function (event) {
+                    const result = Form.process(form, {
+                        button: $(this),
+                    });
+
+                    if (result && form.submitCallback) {
+                        form.submitCallback(result);
+                    }
+
+                    event.preventDefault();
+                })
+                .on('shown.bs.modal', function () {
+                    if (clearOnOpen) {
+                        form.clear();
+                    }
+                    if (form.openCallback) {
+                        form.openCallback();
+                    }
+                })
+                .on('hidden.bs.modal', function () {
+                    if (form.closeCallback) {
+                        form.closeCallback();
+                    }
                 });
-
-                if (result && form.submitCallback) {
-                    form.submitCallback(result);
-                }
-            });
-
-            form.element.on('shown.bs.modal', function () {
-                if (clearOnOpen) {
-                    form.clear();
-                }
-                if (form.openCallback) {
-                    form.openCallback();
-                }
-            });
-
-            form.element.on('hidden.bs.modal', function () {
-                if (form.closeCallback) {
-                    form.closeCallback();
-                }
-            });
         }
 
         return form;

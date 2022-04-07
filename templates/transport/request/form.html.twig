@@ -126,7 +126,8 @@
                         </div>
                     </div>
 
-                    <div class="wii-section-title my-3 {{ not modeEdit ? 'd-none' }}"
+                    {% set displayCollectDate = modeCollectEdit and request_collect.delivery is null %}
+                    <div class="wii-section-title my-3 {{ not modeDeliveryEdit and not displayCollectDate ? 'd-none' }}"
                          data-request-type>
                         <div class="d-flex align-items-center">
                             <i class="wii-icon wii-icon-calendar bg-primary mr-1"></i>
@@ -155,7 +156,7 @@
                             }) }}
                         </div>
                     </div>
-                    <div class="row {{ not modeCollectEdit ? 'd-none' }}"
+                    <div class="row {{ not displayCollectDate ? 'd-none' }}"
                          data-request-type="{{ DISCR_COLLECT }}">
                         <div class="col-md-6 col-12">
                             {% set expectedAtValue = request.expectedAt ? request.expectedAt|date('Y-m-d') %}
@@ -196,7 +197,7 @@
                                             key: 'lines',
                                             index: lineIndex
                                         } %}
-                                        <div class="col-md-6 col-12 nature-item {{ not modeEdit ? 'd-none' }}"
+                                        <div class="col-lg-6 col-12 nature-item {{ not modeEdit ? 'd-none' }}"
                                              data-type="{{ natureType|json_encode }}">
                                             <div class="row align-items-center my-2 nature-item-wrapper">
                                                 <div class="col">
@@ -210,19 +211,10 @@
                                                            name="natureId"
                                                            {{ form.multiple_key({multipleKey: multipleKey}) }}/>
                                                 </div>
-                                                <div class="col-lg-6 col-7 {{ not modeCollectEdit ? 'd-none' }}"
-                                                     data-request-type="{{ DISCR_COLLECT }}">
-                                                    <div class="{{ not modeCollectEdit or not isSelected ? 'd-none' }}" data-nature-is-selected>
-                                                        {{ form.number('quantity', null, false, value, {
-                                                            labelClass: 'w-100',
-                                                            multipleKey: multipleKey,
-                                                        }) }}
-                                                    </div>
-                                                </div>
                                                 {% if nature.temperatureRanges is not empty %}
                                                     <div class="col-4 {{ not modeDeliveryEdit ? 'd-none' }}"
                                                          data-request-type="{{ DISCR_DELIVERY }}">
-                                                        <div class="{{ not modeDeliveryEdit or value is not null }}"
+                                                        <div class="{{ not modeDeliveryEdit or not isSelected ? 'd-none' }}"
                                                              data-nature-is-selected>
                                                             {% set firstTemperature = nature.temperatureRanges|first %}
                                                             {{ form.select('temperature', null, false, {
@@ -240,6 +232,16 @@
                                                         </div>
                                                     </div>
                                                 {% endif %}
+                                                <div class="col-5 {{ not modeEdit ? 'd-none' }}"
+                                                     data-request-type="{{ DISCR_COLLECT }}">
+                                                    <div class="{{ not modeEdit or not isSelected ? 'd-none' }}"
+                                                         data-nature-is-selected>
+                                                        {{ form.number('quantity', null, false, modeDeliveryEdit ? null : value, {
+                                                            labelClass: 'w-100',
+                                                            multipleKey: multipleKey,
+                                                        }) }}
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     {% endif %}
@@ -276,7 +278,6 @@
                         {% endfor %}
                     </div>
                 </form>
-
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
