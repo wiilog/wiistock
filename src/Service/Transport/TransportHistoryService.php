@@ -201,7 +201,7 @@ class TransportHistoryService {
             ->map(fn(TransportHistory $history) => [
                 "category" => self::CATEGORIES[$history->getType()],
                 "text" => $this->formatHistory($history),
-                "date" => FormatHelper::longDate($history->getDate(), false, true),
+                "date" => FormatHelper::longDate($history->getDate(), ["time" => true]),
             ])
             ->toArray();
     }

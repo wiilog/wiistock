@@ -11,7 +11,7 @@
     %}
     <div class="history-line">
         <div class="history-content {{ loop.last ? 'last' }}">
-            <div class="wii-small-text date">{{ line.date|format_helper('longDate', true, true) }}</div>
+            <div class="wii-small-text date">{{ line.date|format_helper('longDate', {short: true, time: true}) }}</div>
             <div class="title-right">
                 <div class="summary {{ not line.comment ? 'mb-0' }}">
                     <img src="{{ asset('svg/' ~ icon) }}" alt="Icône" width="15px">

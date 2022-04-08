@@ -328,7 +328,7 @@ class RequestController extends AbstractController {
                 "statusesHistory" => Stream::from($transportRequest->getStatusHistory())
                     ->map(fn(StatusHistory $statusHistory) => [
                         "status" => FormatHelper::status($statusHistory->getStatus()),
-                        "date" => FormatHelper::longDate($statusHistory->getDate(), true, true)
+                        "date" => FormatHelper::longDate($statusHistory->getDate(), ["short" => true, "time" => true])
                     ])
                     ->toArray(),
                 "request" => $transportRequest,

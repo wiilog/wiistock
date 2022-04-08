@@ -1,6 +1,6 @@
 {% set entity = order ?? request %}
 {% set order = order ?? ((request.orders | last) ?: null) %}
-{% set transportRound = order ? (order.transportRoundLines | last) ?: null : null %}
+{% set roundLine = order ? (order.transportRoundLines | last) ?: null : null %}
 
 <div class="transport-request-container col-12 col-xl-6 p-1">
     <a href="{{ path('transport_request_show', {transportRequest: request.id}) }}" class="transport-request-card">
@@ -37,7 +37,7 @@
 
         <table class="transport-content">
             <tr>
-                <td class="transport-category-container">
+                <td class="transport-category-container w-25">
                     <div>
                         {% if request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
                             <span class="transport-category">
@@ -64,7 +64,7 @@
                 <td class="transport-creation-contact">
                     <span class="transport-badge type">
                         {% if request.type.logo %}
-                            <img src="{{ request.type.logo.fullPath }}" width="18" height="18" class="mr-2"
+                            <img src="{{ request.type.logo.fullPath }}" class="mr-2"
                                  alt="Logo type {{ request.type.label }}"/>
                         {% endif %}
 
@@ -99,54 +99,55 @@
                             {% endif %}
                         {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ONGOING') %}
                             Estimée à : <span class="transport-value">
-                                {{ transportRound ? transportRound.estimatedAt | date('H:i') : 'Heure indisponible' }}
+                                {{ roundLine ? roundLine.estimatedAt | date('H:i') : '-' }}
                             </span>
                         {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_FINISHED') %}
                             Fait à : <span
-                                class="transport-value">{{ transportRound ? transportRound.fullfilledAt | date('H:i') : 'Heure indisponible' }}</span>
+                                class="transport-value">{{ roundLine ? roundLine.fulfilledAt | date('H:i') : '-' }}</span>
                         {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_NOT_DELIVERED') %}
                             Non livré le : <span
-                                class="transport-value">{{ transportRound ? transportRound.rejectedAt | date('d/m/Y H:i') : 'Heure indisponible' }}</span>
+                                class="transport-value">{{ roundLine ? roundLine.rejectedAt | format_helper('longDate', {short: true, year: false}) : '-' }}</span>
                         {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_CANCELLED') %}
                             Annulée le : <span
-                                class="transport-value">{{ transportRound ? transportRound.cancelledAt | date('d/m/Y H:i') : 'Heure indisponible' }}</span>
-                        {% else %}
-                            Heure indisponible
+                                class="transport-value">{{ roundLine ? roundLine.cancelledAt | format_helper('longDate', {short: true, year: false}) : '' }}</span>
                         {% endif %}
                     {% elseif request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') %}
                         Planifié le : <span class="transport-value">
                             {% if not order or order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_TO_CONTACT') %}
                                 -
                             {% else %}
-                                {{ request.expectedAt | format_helper('longDate', true) }}
+                                {{ request.expectedAt | format_helper('longDate', true, false, false) }}
                             {% endif %}
-                        </span><br>
+                        </span>
+                        <br>
 
-                        {% if not order or order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ASSIGNED') %}
-                            Estimée à : <span class="transport-value">-</span>
-                        {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ASSIGNED') %}
-                            Estimée à : <span class="transport-value">{{ request.timeSlot.name }}</span>
-                        {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ONGOING') %}
-                            Estimée à : <span
-                                class="transport-value">{{ transportRound ? transportRound.estimatedAt | date('H:i') : 'Heure indisponible' }}</span>
-                        {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_FINISHED') %}
-                            Fait à : <span
-                                class="transport-value">{{ transportRound ? transportRound.fullfilledAt | date('H:i') : 'Heure indisponible' }}</span>
-                        {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_NOT_COLLECTED') %}
-                            Non collecté le :{{ transportRound ? transportRound.rejectedAt | date('d/m/Y H:i') : 'Heure indisponible' }}
-                        {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_CANCELLED') %}
-                            Annulée le : <span
-                                class="transport-value">{{ transportRound ? transportRound.cancelledAt | date('d/m/Y H:i') : 'Heure indisponible' }}</span>
-                        {% else %}
-                            Heure indisponible
-                        {% endif %}
+                        <div class="mt-1">
+                            {% if not order or order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ASSIGNED') %}
+                                Estimée à : <span class="transport-value">-</span>
+                            {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ASSIGNED') %}
+                                Estimée à : <span class="transport-value">{{ request.timeSlot.name }}</span>
+                            {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ONGOING') %}
+                                Estimée à : <span
+                                    class="transport-value">{{ roundLine ? roundLine.estimatedAt | date('H:i') : '-' }}</span>
+                            {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_FINISHED') %}
+                                Fait à : <span
+                                    class="transport-value">{{ roundLine ? roundLine.fulfilledAt | date('H:i') : '-' }}</span>
+                            {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_NOT_COLLECTED') %}
+                                Non collecté le : {{ roundLine ? (roundLine.rejectedAt | format_helper('longDate', {short: true, year: false})) : '-' }}
+                            {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_CANCELLED') %}
+                                Annulée le : <span
+                                    class="transport-value">{{ roundLine ? (roundLine.cancelledAt | format_helper('longDate', {short: true, year: false})) : '-' }}</span>
+                            {% endif %}
+                        </div>
                     {% endif %}
                 </td>
                 <td class="transport-creation-contact">
                     {{ request.contact.name }}<br>
-                    <span class="wii-small-text">N° dossier {{ request.contact.fileNumber }}</span>
+                    <div class="mt-1">
+                        <span class="wii-small-text">N° dossier {{ request.contact.fileNumber }}</span>
+                    </div>
                 </td>
-                <td class="wii-small-text" style="white-space: normal !important;">
+                <td class="transport-creator" style="white-space: normal !important;">
                     {% if order and order.isRejected %}
                         <img src="{{ asset('svg/rejected-delivery.svg') }}" class="transport-status-icon"
                              alt="Livraison rejetée" title="Livraison rejetée">
@@ -155,8 +156,10 @@
                              title="Colis rejeté">
                     {% endif %}
 
-                    Créée le : {{ request.createdAt | format_helper('longDate', true, true) }}<br>
-                    Par : {{ request.createdBy }}<br>
+                    <span class="wii-small-text">Créée le : {{ request.createdAt | format_helper('longDate', {short: true, time: true, year: false}) }}</span><br>
+                    <div class="mt-1">
+                        <span class="wii-small-text">Par : {{ request.createdBy }}</span><br>
+                    </div>
                 </td>
             </tr>
         </table>

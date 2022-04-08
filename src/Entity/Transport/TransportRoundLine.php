@@ -27,7 +27,7 @@ class TransportRoundLine {
     private ?DateTime $estimatedAt = null;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
-    private ?DateTime $fullfilledAt = null;
+    private ?DateTime $fulfilledAt = null;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $rejectedAt = null;
@@ -87,12 +87,12 @@ class TransportRoundLine {
         return $this;
     }
 
-    public function getFullfilledAt(): ?DateTime {
-        return $this->fullfilledAt;
+    public function getFulfilledAt(): ?DateTime {
+        return $this->fulfilledAt;
     }
 
-    public function setFullfilledAt(?DateTime $fullfilledAt): self {
-        $this->fullfilledAt = $fullfilledAt;
+    public function setFulfilledAt(?DateTime $fulfilledAt): self {
+        $this->fulfilledAt = $fulfilledAt;
 
         return $this;
     }
