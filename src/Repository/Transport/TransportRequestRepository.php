@@ -52,6 +52,19 @@ class TransportRequestRepository extends EntityRepository {
                 ->setParameter('dateMax', $date);
         }
 
+        if ($params->get('status')){
+            $qb
+                ->join('transport_request.status', 'status')
+                ->andWhere('status IN (:status_value)')
+                ->setParameter('status_value', $params->get('status'));
+        }
+
+        if($params->get('subcontracted')){
+            $qb
+                ->join('transport_request.orders', 'orders')
+                ->andWhere('orders.subcontracted = 1');
+        }
+
         // filtres sup
         foreach ($filters as $filter) {
             switch ($filter['field']) {

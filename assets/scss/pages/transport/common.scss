@@ -1,6 +1,6 @@
 @import "../../variables";
 
-.transport-table {
+.transport-table, .subcontract-table {
     .dataTables_scrollHead {
         display: none;
     }
@@ -62,6 +62,12 @@
     border-radius: 4px;
     padding: 10px 5px;
 
+    &.no-cursor {
+        div,tbody,tr,td{
+            cursor: initial !important;
+        }
+    }
+
     div,tbody,tr,td {
         cursor: pointer !important;
     }
@@ -93,6 +99,36 @@
         }
     }
 
+    .transport-subcontract-contact, .transport-subcontract-details-container {
+        width: 20%;
+        font-size: 1rem;
+
+        .wii-small-text {
+            font-size: 0.9rem;
+        }
+    }
+
+    .transport-subcontract-status-container{
+        width: 15%;
+        font-size: 1rem;
+    }
+
+    .transport-subcontract-button-container{
+        height: 80px;
+        display: flex;
+        flex-direction: column;
+        align-items: start;
+
+        button{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 3px 3px 0 3px;
+            padding: 5px 8px;
+            font-weight: normal;
+        }
+    }
+
     .transport-category {
         display: flex;
         align-items: center;
@@ -110,6 +146,11 @@
         margin-bottom: 8px;
         font-size: 0.9rem;
         white-space: normal;
+
+        &.subcontract-card{
+            margin-top: 25px;
+            margin-right: 30px;
+        }
 
         &.type {
             color: #666666;
