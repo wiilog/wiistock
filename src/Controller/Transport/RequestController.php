@@ -311,11 +311,13 @@ class RequestController extends AbstractController {
 
         if ($transportRequest instanceof TransportDeliveryRequest) {
             $statusWorkflow = $transportRequest->isSubcontracted()
-                ? TransportRequest::SUBCONTRACT_STATUS_WORKFLOW
-                : TransportRequest::DELIVERY_CLASSIC_STATUS_WORKFLOW;
+                ? TransportRequest::STATUS_WORKFLOW_DELIVERY_SUBCONTRACTED
+                : ($transportRequest->getCollect()
+                    ? TransportRequest::STATUS_WORKFLOW_DELIVERY_COLLECT
+                    : TransportRequest::STATUS_WORKFLOW_DELIVERY_CLASSIC);
         }
         else if ($transportRequest instanceof TransportCollectRequest) {
-            $statusWorkflow = TransportRequest::COLLECT_STATUS_WORKFLOW;
+            $statusWorkflow = TransportRequest::STATUS_WORKFLOW_COLLECT;
         }
         else {
             throw new RuntimeException('Unkown transport request type');

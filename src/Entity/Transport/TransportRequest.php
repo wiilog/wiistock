@@ -63,7 +63,14 @@ abstract class TransportRequest {
         TransportOrder::STATUS_SUBCONTRACTED => "subcontracted",
     ];
 
-    public const DELIVERY_CLASSIC_STATUS_WORKFLOW = [
+    public const STATUS_WORKFLOW_DELIVERY_CLASSIC = [
+        TransportRequest::STATUS_TO_PREPARE,
+        TransportRequest::STATUS_TO_DELIVER,
+        TransportRequest::STATUS_ONGOING,
+        TransportRequest::STATUS_FINISHED,
+    ];
+
+    public const STATUS_WORKFLOW_DELIVERY_COLLECT = [
         TransportRequest::STATUS_TO_PREPARE,
         TransportRequest::STATUS_TO_DELIVER,
         TransportRequest::STATUS_ONGOING,
@@ -71,13 +78,13 @@ abstract class TransportRequest {
         TransportRequest::STATUS_DEPOSITED,
     ];
 
-    public const SUBCONTRACT_STATUS_WORKFLOW = [
+    public const STATUS_WORKFLOW_DELIVERY_SUBCONTRACTED = [
         TransportRequest::STATUS_SUBCONTRACTED,
         TransportRequest::STATUS_ONGOING,
         TransportRequest::STATUS_FINISHED,
     ];
 
-    public const COLLECT_STATUS_WORKFLOW = [
+    public const STATUS_WORKFLOW_COLLECT = [
         TransportRequest::STATUS_AWAITING_PLANNING,
         TransportRequest::STATUS_TO_COLLECT,
         TransportRequest::STATUS_ONGOING,
