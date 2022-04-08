@@ -149,7 +149,7 @@
                             <span class="wii-field-name">Date et heure attendue</span>
                             <span class="wii-field-text">
                                 {% if request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
-                                    {{ request.expectedAt|format_helper('longDate', false, true) }}
+                                    {{ request.expectedAt|format_helper('longDate', {time: true}) }}
                                 {% else %}
                                     {{ request.expectedAt|format_helper('date') }}
                                 {% endif %}
