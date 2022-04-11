@@ -50,7 +50,7 @@ class PDFGeneratorService {
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function generatePDFBarCodes(string $title, array $barcodeConfigs): string {
+    public function generatePDFBarCodes(string $title, array $barcodeConfigs, bool $landscape = false): string {
         $barcodeConfig = $this->settingsService->getDimensionAndTypeBarcodeArray();
 
         $height = $barcodeConfig['height'];
@@ -93,7 +93,8 @@ class PDFGeneratorService {
                 'title' => $title,
                 'height' => $height,
                 'width' => $width,
-                'barcodeConfigs' => $barcodeConfigsToTwig
+                'barcodeConfigs' => $barcodeConfigsToTwig,
+                'landscape' => $landscape
             ]),
             [
                 'page-height' => "${height}mm",

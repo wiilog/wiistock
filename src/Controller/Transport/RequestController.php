@@ -22,11 +22,14 @@ use App\Entity\Transport\TransportRequest;
 use App\Entity\Type;
 use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
+use App\Service\PDFGeneratorService;
+use App\Service\StringService;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Transport\TransportCollectRequest;
 use App\Entity\Utilisateur;
 use DateTime;
 use App\Service\Transport\TransportService;
+use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -390,6 +393,84 @@ class RequestController extends AbstractController {
         return $this->json([
             'exists' => !empty($result),
         ]);
+    }
+
+    #[Route("/{transportRequest}/print-transport-packs", name: "print_transport_packs", options: ['expose' => true], methods: "GET")]
+    public function printTransportPacks(TransportRequest $transportRequest,
+                                        PDFGeneratorService $PDFGeneratorService,
+                                        EntityManagerInterface $manager): Response {
+        $packs = !$transportRequest->getOrders()->isEmpty() ? $transportRequest->getOrders()->first()->getPacks() : [];
+        $contact = $transportRequest->getContact();
+        $contactName = $contact->getName();
+        $contactFileNumber = $contact->getFileNumber();
+        $contactAdress = $contact->getAddress();
+
+        $contactAdress = preg_replace('/\s(\d{5})/', "\n$1", $contactAdress);
+
+        $maxLineLength = 40;
+        $cleanedContactAdress = Stream::explode("\n", $contactAdress)
+            ->flatMap(function (string $part) use ($maxLineLength) {
+                $part = trim($part);
+                $lineLength = strlen($part);
+                if ($lineLength > $maxLineLength) {
+                    $results = [];
+
+                    while (!empty($part)) {
+                        $words = explode(" ", $part);
+                        $finalPart = "";
+                        foreach ($words as $word) {
+                            if (empty($finalPart) || strlen($finalPart) + strlen($word) < $maxLineLength) {
+                                if (!empty($finalPart)) {
+                                    $finalPart .= " ";
+                                }
+                                $finalPart .= $word;
+                            } else {
+                                break;
+                            }
+                        }
+                        $results[] = trim($finalPart);
+                        if (strlen($finalPart) < strlen($part)) {
+                            $part = trim(substr($part, strlen($finalPart)));
+                        } else {
+                            break;
+                        }
+                    }
+                    return $results;
+                } else {
+                    return [$part];
+                }
+            })
+            ->filterMap(fn(string $line) => trim($line))
+            ->toArray();
+        $logo = $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::LABEL_LOGO);
+
+        $temperatureRanges = Stream::from($transportRequest->getLines())
+            ->filter(fn($line) => $line instanceof TransportDeliveryRequestLine)
+            ->keymap(function(TransportDeliveryRequestLine $line) {
+                return [$line->getNature()->getLabel(), $line->getTemperatureRange()?->getValue()];
+            })->toArray();
+        $config = [];
+        $total = $packs->count();
+        foreach ($packs as $index => $pack) {
+            $position = $index + 1;
+            $config[] = [
+                'code' => $pack->getPack()->getCode(),
+                'labels' => [
+                    "$contactName - $contactFileNumber",
+                    ...$cleanedContactAdress,
+                    ($temperatureRanges[$pack->getPack()->getNature()->getLabel()] ?? '- ') . " °C",
+                    "$position/$total"
+                ],
+                'logo' => $logo
+            ];
+        }
+
+        $fileName = $PDFGeneratorService->getBarcodeFileName($config, 'transport');
+        return new PdfResponse(
+            $PDFGeneratorService->generatePDFBarCodes($fileName, $config, true),
+            $fileName
+        );
+        /*return new Response($PDFGeneratorService->generatePDFBarCodes($fileName, $config, true));*/
     }
 
 }
