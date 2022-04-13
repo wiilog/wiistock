@@ -116,7 +116,7 @@
                             {% if not order or order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_TO_CONTACT') %}
                                 -
                             {% else %}
-                                {{ request.expectedAt | format_helper('longDate', true, false, false) }}
+                                {{ request.expectedAt | format_helper('longDate', {short: true, year: false}) }}
                             {% endif %}
                         </span>
                         <br>
