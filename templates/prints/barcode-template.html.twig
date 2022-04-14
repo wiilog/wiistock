@@ -11,6 +11,19 @@
             position: relative;
         }
 
+        .landscape {
+            width: 50%;
+            float: left;
+        }
+
+        .landscape.barcode {
+            height: 75% !important;
+        }
+
+        .landscape.labels {
+            height: 75% !important;
+        }
+
         .barcode {
             max-width: 100%;
             margin: 0;
@@ -125,6 +138,7 @@
 {% for config in barcodeConfigs %}
     {% set firstCustomIconIsDefined = (config.firstCustomIcon is defined and config.firstCustomIcon is not null) %}
     {% set secondCustomIconIsDefined = (config.secondCustomIcon is defined and config.secondCustomIcon is not null) %}
+    {% set landscape = landscape is defined and landscape %}
 
     {% set hasHeader = logo or firstCustomIconIsDefined or secondCustomIconIsDefined %}
 
@@ -182,7 +196,7 @@
             </div>
         {% endif %}
 
-        <div class="barcode" style="height: {{ barcodeHeight }}">
+        <div class="barcode {{ landscape ? 'landscape' }}" style="height: {{ barcodeHeight }}">
             <div class="barcode-wrapper"
                  style="
                  {% if labelsLength == 0 %}
@@ -216,7 +230,7 @@
         {# 1.3 = multiplicateur en fonction de la police = hauteur d'un caractère a peu près #}
         {% set heightFontScale = 1.3 %}
 
-        <div class="labels"
+        <div class="labels {{ landscape ? 'landscape' }}"
              style="{{ labelsStyle }}">
             <svg viewBox="0 0 {{ config.barcode.longestLabel * widthFontScale }} {{ ((config.labels|length) + 1) * heightFontScale }}"
                  xmlns="http://www.w3.org/2000/svg">
