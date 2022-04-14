@@ -214,7 +214,7 @@ class FormatHelper {
                     . " "
                     . $date->format("d")
                     . " "
-                    . self::MONTHS[$date->format("n")]
+                    . strtolower(self::MONTHS[$date->format("n")])
                     . ($year ? (" " . $date->format("Y")) : '')
             . ($time ? $date->format(" à H:i") : ""))
             : $else;

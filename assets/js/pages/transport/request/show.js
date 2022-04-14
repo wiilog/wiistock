@@ -40,9 +40,6 @@ function getStatusHistory(transportRequest) {
         .then(({template}) => {
             const $statusHistoryContainer = $(`.status-history-container`);
             $statusHistoryContainer.empty().append(template);
-            $statusHistoryContainer.animate({
-                scrollTop: $statusHistoryContainer.find(`.last-status-history`).offset().top
-            }, 1000);
         });
 }
 

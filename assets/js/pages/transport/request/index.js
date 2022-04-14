@@ -83,6 +83,7 @@ function submitTransportRequest(form, data, table) {
                                             label: 'Fermer',
                                             click: () => {
                                                 $modal.modal('hide');
+                                                table.ajax.reload();
                                             }
                                         },
                                         cancelButton: {

@@ -190,6 +190,9 @@ export default class Form {
 
         $field.addClass(`is-invalid`);
         $parent.find(`.invalid-feedback`).remove();
+        $field = $field.is(`.select2-selection`)
+            ? $field.closest(`.select2-container`).siblings(`select`)
+            : $field;
         if($field.is(`[data-global-error]`)) {
             const label = $field.data(`global-error`) || $parent.find(`.field-label`).text();
             const prefixMessage = label ? `${label} : ` : '';
