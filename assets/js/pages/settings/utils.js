@@ -77,7 +77,7 @@ export function createManagementPage($container, config) {
 
             loadItems($container, config, selectedEntity);
 
-            $container.find(`.delete-main-entity`).parent().removeClass(`d-none`);
+            $container.find(`.delete-main-entity`).removeClass(`d-none`);
 
             if(config.onEditStop) {
                 config.onEditStop();

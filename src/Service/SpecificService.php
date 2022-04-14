@@ -10,6 +10,7 @@ class SpecificService
 	const CLIENT_SAFRAN_CS = 'safran-cs';
     const CLIENT_SAFRAN_ED = 'safran-ed';
     const CLIENT_SAFRAN_NS = 'safran-ns';
+    const CLIENT_SAFRAN_MC = 'safran-mc';
 	const CLIENT_TEREGA = 'terega';
 	const CLIENT_AIA = 'aia';
 	const CLIENT_EMERSON = 'emerson';
@@ -35,9 +36,16 @@ class SpecificService
         self::CLIENT_INEO_LAV => 'Ineos Lavera',
         self::CLIENT_BOITE_ROSE_TAVERNY => 'Boîte rose Taverny',
         self::CLIENT_CLB => 'CLB',
+        self::CLIENT_SAFRAN_MC => 'Safran MC',
     ];
 
 	const ARRIVAGE_SPECIFIQUE_SED_MVT_DEPOSE = 'CHARIOT COLIS';
+
+    public const EVERY_MINUTE_REFRESH_RATE_CLIENTS = [
+        self::CLIENT_SAFRAN_MC,
+        self::CLIENT_COLLINS_VERNON,
+        self::CLIENT_SAFRAN_CS
+    ];
 
     /**
      * @param string[]|string $clientName

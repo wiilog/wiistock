@@ -1505,37 +1505,33 @@ class SettingsController extends AbstractController {
 
                     $defaultValue = "<div class='wii-switch-small'>$defaultValue</div>";
                 }
-            } else {
-                if ($freeField->getTypage() === FreeField::TYPE_DATETIME || $freeField->getTypage() === FreeField::TYPE_DATE) {
-                    $defaultValueDate = new DateTime(str_replace("/", "-", $freeField->getDefaultValue())) ?: null;
-                    if (!$edit) {
-                        $defaultValue = $defaultValueDate ? $defaultValueDate->format('d/m/Y H:i') : "";
-                    } else {
-                        if ($freeField->getTypage() === FreeField::TYPE_DATETIME) {
-                            $defaultValueDate = $defaultValueDate ? $defaultValueDate->format("Y-m-d\\TH:i") : "";
-                            $defaultValue = "<input type='datetime-local' name='defaultValue' class='$class' value='$defaultValueDate'/>";
-                        } else {
-                            $defaultValueDate = $defaultValueDate ? $defaultValueDate->format("Y-m-d") : "";
-                            $defaultValue = "<input type='date' name='defaultValue' class='$class' value='$defaultValueDate'/>";
-                        }
-                    }
+            } else if($freeField->getTypage() === FreeField::TYPE_DATETIME || $freeField->getTypage() === FreeField::TYPE_DATE) {
+                $defaultValueDate = $freeField->getDefaultValue()
+                    ? new DateTime(str_replace("/", "-", $freeField->getDefaultValue()))
+                    : null;
+                if(!$edit) {
+                    $defaultValue = $defaultValueDate ? $defaultValueDate->format('d/m/Y H:i') : "";
                 } else {
-                    if ($edit && $freeField->getTypage() === FreeField::TYPE_LIST) {
-                        $options = Stream::from($freeField->getElements())
-                            ->map(fn(string $value) => "<option value='$value' " . ($value === $freeField->getDefaultValue() ? "selected" : "") . ">$value</option>")
-                            ->join("");
-
-                        $defaultValue = "<select name='defaultValue' class='form-control data' data-global-error='Valeur par défaut'>$options</select>";
+                    if($freeField->getTypage() === FreeField::TYPE_DATETIME) {
+                        $defaultValueDate = $defaultValueDate ? $defaultValueDate->format("Y-m-d\\TH:i") : "";
+                        $defaultValue = "<input type='datetime-local' name='defaultValue' class='$class' value='$defaultValueDate'/>";
                     } else {
-                        if ($freeField->getTypage() !== FreeField::TYPE_LIST_MULTIPLE) {
-                            if (!$edit) {
-                                $defaultValue = $freeField->getDefaultValue();
-                            } else {
-                                $inputType = $freeField->getTypage() === FreeField::TYPE_NUMBER ? "number" : "text";
-                                $defaultValue = "<input type='$inputType' name='defaultValue' class='$class' value='{$freeField->getDefaultValue()}'/>";
-                            }
-                        }
+                        $defaultValueDate = $defaultValueDate ? $defaultValueDate->format("Y-m-d") : "";
+                        $defaultValue = "<input type='date' name='defaultValue' class='$class' value='$defaultValueDate'/>";
                     }
+                }
+            } else if($edit && $freeField->getTypage() === FreeField::TYPE_LIST) {
+                $options = Stream::from($freeField->getElements())
+                    ->map(fn(string $value) => "<option value='$value' " . ($value === $freeField->getDefaultValue() ? "selected" : "") . ">$value</option>")
+                    ->join("");
+
+                $defaultValue = "<select name='defaultValue' class='form-control data' data-global-error='Valeur par défaut'>$options</select>";
+            } else if($freeField->getTypage() !== FreeField::TYPE_LIST_MULTIPLE) {
+                if(!$edit) {
+                    $defaultValue = $freeField->getDefaultValue();
+                } else {
+                    $inputType = $freeField->getTypage() === FreeField::TYPE_NUMBER ? "number" : "text";
+                    $defaultValue = "<input type='$inputType' name='defaultValue' class='$class' value='{$freeField->getDefaultValue()}'/>";
                 }
             }
 
