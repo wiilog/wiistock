@@ -87,7 +87,7 @@
                 </div>
                 {% if index != constant('App\\Entity\\Nature::ARRIVAL_CODE') %}
                     <div class="input-group row no-gutters">
-                        <div class="col-6">
+                        <div class="col-6 types-container">
                             <select name="{{ index }}Types"
                                     class="data form-control w-100 {{ checked ? 'needed' }}"
                                     title="Types de {{ entity }}"
@@ -101,7 +101,8 @@
                             </select>
                         </div>
                         <div class="input-group-append col-4">
-                            <button class="btn btn-primary select-all-types w-100" type="button" onclick="selectAllTypes($(this))">Tous les types
+                            <button class="btn btn-primary select-all-types w-100"
+                                    type="button" onclick="selectAllTypes($(this))" {{ not checked ? 'disabled' }}>Tous les types
                             </button>
                         </div>
                     </div>

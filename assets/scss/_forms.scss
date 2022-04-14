@@ -26,6 +26,12 @@
     }
 }
 
+.types-container {
+    .select2-container, .select2-selection {
+        height: 100%;
+    }
+}
+
 .increase-decrease-field {
     display: flex;
     flex-direction: row;

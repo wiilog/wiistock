@@ -68,15 +68,15 @@ function toggleEntitiesContainer($input) {
 }
 
 function toggleTypes($checkbox) {
-    const $typeSelect = $checkbox
-        .parents(`.entity-item`)
-        .find(`select`);
+    const $entityItem = $checkbox.parents(`.entity-item`);
+    const $typeSelect = $entityItem.find(`select`);
 
     $typeSelect
         .val(null)
         .prop(`disabled`, !$checkbox.is(`:checked`))
         .trigger(`change`);
-    $typeSelect.toggleClass(`needed`, $checkbox.is(`:checked`))
+    $typeSelect.toggleClass(`needed`, $checkbox.is(`:checked`));
+    $entityItem.find(`.select-all-types`).prop(`disabled`, !$checkbox.is(`:checked`));
 }
 
 function selectAllTypes($button) {
