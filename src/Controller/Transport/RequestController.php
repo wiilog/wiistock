@@ -367,20 +367,35 @@ class RequestController extends AbstractController {
     }
 
     #[Route("/{transportRequest}/transport-packs-api", name: "transport_packs_api", options: ['expose' => true], methods: "GET")]
-    public function transportPacksApi(TransportRequest $transportRequest) {
-        $transportCollectRequestLines = $transportRequest->getLines()->filter(fn($line) => $line instanceof TransportCollectRequestLine);
-        $transportDeliveryRequestLines = $transportRequest->getLines()->filter(fn($line) => $line instanceof TransportDeliveryRequestLine);
+    public function transportPacksApi(TransportRequest $transportRequest): JsonResponse {
+        $transportDelivery = $transportRequest instanceof TransportDeliveryRequest ? $transportRequest : null;
+        $transportCollect = $transportRequest instanceof TransportCollectRequest ? $transportRequest : $transportDelivery->getCollect();
+
+        $transportDeliveryRequestLines = $transportDelivery
+            ? $transportDelivery->getLines()
+                ->filter(fn($line) => $line instanceof TransportDeliveryRequestLine)
+                ->toArray()
+            : [];
+
+        $transportCollectRequestLines = $transportCollect
+            ? $transportCollect->getLines()
+                ->filter(fn($line) => $line instanceof TransportCollectRequestLine)
+                ->toArray()
+            : [];
 
         $packs = !$transportRequest->getOrders()->isEmpty() ? $transportRequest->getOrders()->first()->getPacks() : [];
-        $associatedNaturesAndPacks = Stream::from($packs)
+        $associatedNaturesAndPacks = Stream::from($transportRequest->getOrders())
+            ->flatMap(fn(TransportOrder $order) => $order->getPacks()->toArray())
             ->keymap(function(TransportDeliveryOrderPack $transportDeliveryOrderPack) use ($packs) {
                 $nature = $transportDeliveryOrderPack->getPack()->getNature();
                 return [
-                    $nature->getLabel(), Stream::from($packs)
-                        ->filter(fn(TransportDeliveryOrderPack $pack) => $pack->getPack()->getNature() === $nature)
+                    $nature->getId(),
+                    Stream::from($packs)
+                        ->filter(fn(TransportDeliveryOrderPack $pack) => $pack->getPack()?->getNature() === $nature)
                         ->toArray()
                 ];
-        })->toArray();
+            })
+            ->toArray();
 
         return $this->json([
             "success" => true,
@@ -388,7 +403,7 @@ class RequestController extends AbstractController {
                 "transportCollectRequestLines" => $transportCollectRequestLines,
                 "transportDeliveryRequestLines" => $transportDeliveryRequestLines,
                 "associatedNaturesAndPacks" => $associatedNaturesAndPacks,
-                "transportRequest" => $transportRequest
+                "request" => $transportRequest
             ]),
         ]);
     }
