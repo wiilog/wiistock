@@ -1,21 +1,29 @@
 import '@styles/pages/transport/show.scss';
-import {initializeForm, cancelRequest, deleteRequest} from "@app/pages/transport/request/common";
 import "@app/pages/transport/common";
-import AJAX, {POST} from "@app/ajax";
+import {initializeForm, cancelRequest, deleteRequest} from "@app/pages/transport/request/common";
+import AJAX, {GET, POST} from "@app/ajax";
 import Flash from "@app/flash";
+import {saveAs} from "file-saver";
 
 $(function () {
-    const transportRequestId = $(`input[name=transportRequestId]`).val();
+    const transportRequest = $(`input[name=transportRequestId]`).val();
 
     $('.cancel-request-button').on('click', function(){
         cancelRequest($(this).data('request-id'));
     });
+
     $('.delete-request-button').on('click', function(){
         deleteRequest($(this).data('request-id'));
     });
 
-    getStatusHistory(transportRequestId);
-    getTransportHistory(transportRequestId);
+
+    $(`.print-barcodes`).on(`click`, function() {
+        printBarcodes($(this), transportRequest)
+    });
+
+    getStatusHistory(transportRequest);
+    getTransportHistory(transportRequest);
+    getPacks(transportRequest);
 
     const $modals = $("#modalTransportDeliveryRequest, #modalTransportCollectRequest");
     $modals.each(function() {
@@ -35,12 +43,20 @@ function getStatusHistory(transportRequest) {
         });
 }
 
-function getTransportHistory(transportRequestId) {
-    $.get(Routing.generate(`transport_history_api`, {transportRequest: transportRequestId}, true))
+function getTransportHistory(transportRequest) {
+    $.get(Routing.generate(`transport_history_api`, {transportRequest}, true))
         .then(({template}) => {
             const $transportHistoryContainer = $(`.transport-history-container`);
             $transportHistoryContainer.empty().append(template);
-        })
+        });
+}
+
+function getPacks(transportRequest) {
+    $.get(Routing.generate(`transport_packs_api`, {transportRequest}, true))
+        .then(({template}) => {
+            const $packsContainer = $(`.packs-container`);
+            $packsContainer.empty().append(template);
+        });
 }
 
 function submitTransportRequestEdit(form, data) {
@@ -63,6 +79,18 @@ function submitTransportRequestEdit(form, data) {
                     message || `Une erreur s'est produite`
                 );
                 table.ajax.reload();
+            });
+    });
+}
+
+function printBarcodes($button, transportRequest) {
+    wrapLoadingOnActionButton($button, () => {
+        Flash.add(`info`, `Génération des étiquettes de colis en cours`);
+        return AJAX.route(GET, `print_transport_packs`, {transportRequest})
+            .raw()
+            .then(response => response.blob())
+            .then((response) => {
+                saveAs(response);
             });
     });
 }

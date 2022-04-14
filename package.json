@@ -33,6 +33,7 @@
         "datatables.net-colreorder": "^1.5.4",
         "datatables.net-dt": "^1.10.22",
         "datatables.net-responsive": "^2.2.6",
+        "file-saver": "^2.0.5",
         "firebase": "^8.7.1",
         "intl-tel-input": "^17.0.13",
         "jquery": "=3.5.1",

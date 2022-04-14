@@ -126,6 +126,7 @@
                 position: absolute;
                 background-color: $primary;
             }
+
             &:after {
                 content: "";
                 position: absolute;
@@ -290,4 +291,56 @@
             }
         }
     }
+}
+
+.packs-container {
+    .pack-wrapper {
+        .nature-line {
+            background-color: #E8E8E8;
+            height: 30px;
+
+            span:last-child {
+                margin-right: 65px;
+            }
+
+            img {
+                max-width: 30px;
+                max-height: 30px;
+                padding: 5px;
+            }
+        }
+
+        .packs-table {
+            padding: 0 35px;
+
+            tr {
+                border-bottom: 1px solid $grey;
+                height: 30px;
+
+                &:not(:first-child) {
+                    height: 35px;
+                }
+
+                th {
+                    vertical-align: middle;
+                }
+
+                td {
+                    width: 30%;
+                    vertical-align: middle;
+
+                    &:first-child {
+                        width: 40%;
+                    }
+                }
+            }
+        }
+    }
+}
+
+.wii-icon-printer-white {
+    display: inline-block;
+    background-color: $white;
+    width: 15px;
+    height: 15px;
 }

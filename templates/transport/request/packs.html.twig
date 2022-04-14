@@ -1,0 +1,84 @@
+{% set isCanceledStatus = request.status.nom in constant('App\\Entity\\Transport\\TransportRequest::CANCELED_STATUSES') %}
+{% set path = app.request is not null ? app.request.getSchemeAndHttpHost() : app_url %}
+{% set request_delivery = request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') ? request : null %}
+{% set request_collect = request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') ? request : request_delivery.collect %}
+{% set both = request_delivery is not null and request_collect is not null %}
+
+{% if transportDeliveryRequestLines is not empty and transportDeliveryRequestLines %}
+    {% if both %}
+        <div class="d-flex align-items-center ml-3 py-2">
+            <img src="{{ asset('svg/delivery.svg') }}" alt="Icône livraison" width="25px" height="25px">
+            <span class="ml-2">Livraison</span>
+        </div>
+    {% endif %}
+    {% for line in transportDeliveryRequestLines %}
+        <div class="pack-wrapper {{ loop.last ? 'pb-4' : 'pb-2' }}">
+            {% set packsCount = (associatedNaturesAndPacks[line.nature.label] ?? [])|length %}
+            <div class="nature-line w-100 d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center ml-2">
+                    {% set logo = request_delivery.type.logo ?? null %}
+                    {% if logo %}
+                        <img src="{{ path ~ asset('uploads/attachements/' ~ logo.fileName) }}" alt="">
+                    {% endif %}
+                    <span class="ml-2"><strong class="wii-field-name">{{ line.nature.label }}</strong></span>
+                </div>
+                <span><strong class="wii-field-name">Quantité</strong>&nbsp;: {{ packsCount > 0 ? packsCount : '-' }}</span>
+                <span><strong class="wii-field-name">Température</strong>&nbsp;: {{ line.temperatureRange ? line.temperatureRange.value : '-°C' }}</span>
+            </div>
+            {% if packsCount > 0 %}
+                <div class="packs-table">
+                    <table class="w-100">
+                        <tr>
+                            <th class="wii-field-name">Code étiquette</th>
+                            <th class="wii-field-name">Ecarté</th>
+                            <th class="wii-field-name">Motif écartement</th>
+                            {% if isCanceledStatus %}<th class="wii-field-name">Retourné le</th>{% endif %}
+                        </tr>
+                        {% for transportDeliveryOrderPack in associatedNaturesAndPacks[line.nature.id] ?? [] %}
+                            <tr>
+                                <td class="wii-field-text">{{ transportDeliveryOrderPack.pack.code }}</td>
+                                <td class="wii-field-text">{{ transportDeliveryOrderPack.rejected ? 'Oui' : '-' }}</td>
+                                <td class="wii-field-text">{{ transportDeliveryOrderPack.rejectReason ?? '-' }}</td>
+                                {% if isCanceledStatus %}
+                                    <td class="wii-field-text">
+                                        {{
+                                            transportDeliveryOrderPack.returnedAt
+                                                ? transportDeliveryOrderPack.returnedAt|format_helper('longDate', true, true)
+                                                : '-'
+                                        }}
+                                    </td>
+                                {% endif %}
+                            </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+    {% endfor %}
+{% endif %}
+
+{% if transportCollectRequestLines is not empty and transportCollectRequestLines %}
+    {% if both %}
+        <div class="d-flex align-items-center ml-3 py-2">
+            <img src="{{ asset('svg/collect.svg') }}" alt="Icône collecte" width="25px" height="25px">
+            <span class="ml-2">Collecte</span>
+        </div>
+    {% endif %}
+    {% for line in transportCollectRequestLines %}
+        <div class="pack-wrapper {{ loop.last ? 'pb-4' : 'pb-2' }}">
+            <div class="nature-line w-100 d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center ml-2">
+                    {% set logo = request_collect.type.logo ?? null %}
+                    {% if logo %}
+                        <img src="{{ path ~ asset('uploads/attachements/' ~ logo.fileName) }}">
+                    {% endif %}
+                    <span class="ml-2">
+                        <strong class="wii-field-name">{{ line.nature.label }}</strong>
+                    </span>
+                </div>
+                <span><strong class="wii-field-name">Quantité à collecter</strong>&nbsp;: {{ line.quantityToCollect is not null ? line.quantityToCollect : '-' }}</span>
+                <span><strong class="wii-field-name">Quantité collectée</strong>&nbsp;: {{ line.collectedQuantity is not null ? line.collectedQuantity : '-' }}</span>
+            </div>
+        </div>
+    {% endfor %}
+{% endif %}
