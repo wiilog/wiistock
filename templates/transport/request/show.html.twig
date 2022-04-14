@@ -157,12 +157,15 @@
                                 {% endif %}
                             </span>
                         </div>
-                        {% if request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') and request.expectedAt is not null %}
+                        {# Only for collect view #}
+                        {% if request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') %}
                             <div class="col-6 d-flex flex-column">
                                 <span class="wii-field-name">Date validée avec le patient</span>
-                                <span class="wii-field-text">
-                                        {{ request.expectedAt|format_helper('date') }}
-                                </span>
+                                {% if request_collect.validationDate %}
+                                    <span class="wii-field-text">
+                                        {{ request.validationDate|format_helper('date') }}
+                                    </span>
+                                {% endif %}
                             </div>
                         {% endif %}
                     </div>
