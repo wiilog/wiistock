@@ -4,36 +4,43 @@
 
 <div class="transport-request-container col-12 col-xl-6 p-1">
     <a href="{{ path('transport_request_show', {transportRequest: request.id}) }}" class="transport-request-card">
-        <div class="dropdown dropright">
-            <div class="d-flex" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <img alt="Actions" src="{{ asset('svg/dotsblack.svg') }}" height="20px" width="8px">
-            </div>
-            <div class="dropdown-menu dropdown-follow-gt pointer">
-                <div class="dropdown-item pointer">
-                    <i class="fas fa-print mr-2"></i> Imprimer les étiquettes
+        {% set isDeliveryTransportRequest = request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
+
+        {% if isDeliveryTransportRequest or request.canBeCancelled or request.canBeDeleted %}
+            <div class="dropdown dropright">
+                <div class="d-flex" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <img alt="Actions" src="{{ asset('svg/dotsblack.svg') }}" height="20px" width="8px">
                 </div>
 
-                {# TODO gérer condition affichage #}
-                <div class="dropdown-item pointer">
-                    <i class="fas fa-file mr-2"></i> Générer bon de transport
+                <div class="dropdown-menu dropdown-follow-gt pointer">
+                    {% if isDeliveryTransportRequest %}
+                        <div class="dropdown-item pointer">
+                            <i class="fas fa-print mr-2"></i> Imprimer les étiquettes
+                        </div>
+
+                        {% if request.status.code in constant('App\\Entity\\Transport\\TransportRequest::STATUS_WORKFLOW_DELIVERY_CLASSIC')|slice(1) %}
+                            <div class="dropdown-item pointer">
+                                <i class="fas fa-file mr-2"></i> Générer bon de transport
+                            </div>
+                        {% endif %}
+                    {% endif %}
+
+                    {% if request.canBeCancelled %}
+                        <div class="dropdown-item pointer cancel-request-button"
+                             data-request-id="{{ request.id }}">
+                            <i class="fas fa-ban mr-2"></i> Annuler
+                        </div>
+                    {% endif %}
+
+                    {% if request.canBeDeleted %}
+                        <div class="dropdown-item pointer delete-request-button"
+                             data-request-id="{{ request.id }}">
+                            <i class="fas fa-trash mr-2"></i> Supprimer
+                        </div>
+                    {% endif %}
                 </div>
-
-                {% if request.canBeCancelled %}
-                    <div class="dropdown-item pointer cancel-request-button"
-                         data-request-id="{{ request.id }}">
-                        <i class="fas fa-ban mr-2"></i> Annuler
-                    </div>
-                {% endif %}
-
-                {% if request.canBeDeleted %}
-                    <div class="dropdown-item pointer delete-request-button"
-                         data-request-id="{{ request.id }}">
-                        <i class="fas fa-trash mr-2"></i> Supprimer
-                    </div>
-                {% endif %}
             </div>
-        </div>
-
+        {% endif %}
 
         <table class="transport-content">
             <tr>
@@ -103,13 +110,13 @@
                             </span>
                         {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_FINISHED') %}
                             Fait à : <span
-                                class="transport-value">{{ roundLine ? roundLine.fulfilledAt | date('H:i') : '-' }}</span>
+                            class="transport-value">{{ roundLine ? roundLine.fulfilledAt | date('H:i') : '-' }}</span>
                         {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_NOT_DELIVERED') %}
                             Non livré le : <span
-                                class="transport-value">{{ roundLine ? roundLine.rejectedAt | format_helper('longDate', {short: true, year: false}) : '-' }}</span>
+                            class="transport-value">{{ roundLine ? roundLine.rejectedAt | format_helper('longDate', {short: true, year: false}) : '-' }}</span>
                         {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_CANCELLED') %}
                             Annulée le : <span
-                                class="transport-value">{{ roundLine ? roundLine.cancelledAt | format_helper('longDate', {short: true, year: false}) : '' }}</span>
+                            class="transport-value">{{ roundLine ? roundLine.cancelledAt | format_helper('longDate', {short: true, year: false}) : '' }}</span>
                         {% endif %}
                     {% elseif request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') %}
                         Planifié le : <span class="transport-value">
@@ -128,15 +135,15 @@
                                 Estimée à : <span class="transport-value">{{ request.timeSlot.name }}</span>
                             {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ONGOING') %}
                                 Estimée à : <span
-                                    class="transport-value">{{ roundLine ? roundLine.estimatedAt | date('H:i') : '-' }}</span>
+                                class="transport-value">{{ roundLine ? roundLine.estimatedAt | date('H:i') : '-' }}</span>
                             {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_FINISHED') %}
                                 Fait à : <span
-                                    class="transport-value">{{ roundLine ? roundLine.fulfilledAt | date('H:i') : '-' }}</span>
+                                class="transport-value">{{ roundLine ? roundLine.fulfilledAt | date('H:i') : '-' }}</span>
                             {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_NOT_COLLECTED') %}
                                 Non collecté le : {{ roundLine ? (roundLine.rejectedAt | format_helper('longDate', {short: true, year: false})) : '-' }}
                             {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_CANCELLED') %}
                                 Annulée le : <span
-                                    class="transport-value">{{ roundLine ? (roundLine.cancelledAt | format_helper('longDate', {short: true, year: false})) : '-' }}</span>
+                                class="transport-value">{{ roundLine ? (roundLine.cancelledAt | format_helper('longDate', {short: true, year: false})) : '-' }}</span>
                             {% endif %}
                         </div>
                     {% endif %}
@@ -156,7 +163,8 @@
                              title="Colis rejeté">
                     {% endif %}
 
-                    <span class="wii-small-text">Créée le : {{ request.createdAt | format_helper('longDate', {short: true, time: true, year: false}) }}</span><br>
+                    <span
+                        class="wii-small-text">Créée le : {{ request.createdAt | format_helper('longDate', {short: true, time: true, year: false}) }}</span><br>
                     <div class="mt-1">
                         <span class="wii-small-text">Par : {{ request.createdBy }}</span><br>
                     </div>
