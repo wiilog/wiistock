@@ -29,7 +29,7 @@ abstract class TransportRequest {
 
     public const CATEGORY = 'transportRequest';
 
-    public const STATUS_AWAITING_VALIDATION = 'En attente validation';
+    public const STATUS_AWAITING_VALIDATION = 'En attente de validation';
     public const STATUS_AWAITING_PLANNING = 'En attente de planification';
     public const STATUS_TO_PREPARE = 'À préparer';
     public const STATUS_TO_DELIVER = 'À livrer';

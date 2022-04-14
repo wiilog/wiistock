@@ -89,6 +89,8 @@ class RequestController extends AbstractController {
                 TransportRequest::STATUS_CANCELLED,
                 TransportRequest::STATUS_NOT_DELIVERED,
                 TransportRequest::STATUS_NOT_COLLECTED,
+                TransportRequest::STATUS_SUBCONTRACTED,
+                TransportRequest::STATUS_AWAITING_VALIDATION,
             ],
         ]);
     }
