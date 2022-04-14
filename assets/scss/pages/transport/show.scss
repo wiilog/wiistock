@@ -3,10 +3,6 @@
 .transport-details {
     .content {
         padding: 15px 30px;
-
-        &.bordered {
-            border-top: 1px solid $grey;
-        }
     }
 
     .header {
@@ -16,6 +12,20 @@
         padding: 5px 15px;
         border: none !important;
     }
+
+    .emergency-container {
+        background-color: rgba(215, 51, 83, 0.1);
+        padding-top: 5px;
+        padding-bottom: 7px;
+
+        strong {
+            font-size: 17px;
+        }
+    }
+}
+
+.bordered {
+    border-top: 1px solid $grey;
 }
 
 .status-history-container {

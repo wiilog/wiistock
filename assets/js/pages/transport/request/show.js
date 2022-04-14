@@ -32,14 +32,6 @@ function getStatusHistory(transportRequest) {
         .then(({template}) => {
             const $statusHistoryContainer = $(`.status-history-container`);
             $statusHistoryContainer.empty().append(template);
-            $statusHistoryContainer.animate({
-                scrollTop: $statusHistoryContainer.find(`.last-status-history`).offset().top
-            }, 1000, () => {
-                const $currentTitleLeft = $statusHistoryContainer.find(`.title-left.current`);
-                $currentTitleLeft.css(`transform`, `scale(1.2)`);
-                $currentTitleLeft.css(`transition`, `transform 330ms ease-in-out`);
-                setTimeout(() => $currentTitleLeft.css(`transform`, `none`), 300);
-            });
         });
 }
 

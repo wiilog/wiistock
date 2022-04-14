@@ -74,13 +74,14 @@
                             </div>
                         </div>
                     </div>
-                    {% if request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') and request.emergency != "" %}
-                        <div class="d-flex align-items-start content bordered" style="background-color: #fa9bae">
-                            <i class="fas fa-exclamation-triangle mr-2 red"></i>
+                    {% set hasEmergency = request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') and request.emergency != "" %}
+                    {% if hasEmergency %}
+                        <div class="d-flex align-items-center bordered emergency-container pl-3">
+                            <img src="{{ asset('svg/timeline-urgent.svg') }}" class="mr-2" alt="Icône urgence" width="17px">
                             <strong>Urgence - {{ request.emergency }}</strong>
                         </div>
                     {% endif %}
-                    <div class="content bordered">
+                    <div class="content {{ not hasEmergency ? 'bordered' }}">
                         {% if request_delivery is not null %}
                             <div class="row align-items-center">
                                 <div class="col-4">
@@ -160,12 +161,12 @@
                         <img src="{{ asset('svg/information.svg') }}" alt="Icône information" width="15px">
                         <span class="wii-field-name ml-2">Autres informations</span>
                     </div>
-                    {% include 'free_field/freeFieldsShow.html.twig' with {
-                        containerClass: 'content text-center',
-                        emptyLabel: 'Aucun champ libre renseigné',
-                        values: request.freeFields,
-                        freeFields: freeFields
-                    } %}
+                        {% include 'free_field/freeFieldsShow.html.twig' with {
+                            containerClass: 'row content flex-wrap',
+                            emptyLabel: 'Aucun champ libre renseigné',
+                            values: request.freeFields,
+                            freeFields: freeFields
+                        } %}
                     <div class="header">
                         <img src="{{ asset('svg/user.svg') }}" alt="Icône utilisateur" width="15px">
                         <span class="wii-field-name ml-2">Informations patient</span>
