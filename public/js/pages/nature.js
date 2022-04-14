@@ -76,7 +76,6 @@ function toggleTypes($checkbox) {
         .prop(`disabled`, !$checkbox.is(`:checked`))
         .trigger(`change`);
     $typeSelect.toggleClass(`needed`, $checkbox.is(`:checked`));
-    console.log($entityItem.find(`.select-all-types`));
     $entityItem.find(`.select-all-types`).prop(`disabled`, !$checkbox.is(`:checked`));
 }
 
