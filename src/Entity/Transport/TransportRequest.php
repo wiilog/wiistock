@@ -61,6 +61,7 @@ abstract class TransportRequest {
         TransportOrder::STATUS_NOT_COLLECTED => "cancelled",
         self::STATUS_SUBCONTRACTED => "subcontracted",
         TransportOrder::STATUS_SUBCONTRACTED => "subcontracted",
+        TransportOrder::STATUS_TO_CONTACT => "preparing"
     ];
 
     public const STATUS_WORKFLOW_DELIVERY_CLASSIC = [
