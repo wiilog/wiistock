@@ -70,6 +70,9 @@
                        {{ required ? 'required' }}
                        {{ switch.checked ?? false ? 'checked' }}>
                 <label for="{{ name }}-{{ id }}" class="d-inline-flex align-items-center">
+                    {% if switch.label is iterable and switch.label.wiiIcon %}
+                        <span class="mr-2 wii-icon wii-icon-{{ switch.label.wiiIcon }}"></span>
+                    {% endif %}
                     {% if switch.label is iterable %}
                         {{ switch.label.text }}
                     {% else %}
