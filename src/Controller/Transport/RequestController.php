@@ -383,18 +383,15 @@ class RequestController extends AbstractController {
                 ->toArray()
             : [];
 
-        $packs = !$transportRequest->getOrders()->isEmpty() ? $transportRequest->getOrders()->first()->getPacks() : [];
         $associatedNaturesAndPacks = Stream::from($transportRequest->getOrders())
             ->flatMap(fn(TransportOrder $order) => $order->getPacks()->toArray())
-            ->keymap(function(TransportDeliveryOrderPack $transportDeliveryOrderPack) use ($packs) {
+            ->keymap(function(TransportDeliveryOrderPack $transportDeliveryOrderPack) {
                 $nature = $transportDeliveryOrderPack->getPack()->getNature();
                 return [
                     $nature->getId(),
-                    Stream::from($packs)
-                        ->filter(fn(TransportDeliveryOrderPack $pack) => $pack->getPack()?->getNature() === $nature)
-                        ->toArray()
+                    $transportDeliveryOrderPack
                 ];
-            })
+            }, true)
             ->toArray();
 
         return $this->json([
