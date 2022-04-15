@@ -285,6 +285,7 @@ $wii-switch-height: $input-height;
 
 .select2-selection--multiple .select2-search__field {
     padding: 0 5px !important;
+    min-width: 1em;
     //WIIS-7131 pas de width 100%
 }
 

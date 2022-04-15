@@ -48,14 +48,14 @@
                     <div>
                         {% if request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
                             <span class="transport-category">
-                                <span class="wii-icon wii-icon-cart-delivery wii-icon-25px-primary mr-1"></span>
+                                <span class="wii-icon wii-icon-cart-delivery wii-icon-25px-primary mr-2"></span>
                                 Livraison
                             </span>
                         {% endif %}
 
                         {% if request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') or request.collect %}
                             <span class="transport-category">
-                                <span class="wii-icon wii-icon-cart-collect wii-icon-25px-primary mr-1"></span>
+                                <span class="wii-icon wii-icon-cart-collect wii-icon-25px-primary mr-2"></span>
                                 Collecte
                             </span>
                         {% endif %}

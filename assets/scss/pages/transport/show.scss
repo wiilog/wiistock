@@ -1,6 +1,7 @@
 @import "../../variables";
 
 .transport-details {
+    margin-left: 30px;
     .content {
         padding: 15px 30px;
     }
@@ -297,7 +298,6 @@
     .pack-wrapper {
         .nature-line {
             background-color: #E8E8E8;
-            height: 30px;
 
             span:last-child {
                 margin-right: 65px;
