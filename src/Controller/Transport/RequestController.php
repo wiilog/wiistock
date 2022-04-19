@@ -83,7 +83,9 @@ class RequestController extends AbstractController {
             ]),
             'temperatures' => $temperatureRangeRepository->findAll(),
             'statuts' => [
+                TransportRequest::STATUS_AWAITING_VALIDATION,
                 TransportRequest::STATUS_TO_PREPARE,
+                TransportRequest::STATUS_SUBCONTRACTED,
                 TransportRequest::STATUS_TO_DELIVER,
                 TransportRequest::STATUS_AWAITING_PLANNING,
                 TransportRequest::STATUS_TO_COLLECT,
@@ -93,8 +95,6 @@ class RequestController extends AbstractController {
                 TransportRequest::STATUS_CANCELLED,
                 TransportRequest::STATUS_NOT_DELIVERED,
                 TransportRequest::STATUS_NOT_COLLECTED,
-                TransportRequest::STATUS_SUBCONTRACTED,
-                TransportRequest::STATUS_AWAITING_VALIDATION,
             ],
         ]);
     }
