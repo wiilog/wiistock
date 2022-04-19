@@ -56,11 +56,21 @@ class RequestController extends AbstractController {
      */
     #[Route("/liste", name: "transport_request_index", methods: "GET")]
     #[HasPermission([Menu::DEM, Action::DISPLAY_TRANSPORT])]
-    public function index(EntityManagerInterface $entityManager): Response {
+    public function index(EntityManagerInterface $entityManager, Request $request): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
         $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
 
+        $token = $request->query->get('x-api-key');
+
+        $tokenIsValid = $_SERVER['CLB_API_KEY'] && $token === $_SERVER['CLB_API_KEY'];
+        $content = $request->query->get('content');
+        if (!$content) {
+            $response = false;
+        } else {
+            $content = str_replace(["\r", "\n"], ['\\r', '\\n'], $content);
+            $response = json_decode($content, true);
+        }
         return $this->render('transport/request/index.html.twig', [
             'newRequest' => new TransportDeliveryRequest(),
             'categories' => [
@@ -73,6 +83,15 @@ class RequestController extends AbstractController {
                     "icon" => "cart-collect",
                     "label" => "Collecte",
                 ],
+            ],
+            'informations' => $tokenIsValid && $response ? $response : [
+                'Prenom' => '',
+                'Nom' => '',
+                'Nodos' => '',
+                'Contact' => '',
+                'Adresse' => '',
+                'PersonnesAPrevenir' => '',
+                'Remarques' => '',
             ],
             'types' => $typeRepository->findByCategoryLabels([
                 CategoryType::DELIVERY_TRANSPORT, CategoryType::COLLECT_TRANSPORT,
