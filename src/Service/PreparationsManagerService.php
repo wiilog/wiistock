@@ -207,10 +207,10 @@ class PreparationsManagerService
             if ($ligneArticlePreparation->getQuantityToPick() !== $pickedQuantity) {
                 $newLigneArticle = new PreparationOrderReferenceLine();
                 $selectedQuantityForPreviousLigne = $ligneArticlePreparation->getPickedQuantity() ?? 0;
-                $newQuantity = ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE)
+                $newQuantity = ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE)
                     ? ($ligneArticlePreparation->getQuantityToPick() - $selectedQuantityForPreviousLigne)
                     : $ligneArticlePreparation->getQuantityToPick();
-                if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
                     $ligneArticlePreparation->setQuantityToPick($ligneArticlePreparation->getPickedQuantity() ?? 0);
                 }
                 $newLigneArticle
@@ -479,7 +479,6 @@ class PreparationsManagerService
                             $entityManager->persist($transferMovement);
                         }
                         else {
-                            $preparation->removeArticleLine($line);
                             $splitArticleLineIds[] = $line->getId();
                         }
                     }
@@ -581,7 +580,7 @@ class PreparationsManagerService
 
         foreach ($preparation->getReferenceLines() as $ligneArticle) {
             $refArticle = $ligneArticle->getReference();
-            if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+            if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
                 $this->refArticleDataService->updateRefArticleQuantities($entityManager, $refArticle);
             }
             // On ne touche pas aux références gérées par article : décrémentation du stock à la fin de la livraison
@@ -681,7 +680,7 @@ class PreparationsManagerService
         /** @var PreparationOrderReferenceLine $referenceLine */
         foreach ($preparation->getReferenceLines() as $referenceLine) {
             $refArticle = $referenceLine->getReference();
-            if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+            if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
                 $quantiteReservee = $refArticle->getQuantiteReservee();
                 $quantityToPick = $referenceLine->getQuantityToPick();
                 $newQuantiteReservee = ($quantiteReservee - $quantityToPick);

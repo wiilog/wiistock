@@ -109,6 +109,8 @@ class DataHistoryController extends AbstractController {
         );
 
         $data = [];
+        $lastCoordinates = null;
+        $lastDate = null;
         foreach ($associatedMessages as $message) {
             $date = $message->getDate();
             $sensor = $message->getSensor();
@@ -122,7 +124,21 @@ class DataHistoryController extends AbstractController {
             $coordinates = Stream::explode(',', $message->getContent())
                 ->map(fn($coordinate) => floatval($coordinate))
                 ->toArray();
-            $data[$sensorCode][$dateStr] = $coordinates;
+            if ($coordinates[0] !== -1.0 || $coordinates[1] !== -1.0) {
+                if ($lastCoordinates) {
+                    $distanceBetweenLastPoint = $dataMonitoringService->vincentyGreatCircleDistance($lastCoordinates[0], $lastCoordinates[1], $coordinates[0], $coordinates[1]);
+                    $interval = $lastDate->diff($message->getDate());
+                    if ($distanceBetweenLastPoint > 200.0 || (($interval->days * 24) + $interval->h) > 23) {
+                        $data[$sensorCode][$dateStr] = $coordinates;
+                        $lastCoordinates = $coordinates;
+                        $lastDate = $message->getDate();
+                    }
+                } else {
+                    $data[$sensorCode][$dateStr] = $coordinates;
+                    $lastCoordinates = $coordinates;
+                    $lastDate = $message->getDate();
+                }
+            }
         }
         return new JsonResponse($data);
     }
@@ -136,7 +152,7 @@ class DataHistoryController extends AbstractController {
             $title = 'Référentiel | Emplacements';
             $path = 'emplacement_index';
         } else if($entity instanceof LocationGroup) {
-            $title = "Référentiel | Groupe d'emplacement";
+            $title = "Référentiel | Groupe d'emplacements";
             $path = 'emplacement_index';
         } else if($entity instanceof Article) {
             $title = 'Stock | Articles';

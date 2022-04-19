@@ -13,7 +13,7 @@ use App\Entity\Emplacement;
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\Livraison;
 use App\Entity\Menu;
-use App\Entity\ParametrageGlobal;
+use App\Entity\Setting;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
@@ -21,10 +21,10 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Service\ArticleDataService;
 use App\Service\CSVExportService;
-use App\Service\GlobalParamService;
 use App\Service\RefArticleDataService;
 use App\Service\DemandeLivraisonService;
 use App\Service\FreeFieldService;
+use App\Service\SettingsService;
 use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -70,14 +70,14 @@ class DemandeController extends AbstractController
      * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function editApi(Request $request,
-                            GlobalParamService $globalParamService,
+                            SettingsService $settingsService,
                             EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
             $typeRepository = $entityManager->getRepository(Type::class);
             $champLibreRepository = $entityManager->getRepository(FreeField::class);
             $demandeRepository = $entityManager->getRepository(Demande::class);
-            $globalSettingsRepository = $entityManager->getRepository(ParametrageGlobal::class);
+            $settingRepository = $entityManager->getRepository(Setting::class);
 
             $demande = $demandeRepository->find($data['id']);
 
@@ -101,8 +101,8 @@ class DemandeController extends AbstractController
                 'types' => $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]),
                 'typeChampsLibres' => $typeChampLibre,
                 'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes,
-                'defaultDeliveryLocations' => $globalParamService->getDefaultDeliveryLocationsByTypeId($entityManager),
-                'restrictedLocations' => $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST),
+                'defaultDeliveryLocations' => $settingsService->getDefaultDeliveryLocationsByTypeId($entityManager),
+                'restrictedLocations' => $settingRepository->getOneParamByLabel(Setting::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST),
             ]));
         }
         throw new BadRequestHttpException();
@@ -148,10 +148,9 @@ class DemandeController extends AbstractController
                     ->setDestination($emplacement)
                     ->setType($type)
                     ->setCommentaire($data['commentaire']);
-                $em = $this->getDoctrine()->getManager();
-                $em->flush();
+                $entityManager->flush();
                 $champLibreService->manageFreeFields($demande, $data, $entityManager);
-                $em->flush();
+                $entityManager->flush();
                 $response = [
                     'success' => true,
                     'entete' => $this->renderView('demande/demande-show-header.html.twig', [
@@ -212,16 +211,15 @@ class DemandeController extends AbstractController
      * @Route("/liste/{reception}/{filter}", name="demande_index", methods="GET|POST", options={"expose"=true})
      * @HasPermission({Menu::DEM, Action::DISPLAY_DEM_LIVR})
      */
-    public function index(EntityManagerInterface $entityManager,
-                          GlobalParamService $globalParamService,
+    public function index(EntityManagerInterface  $entityManager,
+                          SettingsService         $settingsService,
                           DemandeLivraisonService $deliveryRequestService,
-                          $reception = null,
-                          $filter = null): Response
-    {
+                                                  $reception = null,
+                                                  $filter = null): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
-        $globalSettingsRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
         $fields = $deliveryRequestService->getVisibleColumnsConfig($entityManager, $this->getUser());
@@ -244,8 +242,8 @@ class DemandeController extends AbstractController
             'fields' => $fields,
             'filterStatus' => $filter,
             'receptionFilter' => $reception,
-            'defaultDeliveryLocations' => $globalParamService->getDefaultDeliveryLocationsByTypeId($entityManager),
-            'restrictedLocations' => $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST),
+            'defaultDeliveryLocations' => $settingsService->getDefaultDeliveryLocationsByTypeId($entityManager),
+            'restrictedLocations' => $settingRepository->getOneParamByLabel(Setting::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST),
         ]);
     }
 
@@ -305,7 +303,8 @@ class DemandeController extends AbstractController
      */
     public function show(EntityManagerInterface $entityManager,
                          DemandeLivraisonService $demandeLivraisonService,
-                         Demande $demande): Response {
+                         Demande $demande,
+                         EntityManagerInterface $manager): Response {
 
         $statutRepository = $entityManager->getRepository(Statut::class);
 
@@ -315,6 +314,7 @@ class DemandeController extends AbstractController
             'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
             'finished' => ($demande->getStatut()->getNom() === Demande::STATUT_A_TRAITER),
             'showDetails' => $demandeLivraisonService->createHeaderDetailsConfig($demande),
+            'showTargetLocationPicking' => $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION)
         ]);
     }
 
@@ -328,9 +328,10 @@ class DemandeController extends AbstractController
         $rowsRC = [];
         foreach ($referenceLines as $line) {
             $rowsRC[] = [
-                "Référence" => ($line->getReference()->getReference() ? $line->getReference()->getReference() : ''),
-                "Libellé" => ($line->getReference()->getLibelle() ? $line->getReference()->getLibelle() : ''),
-                "Emplacement" => ($line->getReference()->getEmplacement() ? $line->getReference()->getEmplacement()->getLabel() : ' '),
+                "reference" => $line->getReference()->getReference() ?: '',
+                "label" => $line->getReference()->getLibelle() ?: '',
+                "location" => FormatHelper::location($line->getReference()->getEmplacement()),
+                "targetLocationPicking" => FormatHelper::location($line->getTargetLocationPicking()),
                 "quantityToPick" => $line->getQuantityToPick() ?? '',
                 "barcode" => $line->getReference() ? $line->getReference()->getBarCode() : '',
                 "error" => $line->getReference()->getQuantiteDisponible() < $line->getQuantityToPick()
@@ -339,9 +340,9 @@ class DemandeController extends AbstractController
                     'demande/datatableLigneArticleRow.html.twig',
                     [
                         'id' => $line->getId(),
-                        'name' => (ReferenceArticle::TYPE_QUANTITE_REFERENCE),
+                        'name' => ReferenceArticle::QUANTITY_TYPE_REFERENCE,
                         'refArticleId' => $line->getReference()->getId(),
-                        'reference' => ReferenceArticle::TYPE_QUANTITE_REFERENCE,
+                        'reference' => ReferenceArticle::QUANTITY_TYPE_REFERENCE,
                         'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
                     ]
                 )
@@ -352,9 +353,12 @@ class DemandeController extends AbstractController
         foreach ($articleLines as $line) {
             $article = $line->getArticle();
             $rowsCA[] = [
-                "Référence" => ($article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : ''),
-                "Libellé" => ($article->getLabel() ?: ''),
-                "Emplacement" => ($article->getEmplacement() ? $article->getEmplacement()->getLabel() : ' '),
+                "reference" => $article->getArticleFournisseur()->getReferenceArticle()
+                    ? $article->getArticleFournisseur()->getReferenceArticle()->getReference()
+                    : '',
+                "label" => $article->getLabel() ?: '',
+                "location" => FormatHelper::location($article->getEmplacement()),
+                "targetLocationPicking" => FormatHelper::location($line->getTargetLocationPicking()),
                 "quantityToPick" => $line->getQuantityToPick() ?: '',
                 "barcode" => $article->getBarCode() ?? '',
                 "error" => $article->getQuantite() < $line->getQuantityToPick() && $demande->getStatut()->getCode() === Demande::STATUT_BROUILLON,
@@ -363,8 +367,8 @@ class DemandeController extends AbstractController
                     [
                         'id' => $line->getId(),
                         'articleId' => $article->getId(),
-                        'name' => (ReferenceArticle::TYPE_QUANTITE_ARTICLE),
-                        'reference' => ReferenceArticle::TYPE_QUANTITE_REFERENCE,
+                        'name' => ReferenceArticle::QUANTITY_TYPE_ARTICLE,
+                        'reference' => ReferenceArticle::QUANTITY_TYPE_REFERENCE,
                         'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
                     ]
                 ),
@@ -394,7 +398,7 @@ class DemandeController extends AbstractController
 
             /** @var Utilisateur $currentUser */
             $currentUser = $this->getUser();
-            $resp = $refArticleDataService->addRefToDemand(
+            $resp = $refArticleDataService->addReferenceToRequest(
                 $data,
                 $referenceArticle,
                 $currentUser,
@@ -423,10 +427,10 @@ class DemandeController extends AbstractController
             $referenceLineRepository = $entityManager->getRepository(DeliveryRequestReferenceLine::class);
             $articleLineRepository = $entityManager->getRepository(DeliveryRequestArticleLine::class);
 
-            if (array_key_exists(ReferenceArticle::TYPE_QUANTITE_REFERENCE, $data)) {
-                $line = $referenceLineRepository->find($data[ReferenceArticle::TYPE_QUANTITE_REFERENCE]);
-            } elseif (array_key_exists(ReferenceArticle::TYPE_QUANTITE_ARTICLE, $data)) {
-                $line = $articleLineRepository->find($data[ReferenceArticle::TYPE_QUANTITE_ARTICLE]);
+            if (array_key_exists(ReferenceArticle::QUANTITY_TYPE_REFERENCE, $data)) {
+                $line = $referenceLineRepository->find($data[ReferenceArticle::QUANTITY_TYPE_REFERENCE]);
+            } elseif (array_key_exists(ReferenceArticle::QUANTITY_TYPE_ARTICLE, $data)) {
+                $line = $articleLineRepository->find($data[ReferenceArticle::QUANTITY_TYPE_ARTICLE]);
             }
 
             if (isset($line)) {
@@ -449,7 +453,14 @@ class DemandeController extends AbstractController
         if ($data = json_decode($request->getContent(), true)) {
             $referenceLineRepository = $entityManager->getRepository(DeliveryRequestReferenceLine::class);
             $line = $referenceLineRepository->find($data['ligneArticle']);
-            $line->setQuantityToPick(max($data["quantite"], 0)); // protection contre quantités négatives
+            $targetLocationPicking = isset($data['target-location-picking'])
+                ? $entityManager->find(Emplacement::class, $data['target-location-picking'])
+                : null;
+
+            $line
+                ->setQuantityToPick(max($data["quantite"], 0)) // protection contre quantités négatives
+                ->setTargetLocationPicking($targetLocationPicking);
+
             $entityManager->flush();
 
             return new JsonResponse();
@@ -473,7 +484,8 @@ class DemandeController extends AbstractController
             $maximumQuantity = $articleRef->getQuantiteStock();
             $json = $this->renderView('demande/modalEditArticleContent.html.twig', [
                 'line' => $referenceLine,
-                'maximum' => $maximumQuantity
+                'maximum' => $maximumQuantity,
+                "showTargetLocationPicking" => $entityManager->getRepository(Setting::class)->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION)
             ]);
 
             return new JsonResponse($json);
@@ -526,7 +538,6 @@ class DemandeController extends AbstractController
             $articleLineRepository = $entityManager->getRepository(DeliveryRequestArticleLine::class);
 
             $demandes = $demandeRepository->findByDates($dateTimeMin, $dateTimeMax);
-
             $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DEMANDE_LIVRAISON]);
 
             // en-têtes champs fixes
@@ -569,8 +580,7 @@ class DemandeController extends AbstractController
                     $livraisonOrders,
                     $articleLines,
                     $referenceLines,
-                    $freeFieldsConfig,
-                    $freeFieldService
+                    $freeFieldsConfig
                 ) {
                     $rows = [];
                     $demandeId = $demande->getId();
@@ -594,12 +604,9 @@ class DemandeController extends AbstractController
                         $demandeData[] = $availableQuantity;
                         $demandeData[] = $line->getQuantityToPick();
 
-                        $freeFields = $demande->getFreeFields();
-                        foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
-                            $demandeData[] = $freeFieldService->serializeValue([
-                                'typage' => $freeFieldsConfig['freeFieldsIdToTyping'][$freeFieldId],
-                                'valeur' => $freeFields[$freeFieldId] ?? ''
-                            ]);
+                        $freeFieldValues = $demande->getFreeFields();
+                        foreach($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
+                            $demandeData[] = FormatHelper::freeField($freeFieldValues[$freeFieldId] ?? '', $freeField);
                         }
                         $rows[] = $demandeData;
                     }
@@ -617,12 +624,9 @@ class DemandeController extends AbstractController
                         $demandeData[] = '';
                         $demandeData[] = $article->getQuantite();
                         $demandeData[] = $line->getQuantityToPick();
-                        $freeFields = $demande->getFreeFields();
-                        foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
-                            $demandeData[] = $freeFieldService->serializeValue([
-                                'typage' => $freeFieldsConfig['freeFieldsIdToTyping'][$freeFieldId],
-                                'valeur' => $freeFields[$freeFieldId] ?? ''
-                            ]);
+
+                        foreach ($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
+                            $demandeData[] = FormatHelper::freeField($demandeData['freeFields'][$freeFieldId] ?? '', $freeField);
                         }
                         $rows[] = $demandeData;
                     }

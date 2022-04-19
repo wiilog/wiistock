@@ -1,0 +1,5 @@
+<select name="type" class='data form-control' required>
+    {% for option in options %}
+        <option value="{{ option.id }}">{{ option.label }}</option>
+    {% endfor %}
+</select>

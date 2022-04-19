@@ -18,7 +18,6 @@ use WiiCommon\Helper\Stream;
 use App\Service\TransferRequestService;
 use DateTime;
 use App\Service\CSVExportService;
-use App\Service\UserService;
 
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -35,14 +34,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
  * @Route("/transfert/demande")
  */
 class TransferRequestController extends AbstractController {
-
-    private $userService;
-    private $service;
-
-    public function __construct(UserService $us, TransferRequestService $service) {
-        $this->userService = $us;
-        $this->service = $service;
-    }
 
     /**
      * @Route("/liste", name="transfer_request_index", options={"expose"=true}, methods={"GET", "POST"})
@@ -61,9 +52,10 @@ class TransferRequestController extends AbstractController {
      * @Route("/api", name="transfer_request_api", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::DISPLAY_TRANSFER_REQ}, mode=HasPermission::IN_JSON)
      */
-    public function api(Request $request): Response {
+    public function api(Request $request,
+                        TransferRequestService $transferRequestService): Response {
 
-        $data = $this->service->getDataForDatatable($request->request);
+        $data = $transferRequestService->getDataForDatatable($request->request);
 
         return new JsonResponse($data);
     }
@@ -113,12 +105,13 @@ class TransferRequestController extends AbstractController {
      * @Route("/voir/{id}", name="transfer_request_show", options={"expose"=true}, methods={"GET", "POST"})
      * @HasPermission({Menu::DEM, Action::DISPLAY_TRANSFER_REQ})
      */
-    public function show(TransferRequest $transfer): Response {
+    public function show(TransferRequest $transfer,
+                         TransferRequestService $transferRequestService): Response {
 
         return $this->render('transfer/request/show.html.twig', [
             'transfer' => $transfer,
             'modifiable' => FormatHelper::status($transfer->getStatus()) == TransferRequest::DRAFT,
-            'detailsConfig' => $this->service->createHeaderDetailsConfig($transfer)
+            'detailsConfig' => $transferRequestService->createHeaderDetailsConfig($transfer)
         ]);
     }
 
@@ -210,7 +203,7 @@ class TransferRequestController extends AbstractController {
                 'barCode' => $article->getBarCode(),
                 'Quantité' => $article->getQuantite(),
                 'Actions' => $this->renderView('transfer/request/article/actions.html.twig', [
-                    'name' => ReferenceArticle::TYPE_QUANTITE_ARTICLE,
+                    'name' => ReferenceArticle::QUANTITY_TYPE_ARTICLE,
                     'type' => 'article',
                     'id' => $article->getId(),
                     'transferId' => $transfer->getid(),
@@ -227,14 +220,12 @@ class TransferRequestController extends AbstractController {
      * @Route("/ajouter-article/{transfer}", name="transfer_request_add_article", options={"expose"=true}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function addArticle(Request $request,
+    public function addArticle(Request $request, EntityManagerInterface $manager,
                                TransferRequest $transfer): Response {
 
         if(!$content = json_decode($request->getContent())) {
             throw new BadRequestHttpException();
         }
-
-        $manager = $this->getDoctrine()->getManager();
 
         $reference = $content->reference;
         $reference = $manager->getRepository(ReferenceArticle::class)->find($reference);
@@ -245,9 +236,9 @@ class TransferRequestController extends AbstractController {
             $article = null;
         }
 
-        if(isset($content->fetchOnly) && $reference->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+        if(isset($content->fetchOnly) && $reference->getTypeQuantite() == ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
             $locationLabel = $transfer->getOrigin()->getLabel();
-            $articles = $this->getDoctrine()
+            $articles = $manager
                 ->getRepository(Article::class)
                 ->findActiveOrDisputeForReference($reference, $transfer->getOrigin());
 
@@ -268,7 +259,7 @@ class TransferRequestController extends AbstractController {
                 ]);
             }
         }
-        if(!isset($content->fetchOnly) && $article && $reference->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+        if(!isset($content->fetchOnly) && $article && $reference->getTypeQuantite() == ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
             if($transfer->getArticles()->contains($article)) {
                 return $this->json([
                     "success" => false,
@@ -277,7 +268,7 @@ class TransferRequestController extends AbstractController {
             }
             $transfer->addArticle($article);
             $manager->flush();
-        } else if(!isset($content->fetchOnly) && $reference->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+        } else if(!isset($content->fetchOnly) && $reference->getTypeQuantite() == ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
             if($transfer->getReferences()->contains($reference)) {
                 return $this->json([
                     "success" => false,
@@ -299,18 +290,14 @@ class TransferRequestController extends AbstractController {
      */
     public function removeArticle(Request $request, EntityManagerInterface $manager) {
 
-        if($data = json_decode($request->getContent())) {
+        if($data = json_decode($request->getContent(), true)) {
             $transerRepository = $manager->getRepository(TransferRequest::class);
-            $transfer = $transerRepository->find($data->transfer);
+            $transfer = $transerRepository->find($data['transfer']);
 
-            if(array_key_exists(ReferenceArticle::TYPE_QUANTITE_REFERENCE, $data)) {
-                $transfer->removeReference($manager
-                    ->getRepository(ReferenceArticle::class)
-                    ->find($data->reference));
-            } elseif(array_key_exists(ReferenceArticle::TYPE_QUANTITE_ARTICLE, $data)) {
-                $transfer->removeArticle($manager
-                    ->getRepository(Article::class)
-                    ->find($data->article));
+            if(array_key_exists(ReferenceArticle::QUANTITY_TYPE_REFERENCE, $data)) {
+                $transfer->removeReference($manager->find(ReferenceArticle::class, $data['reference']));
+            } elseif(array_key_exists(ReferenceArticle::QUANTITY_TYPE_ARTICLE, $data)) {
+                $transfer->removeArticle($manager->find(Article::class, $data['article']));
             }
 
             $manager->flush();

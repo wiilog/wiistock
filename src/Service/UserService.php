@@ -7,14 +7,14 @@ use App\Entity\Arrivage;
 use App\Entity\Dispatch;
 use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\Demande;
+use App\Entity\Emplacement;
 use App\Entity\Livraison;
 use App\Entity\Handling;
 use App\Entity\Menu;
 use App\Entity\OrdreCollecte;
-use App\Entity\Parametre;
-use App\Entity\ParametreRole;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\Reception;
+use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
 
 use App\Helper\FormatHelper;
@@ -74,97 +74,71 @@ class UserService
     public function getDataForDatatable(InputBag $params)
     {
         $utilisateurRepository = $this->entityManager->getRepository(Utilisateur::class);
-        $utilisateurs = $utilisateurRepository->findByParams($params);
+        $result = $utilisateurRepository->findByParams($params);
 
         $rows = [];
-        foreach ($utilisateurs as $utilisateur) {
+        foreach ($result['data'] as $utilisateur) {
             $rows[] = $this->dataRowUser($utilisateur);
         }
-        $countAll = (int) $utilisateurRepository->countAll();
 
         return [
             'data' => $rows,
-            'recordsTotal' => $countAll,
-            'recordsFiltered' => $countAll,
+            'recordsTotal' => $result['total'],
+            'recordsFiltered' => $result['filtered'],
         ];
     }
 
-    public function dataRowUser(Utilisateur $user): array
-    {
-        $idUser = $user->getId();
+    public function dataRowUser(Utilisateur $user): array {
 
 		return [
 			'id' => $user->getId() ?? '',
-			"Nom d'utilisateur" => $user->getUsername() ?? '',
-			'Email' => $user->getEmail() ?? '',
-			'Dropzone' => $user->getDropzone() ? $user->getDropzone()->getLabel() : '',
-			'Dernière connexion' => $user->getLastLogin() ? $user->getLastLogin()->format('d/m/Y') : '',
+			'username' => $user->getUsername() ?? '',
+			'email' => $user->getEmail() ?? '',
+			'dropzone' => $user->getDropzone() ? $user->getDropzone()->getLabel() : '',
+			'lastLogin' => FormatHelper::date($user->getLastLogin()),
             'role' => $user->getRole() ? $user->getRole()->getLabel() : '',
             'visibilityGroup' => FormatHelper::entity($user->getVisibilityGroups()->toArray(), "label", ' / '),
             'status' => $user->getStatus() ? 'Actif' : "Inactif",
-			'Actions' => $this->templating->render('utilisateur/datatableUtilisateurRow.html.twig', ['idUser' => $idUser]),
+			'Actions' => $this->templating->render('settings/utilisateurs/utilisateurs/actions.html.twig', ['idUser' => $user->getId()]),
 		];
     }
 
-	/**
-	 * @return bool
-	 */
-    public function hasParamQuantityByRef()
-	{
-		$response = false;
+	public function getUserOwnership(EntityManagerInterface $entityManager,
+                                     Utilisateur $user): array {
+	    $collecteRepository = $entityManager->getRepository(Collecte::class);
+	    $demandeRepository = $entityManager->getRepository(Demande::class);
+	    $livraisonRepository = $entityManager->getRepository(Livraison::class);
+	    $ordreCollecteRepository = $entityManager->getRepository(OrdreCollecte::class);
+	    $handlingRepository = $entityManager->getRepository(Handling::class);
+	    $preparationRepository = $entityManager->getRepository(Preparation::class);
+        $receptionRepository = $entityManager->getRepository(Reception::class);
+        $dispatchRepository = $entityManager->getRepository(Dispatch::class);
+        $arrivageRepository = $entityManager->getRepository(Arrivage::class);
+        $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
 
-        $parametreRoleRepository = $this->entityManager->getRepository(ParametreRole::class);
-        $parametreRepository = $this->entityManager->getRepository(Parametre::class);
+        $isUsedInRequests = $demandeRepository->countByUser($user);
+        $isUsedInCollects = $collecteRepository->countByUser($user);
+        $isUsedInDeliveryOrders = $livraisonRepository->countByUser($user);
+        $isUsedInCollectOrders = $ordreCollecteRepository->countByUser($user);
+        $isUsedInHandlings = $handlingRepository->countByUser($user);
+        $isUsedInPreparationOrders = $preparationRepository->count(['utilisateur' => $user]);
+        $isUsedInReceptions = $receptionRepository->countByUser($user);
+        $isUsedInDispatches = $dispatchRepository->countByUser($user);
+        $isUsedInArrivals = $arrivageRepository->countByUser($user);
+        $hasTrackingMovement = $trackingMovementRepository->count(['operateur' => $user]);
 
-		$role = $this->user->getRole();
-		$param = $parametreRepository->findOneBy(['label' => Parametre::LABEL_AJOUT_QUANTITE]);
-		if ($param) {
-			$paramQuantite = $parametreRoleRepository->findOneByRoleAndParam($role, $param);
-			if ($paramQuantite) {
-				$response = $paramQuantite->getValue() == Parametre::VALUE_PAR_REF;
-			}
-		}
-
-		return $response;
-	}
-
-    /**
-     * @param Utilisateur|int $user
-     * @return bool
-     */
-	public function isUsedByDemandsOrOrders($user)
-	{
-	    $collecteRepository = $this->entityManager->getRepository(Collecte::class);
-	    $demandeRepository = $this->entityManager->getRepository(Demande::class);
-	    $livraisonRepository = $this->entityManager->getRepository(Livraison::class);
-	    $ordreCollecteRepository = $this->entityManager->getRepository(OrdreCollecte::class);
-	    $handlingRepository = $this->entityManager->getRepository(Handling::class);
-	    $preparationRepository = $this->entityManager->getRepository(Preparation::class);
-        $receptionRepository = $this->entityManager->getRepository(Reception::class);
-        $dispatchRepository = $this->entityManager->getRepository(Dispatch::class);
-        $arrivageRepository = $this->entityManager->getRepository(Arrivage::class);
-
-        $isUsedInRequests = $demandeRepository->countByUser($user) > 0;
-        $isUsedInCollects = $collecteRepository->countByUser($user) > 0;
-        $isUsedInDeliveryOrders = $livraisonRepository->countByUser($user) > 0;
-        $isUsedInCollectOrders = $ordreCollecteRepository->countByUser($user) > 0;
-        $isUsedInHandlings = $handlingRepository->countByUser($user) > 0;
-        $isUsedInPreparationOrders = $preparationRepository->count(['utilisateur' => $user]) > 0;
-        $isUsedInReceptions = $receptionRepository->countByUser($user) > 0;
-        $isUsedInDispatches = $dispatchRepository->countByUser($user) > 0;
-        $isUsedInArrivals = $arrivageRepository->countByUser($user) > 0;
-
-		return (
-            $isUsedInRequests
-            || $isUsedInCollects
-            || $isUsedInDeliveryOrders
-            || $isUsedInCollectOrders
-            || $isUsedInHandlings
-            || $isUsedInPreparationOrders
-            || $isUsedInReceptions
-            || $isUsedInDispatches
-            || $isUsedInArrivals
-        );
+        return [
+            'demande(s) de livraison' => $isUsedInRequests,
+            'demande(s) de collecte' => $isUsedInCollects,
+            'ordre(s) de livraison' => $isUsedInDeliveryOrders,
+            'ordre(s) de collecte' => $isUsedInCollectOrders,
+            'demande(s) de service' => $isUsedInHandlings,
+            'ordre(s) de préparation' => $isUsedInPreparationOrders,
+            'reception(s)' => $isUsedInReceptions,
+            'acheminement(s)' => $isUsedInDispatches,
+            'arrivage(s)' => $isUsedInArrivals,
+            'mouvement(s) de traçabilité' => $hasTrackingMovement,
+        ];
 	}
 
 	public function createUniqueMobileLoginKey(EntityManagerInterface $entityManager): string {
@@ -182,6 +156,7 @@ class UserService
                                Utilisateur $user): void {
         $role = $user->getRole();
         $secondaryEmails = $user->getSecondaryEmails() ?? [];
+        $dropzone = $user->getDropzone();
         $CSVExportService->putLine($output, [
             $role ? $role->getLabel() : '',
             $user->getUsername() ?? '',
@@ -195,8 +170,9 @@ class UserService
             FormatHelper::entity($user->getDeliveryTypes()->toArray(), 'label', ' , '),
             FormatHelper::entity($user->getDispatchTypes()->toArray(), 'label', ' , '),
             FormatHelper::entity($user->getHandlingTypes()->toArray(), 'label', ' , '),
-            FormatHelper::location($user->getDropzone()),
+            $dropzone instanceof Emplacement ? FormatHelper::location($dropzone) : FormatHelper::locationGroup($dropzone),
             FormatHelper::entity($user->getVisibilityGroups()->toArray(), "label", ' / '),
+            FormatHelper::bool($user->isDeliverer()),
             $user->getStatus() ? 'Actif' : 'Inactif'
         ]);
     }

@@ -3,9 +3,10 @@
 namespace App\Service;
 
 use App\Entity\Dispatch;
-use App\Entity\ParametrageGlobal;
+use App\Entity\Setting;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use Knp\Snappy\PDF as PDFGenerator;
 use Twig\Error\LoaderError;
@@ -15,9 +16,6 @@ use Twig\Error\SyntaxError;
 class PDFGeneratorService {
 
     public const PREFIX_BARCODE_FILENAME = 'ETQ';
-
-    /** @var GlobalParamService */
-    private $globalParamService;
 
     /** @var Twig_Environment */
     private $templating;
@@ -29,12 +27,13 @@ class PDFGeneratorService {
 
     private $entityManager;
 
-    public function __construct(GlobalParamService $globalParamService,
-                                PDFGenerator $PDFGenerator,
+    #[Required]
+    public SettingsService $settingsService;
+
+    public function __construct(PDFGenerator $PDFGenerator,
                                 KernelInterface $kernel,
                                 Twig_Environment $templating,
                                 EntityManagerInterface $entityManager) {
-        $this->globalParamService = $globalParamService;
         $this->templating = $templating;
         $this->PDFGenerator = $PDFGenerator;
         $this->kernel = $kernel;
@@ -51,8 +50,8 @@ class PDFGeneratorService {
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function generatePDFBarCodes(string $title, array $barcodeConfigs): string {
-        $barcodeConfig = $this->globalParamService->getDimensionAndTypeBarcodeArray(true);
+    public function generatePDFBarCodes(string $title, array $barcodeConfigs, bool $landscape = false): string {
+        $barcodeConfig = $this->settingsService->getDimensionAndTypeBarcodeArray();
 
         $height = $barcodeConfig['height'];
         $width = $barcodeConfig['width'];
@@ -79,11 +78,12 @@ class PDFGeneratorService {
                 ],
                 'labels' => $labels,
                 'firstCustomIcon' => $config['firstCustomIcon'] ?? null,
-                'secondCustomIcon' => $config['secondCustomIcon'] ?? null
+                'secondCustomIcon' => $config['secondCustomIcon'] ?? null,
+                'businessUnit' => $config['businessUnit'] ?? false,
             ];
         }, $barcodeConfigs);
 
-        $logo = ($barcodeConfig['logo'] && file_exists(getcwd() . "/uploads/attachements/" . $barcodeConfig['logo'])
+        $logo = ($barcodeConfig['logo'] && file_exists(getcwd() . "/" . $barcodeConfig['logo'])
             ? $barcodeConfig['logo']
             : null);
 
@@ -93,7 +93,8 @@ class PDFGeneratorService {
                 'title' => $title,
                 'height' => $height,
                 'width' => $width,
-                'barcodeConfigs' => $barcodeConfigsToTwig
+                'barcodeConfigs' => $barcodeConfigsToTwig,
+                'landscape' => $landscape
             ]),
             [
                 'page-height' => "${height}mm",
@@ -149,9 +150,10 @@ class PDFGeneratorService {
         return $fileName;
     }
 
-    public function generatePDFOverconsumption(Dispatch $dispatch, ?string $appLogo, ?string $overconsumptionLogo): string {
+    public function generatePDFOverconsumption(Dispatch $dispatch, ?string $appLogo, ?string $overconsumptionLogo, array $additionalFields = []): string {
         $content = $this->templating->render("prints/overconsumption-template.html.twig", [
-            "dispatch" => $dispatch
+            "dispatch" => $dispatch,
+            "additionalFields" => $additionalFields
         ]);
 
         $header = $this->templating->render("prints/overconsumption-template-header.html.twig", [
@@ -173,8 +175,8 @@ class PDFGeneratorService {
     }
 
     public function generatePDFDispatchNote(Dispatch $dispatch): string {
-        $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
-        $appLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::LABEL_LOGO);
+        $settingRepository = $this->entityManager->getRepository(Setting::class);
+        $appLogo = $settingRepository->getOneParamByLabel(Setting::LABEL_LOGO);
 
         $content = $this->templating->render("prints/dispatch-note-template.html.twig", [
             "app_logo" => $appLogo ?? "",

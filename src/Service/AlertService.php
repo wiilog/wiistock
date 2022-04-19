@@ -6,7 +6,7 @@ use App\Entity\Alert;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\FreeField;
-use App\Entity\ParametrageGlobal;
+use App\Entity\Setting;
 use App\Entity\ReferenceArticle;
 use WiiCommon\Helper\Stream;
 use DateTime;
@@ -25,9 +25,9 @@ class AlertService {
 
     public function generateAlerts(EntityManagerInterface $manager) {
         $now = new DateTime("now");
-        $parametrage = $manager->getRepository(ParametrageGlobal::class);
+        $parametrage = $manager->getRepository(Setting::class);
 
-        $expiry = $parametrage->getOneParamByLabel(ParametrageGlobal::STOCK_EXPIRATION_DELAY);
+        $expiry = $parametrage->getOneParamByLabel(Setting::STOCK_EXPIRATION_DELAY);
 
         $expired = $manager->getRepository(Article::class)->findExpiredToGenerate($expiry);
         $noLongerExpired = $manager->getRepository(Alert::class)->findNoLongerExpired();

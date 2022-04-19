@@ -13,21 +13,20 @@ use App\Entity\Menu;
 use App\Entity\Handling;
 
 use App\Entity\Attachment;
-use App\Entity\ParametrageGlobal;
+use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 
 use App\Helper\FormatHelper;
 use App\Service\NotificationService;
+use GuzzleHttp\Exception\ConnectException;
 use WiiCommon\Helper\Stream;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
 use App\Service\DateService;
 use App\Service\FreeFieldService;
-use App\Service\MailerService;
 use App\Service\UniqueNumberService;
-use App\Service\UserService;
 use App\Service\HandlingService;
 
 use DateTime;
@@ -54,23 +53,6 @@ class HandlingController extends AbstractController
 {
 
     /**
-     * @var UserService
-     */
-    private $userService;
-
-    /**
-     * @var MailerService
-     */
-    private $mailerService;
-
-    public function __construct(UserService $userService,
-                                MailerService $mailerService)
-    {
-        $this->userService = $userService;
-        $this->mailerService = $mailerService;
-    }
-
-    /**
      * @Route("/api", name="handling_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::DISPLAY_HAND}, mode=HasPermission::IN_JSON)
      */
@@ -94,7 +76,7 @@ class HandlingController extends AbstractController
         $typeRepository = $entityManager->getRepository(Type::class);
         $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]);
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_HANDLING);
@@ -106,7 +88,7 @@ class HandlingController extends AbstractController
 			'filterStatus' => $filterStatus,
             'types' => $types,
             'fieldsParam' => $fieldsParam,
-            'removeHourInDatetime' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REMOVE_HOURS_DATETIME),
+            'removeHourInDatetime' => $settingRepository->getOneParamByLabel(Setting::REMOVE_HOURS_DATETIME),
             'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_EMERGENCY),
             'modalNewConfig' => [
                 'defaultStatuses' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::HANDLING),
@@ -141,7 +123,7 @@ class HandlingController extends AbstractController
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
 
         $post = $request->request;
 
@@ -153,7 +135,7 @@ class HandlingController extends AbstractController
         $desiredDate = $post->get('desired-date') ? new DateTime($post->get('desired-date')) : null;
         $fileBag = $request->files->count() > 0 ? $request->files : null;
 
-        $handlingNumber = $uniqueNumberService->create($entityManager, Handling::PREFIX_NUMBER, Handling::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
+        $handlingNumber = $uniqueNumberService->create($entityManager, Handling::NUMBER_PREFIX, Handling::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
 
         /** @var Utilisateur $requester */
         $requester = $this->getUser();
@@ -210,23 +192,30 @@ class HandlingController extends AbstractController
 
         $entityManager->persist($handling);
         try {
+            if (($handling->getStatus()->getState() == Statut::NOT_TREATED)
+                && $handling->getType()
+                && ($handling->getType()->isNotificationsEnabled() || $handling->getType()->isNotificationsEmergency($handling->getEmergency()))) {
+                $notificationService->toTreat($handling);
+            }
             $entityManager->flush();
         }
         /** @noinspection PhpRedundantCatchClauseInspection */
-        catch (UniqueConstraintViolationException $e) {
-            return new JsonResponse([
-                'success' => false,
-                'msg' => $translator->trans('services.Une autre demande de service est en cours de création, veuillez réessayer').'.'
-            ]);
-        }
-        $viewHoursOnExpectedDate = !$parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REMOVE_HOURS_DATETIME);
-        $handlingService->sendEmailsAccordingToStatus($entityManager, $handling, $viewHoursOnExpectedDate, !$status->isTreated());
+        catch (UniqueConstraintViolationException | ConnectException $e) {
 
-        if (($handling->getStatus()->getState() == Statut::NOT_TREATED)
-            && $handling->getType()
-            && ($handling->getType()->isNotificationsEnabled() || $handling->getType()->isNotificationsEmergency($handling->getEmergency()))) {
-            $notificationService->toTreat($handling);
+            if ($e instanceof UniqueConstraintViolationException) {
+                $message = $translator->trans('services.Une autre demande de service est en cours de création, veuillez réessayer') . '.';
+            } else if ($e instanceof ConnectException) {
+                $message = "Une erreur s'est produite lors de l'envoi de la notifiation de cette demande de service. Veuillez réessayer.";
+            }
+            if (!empty($message)) {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => $message
+                ]);
+            }
         }
+        $viewHoursOnExpectedDate = !$settingRepository->getOneParamByLabel(Setting::REMOVE_HOURS_DATETIME);
+        $handlingService->sendEmailsAccordingToStatus($entityManager, $handling, $viewHoursOnExpectedDate, !$status->isTreated());
 
         return new JsonResponse([
             'success' => true,
@@ -249,7 +238,7 @@ class HandlingController extends AbstractController
             $handlingRepository = $entityManager->getRepository(Handling::class);
             $attachmentsRepository = $entityManager->getRepository(Attachment::class);
             $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
-            $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+            $settingRepository = $entityManager->getRepository(Setting::class);
 
             $handling = $handlingRepository->find($data['id']);
             $status = $handling->getStatus();
@@ -262,7 +251,7 @@ class HandlingController extends AbstractController
 
             $json = $this->renderView('handling/modalEditHandlingContent.html.twig', [
                 'handling' => $handling,
-                'removeHourInDatetime' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REMOVE_HOURS_DATETIME),
+                'removeHourInDatetime' => $settingRepository->getOneParamByLabel(Setting::REMOVE_HOURS_DATETIME),
                 'treatmentDelay' => $treatmentDelayStr,
                 'handlingStatus' => !$statusTreated
                     ? $statutRepository->findStatusByType(CategorieStatut::HANDLING, $handling->getType())
@@ -303,7 +292,7 @@ class HandlingController extends AbstractController
         $statutRepository = $entityManager->getRepository(Statut::class);
         $handlingRepository = $entityManager->getRepository(Handling::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
         $post = $request->request;
 
         $handling = $handlingRepository->find($post->get('id'));
@@ -394,7 +383,7 @@ class HandlingController extends AbstractController
                 && $newStatus
                 && ($oldStatus->getId() !== $newStatus->getId())
             )) {
-            $viewHoursOnExpectedDate = !$parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REMOVE_HOURS_DATETIME);
+            $viewHoursOnExpectedDate = !$settingRepository->getOneParamByLabel(Setting::REMOVE_HOURS_DATETIME);
             $handlingService->sendEmailsAccordingToStatus($entityManager, $handling, $viewHoursOnExpectedDate);
         }
 
@@ -488,11 +477,11 @@ class HandlingController extends AbstractController
 
         if (!empty($dateTimeMin) && !empty($dateTimeMax)) {
             $handlingsRepository = $entityManager->getRepository(Handling::class);
-            $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+            $settingRepository = $entityManager->getRepository(Setting::class);
             $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
             $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DEMANDE_HANDLING]);
-            $includeDesiredTime = !$parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REMOVE_HOURS_DATETIME);
+            $includeDesiredTime = !$settingRepository->getOneParamByLabel(Setting::REMOVE_HOURS_DATETIME);
 
             $handlingParameters = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_HANDLING);
             $receiversParameters = $handlingParameters[FieldsParam::FIELD_CODE_RECEIVERS_HANDLING];
@@ -533,7 +522,7 @@ class HandlingController extends AbstractController
                 $globalTitle,
                 $handlings,
                 $csvHeader,
-                function ($handling) use ($freeFieldService, $freeFieldsConfig, $dateService, $includeDesiredTime, $receivers) {
+                function ($handling) use ($freeFieldsConfig, $dateService, $includeDesiredTime, $receivers) {
 //                    $treatmentDelay = $handling['treatmentDelay'];
 //                    $treatmentDelayInterval = $treatmentDelay ? $dateService->secondsToDateInterval($treatmentDelay) : null;
 //                    $treatmentDelayStr = $treatmentDelayInterval ? $dateService->intervalToStr($treatmentDelayInterval) : '';
@@ -560,16 +549,12 @@ class HandlingController extends AbstractController
                     $row[] = $receiversStr ?? '';
 //                    $row[] = $treatmentDelayStr;
 
-                    foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
-                        $row[] = $freeFieldService->serializeValue([
-                            'typage' => $freeFieldsConfig['freeFieldsIdToTyping'][$freeFieldId],
-                            'valeur' => $handling['freeFields'][$freeFieldId] ?? ''
-                        ]);
+                    foreach($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
+                        $row[] = FormatHelper::freeField($handling['freeFields'][$freeFieldId] ?? '', $freeField);
                     }
 
                     return [$row];
-                }
-            );
+                });
         } else {
             throw new BadRequestHttpException();
         }

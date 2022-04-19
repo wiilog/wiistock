@@ -12,6 +12,16 @@
     padding: 5px 10px;
     text-align: center;
 
+    &.small-frame {
+        height: initial !important;
+        font-size: 0.8rem;
+        padding: 10px;
+
+        .click-here {
+            font-size: 0.8rem;
+        }
+    }
+
     .click-here {
         background: #3353D7;
         color: white;

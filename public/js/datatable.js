@@ -10,6 +10,7 @@ $(function () {
             $table.DataTable().columns.adjust().draw();
         });
     });
+    onToggleInputRadioOnRow();
 });
 
 function hideColumns(table, data) {
@@ -52,8 +53,8 @@ function extendsDateSort(name) {
 }
 
 function initActionOnRow(row) {
+    $(row).addClass('pointer');
     if ($(row).find('.action-on-click').get(0)) {
-        $(row).addClass('pointer');
         $(row).on('mouseup', 'td:not(.noVis)', function (event) {
             const highlightedText = window.getSelection
                 ? window.getSelection().toString()
@@ -77,13 +78,6 @@ function initActionOnRow(row) {
             }
         });
     }
-}
-
-function showOrHideColumn(check, concernedTable) {
-    let columnName = check.data('name');
-    let column = concernedTable.column(columnName + ':name');
-    column.visible(!column.visible());
-    check.toggleClass('data');
 }
 
 function manageArticleAndRefSearch($input, $printButton) {
@@ -119,15 +113,21 @@ function manageArticleAndRefSearch($input, $printButton) {
     }
 }
 
-function toggleInputRadioOnRow(tr) {
-    const $checkbox = $(tr).find('input[type="checkbox"]');
-    $checkbox.prop('checked', !$checkbox.is(':checked')).trigger("change");
+function onToggleInputRadioOnRow() {
+    const $modal = $(`#modalColumnVisible`);
+    const $checkboxes = $modal.find(`input[type=checkbox]`);
+
+    $checkboxes.closest(`tr`).on(`click`, function () {
+        const $checkbox = $(this).find(`input[type=checkbox]`);
+        $checkbox.toggleClass(`data`);
+        $checkbox.prop(`checked`, !$checkbox.is(`:checked`));
+    });
 }
 
 function createDatatableDomFooter({information, length, pagination}) {
     return (information || length || pagination)
         ? (
-            `<"row mt-2 align-items-center"
+            `<"row mt-2 align-items-center datatable-paging"
                 ${length ? '<"col-auto"l>' : ''}
                 ${information ? '<"col-auto"i>' : ''}
                 ${pagination ? '<"col"p>' : ''}
@@ -193,10 +193,20 @@ function overrideSearch($input, table, callback = null) {
     });
 
     $input.addClass('form-control');
-    $input.attr('placeholder', 'Entrée pour valider');
 }
 
-function datatableDrawCallback({response, needsSearchOverride, needsColumnHide, needsColumnShow, needsResize, needsEmplacementSearchOverride, callback, table, $table, hidePagingIfEmpty}) {
+function datatableDrawCallback({   response,
+                                   needsSearchOverride,
+                                   needsColumnHide,
+                                   needsColumnShow,
+                                   needsEmplacementSearchOverride,
+                                   callback,
+                                   table,
+                                   $table,
+                                   needsPagingHide,
+                                   needsSearchHide,
+                                   hidePagingIfEmpty,
+                                   hidePaging }) {
     let $searchInputContainer = $table.parents('.dataTables_wrapper ').find('.dataTables_filter');
     let $searchInput = $searchInputContainer.find('input');
 
@@ -213,28 +223,42 @@ function datatableDrawCallback({response, needsSearchOverride, needsColumnHide, 
         overrideSearchSpecifEmplacement($searchInput);
     }
 
-    if(hidePagingIfEmpty) {
-        const data = table.rows().data();
-        $table.parents('.dataTables_wrapper').find(`.dataTables_paginate, .dataTables_length`).toggleClass(`d-none`, !data || data.length < 10);
+    const recordsDisplay = response.fnRecordsDisplay();
+    if(needsPagingHide && recordsDisplay !== undefined) {
+        $table.parents('.dataTables_wrapper')
+            .find(`.dataTables_paginate, .dataTables_length, .dataTables_info`)
+            .parent()
+            .toggleClass(`d-none`, recordsDisplay <= 10);
     }
+
+    const recordsTotal = response.fnRecordsTotal();
+    if(needsSearchHide && recordsTotal !== undefined) {
+        $('.dataTables_filter')
+            .toggleClass(`d-none`, recordsTotal <= 10);
+    }
+
+    if(hidePaging) {
+        $table.parents('.dataTables_wrapper').find(`.dataTables_paginate`).addClass(`d-none`);
+    }
+
     if (callback) {
         callback();
     }
+
     renderDtInfo($(table.table().container()));
 }
 
 function moveSearchInputToHeader($searchInputContainer) {
-    const $datatableCard = $searchInputContainer.parents('.wii-page-card');
+    const $datatableCard = $searchInputContainer.parents('.wii-page-card, .wii-box');
     const $searchInput = $searchInputContainer.find('input');
     const $searchInputContainerCol = $searchInputContainer.parent();
 
     if ($datatableCard.length > 0) {
-        let $datatableCardHeader = $datatableCard.find('.wii-page-card-header');
+        let $datatableCardHeader = $datatableCard.find('.wii-page-card-header, .wii-box-header');
         $datatableCardHeader = ($datatableCardHeader.length > 1)
             ? $searchInputContainer.parents('.dt-parent').find('.wii-page-card-header')
             : $datatableCardHeader;
         if ($datatableCardHeader.length > 0) {
-            $searchInput.addClass('search-input');
             $datatableCardHeader.prepend($searchInputContainerCol);
             $searchInputContainerCol.removeClass('d-none');
         } else {
@@ -304,6 +328,15 @@ function initDataTable($table, options) {
         .addClass('wii-table')
         .addClass('w-100');
 
+    const colReorderActivated = config.page
+        ? {
+            colReorder: {
+                enable: !config.disabledRealtimeReorder,
+                realtime: false,
+            }
+        }
+        : {}
+
     datatableToReturn = $table
         .on('error.dt', function (e, settings, techNote, message) {
             console.log('An error has been reported by DataTables: ', message, e, $table.attr('id'));
@@ -311,10 +344,6 @@ function initDataTable($table, options) {
         .DataTable(Object.assign({
             fixedColumns: {
                 heightMatch: 'auto'
-            },
-            colReorder: {
-                enable: !!config.page,
-                realtime: false,
             },
             autoWidth: true,
             scrollX: true,
@@ -339,14 +368,13 @@ function initDataTable($table, options) {
                 }
                 attachDropdownToBodyOnDropdownOpening($table);
                 if(config.page && config.page !== '') {
-                    getAndApplyOrder(config, datatableToReturn).then(() => {
-                        datatableToReturn.on('column-reorder', function () {
-                            setOrder(config, datatableToReturn.colReorder.order());
-                        });
-                    });
+                    getAndApplyOrder(config, datatableToReturn);
+                }
+                else {
+                    datatableToReturn.off('column-reorder');
                 }
             }
-        }, config));
+        }, colReorderActivated, config));
 
     return datatableToReturn;
 }
@@ -391,7 +419,6 @@ function overrideSearchSpecifEmplacement($input) {
     });
 
     $input.addClass('form-control');
-    $input.attr('placeholder', 'entrée pour valider');
 }
 
 function toggleActiveButton($button, table) {
@@ -493,19 +520,24 @@ function getAndApplyOrder(config, datatable) {
         page: config.page,
     };
 
+    datatable.off('column-reorder');
+
     return $.get(Routing.generate('get_columns_order'), params)
         .then((result) => {
-            if(result.order.length > 0) {
+            if (result.order.length > 0) {
                 datatable.colReorder.order(result.order);
             }
+        })
+        .then(() => {
+            if (!config.disabledRealtimeReorder) {
+                datatable
+                    .on('column-reorder', function () {
+                        params.order = datatable.colReorder.order();
+
+                        $.post(Routing.generate('set_columns_order'), params).then(() => {
+                            showBSAlert(`Vos préférences d'ordre de colonnes ont bien été enregistrées`, `success`);
+                        });
+                    });
+            }
         });
-}
-
-function setOrder(config, order) {
-    const params = {
-        page: config.page,
-        order
-    };
-
-    $.post(Routing.generate('set_columns_order'), params);
 }

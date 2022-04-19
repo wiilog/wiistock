@@ -63,8 +63,8 @@ class TransferRequestRepository extends EntityRepository {
 
         //Filter search
         if (!empty($params)) {
-            if (!empty($params->get('search'))) {
-                $search = $params->get('search')['value'];
+            if (!empty($params->all('search'))) {
+                $search = $params->all('search')['value'];
                 if (!empty($search)) {
                     $exprBuilder = $qb->expr();
                     $qb
@@ -85,10 +85,10 @@ class TransferRequestRepository extends EntityRepository {
                 }
             }
 
-            if (!empty($params->get('order'))) {
-                $order = $params->get('order')[0]['dir'];
+            if (!empty($params->all('order'))) {
+                $order = $params->all('order')[0]['dir'];
                 if (!empty($order)) {
-                    $column = $params->get('columns')[$params->get('order')[0]['column']]['data'];
+                    $column = $params->all('columns')[$params->all('order')[0]['column']]['data'];
 
                     switch ($column) {
                         case 'number':
@@ -253,6 +253,15 @@ class TransferRequestRepository extends EntityRepository {
         else {
             return null;
         }
+    }
+
+    public function countByLocation($location): int {
+        return $this->createQueryBuilder("transfer_request")
+            ->select("COUNT(transfer_request)")
+            ->andWhere("transfer_request.origin = :location OR transfer_request.destination = :location")
+            ->setParameter("location", $location)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
 }

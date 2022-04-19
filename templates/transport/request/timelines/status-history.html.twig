@@ -1,0 +1,44 @@
+{% set cancelledStatusesName = constant('App\\Entity\\Transport\\TransportRequest::CANCELED_STATUSES') %}
+{% set requestStatusName = request.status.nom %}
+
+{% set lastHistory = statusesHistory is not empty ? statusesHistory|last : null %}
+{% set lastStatus = lastHistory ? lastHistory['status'] : null %}
+{% set followingStatusIndex = lastStatus is not null ? ((statusWorkflow|flip)[lastStatus] ?? null) : 0 %}
+{% set followingStatuses = followingStatusIndex is not null ? statusWorkflow|slice(followingStatusIndex + 1) : [] %}
+
+{% for history in statusesHistory %}
+    {% set state = (requestStatusName == history['status'] and requestStatusName in cancelledStatusesName)
+        ? 'cancelled'
+        : (history['status'] in cancelledStatusesName
+            ? 'cancelled'
+            : (requestStatusName == history['status'] and loop.last
+                ? 'current'
+                : 'past'))
+    %}
+    <div class="history-line">
+        <div class="history-date">
+            <div class="title-left {{ state }}">{{ history['status'] }}</div>
+        </div>
+        <div class="history-status
+            {{ loop.last ? 'last-status-history'}}
+            {{ loop.last and followingStatuses is empty ? 'last' }}
+            {{ state }}">
+            <div class="title-right {{ state }} {{ not history['date'] ? 'bg-transparent' }}">{{ history['date'] }}</div>
+        </div>
+    </div>
+{% endfor %}
+
+{% for remainingStatus in followingStatuses %}
+    {% set finishedStatusName = constant('App\\Entity\\Transport\\TransportRequest::STATUS_FINISHED') %}
+    {% set state = 'future' %}
+    <div class="history-line">
+        <div class="history-date">
+            <div class="title-left {{ state }}">{{ remainingStatus }}</div>
+        </div>
+        <div class="history-status {{ loop.last ? 'last' }} {{ state }}">
+            <div class="title-right {{ round and remainingStatus == finishedStatusName ? state : 'bg-transparent' }}">
+                {{ round and remainingStatus == finishedStatusName ? 'Estimée au ' ~ round.estimatedAt|format_helper('date') }}
+            </div>
+        </div>
+    </div>
+{% endfor %}

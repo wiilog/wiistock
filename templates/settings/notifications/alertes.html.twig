@@ -1,0 +1,30 @@
+{% set hiddenBody = templates is empty %}
+{% extends 'settings/manager_template.html.twig' %}
+
+{% import 'form.html.twig' as form %}
+
+{% block title %}Alertes{% endblock %}
+
+{% block filterCol 'col-lg-3 col-12' %}
+{% block filterColButton 'col-lg-auto col-12' %}
+
+
+{% block description %}
+    Vous pouvez venir déclencher des mails, SMS, ou notifications web et push avec les objets connectés.
+    Ce paramétrage sert à définir le contenu de ces alertes. Choisissez un modèle pour pouvoir le modifier.
+    Vous pouvez aussi en ajouter des nouveaux.
+{% endblock %}
+
+
+{% block filters %}
+    {{ form.select('entity', 'Nom du modèle', false, {
+        items: templates,
+        inputClass: 'minw-300px',
+    }) }}
+{% endblock %}
+
+{% block button %}
+    <button class="btn btn-primary mt-1 add-entity">
+        <i class="fa fa-plus mr-2"></i> Ajouter une alerte
+    </button>
+{% endblock %}

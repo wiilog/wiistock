@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Alert;
 use App\Entity\Article;
+use App\Entity\FiltreSup;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
@@ -102,7 +103,7 @@ class AlertRepository extends EntityRepository {
                     $queryBuilder->andWhere('a.type = :alert')
                         ->setParameter('alert', $value);
                     break;
-                case 'utilisateurs':
+                case FiltreSup::FIELD_MANAGERS:
                     $value = explode(',', $filter['value']);
 
                     $or = $queryBuilder->expr()->orX();
@@ -122,8 +123,8 @@ class AlertRepository extends EntityRepository {
 
         // prise en compte des paramètres issus du datatable
         if(!empty($params)) {
-            if(!empty($params->get('search'))) {
-                $search = $params->get('search')['value'];
+            if(!empty($params->all('search'))) {
+                $search = $params->all('search')['value'];
                 if(!empty($search)) {
                     $queryBuilder
                         ->andWhere($queryBuilder->expr()->orX(
@@ -136,10 +137,10 @@ class AlertRepository extends EntityRepository {
                 }
             }
 
-            if(!empty($params->get('order'))) {
-                $order = $params->get('order')[0]['dir'];
+            if(!empty($params->all('order'))) {
+                $order = $params->all('order')[0]['dir'];
                 if(!empty($order)) {
-                    $column = $params->get('columns')[$params->get('order')[0]['column']]['data'];
+                    $column = $params->all('columns')[$params->all('order')[0]['column']]['data'];
 
                     switch($column) {
                         case "label":

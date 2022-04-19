@@ -1,0 +1,148 @@
+{% include 'utils/warningSelectEmpty.html.twig' with {
+    array: disputeTypes,
+    warningLabel: 'Attention ! Aucun type de litige n\'a été créé',
+    redirectPath: path('settings_item', {
+        'category': constant('App\\Controller\\Settings\\SettingsController::CATEGORY_TRACING'),
+        'menu': constant('App\\Controller\\Settings\\SettingsController::MENU_ARRIVALS'),
+        'submenu': constant('App\\Controller\\Settings\\SettingsController::MENU_DISPUTE_TYPES'),
+    }),
+    redirectLabel: 'Aller vers la page de types'
+} %}
+
+{% include 'utils/warningSelectEmpty.html.twig' with {
+    array: disputeStatuses,
+    warningLabel: 'Attention ! Aucun statut de litige n\'a été créé',
+    redirectPath: path('settings_item', {
+        'category': constant('App\\Controller\\Settings\\SettingsController::CATEGORY_TRACING'),
+        'menu': constant('App\\Controller\\Settings\\SettingsController::MENU_ARRIVALS'),
+        'submenu': constant('App\\Controller\\Settings\\SettingsController::MENU_DISPUTE_STATUSES'),
+    }),
+    redirectLabel: 'Aller vers la page des statuts'
+} %}
+
+<input type="text" name="disputeBuyersValues" value="{{ buyers }}" hidden/>
+<input type="text" name="orderNumbersValues" value="{{ orderNumers }}" hidden/>
+
+<div class="row">
+    {% if fieldsParam|isFieldRequired('fournisseur', 'displayedCreate') %}
+        <div class="form-group col-4">
+            <label class="wii-field-name">Fournisseur</label>
+            <input type="text" id="fournisseurLitige" class="form-control data" name="fournisseurLitige"
+                   value="{{ arrivage.fournisseur ? arrivage.fournisseur.nom }}" disabled>
+        </div>
+    {% endif %}
+
+    {% if fieldsParam|isFieldRequired('transporteur', 'displayedCreate') %}
+        <div class="form-group col-4">
+            <label class="wii-field-name">Transporteur</label>
+            <input type="text" id="transporteurLitige" class="form-control data" name="transporteurLitige"
+                   value="{{ arrivage.transporteur ? arrivage.transporteur.label }}" disabled>
+        </div>
+    {% endif %}
+
+    {% if fieldsParam|isFieldRequired('chauffeur', 'displayedCreate') %}
+        <div class="form-group col-4">
+            <label class="wii-field-name">Chauffeur</label>
+            <input type="text" id="chauffeurLitige" class="form-control data" name="chauffeurLitige"
+                   value="{{ arrivage.chauffeur ? arrivage.chauffeur.nom }}" disabled>
+        </div>
+    {% endif %}
+
+    <div class="form-group col-4">
+        <label class="wii-field-name">Ordre arrivage</label>
+        <input type="text" id="arrivageOrderLitige" class="form-control data" name="arrivageOrderLitige"
+               value="{{ arrivage.numeroArrivage }}" disabled>
+    </div>
+
+    {% if fieldsParam|isFieldRequired('numeroCommandeList', 'displayedCreate') %}
+        <div class="form-group w-100 col-4">
+            <label class="wii-field-name">N° commande / BL</label>
+            <select class="form-control data"
+                    name="numeroCommandeListLitige"
+                    multiple="multiple"
+                    disabled>
+            </select>
+        </div>
+    {% endif %}
+
+    <div class="form-group col-4">
+        <label class="wii-field-name">Type*</label>
+        <select class="form-control data needed" id="disputeType" name="disputeType">
+            <option disabled value="" selected></option>
+            {% for type in disputeTypes %}
+                <option value="{{ type.id }}">{{ type.label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    {% if fieldsParam|isFieldRequired('acheteurs', 'displayedCreate') %}
+        <div class="form-group w-100 col-4">
+            <label class="wii-field-name">Acheteur(s)</label>
+            <select class="form-control data"
+                    name="acheteursLitige"
+                    id="acheteursLitige"
+                    multiple
+                    disabled>
+            </select>
+        </div>
+    {% endif %}
+    <div class="form-group w-100 col-4">
+        <label class="wii-field-name">Déclarant*</label>
+        <select class="form-control data needed" name="disputeReporter" data-s2="user"></select>
+        <input hidden
+               name="logged-user"
+               data-username="{{ app.user.username }}"
+               data-id="{{ app.user.id }}"/>
+    </div>
+    <div class="form-group col-4">
+        <label class="wii-field-name">Statut*</label>
+        {% include 'utils/warningSelectEmpty.html.twig' with {
+            array: disputeStatuses,
+            warningLabel: 'Attention ! Aucun statut de litige n\'a été créé',
+            redirectPath: path('settings_item', {
+                'category': constant('App\\Controller\\Settings\\SettingsController::CATEGORY_TRACING'),
+                'menu': constant('App\\Controller\\Settings\\SettingsController::MENU_ARRIVALS'),
+                'submenu': constant('App\\Controller\\Settings\\SettingsController::MENU_DISPUTE_STATUSES'),
+            }),
+            redirectLabel: 'Aller vers la page des statuts'
+        } %}
+
+        <select class="form-control data needed" name="disputeStatus" title="Statut">
+            <option disabled selected></option>
+            {% for statut in disputeStatuses %}
+                <option value="{{ statut.id }}">{{ statut.nom }}</option>
+            {% endfor %}
+            {% if defaultDisputeStatusId is not null %}
+                <input type="hidden" name="default-status" data-id="{{ defaultDisputeStatusId }}"/>
+            {% endif %}
+        </select>
+    </div>
+    <div class="form-group col-4">
+        <label class="wii-field-name">Colis*</label>
+        <select class="form-control w-100 data needed" name="disputePacks" data-s2
+                data-placeholder="Sélectionner un ou plusieurs colis..." multiple>
+            {% for pack in packs %}
+                <option value="{{ pack.id }}">{{ pack.code }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-group col-4 h-fit-content">
+        <label class="wii-field-name">Commentaire</label>
+        <input type="text" id="litige-commentaire" class="commentaire form-control data" name="commentaire">
+    </div>
+    <div class="form-group col-3 mt-4">
+        <label class="wii-field-name">Urgence ?</label>
+        <label class="switch">
+            <input class="checkbox data" type="checkbox" name="emergency">
+            <span class="slider round"></span>
+        </label>
+    </div>
+
+    <div class="form-group col-4">
+        <div>
+            {% include 'attachment/attachment.html.twig' with {
+                'isNew' : true
+            } %}
+        </div>
+    </div>
+</div>

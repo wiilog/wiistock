@@ -7,7 +7,7 @@
                      data-toggle="modal"
                      data-target="#modalEditGroup"
                      data-id="{{ group.id }}"
-                     onclick="editRow($(this), Routing.generate('group_edit_api', true), $('#modalEditGroup'), $('#submitEditGroup'), true, '#modalEditGroup .editor-container-edit')">
+                     onclick="editRow($(this), Routing.generate('group_edit_api', true), $('#modalEditGroup'), $('#submitEditGroup'))">
                     <i class='fas fa-edit mr-2'></i>Modifier
                 </div>
                 {% if group.children is not empty %}
@@ -15,7 +15,7 @@
                          data-target="#modalUngroup"
                          data-toggle="modal"
                          data-id="{{ group.id }}"
-                         onclick="editRow($(this), Routing.generate('group_ungroup_api', true), $('#modalUngroup'), $('#submitUngroup'), true)">
+                         onclick="editRow($(this), Routing.generate('group_ungroup_api', true), $('#modalUngroup'), $('#submitUngroup'))">
                         <i class="fas fa-trash mr-2"></i>Dégrouper
                     </div>
                 {% endif %}

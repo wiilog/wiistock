@@ -13,7 +13,8 @@
 {% endblock %}
 
 {% block page_content %}
-    {% set hasRightToCreate = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::CREATE')) %}
+    {% set hasRightToCreate = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::CREATE'))
+        and hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::CREATE_ARRIVAL')) %}
     {% set hasRightToExport = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EXPORT')) %}
 
     <input type="hidden" id="dateMinFilter">
@@ -21,7 +22,7 @@
     <input type="hidden" id="statutFilter">
     <input type="hidden" id="usersFilter">
 
-    <div class="m-4 wii-page-card">
+    <div class="m-4 wii-page-card overflow-x-hidden">
         <div class="d-none justify-content-center" id="spinner">
             <div class="spinner-border sizeLoader" role="status">
                 <span class="sr-only">Loading...</span>
@@ -29,14 +30,16 @@
         </div>
         <div class="row wii-page-card-header">
             <div class="col-auto ml-auto">
-                <div class="btn-group">
+                <div class="btn-group arrival-mode-container">
                     {% if hasRightToCreate %}
                         <button type="button"
                                 class="btn btn-primary split-button"
                                 data-toggle="modal"
+                                name="new-arrival"
                                 data-target="#modalNewArrivage"
                                 data-backdrop="static"
                                 data-keyboard="false"
+                                disabled
                                 onclick="initNewArrivageEditor('#modalNewArrivage')">
                             <i class="fa fa-plus mr-2"></i>
                             <span title="nouvel arrivage">{{ 'arrivage.nouvel arrivage'|trans }}</span>
@@ -70,7 +73,24 @@
                             <i class="fa fa-cog mr-2"></i>
                             Gestion des colonnes
                         </a>
+                        <a class="dropdown-item pointer dispatch-mode-button d-none">
+                            <i class="fas fa-exchange-alt mr-2"></i>
+                            Acheminer
+                        </a>
                     </div>
+                </div>
+
+
+                <div class="dispatch-mode-container d-none">
+                    <button type="button"
+                            class="btn btn-outline-primary cancel" disabled>
+                        Annuler acheminer
+                    </button>
+                    <button type="button"
+                            class="btn btn-primary validate" disabled>
+                        <i class="fa fa-check mr-2"></i>
+                        Valider arrivages à acheminer
+                    </button>
                 </div>
             </div>
         </div>
@@ -98,5 +118,6 @@
 {% block javascripts %}
     {{ parent() }}
     <script src="{{ asset('js/pages/arrival/common.js') }}?v={{ web_version }}"></script>
+    <script src="{{ asset('js/pages/dispatch-common.js') }}?v={{ web_version }}"></script>
     <script src="{{ asset('js/pages/arrival/index.js') }}?v={{ web_version }}"></script>
 {% endblock %}

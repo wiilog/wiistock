@@ -7,7 +7,7 @@ namespace App\Service;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\Handling;
-use App\Entity\ParametrageGlobal;
+use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
@@ -68,9 +68,9 @@ class HandlingService
     {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $handlingRepository = $this->entityManager->getRepository(Handling::class);
-        $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
+        $settingRepository = $this->entityManager->getRepository(Setting::class);
 
-        $includeDesiredTime = !$parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REMOVE_HOURS_DATETIME);
+        $includeDesiredTime = !$settingRepository->getOneParamByLabel(Setting::REMOVE_HOURS_DATETIME);
 
         if ($statusFilter) {
             $filters = [

@@ -1,6 +1,7 @@
 {% extends 'utils/show-header.html.twig' %}
 
-{% block showTitle ('Demande de collecte n°' ~ collecte.numero) %}
+{% block showTitle ('Demande de collecte') %}
+{% block showSubtitle ('n°' ~ collecte.numero) %}
 
 {% block showActions %}
     <div class="btn-group">
@@ -41,8 +42,6 @@
                                Routing.generate('collecte_api_edit', true),
                                $('#modalEditCollecte'),
                                $('#submitEditCollecte'),
-                               true,
-                               '#modalEditCollecte .editor-container-edit',
                                false,
                                () => initEditModal()
                            );"

@@ -219,7 +219,7 @@ class PairingController extends AbstractController {
     /**
      * @Route("/map-data/{pairing}", name="pairing_map_data", condition="request.isXmlHttpRequest()")
      */
-    public function getMapData(Request $request, Pairing $pairing): JsonResponse
+    public function getMapData(Request $request, Pairing $pairing, DataMonitoringService $dataMonitoringService): JsonResponse
     {
         $filters = $request->query->all();
         $associatedMessages = $pairing->getSensorMessagesBetween(
@@ -228,6 +228,8 @@ class PairingController extends AbstractController {
             Sensor::GPS
         );
         $data = [];
+        $lastCoordinates = null;
+        $lastDate = null;
         foreach ($associatedMessages as $message) {
             $date = $message->getDate();
             $sensor = $message->getSensor();
@@ -241,7 +243,21 @@ class PairingController extends AbstractController {
             $coordinates = Stream::explode(',', $message->getContent())
                 ->map(fn($coordinate) => floatval($coordinate))
                 ->toArray();
-            $data[$sensorCode][$dateStr] = $coordinates;
+            if ($coordinates[0] !== -1.0 || $coordinates[1] !== -1.0) {
+                if ($lastCoordinates) {
+                    $distanceBetweenLastPoint = $dataMonitoringService->vincentyGreatCircleDistance($lastCoordinates[0], $lastCoordinates[1], $coordinates[0], $coordinates[1]);
+                    $interval = $lastDate->diff($message->getDate());
+                    if ($distanceBetweenLastPoint > 200.0 || (($interval->days * 24) + $interval->h) > 23) {
+                        $data[$sensorCode][$dateStr] = $coordinates;
+                        $lastCoordinates = $coordinates;
+                        $lastDate = $message->getDate();
+                    }
+                } else {
+                    $data[$sensorCode][$dateStr] = $coordinates;
+                    $lastCoordinates = $coordinates;
+                    $lastDate = $message->getDate();
+                }
+            }
         }
         return new JsonResponse($data);
     }

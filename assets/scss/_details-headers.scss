@@ -1,6 +1,29 @@
+@import "variables";
+
 .details-header {
     .scrollable-details {
         overflow: auto;
         height: 150px;
+    }
+}
+
+.details-header-container {
+    &.wii-box {
+        margin-top: 0;
+    }
+
+    .details-header-title {
+        display: inline-block;
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: $primary;
+        margin-right: 0.5rem;
+    }
+
+    .wii-icon-check {
+        display: inline-block;
+        background: white;
+        width: 17px;
+        height: 17px;
     }
 }

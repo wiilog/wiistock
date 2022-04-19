@@ -10,8 +10,11 @@ use App\Entity\FreeField;
 use App\Entity\Handling;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorMessage;
+use App\Entity\LocationGroup;
 use App\Entity\Nature;
 use App\Entity\Pack;
+use App\Entity\ReferenceArticle;
+use App\Entity\Role;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -57,7 +60,30 @@ class FormatHelper {
         12 => "Décembre",
     ];
 
-    public static function parseDatetime(?string $date, array $expectedFormats = ["Y-m-d H:i:s", "d/m/Y H:i:s", "Y-m-d H:i", "d/m/Y H:i"]): ?DateTimeInterface {
+    private const QUANTITY_TYPE_LABELS = [
+        ReferenceArticle::QUANTITY_TYPE_REFERENCE => 'Référence',
+        ReferenceArticle::QUANTITY_TYPE_ARTICLE => 'Article',
+    ];
+
+    private const LANDING_PAGE_LABELS = [
+        Role::LANDING_PAGE_DASHBOARD => 'Dashboard',
+        Role::LANDING_PAGE_TRANSPORT_PLANNING => 'Planning',
+        Role::LANDING_PAGE_TRANSPORT_REQUEST => 'Demande de transport',
+    ];
+
+    public static function parseDatetime(?string $date, array $expectedFormats = [
+        "Y-m-d H:i:s",
+        "d/m/Y H:i:s",
+        "Y-m-d H:i",
+        "Y-m-d\TH:i",
+        "d/m/Y H:i",
+        "Y-m-d",
+        "d/m/Y"
+    ]): ?DateTime {
+        if (empty($date)) {
+            return null;
+        }
+
         foreach($expectedFormats as $format) {
             if($out = DateTime::createFromFormat($format, $date)) {
                 return $out;
@@ -69,6 +95,14 @@ class FormatHelper {
 
     public static function type(?Type $type, $else = "") {
         return $type ? $type->getLabel() : $else;
+    }
+
+    public static function quantityTypeLabel(?string $quantityType, string $else = ""): string {
+        return self::QUANTITY_TYPE_LABELS[$quantityType] ?? $else;
+    }
+
+    public static function landingPageLabel(?string $landingPage, string $else = ""): string {
+        return self::LANDING_PAGE_LABELS[$landingPage] ?? $else;
     }
 
     public static function handlingRequester(Handling $handling, $else = ""): string {
@@ -109,12 +143,16 @@ class FormatHelper {
         return $pack ? $pack->getCode() : $else;
     }
 
-    public static function provider(?Fournisseur $provider, $else = "") {
-        return $provider ? $provider->getNom() : $else;
+    public static function supplier(?Fournisseur $supplier, $else = "") {
+        return $supplier ? $supplier->getNom() : $else;
     }
 
     public static function location(?Emplacement $location, $else = "") {
         return $location ? $location->getLabel() : $else;
+    }
+
+    public static function locationGroup(?LocationGroup $locationGroup, $else = "") {
+        return $locationGroup ? $locationGroup->getLabel() : $else;
     }
 
     public static function user(?Utilisateur $user, $else = "") {
@@ -164,17 +202,21 @@ class FormatHelper {
         return $date ? $date->format($addAt ? "d/m/Y à H:i" : "d/m/Y H:i") : $else;
     }
 
-    public static function longDate(?DateTimeInterface $date, bool $short = false, $else = "-"): ?string {
+    public static function longDate(?DateTimeInterface $date, array $options = [], $else = "-"): ?string {
+        $short = $options['short'] ?? false;
+        $time = $options['time'] ?? false;
+        $year = $options['year'] ?? true;
+
         return $date
             ? (($short
-                ? substr(self::WEEK_DAYS[$date->format("w")], 0, 3)
-                : self::WEEK_DAYS[$date->format("w")])
+                ? substr(self::WEEK_DAYS[$date->format("N")], 0, 3)
+                : self::WEEK_DAYS[$date->format("N")])
                     . " "
                     . $date->format("d")
                     . " "
                     . strtolower(self::MONTHS[$date->format("n")])
-                    . " "
-                    . $date->format("Y"))
+                    . ($year ? (" " . $date->format("Y")) : '')
+            . ($time ? $date->format(" à H:i") : ""))
             : $else;
     }
 
@@ -191,17 +233,18 @@ class FormatHelper {
         switch ($freeField->getTypage()) {
             case FreeField::TYPE_DATE:
             case FreeField::TYPE_DATETIME:
-                $valueStr = str_replace($value, '/', '-');
-                $valueDate = new DateTime($valueStr ?: 'now');
+                $valueDate = self::parseDatetime($value, ["Y-m-dTH:i", "Y-m-d", "d/m/Y H:i", "Y-m-d H:i", "d/m/Y"]);
                 $hourFormat = ($freeField->getTypage() === FreeField::TYPE_DATETIME ? ' H:i' : '');
-                $formatted = $valueDate->format('d/m/Y' . $hourFormat);
+                $formatted = $valueDate ? $valueDate->format('d/m/Y' . $hourFormat) : $value;
                 break;
             case FreeField::TYPE_BOOL:
-                $formatted = self::bool($value == 1);
+                $formatted = ($value !== '' && $value !== null)
+                    ? self::bool($value == 1)
+                    : '';
                 break;
             case FreeField::TYPE_LIST_MULTIPLE:
                 $formatted = Stream::explode(';', $value)
-                    ->filter(fn(string $val) => strpos($freeField->getElements() ?? '', $val) !== false)
+                    ->filter(fn(string $val) => in_array($val, $freeField->getElements() ?: []))
                     ->join(', ');
                 break;
             default:

@@ -7,7 +7,7 @@ namespace App\Service;
 use App\Entity\Arrivage;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
-use App\Entity\ParametrageGlobal;
+use App\Entity\Setting;
 use App\Entity\Transporteur;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
@@ -76,8 +76,8 @@ class UrgenceService
     }
 
     public function updateUrgence(Urgence $urgence, $data): Urgence {
-        $dateStart = DateTime::createFromFormat('d/m/Y H:i', $data['dateStart']);
-        $dateEnd = DateTime::createFromFormat('d/m/Y H:i', $data['dateEnd']);
+        $dateStart = DateTime::createFromFormat('Y-m-d\TH:i', $data['dateStart']);
+        $dateEnd = DateTime::createFromFormat('Y-m-d\TH:i', $data['dateEnd']);
 
         $utilisateurRepository = $this->entityManager->getRepository(Utilisateur::class);
         $fournisseurRepository = $this->entityManager->getRepository(Fournisseur::class);
@@ -115,9 +115,10 @@ class UrgenceService
         $urgenceRepository = $this->entityManager->getRepository(Urgence::class);
 
         if(!isset($this->__arrival_emergency_fields)) {
-            $this->__arrival_emergency_fields = json_decode($this->entityManager
-                ->getRepository(ParametrageGlobal::class)
-                ->getOneParamByLabel(ParametrageGlobal::ARRIVAL_EMERGENCY_TRIGGERING_FIELDS));
+            $arrivalEmergencyFields = $this->entityManager
+                ->getRepository(Setting::class)
+                ->getOneParamByLabel(Setting::ARRIVAL_EMERGENCY_TRIGGERING_FIELDS);
+            $this->__arrival_emergency_fields = $arrivalEmergencyFields ? explode(',', $arrivalEmergencyFields) : [];
         }
 
         return $urgenceRepository->findUrgencesMatching(

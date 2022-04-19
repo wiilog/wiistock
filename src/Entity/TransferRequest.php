@@ -11,95 +11,65 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass=TransferRequestRepository::class)
- */
+#[ORM\Entity(repositoryClass: TransferRequestRepository::class)]
 class TransferRequest implements Serializable {
 
     const NUMBER_PREFIX = 'DT';
-
     const DRAFT = "Brouillon";
     const TO_TREAT = "À traiter";
     const TREATED = "Traité";
-
     use CommentTrait;
 
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private $id;
 
-    /**
-     * @ORM\Column(type="string", length=255, unique=true)
-     */
+    #[ORM\Column(type: 'string', length: 255, unique: true)]
     private $number;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Type::class)
-     * @ORM\JoinColumn(nullable=false)
-     */
+    #[ORM\ManyToOne(targetEntity: Type::class)]
+    #[ORM\JoinColumn(nullable: false)]
     private $type;
 
     /**
      * @var Statut|null
-     * @ORM\ManyToOne(targetEntity=Statut::class, inversedBy="transferRequests")
-     * @ORM\JoinColumn(nullable=false)
      */
+    #[ORM\ManyToOne(targetEntity: Statut::class, inversedBy: 'transferRequests')]
+    #[ORM\JoinColumn(nullable: false)]
     private $status;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Utilisateur::class)
-     * @ORM\JoinColumn(nullable=false)
-     */
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
+    #[ORM\JoinColumn(nullable: false)]
     private $requester;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Emplacement::class)
-     * @ORM\JoinColumn(nullable=true)
-     */
+    #[ORM\ManyToOne(targetEntity: Emplacement::class)]
+    #[ORM\JoinColumn(nullable: true)]
     private $destination;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Emplacement::class)
-     * @ORM\JoinColumn(nullable=true)
-     */
+    #[ORM\ManyToOne(targetEntity: Emplacement::class)]
+    #[ORM\JoinColumn(nullable: true)]
     private $origin;
 
-    /**
-     * @ORM\Column(type="text", nullable=true)
-     */
+    #[ORM\Column(type: 'text', nullable: true)]
     private $comment;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private $creationDate;
 
-    /**
-     * @ORM\Column(type="datetime", nullable=true)
-     */
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private $validationDate;
 
-    /**
-     * @ORM\OneToOne(targetEntity=TransferOrder::class, mappedBy="request")
-     */
+    #[ORM\OneToOne(targetEntity: TransferOrder::class, mappedBy: 'request')]
     private $order;
 
-    /**
-     * @ORM\ManyToMany(targetEntity=Article::class, inversedBy="transferRequests")
-     */
+    #[ORM\ManyToMany(targetEntity: Article::class, inversedBy: 'transferRequests')]
     private $articles;
 
-    /**
-     * @ORM\ManyToMany(targetEntity=ReferenceArticle::class, inversedBy="transferRequests")
-     */
+    #[ORM\ManyToMany(targetEntity: ReferenceArticle::class, inversedBy: 'transferRequests')]
     private $references;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Reception", inversedBy="transferRequests")
-     */
+    #[ORM\ManyToOne(targetEntity: Reception::class, inversedBy: 'transferRequests')]
     private $reception;
 
     public function __construct() {
@@ -120,13 +90,11 @@ class TransferRequest implements Serializable {
         return $this;
     }
 
-    public function getReception(): ?Reception
-    {
+    public function getReception(): ?Reception {
         return $this->reception;
     }
 
-    public function setReception(?Reception $reception): self
-    {
+    public function setReception(?Reception $reception): self {
         $this->reception = $reception;
 
         $reception->addTransferRequest($this);
@@ -149,13 +117,13 @@ class TransferRequest implements Serializable {
 
     public function setStatus(?Statut $status): self {
         $oldStatus = $this->status;
-        if ($oldStatus !== $status) {
+        if($oldStatus !== $status) {
             $this->status = $status;
-            if (isset($this->status)) {
+            if(isset($this->status)) {
                 $this->status->addTransferRequest($this);
             }
 
-            if (isset($oldStatus)) {
+            if(isset($oldStatus)) {
                 $oldStatus->removeTransferRequest($this);
             }
             $this->status = $status;
@@ -236,23 +204,20 @@ class TransferRequest implements Serializable {
     /**
      * @return Collection|Article[]
      */
-    public function getArticles(): Collection
-    {
+    public function getArticles(): Collection {
         return $this->articles;
     }
 
-    public function addArticle(Article $article): self
-    {
-        if (!$this->articles->contains($article)) {
+    public function addArticle(Article $article): self {
+        if(!$this->articles->contains($article)) {
             $this->articles[] = $article;
         }
 
         return $this;
     }
 
-    public function removeArticle(Article $article): self
-    {
-        if ($this->articles->contains($article)) {
+    public function removeArticle(Article $article): self {
+        if($this->articles->contains($article)) {
             $this->articles->removeElement($article);
         }
 
@@ -262,23 +227,20 @@ class TransferRequest implements Serializable {
     /**
      * @return Collection|ReferenceArticle[]
      */
-    public function getReferences(): Collection
-    {
+    public function getReferences(): Collection {
         return $this->references;
     }
 
-    public function addReference(ReferenceArticle $reference): self
-    {
-        if (!$this->references->contains($reference)) {
+    public function addReference(ReferenceArticle $reference): self {
+        if(!$this->references->contains($reference)) {
             $this->references[] = $reference;
         }
 
         return $this;
     }
 
-    public function removeReference(ReferenceArticle $reference): self
-    {
-        if ($this->references->contains($reference)) {
+    public function removeReference(ReferenceArticle $reference): self {
+        if($this->references->contains($reference)) {
             $this->references->removeElement($reference);
         }
 

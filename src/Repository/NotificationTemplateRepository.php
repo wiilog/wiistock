@@ -29,12 +29,11 @@ class NotificationTemplateRepository extends EntityRepository
         $total = QueryCounter::count($qb, "notification_template");
 
         if (!empty($params)) {
-            if (!empty($params->get('search'))) {
-                $search = $params->get('search')['value'];
+            if (!empty($params->all('search'))) {
+                $search = $params->all('search')['value'];
                 if (!empty($search)) {
                     $exprBuilder = $qb->expr();
                     $qb->andWhere($exprBuilder->orX(
-                        'notification_template.name LIKE :value',
                         'notification_template.type LIKE :value',
                     ))->setParameter('value', '%' . $search . '%');
                 }
@@ -43,8 +42,8 @@ class NotificationTemplateRepository extends EntityRepository
 
         $countFiltered = QueryCounter::count($qb, "notification_template");
 
-        if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
-        if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
+        $qb->setFirstResult(0);
+        $qb->setMaxResults(10);
 
         return [
             "data" => $qb->getQuery()->getResult(),

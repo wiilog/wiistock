@@ -5,15 +5,17 @@ namespace App\Entity;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\IOT\HandlingRequestTemplate;
 use App\Entity\PreparationOrder\Preparation;
+use App\Entity\Transport\StatusHistory;
+use App\Entity\Transport\TransportOrder;
+use App\Entity\Transport\TransportRequest;
+use App\Entity\Transport\TransportRound;
+use App\Repository\StatutRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass="App\Repository\StatutRepository")
- */
-class Statut
-{
+#[ORM\Entity(repositoryClass: StatutRepository::class)]
+class Statut {
 
     const DRAFT = 0;
     const NOT_TREATED = 1;
@@ -22,160 +24,99 @@ class Statut
     const PARTIAL = 4;
     const IN_PROGRESS = 5;
 
-    /**
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $code = null;
 
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $nom = null;
 
-	/**
-	 * @ORM\Column(type="text", nullable=true)
-	 */
+    #[ORM\Column(type: 'text', nullable: true)]
     private ?string $comment = null;
 
-	/**
-	 * @ORM\Column(type="integer", nullable=true)
-	 */
+    #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $displayOrder = null;
 
-    /**
-     * @ORM\Column(type="integer", nullable=true)
-     */
+    #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $state = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\CategorieStatut", inversedBy="statuts")
-     */
+    #[ORM\ManyToOne(targetEntity: CategorieStatut::class, inversedBy: 'statuts')]
     private ?CategorieStatut $categorie = null;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Article", mappedBy="statut")
-     */
+    #[ORM\OneToMany(mappedBy: 'statut', targetEntity: Article::class)]
     private Collection $articles;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Reception", mappedBy="statut")
-     */
+    #[ORM\OneToMany(mappedBy: 'statut', targetEntity: Reception::class)]
     private Collection $receptions;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\DeliveryRequest\Demande", mappedBy="statut")
-     */
+    #[ORM\OneToMany(mappedBy: 'statut', targetEntity: 'App\Entity\DeliveryRequest\Demande')]
     private Collection $demandes;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\PreparationOrder\Preparation", mappedBy="statut")
-     */
+    #[ORM\OneToMany(mappedBy: 'statut', targetEntity: 'App\Entity\PreparationOrder\Preparation')]
     private Collection $preparations;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Livraison", mappedBy="statut")
-     */
+    #[ORM\OneToMany(mappedBy: 'statut', targetEntity: Livraison::class)]
     private Collection $livraisons;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Collecte", mappedBy="statut")
-     */
+    #[ORM\OneToMany(mappedBy: 'statut', targetEntity: Collecte::class)]
     private Collection $collectes;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\ReferenceArticle", mappedBy="statut")
-     */
+    #[ORM\OneToMany(mappedBy: 'statut', targetEntity: ReferenceArticle::class)]
     private Collection $referenceArticles;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Handling", mappedBy="status")
-     */
+    #[ORM\OneToMany(mappedBy: 'status', targetEntity: Handling::class)]
     private Collection $handlings;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Dispatch", mappedBy="statut")
-     */
+    #[ORM\OneToMany(mappedBy: 'statut', targetEntity: Dispatch::class)]
     private Collection $dispatches;
 
-    /**
-     * @ORM\OneToMany(targetEntity=Dispute::class, mappedBy="status")
-     */
+    #[ORM\OneToMany(mappedBy: 'status', targetEntity: Dispute::class)]
     private Collection $disputes;
 
-    /**
-     * @ORM\Column(type="boolean", nullable=true)
-     */
+    #[ORM\Column(type: 'boolean', nullable: true)]
     private ?bool $sendNotifToBuyer = null;
 
-    /**
-     * @ORM\Column(type="boolean", nullable=true, options={"default": true})
-     */
+    #[ORM\Column(type: 'boolean', nullable: true, options: ['default' => true])]
     private ?bool $commentNeeded = null;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Arrivage", mappedBy="statut")
-     */
+    #[ORM\OneToMany(mappedBy: 'statut', targetEntity: Arrivage::class)]
     private Collection $arrivages;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\TransferRequest", mappedBy="status")
-     */
+    #[ORM\OneToMany(mappedBy: 'status', targetEntity: TransferRequest::class)]
     private Collection $transferRequests;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\TransferOrder", mappedBy="status")
-     */
+    #[ORM\OneToMany(mappedBy: 'status', targetEntity: TransferOrder::class)]
     private Collection $transferOrders;
 
-    /**
-     * @ORM\Column(type="boolean", nullable=true)
-     */
+    #[ORM\Column(type: 'boolean', nullable: true)]
     private ?bool $sendNotifToDeclarant = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="statuts")
-     */
+    #[ORM\ManyToOne(targetEntity: Type::class, inversedBy: 'statuts')]
     private ?Type $type = null;
 
-    /**
-     * @ORM\Column(type="boolean", nullable=true)
-     */
+    #[ORM\Column(type: 'boolean', nullable: true)]
     private ?bool $sendNotifToRecipient = null;
 
-    /**
-     * @ORM\Column(type="boolean", nullable=true)
-     */
+    #[ORM\Column(type: 'boolean', nullable: true)]
     private ?bool $needsMobileSync = null;
 
-    /**
-     * @ORM\Column(type="boolean", nullable=true)
-     */
+    #[ORM\Column(type: 'boolean', nullable: true)]
     private ?bool $automaticReceptionCreation = null;
 
-    /**
-     * @ORM\Column(type="boolean", nullable=false, options={"default": false})
-     */
+    #[ORM\Column(type: 'boolean', nullable: false, options: ['default' => false])]
     private ?bool $defaultForCategory = false;
 
-    /**
-     * @ORM\OneToMany(targetEntity=PurchaseRequest::class, mappedBy="status")
-     */
+    #[ORM\OneToMany(mappedBy: 'status', targetEntity: PurchaseRequest::class)]
     private Collection $purchaseRequests;
 
-    /**
-     * @ORM\OneToMany(targetEntity=HandlingRequestTemplate::class, mappedBy="requestStatus")
-     */
+    #[ORM\OneToMany(mappedBy: 'requestStatus', targetEntity: HandlingRequestTemplate::class)]
     private Collection $handlingRequestStatusTemplates;
 
-    public function __construct()
-    {
+    public function __construct() {
         $this->articles = new ArrayCollection();
         $this->receptions = new ArrayCollection();
         $this->demandes = new ArrayCollection();
@@ -194,18 +135,15 @@ class Statut
         $this->handlingRequestStatusTemplates = new ArrayCollection();
     }
 
-    public function getId(): ? int
-    {
+    public function getId(): ?int {
         return $this->id;
     }
 
-    public function getNom(): ? string
-    {
+    public function getNom(): ?string {
         return $this->nom;
     }
 
-    public function setNom(? string $nom): self
-    {
+    public function setNom(?string $nom): self {
         $this->nom = $nom;
 
         return $this;
@@ -235,13 +173,11 @@ class Statut
         return $this->state === self::DISPUTE;
     }
 
-    public function getCategorie(): ? CategorieStatut
-    {
+    public function getCategorie(): ?CategorieStatut {
         return $this->categorie;
     }
 
-    public function setCategorie(? CategorieStatut $categorie): self
-    {
+    public function setCategorie(?CategorieStatut $categorie): self {
         $this->categorie = $categorie;
 
         return $this;
@@ -250,14 +186,12 @@ class Statut
     /**
      * @return Collection|Article[]
      */
-    public function getArticles(): Collection
-    {
+    public function getArticles(): Collection {
         return $this->articles;
     }
 
-    public function addArticle(Article $article): self
-    {
-        if (!$this->articles->contains($article)) {
+    public function addArticle(Article $article): self {
+        if(!$this->articles->contains($article)) {
             $this->articles[] = $article;
             $article->setStatut($this);
         }
@@ -265,12 +199,11 @@ class Statut
         return $this;
     }
 
-    public function removeArticle(Article $article): self
-    {
-        if ($this->articles->contains($article)) {
+    public function removeArticle(Article $article): self {
+        if($this->articles->contains($article)) {
             $this->articles->removeElement($article);
             // set the owning side to null (unless already changed)
-            if ($article->getStatut() === $this) {
+            if($article->getStatut() === $this) {
                 $article->setStatut(null);
             }
         }
@@ -281,14 +214,12 @@ class Statut
     /**
      * @return Collection|Reception[]
      */
-    public function getReceptions(): Collection
-    {
+    public function getReceptions(): Collection {
         return $this->receptions;
     }
 
-    public function addReception(Reception $reception): self
-    {
-        if (!$this->receptions->contains($reception)) {
+    public function addReception(Reception $reception): self {
+        if(!$this->receptions->contains($reception)) {
             $this->receptions[] = $reception;
             $reception->setStatut($this);
         }
@@ -296,12 +227,11 @@ class Statut
         return $this;
     }
 
-    public function removeReception(Reception $reception): self
-    {
-        if ($this->receptions->contains($reception)) {
+    public function removeReception(Reception $reception): self {
+        if($this->receptions->contains($reception)) {
             $this->receptions->removeElement($reception);
             // set the owning side to null (unless already changed)
-            if ($reception->getStatut() === $this) {
+            if($reception->getStatut() === $this) {
                 $reception->setStatut(null);
             }
         }
@@ -312,23 +242,20 @@ class Statut
     /**
      * @return Collection|TransferRequest[]
      */
-    public function getTransferRequests(): Collection
-    {
+    public function getTransferRequests(): Collection {
         return $this->transferRequests;
     }
 
-    public function addTransferRequest(TransferRequest $transferRequest): self
-    {
-        if (!$this->transferRequests->contains($transferRequest)) {
+    public function addTransferRequest(TransferRequest $transferRequest): self {
+        if(!$this->transferRequests->contains($transferRequest)) {
             $this->transferRequests[] = $transferRequest;
         }
 
         return $this;
     }
 
-    public function removeTransferRequest(TransferRequest $transferRequest): self
-    {
-        if ($this->transferRequests->contains($transferRequest)) {
+    public function removeTransferRequest(TransferRequest $transferRequest): self {
+        if($this->transferRequests->contains($transferRequest)) {
             $this->transferRequests->removeElement($transferRequest);
         }
 
@@ -338,23 +265,20 @@ class Statut
     /**
      * @return Collection|TransferOrder[]
      */
-    public function getTransferOrders(): Collection
-    {
+    public function getTransferOrders(): Collection {
         return $this->transferOrders;
     }
 
-    public function addTransferOrder(TransferOrder $transferOrder): self
-    {
-        if (!$this->transferOrders->contains($transferOrder)) {
+    public function addTransferOrder(TransferOrder $transferOrder): self {
+        if(!$this->transferOrders->contains($transferOrder)) {
             $this->transferOrders[] = $transferOrder;
         }
 
         return $this;
     }
 
-    public function removeTransferOrder(TransferOrder $transferOrder): self
-    {
-        if ($this->transferOrders->contains($transferOrder)) {
+    public function removeTransferOrder(TransferOrder $transferOrder): self {
+        if($this->transferOrders->contains($transferOrder)) {
             $this->transferOrders->removeElement($transferOrder);
         }
 
@@ -364,14 +288,12 @@ class Statut
     /**
      * @return Collection|Demande[]
      */
-    public function getDemandes(): Collection
-    {
+    public function getDemandes(): Collection {
         return $this->demandes;
     }
 
-    public function addDemande(Demande $demande): self
-    {
-        if (!$this->demandes->contains($demande)) {
+    public function addDemande(Demande $demande): self {
+        if(!$this->demandes->contains($demande)) {
             $this->demandes[] = $demande;
             $demande->setStatut($this);
         }
@@ -379,12 +301,11 @@ class Statut
         return $this;
     }
 
-    public function removeDemande(Demande $demande): self
-    {
-        if ($this->demandes->contains($demande)) {
+    public function removeDemande(Demande $demande): self {
+        if($this->demandes->contains($demande)) {
             $this->demandes->removeElement($demande);
             // set the owning side to null (unless already changed)
-            if ($demande->getStatut() === $this) {
+            if($demande->getStatut() === $this) {
                 $demande->setStatut(null);
             }
         }
@@ -395,14 +316,12 @@ class Statut
     /**
      * @return Collection|Preparation[]
      */
-    public function getPreparations(): Collection
-    {
+    public function getPreparations(): Collection {
         return $this->preparations;
     }
 
-    public function addPreparation(Preparation $preparation): self
-    {
-        if (!$this->preparations->contains($preparation)) {
+    public function addPreparation(Preparation $preparation): self {
+        if(!$this->preparations->contains($preparation)) {
             $this->preparations[] = $preparation;
             $preparation->setStatut($this);
         }
@@ -410,12 +329,11 @@ class Statut
         return $this;
     }
 
-    public function removePreparation(Preparation $preparation): self
-    {
-        if ($this->preparations->contains($preparation)) {
+    public function removePreparation(Preparation $preparation): self {
+        if($this->preparations->contains($preparation)) {
             $this->preparations->removeElement($preparation);
             // set the owning side to null (unless already changed)
-            if ($preparation->getStatut() === $this) {
+            if($preparation->getStatut() === $this) {
                 $preparation->setStatut(null);
             }
         }
@@ -426,14 +344,12 @@ class Statut
     /**
      * @return Collection|Livraison[]
      */
-    public function getLivraisons(): Collection
-    {
+    public function getLivraisons(): Collection {
         return $this->livraisons;
     }
 
-    public function addLivraison(Livraison $livraison): self
-    {
-        if (!$this->livraisons->contains($livraison)) {
+    public function addLivraison(Livraison $livraison): self {
+        if(!$this->livraisons->contains($livraison)) {
             $this->livraisons[] = $livraison;
             $livraison->setStatut($this);
         }
@@ -441,12 +357,11 @@ class Statut
         return $this;
     }
 
-    public function removeLivraison(Livraison $livraison): self
-    {
-        if ($this->livraisons->contains($livraison)) {
+    public function removeLivraison(Livraison $livraison): self {
+        if($this->livraisons->contains($livraison)) {
             $this->livraisons->removeElement($livraison);
             // set the owning side to null (unless already changed)
-            if ($livraison->getStatut() === $this) {
+            if($livraison->getStatut() === $this) {
                 $livraison->setStatut(null);
             }
         }
@@ -457,14 +372,12 @@ class Statut
     /**
      * @return Collection|Collecte[]
      */
-    public function getCollectes(): Collection
-    {
+    public function getCollectes(): Collection {
         return $this->collectes;
     }
 
-    public function addCollecte(Collecte $collecte): self
-    {
-        if (!$this->collectes->contains($collecte)) {
+    public function addCollecte(Collecte $collecte): self {
+        if(!$this->collectes->contains($collecte)) {
             $this->collectes[] = $collecte;
             $collecte->setStatut($this);
         }
@@ -472,12 +385,11 @@ class Statut
         return $this;
     }
 
-    public function removeCollecte(Collecte $collecte): self
-    {
-        if ($this->collectes->contains($collecte)) {
+    public function removeCollecte(Collecte $collecte): self {
+        if($this->collectes->contains($collecte)) {
             $this->collectes->removeElement($collecte);
             // set the owning side to null (unless already changed)
-            if ($collecte->getStatut() === $this) {
+            if($collecte->getStatut() === $this) {
                 $collecte->setStatut(null);
             }
         }
@@ -485,52 +397,45 @@ class Statut
         return $this;
     }
 
-    public function __toString()
-    {
+    public function __toString() {
         return $this->nom;
     }
 
     /**
      * @return Collection|ReferenceArticle[]
      */
-    public function getReferenceArticles(): Collection
-    {
+    public function getReferenceArticles(): Collection {
         return $this->referenceArticles;
     }
 
-    public function addReferenceArticle(ReferenceArticle $referenceArticle): self
-    {
-        if (!$this->referenceArticles->contains($referenceArticle)) {
+    public function addReferenceArticle(ReferenceArticle $referenceArticle): self {
+        if(!$this->referenceArticles->contains($referenceArticle)) {
             $this->referenceArticles[] = $referenceArticle;
             $referenceArticle->setStatut($this);
         }
         return $this;
     }
 
-    public function removeReferenceArticle(ReferenceArticle $referenceArticle): self
-    {
-        if ($this->referenceArticles->contains($referenceArticle)) {
+    public function removeReferenceArticle(ReferenceArticle $referenceArticle): self {
+        if($this->referenceArticles->contains($referenceArticle)) {
             $this->referenceArticles->removeElement($referenceArticle);
             // set the owning side to null (unless already changed)
-            if ($referenceArticle->getStatut() === $this) {
+            if($referenceArticle->getStatut() === $this) {
                 $referenceArticle->setStatut(null);
             }
         }
         return $this;
     }
 
-
     /**
-    * @return Collection|Handling[]
+     * @return Collection|Handling[]
      */
-    public function getHandlings(): Collection
-    {
+    public function getHandlings(): Collection {
         return $this->handlings;
     }
 
-    public function addHandling(Handling $handling): self
-    {
-        if (!$this->handlings->contains($handling)) {
+    public function addHandling(Handling $handling): self {
+        if(!$this->handlings->contains($handling)) {
             $this->handlings[] = $handling;
             $handling->setStatus($this);
         }
@@ -538,13 +443,11 @@ class Statut
         return $this;
     }
 
-
-    public function removeHandling(Handling $handling): self
-    {
-        if ($this->handlings->contains($handling)) {
+    public function removeHandling(Handling $handling): self {
+        if($this->handlings->contains($handling)) {
             $this->handlings->removeElement($handling);
             // set the owning side to null (unless already changed)
-            if ($handling->getStatus() === $this) {
+            if($handling->getStatus() === $this) {
                 $handling->setStatus(null);
             }
         }
@@ -555,14 +458,12 @@ class Statut
     /**
      * @return Collection|Dispute[]
      */
-    public function getDisputes(): Collection
-    {
+    public function getDisputes(): Collection {
         return $this->disputes;
     }
 
-    public function addDispute(Dispute $dispute): self
-    {
-        if (!$this->disputes->contains($dispute)) {
+    public function addDispute(Dispute $dispute): self {
+        if(!$this->disputes->contains($dispute)) {
             $this->disputes[] = $dispute;
             $dispute->setStatus($this);
         }
@@ -570,12 +471,11 @@ class Statut
         return $this;
     }
 
-    public function removeDispute(Dispute $dispute): self
-    {
-        if ($this->disputes->contains($dispute)) {
+    public function removeDispute(Dispute $dispute): self {
+        if($this->disputes->contains($dispute)) {
             $this->disputes->removeElement($dispute);
             // set the owning side to null (unless already changed)
-            if ($dispute->getStatus() === $this) {
+            if($dispute->getStatus() === $this) {
                 $dispute->setStatus(null);
             }
         }
@@ -583,25 +483,21 @@ class Statut
         return $this;
     }
 
-    public function getComment(): ?string
-    {
+    public function getComment(): ?string {
         return $this->comment;
     }
 
-    public function setComment(?string $comment): self
-    {
+    public function setComment(?string $comment): self {
         $this->comment = $comment;
 
         return $this;
     }
 
-    public function getDisplayOrder(): ?int
-    {
+    public function getDisplayOrder(): ?int {
         return $this->displayOrder;
     }
 
-    public function setDisplayOrder(int $displayOrder): self
-    {
+    public function setDisplayOrder(int $displayOrder): self {
         $this->displayOrder = $displayOrder;
 
         return $this;
@@ -610,14 +506,12 @@ class Statut
     /**
      * @return Collection|Dispatch[]
      */
-    public function getDispatches(): Collection
-    {
+    public function getDispatches(): Collection {
         return $this->dispatches;
     }
 
-    public function addDispatch(Dispatch $dispatch): self
-    {
-        if (!$this->dispatches->contains($dispatch)) {
+    public function addDispatch(Dispatch $dispatch): self {
+        if(!$this->dispatches->contains($dispatch)) {
             $this->dispatches[] = $dispatch;
             $dispatch->setStatut($this);
         }
@@ -625,12 +519,11 @@ class Statut
         return $this;
     }
 
-    public function removeDispatch(Dispatch $dispatch): self
-    {
-        if ($this->dispatches->contains($dispatch)) {
+    public function removeDispatch(Dispatch $dispatch): self {
+        if($this->dispatches->contains($dispatch)) {
             $this->dispatches->removeElement($dispatch);
             // set the owning side to null (unless already changed)
-            if ($dispatch->getStatut() === $this) {
+            if($dispatch->getStatut() === $this) {
                 $dispatch->setStatut(null);
             }
         }
@@ -638,25 +531,21 @@ class Statut
         return $this;
     }
 
-    public function getSendNotifToBuyer(): ?bool
-    {
+    public function getSendNotifToBuyer(): ?bool {
         return $this->sendNotifToBuyer;
     }
 
-    public function setSendNotifToBuyer(?bool $sendNotifToBuyer): self
-    {
+    public function setSendNotifToBuyer(?bool $sendNotifToBuyer): self {
         $this->sendNotifToBuyer = $sendNotifToBuyer;
 
         return $this;
     }
 
-    public function getCommentNeeded(): ?bool
-    {
+    public function getCommentNeeded(): ?bool {
         return $this->commentNeeded;
     }
 
-    public function setCommentNeeded(?bool $commentNeeded): self
-    {
+    public function setCommentNeeded(?bool $commentNeeded): self {
         $this->commentNeeded = $commentNeeded;
 
         return $this;
@@ -665,14 +554,12 @@ class Statut
     /**
      * @return Collection|Arrivage[]
      */
-    public function getArrivages(): Collection
-    {
+    public function getArrivages(): Collection {
         return $this->arrivages;
     }
 
-    public function addArrivage(Arrivage $arrivage): self
-    {
-        if (!$this->arrivages->contains($arrivage)) {
+    public function addArrivage(Arrivage $arrivage): self {
+        if(!$this->arrivages->contains($arrivage)) {
             $this->arrivages[] = $arrivage;
             $arrivage->setStatut($this);
         }
@@ -680,12 +567,11 @@ class Statut
         return $this;
     }
 
-    public function removeArrivage(Arrivage $arrivage): self
-    {
-        if ($this->arrivages->contains($arrivage)) {
+    public function removeArrivage(Arrivage $arrivage): self {
+        if($this->arrivages->contains($arrivage)) {
             $this->arrivages->removeElement($arrivage);
             // set the owning side to null (unless already changed)
-            if ($arrivage->getStatut() === $this) {
+            if($arrivage->getStatut() === $this) {
                 $arrivage->setStatut(null);
             }
         }
@@ -693,73 +579,61 @@ class Statut
         return $this;
     }
 
-    public function getCode(): ?string
-    {
+    public function getCode(): ?string {
         return $this->code;
     }
 
-    public function setCode(?string $code): self
-    {
+    public function setCode(?string $code): self {
         $this->code = $code;
 
         return $this;
     }
 
-    public function getSendNotifToDeclarant(): ?bool
-    {
+    public function getSendNotifToDeclarant(): ?bool {
         return $this->sendNotifToDeclarant;
     }
 
-    public function setSendNotifToDeclarant(?bool $sendNotifToDeclarant): self
-    {
+    public function setSendNotifToDeclarant(?bool $sendNotifToDeclarant): self {
         $this->sendNotifToDeclarant = $sendNotifToDeclarant;
 
         return $this;
     }
 
-    public function getType(): ?Type
-    {
+    public function getType(): ?Type {
         return $this->type;
     }
 
-    public function setType(?Type $type): self
-    {
+    public function setType(?Type $type): self {
         $this->type = $type;
 
         return $this;
     }
 
-    public function getSendNotifToRecipient(): ?bool
-    {
+    public function getSendNotifToRecipient(): ?bool {
         return $this->sendNotifToRecipient;
     }
 
-    public function setSendNotifToRecipient(?bool $sendNotifToRecipient): self
-    {
+    public function setSendNotifToRecipient(?bool $sendNotifToRecipient): self {
         $this->sendNotifToRecipient = $sendNotifToRecipient;
 
         return $this;
     }
 
-    public function getNeedsMobileSync(): ?bool
-    {
+    public function getNeedsMobileSync(): ?bool {
         return $this->needsMobileSync;
     }
 
-    public function setNeedsMobileSync(?bool $needsMobileSync): self
-    {
+    public function setNeedsMobileSync(?bool $needsMobileSync): self {
         $this->needsMobileSync = $needsMobileSync;
 
         return $this;
     }
 
-    public function getAutomaticReceptionCreation(): ?bool
-    {
+    public function getAutomaticReceptionCreation(): ?bool {
         return $this->automaticReceptionCreation;
     }
 
-    public function setAutomaticReceptionCreation(?bool $automaticReceptionCreation): self
-    {
+    public function setAutomaticReceptionCreation(?bool $automaticReceptionCreation): self {
         $this->automaticReceptionCreation = $automaticReceptionCreation;
 
         return $this;
@@ -800,14 +674,12 @@ class Statut
     /**
      * @return Collection|PurchaseRequest[]
      */
-    public function getPurchaseRequests(): Collection
-    {
+    public function getPurchaseRequests(): Collection {
         return $this->purchaseRequests;
     }
 
-    public function addPurchaseRequest(PurchaseRequest $purchaseRequest): self
-    {
-        if (!$this->purchaseRequests->contains($purchaseRequest)) {
+    public function addPurchaseRequest(PurchaseRequest $purchaseRequest): self {
+        if(!$this->purchaseRequests->contains($purchaseRequest)) {
             $this->purchaseRequests[] = $purchaseRequest;
             $purchaseRequest->setStatus($this);
         }
@@ -815,11 +687,10 @@ class Statut
         return $this;
     }
 
-    public function removePurchaseRequest(PurchaseRequest $purchaseRequest): self
-    {
-        if ($this->purchaseRequests->removeElement($purchaseRequest)) {
+    public function removePurchaseRequest(PurchaseRequest $purchaseRequest): self {
+        if($this->purchaseRequests->removeElement($purchaseRequest)) {
             // set the owning side to null (unless already changed)
-            if ($purchaseRequest->getStatus() === $this) {
+            if($purchaseRequest->getStatus() === $this) {
                 $purchaseRequest->setStatus(null);
             }
         }
@@ -843,14 +714,12 @@ class Statut
     /**
      * @return Collection|HandlingRequestTemplate[]
      */
-    public function getHandlingRequestStatusTemplates(): Collection
-    {
+    public function getHandlingRequestStatusTemplates(): Collection {
         return $this->handlingRequestStatusTemplates;
     }
 
-    public function addHandlingRequestStatusTemplate(HandlingRequestTemplate $handlingRequestStatusTemplate): self
-    {
-        if (!$this->handlingRequestStatusTemplates->contains($handlingRequestStatusTemplate)) {
+    public function addHandlingRequestStatusTemplate(HandlingRequestTemplate $handlingRequestStatusTemplate): self {
+        if(!$this->handlingRequestStatusTemplates->contains($handlingRequestStatusTemplate)) {
             $this->handlingRequestStatusTemplates[] = $handlingRequestStatusTemplate;
             $handlingRequestStatusTemplate->setRequestStatus($this);
         }
@@ -858,11 +727,10 @@ class Statut
         return $this;
     }
 
-    public function removeHandlingRequestStatusTemplate(HandlingRequestTemplate $handlingRequestStatusTemplate): self
-    {
-        if ($this->handlingRequestStatusTemplates->removeElement($handlingRequestStatusTemplate)) {
+    public function removeHandlingRequestStatusTemplate(HandlingRequestTemplate $handlingRequestStatusTemplate): self {
+        if($this->handlingRequestStatusTemplates->removeElement($handlingRequestStatusTemplate)) {
             // set the owning side to null (unless already changed)
-            if ($handlingRequestStatusTemplate->getRequestStatus() === $this) {
+            if($handlingRequestStatusTemplate->getRequestStatus() === $this) {
                 $handlingRequestStatusTemplate->setRequestStatus(null);
             }
         }

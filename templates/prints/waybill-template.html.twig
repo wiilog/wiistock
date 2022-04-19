@@ -82,6 +82,17 @@
             max-height: 100px;
             max-width: 100px;
         }
+
+        .qr {
+            display: inline-block;
+            height: 2cm;
+            width: 2cm;
+        }
+
+        .dispatch-main-details {
+            display: inline-block;
+            margin-right: 10px;"
+        }
     </style>
 </head>
 <body>
@@ -90,19 +101,29 @@
         <div>
             {% if logo %}
                 <img class="image-title"
-                     src="{{ 'https://' ~ app.request.httpHost ~ "/uploads/attachements/" ~ logo }}"
+                     src="{{ 'https://' ~ app.request.httpHost ~ "/" ~ logo }}"
                      alt="GT Logistics"/>
             {% endif %}
         </div>
         <div>
-            <div class="header">
-                Lettre de voiture N°{{ dispatch.number }}<br>
-            </div>
+            <div class="dispatch-main-details">
+                <div class="header">
+                    Lettre de voiture N°{{ dispatch.number }}<br>
+                </div>
 
-            Date d'acheminement {{ dispatch.waybillData.dispatchDate }}
+                Date d'acheminement {{ dispatch.waybillData.dispatchDate }}
+            </div>
+            <div class="qr">
+                {{ printBarcode({
+                    code: dispatch.number,
+                    type: 'qrcode',
+                    format: 'svg',
+                    height: 100,
+                    width: 100
+                }) | raw }}
+            </div>
         </div>
     </div>
-
 
     <div class="split">
         <div>
@@ -127,22 +148,22 @@
         <div>
             <label>Contact expéditeur</label><br>
             Nom : {{ dispatch.waybillData.consignorUsername }}<br>
-            Téléphone / mail : {{ dispatch.waybillData.consignorEmail }}
+            Téléphone / email : {{ dispatch.waybillData.consignorEmail }}
         </div>
         <div>
             <label>Contact destinataire</label><br>
             Nom : {{ dispatch.waybillData.receiverUsername }}<br>
-            Téléphone / mail : {{ dispatch.waybillData.receiverEmail }}
+            Téléphone / email : {{ dispatch.waybillData.receiverEmail }}
         </div>
     </div>
 
     <table class="invisible">
         <tr>
-            <td class="no-padding"><label>Lieu de chargement :</label></td>
+            <td class="no-padding"><label>Lieu de chargement&nbsp;:</label></td>
             <td>{{ dispatch.waybillData.locationFrom }}</td>
         </tr>
         <tr>
-            <td class="no-padding"><label>Lieu de déchargement :</label></td>
+            <td class="no-padding"><label>Lieu de déchargement&nbsp;:</label></td>
             <td>{{ dispatch.waybillData.locationTo }}</td>
         </tr>
     </table>

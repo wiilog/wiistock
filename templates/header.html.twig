@@ -9,7 +9,7 @@
     <div class="px-lg-3 w-100">
         <div class="row align-items-center {{ withOnlyLogo ? 'justify-content-center' }}">
             <div class="col-12 col-lg-auto d-flex align-items-end justify-content-center">
-                <a class="position-relative" href="{{ path('accueil') }}">
+                <a class="position-relative" href="{{ path('app_index') }}">
                     <img src="{{ logo('website') }}" alt="Follow GT" height="100" class="sizeLogo"/>
                 </a>
                 <span class="web-version d-none d-lg-inline">{{ web_version }}</span>
@@ -69,6 +69,10 @@
                         hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_TRANSFER_REQ'))
                         and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE'))
                     ) %}
+                    {% set hasTransportRights = (
+                        hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_TRANSPORT'))
+                        and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE_TRANSPORT'))
+                    ) %}
                     {% set hasPurchaseRequestRights = (
                         hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE'))
                         and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE_PURCHASE_REQUESTS'))
@@ -102,17 +106,17 @@
 
                                 {% if hasDeliveryRights %}
                                     {% set isCurrentPage = (app.request.attributes.get('_route') == 'demande_index') %}
-                                    <a class="d-flex align-items-start"
+                                    <a class="d-flex align-items-center"
                                        onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new'}, event)" }}"
                                        href="{{ path('demande_index', {'open-modal': 'new'}) }}">
-                                        <span class="wii-icon wii-icon-delivery quick-menu-icon mx-2"></span>
+                                        <span class="wii-icon wii-icon-menu-delivery quick-menu-icon mx-2"></span>
                                         <span class="flex-fill align-self-center">Livraison</span>
                                     </a>
                                 {% endif %}
 
                                 {% if hasCollectRights %}
                                     {% set isCurrentPage = (app.request.attributes.get('_route') == 'collecte_index') %}
-                                    <a class="d-flex align-items-start"
+                                    <a class="d-flex align-items-center"
                                        onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new'}, event)" }}"
                                        href="{{ path('collecte_index', {'open-modal': 'new'}) }}">
                                         <span class="wii-icon wii-icon-import quick-menu-icon mx-2"></span>
@@ -121,7 +125,7 @@
                                 {% endif %}
                                 {% if hasHandlingRights %}
                                     {% set isCurrentPage = (app.request.attributes.get('_route') == 'handling_index') %}
-                                    <a class="d-flex align-items-start"
+                                    <a class="d-flex align-items-center"
                                        onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new'}, event)" }}"
                                        href="{{ path('handling_index', {'open-modal': 'new'}) }}"
                                        title="Service">
@@ -131,7 +135,7 @@
                                 {% endif %}
                                 {% if hasDispatchRights %}
                                     {% set isCurrentPage = (app.request.attributes.get('_route') == 'dispatch_index') %}
-                                    <a class="d-flex align-items-start"
+                                    <a class="d-flex align-items-center"
                                        onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new'}, event)" }}"
                                        href="{{ path('dispatch_index', {'open-modal': 'new'}) }}"
                                        title="Acheminements">
@@ -141,24 +145,35 @@
                                 {% endif %}
                                 {% if hasTransferRights %}
                                     {% set isCurrentPage = (app.request.attributes.get('_route') == 'transfer_request_index') %}
-                                    <a
-                                        onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new'}, event)" }}"
-                                        href="{{ path('transfer_request_index', {'open-modal': 'new'}) }}"
-                                        title="Transfert">
+                                    <a class="d-flex align-items-center"
+                                       onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new'}, event)" }}"
+                                       href="{{ path('transfer_request_index', {'open-modal': 'new'}) }}"
+                                       title="Transfert">
                                         <span class="wii-icon wii-icon-transfer quick-menu-icon mx-2"></span>
                                         <span class="flex-fill align-self-center">Transfert</span>
                                     </a>
                                 {% endif %}
                                 {% if hasPurchaseRequestRights %}
-                                    <a
-                                        onclick="createPurchaseRequest()"
-                                        title="Achat">
+                                    <a class="d-flex align-items-center"
+                                       onclick="createPurchaseRequest()"
+                                       title="Achat">
                                         <span class="wii-icon wii-icon-menu-achat quick-menu-icon mx-2"></span>
                                         <span class="flex-fill align-self-center">Achat</span>
                                     </a>
                                 {% endif %}
+                                {% if hasTransportRights %}
+                                    {% set isCurrentPage = (app.request.attributes.get('_route') == 'transport_request_index') %}
+                                    <a class="d-flex align-items-center"
+                                       onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new'}, event)" }}"
+                                       href="{{ path('transport_request_index', {'open-modal': 'new'}) }}"
+                                       title="Transport">
+                                        <span class="wii-icon wii-icon-transport quick-menu-icon mx-2"></span>
+                                        <span class="flex-fill align-self-center">Transport</span>
+                                    </a>
+                                {% endif %}
                                 {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) and app.user.role.label == constant('App\\Entity\\Role::CLIENT_UTIL') %}
-                                    <a class="d-flex align-items-start" href="https://forms.office.com/Pages/ResponsePage.aspx?id=NhgDLW_TpECPU10VG8Uz0ORO07yh8_dHp_ZRkVcMgQJURjJHVzA5RjNHSEFXTkM4T1lWSllSSkFZVy4u" >
+                                    <a class="d-flex align-items-center"
+                                       href="https://forms.office.com/Pages/ResponsePage.aspx?id=NhgDLW_TpECPU10VG8Uz0ORO07yh8_dHp_ZRkVcMgQJURjJHVzA5RjNHSEFXTkM4T1lWSllSSkFZVy4u">
                                         <span class="wii-icon wii-icon-add quick-menu-icon mx-2"></span>
                                         <span class="flex-fill align-self-center">Créer un article</span>
                                     </a>
@@ -172,11 +187,23 @@
                     and app.user is defined
                     and app.user
                     and app.user.username is defined %}
-                    <a class="col col-lg-auto user d-flex align-items-center"
-                       href="{{ path('user_index', {'open-modal': 'edit', 'modal-edit-id': app.user.id }) }}">
-                        <div class="profile-picture">{{ app.user.username | first | upper }}</div>
-                        <div class="flex-fill text-center text-truncate">{{ app.user.username }}</div>
-                    </a>
+                    {% if hasRight(constant('App\\Entity\\Menu::PARAM'), constant('App\\Entity\\Action::SETTINGS_USERS')) %}
+                        <a class="col col-lg-auto user d-flex align-items-center"
+                           href="{{ path('settings_item', {
+                               'category': constant('App\\Controller\\Settings\\SettingsController::CATEGORY_USERS'),
+                               'menu': constant('App\\Controller\\Settings\\SettingsController::MENU_USERS'),
+                               'open-modal': 'edit',
+                               'modal-edit-id': app.user.id
+                           }) }}">
+                            <div class="profile-picture">{{ app.user.username | first | upper }}</div>
+                            <div class="flex-fill text-center text-truncate">{{ app.user.username }}</div>
+                        </a>
+                    {% else %}
+                        <div class="col col-lg-auto user d-flex align-items-center user-select-none">
+                            <div class="profile-picture">{{ app.user.username | first | upper }}</div>
+                            <div class="flex-fill text-center text-truncate">{{ app.user.username }}</div>
+                        </div>
+                    {% endif %}
                     <nav id="main-nav" class="text-white col-auto dropdown dropleft">
                         <div class="menu-button rounded pointer"
                              data-toggle="dropdown"

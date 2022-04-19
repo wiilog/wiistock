@@ -1,4 +1,4 @@
-<div class="col-auto pb-2">
+<div class="col-auto pb-2 filter-parent" data-removable="{{ removable ?? true }}">
     <div class="btn filter has-tooltip"
          title="{{ (filter.fixedField ? filter.fixedField : filter.freeField.label) | capitalize }} : {{ filter.value }}">
         <div class="row align-items-center">

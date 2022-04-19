@@ -290,10 +290,10 @@ class MouvementStockRepository extends EntityRepository
     {
         $queryBuilder = $this->createQueryBuilder('mouvementStock');
 
-        if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+        if ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
             $queryBuilder->andWhere('mouvementStock.refArticle = :refArticle');
         }
-        else if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+        else if ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
             $queryBuilder
                 ->join('mouvementStock.article', 'article')
                 ->join('article.articleFournisseur', 'articleFournisseur')
@@ -400,8 +400,8 @@ class MouvementStockRepository extends EntityRepository
         }
         //Filter search
         if (!empty($params)) {
-            if (!empty($params->get('search'))) {
-                $search = $params->get('search')['value'];
+            if (!empty($params->all('search'))) {
+                $search = $params->all('search')['value'];
                 if (!empty($search)) {
                     $queryBuilder
                         ->leftJoin('stock_movement.refArticle', 'ra3')
@@ -425,10 +425,10 @@ class MouvementStockRepository extends EntityRepository
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
-            if (!empty($params->get('order'))) {
-                $order = $params->get('order')[0]['dir'];
+            if (!empty($params->all('order'))) {
+                $order = $params->all('order')[0]['dir'];
                 if (!empty($order)) {
-                    $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
+                    $column = self::DtToDbLabels[$params->all('columns')[$params->all('order')[0]['column']]['data']];
 
                     if ($column === 'refArticle') {
                         $queryBuilder

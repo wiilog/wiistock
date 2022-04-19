@@ -10,6 +10,7 @@ use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\Livraison;
 use App\Entity\Menu;
+use App\Entity\Setting;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Statut;
@@ -127,10 +128,10 @@ class LivraisonController extends AbstractController
                 $article = $articleLine->getArticle();
                 if ($articleLine->getQuantityToPick() !== 0 && $articleLine->getPickedQuantity() !== 0) {
                     $rows[] = [
-                        "Référence" => $article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
-                        "Libellé" => $article->getLabel() ?: '',
-                        "Emplacement" => $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
-                        "Quantité" => $articleLine->getPickedQuantity(),
+                        "reference" => $article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
+                        "label" => $article->getLabel() ?: '',
+                        "location" => FormatHelper::location($article->getEmplacement()),
+                        "quantity" => $articleLine->getPickedQuantity(),
                         "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
                             'id' => $article->getId(),
                         ])
@@ -143,10 +144,10 @@ class LivraisonController extends AbstractController
                 if ($referenceLine->getPickedQuantity() > 0) {
                     $reference = $referenceLine->getReference();
                     $rows[] = [
-                        "Référence" => $reference->getReference(),
-                        "Libellé" => $reference->getLibelle(),
-                        "Emplacement" => $reference->getEmplacement() ? $reference->getEmplacement()->getLabel() : '',
-                        "Quantité" => $referenceLine->getPickedQuantity(),
+                        "reference" => $reference->getReference(),
+                        "label" => $reference->getLibelle(),
+                        "location" =>  FormatHelper::location($reference->getEmplacement()),
+                        "quantity" => $referenceLine->getPickedQuantity(),
                         "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
                             'refArticleId' => $reference->getId(),
                         ])
@@ -165,7 +166,7 @@ class LivraisonController extends AbstractController
      * @Route("/voir/{id}", name="livraison_show", methods={"GET","POST"})
      * @HasPermission({Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR})
      */
-    public function show(Livraison $livraison): Response
+    public function show(Livraison $livraison, EntityManagerInterface $manager): Response
     {
         $demande = $livraison->getDemande();
 

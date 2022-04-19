@@ -5,7 +5,6 @@ namespace App\Repository\DeliveryRequest;
 use App\Entity\Article;
 use App\Entity\AverageRequestTime;
 use App\Entity\DeliveryRequest\Demande;
-use App\Entity\Dispatch;
 use App\Entity\Reception;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
@@ -138,7 +137,7 @@ class DemandeRepository extends EntityRepository
             ->getSingleScalarResult();
 	}
 
-	public function findByParamsAndFilters(InputBag $params, $filters, $receptionFilter, Utilisateur $user): array
+	public function findByParamsAndFilters(InputBag $params, $filters, $receptionFilter, Utilisateur $user, VisibleColumnService $visibleColumnService): array
     {
         $qb = $this->createQueryBuilder("delivery_request");
 
@@ -187,8 +186,8 @@ class DemandeRepository extends EntityRepository
 
 		//Filter search
         if (!empty($params)) {
-            if (!empty($params->get('search'))) {
-                $search = $params->get('search')['value'];
+            if (!empty($params->all('search'))) {
+                $search = $params->all('search')['value'];
                 if (!empty($search)) {
                     $conditions = [
                         "createdAt" => "DATE_FORMAT(delivery_request.createdAt, '%d/%m/%Y') LIKE :search_value",
@@ -201,7 +200,7 @@ class DemandeRepository extends EntityRepository
                         "type" => "search_type.label LIKE :search_value",
                     ];
 
-                    $condition = VisibleColumnService::getSearchableColumns($conditions, 'deliveryRequest', $qb, $user);
+                    $condition = $visibleColumnService->getSearchableColumns($conditions, 'deliveryRequest', $qb, $user, $search);
 
                     $qb
                         ->andWhere($condition)
@@ -213,12 +212,12 @@ class DemandeRepository extends EntityRepository
                 }
             }
 
-            if (!empty($params->get('order')))
+            if (!empty($params->all('order')))
             {
-                $order = $params->get('order')[0]['dir'];
+                $order = $params->all('order')[0]['dir'];
                 if (!empty($order))
                 {
-                    $column = $params->get('columns')[$params->get('order')[0]['column']]['data'];
+                    $column = $params->all('columns')[$params->all('order')[0]['column']]['data'];
                     if ($column === 'type') {
                         $qb
                             ->leftJoin('delivery_request.type', 'order_type')
@@ -456,7 +455,7 @@ class DemandeRepository extends EntityRepository
             ->where('delivery_request.numero LIKE :value')
             ->orderBy('delivery_request.createdAt', 'DESC')
             ->addOrderBy('delivery_request.numero', 'DESC')
-            ->setParameter('value', Demande::PREFIX_NUMBER . '-' . $date . '%')
+            ->setParameter('value', Demande::NUMBER_PREFIX . '-' . $date . '%')
             ->getQuery()
             ->execute();
         return $result ? $result[0]['numero'] : null;

@@ -2,6 +2,9 @@
     "beberlei/doctrineextensions": {
         "version": "v1.3.0"
     },
+    "composer/package-versions-deprecated": {
+        "version": "1.11.99.4"
+    },
     "composer/semver": {
         "version": "3.2.4"
     },
@@ -159,6 +162,9 @@
     "guzzlehttp/psr7": {
         "version": "1.8.2"
     },
+    "jetbrains/phpstorm-attributes": {
+        "version": "1.0"
+    },
     "knplabs/knp-snappy": {
         "version": "v1.2.1"
     },
@@ -198,9 +204,6 @@
     "nikic/php-parser": {
         "version": "v4.10.4"
     },
-    "nikitospush/barcode-bundle": {
-        "version": "v3.0.2"
-    },
     "ovh/ovh": {
         "version": "v3.0.0"
     },
@@ -215,9 +218,6 @@
     },
     "phar-io/version": {
         "version": "3.1.0"
-    },
-    "php": {
-        "version": "7.4"
     },
     "phpdocumentor/reflection-common": {
         "version": "2.2.0"
@@ -571,9 +571,6 @@
     "symfony/polyfill-mbstring": {
         "version": "v1.22.0"
     },
-    "symfony/polyfill-php73": {
-        "version": "v1.22.0"
-    },
     "symfony/polyfill-php80": {
         "version": "v1.22.0"
     },
@@ -622,9 +619,6 @@
         "version": "v5.2.2"
     },
     "symfony/security-csrf": {
-        "version": "v5.2.2"
-    },
-    "symfony/security-guard": {
         "version": "v5.2.2"
     },
     "symfony/security-http": {
@@ -750,6 +744,9 @@
     },
     "webmozart/assert": {
         "version": "1.9.1"
+    },
+    "wiilog/barcode-bundle": {
+        "version": "dev-master"
     },
     "wiilog/common": {
         "version": "dev-master"

@@ -8,7 +8,6 @@
 
 html {
     height: 100%;
-    overflow: auto;
 
     body {
         font-family: $mainFont, Helvetica, Arial, sans-serif;
@@ -184,8 +183,16 @@ a {
     max-width: 250px;
 }
 
+.maxw-150px {
+    max-width: 150px !important;
+}
+
+.maxw-70px {
+    max-width: 70px !important;
+}
+
 .minw-150px {
-    min-width: 300px !important;
+    min-width: 150px !important;
 }
 
 .minw-100px {
@@ -196,12 +203,20 @@ a {
     min-width: 200px !important;
 }
 
+.minw-300px {
+    min-width: 300px !important;
+}
+
 .minw-450px {
     min-width: 450px !important;
 }
 
 .w-120px {
     width: 120px;
+}
+
+.w-300px, .w-300px + .select2.select2-container {
+    width: 300px !important;
 }
 
 .w-49 {
@@ -395,8 +410,12 @@ label.required:after {
     }
 }
 
-.stripped-blue-background {
-    background: repeating-linear-gradient(45deg, #d6d6d6, #d6d6d6 10px, #606dbc 10px, #606dbc 20px);
+.stripped-background {
+    background-color: #F2F3F7;
+    opacity: 0.8;
+    background-image:  repeating-linear-gradient(45deg, #CBCBCB 25%, transparent 25%, transparent 75%, #CBCBCB 75%, #CBCBCB), repeating-linear-gradient(45deg, #CBCBCB 25%, #F2F3F7 25%, #F2F3F7 75%, #CBCBCB 75%, #CBCBCB);
+    background-position: 0 0, 10px 10px;
+    background-size: 20px 20px;
 }
 
 .overflow-y-hidden {
@@ -436,7 +455,7 @@ label.required:after {
         }
 
         .type {
-            background-color: #CBCBCB;
+            background-color: $grey;
             width: 100%;
             border-top-left-radius: 5px;
 
@@ -581,9 +600,6 @@ label.required:after {
     }
 }
 
-$blue: #3353D7;
-$grey: #CBCBCB;
-
 .wii-form {
     label {
         vertical-align: middle;
@@ -604,19 +620,16 @@ $grey: #CBCBCB;
             width: 100%;
         }
 
-        input[type="checkbox"] {
-            margin-right: 7px;
-            width: 20px;
-            height: 20px;
-            border-radius: 5px;
-        }
-
         input, .select2.select2-container {
             margin-top: 5px;
+
+            &:disabled {
+                cursor: not-allowed;
+            }
         }
 
         input[type="radio"] {
-            margin-top: 0px;
+            margin-top: 0;
         }
     }
 
@@ -628,8 +641,8 @@ $grey: #CBCBCB;
     }
 
     .increase-decrease-field .increase, .increase-decrease-field .decrease {
-        border-color: $blue;
-        color: $blue;
+        border-color: $primary;
+        color: $primary;
     }
 
     .content {
@@ -657,6 +670,10 @@ $grey: #CBCBCB;
     }
 }
 
+.wii-box-container {
+    margin-top: 30px;
+}
+
 .wii-box {
     background: white;
     border-radius: 5px;
@@ -668,8 +685,13 @@ $grey: #CBCBCB;
     }
 
     .header {
-        padding: 16px 20px;
+        padding: 16px #{$grid-gutter-width};
         border-bottom: 1px solid $grey;
+
+        &.optioned {
+            padding-top: 11px;
+            padding-bottom: 11px;
+        }
     }
 
     .content {
@@ -723,7 +745,7 @@ $grey: #CBCBCB;
 }
 
 .wii-title {
-    color: $blue;
+    color: $primary;
     font-size: 18px;
     font-weight: bold;
 }
@@ -734,6 +756,12 @@ $grey: #CBCBCB;
     font-weight: bold !important;
 }
 
+.wii-describe {
+    color: #777777 !important;
+    font-size: 14px !important;
+    font-weight: normal !important;
+}
+
 .wii-label {
     color: #000000;
     font-size: 18px;
@@ -741,13 +769,13 @@ $grey: #CBCBCB;
 }
 
 .wii-field-name {
-    color: #000000;
+    color: #000000 !important;
     font-size: 14px;
     font-weight: bold;
 }
 
 .wii-field-text {
-    color: #000000;
+    color: #000000 !important;
     font-size: 16px;
     font-weight: normal;
 }
@@ -771,7 +799,8 @@ $grey: #CBCBCB;
 
 .wii-small-text {
     color: #666666;
-    font-size: 12px;
+    font-size: 13px;
+    font-weight: normal;
 }
 
 .wii-medium-text {
@@ -779,6 +808,85 @@ $grey: #CBCBCB;
     font-size: 14px;
 }
 
+.wii-big-text {
+    color: #666666;
+    font-size: 16px;
+}
+
 .nowrap {
     white-space: nowrap;
+}
+
+.add-pack-row {
+    cursor: pointer;
+}
+
+.wii-icon-plus {
+    display: inline-block;
+    background-color: $grey;
+    width: 18px;
+    height: 18px;
+}
+
+.wii-icon-trash {
+    display: block;
+    background-color: $primary;
+    width: 18px;
+    height: 18px;
+}
+.p-sticky {
+    position: sticky !important;
+    top: 0;
+    left: 0;
+}
+
+.font-weight-regular {
+    font-weight: 400 !important;
+}
+
+.wii-section-title {
+    color: black;
+    background-color: #F2F3F7;
+    padding: 5px #{$grid-gutter-width};
+    font-weight: 600;
+    display: block;
+
+    .modal-body & {
+        padding: 5px #{$modal-inner-padding};
+        margin-left: -$modal-inner-padding;
+        margin-right: -$modal-inner-padding;
+    }
+
+    .wii-icon {
+        display: inline-block;
+        height: 12px;
+        width: 12px;
+    }
+}
+
+.text-regular {
+    font-weight: normal !important;
+}
+
+.mt-15px {
+    margin-top: 15px;
+}
+
+.flag {
+    width: 20px;
+    height: 20px;
+    border-radius: 100%;
+}
+
+.flag-radio {
+    display: flex;
+    align-items: center;
+
+    .flag {
+        margin: 0 10px;
+    }
+}
+
+.d-grid {
+    display: grid !important;
 }

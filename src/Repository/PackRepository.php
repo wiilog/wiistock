@@ -6,6 +6,7 @@ use App\Entity\Emplacement;
 use App\Entity\IOT\Sensor;
 use App\Entity\LocationGroup;
 use App\Entity\Pack;
+use App\Entity\TrackingMovement;
 use DateTimeInterface;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
@@ -208,8 +209,8 @@ class PackRepository extends EntityRepository
 
         //Filter search
         if (!empty($params)) {
-            if (!empty($params->get('search'))) {
-                $search = $params->get('search')['value'];
+            if (!empty($params->all('search'))) {
+                $search = $params->all('search')['value'];
                 if (!empty($search)) {
                     $queryBuilder
                         ->leftJoin('pack.lastTracking', 'm2')
@@ -228,10 +229,10 @@ class PackRepository extends EntityRepository
                 }
             }
 
-            if (!empty($params->get('order'))) {
-                $order = $params->get('order')[0]['dir'];
+            if (!empty($params->all('order'))) {
+                $order = $params->all('order')[0]['dir'];
                 if (!empty($order)) {
-                    $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']] ?? 'id';
+                    $column = self::DtToDbLabels[$params->all('columns')[$params->all('order')[0]['column']]['data']] ?? 'id';
                     if ($column === 'packLocation') {
                         $queryBuilder
                             ->leftJoin('pack.lastTracking', 'm3')
@@ -523,13 +524,74 @@ class PackRepository extends EntityRepository
         return $res[0]['count'] ?? 0;
     }
 
-    public function getForSelect(?string $term) {
-        $qb = $this->createQueryBuilder("pack");
+    public function getForSelect(?string $term, $exclude) {
+        if($exclude && !is_array($exclude)) {
+            $exclude = [$exclude];
+        }
 
-        return $qb->select("pack.id AS id")
+        $qb = $this->createQueryBuilder("pack")
+            ->select("pack.id AS id")
             ->addSelect("pack.code AS text")
-            ->where("pack.code LIKE :term")
-            ->setParameter("term", "%$term%")
+            ->addSelect("nature.id AS nature_id")
+            ->addSelect("nature.label AS nature_label")
+            ->addSelect("pack.weight AS weight")
+            ->addSelect("pack.volume AS volume")
+            ->addSelect("pack.comment AS comment")
+            ->addSelect("DATE_FORMAT(last_tracking.datetime, '%d/%m/%Y %H:%i') AS lastMvtDate")
+            ->addSelect("last_tracking_location.label AS lastLocation")
+            ->addSelect("last_tracking_user.username AS operator")
+            ->andWhere("pack.code LIKE :term")
+            ->leftJoin("pack.nature", "nature")
+            ->leftJoin("pack.lastTracking", "last_tracking")
+            ->leftJoin("last_tracking.emplacement", "last_tracking_location")
+            ->leftJoin("last_tracking.operateur", "last_tracking_user")
+            ->setParameter("term", "%$term%");
+
+        if($exclude) {
+            $qb->andWhere("pack.code NOT IN (:exclude)")
+                ->setParameter("exclude", $exclude);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
+    /**
+     * @param int[] $waitingDays Number of days returned packs are waiting on their delivery point
+     * @return Pack[]
+     */
+    public function findOngoingPacksOnDeliveryPoints(array $waitingDays): array {
+        if (empty($waitingDays)) {
+            throw new \RuntimeException("waitingDays shouldn't be empty");
+        }
+
+        $subQuery = $this->createQueryBuilder('pack')
+            ->addSelect('DATEDIFF(NOW(), IF(dropGroupLocation.id IS NULL, lastDrop.datetime, MIN(movement.datetime))) AS packWaitingDays')
+
+            ->join('pack.lastDrop', 'lastDrop')
+            ->join('pack.arrivage', 'arrival')
+            ->join('lastDrop.emplacement', 'dropLocation')
+            ->leftJoin('dropLocation.locationGroup', 'dropGroupLocation')
+
+            ->join('pack.trackingMovements', 'movement')
+            ->join('movement.emplacement', 'movementLocation')
+            ->join('movement.type', 'movementType')
+            ->leftJoin('movementLocation.locationGroup', 'locationGroup')
+
+            ->andWhere('arrival IS NOT NULL')
+            ->andWhere('arrival.destinataire IS NOT NULL')
+            ->andWhere('dropLocation.isDeliveryPoint = true')
+
+            ->andWhere('dropGroupLocation.id IS NULL OR dropGroupLocation.id = locationGroup.id')
+            ->andWhere('movementType.code = :dropType')
+
+            ->groupBy('pack')
+
+            ->having("packWaitingDays IN (:waitingDays)")
+
+            ->setParameter('dropType', TrackingMovement::TYPE_DEPOSE)
+            ->setParameter('waitingDays', $waitingDays);
+
+        return $subQuery
             ->getQuery()
             ->getResult();
     }

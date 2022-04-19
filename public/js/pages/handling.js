@@ -5,7 +5,6 @@ $(function() {
     initModals(tableHandling);
 
     initDateTimePicker();
-    Select2Old.init($('.filter-select2[name="statut"]'), 'Statuts');
     Select2Old.user($('.filter-select2[name="utilisateurs"]'), 'Demandeurs');
     Select2Old.user($('.filter-select2[name="receivers"]'), 'Destinataires');
     Select2Old.init($('.filter-select2[name="emergencyMultiple"]'), 'Urgences');
@@ -37,12 +36,7 @@ $(function() {
 
 
 //initialisation editeur de texte une seule fois
-let editorNewHandlingAlreadyDone = false;
 function initNewHandlingEditor(modal) {
-    if (!editorNewHandlingAlreadyDone) {
-        initEditor('.editor-container-new');
-        editorNewHandlingAlreadyDone = true;
-    }
     Select2Old.location($('.ajax-autocomplete-location'));
     onTypeChange($(modal).find('select[name="type"]'));
 }

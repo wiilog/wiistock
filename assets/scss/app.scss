@@ -14,30 +14,11 @@ $fa-font-path: '~@fortawesome/fontawesome-free/webfonts';
 @import "~datatables.net-buttons-dt/css/buttons.dataTables.css";
 @import "~leaflet/dist/leaflet.css";
 @import '~intl-tel-input/build/css/intlTelInput.css';
-
-
-.checkbox input[type="checkbox"]:checked + label:after {
-    font-family: "Font Awesome 5 Free";
-    font-weight: 900;
-    content: $fa-var-apple;
-}
+@import "~leaflet.markercluster/dist/MarkerCluster.css";
+@import "~leaflet.markercluster/dist/MarkerCluster.Default.css";
 
 .dataTables_wrapper.no-footer .dataTables_scrollBody {
     border: none;
-}
-
-.search-input {
-    display: block;
-    width: 100%;
-    height: 34px;
-    padding: 6px 12px;
-    font-size: 14px;
-    line-height: 1.42857143;
-    color: #555;
-    background-color: #fff;
-    background-image: none;
-    border: 1px solid #ccc;
-    border-radius: 4px;
 }
 
 @import "collapsible";

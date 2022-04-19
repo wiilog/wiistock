@@ -169,8 +169,7 @@ class DemandeCollecteService
         $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
             $this->entityManager,
             $collecte,
-            CategorieCL::DEMANDE_COLLECTE,
-            CategoryType::DEMANDE_COLLECTE
+            ['type' => $collecte->getType()]
         );
 
         return array_merge(
@@ -268,17 +267,13 @@ class DemandeCollecteService
 
     public function serialiseExportRow(Collecte $collect,
                                        array $freeFieldsConfig,
-                                       FreeFieldService $freeFieldService,
                                        callable $getSpecificColumn) {
-
         $collecteData = $collect->serialize();
 
         $freeFieldsData = [];
-        foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
-            $freeFieldsData[] = $freeFieldService->serializeValue([
-                'typage' => $freeFieldsConfig['freeFieldsIdToTyping'][$freeFieldId],
-                'valeur' => $collecteData['freeFields'][$freeFieldId] ?? ""
-            ]);
+
+        foreach($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
+            $freeFieldsData[] = FormatHelper::freeField($collecteData['freeFields'][$freeFieldId] ?? '', $freeField);
         }
 
         unset($collecteData['freeFields']);

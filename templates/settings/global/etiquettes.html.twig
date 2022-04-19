@@ -1,0 +1,38 @@
+{% import 'form.html.twig' as form %}
+
+{% set label_logo = setting_value('LABEL_LOGO') %}
+
+<div class="wii-section">
+    <div class="row">
+        <div class="col-12 mb-3 wii-describe">
+            Paramétrage général pour gérer le format et l'apparence des étiquettes.
+        </div>
+        <div class="col-12">
+            {% set qr = constant('App\\Entity\\Setting::QR_CODE') %}
+            {% set ean = constant('App\\Entity\\Setting::CODE_128') %}
+            {{ form.switch(setting('BARCODE_TYPE_IS_128'), 'Type d\'étiquette', false, [
+                {label: ean['label'], value: ean['value'] ? 1 : 0, checked: setting_value('BARCODE_TYPE_IS_128') == ean['value'] },
+                {label: qr['label'], value: qr['value'] ? 1 : 0, checked: setting_value('BARCODE_TYPE_IS_128') == qr['value'] },
+            ]) }}
+        </div>
+
+        <div class="col-md-6 col-12 d-flex mt-3">
+            {{ form.number(setting('LABEL_HEIGHT'), 'Hauteur (mm)', false, setting_value('LABEL_HEIGHT'), {
+                buttons: false,
+            }) }}
+            <span class="mr-2"></span>
+            {{ form.number(setting('LABEL_WIDTH'), 'Largeur (mm)', false, setting_value('LABEL_WIDTH'), {
+                buttons: false,
+            }) }}
+        </div>
+
+        <div class="col-md-6 col-12"></div>
+
+        <div class="form-group d-flex flex-column col-auto mt-3">
+            {{ form.image(setting('LABEL_LOGO'), 'Logo sur étiquette', false, setting_value('LABEL_LOGO'), {
+                formats: 'image/png, image/jpeg, image/jpg',
+                tooltip: 'Logo visible sur les étiquettes de colis d’arrivages, des articles, et sur le bon d’acheminement',
+            }) }}
+        </div>
+    </div>
+</div>

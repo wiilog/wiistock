@@ -10,112 +10,75 @@ use App\Entity\IOT\SensorWrapper;
 use App\Entity\Traits\CommentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Helper\FormatHelper;
+use App\Repository\CollecteRepository;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use WiiCommon\Helper\Stream;
 
-/**
- * @ORM\Entity(repositoryClass="App\Repository\CollecteRepository")
- */
+#[ORM\Entity(repositoryClass: CollecteRepository::class)]
 class Collecte implements Serializable, PairedEntity {
 
     const CATEGORIE = 'collecte';
-
     const STATUT_COLLECTE = 'collecté';
     const STATUT_INCOMPLETE = 'partiellement collecté';
     const STATUT_A_TRAITER = 'à traiter';
     const STATUT_BROUILLON = 'brouillon';
-
     const DESTRUCT_STATE = 0;
     const STOCKPILLING_STATE = 1;
-
     use CommentTrait;
     use SensorMessageTrait;
     use FreeFieldsManagerTrait;
 
-    /**
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private $id;
 
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true, unique=true)
-     */
+    #[ORM\Column(type: 'string', length: 255, nullable: true, unique: true)]
     private $numero;
 
-    /**
-     * @ORM\Column(type="datetime", nullable=true)
-     */
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private $date;
 
-    /**
-     * @ORM\Column(type="datetime", nullable=true)
-     */
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private $validationDate;
 
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private $objet;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="collectes")
-     */
+    #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'collectes')]
     private $pointCollecte;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="collectes")
-     */
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'collectes')]
     private $demandeur;
 
-    /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Article", inversedBy="collectes")
-     */
+    #[ORM\ManyToMany(targetEntity: Article::class, inversedBy: 'collectes')]
     private $articles;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="collectes")
-     */
-
+    #[ORM\ManyToOne(targetEntity: Statut::class, inversedBy: 'collectes')]
     private $statut;
 
-    /**
-     * @ORM\Column(type="text", nullable=true)
-     */
+    #[ORM\Column(type: 'text', nullable: true)]
     private $commentaire;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\CollecteReference", mappedBy="collecte", cascade={"persist", "remove"})
-     */
+    #[ORM\OneToMany(targetEntity: CollecteReference::class, mappedBy: 'collecte', cascade: ['persist', 'remove'])]
     private $collecteReferences;
 
-    /**
-     * @ORM\Column(type="boolean")
-     */
+    #[ORM\Column(type: 'boolean')]
     private $stockOrDestruct;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="collectes")
-     */
+    #[ORM\ManyToOne(targetEntity: Type::class, inversedBy: 'collectes')]
     private $type;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\MouvementStock", mappedBy="collecteOrder")
-     */
+    #[ORM\OneToMany(targetEntity: MouvementStock::class, mappedBy: 'collecteOrder')]
     private $mouvements;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\OrdreCollecte", mappedBy="demandeCollecte")
-     */
+    #[ORM\OneToMany(targetEntity: OrdreCollecte::class, mappedBy: 'demandeCollecte')]
     private $ordreCollecte;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=SensorWrapper::class)
-     */
+    #[ORM\ManyToOne(targetEntity: SensorWrapper::class)]
     private ?SensorWrapper $triggeringSensorWrapper = null;
 
     public function __construct() {
@@ -359,9 +322,9 @@ class Collecte implements Serializable, PairedEntity {
 
     public function getActivePairing(): ?Pairing {
         $activePairing = null;
-        foreach ($this->getOrdresCollecte() as $collectOrder) {
+        foreach($this->getOrdresCollecte() as $collectOrder) {
             $activePairing = $collectOrder->getActivePairing();
-            if (isset($activePairing)) {
+            if(isset($activePairing)) {
                 break;
             }
         }
@@ -386,7 +349,7 @@ class Collecte implements Serializable, PairedEntity {
             'requester' => FormatHelper::collectRequester($this),
             'gatheringPoint' => $this->getPointCollecte() ? $this->getPointCollecte()->getLabel() : '',
             'comment' => $this->getCommentaire() ? strip_tags($this->getCommentaire()) : '',
-            'freeFields' => $freeFieldData
+            'freeFields' => $freeFieldData,
         ];
     }
 

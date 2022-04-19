@@ -70,7 +70,6 @@ $.fn.dataTable.ext.search.push(
 
 $(function() {
     initDateTimePicker();
-    Select2Old.init($('#statut'), 'Statuts');
     Select2Old.user('Demandeurs');
 
     // applique les filtres si pré-remplis
@@ -119,14 +118,7 @@ $(function() {
     })
 });
 
-//initialisation editeur de texte une seule fois à la création
-let editorNewCollecteAlreadyDone = false;
-
 function initNewCollecteEditor(modal) {
-    if (!editorNewCollecteAlreadyDone) {
-        initEditorInModal(modal);
-        editorNewCollecteAlreadyDone = true;
-    }
     Select2Old.location($('.ajax-autocomplete-location'));
 
     const type = $(modal).find('select[name="type"] option:selected').val();

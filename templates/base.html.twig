@@ -7,7 +7,7 @@
 
     {% set titlePrefix = 'FollowGT' %}
     {% if block("title") is defined and block("title") is not empty %}
-        <title>{{ titlePrefix }} | {{ block("title") }}</title>
+        <title>{{ titlePrefix }} | {{ block("title") | striptags }}</title>
     {% else %}
         <title>{{ titlePrefix }}</title>
     {% endif %}
@@ -24,8 +24,7 @@
 </head>
 
 <body>
-
-        {% include 'notifications/notification.html.twig' %}
+    {% include 'notifications/notification.html.twig' %}
     {% block body %}
     {% endblock %}
 

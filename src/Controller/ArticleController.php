@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\ArticleFournisseur;
+use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\FreeField;
@@ -20,7 +21,6 @@ use App\Entity\Utilisateur;
 
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;
-use App\Service\CSVExportService;
 use App\Service\DemandeLivraisonService;
 use App\Service\MouvementStockService;
 use App\Service\PDFGeneratorService;
@@ -28,7 +28,6 @@ use App\Service\ArticleDataService;
 use App\Service\PreparationsManagerService;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
-use App\Service\FreeFieldService;
 use App\Annotation\HasPermission;
 
 use App\Service\VisibleColumnService;
@@ -41,6 +40,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use WiiCommon\Helper\Stream;
 
 /**
  * @Route("/article")
@@ -317,6 +317,20 @@ class ArticleController extends AbstractController
                 }
                 $entityManager->flush();
 
+                /** @var DeliveryRequestArticleLine[] $line */
+                $lines = $article->getDeliveryRequestLines()->toArray();
+
+                $requests = Stream::from($lines)
+                    ->map(fn(DeliveryRequestArticleLine $line) => $line->getRequest())
+                    ->filter()
+                    ->unique()
+                    ->values();
+
+                /** @var Request $request */
+                foreach ($requests as $request) {
+                    $entityManager->remove($request);
+                }
+
                 /** @var DeliveryRequestArticleLine $line */
                 foreach ($article->getDeliveryRequestLines()->toArray() as $line) {
                     $line->setRequest(null);
@@ -449,9 +463,9 @@ class ArticleController extends AbstractController
     }
 
     /**
-     * @Route("/get-article-collecte", name="get_collecte_article_by_refArticle", options={"expose"=true})
+     * @Route("/get-article-collecte/{collect}", name="get_collecte_article_by_refArticle", options={"expose"=true})
      */
-    public function getCollecteArticleByRefArticle(Request $request, EntityManagerInterface $entityManager): Response
+    public function getCollecteArticleByRefArticle(Request $request, EntityManagerInterface $entityManager, Collecte $collect): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
@@ -461,7 +475,7 @@ class ArticleController extends AbstractController
                 $refArticle = $referenceArticleRepository->find($data['referenceArticle']);
             }
             if ($refArticle) {
-                $json = $this->articleDataService->getCollecteArticleOrNoByRefArticle($refArticle, $this->getUser());
+                $json = $this->articleDataService->getCollecteArticleOrNoByRefArticle($collect, $refArticle, $this->getUser());
             } else {
                 $json = false; //TODO gérer erreur retour
             }
@@ -591,7 +605,7 @@ class ArticleController extends AbstractController
         if ($data = json_decode($request->getContent(), true)) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $refArticle = $referenceArticleRepository->find($data['refArticle']);
-            if ($refArticle && $refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+            if ($refArticle && $refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
                 $articleFournisseurs = $refArticle->getArticlesFournisseur();
                 $fournisseurs = [];
                 foreach ($articleFournisseurs as $articleFournisseur) {
@@ -607,77 +621,6 @@ class ArticleController extends AbstractController
             return new JsonResponse($json);
         }
         throw new BadRequestHttpException();
-    }
-
-    /**
-     * @Route("/exporter-articles", name="export_all_arts", options={"expose"=true}, methods="GET|POST")
-     */
-    public function exportAllArticles(EntityManagerInterface $entityManager,
-                                      FreeFieldService $freeFieldService,
-                                      CSVExportService $csvService): Response
-    {
-        $ffConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::ARTICLE]);
-
-        $header = array_merge([
-            'reference',
-            'libelle',
-            'quantité',
-            'type',
-            'statut',
-            'commentaire',
-            'emplacement',
-            'code barre',
-            'date dernier inventaire',
-            'lot',
-            'date d\'entrée en stock',
-            'date de péremption',
-            'groupe de visibilité'
-        ], $ffConfig['freeFieldsHeader']);
-
-        $today = new DateTime();
-        $today = $today->format("d-m-Y H:i:s");
-        $user = $this->userService->getUser();
-
-        return $csvService->streamResponse(function($output) use ($entityManager, $csvService, $freeFieldService, $ffConfig, $user) {
-            $articleRepository = $entityManager->getRepository(Article::class);
-
-            $articles = $articleRepository->iterateAll($user);
-            foreach($articles as $article) {
-                $this->putArticleLine($output, $csvService, $freeFieldService, $ffConfig, $article);
-            }
-        }, "export-articles-$today.csv", $header);
-    }
-
-
-    private function putArticleLine($handle,
-                                    CSVExportService $csvService,
-                                    FreeFieldService $freeFieldService,
-                                    array $ffConfig,
-                                    array $article) {
-        $line = [
-            $article['reference'],
-            $article['label'],
-            $article['quantite'],
-            $article['typeLabel'],
-            $article['statutName'],
-            $article['commentaire'] ? strip_tags($article['commentaire']) : '',
-            $article['empLabel'],
-            $article['barCode'],
-            $article['dateLastInventory'] ? $article['dateLastInventory']->format('d/m/Y H:i:s') : '',
-            $article['batch'],
-            $article['stockEntryDate'] ? $article['stockEntryDate']->format('d/m/Y H:i:s') : '',
-            $article['expiryDate'] ? $article['expiryDate']->format('d/m/Y') : '',
-            $article['visibilityGroup'],
-        ];
-
-        foreach ($ffConfig['freeFieldIds'] as $freeFieldId) {
-            $line[] = $freeFieldService->serializeValue([
-                'typage' => $ffConfig['freeFieldsIdToTyping'][$freeFieldId],
-                'valeur' => $article['freeFields'][$freeFieldId] ?? ''
-            ]);
-        }
-
-        $csvService->putLine($handle, $line);
     }
 
     /**

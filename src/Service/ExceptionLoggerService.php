@@ -137,7 +137,7 @@ class ExceptionLoggerService {
 
     private function normalize(ParameterBag $bag) {
         foreach($bag->all() as $key => $item) {
-            if(method_exists($item, "getId")) {
+            if(is_object($item) && method_exists($item, "getId")) {
                 $bag->set($key, $item->getId());
             }
         }

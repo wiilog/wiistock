@@ -1,7 +1,6 @@
 @import "assets/scss/variables";
 
 $blue: #3353D7;
-$grey: #CBCBCB;
 
 body {
     background-color: #F5F7F7;
@@ -51,7 +50,7 @@ body {
 
 .ra-dropdown {
     background-color: #FFFFFF;
-    border-top: 1px solid #CBCBCB;
+    border-top: 1px solid $grey;
     border-bottom-left-radius: 5px;
     border-bottom-right-radius: 5px;
 
@@ -104,32 +103,6 @@ body {
     align-items: center;
 }
 
-.attachment-item, .attachement {
-    display: flex;
-    align-items: center;
-    width: 45%;
-    border: #CBCBCB solid 1px;
-    border-radius: 5px;
-    padding: 5px 10px;
-    margin-top: 5px;
-
-    &:not(.show) {
-        justify-content: space-between;
-    }
-
-    a:first-of-type {
-        display: block;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        overflow: hidden;
-    }
-
-    svg {
-        color: $blue !important;
-        font-size: 0.8rem;
-    }
-}
-
 span.icon {
     display: flex;
     align-items: center;
@@ -162,7 +135,7 @@ span.icon {
 }
 
 .supplier-container:last-of-type {
-    border-bottom: #CBCBCB 1px solid;
+    border-bottom: $grey 1px solid;
     padding-bottom: 5px;
 }
 
@@ -200,46 +173,7 @@ label[for="touch"] {
 }
 
 input[type="checkbox"] {
-    height: 20px;
-    width: 20px;
-    vertical-align: middle;
-    margin: 0 0.4em 0.4em 0;
-    border: 3px solid $blue;
-    border-radius: 4px;
-    -webkit-appearance: none;
-    -webkit-transition: box-shadow 200ms;
-    -webkit-border-radius: 2px;
-}
-
-input[type="checkbox"]:not(:disabled):hover {
-    border-color: $blue;
-
-}
-
-input[type="checkbox"]:active:not(:disabled) {
-    border-color: $blue;
-}
-
-input[type="checkbox"]:focus {
-    outline: none;
-
-}
-
-input[type="checkbox"]:checked {
-    border-color: $blue;
-    background-color: $blue;
-}
-
-input[type="checkbox"]:checked:before {
-    content: '';
-    display: block;
-    width: 7px;
-    height: 10px;
-    border: solid #FFFFFF;
-    border-width: 0 2px 2px 0;
-    -webkit-transform: rotate(45deg);
-    transform: rotate(45deg);
-    margin-left: 4px;
+    margin-bottom: 0.4em;
 }
 
 .image-container {
@@ -272,4 +206,10 @@ input[type="checkbox"]:checked:before {
 
 .isRight {
     background: #F2F3F7;
+}
+
+.reference-status {
+    background-color: #CCF0EB;
+    padding: 5px 12px;
+    border-radius: 5px;
 }

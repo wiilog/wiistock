@@ -1,11 +1,9 @@
-let editorNewLivraisonAlreadyDone = false;
 let deliveryRequestTable = null;
 
 $(function () {
     $('.select2').select2();
 
     initDateTimePicker();
-    Select2Old.init($('#statut'), 'Statuts');
     Select2Old.articleReference($('.ajax-autocomplete'));
     Select2Old.user('Utilisateurs');
 
@@ -39,11 +37,6 @@ $(function () {
 });
 
 function initNewLivraisonEditor(modal) {
-    if (!editorNewLivraisonAlreadyDone) {
-        initEditorInModal(modal);
-        editorNewLivraisonAlreadyDone = true;
-    }
-
     clearModal(modal);
     Select2Old.location($('.ajax-autocomplete-location'));
     const type = ($('#modalNewDemande select[name="type"] option:selected').val());

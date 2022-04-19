@@ -11,7 +11,7 @@ use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Console\Output\ConsoleOutput;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class InitUserFixtures extends Fixture implements FixtureGroupInterface
 {
@@ -22,7 +22,7 @@ class InitUserFixtures extends Fixture implements FixtureGroupInterface
     private $userPasswordEncoder;
 
     public function __construct(UserService $userService,
-                                UserPasswordEncoderInterface $userPasswordEncoder,
+                                UserPasswordHasherInterface $userPasswordEncoder,
                                 EntityManagerInterface $entityManager,
                                 SpecificService $specificService)
     {
@@ -44,7 +44,7 @@ class InitUserFixtures extends Fixture implements FixtureGroupInterface
         $existing = $userRepository->findBy(['username' => $adminEmail]);
         if (empty($existing)) {
             $user = new Utilisateur();
-            $password = $this->userPasswordEncoder->encodePassword($user, "Admin1234");
+            $password = $this->userPasswordEncoder->hashPassword($user, "Admin1234");
             $user
                 ->setUsername($adminEmail)
                 ->setEmail($adminEmail)

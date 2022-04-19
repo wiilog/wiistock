@@ -30,8 +30,8 @@ class AlertTemplateRepository extends EntityRepository
         $qb = $this->createQueryBuilder("alert_template");
         $total = QueryCounter::count($qb, "alert_template");
 
-        if (!empty($params->get('search'))) {
-            $search = $params->get('search')['value'];
+        if (!empty($params->all('search'))) {
+            $search = $params->all('search')['value'];
             if (!empty($search)) {
                 $exprBuilder = $qb->expr();
                 $qb
@@ -45,10 +45,10 @@ class AlertTemplateRepository extends EntityRepository
             }
         }
 
-        if (!empty($params->get('order'))) {
-            $order = $params->get('order')[0]['dir'];
+        if (!empty($params->all('order'))) {
+            $order = $params->all('order')[0]['dir'];
             if (!empty($order)) {
-                $column = $params->get('columns')[$params->get('order')[0]['column']]['data'];
+                $column = $params->all('columns')[$params->all('order')[0]['column']]['data'];
                 if (property_exists(AlertTemplate::class, $column)) {
                     $qb
                         ->orderBy('alert_template.' . $column, $order);

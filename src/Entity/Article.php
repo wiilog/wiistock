@@ -4,37 +4,34 @@ namespace App\Entity;
 
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\IOT\PairedEntity;
+use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorMessageTrait;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\Traits\FreeFieldsManagerTrait;
+use App\Repository\ArticleRepository;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\Common\Collections\Selectable;
 use Doctrine\ORM\Mapping as ORM;
-
-use App\Entity\IOT\Pairing;
-
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 
 /**
- * @ORM\Entity(repositoryClass="App\Repository\ArticleRepository")
  * @UniqueEntity("reference")
  */
-class Article implements PairedEntity
-{
+#[ORM\Entity(repositoryClass: ArticleRepository::class)]
+class Article implements PairedEntity {
+
     use SensorMessageTrait;
     use FreeFieldsManagerTrait;
 
     const CATEGORIE = 'article';
-
     const STATUT_ACTIF = 'disponible';
     const STATUT_INACTIF = 'consommé';
     const STATUT_EN_TRANSIT = 'en transit';
     const STATUT_EN_LITIGE = 'en litige';
-
     const USED_ASSOC_COLLECTE = 0;
     const USED_ASSOC_LITIGE = 1;
     const USED_ASSOC_INVENTORY = 2;
@@ -43,164 +40,102 @@ class Article implements PairedEntity
     const USED_ASSOC_TRANSFERT_REQUEST = 5;
     const USED_ASSOC_COLLECT_ORDER = 6;
     const USED_ASSOC_INVENTORY_ENTRY = 7;
-
     const BARCODE_PREFIX = 'ART';
 
-    /**
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $reference = null;
 
-    /**
-     * @ORM\Column(type="string", length=15, nullable=true)
-     */
+    #[ORM\Column(type: 'string', length: 15, nullable: true)]
     private ?string $barCode = null;
 
-    /**
-     * @ORM\Column(type="integer", nullable=true)
-     */
+    #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $quantite = null;
 
-    /**
-     * @ORM\Column(type="text", nullable=true)
-     */
+    #[ORM\Column(type: 'text', nullable: true)]
     private ?string $commentaire = null;
 
-    /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Collecte", mappedBy="articles")
-     */
+    #[ORM\ManyToMany(targetEntity: Collecte::class, mappedBy: 'articles')]
     private Collection $collectes;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="articles")
-     */
+    #[ORM\ManyToOne(targetEntity: Statut::class, inversedBy: 'articles')]
     private ?Statut $statut = null;
 
-    /**
-     * @ORM\Column(type="datetime", nullable=true)
-     */
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $inactiveSince = null;
 
-    /**
-     * @ORM\Column(type="boolean")
-     */
+    #[ORM\Column(type: 'boolean')]
     private ?bool $conform = null;
 
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $label = null;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\MouvementStock", mappedBy="article")
-     */
+    #[ORM\OneToMany(targetEntity: MouvementStock::class, mappedBy: 'article')]
     private Collection $mouvements;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\ArticleFournisseur", inversedBy="articles")
-     */
+    #[ORM\ManyToOne(targetEntity: ArticleFournisseur::class, inversedBy: 'articles')]
     private ?ArticleFournisseur $articleFournisseur = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="articles")
-     */
+    #[ORM\ManyToOne(targetEntity: Type::class, inversedBy: 'articles')]
     private ?Type $type = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="articles")
-     */
+    #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'articles')]
     private ?Emplacement $emplacement = null;
 
-    /**
-     * @ORM\OneToMany(targetEntity=DeliveryRequestArticleLine::class, mappedBy="article")
-     */
+    #[ORM\OneToMany(targetEntity: DeliveryRequestArticleLine::class, mappedBy: 'article')]
     private Collection $deliveryRequestLines;
 
-    /**
-     * @ORM\OneToMany(targetEntity=PreparationOrderArticleLine::class, mappedBy="article")
-     */
+    #[ORM\OneToMany(targetEntity: PreparationOrderArticleLine::class, mappedBy: 'article')]
     private Collection $preparationOrderLines;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\ReceptionReferenceArticle", inversedBy="articles")
-     * @ORM\JoinColumn(nullable=true)
-     */
+    #[ORM\ManyToOne(targetEntity: ReceptionReferenceArticle::class, inversedBy: 'articles')]
+    #[ORM\JoinColumn(nullable: true)]
     private ?ReceptionReferenceArticle $receptionReferenceArticle = null;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\InventoryEntry", mappedBy="article")
-     */
+    #[ORM\OneToMany(targetEntity: InventoryEntry::class, mappedBy: 'article')]
     private Collection $inventoryEntries;
 
-    /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\InventoryMission", inversedBy="articles")
-     */
+    #[ORM\ManyToMany(targetEntity: InventoryMission::class, inversedBy: 'articles')]
     private Collection $inventoryMissions;
 
-    /**
-     * @ORM\Column(type="float", nullable=true)
-     */
+    #[ORM\Column(type: 'float', nullable: true)]
     private ?float $prixUnitaire = null;
 
-    /**
-     * @ORM\Column(type="datetime", nullable=true)
-     */
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $dateLastInventory = null;
 
-    /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\OrdreCollecte", inversedBy="articles")
-     */
+    #[ORM\ManyToMany(targetEntity: OrdreCollecte::class, inversedBy: 'articles')]
     private Collection $ordreCollecte;
 
-    /**
-     * @ORM\ManyToMany(targetEntity=Dispute::class, mappedBy="articles", cascade={"remove"})
-     */
+    #[ORM\ManyToMany(targetEntity: Dispute::class, mappedBy: 'articles', cascade: ['remove'])]
     private Collection $disputes;
 
-    /**
-     * @ORM\OneToOne(targetEntity=Pack::class, mappedBy="article")
-     */
+    #[ORM\OneToOne(targetEntity: Pack::class, mappedBy: 'article')]
     private ?Pack $trackingPack = null;
 
-    /**
-     * @ORM\ManyToMany(targetEntity=TransferRequest::class, mappedBy="articles")
-     */
+    #[ORM\ManyToMany(targetEntity: TransferRequest::class, mappedBy: 'articles')]
     private Collection $transferRequests;
 
-    /**
-     * @ORM\OneToMany(targetEntity=Alert::class, mappedBy="article", cascade={"remove"})
-     */
+    #[ORM\OneToMany(targetEntity: Alert::class, mappedBy: 'article', cascade: ['remove'])]
     private Collection $alerts;
 
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $batch = null;
 
-    /**
-     * @ORM\Column(type="date", nullable=true)
-     */
+    #[ORM\Column(type: 'date', nullable: true)]
     private ?DateTime $expiryDate = null;
 
-    /**
-     * @ORM\Column(type="datetime", nullable=true)
-     */
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $stockEntryDate = null;
 
-    /**
-     * @ORM\OneToMany(targetEntity=Pairing::class, mappedBy="article", cascade={"remove"})
-     */
+    #[ORM\OneToMany(targetEntity: Pairing::class, mappedBy: 'article', cascade: ['remove'])]
     private Collection $pairings;
 
-    public function __construct()
-    {
+    public function __construct() {
         $this->deliveryRequestLines = new ArrayCollection();
         $this->preparationOrderLines = new ArrayCollection();
         $this->collectes = new ArrayCollection();
@@ -217,47 +152,39 @@ class Article implements PairedEntity
         $this->sensorMessages = new ArrayCollection();
     }
 
-    public function getId(): ?int
-    {
+    public function getId(): ?int {
         return $this->id;
     }
 
-    public function getReference(): ?string
-    {
+    public function getReference(): ?string {
         return $this->reference;
     }
 
-    public function setReference(?string $reference): self
-    {
+    public function setReference(?string $reference): self {
         $this->reference = $reference;
 
         return $this;
     }
 
-    public function getQuantite(): ?int
-    {
+    public function getQuantite(): ?int {
         return $this->quantite;
     }
 
-    public function setQuantite(?int $quantite): self
-    {
+    public function setQuantite(?int $quantite): self {
         $this->quantite = $quantite;
 
         return $this;
     }
 
-    public function __toString(): ?string
-    {
+    public function __toString(): string {
         return $this->barCode;
     }
 
-    public function getCommentaire(): ?string
-    {
+    public function getCommentaire(): ?string {
         return $this->commentaire;
     }
 
-    public function setCommentaire(?string $commentaire): self
-    {
+    public function setCommentaire(?string $commentaire): self {
         $this->commentaire = $commentaire;
 
         return $this;
@@ -266,14 +193,12 @@ class Article implements PairedEntity
     /**
      * @return Collection|Collecte[]
      */
-    public function getCollectes(): Collection
-    {
+    public function getCollectes(): Collection {
         return $this->collectes;
     }
 
-    public function addCollecte(Collecte $collecte): self
-    {
-        if (!$this->collectes->contains($collecte)) {
+    public function addCollecte(Collecte $collecte): self {
+        if(!$this->collectes->contains($collecte)) {
             $this->collectes[] = $collecte;
             $collecte->addArticle($this);
         }
@@ -281,9 +206,8 @@ class Article implements PairedEntity
         return $this;
     }
 
-    public function removeCollecte(Collecte $collecte): self
-    {
-        if ($this->collectes->contains($collecte)) {
+    public function removeCollecte(Collecte $collecte): self {
+        if($this->collectes->contains($collecte)) {
             $this->collectes->removeElement($collecte);
             $collecte->removeArticle($this);
         }
@@ -291,13 +215,11 @@ class Article implements PairedEntity
         return $this;
     }
 
-    public function getStatut(): ?Statut
-    {
+    public function getStatut(): ?Statut {
         return $this->statut;
     }
 
-    public function setStatut(?Statut $statut): self
-    {
+    public function setStatut(?Statut $statut): self {
         $this->statut = $statut;
 
         return $this;
@@ -312,61 +234,51 @@ class Article implements PairedEntity
         return $this;
     }
 
-    public function getConform(): ?bool
-    {
+    public function getConform(): ?bool {
         return $this->conform;
     }
 
-    public function setConform(bool $conform): self
-    {
+    public function setConform(bool $conform): self {
         $this->conform = $conform;
 
         return $this;
     }
 
-    public function getLabel(): ?string
-    {
+    public function getLabel(): ?string {
         return $this->label;
     }
 
-    public function setLabel(?string $label): self
-    {
+    public function setLabel(?string $label): self {
         $this->label = $label;
 
         return $this;
     }
 
-    public function getArticleFournisseur(): ?ArticleFournisseur
-    {
+    public function getArticleFournisseur(): ?ArticleFournisseur {
         return $this->articleFournisseur;
     }
 
-    public function setArticleFournisseur(?ArticleFournisseur $articleFournisseur): self
-    {
+    public function setArticleFournisseur(?ArticleFournisseur $articleFournisseur): self {
         $this->articleFournisseur = $articleFournisseur;
 
         return $this;
     }
 
-    public function getType(): ?Type
-    {
+    public function getType(): ?Type {
         return $this->type;
     }
 
-    public function setType(?Type $type): self
-    {
+    public function setType(?Type $type): self {
         $this->type = $type;
 
         return $this;
     }
 
-    public function getEmplacement(): ?Emplacement
-    {
+    public function getEmplacement(): ?Emplacement {
         return $this->emplacement;
     }
 
-    public function setEmplacement(?Emplacement $emplacement): self
-    {
+    public function setEmplacement(?Emplacement $emplacement): self {
         $this->emplacement = $emplacement;
         return $this;
     }
@@ -379,7 +291,7 @@ class Article implements PairedEntity
     }
 
     public function addDeliveryRequestLine(DeliveryRequestArticleLine $line): self {
-        if (!$this->deliveryRequestLines->contains($line)) {
+        if(!$this->deliveryRequestLines->contains($line)) {
             $this->deliveryRequestLines[] = $line;
             $line->setArticle($this);
         }
@@ -388,8 +300,8 @@ class Article implements PairedEntity
     }
 
     public function removeDeliveryRequestLine(DeliveryRequestArticleLine $line): self {
-        if ($this->deliveryRequestLines->removeElement($line)) {
-            if ($line->getArticle() === $this) {
+        if($this->deliveryRequestLines->removeElement($line)) {
+            if($line->getArticle() === $this) {
                 $line->setArticle(null);
             }
         }
@@ -405,7 +317,7 @@ class Article implements PairedEntity
     }
 
     public function addPreparationOrderLine(PreparationOrderArticleLine $line): self {
-        if (!$this->preparationOrderLines->contains($line)) {
+        if(!$this->preparationOrderLines->contains($line)) {
             $this->preparationOrderLines[] = $line;
             $line->setArticle($this);
         }
@@ -414,8 +326,8 @@ class Article implements PairedEntity
     }
 
     public function removePreparationOrderLine(PreparationOrderArticleLine $line): self {
-        if ($this->preparationOrderLines->removeElement($line)) {
-            if ($line->getArticle() === $this) {
+        if($this->preparationOrderLines->removeElement($line)) {
+            if($line->getArticle() === $this) {
                 $line->setArticle(null);
             }
         }
@@ -423,13 +335,11 @@ class Article implements PairedEntity
         return $this;
     }
 
-    public function getPrixUnitaire()
-    {
+    public function getPrixUnitaire() {
         return $this->prixUnitaire;
     }
 
-    public function setPrixUnitaire($prixUnitaire): self
-    {
+    public function setPrixUnitaire($prixUnitaire): self {
         $this->prixUnitaire = $prixUnitaire;
 
         return $this;
@@ -442,9 +352,8 @@ class Article implements PairedEntity
         return $this->mouvements;
     }
 
-    public function addMouvement(MouvementStock $mouvement): self
-    {
-        if (!$this->mouvements->contains($mouvement)) {
+    public function addMouvement(MouvementStock $mouvement): self {
+        if(!$this->mouvements->contains($mouvement)) {
             $this->mouvements[] = $mouvement;
             $mouvement->setArticle($this);
         }
@@ -452,12 +361,11 @@ class Article implements PairedEntity
         return $this;
     }
 
-    public function removeMouvement(MouvementStock $mouvement): self
-    {
-        if ($this->mouvements->contains($mouvement)) {
+    public function removeMouvement(MouvementStock $mouvement): self {
+        if($this->mouvements->contains($mouvement)) {
             $this->mouvements->removeElement($mouvement);
             // set the owning side to null (unless already changed)
-            if ($mouvement->getArticle() === $this) {
+            if($mouvement->getArticle() === $this) {
                 $mouvement->setArticle(null);
             }
         }
@@ -472,9 +380,8 @@ class Article implements PairedEntity
         return $this->inventoryEntries;
     }
 
-    public function addInventoryEntry(InventoryEntry $inventoryEntry): self
-    {
-        if (!$this->inventoryEntries->contains($inventoryEntry)) {
+    public function addInventoryEntry(InventoryEntry $inventoryEntry): self {
+        if(!$this->inventoryEntries->contains($inventoryEntry)) {
             $this->inventoryEntries[] = $inventoryEntry;
             $inventoryEntry->setArticle($this);
         }
@@ -482,12 +389,11 @@ class Article implements PairedEntity
         return $this;
     }
 
-    public function removeInventoryEntry(InventoryEntry $inventoryEntry): self
-    {
-        if ($this->inventoryEntries->contains($inventoryEntry)) {
+    public function removeInventoryEntry(InventoryEntry $inventoryEntry): self {
+        if($this->inventoryEntries->contains($inventoryEntry)) {
             $this->inventoryEntries->removeElement($inventoryEntry);
             // set the owning side to null (unless already changed)
-            if ($inventoryEntry->getArticle() === $this) {
+            if($inventoryEntry->getArticle() === $this) {
                 $inventoryEntry->setArticle(null);
             }
         }
@@ -497,48 +403,41 @@ class Article implements PairedEntity
     /**
      * @return Collection|InventoryMission[]
      */
-    public function getInventoryMissions(): Collection
-    {
+    public function getInventoryMissions(): Collection {
         return $this->inventoryMissions;
     }
 
-    public function addInventoryMission(InventoryMission $inventoryMission): self
-    {
-        if (!$this->inventoryMissions->contains($inventoryMission)) {
+    public function addInventoryMission(InventoryMission $inventoryMission): self {
+        if(!$this->inventoryMissions->contains($inventoryMission)) {
             $this->inventoryMissions[] = $inventoryMission;
         }
 
         return $this;
     }
 
-    public function removeInventoryMission(InventoryMission $inventoryMission): self
-    {
-        if ($this->inventoryMissions->contains($inventoryMission)) {
+    public function removeInventoryMission(InventoryMission $inventoryMission): self {
+        if($this->inventoryMissions->contains($inventoryMission)) {
             $this->inventoryMissions->removeElement($inventoryMission);
         }
 
         return $this;
     }
 
-    public function getDateLastInventory(): ?\DateTimeInterface
-    {
+    public function getDateLastInventory(): ?\DateTimeInterface {
         return $this->dateLastInventory;
     }
 
-    public function setDateLastInventory(?\DateTimeInterface $dateLastInventory): self
-    {
+    public function setDateLastInventory(?\DateTimeInterface $dateLastInventory): self {
         $this->dateLastInventory = $dateLastInventory;
 
         return $this;
     }
 
-    public function getBarCode(): ?string
-    {
+    public function getBarCode(): ?string {
         return $this->barCode;
     }
 
-    public function setBarCode(?string $barCode): self
-    {
+    public function setBarCode(?string $barCode): self {
         $this->barCode = $barCode;
 
         return $this;
@@ -547,14 +446,12 @@ class Article implements PairedEntity
     /**
      * @return Collection|Dispute[]
      */
-    public function getDisputes(): Collection
-    {
+    public function getDisputes(): Collection {
         return $this->disputes;
     }
 
-    public function addDispute(Dispute $dispute): self
-    {
-        if (!$this->disputes->contains($dispute)) {
+    public function addDispute(Dispute $dispute): self {
+        if(!$this->disputes->contains($dispute)) {
             $this->disputes[] = $dispute;
             $dispute->addArticle($this);
         }
@@ -562,9 +459,8 @@ class Article implements PairedEntity
         return $this;
     }
 
-    public function removeDispute(Dispute $dispute): self
-    {
-        if ($this->disputes->contains($dispute)) {
+    public function removeDispute(Dispute $dispute): self {
+        if($this->disputes->contains($dispute)) {
             $this->disputes->removeElement($dispute);
             $dispute->removeArticle($this);
         }
@@ -575,36 +471,31 @@ class Article implements PairedEntity
     /**
      * @return Collection|OrdreCollecte[]
      */
-    public function getOrdreCollecte(): Collection
-    {
+    public function getOrdreCollecte(): Collection {
         return $this->ordreCollecte;
     }
 
-    public function addOrdreCollecte(OrdreCollecte $ordreCollecte): self
-    {
-        if (!$this->ordreCollecte->contains($ordreCollecte)) {
+    public function addOrdreCollecte(OrdreCollecte $ordreCollecte): self {
+        if(!$this->ordreCollecte->contains($ordreCollecte)) {
             $this->ordreCollecte[] = $ordreCollecte;
         }
 
         return $this;
     }
 
-    public function removeOrdreCollecte(OrdreCollecte $ordreCollecte): self
-    {
-        if ($this->ordreCollecte->contains($ordreCollecte)) {
+    public function removeOrdreCollecte(OrdreCollecte $ordreCollecte): self {
+        if($this->ordreCollecte->contains($ordreCollecte)) {
             $this->ordreCollecte->removeElement($ordreCollecte);
         }
 
         return $this;
     }
 
-    public function getReceptionReferenceArticle(): ?ReceptionReferenceArticle
-    {
+    public function getReceptionReferenceArticle(): ?ReceptionReferenceArticle {
         return $this->receptionReferenceArticle;
     }
 
-    public function setReceptionReferenceArticle(?ReceptionReferenceArticle $receptionReferenceArticle): self
-    {
+    public function setReceptionReferenceArticle(?ReceptionReferenceArticle $receptionReferenceArticle): self {
         $this->receptionReferenceArticle = $receptionReferenceArticle;
 
         return $this;
@@ -622,13 +513,13 @@ class Article implements PairedEntity
      * @return Article
      */
     public function setTrackingPack(?Pack $pack): self {
-        if ($this->trackingPack && $this->trackingPack->getArticle() !== $this) {
+        if($this->trackingPack && $this->trackingPack->getArticle() !== $this) {
             $oldTrackingPack = $this->trackingPack;
             $this->trackingPack = null;
             $oldTrackingPack->setArticle(null);
         }
         $this->trackingPack = $pack;
-        if ($this->trackingPack && $this->trackingPack->getArticle() !== $this) {
+        if($this->trackingPack && $this->trackingPack->getArticle() !== $this) {
             $this->trackingPack->setArticle($this);
         }
         return $this;
@@ -643,33 +534,32 @@ class Article implements PairedEntity
     /**
      * @return int|null
      */
-    public function getUsedAssociation(): ?int
-    {
+    public function getUsedAssociation(): ?int {
         return (
-            (!$this->getCollectes()->isEmpty())
-                ? self::USED_ASSOC_COLLECTE
-                : ((!$this->getDisputes()->isEmpty())
-                    ? self::USED_ASSOC_LITIGE
-                    : ((!$this->getInventoryEntries()->isEmpty())
-                        ? self::USED_ASSOC_INVENTORY
-                        : ($this->getStatut()->getNom() === self::STATUT_INACTIF
-                            ? self::USED_ASSOC_STATUT_NOT_AVAILABLE
-                            : ((!$this->getPreparationOrderLines()->isEmpty())
-                                ? self::USED_ASSOC_PREPA_IN_PROGRESS
-                                : ((!$this->getTransferRequests()->isEmpty())
-                                    ? self::USED_ASSOC_TRANSFERT_REQUEST
-                                    : ((!$this->getOrdreCollecte()->isEmpty())
-                                        ? self::USED_ASSOC_COLLECT_ORDER
-                                        : ((!$this->getInventoryEntries()->isEmpty())
-                                            ? self::USED_ASSOC_INVENTORY_ENTRY
-                                            : null
-                                        )
-                                    )
+        (!$this->getCollectes()->isEmpty())
+            ? self::USED_ASSOC_COLLECTE
+            : ((!$this->getDisputes()->isEmpty())
+            ? self::USED_ASSOC_LITIGE
+            : ((!$this->getInventoryEntries()->isEmpty())
+                ? self::USED_ASSOC_INVENTORY
+                : ($this->getStatut()->getNom() === self::STATUT_INACTIF
+                    ? self::USED_ASSOC_STATUT_NOT_AVAILABLE
+                    : ((!$this->getPreparationOrderLines()->isEmpty())
+                        ? self::USED_ASSOC_PREPA_IN_PROGRESS
+                        : ((!$this->getTransferRequests()->isEmpty())
+                            ? self::USED_ASSOC_TRANSFERT_REQUEST
+                            : ((!$this->getOrdreCollecte()->isEmpty())
+                                ? self::USED_ASSOC_COLLECT_ORDER
+                                : ((!$this->getInventoryEntries()->isEmpty())
+                                    ? self::USED_ASSOC_INVENTORY_ENTRY
+                                    : null
                                 )
                             )
                         )
                     )
                 )
+            )
+        )
 
         );
     }
@@ -677,14 +567,12 @@ class Article implements PairedEntity
     /**
      * @return Collection|TransferRequest[]
      */
-    public function getTransferRequests(): Collection
-    {
+    public function getTransferRequests(): Collection {
         return $this->transferRequests;
     }
 
-    public function addTransferRequest(TransferRequest $transferRequest): self
-    {
-        if (!$this->transferRequests->contains($transferRequest)) {
+    public function addTransferRequest(TransferRequest $transferRequest): self {
+        if(!$this->transferRequests->contains($transferRequest)) {
             $this->transferRequests[] = $transferRequest;
             $transferRequest->addArticle($this);
         }
@@ -692,9 +580,8 @@ class Article implements PairedEntity
         return $this;
     }
 
-    public function removeTransferRequest(TransferRequest $transferRequest): self
-    {
-        if ($this->transferRequests->contains($transferRequest)) {
+    public function removeTransferRequest(TransferRequest $transferRequest): self {
+        if($this->transferRequests->contains($transferRequest)) {
             $this->transferRequests->removeElement($transferRequest);
             $transferRequest->removeArticle($this);
         }
@@ -705,14 +592,12 @@ class Article implements PairedEntity
     /**
      * @return Collection|Alert[]
      */
-    public function getAlerts(): Collection
-    {
+    public function getAlerts(): Collection {
         return $this->alerts;
     }
 
-    public function addAlert(Alert $alert): self
-    {
-        if (!$this->alerts->contains($alert)) {
+    public function addAlert(Alert $alert): self {
+        if(!$this->alerts->contains($alert)) {
             $this->alerts[] = $alert;
             $alert->setArticle($this);
         }
@@ -720,12 +605,11 @@ class Article implements PairedEntity
         return $this;
     }
 
-    public function removeAlert(Alert $alert): self
-    {
-        if ($this->alerts->contains($alert)) {
+    public function removeAlert(Alert $alert): self {
+        if($this->alerts->contains($alert)) {
             $this->alerts->removeElement($alert);
             // set the owning side to null (unless already changed)
-            if ($alert->getArticle() === $this) {
+            if($alert->getArticle() === $this) {
                 $alert->setArticle(null);
             }
         }
@@ -733,8 +617,7 @@ class Article implements PairedEntity
         return $this;
     }
 
-    public function isExpired(): ?bool
-    {
+    public function isExpired(): ?bool {
         if($this->getExpiryDate()) {
             $now = new DateTime("now");
 
@@ -744,37 +627,31 @@ class Article implements PairedEntity
         }
     }
 
-    public function getExpiryDate(): ?\DateTimeInterface
-    {
+    public function getExpiryDate(): ?\DateTimeInterface {
         return $this->expiryDate;
     }
 
-    public function setExpiryDate(?\DateTimeInterface $expiryDate): self
-    {
+    public function setExpiryDate(?\DateTimeInterface $expiryDate): self {
         $this->expiryDate = $expiryDate;
 
         return $this;
     }
 
-    public function getBatch(): ?string
-    {
+    public function getBatch(): ?string {
         return $this->batch;
     }
 
-    public function setBatch(?string $batch): self
-    {
+    public function setBatch(?string $batch): self {
         $this->batch = $batch;
 
         return $this;
     }
 
-    public function getStockEntryDate(): ?\DateTimeInterface
-    {
+    public function getStockEntryDate(): ?\DateTimeInterface {
         return $this->stockEntryDate;
     }
 
-    public function setStockEntryDate(?\DateTimeInterface $stockEntryDate): self
-    {
+    public function setStockEntryDate(?\DateTimeInterface $stockEntryDate): self {
         $this->stockEntryDate = $stockEntryDate;
 
         return $this;
@@ -795,9 +672,8 @@ class Article implements PairedEntity
             ->first() ?: null;
     }
 
-    public function addPairing(Pairing $pairing): self
-    {
-        if (!$this->pairings->contains($pairing)) {
+    public function addPairing(Pairing $pairing): self {
+        if(!$this->pairings->contains($pairing)) {
             $this->pairings[] = $pairing;
             $pairing->setArticle($this);
         }
@@ -805,11 +681,10 @@ class Article implements PairedEntity
         return $this;
     }
 
-    public function removePairing(Pairing $pairing): self
-    {
-        if ($this->pairings->removeElement($pairing)) {
+    public function removePairing(Pairing $pairing): self {
+        if($this->pairings->removeElement($pairing)) {
             // set the owning side to null (unless already changed)
-            if ($pairing->getArticle() === $this) {
+            if($pairing->getArticle() === $this) {
                 $pairing->setArticle(null);
             }
         }
@@ -821,4 +696,5 @@ class Article implements PairedEntity
         $supplierArticle = $this->getArticleFournisseur();
         return $supplierArticle ? $supplierArticle->getReferenceArticle() : null;
     }
+
 }

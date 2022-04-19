@@ -30,7 +30,7 @@ let tableAlerteConfig = {
         {"data": "warningThreshold", "title": "Seuil d'alerte"},
         {"data": "securityThreshold", "title": "Seuil de sécurité"},
         {"data": "expiry", "title": "Date de péremption"},
-        {"data": "managers", "title": "Gestionnaire(s)"},
+        {"data": "managers", "title": "Gestionnaire(s)", "orderable": false},
     ],
     columnDefs: [
         {

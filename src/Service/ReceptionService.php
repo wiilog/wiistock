@@ -11,7 +11,7 @@ use App\Entity\DeliveryRequest\Demande;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
-use App\Entity\ParametrageGlobal;
+use App\Entity\Setting;
 use App\Entity\Reception;
 use App\Entity\Statut;
 use App\Entity\Transporteur;
@@ -60,7 +60,7 @@ class ReceptionService
     public FormService $formService;
 
     /** @Required  */
-    public GlobalParamService $globalParamService;
+    public SettingsService $settingsService;
 
     /** @Required  */
     public VisibleColumnService $visibleColumnService;
@@ -83,7 +83,7 @@ class ReceptionService
             $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_RECEPTION, $user);
         }
 
-        $queryResult = $receptionRepository->findByParamAndFilters($params, $filters, $user);
+        $queryResult = $receptionRepository->findByParamAndFilters($params, $filters, $user, $this->visibleColumnService);
 
         $receptions = $queryResult['data'];
 
@@ -130,7 +130,7 @@ class ReceptionService
         $reception = new Reception();
         $date = new DateTime('now');
 
-        $numero = $this->uniqueNumberService->create($entityManager, Reception::PREFIX_NUMBER, Reception::class, UniqueNumberService::DATE_COUNTER_FORMAT_RECEPTION);
+        $numero = $this->uniqueNumberService->create($entityManager, Reception::NUMBER_PREFIX, Reception::class, UniqueNumberService::DATE_COUNTER_FORMAT_RECEPTION);
 
         if(!empty($data['fournisseur'])) {
             if($fromImport) {
@@ -146,7 +146,7 @@ class ReceptionService
         }
 
         if ($fromImport && (!isset($data['location']) || empty($data['location']))) {
-            $defaultLocation = $this->globalParamService->getParamLocation(ParametrageGlobal::DEFAULT_LOCATION_RECEPTION);
+            $defaultLocation = $this->settingsService->getParamLocation(Setting::DEFAULT_LOCATION_RECEPTION);
             if (isset($defaultLocation)) {
                 $location = $emplacementRepository->find(intval($defaultLocation['id']));
                 $reception
@@ -252,7 +252,7 @@ class ReceptionService
             "Date" => FormatHelper::datetime($reception->getDate()),
             "dateAttendue" => FormatHelper::date($reception->getDateAttendue()),
             "DateFin" => FormatHelper::datetime($reception->getDateFinReception()),
-            "Fournisseur" => FormatHelper::provider($reception->getFournisseur()),
+            "Fournisseur" => FormatHelper::supplier($reception->getFournisseur()),
             "Commentaire" => $reception->getCommentaire() ?: '',
             "receiver" => implode(', ', array_unique(
                 $reception->getDemandes()
@@ -330,8 +330,7 @@ class ReceptionService
         $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
             $this->entityManager,
             $reception,
-            null,
-            CategoryType::RECEPTION
+            ['type' => $reception->getType()]
         );
 
         $config = [

@@ -1,0 +1,20 @@
+<div class="wii-section">
+    <div class="row">
+        <p class="ml-2 mb-2 wii-describe">
+            Le statut est fait pour paramétrer un workflow, soit les étapes successives permettant d'aller vers la résolution d'un litige.
+            Vous pouvez modifier et ajouter des statuts.
+        </p>
+    </div>
+    <div class="row wii-page-card-header">
+        <div class="col-auto ml-auto">
+            {% if can_edit %}
+                <button class="btn btn-primary d-none add-row-button">
+                    <span class="fa fa-plus mr-2"></span>Ajouter des statuts
+                </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <table id="arrival-dispute-statuses-table" data-table-processing="genericStatuses"></table>
+    <input type="hidden" name="status-state-options" value="{{ optionsSelect | json_encode }}">
+</div>

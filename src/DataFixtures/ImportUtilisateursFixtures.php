@@ -2,6 +2,7 @@
 
 namespace App\DataFixtures;
 
+use App\Entity\ReferenceArticle;
 use App\Entity\Role;
 use App\Entity\Utilisateur;
 use App\Service\PasswordService;
@@ -9,7 +10,6 @@ use App\Service\UserService;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 class ImportUtilisateursFixtures extends Fixture implements FixtureGroupInterface {
 
@@ -18,17 +18,11 @@ class ImportUtilisateursFixtures extends Fixture implements FixtureGroupInterfac
      */
     private $passwordService;
 
-    /**
-     * @var UserPasswordEncoderInterface
-     */
-    private $encoder;
     private $userService;
 
     public function __construct(PasswordService $passwordService,
-                                UserService $userService,
-                                UserPasswordEncoderInterface $encoder) {
+                                UserService $userService) {
         $this->passwordService = $passwordService;
-        $this->encoder = $encoder;
         $this->userService = $userService;
     }
 
@@ -46,8 +40,7 @@ class ImportUtilisateursFixtures extends Fixture implements FixtureGroupInterfac
             $role = new Role();
             $role->setLabel("Utilisateur Safran");
             $role->setIsMailSendAccountCreation(false);
-            $role->setDashboardsVisible([]);
-            $role->setActive(true);
+            $role->setQuantityType(ReferenceArticle::QUANTITY_TYPE_REFERENCE);
 
             $manager->persist($role);
             $manager->flush();

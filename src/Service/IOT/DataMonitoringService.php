@@ -141,17 +141,17 @@ class DataMonitoringService
         ];
     }
 
-    private function fillLocationGroupConfig(array &$config, LocationGroup $location, bool $header)
+    private function fillLocationGroupConfig(array &$config, LocationGroup $locationGroup, bool $header)
     {
         $config["left_pane"][] = [
             "type" => "entity",
             "icon" => "iot-location",
-            "title" => $location->getName(),
+            "title" => $locationGroup->getLabel(),
             "header" => $header,
             "hideActions" => $header,
             "entity_info" => [
-                "id" => $location->getId(),
-                "type" => IOTService::getEntityCodeFromEntity($location),
+                "id" => $locationGroup->getId(),
+                "type" => IOTService::getEntityCodeFromEntity($locationGroup),
             ],
         ];
     }
@@ -294,6 +294,26 @@ class DataMonitoringService
         if ($isHistoric) {
             $this->fillTimelineConfig($config, $entity);
         }
+    }
+
+    public function vincentyGreatCircleDistance(float $latitudeFrom,
+                                                float $longitudeFrom,
+                                                float $latitudeTo,
+                                                float $longitudeTo,
+                                                int $earthRadius = 6371000) {
+        // convert from degrees to radians
+        $latFrom = deg2rad($latitudeFrom);
+        $lonFrom = deg2rad($longitudeFrom);
+        $latTo = deg2rad($latitudeTo);
+        $lonTo = deg2rad($longitudeTo);
+
+        $lonDelta = $lonTo - $lonFrom;
+        $a = pow(cos($latTo) * sin($lonDelta), 2) +
+            pow(cos($latFrom) * sin($latTo) - sin($latFrom) * cos($latTo) * cos($lonDelta), 2);
+        $b = sin($latFrom) * sin($latTo) + cos($latFrom) * cos($latTo) * cos($lonDelta);
+
+        $angle = atan2(sqrt($a), $b);
+        return $angle * $earthRadius;
     }
 
     public function getTimelineData(EntityManagerInterface $entityManager,

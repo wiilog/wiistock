@@ -2,94 +2,60 @@
 
 namespace App\Entity;
 
+use App\Repository\RoleRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass="App\Repository\RoleRepository")
- */
-class Role
-{
-    const NO_ACCESS_USER = 'aucun accès';
-    const SUPER_ADMIN = 'super admin';
-    const CLIENT_UTIL = 'Client utilisation';
+#[ORM\Entity(repositoryClass: RoleRepository::class)]
+class Role {
 
-    /**
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer")
-     */
-    private $id;
+    public const LANDING_PAGE_DASHBOARD = 'dashboard';
+    public const LANDING_PAGE_TRANSPORT_PLANNING = 'transport_planning';
+    public const LANDING_PAGE_TRANSPORT_REQUEST = 'transport_request';
 
-    /**
-     * @ORM\Column(type="string", length=64, unique=true)
-     */
-    private $label;
+    public const NO_ACCESS_USER = 'aucun accès';
+    public const SUPER_ADMIN = 'super admin';
+    public const CLIENT_UTIL = 'Client utilisation';
 
-    /**
-     * @ORM\ManyToMany(targetEntity="Action", mappedBy="roles")
-     */
-    private $actions;
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
+    private ?int $id = null;
 
-    /**
-     * @ORM\Column(type="boolean")
-     */
-    private $active;
+    #[ORM\Column(type: 'string', length: 64, unique: true)]
+    private ?string $label = null;
 
-    /**
-     * @ORM\OneToMany(targetEntity="Utilisateur", mappedBy="role")
-     */
-    private $users;
+    #[ORM\Column(type: 'string', nullable: false)]
+    private ?string $quantityType = null;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\ParametreRole", mappedBy="role")
-     */
-    private $parametreRoles;
+    #[ORM\ManyToMany(targetEntity: 'Action', mappedBy: 'roles')]
+    private Collection $actions;
 
-    /**
-     * @ORM\Column(type="json", nullable=false)
-     */
-    private $dashboardsVisible;
+    #[ORM\OneToMany(targetEntity: 'Utilisateur', mappedBy: 'role')]
+    private Collection $users;
 
-    /**
-     * @ORM\Column(type="boolean")
-     */
-    private $isMailSendAccountCreation;
+    #[ORM\Column(type: 'boolean')]
+    private ?bool $isMailSendAccountCreation = false;
 
-    public function __construct()
-    {
+    #[ORM\Column(type: 'string', options: ["default" => self::LANDING_PAGE_DASHBOARD])]
+    private ?string $landingPage = self::LANDING_PAGE_DASHBOARD;
+
+    public function __construct() {
         $this->actions = new ArrayCollection();
         $this->users = new ArrayCollection();
-        $this->parametreRoles = new ArrayCollection();
-        $this->dashboardsVisible = [];
     }
 
-    public function getId(): ?int
-    {
+    public function getId(): ?int {
         return $this->id;
     }
 
-    public function getLabel(): ?string
-    {
+    public function getLabel(): ?string {
         return $this->label;
     }
 
-    public function setLabel(string $label): self
-    {
+    public function setLabel(string $label): self {
         $this->label = $label;
-
-        return $this;
-    }
-
-    public function getActive(): ?bool
-    {
-        return $this->active;
-    }
-
-    public function setActive(bool $active): self
-    {
-        $this->active = $active;
 
         return $this;
     }
@@ -97,14 +63,12 @@ class Role
     /**
      * @return Collection|Action[]
      */
-    public function getActions(): Collection
-    {
+    public function getActions(): Collection {
         return $this->actions;
     }
 
-    public function addAction(Action $action): self
-    {
-        if (!$this->actions->contains($action)) {
+    public function addAction(Action $action): self {
+        if(!$this->actions->contains($action)) {
             $this->actions[] = $action;
             $action->addRole($this);
         }
@@ -112,11 +76,26 @@ class Role
         return $this;
     }
 
-    public function removeAction(?Action $action): self
-    {
-        if ($action && $this->actions->contains($action)) {
-            $this->actions->removeElement($action);
+    public function removeAction(Action $action): self {
+        if($this->actions->removeElement($action)) {
             $action->removeRole($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param Action[] $actions
+     */
+    public function setActions(array $actions): self {
+        foreach($this->getActions()->toArray() as $action) {
+            $this->removeAction($action);
+        }
+
+        $this->actions = new ArrayCollection();
+
+        foreach($actions as $action) {
+            $this->addAction($action);
         }
 
         return $this;
@@ -125,14 +104,12 @@ class Role
     /**
      * @return Collection|Utilisateur[]
      */
-    public function getUsers(): Collection
-    {
+    public function getUsers(): Collection {
         return $this->users;
     }
 
-    public function addUser(Utilisateur $user): self
-    {
-        if (!$this->users->contains($user)) {
+    public function addUser(Utilisateur $user): self {
+        if(!$this->users->contains($user)) {
             $this->users[] = $user;
             $user->setRole($this);
         }
@@ -140,12 +117,11 @@ class Role
         return $this;
     }
 
-    public function removeUser(Utilisateur $user): self
-    {
-        if ($this->users->contains($user)) {
+    public function removeUser(Utilisateur $user): self {
+        if($this->users->contains($user)) {
             $this->users->removeElement($user);
             // set the owning side to null (unless already changed)
-            if ($user->getRole() === $this) {
+            if($user->getRole() === $this) {
                 $user->setRole(null);
             }
         }
@@ -153,58 +129,32 @@ class Role
         return $this;
     }
 
-    /**
-     * @return Collection|ParametreRole[]
-     */
-    public function getParametreRoles(): Collection
-    {
-        return $this->parametreRoles;
-    }
-
-    public function addParametreRole(ParametreRole $parametreRole): self
-    {
-        if (!$this->parametreRoles->contains($parametreRole)) {
-            $this->parametreRoles[] = $parametreRole;
-            $parametreRole->setRole($this);
-        }
-
-        return $this;
-    }
-
-    public function removeParametreRole(ParametreRole $parametreRole): self
-    {
-        if ($this->parametreRoles->contains($parametreRole)) {
-            $this->parametreRoles->removeElement($parametreRole);
-            // set the owning side to null (unless already changed)
-            if ($parametreRole->getRole() === $this) {
-                $parametreRole->setRole(null);
-            }
-        }
-
-        return $this;
-    }
-
-    public function getDashboardsVisible(): ?array
-    {
-        return $this->dashboardsVisible;
-    }
-
-    public function setDashboardsVisible(?array $dashboardsVisible): self
-    {
-        $this->dashboardsVisible = $dashboardsVisible;
-
-        return $this;
-    }
-
-    public function getIsMailSendAccountCreation(): ?bool
-    {
+    public function getIsMailSendAccountCreation(): ?bool {
         return $this->isMailSendAccountCreation;
     }
 
-    public function setIsMailSendAccountCreation(bool $isMailSendAccountCreation): self
-    {
+    public function setIsMailSendAccountCreation(bool $isMailSendAccountCreation): self {
         $this->isMailSendAccountCreation = $isMailSendAccountCreation;
 
         return $this;
     }
+
+    public function getQuantityType(): ?string {
+        return $this->quantityType;
+    }
+
+    public function setQuantityType(?string $quantityType): self {
+        $this->quantityType = $quantityType;
+        return $this;
+    }
+
+    public function getLandingPage(): ?string {
+        return $this->landingPage;
+    }
+
+    public function setLandingPage(string $landingPage): self {
+        $this->landingPage = $landingPage;
+        return $this;
+    }
+
 }

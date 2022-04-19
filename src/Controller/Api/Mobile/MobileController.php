@@ -4,7 +4,6 @@ namespace App\Controller\Api\Mobile;
 
 use App\Annotation as Wii;
 use App\Entity\Dispatch;
-use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
@@ -17,9 +16,8 @@ use App\Entity\InventoryMission;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Livraison;
 use App\Entity\Handling;
-use App\Entity\Menu;
 use App\Entity\MouvementStock;
-use App\Entity\ParametrageGlobal;
+use App\Entity\Setting;
 use App\Entity\TrackingMovement;
 use App\Entity\OrdreCollecte;
 use App\Entity\DispatchPack;
@@ -28,15 +26,14 @@ use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\TransferOrder;
-use App\Entity\Translation;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 
-use App\Helper\FormatHelper;
 use App\Service\ArrivageService;
 use App\Service\EmplacementDataService;
 use App\Service\MobileApiService;
 use App\Service\NotificationService;
+use PhpParser\Node\Param;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use WiiCommon\Helper\Stream;
 
@@ -113,6 +110,7 @@ class MobileController extends AbstractFOSRestController
     {
 
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        $globalParametersRepository = $entityManager->getRepository(Setting::class);
         $mobileKey = $request->request->get('loginKey');
 
         $loggedUser = $utilisateurRepository->findOneBy(['mobileLoginKey' => $mobileKey, 'status' => true]);
@@ -124,6 +122,7 @@ class MobileController extends AbstractFOSRestController
             $entityManager->flush();
 
             $rights = $userService->getMobileRights($loggedUser);
+            $parameters = $this->mobileApiService->getMobileParameters($globalParametersRepository);
             $channels = Stream::from($rights)
                 ->filter(fn($val, $key) => $val && in_array($key, ["stock", "tracking", "group", "ungroup", "demande", "notifications"]))
                 ->takeKeys()
@@ -154,6 +153,7 @@ class MobileController extends AbstractFOSRestController
                 'apiKey' => $apiKey,
                 'notificationChannels' => $channels,
                 'rights' => $rights,
+                'parameters' => $parameters,
                 'username' => $loggedUser->getUsername(),
                 'userId' => $loggedUser->getId()
             ];
@@ -203,11 +203,6 @@ class MobileController extends AbstractFOSRestController
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
         $packRepository = $entityManager->getRepository(Pack::class);
 
-        $trackingTypes = [
-            TrackingMovement::TYPE_PRISE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_PRISE),
-            TrackingMovement::TYPE_DEPOSE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE)
-        ];
-
         $mustReloadLocation = false;
 
 
@@ -219,6 +214,11 @@ class MobileController extends AbstractFOSRestController
                 ->keymap(fn(TrackingMovement $trackingMovement) => [$trackingMovement->getUniqueIdForMobile(), $trackingMovement])
                 ->toArray()
             : [];
+
+        $trackingTypes = [
+            TrackingMovement::TYPE_PRISE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_PRISE),
+            TrackingMovement::TYPE_DEPOSE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE)
+        ];
 
         foreach ($mouvementsNomade as $index => $mvt) {
             $invalidLocationTo = '';
@@ -244,12 +244,23 @@ class MobileController extends AbstractFOSRestController
                     $statutRepository,
                     $trackingMovementRepository,
                     $packRepository,
-                    $trackingTypes,
                     $locationDataService,
                     $arrivageDataService,
                     &$mustReloadLocation,
-                    $alreadySavedMovements
+                    $alreadySavedMovements,
+                    $trackingTypes
                 ) {
+                    $trackingTypes = [
+                        TrackingMovement::TYPE_PRISE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_PRISE),
+                        TrackingMovement::TYPE_DEPOSE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE)
+                    ];
+
+                    if (empty($trackingTypes)) {
+                        $trackingTypes = [
+                            TrackingMovement::TYPE_PRISE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_PRISE),
+                            TrackingMovement::TYPE_DEPOSE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE)
+                        ];
+                    }
 
                     $mouvementTraca1 = $alreadySavedMovements[$mvt['date']] ?? null;
                     if (!isset($mouvementTraca1)) {
@@ -313,7 +324,9 @@ class MobileController extends AbstractFOSRestController
                         }
 
                         // envoi de mail si c'est une dépose + le colis existe + l'emplacement est un point de livraison
-                        $arrivageDataService->sendMailForDeliveredPack($entityManager, $location, $associatedPack, $nomadUser, $type->getNom(), $date);
+                        $arrivageDataService->sendMailForDeliveredPack($location, $associatedPack, $nomadUser, $type->getNom(), $date);
+
+                        $entityManager->flush();
 
                         if ($type->getNom() === TrackingMovement::TYPE_DEPOSE) {
                             $finishMouvementTraca[] = $mvt['ref_article'];
@@ -326,7 +339,9 @@ class MobileController extends AbstractFOSRestController
                     $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
                     $entityManager->clear();
                     $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+                    $statutRepository = $entityManager->getRepository(Statut::class);
                     $nomadUser = $utilisateurRepository->find($nomadUser->getId());
+                    $trackingTypes = [];
                     $mustReloadLocation = true;
                 }
 
@@ -395,10 +410,6 @@ class MobileController extends AbstractFOSRestController
         $statutRepository = $entityManager->getRepository(Statut::class);
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
 
-        $trackingTypes = [
-            TrackingMovement::TYPE_PRISE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_PRISE),
-            TrackingMovement::TYPE_DEPOSE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE)
-        ];
 
         $mustReloadLocation = false;
 
@@ -410,6 +421,12 @@ class MobileController extends AbstractFOSRestController
                 ->keymap(fn(TrackingMovement $trackingMovement) => [$trackingMovement->getUniqueIdForMobile(), $trackingMovement])
                 ->toArray()
             : [];
+
+
+        $trackingTypes = [
+            TrackingMovement::TYPE_PRISE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_PRISE),
+            TrackingMovement::TYPE_DEPOSE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE)
+        ];
 
         foreach ($mouvementsNomade as $index => $mvt) {
             $invalidLocationTo = '';
@@ -433,11 +450,16 @@ class MobileController extends AbstractFOSRestController
                     $articleRepository,
                     $statutRepository,
                     $trackingMovementRepository,
-                    $trackingTypes,
                     $locationDataService,
                     &$mustReloadLocation,
-                    $alreadySavedMovements
+                    $alreadySavedMovements,
+                    $trackingTypes
                 ) {
+
+                    $trackingTypes = [
+                        TrackingMovement::TYPE_PRISE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_PRISE),
+                        TrackingMovement::TYPE_DEPOSE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE)
+                    ];
 
                     $mouvementTraca1 = $alreadySavedMovements[$mvt['date']] ?? null;
                     if (!isset($mouvementTraca1)) {
@@ -445,6 +467,14 @@ class MobileController extends AbstractFOSRestController
                             'uniqueIdForMobile' => $mvt['date'],
                             'entityManager' => $entityManager,
                         ];
+
+                        if (empty($trackingTypes)) {
+                            $trackingTypes = [
+                                TrackingMovement::TYPE_PRISE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_PRISE),
+                                TrackingMovement::TYPE_DEPOSE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE)
+                            ];
+                        }
+
                         /** @var Statut $type */
                         $type = $trackingTypes[$mvt['type']];
                         $location = $locationDataService->findOrPersistWithCache($entityManager, $mvt['ref_emplacement'], $mustReloadLocation);
@@ -499,8 +529,11 @@ class MobileController extends AbstractFOSRestController
                     $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
                     $entityManager->clear();
                     $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+                    $statutRepository = $entityManager->getRepository(Statut::class);
                     $nomadUser = $utilisateurRepository->find($nomadUser->getId());
+                    $trackingTypes = [];
                     $mustReloadLocation = true;
+                    $trackingMovementService->stockStatuses = [];
                 }
 
                 if ($throwable->getMessage() === TrackingMovementService::INVALID_LOCATION_TO) {
@@ -510,7 +543,6 @@ class MobileController extends AbstractFOSRestController
                 } else {
                     $exceptionLoggerService->sendLog($throwable, $request);
                     $successData['data']['errors'][$mvt['ref_article']] = 'Une erreur s\'est produite lors de l\'enregistrement de ' . $mvt['ref_article'];
-                    throw $throwable;
                 }
             }
         }
@@ -704,7 +736,10 @@ class MobileController extends AbstractFOSRestController
         }
 
         if (!empty($insertedPrepasIds)) {
-            $resData['data']['preparations'] = Stream::from($preparationRepository->getMobilePreparations($nomadUser, $insertedPrepasIds))
+            $globalsParametersRepository = $entityManager->getRepository(Setting::class);
+            $displayPickingLocation = $globalsParametersRepository->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION);
+
+            $resData['data']['preparations'] = Stream::from($preparationRepository->getMobilePreparations($nomadUser, $insertedPrepasIds, $displayPickingLocation))
                 ->map(function ($preparationArray) {
                     if (!empty($preparationArray['comment'])) {
                         $preparationArray['comment'] = substr(strip_tags($preparationArray['comment']), 0, 200);
@@ -712,7 +747,7 @@ class MobileController extends AbstractFOSRestController
                     return $preparationArray;
                 })
                 ->toArray();
-            $resData['data']['articlesPrepa'] = $this->getArticlesPrepaArrays($insertedPrepasIds, true);
+            $resData['data']['articlesPrepa'] = $this->getArticlesPrepaArrays($entityManager, $insertedPrepasIds, true);
             $resData['data']['articlesPrepaByRefArticle'] = $articleRepository->getArticlePrepaForPickingByUser($nomadUser, $insertedPrepasIds);
         }
 
@@ -806,7 +841,7 @@ class MobileController extends AbstractFOSRestController
 
         $handlingRepository = $entityManager->getRepository(Handling::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
 
         $data = [];
 
@@ -867,7 +902,7 @@ class MobileController extends AbstractFOSRestController
                     && $newStatus
                     && ($oldStatus->getId() !== $newStatus->getId())
                 )) {
-                $viewHoursOnExpectedDate = !$parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REMOVE_HOURS_DATETIME);
+                $viewHoursOnExpectedDate = !$settingRepository->getOneParamByLabel(Setting::REMOVE_HOURS_DATETIME);
                 $handlingService->sendEmailsAccordingToStatus($entityManager, $handling, $viewHoursOnExpectedDate);
             }
 
@@ -1456,18 +1491,20 @@ class MobileController extends AbstractFOSRestController
         $nomadUser = $this->getUser();
 
         $dataResponse = [];
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
         $transferOrderRepository = $entityManager->getRepository(TransferOrder::class);
 
         $httpCode = Response::HTTP_OK;
-        $transferToTreat = json_decode($request->request->get('transfers'), true) ?: [];
-        Stream::from($transferToTreat)
-            ->each(function ($transferId) use ($transferOrderRepository, $transferOrderService, $nomadUser, $entityManager) {
-                $transfer = $transferOrderRepository->find($transferId);
-                $transferOrderService->finish($transfer, $nomadUser, $entityManager);
+        $transfersToTreat = json_decode($request->request->get('transfers'), true) ?: [];
+        Stream::from($transfersToTreat)
+            ->each(function ($transfer) use ($locationRepository, $transferOrderRepository, $transferOrderService, $nomadUser, $entityManager) {
+                $destination = $locationRepository->findOneBy(['label' => $transfer['destination']]);
+                $transfer = $transferOrderRepository->find($transfer['id']);
+                $transferOrderService->finish($transfer, $nomadUser, $entityManager, $destination);
             });
 
         $entityManager->flush();
-        $dataResponse['success'] = $transferToTreat;
+        $dataResponse['success'] = $transfersToTreat;
 
         return new JsonResponse($dataResponse, $httpCode);
     }
@@ -1494,9 +1531,10 @@ class MobileController extends AbstractFOSRestController
         $attachmentRepository = $entityManager->getRepository(Attachment::class);
         $transferOrderRepository = $entityManager->getRepository(TransferOrder::class);
         $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
 
         $rights = $userService->getMobileRights($user);
+        $parameters = $this->mobileApiService->getMobileParameters($settingRepository);
 
         $status = $statutRepository->getMobileStatus($rights['tracking'], $rights['demande']);
 
@@ -1535,10 +1573,11 @@ class MobileController extends AbstractFOSRestController
                 })
                 ->toArray();
 
+            $displayPickingLocation = $settingRepository->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION);
             // get article linked to a ReferenceArticle where type_quantite === 'article'
-            $articlesPrepaByRefArticle = $articleRepository->getArticlePrepaForPickingByUser($user);
+            $articlesPrepaByRefArticle = $articleRepository->getArticlePrepaForPickingByUser($user, [], $displayPickingLocation);
 
-            $articlesPrepa = $this->getArticlesPrepaArrays($preparations);
+            $articlesPrepa = $this->getArticlesPrepaArrays($entityManager, $preparations);
             /// collecte
             $collectes = $ordreCollecteRepository->getMobileCollecte($user);
 
@@ -1580,13 +1619,13 @@ class MobileController extends AbstractFOSRestController
 
         if ($rights['demande']) {
             $handlingExpectedDateColors = [
-                'after' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::HANDLING_EXPECTED_DATE_COLOR_AFTER),
-                'DDay' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::HANDLING_EXPECTED_DATE_COLOR_D_DAY),
-                'before' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::HANDLING_EXPECTED_DATE_COLOR_BEFORE)
+                'after' => $settingRepository->getOneParamByLabel(Setting::HANDLING_EXPECTED_DATE_COLOR_AFTER),
+                'DDay' => $settingRepository->getOneParamByLabel(Setting::HANDLING_EXPECTED_DATE_COLOR_D_DAY),
+                'before' => $settingRepository->getOneParamByLabel(Setting::HANDLING_EXPECTED_DATE_COLOR_BEFORE)
             ];
 
             $handlings = $handlingRepository->getMobileHandlingsByUserTypes($user->getHandlingTypeIds());
-            $removeHoursDesiredDate = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REMOVE_HOURS_DATETIME);
+            $removeHoursDesiredDate = $settingRepository->getOneParamByLabel(Setting::REMOVE_HOURS_DATETIME);
             $handlings = Stream::from($handlings)
                 ->map(function (array $handling) use ($handlingExpectedDateColors, $removeHoursDesiredDate) {
                     $handling['color'] = $this->mobileApiService->expectedDateColor($handling['desiredDate'], $handlingExpectedDateColors);
@@ -1640,7 +1679,6 @@ class MobileController extends AbstractFOSRestController
         }
 
         ['translations' => $translations] = $this->mobileApiService->getTranslationsData($entityManager);
-
         return [
             'locations' => $emplacementRepository->getLocationsArray(),
             'allowedNatureInLocations' => $allowedNatureInLocations ?? [],
@@ -1679,6 +1717,7 @@ class MobileController extends AbstractFOSRestController
             'demandeLivraisonArticles' => $demandeLivraisonArticles ?? [],
             'natures' => $natures ?? [],
             'rights' => $rights,
+            'parameters' => $parameters,
             'translations' => $translations,
             'dispatches' => $dispatches ?? [],
             'dispatchPacks' => $dispatchPacks ?? [],
@@ -2131,12 +2170,12 @@ class MobileController extends AbstractFOSRestController
                              Request $request): Response
     {
         $logoKey = $request->get('key');
-        if (!in_array($logoKey, [ParametrageGlobal::MOBILE_LOGO_HEADER, ParametrageGlobal::MOBILE_LOGO_LOGIN])) {
+        if (!in_array($logoKey, [Setting::FILE_MOBILE_LOGO_HEADER, Setting::FILE_MOBILE_LOGO_LOGIN])) {
             throw new BadRequestHttpException('Unknown logo key');
         }
 
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
-        $logo = $parametrageGlobalRepository->getOneParamByLabel($logoKey);
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $logo = $settingRepository->getOneParamByLabel($logoKey);
 
         if (!$logo) {
             return $this->json([
@@ -2255,9 +2294,8 @@ class MobileController extends AbstractFOSRestController
         return new JsonResponse($resData, $statusCode);
     }
 
-    private function getArticlesPrepaArrays(array $preparations, bool $isIdArray = false): array
+    private function getArticlesPrepaArrays(EntityManagerInterface $entityManager, array $preparations, bool $isIdArray = false): array
     {
-        $entityManager = $this->getDoctrine()->getManager();
         /** @var ReferenceArticleRepository $referenceArticleRepository */
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         /** @var ArticleRepository $articleRepository */

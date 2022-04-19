@@ -1050,18 +1050,20 @@ function initSecondStep(html, component) {
             $input.click();
         })
 
-        updateImagePreview($preview, $input, $title, $delete, function ($input) {
-            if ($input.files.length >= 1 && $input.files[0]) {
-                const reader = new FileReader();
-                reader.readAsDataURL($input.files[0]);
-                reader.onload = () => {
-                    const $deleteLogo = $modalComponentTypeSecondStep.find('.delete-logo');
-                    $deleteLogo.removeClass('d-none');
-                    $modalComponentTypeSecondStep.find(`.external-image-content`)
-                        .val(reader.result)
-                        .trigger(`change`);
-                };
-            }
+        $input.on(`change`, function() {
+            updateImagePreview($preview, $input, $title, $delete, function ($input) {
+                if ($input.files.length >= 1 && $input.files[0]) {
+                    const reader = new FileReader();
+                    reader.readAsDataURL($input.files[0]);
+                    reader.onload = () => {
+                        const $deleteLogo = $modalComponentTypeSecondStep.find('.delete-logo');
+                        $deleteLogo.removeClass('d-none');
+                        $modalComponentTypeSecondStep.find(`.external-image-content`)
+                            .val(reader.result)
+                            .trigger(`change`);
+                    };
+                }
+            });
         });
     }
 }

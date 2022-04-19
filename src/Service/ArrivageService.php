@@ -6,17 +6,17 @@ use App\Entity\Arrivage;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\Emplacement;
-use App\Entity\Fournisseur;
 use App\Entity\FreeField;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\Pack;
-use App\Entity\ParametrageGlobal;
+use App\Entity\Setting;
 use App\Entity\TrackingMovement;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
-use Symfony\Component\HttpFoundation\InputBag;
+use DateTime;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -62,22 +62,39 @@ class ArrivageService {
     /** @Required */
     public VisibleColumnService $visibleColumnService;
 
-    public function getDataForDatatable(InputBag $params, ?int $userIdArrivalFilter)
+    private ?array $freeFieldsConfig = null;
+
+    public function getDataForDatatable(Request $request, ?int $userIdArrivalFilter)
     {
         $arrivalRepository = $this->entityManager->getRepository(Arrivage::class);
         $supFilterRepository = $this->entityManager->getRepository(FiltreSup::class);
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->security->getUser();
+        $dispatchMode = $request->query->getBoolean('dispatchMode');
 
         $filters = $supFilterRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ARRIVAGE, $currentUser);
-        $queryResult = $arrivalRepository->findByParamsAndFilters($params, $filters, $userIdArrivalFilter, $this->security->getUser());
+        $queryResult = $arrivalRepository->findByParamsAndFilters(
+            $request->request,
+            $filters,
+            $this->visibleColumnService,
+            [
+                'userIdArrivalFilter' => $userIdArrivalFilter,
+                'user' => $this->security->getUser(),
+                'dispatchMode' => $dispatchMode
+            ]
+        );
 
         $arrivals = $queryResult['data'];
 
         $rows = [];
         foreach ($arrivals as $arrival) {
-            $rows[] = $this->dataRowArrivage(is_array($arrival) ? $arrival[0] : $arrival);
+            $rows[] = $this->dataRowArrivage($arrival[0], [
+                'totalWeight' => $arrival['totalWeight'],
+                'packsCount' => $arrival['packsCount'],
+                'dispatchMode' => $dispatchMode,
+                'packsInDispatchCount' => $arrival['dispatchedPacksCount']
+            ]);
         }
 
         return [
@@ -87,27 +104,15 @@ class ArrivageService {
         ];
     }
 
-    public function dataRowArrivage($arrival)
+    public function dataRowArrivage(Arrivage $arrival, array $options = []): array
     {
+        $arrivalId = $arrival->getId();
         $url = $this->router->generate('arrivage_show', [
-            'id' => $arrival->getId(),
+            'id' => $arrivalId,
         ]);
-        $arrivalRepository = $this->entityManager->getRepository(Arrivage::class);
-        $categoryFFRepository = $this->entityManager->getRepository(CategorieCL::class);
-        $freeFieldsRepository = $this->entityManager->getRepository(FreeField::class);
-        $categoryFF = $categoryFFRepository->findOneBy(['label' => CategorieCL::ARRIVAGE]);
 
-        $category = CategoryType::ARRIVAGE;
-        $freeFields = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categoryFF);
-
-        $rowCL = [];
-        /** @var FreeField $freeField */
-        foreach ($freeFields as $freeField) {
-            $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeField['id']);
-            $rowCL[$freeFieldName] = $this->freeFieldService->serializeValue([
-                'valeur' => $arrival->getFreeFieldValue($freeField['id']),
-                "typage" => $freeField['typage'],
-            ]);
+        if (!isset($this->freeFieldsConfig)) {
+            $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig($this->entityManager, CategorieCL::ARRIVAGE, CategoryType::ARRIVAGE);
         }
 
         $acheteursUsernames = [];
@@ -116,14 +121,16 @@ class ArrivageService {
         }
 
         $row = [
-            'id' => $arrival->getId(),
+            'id' => $arrivalId,
+            'packsInDispatch' => $options['packsInDispatchCount'] > 0 ? "<td><i class='fas fa-exchange-alt mr-2' title='Colis acheminé(s)'></i></td>" : '',
             'arrivalNumber' => $arrival->getNumeroArrivage() ?? '',
             'carrier' => $arrival->getTransporteur() ? $arrival->getTransporteur()->getLabel() : '',
+            'totalWeight' => $options['totalWeight'] ?? '',
             'driver' => $arrival->getChauffeur() ? $arrival->getChauffeur()->getPrenomNom() : '',
             'trackingCarrierNumber' => $arrival->getNoTracking() ?? '',
             'orderNumber' => implode(',', $arrival->getNumeroCommandeList()),
             'type' => $arrival->getType() ? $arrival->getType()->getLabel() : '',
-            'nbUm' => $arrivalRepository->countColisByArrivage($arrival),
+            'nbUm' => $options['packsCount'] ?? '',
             'customs' => $arrival->getCustoms() ? 'oui' : 'non',
             'frozen' => $arrival->getFrozen() ? 'oui' : 'non',
             'provider' => $arrival->getFournisseur() ? $arrival->getFournisseur()->getNom() : '',
@@ -137,13 +144,22 @@ class ArrivageService {
             'businessUnit' => $arrival->getBusinessUnit() ?? '',
             'dropLocation' => FormatHelper::location($arrival->getDropLocation()),
             'url' => $url,
-            'actions' => $this->templating->render(
-                'arrivage/datatableArrivageRow.html.twig',
-                ['url' => $url, 'arrivage' => $arrival]
-            )
         ];
 
-        return array_merge($rowCL, $row);
+        if(isset($options['dispatchMode']) && $options['dispatchMode']) {
+            $disabled = $options['packsInDispatchCount'] >= $arrival->getPacks()->count() ? 'disabled' : '';
+            $row['actions'] = "<td><input type='checkbox' class='checkbox dispatch-checkbox' value='$arrivalId' $disabled></td>";
+        } else {
+            $row['actions'] = $this->templating->render('arrivage/datatableArrivageRow.html.twig', ['url' => $url, 'arrivage' => $arrival]);
+        }
+
+        foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
+            $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
+            $freeFieldValue = $arrival->getFreeFieldValue($freeFieldId);
+            $row[$freeFieldName] = FormatHelper::freeField($freeFieldValue, $freeField);
+        }
+
+        return $row;
     }
 
     public function sendArrivalEmails(Arrivage $arrival, array $emergencies = []): void {
@@ -171,8 +187,7 @@ class ArrivageService {
             $freeFields = $this->freeFieldService->getFilledFreeFieldArray(
                 $this->entityManager,
                 $arrival,
-                null,
-                CategoryType::ARRIVAGE
+                ['type' => $arrival->getType()]
             );
 
             $this->mailerService->sendMail(
@@ -246,7 +261,7 @@ class ArrivageService {
             $numeroCommande = null;
             $postNb = null;
         }
-        $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
+        $settingRepository = $this->entityManager->getRepository(Setting::class);
 
         return [
             'autoHide' => (!$askQuestion && !$isArrivalUrgent),
@@ -257,12 +272,29 @@ class ArrivageService {
                 : 'Arrivage enregistré avec succès.'),
             'iconType' => $isArrivalUrgent ? 'warning' : 'success',
             'modalType' => ($askQuestion && $isArrivalUrgent) ? 'yes-no-question' : 'info',
-            'autoPrint' => !$parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL),
+            'autoPrint' => !$settingRepository->getOneParamByLabel(Setting::REDIRECT_AFTER_NEW_ARRIVAL),
             'emergencyAlert' => $isArrivalUrgent,
             'numeroCommande' => $numeroCommande,
             'postNb' => $postNb,
-            'arrivalId' => $arrivage->getId() ? $arrivage->getId() : $arrivage->getNumeroArrivage()
+            'arrivalId' => $arrivage->getId() ?: $arrivage->getNumeroArrivage()
         ];
+    }
+
+    public function createSupplierEmergencyAlert(Arrivage $arrival): ?array {
+        $supplier = $arrival->getFournisseur();
+        $supplierName = $supplier ? $supplier->getNom() : null;
+        $isArrivalUrgent = ($supplier && $supplier->isUrgent() && $supplierName);
+        $settingRepository = $this->entityManager->getRepository(Setting::class);
+        return $isArrivalUrgent
+            ? [
+                'autoHide' => false,
+                'message' => "Attention, les colis $supplierName doivent être traités en urgence",
+                'iconType' => 'warning',
+                'modalType' => 'info',
+                'autoPrint' => !$settingRepository->getOneParamByLabel(Setting::REDIRECT_AFTER_NEW_ARRIVAL),
+                'arrivalId' => $arrival->getId() ?: $arrival->getNumeroArrivage()
+            ]
+            : null;
     }
 
     public function processEmergenciesOnArrival(Arrivage $arrival): array
@@ -274,8 +306,6 @@ class ArrivageService {
             || $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_NS);
 
         if (!empty($numeroCommandeList)) {
-            $urgenceRepository = $this->entityManager->getRepository(Urgence::class);
-
             foreach ($numeroCommandeList as $numeroCommande) {
                 $urgencesMatching = $this->urgenceService->matchingEmergencies(
                     $arrival,
@@ -327,8 +357,7 @@ class ArrivageService {
         $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
             $this->entityManager,
             $arrivage,
-            null,
-            CategoryType::ARRIVAGE
+            ['type' => $arrivage->getType()]
         );
 
         $config = [
@@ -389,7 +418,7 @@ class ArrivageService {
                 'show' => [ 'fieldName' => 'projectNumber' ]
             ],
             [
-                'label' => 'Business unit',
+                'label' => $this->translator->trans('acheminement.Business unit'),
                 'value' => $arrivage->getBusinessUnit(),
                 'show' => [ 'fieldName' => 'businessUnit' ]
             ],
@@ -436,7 +465,8 @@ class ArrivageService {
     }
 
     public function getColumnVisibleConfig(EntityManagerInterface $entityManager,
-                                           Utilisateur $currentUser): array {
+                                           Utilisateur $currentUser,
+                                           bool $dispatchMode = false): array {
 
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
@@ -447,9 +477,10 @@ class ArrivageService {
         $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::ARRIVAGE, $categorieCL);
 
         $columns = [
-            ['name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
-            ['title' => 'Date de création', 'name' => 'creationDate'],
+            ['name' => 'packsInDispatch', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
+            ['title' => 'Date de création', 'name' => 'creationDate', 'type' => ($dispatchMode ? 'customDate' : '')],
             ['title' => 'arrivage.n° d\'arrivage',  'name' => 'arrivalNumber', 'translated' => true],
+            ['title' => 'Poids total (kg)', 'name' => 'totalWeight'],
             ['title' => 'Transporteur', 'name' => 'carrier'],
             ['title' => 'Chauffeur', 'name' => 'driver'],
             ['title' => 'N° tracking transporteur', 'name' => 'trackingCarrierNumber'],
@@ -465,8 +496,15 @@ class ArrivageService {
             ['title' => 'Utilisateur', 'name' => 'user'],
             ['title' => 'Urgent', 'name' => 'emergency'],
             ['title' => 'Numéro de projet', 'name' => 'projectNumber'],
-            ['title' => 'Business Unit', 'name' => 'businessUnit'],
+            ['title' => 'acheminement.Business unit', 'name' => 'businessUnit', 'translated' => true],
         ];
+
+        if($dispatchMode) {
+            $dispatchCheckboxLine = ['title' => "<input type='checkbox' class='checkbox check-all'>", 'name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'];
+            array_unshift($columns, $dispatchCheckboxLine);
+        } else {
+            array_unshift($columns, ['name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis actions']);
+        }
 
         $arrivalFieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
 
@@ -474,19 +512,20 @@ class ArrivageService {
             || $this->fieldsParamService->isFieldRequired($arrivalFieldsParam, FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'displayedEdit')) {
             $columns[] = ['title' => 'Emplacement de dépose', 'name' => 'dropLocation'];
         }
+
         return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);
     }
 
     public function getLocationForTracking(EntityManagerInterface $entityManager,
                                            Arrivage $arrivage): ?Emplacement {
 
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
-        if($arrivage->getCustoms() && $customsArrivalsLocation = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DROP_OFF_LOCATION_IF_CUSTOMS)) {
+        if($arrivage->getCustoms() && $customsArrivalsLocation = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_CUSTOMS)) {
             $location = $emplacementRepository->find($customsArrivalsLocation);
         }
-        else if($arrivage->getIsUrgent() && $emergenciesArrivalsLocation = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DROP_OFF_LOCATION_IF_EMERGENCY)) {
+        else if($arrivage->getIsUrgent() && $emergenciesArrivalsLocation = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_EMERGENCY)) {
             $location = $emplacementRepository->find($emergenciesArrivalsLocation);
         }
         else if (
@@ -497,7 +536,7 @@ class ArrivageService {
             $location = $emplacementRepository->findOneBy(['label' => SpecificService::ARRIVAGE_SPECIFIQUE_SED_MVT_DEPOSE]);
         } else if ($arrivage->getDropLocation()) {
             $location = $arrivage->getDropLocation();
-        } else if($defaultArrivalsLocation = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::MVT_DEPOSE_DESTINATION)) {
+        } else if($defaultArrivalsLocation = $settingRepository->getOneParamByLabel(Setting::MVT_DEPOSE_DESTINATION)) {
             $location = $emplacementRepository->find($defaultArrivalsLocation);
         }
         else {
@@ -508,18 +547,20 @@ class ArrivageService {
     }
 
     public function putArrivalLine($handle,
-                                    CSVExportService $csvService,
-                                    FreeFieldService $freeFieldService,
-                                    array $ffConfig,
-                                    array $arrival,
-                                    array $buyersByArrival,
-                                    array $natureLabels,
-                                    array $packs,
-                                    array $fieldsParam) {
+                                   CSVExportService $csvService,
+                                   array $freeFieldsConfig,
+                                   array $arrival,
+                                   array $buyersByArrival,
+                                   array $natureLabels,
+                                   array $packs,
+                                   array $fieldsParam,
+                                   array $packsTotalWeight)
+    {
         $id = (int)$arrival['id'];
 
         $line = [
             $arrival['numeroArrivage'] ?: '',
+            $packsTotalWeight[$id] ?? '',
             $arrival['recipientUsername'] ?: '',
             $arrival['fournisseurName'] ?: '',
             $arrival['transporteurLabel'] ?: '',
@@ -548,45 +589,42 @@ class ArrivageService {
             $line[] = $packs[$id][$natureLabel] ?? 0;
         }
 
-        foreach($ffConfig["freeFieldIds"] as $freeFieldId) {
-            $line[] = $freeFieldService->serializeValue([
-                "typage" => $ffConfig["freeFieldsIdToTyping"][$freeFieldId],
-                "valeur" => $arrival["freeFields"][$freeFieldId] ?? ""
-            ]);
+        foreach($freeFieldsConfig["freeFields"] as $freeFieldId => $freeField) {
+            $line[] = FormatHelper::freeField($arrival["freeFields"][$freeFieldId] ?? '', $freeField);
         }
 
         $csvService->putLine($handle, $line);
     }
 
-    public function sendMailForDeliveredPack(EntityManagerInterface $entityManager,
-                                             Emplacement $location,
-                                             Pack $pack,
-                                             Utilisateur $nomadUser,
-                                             string $trackingType,
-                                             $date): void {
-        if ($trackingType === TrackingMovement::TYPE_DEPOSE
-            && $pack->getArrivage()
-            && $location->getIsDeliveryPoint()) {
-            $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
-            $fournisseur = $fournisseurRepository->findOneByColis($pack);
+    public function sendMailForDeliveredPack(Emplacement            $location,
+                                             Pack                   $pack,
+                                             Utilisateur            $user,
+                                             string                 $trackingType,
+                                             DateTime               $date): void {
+        if ($location->getIsDeliveryPoint()
+            && $trackingType === TrackingMovement::TYPE_DEPOSE
+            && !$pack->isDeliveryDone()
+            && $pack->getArrivage()) {
             $arrivage = $pack->getArrivage();
-            $destinataire = $arrivage->getDestinataire();
-            if ($destinataire) {
+            $receiver = $arrivage->getDestinataire();
+            $pack->setIsDeliveryDone(true);
+            if ($receiver) {
                 $this->mailerService->sendMail(
                     'FOLLOW GT // Dépose effectuée',
                     $this->templating->render(
-                        'mails/contents/mailDeposeTraca.html.twig',
+                        'mails/contents/mail-pack-delivery-done.html.twig',
                         [
                             'title' => 'Votre colis a été livré.',
-                            'colis' => $pack->getCode(),
+                            'orderNumber' => implode(', ', $arrivage->getNumeroCommandeList()),
+                            'colis' => FormatHelper::pack($pack),
                             'emplacement' => $location,
-                            'fournisseur' => $fournisseur ? $fournisseur->getNom() : '',
+                            'fournisseur' => FormatHelper::supplier($arrivage->getFournisseur()),
                             'date' => $date,
-                            'operateur' => $nomadUser->getUsername(),
+                            'operateur' => FormatHelper::user($user),
                             'pjs' => $arrivage->getAttachments()
                         ]
                     ),
-                    $destinataire
+                    $receiver
                 );
             }
         }

@@ -5,6 +5,7 @@ let prepaHasBegun = false;
 let $preparationId = $('#prepa-id');
 let $modalSubmitPreparation = $('#modal-select-location');
 let pathArticle = Routing.generate('preparation_article_api', {'preparation': $preparationId.val()});
+const showTargetLocationPicking = Number($(`input[name=showTargetLocationPicking]`).val());
 
 $(function () {
     const $locationSelect = $modalSubmitPreparation.find('select[name="location"]');
@@ -27,13 +28,14 @@ $(function () {
 let tableArticleConfig = {
     ajax: pathArticle,
     columns: [
-        {"data": 'Actions', 'title': '', className: 'noVis', orderable: false},
-        {"data": 'Référence', 'title': 'Référence'},
-        {"data": 'Libellé', 'title': 'Libellé'},
-        {"data": 'Emplacement', 'title': 'Emplacement'},
-        {"data": 'Quantité', 'title': 'Quantité en stock'},
-        {"data": 'quantityToPick', 'title': 'Quantité à prélever'},
-        {"data": 'pickedQuantity', 'title': 'Quantité prélevée'},
+        {data: 'Actions', title: '', className: 'noVis', orderable: false},
+        {data: 'reference', title: 'Référence'},
+        {data: 'label', title: 'Libellé'},
+        {data: 'location', title: 'Emplacement'},
+        {data: 'targetLocationPicking', title: 'Emplacement cible picking', visible: showTargetLocationPicking},
+        {data: 'quantity', title: 'Quantité en stock'},
+        {data: 'quantityToPick', title: 'Quantité à prélever'},
+        {data: 'pickedQuantity', title: 'Quantité prélevée'},
     ],
     rowConfig: {
         needsRowClickAction: true,
@@ -41,7 +43,7 @@ let tableArticleConfig = {
         color: 'success',
         dataToCheck: 'active'
     },
-    order: [['Référence', "asc"]]
+    order: [['reference', "asc"]]
 };
 
 let tableArticle = initDataTable('tableArticle_id', tableArticleConfig);
@@ -55,12 +57,13 @@ function startPicking($button, managementType) {
         $.post(path, JSON.stringify(ligneArticleId), function (html) {
             $('#splittingContent').html(html);
             let tableSplittingArticlesConfig = {
-                'lengthMenu': [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'tous']],
+                'lengthMenu': [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'Tout']],
                 domConfig: {
                     needsPaginationRemoval: true
                 },
+                order: []
             };
-            if (managementType) {
+            if (!showTargetLocationPicking && managementType) {
                 tableSplittingArticlesConfig.order = [
                     4, "asc"
                 ];

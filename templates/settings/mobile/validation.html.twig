@@ -1,0 +1,35 @@
+{% import 'form.html.twig' as form %}
+
+<div class="wii-section">
+    <div class="row">
+        <div class="col-12 mb-3 wii-describe">
+            L’activation sur un menu de ce paramétrage permet d’enlever toutes les étapes de validation et/ou de confirmation de quantité.
+            La sélection de tous les éléments (par flash ou appui sur une flèche) permet de valider une dépose ou de passer à l’étape de sélection
+            d’emplacement pour une demande. L’étape de sélection d’emplacement se valider directement par flash du bon emplacement ou sélection via
+            la loupe.
+        </div>
+        <div class="col-12 my-1">
+            {{ form.checkbox(setting('TRANSFER_TO_TREAT_SKIP_VALIDATIONS'), '<span class="bold">Transfert | Transfert à traiter :</span>&nbsp;désactiver les validations</span>', false, setting_value('TRANSFER_TO_TREAT_SKIP_VALIDATIONS')) }}
+        </div>
+
+        <div class="col-12 my-1">
+            {{ form.checkbox(setting('MANUAL_TRANSFER_TO_TREAT_SKIP_VALIDATIONS'), '<span class="bold">Transfert | Transfert manuel | Dépose :</span>&nbsp;désactiver les validations</span>', false, setting_value('MANUAL_TRANSFER_TO_TREAT_SKIP_VALIDATIONS')) }}
+        </div>
+
+        <div class="col-12 my-1">
+            {{ form.checkbox(setting('PREPARATION_SKIP_VALIDATIONS'), '<span class="bold">Préparation :</span>&nbsp;désactiver les validations</span>', false, setting_value('PREPARATION_SKIP_VALIDATIONS')) }}
+        </div>
+
+        <div class="col-12 my-1">
+            {{ form.checkbox(setting('PREPARATION_SKIP_QUANTITIES'), '<span class="bold">Préparation :</span>&nbsp;désactiver les confirmations de quantité</span>', false, setting_value('PREPARATION_SKIP_QUANTITIES')) }}
+        </div>
+
+        <div class="col-12 my-1">
+            {{ form.checkbox(setting('LIVRAISON_SKIP_VALIDATIONS'), '<span class="bold">Livraison :</span>&nbsp;désactiver les validations</span>', false, setting_value('LIVRAISON_SKIP_VALIDATIONS')) }}
+        </div>
+
+        <div class="col-12 my-1">
+            {{ form.checkbox(setting('LIVRAISON_SKIP_QUANTITIES'), '<span class="bold">Livraison :</span>&nbsp;désactiver les confirmations de quantité</span>', false, setting_value('LIVRAISON_SKIP_QUANTITIES')) }}
+        </div>
+    </div>
+</div>

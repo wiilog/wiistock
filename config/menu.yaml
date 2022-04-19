@@ -2,7 +2,7 @@ parameters:
     menu_config:
         -   label: 'Accueil'
             icon: 'accueil'
-            path: 'accueil'
+            path: 'app_index'
 
         -   label: 'Traçabilité'
             icon: 'traca'
@@ -88,6 +88,11 @@ parameters:
                     rights:
                         menu: App\Entity\Menu::DEM
                         action: App\Entity\Action::DISPLAY_PURCHASE_REQUESTS
+                -   label: 'Transport'
+                    path: 'transport_request_index'
+                    rights:
+                        menu: App\Entity\Menu::DEM
+                        action: App\Entity\Action::DISPLAY_TRANSPORT
 
         -   label: 'Ordre'
             icon: 'ordre'
@@ -119,6 +124,26 @@ parameters:
                     rights:
                         menu: App\Entity\Menu::ORDRE
                         action: App\Entity\Action::DISPLAY_RECE
+                -   label: 'Transport'
+                    path: 'transport_order_index'
+                    rights:
+                        menu: App\Entity\Menu::ORDRE
+                        action: App\Entity\Action::DISPLAY_TRANSPORT
+                -   label: 'Planning'
+                    path: 'transport_planning_index'
+                    rights:
+                        menu: App\Entity\Menu::ORDRE
+                        action: App\Entity\Action::DISPLAY_TRANSPORT_PLANNING
+                -   label: 'Tournée'
+                    path: 'transport_round_index'
+                    rights:
+                        menu: App\Entity\Menu::ORDRE
+                        action: App\Entity\Action::DISPLAY_TRANSPORT_ROUND
+                -   label: 'Sous-traitance'
+                    path: 'transport_subcontract_index'
+                    rights:
+                        menu: App\Entity\Menu::ORDRE
+                        action: App\Entity\Action::DISPLAY_TRANSPORT_SUBCONTRACT
 
         -   label: 'Stock'
             icon: 'stock'
@@ -160,7 +185,7 @@ parameters:
             icon: 'referentiel'
             sub:
                 -   label: 'Fournisseurs'
-                    path: 'fournisseur_index'
+                    path: 'supplier_index'
                     rights:
                         menu: App\Entity\Menu::REFERENTIEL
                         action: App\Entity\Action::DISPLAY_FOUR
@@ -179,6 +204,15 @@ parameters:
                     rights:
                         menu: App\Entity\Menu::REFERENTIEL
                         action: App\Entity\Action::DISPLAY_TRAN
+                -   label: 'natures.Natures de colis'
+                    isTranslation: true
+                    title: Natures de colis
+                    path: 'nature_param_index'
+                -   label: 'Véhicules'
+                    path: 'vehicle_index'
+                    rights:
+                        menu: App\Entity\Menu::REFERENTIEL
+                        action: App\Entity\Action::DISPLAY_VEHICLE
 
         -   label: 'IoT.IoT'
             isTranslation: true
@@ -203,83 +237,28 @@ parameters:
 
         -   label: 'Paramétrage'
             icon: 'parametre'
-            sub:
-                -   label: 'Paramétrage global'
-                    path: 'global_param_index'
-                    rights:
-                        menu: App\Entity\Menu::PARAM
-                        action: App\Entity\Action::DISPLAY_GLOB
-                -   label: 'Rôles'
-                    path: 'role_index'
-                    rights:
-                        menu: App\Entity\Menu::PARAM
-                        action: App\Entity\Action::DISPLAY_ROLE
-                -   label: 'Utilisateurs'
-                    path: 'user_index'
-                    rights:
-                        menu: App\Entity\Menu::PARAM
-                        action: App\Entity\Action::DISPLAY_UTIL
-                -   label: 'Groupes de visibilité'
-                    path: 'visibility_group_index'
-                    rights:
-                        menu: App\Entity\Menu::PARAM
-                        action: App\Entity\Action::DISPLAY_VISIBILITY_GROUPS
-                -   label: 'Dashboards'
-                    title: Dashboards
-                    path: 'dashboard_settings'
-                    rights:
-                        menu: App\Entity\Menu::PARAM
-                        action: App\Entity\Action::DISPLAY_DASHBOARDS
-                -   label: 'Export de données'
-                    path: 'exports_params'
-                    rights:
-                        menu: App\Entity\Menu::PARAM
-                        action: App\Entity\Action::DISPLAY_EXPO
-                -   label: 'Inventaire'
-                    path: 'inventaire_param_index'
-                    rights:
-                        menu: App\Entity\Menu::PARAM
-                        action: App\Entity\Action::DISPLAY_INVE
-                -   label: 'Types & Champs libres'
-                    path: 'types_index'
-                    rights:
-                        menu: App\Entity\Menu::PARAM
-                        action: App\Entity\Action::DISPLAY_TYPE
-                -   label: 'Statuts'
-                    path: 'status_param_index'
-                    rights:
-                        menu: App\Entity\Menu::PARAM
-                        action: App\Entity\Action::DISPLAY_STATU_LITI
-                -   label: 'natures.Natures de colis'
-                    title: Natures de colis
-                    path: 'nature_param_index'
-                    isTranslation: true
-                    rights:
-                        menu: App\Entity\Menu::PARAM
-                        action: App\Entity\Action::DISPLAY_NATU_COLI
-                -   label: 'Champs fixes'
-                    path: 'fields_param_index'
-                    rights:
-                        menu: App\Entity\Menu::PARAM
-                        action: App\Entity\Action::DISPLAY_CF
-                -   label: 'Modèles de demandes'
-                    path: 'request_template_index'
-                    rights:
-                        menu: App\Entity\Menu::PARAM
-                        action: App\Entity\Action::DISPLAY_REQUEST_TEMPLATE
-                -   label: 'Modèles de notifications'
-                    path: 'notification_template_index'
-                    rights:
-                        menu: App\Entity\Menu::PARAM
-                        action: App\Entity\Action::DISPLAY_NOTIFICATIONS
-                -   label: 'Import et mise à jour'
-                    path: 'import_index'
-                    rights:
-                        menu: App\Entity\Menu::PARAM
-                        action: App\Entity\Action::DISPLAY_IMPORT
-                -   label: 'Documentation'
-                    url: 'https://wiilog.fr/doc/'
-                    isExtern: 'true'
+            path: 'settings_index'
+            rightsOR:
+                -   menu: App\Entity\Menu::PARAM
+                    action: App\Entity\Action::SETTINGS_GLOBAL
+                -   menu: App\Entity\Menu::PARAM
+                    action: App\Entity\Action::SETTINGS_STOCK
+                -   menu: App\Entity\Menu::PARAM
+                    action: App\Entity\Action::SETTINGS_TRACING
+                -   menu: App\Entity\Menu::PARAM
+                    action: App\Entity\Action::SETTINGS_TRACKING
+                -   menu: App\Entity\Menu::PARAM
+                    action: App\Entity\Action::SETTINGS_MOBILE
+                -   menu: App\Entity\Menu::PARAM
+                    action: App\Entity\Action::SETTINGS_DASHBOARDS
+                -   menu: App\Entity\Menu::PARAM
+                    action: App\Entity\Action::SETTINGS_IOT
+                -   menu: App\Entity\Menu::PARAM
+                    action: App\Entity\Action::SETTINGS_NOTIFICATIONS
+                -   menu: App\Entity\Menu::PARAM
+                    action: App\Entity\Action::SETTINGS_USERS
+                -   menu: App\Entity\Menu::PARAM
+                    action: App\Entity\Action::SETTINGS_DATA
 
         -   label: 'Déconnexion'
             icon: 'deco'

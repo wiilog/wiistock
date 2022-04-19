@@ -1,6 +1,7 @@
 {% extends 'utils/show-header.html.twig' %}
 
-{% block showTitle ('Demande de livraison n°' ~ demande.numero) %}
+{% block showTitle ('Demande de livraison') %}
+{% block showSubtitle ('n°' ~ demande.numero) %}
 
 {% block showActions %}
     <div class="btn-group">
@@ -67,9 +68,7 @@
                         editRow($(this),
                         Routing.generate('demandeLivraison_api_edit', true),
                         $('#modalEditDemande'),
-                        $('#submitEditdemande'),
-                        true,
-                        '#modalEditDemande .editor-container-edit', false,
+                        $('#submitEditdemande'), false,
                         () => initDeliveryRequestModal()
                 );"
                    data-id='{{ demande.id }}'

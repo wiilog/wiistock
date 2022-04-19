@@ -3,21 +3,29 @@
 {% block filters %}
     {% include 'filters/filter_item/filterDate.html.twig' %}
     {% include 'filters/filter_item/filterDispatch.html.twig' %}
-    {% include 'filters/filter_item/filterStatus.html.twig' %}
+    {% include 'filters/filter_item/filterStatus.html.twig' with {
+        name: 'statut',
+        placeholder: 'Statut'
+    } %}
     {% include 'filters/filter_item/filterTypeMultiple.html.twig' %}
     {% include 'filters/filter_item/filterUser.html.twig' with {
-        name: 'requesters'
-    }%}
+        name: 'requesters',
+        placeholder: 'Demandeurs'
+    } %}
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIER_DISPATCH') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
         {% include 'filters/filter_item/filterCarrier.html.twig' %}
     {% endif %}
-    {% include 'filters/filter_item/filterEmergencyMultiple.html.twig' %}
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
+        {% include 'filters/filter_item/filterEmergencyMultiple.html.twig' %}
+    {% endif %}
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_RECEIVER_DISPATCH') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
         {% include 'filters/filter_item/filterUser.html.twig' with {
-            name: 'receivers'
-        }%}
+            name: 'receivers',
+            placeholder: 'Destinataires'
+        } %}
     {% endif %}
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_COMMAND_NUMBER_DISPATCH') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}

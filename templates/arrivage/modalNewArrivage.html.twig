@@ -18,18 +18,20 @@
                         <div class="form-group col w-100">
                             <label
                                 for="fournisseur">Fournisseur{{ fieldsParam|isFieldRequired('fournisseur', 'requiredCreate') ? '*' : '' }}</label>
-                            <select
-                                class="no-clear form-control input-sm data select2 ajax-autocomplete-fournisseur {{ fieldsParam|isFieldRequired('fournisseur', 'requiredCreate') ? 'needed' : '' }}"
-                                name="fournisseur"
-                                id="fournisseur">
+                            <select class="no-clear form-control input-sm data select2 ajax-autocomplete-fournisseur {{ fieldsParam|isFieldRequired('fournisseur', 'requiredCreate') ? 'needed' : '' }}"
+                                    name="fournisseur"
+                                    id="fournisseur">
                                 <option selected disabled>&nbsp;</option>
                                 {% for fournisseur in fournisseurs %}
-                                    <option value="{{ fournisseur.id }}">{{ fournisseur.nom }}</option>
+                                    <option value="{{ fournisseur.id }}"
+                                            data-possible-customs="{{ fournisseur.possibleCustoms ? 1 : 0 }}">
+                                        {{ fournisseur.nom }}
+                                    </option>
                                 {% endfor %}
                             </select>
                         </div>
                         {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
-                            <div class="form-group col-1 toggle-button-container">
+                            <div class="form-group col-auto toggle-button-container">
                                 <span class="btn btn-primary"
                                       onclick="onFlyFormToggle('fournisseurDisplay', 'addFournisseur')">
                                     <i class="fa fa-plus"></i>
@@ -51,7 +53,7 @@
                             </select>
                         </div>
                         {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
-                            <div class="form-group col-1 toggle-button-container">
+                            <div class="form-group col-auto toggle-button-container">
                                 <span class="btn btn-primary"
                                       onclick="onFlyFormToggle('transporteurDisplay', 'addTransporteur')">
                                     <i class="fa fa-plus"></i>
@@ -74,7 +76,7 @@
                             </select>
                         </div>
                         {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
-                            <div class="form-group col-1 toggle-button-container">
+                            <div class="form-group col-auto toggle-button-container">
                                 <span class="btn btn-primary"
                                       onclick="onFlyFormToggle('chauffeurDisplay', 'addChauffeur')">
                                     <i class="fa fa-plus"></i>
@@ -93,15 +95,15 @@
                                         <label for="newFournisseur">Nom*</label>
                                         <input type="text" id="newFournisseur"
                                                class="form-control input-sm valeur newFormulaire neededNew copyOnTheFly"
-                                               name="Nom" maxlength="64">
+                                               name="name" maxlength="64">
                                         <label for="newFournisseurCode" class="mt-2">Code*</label>
                                         <input type="text" id="newFournisseurCode"
                                                class="form-control input-sm newFormulaire neededNew copiedOnTheFly"
-                                               name="Code" maxlength="64">
+                                               name="code" maxlength="64">
                                     </div>
                                     <div class="form-group col-auto invisible submit-button-container" id="addFournisseur">
                                         <span class="btn btn-primary"
-                                              onclick="onFlyFormSubmit(Routing.generate('fournisseur_new', true), $(this), 'fournisseurDisplay', 'addFournisseur', $('#fournisseur'))">
+                                              onclick="onFlyFormSubmit(Routing.generate('supplier_new', true), $(this), 'fournisseurDisplay', 'addFournisseur', $('#fournisseur'))">
                                         <i class="fas fa-check-circle"></i></span>
                                     </div>
                                 </div>
@@ -223,11 +225,15 @@
                         </select>
                         <input type="hidden" name="defaultStatuses" value="{{ defaultStatuses|json_encode }}"/>
                         <div class="error-empty-status d-none">
-                            {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
+                            {% include 'utils/warningSelectEmpty.html.twig' with {
                                 array: [],
-                                warningLabel: 'Attention ! Aucun statut pour ce type.',
-                                redirectPath: path('status_param_index'),
-                                redirectLabel: 'Créer un statut.'
+                                warningLabel: 'Attention ! Aucun statut pour ce type',
+                                redirectPath: path('settings_item', {
+                                    'category': constant('App\\Controller\\Settings\\SettingsController::CATEGORY_TRACING'),
+                                    'menu': constant('App\\Controller\\Settings\\SettingsController::MENU_ARRIVALS'),
+                                    'submenu': constant('App\\Controller\\Settings\\SettingsController::MENU_STATUSES'),
+                                }),
+                                redirectLabel: 'Créer un statut'
                             } %}
                         </div>
                     </div>
@@ -338,9 +344,9 @@
                         </div>
                     {% else %}
                         <div class="col-12">
-                            {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
+                            {% include 'utils/warningSelectEmpty.html.twig' with {
                                 array: natures,
-                                warningLabel: 'Attention ! Aucune nature ' ~ ('arrivage.de colis'|trans) ~ ' n\'a été créée.',
+                                warningLabel: 'Attention ! Aucune nature ' ~ ('arrivage.de colis'|trans) ~ ' n\'a été créée',
                                 redirectPath: path('nature_param_index'),
                                 redirectLabel: 'Aller vers la création des natures',
                                 title: 'de colis'
@@ -362,7 +368,7 @@
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_BUSINESS_UNIT') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         <div class="form-group col-4">
-                            <label for="chauffeur">Business Unit{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' : '' }}</label>
+                            <label>{{ 'acheminement.Business unit'|trans }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' : '' }}</label>
                             <select
                                 class="needs-default form-control input-sm data {{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? 'needed' : '' }}"
                                 name="businessUnit">
@@ -424,7 +430,7 @@
                             <input id="commentaire"
                                    class="commentaire form-control input-sm data {{ commentNeeded ? 'needed' }}"
                                    name="commentaire" type="hidden">
-                            <div class="editor-container-new"></div>
+                            <div class="editor-container-new" data-wysiwyg></div>
                         </div>
                     {% endif %}
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PJ_ARRIVAGE') %}

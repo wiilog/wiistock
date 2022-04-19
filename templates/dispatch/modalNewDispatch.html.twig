@@ -1,20 +1,58 @@
-<form method="" class="modal fade" data-modal-type="new" id="modalNewDispatch" role="dialog" aria-labelledby="dataModalCenterTitle"
+<form class="modal fade" data-modal-type="new" id="modalNewDispatch" aria-labelledby="dataModalCenterTitle"
       aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title wii-title" title="nouvelle demande">{{ 'acheminement.Nouvelle demande'|trans }}</h5>
+                <h5 class="modal-title wii-title">Demande d'acheminement</h5>
 
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body modal-input container-fluid">
-                <div class="row">
+                {% if fromArrival is defined and fromArrival %}
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label class="wii-field-text pointer">
+                                    <input type="radio" class="no-clear data" name="existingOrNot" value="0" checked>
+                                    Créer une nouvelle demande
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label class="wii-field-text pointer">
+                                    <input type="radio" class="no-clear data" name="existingOrNot" value="1">
+                                    Ajouter à une demande existante
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="wii-section-title">Ma demande d'acheminement</div>
+
+                    <div class="row existing-dispatch mt-3 d-none">
+                        <div class="col-12 form-group">
+                            <label class="wii-field-name">Mes demandes</label>
+                            <select class="w-100 data no-clear" name="existingDispatch" data-s2 data-placeholder="Sélectionnez un acheminement">
+                                {% if existingDispatches is defined and existingDispatches is not empty %}
+                                    {% for dispatch in existingDispatches %}
+                                        <option value="{{ dispatch['id'] }}">
+                                            {{ dispatch['number'] ~ ' - ' ~ dispatch['locationTo'] ~ ' - ' ~ dispatch['type'] }}
+                                        </option>
+                                    {% endfor %}
+                                {% endif %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row dispatch-details mb-3"></div>
+                {% endif %}
+
+                <div class="row new-dispatch mt-3">
                     <div class="col-md-4 col-12">
                         <div class="form-group">
                             {% set uniqueType = typeChampsLibres|length == 1 %}
-                            <label for="type">Type*</label>
+                            <label class="wii-field-name" for="type">Type*</label>
                             <select name="type"
                                     class="form-control data d-block type needed {{ uniqueType ? 'needs-default' }}"
                                     onchange="onDispatchTypeChange($(this))"
@@ -41,10 +79,10 @@
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
                             <div class="form-group">
-                                <label for="prise" title="Emplacement prise">{{ 'acheminement.Emplacement prise'|trans }}{{ required ? '*' }}</label>
+                                <label class="wii-field-name"
+                                       title="Emplacement prise">{{ 'acheminement.Emplacement prise'|trans }}{{ required ? '*' }}</label>
                                 <select name="prise"
-                                        class="form-control data ajax-autocomplete-location d-block {{ required ? 'needed' }} location-prise w-100"
-                                        id="prise">
+                                        class="form-control data d-block {{ required ? 'needed' }} location-prise w-100" data-s2="location">
                                 </select>
                             </div>
                         {% endif %}
@@ -55,10 +93,11 @@
                             {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                                 {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
                                 <div class="form-group">
-                                    <label title="Transporteur">{{ 'acheminement.Transporteur'|trans }}{{ required ? '*' }}</label>
-                                    <select class="form-control data ajax-autocomplete-transporteur w-100 {{ required ? 'needed' }}"
+                                    <label class="wii-field-name"
+                                           title="Transporteur">{{ 'acheminement.Transporteur'|trans }}{{ required ? '*' }}</label>
+                                    <select class="form-control data w-100 {{ required ? 'needed' }}"
                                             title="Transporteur"
-                                            name="carrier">
+                                            name="carrier" data-s2="carrier">
                                     </select>
                                 </div>
                             {% endif %}
@@ -68,14 +107,15 @@
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
                             <div class="form-group">
-                                <label for="command-number" title="Numéro de commande">{{ 'acheminement.Numéro de commande' | trans }}{{ required ? '*' }}</label>
-                                <input class="form-control data {{ required ? 'needed' }}" id="command-number" name="commandNumber">
+                                <label class="wii-field-name"
+                                       title="Numéro de commande">{{ 'acheminement.Numéro de commande' | trans }}{{ required ? '*' }}</label>
+                                <input class="form-control data {{ required ? 'needed' }}" name="commandNumber">
                             </div>
                         {% endif %}
                     </div>
                     <div class="col-md-4 col-12">
                         <div class="form-group">
-                            <label for="status">Statut*</label>
+                            <label class="wii-field-name">Statut*</label>
                             <select name="status"
                                     disabled
                                     class="form-control data w-100 needed">
@@ -89,11 +129,15 @@
                                 {% endfor %}
                             </select>
                             <div class="error-empty-status d-none">
-                                {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
+                                {% include 'utils/warningSelectEmpty.html.twig' with {
                                     array: [],
-                                    warningLabel: 'Aucun statut brouillon pour ce type.',
-                                    redirectPath: path('status_param_index'),
-                                    redirectLabel: 'Aller vers la création des statuts.'
+                                    warningLabel: 'Aucun statut brouillon pour ce type',
+                                    redirectPath: path('settings_item', {
+                                        'category': constant('App\\Controller\\Settings\\SettingsController::CATEGORY_TRACING'),
+                                        'menu': constant('App\\Controller\\Settings\\SettingsController::MENU_DISPATCHES'),
+                                        'submenu': constant('App\\Controller\\Settings\\SettingsController::MENU_STATUSES'),
+                                    }),
+                                    redirectLabel: 'Aller vers la création des statuts'
                                 } %}
                             </div>
                         </div>
@@ -101,11 +145,10 @@
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
                             <div class="form-group w-100">
-                                <label for="depose"
+                                <label class="wii-field-name"
                                        title="Emplacement dépose">{{ 'acheminement.Emplacement dépose'|trans }}{{ required ? '*' }}</label>
                                 <select name="depose"
-                                        class="form-control data ajax-autocomplete-location d-block {{ required ? 'needed' }} location-depose"
-                                        id="depose">
+                                        class="form-control data d-block {{ required ? 'needed' }} location-depose" data-s2="location">
                                 </select>
                             </div>
                         {% endif %}
@@ -114,7 +157,8 @@
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
                             <div class="form-group">
-                                <label for="transporter-tracking-number" title="Numéro de tracking transporteur">{{ 'acheminement.Numéro de tracking transporteur'|trans }}{{ required ? '*' }}</label>
+                                <label class="wii-field-name"
+                                       title="Numéro de tracking transporteur">{{ 'acheminement.Numéro de tracking transporteur'|trans }}{{ required ? '*' }}</label>
                                 <input class="form-control data {{ required ? 'needed' }}"
                                        title="Numéro de tracking transporteur"
                                        name="carrierTrackingNumber">
@@ -126,7 +170,8 @@
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
                             {% set projectNumberValue = arrival ? arrival.projectNumber %}
                             <div class="form-group">
-                                <label for="project" title="Numéro de projet">{{ 'acheminement.Numéro de projet'|trans }}{{ required ? '*' }}</label>
+                                <label class="wii-field-name"
+                                       title="Numéro de projet">{{ 'acheminement.Numéro de projet'|trans }}{{ required ? '*' }}</label>
                                 <input title="Numéro de projet"
                                        class="project form-control data {{ required ? 'needed' }} needs-default"
                                        name="projectNumber"
@@ -137,8 +182,8 @@
                     </div>
                     <div class="col-md-4 col-12">
                         <div class="form-group">
-                            <label for="demandeur">Demandeur*</label>
-                            <select class="demandeur form-control data needed ajax-autocomplete-user w-100" name="requester"></select>
+                            <label class="wii-field-name">Demandeur*</label>
+                            <select class="demandeur form-control data needed w-100" name="requester" data-s2="user"></select>
                             <input hidden
                                    name="logged-user"
                                    data-username="{{ app.user.username }}"
@@ -149,7 +194,7 @@
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
                             <div class="form-group">
-                                <label>Urgence{{ required ? '*' }}</label>
+                                <label class="wii-field-name">Urgence{{ required ? '*' }}</label>
                                 <div class="w-100">
                                     <select class="form-control input-sm data"
                                             name="emergency">
@@ -166,7 +211,7 @@
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
                             <div class="form-group">
-                                <label for="destination" title="Destination">{{ 'acheminement.Destination'|trans }}{{ required ? '*' }}</label>
+                                <label class="wii-field-name" title="Destination">{{ 'acheminement.Destination'|trans }}{{ required ? '*' }}</label>
                                 <input name="destination" class="form-control data {{ required ? 'needed' }} w-100" maxlength="50"/>
                             </div>
                         {% endif %}
@@ -175,9 +220,9 @@
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
                             <div class="form-group">
-                                <label for="destinataire">Destinataire(s){{ required ? '*' }}</label>
+                                <label class="wii-field-name">Destinataire(s){{ required ? '*' }}</label>
                                 <select name="receivers"
-                                        class="destinataire form-control data ajax-autocomplete-user w-100 {{ required ? 'needed' }}"
+                                        class="form-control data w-100 {{ required ? 'needed' }}" data-s2="user"
                                         multiple>
                                 </select>
                             </div>
@@ -188,7 +233,8 @@
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
                             {% set businessUnitValue = arrival ? arrival.businessUnit %}
                             <div class="form-group">
-                                <label title="Business unit">{{ 'acheminement.Business unit'|trans }}{{ required ? '*' }}</label>
+                                <label class="wii-field-name"
+                                       title="Business unit">{{ 'acheminement.Business unit'|trans }}{{ required ? '*' }}</label>
                                 <select name="businessUnit"
                                         class="form-control data {{ required ? 'needed' }} needs-default"
                                         title="Business Unit"
@@ -202,13 +248,11 @@
                             </div>
                         {% endif %}
                     </div>
-                </div>
-                <div class="row">
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DEADLINE_DISPATCH') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
                         <div class="form-group col-md-8 col-12">
-                            <label>Echéance{{ required ? '*' }}</label>
+                            <label class="wii-field-name">Echéance{{ required ? '*' }}</label>
                             <div class="input-group w-100">
                                 <div class="input-group-prepend">
                                     <span class="input-group-text w-50px">Du</span>
@@ -219,7 +263,7 @@
                                        title="Date d'échéance min"
                                        data-init="{{ preFill ? "now"|date('Y-m-d') }}"
                                        placeholder="jj/mm/aaaa"/>
-                                <div class="input-group-prepend">
+                                <div class="input-group-prepend input-group-append">
                                     <span class="input-group-text w-50px">Au</span>
                                 </div>
                                 <input type="date"
@@ -231,9 +275,8 @@
                             </div>
                         </div>
                     {% endif %}
-                </div>
 
-
+                    <div class="col-12 mt-3">
                     {% if typeChampsLibres is not empty %}
                         <!-- CHAMPS LIBRES -->
                         <span class="toggle-collapsible expanded">Champs libres</span>
@@ -253,15 +296,15 @@
                             {% endfor %}
                         </div>
                     {% endif %}
+                    </div>
 
-                <div class="row">
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_COMMENT_DISPATCH') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
                         <div class="form-group col">
-                            <label for="commentaire">Commentaire{{ required ? '*' }}</label>
-                            <input id='commentaire' class="commentaire form-control data {{ required ? 'needed' }}" name="commentaire" type="hidden">
-                            <div class="editor-container" id="editor-container-new">
+                            <label class="bold">Commentaire{{ required ? '*' }}</label>
+                            <input class="commentaire form-control data {{ required ? 'needed' }}" name="commentaire" type="hidden">
+                            <div class="editor-container" data-wysiwyg>
                             </div>
                         </div>
                     {% endif %}
@@ -272,7 +315,8 @@
                         <div class="form-group col-md-4 col-12">
                             {% include 'attachment/attachment.html.twig' with {
                                 'isNew': true,
-                                'required': required
+                                'required': required,
+                                'fieldNameClass': 'bold'
                             } %}
                         </div>
                     {% else %}
@@ -281,17 +325,15 @@
                 </div>
 
                 {% if packs is defined and packs is not empty %}
-                    <div class="row">
-                        <div class="col-12">
-                            <label>Colis à acheminer</label>
-                            <div class="card p-3">
-                                {% for pack in packs %}
-                                    {% include 'dispatch/dispatchPackList.html.twig' with {
-                                        'pack': pack,
-                                        'index': loop.index0
-                                    } %}
-                                {% endfor %}
-                            </div>
+                    <div class="wii-section-title">Colis à acheminer</div>
+                    <div class="row mt-3">
+                        <div class="col-12 arrival-dispatch-packs">
+                            {% for pack in packs %}
+                                {% include 'dispatch/dispatchPackList.html.twig' with {
+                                    'pack': pack,
+                                    'index': loop.index0
+                                } %}
+                            {% endfor %}
                         </div>
                     </div>
                 {% endif %}
@@ -301,9 +343,6 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
                 <button id="submitNewDispatch" type="button" class="btn btn-success">Enregistrer</button>
-                {# {% if fromArrival %} #}
-                {# <button id="submitNewDispatchWithBL" type="button" class="btn btn-primary">Enregistrer et générer le BL</button> #}
-                {# {% endif %} #}
             </div>
         </div>
     </div>

@@ -2,7 +2,6 @@
 
 namespace App\Service;
 
-use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\Emplacement;
 use App\Entity\IOT\CollectRequestTemplate;
@@ -13,10 +12,8 @@ use App\Entity\IOT\RequestTemplateLine;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
-use App\Helper\FormatHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
-use Symfony\Component\HttpFoundation\Request;
 
 class RequestTemplateService {
 
@@ -45,33 +42,13 @@ class RequestTemplateService {
         return $this->manager->getRepository(Type::class)->findOneByCategoryLabelAndLabel($category, $type);
     }
 
-    /**
-     * @return HandlingRequestTemplate|DeliveryRequestTemplate|CollectRequestTemplate
-     */
-    public function createRequestTemplate(int $type): RequestTemplate {
-        if ($type === RequestTemplate::TYPE_HANDLING) {
-            return new HandlingRequestTemplate();
-        } else if ($type === RequestTemplate::TYPE_DELIVERY) {
-            return new DeliveryRequestTemplate();
-        } else if ($type === RequestTemplate::TYPE_COLLECT) {
-            return new CollectRequestTemplate();
-        } else {
-            throw new RuntimeException("Unknown type $type");
-        }
-    }
-
-    public function updateRequestTemplate(RequestTemplate $template, Request $request) {
-        if (!($data = json_decode($request->getContent(), true))) {
-            $data = $request->request->all();
-        }
-
+    public function updateRequestTemplate(RequestTemplate $template, array $data, array $files) {
         $typeRepository = $this->manager->getRepository(Type::class);
 
         $template->setName($data["name"]);
         if (!$template->getType()) {
             $template->setType($this->getType($data["type"]));
         }
-
         $this->freeFieldService->manageFreeFields($template, $data, $this->manager);
 
         if ($template instanceof HandlingRequestTemplate) {
@@ -86,7 +63,7 @@ class RequestTemplateService {
                 ->setDestination($data["destination"] ?? null)
                 ->setCarriedOutOperationCount(($data["carriedOutOperationCount"] ?? null) ?: null)
                 ->setComment($data["comment"] ?? null)
-                ->setAttachments($this->attachmentService->createAttachements($request->files));
+                ->setAttachments($this->attachmentService->createAttachements($files));
         } else if ($template instanceof DeliveryRequestTemplate) {
             $locationRepository = $this->manager->getRepository(Emplacement::class);
 
@@ -106,47 +83,6 @@ class RequestTemplateService {
         }
     }
 
-    public function createHeaderDetailsConfig(RequestTemplate $requestTemplate): array {
-        if ($requestTemplate instanceof DeliveryRequestTemplate) {
-            $clCategory = CategorieCL::DEMANDE_LIVRAISON;
-            $typeCategory = CategoryType::DEMANDE_LIVRAISON;
-
-            $header = [
-                ["label" => "Destination", "value" => FormatHelper::location($requestTemplate->getDestination())],
-                ["label" => "Type", "value" => FormatHelper::type($requestTemplate->getRequestType())],
-            ];
-        } else if ($requestTemplate instanceof CollectRequestTemplate) {
-            $clCategory = CategorieCL::DEMANDE_COLLECTE;
-            $typeCategory = CategoryType::DEMANDE_COLLECTE;
-
-            $header = [
-                ["label" => "Destination", "value" => $requestTemplate->isStock() ? "Mise en stock" : "Destruction"],
-                ["label" => "Type", "value" => $requestTemplate->getSubject()],
-                ["label" => "Point de collecte", "value" => FormatHelper::location($requestTemplate->getCollectPoint())],
-                ["label" => "Type", "value" => FormatHelper::type($requestTemplate->getRequestType())],
-            ];
-        } else {
-            throw new RuntimeException("Unsupported type");
-        }
-
-        $header[] = [
-            "label" => "Commentaire",
-            "value" => $requestTemplate->getComment(),
-            "isRaw" => true,
-            "colClass" => "col-sm-6 col-12",
-            "isScrollable" => true,
-            "isNeededNotEmpty" => true
-        ];
-
-        $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
-            $this->manager,
-            $requestTemplate,
-            $clCategory,
-            $typeCategory
-        );
-
-        return array_merge($header, $freeFieldArray);
-    }
 
     public function updateRequestTemplateLine(RequestTemplateLine $line, array $data) {
         $referenceRepository = $this->manager->getRepository(ReferenceArticle::class);

@@ -23,15 +23,16 @@ const locationsTableConfig = {
         needsRowClickAction: true,
     },
     columns: [
-        {data: 'actions', name: 'actions', title: '', className: 'noVis', orderable: false},
-        {data: 'pairing', name: 'pairing', title: '', className: 'pairing-row'},
-        {data: 'name', name: 'name', title: 'Nom'},
-        {data: 'description', name: 'description', title: 'Description'},
-        {data: 'deliveryPoint', name: 'deliveryPoint', title: 'Point de livraison'},
-        {data: 'ongoingVisibleOnMobile', name: 'ongoingVisibleOnMobile', title: 'Encours visible'},
-        {data: 'maxDelay', name: 'maxDelay', title: 'Délai maximum'},
-        {data: 'active', name: 'active', title: 'Actif / Inactif'},
-        {data: 'allowedNatures', name: 'allowedNatures', title: 'natures.Natures de colis autorisées', translated: true, orderable: false},
+        {data: 'actions', title: '', className: 'noVis', orderable: false},
+        {data: 'pairing', title: '', className: 'pairing-row'},
+        {data: 'name', title: 'Nom'},
+        {data: 'description', title: 'Description'},
+        {data: 'deliveryPoint', title: 'Point de livraison'},
+        {data: 'ongoingVisibleOnMobile', title: 'Encours visible'},
+        {data: 'maxDelay', title: 'Délai maximum'},
+        {data: 'active', title: 'Actif / Inactif'},
+        {data: 'allowedNatures', title: 'natures.Natures de colis autorisées', translated: true, orderable: false},
+        {data: 'allowedTemperatures', title: 'Températures autorisées', orderable: false},
     ]
 };
 
@@ -39,7 +40,7 @@ const groupsTableConfig = {
     processing: true,
     serverSide: true,
     lengthMenu: [10, 25, 50, 100, 1000],
-    order: [['name', 'desc']],
+    order: [['label', 'desc']],
     ajax: {
         url: Routing.generate("location_group_api", true),
         type: "POST",
@@ -51,12 +52,12 @@ const groupsTableConfig = {
         needsSearchOverride: true,
     },
     columns: [
-        {data: 'actions', name: 'actions', title: '', className: 'noVis', orderable: false},
-        {data: 'pairing', name: 'pairing', title: '', className: 'pairing-row'},
-        {data: 'name', name: 'name', title: 'Nom'},
-        {data: 'description', name: 'description', title: 'Description'},
-        {data: 'active', name: 'active', title: 'Actif / Inactif'},
-        {data: 'locations', name: 'locations', title: 'Nombre emplacements', orderable: false},
+        {data: 'actions', title: '', className: 'noVis', orderable: false},
+        {data: 'pairing', title: '', className: 'pairing-row'},
+        {data: 'label', title: 'Nom'},
+        {data: 'description', title: 'Description'},
+        {data: 'active', title: 'Actif / Inactif'},
+        {data: 'locations', title: 'Nombre emplacements', orderable: false},
     ]
 };
 

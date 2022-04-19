@@ -1,0 +1,29 @@
+<div class="phone-number-wrapper">
+    {% if phoneNumbers is defined and phoneNumbers is not empty %}
+        {% for phoneNumber in phoneNumbers %}
+            <div class="phone-number-container d-flex {{ loop.index != 1 ? 'mt-2' }}">
+                <input class="form-control data-array phone-number {{ edit ? 'edit' }}" name="receivers" type="text" value="{{ phoneNumber }}" {{ not edit ? 'disabled' }}>
+                {% if loop.index != 1 and edit %}
+                    <button class="btn d-block" onclick="deletePhoneNumber($(this))"><i class="far fa-trash-alt"></i></button>
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="phone-number-container">
+            <input class="form-control data-array phone-number {{ edit ? 'edit' }}" name="receivers" type="text" {{ not edit ? 'disabled' }}>
+        </div>
+    {% endif %}
+    {% if edit %}
+        <button class="btn btn-primary mt-3"
+                onclick="addPhoneNumber($(this))" type="button">
+            <i class="fa fa-plus"></i>
+        </button>
+    {% endif %}
+</div>
+
+<template class="phone-number-template">
+    <div class="phone-number-container d-flex mt-2">
+        <input class="form-control data-array edit" name="receivers" type="text">
+        <button class="btn d-block" onclick="deletePhoneNumber($(this))"><i class="far fa-trash-alt"></i></button>
+    </div>
+</template>

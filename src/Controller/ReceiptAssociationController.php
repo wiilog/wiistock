@@ -18,6 +18,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Throwable;
+use WiiCommon\Helper\Stream;
 
 /**
  * @Route("/association_br")
@@ -81,39 +82,68 @@ class ReceiptAssociationController extends AbstractController
      * @HasPermission({Menu::TRACA, Action::CREATE})
      */
     public function new(Request $request,
-                        EntityManagerInterface $manager,
-                        ReceiptAssociationService $receiptAssociationService): Response
+                        EntityManagerInterface $manager): Response
     {
         $data = json_decode($request->getContent(), true);
-        $packs = $data['packs'] ?? null;
-        $reception = $data['receptionNumber'] ?? null;
+        $packs = $data['packCode'] ?? null;
+        $receptions = $data['receptionNumber'] ?? null;
 
-        $existingAssociation = $manager->getRepository(ReceiptAssociation::class)->findOneBy(['receptionNumber' => $reception, 'pack' => null]);
+        $packsStr = str_replace(['[', ']', '"'], '', $packs);
+        $receptionsStr = str_replace(['[', ']', '"'], '', $receptions);
 
-        if($existingAssociation && !$packs) {
+        $packs = Stream::explode(",", $packsStr)->toArray();
+        $receptions = Stream::explode(",", $receptionsStr)->toArray();
+
+        $existingPacks = $manager->getRepository(Pack::class)->findBy(['code' => $packs]);
+        $existingPacks = Stream::from($existingPacks)->map(fn(Pack $pack) => $pack->getCode())->toArray();
+        $invalidPacks = Stream::diff($existingPacks, $packs)->toArray();
+        if(!empty($invalidPacks)) {
+            $invalidPacksStr = implode(", ", $invalidPacks);
             return $this->json([
-                "success" => false,
-                "msg" => "Une association sans colis avec ce numéro de réception existe déjà"
-            ]);
-        } else {
-            $user = $this->userService->getUser();
-
-            $packs = $manager->getRepository(Pack::class)->findBy(['id' => $packs]);
-
-            if(!empty($packs)) {
-                foreach ($packs as $pack) {
-                    $receiptAssociationService->persistReceiptAssociation($manager, $pack, $reception, $user);
-                }
-            } else {
-                $receiptAssociationService->persistReceiptAssociation($manager, null, $reception, $user);
-            }
-
-            $manager->flush();
-            return $this->json([
-                "success" => true,
-                "msg" => "L'association BR a bien été créée"
+                'success' => false,
+                'msg' => "Les colis suivants n'existent pas : $invalidPacksStr"
             ]);
         }
+
+        if(empty($receptions)) {
+            return $this->json([
+                'success' => false,
+                'msg' => "Un numéro de réception minimum est requis pour procéder à l'association"
+            ]);
+        }
+
+        if (empty($packs)) {
+            $receiptAssociations = $manager->getRepository(ReceiptAssociation::class)->findBy(['receptionNumber' => $receptions]);
+            $existingAssociationWithoutPack = !Stream::from($receiptAssociations)
+                ->filter(fn(ReceiptAssociation $receiptAssociation) => !$receiptAssociation->getPackCode())
+                ->isEmpty();
+
+            if ($existingAssociationWithoutPack) {
+                return $this->json([
+                    "success" => false,
+                    "msg" => "Une association sans colis avec ce numéro de réception existe déjà"
+                ]);
+            }
+        }
+
+        $user = $this->userService->getUser();
+        $now = new DateTime('now');
+
+        foreach ($receptions as $reception) {
+            $receiptAssociation = (new ReceiptAssociation())
+                ->setReceptionNumber($reception)
+                ->setUser($user)
+                ->setCreationDate($now)
+                ->setPackCode(str_replace(",", ", ", $packsStr));
+
+            $manager->persist($receiptAssociation);
+        }
+
+        $manager->flush();
+        return $this->json([
+            "success" => true,
+            "msg" => "L'association BR a bien été créée"
+        ]);
     }
 
     /**
@@ -145,9 +175,7 @@ class ReceiptAssociationController extends AbstractController
             $headers = [
                 'date',
                 'colis',
-                'dernier emplacement',
-                'date dernier mouvement',
-                'réception',
+                'réception(s)',
                 'utilisateur',
             ];
 

@@ -59,7 +59,7 @@
             margin: 20px 0;
             padding: 0 20px;
 
-            &:not(:last-child) {
+            &:not(.cart-reference-quantity) {
                 border-right: 1px solid $greyFormLight;
             }
 
@@ -85,13 +85,6 @@
         padding: 4px;
         margin-left: 3px;
         border-radius: 5px;
-
-        .wii-icon-trash {
-            display: block;
-            background-color: $primary;
-            width: 20px;
-            height: 20px;
-        }
     }
 }
 

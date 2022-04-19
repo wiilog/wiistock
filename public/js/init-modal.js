@@ -10,6 +10,7 @@ let droppedFiles = [];
  * @param {jQuery} $modal jQuery element of the modal
  * @param {jQuery|string} submit jQuery element of the submit button
  * @param {string} path url to call on submit
+ * @param {undefined | function(): Promise<boolean>} waitForUserAction function run on submit button click and we wait for true return
  * @param {{
  *      confirmMessage: function|undefined,
  *      tables: undefined|Array<jQuery>,
@@ -18,16 +19,18 @@ let droppedFiles = [];
  *      success: undefined|function,
  *      clearOnClose: undefined|boolean,
  *      validator: undefined|function,
- *      waitDatatable: undefined|boolean
+ *      waitDatatable: undefined|boolean,
+ *      keepLoading: undefined|boolean
  * }} options Object containing some option.
  *   - tables is an array of datatable
  *   - keepForm is an array of datatable
  *   - keepModal true if we do not close form
- *   - success success handler
+ *   - success handler for success
  *   - clearOnClose clear the modal on close action
  *   - validator function which calculate custom form validation
  *   - confirmMessage Function which return promise throwing when form can be submitted
  *   - waitDatatable if true returned a Promise resolve whe Datatable is reloaded
+ *   - keepLoading Keep loader on submit button after receiving ajax response
  */
 function InitModal($modal, submit, path, options = {}) {
     if(options.clearOnClose) {
@@ -69,7 +72,8 @@ function InitModal($modal, submit, path, options = {}) {
  *      success: function,
  *      keepForm: undefined|boolean,
  *      validator: function|undefined,
- *      waitDatatable: undefined|boolean
+ *      waitDatatable: undefined|boolean,
+ *      keepLoading: undefined|boolean
  * }} options Object containing some options.
  *   - tables is an array of datatable
  *   - keepForm true if we do not clear form
@@ -77,7 +81,8 @@ function InitModal($modal, submit, path, options = {}) {
  *   - validator function which calculate custom form validation
  *   - confirmMessage Function which return promise throwing when form can be submitted
  *   - success called on success
- *   - waitDatatable if true returned a Promise resolve whe Datatable is reloaded
+ *   - waitDatatable if true returned a Promise resolve whe Datatable is reloaded,
+ *   - keepLoading Keep loader on submit button after receiving ajax response
  * @param {jQuery} $modal jQuery element of the modal
  * @param {jQuery} $submit jQuery element of the submit button
  * @param {string} path
@@ -101,14 +106,15 @@ function SubmitAction($modal,
 }
 
 /**
- *
- * @param {{tables: undefined|Array<jQuery>, waitDatatable: undefined|boolean, keepModal: undefined|boolean, success: function, keepForm: undefined|boolean, validator: function|undefined}} options Object containing some options.
- *   - tables is an array of datatable
- *   - keepForm true if we do not clear form
- *   - keepModal true if we do not close form
- *   - validator function which calculate custom form validation
- *   - success called on success
- *   - waitDatatable if true returned a Promise resolve whe Datatable is reloaded
+ * @param {undefined|Array<jQuery>} tables tables is an array of datatable
+ * @param {undefined|boolean} waitDatatable if true returned a Promise resolve whe Datatable is reloaded
+ * @param {undefined|boolean} keepModal true if we do not close form
+ * @param {undefined|boolean} keepForm true if we do not clear form
+ * @param {function} success called on success
+ * @param {function} waitForUserAction wait for user modal action
+ * @param {function} headerCallback header callback
+ * @param {function|undefined} keepLoading Keep loader on submit button after receiving ajax response
+ * @param {function|undefined} validator function which calculate custom form validation
  * @param {jQuery} $modal jQuery element of the modal
  * @param {jQuery} $submit jQuery element of the submit button
  * @param {string} path
@@ -116,7 +122,7 @@ function SubmitAction($modal,
 function processSubmitAction($modal,
                              $submit,
                              path,
-                             {tables, keepModal, keepForm, validator, success, headerCallback, waitDatatable} = {}) {
+                             {tables, keepModal, keepForm, validator, success, headerCallback, keepLoading, waitDatatable, waitForUserAction} = {}) {
     const isAttachmentForm = $modal.find('input[name="isAttachmentForm"]').val() === '1';
     const {success: formValidation, errorMessages, $isInvalidElements, data} = ProcessForm($modal, isAttachmentForm, validator);
     if (formValidation) {
@@ -125,48 +131,19 @@ function processSubmitAction($modal,
             : JSON.stringify(data);
 
         $submit.pushLoader('white');
-        // launch ajax request
-        return $
-            .ajax({
-                url: path,
-                data: smartData,
-                type: 'post',
-                contentType: false,
-                processData: false,
-                cache: false,
-                dataType: 'json',
-            })
-            .then((data) => {
-                $submit.popLoader();
-
-                if (data.success === false) {
-                    const errorMessage = data.msg || data.message;
-                    displayFormErrors($modal, {
-                        $isInvalidElements: data.invalidFieldsSelector ? [$(data.invalidFieldsSelector)] : undefined,
-                        errorMessages: errorMessage ? [errorMessage] : undefined
-                    });
-                }
-                else {
-                    const res = treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable);
-                    if (!res) {
-                        return;
+        if (waitForUserAction) {
+            return waitForUserAction()
+                .then((doSubmit) => {
+                    if (doSubmit) {
+                        return postForm(path, smartData, $submit, $modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable, success, keepLoading);
+                    } else {
+                        $submit.popLoader();
                     }
-                    else {
-                        return res
-                            .then(() => {
-                                if(data && data.success && success) {
-                                    success(data);
-                                }
-                            })
-                    }
-                }
-
-                return data;
-            })
-            .catch((err) => {
-                $submit.popLoader();
-                throw err;
-            });
+                })
+                .catch(() => {});
+        } else {
+            return postForm(path, smartData, $submit, $modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable, success, keepLoading);
+        }
     }
     else {
         displayFormErrors($modal, {
@@ -178,6 +155,52 @@ function processSubmitAction($modal,
             reject(false);
         });
     }
+}
+
+function postForm(path, smartData, $submit, $modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable, success, keepLoading) {
+    return $
+        .ajax({
+            url: path,
+            data: smartData,
+            type: 'post',
+            contentType: false,
+            processData: false,
+            cache: false,
+            dataType: 'json',
+        })
+        .then((data) => {
+            if (!keepLoading) {
+                $submit.popLoader();
+            }
+
+            if (data.success === false) {
+                const errorMessage = data.msg || data.message;
+                displayFormErrors($modal, {
+                    $isInvalidElements: data.invalidFieldsSelector ? [$(data.invalidFieldsSelector)] : undefined,
+                    errorMessages: errorMessage ? [errorMessage] : undefined
+                });
+            }
+            else {
+                const res = treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable);
+                if (!res) {
+                    return;
+                }
+                else {
+                    return res
+                        .then(() => {
+                            if(data && data.success && success) {
+                                success(data);
+                            }
+                        })
+                }
+            }
+
+            return data;
+        })
+        .catch((err) => {
+            $submit.popLoader();
+            throw err;
+        });
 }
 
 /**
@@ -242,6 +265,7 @@ function treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm, hea
     if (waitDatatable) {
         return Promise.all(tablesReloadingPromises);
     } else {
+        Promise.all(tablesReloadingPromises); // we launch datatable reloading even if we do not wait
         return new Promise((resolve) => {
             resolve();
         });
@@ -271,16 +295,19 @@ function ProcessForm($modal, isAttachmentForm = undefined, validator = undefined
     const dataArrayForm = processDataArrayForm($modal, data);
     const dataInputsForm = processInputsForm($modal, data, isAttachmentForm);
     const dataCheckboxesForm = processCheckboxesForm($modal, data, isAttachmentForm);
+    const dataRadioButtonsForm = processRadioButtonsForm($modal, data, isAttachmentForm);
     const dataSwitchesForm = processSwitchesForm($modal, data, isAttachmentForm);
     const dataFilesForm = processFilesForm($modal, data);
     const dataValidator = validator
         ? (validator($modal) || {success: true, errorMessages: [], $isInvalidElements: []})
         : {success: true, errorMessages: [], $isInvalidElements: []};
+
     return {
         success: (
             dataArrayForm.success
             && dataInputsForm.success
             && dataCheckboxesForm.success
+            && dataRadioButtonsForm.success
             && dataSwitchesForm.success
             && dataFilesForm.success
             && dataValidator.success
@@ -289,6 +316,7 @@ function ProcessForm($modal, isAttachmentForm = undefined, validator = undefined
             ...dataArrayForm.errorMessages,
             ...dataInputsForm.errorMessages,
             ...dataCheckboxesForm.errorMessages,
+            ...dataRadioButtonsForm.errorMessages,
             ...dataFilesForm.errorMessages,
             ...dataSwitchesForm.errorMessages,
             ...(dataValidator.errorMessages || [])
@@ -297,6 +325,7 @@ function ProcessForm($modal, isAttachmentForm = undefined, validator = undefined
             ...dataArrayForm.$isInvalidElements,
             ...dataInputsForm.$isInvalidElements,
             ...dataCheckboxesForm.$isInvalidElements,
+            ...dataRadioButtonsForm.$isInvalidElements,
             ...dataFilesForm.$isInvalidElements,
             ...dataSwitchesForm.$isInvalidElements,
             ...(dataValidator.$isInvalidElements || [])
@@ -327,7 +356,7 @@ function matchesAll(value, ...regexes) {
  * @return {{errorMessages: Array<string>, success: boolean, $isInvalidElements: Array<*>}}
  */
 function processInputsForm($modal, data, isAttachmentForm) {
-    const $inputs = $modal.find('.data:not([name^="savedFiles"])');
+    const $inputs = $modal.find('.data:not([name^="savedFiles"]):not([type=radio])');
     const $isInvalidElements = [];
     const missingInputNames = [];
 
@@ -387,7 +416,7 @@ function processInputsForm($modal, data, isAttachmentForm) {
             .trim();
 
         // validation données obligatoires
-        if ($input.hasClass('needed')
+        if (($input.hasClass('needed') && $input.is(`:not([type=radio])`))
             && $input.is(':disabled') === false
             && (val === undefined
                 || val === ''
@@ -405,8 +434,11 @@ function processInputsForm($modal, data, isAttachmentForm) {
         }
         else if ($input.hasClass('is-barcode')
             && !isBarcodeValid($input)) {
-            errorMessages.push(`Le champ ${label} doit contenir au maximum 21 caractères, lettres ou chiffres uniquement, pas d’accent.`);
-            $isInvalidElements.push($input, $input.parent());
+            errorMessages.push(`Le champ ${label} doit contenir au maximum 24 caractères, lettres ou chiffres uniquement, pas d’accent.`);
+            $isInvalidElements.push($input);
+            if ($input.is(':not(input)')) {
+                $isInvalidElements.push($input.parent());
+            }
         }
         // validation valeur des inputs de type password
         else if ($input.attr('type') === 'password' && $input.attr('name') === 'password') {
@@ -460,7 +492,11 @@ function processInputsForm($modal, data, isAttachmentForm) {
             else {
                 saveData($input, data, name, val, isAttachmentForm);
             }
-        } else if ($input.hasClass('phone-number') && !dataPhonesInvalid && !$input.data('iti').isValidNumber()) {
+        }
+        else if ($input.attr('type') === 'checkbox') {
+            saveData($input, data, name, Number($input.prop('checked')), isAttachmentForm);
+        }
+        else if ($input.hasClass('phone-number') && !dataPhonesInvalid && !$input.data('iti').isValidNumber()) {
             if (!dataPhonesInvalid[name]) {
                 dataPhonesInvalid[name] = true;
             }
@@ -548,8 +584,30 @@ function processCheckboxesForm($modal, data, isAttachmentForm) {
  * @param {boolean} isAttachmentForm
  * @return {{errorMessages: Array<string>, success: boolean, $isInvalidElements: Array<*>}}
  */
+function processRadioButtonsForm($modal, data, isAttachmentForm) {
+    const $radioButtons = $modal.find('input[type=radio]:checked.data');
+
+    $radioButtons.each(function () {
+        const $radio = $(this);
+        saveData($radio, data, $radio.attr("name"), $radio.val(), isAttachmentForm);
+    });
+
+    return {
+        success: true,
+        errorMessages: [],
+        $isInvalidElements: []
+    };
+}
+
+/**
+ *
+ * @param $modal jQuery modal
+ * @param {Object.<*,*>} data
+ * @param {boolean} isAttachmentForm
+ * @return {{errorMessages: Array<string>, success: boolean, $isInvalidElements: Array<*>}}
+ */
 function processSwitchesForm($modal, data, isAttachmentForm) {
-    const $switches = $modal.find('.wii-switch');
+    const $switches = $modal.find('.wii-switch, .wii-switch-no-style');
     const $invalidElements = [];
     const messages = [];
 
@@ -653,11 +711,13 @@ function processDataArrayForm($modal, data) {
                 dataArray[name][$input.data('id')] = val;
             }
         } else {
-            const name = $input.attr("name");
-            if (!dataArray[name]) {
-                dataArray[name] = [];
+            if(val) {
+                const name = $input.attr("name");
+                if (!dataArray[name]) {
+                    dataArray[name] = [];
+                }
+                dataArray[name].push(val);
             }
-            dataArray[name].push(val);
         }
         if (type === 'number' && $input.hasClass('needed-positiv')) {
             if (!dataArrayNeedPositive[name]) {
@@ -727,8 +787,10 @@ function createFormData(object) {
  * @return {boolean}
  */
 function isBarcodeValid($input) {
+    /** Constants which define a valid barcode */
+    const regex = new RegExp($('#BARCODE_VALID_REGEX').val());
     const value = $input.val();
-    return Boolean(!value || BARCODE_VALID_REGEX.test(value));
+    return Boolean(!value || regex.test(value));
 }
 
 /**

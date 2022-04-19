@@ -2,92 +2,80 @@
 
 namespace App\Entity;
 
+use App\Helper\FormatHelper;
+use App\Repository\FournisseurRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass="App\Repository\FournisseurRepository")
- */
-class Fournisseur
-{
+#[ORM\Entity(repositoryClass: FournisseurRepository::class)]
+class Fournisseur {
+
     const REF_A_DEFINIR = 'A DEFINIR';
 
-    /**
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer")
-     */
-    private $id;
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
+    private ?int $id = null;
 
-    /**
-     * @ORM\Column(type="string", length=255, unique=true)
-     */
-    private $codeReference;
+    #[ORM\Column(type: 'string', length: 255, unique: true)]
+    private ?string $codeReference = null;
 
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
-    private $nom;
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private ?string $nom = null;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Reception", mappedBy="fournisseur")
-     */
-    private $receptions;
+    #[ORM\OneToMany(targetEntity: Reception::class, mappedBy: 'fournisseur')]
+    private Collection $receptions;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\ArticleFournisseur", mappedBy="fournisseur")
-     */
-    private $articlesFournisseur;
+    #[ORM\OneToMany(targetEntity: ArticleFournisseur::class, mappedBy: 'fournisseur')]
+    private Collection $articlesFournisseur;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\ReceptionReferenceArticle", mappedBy="fournisseur")
-     */
-    private $receptionReferenceArticles;
+    #[ORM\OneToMany(targetEntity: ReceptionReferenceArticle::class, mappedBy: 'fournisseur')]
+    private Collection $receptionReferenceArticles;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Arrivage", mappedBy="fournisseur")
-     */
-    private $arrivages;
+    #[ORM\OneToMany(targetEntity: Arrivage::class, mappedBy: 'fournisseur')]
+    private Collection $arrivages;
 
-    /**
-     * @ORM\OneToMany(targetEntity=PurchaseRequestLine::class, mappedBy="supplier")
-     */
-    private ?Collection $purchaseRequestLines;
+    #[ORM\OneToMany(targetEntity: PurchaseRequestLine::class, mappedBy: 'supplier')]
+    private Collection $purchaseRequestLines;
 
-    public function __construct()
-    {
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $urgent = false;
+
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $possibleCustoms = false;
+
+    #[ORM\OneToMany(targetEntity: Urgence::class, mappedBy: 'provider')]
+    private Collection $emergencies;
+
+    public function __construct() {
         $this->receptions = new ArrayCollection();
         $this->articlesFournisseur = new ArrayCollection();
         $this->receptionReferenceArticles = new ArrayCollection();
         $this->arrivages = new ArrayCollection();
         $this->purchaseRequestLines = new ArrayCollection();
+        $this->emergencies = new ArrayCollection();
     }
 
-    public function getId() : ? int
-    {
+    public function getId(): ?int {
         return $this->id;
     }
 
-    public function getCodeReference() : ? string
-    {
+    public function getCodeReference(): ?string {
         return $this->codeReference;
     }
 
-    public function setCodeReference(? string $codeReference) : self
-    {
+    public function setCodeReference(?string $codeReference): self {
         $this->codeReference = $codeReference;
 
         return $this;
     }
 
-    public function getNom() : ?string
-    {
+    public function getNom(): ?string {
         return $this->nom;
     }
 
-    public function setNom(?string $nom) : self
-    {
+    public function setNom(?string $nom): self {
         $this->nom = $nom;
 
         return $this;
@@ -96,14 +84,12 @@ class Fournisseur
     /**
      * @return Collection|Reception[]
      */
-    public function getReceptions() : Collection
-    {
+    public function getReceptions(): Collection {
         return $this->receptions;
     }
 
-    public function addReceptions(Reception $reception) : self
-    {
-        if (!$this->receptions->contains($reception)) {
+    public function addReceptions(Reception $reception): self {
+        if(!$this->receptions->contains($reception)) {
             $this->receptions[] = $reception;
             $reception->setFournisseur($this);
         }
@@ -111,12 +97,11 @@ class Fournisseur
         return $this;
     }
 
-    public function removeReceptions(Reception $reception) : self
-    {
-        if ($this->receptions->contains($reception)) {
+    public function removeReceptions(Reception $reception): self {
+        if($this->receptions->contains($reception)) {
             $this->receptions->removeElement($reception);
             // set the owning side to null (unless already changed)
-            if ($reception->getFournisseur() === $this) {
+            if($reception->getFournisseur() === $this) {
                 $reception->setFournisseur(null);
             }
         }
@@ -124,14 +109,12 @@ class Fournisseur
         return $this;
     }
 
-    public function __toString()
-    {
+    public function __toString() {
         return $this->nom;
     }
 
-    public function addReception(Reception $reception): self
-    {
-        if (!$this->receptions->contains($reception)) {
+    public function addReception(Reception $reception): self {
+        if(!$this->receptions->contains($reception)) {
             $this->receptions[] = $reception;
             $reception->setFournisseur($this);
         }
@@ -139,12 +122,11 @@ class Fournisseur
         return $this;
     }
 
-    public function removeReception(Reception $reception): self
-    {
-        if ($this->receptions->contains($reception)) {
+    public function removeReception(Reception $reception): self {
+        if($this->receptions->contains($reception)) {
             $this->receptions->removeElement($reception);
             // set the owning side to null (unless already changed)
-            if ($reception->getFournisseur() === $this) {
+            if($reception->getFournisseur() === $this) {
                 $reception->setFournisseur(null);
             }
         }
@@ -155,14 +137,12 @@ class Fournisseur
     /**
      * @return Collection|ArticleFournisseur[]
      */
-    public function getArticlesFournisseur(): Collection
-    {
+    public function getArticlesFournisseur(): Collection {
         return $this->articlesFournisseur;
     }
 
-    public function addArticlesFournisseur(ArticleFournisseur $articlesFournisseur): self
-    {
-        if (!$this->articlesFournisseur->contains($articlesFournisseur)) {
+    public function addArticlesFournisseur(ArticleFournisseur $articlesFournisseur): self {
+        if(!$this->articlesFournisseur->contains($articlesFournisseur)) {
             $this->articlesFournisseur[] = $articlesFournisseur;
             $articlesFournisseur->setFournisseur($this);
         }
@@ -170,12 +150,11 @@ class Fournisseur
         return $this;
     }
 
-    public function removeArticlesFournisseur(ArticleFournisseur $articlesFournisseur): self
-    {
-        if ($this->articlesFournisseur->contains($articlesFournisseur)) {
+    public function removeArticlesFournisseur(ArticleFournisseur $articlesFournisseur): self {
+        if($this->articlesFournisseur->contains($articlesFournisseur)) {
             $this->articlesFournisseur->removeElement($articlesFournisseur);
             // set the owning side to null (unless already changed)
-            if ($articlesFournisseur->getFournisseur() === $this) {
+            if($articlesFournisseur->getFournisseur() === $this) {
                 $articlesFournisseur->setFournisseur(null);
             }
         }
@@ -186,14 +165,12 @@ class Fournisseur
     /**
      * @return Collection|ReceptionReferenceArticle[]
      */
-    public function getReceptionReferenceArticles(): Collection
-    {
+    public function getReceptionReferenceArticles(): Collection {
         return $this->receptionReferenceArticles;
     }
 
-    public function addReceptionReferenceArticle(ReceptionReferenceArticle $receptionReferenceArticle): self
-    {
-        if (!$this->receptionReferenceArticles->contains($receptionReferenceArticle)) {
+    public function addReceptionReferenceArticle(ReceptionReferenceArticle $receptionReferenceArticle): self {
+        if(!$this->receptionReferenceArticles->contains($receptionReferenceArticle)) {
             $this->receptionReferenceArticles[] = $receptionReferenceArticle;
             $receptionReferenceArticle->setFournisseur($this);
         }
@@ -201,12 +178,11 @@ class Fournisseur
         return $this;
     }
 
-    public function removeReceptionReferenceArticle(ReceptionReferenceArticle $receptionReferenceArticle): self
-    {
-        if ($this->receptionReferenceArticles->contains($receptionReferenceArticle)) {
+    public function removeReceptionReferenceArticle(ReceptionReferenceArticle $receptionReferenceArticle): self {
+        if($this->receptionReferenceArticles->contains($receptionReferenceArticle)) {
             $this->receptionReferenceArticles->removeElement($receptionReferenceArticle);
             // set the owning side to null (unless already changed)
-            if ($receptionReferenceArticle->getFournisseur() === $this) {
+            if($receptionReferenceArticle->getFournisseur() === $this) {
                 $receptionReferenceArticle->setFournisseur(null);
             }
         }
@@ -217,14 +193,12 @@ class Fournisseur
     /**
      * @return Collection|Arrivage[]
      */
-    public function getArrivages(): Collection
-    {
+    public function getArrivages(): Collection {
         return $this->arrivages;
     }
 
-    public function addArrivage(Arrivage $arrivage): self
-    {
-        if (!$this->arrivages->contains($arrivage)) {
+    public function addArrivage(Arrivage $arrivage): self {
+        if(!$this->arrivages->contains($arrivage)) {
             $this->arrivages[] = $arrivage;
             $arrivage->setFournisseur($this);
         }
@@ -232,12 +206,11 @@ class Fournisseur
         return $this;
     }
 
-    public function removeArrivage(Arrivage $arrivage): self
-    {
-        if ($this->arrivages->contains($arrivage)) {
+    public function removeArrivage(Arrivage $arrivage): self {
+        if($this->arrivages->contains($arrivage)) {
             $this->arrivages->removeElement($arrivage);
             // set the owning side to null (unless already changed)
-            if ($arrivage->getFournisseur() === $this) {
+            if($arrivage->getFournisseur() === $this) {
                 $arrivage->setFournisseur(null);
             }
         }
@@ -253,7 +226,7 @@ class Fournisseur
     }
 
     public function addPurchaseRequestLine(PurchaseRequestLine $purchaseRequestLine): self {
-        if (!$this->purchaseRequestLines->contains($purchaseRequestLine)) {
+        if(!$this->purchaseRequestLines->contains($purchaseRequestLine)) {
             $this->purchaseRequestLines[] = $purchaseRequestLine;
             $purchaseRequestLine->setSupplier($this);
         }
@@ -262,8 +235,8 @@ class Fournisseur
     }
 
     public function removePurchaseRequestLine(PurchaseRequestLine $purchaseRequestLine): self {
-        if ($this->purchaseRequestLines->removeElement($purchaseRequestLine)) {
-            if ($purchaseRequestLine->getSupplier() === $this) {
+        if($this->purchaseRequestLines->removeElement($purchaseRequestLine)) {
+            if($purchaseRequestLine->getSupplier() === $this) {
                 $purchaseRequestLine->setSupplier(null);
             }
         }
@@ -283,4 +256,68 @@ class Fournisseur
 
         return $this;
     }
+
+    public function isUrgent(): bool {
+        return $this->urgent;
+    }
+
+    public function setUrgent(bool $urgent): self {
+        $this->urgent = $urgent;
+        return $this;
+    }
+
+    public function isPossibleCustoms(): bool {
+        return $this->possibleCustoms;
+    }
+
+    public function setPossibleCustoms(bool $possibleCustoms): self {
+        $this->possibleCustoms = $possibleCustoms;
+        return $this;
+    }
+
+    public function getEmergencies(): Collection {
+        return $this->emergencies;
+    }
+
+    public function addEmergency(Urgence $emergency): self {
+        if(!$this->emergencies->contains($emergency)) {
+            $this->emergencies[] = $emergency;
+            $emergency->setProvider($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEmergency(Urgence $emergency): self {
+        if($this->emergencies->removeElement($emergency)) {
+            if($emergency->getProvider() === $this) {
+                $emergency->setProvider(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setEmergencies(?array $emergencies): self {
+        foreach($this->getEmergencies()->toArray() as $emergency) {
+            $this->removeEmergency($emergency);
+        }
+
+        $this->emergencies = new ArrayCollection();
+        foreach($emergencies as $emergency) {
+            $this->addEmergency($emergency);
+        }
+
+        return $this;
+    }
+
+    public function serialize(): array {
+        return [
+            'name' => $this->getNom(),
+            'code' => $this->getCodeReference(),
+            'possibleCustoms' => FormatHelper::bool($this->isPossibleCustoms()),
+            'urgent' => FormatHelper::bool($this->isUrgent()),
+        ];
+    }
+
 }

@@ -48,11 +48,10 @@ class ReceiptAssociationRepository extends EntityRepository
                         ->setParameter('value', $value);
                     break;
                 case 'colis':
-                    $value = explode(',', $filter['value']);
+                    $value = $filter['value'];
                     $qb
-                        ->join('receipt_association.pack', 'filter_pack')
-                        ->andWhere("filter_pack.code in (:value)")
-                        ->setParameter('value', $value);
+                        ->andWhere("receipt_association.packCode LIKE :value")
+                        ->setParameter('value', "%$value%");
                     break;
                 case 'reception_string':
                     $qb
@@ -73,34 +72,29 @@ class ReceiptAssociationRepository extends EntityRepository
         }
 
         if (!empty($params)) {
-            if (!empty($params->get('search'))) {
-                $search = $params->get('search')['value'];
+            if (!empty($params->all('search'))) {
+                $search = $params->all('search')['value'];
                 if (!empty($search)) {
                     $exprBuilder = $qb->expr();
                     $qb
                         ->leftJoin('receipt_association.user', 'search_user')
-                        ->leftJoin('receipt_association.pack', 'search_pack')
-                        ->leftJoin('search_pack.lastTracking', 'search_lastTracking')
-                        ->leftJoin('search_lastTracking.emplacement', 'search_location')
                         ->andWhere($exprBuilder->orX(
                             "DATE_FORMAT(receipt_association.creationDate, '%d/%m/%Y') LIKE :value",
                             "DATE_FORMAT(receipt_association.creationDate, '%H:%i:%S') LIKE :value",
                             "search_user.username LIKE :value",
-                            "search_pack.code LIKE :value",
+                            "receipt_association.packCode LIKE :value",
                             "receipt_association.receptionNumber LIKE :value",
-                            "DATE_FORMAT(search_lastTracking.datetime, '%d/%m/%Y') LIKE :value",
-                            "DATE_FORMAT(search_lastTracking.datetime, '%H:%i:%S') LIKE :value"
                         ))
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
 
-            if (!empty($params->get('order')))
+            if (!empty($params->all('order')))
             {
-                $order = $params->get('order')[0]['dir'];
+                $order = $params->all('order')[0]['dir'];
                 if (!empty($order))
                 {
-                    $column = $params->get('columns')[$params->get('order')[0]['column']]['data'];
+                    $column = $params->all('columns')[$params->all('order')[0]['column']]['data'];
 
                     if ($column === 'user') {
                         $qb
@@ -147,15 +141,11 @@ class ReceiptAssociationRepository extends EntityRepository
                                    DateTime $end) {
         $queryBuilder = $this->createQueryBuilder('receipt_association');
         $exprBuilder = $queryBuilder->expr();
-        $iterator = $this->createQueryBuilder('receipt_association')
+        return $this->createQueryBuilder('receipt_association')
             ->where($exprBuilder->between('receipt_association.creationDate', ':start', ':end'))
             ->setParameter('start', $start)
             ->setParameter('end', $end)
             ->getQuery()
-            ->iterate();
-
-        foreach($iterator as $item) {
-            yield array_pop($item);
-        }
+            ->toIterable();
     }
 }

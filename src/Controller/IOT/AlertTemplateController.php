@@ -27,7 +27,6 @@ class AlertTemplateController extends AbstractController
 
     /**
      * @Route("/api", name="alert_template_api", options={"expose"=true}, methods={"POST|GET"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_NOTIFICATIONS})
      */
     public function api(Request $request,
                         AlertTemplateService $alertTemplateService): Response {
@@ -101,8 +100,8 @@ class AlertTemplateController extends AbstractController
                 return $this->json([
                     'success' => false,
                     'msg' => $counter === 1
-                        ? 'Une adresse mail n\'est pas valide dans votre saisie'
-                        : 'Plusieurs adresses mail ne sont pas valides dans votre saisie'
+                        ? 'Une adresse email n\'est pas valide dans votre saisie'
+                        : 'Plusieurs adresses email ne sont pas valides dans votre saisie'
                 ]);
             }
 
@@ -209,8 +208,8 @@ class AlertTemplateController extends AbstractController
                 return $this->json([
                     'success' => false,
                     'msg' => $counter === 1
-                        ? 'Une adresse mail n\'est pas valide dans votre saisie'
-                        : 'Plusieurs adresses mail ne sont pas valides dans votre saisie'
+                        ? 'Une adresse email n\'est pas valide dans votre saisie'
+                        : 'Plusieurs adresses email ne sont pas valides dans votre saisie'
                 ]);
             }
 
@@ -263,23 +262,6 @@ class AlertTemplateController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/toggle-template", name="alert_template_toggle_template", options={"expose"=true}, methods={"GET"})
-     */
-    public function toggleTemplate(Request $request) {
-        $query = $request->query;
-        $type = $query->has('type') ? $query->get('type') : '';
 
-        $html = '';
-        if($type === AlertTemplate::SMS) {
-            $html = $this->renderView('alert_template/templates/sms.html.twig');
-        } else if ($type === AlertTemplate::MAIL) {
-            $html = $this->renderView('alert_template/templates/mail.html.twig');
-        } else if ($type === AlertTemplate::PUSH) {
-            $html = $this->renderView('alert_template/templates/push.html.twig');
-        }
-
-        return $this->json($html);
-    }
 }
 

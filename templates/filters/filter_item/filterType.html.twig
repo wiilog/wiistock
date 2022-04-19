@@ -1,4 +1,3 @@
-{%  set arrivalType = arrivalType and arrivalType is defined %}
 <div class="col-auto m-1 pr-0">
     {% if types is defined %}
         <div class="minw-100px">
@@ -6,7 +5,7 @@
                 <select class="form-control data cursor-default filter-input"
                         name="type" {{ disabled }}
                         id="type">
-                    <option value> {{ arrivalType ? 'Type d\'arrivage' : 'Type' }}</option>
+                    <option value>Type</option>
                     {% for type in types |sort((a, b) => a.label <=> b.label) %}
                         <option value="{{ type.label }}">
                             {{ type.label }}

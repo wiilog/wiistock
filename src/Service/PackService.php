@@ -8,7 +8,7 @@ use App\Entity\FiltreSup;
 use App\Entity\Pack;
 use App\Entity\TrackingMovement;
 use App\Entity\Nature;
-use App\Exception\JsonException;
+use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
 use App\Repository\NatureRepository;
 use App\Repository\PackRepository;
@@ -27,13 +27,16 @@ class PackService {
     public Security $security;
 
     /** @Required */
-    public Twig_Environment $template;
+    public Twig_Environment $templating;
 
     /** @Required */
     public TrackingMovementService $trackingMovementService;
 
     /** @Required */
     public ArrivageService $arrivageDataService;
+
+    /** @Required */
+    public MailerService $mailerService;
 
     public function getDataForDatatable($params = null) {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
@@ -82,16 +85,18 @@ class PackService {
 
         $lastMessage = $pack->getLastMessage();
         $hasPairing = !$pack->getPairings()->isEmpty() || $lastMessage;
-        $sensorCode = ($lastMessage && $lastMessage->getSensor() && $lastMessage->getSensor()->getAvailableSensorWrapper()) ? $lastMessage->getSensor()->getAvailableSensorWrapper()->getName() : null;
+        $sensorCode = ($lastMessage && $lastMessage->getSensor() && $lastMessage->getSensor()->getAvailableSensorWrapper())
+            ? $lastMessage->getSensor()->getAvailableSensorWrapper()->getName()
+            : null;
 
         /** @var TrackingMovement $lastPackMovement */
         $lastPackMovement = $pack->getLastTracking();
         return [
-            'actions' => $this->template->render('pack/datatablePackRow.html.twig', [
+            'actions' => $this->templating->render('pack/datatablePackRow.html.twig', [
                 'pack' => $pack,
                 'hasPairing' => $hasPairing
             ]),
-            'pairing' => $this->template->render('pairing-icon.html.twig', [
+            'pairing' => $this->templating->render('pairing-icon.html.twig', [
                 'sensorCode' => $sensorCode,
                 'hasPairing' => $hasPairing
             ]),
@@ -103,8 +108,7 @@ class PackService {
                     ? $lastPackMovement->getDatetime()->format('d/m/Y \à H:i:s')
                     : '')
                 : '',
-            'packOrigin' => $this->template->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
-            'arrivageType' => $pack->getArrivage() ? $pack->getArrivage()->getType()->getLabel() : '',
+            'packOrigin' => $this->templating->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
             'packLocation' => $lastPackMovement
                 ? ($lastPackMovement->getEmplacement()
                     ? $lastPackMovement->getEmplacement()->getLabel()
@@ -225,7 +229,7 @@ class PackService {
 
         $totalPacks = Stream::from($colisByNatures)->sum();
         if($totalPacks > 500) {
-            throw new JsonException("Vous ne pouvez pas ajouter plus de 500 colis");
+            throw new FormException("Vous ne pouvez pas ajouter plus de 500 colis");
         }
 
         $now = new DateTime('now');
@@ -249,5 +253,40 @@ class PackService {
             }
         }
         return $createdPacks;
+    }
+
+    public function launchPackDeliveryReminder(EntityManagerInterface $entityManager): void {
+        $packRepository = $entityManager->getRepository(Pack::class);
+        $waitingDaysRequested = [7, 15, 30, 42];
+        $ongoingPacks = $packRepository->findOngoingPacksOnDeliveryPoints($waitingDaysRequested);
+        foreach ($ongoingPacks as $packData) {
+            $pack = $packData[0];
+            $waitingDays = $packData['packWaitingDays'];
+
+            $remindPosition = array_search($waitingDays, $waitingDaysRequested);
+            $titleSuffix = match($remindPosition) {
+                0 => ' - 1ère relance',
+                1 => ' - 2ème relance',
+                2 => ' - 3ème relance',
+                3 => ' - dernière relance',
+                default => ''
+            };
+            $arrival = $pack->getArrivage();
+            $lastDrop = $pack->getLastDrop();
+
+            $this->mailerService->sendMail(
+                "Follow GT // Colis non récupéré$titleSuffix",
+                $this->templating->render('mails/contents/mail-pack-delivery-done.html.twig', [
+                    'title' => 'Votre colis est toujours présent dans votre magasin',
+                    'orderNumber' => implode(', ', $arrival->getNumeroCommandeList()),
+                    'colis' => FormatHelper::pack($pack),
+                    'emplacement' => $lastDrop->getEmplacement(),
+                    'date' => $lastDrop->getDatetime(),
+                    'fournisseur' => FormatHelper::supplier($arrival->getFournisseur()),
+                    'pjs' => $arrival->getAttachments()
+                ]),
+                $arrival->getDestinataire()
+            );
+        }
     }
 }

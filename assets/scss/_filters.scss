@@ -49,6 +49,12 @@
         }
     }
 
+    .minw-300px {
+        .select2-container {
+            min-width: 300px !important;
+        }
+    }
+
     .minw-100px {
         .select2-container {
             min-width: 100px !important;
@@ -70,6 +76,10 @@
 
 .filter-input {
     width: 260px !important;
+
+    &.disabled {
+        cursor: not-allowed !important;
+    }
 }
 
 .filter-select2 {
@@ -83,12 +93,17 @@
 }
 
 .checkbox-filter {
-    border-radius: 3px;
     background-color: white;
     padding: 6.5px;
     width: 260px !important;
     border: 1px solid #ced4da;
     color: $darkGrey !important;
+    font-size: 0.9rem;
+    border-radius: 5px;
+
+    &.disabled {
+        cursor: not-allowed !important;
+    }
 }
 
 .w-50px {

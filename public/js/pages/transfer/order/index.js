@@ -1,8 +1,5 @@
 $(document).ready(() => {
-    const $statusSelector = $('.filterService select[name="statut"]');
-
     initDateTimePicker();
-    Select2Old.init($statusSelector, 'Statuts');
     Select2Old.location($('.ajax-autocomplete-emplacements'), {}, "Emplacement", 3);
     Select2Old.user($('.filterService select[name="requesters"]'), "Demandeurs");
     Select2Old.user($('.filterService select[name="operators"]'), "Opérateurs");
@@ -21,11 +18,11 @@ let transferOrderTableConfig = {
     serverSide: true,
     order: [['number', 'desc']],
     ajax: {
-        "url": pathTransferOrder,
-        "type": "POST",
-        'data': {
-            'filterStatus': $('#filterStatus').val(),
-            'filterReception': $('#receptionFilter').val()
+        url: pathTransferOrder,
+        type: "POST",
+        data: {
+            filterStatus: $('#filterStatus').val(),
+            filterReception: $('#receptionFilter').val()
         },
     },
     rowConfig: {
@@ -35,15 +32,15 @@ let transferOrderTableConfig = {
         needsSearchOverride: true,
     },
     columns: [
-        {"data": 'actions', 'name': 'Actions', 'title': '', className: 'noVis', orderable: false},
-        {"data": 'number', 'name': 'Numéro', 'title': 'Numéro'},
-        {"data": 'status', 'name': 'Statut', 'title': 'Statut'},
-        {"data": 'requester', 'name': 'Demandeur', 'title': 'Demandeur'},
-        {"data": 'operator', 'name': 'Opérateur', 'title': 'Opérateur'},
-        {"data": 'origin', 'name': 'Origine', 'title': 'Origine'},
-        {"data": 'destination', 'name': 'Destination', 'title': 'Destination'},
-        {"data": 'creationDate', 'name': 'Création', 'title': 'Date de création'},
-        {"data": 'validationDate', 'name': 'Validation', 'title': 'Date de validation'},
+        {data: 'actions', title: '', className: 'noVis', orderable: false},
+        {data: 'number', title: 'Numéro'},
+        {data: 'status', title: 'Statut'},
+        {data: 'requester', title: 'Demandeur'},
+        {data: 'operator', title: 'Opérateur'},
+        {data: 'origin', title: 'Origine'},
+        {data: 'destination', title: 'Destination'},
+        {data: 'creationDate', title: 'Date de création'},
+        {data: 'transferDate', 'title': 'Date de traitement'},
     ]
 };
 let table = initDataTable('tableTransferOrders', transferOrderTableConfig);

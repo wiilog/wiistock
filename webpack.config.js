@@ -1,5 +1,6 @@
 const Encore = require('@symfony/webpack-encore');
 const CopyPlugin = require('copy-webpack-plugin');
+const path = require('path');
 
 // Manually configure the runtime environment if not already configured yet by the "encore" command.
 // It's useful when you use tools that rely on webpack.config.js file.
@@ -12,12 +13,26 @@ Encore
     .setPublicPath('/build')
     .addEntry('app', './assets/js/app.js')
     .addEntry('dashboard', './assets/js/dashboard.js')
-    .addEntry('reference-article', './assets/js/pages/reference-article.js')
+    .addEntry('reference-article-form', './assets/js/pages/reference-article/form.js')
+    .addEntry('reference-article-index', './assets/js/pages/reference-article/index.js')
     .addEntry('cart', './assets/js/pages/cart.js')
+    .addEntry('settings-index', './assets/js/pages/settings/index.js')
+    .addEntry('settings-data-imports', './assets/js/pages/settings/data/imports.js')
+    .addEntry('settings-data-inventories-imports', './assets/js/pages/settings/data/inventories-imports.js')
+    .addEntry('settings-users-roles-form', './assets/js/pages/settings/users/roles/form.js')
+    .addEntry('vehicle', './assets/js/pages/vehicle.js')
+    .addEntry('transport-request-index', './assets/js/pages/transport/request/index.js')
+    .addEntry('transport-request-show', './assets/js/pages/transport/request/show.js')
+    .addEntry('transport-order-index', './assets/js/pages/transport/order/index.js')
     .autoProvidejQuery()
 
     // When enabled, Webpack "splits" your files into smaller pieces for greater optimization.
     .splitEntryChunks()
+
+    .addAliases({
+        '@app': path.resolve(__dirname, 'assets/js'),
+        '@styles': path.resolve(__dirname, 'assets/scss')
+    })
 
     // will require an extra script tag for runtime.js
     // but, you probably want this, unless you're building a single-page app
@@ -62,4 +77,5 @@ Encore
             }
         ]
     }));
+
 module.exports = Encore.getWebpackConfig();

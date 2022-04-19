@@ -19,7 +19,7 @@ use App\Entity\PreparationOrder\Preparation;
 use App\Entity\PurchaseRequest;
 use App\Entity\PurchaseRequestLine;
 use App\Entity\TrackingMovement;
-use App\Entity\ParametrageGlobal;
+use App\Entity\Setting;
 use App\Entity\Attachment;
 use App\Entity\Statut;
 use App\Entity\TransferOrder;
@@ -37,13 +37,13 @@ use App\Entity\CategoryType;
 use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use App\Service\DemandeLivraisonService;
-use App\Service\GlobalParamService;
 use App\Service\DisputeService;
 use App\Service\LivraisonsManagerService;
 use App\Service\MailerService;
 use App\Service\MouvementStockService;
 use App\Service\NotificationService;
 use App\Service\PreparationsManagerService;
+use App\Service\SettingsService;
 use App\Service\TrackingMovementService;
 use App\Service\PDFGeneratorService;
 use App\Service\ReceptionService;
@@ -231,7 +231,7 @@ class ReceptionController extends AbstractController {
                         'typage' => $champLibre->getTypage(),
                         'elements' => ($champLibre->getElements() ? $champLibre->getElements() : ''),
                         'defaultValue' => $champLibre->getDefaultValue(),
-                        'requiredEdit' => $champLibre->getRequiredEdit()
+                        'requiredEdit' => $champLibre->isRequiredEdit()
                     ];
                     $champsLibresEntity[] = $champLibre;
                 }
@@ -330,19 +330,19 @@ class ReceptionController extends AbstractController {
             if(!$hasBarCodeToPrint && isset($referenceArticle)) {
                 $articles = $ligneArticle->getArticles();
                 $hasBarCodeToPrint = (
-                    ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) ||
+                    ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) ||
                     ($articles->count() > 0)
                 );
             }
 
             $isReferenceTypeLinked = (
                 isset($referenceArticle)
-                && ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE)
+                && ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE)
             );
 
             $isArticleTypeLinked = (
                 isset($referenceArticle)
-                && ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE)
+                && ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE)
             );
 
             $rows[] = [
@@ -376,10 +376,9 @@ class ReceptionController extends AbstractController {
      * @HasPermission({Menu::ORDRE, Action::DISPLAY_RECE})
      */
     public function index(EntityManagerInterface $entityManager,
-                          ReceptionService $receptionService,
-                          GlobalParamService $globalParamService,
-                          PurchaseRequest $purchaseRequest = null): Response
-    {
+                          ReceptionService       $receptionService,
+                          SettingsService        $settingsService,
+                          PurchaseRequest        $purchaseRequest = null): Response {
         $purchaseRequestLinesOrderNumbers = [];
         if ($purchaseRequest) {
             $purchaseRequestLinesOrderNumbers = $purchaseRequest->getPurchaseRequestLines()
@@ -413,7 +412,7 @@ class ReceptionController extends AbstractController {
             'typeChampLibres' => $typeChampLibre,
             'fieldsParam' => $fieldsParam,
             'statuts' => $statutRepository->findByCategorieName(CategorieStatut::RECEPTION),
-            'receptionLocation' => $globalParamService->getParamLocation(ParametrageGlobal::DEFAULT_LOCATION_RECEPTION),
+            'receptionLocation' => $settingsService->getParamLocation(Setting::DEFAULT_LOCATION_RECEPTION),
             'purchaseRequestFilter' => $purchaseRequest ? implode(',', $purchaseRequestLinesOrderNumbers) : 0,
             'purchaseRequest' => $purchaseRequest ? $purchaseRequest->getId() : '',
             'fields' => $fields,
@@ -524,7 +523,7 @@ class ReceptionController extends AbstractController {
             ]);
 
             $reference = $ligneArticle->getReferenceArticle();
-            if($reference->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+            if($reference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
                 $newRefQuantity = $reference->getQuantiteStock() - $ligneArticle->getQuantite();
                 $newRefAvailableQuantity = $newRefQuantity - $reference->getQuantiteReservee();
                 if($newRefAvailableQuantity < 0) {
@@ -673,7 +672,7 @@ class ReceptionController extends AbstractController {
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
 
             $ligneArticle = $receptionReferenceArticleRepository->find($data['id']);
-            $canUpdateQuantity = $ligneArticle->getReferenceArticle()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE;
+            $canUpdateQuantity = $ligneArticle->getReferenceArticle()->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE;
 
             $json = $this->renderView(
                 'reception/modalEditLigneArticleContent.html.twig',
@@ -719,11 +718,12 @@ class ReceptionController extends AbstractController {
                 ->setCommentaire($data['commentaire']);
 
             $typeQuantite = $receptionReferenceArticle->getReferenceArticle()->getTypeQuantite();
-            if($typeQuantite === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-                $referenceArticle = $receptionReferenceArticle->getReferenceArticle();
-                $oldReceivedQuantity = $receptionReferenceArticle->getQuantite();
+            $referenceArticle = $receptionReferenceArticle->getReferenceArticle();
+            if($typeQuantite === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
+                $oldReceivedQuantity = $receptionReferenceArticle->getQuantite() ?? 0;
                 $newReceivedQuantity = max((int)$quantite, 0);
                 $diffReceivedQuantity = $newReceivedQuantity - $oldReceivedQuantity;
+
                 // protection quantité reçue <= quantité à recevoir
                 if($receptionReferenceArticle->getQuantiteAR() && $quantite > $receptionReferenceArticle->getQuantiteAR()) {
                     return new JsonResponse([
@@ -780,7 +780,7 @@ class ReceptionController extends AbstractController {
                             ]
                         );
 
-                        $receptionReferenceArticle->setQuantite($newReceivedQuantity); // protection contre quantités négatives
+                        $receptionReferenceArticle->setQuantite($newReceivedQuantity);
                         $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
                         $referenceArticle->setQuantiteStock($newRefQuantity);
                         $entityManager->persist($createdMvt);
@@ -795,7 +795,7 @@ class ReceptionController extends AbstractController {
 
             $entityManager->flush();
 
-            $referenceLabel = $receptionReferenceArticle->getReferenceArticle() ? $receptionReferenceArticle->getReferenceArticle()->getReference() : '';
+            $referenceLabel = $referenceArticle ? $referenceArticle->getReference() : '';
 
             return new JsonResponse([
                 'success' => true,
@@ -815,14 +815,13 @@ class ReceptionController extends AbstractController {
      * @HasPermission({Menu::ORDRE, Action::DISPLAY_RECE})
      */
     public function show(EntityManagerInterface $entityManager,
-                         GlobalParamService $globalParamService,
+                         SettingsService $settingsService,
                          ReceptionService $receptionService,
                          Reception $reception): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
-        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
 
         $listTypesDL = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
         $typeChampLibreDL = [];
@@ -837,8 +836,9 @@ class ReceptionController extends AbstractController {
             ];
         }
 
-        $createDL = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::CREATE_DL_AFTER_RECEPTION]);
-        $needsCurrentUser = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEMANDEUR_DANS_DL);
+        $createDL = $settingRepository->findOneBy(['label' => Setting::CREATE_DL_AFTER_RECEPTION]);
+        $needsCurrentUser = $settingRepository->getOneParamByLabel(Setting::REQUESTER_IN_DELIVERY);
+        $restrictedLocations = $settingRepository->getOneParamByLabel(Setting::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST);
 
         $defaultDisputeStatus = $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::LITIGE_RECEPT);
         return $this->render("reception/show.html.twig", [
@@ -846,13 +846,13 @@ class ReceptionController extends AbstractController {
             'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
             'disputeStatuses' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, 'displayOrder'),
             'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
-            'utilisateurs' => $utilisateurRepository->getIdAndLibelleBySearch(''),
             'typeChampsLibres' => $typeChampLibreDL,
             'createDL' => $createDL ? $createDL->getValue() : false,
-            'defaultDeliveryLocations' => $globalParamService->getDefaultDeliveryLocationsByTypeId($entityManager),
+            'defaultDeliveryLocations' => $settingsService->getDefaultDeliveryLocationsByTypeId($entityManager),
             'defaultDisputeStatusId' => $defaultDisputeStatus[0] ?? null,
             'needsCurrentUser' => $needsCurrentUser,
-            'detailsHeader' => $receptionService->createHeaderDetailsConfig($reception)
+            'detailsHeader' => $receptionService->createHeaderDetailsConfig($reception),
+            'restrictedLocations' => $restrictedLocations
         ]);
     }
 
@@ -868,7 +868,9 @@ class ReceptionController extends AbstractController {
                     $articles[] = [
                         'id' => $article->getId(),
                         'text' => $article->getBarCode(),
-                        'numReception' => $article->getReceptionReferenceArticle()];
+                        'numReception' => $article->getReceptionReferenceArticle(),
+                        'isUrgent' => $article->getReceptionReferenceArticle()->getEmergencyTriggered() ?? false,
+                        ];
                 }
             }
         }
@@ -1197,7 +1199,6 @@ class ReceptionController extends AbstractController {
                 'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
                 'disputeStatuses' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, 'displayOrder'),
                 'attachments' => $attachmentRepository->findBy(['dispute' => $dispute]),
-                'utilisateurs' => $utilisateurRepository->getIdAndLibelleBySearch(''),
             ]);
 
             return new JsonResponse(['html' => $html, 'colis' => $colisCode, 'acheteurs' => $acheteursCode]);
@@ -1349,9 +1350,7 @@ class ReceptionController extends AbstractController {
      * @Route("/obtenir-modal-for-ref", name="get_modal_new_ref", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::ORDRE, Action::CREATE_REF_FROM_RECEP}, mode=HasPermission::IN_JSON)
      */
-    public function checkIfQuantityArticle(): Response {
-        $entityManager = $this->getDoctrine()->getManager();
-
+    public function checkIfQuantityArticle(EntityManagerInterface $entityManager): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
@@ -1391,7 +1390,7 @@ class ReceptionController extends AbstractController {
             $reference = $ligneArticle->getReferenceArticle();
             $newRefQuantity = $reference->getQuantiteStock() - $ligneArticle->getQuantite();
             $newRefAvailableQuantity = $newRefQuantity - $reference->getQuantiteReservee();
-            if(intval($nbArticles) === 0 && ($newRefAvailableQuantity >= 0 || $reference->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE)) {
+            if(intval($nbArticles) === 0 && ($newRefAvailableQuantity >= 0 || $reference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE)) {
                 $delete = true;
                 $html = $this->renderView('reception/modalDeleteLigneArticleRight.html.twig');
             } else {
@@ -1426,7 +1425,7 @@ class ReceptionController extends AbstractController {
             function(array $carry, ReceptionReferenceArticle $recepRef) use ($refArticleDataService, $articleDataService, $reception): array {
                 $referenceArticle = $recepRef->getReferenceArticle();
 
-                if($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                if($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
                     $carry[] = $refArticleDataService->getBarcodeConfig($referenceArticle);
                 } else {
                     $articlesReception = $recepRef->getArticles()->toArray();
@@ -1655,7 +1654,7 @@ class ReceptionController extends AbstractController {
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-            $paramGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+            $paramGlobalRepository = $entityManager->getRepository(Setting::class);
 
             $totalQuantities = [];
             foreach($articles as $article) {
@@ -1708,7 +1707,7 @@ class ReceptionController extends AbstractController {
 
             if($needCreateLivraison) {
                 // optionnel : crée l'ordre de prépa
-                $paramCreatePrepa = $paramGlobalRepository->findOneBy(['label' => ParametrageGlobal::CREATE_PREPA_AFTER_DL]);
+                $paramCreatePrepa = $paramGlobalRepository->findOneBy(['label' => Setting::CREATE_PREPA_AFTER_DL]);
                 $needCreatePrepa = $paramCreatePrepa ? $paramCreatePrepa->getValue() : false;
                 $data['needPrepa'] = $needCreatePrepa && !$createDirectDelivery;
 
@@ -1735,9 +1734,19 @@ class ReceptionController extends AbstractController {
 
                             $mouvementRepository = $entityManager->getRepository(MouvementStock::class);
                             $mouvements = $mouvementRepository->findByPreparation($preparation);
-                            $entityManager->flush();
-                            if($delivery->getDemande()->getType()->isNotificationsEnabled()) {
-                                $this->notificationService->toTreat($delivery);
+
+                            try {
+                                $entityManager->flush();
+                                if($delivery->getDemande()->getType()->isNotificationsEnabled()) {
+                                    $this->notificationService->toTreat($delivery);
+                                }
+                            }
+                            /** @noinspection PhpRedundantCatchClauseInspection */
+                            catch (UniqueConstraintViolationException $e) {
+                                return new JsonResponse([
+                                    'success' => false,
+                                    'msg' => 'Une autre demande de livraison est en cours de création, veuillez réessayer.'
+                                ]);
                             }
                             foreach ($mouvements as $mouvement) {
                                 $preparationsManagerService->createMouvementLivraison(

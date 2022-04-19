@@ -12,8 +12,6 @@ use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
-use Doctrine\ORM\Query;
-use Generator;
 use Symfony\Component\HttpFoundation\InputBag;
 
 
@@ -101,7 +99,7 @@ class TrackingMovementRepository extends EntityRepository
             ->toIterable();
     }
 
-    public function findByParamsAndFilters(InputBag $params, ?array $filters, Utilisateur $user): array
+    public function findByParamsAndFilters(InputBag $params, ?array $filters, Utilisateur $user, VisibleColumnService $visibleColumnService): array
     {
         $qb = $this->createQueryBuilder('tracking_movement');
 
@@ -152,8 +150,8 @@ class TrackingMovementRepository extends EntityRepository
 
         //Filter search
         if (!empty($params)) {
-            if (!empty($params->get('search'))) {
-                $search = $params->get('search')['value'];
+            if (!empty($params->all('search'))) {
+                $search = $params->all('search')['value'];
                 if (!empty($search)) {
                     $conditions = [
                         "date" =>  "DATE_FORMAT(tracking_movement.datetime, '%d/%m/%Y %H:%i:%s') LIKE :search_value",
@@ -167,7 +165,7 @@ class TrackingMovementRepository extends EntityRepository
                         "operator" => "search_operator.username LIKE :search_value",
                     ];
 
-                    $condition = VisibleColumnService::getSearchableColumns($conditions, 'trackingMovement', $qb, $user);
+                    $condition = $visibleColumnService->getSearchableColumns($conditions, 'trackingMovement', $qb, $user, $search);
 
                     $qb
                         ->andWhere($condition)
@@ -184,10 +182,10 @@ class TrackingMovementRepository extends EntityRepository
                 }
             }
 
-            if (!empty($params->get('order'))) {
-                $order = $params->get('order')[0]['dir'];
+            if (!empty($params->all('order'))) {
+                $order = $params->all('order')[0]['dir'];
                 if (!empty($order)) {
-                    $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']] ?? $params->get('columns')[$params->get('order')[0]['column']]['data'];
+                    $column = self::DtToDbLabels[$params->all('columns')[$params->all('order')[0]['column']]['data']] ?? $params->all('columns')[$params->all('order')[0]['column']]['data'];
 
                     if ($column === 'emplacement') {
                         $qb
@@ -334,6 +332,29 @@ class TrackingMovementRepository extends EntityRepository
             ->execute();
     }
 
+    public function countDropsOnLocationsOn(DateTime $dateTime, array $locations)
+    {
+        $qb = $this->createQueryBuilder('tracking_movement');
+        $start = clone $dateTime;
+        $end = clone $dateTime;
+        $start->setTime(0, 0, 0);
+        $end->setTime(23, 59, 59);
+        $qb
+            ->select('COUNT(DISTINCT pack.id)')
+            ->join('tracking_movement.emplacement', 'join_location')
+            ->join('tracking_movement.pack', 'pack')
+            ->where('join_location.id IN (:locations)')
+            ->andWhere('join_location.id IN (:locations)')
+            ->andWhere('tracking_movement.datetime BETWEEN :start AND :end')
+            ->setParameter('locations', $locations)
+            ->setParameter('start', $start)
+            ->setParameter('end', $end);
+
+        return $qb
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
     /**
      * @param $locationId
      * @return int|mixed|string
@@ -387,10 +408,10 @@ class TrackingMovementRepository extends EntityRepository
 
         //Filter search
         if (!empty($params)) {
-            if (!empty($params->get('order'))) {
-                $order = $params->get('order')[0]['dir'];
+            if (!empty($params->all('order'))) {
+                $order = $params->all('order')[0]['dir'];
                 if (!empty($order)) {
-                    $column = $params->get('columns')[$params->get('order')[0]['column']]['data'];
+                    $column = $params->all('columns')[$params->all('order')[0]['column']]['data'];
                     if ($column === 'group') {
                         $qb
                             ->leftJoin('tracking_movement.pack', 'order_pack')

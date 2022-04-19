@@ -196,40 +196,11 @@ function onTemplateTypeChange($select) {
         $modal.find('.is-invalid').removeClass('is-invalid');
 
         if(type === 'mail' || type === 'push') {
-            updateImagePreview('#preview-mail-image', '#upload-mail-image');
-            initEditor('.editor-container');
+            $('#upload-mail-image').on('change', () => updateImagePreview('#preview-mail-image', '#upload-mail-image'));
         } else if(type === 'sms') {
             const $input = $('input[name=receivers]');
             initTelInput($input);
         }
     });
-}
-
-function addPhoneNumber() {
-    const $phoneNumberWrapper = $('.phone-number-wrapper');
-    const $lastInputContainer = $phoneNumberWrapper.find('.phone-number-container').last();
-    const $template = $('.phone-number-template');
-
-    $lastInputContainer.after($template.html());
-
-    const $newInputContainer = $phoneNumberWrapper.find('.phone-number-container').last();
-    const $newInput = $newInputContainer.find('input[name=receivers]');
-
-    initTelInput($newInput);
-}
-
-function deletePhoneNumber($button) {
-    const $phoneNumberContainer = $button.closest('.phone-number-container');
-
-    $phoneNumberContainer.remove();
-}
-
-function initTelInput($input) {
-    const iti = intlTelInput($input[0], {
-        utilsScript: '/build/vendor/intl-tel-input/utils.js',
-        preferredCountries: ['fr'],
-        initialCountry: 'fr'
-    });
-    return $input.data('iti', iti);
 }
 

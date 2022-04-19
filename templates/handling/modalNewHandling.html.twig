@@ -41,11 +41,15 @@
                         </select>
                         <input type="hidden" name="defaultStatuses" value="{{ defaultStatuses|json_encode }}"/>
                         <div class="error-empty-status d-none">
-                            {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
+                            {% include 'utils/warningSelectEmpty.html.twig' with {
                                 array: [],
-                                warningLabel: 'Aucun statut pour ce type.',
-                                redirectPath: path('status_param_index'),
-                                redirectLabel: 'Aller vers la création des statuts.'
+                                warningLabel: 'Aucun statut pour ce type',
+                                redirectPath: path('settings_item', {
+                                    'category': constant('App\\Controller\\Settings\\SettingsController::CATEGORY_TRACING'),
+                                    'menu': constant('App\\Controller\\Settings\\SettingsController::MENU_HANDLINGS'),
+                                    'submenu': constant('App\\Controller\\Settings\\SettingsController::MENU_STATUSES'),
+                                }),
+                                redirectLabel: 'Aller vers la création des statuts'
                             } %}
                         </div>
                     </div>
@@ -151,7 +155,7 @@
                     <div class="form-group col-md-8 col-12">
                         <label for="comment">Commentaire</label>
                         <input class="commentaire form-control data" name="comment" type="hidden" id="commentaire">
-                        <div class="editor-container-new" id="editor-container-edit">
+                        <div class="editor-container-new" data-wysiwyg>
                         </div>
                     </div>
                     <div class="form-group col-md-4 col-12">

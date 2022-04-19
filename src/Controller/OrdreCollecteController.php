@@ -94,7 +94,7 @@ class OrdreCollecteController extends AbstractController
         return $this->render('ordre_collecte/show.html.twig', [
             'collecte' => $ordreCollecte,
             'finished' => $ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_TRAITE,
-            'detailsConfig' => $ordreCollecteService->createHeaderDetailsConfig($ordreCollecte)
+            'detailsConfig' => $ordreCollecteService->createHeaderDetailsConfig($ordreCollecte),
         ]);
     }
 
@@ -106,7 +106,7 @@ class OrdreCollecteController extends AbstractController
                            OrdreCollecte $ordreCollecte,
                            OrdreCollecteService $ordreCollecteService): Response
     {
-        $rows = $request->request->get('rows');
+        $rows = $request->request->all('rows');
         if (!empty($rows) && ($ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER)) {
 
             $date = new DateTime('now');
@@ -115,12 +115,7 @@ class OrdreCollecteController extends AbstractController
             $loggedUser = $this->getUser();
 
             try {
-                $ordreCollecteService->finishCollecte(
-                    $ordreCollecte,
-                    $loggedUser,
-                    $date,
-                    $rows
-                );
+                $ordreCollecteService->finishCollecte($ordreCollecte, $loggedUser, $date, $rows);
 
                 $data = [
                     'success' => true,
@@ -149,6 +144,7 @@ class OrdreCollecteController extends AbstractController
     public function apiArticle(Request $request, OrdreCollecte $ordreCollecte): Response
     {
         $rows = [];
+        $isDestruct = $ordreCollecte->getDemandeCollecte()->isDestruct();
         foreach ($ordreCollecte->getOrdreCollecteReferences() as $ligneArticle) {
             $referenceArticle = $ligneArticle->getReferenceArticle();
             $location = $referenceArticle->getEmplacement() ? $referenceArticle->getEmplacement()->getLabel() : '';
@@ -166,7 +162,8 @@ class OrdreCollecteController extends AbstractController
                         ? ($ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER)
                         : false,
                     'location' => $location,
-                    'byArticle' => $referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE
+                    'byArticle' => $referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE,
+                    'isDestruct' => $isDestruct
                 ])
             ];
         }
@@ -189,7 +186,8 @@ class OrdreCollecteController extends AbstractController
                         : false,
                     'articleId' =>$article->getId(),
                     "location" => $location,
-                    'byArticle' => false
+                    'byArticle' => false,
+                    'isDestruct' => $isDestruct
                 ])
             ];
         }

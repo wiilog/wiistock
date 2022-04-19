@@ -1,5 +1,37 @@
 @import "variables";
 
+.attachment-item, .attachement {
+    display: flex;
+    align-items: center;
+    width: 45%;
+    border: $grey solid 1px;
+    border-radius: 5px;
+    padding: 5px 10px;
+    margin-top: 5px;
+
+    &:not(.show) {
+        justify-content: space-between;
+    }
+
+    a:first-of-type {
+        display: block;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+    }
+
+    svg {
+        color: $blue !important;
+        font-size: 0.8rem;
+    }
+}
+
+.types-container {
+    .select2-container, .select2-selection {
+        height: 100%;
+    }
+}
+
 .increase-decrease-field {
     display: flex;
     flex-direction: row;
@@ -20,7 +52,7 @@
         color: $primary;
         width: 37px;
         min-width: 37px;
-        height: 38px;
+        height: $input-height;
 
         &.decrease:before {
             content: "-";
@@ -42,7 +74,25 @@
     }
 }
 
-$wii-switch-height: 38px;
+$wii-switch-height: $input-height;
+
+.wii-switch-compact {
+    input, input + label {
+        padding: 0 1px;
+        font-size: 0.8rem;
+    }
+}
+
+.wii-switch-small {
+    .wii-switch {
+        width: 100%;
+    }
+
+    input, input + label {
+        padding: 0 6px !important;
+        flex: 1 1 auto;
+    }
+}
 
 .wii-switch {
     display: inline-flex;
@@ -50,6 +100,8 @@ $wii-switch-height: 38px;
     border: 1px solid $grey;
     height: $wii-switch-height;
     border-radius: 4px;
+    color: $black;
+    background-color: $white;
 
     input, input + label {
         display: flex;
@@ -57,18 +109,18 @@ $wii-switch-height: 38px;
         appearance: none;
         -moz-appearance: none;
         outline: 0;
-        padding: 0 1px;
+        padding: 0 15px;
         border-radius: 0;
         color: $black;
-        height: $wii-switch-height;
+        height: auto;
         line-height: $wii-switch-height;
         margin: -1px 0 0 !important;
         font-weight: normal;
         transition: all 200ms linear;
-        font-size: 0.8rem;
+        font-size: 1rem;
 
         .wii-icon {
-            display:inline-block;
+            display: inline-block;
             background-color: $black;
             width: 15px;
             height: 15px;
@@ -125,22 +177,101 @@ $wii-switch-height: 38px;
     }
 
     input:first-of-type, input:first-of-type + label {
-        border-radius: 4px 0 0 4px;
+        border-bottom-left-radius: 4px;
+        border-top-left-radius: 4px;
     }
 
     input:last-of-type, input:last-of-type + label {
-        border-radius: 0 4px 4px 0;
+        border-bottom-right-radius: 4px;
+        border-top-right-radius: 4px;
+    }
+
+    input:disabled {
+        cursor: not-allowed;
+        &:checked {
+            background-color: $grey;
+            color: $black;
+        }
     }
 }
 
-.form-control {
-    height: 38px;
+.wii-expanded-switch {
+    display: inline-flex;
+    flex-wrap: wrap;
+    padding: 0;
+    margin-left: -1 * map-get($spacers, 1);
+    margin-right: -1 * map-get($spacers, 1);
+
+    input, input + label {
+        display: flex;
+        appearance: none;
+        -moz-appearance: none;
+        outline: 0;
+        padding: 0 15px;
+        border-radius: 4px;
+        border: 1px solid #CBCBCB;
+        height: $wii-switch-height;
+        line-height: $wii-switch-height;
+        font-weight: normal;
+        transition: all 200ms linear;
+        font-size: 1rem;
+        background: white;
+        color: #666666;
+    }
+
+    input + label {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: map-get($spacers, 1);
+    }
+
+    input:not([content]) {
+        display: none;
+    }
+
+    input:not(:disabled), input:not(:disabled) + label {
+        cursor: pointer;
+
+        &:hover:not(:checked) {
+            color: lighten(#666666, 5%);
+            border-color: lighten(#CBCBCB, 5%);
+        }
+    }
+
+    input:checked, input:checked + label {
+        background: #F2F3F7;
+        color: #3353D7;
+        border-color: #3353D7;
+
+        &:hover {
+            background: lighten(#F2F3F7, 5%) !important;
+            color: lighten(#3353D7, 5%) !important;
+            border-color: lighten(#3353D7, 5%) !important;
+        }
+    }
+
+    input:before, input + label:before {
+        content: attr(content);
+        height: $wii-switch-height;
+        line-height: $wii-switch-height;
+        text-align: center;
+        padding: 0;
+    }
+
+    &:first-child {
+        margin-top: 0 !important;
+    }
 }
 
 .form-control, .select2-search__field, .select2-selection__placeholder {
     border-radius: 5px;
     padding: 5px 15px;
     font-size: 0.9rem !important;
+
+    &:focus {
+        outline: none;
+    }
 }
 
 .select2-selection__placeholder {
@@ -154,10 +285,18 @@ $wii-switch-height: 38px;
 
 .select2-selection--multiple .select2-search__field {
     padding: 0 5px !important;
+    min-width: 1em;
+    //WIIS-7131 pas de width 100%
 }
 
 .checkbox-filter .row {
     padding: 0 5px;
+}
+
+.wii-switch-no-style {
+    label {
+        color: #495057;
+    }
 }
 
 .lite-picker {
@@ -197,76 +336,12 @@ $wii-switch-height: 38px;
 }
 
 .wii-checkbox {
-    width: 100%;
-    margin: 15px auto;
-    position: relative;
-    display: block;
+    font-weight: normal;
+    display: flex;
+    align-items: center;
 
     label {
-        position: relative;
-        min-height: 20px;
-        display: block;
-        padding-left: 25px;
-        margin-bottom: 0;
-        font-weight: normal;
         cursor: pointer;
-
-        span {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-        }
-
-        &:before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            margin: 2px 4px 4px;
-            width: 15px;
-            height: 15px;
-            transition: transform 0.28s ease;
-            border-radius: 3px;
-            border: 2px solid $primary;
-        }
-
-        &:after {
-            content: '';
-            display: block;
-            width: 6px;
-            height: 7px;
-            border-bottom: 2px solid white;
-            border-left: 2px solid white;
-            transform: rotate(-45deg) scale(0);
-            transition: transform ease 0.25s;
-            position: absolute;
-            border-radius: 2px;
-            top: 5px;
-            left: 8px;
-        }
-    }
-
-    input[type="checkbox"] {
-        width: auto;
-        opacity: 0.00000001;
-        position: absolute;
-        left: 0;
-        margin-left: -20px;
-
-        &:checked ~ label{
-            &:before {
-                border: 2px solid $primary;
-                background: $primary;
-            }
-
-            &:after {
-                transform: rotate(45deg) scaleX(-1);
-            }
-        }
-
-        &:focus + label::before {
-            outline: 0;
-        }
     }
 }
 
@@ -276,5 +351,196 @@ label, .wii-checkbox, .wii-radio {
         font-size: 0.9rem;
         font-weight: normal;
         color: $red;
+    }
+}
+
+$wysiwyg-dropdown-button-size: 20px;
+
+.wii-one-line-wysiwyg-popover {
+    background-color: $white;
+    position: absolute;
+    z-index: 10000;
+    width: 400px;
+    max-width: 400px;
+
+    @include border-radius($input-border-radius, 0);
+
+    .ql-container {
+        height: 120px !important;
+    }
+
+    .ql-editor {
+        overflow-y: scroll;
+    }
+
+    .validate-button {
+        position: absolute;
+        right: 22px;
+        bottom: 5px;
+
+        .wii-icon {
+            width: 18px;
+            height: 18px;
+            display: block;
+            background-color: $white;
+        }
+    }
+}
+
+.wii-one-line-wysiwyg {
+    min-width: 240px;
+}
+
+.wii-one-line-wysiwyg-wrapper {
+    position: relative;
+
+    .wii-one-line-wysiwyg {
+        @extend .form-control;
+        height: auto !important;
+        word-break: break-word;
+        min-height: $input-height;
+        min-width: 240px;
+    }
+
+    &.focused,
+    &.active {
+        .wii-one-line-wysiwyg {
+            color: $input-focus-color;
+            background-color: $input-focus-bg;
+            border-color: $input-focus-border-color;
+            outline: 0;
+        }
+
+        .dropdown-button i {
+            background-color: $primary;
+        }
+    }
+
+    .dropdown-button {
+        border: 0;
+        background-color: transparent;
+        position: absolute;
+        right: 4px;
+        top: calc(50% - (#{$wysiwyg-dropdown-button-size / 2}));
+        cursor: pointer;
+        display: flex;
+
+        i {
+            height: $wysiwyg-dropdown-button-size;
+            width: $wysiwyg-dropdown-button-size;
+
+            background-color: $grey;
+        }
+    }
+}
+
+input.no-overflow {
+    text-overflow: initial !important;
+    padding-right: 5px !important;
+}
+
+.input-group-prepend {
+    height: 35.59px;
+}
+
+.labelled-field label, label.labelled-field {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #CDCDCD;
+    background: #f2f3f7;
+    border-radius: 5px;
+    margin: 10px 5px 0;
+    height: 40px;
+    padding-left: 12px;
+    color: black;
+    font-size: 1rem;
+
+    input {
+        flex: 1 1 auto;
+        border: none;
+        margin: 0 0 0 12px;
+        height: 38px;
+        border-radius: 0 5px 5px 0;
+    }
+
+    .input-tooltip {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+    }
+}
+
+input[type=checkbox] {
+    height: 20px;
+    width: 20px;
+    min-height: 20px;
+    min-width: 20px;
+    vertical-align: middle;
+    margin-right: 0.4em;
+    border: 2px solid $primary;
+    border-radius: 4px;
+    -webkit-appearance: none;
+    -webkit-transition: box-shadow 200ms;
+    cursor: pointer;
+
+    &:disabled {
+        border-color: $grey;
+    }
+
+    &:not(:disabled):hover {
+        border-color: $primary;
+    }
+
+    &:active:not(:disabled) {
+        border-color: $primary;
+    }
+
+    &:focus {
+        outline: none;
+        border-color: $primary;
+    }
+
+    &:checked {
+        background-color: $primary;
+        box-shadow: none;
+        border: none;
+        padding: 2px;
+    }
+
+    &:checked:before {
+        content: '';
+        display: block;
+        width: 100%;
+        height: 100%;
+        -webkit-mask: url('../../public/svg/check.svg') no-repeat center;
+        mask: url('../../public/svg/check.svg') no-repeat center;
+        background-color: white;
+    }
+
+    &:disabled {
+        border-color: $grey;
+        cursor: not-allowed !important;
+    }
+}
+
+.wii-color-picker {
+    width: 80px;
+    padding-top: 7px;
+
+    option {
+        border-radius: 50px;
+    }
+
+    &::-webkit-color-swatch {
+        border: none;
+        border-radius: 50%;
+    }
+
+    &::-webkit-color-swatch-wrapper {
+        padding: 0;
+        width: 18px;
+        height: 18px;
     }
 }

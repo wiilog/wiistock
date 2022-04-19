@@ -3,6 +3,12 @@
 {% block filters %}
     {% include 'filters/filter_item/filterDate.html.twig' %}
     {% include 'filters/filter_item/filterStatus.html.twig' %}
-    {% include 'filters/filter_item/filterUser.html.twig' with {name: 'requesters'} %}
-    {% include 'filters/filter_item/filterUser.html.twig' with {name: 'operators'} %}
+    {% include 'filters/filter_item/filterUser.html.twig' with {
+        name: 'requesters',
+        placeholder: 'Demandeurs',
+    } %}
+    {% include 'filters/filter_item/filterUser.html.twig' with {
+        name: 'operators',
+        placeholder: 'Opérateurs',
+    } %}
 {% endblock %}

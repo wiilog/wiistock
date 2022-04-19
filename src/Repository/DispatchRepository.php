@@ -25,7 +25,7 @@ use Doctrine\ORM\Query\Expr\Join;
  */
 class DispatchRepository extends EntityRepository
 {
-    public function findByParamAndFilters(InputBag $params, $filters, Utilisateur $user) {
+    public function findByParamAndFilters(InputBag $params, $filters, Utilisateur $user, VisibleColumnService $visibleColumnService) {
         $qb = $this->createQueryBuilder('dispatch');
 
         $countTotal = $qb
@@ -106,8 +106,8 @@ class DispatchRepository extends EntityRepository
             }
         }
         if (!empty($params)) {
-            if (!empty($params->get('search'))) {
-                $search = $params->get('search')['value'];
+            if (!empty($params->all('search'))) {
+                $search = $params->all('search')['value'];
                 if (!empty($search)) {
                     $conditions = [
                         "creationDate" => "DATE_FORMAT(dispatch.creationDate, '%e/%m/%Y') LIKE :search_value",
@@ -124,7 +124,7 @@ class DispatchRepository extends EntityRepository
                         "destination" => "dispatch.destination LIKE :search_value",
                     ];
 
-                    $condition = VisibleColumnService::getSearchableColumns($conditions, 'dispatch', $qb, $user);
+                    $condition = $visibleColumnService->getSearchableColumns($conditions, 'dispatch', $qb, $user, $search);
 
                     $qb
                         ->andWhere($condition)
@@ -137,10 +137,10 @@ class DispatchRepository extends EntityRepository
                         ->setParameter('search_value', '%' . $search . '%');
                 }
             }
-            if (!empty($params->get('order'))) {
-                $order = $params->get('order')[0]['dir'];
+            if (!empty($params->all('order'))) {
+                $order = $params->all('order')[0]['dir'];
                 if (!empty($order)) {
-                    $column = $params->get('columns')[$params->get('order')[0]['column']]['data'];
+                    $column = $params->all('columns')[$params->all('order')[0]['column']]['data'];
                     if ($column === 'status') {
                         $qb
                             ->leftJoin('dispatch.statut', 'sort_status')
@@ -232,7 +232,7 @@ class DispatchRepository extends EntityRepository
             ->where('dispatch.number LIKE :value')
             ->orderBy('dispatch.creationDate', 'DESC')
             ->addOrderBy('dispatch.number', 'DESC')
-            ->setParameter('value', Dispatch::PREFIX_NUMBER . '-' . $date . '%')
+            ->setParameter('value', Dispatch::NUMBER_PREFIX . '-' . $date . '%')
             ->getQuery()
             ->execute();
         return $result ? $result[0]['number'] : null;
@@ -408,14 +408,23 @@ class DispatchRepository extends EntityRepository
      */
     public function countByDates(DateTime $dateMin,
                                  DateTime $dateMax,
+                                 bool $separateType,
                                  array $dispatchStatusesFilter = [],
-                                 array $dispatchTypesFilter = []): int
+                                 array $dispatchTypesFilter = [],
+                                 string $date = "endDate")
     {
         $qb = $this->createQueryBuilder('dispatch')
-            ->select('COUNT(dispatch) AS count')
-            ->where('dispatch.endDate BETWEEN :dateMin AND :dateMax')
+            ->select('COUNT(dispatch) ' . ($separateType ? ' AS count' : ''))
+            ->join('dispatch.type','type')
+            ->andWhere("dispatch.$date BETWEEN :dateMin AND :dateMax")
             ->setParameter('dateMin', $dateMin)
             ->setParameter('dateMax', $dateMax);
+
+        if ($separateType) {
+            $qb
+                ->groupBy('type.id')
+                ->addSelect('type.label as typeLabel');
+        }
         if (!empty($dispatchStatusesFilter)) {
             $qb
                 ->andWhere('dispatch.statut IN (:dispatchStatuses)')
@@ -427,10 +436,7 @@ class DispatchRepository extends EntityRepository
                 ->andWhere('dispatch.type IN (:dispatchTypes)')
                 ->setParameter('dispatchTypes', $dispatchTypesFilter);
         }
-
-        return $qb
-            ->getQuery()
-            ->getSingleScalarResult();
+        return $separateType ? $qb->getQuery()->getResult() : $qb->getQuery()->getSingleScalarResult();
     }
 
     public function getProcessingTime() {

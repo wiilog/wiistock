@@ -29,13 +29,20 @@ class EmplacementRepository extends EntityRepository
         'pairing' => 'pairing',
     ];
 
-    public function getForSelect(?string $term, $deliveryType = null, $collectType = null) {
-        $query = $this->createQueryBuilder("location");
+    public function getForSelect(?string $term, array $options = []) {
 
-        if($deliveryType) {
+        $idPrefix = $options['idPrefix'] ?? '';
+        $deliveryType = $options['deliveryType'] ?? '';
+        $collectType = $options['collectType'] ?? '';
+
+        $query = $this->createQueryBuilder("location")
+            ->groupBy('location');
+
+        if($deliveryType && $deliveryType !== 'all') {
+            $types = is_array($deliveryType) ? $deliveryType : [$deliveryType];
             $query->leftJoin("location.allowedDeliveryTypes", "allowed_delivery_types")
-                ->andWhere("allowed_delivery_types.id = :type")
-                ->setParameter("type", $deliveryType);
+                ->andWhere("allowed_delivery_types.id IN (:types)")
+                ->setParameter("types", $types);
         }
 
         if($collectType) {
@@ -44,8 +51,9 @@ class EmplacementRepository extends EntityRepository
                 ->setParameter("type", $collectType);
         }
 
-        return $query->select("location.id AS id, location.label AS text")
+        return $query->select("CONCAT('$idPrefix', location.id) AS id, location.label AS text")
             ->andWhere("location.label LIKE :term")
+            ->andWhere("location.isActive = true")
             ->setParameter("term", "%$term%")
             ->getQuery()
             ->getArrayResult();
@@ -145,17 +153,17 @@ class EmplacementRepository extends EntityRepository
         }
 
         if (!empty($params)) {
-            if (!empty($params->get('search'))) {
-                $search = $params->get('search')['value'];
+            if (!empty($params->all('search'))) {
+                $search = $params->all('search')['value'];
                 if (!empty($search)) {
                     $qb
                         ->andWhere('e.label LIKE :value OR e.description LIKE :value')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
-            if (!empty($params->get('order'))) {
-                $order = $params->get('order')[0]['dir'];
-                $field = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['name']];
+            if (!empty($params->all('order'))) {
+                $order = $params->all('order')[0]['dir'];
+                $field = self::DtToDbLabels[$params->all('columns')[$params->all('order')[0]['column']]['name']];
                 if (!empty($order) && $field) {
                     if($field === 'pairing') {
                         $qb->leftJoin('e.pairings', 'order_pairings')

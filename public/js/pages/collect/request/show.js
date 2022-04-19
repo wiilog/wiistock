@@ -43,14 +43,14 @@ $(function (){
 
 });
 
-function ajaxGetCollecteArticle(select) {
+function ajaxGetCollecteArticle(select, collect) {
     let $selection = $('#selection');
     let $editNewArticle = $('#editNewArticle');
     let modalNewArticle = '#modalNewArticle';
     let data = {};
     data['referenceArticle'] = $(select).val();
 
-    let path = Routing.generate('get_collecte_article_by_refArticle', true);
+    let path = Routing.generate('get_collecte_article_by_refArticle', {collect});
     let params = JSON.stringify(data);
     $.post(path, params).then((data) => {
         $selection.html(data.selection);
@@ -62,7 +62,6 @@ function ajaxGetCollecteArticle(select) {
         toggleRequiredChampsLibres(select.closest('.modal').find('#type'), 'edit');
         Select2Old.location($('.ajax-autocomplete-location-edit'));
         Select2Old.user($('.ajax-autocomplete-user-edit[name=managers]'));
-        initEditor(modalNewArticle + ' .editor-container-edit');
         $('.list-multiple').select2();
     });
     $selection.html('');
@@ -103,47 +102,23 @@ function ajaxEditArticle (select) {
     $.post(path, JSON.stringify(params), function(data) {
         $('#editNewArticle').html(data);
         Select2Old.location($('.ajax-autocomplete-location-edit'));
-        initEditor('.editor-container-edit');
     }, 'json');
 }
 
-function initEditModal(){
-    InitModal($('#modalEditCollecte'), $('#submitEditCollecte'), Routing.generate('collecte_edit', true));
+function initEditModal() {
+    const $modalEditCollect = $('#modalEditCollecte');
+    const type = $modalEditCollect.find(`select[name=type]`).val();
+    const $restrictedResults = $modalEditCollect.find(`input[name=restrictedLocations]`);
+    const $locationSelector = $modalEditCollect.find(`select[name=Pcollecte]`);
 
-    const $modalEditCollecte = $('#modalEditCollecte');
-    resetEditTypeField($modalEditCollecte);
-
-    $modalEditCollecte.find('select[name="type"]').on('change', function() {
-        onEditTypeChange($(this));
-    });
-}
-
-function resetEditTypeField($modal) {
-    Select2Old.location($modal.find('.ajax-autocomplete-location'));
-
-    const type = $modal.find('select[name="type"] option:selected').val();
-    const $locationSelector = $modal.find(`select[name="Pcollecte"]`);
-    $locationSelector.prop(`disabled`, !type);
-}
-
-function onEditTypeChange($type) {
-    const $modal = $type.closest('.modal');
-    const $locationSelector = $(`#modalEditCollecte select[name="Pcollecte"]`);
-
-    const type = $type.val();
-    const $restrictedResults = $modal.find(`input[name="restrictedLocations"]`);
-
-    $locationSelector.prop(`disabled`, !type);
-    $locationSelector.val(null).trigger(`change`);
-
-    if (type) {
-        Select2Old.init(
-            $locationSelector,
-            '',
-            $restrictedResults.val() ? 0 : 1,
-            {
+    Select2Old.init(
+        $locationSelector,
+        '',
+        $restrictedResults.val() ? 0 : 1,
+        {
             route: 'get_locations_by_type',
-            param: { type }
+            param: {type}
         });
-    }
+
+    InitModal($modalEditCollect, $('#submitEditCollecte'), Routing.generate('collecte_edit', true));
 }

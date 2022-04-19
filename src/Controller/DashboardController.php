@@ -18,16 +18,15 @@ use Symfony\Component\Routing\Annotation\Route;
 /**
  * @Route("/")
  */
-class
-DashboardController extends AbstractController {
+class DashboardController extends AbstractController {
 
     /**
-     * @Route("/accueil", name="accueil")
+     * Called in /index.html.twig
      */
-    public function dashboards(DashboardService $dashboardService,
-                               DashboardSettingsService $dashboardSettingsService,
-                               EntityManagerInterface $manager,
-                               SpecificService $specificService): Response {
+    public function index(DashboardService $dashboardService,
+                          DashboardSettingsService $dashboardSettingsService,
+                          EntityManagerInterface $manager,
+                          SpecificService $specificService): Response {
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
         $client  =  $specificService->getAppClient();
@@ -35,7 +34,7 @@ DashboardController extends AbstractController {
         return $this->render("dashboard/dashboards.html.twig", [
             "dashboards" => $dashboardSettingsService->serialize($manager, $loggedUser, DashboardSettingsService::MODE_DISPLAY),
             "refreshed" => $dashboardService->refreshDate($manager),
-            "refresh_rate" =>($client === SpecificService::CLIENT_COLLINS_VERNON || $client === SpecificService::CLIENT_SAFRAN_CS) ? 1 : 5,
+            "refresh_rate" => in_array($client, SpecificService::EVERY_MINUTE_REFRESH_RATE_CLIENTS) ? 1 : 5,
         ]);
     }
 
@@ -61,7 +60,7 @@ DashboardController extends AbstractController {
             "dashboards" => $dashboardSettingsService->serialize($manager, null, DashboardSettingsService::MODE_EXTERNAL),
             "refreshed" => $dashboardService->refreshDate($manager),
             "client" => $client,
-            "refresh_rate" => ( $client === SpecificService::CLIENT_COLLINS_VERNON || $client === SpecificService::CLIENT_SAFRAN_CS ) ? 1 : 5,
+            "refresh_rate" => in_array($client, SpecificService::EVERY_MINUTE_REFRESH_RATE_CLIENTS) ? 1 : 5
         ]);
     }
 

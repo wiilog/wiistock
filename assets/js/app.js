@@ -8,6 +8,7 @@ import 'datatables.net-colreorder';
 import 'leaflet';
 import 'leaflet.smooth_marker_bouncing';
 import 'leaflet.polyline.snakeanim';
+import 'leaflet.markercluster'
 import 'leaflet-ant-path';
 import intlTelInput from 'intl-tel-input';
 import '@fortawesome/fontawesome-free/js/all.js';
@@ -18,10 +19,14 @@ import Snow from 'quill/themes/snow';
 import 'arrive';
 import firebase from "firebase/app";
 import "firebase/messaging";
+import "./flash";
+import "./ajax";
 import "./utils";
 
 import BrowserSupport from './support';
 import Wiistock from './general';
+import Modal from './modal';
+import WysiwygManager from './wysiwyg-manager';
 import {LOADING_CLASS, wrapLoadingOnActionButton} from './loading';
 
 import '../scss/app.scss';
@@ -51,7 +56,9 @@ function importWiistock() {
     global.LOADING_CLASS = LOADING_CLASS;
 
     global.Wiistock = Wiistock;
+    global.Modal = Modal;
     global.wrapLoadingOnActionButton = wrapLoadingOnActionButton;
+    global.WysiwygManager = WysiwygManager;
 
     Wiistock.initialize();
 }
@@ -66,6 +73,36 @@ function importJquery() {
     jQuery.fn.exists = function() {
         return this.length !== 0;
     }
+
+    const oldAttr = jQuery.fn.attr;
+    jQuery.fn.attr = function () {
+        const [name] = arguments;
+
+        // check to see if it's the special case you're looking for
+        if (!name) {
+            const result = {};
+            for(const {name, value} of this[0].attributes) {
+                result[name] = value;
+            }
+            return result;
+        } else {
+            return oldAttr.apply(this, arguments);
+        }
+    };
+
+    jQuery.extend({
+        isValidSelector: function(selector) {
+            if (typeof(selector) !== 'string') {
+                return false;
+            }
+            try {
+                var $element = $(selector);
+            } catch(error) {
+                return false;
+            }
+            return true;
+        }
+    });
 }
 
 function importIntlTelInput() {
@@ -121,13 +158,17 @@ function importRouting() {
     global.Routing = Routing;
 }
 
-export const NO_GROUPING = 0;
-export const GROUP_EVERYTHING = 0;
-export const GROUP_WHEN_NEEDED = 0;
+export const NO_GROUPING = 1;
+export const GROUP_EVERYTHING = 2;
+export const GROUP_WHEN_NEEDED = 3;
+
+Array.prototype.keymap = function(callable, grouping = NO_GROUPING) {
+    return keymap(this, callable, grouping);
+};
 
 jQuery.fn.keymap = function(callable, grouping = NO_GROUPING) {
     return keymap(this, callable, grouping);
-}
+};
 
 export function keymap(array, callable, grouping = NO_GROUPING) {
     const values = {};
@@ -152,14 +193,37 @@ export function keymap(array, callable, grouping = NO_GROUPING) {
             }
         }
     }
-
     if(grouping === GROUP_WHEN_NEEDED) {
-        for(const[key, value] of Object.entries(values)) {
+        for(const [key, value] of Object.entries(values)) {
             values[key] = value.__single_value !== undefined ? value.__single_value : value;
         }
     }
 
     return values;
+}
+
+jQuery.deepEquals = function (x, y) {
+    if (x === y) {
+        return true;
+    } else if ((typeof x == "object" && x != null) && (typeof y == "object" && y != null)) {
+        if (Object.keys(x).length !== Object.keys(y).length) {
+            return false;
+        }
+
+        for (const prop in x) {
+            if (y.hasOwnProperty(prop)) {
+                if (!jQuery.deepEquals(x[prop], y[prop])) {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        }
+
+        return true;
+    } else {
+        return false;
+    }
 }
 
 jQuery.deepCopy = function(object) {
@@ -223,4 +287,6 @@ $(document).ready(() => {
             subtree: true
         });
     }
+
+    WysiwygManager.initializeWYSIWYG($(document));
 });

@@ -1,0 +1,34 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Référentiel | Véhicules{% endblock %}
+
+{% block page_content %}
+    <div class="m-4 wii-page-card">
+        {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
+            <div class="row wii-page-card-header">
+                <div class="col-auto ml-auto">
+                    <a href=""
+                       data-toggle="modal"
+                       data-target="#modalNewVehicle"
+                       class="btn btn-primary">
+                        <span class="fa fa-plus mr-2"></span>Nouveau véhicule
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+        <div class="row">
+            <div class="col-12">
+                <table id="vehicleTable_id" class="table w-100"></table>
+            </div>
+        </div>
+    </div>
+
+    {% include "vehicle/modal/new.html.twig" %}
+    {% include "vehicle/modal/edit.html.twig" %}
+    {% include "vehicle/modal/delete.html.twig" %}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('vehicle') }}
+{% endblock %}

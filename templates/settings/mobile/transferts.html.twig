@@ -1,0 +1,13 @@
+{% import 'form.html.twig' as form %}
+
+<div class="wii-section">
+    <div class="row">
+        <div class="col-12 my-1">
+            {{ form.checkbox(setting('TRANSFER_DISPLAY_REFERENCES_ON_CARDS'), 'Afficher les références contenues sur les étiquettes de transfert', false, setting_value('TRANSFER_DISPLAY_REFERENCES_ON_CARDS')) }}
+        </div>
+
+        <div class="col-12 my-1">
+            {{ form.checkbox(setting('TRANSFER_FREE_DROP'), 'Autoriser la dépose des articles sur un emplacement libre', false, setting_value('TRANSFER_FREE_DROP')) }}
+        </div>
+    </div>
+</div>

@@ -2,95 +2,70 @@
 
 namespace App\Entity\IOT;
 
-use App\Entity\LocationGroup;
-use App\Repository\IOT\PairingRepository;
+use App\Entity\Article;
 use App\Entity\Emplacement;
+use App\Entity\LocationGroup;
+use App\Entity\OrdreCollecte;
 use App\Entity\Pack;
 use App\Entity\PreparationOrder\Preparation;
-use App\Entity\OrdreCollecte;
-use App\Entity\Article;
+use App\Entity\Transport\Vehicle;
+use App\Repository\IOT\PairingRepository;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass=PairingRepository::class)
- */
-class Pairing
-{
+#[ORM\Entity(repositoryClass: PairingRepository::class)]
+class Pairing {
 
     use SensorMessageTrait;
 
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Emplacement::class, inversedBy="pairings")
-     */
+    #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'pairings')]
     private ?Emplacement $location = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=LocationGroup::class, inversedBy="pairings")
-     */
+    #[ORM\ManyToOne(targetEntity: LocationGroup::class, inversedBy: 'pairings')]
     private ?LocationGroup $locationGroup = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Article::class, inversedBy="pairings")
-     */
+    #[ORM\ManyToOne(targetEntity: Article::class, inversedBy: 'pairings')]
     private ?Article $article = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Pack::class, inversedBy="pairings")
-     */
+    #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: 'pairings')]
     private ?Pack $pack = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Preparation::class, inversedBy="pairings")
-     */
+    #[ORM\ManyToOne(targetEntity: Preparation::class, inversedBy: 'pairings')]
     private ?Preparation $preparationOrder = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=OrdreCollecte::class, inversedBy="pairings")
-     */
+    #[ORM\ManyToOne(targetEntity: OrdreCollecte::class, inversedBy: 'pairings')]
     private ?OrdreCollecte $collectOrder = null;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private ?DateTimeInterface $start = null;
 
-    /**
-     * @ORM\Column(type="datetime", nullable=true)
-     */
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTimeInterface $end = null;
 
-    /**
-     * @ORM\Column(type="boolean")
-     */
+    #[ORM\Column(type: 'boolean')]
     private ?bool $active = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=SensorWrapper::class, inversedBy="pairings")
-     */
+    #[ORM\ManyToOne(targetEntity: SensorWrapper::class, inversedBy: 'pairings')]
     private ?SensorWrapper $sensorWrapper = null;
 
-    /**
-     * @ORM\ManyToMany(targetEntity=SensorMessage::class, inversedBy="pairings")
-     */
+    #[ORM\ManyToMany(targetEntity: SensorMessage::class, inversedBy: 'pairings')]
     private Collection $sensorMessages;
 
-    public function __construct()
-    {
+    #[ORM\ManyToOne(targetEntity: Vehicle::class, inversedBy: 'pairings')]
+    private ?Vehicle $vehicle = null;
+
+    public function __construct() {
         $this->sensorMessages = new ArrayCollection();
     }
 
-    public function getId(): ?int
-    {
+    public function getId(): ?int {
         return $this->id;
     }
 
@@ -206,38 +181,48 @@ class Pairing
         return $this->collectOrder;
     }
 
-    public function getStart(): ?DateTimeInterface
-    {
+    public function getStart(): ?DateTimeInterface {
         return $this->start;
     }
 
-    public function setStart(DateTimeInterface $start): self
-    {
+    public function setStart(DateTimeInterface $start): self {
         $this->start = $start;
 
         return $this;
     }
 
-    public function getEnd(): ?DateTimeInterface
-    {
+    public function getEnd(): ?DateTimeInterface {
         return $this->end;
     }
 
-    public function setEnd(?DateTimeInterface $end): self
-    {
+    public function setEnd(?DateTimeInterface $end): self {
         $this->end = $end;
 
         return $this;
     }
 
-    public function isActive(): ?bool
-    {
+    public function isActive(): ?bool {
         return $this->active;
     }
 
-    public function setActive(bool $active): self
-    {
+    public function setActive(bool $active): self {
         $this->active = $active;
+
+        return $this;
+    }
+
+    public function getVehicle(): ?Vehicle {
+        return $this->vehicle;
+    }
+
+    public function setVehicle(?Vehicle $vehicle): self {
+        if($this->vehicle && $this->vehicle !== $vehicle) {
+            $this->vehicle->removePairing($this);
+        }
+        $this->vehicle = $vehicle;
+        if($vehicle) {
+            $vehicle->addPairing($this);
+        }
 
         return $this;
     }
@@ -249,21 +234,19 @@ class Pairing
             $this->setPack(null);
             $this->setPreparationOrder(null);
             $this->setCollectOrder(null);
-        }
-        else if($entity instanceof Emplacement) {
+            $this->setVehicle(null);
+        } else if($entity instanceof Emplacement) {
             $this->setLocation($entity);
-        }
-        else if($entity instanceof Article) {
+        } else if($entity instanceof Article) {
             $this->setArticle($entity);
-        }
-        else if($entity instanceof Pack) {
+        } else if($entity instanceof Pack) {
             $this->setPack($entity);
-        }
-        else if($entity instanceof Preparation) {
+        } else if($entity instanceof Preparation) {
             $this->setPreparationOrder($entity);
-        }
-        else if($entity instanceof OrdreCollecte) {
+        } else if($entity instanceof OrdreCollecte) {
             $this->setCollectOrder($entity);
+        } else if($entity instanceof Vehicle) {
+            $this->setVehicle($entity);
         }
     }
 
@@ -274,14 +257,17 @@ class Pairing
             return $this->locationGroup;
         } else if($this->getArticle() !== null) {
             return $this->article;
-        } else if($this->getPack() !== null){
+        } else if($this->getPack() !== null) {
             return $this->pack;
         } else if($this->getPreparationOrder() !== null) {
             return $this->preparationOrder;
         } else if($this->getCollectOrder() !== null) {
             return $this->collectOrder;
+        } else if($this->getVehicle() !== null) {
+            return $this->vehicle;
         } else {
             return null;
         }
     }
+
 }

@@ -1,0 +1,7 @@
+{% set wrapperClass = wrapperClass is defined and wrapperClass ? wrapperClass %}
+{% for datum in data %}
+    <div class="{{ wrapperClass ?: 'col-6 box-item my-2' }}">
+        <span class="wii-field-name">{{ datum.label }}</span>
+        <span class="wii-body-text">{{ datum.value != '' ? datum.value : '-' }}</span>
+    </div>
+{% endfor %}

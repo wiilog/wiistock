@@ -31,8 +31,7 @@
                             <div class="btn-group">
                                 {% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT')) %}
                                 {% set hasRightExport = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EXPORT')) %}
-                                {% if hasRightEdit %}
-                                {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::ADD_PACK')) %}
+                                {% if hasRightEdit and hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::ADD_PACK')) %}
                                     <button type="button"
                                             data-toggle="modal"
                                             data-target="#modalAddColis"
@@ -40,7 +39,6 @@
                                             id="btnModalAddColis">
                                         <span class="fa fa-plus mr-2"></span>Ajouter <span title="colis">{{ 'arrivage.colis'|trans }}</span>
                                     </button>
-                                {% endif %}
                                 {% endif %}
                                 {% if hasRightExport %}
                                     {% if hasRightEdit %}
@@ -86,11 +84,8 @@
                             <div class="col-auto ml-auto">
                                 {% if hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::CREATE')) %}
                                     <button type="button"
-                                            data-id='{{ arrivage.id }}'
-                                            data-target='#modalNewLitige'
-                                            data-toggle='modal'
-                                            class="btn btn-primary"
-                                            onclick="openNewLitigeModal($(this))">
+                                            data-id="{{ arrivage.id }}"
+                                            class="btn btn-primary new-dispute-modal">
                                         <i class="fa fa-plus mr-2"></i>
                                         Nouveau litige
                                     </button>
@@ -116,7 +111,6 @@
     {% include 'arrivage/modalDeleteLitige.html.twig' %}
     {% include 'pack/modalEditPack.html.twig' %}
     {% include 'pack/modalDeletePack.html.twig' %}
-    {% include "dispatch/modalNewDispatch.html.twig" with modalNewDispatchConfig %}
 
 {% endblock %}
 

@@ -1,0 +1,13 @@
+<div class="col-auto m-2 pr-0">
+    <div class="wii-expanded-switch">
+        {% for type in types %}
+            <input type="radio" id="type-filter-{{ type.id }}" name="type" class="data filter-switch" data-category="{{ type.category.label }}" value="{{ type.id }}">
+            <label for="type-filter-{{ type.id }}" class="d-inline-flex align-items-center">
+                {% if type.logo %}
+                    <img src="{{ type.logo ? type.logo.fullPath }}" class="mr-2" width="15">
+                {% endif %}
+                {{ type.label }}
+            </label>
+        {% endfor %}
+    </div>
+</div>

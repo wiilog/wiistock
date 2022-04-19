@@ -108,7 +108,7 @@
             <input {{ disabledOnDemand }} id="commentaire" class="form-control data" type="hidden" name="commentaire"
                 value="{{article.commentaire}}" >
             {% set backgroundGrey = (isADemand or disabledOnDemand or disabled == 'disabled') ? 'backGreyFormLight' : '' %}
-            <div {{ disabledOnDemand }} class="editor-container-edit form-control comment {{ backgroundGrey }}">
+            <div {{ disabledOnDemand }} class="editor-container-edit form-control comment {{ backgroundGrey }}" data-wysiwyg>
                 {{article.commentaire|raw}}
             </div>
         </div>

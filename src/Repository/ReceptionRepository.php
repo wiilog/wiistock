@@ -32,18 +32,6 @@ class ReceptionRepository extends EntityRepository
         'dateAttendue' =>'dateAttendue'
     ];
 
-	public function countByFournisseur($fournisseurId)
-	{
-		$em = $this->getEntityManager();
-		$query = $em->createQuery(
-			"SELECT COUNT(r)
-			FROM App\Entity\Reception r
-			WHERE r.fournisseur = :fournisseurId"
-		)->setParameter('fournisseurId', $fournisseurId);
-
-		return $query->getSingleScalarResult();
-	}
-
     public function getLastNumberByDate(string $date): ?string {
         $result = $this->createQueryBuilder('reception')
             ->select('reception.number AS number')
@@ -51,7 +39,7 @@ class ReceptionRepository extends EntityRepository
             ->orderBy('reception.date', 'DESC')
             ->addOrderBy('reception.number', 'DESC')
             ->addOrderBy('reception.id', 'DESC')
-            ->setParameter('value', Reception::PREFIX_NUMBER . $date . '%')
+            ->setParameter('value', Reception::NUMBER_PREFIX . $date . '%')
             ->getQuery()
             ->execute();
         return $result ? $result[0]['number'] : null;
@@ -125,7 +113,7 @@ class ReceptionRepository extends EntityRepository
             ->getResult();
     }
 
-    public function findByParamAndFilters(InputBag $params, $filters, Utilisateur $user)
+    public function findByParamAndFilters(InputBag $params, $filters, Utilisateur $user, VisibleColumnService $visibleColumnService)
     {
         $qb = $this->createQueryBuilder("reception");
 
@@ -205,8 +193,8 @@ class ReceptionRepository extends EntityRepository
         }
         //Filter search
         if (!empty($params)) {
-            if (!empty($params->get('search'))) {
-                $search = $params->get('search')['value'];
+            if (!empty($params->all('search'))) {
+                $search = $params->all('search')['value'];
                 if (!empty($search)) {
                     $conditions = [
                         "Date" => "DATE_FORMAT(reception.date, '%d/%m/%Y') LIKE :search_value",
@@ -222,7 +210,7 @@ class ReceptionRepository extends EntityRepository
                         "deliveries" => null,
                     ];
 
-                    $condition = VisibleColumnService::getSearchableColumns($conditions, 'reception', $qb, $user);
+                    $condition = $visibleColumnService->getSearchableColumns($conditions, 'reception', $qb, $user, $search);
 
                     $qb
                         ->andWhere($condition)
@@ -235,13 +223,13 @@ class ReceptionRepository extends EntityRepository
                 }
             }
 
-            if (!empty($params->get('order')))
+            if (!empty($params->all('order')))
             {
-                foreach ($params->get('order') as $sort) {
+                foreach ($params->all('order') as $sort) {
                     $order = $sort['dir'];
                     if (!empty($order))
                     {
-                        $columnName = $params->get('columns')[$sort['column']]['data'];
+                        $columnName = $params->all('columns')[$sort['column']]['data'];
                         $column = self::DtToDbLabels[$columnName] ?? $columnName;
                         if ($column === 'statut') {
                             $qb

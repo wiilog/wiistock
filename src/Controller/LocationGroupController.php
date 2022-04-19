@@ -40,18 +40,24 @@ class LocationGroupController extends AbstractController {
         $locationRepository = $manager->getRepository(Emplacement::class);
         $locationGroupRepository = $manager->getRepository(LocationGroup::class);
 
-        $sameName = $locationGroupRepository->findOneBy(["name" => $data["name"]]);
-        if ($sameName) {
+        $sameLabel = $locationGroupRepository->findOneBy(["label" => $data["label"]]);
+        $sameLocationLabel = $locationRepository->findOneBy(["label" => $data["label"]]);
+        if ($sameLabel) {
             return $this->json([
                 "success" => false,
-                "msg" => "Un groupe d'emplacement avec le même nom existe déjà",
+                "msg" => "Un groupe d'emplacements avec le même nom existe déjà",
+            ]);
+        } elseif ($sameLocationLabel) {
+            return $this->json([
+                "success" => false,
+                "msg" => "Un emplacement avec le même nom existe déjà",
             ]);
         }
 
         $locations = $locationRepository->findBy(["id" => $data["locations"]]);
 
         $group = (new LocationGroup())
-            ->setName($data["name"])
+            ->setLabel($data["label"])
             ->setDescription($data["description"] ?? null)
             ->setActive($data["active"])
             ->setLocations($locations);
@@ -61,7 +67,7 @@ class LocationGroupController extends AbstractController {
 
         return $this->json([
             "success" => true,
-            "msg" => "Le groupe d'emplacements {$group->getName()} a bien été créé",
+            "msg" => "Le groupe d'emplacements {$group->getLabel()} a bien été créé",
         ]);
     }
 
@@ -96,7 +102,7 @@ class LocationGroupController extends AbstractController {
         if ($group) {
             $locations = $locationRepository->findBy(["id" => $data["locations"]]);
 
-            $group->setName($data["name"])
+            $group->setLabel($data["label"])
                 ->setDescription($data["description"] ?? null)
                 ->setActive($data["active"])
                 ->setLocations($locations);
@@ -105,7 +111,7 @@ class LocationGroupController extends AbstractController {
 
             return $this->json([
                 "success" => true,
-                "msg" => "Le groupe d'emplacements {$group->getName()} a bien été modifié",
+                "msg" => "Le groupe d'emplacements {$group->getLabel()} a bien été modifié",
             ]);
         }
 
@@ -139,7 +145,13 @@ class LocationGroupController extends AbstractController {
         $locationGroupRepository = $manager->getRepository(LocationGroup::class);
 
         $group = $locationGroupRepository->find($data["id"]);
-        if ($group) {
+
+        if(!$group->getUsers()->isEmpty()) {
+            return $this->json([
+                "success" => false,
+                "msg" => "Ce groupe d'emplacements est utilisé en tant que dropzone sur un ou plusieurs utilisateurs, vous ne pouvez pas le supprimer.",
+            ]);
+        } else {
             $manager->remove($group);
             $manager->flush();
 
@@ -148,8 +160,6 @@ class LocationGroupController extends AbstractController {
                 "msg" => "Groupe d'emplacements supprimé avec succès",
             ]);
         }
-
-        throw new NotFoundHttpException();
     }
 
 }

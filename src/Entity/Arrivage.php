@@ -4,141 +4,94 @@ namespace App\Entity;
 
 use App\Entity\Traits\CommentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
+use App\Repository\ArrivageRepository;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 
-/**
- * @ORM\Entity(repositoryClass="App\Repository\ArrivageRepository")
- */
+#[ORM\Entity(repositoryClass: ArrivageRepository::class)]
 class Arrivage {
 
     use CommentTrait;
     use FreeFieldsManagerTrait;
 
-    /**
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private $id;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Fournisseur", inversedBy="arrivages")
-     */
+    #[ORM\ManyToOne(targetEntity: Fournisseur::class, inversedBy: 'arrivages')]
     private $fournisseur;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Chauffeur", inversedBy="arrivages")
-     */
+    #[ORM\ManyToOne(targetEntity: Chauffeur::class, inversedBy: 'arrivages')]
     private $chauffeur;
 
-    /**
-     * @ORM\Column(type="string", length=64, nullable=true)
-     */
+    #[ORM\Column(type: 'string', length: 64, nullable: true)]
     private $noTracking;
 
-    /**
-     * @ORM\Column(type="json")
-     */
+    #[ORM\Column(type: 'json')]
     private $numeroCommandeList;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="arrivagesDestinataire")
-     */
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'arrivagesDestinataire')]
     private $destinataire;
 
-    /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Utilisateur", inversedBy="arrivagesAcheteur")
-     */
+    #[ORM\ManyToMany(targetEntity: Utilisateur::class, inversedBy: 'arrivagesAcheteur')]
     private $acheteurs;
 
-    /**
-     * @ORM\Column(type="string", length=64, nullable=true)
-     */
+    #[ORM\Column(type: 'string', length: 64, nullable: true)]
     private $numeroReception;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Transporteur", inversedBy="arrivages")
-     */
+    #[ORM\ManyToOne(targetEntity: Transporteur::class, inversedBy: 'arrivages')]
     private $transporteur;
 
-    /**
-     * @ORM\Column(type="datetime", nullable=true)
-     */
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private $date;
 
-    /**
-     * @ORM\Column(type="string", length=32, nullable=true, unique=true)
-     */
+    #[ORM\Column(type: 'string', length: 32, nullable: true, unique: true)]
     private $numeroArrivage;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="arrivagesUtilisateur")
-     */
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'arrivagesUtilisateur')]
     private $utilisateur;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Pack", mappedBy="arrivage")
-     */
+    #[ORM\OneToMany(targetEntity: Pack::class, mappedBy: 'arrivage')]
     private $packs;
 
-    /**
-     * @ORM\Column(type="text", nullable=true)
-     */
+    #[ORM\Column(type: 'text', nullable: true)]
     private $commentaire;
 
-    /**
-     * @ORM\OneToMany(targetEntity="Attachment", mappedBy="arrivage")
-     */
+    #[ORM\OneToMany(targetEntity: 'Attachment', mappedBy: 'arrivage')]
     private $attachements;
 
-    /**
-     * @ORM\Column(type="boolean", nullable=true)
-     */
+    #[ORM\Column(type: 'boolean', nullable: true)]
     private $isUrgent;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="arrivages")
-     */
+    #[ORM\ManyToOne(targetEntity: Statut::class, inversedBy: 'arrivages')]
     private $statut;
 
     /**
      * @var Collection
-     * @ORM\OneToMany(targetEntity="App\Entity\Urgence", mappedBy="lastArrival")
      */
+    #[ORM\OneToMany(targetEntity: Urgence::class, mappedBy: 'lastArrival')]
     private $urgences;
 
-	/**
-	 * @ORM\Column(type="boolean", nullable=true)
-	 */
+    #[ORM\Column(type: 'boolean', nullable: true)]
     private $customs;
 
-	/**
-	 * @ORM\Column(type="boolean", nullable=true)
-	 */
+    #[ORM\Column(type: 'boolean', nullable: true)]
     private $frozen;
 
-    /**
-	 * @ORM\Column(type="text", nullable=true)
-	 */
+    #[ORM\Column(type: 'text', nullable: true)]
     private $projectNumber;
 
-    /**
-	 * @ORM\Column(type="text", nullable=true)
-	 */
+    #[ORM\Column(type: 'text', nullable: true)]
     private $businessUnit;
 
-    /**
-	 * @ORM\ManyToOne (targetEntity="App\Entity\Type", inversedBy="arrivals")
-	 */
+    #[ORM\ManyToOne(targetEntity: Type::class, inversedBy: 'arrivals')]
     private $type;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Emplacement::class, inversedBy="arrivals")
-     */
+    #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'arrivals')]
     private $dropLocation;
 
     public function __construct() {
@@ -149,59 +102,50 @@ class Arrivage {
         $this->numeroCommandeList = [];
     }
 
-    public function getId(): ?int
-    {
+    public function getId(): ?int {
         return $this->id;
     }
 
-    public function getFournisseur(): ?Fournisseur
-    {
+    public function getFournisseur(): ?Fournisseur {
         return $this->fournisseur;
     }
 
-    public function setFournisseur(?Fournisseur $fournisseur): self
-    {
+    public function setFournisseur(?Fournisseur $fournisseur): self {
         $this->fournisseur = $fournisseur;
 
         return $this;
     }
 
-    public function getChauffeur(): ?Chauffeur
-    {
+    public function getChauffeur(): ?Chauffeur {
         return $this->chauffeur;
     }
 
-    public function setChauffeur(?Chauffeur $chauffeur): self
-    {
+    public function setChauffeur(?Chauffeur $chauffeur): self {
         $this->chauffeur = $chauffeur;
 
         return $this;
     }
 
-    public function getNoTracking(): ?string
-    {
+    public function getNoTracking(): ?string {
         return $this->noTracking;
     }
 
-    public function setNoTracking(?string $noTracking): self
-    {
+    public function setNoTracking(?string $noTracking): self {
         $this->noTracking = $noTracking;
 
         return $this;
     }
 
-    public function getNumeroCommandeList(): array
-    {
+    public function getNumeroCommandeList(): array {
         return $this->numeroCommandeList;
     }
 
-    public function setNumeroCommandeList(array $numeroCommandeList): self
-    {
+    public function setNumeroCommandeList(array $numeroCommandeList): self {
         $this->numeroCommandeList = array_reduce(
             $numeroCommandeList,
-            function(array $result, string $numeroCommande){
+            function(array $result, string $numeroCommande) {
                 $trimmed = trim($numeroCommande);
-                if (!empty($trimmed)) {
+                if(!empty($trimmed)) {
                     $result[] = $trimmed;
                 }
                 return $result;
@@ -212,34 +156,30 @@ class Arrivage {
         return $this;
     }
 
-    public function addNumeroCommande(string $numeroCommande): self
-    {
+    public function addNumeroCommande(string $numeroCommande): self {
         $trimmed = trim($numeroCommande);
-        if (!empty($trimmed)) {
+        if(!empty($trimmed)) {
             $this->numeroCommandeList[] = $trimmed;
         }
 
         return $this;
     }
 
-    public function removeNumeroCommande(string $numeroCommande): self
-    {
+    public function removeNumeroCommande(string $numeroCommande): self {
         $index = array_search($numeroCommande, $this->numeroCommandeList);
 
-        if ($index !== false) {
+        if($index !== false) {
             array_splice($this->numeroCommandeList, $index, 1);
         }
 
         return $this;
     }
 
-    public function getDestinataire(): ?Utilisateur
-    {
+    public function getDestinataire(): ?Utilisateur {
         return $this->destinataire;
     }
 
-    public function setDestinataire(?Utilisateur $destinataire): self
-    {
+    public function setDestinataire(?Utilisateur $destinataire): self {
         $this->destinataire = $destinataire;
 
         return $this;
@@ -261,7 +201,7 @@ class Arrivage {
      */
     public function getUrgencesAcheteurs(): Collection {
         $emergencyBuyer = $this->urgences
-            ->map(function (Urgence $urgence) {
+            ->map(function(Urgence $urgence) {
                 return $urgence->getBuyer();
             });
 
@@ -275,71 +215,60 @@ class Arrivage {
         return $this->acheteurs;
     }
 
-    public function addAcheteur(Utilisateur $acheteur): self
-    {
-        if (!$this->acheteurs->contains($acheteur)) {
+    public function addAcheteur(Utilisateur $acheteur): self {
+        if(!$this->acheteurs->contains($acheteur)) {
             $this->acheteurs[] = $acheteur;
         }
 
         return $this;
     }
 
-    public function removeAcheteur(Utilisateur $acheteur): self
-    {
-        if ($this->acheteurs->contains($acheteur)) {
+    public function removeAcheteur(Utilisateur $acheteur): self {
+        if($this->acheteurs->contains($acheteur)) {
             $this->acheteurs->removeElement($acheteur);
         }
 
         return $this;
     }
 
-    public function removeAllAcheteur(): self
-    {
-        foreach ($this->acheteurs as $acheteur) {
+    public function removeAllAcheteur(): self {
+        foreach($this->acheteurs as $acheteur) {
             $this->acheteurs->removeElement($acheteur);
         }
         return $this;
     }
 
-    public function getNumeroReception(): ?string
-    {
+    public function getNumeroReception(): ?string {
         return $this->numeroReception;
     }
 
-    public function setNumeroReception(?string $numeroReception): self
-    {
+    public function setNumeroReception(?string $numeroReception): self {
         $this->numeroReception = $numeroReception;
 
         return $this;
     }
 
-
-    public function getTransporteur(): ?Transporteur
-    {
+    public function getTransporteur(): ?Transporteur {
         return $this->transporteur;
     }
 
-    public function setTransporteur(?Transporteur $transporteur): self
-    {
+    public function setTransporteur(?Transporteur $transporteur): self {
         $this->transporteur = $transporteur;
 
         return $this;
     }
 
-    public function getDate(): ?DateTime
-    {
+    public function getDate(): ?DateTime {
         return $this->date;
     }
 
-    public function setDate(?DateTime $date): self
-    {
+    public function setDate(?DateTime $date): self {
         $this->date = $date;
 
         return $this;
     }
 
-    public function getNumeroArrivage(): ?string
-    {
+    public function getNumeroArrivage(): ?string {
         return $this->numeroArrivage;
     }
 
@@ -348,17 +277,16 @@ class Arrivage {
         return $this;
     }
 
-    public function getUtilisateur(): ?Utilisateur
-    {
+    public function getUtilisateur(): ?Utilisateur {
         return $this->utilisateur;
     }
 
-    public function setUtilisateur(?Utilisateur $utilisateur): self
-    {
+    public function setUtilisateur(?Utilisateur $utilisateur): self {
         $this->utilisateur = $utilisateur;
 
         return $this;
     }
+
     /**
      * @return Collection|Pack[]
      */
@@ -366,9 +294,8 @@ class Arrivage {
         return $this->packs;
     }
 
-    public function addPack(Pack $pack): self
-    {
-        if (!$this->packs->contains($pack)) {
+    public function addPack(Pack $pack): self {
+        if(!$this->packs->contains($pack)) {
             $this->packs[] = $pack;
             $pack->setArrivage($this);
         }
@@ -376,42 +303,39 @@ class Arrivage {
         return $this;
     }
 
-    public function removePack(Pack $pack): self
-    {
-        if ($this->packs->contains($pack)) {
+    public function removePack(Pack $pack): self {
+        if($this->packs->contains($pack)) {
             $this->packs->removeElement($pack);
             // set the owning side to null (unless already changed)
-            if ($pack->getArrivage() === $this) {
+            if($pack->getArrivage() === $this) {
                 $pack->setArrivage(null);
             }
         }
 
         return $this;
     }
+
     /**
      * @return Collection|Urgence[]
      */
-    public function getUrgences(): Collection
-    {
+    public function getUrgences(): Collection {
         return $this->urgences;
     }
 
     /**
      * @return void
      */
-    public function clearUrgences(): void
-    {
-        foreach ($this->urgences as $urgence) {
-            if ($urgence->getLastArrival() === $this) {
+    public function clearUrgences(): void {
+        foreach($this->urgences as $urgence) {
+            if($urgence->getLastArrival() === $this) {
                 $urgence->setLastArrival(null);
             }
         }
         $this->urgences->clear();
     }
 
-    public function addUrgence(Urgence $urgence): self
-    {
-        if (!$this->urgences->contains($urgence)) {
+    public function addUrgence(Urgence $urgence): self {
+        if(!$this->urgences->contains($urgence)) {
             $this->urgences[] = $urgence;
             $urgence->setLastArrival($this);
         }
@@ -419,12 +343,11 @@ class Arrivage {
         return $this;
     }
 
-    public function removeUrgence(Urgence $urgence): self
-    {
-        if ($this->urgences->contains($urgence)) {
+    public function removeUrgence(Urgence $urgence): self {
+        if($this->urgences->contains($urgence)) {
             $this->urgences->removeElement($urgence);
             // set the owning side to null (unless already changed)
-            if ($urgence->getLastArrival() === $this) {
+            if($urgence->getLastArrival() === $this) {
                 $urgence->setLastArrival(null);
             }
         }
@@ -432,13 +355,11 @@ class Arrivage {
         return $this;
     }
 
-    public function getCommentaire(): ?string
-    {
+    public function getCommentaire(): ?string {
         return $this->commentaire;
     }
 
-    public function setCommentaire(?string $commentaire): self
-    {
+    public function setCommentaire(?string $commentaire): self {
         $this->commentaire = $commentaire;
         $this->setCleanedComment($commentaire);
 
@@ -448,14 +369,12 @@ class Arrivage {
     /**
      * @return Collection|Attachment[]
      */
-    public function getAttachments(): Collection
-    {
+    public function getAttachments(): Collection {
         return $this->attachements;
     }
 
-    public function addAttachment(Attachment $attachment): self
-    {
-        if (!$this->attachements->contains($attachment)) {
+    public function addAttachment(Attachment $attachment): self {
+        if(!$this->attachements->contains($attachment)) {
             $this->attachements[] = $attachment;
             $attachment->setArrivage($this);
         }
@@ -463,12 +382,11 @@ class Arrivage {
         return $this;
     }
 
-    public function removeAttachment(Attachment $attachement): self
-    {
-        if ($this->attachements->contains($attachement)) {
+    public function removeAttachment(Attachment $attachement): self {
+        if($this->attachements->contains($attachement)) {
             $this->attachements->removeElement($attachement);
             // set the owning side to null (unless already changed)
-            if ($attachement->getArrivage() === $this) {
+            if($attachement->getArrivage() === $this) {
                 $attachement->setArrivage(null);
             }
         }
@@ -476,111 +394,96 @@ class Arrivage {
         return $this;
     }
 
-    public function getIsUrgent(): ?bool
-    {
+    public function getIsUrgent(): ?bool {
         return $this->isUrgent;
     }
 
-    public function setIsUrgent(?bool $isUrgent): self
-    {
+    public function setIsUrgent(?bool $isUrgent): self {
         $this->isUrgent = $isUrgent;
 
         return $this;
     }
 
-    public function getStatut(): ?Statut
-    {
+    public function getStatut(): ?Statut {
         return $this->statut;
     }
 
-    public function setStatut(?Statut $statut): self
-    {
+    public function setStatut(?Statut $statut): self {
         $this->statut = $statut;
 
         return $this;
     }
 
-    public function getCustoms(): ?bool
-    {
+    public function getCustoms(): ?bool {
         return $this->customs;
     }
 
-    public function setCustoms(?bool $customs): self
-    {
+    public function setCustoms(?bool $customs): self {
         $this->customs = $customs;
 
         return $this;
     }
 
-    public function getFrozen(): ?bool
-    {
+    public function getFrozen(): ?bool {
         return $this->frozen;
     }
 
-    public function setFrozen(?bool $frozen): self
-    {
+    public function setFrozen(?bool $frozen): self {
         $this->frozen = $frozen;
 
         return $this;
     }
 
-    public function getProjectNumber(): ?string
-    {
+    public function getProjectNumber(): ?string {
         return $this->projectNumber;
     }
 
-    public function setProjectNumber(?string $projectNumber): self
-    {
+    public function setProjectNumber(?string $projectNumber): self {
         $this->projectNumber = $projectNumber;
 
         return $this;
     }
 
-    public function getBusinessUnit(): ?string
-    {
+    public function getBusinessUnit(): ?string {
         return $this->businessUnit;
     }
 
-    public function setBusinessUnit(?string $businessUnit): self
-    {
+    public function setBusinessUnit(?string $businessUnit): self {
         $this->businessUnit = $businessUnit;
 
         return $this;
     }
 
-    public function getType(): ?Type
-    {
+    public function getType(): ?Type {
         return $this->type;
     }
 
-    public function setType(?Type $type): self
-    {
+    public function setType(?Type $type): self {
         $this->type = $type;
 
         return $this;
     }
 
-    public function getDropLocation(): ?Emplacement
-    {
+    public function getDropLocation(): ?Emplacement {
         return $this->dropLocation;
     }
 
-    public function setDropLocation(?Emplacement $dropLocation): self
-    {
+    public function setDropLocation(?Emplacement $dropLocation): self {
         $oldDropLocation = $this->getDropLocation();
 
-        if ($oldDropLocation
+        if($oldDropLocation
             && $oldDropLocation !== $dropLocation) {
             $oldDropLocation->removeArrival($this);
         }
 
         $this->dropLocation = $dropLocation;
 
-        if ($this->dropLocation
+        if($this->dropLocation
             && $oldDropLocation !== $this->dropLocation) {
             $this->dropLocation->addArrival($this);
         }
 
         return $this;
     }
+
 }

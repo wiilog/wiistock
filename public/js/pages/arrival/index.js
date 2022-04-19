@@ -8,7 +8,6 @@ let arrivalsTable;
 $(function () {
     const $filtersContainer = $('.filters-container');
     initDateTimePicker('#dateMin, #dateMax, .date-cl');
-    Select2Old.init($('#statut'), 'Statuts');
     Select2Old.location($('#emplacement'), {}, 'Emplacement de dépose');
     Select2Old.init($filtersContainer.find('[name="carriers"]'), 'Transporteurs');
     initOnTheFlyCopies($('.copyOnTheFly'));
@@ -17,15 +16,19 @@ $(function () {
         arrivalsTable = returnedArrivalsTable;
 
         let $modalNewArrivage = $("#modalNewArrivage");
-        let submitNewArrivage = $("#submitNewArrivage");
+        let $submitNewArrivage = $("#submitNewArrivage");
         let urlNewArrivage = Routing.generate('arrivage_new', true);
         InitModal(
             $modalNewArrivage,
-            submitNewArrivage,
+            $submitNewArrivage,
             urlNewArrivage,
             {
                 keepForm: true,
                 keepModal: true,
+                keepLoading: true,
+                waitForUserAction: () => {
+                    return checkPossibleCustoms($modalNewArrivage);
+                },
                 success: (res) => {
                     res = res || {};
                     arrivalCallback(
@@ -33,10 +36,10 @@ $(function () {
                         {
                             ...(res || {}),
                             success: () => {
-                                $modalNewArrivage.find('.list-multiple').select2();
-
                                 let isPrintColisChecked = $modalNewArrivage.find('#printColisChecked').val();
                                 $modalNewArrivage.find('#printColis').prop('checked', isPrintColisChecked);
+
+                                $submitNewArrivage.popLoader();
 
                                 clearModal($modalNewArrivage);
                             }
@@ -57,19 +60,92 @@ $(function () {
     pageLength = Number($('#pageLengthForArrivage').val());
     Select2Old.user($('.filters .ajax-autocomplete-user'), 'Destinataires');
     Select2Old.provider($('.ajax-autocomplete-fournisseur'), 'Fournisseurs');
+
+    const $arrivalsTable = $(`#arrivalsTable`);
+    const $dispatchModeContainer = $(`.dispatch-mode-container`);
+    const $arrivalModeContainer = $(`.arrival-mode-container`);
+    const $filtersInputs = $(`.filters-container`).find(`select, input, button, .checkbox-filter`);
+    $(`.dispatch-mode-button`).on(`click`, function() {
+        $(this).pushLoader(`black`);
+        arrivalsTable.clear().destroy();
+        initTableArrival(true).then((returnedArrivalsTable) => {
+            arrivalsTable = returnedArrivalsTable;
+            $(`.dataTables_filter`).parent().remove();
+            $dispatchModeContainer.removeClass(`d-none`);
+            $arrivalModeContainer.addClass(`d-none`);
+            $filtersInputs.prop(`disabled`, true).addClass(`disabled`);
+            $(this).popLoader();
+        });
+    });
+
+    $dispatchModeContainer.find(`.validate`).on(`click`, function() {
+        const $checkedCheckboxes = $arrivalsTable.find(`input[type=checkbox]:checked`).not(`.check-all`);
+        const arrivalsToDispatch = $checkedCheckboxes.toArray().map((element) => $(element).val());
+        if(arrivalsToDispatch.length > 0) {
+            $(this).pushLoader(`white`);
+            $.post(Routing.generate(`create_from_arrival_template`, {arrivals: arrivalsToDispatch}, true))
+                .then(({content}) => {
+                    $(this).popLoader();
+                    $(`body`).append(content);
+
+                    let $modalNewDispatch = $("#modalNewDispatch");
+                    $modalNewDispatch.modal(`show`);
+
+                    let $submitNewDispatch = $("#submitNewDispatch");
+                    let urlDispatchNew = Routing.generate('dispatch_new', true);
+                    InitModal($modalNewDispatch, $submitNewDispatch, urlDispatchNew);
+
+                    initNewDispatchEditor('#modalNewDispatch');
+                });
+        }
+    });
+
+    $dispatchModeContainer.find(`.cancel`).on(`click`, function() {
+        $dispatchModeContainer.find(`.validate`).prop(`disabled`, true);
+        $(this).pushLoader(`primary`);
+        arrivalsTable.clear().destroy();
+        initTableArrival(false).then((returnedArrivalsTable) => {
+            arrivalsTable = returnedArrivalsTable;
+            $arrivalModeContainer.removeClass(`d-none`);
+            $dispatchModeContainer.addClass(`d-none`);
+            $filtersInputs.prop(`disabled`, false).removeClass(`disabled`);
+            $(this).popLoader();
+        });
+    });
+
+    $(document).arrive(`.check-all`, function () {
+        $(this).on(`click`, function() {
+            $arrivalsTable.find(`.dispatch-checkbox`).not(`:disabled`).prop(`checked`, $(this).is(`:checked`));
+            toggleValidateDispatchButton($arrivalsTable, $dispatchModeContainer);
+        });
+    });
+
+    $(document).arrive(`.dispatch-checkbox:not(:disabled)`, function () {
+        $(this).on(`click`, function() {
+            $(this).prop(`checked`, !$(this).is(`:checked`));
+            toggleValidateDispatchButton($arrivalsTable, $dispatchModeContainer);
+        });
+
+        $(this).closest(`tr`).on(`click`, () => {
+            if(!$(this).is(`:disabled`)) {
+                $(this).prop(`checked`, !$(this).is(`:checked`));
+                toggleValidateDispatchButton($arrivalsTable, $dispatchModeContainer);
+            }
+        });
+    });
 });
 
-function initTableArrival() {
-    let pathArrivage = Routing.generate('arrivage_api', true);
+function initTableArrival(dispatchMode = false) {
+    let pathArrivage = Routing.generate('arrivage_api', {dispatchMode}, true);
 
     return $
-        .post(Routing.generate('arrival_api_columns'))
+        .post(Routing.generate('arrival_api_columns', {dispatchMode}))
         .then((columns) => {
             let tableArrivageConfig = {
-                serverSide: true,
+                serverSide: !dispatchMode,
                 processing: true,
                 pageLength: Number($('#pageLengthForArrivage').val()),
-                order: [[1, "desc"]],
+                order: [['creationDate', "desc"]],
                 ajax: {
                     "url": pathArrivage,
                     "type": "POST",
@@ -81,6 +157,7 @@ function initTableArrival() {
                 drawConfig: {
                     needsResize: true,
                     needsSearchOverride: true,
+                    hidePaging: dispatchMode,
                 },
                 rowConfig: {
                     needsColor: true,
@@ -94,15 +171,36 @@ function initTableArrival() {
                         columns: ':not(.noVis)',
                         className: 'd-none'
                     },
-
                 ],
+                columnDefs: [{
+                    type: "customDate",
+                    targets: "creationDate"
+                }],
                 hideColumnConfig: {
                     columns,
                     tableFilter: 'arrivalsTable'
                 },
                 lengthMenu: [10, 25, 50, 100],
-                initCompleteCallback: updateArrivalPageLength
+                page: 'arrival',
+                disabledRealtimeReorder: dispatchMode,
+                initCompleteCallback: () => {
+                    updateArrivalPageLength();
+                    $('.dispatch-mode-button').removeClass('d-none');
+                    $('button[name=new-arrival]').attr('disabled', false);
+                    if(dispatchMode) {
+                        $(`.dispatch-mode-container`).find(`.cancel`).prop(`disabled`, false);
+                    }
+                },
+                createdRow: (row) => {
+                    if (dispatchMode) {
+                        $(row).addClass('pointer user-select-none');
+                    }
+                }
             };
+
+            if (dispatchMode) {
+                extendsDateSort('customDate');
+            }
 
             const arrivalsTable = initDataTable('arrivalsTable', tableArrivageConfig);
             arrivalsTable.on('responsive-resize', function () {
@@ -110,9 +208,6 @@ function initTableArrival() {
             });
             return arrivalsTable;
         });
-}
-
-function resizeTable(arrivalsTable) {
 }
 
 function listColis(elem) {
@@ -126,9 +221,6 @@ function listColis(elem) {
     }, 'json');
 }
 
-let editorNewArrivageAlreadyDone = false;
-let quillNew;
-
 function initNewArrivageEditor(modal) {
     let $modal = $(modal);
     clearModal($modal);
@@ -136,16 +228,12 @@ function initNewArrivageEditor(modal) {
     onFlyFormToggle('fournisseurDisplay', 'addFournisseur', true);
     onFlyFormToggle('transporteurDisplay', 'addTransporteur', true);
     onFlyFormToggle('chauffeurDisplay', 'addChauffeur', true);
-    if (!editorNewArrivageAlreadyDone) {
-        quillNew = initEditor(modal + ' .editor-container-new');
-        editorNewArrivageAlreadyDone = true;
-    }
+
     Select2Old.provider($modal.find('.ajax-autocomplete-fournisseur'));
     Select2Old.init($modal.find('.ajax-autocomplete-transporteur'));
     Select2Old.init($modal.find('.ajax-autocomplete-chauffeur'));
     Select2Old.location($modal.find('.ajax-autocomplete-location'));
     Select2Old.init($modal.find('.ajax-autocomplete-user'), '', 1);
-    $modal.find('.list-multiple').select2();
     Select2Old.initFree($('.select2-free'));
 }
 
@@ -159,4 +247,12 @@ function updateArrivalPageLength() {
             pageLength = newValue;
         }
     });
+}
+
+function toggleValidateDispatchButton($arrivalsTable, $dispatchModeContainer) {
+    const $allDispatchCheckboxes = $(`.dispatch-checkbox`).not(`:disabled`);
+    const atLeastOneChecked = $allDispatchCheckboxes.toArray().some((element) => $(element).is(`:checked`));
+
+    $dispatchModeContainer.find(`.validate`).prop(`disabled`, !atLeastOneChecked);
+    $(`.check-all`).prop(`checked`, ($allDispatchCheckboxes.filter(`:checked`).length) === $allDispatchCheckboxes.length);
 }

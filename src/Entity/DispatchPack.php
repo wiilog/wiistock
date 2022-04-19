@@ -2,70 +2,54 @@
 
 namespace App\Entity;
 
+use App\Repository\DispatchPackRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass="App\Repository\DispatchPackRepository")
- */
-class DispatchPack
-{
-    /**
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer")
-     */
+#[ORM\Entity(repositoryClass: DispatchPackRepository::class)]
+class DispatchPack {
+
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private $id;
 
-    /**
-     * @ORM\Column(type="integer", options={"default": 1})
-     */
+    #[ORM\Column(type: 'integer', options: ['default' => 1])]
     private $quantity;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Pack", inversedBy="dispatchPacks")
-     * @ORM\JoinColumn(nullable=false)
-     */
+    #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: 'dispatchPacks')]
+    #[ORM\JoinColumn(nullable: false)]
     private $pack;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Dispatch", inversedBy="dispatchPacks")
-     * @ORM\JoinColumn(nullable=false)
-     */
+    #[ORM\ManyToOne(targetEntity: Dispatch::class, inversedBy: 'dispatchPacks')]
+    #[ORM\JoinColumn(nullable: false)]
     private $dispatch;
 
-    /**
-     * @ORM\Column(type="boolean", options={"default": false})
-     */
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
     private $treated;
 
     public function __construct() {
         $this->quantity = 1;
     }
 
-    public function getId(): ?int
-    {
+    public function getId(): ?int {
         return $this->id;
     }
 
-    public function getPack(): ?Pack
-    {
+    public function getPack(): ?Pack {
         return $this->pack;
     }
 
-    public function setPack(?Pack $pack): self
-    {
+    public function setPack(?Pack $pack): self {
         $this->pack = $pack;
 
         return $this;
     }
 
-    public function getDispatch(): ?Dispatch
-    {
+    public function getDispatch(): ?Dispatch {
         return $this->dispatch;
     }
 
-    public function setDispatch(?Dispatch $dispatch): self
-    {
+    public function setDispatch(?Dispatch $dispatch): self {
         $this->dispatch = $dispatch;
 
         return $this;
@@ -80,13 +64,11 @@ class DispatchPack
         return $this->quantity;
     }
 
-    public function isTreated(): ?bool
-    {
+    public function isTreated(): ?bool {
         return $this->treated;
     }
 
-    public function setTreated(bool $treated): self
-    {
+    public function setTreated(bool $treated): self {
         $this->treated = $treated;
 
         return $this;

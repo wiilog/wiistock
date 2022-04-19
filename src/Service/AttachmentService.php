@@ -54,7 +54,8 @@ class AttachmentService {
                 $attachment = new Attachment();
                 $attachment
                     ->setOriginalName($originalFileName)
-                    ->setFileName($fileName);
+                    ->setFileName($fileName)
+                    ->setFullPath("/uploads/attachements/$fileName");
                 $attachments[] = $attachment;
 			}
 		}
@@ -66,8 +67,6 @@ class AttachmentService {
         if (!file_exists($this->attachmentDirectory)) {
             mkdir($this->attachmentDirectory, 0777);
         }
-
-
 
         $filename = ($wantedName ?? uniqid()) . '.' . strtolower($file->getClientOriginalExtension()) ?? '';
         $file->move($this->attachmentDirectory, $filename);
@@ -84,13 +83,7 @@ class AttachmentService {
         $attachmentRepository = $this->em->getRepository(Attachment::class);
         $pieceJointeAlreadyInDB = $attachmentRepository->findOneByFileName($attachment->getFileName());
         if (count($pieceJointeAlreadyInDB) === 1) {
-            $path = $this->getServerPath($attachment);
-            try {
-                unlink($path);
-            }
-            catch(Throwable $ignored) {
-                // ignored
-            }
+            $this->deleteAttachment($attachment);
         }
 
         $this->em->remove($attachment);
@@ -150,5 +143,12 @@ class AttachmentService {
             ->setOriginalName($fileName)
             ->setFullPath($fullPath)
             ->setFileName($fileName);
+    }
+
+    public function deleteAttachment(Attachment $attachment) {
+        $path = $this->getServerPath($attachment);
+        if(file_exists($path)) {
+            unlink($path);
+        }
     }
 }

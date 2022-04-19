@@ -1,4 +1,7 @@
-<select class="form-control data needed {{ multiple ? 'list-multiple' : '' }}" id="value" name="value" {{ multiple ? 'multiple="multiple"' : '' }}>
+<select class="form-control data needed {{ multiple ? 'list-multiple' : '' }}"
+        data-s2
+        data-simple
+        name="value" {{ multiple ? 'multiple="multiple"' : '' }}>
     {{ multiple == false ? '<option disabled selected> </option>' : '' }}
     {% for option in options %}
         <option value="{{ option }}">{{ option }}</option>

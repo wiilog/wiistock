@@ -1,0 +1,137 @@
+@import "../variables";
+
+.settings-menu {
+    width: 1100px;
+    margin: auto;
+
+    .settings-category {
+        display: flex;
+        flex-direction: row;
+
+        .wii-icon {
+            min-width: 20px;
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            background-color: $primary;
+        }
+
+        .settings-menus {
+            flex: 1 1 auto;
+
+            .title {
+                font-size: 1.3rem;
+                font-weight: bold;
+                margin-bottom: 10px;
+            }
+
+            .settings-item {
+                display: inline-block;
+                width: 49%;
+                font-size: 0.9rem;
+                color: #888888;
+                vertical-align: top;
+
+                &.full-size {
+                    width: 100%;
+                }
+
+                &:hover {
+                    color: $primary;
+                }
+            }
+        }
+    }
+}
+
+.settings {
+    min-height: 80vh;
+    padding: 0 20px;
+
+    .wii-box {
+        border-radius: 10px;
+    }
+
+    aside {
+        .settings-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.1rem;
+            font-weight: 600;
+            padding: 20px;
+            border-bottom: 1px solid $grey;
+            cursor: pointer;
+
+            &.selected {
+                color: $primary;
+                background: #F8F9FA;
+
+                &::after {
+                    transform: rotate(0deg);
+                }
+            }
+
+            &:first-child {
+                border-radius: 10px 10px 0 0;
+            }
+
+            &::after {
+                display: block;
+                width: 20px;
+                height: 20px;
+                background-image: url("../../../public/svg/arrow.svg");
+                background-repeat: no-repeat;
+                transform: rotate(90deg);
+                margin-right: 5px;
+                content: "";
+            }
+        }
+    }
+
+    main {
+        flex: 1 1 auto;
+
+        .wii-box {
+            .wii-section {
+                &:not(.collapsible),
+                &.collapsible.expanded {
+                    padding: #{$grid-gutter-width * 0.6} #{$grid-gutter-width};
+                }
+                &.collapsible {
+                    padding: 0;
+                }
+            }
+        }
+
+        .save {
+            display: flex;
+            margin-top: 10px;
+            justify-content: flex-end;
+            width: 100%;
+        }
+    }
+
+}
+
+.language-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #CDCDCD;
+    background: #f2f3f7;
+    border-radius: 5px;
+    padding: 9px;
+    margin: 0 5px;
+
+    img {
+        margin-right: 10px;
+    }
+}
+
+.delete-association-line {
+    padding: 9px;
+}
+
+textarea {
+    resize: none;
+}

@@ -3,7 +3,6 @@
 namespace App\Repository;
 
 use App\Entity\Article;
-use App\Entity\CategoryType;
 use App\Entity\FreeField;
 use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\Demande;
@@ -12,9 +11,12 @@ use App\Entity\Handling;
 use App\Entity\Dispute;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
+use App\Entity\Transport\TransportHistory;
+use App\Entity\Transport\TransportRequest;
 use App\Entity\Type;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\QueryBuilder;
 
 /**
  * @method Type|null find($id, $lockMode = null, $lockVersion = null)
@@ -22,20 +24,41 @@ use Doctrine\ORM\NonUniqueResultException;
  * @method Type[]    findAll()
  * @method Type[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class TypeRepository extends EntityRepository
-{
+class TypeRepository extends EntityRepository {
+
     /**
      * @param array $categoryLabels
      * @param string|null $order ("asc" ou "desc")
      * @return Type[]
      */
-    public function findByCategoryLabels(array $categoryLabels, $order = null): array
-    {
+    public function findByCategoryLabels(array $categoryLabels, $order = null): array {
+        if (empty($categoryLabels)) {
+            return [];
+        }
+
         $queryBuilder = $this
             ->createQueryBuilder('type')
             ->join('type.category', 'category')
             ->where('category.label IN (:categoryLabels)')
             ->setParameter('categoryLabels', $categoryLabels);
+
+        if ($order) {
+            $queryBuilder->orderBy('type.label', $order);
+        }
+
+        return $queryBuilder
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findByCategoryLabelsAndLabels(array $categoryLabels, array $labels, $order = null): array {
+        $queryBuilder = $this
+            ->createQueryBuilder('type')
+            ->join('type.category', 'category')
+            ->andWhere('category.label IN (:categoryLabels)')
+            ->andWhere('type.label IN (:labels)')
+            ->setParameter('categoryLabels', $categoryLabels)
+            ->setParameter('labels', $labels);
 
         if ($order) {
             $queryBuilder->orderBy('type.label', $order);
@@ -48,19 +71,39 @@ class TypeRepository extends EntityRepository
             : [];
     }
 
-    public function getForSelect(?string $category, ?string $term) {
-        return $this->createQueryBuilder("type")
-            ->select("type.id AS id, type.label AS text")
+    private function createSelectBuilder(?string $category, array $options = []): QueryBuilder {
+        $alreadyDefinedTypes = $options['alreadyDefinedTypes'] ?? [];
+
+        $qb = $this->createQueryBuilder("type");
+
+        $qb->select("type.id AS id, type.label AS text")
             ->join("type.category", "category")
-            ->where("type.label LIKE :term")
-            ->andWhere("category.label = '$category'")
+            ->andWhere("category.label = '$category'");
+
+        if (!empty($alreadyDefinedTypes)) {
+            $qb->andWhere("type.id NOT IN (:alreadyDefinedTypes)")
+                ->setParameter("alreadyDefinedTypes", $alreadyDefinedTypes);
+        }
+
+        return $qb;
+    }
+
+    public function getForSelect(?string $category, ?string $term, array $options = []): array {
+        return $this->createSelectBuilder($category, $options)
+            ->andWhere("type.label LIKE :term")
             ->setParameter("term", "%$term%")
             ->getQuery()
             ->getArrayResult();
     }
 
-    public function getIdAndLabelByCategoryLabel($category)
-    {
+    public function countAvailableForSelect(?string $category, array $options = []): int {
+        return $this->createSelectBuilder($category, $options)
+            ->select("COUNT(type)")
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    public function getIdAndLabelByCategoryLabel($category) {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
             "SELECT t.id, t.label
@@ -73,38 +116,26 @@ class TypeRepository extends EntityRepository
         return $query->execute();
     }
 
-    public function getOneIdAndLabelByCategoryLabel($category)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT t.id, t.label
-            FROM App\Entity\Type t
-            JOIN t.category c
-            WHERE c.label = :category"
-        );
-        $query->setParameter("category", $category);
-        $result = $query->execute();
+    public function findOneByCategoryLabel(string $category, int $type = null): ?Type {
+        $queryBuilder = $this->createQueryBuilder('type')
+            ->join('type.category', 'category')
+            ->andWhere('category.label = :category')
+            ->setParameter("category", $category);
 
-        return $result ? $result[0] : null;
+        if (isset($type)) {
+            $queryBuilder
+                ->andWhere('type.id = :type')
+                ->setParameter("type", $type);
+        }
+
+        $result = $queryBuilder
+            ->getQuery()
+            ->execute();
+
+        return !empty($result) ? $result[0] : null;
     }
 
-    public function findOneByCategoryLabel($category)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT t
-            FROM App\Entity\Type t
-            JOIN t.category c
-            WHERE c.label = :category"
-        );
-        $query->setParameter("category", $category);
-        $result = $query->execute();
-
-        return $result ? $result[0] : null;
-    }
-
-    public function countByLabel($label)
-    {
+    public function countByLabel($label) {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT COUNT(t)
@@ -116,24 +147,7 @@ class TypeRepository extends EntityRepository
         return $query->getSingleScalarResult();
     }
 
-    public function countByLabelAndCategory($label, $category)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT COUNT(t)
-            FROM App\Entity\Type t
-            WHERE LOWER(t.label) = :label AND t.category = :category
-           "
-        )->setParameters([
-            'label' => $label,
-            'category' => $category
-        ]);
-
-        return $query->getSingleScalarResult();
-    }
-
-    public function isTypeUsed($typeId): bool
-    {
+    public function isTypeUsed($typeId): bool {
         $entityManager = $this->getEntityManager();
 
         $tableConfig = [
@@ -146,9 +160,11 @@ class TypeRepository extends EntityRepository
             ['class' => ReferenceArticle::class, 'where' => 'item.type = :id'],
             ['class' => Handling::class, 'where' => 'item.type = :id'],
             ['class' => Dispatch::class, 'where' => 'item.type = :id'],
+            ['class' => TransportRequest::class, 'where' => 'item.type = :id'],
+            ['class' => TransportHistory::class, 'where' => 'item.type = :id'],
         ];
 
-        $resultsCount = array_map(function (array $table) use ($entityManager, $typeId) {
+        $resultsCount = array_map(function(array $table) use ($entityManager, $typeId) {
             $queryBuilder = $entityManager->createQueryBuilder()
                 ->select('COUNT(item)')
                 ->from($table['class'], 'item');
@@ -161,30 +177,11 @@ class TypeRepository extends EntityRepository
         }, $tableConfig);
 
         return count(array_filter($resultsCount, function($count) {
-            return ((int) $count) > 0;
-        })) > 0;
+                return ((int) $count) > 0;
+            })) > 0;
     }
 
-    public function countByLabelDiff($label, $typeLabel, $category)
-    {
-        $em = $this->getEntityManager();
-
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT count(t)
-            FROM App\Entity\Type t
-            WHERE t.label = :label AND t.label != :typeLabel AND t.category = :category"
-        )->setParameters([
-            'label' => $label,
-            'typeLabel' => $typeLabel,
-            'category' => $category
-        ]);
-
-        return $query->getSingleScalarResult();
-    }
-
-    public function findOneByLabel($label)
-    {
+    public function findOneByLabel($label) {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT t
@@ -196,46 +193,27 @@ class TypeRepository extends EntityRepository
         return $query->getOneOrNullResult();
     }
 
-	/**
-	 * @param string $categoryLabel
-	 * @param string $typeLabel
-	 * @return Type|null
-	 * @throws NonUniqueResultException
-	 */
-    public function findOneByCategoryLabelAndLabel($categoryLabel, $typeLabel)
-	{
-		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-			"SELECT t
+    /**
+     * @param string $categoryLabel
+     * @param string $typeLabel
+     * @return Type|null
+     * @throws NonUniqueResultException
+     */
+    public function findOneByCategoryLabelAndLabel($categoryLabel, $typeLabel) {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT t
             FROM App\Entity\Type t
             JOIN t.category c
             WHERE t.label = :typeLabel
             AND c.label = :categoryLabel
            "
-		)->setParameters([
-			'typeLabel' => $typeLabel,
-			'categoryLabel' => $categoryLabel
-		]);
+        )->setParameters([
+            'typeLabel' => $typeLabel,
+            'categoryLabel' => $categoryLabel,
+        ]);
 
-		return $query->getOneOrNullResult();
-	}
-
-	public function getUniqueTypes($types, $search) {
-        $qb = $this->createQueryBuilder('type');
-
-        $qb->select('type.id AS id')
-            ->addSelect('type.label AS text')
-            ->leftJoin('type.category', 'category')
-            ->where('category.label = :category')
-            ->andWhere('type.label LIKE :search')
-            ->setParameter('category', CategoryType::DEMANDE_LIVRAISON)
-            ->setParameter('search', '%' . str_replace('_', '\_', $search) . '%');
-
-        if(!empty($types)) {
-            $qb->andWhere('type.id NOT IN (:types)')
-                ->setParameter('types', $types);
-        }
-
-        return $qb->getQuery()->getResult();
+        return $query->getOneOrNullResult();
     }
+
 }

@@ -6,13 +6,13 @@ use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategoryType;
-use App\Entity\Fournisseur;
 use App\Entity\FreeField;
 use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
 use App\Entity\InventoryCategory;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
+use App\Entity\Setting;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
@@ -23,6 +23,7 @@ use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Helper\FormatHelper;
 use App\Service\AttachmentService;
+use App\Service\SettingsService;
 use App\Service\VisibleColumnService;
 use WiiCommon\Helper\Stream;
 use App\Service\MouvementStockService;
@@ -34,7 +35,6 @@ use Exception;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Twig\Environment as Twig_Environment;
-use App\Service\CSVExportService;
 use App\Service\PDFGeneratorService;
 use App\Service\RefArticleDataService;
 use App\Service\ArticleDataService;
@@ -103,17 +103,25 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/creer", name="reference_article_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::CREATE}, mode=HasPermission::IN_JSON)
      */
     public function new(Request $request,
+                        UserService $userService,
                         FreeFieldService $champLibreService,
                         EntityManagerInterface $entityManager,
                         MouvementStockService $mouvementStockService,
+                        RefArticleDataService $refArticleDataService,
                         ArticleFournisseurService $articleFournisseurService,
                         AttachmentService $attachmentService): Response
     {
-        if (($data = $request->request->all()) || ($data = json_decode($request->getContent(), true))) {
+        if (!$userService->hasRightFunction(Menu::STOCK, Action::CREATE)
+            && !$userService->hasRightFunction(Menu::STOCK, Action::CREATE_DRAFT_REFERENCE)) {
+            return $this->json([
+                "success" => false,
+                "msg" => "Accès refusé",
+            ]);
+        }
 
+        if (($data = $request->request->all()) || ($data = json_decode($request->getContent(), true))) {
             /** @var Utilisateur $loggedUser */
             $loggedUser = $this->getUser();
 
@@ -127,32 +135,40 @@ class ReferenceArticleController extends AbstractController
 
             // on vérifie que la référence n'existe pas déjà
             $refAlreadyExist = $referenceArticleRepository->countByReference($data['reference']);
+            $statut = $statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, $data['statut']);
 
             if ($refAlreadyExist) {
-                return new JsonResponse([
-                	'success' => false,
-					'msg' => 'Ce nom de référence existe déjà. Vous ne pouvez pas le recréer.',
-					'invalidFieldsSelector' => 'input[name="reference"]'
-				]);
+                $errorData = [
+                    'success' => false
+                ];
+
+                if ($statut->getCode() === ReferenceArticle::DRAFT_STATUS) {
+                    $errorData['msg'] = 'Une référence avec le même code a été créée en même temps. Le code a été actualisé, veuillez enregistrer de nouveau.';
+                    $errorData['draftDefaultReference'] = $refArticleDataService->getDraftDefaultReference($entityManager);
+                } else {
+                    $errorData['msg'] = 'Ce nom de référence existe déjà. Vous ne pouvez pas le recréer.';
+                    $errorData['invalidFieldsSelector'] = 'input[name="reference"]';
+                }
+
+                return new JsonResponse($errorData);
             }
 
             $type = $typeRepository->find($data['type']);
 
             if ($data['emplacement'] !== null) {
                 $emplacement = $emplacementRepository->find($data['emplacement']);
+                //$emplacement = $emplacementRepository->find($data['emplacement']);
             } else {
                 $emplacement = null; //TODO gérer message erreur (faire un return avec msg erreur adapté -> à ce jour un return false correspond forcément à une réf déjà utilisée)
             }
 
-            $statut = $statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, $data['statut']);
-
             switch($data['type_quantite']) {
                 case 'article':
-                    $typeArticle = ReferenceArticle::TYPE_QUANTITE_ARTICLE;
+                    $typeArticle = ReferenceArticle::QUANTITY_TYPE_ARTICLE;
                     break;
                 case 'reference':
                 default:
-                    $typeArticle = ReferenceArticle::TYPE_QUANTITE_REFERENCE;
+                    $typeArticle = ReferenceArticle::QUANTITY_TYPE_REFERENCE;
                     break;
             }
 
@@ -162,34 +178,43 @@ class ReferenceArticleController extends AbstractController
                 ->setLibelle($data['libelle'])
                 ->setReference($data['reference'])
                 ->setCommentaire($data['commentaire'])
-                ->setVisibilityGroup($data['visibility-group'] ? $visibilityGroupRepository->find(intval($data['visibility-group'])) : null)
                 ->setTypeQuantite($typeArticle)
                 ->setPrixUnitaire(max(0, $data['prix']))
                 ->setType($type)
                 ->setIsUrgent(filter_var($data['urgence'] ?? false, FILTER_VALIDATE_BOOLEAN))
                 ->setEmplacement($emplacement)
 				->setBarCode($this->refArticleDataService->generateBarCode())
-                ->setBuyer(isset($data['buyer']) ? $userRepository->find($data['buyer']) : null);
+                ->setBuyer(isset($data['buyer']) ? $userRepository->find($data['buyer']) : null)
+                ->setCreatedBy($loggedUser)
+                ->setCreatedAt(new DateTime('now'));
+
+            $refArticle->setProperties(['visibilityGroup' => $data['visibility-group'] ? $visibilityGroupRepository->find(intval($data['visibility-group'])) : null]);
+
 
             if ($refArticle->getIsUrgent()) {
                 $refArticle->setUserThatTriggeredEmergency($loggedUser);
             }
 
-            if ($data['limitSecurity']) {
+            if (!empty($data['limitSecurity'])) {
             	$refArticle->setLimitSecurity($data['limitSecurity']);
 			}
-            if ($data['limitWarning']) {
+            if (!empty($data['limitWarning'])) {
             	$refArticle->setLimitWarning($data['limitWarning']);
 			}
-            if ($data['emergency-comment-input']) {
+            if (!empty($data['emergency-comment-input'])) {
                 $refArticle->setEmergencyComment($data['emergency-comment-input']);
             }
-            if ($data['categorie']) {
+            if (!empty($data['categorie'])) {
             	$category = $inventoryCategoryRepository->find($data['categorie']);
-            	if ($category) $refArticle->setCategory($category);
+            	if ($category) {
+                    $refArticle->setCategory($category);
+                }
 			}
-            if ($statut) $refArticle->setStatut($statut);
-            if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+            if ($statut) {
+                $refArticle->setStatut($statut);
+            }
+
+            if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
                 $refArticle->setQuantiteStock($data['quantite'] ? max($data['quantite'], 0) : 0); // protection contre quantités négatives
             } else {
                 $refArticle->setQuantiteStock(0);
@@ -216,9 +241,9 @@ class ReferenceArticleController extends AbstractController
                             'fournisseur' => $supplierReferenceLine['fournisseur'],
                             'article-reference' => $refArticle,
                             'label' => $supplierReferenceLine['labelFournisseur'],
-                            'reference' => $referenceArticleFournisseur
+                            'reference' => $referenceArticleFournisseur,
+                            'visible' => $refArticle->getStatut()->getCode() !== ReferenceArticle::DRAFT_STATUS
                         ]);
-
                         $entityManager->persist($supplierArticle);
                     } catch (Exception $exception) {
                         if ($exception->getMessage() === ArticleFournisseurService::ERROR_REFERENCE_ALREADY_EXISTS) {
@@ -231,8 +256,9 @@ class ReferenceArticleController extends AbstractController
                 }
             }
 
-            if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE &&
-                $refArticle->getQuantiteStock() > 0) {
+            if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE &&
+                $refArticle->getQuantiteStock() > 0 &&
+                $refArticle->getStatut()->getCode() !== ReferenceArticle::DRAFT_STATUS) {
                 $mvtStock = $mouvementStockService->createMouvementStock(
                     $loggedUser,
                     null,
@@ -264,6 +290,11 @@ class ReferenceArticleController extends AbstractController
             $attachmentService->manageAttachments($entityManager, $refArticle, $request->files);
 
             $entityManager->flush();
+
+            if ($refArticle->getStatut()->getCode() === ReferenceArticle::DRAFT_STATUS){
+                $refArticleDataService->sendMailCreateDraftOrDraftToActive($refArticle, $userRepository->getUserMailByReferenceValidatorAction(), true);
+            }
+
             return $this->json([
                 'success' => true,
                 'msg' => 'La référence ' . $refArticle->getReference() . ' a bien été créée',
@@ -282,6 +313,7 @@ class ReferenceArticleController extends AbstractController
      * @HasPermission({Menu::STOCK, Action::DISPLAY_REFE})
      */
     public function index(RefArticleDataService $refArticleDataService,
+                          SettingsService $settingsService,
                           EntityManagerInterface $entityManager): Response {
 
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
@@ -321,21 +353,21 @@ class ReferenceArticleController extends AbstractController
             $freeFieldsGroupedByTypes[$type->getId()] = $champsLibres;
         }
 
-        $filter = $filtreRefRepository->findOneByUserAndChampFixe($user, FiltreRef::FIXED_FIELD_STATUT);
+        $filter = $filtreRefRepository->findOneByUserAndChampFixe($user, FiltreRef::FIXED_FIELD_STATUS);
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
-
         return $this->render('reference_article/index.html.twig', [
             "fields" => $fields,
             "searches" => $user->getRecherche(),
             'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes,
             'columnsVisibles' => $currentUser->getVisibleColumns()['reference'],
+            'defaultLocation' => $settingsService->getParamLocation(Setting::DEFAULT_LOCATION_REFERENCE),
             'typeChampsLibres' => $typeChampLibre,
             'types' => $types,
             'typeQuantite' => $typeQuantite,
             'categories' => $inventoryCategories,
-            'wantInactif' => !empty($filter) && $filter->getValue() === Article::STATUT_INACTIF,
+            'wantActive' => !empty($filter) && $filter->getValue() === ReferenceArticle::STATUT_ACTIF,
             'stockManagement' => [
                 ReferenceArticle::STOCK_MANAGEMENT_FEFO,
                 ReferenceArticle::STOCK_MANAGEMENT_FIFO
@@ -344,32 +376,21 @@ class ReferenceArticleController extends AbstractController
     }
 
     /**
-     * @Route("/api-modifier", name="reference_article_edit_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
-    public function editApi(Request $request, EntityManagerInterface $entityManager): Response
-    {
-        if ($data = json_decode($request->getContent(), true)) {
-            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-
-            $refArticle = $referenceArticleRepository->find((int)$data['id']);
-
-            if ($refArticle) {
-                $json = $this->refArticleDataService->getViewEditRefArticle($refArticle, $data['isADemand'], true, true);
-            } else {
-                $json = false;
-            }
-            return new JsonResponse($json);
-        }
-        throw new BadRequestHttpException();
-    }
-
-    /**
      * @Route("/modifier", name="reference_article_edit",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function edit(Request $request, EntityManagerInterface $entityManager, FreeFieldService $champLibreService): Response
-    {
+    public function edit(Request $request,
+                         EntityManagerInterface $entityManager,
+                         FreeFieldService $champLibreService,
+                         UserService $userService,
+                         MouvementStockService $stockMovementService): Response {
+        if (!$userService->hasRightFunction(Menu::STOCK, Action::EDIT)
+            && !$userService->hasRightFunction(Menu::STOCK, Action::EDIT_PARTIALLY)) {
+            return $this->json([
+                "success" => false,
+                "msg" => "Accès refusé",
+            ]);
+        }
+
         if ($data = $request->request->all()) {
             $refId = intval($data['idRefArticle']);
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
@@ -377,7 +398,6 @@ class ReferenceArticleController extends AbstractController
 
             // on vérifie que la référence n'existe pas déjà
             $refAlreadyExist = $referenceArticleRepository->countByReference($data['reference'], $refId);
-
             if ($refAlreadyExist) {
                 return new JsonResponse([
                     'success' => false,
@@ -390,7 +410,7 @@ class ReferenceArticleController extends AbstractController
                     /** @var Utilisateur $currentUser */
                     $currentUser = $this->getUser();
                     $refArticle->removeIfNotIn($data['files'] ?? []);
-                    $response = $this->refArticleDataService->editRefArticle($refArticle, $data, $currentUser, $champLibreService, $request);
+                    $response = $this->refArticleDataService->editRefArticle($refArticle, $data, $currentUser, $champLibreService,$stockMovementService, $request);
                 }
                 catch (ArticleNotAvailableException $exception) {
                     $response = [
@@ -423,7 +443,7 @@ class ReferenceArticleController extends AbstractController
 
             /** @var ReferenceArticle $refArticle */
             $refArticle = $referenceArticleRepository->find($data['refArticle']);
-            if(!empty($refArticle->getInventoryEntries())){
+            if(!$refArticle->getInventoryEntries()->isEmpty()){
                 return new JsonResponse([
                     'success' => false,
                     'msg' => "
@@ -431,8 +451,7 @@ class ReferenceArticleController extends AbstractController
                         Vous ne pouvez pas la supprimer.
                     "
                 ]);
-            }
-            else if (!($refArticle->getCollecteReferences()->isEmpty())
+            } else if (!($refArticle->getCollecteReferences()->isEmpty())
                 || !($refArticle->getDeliveryRequestLines()->isEmpty())
                 || !($refArticle->getReceptionReferenceArticles()->isEmpty())
                 || !($refArticle->getMouvements()->isEmpty())
@@ -444,8 +463,8 @@ class ReferenceArticleController extends AbstractController
                 return new JsonResponse([
                     'success' => false,
                     'msg' => '
-                        Cet article est lié à un colis, des mouvements, une collecte, une livraison, une réception ou un article fournisseur.<br>
-                        Vous ne pouvez donc pas le supprimer.
+                        Cette référence article est lié à un colis, des mouvements, une collecte,
+                        une livraison, une réception ou un article fournisseur et ne peut pas être supprimée.
                     '
                 ]);
             }
@@ -507,7 +526,7 @@ class ReferenceArticleController extends AbstractController
         $refArticle = $referenceArticleRepository->find($refArticleId);
 
         if ($refArticle) {
-            if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+            if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
                 $quantity = $refArticle->getQuantiteDisponible();
             }
         }
@@ -611,7 +630,7 @@ class ReferenceArticleController extends AbstractController
 
         $providerArticles = Stream::from($referenceArticle->getArticlesFournisseur())
             ->reduce(function(array $carry, ArticleFournisseur $providerArticle) use ($referenceArticle) {
-                $articles = $referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE
+                $articles = $referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE
                     ? $providerArticle->getArticles()->toArray()
                     : [];
                 $carry[] = [
@@ -631,112 +650,7 @@ class ReferenceArticleController extends AbstractController
             'referenceArticle' => $referenceArticle,
             'providerArticles' => $providerArticles,
             'freeFields' => $freeFields,
-            'lastInventoryDate' => FormatHelper::longDate($referenceArticle->getDateLastInventory(), true),
         ]);
-    }
-
-    /**
-     * @Route("/exporter-refs", name="export_all_refs", options={"expose"=true}, methods="GET|POST")
-     */
-    public function exportAllRefs(EntityManagerInterface $manager,
-                                  CSVExportService $csvService,
-                                  FreeFieldService $ffService): Response {
-        $ffConfig = $ffService->createExportArrayConfig($manager, [CategorieCL::REFERENCE_ARTICLE]);
-
-        $header = array_merge([
-            'reference',
-            'libellé',
-            'quantité',
-            'type',
-            'acheteur',
-            'type quantité',
-            'statut',
-            'commentaire',
-            'emplacement',
-            'seuil sécurite',
-            'seuil alerte',
-            'prix unitaire',
-            'code barre',
-            'catégorie inventaire',
-            'date dernier inventaire',
-            'synchronisation nomade',
-            'gestion de stock',
-            'gestionnaire(s)',
-            'Labels Fournisseurs',
-            'Codes Fournisseurs',
-            'Groupe de visibilité'
-        ], $ffConfig['freeFieldsHeader']);
-
-        $today = new DateTime();
-        $today = $today->format("d-m-Y H:i:s");
-        $user = $this->userService->getUser();
-
-        return $csvService->streamResponse(function($output) use ($manager, $csvService, $ffService, $ffConfig, $user) {
-            $referenceArticleRepository = $manager->getRepository(ReferenceArticle::class);
-            $managersByReference = $manager
-                ->getRepository(Utilisateur::class)
-                ->getUsernameManagersGroupByReference();
-
-            $suppliersByReference = $manager
-                ->getRepository(Fournisseur::class)
-                ->getCodesAndLabelsGroupedByReference();
-
-            $references = $referenceArticleRepository->iterateAll($user);
-            foreach($references as $reference) {
-                $this->putReferenceLine($output, $csvService, $ffService, $ffConfig, $managersByReference, $reference, $suppliersByReference);
-            }
-        }, "export-references-$today.csv", $header);
-    }
-
-    private function putReferenceLine($handle,
-                                      CSVExportService $csvService,
-                                      FreeFieldService $ffService,
-                                      array $ffConfig,
-                                      array $managersByReference,
-                                      array $reference,
-                                      array $suppliersByReference) {
-        $id = (int)$reference['id'];
-        $line = [
-            $reference['reference'],
-            $reference['libelle'],
-            $reference['quantiteStock'],
-            $reference['type'],
-            $reference['buyer'],
-            $reference['typeQuantite'],
-            $reference['statut'],
-            $reference['commentaire'] ? strip_tags($reference['commentaire']) : "",
-            $reference['emplacement'],
-            $reference['limitSecurity'],
-            $reference['limitWarning'],
-            $reference['prixUnitaire'],
-            $reference['barCode'],
-            $reference['category'],
-            $reference['dateLastInventory'] ? $reference['dateLastInventory']->format("d/m/Y H:i:s") : "",
-            $reference['needsMobileSync'],
-            $reference['stockManagement'],
-            $managersByReference[$id] ?? "",
-            $suppliersByReference[$id]['supplierLabels'] ?? "",
-            $suppliersByReference[$id]['supplierCodes'] ?? "",
-            $reference['visibilityGroup'],
-        ];
-
-        foreach($ffConfig['freeFieldIds'] as $freeFieldId) {
-            $line[] = $ffService->serializeValue([
-                'typage' => $ffConfig['freeFieldsIdToTyping'][$freeFieldId],
-                'valeur' => $reference['freeFields'][$freeFieldId] ?? ''
-            ]);
-        }
-
-        $csvService->putLine($handle, $line);
-    }
-
-    /**
-     * @Route("/export-donnees", name="exports_params")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_EXPO})
-     */
-    public function renderParams(UserService $userService)
-    {
-        return $this->render('exports/exportsMenu.html.twig');
     }
 
     /**
@@ -818,43 +732,6 @@ class ReferenceArticleController extends AbstractController
     }
 
     /**
-     * @Route("/show-actif-inactif", name="reference_article_actif_inactif", options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     */
-    public function displayActifOrInactif(Request $request,
-                                          EntityManagerInterface $entityManager) : Response
-    {
-        if ($data = json_decode($request->getContent(), true)){
-
-            /** @var Utilisateur $user */
-            $user = $this->getUser();
-            $statutArticle = $data['donnees'];
-
-            $filtreRefRepository = $entityManager->getRepository(FiltreRef::class);
-
-            $filter = $filtreRefRepository->findOneByUserAndChampFixe($user, FiltreRef::FIXED_FIELD_STATUT);
-
-            $em = $this->getDoctrine()->getManager();
-            if($filter == null) {
-                $filter = new FiltreRef();
-                $filter
-                    ->setUtilisateur($user)
-                    ->setChampFixe(FiltreRef::FIXED_FIELD_STATUT)
-                    ->setValue(ReferenceArticle::STATUT_ACTIF);
-                $em->persist($filter);
-            }
-
-            if ($filter->getValue() != $statutArticle) {
-                $filter->setValue($statutArticle);
-            }
-            $em->flush();
-
-            return new JsonResponse();
-        }
-
-        throw new BadRequestHttpException();
-    }
-
-    /**
      * @Route("/mouvements/lister", name="ref_mouvements_list", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
     public function showMovements(Request $request, EntityManagerInterface $entityManager): Response
@@ -884,11 +761,11 @@ class ReferenceArticleController extends AbstractController
         $mouvements = $mouvementStockRepository->findByRef($referenceArticle);
 
         $data['data'] = array_map(
-            function(MouvementStock $mouvement) use ($entityManager, $mouvementStockService) {
-                $fromColumnConfig = $mouvementStockService->getFromColumnConfig($entityManager, $mouvement);
+            function(MouvementStock $mouvement) use ($mouvementStockService) {
+                $fromColumnConfig = $mouvementStockService->getFromColumnConfig($mouvement);
                 $from = $fromColumnConfig['from'];
-                $orderPath = $fromColumnConfig['orderPath'];
-                $orderId = $fromColumnConfig['orderId'];
+                $fromPath = $fromColumnConfig['path'];
+                $fromPathParams = $fromColumnConfig['pathParams'];
 
                 return [
                     'Date' => $mouvement->getDate() ? $mouvement->getDate()->format('d/m/Y H:i:s') : 'aucune',
@@ -900,8 +777,8 @@ class ReferenceArticleController extends AbstractController
                     'from' => $this->templating->render('mouvement_stock/datatableMvtStockRowFrom.html.twig', [
                         'from' => $from,
                         'mvt' => $mouvement,
-                        'orderPath' => $orderPath,
-                        'orderId' => $orderId
+                        'path' => $fromPath,
+                        'pathParams' => $fromPathParams
                     ]),
                     'ArticleCode' => $mouvement->getArticle() ? $mouvement->getArticle()->getBarCode() : $mouvement->getRefArticle()->getBarCode()
                 ];
@@ -929,15 +806,17 @@ class ReferenceArticleController extends AbstractController
     /**
      * @Route("/nouveau-page", name="reference_article_new_page", options={"expose"=true})
      */
-    public function newTemplate(EntityManagerInterface $manager) {
-        $typeRepository = $manager->getRepository(Type::class);
-        $inventoryCategoryRepository = $manager->getRepository(InventoryCategory::class);
-        $freeFieldRepository = $manager->getRepository(FreeField::class);
+    public function newTemplate(EntityManagerInterface $entityManager,
+                                RefArticleDataService  $refArticleDataService,
+                                SettingsService        $settingsService) {
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
+        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
         $inventoryCategories = $inventoryCategoryRepository->findAll();
 
-        $typeChampLibre =  [];
+        $typeChampLibre = [];
         $freeFieldsGroupedByTypes = [];
 
         foreach ($types as $type) {
@@ -954,6 +833,8 @@ class ReferenceArticleController extends AbstractController
             "new_reference" => new ReferenceArticle(),
             "submit_url" => $this->generateUrl("reference_article_new"),
             "types" => $types,
+            'defaultLocation' => $settingsService->getParamLocation(Setting::DEFAULT_LOCATION_REFERENCE),
+            'draftDefaultReference' => $refArticleDataService->getDraftDefaultReference($entityManager),
             "stockManagement" => [
                 ReferenceArticle::STOCK_MANAGEMENT_FEFO,
                 ReferenceArticle::STOCK_MANAGEMENT_FIFO
@@ -989,7 +870,6 @@ class ReferenceArticleController extends AbstractController
 
         return $this->render("reference_article/form/edit.html.twig", [
             "reference" => $reference,
-            "lastInventoryDate" => FormatHelper::longDate($reference->getDateLastInventory(), true),
             "submit_url" => $this->generateUrl("reference_article_edit"),
             "types" => $types,
             "stockManagement" => [

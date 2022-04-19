@@ -1,5 +1,4 @@
 let tableMvt;
-let quillNew;
 
 $(function () {
     $('.select2').select2();
@@ -7,7 +6,6 @@ $(function () {
     $modalNewMvtTraca.find('.list-multiple').select2();
 
     initDateTimePicker();
-    Select2Old.init($('#statut'), 'Types');
     Select2Old.init($('#emplacement'), 'Emplacements');
 
     // filtres enregistrés en base pour chaque utilisateur
@@ -104,10 +102,6 @@ function initPageModal(tableMvt) {
 function initNewModal($modal) {
     const $operatorSelect = $modal.find('.ajax-autocomplete-user');
     Select2Old.user($operatorSelect, 'Opérateur');
-
-    if (!quillNew) {
-        quillNew = initEditor('#' + $modal.attr('id') + ' .editor-container-new');
-    }
 
     // Init mouvement fields if already loaded
     const $moreMassMvtContainer = $modal.find('.form-mass-mvt-container');

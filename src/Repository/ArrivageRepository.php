@@ -3,15 +3,16 @@
 namespace App\Repository;
 
 use App\Entity\Arrivage;
+use App\Entity\FiltreSup;
 use App\Entity\FreeField;
 use App\Entity\Statut;
-use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
 use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\HttpFoundation\InputBag;
+use WiiCommon\Helper\Stream;
 
 /**
  * @method Arrivage|null find($id, $lockMode = null, $lockVersion = null)
@@ -131,18 +132,6 @@ class ArrivageRepository extends EntityRepository
             ]);
     }
 
-    public function countByFournisseur($fournisseurId): ?int
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT COUNT(a)
-			FROM App\Entity\Arrivage a
-			WHERE a.fournisseur = :fournisseurId"
-        )->setParameter('fournisseurId', $fournisseurId);
-
-        return $query->getSingleScalarResult();
-    }
-
     public function countByChauffeur($chauffeur)
     {
         $em = $this->getEntityManager();
@@ -152,19 +141,6 @@ class ArrivageRepository extends EntityRepository
 			FROM App\Entity\Arrivage a
 			WHERE a.chauffeur = :chauffeur"
         )->setParameter('chauffeur', $chauffeur);
-
-        return $query->getSingleScalarResult();
-    }
-
-    public function countColisByArrivage($arrivage)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT COUNT(c)
-			FROM App\Entity\Pack c
-			WHERE c.arrivage = :arrivage"
-        )->setParameter('arrivage', $arrivage->getId());
 
         return $query->getSingleScalarResult();
     }
@@ -202,16 +178,22 @@ class ArrivageRepository extends EntityRepository
         return $query->execute();
     }
 
-    public function findByParamsAndFilters(InputBag $params, $filters, ?int $userIdArrivalFilter, Utilisateur $user): array
+    public function findByParamsAndFilters(InputBag $params, array $filters, VisibleColumnService $visibleColumnService, array $options = []): array
     {
-        $qb = $this->createQueryBuilder("arrival");
+        $qb = $this->createQueryBuilder("arrival")
+            ->addSelect('SUM(main_packs.weight) AS totalWeight')
+            ->addSelect('COUNT(main_packs.id) AS packsCount')
+            ->addSelect('COUNT(main_dispatch_packs.id) AS dispatchedPacksCount')
+            ->leftJoin('arrival.packs', 'main_packs')
+            ->leftJoin('main_packs.dispatchPacks', 'main_dispatch_packs')
+            ->groupBy('arrival');
 
         // filtre arrivages de l'utilisateur
-        if ($userIdArrivalFilter) {
+        if ($options['userIdArrivalFilter']) {
             $qb
                 ->join('arrival.acheteurs', 'ach')
                 ->where('ach.id = :userId')
-                ->setParameter('userId', $user->getId());
+                ->setParameter('userId', $options['user']->getId());
         }
 
         $total = QueryCounter::count($qb, 'arrival');
@@ -283,6 +265,14 @@ class ArrivageRepository extends EntityRepository
                             ->setParameter('value', $filter['value']);
                     }
                     break;
+                case FiltreSup::FIELD_BUSINESS_UNIT:
+                    $values = Stream::explode(",", $filter['value'])
+                        ->map(fn(string $value) => strtok($value, ':'))
+                        ->toArray();
+                    $qb
+                        ->andWhere("arrival.businessUnit IN (:values)")
+                        ->setParameter('values', $values);
+                    break;
                 case 'numArrivage':
                     $qb
                         ->andWhere('arrival.numeroArrivage = :numeroArrivage')
@@ -291,11 +281,10 @@ class ArrivageRepository extends EntityRepository
             }
         }
 
-		$orderStatut = null;
 		//Filter search
         if (!empty($params)) {
-            if (!empty($params->get('search'))) {
-                $search = $params->get('search')['value'];
+            if (!empty($params->all('search'))) {
+                $search = $params->all('search')['value'];
                 if (!empty($search)) {
                     $conditions = [
                         "creationDate" => "DATE_FORMAT(arrival.date, '%d/%m/%Y') LIKE :search_value",
@@ -319,7 +308,7 @@ class ArrivageRepository extends EntityRepository
                         "dropLocation" => "search_dropLocation.label LIKE :search_value",
                     ];
 
-                    $condition = VisibleColumnService::getSearchableColumns($conditions, 'arrival', $qb, $user);
+                    $condition = $visibleColumnService->getSearchableColumns($conditions, 'arrival', $qb, $options['user'], $search);
 
                     $qb
                         ->andWhere($condition)
@@ -338,10 +327,10 @@ class ArrivageRepository extends EntityRepository
 
             $filtered = QueryCounter::count($qb, 'arrival');
 
-            if (!empty($params->get('order'))) {
-                $order = $params->get('order')[0]['dir'];
+            if (!empty($params->all('order'))) {
+                $order = $params->all('order')[0]['dir'];
                 if (!empty($order)) {
-                    $orderData = $params->get('columns')[$params->get('order')[0]['column']]['data'];
+                    $orderData = $params->all('columns')[$params->all('order')[0]['column']]['data'];
                     $column = self::DtToDbLabels[$orderData] ?? $orderData;
 
                     if ($column === 'carrier') {
@@ -367,17 +356,16 @@ class ArrivageRepository extends EntityRepository
                     } else if ($column === 'buyers') {
                         $qb
                             ->leftJoin('arrival.acheteurs', 'ach2')
-                            ->orderBy('ach2.username', $order);
+                            ->orderBy('ach2.username', $order)
+                            ->groupBy('arrival.id, ach2.username');
                     } else if ($column === 'user') {
                         $qb
                             ->leftJoin('arrival.utilisateur', 'u2')
                             ->orderBy('u2.username', $order);
                     } else if ($column === 'nbUm') {
-                        $qb
-                            ->addSelect('count(col2.id) as hidden nbum')
-                            ->leftJoin('arrival.packs', 'col2')
-                            ->orderBy('nbum', $order)
-                            ->groupBy('col2.arrivage, arrival');
+                        $qb->orderBy('packsCount', $order);
+                    } else if ($column === 'totalWeight') {
+                        $qb->orderBy('totalWeight', $order);
                     } else if ($column === 'status') {
                         $qb
                             ->leftJoin('arrival.statut', 'order_status')
@@ -405,8 +393,18 @@ class ArrivageRepository extends EntityRepository
         }
 
         if (!empty($params)) {
-            if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
-            if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
+            if ($params->getInt('start')) {
+                $qb->setFirstResult($params->getInt('start'));
+            }
+
+            $pageLength = $params->getInt('length') ? $params->getInt('length') : 100;
+            if ($pageLength) {
+                $qb->setMaxResults($pageLength);
+            }
+        }
+
+        if($options['dispatchMode']) {
+            $qb->orderBy("arrival.date", "DESC");
         }
 
         return [
@@ -429,4 +427,35 @@ class ArrivageRepository extends EntityRepository
         return $query->getSingleScalarResult();
     }
 
+    public function getTotalWeightByArrivals(DateTime $from, DateTime $to): ?array {
+        $queryBuilder = $this->createQueryBuilder("arrival");
+        $expr = $queryBuilder->expr();
+
+        $result = $queryBuilder
+            ->select("arrival.id AS id")
+            ->addSelect("SUM(packs.weight) AS totalWeight")
+            ->leftJoin("arrival.packs", "packs")
+            ->andWhere($expr->between('arrival.date', ':dateFrom', ':dateTo'))
+            ->groupBy("arrival")
+            ->setParameter('dateFrom', $from)
+            ->setParameter('dateTo', $to)
+            ->getQuery()
+            ->getResult();
+
+        return Stream::from($result)
+            ->keymap(fn(array $arrival) => [$arrival['id'], $arrival['totalWeight']])
+            ->toArray();
+    }
+
+    public function countArrivalPacksInDispatch(Arrivage $arrival): int {
+        return $this->createQueryBuilder('arrival')
+            ->select("COUNT(dispatch_packs)")
+            ->leftJoin('arrival.packs', 'packs')
+            ->leftJoin('packs.dispatchPacks', 'dispatch_packs')
+            ->where('arrival.id = :arrival')
+            ->setParameter('arrival', $arrival)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }

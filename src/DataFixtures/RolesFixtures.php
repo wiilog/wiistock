@@ -3,6 +3,7 @@
 namespace App\DataFixtures;
 
 use App\Entity\Action;
+use App\Entity\ReferenceArticle;
 use App\Entity\Role;
 use App\Service\CacheService;
 use App\Service\RoleService;
@@ -41,7 +42,7 @@ class RolesFixtures extends Fixture implements FixtureGroupInterface, DependentF
                 $role
                     ->setLabel($roleLabel)
                     ->setIsMailSendAccountCreation(false)
-                    ->setActive(true);
+                    ->setQuantityType(ReferenceArticle::QUANTITY_TYPE_REFERENCE);
 
                 $manager->persist($role);
                 $output->writeln("Création du rôle " . $roleLabel);

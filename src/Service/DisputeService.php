@@ -68,7 +68,7 @@ class DisputeService {
 
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DISPUTE, $this->security->getUser());
 
-        $queryResult = $disputeRepository->findByParamsAndFilters($params, $filters, $this->security->getUser());
+        $queryResult = $disputeRepository->findByParamsAndFilters($params, $filters, $this->security->getUser(), $this->visibleColumnService);
         $disputes = $queryResult['data'];
 
         $rows = [];

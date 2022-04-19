@@ -11,20 +11,18 @@ use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
-use App\Entity\ParametrageGlobal;
+use App\Entity\Nature;
+use App\Entity\Pack;
+use App\Entity\Setting;
 use App\Entity\TrackingMovement;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Repository\FreeFieldRepository;
-use App\Repository\FieldsParamRepository;
-use App\Repository\ParametrageGlobalRepository;
-use App\Repository\StatutRepository;
+use App\Helper\FormatHelper;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
@@ -33,59 +31,49 @@ class DispatchService {
 
     const WAYBILL_MAX_PACK = 20;
 
-    /**
-     * @var Twig_Environment
-     */
-    private $templating;
+    /** @Required */
+    public Twig_Environment $templating;
 
-    /**
-     * @var RouterInterface
-     */
-    private $router;
+    /** @Required */
+    public RouterInterface $router;
 
-    /**
-     * @var Utilisateur
-     */
-    private $user;
+    /** @Required */
+    public UserService $userService;
 
-    private $entityManager;
-    private $freeFieldService;
-    private $translator;
-    private $mailerService;
-    private $trackingMovementService;
-    private $fieldsParamService;
-    private $visibleColumnService;
+    /** @Required */
+    public EntityManagerInterface $entityManager;
 
-    public function __construct(TokenStorageInterface $tokenStorage,
-                                RouterInterface $router,
-                                EntityManagerInterface $entityManager,
-                                Twig_Environment $templating,
-                                FreeFieldService $champLibreService,
-                                TranslatorInterface $translator,
-                                TrackingMovementService $trackingMovementService,
-                                MailerService $mailerService,
-                                VisibleColumnService $visibleColumnService,
-                                FieldsParamService $fieldsParamService) {
-        $this->templating = $templating;
-        $this->trackingMovementService = $trackingMovementService;
-        $this->entityManager = $entityManager;
-        $this->router = $router;
-        $this->user = $tokenStorage->getToken()->getUser();
-        $this->freeFieldService = $champLibreService;
-        $this->translator = $translator;
-        $this->mailerService = $mailerService;
-        $this->fieldsParamService = $fieldsParamService;
-        $this->visibleColumnService = $visibleColumnService;
-    }
+    /** @Required */
+    public FreeFieldService $freeFieldService;
+
+    /** @Required */
+    public TranslatorInterface $translator;
+
+    /** @Required */
+    public MailerService $mailerService;
+
+    /** @Required */
+    public TrackingMovementService $trackingMovementService;
+
+    /** @Required */
+    public FieldsParamService $fieldsParamService;
+
+    /** @Required */
+    public VisibleColumnService $visibleColumnService;
+
+    /** @Required */
+    public ArrivageService $arrivalService;
+
+    private ?array $freeFieldsConfig = null;
 
     public function getDataForDatatable(InputBag $params) {
 
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $dispatchRepository = $this->entityManager->getRepository(Dispatch::class);
 
-        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DISPATCH, $this->user);
+        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DISPATCH, $this->userService->getUser());
 
-        $queryResult = $dispatchRepository->findByParamAndFilters($params, $filters, $this->user);
+        $queryResult = $dispatchRepository->findByParamAndFilters($params, $filters, $this->userService->getUser(), $this->visibleColumnService);
 
         $dispatchesArray = $queryResult['data'];
 
@@ -104,14 +92,12 @@ class DispatchService {
     public function dataRowDispatch(Dispatch $dispatch) {
 
         $url = $this->router->generate('dispatch_show', ['id' => $dispatch->getId()]);
-
-        $categoryFFRepository = $this->entityManager->getRepository(CategorieCL::class);
-        $freeFieldsRepository = $this->entityManager->getRepository(FreeField::class);
-
-        $categoryFF = $categoryFFRepository->findOneBy(['label' => CategorieCL::DEMANDE_DISPATCH]);
-        $category = CategoryType::DEMANDE_DISPATCH;
-        $freeFields = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categoryFF);
         $receivers = $dispatch->getReceivers() ?? null;
+
+        if (!isset($this->freeFieldsConfig)) {
+            $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig($this->entityManager, CategorieCL::DEMANDE_DISPATCH, CategoryType::DEMANDE_DISPATCH);
+        }
+
         if ($receivers) {
             $receiversUsernames = Stream::from($receivers->toArray())
                 ->map(function (Utilisateur $receiver) {
@@ -146,33 +132,43 @@ class DispatchService {
             ]),
         ];
 
-        foreach ($freeFields as $freeField) {
-            $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeField['id']);
-            $row[$freeFieldName] = $this->freeFieldService->serializeValue([
-                "valeur" => $dispatch->getFreeFieldValue($freeField["id"]),
-                "typage" => $freeField["typage"],
-            ]);
+        foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
+            $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
+            $freeFieldValue = $dispatch->getFreeFieldValue($freeFieldId);
+            $row[$freeFieldName] = FormatHelper::freeField($freeFieldValue, $freeField);
         }
 
         return $row;
     }
 
-    public function getNewDispatchConfig(StatutRepository $statutRepository,
-                                         FreeFieldRepository $champLibreRepository,
-                                         FieldsParamRepository $fieldsParamRepository,
-                                         ParametrageGlobalRepository $parametrageGlobalRepository,
+    public function getNewDispatchConfig(EntityManagerInterface $entityManager,
                                          array $types,
-                                         ?Arrivage $arrival = null) {
+                                         ?Arrivage $arrival = null,
+                                         bool $fromArrival = false,
+                                         array $packs = []) {
+        $statusRepository = $entityManager->getRepository(Statut::class);
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $dispatchRepository = $entityManager->getRepository(Dispatch::class);
+        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
+
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DISPATCH);
 
         $dispatchBusinessUnits = $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_BUSINESS_UNIT);
+
+        $draftStatuses = $statusRepository->findByCategoryAndStates(CategorieStatut::DISPATCH, [Statut::DRAFT]);
+        $existingDispatches = $dispatchRepository->findBy([
+            'requester' => $this->userService->getUser(),
+            'statut' => $draftStatuses
+        ]);
+
         return [
             'dispatchBusinessUnits' => !empty($dispatchBusinessUnits) ? $dispatchBusinessUnits : [],
             'fieldsParam' => $fieldsParam,
             'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY),
-            'preFill' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::PREFILL_DUE_DATE_TODAY),
-            'typeChampsLibres' => array_map(function(Type $type) use ($champLibreRepository) {
-                $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_DISPATCH);
+            'preFill' => $settingRepository->getOneParamByLabel(Setting::PREFILL_DUE_DATE_TODAY),
+            'typeChampsLibres' => array_map(function(Type $type) use ($freeFieldRepository) {
+                $champsLibres = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_DISPATCH);
                 return [
                     'typeLabel' => $type->getLabel(),
                     'typeId' => $type->getId(),
@@ -187,10 +183,18 @@ class DispatchService {
                     ]
                 ];
             }, $types),
-            'notTreatedStatus' => $statutRepository->findStatusByType(CategorieStatut::DISPATCH, null, [Statut::DRAFT]),
-            'packs' => $arrival ? $arrival->getPacks() : [],
-            'fromArrival' => $arrival !== null,
-            'arrival' => $arrival
+            'notTreatedStatus' => $statusRepository->findStatusByType(CategorieStatut::DISPATCH, null, [Statut::DRAFT]),
+            'packs' => $packs,
+            'fromArrival' => $fromArrival,
+            'arrival' => $arrival,
+            'existingDispatches' => Stream::from($existingDispatches)
+                ->map(fn(Dispatch $dispatch) => [
+                    'id' => $dispatch->getId(),
+                    'number' => $dispatch->getNumber(),
+                    'locationTo' => FormatHelper::location($dispatch->getLocationTo()),
+                    'type' => FormatHelper::type($dispatch->getType())
+                ])
+                ->toArray()
         ];
     }
 
@@ -222,8 +226,7 @@ class DispatchService {
         $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
             $this->entityManager,
             $dispatch,
-            CategorieCL::DEMANDE_DISPATCH,
-            CategoryType::DEMANDE_DISPATCH
+            ['type' => $dispatch->getType()],
         );
         $receiverDetails = [
             "label" => "Destinataire(s)",
@@ -419,8 +422,7 @@ class DispatchService {
             $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
                 $this->entityManager,
                 $dispatch,
-                CategorieCL::DEMANDE_DISPATCH,
-                CategoryType::DEMANDE_DISPATCH
+                ['type' => $dispatch->getType()]
             );
 
             if (!empty($receiverEmailUses)) {
@@ -473,7 +475,7 @@ class DispatchService {
                     $fromNomade,
                     true,
                     TrackingMovement::TYPE_PRISE,
-                    ['quantity' => $dispatchPack->getQuantity(), 'from' => $dispatch]
+                    ['quantity' => $dispatchPack->getQuantity(), 'from' => $dispatch, 'removeFromGroup' => true]
                 );
 
                 $trackingDrop = $this->trackingMovementService->createTrackingMovement(
@@ -496,6 +498,14 @@ class DispatchService {
         $entityManager->flush();
 
         $this->sendEmailsAccordingToStatus($dispatch, true);
+
+        $packs = Stream::from($dispatch->getDispatchPacks())
+            ->map(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack())
+            ->toArray();
+
+        foreach ($packs as $pack) {
+            $this->arrivalService->sendMailForDeliveredPack($dispatch->getLocationTo(), $pack, $loggedUser, TrackingMovement::TYPE_DEPOSE, $date);
+        }
     }
 
     public function getVisibleColumnsConfig(EntityManagerInterface $entityManager, Utilisateur $currentUser): array {
@@ -597,5 +607,130 @@ class DispatchService {
             'progressBarBGColor' => $requestState === Statut::DRAFT ? 'white' : 'lightGrey',
         ];
     }
+
+    public function packRow(Dispatch $dispatch,
+                            ?DispatchPack $dispatchPack,
+                            bool $autofocus,
+                            bool $isEdit): array {
+        if(!isset($this->prefixPackCodeWithDispatchNumber, $this->natures, $this->defaultNature)) {
+            $this->prefixPackCodeWithDispatchNumber = $this->entityManager->getRepository(Setting::class)->getOneParamByLabel(Setting::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER);
+            $natureRepository = $this->entityManager->getRepository(Nature::class);
+            $this->natures = $natureRepository->findAll();
+            $this->defaultNature = $natureRepository->findOneBy(["defaultForDispatch" => true]);
+         }
+
+        if($dispatchPack) {
+            $pack = $dispatchPack->getPack();
+            $lastTracking = $pack->getLastTracking();
+
+            $code = $pack->getCode();
+            $quantity = $dispatchPack->getQuantity();
+            $nature = FormatHelper::nature($pack->getNature());
+            $weight = $pack->getWeight();
+            $volume = $pack->getVolume();
+            $comment = $pack->getComment();
+            $lastMvtDate = $lastTracking && $lastTracking->getDatetime() ? $lastTracking->getDatetime()->format("Y-m-d H:i") : null;
+            $lastLocation = $lastTracking ? FormatHelper::location($lastTracking->getEmplacement()) : null;
+            $operator = $lastTracking ? FormatHelper::user($lastTracking->getOperateur()) : null;
+            $status = $dispatchPack->isTreated() ? "Traité" : "À traiter";
+        } else {
+            $quantity = null;
+            $nature = null;
+            $weight = null;
+            $volume = null;
+            $comment = null;
+            $lastMvtDate = null;
+            $lastLocation = null;
+            $operator = null;
+            $status = null;
+        }
+
+        $actions = $this->templating->render("dispatch/datatablePackRow.html.twig", [
+            "dispatchPack" => $dispatchPack ?? null,
+            "dispatch" => $dispatch
+        ]);
+
+        if($isEdit) {
+            $creationMode = !isset($dispatchPack) ? "d-none" : "";
+            $class = "form-control data $creationMode";
+            $autofocus = $autofocus ? "autofocus" : "";
+            $packPrefix = $this->prefixPackCodeWithDispatchNumber ? $dispatch->getNumber() : null;
+            $searchPrefix = $this->prefixPackCodeWithDispatchNumber
+                ? "data-search-prefix='$packPrefix-' data-search-prefix-displayed='$packPrefix' "
+                : "";
+
+            $natureOptions = Stream::from($this->natures)
+                ->map(fn(Nature $n) => [
+                    "id" => $n->getId(),
+                    "label" => $n->getLabel(),
+                    "selected" => ($n->getLabel() === $nature || (!$nature && $this->defaultNature === $n)) ? "selected" : "",
+                ])
+                ->sort(fn(array $a, array $b) => $a["label"] <=> $b["label"])
+                ->map(fn(array $n) => "<option value='{$n["id"]}' {$n["selected"]}>{$n["label"]}</option>")
+                ->prepend(!$nature && !$this->defaultNature ? "<option disabled selected>Sélectionnez une nature</option>" : null)
+                ->join("");
+
+            $data = [
+                "actions" => $actions,
+                "code" => isset($code)
+                    ? "<span title='$code'>$code</span> <input type='hidden' name='pack' class='data' value='$code'/>"
+                    : "<select name='pack'
+                               data-s2='keyboardPacks'
+                               data-parent='body'
+                               data-include-params-parent='.wii-box'
+                               data-include-params='[name=pack]'
+                               class='w-300px'
+                               $searchPrefix
+                               $autofocus></select>",
+                "quantity" => "<input name='quantity' min=1 step=1 type='number' class='$class' data-global-error='Quantité' value='$quantity' required/>",
+                "nature" => "<select name='nature' class='$class minw-150px' data-global-error='Nature' required>{$natureOptions}</select>",
+                "weight" => "<input name='weight' type='number' class='$class no-overflow' data-no-arrow step='0.001' value='$weight'/>",
+                "volume" => "<input name='volume' type='number' class='$class no-overflow' data-no-arrow step='0.001' value='$volume'/>",
+                "comment" => "<div class='wii-one-line-wysiwyg ql-editor data $creationMode' data-wysiwyg='comment'>$comment</div>",
+                "lastMvtDate" => $lastMvtDate ?? "<span class='lastMvtDate'></span>",
+                "lastLocation" => $lastLocation ?? "<span class='lastLocation'></span>",
+                "operator" => $operator ?? "<span class='operator'></span>",
+                "status" => $status ?? "<span class='status'></span>",
+            ];
+        } else if($dispatchPack) {
+            $data = [
+                "actions" => $actions,
+                "code" => $code,
+                "nature" => $nature,
+                "quantity" => $quantity,
+                "weight" => $weight,
+                "volume" => $volume,
+                "comment" => "<div class='ql-editor'>$comment</div>",
+                "lastMvtDate" => $lastMvtDate,
+                "lastLocation" => $lastLocation,
+                "operator" => $operator,
+                "status" => $status,
+            ];
+        }
+
+        return $data ?? [];
+    }
+
+
+    public function manageDispatchPacks(Dispatch $dispatch, array $packs, EntityManagerInterface $entityManager) {
+        $packRepository = $entityManager->getRepository(Pack::class);
+
+        foreach($packs as $pack) {
+            $comment = $pack['packComment'];
+            $packId = $pack['packId'];
+            $packQuantity = (int)$pack['packQuantity'];
+            $pack = $packRepository->find($packId);
+            $pack
+                ->setComment($comment);
+            $packDispatch = new DispatchPack();
+            $packDispatch
+                ->setPack($pack)
+                ->setTreated(false)
+                ->setQuantity($packQuantity)
+                ->setDispatch($dispatch);
+            $entityManager->persist($packDispatch);
+        }
+    }
+
 
 }

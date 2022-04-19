@@ -1,0 +1,19 @@
+<div class="wii-section">
+    <div class="row">
+        <div class="col-12 mb-3 wii-describe">
+            Le paramétrage des jours travaillés a une incidence sur le calcul des en-cours et du délais
+            sur emplacement.
+        </div>
+    </div>
+    <div class="row wii-page-card-header">
+        <div class="col-auto ml-auto">
+            {% if can_edit %}
+                <button class="btn btn-primary d-none add-row-button">
+                    <span class="fa fa-plus mr-2"></span>Ajouter
+                </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <table id="table-off-days" data-table-processing="offDays"></table>
+</div>

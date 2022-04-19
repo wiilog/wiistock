@@ -31,8 +31,13 @@
                         <div class="col-4 form-group">
                             <label for="demandeur">Demandeur*</label>
                             <div class="w-100">
-                                <select class="select2-user data needed" {{ not createDL ? 'disabled' }} name="demandeur" id="demandeurDL" onchange="demandeurChanged($(this))">
-                                    <option></option>
+                                <select class="data needed"
+                                        {{ not createDL ? 'disabled' }}
+                                        name="demandeur"
+                                        data-s2="user"
+                                        data-other-params
+                                        data-other-params-add-dropzone="1"
+                                        onchange="demandeurChanged($(this))">
                                 </select>
                             </div>
                         </div>
@@ -57,9 +62,10 @@
                                     {{ not createDL ? 'disabled' }}>
                                     <option></option>
                                 </select>
+                                {% set isLocation = app.user.dropzone and app.user.dropzone is instanceof('App\\Entity\\Emplacement') %}
                                 <input hidden id="locationDemandeLivraisonValue"
-                                       data-id="{{ app.user.dropzone and needsCurrentUser ? app.user.dropzone.id }}"
-                                       data-text="{{ app.user.dropzone and needsCurrentUser ? app.user.dropzone.label }}">
+                                       data-id="{{ isLocation and needsCurrentUser ? app.user.dropzone.id }}"
+                                       data-text="{{ isLocation and needsCurrentUser ? app.user.dropzone.label }}">
                             </div>
                             <input type="hidden" name="restrictedLocations" value="{{ restrictedLocations }}">
                         </div>
@@ -98,7 +104,7 @@
                            class="commentaire data"
                            name="commentaire"
                            type="hidden"/>
-                    <div class="editor-container" id="editor-container-new-demande"></div>
+                    <div class="editor-container" data-wysiwyg></div>
                 </div>
                 <div class="mt-2">
                     <label>Demande de transfert</label>
@@ -121,7 +127,7 @@
                                        data-text="{{ reception.storageLocation ? reception.storageLocation.label }}">
                             </div>
                             <div class="col-4 form-group">
-                                <label for="origin">Emplacement d'origine'*</label>
+                                <label for="origin">Emplacement d'origine*</label>
                                 <select name="origin" class="data ajax-autocomplete-location-edit w-100 needed" id="origin">
                                 </select>
                                 <input hidden id="originTransfer"

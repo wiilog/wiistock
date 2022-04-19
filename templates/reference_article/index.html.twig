@@ -32,23 +32,11 @@
 {% endblock %}
 
 {% block page_content %}
-    {% set hasRightToCreate = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE')) %}
+    {% set hasRightToCreate = (
+        hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE'))
+        or hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_DRAFT_REFERENCE'))
+    ) %}
     {% set hasRightToExport = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EXPORT')) %}
-    <input type="hidden"
-           data-id=""
-           data-target='#modalEditRefArticle'
-           data-toggle='modal'
-           onclick="editRow(
-             $(this),
-            Routing.generate('reference_article_edit_api', true),
-            $('#modalEditRefArticle'),
-            $('#submitEditRefArticle'),
-            true,
-            '.editor-container-edit',
-            false,
-            () => afterLoadingEditModal($(this)),
-            false)"
-           class="d-none open-modal-edit"/>
     <div class="m-4 wii-page-card">
         <div class="row wii-page-card-header justify-content-between">
             <div class="col-auto">
@@ -65,7 +53,8 @@
                     {% if hasRightToCreate %}
                         <button type="button" class="btn btn-primary split-button"
                                 onclick="window.location.href = Routing.generate('reference_article_new_page', {}, true)">
-                            <span class="fa fa-plus mr-2"></span>Nouvel article de référence
+                            <span class="fa fa-plus mr-2"></span>
+                            Nouvel article de référence
                         </button>
                     {% elseif hasRightToExport %}
                         <div tabindex="0"
@@ -105,17 +94,6 @@
                             <span class="fa fa-search mr-2"></span>
                             Recherche rapide
                         </a>
-                        <div class="statut dropdown-item">
-                            <div class="checkbox pl-0 pointer">
-                                <input id="toggleActivOrInactiv"
-                                       onchange="displayActifOrInactif($(this), false)"
-                                       class="styled"
-                                       type="checkbox" {{ wantInactif == false ? 'checked' : '' }}>
-                                <label for="toggleActivOrInactiv" class="pointer">
-                                    Références actives seulement
-                                </label>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -133,12 +111,7 @@
         </div>
     </div>
     {% include "reference_article/modalDeleteRefArticle.html.twig" %}
-    {% include "reference_article/modalEditRefArticle.html.twig" %}
-    {% include "reference_article/modalNewRefArticle.html.twig" %}
-    {% include "reference_article/modalShowRefArticle.html.twig" %}
-    {% include "reference_article/modalNewFilter.html.twig" %}
-
-    {% include "reference_article/modalConfirmDeleteBox.html.twig" %}
+    {% include "reference_article/modalNewFilter.html.twig" with {fields: fields} %}
 
     {% include "reference_article/modalShowMouvements.html.twig" %}
     {% include "reference_article/modalCannotDelete.html.twig" %}
@@ -160,7 +133,8 @@
 
 {% block javascripts %}
     {{ parent() }}
+    {{ encore_entry_script_tags('reference-article-index') }}
+
     <script src="{{ asset('js/pages/form-reference-article.js') }}?v={{ web_version }}"></script>
-    <script src="{{ asset('js/pages/referenceArticle.js') }}?v={{ web_version }}"></script>
     <script src="{{ asset('js/pages/reference-common.js') }}?v={{ web_version }}"></script>
 {% endblock %}

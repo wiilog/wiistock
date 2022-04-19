@@ -16,8 +16,10 @@ use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
 use App\Entity\Import;
 use App\Entity\InventoryCategory;
+use App\Entity\LocationGroup;
 use App\Entity\MouvementStock;
-use App\Entity\ParametrageGlobal;
+use App\Entity\Nature;
+use App\Entity\Setting;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Reception;
@@ -56,6 +58,113 @@ class ImportService
     public const IMPORT_MODE_FORCE_PLAN = 2; // réaliser l'import rapidement (dans le cron qui s'exécute toutes les 30min)
     public const IMPORT_MODE_PLAN = 3; // réaliser l'import dans la nuit (dans le cron à 23h59)
     public const IMPORT_MODE_NONE = 4; // rien n'a été réalisé sur l'import
+
+    public const POSITIVE_ARRAY = ['oui', 'Oui', 'OUI'];
+
+    public const FIELDS_TO_ASSOCIATE = [
+        Import::ENTITY_ART => [
+            "commentaire",
+            "barCode",
+            "stockEntryDate",
+            "expiryDate",
+            "dateLastInventory",
+            "emplacement",
+            "label",
+            "batch",
+            "prixUnitaire",
+            "quantite",
+            "referenceReference",
+            "articleFournisseurReference",
+            "fournisseurReference"
+        ],
+        Import::ENTITY_REF => [
+            "buyer",
+            "catInv",
+            "commentaire",
+            "emergencyComment",
+            "dateLastInventory",
+            "emplacement",
+            "stockManagement",
+            "managers",
+            "visibilityGroups",
+            "libelle",
+            "prixUnitaire",
+            "quantiteStock",
+            "reference",
+            "limitWarning",
+            "limitSecurity",
+            "statut",
+            "needsMobileSync",
+            "type",
+            "typeQuantite"
+        ],
+        Import::ENTITY_FOU => [
+            'nom',
+            'codeReference',
+            'possibleCustoms',
+            'urgent'
+        ],
+        Import::ENTITY_RECEPTION => [
+            "anomalie",
+            "commentaire",
+            "expectedDate",
+            "orderDate",
+            "location",
+            "storageLocation",
+            "fournisseur",
+            "orderNumber",
+            "quantité à recevoir",
+            "référence",
+            "transporteur",
+            "manualUrgent"
+        ],
+        Import::ENTITY_ART_FOU => [
+            "label",
+            "reference",
+            "referenceReference",
+            "fournisseurReference"
+        ],
+        Import::ENTITY_USER => [
+            "address",
+            "mobileLoginKey",
+            "dropzone",
+            "email",
+            "secondaryEmail",
+            "lastEmail",
+            "visibilityGroup",
+            "username",
+            "phone",
+            "role",
+            "status",
+            "dispatchTypes",
+            "deliveryTypes",
+            "handlingTypes",
+            "deliverer"
+        ],
+        Import::ENTITY_DELIVERY => [
+            "articleCode",
+            "commentaire",
+            "requester",
+            "destination",
+            "targetLocationPicking",
+            "quantityDelivery",
+            "articleReference",
+            "status",
+            "type",
+            "targetLocationPicking"
+        ],
+        Import::ENTITY_LOCATION => [
+            "isActive",
+            "description",
+            "dateMaxTime",
+            "isOngoingVisibleOnMobile",
+            "allowedPackNatures",
+            "name",
+            "isDeliveryPoint",
+            "allowedCollectTypes",
+            "allowedDeliveryTypes"
+        ]
+    ];
 
     /** @Required */
     public Twig_Environment $templating;
@@ -131,7 +240,7 @@ class ImportService
     public function dataRowImport(Import $import)
     {
         $importId = $import->getId();
-        $url['edit'] = $this->router->generate('fournisseur_edit', ['id' => $importId]);
+        $url['edit'] = $this->router->generate('supplier_edit', ['id' => $importId]);
 
         $importStatus = $import->getStatus();
         $statusLabel = isset($importStatus) ? $importStatus->getNom() : null;
@@ -155,7 +264,7 @@ class ImportService
             'status' => '<span class="' . $statusClass . '" data-id="' . $importId . '" title="' . $statusTitle . '">' . $statusLabel . '</span>',
             'user' => $import->getUser() ? $import->getUser()->getUsername() : '',
             'entity' => Import::ENTITY_LABEL[$import->getEntity()] ?? "Non défini",
-            'actions' => $this->templating->render('import/datatableImportRow.html.twig', [
+            'actions' => $this->templating->render('settings/donnees/import/datatableImportRow.html.twig', [
                 'url' => $url,
                 'importId' => $importId,
                 'fournisseurId' => $importId,
@@ -284,7 +393,6 @@ class ImportService
                     false,
                     $receptionsWithCommand,
                     $deliveries,
-                    $user,
                     $index
                 );
                 $index++;
@@ -304,7 +412,6 @@ class ImportService
                         ($index % self::NB_ROW_WITHOUT_CLEARING === 0),
                         $receptionsWithCommand,
                         $deliveries,
-                        $user,
                         $index
                     );
                     $index++;
@@ -352,8 +459,8 @@ class ImportService
                                     bool $needsUnitClear,
                                     array &$receptionsWithCommand,
                                     array &$deliveries,
-                                    ?Utilisateur $user,
-                                    int $rowIndex): array
+                                    int $rowIndex,
+                                    int $retry = 0): array
     {
         try {
             $emptyCells = count(array_filter($row, fn(string $value) => $value === ""));
@@ -371,7 +478,7 @@ class ImportService
                         $this->importReferenceEntity($data, $colChampsLibres, $row, $dataToCheck, $stats);
                         break;
                     case Import::ENTITY_RECEPTION:
-                        $this->importReceptionEntity($data, $receptionsWithCommand, $user, $stats, $this->receptionService);
+                        $this->importReceptionEntity($data, $receptionsWithCommand, $this->currentImport->getUser(), $stats, $this->receptionService);
                         break;
                     case Import::ENTITY_ART:
                         $referenceArticle = $this->importArticleEntity($data, $colChampsLibres, $row, $stats, $rowIndex);
@@ -381,7 +488,10 @@ class ImportService
                         $this->importUserEntity($data, $stats);
                         break;
                     case Import::ENTITY_DELIVERY:
-                        $insertedDelivery = $this->importDeliveryEntity($data, $stats, $deliveries, $user ?? $this->currentImport->getUser(), $refToUpdate, $colChampsLibres, $row);
+                        $insertedDelivery = $this->importDeliveryEntity($data, $stats, $deliveries, $this->currentImport->getUser(), $refToUpdate, $colChampsLibres, $row);
+                        break;
+                    case Import::ENTITY_LOCATION:
+                        $this->importLocationEntity($data, $stats);
                         break;
                 }
 
@@ -406,9 +516,24 @@ class ImportService
 
             if ($throwable instanceof ImportException) {
                 $message = $throwable->getMessage();
-            }
-            else if ($throwable instanceof UniqueConstraintViolationException) {
-                $message = 'Une autre entité est en cours de création, veuillez réessayer.';
+            } else if ($throwable instanceof UniqueConstraintViolationException) {
+                if ($retry <= UniqueNumberService::MAX_RETRY) {
+                    $retry++;
+                    return $this->treatImportRow($row,
+                        $headers,
+                        $dataToCheck,
+                        $colChampsLibres,
+                        $refToUpdate,
+                        $stats,
+                        $needsUnitClear,
+                        $receptionsWithCommand,
+                        $deliveries,
+                        $rowIndex,
+                        $retry
+                    );
+                } else {
+                    $message = 'Une autre entité est en cours de création, veuillez réessayer.';
+                }
             } else {
                 $message = 'Une erreur est survenue.';
                 $file = $throwable->getFile();
@@ -436,318 +561,17 @@ class ImportService
         return $resRow;
     }
 
-    private function getDataToCheck(string $entity, array $corresp)
+    private function getDataToCheck(string $entity, array $corresp): array
     {
-        switch ($entity) {
-            case Import::ENTITY_FOU:
-                $dataToCheck = [
-                    'codeReference' => [
-                        'needed' => $this->fieldIsNeeded('codeReference', Import::ENTITY_FOU),
-                        'value' => isset($corresp['codeReference']) ? $corresp['codeReference'] : null
-                    ],
-                    'nom' => [
-                        'needed' => $this->fieldIsNeeded('nom', Import::ENTITY_FOU),
-                        'value' => isset($corresp['nom']) ? $corresp['nom'] : null
-                    ],
-                ];
-                break;
-            case Import::ENTITY_RECEPTION:
-                $dataToCheck = [
-                    'orderNumber' => [
-                        'needed' => $this->fieldIsNeeded('orderNumber', Import::ENTITY_RECEPTION),
-                        'value' => isset($corresp['orderNumber']) ? $corresp['orderNumber'] : null
-                    ],
-                    'référence' => [
-                        'needed' => $this->fieldIsNeeded('référence', Import::ENTITY_RECEPTION),
-                        'value' => isset($corresp['référence']) ? $corresp['référence'] : null
-                    ],
-                    'location' => [
-                        'needed' => $this->fieldIsNeeded('location', Import::ENTITY_RECEPTION),
-                        'value' => isset($corresp['location']) ? $corresp['location'] : null
-                    ],
-                    'storageLocation' => [
-                        'needed' => $this->fieldIsNeeded('storageLocation', Import::ENTITY_RECEPTION),
-                        'value' => isset($corresp['storageLocation']) ? $corresp['storageLocation'] : null
-                    ],
-                    'fournisseur' => [
-                        'needed' => $this->fieldIsNeeded('fournisseur', Import::ENTITY_RECEPTION),
-                        'value' => isset($corresp['fournisseur']) ? $corresp['fournisseur'] : null
-                    ],
-                    'transporteur' => [
-                        'needed' => $this->fieldIsNeeded('transporteur', Import::ENTITY_RECEPTION),
-                        'value' => isset($corresp['transporteur']) ? $corresp['transporteur'] : null
-                    ],
-                    'commentaire' => [
-                        'needed' => $this->fieldIsNeeded('commentaire', Import::ENTITY_RECEPTION),
-                        'value' => isset($corresp['commentaire']) ? $corresp['commentaire'] : null
-                    ],
-                    'anomalie' => [
-                        'needed' => $this->fieldIsNeeded('anomalie', Import::ENTITY_RECEPTION),
-                        'value' => isset($corresp['anomalie']) ? $corresp['anomalie'] : null
-                    ],
-                    'quantité à recevoir' => [
-                        'needed' => $this->fieldIsNeeded('quantité à recevoir', Import::ENTITY_RECEPTION),
-                        'value' => isset($corresp['quantité à recevoir']) ? $corresp['quantité à recevoir'] : null
-                    ],
-                    'orderDate' => [
-                        'needed' => $this->fieldIsNeeded('orderDate', Import::ENTITY_RECEPTION),
-                        'value' => isset($corresp['orderDate']) ? $corresp['orderDate'] : null
-                    ],
-                    'manualUrgent' => [
-                        'needed' => $this->fieldIsNeeded('manualUrgent', Import::ENTITY_RECEPTION),
-                        'value' => isset($corresp['manualUrgent']) ? $corresp['manualUrgent'] : null
-                    ],
-                    'expectedDate' => [
-                        'needed' => $this->fieldIsNeeded('expectedDate', Import::ENTITY_RECEPTION),
-                        'value' => isset($corresp['expectedDate']) ? $corresp['expectedDate'] : null
-                    ]
-                ];
-                break;
-            case Import::ENTITY_ART_FOU:
-                $dataToCheck = [
-                    'reference' => [
-                        'needed' => $this->fieldIsNeeded('reference', Import::ENTITY_ART_FOU),
-                        'value' => isset($corresp['reference']) ? $corresp['reference'] : null
-                    ],
-                    'label' => [
-                        'needed' => $this->fieldIsNeeded('label', Import::ENTITY_ART_FOU),
-                        'value' => isset($corresp['label']) ? $corresp['label'] : null
-                    ],
-                    'referenceReference' => [
-                        'needed' => $this->fieldIsNeeded('referenceReference', Import::ENTITY_ART_FOU),
-                        'value' => isset($corresp['référence article de référence']) ? $corresp['référence article de référence'] : null
-                    ],
-                    'fournisseurReference' => [
-                        'needed' => $this->fieldIsNeeded('fournisseurReference', Import::ENTITY_ART_FOU),
-                        'value' => isset($corresp['référence fournisseur']) ? $corresp['référence fournisseur'] : null
-                    ],
-                ];
-                break;
-            case Import::ENTITY_REF:
-                $dataToCheck = [
-                    'libelle' => [
-                        'needed' => $this->fieldIsNeeded('libelle', Import::ENTITY_REF),
-                        'value' => isset($corresp['libelle']) ? $corresp['libelle'] : null,
-                    ],
-                    'reference' => [
-                        'needed' => $this->fieldIsNeeded('reference', Import::ENTITY_REF),
-                        'value' => isset($corresp['reference']) ? $corresp['reference'] : null,
-                    ],
-                    'buyer' => [
-                        'needed' => $this->fieldIsNeeded('buyer', Import::ENTITY_REF),
-                        'value' => isset($corresp['buyer']) ? $corresp['buyer'] : null,
-                    ],
-                    'quantiteStock' => [
-                        'needed' => $this->fieldIsNeeded('quantiteStock', Import::ENTITY_REF),
-                        'value' => isset($corresp['quantiteStock']) ? $corresp['quantiteStock'] : null,
-                    ],
-                    'prixUnitaire' => [
-                        'needed' => $this->fieldIsNeeded('prixUnitaire', Import::ENTITY_REF),
-                        'value' => isset($corresp['prixUnitaire']) ? $corresp['prixUnitaire'] : null,
-                    ],
-                    'limitSecurity' => [
-                        'needed' => $this->fieldIsNeeded('limitSecurity', Import::ENTITY_REF),
-                        'value' => isset($corresp['limitSecurity']) ? $corresp['limitSecurity'] : null,
-                    ],
-                    'limitWarning' => [
-                        'needed' => $this->fieldIsNeeded('limitWarning', Import::ENTITY_REF),
-                        'value' => isset($corresp['limitWarning']) ? $corresp['limitWarning'] : null,
-                    ],
-                    'typeQuantite' => [
-                        'needed' => $this->fieldIsNeeded('typeQuantite', Import::ENTITY_REF),
-                        'value' => isset($corresp['typeQuantite']) ? $corresp['typeQuantite'] : null,
-                    ],
-                    'typeLabel' => [
-                        'needed' => $this->fieldIsNeeded('typeLabel', Import::ENTITY_REF),
-                        'value' => isset($corresp['type']) ? $corresp['type'] : null,
-                    ],
-                    'emplacement' => [
-                        'needed' => $this->fieldIsNeeded('emplacement', Import::ENTITY_REF),
-                        'value' => isset($corresp['emplacement']) ? $corresp['emplacement'] : null,
-                    ],
-                    'catInv' => [
-                        'needed' => $this->fieldIsNeeded('catInv', Import::ENTITY_REF),
-                        'value' => isset($corresp['catégorie d\'inventaire']) ? $corresp['catégorie d\'inventaire'] : null,
-                    ],
-                    'commentaire' => [
-                        'needed' => $this->fieldIsNeeded('commentaire', Import::ENTITY_REF),
-                        'value' => isset($corresp['commentaire']) ? $corresp['commentaire'] : null
-                    ],
-                    'emergencyComment' => [
-                        'needed' => $this->fieldIsNeeded('emergencyComment', Import::ENTITY_REF),
-                        'value' => isset($corresp['emergencyComment']) ? $corresp['emergencyComment'] : null,
-                    ],
-                    'dateLastInventory' => [
-                        'needed' => $this->fieldIsNeeded('dateLastInventory', Import::ENTITY_REF),
-                        'value' => isset($corresp['dateLastInventory']) ? $corresp['dateLastInventory'] : null,
-                    ],
-                    'status' => [
-                        'needed' => $this->fieldIsNeeded('status', Import::ENTITY_REF),
-                        'value' => isset($corresp['status']) ? $corresp['status'] : null,
-                    ],
-                    'needsMobileSync' => [
-                        'needed' => $this->fieldIsNeeded('needsMobileSync', Import::ENTITY_REF),
-                        'value' => isset($corresp['needsMobileSync']) ? $corresp['needsMobileSync'] : null,
-                    ],
-                    'managers' => [
-                        'needed' => $this->fieldIsNeeded('managers', Import::ENTITY_REF),
-                        'value' => isset($corresp['managers']) ? $corresp['managers'] : null,
-                    ],
-                    'visibilityGroups' => [
-                        'needed' => $this->fieldIsNeeded('visibilityGroups', Import::ENTITY_REF),
-                        'value' => isset($corresp['visibilityGroups']) ? $corresp['visibilityGroups'] : null,
-                    ]
-                ];
-                break;
-            case Import::ENTITY_ART:
-                $dataToCheck = [
-                    'label' => [
-                        'needed' => $this->fieldIsNeeded('catInv', Import::ENTITY_ART),
-                        'value' => isset($corresp['label']) ? $corresp['label'] : null,
-                    ],
-                    'quantite' => [
-                        'needed' => $this->fieldIsNeeded('quantite', Import::ENTITY_ART),
-                        'value' => isset($corresp['quantite']) ? $corresp['quantite'] : null,
-                    ],
-                    'prixUnitaire' => [
-                        'needed' => $this->fieldIsNeeded('prixUnitaire', Import::ENTITY_ART),
-                        'value' => isset($corresp['prixUnitaire']) ? $corresp['prixUnitaire'] : null,
-                    ],
-                    'barCode' => [
-                        'needed' => $this->fieldIsNeeded('barCode', Import::ENTITY_ART),
-                        'value' => isset($corresp['barCode']) ? $corresp['barCode'] : null,
-                    ],
-                    'articleFournisseurReference' => [
-                        'needed' => $this->fieldIsNeeded('articleFournisseurReference', Import::ENTITY_ART),
-                        'value' => isset($corresp['référence article fournisseur']) ? $corresp['référence article fournisseur'] : null,
-                    ],
-                    'referenceReference' => [
-                        'needed' => $this->fieldIsNeeded('referenceReference', Import::ENTITY_ART),
-                        'value' => isset($corresp['référence article de référence']) ? $corresp['référence article de référence'] : null,
-                    ],
-                    'fournisseurReference' => [
-                        'needed' => $this->fieldIsNeeded('fournisseurReference', Import::ENTITY_ART),
-                        'value' => isset($corresp['référence fournisseur']) ? $corresp['référence fournisseur'] : null,
-                    ],
-                    'emplacement' => [
-                        'needed' => $this->fieldIsNeeded('emplacement', Import::ENTITY_ART),
-                        'value' => isset($corresp['emplacement']) ? $corresp['emplacement'] : null,
-                    ],
-                    'batch' => [
-                        'needed' => $this->fieldIsNeeded('batch', Import::ENTITY_ART),
-                        'value' => $corresp['batch'] ?? null,
-                    ],
-                    'expiryDate' => [
-                        'needed' => $this->fieldIsNeeded('expiryDate', Import::ENTITY_ART),
-                        'value' => $corresp['expiryDate'] ?? null,
-                    ],
-                    'stockEntryDate' => [
-                        'needed' => $this->fieldIsNeeded('stockEntryDate', Import::ENTITY_ART),
-                        'value' => $corresp['stockEntryDate'] ?? null,
-                    ],
-                ];
-                break;
-            case Import::ENTITY_USER:
-                $dataToCheck = [
-                    'role' => [
-                        'needed' => $this->fieldIsNeeded('role', Import::ENTITY_USER),
-                        'value' => $corresp['role'] ?? null,
-                    ],
-                    'username' => [
-                        'needed' => $this->fieldIsNeeded('username', Import::ENTITY_USER),
-                        'value' => $corresp['username'] ?? null,
-                    ],
-                    'email' => [
-                        'needed' => $this->fieldIsNeeded('email', Import::ENTITY_USER),
-                        'value' => $corresp['email'] ?? null,
-                    ],
-                    'secondaryEmail' => [
-                        'needed' => $this->fieldIsNeeded('secondaryEmail', Import::ENTITY_USER),
-                        'value' => $corresp['secondaryEmail'] ?? null,
-                    ],
-                    'lastEmail' => [
-                        'needed' => $this->fieldIsNeeded('lastEmail', Import::ENTITY_USER),
-                        'value' => $corresp['lastEmail'] ?? null,
-                    ],
-                    'phone' => [
-                        'needed' => $this->fieldIsNeeded('phone', Import::ENTITY_USER),
-                        'value' => $corresp['phone'] ?? null,
-                    ],
-                    'mobileLoginKey' => [
-                        'needed' => $this->fieldIsNeeded('mobileLoginKey', Import::ENTITY_USER),
-                        'value' => $corresp['mobileLoginKey'] ?? null,
-                    ],
-                    'address' => [
-                        'needed' => $this->fieldIsNeeded('address', Import::ENTITY_USER),
-                        'value' => $corresp['address'] ?? null,
-                    ],
-                    'deliveryTypes' => [
-                        'needed' => $this->fieldIsNeeded('deliveryTypes', Import::ENTITY_USER),
-                        'value' => $corresp['deliveryTypes'] ?? null,
-                    ],
-                    'dispatchTypes' => [
-                        'needed' => $this->fieldIsNeeded('dispatchTypes', Import::ENTITY_USER),
-                        'value' => $corresp['dispatchTypes'] ?? null,
-                    ],
-                    'handlingTypes' => [
-                        'needed' => $this->fieldIsNeeded('handlingTypes', Import::ENTITY_USER),
-                        'value' => $corresp['handlingTypes'] ?? null,
-                    ],
-                    'dropzone' => [
-                        'needed' => $this->fieldIsNeeded('dropzone', Import::ENTITY_USER),
-                        'value' => $corresp['dropzone'] ?? null,
-                    ],
-                    'visibilityGroup' => [
-                        'needed' => $this->fieldIsNeeded('visibilityGroup', Import::ENTITY_USER),
-                        'value' => $corresp['visibilityGroup'] ?? null,
-                    ],
-                    'status' => [
-                        'needed' => $this->fieldIsNeeded('status', Import::ENTITY_USER),
-                        'value' => $corresp['status'] ?? null,
-                    ],
-                ];
-                break;
-            case Import::ENTITY_DELIVERY:
-                $dataToCheck = [
-                    'articleReference' => [
-                        'needed' => $this->fieldIsNeeded('articleReference', Import::ENTITY_DELIVERY),
-                        'value' => $corresp['articleReference'] ?? null
-                    ],
-                    'quantityDelivery' => [
-                        'needed' => $this->fieldIsNeeded('quantityDelivery', Import::ENTITY_DELIVERY),
-                        'value' => $corresp['quantityDelivery'] ?? null
-                    ],
-                    'articleCode' => [
-                        'needed' => $this->fieldIsNeeded('articleCode', Import::ENTITY_DELIVERY),
-                        'value' => $corresp['articleCode'] ?? null
-                    ],
-                    'status' => [
-                        'needed' => $this->fieldIsNeeded('status', Import::ENTITY_DELIVERY),
-                        'value' => $corresp['status'] ?? null
-                    ],
-                    'type' => [
-                        'needed' => $this->fieldIsNeeded('type', Import::ENTITY_DELIVERY),
-                        'value' => $corresp['type'] ?? null
-                    ],
-                    'requester' => [
-                        'needed' => $this->fieldIsNeeded('requester', Import::ENTITY_DELIVERY),
-                        'value' => $corresp['requester'] ?? null
-                    ],
-                    'destination' => [
-                        'needed' => $this->fieldIsNeeded('destination', Import::ENTITY_DELIVERY),
-                        'value' => $corresp['destination'] ?? null
-                    ],
-                    'commentaire' => [
-                        'needed' => $this->fieldIsNeeded('commentaire', Import::ENTITY_DELIVERY),
-                        'value' => $corresp['commentaire'] ?? null
-                    ],
-                ];
-                break;
-            default:
-                $dataToCheck = [];
-        }
-
-        return $dataToCheck;
+        return Stream::from(ImportService::FIELDS_TO_ASSOCIATE[$entity])
+            ->keymap(fn(string $field) => [
+                $field,
+                [
+                    'needed' => $this->fieldIsNeeded($field, $entity),
+                    'value' => $corresp[$field] ?? '',
+                ]
+            ])
+            ->toArray();
     }
 
     private function fopenLogFile() {
@@ -760,8 +584,8 @@ class ImportService
     }
 
     private function getLogFileMapper(): Closure {
-        $parametrageGlobalRepository = $this->em->getRepository(ParametrageGlobal::class);
-        $wantsUFT8 = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::USES_UTF8) ?? true;
+        $settingRepository = $this->em->getRepository(Setting::class);
+        $wantsUFT8 = $settingRepository->getOneParamByLabel(Setting::USES_UTF8) ?? true;
 
         return function ($row) use ($wantsUFT8) {
             return !$wantsUFT8
@@ -804,28 +628,39 @@ class ImportService
 
     private function importFournisseurEntity(array $data, array &$stats): void
     {
-        $newEntity = false;
-
-        if (empty($data['codeReference'])) {
-            $this->throwError("La colone de référence n'est pas valide.");
+        if (!isset($data['codeReference'])) {
+            $this->throwError("Le code fournisseur est obligatoire");
         }
 
-        $fournisseurRepository = $this->em->getRepository(Fournisseur::class);
-        $fournisseur = $fournisseurRepository->findOneBy(['codeReference' => $data['codeReference']]);
+        $supplierRepository = $this->em->getRepository(Fournisseur::class);
+        $existingSupplier = $supplierRepository->findOneBy(['codeReference' => $data['codeReference']]);
 
-        if (empty($fournisseur)) {
-            $fournisseur = new Fournisseur();
-            $fournisseur->setCodeReference($data['codeReference']);
+        $supplier = $existingSupplier ?? new Fournisseur();
 
-            $this->em->persist($fournisseur);
-            $newEntity = true;
+        if(!$supplier->getId()) {
+            $supplier->setCodeReference($data['codeReference']);
         }
 
-        if (isset($data['nom'])) {
-            $fournisseur->setNom($data['nom']);
+        $allowedValues = ['oui', 'non'];
+        $possibleCustoms = isset($data["possibleCustoms"]) ? strtolower($data["possibleCustoms"]) : null;
+        if(isset($data["possibleCustoms"]) && !in_array($possibleCustoms, $allowedValues)) {
+            $this->throwError("La valeur du champ Douane possible n'est pas correcte (oui ou non)");
+        } else {
+            $supplier->setPossibleCustoms($possibleCustoms === 'oui');
         }
 
-        $this->updateStats($stats, $newEntity);
+        $urgent = isset($data["urgent"]) ? strtolower($data["urgent"]) : null;
+        if(isset($data["urgent"]) && !in_array($urgent, $allowedValues)) {
+            $this->throwError("La valeur du champ Urgent n'est pas correcte (oui ou non)");
+        } else {
+            $supplier->setUrgent($urgent === 'oui');
+        }
+
+        $supplier->setNom($data['nom']);
+
+        $this->em->persist($supplier);
+
+        $this->updateStats($stats, !$supplier->getId());
     }
 
     private function importArticleFournisseurEntity(array $data, array &$stats): void
@@ -869,7 +704,7 @@ class ImportService
         } else {
             $articleFournisseur->setFournisseur($fournisseur);
         }
-
+        $articleFournisseur->setVisible(true);
         $this->em->persist($articleFournisseur);
         $this->updateStats($stats, $newEntity);
     }
@@ -978,7 +813,7 @@ class ImportService
                 isset($data['anomalie'])
                 && (
                     filter_var($data['anomalie'], FILTER_VALIDATE_BOOLEAN)
-                    || in_array($data['anomalie'], ['oui', 'Oui', 'OUI'])
+                    || in_array($data['anomalie'], self::POSITIVE_ARRAY)
                 )
             );
             if ($anomaly || $reception->getStatut()->getCode() === Reception::STATUT_ANOMALIE) {
@@ -998,7 +833,7 @@ class ImportService
                 isset($data['manualUrgent'])
                 && (
                     filter_var($data['manualUrgent'], FILTER_VALIDATE_BOOLEAN)
-                    || in_array($data['manualUrgent'], ['oui', 'Oui', 'OUI'])
+                    || in_array($data['manualUrgent'], self::POSITIVE_ARRAY)
                 )
             );
         }
@@ -1018,7 +853,7 @@ class ImportService
                         isset($data['anomalie'])
                         && (
                             filter_var($data['anomalie'], FILTER_VALIDATE_BOOLEAN)
-                            || in_array($data['anomalie'], ['oui', 'Oui', 'OUI'])
+                            || in_array($data['anomalie'], self::POSITIVE_ARRAY)
                         )
                     );
                     $receptionRefArticle->setAnomalie($anomaly ? 1 : 0);
@@ -1054,16 +889,26 @@ class ImportService
         $userRepository = $this->em->getRepository(Utilisateur::class);
         $visibilityGroupRepository = $this->em->getRepository(VisibilityGroup::class);
         $refArt = $refArtRepository->findOneBy(['reference' => $data['reference']]);
+        $currentUser = $this->currentImport->getUser();
+        $now = new DateTime();
 
         if (!$refArt) {
             $refArt = new ReferenceArticle();
+            $refArt
+                ->setCreatedAt($now)
+                ->setCreatedBy($currentUser);
             $isNewEntity = true;
+        } else {
+            $refArt
+                ->setEditedAt($now)
+                ->setEditedBy($currentUser);
         }
+
         if (isset($data['libelle'])) {
             if ((strlen($data['libelle'])) > 255) {
                 $this->throwError('La valeur saisie pour le champ libellé ne doit pas dépasser 255 caractères');
             } else {
-            $refArt->setLibelle($data['libelle']);
+                $refArt->setLibelle($data['libelle']);
             }
         }
         if (isset($data['needsMobileSync'])) {
@@ -1086,7 +931,7 @@ class ImportService
         if (isset($data['managers'])) {
             $usernames = Stream::explode([";", ","], $data["managers"])
                 ->unique()
-                ->map("trim")
+                ->map(fn(string $username) => trim($username))
                 ->toArray();
 
             $managers = $userRepository->findByUsernames($usernames);
@@ -1116,7 +961,7 @@ class ImportService
         }
         if ($isNewEntity) {
             if (empty($data['typeQuantite'])
-                || !in_array($data['typeQuantite'], [ReferenceArticle::TYPE_QUANTITE_REFERENCE, ReferenceArticle::TYPE_QUANTITE_ARTICLE])) {
+                || !in_array($data['typeQuantite'], [ReferenceArticle::QUANTITY_TYPE_REFERENCE, ReferenceArticle::QUANTITY_TYPE_ARTICLE])) {
                 $this->throwError('Le type de gestion de la référence est invalide (autorisé : "article" ou "reference")');
             }
 
@@ -1180,7 +1025,7 @@ class ImportService
         $refArt->setType($type);
 
         // liaison emplacement
-        if ($refArt->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+        if ($refArt->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
             $this->checkAndCreateEmplacement($data, $refArt);
         }
 
@@ -1217,7 +1062,7 @@ class ImportService
             } else if ($data['quantiteStock'] < 0) {
                 $message = 'La quantité doit être positive.';
                 $this->throwError($message);
-            } else if ($refArt->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+            } else if ($refArt->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
                 if (isset($data['quantiteStock']) && $data['quantiteStock'] < $refArt->getQuantiteReservee()) {
                     $message = 'La quantité doit être supérieure à la quantité réservée (' . $refArt->getQuantiteReservee() . ').';
                     $this->throwError($message);
@@ -1414,12 +1259,29 @@ class ImportService
             $user->setAddress($data['address']);
         }
 
+        if(!empty($data['deliverer'])) {
+            $value = strtolower($data['deliverer']);
+            if ($value !== 'oui' && $value !== 'non') {
+                $this->throwError('La valeur saisie pour le champ Livreur est invalide (autorisé : "oui" ou "non")');
+            } else {
+                $user->setDeliverer($value === 'oui');
+            }
+        }
+
         if(isset($data['deliveryTypes'])) {
+            $deliveryTypesRaw = array_map('trim', explode(',', $data['deliveryTypes']));
             $deliveryCategory = $this->em->getRepository(CategoryType::class)->findOneBy(['label' => CategoryType::DEMANDE_LIVRAISON]);
             $deliveryTypes = $this->em->getRepository(Type::class)->findBy([
-                'label' => array_map('trim', explode(',', $data['deliveryTypes'])),
+                'label' => $deliveryTypesRaw,
                 'category' => $deliveryCategory
             ]);
+
+            $deliveryTypesLabel = Stream::from($deliveryTypes)->map(fn(Type $type) => $type->getLabel())->toArray();
+            $invalidTypes = Stream::diff($deliveryTypesLabel, $deliveryTypesRaw, false, true)->toArray();
+            if(!empty($invalidTypes)) {
+                $invalidTypesStr = implode(", ", $invalidTypes);
+                $this->throwError("Les types de demandes de livraison suivants sont invalides : $invalidTypesStr");
+            }
 
             foreach ($user->getDeliveryTypes() as $type) {
                 $user->removeDeliveryType($type);
@@ -1431,11 +1293,19 @@ class ImportService
         }
 
         if(isset($data['dispatchTypes'])) {
+            $dispatchTypesRaw = array_map('trim', explode(',', $data['dispatchTypes']));
             $dispatchCategory = $this->em->getRepository(CategoryType::class)->findOneBy(['label' => CategoryType::DEMANDE_DISPATCH]);
             $dispatchTypes = $this->em->getRepository(Type::class)->findBy([
-                'label' => array_map('trim', explode(',', $data['dispatchTypes'])),
+                'label' => $dispatchTypesRaw,
                 'category' => $dispatchCategory
             ]);
+
+            $dispatchTypesLabel = Stream::from($dispatchTypes)->map(fn(Type $type) => $type->getLabel())->toArray();
+            $invalidTypes = Stream::diff($dispatchTypesLabel, $dispatchTypesRaw, false, true)->toArray();
+            if(!empty($invalidTypes)) {
+                $invalidTypesStr = implode(", ", $invalidTypes);
+                $this->throwError("Les types d'acheminements suivants sont invalides : $invalidTypesStr");
+            }
 
             foreach ($user->getDispatchTypes() as $type) {
                 $user->removeDispatchType($type);
@@ -1447,11 +1317,19 @@ class ImportService
         }
 
         if(isset($data['handlingTypes'])) {
+            $handlingTypesRaw = array_map('trim', explode(',', $data['handlingTypes']));
             $handlingCategory = $this->em->getRepository(CategoryType::class)->findOneBy(['label' => CategoryType::DEMANDE_HANDLING]);
             $handlingTypes = $this->em->getRepository(Type::class)->findBy([
-                'label' => array_map('trim', explode(',', $data['handlingTypes'])),
+                'label' => $handlingTypesRaw,
                 'category' => $handlingCategory
             ]);
+
+            $handlingTypesLabel = Stream::from($handlingTypes)->map(fn(Type $type) => $type->getLabel())->toArray();
+            $invalidTypes = Stream::diff($handlingTypesLabel, $handlingTypesRaw, false, true)->toArray();
+            if(!empty($invalidTypes)) {
+                $invalidTypesStr = implode(", ", $invalidTypes);
+                $this->throwError("Les types de services suivants sont invalides : $invalidTypesStr");
+            }
 
             foreach ($user->getHandlingTypes() as $type) {
                 $user->removeHandlingType($type);
@@ -1463,11 +1341,15 @@ class ImportService
         }
 
         if(isset($data['dropzone'])) {
-            $dropzone = $this->em->getRepository(Emplacement::class)->findOneBy(['label' => $data['dropzone']]);
-            if(!isset($dropzone)) {
+            $locationRepository = $this->em->getRepository(Emplacement::class);
+            $locationGroupRepository = $this->em->getRepository(LocationGroup::class);
+            $dropzone = $locationRepository->findOneBy(['label' => $data['dropzone']])
+                ?: $locationGroupRepository->findOneBy(['label' => $data['dropzone']]);
+            if($dropzone) {
+                $user->setDropzone($dropzone);
+            } else {
                 $this->throwError("La dropzone ${data['dropzone']} n'existe pas");
             }
-            $user->setDropzone($dropzone);
         }
         foreach ($user->getVisibilityGroups() as $visibilityGroup) {
             $visibilityGroup->removeUser($user);
@@ -1475,7 +1357,7 @@ class ImportService
         if (isset($data['visibilityGroup'])) {
             $visibilityGroups = Stream::explode([";", ","], $data["visibilityGroup"])
                 ->unique()
-                ->map("trim")
+                ->map(fn(string $visibilityGroup) => trim($visibilityGroup))
                 ->map(function($label) use ($visibilityGroupRepository) {
                     $visibilityGroup = $visibilityGroupRepository->findOneBy(['label' => ltrim($label)]);
                     if (!$visibilityGroup) {
@@ -1506,7 +1388,7 @@ class ImportService
         $users = $this->em->getRepository(Utilisateur::class);
         $locations = $this->em->getRepository(Emplacement::class);
         $types = $this->em->getRepository(Type::class);
-        $statuses = $this->em->getRepository(Statut::class);
+        $statusRepository = $this->em->getRepository(Statut::class);
         $references = $this->em->getRepository(ReferenceArticle::class);
         $articles = $this->em->getRepository(Article::class);
         $categorieStatusRepository = $this->em->getRepository(CategorieStatut::class);
@@ -1514,21 +1396,35 @@ class ImportService
         $requester = isset($data['requester']) && $data['requester'] ? $users->findOneBy(['username' => $data['requester']]) : $utilisateur;
         $destination = $data['destination'] ? $locations->findOneBy(['label' => $data['destination']]) : null;
         $categorieStatus = $categorieStatusRepository->findOneBy(["nom" => CategorieStatut::DEM_LIVRAISON]);
-        $availableStatues = Stream::from($statuses->findAvailableStatuesForDeliveryImport($categorieStatus))
+        $availableStatuses = Stream::from($statusRepository->findAvailableStatuesForDeliveryImport($categorieStatus))
             ->flatten()
+            ->map(fn($status) => strtolower($status))
             ->values();
 
         $type = $data['type'] ? $types->findOneByCategoryLabelAndLabel(CategoryType::DEMANDE_LIVRAISON, $data['type']) : null;
-        $status = $data['status'] ? $statuses->findOneByCategorieNameAndStatutCode(CategorieStatut::DEM_LIVRAISON, $data['status']) : null;
+        $status = $data['status'] ? $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::DEM_LIVRAISON, $data['status']) : null;
         $commentaire = $data['commentaire'] ?? null;
         $articleReference = $data['articleReference'] ? $references->findOneBy(['reference' => $data['articleReference']]) : null;
         $article = $data['articleCode'] ?? null;
         $quantityDelivery = $data['quantityDelivery'] ?? null;
-        if(!$requester) {
+
+        $showTargetLocationPicking = $this->em->getRepository(Setting::class)->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION);
+        $targetLocationPicking = null;
+        if($showTargetLocationPicking) {
+            if(isset($data['targetLocationPicking'])) {
+                $targetLocationPickingStr = $data['targetLocationPicking'];
+                $targetLocationPicking = $locations->findOneBy(['label' => $targetLocationPickingStr]);
+                if(!$targetLocationPicking) {
+                    $this->throwError("L'emplacement cible picking $targetLocationPickingStr n'existe pas.");
+                }
+            }
+        }
+
+        if (!$requester) {
             $this->throwError('Demandeur inconnu.');
         }
 
-        if(!$destination) {
+        if (!$destination) {
             $this->throwError('Destination inconnue.');
         } else if ($type && !$destination->getAllowedDeliveryTypes()->contains($type)) {
             $this->throwError('Type non autorisé sur l\'emplacement fourni.');
@@ -1548,7 +1444,7 @@ class ImportService
             $request->setType($type);
         }
 
-        if (!in_array($data['status'], $availableStatues)) {
+        if (!in_array(strtolower($data['status']), $availableStatuses)) {
             $this->throwError('Statut inconnu (valeurs possibles : brouillon, à traiter).');
         } else if (!$request->getStatut()) {
             $request->setStatut($status);
@@ -1561,7 +1457,7 @@ class ImportService
         if (!$articleReference || $articleReference->getStatut()->getNom() === ReferenceArticle::STATUT_INACTIF) {
             $this->throwError('Article de référence inconnu ou inactif.');
         } else {
-            if ($article && $articleReference->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+            if ($article && $articleReference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
                 $article = $articles->findOneBy(['barCode' => $article]);
                 if ($article) {
                     if ($article->getQuantite() >= intval($quantityDelivery)) {
@@ -1571,17 +1467,19 @@ class ImportService
                             $line = new DeliveryRequestArticleLine();
                             $line
                                 ->setArticle($article)
-                                ->setQuantityToPick(intval($quantityDelivery));
+                                ->setQuantityToPick(intval($quantityDelivery))
+                                ->setTargetLocationPicking($targetLocationPicking);
                             $this->em->persist($line);
                             $request->addArticleLine($line);
                             if (!$request->getPreparations()->isEmpty()) {
                                 $preparation = $request->getPreparations()->first();
-                                $article->setStatut($statuses->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
+                                $article->setStatut($statusRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
                                 $ligneArticlePreparation = new PreparationOrderArticleLine();
                                 $ligneArticlePreparation
                                     ->setPickedQuantity($line->getPickedQuantity())
                                     ->setQuantityToPick($line->getQuantityToPick())
-                                    ->setArticle($article);
+                                    ->setArticle($article)
+                                    ->setTargetLocationPicking($targetLocationPicking);
                                 $this->em->persist($ligneArticlePreparation);
                                 $preparation->addArticleLine($ligneArticlePreparation);
                             }
@@ -1603,7 +1501,8 @@ class ImportService
                     $line = new DeliveryRequestReferenceLine();
                     $line
                         ->setReference($articleReference)
-                        ->setQuantityToPick($quantityDelivery);
+                        ->setQuantityToPick($quantityDelivery)
+                        ->setTargetLocationPicking($targetLocationPicking);
                     $this->em->persist($line);
                     $request->addReferenceLine($line);
                     if (!$request->getPreparations()->isEmpty()) {
@@ -1612,9 +1511,10 @@ class ImportService
                         $lignesArticlePreparation
                             ->setPickedQuantity($line->getPickedQuantity())
                             ->setQuantityToPick($line->getQuantityToPick())
-                            ->setReference($articleReference);
+                            ->setReference($articleReference)
+                            ->setTargetLocationPicking($targetLocationPicking);
                         $this->em->persist($lignesArticlePreparation);
-                        if ($articleReference->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                        if ($articleReference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
                             $articleReference->setQuantiteReservee(($articleReference->getQuantiteReservee() ?? 0) + $line->getQuantityToPick());
                         } else {
                             $refsToUpdate[] = $articleReference;
@@ -1637,7 +1537,7 @@ class ImportService
 
         $number = $this->uniqueNumberService->create(
             $this->em,
-            Demande::PREFIX_NUMBER,
+            Demande::NUMBER_PREFIX,
             Demande::class,
             UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT
         );
@@ -1664,8 +1564,133 @@ class ImportService
         return $request;
     }
 
+    private function importLocationEntity(array $data, array &$stats)
+    {
+        $locationRepository = $this->em->getRepository(Emplacement::class);
+        $natureRepository = $this->em->getRepository(Nature::class);
+        $typeRepository = $this->em->getRepository(Type::class);
+
+        $isNewEntity = false;
+        $location = $locationRepository->findOneBy(['label' => $data['name']]);
+
+        if (!$location) {
+            $location = new Emplacement();
+            $isNewEntity = true;
+        }
+
+        if ($isNewEntity) {
+            if (isset($data['name'])) {
+                if ((strlen($data['name'])) > 24) {
+                    $this->throwError("La valeur saisie pour le champ nom ne doit pas dépasser 24 caractères");
+                } elseif (!preg_match('/' . SettingsService::CHARACTER_VALID_REGEX . '/', $data['name'])) {
+                    $this->throwError("Le champ nom ne doit pas contenir de caractères spéciaux");
+                } else {
+                    $location->setLabel($data['name']);
+                }
+            } else {
+                $this->throwError("Le champ nom est obligatoire lors de la création d'un emplacement");
+            }
+
+            if (isset($data['description'])) {
+                if ((strlen($data['description'])) > 255) {
+                    $this->throwError("La valeur saisie pour le champ description ne doit pas dépasser 255 caractères");
+                } else {
+                    $location->setDescription($data['description']);
+                }
+            } else {
+                $this->throwError("Le champ description est obligatoire lors de la création d'un emplacement");
+            }
+        } else {
+            if (isset($data['description'])) {
+                if ((strlen($data['description'])) > 255) {
+                    $this->throwError("La valeur saisie pour le champ description ne doit pas dépasser 255 caractères");
+                }
+            }
+        }
+
+        if (isset($data['dateMaxTime'])) {
+            if (preg_match("/^\d+:[0-5]\d$/", $data['dateMaxTime'])) {
+                $location->setDateMaxTime($data['dateMaxTime']);
+            } else {
+                $this->throwError("Le champ Délais traça HH:MM ne respecte pas le bon format");
+            }
+        }
+
+        if (isset($data['allowedPackNatures'])) {
+            $elements = Stream::explode([";", ","], $data['allowedPackNatures'])->toArray();
+            $natures = $natureRepository->findBy(['label' => $elements]);
+            $natureLabels = Stream::from($natures)
+                ->map(fn(Nature $nature) => $nature->getLabel())
+                ->toArray();
+
+            $diff = Stream::diff($elements, $natureLabels, true);
+            if (!$diff->isEmpty()) {
+                $this->throwError("Les natures suivantes n'existent pas : {$diff->join(", ")}");
+            } else {
+                $location->setAllowedNatures($natures);
+            }
+        }
+
+        if (isset($data['allowedDeliveryTypes'])) {
+            $elements = Stream::explode([";", ","], $data['allowedDeliveryTypes'])->toArray();
+            $allowedDeliveryTypes = $typeRepository->findByCategoryLabelsAndLabels([CategoryType::DEMANDE_LIVRAISON], $elements);
+            $allowedDeliveryTypesLabels = Stream::from($allowedDeliveryTypes)
+                ->map(fn(Type $type) => $type->getLabel())
+                ->toArray();
+
+            $diff = Stream::diff($elements, $allowedDeliveryTypesLabels, true);
+            if (!$diff->isEmpty()) {
+                $this->throwError("Les types de demandes de livraison suivants n'existent pas : {$diff->join(", ")}");
+            } else {
+                $location->setAllowedDeliveryTypes($typeRepository->findBy(['label' => $elements]));
+            }
+        }
+
+        if (isset($data['allowedCollectTypes'])) {
+            $elements =  Stream::explode([";", ","], $data['allowedCollectTypes'])->toArray();
+            $allowedCollectTypes = $typeRepository->findByCategoryLabelsAndLabels([CategoryType::DEMANDE_COLLECTE], $elements);
+            $allowedCollectTypesLabels = Stream::from($allowedCollectTypes)
+                ->map(fn(Type $type) => $type->getLabel())
+                ->toArray();
+
+            $diff = Stream::diff($elements, $allowedCollectTypesLabels, true);
+            if (!$diff->isEmpty()) {
+                $this->throwError("Les types de demandes de collectes suivants n'existent pas : {$diff->join(", ")}");
+            } else {
+                $location->setAllowedCollectTypes($typeRepository->findBy(['label' => $elements]));
+            }
+        }
+
+        if (!empty($data['isDeliveryPoint'])) {
+            $location->setIsDeliveryPoint(
+                filter_var($data['isDeliveryPoint'], FILTER_VALIDATE_BOOLEAN)
+                || strtolower($data['isDeliveryPoint']) === "oui"
+            );
+        }
+
+        if (!empty($data['isOngoingVisibleOnMobile'])) {
+            $location->setIsOngoingVisibleOnMobile(
+                filter_var($data['isOngoingVisibleOnMobile'], FILTER_VALIDATE_BOOLEAN)
+                || strtolower($data['isOngoingVisibleOnMobile']) === "oui"
+            );
+        }
+
+        if (!empty($data['isActive'])) {
+            $location->setIsActive(
+                filter_var($data['isActive'], FILTER_VALIDATE_BOOLEAN)
+                || strtolower($data['isActive']) === "oui"
+            );
+        }
+
+        $this->em->persist($location);
+
+        $this->updateStats($stats, $isNewEntity);
+
+        return $location;
+    }
+
     private function checkAndSetChampsLibres(array $colChampsLibres,
-                                             $freeFieldEntity,
+                                                   $freeFieldEntity,
                                              bool $isNewEntity,
                                              array $row)
     {
@@ -1945,5 +1970,41 @@ class ImportService
             }
         }
         return $preselection;
+    }
+
+    public function getFieldsToAssociate(EntityManagerInterface $entityManager,
+                                         string $entityCode): array {
+        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
+
+        $fieldsToAssociate = Stream::from(self::FIELDS_TO_ASSOCIATE[$entityCode] ?? []);
+
+        if ($entityCode === Import::ENTITY_DELIVERY) {
+            $showTargetLocationPicking = $settingRepository->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION);
+            if (!$showTargetLocationPicking) {
+                $fieldsToAssociate = $fieldsToAssociate->filter(fn(string $key) => ($key !== "targetLocationPicking"));
+            }
+        }
+
+        $fieldsToAssociate = $fieldsToAssociate
+            ->keymap(fn(string $key) => [$key, Import::FIELDS_ENTITY[$key] ?? $key])
+            ->toArray();
+
+        $categoryCLByEntity = [
+            Import::ENTITY_ART => CategorieCL::ARTICLE,
+            Import::ENTITY_REF => CategorieCL::REFERENCE_ARTICLE,
+        ];
+
+        $categoryCL = $categoryCLByEntity[$entityCode] ?? null;
+
+        if (isset($categoryCL)) {
+            $freeFields = $freeFieldRepository->getLabelAndIdByCategory($categoryCL);
+
+            foreach ($freeFields as $freeField) {
+                $fieldsToAssociate[$freeField['id']] = $freeField['value'];
+            }
+        }
+
+        return $fieldsToAssociate;
     }
 }

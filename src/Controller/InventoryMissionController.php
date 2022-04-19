@@ -82,7 +82,7 @@ class InventoryMissionController extends AbstractController
      * @Route("/creer", name="mission_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::STOCK, Action::DISPLAY_INVE}, mode=HasPermission::IN_JSON)
      */
-    public function new(Request $request): Response
+    public function new(Request $request, EntityManagerInterface $em): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
             if ($data['startDate'] > $data['endDate'])
@@ -90,8 +90,6 @@ class InventoryMissionController extends AbstractController
                     'success' => false,
                     'msg' => "La date de début doit être antérieure à celle de fin."
                 ]);
-
-            $em = $this->getDoctrine()->getManager();
 
             $mission = new InventoryMission();
             $mission

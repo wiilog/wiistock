@@ -1,6 +1,6 @@
 <div class="form-group">
     <label>Nom</label>
-    <input class="form-control data needed is-barcode" maxlength="21" type="text" value='{{ location.label }}' name="Label" id="Label">
+    <input class="form-control data needed is-barcode" type="text" value='{{ location.label }}' name="Label" id="Label">
 </div>
 
 <div class="form-group">
@@ -9,7 +9,7 @@
            id="Description">
 </div>
 <div class="form-group">
-    <label>Délais Traça HH:MM</label>
+    <label>Délais traça HH:MM</label>
     <input class="form-control data" type="text" value='{{ location.dateMaxTime }}' name="dateMaxTime"
            id="dateMaxTime">
 </div>
@@ -20,6 +20,16 @@
         {% for nature in natures %}
             {% set selected = (nature in location.allowedNatures ? 'selected') %}
             <option value="{{ nature.id }}" {{ selected }}>{{ nature.label }}</option>
+        {% endfor %}
+    </select>
+</div>
+
+<div class="form-group">
+    <label>Températures autorisées</label>
+    <select name="allowedTemperatures" class="form-control data select2 w-100" multiple>
+        {% for temperature in temperatures %}
+            {% set selected = (temperature in location.temperatureRanges ? 'selected') %}
+            <option value="{{ temperature.id }}" {{ selected }}>{{ temperature.value }}</option>
         {% endfor %}
     </select>
 </div>

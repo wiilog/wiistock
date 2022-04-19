@@ -1,0 +1,12 @@
+{% import 'form.html.twig' as form %}
+
+<div class="wii-section">
+    <div class="row">
+        <div class="form-group w-fit-content col-xl-6 col-12">
+            {{ form.select(constant('App\\Entity\\Setting::APP_CLIENT'), 'Client courant', true, {
+                items: constant('App\\Service\\SpecificService::CLIENTS'),
+                value: current_client
+            }) }}
+        </div>
+    </div>
+</div>

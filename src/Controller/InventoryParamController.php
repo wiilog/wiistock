@@ -34,7 +34,6 @@ class InventoryParamController extends AbstractController
 
     /**
      * @Route("/", name="inventaire_param_index")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_INVE})
      */
     public function index(EntityManagerInterface $entityManager)
     {
@@ -48,11 +47,10 @@ class InventoryParamController extends AbstractController
 
     /**
      * @Route("/api", name="invParam_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_INVE}, mode=HasPermission::IN_JSON)
      */
-    public function api(): Response
+    public function api(EntityManagerInterface $manager): Response
     {
-        $inventoryCategoryRepository = $this->getDoctrine()->getRepository(InventoryCategory::class);
+        $inventoryCategoryRepository = $manager->getRepository(InventoryCategory::class);
         /** @var $category InventoryCategory */
         $categories = $inventoryCategoryRepository->findAll();
         $rows = [];
@@ -62,9 +60,7 @@ class InventoryParamController extends AbstractController
             $rows[] =
                 [
                     'Label' => $category->getLabel(),
-                    'Frequence' => $category->getFrequency()->getLabel(),
-                    'Permanent' => $category->getPermanent() ? 'oui' : 'non',
-                    'Actions' => $category->getId(),
+                    'Frequence' => $category->getFrequency()?->getLabel(),
                     'Actions' => $this->renderView('inventaire_param/datatableCategoryRow.html.twig', [
                         'url' => $url,
                         'categoryId' => $category->getId(),
@@ -94,8 +90,7 @@ class InventoryParamController extends AbstractController
                 $category = new InventoryCategory();
                 $category
                     ->setLabel($data['label'])
-                    ->setFrequency($frequency)
-                    ->setPermanent($data['permanent']);
+                    ->setFrequency($frequency);
 
                 $entityManager->persist($category);
                 $entityManager->flush();
@@ -159,8 +154,7 @@ class InventoryParamController extends AbstractController
                 $frequency = $inventoryFrequencyRepository->find($data['frequency']);
                 $category
                     ->setLabel($data['label'])
-                    ->setFrequency($frequency)
-                    ->setPermanent($data['permanent']);
+                    ->setFrequency($frequency);
 
                 $entityManager->persist($category);
                 $entityManager->flush();
@@ -206,10 +200,9 @@ class InventoryParamController extends AbstractController
      * @Route("/supprimer", name="category_delete", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::PARAM, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
-    public function delete(Request $request): Response
+    public function delete(Request $request, EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
-            $entityManager = $this->getDoctrine()->getManager();
             $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
 
             $category = $inventoryCategoryRepository->find($data['category']);
@@ -259,7 +252,6 @@ class InventoryParamController extends AbstractController
 
     /**
      * @Route("/frequences/voir", name="invParamFrequencies_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_INVE}, mode=HasPermission::IN_JSON)
      */
     public function apiFrequencies(EntityManagerInterface $entityManager): Response
     {
@@ -389,38 +381,35 @@ class InventoryParamController extends AbstractController
     /**
      * @Route("/import-categories", name="update_category", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
-	public function updateCategory(Request $request): Response
-	{
-        $entityManager = $this->getDoctrine()->getManager();
+    public function updateCategory(Request $request, EntityManagerInterface $entityManager): Response
+    {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
 
         $file = $request->files->get('file');
 
-        $delimiters = array(
+        $delimiters = [
             ';' => 0,
             ',' => 0,
             "\t" => 0,
             "|" => 0
-        );
+        ];
 
         $fileDetectDelimiter = fopen($file, "r");
         $firstLine = fgets($fileDetectDelimiter);
         fclose($fileDetectDelimiter);
+
         foreach ($delimiters as $delimiter => &$count) {
             $count = count(str_getcsv($firstLine, $delimiter));
         }
 
         $delimiter = array_search(max($delimiters), $delimiters);
-
         $rows = [];
-
         $fileOpen = fopen($file->getPathname(), "r");
-        while (($data = fgetcsv($fileOpen, 1000, $delimiter)) !== false) {
-            $rows[] = array_map('utf8_encode', $data);
-        }
 
-        array_shift($rows); // supprime la 1è ligne d'en-têtes
+        while (($data = fgetcsv($fileOpen, 1000, $delimiter)) !== false) {
+            $rows[] = $data;
+        }
 
         if (!file_exists('./uploads/log')) {
             mkdir('./uploads/log', 0777, true);
@@ -431,25 +420,21 @@ class InventoryParamController extends AbstractController
         $myFile = fopen($uri, "w");
         $success = true;
 
-        foreach ($rows as $row)
-        {
+        foreach ($rows as $row) {
             $inventoryCategory = $inventoryCategoryRepository->findOneBy(['label' => $row[1]]);
             $refArticle = $referenceArticleRepository->findOneBy(['reference' => $row[0]]);
-            if (!empty($refArticle) && !empty($inventoryCategory))
-            {
+
+            if (!empty($refArticle) && !empty($inventoryCategory)) {
                 $refArticle->setCategory($inventoryCategory);
                 $entityManager->persist($refArticle);
                 $entityManager->flush();
-            }
-            else
-            {
+            } else {
                 $success = false;
                 if (empty($refArticle)) {
                     fwrite($myFile, "La référence " . "'" . $row[0] . "' n'existe pas. \n");
                 }
-                if (empty($inventoryCategory))
-                {
-                    fwrite($myFile, "La catégorie " . "'" . $row[1] . "' n'existe pas. \n" );
+                if (empty($inventoryCategory)) {
+                    fwrite($myFile, "La catégorie " . "'" . $row[1] . "' n'existe pas. \n");
                 }
             }
         }
@@ -467,7 +452,7 @@ class InventoryParamController extends AbstractController
         fclose($myFile);
 
         return new JsonResponse(['success' => $success, 'nameFile' => $nameFile]);
-	}
+    }
 
     /**
      * @Route("/autocomplete-frequencies", name="get_frequencies", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")

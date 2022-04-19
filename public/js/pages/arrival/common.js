@@ -1,5 +1,15 @@
 let arrivageUrgentLoading = false;
 
+$(function () {
+    $(document).on(`change`, `#modalNewDispatch input[name=existingOrNot]`, function () {
+        onExistingOrNotChanged($(this));
+    });
+
+    $(document).on(`change`, `#modalNewDispatch select[name=existingDispatch]`, function() {
+        onExistingDispatchSelected($(this));
+    });
+});
+
 function arrivalCallback(isCreation, {success, alertConfigs = [], ...response}, arrivalsDatatable = null) {
     if (alertConfigs.length > 0) {
         const alertConfig = alertConfigs[0];
@@ -210,4 +220,92 @@ function createButtonConfigs({modalType, arrivalId, alertConfig, nextAlertConfig
     }
 
     return buttonConfigs;
+}
+
+function checkPossibleCustoms($modal) {
+    const isCustoms = $modal.find('[name="customs"]').is(':checked');
+    const $select = $modal.find('[name="fournisseur"]')
+
+    const $selectedSupplier = $select.find(':selected');
+    const possibleCustom = $selectedSupplier.data('possible-customs');
+
+    return new Promise((resolve) => {
+        if (!isCustoms && possibleCustom){
+            displayAlertModal(
+                undefined,
+                $('<div/>', {
+                    class: 'text-center',
+                    html: `Attention, ce fournisseur livre habituellement des colis sous douanes.`
+                        + ` Voulez-vous modifier votre saisie pour déclarer le colis sous douanes ?`
+                }),
+                [
+                    {
+                        class: 'btn btn-outline-secondary m-0',
+                        text: 'Non',
+                        action: ($modal) => {
+                            resolve(true);
+                            $modal.modal('hide');
+                        }
+                    },
+                    {
+                        class: 'btn btn-success m-0',
+                        text: 'Oui',
+                        action: ($modal) => {
+                            resolve(false);
+                            $modal.modal('hide');
+                        }
+                    }
+                ],
+                'warning'
+            );
+        }
+        else {
+            resolve(true);
+        }
+    });
+
+}
+
+function removePackInDispatchModal($button) {
+    $button
+        .closest('[data-multiple-key]')
+        .remove();
+}
+
+function onExistingOrNotChanged($input) {
+    const $modal = $input.closest('.modal');
+    const value = parseInt($input.val());
+    const $dispatchDetais = $modal.find(`.dispatch-details`);
+    const $existingDispatchContainer = $modal.find(`.existing-dispatch`);
+    const $newDispatchContainer = $modal.find(`.new-dispatch`);
+    const $existingDispatch = $existingDispatchContainer.find(`select[name=existingDispatch]`);
+    if(value === 0) {
+        $dispatchDetais.empty();
+        $existingDispatch
+            .val(null)
+            .trigger(SELECT2_TRIGGER_CHANGE)
+            .removeClass(`needed data`);
+        $newDispatchContainer.removeClass(`d-none`);
+        $existingDispatchContainer.addClass(`d-none`);
+        $newDispatchContainer
+            .find(`.needed-save`)
+            .addClass(`needed data`);
+    } else {
+        $existingDispatchContainer.removeClass(`d-none`);
+        $newDispatchContainer.addClass(`d-none`);
+        $newDispatchContainer
+            .find(`.needed`)
+            .removeClass(`needed data`)
+            .addClass('needed-save');
+        $existingDispatch.addClass(`needed data`);
+    }
+}
+
+function onExistingDispatchSelected($select) {
+    const $modal = $select.closest('.modal');
+    $.get(Routing.generate(`get_dispatch_details`, {id: $select.val()}, true)).then(({content}) => {
+        $modal.find(`.dispatch-details`)
+            .empty()
+            .append(content);
+    });
 }

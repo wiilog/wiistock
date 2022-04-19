@@ -2,10 +2,13 @@
 
 namespace App\Controller;
 
+use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\FreeField;
 use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
+use App\Entity\ReferenceArticle;
+use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
@@ -45,8 +48,8 @@ class FiltreRefController extends AbstractController
 
             // on vérifie qu'il n'existe pas déjà un filtre sur le même champ
             $userId = $user->getId();
-            $existingFilter = $filtreRefRepository->countByChampAndUser($data['field'], $userId);
-
+            $title = $refArticleDataService->getFieldTitle($data['field']);
+            $existingFilter = $filtreRefRepository->countByChampAndUser($title, $userId);
             if($existingFilter == 0) {
                 $filter = new FiltreRef();
 
@@ -60,7 +63,6 @@ class FiltreRefController extends AbstractController
                         $champLibre = $champLibreRepository->find($freeFieldId);
                         $filter->setChampLibre($champLibre);
                     } else {
-                        $title = $refArticleDataService->getFieldTitle($data['field']);
                         if (!empty($title)) {
                             $filter->setChampFixe($title);
                         }
@@ -132,9 +134,8 @@ class FiltreRefController extends AbstractController
             $filter = $filtreRefRepository->find($filterId);
 
             if ($filter) {
-                $em = $this->getDoctrine()->getManager();
-                $em->remove($filter);
-                $em->flush();
+                $entityManager->remove($filter);
+                $entityManager->flush();
                 $success = true;
                 $message = null;
             }
@@ -155,32 +156,39 @@ class FiltreRefController extends AbstractController
 
 			$value = $data['value'];
 			$multiple = false;
+            $options = [];
 			if ($value === 'location') {
                 $emplacementRepository = $entityManager->getRepository(Emplacement::class);
                 $emplacements = $emplacementRepository->findBy(['isActive' => true],['label'=> 'ASC']);
-				$options = [];
 				foreach ($emplacements as $emplacement) {
 					$options[] = $emplacement->getLabel();
 				}
 			} else if ($value === 'type') {
                 $typeRepository = $entityManager->getRepository(Type::class);
                 $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE], 'asc');
-				$options = [];
-				foreach ($types as $type) {
-					$options[] = $type->getLabel();
-				}
+                foreach ($types as $type) {
+                    $options[] = $type->getLabel();
+                }
+
+            } else if($value === 'status') {
+                $statuses = $entityManager->getRepository(Statut::class)->findByCategoryNameAndStatusCodes(CategorieStatut::REFERENCE_ARTICLE, [
+                    ReferenceArticle::STATUT_ACTIF,
+                    ReferenceArticle::STATUT_INACTIF,
+                    ReferenceArticle::DRAFT_STATUS
+                ]);
+                foreach ($statuses as $status) {
+                    $options[] = $status->getNom();
+                }
 			} else if ($value === 'visibilityGroups' || $value === 'visibilityGroup') {
                 $multiple = true;
                 $visibilityGroupRepository = $entityManager->getRepository(VisibilityGroup::class);
                 $visibilityGroups = $visibilityGroupRepository->findBy(["active" => true], ["label" => "asc"]);
-				$options = [];
 				foreach ($visibilityGroups as $visibilityGroup) {
 					$options[] = $visibilityGroup->getLabel();
 				}
 			} else {
                 $champLibreRepository = $entityManager->getRepository(FreeField::class);
                 $freeFieldId = $visibleColumnService->extractFreeFieldId($value);
-                $options = [];
                 if (!empty($freeFieldId)) {
                     /** @var $cl FreeField */
                     $cl = $champLibreRepository->find($freeFieldId);
@@ -206,7 +214,7 @@ class FiltreRefController extends AbstractController
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
 
-        $filters = $manager->getRepository(FiltreRef::class)->findByUserExceptFixedField($loggedUser, FiltreRef::FIXED_FIELD_STATUT);
+        $filters = $manager->getRepository(FiltreRef::class)->findByUser($loggedUser);
         $filters = Stream::from($filters)->map(fn(FiltreRef $filter) => [
             'id' => $filter->getId(),
             'freeField' => $filter->getChampLibre(),

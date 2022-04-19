@@ -1,7 +1,7 @@
 <div class="d-flex">
-    {% if orderPath is not null %}
-        {% set pathParams = (orderId is defined and orderId ? {'id': orderId} : {}) %}
-        <a href="{{ path(orderPath, pathParams) }}" target="_blank">
+    {% if path is not null %}
+        {% set pathParams = (pathParams is defined ? pathParams : {}) %}
+        <a href="{{ path(path, pathParams) }}" target="_blank">
             <i class='fas fa-share-square mr-2'></i>{{ from }}
         </a>
     {% elseif from is not null %}

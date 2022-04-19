@@ -40,7 +40,7 @@
     {% include 'free_field/freeFieldsEdit.html.twig' with {
         freeFields: demande.type is not null and freeFieldsGroupedByTypes[demande.type.id] is defined ? freeFieldsGroupedByTypes[demande.type.id] : [],
         freeFieldValues: demande.freeFields,
-        colType: 'col-md-4 col-12',
+        colType: 'col-md-6 col-12',
         requiredType: 'requiredEdit',
         actionType: 'edit'
     } %}
@@ -49,6 +49,6 @@
 <div class="form-group">
     <label for="commentaire">Commentaire</label>
     <input id="commentaire" class="form-control data" name="commentaire" type="hidden" value="{{ demande.commentaire }}">
-    <div class="editor-container-edit" value="{{ demande.commentaire }}"> {{ demande.commentaire|raw }}
+    <div class="editor-container-edit" value="{{ demande.commentaire }}" data-wysiwyg> {{ demande.commentaire|raw }}
     </div>
 </div>

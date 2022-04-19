@@ -113,7 +113,7 @@
             <input id='commentaire' class="form-control data" name="commentaire" type="hidden" value='{{ articleRef.commentaire }}'>
 
             {% set disableNomenclature = (isADemand is defined and isADemand) or disabled ? 'disabled' %}
-            <div class="form-control editor-container-edit comment {{ disableNomenclature }}">
+            <div class="form-control editor-container-edit comment {{ disableNomenclature }}" data-wysiwyg>
                 {{ articleRef.commentaire|raw }}
             </div>
 
@@ -195,7 +195,7 @@
         <input class="form-control data" type="number" name="prix" min="0" step="0.01" value="{{ articleRef.prixUnitaire }}" {{ disabled }}>
     </div>
 
-    {% if articleRef.typeQuantite == constant('App\\Entity\\ReferenceArticle::TYPE_QUANTITE_ARTICLE') %}
+    {% if articleRef.typeQuantite == constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_ARTICLE') %}
         <div class="form-group col-4">
             <label>Gestion de stock</label>
             <select name="stockManagement" class="form-control data">

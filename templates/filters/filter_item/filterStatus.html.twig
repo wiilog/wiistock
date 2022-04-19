@@ -1,15 +1,24 @@
 <div class="col-auto m-1 select-filter pr-0">
     <div class="select2-overflow">
         <div class="input-group w-100 cursor-default">
-            <select class="form-control data select2 filter-select2" name="statut" id="statut" multiple="multiple" {{ disabled }}>
-                {% for statut in statuts |sort((a, b) => a.nom <=> b.nom) %}
-                    {% if filterStatus is defined and statut.nom == filterStatus %}
-                        {% set selected = 'selected' %}
-                    {% else %}
-                        {% set selected = '' %}
-                    {% endif %}
-                    <option class="d-none" value="{{ statut.id }}" {{ selected }}>{{ statut.nom }}</option>
-                {% endfor %}
+            <select class="form-control data select2 filter-select2"
+                    name="statut"
+                    multiple="multiple"
+                    data-s2
+                    data-placeholder="{{ placeholder ?? 'Statuts' }}"
+                    data-no-empty-option
+                    {{ disabled }}>
+                {% if names is defined and names %}
+                    {% for status in statuts %}
+                        {% set selected = (filterStatus is defined and status == filterStatus) ? 'selected' %}
+                        <option class="d-none" value="{{ status }}" {{ selected }}>{{ status }}</option>
+                    {% endfor %}
+                {% else %}
+                    {% for status in statuts | sort((a, b) => a.nom <=> b.nom) %}
+                        {% set selected = (filterStatus is defined and status.nom == filterStatus) ? 'selected' %}
+                        <option class="d-none" value="{{ status.id }}" {{ selected }}>{{ status.nom }}</option>
+                    {% endfor %}
+                {% endif %}
             </select>
         </div>
         <input hidden id="filterStatus" value="{{ filterStatus is defined ? filterStatus : '' }}">

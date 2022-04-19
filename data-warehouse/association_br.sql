@@ -1,8 +1,8 @@
-SELECT reception_traca.date_creation AS date,
-       reception_traca.arrivage AS arrivage,
-       reception_traca.number AS reception,
+SELECT receipt_association.creation_date AS date,
+       receipt_association.pack_code AS codes_colis,
+       receipt_association.reception_number AS reception,
        utilisateur.username AS utilisateur
 
-FROM reception_traca
+FROM receipt_association
 
-LEFT JOIN utilisateur ON reception_traca.user_id = utilisateur.id
+LEFT JOIN utilisateur ON receipt_association.user_id = utilisateur.id

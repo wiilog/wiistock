@@ -4,7 +4,7 @@ namespace App\EventListener;
 
 use App\Entity\Alert;
 use App\Entity\Article;
-use App\Entity\ParametrageGlobal;
+use App\Entity\Setting;
 use App\Service\AlertService;
 use App\Service\RefArticleDataService;
 use DateTime;
@@ -30,8 +30,8 @@ class ArticleQuantityNotifier {
         $this->alertService = $alertService;
         $this->entityManager = $entityManager;
 
-        $this->expiryDelay = $entityManager->getRepository(ParametrageGlobal::class)
-            ->getOneParamByLabel(ParametrageGlobal::STOCK_EXPIRATION_DELAY) ?: 0;
+        $this->expiryDelay = $entityManager->getRepository(Setting::class)
+            ->getOneParamByLabel(Setting::STOCK_EXPIRATION_DELAY) ?: 0;
     }
 
     /**
@@ -122,10 +122,10 @@ class ArticleQuantityNotifier {
     private function treatAlert(EntityManagerInterface $entityManager,
                                 Article $article)
     {
-        if ($article->getExpiryDate()) {
+        if (is_numeric($this->expiryDelay) && $article->getExpiryDate()) {
             $now = new DateTime("now");
             $expires = clone $now;
-            $expires->modify("{$this->expiryDelay}day");
+            $expires->modify("{$this->expiryDelay} day");
 
             $existing = $entityManager->getRepository(Alert::class)->findForArticle($article, Alert::EXPIRY);
 

@@ -1,65 +1,109 @@
-<form method="" class="modal fade" id="modalNewNature" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
+<form class="modal fade" id="modalNewNature" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Créer <span title="une nature">{{ 'natures.une nature'|trans }}</span></h5>
+                <h5 class="modal-title wii-title">Créer <span title="une nature">{{ 'natures.une nature'|trans }}</span></h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body modal-input container-fluid">
                 <div class="row">
-                    <div class="form-group col-12">
-                        <label>Label*</label>
+                    <div class="form-group col-md-6 col-12">
+                        <label class="wii-field-name">Label*</label>
                         <input type="text" class="data form-control needed" name="label">
                     </div>
-                </div>
-                <div class="row">
-                    <div class="form-group col-12">
-                        <label>Code*</label>
+                    <div class="form-group col-md-6 col-12">
+                        <label class="wii-field-name">Code*</label>
                         <input type="text" class="data form-control needed" name="code">
                     </div>
-                </div>
-                <div class="row">
-                    <div class="form-group col-12">
-                        <label>Description</label>
+                    <div class="form-group col-md-6 col-12">
+                        <label class="wii-field-name">Description</label>
                         <input type="text" class="data form-control" name="description">
                     </div>
-                </div>
-                <div class="row">
-                    <div class="form-group col-12">
-                        <label>Quantité par défaut*</label>
+                    <div class="form-group col-md-6 col-12">
+                        <label class="wii-field-name">Quantité par défaut*</label>
                         <input type="number" class="data form-control needed" name="quantity" min="0">
                     </div>
-                </div>
-                <div class="row">
-                    <div class="form-group col-12">
-                        <label>Couleur*</label>
+                    <div class="form-group col-md-6 col-12">
+                        <label class="wii-field-name">Couleur*</label>
                         <input type="color" class="data form-control needed" name="color">
                     </div>
-                </div>
-                <div class="row">
-                    <div class="form-group col-12">
-                        <label>Préfixe</label>
+                    <div class="form-group col-md-6 col-12">
+                        <label class="wii-field-name">Préfixe</label>
                         <input type="text" class="data form-control" name="prefix">
                     </div>
-                </div>
-                <div class="row">
-                    <div class="form-group col-12">
-                        <label>Synchronisation nomade ?</label>
-                        <label class="switch ml-3">
-                            <input class="checkbox data" type="checkbox" name="mobileSync">
-                            <span class="slider round"></span>
-                        </label>
+                    <div class="form-group col-md-6 col-12">
+                        <label class="wii-field-name">Températures</label>
+                        <sup><img src="{{ asset('svg/information.svg') }}"
+                                  alt="Icône information"
+                                  width="10px"
+                                  class="has-tooltip"
+                                  title="Valable uniquement sur les demandes de transport">
+                        </sup>
+                        <select name="allowedTemperatures" class="form-control data w-100" data-s2 multiple>
+                            {% for temperature in temperatures %}
+                                <option value="{{ temperature.id }}">{{ temperature.value }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
-                </div>
-                <div class="row">
-                    <div class="form-group col-12 mb-0">
-                        <label>Affichage sur les formulaires ?</label>
-                        <label class="switch ml-3">
-                            <input class="checkbox data" type="checkbox" name="displayed">
-                            <span class="slider round"></span>
-                        </label>
+                    <div class="form-group col-12">
+                        <div class="wii-checkbox pl-0 pointer">
+                            <label class="pointer d-flex align-items-center">
+                                <input class="checkbox data ml-2" type="checkbox" name="mobileSync">
+                                Synchronisation nomade ?
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group col-12">
+                        <div class="wii-checkbox pl-0 pointer">
+                            <label class="pointer d-flex align-items-center">
+                                <input class="checkbox data ml-2" type="checkbox" name="defaultForDispatch">
+                                Nature par défaut (acheminements)
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group col-12 d-flex align-items-center">
+                        <div class="wii-checkbox pl-0 pointer">
+                            <label class="pointer d-flex align-items-center">
+                                <input class="checkbox data ml-2" type="checkbox" name="displayedOnForms" onchange="toggleEntitiesContainer($(this))">
+                                Affichage sur les formulaires ?
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col entities-container ml-3 d-none">
+                        {% for index, entity in constant('App\\Entity\\Nature::ENTITIES') %}
+                            <div class="d-flex mb-1 entity-item">
+                                <div class="form-group col-4 d-flex align-items-center mb-2">
+                                    <label class="d-flex align-items-center font-size-mini pointer mr-2">
+                                        <input class="checkbox data mr-2" type="checkbox" name="{{ index }}"
+                                               onclick="toggleTypes($(this))">
+                                        {{ entity }}
+                                    </label>
+                                </div>
+                                {% if index != constant('App\\Entity\\Nature::ARRIVAL_CODE') %}
+                                    <div class="input-group row no-gutters">
+                                        <div class="col-6 types-container">
+                                            <select name="{{ index }}Types"
+                                                    class="data form-control w-100"
+                                                    title="Types de {{ entity }}"
+                                                    data-s2
+                                                    data-placeholder="Sélectionnez un ou plusieurs types"
+                                                    disabled
+                                                    multiple>
+                                                {% for type in (types[index] ?? []) %}
+                                                    <option value="{{ type['id'] }}">{{ type['label'] }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="input-group-append col-4">
+                                            <button class="btn btn-primary select-all-types w-100" type="button" onclick="selectAllTypes($(this))" disabled>Tous les types
+                                            </button>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
                     </div>
                 </div>
             </div>

@@ -1,0 +1,86 @@
+{% import 'form.html.twig' as form %}
+
+<div class="wii-section-title">Création livraison</div>
+
+<div class="row wii-section">
+    <div class="col-md-6 col-12 my-1">
+        {{ form.checkbox(setting('CREATE_DL_AFTER_RECEPTION'), 'Créer une demande de livraison après réception', false, setting_value('CREATE_DL_AFTER_RECEPTION')) }}
+    </div>
+    <div class="col-md-6 col-12 my-1">
+        {{ form.checkbox(setting('CREATE_PREPA_AFTER_DL'), 'Créer une préparation après demande de livraison', false, setting_value('CREATE_PREPA_AFTER_DL')) }}
+    </div>
+    <div class="col-md-6 col-12 my-1">
+        {{ form.checkbox(setting('REQUESTER_IN_DELIVERY'), "Le demandeur est l'utilisateur de la session en cours", false, setting_value('REQUESTER_IN_DELIVERY')) }}
+    </div>
+    <div class="col-md-6 col-12 my-1">
+        {{ form.checkbox(setting('MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST'), 'Gérer le champ "Destination" en liste déroulante', false, setting_value('MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST')) }}
+    </div>
+</div>
+
+<div class="wii-section-title">Ajout référence</div>
+
+<div class="row wii-section">
+    <div class="col-12">
+        {{ form.checkbox(setting('DISPLAY_PICKING_LOCATION'), "Faire apparaitre l'emplacement cible de picking à l'ajout d'une référence et dans son traitement", false, setting_value('DISPLAY_PICKING_LOCATION')) }}
+    </div>
+</div>
+
+<div class="wii-section-title">Emplacements de livraison par défaut</div>
+
+<div class="wii-section mt-2">
+    <div class="row">
+        <div class="col">
+            <div class="row setting-type-association"></div>
+        </div>
+        <div class="col-auto">
+            <div class="row justify-content-end">
+                <div class="col-auto">
+                    <button class="btn btn-sm btn-primary new-type-association-button" {{ not (deliveryTypesCount - deliveryTypeSettings | json_decode | length) ? 'data-keep-disabled' }} disabled>
+                        <i class="fa fa-plus"></i>
+                        Ajouter un emplacement
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<template id="type-template">
+    <div class="d-flex col-8 mb-3 type-association-container">
+        <div class="d-flex align-items-center w-100 delivery-type-container">
+            <label class="w-100">
+                <span class="wii-field-name">Type</span>
+                <select name="deliveryType"
+                        required
+                        class="form-control data-array"
+                        data-s2="deliveryType"
+                        data-include-params-parent=".setting-type-association"
+                        data-include-params="select[name=deliveryType]">
+                </select>
+            </label>
+        </div>
+        <div class="d-flex align-items-center w-100">
+            <label class="w-100 ml-2">
+                <span class="wii-field-name">Emplacement</span>
+                <select name="deliveryRequestLocation"
+                        required
+                        class="form-control data-array"
+                        data-s2="location"
+                        data-include-params-parent=".type-association-container"
+                        data-include-params="select[name=deliveryType]">
+                </select>
+            </label>
+        </div>
+        <div class="d-flex align-items-end">
+            <div class="btn btn-outline-primary delete-association-line d-flex align-items-center ml-2"
+                 title="Supprimer la ligne" style="max-height: 40px; padding-top: 9px; padding-bottom: 9px;">
+                <i class="wii-icon wii-icon-trash"></i>
+            </div>
+        </div>
+    </div>
+</template>
+<input type="hidden" value="{{ deliveryTypeSettings }}" name="deliveryTypeSettings">
+<input type="hidden" value="" name="allTypesOption">
+<input type="hidden" value="" name="alreadyDefinedTypes">
+<input type="hidden" value="{{ setting_value('DEFAULT_LOCATION_LIVRAISON') }}" name="{{ setting('DEFAULT_LOCATION_LIVRAISON') }}">
+

@@ -2,10 +2,7 @@ $(document).ready(() => {
     const $statusSelector = $('.filterService select[name="statut"]');
 
     initDateTimePicker();
-    Select2Old.init($statusSelector, 'Statuts');
     Select2Old.location($('.ajax-autocomplete-emplacements'), {}, "Emplacement", 3);
-    Select2Old.user($('.filterService select[name="requesters"]'), "Demandeurs");
-    Select2Old.user($('.filterService select[name="operators"]'), "Opérateurs");
 
     // applique les filtres si pré-remplis
     let val = $('#filterStatus').val();
@@ -29,7 +26,7 @@ $(document).ready(() => {
     const $modalNewTransferRequest = $('#modalNewTransfer');
     $modalNewTransferRequest.on('show.bs.modal', function () {
         clearModal("#modalNewTransfer");
-        initNewTransferRequestEditor("#modalNewTransfer");
+        initNewTransferRequestEditor();
     });
 });
 
@@ -97,14 +94,6 @@ $.fn.dataTable.ext.search.push(
     }
 );
 
-//initialisation editeur de texte une seule fois à la création
-let editorNewTransferRequestAlreadyDone = false;
-
-function initNewTransferRequestEditor(modal) {
-    if (!editorNewTransferRequestAlreadyDone) {
-        initEditorInModal(modal);
-        editorNewTransferRequestAlreadyDone = true;
-    }
-
+function initNewTransferRequestEditor() {
     Select2Old.location($('.ajax-autocomplete-location'))
 }

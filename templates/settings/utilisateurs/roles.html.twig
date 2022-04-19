@@ -1,0 +1,23 @@
+<div class="wii-section">
+    <div class="row">
+        <div class="col-12 mb-3 wii-describe">
+            Un rôle permet de donner accès aux fonctionnalités de l'application, de manière générale de
+            consulter/modifier/supprimer ou exporter une donnée liée à une fonctionnalité. L'application permet de créer un rôle qui pourra
+            être affecté à un ou plusieurs utilisateurs de l'application.
+        </div>
+    </div>
+    <div class="row wii-box-header">
+        <div class="col-auto ml-auto">
+            <a href="{{ path('settings_role_new_form') }}" class="btn btn-primary">
+                <span class="fa fa-plus mr-2"></span>Nouveau rôle
+            </a>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <table id="tableRoles" class="table w-100">
+            </table>
+        </div>
+    </div>
+</div>
+{% include 'settings/utilisateurs/roles/delete.html.twig' %}

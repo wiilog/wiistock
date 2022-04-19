@@ -124,8 +124,8 @@ function clearLineAddModal(clearReferenceInput = false){
 }
 
 function callbackEditLineLoading($modal) {
-    initDateTimePicker('#modalEditPurchaseRequestLine .datepicker[name="orderDate"]', 'DD/MM/YYYY HH:mm', false);
-    initDateTimePicker('#modalEditPurchaseRequestLine .datepicker[name="expectedDate"]', 'DD/MM/YYYY', false);
+    initDateTimePicker('#modalEditPurchaseRequestLine .datepicker[name="orderDate"]', 'DD/MM/YYYY HH:mm');
+    initDateTimePicker('#modalEditPurchaseRequestLine .datepicker[name="expectedDate"]', 'DD/MM/YYYY');
     let $orderDateInput = $('#modalEditPurchaseRequestLine').find('[name="orderDate"]');
     let orderDate = $orderDateInput.attr('data-date');
 

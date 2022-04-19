@@ -5,20 +5,26 @@ namespace App\Controller;
 use App\Entity\Article;
 use App\Entity\CategoryType;
 use App\Entity\Emplacement;
+use App\Entity\FieldsParam;
 use App\Entity\Fournisseur;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\LocationGroup;
+use App\Entity\Nature;
 use App\Entity\Pack;
+use App\Entity\Setting;
 use App\Entity\PurchaseRequest;
 use App\Entity\ReferenceArticle;
+use App\Entity\Role;
 use App\Entity\Statut;
+use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -32,10 +38,36 @@ class SelectController extends AbstractController {
     public function locations(Request $request, EntityManagerInterface $manager): Response {
         $deliveryType = $request->query->get("deliveryType") ?? null;
         $collectType = $request->query->get("collectType") ?? null;
-        $results = $manager->getRepository(Emplacement::class)->getForSelect(
-            $request->query->get("term"),
-            $deliveryType,
-            $collectType
+        $term = $request->query->get("term");
+        $addGroup = $request->query->getBoolean("add-group");
+
+        $locations = $manager->getRepository(Emplacement::class)->getForSelect(
+            $term,
+            [
+                'deliveryType' => $deliveryType,
+                'collectType' => $collectType,
+                'idPrefix' => $addGroup ? 'location:' : ''
+            ]
+        );
+
+        $results = $locations;
+        if($addGroup) {
+            $locationGroups = $manager->getRepository(LocationGroup::class)->getForSelect($term);
+            $results = array_merge($locations, $locationGroups);
+            usort($results, fn($a, $b) => strtolower($a['text']) <=> strtolower($b['text']));
+        }
+
+        return $this->json([
+            "results" => $results,
+        ]);
+    }
+
+    /**
+     * @Route("/select/roles", name="ajax_select_roles", options={"expose": true})
+     */
+    public function roles(Request $request, EntityManagerInterface $manager): Response {
+        $results = $manager->getRepository(Role::class)->getForSelect(
+            $request->query->get("term")
         );
 
         return $this->json([
@@ -58,11 +90,11 @@ class SelectController extends AbstractController {
     }
 
     /**
-     * @Route("/select/types/livraisons", name="ajax_select_delivery_type", options={"expose": true})
+     * @Route("/select/types/dispatches", name="ajax_select_dispatch_type", options={"expose": true})
      */
-    public function deliveryType(Request $request, EntityManagerInterface $manager): Response {
+    public function dispatchType(Request $request, EntityManagerInterface $manager): JsonResponse {
         $results = $manager->getRepository(Type::class)->getForSelect(
-            CategoryType::DEMANDE_LIVRAISON,
+            CategoryType::DEMANDE_DISPATCH,
             $request->query->get("term")
         );
 
@@ -72,11 +104,64 @@ class SelectController extends AbstractController {
     }
 
     /**
+     * @Route("/select/types/livraisons", name="ajax_select_delivery_type", options={"expose": true})
+     */
+    public function deliveryType(Request $request, EntityManagerInterface $manager): Response {
+        $alreadyDefinedTypes = [];
+        if($request->query->has('alreadyDefinedTypes')) {
+            $alreadyDefinedTypes = explode(";", $request->query->get('alreadyDefinedTypes'));
+        } else if($request->query->has('deliveryType')) {
+            $alreadyDefinedTypes = $request->query->get('deliveryType');
+        }
+
+        $allTypesOption = [];
+        if($request->query->has('allTypesOption') && $request->query->getBoolean('allTypesOption') && !in_array('all', $alreadyDefinedTypes)) {
+            $allTypesOption = [[
+                'id' => 'all',
+                'text' => 'Tous les types'
+            ]];
+        }
+
+        $typeRepository = $manager->getRepository(Type::class);
+        $results = $typeRepository->getForSelect(
+            CategoryType::DEMANDE_LIVRAISON,
+            $request->query->get("term"),
+            ['alreadyDefinedTypes' => $alreadyDefinedTypes]
+        );
+
+        $results = array_merge($results, $allTypesOption);
+
+        return $this->json([
+            "results" => $results,
+            "availableResults" => $typeRepository->countAvailableForSelect(CategoryType::DEMANDE_LIVRAISON, ['alreadyDefinedTypes' => $alreadyDefinedTypes]),
+        ]);
+    }
+
+    /**
      * @Route("/select/types/collectes", name="ajax_select_collect_type", options={"expose": true})
      */
     public function collectType(Request $request, EntityManagerInterface $manager): Response {
         $results = $manager->getRepository(Type::class)->getForSelect(
             CategoryType::DEMANDE_COLLECTE,
+            $request->query->get("term")
+        );
+
+        return $this->json([
+            "results" => $results,
+        ]);
+    }
+
+    /**
+     * @Route("/select/types", name="ajax_select_types", options={"expose": true})
+     */
+    public function types(Request                $request,
+                          EntityManagerInterface $entityManager): Response {
+        $typeRepository = $entityManager->getRepository(Type::class);
+
+        $categoryType = $request->query->get('categoryType');
+
+        $results = $typeRepository->getForSelect(
+            $categoryType,
             $request->query->get("term")
         );
 
@@ -126,6 +211,16 @@ class SelectController extends AbstractController {
         ]);
     }
 
+    /**
+     * @Route("/select/nature", name="ajax_select_natures", options={"expose": true})
+     */
+    public function natures(Request $request, EntityManagerInterface $manager): Response {
+        $results = $manager->getRepository(Nature::class)->getForSelect($request->query->get("term"));
+        return $this->json([
+            "results" => $results,
+        ]);
+    }
+
 
     /**
      * @Route("/select/capteurs-bruts", name="ajax_select_sensors", options={"expose": true})
@@ -152,7 +247,16 @@ class SelectController extends AbstractController {
      * @Route("/select/utilisateur", name="ajax_select_user", options={"expose"=true})
      */
     public function user(Request $request, EntityManagerInterface $manager): Response {
-        $results = $manager->getRepository(Utilisateur::class)->getForSelect($request->query->get("term"));
+        $addDropzone = $request->query->getBoolean("add-dropzone") ?? false;
+        $delivererOnly = $request->query->getBoolean("delivererOnly") ?? false;
+
+        $results = $manager->getRepository(Utilisateur::class)->getForSelect(
+            $request->query->get("term"),
+            [
+                "addDropzone" => $addDropzone,
+                "delivererOnly" => $delivererOnly
+            ]
+        );
         return $this->json([
             "results" => $results,
         ]);
@@ -309,8 +413,9 @@ class SelectController extends AbstractController {
     public function collectableArticles(Request $request, EntityManagerInterface $entityManager): Response
     {
         $search = $request->query->get('term');
+        $reference = $entityManager->find(ReferenceArticle::class, $request->query->get('referenceArticle'));
         $articleRepository = $entityManager->getRepository(Article::class);
-        $articles = $articleRepository->getCollectableArticlesForSelect($search);
+        $articles = $articleRepository->getCollectableArticlesForSelect($search, $reference);
 
         return $this->json([
             "results" => $articles
@@ -327,6 +432,99 @@ class SelectController extends AbstractController {
 
         return $this->json([
             "results" => $purchaseRequest
+        ]);
+    }
+
+    /**
+     * @Route("/select/keyboard/pack", name="ajax_select_keyboard_pack", options={"expose"=true})
+     */
+    public function keyboardPack(Request $request, EntityManagerInterface $manager): Response
+    {
+        $settingsRepository = $manager->getRepository(Setting::class);
+        $packRepository = $manager->getRepository(Pack::class);
+        $packMustBeNew = $settingsRepository->getOneParamByLabel(Setting::PACK_MUST_BE_NEW);
+
+        $packCode = $request->query->get("term");
+        if($request->query->has("searchPrefix")) {
+            $packCode = $request->query->get("searchPrefix") . $packCode;
+        }
+
+        if($packMustBeNew) {
+            if($packRepository->findOneBy(["code" => $packCode])) {
+                return $this->json([
+                    "error" => "Ce colis existe déjà en base de données"
+                ]);
+            } else {
+                $results = [];
+            }
+        } else {
+            $results = $packRepository->getForSelect(
+                $packCode,
+                $request->query->get("pack")
+            );
+
+            foreach($results as $result) {
+                $result["stripped_comment"] = strip_tags($result["comment"]);
+            }
+        }
+
+        array_unshift($results, [
+            "id" => "new-item",
+            "html" => "<div class='new-item-container'><span class='wii-icon wii-icon-plus'></span> <b>Nouveau colis</b></div>",
+        ]);
+
+        if(isset($results[1])) {
+            $results[1]["highlighted"] = true;
+        } else {
+            $results[0]["highlighted"] = true;
+
+            if(!$packMustBeNew) {
+                $results[1] = [
+                    "id" => "no-result",
+                    "text" => "Aucun résultat",
+                    "disabled" => true,
+                ];
+            }
+        }
+
+        return $this->json([
+            "results" => $results ?? null,
+            "error" => $error ?? null,
+        ]);
+    }
+
+    /**
+     * @Route("/select/business-unit", name="ajax_select_business_unit", options={"expose"=true})
+     */
+    public function businessUnit(Request $request, EntityManagerInterface $manager): Response {
+        $page = $request->query->get('page');
+
+        $businessUnitValues = $manager
+            ->getRepository(FieldsParam::class)
+            ->getElements($page, FieldsParam::FIELD_CODE_BUSINESS_UNIT);
+
+        $results = Stream::from($businessUnitValues)
+            ->map(fn(string $value) => [
+                'id' => $value,
+                'text' => $value
+            ])
+            ->toArray();
+
+        return $this->json([
+            'results' => $results
+        ]);
+    }
+
+    /**
+     * @Route("/select/carrier", name="ajax_select_carrier", options={"expose"=true})
+     */
+    public function carrier(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $search = $request->query->get('term');
+        $carriers = $entityManager->getRepository(Transporteur::class)->getForSelect($search);
+
+        return $this->json([
+            "results" => $carriers
         ]);
     }
 }

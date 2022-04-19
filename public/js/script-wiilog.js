@@ -1,7 +1,3 @@
-const MAX_UPLOAD_FILE_SIZE = 10000000;
-const MAX_IMAGE_PIXELS = 1000000;
-const ALLOWED_IMAGE_EXTENSIONS = ['PNG', 'png', 'JPEG', 'jpeg', 'JPG','jpg','svg'];
-
 const PAGE_PURCHASE_REQUEST = 'rpurchase';
 const PAGE_TRANSFER_REQUEST = 'rtransfer';
 const PAGE_TRANSFER_ORDER = 'otransfer';
@@ -27,14 +23,14 @@ const PAGE_RECEIPT_ASSOCIATION = 'receipt_association';
 const PAGE_DISPATCHES = 'acheminement';
 const PAGE_STATUS = 'status';
 const PAGE_EMPLACEMENT = 'emplacement';
+const PAGE_TRANSPORT_REQUESTS = 'transportRequests';
+const PAGE_TRANSPORT_ORDERS = 'transportOrders';
 const PAGE_URGENCES = 'urgences';
 const PAGE_NOTIFICATIONS = 'notifications';
 const STATUT_ACTIF = 'disponible';
 const STATUT_INACTIF = 'consommé';
 const STATUT_EN_TRANSIT = 'en transit';
 
-/** Constants which define a valid barcode */
-const BARCODE_VALID_REGEX = /^[A-Za-z0-9_ \/\-]{1,24}$/;
 
 // alert modals config
 const AUTO_HIDE_DEFAULT_DELAY = 2000;
@@ -43,7 +39,9 @@ const AUTO_HIDE_DEFAULT_DELAY = 2000;
 const MAX_DATETIME_HTML_INPUT = '2100-12-31T23:59';
 const MAX_DATE_HTML_INPUT = '2100-12-31';
 
-const TEAM_SIZE = 10;
+const TEAM_SIZE = 11;
+
+const SELECT2_TRIGGER_CHANGE = 'change.select2';
 
 $(function () {
     $(document).on('hide.bs.modal', function () {
@@ -145,7 +143,6 @@ function showRow(button, path, modal) {
     let params = JSON.stringify(id);
     $.post(path, params, function (data) {
         modal.find('.modal-body').html(data);
-        $('.list-multiple').select2();
     }, 'json');
 }
 
@@ -157,17 +154,14 @@ function showRow(button, path, modal) {
  *
  * @param {Document} button
  * @param {string} path le chemin pris pour envoyer les données.
- * @param {Document} modal la modalde modification
+ * @param {Document} modal la modale de modification
  * @param {Document|string} submit le bouton de validation du form pour le edit
- *
- * @param editorToInit
- * @param editor
  * @param setMaxQuantity
  * @param afterLoadingEditModal
  * @param wantsFreeFieldsRequireCheck
  */
 
-function editRow(button, path, modal, submit, editorToInit = false, editor = '.editor-container-edit', setMaxQuantity = false, afterLoadingEditModal = () => {}, wantsFreeFieldsRequireCheck = true) {
+function editRow(button, path, modal, submit, setMaxQuantity = false, afterLoadingEditModal = () => {}, wantsFreeFieldsRequireCheck = true) {
     clearFormErrors(modal);
     let id = button.data('id');
     let ref = button.data('ref');
@@ -196,7 +190,7 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
         Select2Old.location(modal.find('.ajax-autocomplete-location-edit'));
         Select2Old.carrier(modal.find('.ajax-autocomplete-transporteur-edit'));
         Select2Old.user(modal.find('.ajax-autocomplete-user-edit'));
-        modal.find('.list-multiple').select2();
+
         if (wantsFreeFieldsRequireCheck) {
             toggleRequiredChampsLibres(modal.find('#typeEdit'), 'edit');
         }
@@ -204,10 +198,6 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
 
         if (setMaxQuantity) {
             setMaxQuantityEdit($('#referenceEdit'));
-        }
-
-        if (editorToInit) {
-            initEditor(editor);
         }
 
         afterLoadingEditModal(modal);
@@ -252,7 +242,7 @@ function updateQuantityDisplay($elem, parent = '.modal-body') {
     const $reference = $modalBody.find('.reference');
     const $article = $modalBody.find('.article');
     const $allArticle = $modalBody.find('.article, .emergency-comment');
-    let typeQuantite = $modalBody.find('.type_quantite').val();
+    let typeQuantite = $elem.data('title');
     if (typeQuantite == 'reference') {
         $allArticle.addClass('d-none');
         $reference.removeClass('d-none');
@@ -318,7 +308,6 @@ function toggleRequiredChampsLibres(type, require, $freeFieldContainer = null) {
                     $formControl.addClass('needed');
                 });
             }
-            $('.list-multiple').select2();
         }, 'json');
     }
 }
@@ -356,20 +345,24 @@ function clearModal(modal) {
         }
     })
 
-    let inputs = $modal.find('.modal-body').find(".data,.data-array");
+    let $inputs = $modal.find('.modal-body').find(".data:not([type=radio]),.data-array:not([type=radio])");
+
     // on vide tous les inputs (sauf les disabled et les input hidden)
-    inputs.each(function () {
-        if ($(this).attr('disabled') !== 'disabled' && $(this).attr('type') !== 'hidden' && !$(this).hasClass('no-clear')) {
-            if ($(this).hasClass('needs-default')) {
-                $(this).val($(this).data('init'));
-            } else {
-                $(this).val("");
+    $inputs.each(function () {
+        const $input = $(this);
+        if (!$input.closest('.wii-switch').exists()) {
+            if ($input.attr('disabled') !== 'disabled' && $input.attr('type') !== 'hidden' && !$input.hasClass('no-clear')) {
+                if ($input.hasClass('needs-default')) {
+                    $input.val($input.data('init'));
+                } else {
+                    $input.val("");
+                }
             }
+            // on enlève les classes is-invalid
+            $input.removeClass('is-invalid');
+            $input.next().find('.select2-selection').removeClass('is-invalid');
+            //TODO protection ?
         }
-        // on enlève les classes is-invalid
-        $(this).removeClass('is-invalid');
-        $(this).next().find('.select2-selection').removeClass('is-invalid');
-        //TODO protection ?
     });
     // on vide tous les select2
     let selects = $modal
@@ -452,7 +445,8 @@ function saveFilters(page, tableSelector, callback) {
         'filter-select2': ($input) => ($input.select2('data') || [])
                 .filter(({id, text}) => (id.trim() && text.trim()))
                 .map(({id, text}) => ({id, text})),
-        'filter-checkbox': ($input) => $input.is(':checked')
+        'filter-checkbox': ($input) => $input.is(':checked'),
+        'filter-switch': ($input) => $input.closest(`.wii-expanded-switch, .wii-switch`).find(':checked').val(),
     };
 
     let params = {
@@ -481,6 +475,7 @@ function saveFilters(page, tableSelector, callback) {
     if ($filterDateExpectedPicker) {
         $filterDateExpectedPicker.format('DD/MM/YYYY');
     }
+
     $.post(path, JSON.stringify(params), function (response) {
         if (response) {
             if (callback) {
@@ -502,7 +497,7 @@ function saveFilters(page, tableSelector, callback) {
 
 function checkAndDeleteRow(icon, modalName, route, submit, getParams = null) {
     let $modalBody = $(modalName).find('.modal-body');
-    let $submit = $(submit);
+    let $submit = submit instanceof jQuery ? submit : $(submit);
     let id = icon.data('id');
 
     let param = JSON.stringify(id);
@@ -526,7 +521,7 @@ function checkAndDeleteRow(icon, modalName, route, submit, getParams = null) {
 
     $.post(Routing.generate(route) + (getParamsStr ? `?${getParamsStr}` : ''), param, function (resp) {
         $modalBody.html(resp.html);
-        if (resp.delete == false) {
+        if (!resp.delete) {
             $submit.hide();
         } else {
             $submit.show();
@@ -652,8 +647,19 @@ function onFlyFormSubmit(path, button, toHide, buttonAdd, $select = null) {
     }
 }
 
-function initDateTimePicker(dateInput = '#dateMin, #dateMax, #expectedDate', format = 'DD/MM/YYYY', minDate = false, defaultHours = null, defaultMinutes = null, disableDates = null) {
-    let options = {
+/**
+ * @param {string} dateInput
+ * @param {string} format
+ * @param {{}|{
+ *      minDate: boolean,
+ *      defaultHours: number|null,
+ *      defaultMinutes: number|null,
+ *      disableDates: boolean|null,
+ *      setTodayDate: boolean,
+ * }} options
+ */
+function initDateTimePicker(dateInput = '#dateMin, #dateMax, #expectedDate', format = 'DD/MM/YYYY', options = {}) {
+    let config = {
         format: format,
         useCurrent: false,
         locale: moment.locale('fr'),
@@ -668,20 +674,21 @@ function initDateTimePicker(dateInput = '#dateMin, #dateMax, #expectedDate', for
             selectMonth: 'Choisir le mois',
             selectYear: 'Choisir l\'année',
             selectDecade: 'Choisir la décennie',
-        }
+        },
+        ...(options.setTodayDate ? {defaultDate: moment()} : null)
     };
-    if (disableDates) {
-        options.disabledDates = disableDates;
+    if (options.disableDates) {
+        config.disabledDates = options.disableDates;
     }
-    if (minDate) {
-        options.minDate = moment().hours(0).minutes(0).seconds(0);
+    if (options.minDate) {
+        config.minDate = moment().subtract(1, "days").hours(23).minutes(59).seconds(59);
     }
-    if (defaultHours !== null && defaultMinutes !== null) {
-        options.defaultDate = moment().hours(defaultHours).minutes(defaultMinutes);
+    if (options.defaultHours && options.defaultMinutes) {
+        config.defaultDate = moment().hours(options.defaultHours).minutes(options.defaultMinutes);
     }
 
     $(dateInput).data("dtp-initialized", "true");
-    $(dateInput).datetimepicker(options);
+    $(dateInput).datetimepicker(config);
 }
 
 
@@ -695,94 +702,103 @@ function warningEmptyDatesForCsv() {
 
 function displayFiltersSup(data) {
     data.forEach(function (element) {
-        switch (element.field) {
-            case 'utilisateurs':
-            case 'declarants':
-            case 'providers':
-            case 'reference':
-            case 'statut':
-            case 'carriers':
-            case 'emplacement':
-            case 'demCollecte':
-            case 'disputeNumber':
-            case 'demande':
-            case 'multipleTypes':
-            case 'receivers':
-            case 'requesters':
-            case 'commandList':
-            case 'operators':
-            case 'dispatchNumber':
-            case 'emergencyMultiple':
-                let valuesElement = element.value.split(',');
-                let $select = $(`.filter-select2[name="${element.field}"]`);
-                $select.find('option').prop('selected', false);
-                valuesElement.forEach((value) => {
-                    let valueArray = value.split(':');
-                    let id = valueArray[0];
-                    let name = valueArray[1];
-                    const $optionToSelect = $select.find(`option[value="${name}"]`).length > 0
-                        ? $select.find(`option[value="${name}"]`)
-                        : $select.find(`option[value="${id}"]`).length > 0
-                            ? $select.find(`option[value="${id}"]`)
-                            : null;
-                    if ($optionToSelect) {
-                        $optionToSelect.prop('selected', true);
-                        $select.trigger('change');
+        const $element = $(`.filters [name="${element.field}"]`);
+        if($element.is(`.filter-switch`)) {
+            $(`.filter-switch[name="${element.field}"][value="${element.value}"]`)
+                .prop(`checked`, true)
+                .trigger(`change`);
+        } else {
+            //TODO refacto !!!!!!
+            switch (element.field) {
+                case 'utilisateurs':
+                case 'declarants':
+                case 'providers':
+                case 'reference':
+                case 'statut':
+                case 'carriers':
+                case 'emplacement':
+                case 'demCollecte':
+                case 'disputeNumber':
+                case 'demande':
+                case 'multipleTypes':
+                case 'receivers':
+                case 'requesters':
+                case 'commandList':
+                case 'operators':
+                case 'dispatchNumber':
+                case 'emergencyMultiple':
+                case 'businessUnit':
+                case 'managers':
+                    let valuesElement = element.value.split(',');
+                    let $select = $(`.filter-select2[name="${element.field}"]`);
+                    $select.find('option').prop('selected', false);
+                    valuesElement.forEach((value) => {
+                        let valueArray = value.split(':');
+                        let id = valueArray[0];
+                        let name = valueArray[1];
+                        const $optionToSelect = $select.find(`option[value="${name}"]`).length > 0
+                            ? $select.find(`option[value="${name}"]`)
+                            : $select.find(`option[value="${id}"]`).length > 0
+                                ? $select.find(`option[value="${id}"]`)
+                                : null;
+                        if ($optionToSelect) {
+                            $optionToSelect.prop('selected', true);
+                            $select.trigger('change');
+                        } else {
+                            let option = new Option(name, id, true, true);
+                            $select.append(option).trigger('change');
+                        }
+                    });
+                    break;
+
+                // multiple
+                case 'natures':
+                    let valuesElement2 = element.value.split(',');
+                    let $select2 = $(`.filter-select2[name="${element.field}"]`);
+                    let ids = [];
+                    valuesElement2.forEach((value) => {
+                        let valueArray = value.split(':');
+                        let id = valueArray[0];
+                        ids.push(id);
+                    });
+                    $select2.val(ids).trigger('change');
+                    break;
+
+                case 'emergency':
+                case 'customs':
+                case 'frozen':
+                    if (element.value === '1') {
+                        $('#' + element.field + '-filter').attr('checked', 'checked');
                     }
-                    else {
-                        let option = new Option(name, id, true, true);
-                        $select.append(option).trigger('change');
+                    break;
+
+                case 'litigeOrigin':
+                    const text = element.value || '';
+                    const id = text.replace('é', 'e').substring(0, 3).toUpperCase();
+                    $(`.filter-checkbox[name="${element.field}"]`).val(id).trigger('change');
+                    break;
+
+                case 'dateMin':
+                case 'dateMax':
+                    const sourceFormat = (element.value && element.value.indexOf('/') > -1)
+                        ? 'DD/MM/YYYY'
+                        : 'YYYY-MM-DD';
+                    const $fieldDate = $(`.filter-input[name="${element.field}"]`);
+                    const dateValue = moment(element.value, sourceFormat).format('DD/MM/YYYY');
+                    if ($fieldDate.data("DateTimePicker")) {
+                        $fieldDate.data("DateTimePicker").date(dateValue);
+                    } else {
+                        $fieldDate.val(dateValue);
                     }
-                });
-                break;
+                    break;
 
-            // multiple
-            case 'natures':
-                let valuesElement2 = element.value.split(',');
-                let $select2 = $(`.filter-select2[name="${element.field}"]`);
-                let ids = [];
-                valuesElement2.forEach((value) => {
-                    let valueArray = value.split(':');
-                    let id = valueArray[0];
-                    ids.push(id);
-                });
-                $select2.val(ids).trigger('change');
-                break;
-
-            case 'emergency':
-            case 'customs':
-            case 'frozen':
-                if (element.value === '1') {
-                    $('#' + element.field + '-filter').attr('checked', 'checked');
-                }
-                break;
-
-            case 'litigeOrigin':
-                const text = element.value || '';
-                const id = text.replace('é', 'e').substring(0, 3).toUpperCase();
-                $(`.filter-checkbox[name="${element.field}"]`).val(id).trigger('change');
-                break;
-
-            case 'dateMin':
-            case 'dateMax':
-                const sourceFormat = (element.value && element.value.indexOf('/') > -1)
-                    ? 'DD/MM/YYYY'
-                    : 'YYYY-MM-DD';
-                const $fieldDate = $(`.filter-input[name="${element.field}"]`);
-                const dateValue = moment(element.value, sourceFormat).format('DD/MM/YYYY');
-                if ($fieldDate.data("DateTimePicker")) {
-                    $fieldDate.data("DateTimePicker").date(dateValue);
-                } else {
-                    $fieldDate.val(dateValue);
-                }
-                break;
-
-            default:
-                const $fieldWithId = $('#' + element.field);
-                const $field = $fieldWithId.length > 0
-                    ? $fieldWithId
-                    : $('.filters-container').find(`[name="${element.field}"]`);
-                $field.val(element.value);
+                default:
+                    const $fieldWithId = $('#' + element.field);
+                    const $field = $fieldWithId.length > 0
+                        ? $fieldWithId
+                        : $('.filters-container').find(`[name="${element.field}"]`);
+                    $field.val(element.value);
+            }
         }
     });
 }
@@ -921,7 +937,7 @@ function saveExportFile(routeName, needsDateFilters = true, routeParam = {}) {
 }
 
 function fillDemandeurField($modal) {
-    const $operatorSelect = $modal.find('.select2-declarant');
+    const $operatorSelect = $modal.find('select[name=disputeReporter]');
     const $loggedUserInput = $modal.find('input[hidden][name="logged-user"]');
     const userId = $loggedUserInput.data('id');
     const $operatorSelect2 = $operatorSelect
@@ -1056,59 +1072,6 @@ function onTypeChange($select) {
 
 function getBSAlertModal() {
     return $('#alert-modal');
-}
-
-function updateImagePreview(preview, upload, $title = null, $delete = null, $callback = null) {
-    let $upload = $(upload)[0];
-
-    $(upload).change(() => {
-        if ($upload.files && $upload.files[0]) {
-            let fileNameWithExtension = $upload.files[0].name.split('.');
-            let extension = fileNameWithExtension[fileNameWithExtension.length - 1];
-
-            if ($upload.files[0].size < MAX_UPLOAD_FILE_SIZE) {
-                if (ALLOWED_IMAGE_EXTENSIONS.indexOf(extension) !== -1) {
-                    if ($title) {
-                        $title.text(fileNameWithExtension.join('.').substr(0, 5) + '...');
-                        $title.attr('title', fileNameWithExtension.join('.'));
-                        if($title.siblings('input[name=titleComponentLogo]').length > 0) {
-                            $title.siblings('input[name=titleComponentLogo]').last().val($upload.files[0].name);
-                        }
-                    }
-
-                    let reader = new FileReader();
-                    reader.onload = function (e) {
-                        let image = new Image();
-
-                        image.onload = function() {
-                            const pixels = image.height * image.width;
-                            if (pixels <= MAX_IMAGE_PIXELS) {
-                                if ($callback) {
-                                    $callback($upload);
-                                }
-                                $(preview)
-                                    .attr('src', e.target.result)
-                                    .removeClass('d-none');
-                                if ($delete) {
-                                    $delete.removeClass('d-none');
-                                }
-                            } else {
-                                showBSAlert('Veuillez choisir une image ne faisant pas plus de 1000x1000.', 'danger');
-                            }
-                        };
-
-                        image.src = e.target.result;
-                    };
-
-                    reader.readAsDataURL($upload.files[0]);
-                } else {
-                    showBSAlert('Veuillez choisir une image valide (png, jpeg, jpg, svg).', 'danger')
-                }
-            } else {
-                showBSAlert('La taille du fichier est supérieure à 10 mo.', 'danger')
-            }
-        }
-    })
 }
 
 function registerEasterEgg() {

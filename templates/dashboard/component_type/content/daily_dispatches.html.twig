@@ -27,6 +27,35 @@
             </div>
         </div>
     </div>
+    <div class="row form-group align-items-center separate-type">
+        <div class="col-auto">
+            <label class="switch">
+                <input class="checkbox"
+                       type="checkbox"
+                       name="separateType"
+                       onclick="hideOrShowStackButton()"
+                    {{ values.separateType ?? false ? 'checked' }}/>
+                <span class="slider round"></span>
+            </label>
+        </div>
+        <div class="col">
+            Distinguer les acheminements par type
+        </div>
+    </div>
+    <div class="row form-group align-items-center stack-button {{ values.separateType != true ? 'd-none' : '' }}">
+        <div class="col-auto">
+            <label class="switch">
+                <input class="checkbox"
+                       type="checkbox"
+                       name="stackValues"
+                    {{ (values.stackValues == true and values.separateType == true) ? 'checked' : '' }}/>
+                <span class="slider round"></span>
+            </label>
+        </div>
+        <div class="col">
+            Afficher des diagrammes en empilés
+        </div>
+    </div>
 
     <div class="row">
         <div class="col-12">
@@ -59,7 +88,7 @@
                max=7
                step="1"
                style="width: 70px">
-        <select class="form-control data w-25" name="period">
+        <select class="form-control data w-50" name="period">
             <option value="{{ constant('App\\Service\\DashboardService::DAILY_PERIOD_PREVIOUS_DAYS') }}" {{  values.period is not defined or constant('App\\Service\\DashboardService::DAILY_PERIOD_PREVIOUS_DAYS') == values.period ? 'selected' }}>dernier jours</option>
             <option value="{{ constant('App\\Service\\DashboardService::DAILY_PERIOD_NEXT_DAYS') }}" {{  values.period is defined and constant('App\\Service\\DashboardService::DAILY_PERIOD_NEXT_DAYS') == values.period ? 'selected' }}>prochains jours</option>
         </select>

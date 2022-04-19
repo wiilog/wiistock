@@ -1,15 +1,18 @@
-{% if values | length > 0 %}
-    <div class="{{ containerClass }} row">
-        {% for freeField in freeFields %}
-            {% set value = values[freeField.id] ?? (freeField.defaultValue ?? '') %}
-            <div class="col-6 box-item mb-3">
-                <span class="wii-field-name">{{ freeField.label }}</span>
-                <span class="wii-body-text">{{ value | format_helper('freeField', freeField) }}</span>
-            </div>
-        {% endfor %}
-    </div>
+{% set containerClass = containerClass is defined and containerClass ? containerClass %}
+{% set wrapperClass = wrapperClass is defined and wrapperClass ? wrapperClass %}
+
+{% if freeFields | length > 0 %}
+    {% if containerClass %}<div class="{{ containerClass }}">{% endif %}
+    {% include 'utils/data-show.html.twig' with {
+        data: freeFields|map((freeField) => {
+            label: freeField.label,
+            value: (values[freeField.id] ?? (freeField.defaultValue ?? '')) | format_helper('freeField', freeField)
+        }),
+        wrapperClass: wrapperClass
+    } %}
+    {% if containerClass %}</div>{% endif %}
 {% else %}
-    <div class="{{ containerClass }} ml-3">
+    <div class="text-center ml-3 py-3">
         <span class="wii-small-text"
               title="{{ emptyTitle is defined ? emptyTitle }}">
             {{ emptyLabel }}

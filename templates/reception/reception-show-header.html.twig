@@ -7,7 +7,8 @@
 {% endblock %}
 
 {% block showTitleTooltip 'réception' %}
-{% block showTitle (('réception.réception'|trans) ~ ' ' ~ reception.number) %}
+{% block showTitle ('réception.réception'|trans) %}
+{% block showSubtitle (reception.number) %}
 
 {% block showActions %}
     <div class="btn-group">
@@ -51,8 +52,6 @@
                            Routing.generate('api_reception_edit', true),
                            $('#modalEditReception'),
                            $('#submitEditReception'),
-                           true,
-                           '.editor-container-edit',
                            false,
                            initEditReception
                        )">

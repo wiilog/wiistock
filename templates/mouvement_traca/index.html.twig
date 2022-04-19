@@ -13,17 +13,19 @@
 {% block page_content %}
     {% set isSafran =
         isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED'))
-        or isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_NS'))
-    %}
+        or isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_NS')) %}
     {% set hasRightCreate = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::CREATE')) %}
     {% set hasRightExport = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EXPORT')) %}
     {% set editAttachments = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT')) %}
+    {% set hasRightToCreateMovement = hasRightCreate
+        and hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::CREATE_TRACKING_MOVEMENT')) %}
     <div class="m-4 wii-page-card">
-        {% if hasRightCreate or hasRightExport %}
-            <div class="row wii-page-card-header">
-                <div class="col-auto ml-auto">
+        <div class="row wii-page-card-header">
+            <div class="col-auto ml-auto">
+                {% if hasRightToCreateMovement or hasRightExport %}
+
                     <div class="btn-group">
-                        {% if hasRightCreate %}
+                        {% if hasRightToCreateMovement %}
                             <button type="button"
                                     data-toggle="modal"
                                     data-target="#modalNewMvtTraca"
@@ -49,7 +51,6 @@
                                 Gestion des colonnes
                             </button>
                         {% endif %}
-
                         <button type="button"
                                 class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
                                 data-toggle="dropdown"
@@ -57,12 +58,10 @@
                                 aria-expanded="false">
                             <span class="fa fa-angle-down"></span>
                         </button>
-
-
                         <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
-                            {% if hasRightCreate and hasRightExport %}
+                            {% if hasRightToCreateMovement and hasRightExport %}
                                 <a class="dropdown-item pointer"
-                                     onclick="saveExportFile('get_mouvements_traca_csv')">
+                                   onclick="saveExportFile('get_mouvements_traca_csv')">
                                     <i class="fa fa-file-csv mr-2" style="padding: 0 2px"></i>
                                     Exporter au format CSV
                                 </a>
@@ -75,9 +74,17 @@
                             </a>
                         </div>
                     </div>
-                </div>
+                {% else %}
+                    <button type="button"
+                            class="btn btn-primary"
+                            data-toggle="modal"
+                            data-target="#modalColumnVisible">
+                        <i class="fa fa-cog mr-2"></i>
+                        Gestion des colonnes
+                    </button>
+                {% endif %}
             </div>
-        {% endif %}
+        </div>
         <div class="row">
             <div class="col-12">
                 <table id="tableMvts" class="table w-100"></table>

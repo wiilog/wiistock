@@ -240,11 +240,19 @@ class TransferOrderController extends AbstractController {
         if ($data = json_decode($request->getContent(), true)) {
 
             $statutRepository = $entityManager->getRepository(Statut::class);
-
+            $availableStatus = $statutRepository
+                ->findOneByCategorieNameAndStatutCode( CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
             $draftRequest = $statutRepository
                 ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_REQUEST, TransferRequest::DRAFT);
 
             $transferRequest = $transferOrder->getRequest();
+
+            foreach ($transferRequest->getArticles() as $article) {
+                if($article->getStatut()->getCode() === Article::STATUT_EN_TRANSIT) {
+                    $article->setStatut($availableStatus);
+                }
+            }
+
             $transferRequest->setStatus($draftRequest);
             $transferRequest->setValidationDate(null);
 
@@ -317,7 +325,7 @@ class TransferOrderController extends AbstractController {
                 "origine",
                 "destination",
                 "date de création",
-                "date de transfert",
+                "date de traitement",
                 "commentaire",
                 "référence",
                 "code barre"

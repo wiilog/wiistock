@@ -1,0 +1,40 @@
+{% import 'form.html.twig' as form %}
+
+<div class="w-100">
+    <div class="wii-box mt-15px filters-container">
+        <div class="header wii-title">Statuts</div>
+        <div class="focus-shadow p-3">
+            <div class="row">
+                <div class="col-12 mb-3 wii-describe">
+                    Le statut est fait pour paramétrer un workflow, soit les étapes successives permettant d'aller vers la finalisation d'un service.
+                    Vous pouvez modifier et ajouter des statuts.
+                </div>
+                <div class="col-12">
+                    {{ form.switch('type', null, false, types, {expanded: true}) }}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="wii-box page-body">
+        <div class="wii-section">
+            <div class="row wii-page-card-header">
+                <div class="col-auto ml-auto">
+                    {% if can_edit %}
+                        <button class="btn btn-primary d-none add-row-button">
+                            <span class="fa fa-plus mr-2"></span>Ajouter des statuts
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <table id="handling-statuses-table" data-table-processing="genericStatuses"></table>
+                    <input type="hidden" name="status-state-options" value="{{ optionsSelect | json_encode }}">
+                    <input type="hidden" name="category-type" value="{{ categoryType }}">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
