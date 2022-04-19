@@ -42,7 +42,7 @@
                         Créée le : {{ request.createdAt | format_helper('longDate', {short: true, time: true}) }}
                     </div>
                     <div>
-                        <span style="font-weight: bold">A livrer à :  {{ request.createdAt | format_helper('longDate', {short: true, time: true}) }}</span>
+                        <span style="font-weight: bold">A livrer à :  {{ request.expectedAt | format_helper('longDate', {short: true, time: true}) }}</span>
                     </div>
                 </td>
                 <td class="transport-subcontract-contact">

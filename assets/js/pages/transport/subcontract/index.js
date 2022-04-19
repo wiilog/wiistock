@@ -1,4 +1,5 @@
 import '@styles/pages/transport/common.scss';
+import '@styles/pages/transport/subcontract.scss';
 
 $(function() {
 

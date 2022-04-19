@@ -96,36 +96,6 @@
         }
     }
 
-    .transport-subcontract-contact, .transport-subcontract-details-container {
-        width: 20%;
-        font-size: 1rem;
-
-        .wii-small-text {
-            font-size: 0.9rem;
-        }
-    }
-
-    .transport-subcontract-status-container{
-        width: 15%;
-        font-size: 1rem;
-    }
-
-    .transport-subcontract-button-container{
-        height: 80px;
-        display: flex;
-        flex-direction: column;
-        align-items: start;
-
-        button{
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 3px 3px 0 3px;
-            padding: 5px 8px;
-            font-weight: normal;
-        }
-    }
-
     .transport-category {
         display: flex;
         align-items: center;

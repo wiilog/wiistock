@@ -62,49 +62,25 @@ class SubcontractController extends AbstractController {
             ]]
         );
 
-        $transportRequestsUp = [];
-        $transportRequestsDown = [];
+        $transportRequests = [];
         foreach ($awaitingValidationResult["data"] as $requestUp) {
             $requestUp->setExpectedAt(new DateTime());
-            $transportRequestsUp["A valider"][] = $requestUp;
+            $transportRequests["A valider"][] = $requestUp;
         }
-        $i = 2;
         foreach ($subcontractOrderResult["data"] as $requestDown) {
-            $requestDown->setExpectedAt(new DateTime("+".$i." days"));
-            $transportRequestsDown[$requestDown->getExpectedAt()->format("dmY")][] = $requestDown;
-            $i++;
+            $requestDown->setExpectedAt(new DateTime());
+            $transportRequests[$requestDown->getExpectedAt()->format("dmY")][] = $requestDown;
         }
 
         $rows = [];
         $currentRow = [];
+        $prefix = "DTR";
 
-        foreach ($transportRequestsUp as $toValidate => $requests) {
-            $row = "<div class='transport-list-date px-1 pb-2 pt-3'>$toValidate</div>";
-
-            $rows[] = [
-                "content" => $row,
-            ];
-
-            foreach ($requests as $request) {
-                $currentRow[] = $this->renderView("transport/subcontract/card_to_validate.html.twig", [
-                    "prefix" => "DTR",
-                    "request" => $request,
-                ]);
+        foreach ($transportRequests as $date => $requests) {
+            if ($date !== "A valider"){
+                $date = DateTime::createFromFormat("dmY", $date);
+                $date = FormatHelper::longDate($date);
             }
-
-            if ($currentRow) {
-                $row = "<div class='transport-row row no-gutters'>" . join($currentRow) . "</div>";
-                $rows[] = [
-                    "content" => $row,
-                ];
-
-                $currentRow = [];
-            }
-        }
-
-        foreach ($transportRequestsDown as $date => $requests) {
-            $date = DateTime::createFromFormat("dmY", $date);
-            $date = FormatHelper::longDate($date);
 
             $row = "<div class='transport-list-date px-1 pb-2 pt-3'>$date</div>";
 
@@ -113,11 +89,18 @@ class SubcontractController extends AbstractController {
             ];
 
             foreach ($requests as $request) {
-                $currentRow[] = $this->renderView("transport/subcontract/list_card.html.twig", [
-                    "prefix" => "DTR",
-                    "request" => $request,
+                if ($date !== "A valider"){
+                    $currentRow[] = $this->renderView("transport/subcontract/list_card.html.twig", [
+                        "prefix" => $prefix,
+                        "request" => $request,
 
-                ]);
+                    ]);
+                } else {
+                    $currentRow[] = $this->renderView("transport/subcontract/card_to_validate.html.twig", [
+                        "prefix" => $prefix,
+                        "request" => $request,
+                    ]);
+                }
             }
 
             if ($currentRow) {
