@@ -24,7 +24,7 @@
             <tr>
                 <td class="transport-category-container">
                     <div class="mb-3">
-                        Créée le : {{ request.createdAt | format_helper('longDate', true, true) }}
+                        Créée le : {{ request.createdAt | format_helper('longDate', {short: true, time: true}) }}
                     </div>
                     <div>
                         A livrer à : <span style="font-weight: bold">{{ request.expectedAt | format_helper('time', true, true) }}</span>

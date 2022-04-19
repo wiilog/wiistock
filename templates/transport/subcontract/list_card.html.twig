@@ -39,10 +39,10 @@
                 </td>
                 <td class="transport-category-container">
                     <div class="mb-3">
-                        Créée le : {{ request.createdAt | format_helper('longDate', true, true) }}
+                        Créée le : {{ request.createdAt | format_helper('longDate', {short: true, time: true}) }}
                     </div>
                     <div>
-                        <span style="font-weight: bold">A livrer à :  {{ request.createdAt | format_helper('longDate', true, true) }}</span>
+                        <span style="font-weight: bold">A livrer à :  {{ request.createdAt | format_helper('longDate', {short: true, time: true}) }}</span>
                     </div>
                 </td>
                 <td class="transport-subcontract-contact">
@@ -58,7 +58,7 @@
                 </td>
                 <td class="transport-subcontract-details-container">
                     <div class="mb-3">
-                        Commencée le :  <span style="font-weight: bold">{{ order.startedAt ? order.startedAt | format_helper('longDate', true, true) : "-" }}</span>
+                        Commencée le :  <span style="font-weight: bold">{{ order.startedAt ? order.startedAt | format_helper('longDate', {short: true, time: true}) : "-" }}</span>
                     </div>
                     <div>
                         Livrée le : - <span style="font-weight: bold"></span> {# TODO mettre la date #}

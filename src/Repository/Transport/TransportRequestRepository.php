@@ -25,7 +25,7 @@ use WiiCommon\Helper\Stream;
  */
 class TransportRequestRepository extends EntityRepository {
 
-    public function findByParamAndFilters(InputBag $params, $filters) {
+    public function findByParamAndFilters(InputBag $params, array $filters, array $customFilters = []): array {
         $qb = $this->createQueryBuilder("transport_request")
             ->leftJoin(TransportDeliveryRequest::class, "delivery", Join::WITH, "transport_request.id = delivery.id")
             ->leftJoin(TransportCollectRequest::class, "collect", Join::WITH, "transport_request.id = collect.id")
@@ -52,21 +52,8 @@ class TransportRequestRepository extends EntityRepository {
                 ->setParameter('dateMax', $date);
         }
 
-        if ($params->get('status')){
-            $qb
-                ->join('transport_request.status', 'status')
-                ->andWhere('status IN (:status_value)')
-                ->setParameter('status_value', $params->get('status'));
-        }
-
-        if($params->get('subcontracted')){
-            $qb
-                ->join('transport_request.orders', 'orders')
-                ->andWhere('orders.subcontracted = 1');
-        }
-
         // filtres sup
-        foreach ($filters as $filter) {
+        foreach (array_merge($filters, $customFilters) as $filter) {
             switch ($filter['field']) {
                 case FiltreSup::FIELD_STATUT:
                     $value = Stream::explode(",", $filter['value'])
@@ -106,6 +93,13 @@ class TransportRequestRepository extends EntityRepository {
                         ->andWhere('filter_requester.id in (:filter_requester_values)')
                         ->setParameter('filter_requester_values', $value);
                     break;
+                case "subcontracted":
+                    if (isset($filter['value'])) {
+                        $qb
+                            ->join('transport_request.orders', 'filter_subcontract_order')
+                            ->andWhere('filter_subcontract_order.subcontracted = :filter_subcontract_value')
+                            ->setParameter('filter_subcontract_value', $filter['value']);
+                    }
             }
         }
 

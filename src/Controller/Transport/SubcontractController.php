@@ -4,42 +4,25 @@ namespace App\Controller\Transport;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
-use App\Entity\Attachment;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
 use App\Entity\Statut;
-use App\Entity\Transport\TransportCollectRequest;
-use App\Entity\Transport\TransportDeliveryRequest;
-use App\Entity\Transport\TransportOrder;
 use App\Entity\Transport\TransportRequest;
 use DateTime;
 use App\Entity\Type;
 use App\Helper\FormatHelper;
-use App\Service\NotificationService;
-use App\Service\TransferOrderService;
-use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use WiiCommon\Helper\Stream;
 
 
 
 #[Route("transport/sous-traitance")]
 class SubcontractController extends AbstractController {
-
-    private $userService;
-    private $service;
-
-    public function __construct(UserService $us, TransferOrderService $service) {
-        $this->userService = $us;
-        $this->service = $service;
-    }
 
     #[Route("/liste", name: "transport_subcontract_index", methods: "GET")]
     public function index(EntityManagerInterface $em): Response {
@@ -61,22 +44,32 @@ class SubcontractController extends AbstractController {
 
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_SUBCONTRACT_ORDERS, $this->getUser());
 
-        $request->request->add(["status" => $statusRepository->findByCategorieNamesAndStatusCodes(
-            [CategorieStatut::TRANSPORT_REQUEST_DELIVERY, CategorieStatut::TRANSPORT_REQUEST_COLLECT],
-            [TransportRequest::STATUS_AWAITING_VALIDATION])]);
-        $queryResultRequest = $transportRequestRepository->findByParamAndFilters($request->request, $filters);
+        $awaitingValidationResult = $transportRequestRepository->findByParamAndFilters(
+            $request->request,
+            $filters,
+            [[
+                "field" => FiltreSup::FIELD_STATUT,
+                "value" => TransportRequest::STATUS_AWAITING_VALIDATION
+            ]]
+        );
 
-        $request->request->remove('status');
-        $request->request->add(["subcontracted" => true]);
-        $queryResultOrder = $transportRequestRepository->findByParamAndFilters($request->request, $filters);
+        $subcontractOrderResult = $transportRequestRepository->findByParamAndFilters(
+            $request->request,
+            $filters,
+            [[
+                "field" => "subcontracted",
+                "value" => true
+            ]]
+        );
+
         $transportRequestsUp = [];
         $transportRequestsDown = [];
-        foreach ($queryResultRequest["data"] as $requestUp) {
+        foreach ($awaitingValidationResult["data"] as $requestUp) {
             $requestUp->setExpectedAt(new DateTime());
             $transportRequestsUp["A valider"][] = $requestUp;
         }
         $i = 2;
-        foreach ($queryResultOrder["data"] as $requestDown) {
+        foreach ($subcontractOrderResult["data"] as $requestDown) {
             $requestDown->setExpectedAt(new DateTime("+".$i." days"));
             $transportRequestsDown[$requestDown->getExpectedAt()->format("dmY")][] = $requestDown;
             $i++;
@@ -137,12 +130,10 @@ class SubcontractController extends AbstractController {
             }
         }
 
-
-
         return $this->json([
             "data" => $rows,
-            "recordsTotal" => $queryResultRequest["total"]+$queryResultOrder["total"],
-            "recordsFiltered" => $queryResultRequest["count"]+$queryResultOrder["count"],
+            "recordsTotal" => $awaitingValidationResult["total"] + $subcontractOrderResult["total"],
+            "recordsFiltered" => $awaitingValidationResult["count"] + $subcontractOrderResult["count"],
         ]);
     }
 

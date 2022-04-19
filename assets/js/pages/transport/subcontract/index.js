@@ -1,4 +1,4 @@
-import '../../scss/pages/transport/common.scss';
+import '@styles/pages/transport/common.scss';
 
 $(function() {
 
