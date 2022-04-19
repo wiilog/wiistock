@@ -124,7 +124,7 @@ export function createFreeFieldsPage($container, canEdit) {
             form: generateFreeFieldForm(),
         },
         onEditStop: () => {
-            $container.find(`[type=radio]:checked + label`).text($container.find(`[name="label"]`).val());
+            updateCheckedType($container);
         }
     });
 
@@ -245,4 +245,23 @@ export function initializeIotFreeFields($container, canEdit) {
 
     $container.on(`change`, `[name=type]`, defaultValueTypeChange);
     $container.on(`keyup`, `[name=elements]`, onElementsChange);
+}
+
+function updateCheckedType($container) {
+    const $radio = $container.find(`[type=radio]:checked + label`);
+    const $radioWrapper = $('<span class="d-inline-flex align-items-center"/>');
+    $radio.html($radioWrapper);
+
+    $radioWrapper.text($container.find(`[name="label"]`).val());
+    const $logo = $container.find(`[name="logo"]`);
+    const $logoPreview = $logo.siblings('.preview-container').find('.image');
+    if ($logo.exists() && $logoPreview.exists() && $logoPreview.attr('src')) {
+        const $clonedPreview = $logoPreview.clone();
+        $clonedPreview
+            .attr('id', null)
+            .attr('height', null)
+            .attr('width', '15px')
+            .attr('class', 'mr-2')
+        $radioWrapper.prepend($clonedPreview);
+    }
 }
