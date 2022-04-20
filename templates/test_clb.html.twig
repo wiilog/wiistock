@@ -1,0 +1,37 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Paramétrage | Information dossier patient{% endblock %}
+
+{% block page_content %}
+    <div class="m-4 wii-page-card">
+        <div class="row px-2">
+            <div>Token API {{ validToken ? 'valide' : 'non valide' }}</div>
+        </div>
+        <div class="row">
+            {% if informations and validToken %}
+                {% for key, information in informations %}
+                    <div class="col-4 mb-4">
+                        {{ key }} : <textarea class="w-100 form-control" oninput='this.style.height = "";this.style.height = this.scrollHeight + "px"'>{{ information }}</textarea>
+                    </div>
+                {% endfor %}
+            {% elseif validToken %}
+                <div class="col-12">Erreur lors de la lecture du fichier information patient.</div>
+            {% endif %}
+        </div>
+        <div class="row px-2">
+            <div>Contenu brut du paramètre content : {{ rawContent }}</div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        function setHeight($elements){
+            $elements.each(function(index, elem){
+                elem.style.height = (Number(elem.scrollHeight) + 5) +'px';
+            });
+        }
+        setHeight($('.form-control'));
+    </script>
+{% endblock %}

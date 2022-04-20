@@ -18,7 +18,12 @@ $(function () {
 
 
     $(`.print-barcodes`).on(`click`, function() {
-        printBarcodes($(this), transportRequest)
+        const isPacked = $(this).data(`is-packed`);
+        if(isPacked) {
+            printBarcodes($(this), transportRequest)
+        } else {
+            alert("Modale de colisage"); // TODO A faire
+        }
     });
 
     getStatusHistory(transportRequest);
@@ -78,7 +83,7 @@ function submitTransportRequestEdit(form, data) {
                     success ? 'success' : 'danger',
                     message || `Une erreur s'est produite`
                 );
-                table.ajax.reload();
+                window.location.reload();
             });
     });
 }
@@ -90,7 +95,7 @@ function printBarcodes($button, transportRequest) {
             .raw()
             .then(response => response.blob())
             .then((response) => {
-                saveAs(response);
+                saveAs(response, "ETQ_transport");
             });
     });
 }
