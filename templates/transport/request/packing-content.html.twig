@@ -1,0 +1,14 @@
+{% import 'form.html.twig' as form %}
+
+<form>
+    <input type="hidden" name="request" value="{{ request.id }}" class="data"/>
+    <div class="row">
+        {% for line in request.lines %}
+            {% set nature = line.nature %}
+            <div class="col-md-6 col-12">
+                {% set nature = line.nature %}
+                {{ form.number(nature.id, nature.label, false) }}
+            </div>
+         {% endfor %}
+    </div>
+</form>

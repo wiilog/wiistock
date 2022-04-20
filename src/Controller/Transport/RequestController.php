@@ -48,9 +48,6 @@ use WiiCommon\Helper\Stream;
 #[Route("transport/demande")]
 class RequestController extends AbstractController {
 
-    #[Required]
-    public TransportService $transportService;
-
     /**
      * Used in AppController::index for landing page
      */
@@ -210,11 +207,37 @@ class RequestController extends AbstractController {
         ]);
     }
 
+    #[Route("/packing-api/{transportRequest}", name: "transport_request_packing_api", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    public function packingApi(TransportRequest $transport): JsonResponse {
+        return $this->json([
+            "success" => true,
+            "html" => $this->renderView('transport/request/packing-content.html.twig', [
+                'request' => $transport
+            ]),
+        ]);
+    }
+
+    #[Route("/packing/{transportRequest}", name: "transport_request_packing", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::EDIT_TRANSPORT], mode: HasPermission::IN_JSON)]
+    public function packing(Request $request,
+                            EntityManagerInterface $entityManager,
+                            TransportService $transportService,
+                            TransportRequest $transportRequest): JsonResponse {
+        // TODO
+
+        return $this->json([
+            "success" => true,
+            "message" => "Votre demande de transport a bien été mise à jour",
+        ]);
+    }
+
     #[Route('/api', name: 'transport_request_api', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::DEM, Action::DISPLAY_TRANSPORT], mode: HasPermission::IN_JSON)]
-    public function api(Request $request, EntityManagerInterface $manager): Response {
-        $filtreSupRepository = $manager->getRepository(FiltreSup::class);
-        $transportRepository = $manager->getRepository(TransportRequest::class);
+    public function api(Request                $request,
+                        TransportService       $transportService,
+                        EntityManagerInterface $entityManager): Response {
+        $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
+        $transportRepository = $entityManager->getRepository(TransportRequest::class);
 
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_TRANSPORT_REQUESTS, $this->getUser());
         $queryResult = $transportRepository->findByParamAndFilters($request->request, $filters);
@@ -273,9 +296,9 @@ class RequestController extends AbstractController {
 
             foreach ($requests as $transportRequest) {
                 $currentRow[] = $this->renderView("transport/request/list_card.html.twig", [
-                    "prefix" => "DTR",
+                    "prefix" => TransportRequest::NUMBER_PREFIX,
                     "request" => $transportRequest,
-                    "timeSlot" => $this->transportService->getTimeSlot($manager, $transportRequest->getExpectedAt()),
+                    "timeSlot" => $transportService->getTimeSlot($entityManager, $transportRequest->getExpectedAt()),
                 ]);
             }
 
