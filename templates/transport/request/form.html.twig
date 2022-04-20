@@ -11,6 +11,7 @@
 {% set modeCollectEdit = modeEdit and request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') %}
 {% set informations = informations ?? [] %}
 <div class="modal fade" role="dialog" id="{{ modalId }}" data-modal-type="new">
+    <input type="hidden" value="{{ prefilled }}" id="prefilled">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">

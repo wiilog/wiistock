@@ -84,6 +84,7 @@ class RequestController extends AbstractController {
                     "label" => "Collecte",
                 ],
             ],
+            'prefilled' => $tokenIsValid && $response,
             'informations' => $tokenIsValid && $response ? $response : [
                 'Prenom' => '',
                 'Nom' => '',

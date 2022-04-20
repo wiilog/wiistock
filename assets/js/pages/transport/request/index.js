@@ -41,7 +41,7 @@ $(function() {
         submitTransportRequest(form, data, table);
     });
 
-    if ($modalTransportRequest.find('input[name="contactFileNumber"]').val() !== "") {
+    if ($modalTransportRequest.find('#prefilled').val() === "1") {
         $modalTransportRequest.modal('show');
     }
 
