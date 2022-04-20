@@ -83,7 +83,7 @@ function submitTransportRequestEdit(form, data) {
                     success ? 'success' : 'danger',
                     message || `Une erreur s'est produite`
                 );
-                table.ajax.reload();
+                window.location.reload();
             });
     });
 }
