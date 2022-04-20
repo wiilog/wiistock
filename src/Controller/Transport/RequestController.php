@@ -356,7 +356,7 @@ class RequestController extends AbstractController {
             $statusWorkflow = TransportRequest::STATUS_WORKFLOW_COLLECT;
         }
         else {
-            throw new RuntimeException('Unkown transport request type');
+            throw new RuntimeException('Unknown transport request type');
         }
 
         return $this->json([
