@@ -124,7 +124,7 @@ class RequestController extends AbstractController {
 
         $packsCount = !$transportRequest->getOrders()->isEmpty()
             ? $transportRequest->getOrders()->first()->getPacks()->count()
-            : null;
+            : 0;
 
         $hasRejectedPacks = !$transportRequest->getOrders()->isEmpty()
             && Stream::from($transportRequest->getOrders()->first()->getPacks())

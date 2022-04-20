@@ -228,11 +228,11 @@
             </div>
             <div class="col-lg-4 col-md-6 col-12 p-0">
                 <div class="wii-box">
-                    <div class="header {{ packsCount == 0 ? 'optioned' }} d-flex justify-content-between align-items-center">
+                    <div class="header optioned d-flex justify-content-between align-items-center">
                         <div class="d-flex align-items-center">
                             <span class="wii-title">Colis</span>
                             <div>
-                                <span class="wii-describe ml-3">{{ packsCount == 0 ? 'Colisage non fait' : (packsCount ~ ' colis') }}</span>
+                                <span class="wii-describe ml-3">{{ not request_collect and packsCount == 0 ? 'Colisage non fait' : (packsCount ~ ' colis') }}</span>
                             </div>
                             {% if hasRejectedPacks %}
                                 <div>
@@ -240,11 +240,9 @@
                                 </div>
                             {% endif %}
                         </div>
-                        {% if packsCount > 0 %}
-                            <button class="btn btn-sm btn-primary print-barcodes d-flex align-items-center">
-                                <i class="wii-icon wii-icon-printer-white mr-2"></i>Imprimer les étiquettes
-                            </button>
-                        {% endif %}
+                        <button class="btn btn-sm btn-primary print-barcodes d-flex align-items-center" data-is-packed="{{ packsCount != 0 ? 1 : 0 }}">
+                            <i class="wii-icon wii-icon-printer-white mr-2"></i>Imprimer les étiquettes
+                        </button>
                     </div>
                     <div class="bordered packs-container">
                         <div class="content d-flex align-items-center justify-content-center">
