@@ -304,6 +304,39 @@ class RequestController extends AbstractController {
         if ($success) {
             // TODO supprimer la demande et toutes les données liées, il faut attendre que tout soit effectif (liaisons colis, ordres, ....)
             $msg = 'Demande supprimée.';
+
+            /**
+             * @var TransportOrder $transportOrder
+             */
+            $transportOrder = $transportRequest->getOrders()->first();
+
+            /**
+             * @var StatusHistory[] $statusesHistories
+             */
+            $statusesHistories = Stream::from($transportRequest->getStatusHistory())
+                ->concat($transportOrder->getStatusHistory())
+                ->toArray();
+
+            /**
+             * @var TransportHistory[] $histories
+             */
+            $histories = Stream::from($transportRequest->getHistory())
+                ->concat($transportOrder->getHistory())
+                ->toArray();
+
+            foreach ($statusesHistories as $status) {
+                $transportRequest->removeStatusHistory($status);
+                $transportOrder->removeStatusHistory($status);
+                $entityManager->remove($status);
+            }
+
+            foreach ($histories as $history) {
+                $transportRequest->removeHistory($history);
+                $transportOrder->removeHistory($history);
+                $entityManager->remove($history);
+            }
+
+            $entityManager->flush();
             $entityManager->remove($transportRequest);
             $entityManager->flush();
         }
