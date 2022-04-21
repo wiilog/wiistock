@@ -24,7 +24,7 @@ export default class Form {
                     const result = Form.process(form, {
                         button: $(this),
                     });
-console.error(result);
+
                     if (result && form.submitCallback) {
                         form.submitCallback(result);
                     }
