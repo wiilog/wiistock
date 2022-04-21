@@ -49,11 +49,12 @@
                     {{ request.contact.address }}
                 </td>
                 <td class="transport-subcontract-button-container">
-                    <button class="btn btn-primary submit-button">
+                    <input type="hidden" value="{{ request.id }}" name="requestId">
+                    <button class="btn btn-primary submit-button accept-request" data-type="{{ constant('App\\Controller\\Transport\\SubcontractController::VALIDATE') }}">
                         <img alt="Accepter" src="{{ asset('svg/tick-blanc.svg') }}" height="20px" class="mr-2"> <span>Accepter</span>
                     </button>
                     {% if request is not instanceof('App\\Entity\\Transport\\TransportCollectRequest') %}
-                        <button class="btn btn-outline-primary minw-105px submit-button">
+                        <button class="btn btn-outline-primary minw-105px submit-button subcontract-request" data-type="{{ constant('App\\Controller\\Transport\\SubcontractController::SUBCONTRACT') }}">
                             Sous-traiter
                         </button>
                     {% endif %}

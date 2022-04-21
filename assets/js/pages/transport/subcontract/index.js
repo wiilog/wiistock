@@ -1,7 +1,9 @@
 import '@styles/pages/transport/common.scss';
 import '@styles/pages/transport/subcontract.scss';
+import {$document} from "@app/app";
+import {GET, POST} from "@app/ajax";
 
-$(function() {
+$(function () {
 
     let table = initDataTable('tableSubcontractOrders', {
         processing: true,
@@ -29,5 +31,15 @@ $(function() {
         columns: [
             {data: 'content', name: 'content', orderable: false},
         ],
+    });
+
+    $document.arrive('.accept-request, .subcontract-request', function () {
+        $(this).on('click', function () {
+            const requestId = $(this).siblings('[name=requestId]').val();
+            const buttonType = $(this).data('type') ;
+            wrapLoadingOnActionButton($(this), () =>
+                AJAX.route(POST, 'transport_request_treat', {requestId, buttonType}).json().then(() => table.ajax.reload())
+            )
+        });
     });
 });
