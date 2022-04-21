@@ -24,7 +24,7 @@ export default class Form {
                     const result = Form.process(form, {
                         button: $(this),
                     });
-
+console.error(result);
                     if (result && form.submitCallback) {
                         form.submitCallback(result);
                     }
@@ -135,6 +135,13 @@ export default class Form {
             for(const processor of form.processors) {
                 processor(data, errors, $form);
             }
+        }
+
+        if(errors.length) {
+            console.error(`%cForm errors (${errors.length}) %c`, ...[
+                `font-weight: bold;`,
+                `font-weight: normal;`,
+            ], errors);
         }
 
         if(config.ignoreErrors) {

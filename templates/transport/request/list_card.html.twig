@@ -129,7 +129,7 @@
                         <br>
 
                         <div class="mt-1">
-                            {% if not order or order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ASSIGNED') %}
+                            {% if not order or order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_TO_ASSIGN') or order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_TO_CONTACT') %}
                                 Estimée à : <span class="transport-value">-</span>
                             {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ASSIGNED') %}
                                 Estimée à : <span class="transport-value">{{ request.timeSlot.name }}</span>

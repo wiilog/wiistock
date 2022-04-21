@@ -7,7 +7,7 @@ $(function() {
     const $modalTransportRequest = $("#modalTransportRequest");
 
     initializeFilters(PAGE_TRANSPORT_REQUESTS)
-
+console.log('ok');
     let table = initDataTable('tableTransportRequests', {
         processing: true,
         serverSide: true,
@@ -37,7 +37,9 @@ $(function() {
     });
 
     const form = initializeForm($modalTransportRequest);
+    console.log('err');
     form.onSubmit((data) => {
+        console.warn('ok');
         submitTransportRequest(form, data, table);
     });
 
