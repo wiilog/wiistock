@@ -28,16 +28,16 @@
     </div>
 {% endfor %}
 
-{% for remainingStatus in followingStatuses %}
+{% for followingStatus in followingStatuses %}
     {% set finishedStatusName = constant('App\\Entity\\Transport\\TransportRequest::STATUS_FINISHED') %}
-    {% set state = 'future' %}
+    {% set estimatedAt = round ? round.estimatedAt|format_helper('longDate', {short: true, time: true}, '') : null %}
     <div class="history-line">
         <div class="history-date">
-            <div class="title-left {{ state }}">{{ remainingStatus }}</div>
+            <div class="title-left future">{{ followingStatus }}</div>
         </div>
-        <div class="history-status {{ loop.last ? 'last' }} {{ state }}">
-            <div class="title-right {{ round and remainingStatus == finishedStatusName ? state : 'bg-transparent' }}">
-                {{ round and remainingStatus == finishedStatusName ? 'Estimée au ' ~ round.estimatedAt|format_helper('date') }}
+        <div class="history-status future {{ loop.last ? 'last' }}">
+            <div class="title-right {{ followingStatus == finishedStatusName ? 'future' : 'bg-transparent' }}">
+                {{ followingStatus == finishedStatusName ? 'Estimé à : ' ~ (estimatedAt ?? '-') }}
             </div>
         </div>
     </div>
