@@ -63,7 +63,7 @@ class RequestController extends AbstractController {
 
         $token = $request->query->get('x-api-key');
 
-        $tokenIsValid = $_SERVER['CLB_API_KEY'] && $token === $_SERVER['CLB_API_KEY'];
+        $tokenIsValid = isset($_SERVER['CLB_API_KEY']) && $token === $_SERVER['CLB_API_KEY'];
         $content = $request->query->get('content');
         if (!$content) {
             $response = false;

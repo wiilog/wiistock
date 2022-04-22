@@ -1,6 +1,6 @@
 @import "../../variables";
 
-.transport-table, .subcontract-table {
+.transport-table {
     .dataTables_scrollHead {
         display: none;
     }
@@ -118,11 +118,6 @@
         img {
             max-height: 30px;
             max-width: 30px;
-        }
-
-        &.subcontract-card{
-            margin-top: 25px;
-            margin-right: 30px;
         }
 
         &.type {

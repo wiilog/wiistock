@@ -73,8 +73,6 @@ class SubcontractController extends AbstractController {
         }
 
         $rows = [];
-        $currentRow = [];
-        $prefix = "DTR";
 
         foreach ($transportRequests as $date => $requests) {
             if ($date !== "A valider"){
@@ -87,17 +85,17 @@ class SubcontractController extends AbstractController {
             $rows[] = [
                 "content" => $row,
             ];
+            $currentRow = [];
 
             foreach ($requests as $request) {
                 if ($date !== "A valider"){
                     $currentRow[] = $this->renderView("transport/subcontract/list_card.html.twig", [
-                        "prefix" => $prefix,
+                        "prefix" => TransportRequest::NUMBER_PREFIX,
                         "request" => $request,
-
                     ]);
                 } else {
                     $currentRow[] = $this->renderView("transport/subcontract/card_to_validate.html.twig", [
-                        "prefix" => $prefix,
+                        "prefix" => TransportRequest::NUMBER_PREFIX,
                         "request" => $request,
                     ]);
                 }
@@ -108,8 +106,6 @@ class SubcontractController extends AbstractController {
                 $rows[] = [
                     "content" => $row,
                 ];
-
-                $currentRow = [];
             }
         }
 
