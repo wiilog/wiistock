@@ -58,7 +58,7 @@
                                         'Patient',
                                         true,
                                         contact.name ?? (
-                                            informations.Prenom is defined and informations.Nom is defined
+                                            informations.Prenom ?? null and informations.Nom ?? null
                                                 ? (informations.Prenom ~ ' ' ~ informations.Nom)
                                         ),
                                         {
@@ -152,6 +152,12 @@
                     <div class="row d-none"
                          data-request-type>
                         <div class="col-auto mb-3">
+                            {% if types is empty %}
+                                Aucun type disponible<br>
+                                <a href="/parametrage/afficher/track/demande_transport/types_champs_libres_livraisons" class="btn btn-primary mt-2">Configuration des types de livraison</a><br>
+                                <a href="/parametrage/afficher/track/demande_transport/types_champs_libres_collectes" class="btn btn-primary mt-1">Configuration des types de collecte</a>
+                            {% endif %}
+
                             {{ form.switch('type', null, true, types|map((type) => {
                                 value: type.id,
                                 label: type.label,
