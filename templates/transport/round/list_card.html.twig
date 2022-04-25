@@ -1,0 +1,63 @@
+<div class="transport-request-container col-12 col-xl-7 p-1">
+    <a href="{{ path('transport_round_show', {transportRound: round.id}) }}" class="transport-request-card">
+        <table class="transport-content w-100">
+            <tr>
+                <td class="transport-category-container w-25">
+                    <div>
+                        <span class="transport-category">{{ round.number }}</span>
+                    </div>
+                </td>
+                <td class="transport-details-container">
+                    {% set status = round.status|format_helper('status') %}
+                    <span class="transport-badge {{ constant('App\\Entity\\Transport\\TransportRequest::STATUS_COLOR')[status] }}">
+                        {{ status }}
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="transport-details-container">
+                    Livreur : <span class="text-nowrap">
+                        <span class="transport-value">{{ round.deliverer|format_helper('user') }}</span>
+                    </span>
+                </td>
+                <td class="transport-details-container">
+                    Créée le : <span class="text-nowrap">
+                        <span class="transport-value">{{ round.createdAt|format_helper('longDate', {short: true, time: true, year: false}, '') }}</span>
+                    </span>
+                </td>
+                <td class="transport-details-container">
+                    Km estimés : <span class="text-nowrap">
+                        <span class="transport-value">{{ round.estimatedDistance ?? '-' }}</span>
+                    </span>
+                </td>
+                <td class="transport-details-container">
+                    Temps estimé : <span class="text-nowrap">
+                        <span class="transport-value">{{ round.estimatedTime ?? '-' }}</span>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="transport-details-container">
+                    Transports effectués : <span class="text-nowrap">
+                        <span class="transport-value">{{ round.transportRoundLines|filter(line => line.fulfilledAt)|length ~ ' / ' ~ round.transportRoundLines|length }}</span>
+                    </span>
+                </td>
+                <td class="transport-details-container">
+                    Terminée le : <span class="text-nowrap">
+                        <span class="transport-value">{{ round.endedAt|format_helper('longDate', {short: true, time: true}, '') }}</span>
+                    </span>
+                </td>
+                <td class="transport-details-container">
+                    Km réels : <span class="text-nowrap">
+                        <span class="transport-value">{{ round.realDistance }}</span>
+                    </span>
+                </td>
+                <td class="transport-details-container">
+                    Temps réel : <span class="text-nowrap">
+                        <span class="transport-value">A ajouter</span>
+                    </span>
+                </td>
+            </tr>
+        </table>
+    </a>
+</div>
