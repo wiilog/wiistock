@@ -2,6 +2,13 @@
     <a href="{{ path('transport_round_show', {transportRound: round.id}) }}" class="transport-request-card">
         <table class="transport-content w-100">
             <tr>
+                <div class="h-100" style="padding-top: 4px; padding-left: 10px; padding-right: 0;">
+                    {% if round.transportRoundLines|some(line => line.rejectedAt) %}
+                        <img src="{{ asset('svg/rejected-pack.svg') }}" width="18px" height="18px">
+                    {% endif %}
+
+                    {% if round.transportRoundLines|some(line => line.rejectedAt) %}
+                </div>
                 <td class="transport-category-container w-25">
                     <div>
                         <span class="transport-category">{{ round.number }}</span>
