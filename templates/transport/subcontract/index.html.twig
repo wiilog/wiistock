@@ -2,7 +2,27 @@
 
 {% block title %}Ordre | Sous-traitance{% endblock %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('transport-subcontract-index') }}
+{% endblock %}
+
+{% block page_filter %}
+    {% include 'filters/filtersSubcontractOrder.html.twig' with {
+        page: 'PAGE_SUBCONTRACT_ORDERS',
+        tableSelector: '#tableSubcontractOrders',
+        marginClass: 'm-0 m-md-4'
+        ,
+    } %}
+{% endblock %}
+
+{% block page_content %}
+    <div class="m-0 m-md-4 wii-page-card transport-table">
+        <table id="tableSubcontractOrders" class="table w-100"></table>
+    </div>
+{% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
+    {{ encore_entry_script_tags('transport-subcontract-index') }}
 {% endblock %}

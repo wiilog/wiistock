@@ -1,0 +1,19 @@
+{% extends 'filters/filters.html.twig' %}
+
+{% block filters %}
+    {% include 'filters/filter_item/filterDate.html.twig' with {
+        databasePersisted: false,
+    } %}
+    {% include 'filters/filter_item/filterUser.html.twig' with {
+        name: 'requesters',
+        placeholder: 'Demandeurs'
+    } %}
+    {% include 'filters/filter_item/filterFileNumber.html.twig' %}
+    {% include 'filters/filter_item/filterContact.html.twig' %}
+    {% include 'filters/filter_item/filterStatus.html.twig' with {
+        name: 'statut',
+        placeholder: 'Statut',
+        names: true,
+    } %}
+    {% include 'filters/filter_item/filterType.html.twig' %}
+{% endblock %}
