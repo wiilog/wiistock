@@ -10,10 +10,12 @@ use App\Entity\FiltreSup;
 use App\Entity\Menu;
 use App\Entity\Statut;
 use App\Entity\Transport\TransportCollectRequest;
+use App\Entity\Transport\TransportHistory;
 use App\Entity\Transport\TransportOrder;
 use App\Entity\Transport\TransportRequest;
 use App\Entity\Utilisateur;
 use App\Service\AttachmentService;
+use App\Service\StatusHistoryService;
 use App\Service\Transport\TransportHistoryService;
 use App\Service\Transport\TransportService;
 use DateTime;
@@ -107,6 +109,7 @@ class SubcontractController extends AbstractController
                     $currentRow[] = $this->renderView("transport/subcontract/list_card.html.twig", [
                         "prefix" => $prefix,
                         "request" => $request,
+                        "historyType" => TransportHistoryService::TYPE_FINISHED,
 
                     ]);
                 } else {
@@ -213,7 +216,8 @@ class SubcontractController extends AbstractController
     public function edit(EntityManagerInterface $entityManager,
                             Request $request,
                             TransportService $transportService,
-                            AttachmentService $attachmentService): ?Response
+                            AttachmentService $attachmentService,
+                            StatusHistoryService $statusHistoryService): ?Response
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $transportRequestRepository = $entityManager->getRepository(TransportRequest::class);
@@ -225,7 +229,11 @@ class SubcontractController extends AbstractController
 
         $startedAt = FormatHelper::parseDatetime($data->get('delivery-start-date'));
         $statutRequest = $statutRepository->find($data->get('status') !== "null" ? $data->get('status') : $data->get('statut'));
-        $statutOrder = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_DELIVERY, $statutRequest->getCode());
+        $statutOrder = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_DELIVERY, (
+            $statutRequest->getCode() === "Terminée" ? TransportOrder::STATUS_FINISHED :
+                ($statutRequest->getCode() === "En cours" ? TransportOrder::STATUS_ONGOING :
+                    ($statutRequest->getCode() === "Sous-traitée" ? TransportOrder::STATUS_SUBCONTRACTED :
+                        TransportOrder::STATUS_NOT_DELIVERED))));
 
         $transportRequest->setStatus($statutRequest);
         $transportOrder->setStatus($statutOrder);
@@ -237,13 +245,17 @@ class SubcontractController extends AbstractController
 
         $attachmentService->manageAttachments($entityManager, $transportOrder, $request->files);
 
-        $transportService->transportHistoryService->persistTransportHistory($entityManager, [$transportRequest, $transportOrder],
-            ( ($statutRequest->getCode() === "Terminée" ? TransportHistoryService::TYPE_FINISHED :
-                    ($statutRequest->getCode() === "En cours" ? TransportHistoryService::TYPE_ONGOING :
-                            ($statutRequest->getCode() === "Sous-traitée" ? TransportHistoryService::TYPE_SUBCONTRACTED : TransportHistoryService::TYPE_NOT_DELIVERED)
-                    )
-            )
-        ));
+        $statusHistoryRequest = $statusHistoryService->updateStatus($entityManager, $transportRequest, $statutRequest);
+        $statusHistoryOrder = $statusHistoryService->updateStatus($entityManager, $transportOrder, $statutOrder);
+        $historyType = ($statutRequest->getCode() === "Terminée" ? TransportHistoryService::TYPE_FINISHED :
+            ($statutRequest->getCode() === "En cours" ? TransportHistoryService::TYPE_ONGOING :
+                ($statutRequest->getCode() === "Sous-traitée" ? TransportHistoryService::TYPE_SUBCONTRACTED : TransportHistoryService::TYPE_NOT_DELIVERED)));
+        $transportService->transportHistoryService->persistTransportHistory($entityManager, $transportRequest, $historyType, [
+                'history' => $statusHistoryRequest
+            ]);
+        $transportService->transportHistoryService->persistTransportHistory($entityManager, $transportOrder, $historyType, [
+            'history' => $statusHistoryOrder
+        ]);
 
         $entityManager->flush();
         $json = $this->redirectToRoute('transport_subcontract_index');
