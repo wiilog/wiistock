@@ -1,5 +1,5 @@
 {% set cancelledStatusesName = constant('App\\Entity\\Transport\\TransportRequest::CANCELED_STATUSES') %}
-{% set requestStatusName = request.status.nom %}
+{% set entityStatusName = entity.status.nom %}
 
 {% set lastHistory = statusesHistory is not empty ? statusesHistory|last : null %}
 {% set lastStatus = lastHistory ? lastHistory['status'] : null %}
@@ -7,11 +7,11 @@
 {% set followingStatuses = followingStatusIndex is not null ? statusWorkflow|slice(followingStatusIndex + 1) : [] %}
 
 {% for history in statusesHistory %}
-    {% set state = (requestStatusName == history['status'] and requestStatusName in cancelledStatusesName)
+    {% set state = (entityStatusName == history['status'] and entityStatusName in cancelledStatusesName)
         ? 'cancelled'
         : (history['status'] in cancelledStatusesName
             ? 'cancelled'
-            : (requestStatusName == history['status'] and loop.last
+            : (entityStatusName == history['status'] and loop.last
                 ? 'current'
                 : 'past'))
     %}

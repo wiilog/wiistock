@@ -4,28 +4,78 @@ namespace App\Controller\Transport;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
+use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\FiltreSup;
+use App\Entity\FreeField;
 use App\Entity\Menu;
 use App\Entity\Transport\TransportCollectRequest;
+use App\Entity\Transport\TransportDeliveryOrderPack;
 use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\Transport\TransportOrder;
 use App\Entity\Transport\TransportRequest;
 use App\Entity\Type;
 use App\Entity\WorkFreeDay;
 use App\Helper\FormatHelper;
-use App\Repository\DaysWorkedRepository;
+use App\Service\Transport\TransportService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
 
 #[Route("transport/ordre")]
 class OrderController extends AbstractController {
+
+    #[Required]
+    public TransportService $transportService;
+
+    #[Route("/voir/{id}", name: "transport_order_show", methods: "GET")]
+    public function show(TransportOrder $id,
+                         EntityManagerInterface $entityManager): Response {
+
+        $transportOrder = $id;
+        $transportRequest = $transportOrder->getRequest();
+
+        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+        $categoryFF = $transportRequest instanceof TransportDeliveryRequest
+            ? CategorieCL::DELIVERY_TRANSPORT
+            : CategorieCL::COLLECT_TRANSPORT;
+        $freeFields = $freeFieldRepository->findByTypeAndCategorieCLLabel($transportRequest->getType(), $categoryFF);
+
+        $packsCount = !$transportRequest->getOrders()->isEmpty()
+            ? $transportRequest->getOrders()->first()->getPacks()->count()
+            : 0;
+
+        $hasRejectedPacks = !$transportRequest->getOrders()->isEmpty()
+            && Stream::from($transportRequest->getOrders()->first()->getPacks())
+                ->some(fn(TransportDeliveryOrderPack $pack) => $pack->isRejected());
+
+        $round = !$transportOrder->getTransportRoundLines()->isEmpty()
+            ? $transportOrder->getTransportRoundLines()->last()->getTransportRound()
+            : null ;
+
+        if ($round != null) {
+            $deliverer = !$round->getDeliverer()
+                ? $round->getDeliverer()
+                : null ;
+        } else {
+            $deliverer = null ;
+        }
+
+        return $this->render('transport/order/show.html.twig', [
+            'order' => $transportOrder,
+            'freeFields' => $freeFields,
+            'packsCount' => $packsCount,
+            'hasRejectedPacks' => $hasRejectedPacks,
+            'round' => $round,
+            'deliverer'=> $deliverer
+        ]);
+    }
 
     #[Route("/liste", name: "transport_order_index", methods: "GET")]
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_TRANSPORT])]
@@ -125,6 +175,7 @@ class OrderController extends AbstractController {
                     "prefix" => "OTR",
                     "request" => $order->getRequest(),
                     "order" => $order,
+                    "path" => "transport_order_show"
                 ]);
             }
 

@@ -181,7 +181,7 @@ class TransportHistoryService {
 
     public function formatHistory(TransportHistory $history): string {
         $replace = [
-            "{category}" => $this->formatEntity(get_class($history->getRequest())),
+            "{category}" => $this->formatEntity($history->getRequest()?get_class($history->getRequest()):get_class($history->getOrder()->getRequest())),
             "{user}" => $this->formatEntity($history->getUser()),
             "{pack}" => $this->formatEntity($history->getPack()),
             "{round}" => $this->formatEntity($history->getRound()),

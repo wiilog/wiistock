@@ -119,9 +119,10 @@ class RequestController extends AbstractController {
         ]);
     }
 
-    #[Route("/voir/{transportRequest}", name: "transport_request_show", methods: "GET")]
-    public function show(TransportRequest $transportRequest,
+    #[Route("/voir/{id}", name: "transport_request_show", methods: "GET")]
+    public function show(TransportRequest $id,
                          EntityManagerInterface $entityManager): Response {
+        $transportRequest = $id;
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
@@ -296,6 +297,7 @@ class RequestController extends AbstractController {
                     "prefix" => "DTR",
                     "request" => $transportRequest,
                     "timeSlot" => $this->transportService->getTimeSlot($manager, $transportRequest->getExpectedAt()),
+                    "path" => "transport_request_show"
                 ]);
             }
 
@@ -374,59 +376,6 @@ class RequestController extends AbstractController {
             ]),
         ]);
     }
-
-    #[Route("/{transportRequest}/transport-history-api", name: "transport_history_api", options: ['expose' => true], methods: "GET")]
-    public function transportHistoryApi(TransportRequest $transportRequest) {
-        return $this->json([
-            "success" => true,
-            "template" => $this->renderView('transport/request/timelines/transport-history.html.twig', [
-                "request" => $transportRequest,
-                "history" => Stream::from($transportRequest->getHistory())
-                    ->sort(fn(TransportHistory $h1, TransportHistory $h2) => $h2->getDate() <=> $h1->getDate())
-                    ->toArray()
-            ]),
-        ]);
-    }
-
-    #[Route("/{transportRequest}/transport-packs-api", name: "transport_packs_api", options: ['expose' => true], methods: "GET")]
-    public function transportPacksApi(TransportRequest $transportRequest): JsonResponse {
-        $transportDelivery = $transportRequest instanceof TransportDeliveryRequest ? $transportRequest : null;
-        $transportCollect = $transportRequest instanceof TransportCollectRequest ? $transportRequest : $transportDelivery->getCollect();
-
-        $transportDeliveryRequestLines = $transportDelivery
-            ? $transportDelivery->getLines()
-                ->filter(fn($line) => $line instanceof TransportDeliveryRequestLine)
-                ->toArray()
-            : [];
-
-        $transportCollectRequestLines = $transportCollect
-            ? $transportCollect->getLines()
-                ->filter(fn($line) => $line instanceof TransportCollectRequestLine)
-                ->toArray()
-            : [];
-
-        $associatedNaturesAndPacks = Stream::from($transportRequest->getOrders())
-            ->flatMap(fn(TransportOrder $order) => $order->getPacks()->toArray())
-            ->keymap(function(TransportDeliveryOrderPack $transportDeliveryOrderPack) {
-                $nature = $transportDeliveryOrderPack->getPack()->getNature();
-                return [
-                    $nature->getId(),
-                    $transportDeliveryOrderPack
-                ];
-            }, true)
-            ->toArray();
-
-        return $this->json([
-            "success" => true,
-            "template" => $this->renderView('transport/request/packs.html.twig', [
-                "transportCollectRequestLines" => $transportCollectRequestLines,
-                "transportDeliveryRequestLines" => $transportDeliveryRequestLines,
-                "associatedNaturesAndPacks" => $associatedNaturesAndPacks,
-                "request" => $transportRequest
-            ]),
-        ]);
-    }
-
 
     #[Route("/collect-already-exists", name: "transport_request_collect_already_exists", options: ['expose' => true], methods: "GET")]
     public function collectAlreadyExists(EntityManagerInterface $entityManager,

@@ -3,7 +3,7 @@
 {% set roundLine = order ? (order.transportRoundLines | last) ?: null : null %}
 
 <div class="transport-request-container col-12 col-xl-6 p-1">
-    <a href="{{ path('transport_request_show', {transportRequest: request.id}) }}" class="transport-request-card">
+    <a href="{{ path('transport_order_show', {id: order.id}) }}" class="transport-request-card">
         {% set isDeliveryTransportRequest = request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
 
         {% if isDeliveryTransportRequest or request.canBeCancelled or request.canBeDeleted %}
