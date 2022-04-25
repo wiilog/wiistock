@@ -50,6 +50,7 @@ class TransportHistoryService {
     public const TYPE_SUBCONTRACTED = "SUBCONTRACTED";
     public const TYPE_REJECTED_DELIVERY = "REJECTED_DELIVERY";
     public const TYPE_CANCELLED = "CANCELLED";
+    public const TYPE_NOT_DELIVERED = "NOT DELIVERED";
 
     private const CATEGORIES = [
         self::CATEGORY_TIMELINE => [],
@@ -80,6 +81,7 @@ class TransportHistoryService {
         self::TYPE_SUBCONTRACTED => "La demande a été sous-traitée",
         self::TYPE_REJECTED_DELIVERY => "La livraison a été rejetée de la tournée",
         self::TYPE_CANCELLED => "{user} a annulé la {category}",
+        self::TYPE_NOT_DELIVERED =>"La livraison n'a pas était livrée"
     ];
 
     #[Required]

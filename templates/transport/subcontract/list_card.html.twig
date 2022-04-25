@@ -1,7 +1,11 @@
 {% set order = order ?? ((request.orders | last) ?: null) %}
 
 <div class="transport-request-container col-12 p-1">
-    <a href="" class="transport-request-card">
+    <div data-id='{{ request.id }}'
+         data-target='#modalEditSubcontractedRequest'
+         data-toggle='modal'
+         class="transport-request-card"
+         onclick="editRow($(this), Routing.generate('subcontract_request_edit_api', true), $('#modalEditSubcontractedRequest'), $('#submitEditSubcontractedRequest'))">
         <div class="dropdown dropright">
             <div class="d-flex" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 <img alt="Actions" src="{{ asset('svg/dotsblack.svg') }}" height="20px" width="8px">
@@ -10,8 +14,11 @@
                 <div class="dropdown-item pointer">
                     <i class="fas fa-external-link-alt mr-2"></i> Voir la demande
                 </div>
-                <div class="dropdown-item pointer">
-                    <i class='fas fa-edit'></i> Modifier
+                <div data-id='{{ request.id }}' data-target='#modalEditSubcontractedRequest' data-toggle='modal'
+                     class='dropdown-item pointer'
+                     onclick="editRow($(this), Routing.generate('subcontract_request_edit_api', true), $('#modalEditSubcontractedRequest'), $('#submitEditSubcontractedRequest'))">
+                    <i class='fas fa-edit'></i>
+                    Modifier
                 </div>
             </div>
         </div>
@@ -89,5 +96,5 @@
                 </td>
             </tr>
         </table>
-    </a>
+    </div>
 </div>

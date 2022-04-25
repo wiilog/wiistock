@@ -3,6 +3,13 @@ import '@styles/pages/transport/subcontract.scss';
 import {$document} from "@app/app";
 import {GET, POST} from "@app/ajax";
 
+global.editStatusChange = editStatusChange;
+
+const subcontractStatus = "Sous-traitée";
+const onGoingStatus = "En cours";
+const finishedStatus = "Terminée";
+const notDeliveredStatus = "Non livrée";
+
 $(function () {
 
     let table = initDataTable('tableSubcontractOrders', {
@@ -42,4 +49,77 @@ $(function () {
             )
         });
     });
+
+    $document.arrive('.modal-edit-subcontracted-request', function (){
+        const requestStatusCode = $('select[name=status]').find(":selected").text();
+        manageModal(requestStatusCode);
+    });
+
+    let modalModifySubcontractedRequest = $('#modalEditSubcontractedRequest');
+    let submitModifySubcontractedRequest = $('#submitEditSubcontractedRequest');
+    let urlModifySubcontractedRequest = Routing.generate('subcontract_request_edit', true);
+    InitModal(modalModifySubcontractedRequest, submitModifySubcontractedRequest, urlModifySubcontractedRequest, {tables: [table]});
 });
+
+function editStatusChange($select){
+    manageModal($select.find(":selected").text());
+}
+
+function manageModal(requestStatusCode){
+    const startDateDiv = $('.startDateDiv');
+    const inputStartDate = startDateDiv.find('[name=delivery-start-date]');
+    const endDateDiv = $('.endDateDiv');
+    const inputEndDate = endDateDiv.find('[name=delivery-end-date]');
+    const comment = $('[name=commentaire]');
+    const labelComment = $('.label-'+comment.attr('name'));
+    switch (requestStatusCode){
+        case subcontractStatus:
+            toggleSubcontractStatus(startDateDiv, inputStartDate, endDateDiv, inputEndDate, comment, labelComment);
+            break;
+        case onGoingStatus:
+            toggleOnGoingStatus(startDateDiv, inputStartDate, endDateDiv, inputEndDate, comment, labelComment)
+            break;
+        case finishedStatus:
+            toggleFinishedStatus(startDateDiv, inputStartDate, endDateDiv, inputEndDate, comment, labelComment)
+            break;
+        case notDeliveredStatus:
+            toggleNotDeliveredStatus(startDateDiv, inputStartDate, endDateDiv, inputEndDate, comment, labelComment)
+            break;
+    }
+}
+
+function toggleSubcontractStatus(startDateDiv, inputStartDate, endDateDiv, inputEndDate, comment, labelComment){
+    startDateDiv.addClass('d-none');
+    inputStartDate.removeClass('needed');
+    endDateDiv.addClass('d-none');
+    inputEndDate.removeClass('needed');
+    labelComment.html(labelComment.text().replace(" *", ""));
+    comment.removeClass('needed');
+}
+
+function toggleOnGoingStatus(startDateDiv, inputStartDate, endDateDiv, inputEndDate, comment, labelComment){
+    startDateDiv.removeClass('d-none');
+    inputStartDate.addClass('needed');
+    endDateDiv.addClass('d-none');
+    inputEndDate.removeClass('needed');
+    labelComment.html(labelComment.text().replace(" *", ""));
+    comment.removeClass('needed');
+}
+
+function toggleFinishedStatus(startDateDiv, inputStartDate, endDateDiv, inputEndDate, comment, labelComment){
+    startDateDiv.removeClass('d-none');
+    inputStartDate.addClass('needed');
+    endDateDiv.removeClass('d-none');
+    inputEndDate.addClass('needed');
+    labelComment.html(labelComment.text().replace(" *", ""));
+    comment.removeClass('needed');
+}
+
+function toggleNotDeliveredStatus(startDateDiv, inputStartDate, endDateDiv, inputEndDate, comment, labelComment){
+    startDateDiv.removeClass('d-none');
+    inputStartDate.addClass('needed');
+    endDateDiv.removeClass('d-none');
+    inputEndDate.addClass('needed');
+    labelComment.html(labelComment.text().concat(" *"));
+    comment.addClass('needed');
+}

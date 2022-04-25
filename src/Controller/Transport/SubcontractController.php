@@ -10,7 +10,11 @@ use App\Entity\FiltreSup;
 use App\Entity\Menu;
 use App\Entity\Statut;
 use App\Entity\Transport\TransportCollectRequest;
+use App\Entity\Transport\TransportOrder;
 use App\Entity\Transport\TransportRequest;
+use App\Entity\Utilisateur;
+use App\Service\AttachmentService;
+use App\Service\Transport\TransportHistoryService;
 use App\Service\Transport\TransportService;
 use DateTime;
 use App\Entity\Type;
@@ -21,6 +25,7 @@ use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 
@@ -168,6 +173,79 @@ class SubcontractController extends AbstractController
 
         $manager->flush();
 
+        $json = $this->redirectToRoute('transport_subcontract_index');
+        return new JsonResponse($json);
+    }
+
+    #[Route('/api-modifier', name: 'subcontract_request_edit_api', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::ORDRE, Action::EDIT_TRANSPORT_SUBCONTRACT], mode: HasPermission::IN_JSON)]
+    public function editApi(EntityManagerInterface $entityManager,
+                            Request $request): Response
+    {
+        if ($data = json_decode($request->getContent(), true)) {
+            $transportRequestRepository = $entityManager->getRepository(TransportRequest::class);
+            $statutRepository = $entityManager->getRepository(Statut::class);
+            $transportRequest = $transportRequestRepository->find($data['id']);
+
+            /** @var TransportOrder $transportOrder */
+            $transportOrder = $transportRequest->getOrders()->last();
+
+            $statusForSelect =
+                [($transportRequest->getStatus()->getCode() == TransportRequest::STATUS_SUBCONTRACTED ? TransportRequest::STATUS_ONGOING : ""),
+                TransportRequest::STATUS_FINISHED, TransportRequest::STATUS_NOT_DELIVERED];
+
+            $json = $this->renderView('transport/subcontract/modalEditSubcontractedRequestContent.html.twig', [
+                'transportRequest' => $transportRequest,
+                'transportOrder' => $transportOrder,
+                'subcontractTransportStatus' => $statutRepository->findByCategoryNameAndStatusCodes(CategorieStatut::TRANSPORT_REQUEST_DELIVERY, $statusForSelect),
+                'statutRequest' => $transportRequest->getStatus(),
+                'attachments' => $transportOrder->getAttachments()
+
+            ]);
+
+            return new JsonResponse($json);
+        }
+        throw new BadRequestHttpException();
+    }
+
+    #[Route('/modifier', name: 'subcontract_request_edit', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::ORDRE, Action::EDIT_TRANSPORT_SUBCONTRACT], mode: HasPermission::IN_JSON)]
+    public function edit(EntityManagerInterface $entityManager,
+                            Request $request,
+                            TransportService $transportService,
+                            AttachmentService $attachmentService): ?Response
+    {
+        $statutRepository = $entityManager->getRepository(Statut::class);
+        $transportRequestRepository = $entityManager->getRepository(TransportRequest::class);
+        $data = $request->request;
+        $transportRequest = $transportRequestRepository->find($data->get('id'));
+
+        /** @var TransportOrder $transportOrder */
+        $transportOrder = $transportRequest->getOrders()->last();
+
+        $startedAt = FormatHelper::parseDatetime($data->get('delivery-start-date'));
+        $statutRequest = $statutRepository->find($data->get('status') !== "null" ? $data->get('status') : $data->get('statut'));
+        $statutOrder = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_DELIVERY, $statutRequest->getCode());
+
+        $transportRequest->setStatus($statutRequest);
+        $transportOrder->setStatus($statutOrder);
+
+        $transportOrder->setSubcontractor($data->get('subcontractor'));
+        $transportOrder->setRegistrationNumber($data->get('registrationNumber'));
+        $transportOrder->setStartedAt($startedAt);
+        $transportOrder->setComment($data->get('commentaire'));
+
+        $attachmentService->manageAttachments($entityManager, $transportOrder, $request->files);
+
+        $transportService->transportHistoryService->persistTransportHistory($entityManager, [$transportRequest, $transportOrder],
+            ( ($statutRequest->getCode() === "Terminée" ? TransportHistoryService::TYPE_FINISHED :
+                    ($statutRequest->getCode() === "En cours" ? TransportHistoryService::TYPE_ONGOING :
+                            ($statutRequest->getCode() === "Sous-traitée" ? TransportHistoryService::TYPE_SUBCONTRACTED : TransportHistoryService::TYPE_NOT_DELIVERED)
+                    )
+            )
+        ));
+
+        $entityManager->flush();
         $json = $this->redirectToRoute('transport_subcontract_index');
         return new JsonResponse($json);
     }
