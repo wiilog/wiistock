@@ -16,9 +16,11 @@
         names: true,
     } %}
     {% if types is not empty %}
-        Type&nbsp;:
-        {% include 'filters/filter_item/filterTypeIcon.html.twig' with {
-            types: types
-        } %}
+        <div class="d-flex justify-content-center align-items-center text-nowrap">
+            Type&nbsp;:
+            {% include 'filters/filter_item/filterTypeIcon.html.twig' with {
+                types: types
+            } %}
+        </div>
     {% endif %}
 {% endblock %}
