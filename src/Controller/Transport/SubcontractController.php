@@ -22,6 +22,7 @@ use DateTime;
 use App\Entity\Type;
 use App\Helper\FormatHelper;
 use Doctrine\ORM\EntityManagerInterface;
+use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -225,11 +226,14 @@ class SubcontractController extends AbstractController
 
         $startedAt = FormatHelper::parseDatetime($data->get('delivery-start-date'));
         $statutRequest = $statutRepository->find($data->get('status') !== "null" ? $data->get('status') : $data->get('statut'));
-        $statutOrder = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_DELIVERY, (
-            $statutRequest->getCode() === "Terminée" ? TransportOrder::STATUS_FINISHED :
-                ($statutRequest->getCode() === "En cours" ? TransportOrder::STATUS_ONGOING :
-                    ($statutRequest->getCode() === "Sous-traitée" ? TransportOrder::STATUS_SUBCONTRACTED :
-                        TransportOrder::STATUS_NOT_DELIVERED))));
+
+        $statutOrder = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_DELIVERY, match($statutRequest->getCode()) {
+            TransportRequest::STATUS_ONGOING => TransportOrder::STATUS_ONGOING,
+            TransportRequest::STATUS_SUBCONTRACTED => TransportOrder::STATUS_SUBCONTRACTED,
+            TransportRequest::STATUS_FINISHED => TransportOrder::STATUS_FINISHED,
+            TransportRequest::STATUS_NOT_DELIVERED => TransportOrder::STATUS_NOT_DELIVERED,
+            default => throw new RuntimeException("Unhandled status code"),
+        });
 
         $transportRequest->setStatus($statutRequest);
         $transportOrder->setStatus($statutOrder);
@@ -243,18 +247,25 @@ class SubcontractController extends AbstractController
 
         $statusHistoryRequest = $statusHistoryService->updateStatus($entityManager, $transportRequest, $statutRequest);
         $statusHistoryOrder = $statusHistoryService->updateStatus($entityManager, $transportOrder, $statutOrder);
-        $historyType = ($statutRequest->getCode() === "Terminée" ? TransportHistoryService::TYPE_FINISHED :
-            ($statutRequest->getCode() === "En cours" ? TransportHistoryService::TYPE_ONGOING :
-                ($statutRequest->getCode() === "Sous-traitée" ? TransportHistoryService::TYPE_SUBCONTRACTED : TransportHistoryService::TYPE_NOT_DELIVERED)));
+
+        $historyType = match($statutRequest->getCode()) {
+            TransportRequest::STATUS_ONGOING => TransportHistoryService::TYPE_ONGOING,
+            TransportRequest::STATUS_SUBCONTRACTED => TransportHistoryService::TYPE_SUBCONTRACTED,
+            TransportRequest::STATUS_FINISHED => TransportHistoryService::TYPE_FINISHED,
+            TransportRequest::STATUS_NOT_DELIVERED => TransportHistoryService::TYPE_NOT_DELIVERED,
+            default => throw new RuntimeException("Unhandled status code"),
+        };;
+
         $transportService->transportHistoryService->persistTransportHistory($entityManager, $transportRequest, $historyType, [
-                'history' => $statusHistoryRequest
-            ]);
+            'history' => $statusHistoryRequest
+        ]);
+
         $transportService->transportHistoryService->persistTransportHistory($entityManager, $transportOrder, $historyType, [
             'history' => $statusHistoryOrder
         ]);
 
         $entityManager->flush();
-        $json = $this->redirectToRoute('transport_subcontract_index');
-        return new JsonResponse($json);
+
+        return $this->json($this->redirectToRoute('transport_subcontract_index'));
     }
 }
