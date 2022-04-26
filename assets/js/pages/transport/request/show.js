@@ -1,5 +1,5 @@
 import '@styles/pages/transport/show.scss';
-import "@app/pages/transport/common";
+import "@app/pages/transport/common-show";
 import {initializeForm, cancelRequest, deleteRequest} from "@app/pages/transport/request/common";
 import AJAX, {GET, POST} from "@app/ajax";
 import Flash from "@app/flash";
