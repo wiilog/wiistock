@@ -541,19 +541,17 @@ class UserController extends AbstractController {
      * @Route("/recherchesArticle", name="update_user_searches_for_article", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
     public function updateSearchesArticle(Request $request, EntityManagerInterface $entityManager) {
-        if ($data = $request->request->get("searches")) {
-            /** @var Utilisateur $user */
-            $user = $this->getUser();
+        $searches = $request->request->all("searches");
 
-            $user->setRechercheForArticle($data);
-            $entityManager->flush();
+        /** @var Utilisateur $user */
+        $user = $this->getUser();
+        $user->setRechercheForArticle($searches ?: []);
 
-            return $this->json([
-                "success" => true
-            ]);
-        }
+        $entityManager->flush();
 
-        throw new BadRequestHttpException();
+        return $this->json([
+            "success" => true
+        ]);
     }
 
     /**
