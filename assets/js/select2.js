@@ -109,10 +109,11 @@ export default class Select2 {
                     }
                 }
                 const allowClear = !($element.is(`[multiple]`) || $element.is(`[data-no-empty-option]`));
+                const editable = $element.is('[data-editable]');
 
                 $element.select2({
                     placeholder: $element.data(`placeholder`) || '',
-                    tags: $element.is('[data-editable]'),
+                    tags: editable,
                     allowClear,
                     dropdownParent,
                     language: {
@@ -146,6 +147,12 @@ export default class Select2 {
                     $results.find(`.select2-results__option--highlighted`).removeClass(`select2-results__option--highlighted`);
                     $highlighted.addClass("select2-results__option--highlighted");
                 })
+
+                if(editable) {
+                    $element.on(`select2:unselect`, event => {
+                        event.params.data.element.remove();
+                    });
+                }
 
                 $element.on('select2:open', function (e) {
                     const evt = "scroll.select2";

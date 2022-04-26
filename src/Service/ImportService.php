@@ -568,7 +568,7 @@ class ImportService
                 $field,
                 [
                     'needed' => $this->fieldIsNeeded($field, $entity),
-                    'value' => $corresp[$field],
+                    'value' => $corresp[$field] ?? '',
                 ]
             ])
             ->toArray();
@@ -1260,7 +1260,7 @@ class ImportService
         }
 
         if(!empty($data['deliverer'])) {
-            $value = $data['deliverer'];
+            $value = strtolower($data['deliverer']);
             if ($value !== 'oui' && $value !== 'non') {
                 $this->throwError('La valeur saisie pour le champ Livreur est invalide (autorisé : "oui" ou "non")');
             } else {

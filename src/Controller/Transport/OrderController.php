@@ -51,7 +51,6 @@ class OrderController extends AbstractController {
                 TransportOrder::STATUS_TO_ASSIGN,
                 TransportOrder::STATUS_TO_CONTACT,
                 TransportOrder::STATUS_ASSIGNED,
-                TransportOrder::STATUS_SUBCONTRACTED,
                 TransportOrder::STATUS_ONGOING,
                 TransportOrder::STATUS_FINISHED,
                 TransportOrder::STATUS_DEPOSITED,

@@ -56,11 +56,21 @@ class RequestController extends AbstractController {
      */
     #[Route("/liste", name: "transport_request_index", methods: "GET")]
     #[HasPermission([Menu::DEM, Action::DISPLAY_TRANSPORT])]
-    public function index(EntityManagerInterface $entityManager): Response {
+    public function index(EntityManagerInterface $entityManager, Request $request): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
         $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
 
+        $token = $request->query->get('x-api-key');
+
+        $tokenIsValid = isset($_SERVER['CLB_API_KEY']) && $token === $_SERVER['CLB_API_KEY'];
+        $content = $request->query->get('content');
+        if (!$content) {
+            $response = false;
+        } else {
+            $content = str_replace(["\r", "\n"], ['\\r', '\\n'], $content);
+            $response = json_decode($content, true);
+        }
         return $this->render('transport/request/index.html.twig', [
             'newRequest' => new TransportDeliveryRequest(),
             'categories' => [
@@ -74,6 +84,16 @@ class RequestController extends AbstractController {
                     "label" => "Collecte",
                 ],
             ],
+            'prefilled' => $tokenIsValid && $response,
+            'informations' => $tokenIsValid && $response ? $response : [
+                'Prenom' => '',
+                'Nom' => '',
+                'Nodos' => '',
+                'Contact' => '',
+                'Adresse' => '',
+                'PersonnesAPrevenir' => '',
+                'Remarques' => '',
+            ],
             'types' => $typeRepository->findByCategoryLabels([
                 CategoryType::DELIVERY_TRANSPORT, CategoryType::COLLECT_TRANSPORT,
             ]),
@@ -83,7 +103,9 @@ class RequestController extends AbstractController {
             ]),
             'temperatures' => $temperatureRangeRepository->findAll(),
             'statuts' => [
+                TransportRequest::STATUS_AWAITING_VALIDATION,
                 TransportRequest::STATUS_TO_PREPARE,
+                TransportRequest::STATUS_SUBCONTRACTED,
                 TransportRequest::STATUS_TO_DELIVER,
                 TransportRequest::STATUS_AWAITING_PLANNING,
                 TransportRequest::STATUS_TO_COLLECT,
@@ -93,8 +115,6 @@ class RequestController extends AbstractController {
                 TransportRequest::STATUS_CANCELLED,
                 TransportRequest::STATUS_NOT_DELIVERED,
                 TransportRequest::STATUS_NOT_COLLECTED,
-                TransportRequest::STATUS_SUBCONTRACTED,
-                TransportRequest::STATUS_AWAITING_VALIDATION,
             ],
         ]);
     }
@@ -124,7 +144,7 @@ class RequestController extends AbstractController {
 
         $packsCount = !$transportRequest->getOrders()->isEmpty()
             ? $transportRequest->getOrders()->first()->getPacks()->count()
-            : null;
+            : 0;
 
         $hasRejectedPacks = !$transportRequest->getOrders()->isEmpty()
             && Stream::from($transportRequest->getOrders()->first()->getPacks())
@@ -320,7 +340,7 @@ class RequestController extends AbstractController {
     }
 
     #[Route("/{transportRequest}/status-history-api", name: "transport_request_status_history_api", options: ['expose' => true], methods: "GET")]
-    public function statusHistoryApi(TransportRequest $transportRequest) {
+    public function statusHistoryApi(EntityManagerInterface $manager, TransportRequest $transportRequest) {
         $round = !$transportRequest->getOrders()->isEmpty() && !$transportRequest->getOrders()->first()->getTransportRoundLines()->isEmpty()
             ? $transportRequest->getOrders()->first()->getTransportRoundLines()->last()
             : null;
@@ -336,7 +356,7 @@ class RequestController extends AbstractController {
             $statusWorkflow = TransportRequest::STATUS_WORKFLOW_COLLECT;
         }
         else {
-            throw new RuntimeException('Unkown transport request type');
+            throw new RuntimeException('Unknown transport request type');
         }
 
         return $this->json([
@@ -350,7 +370,8 @@ class RequestController extends AbstractController {
                     ])
                     ->toArray(),
                 "request" => $transportRequest,
-                "round" => $round
+                "round" => $round,
+                "timeSlot" => $this->transportService->getTimeSlot($manager, $transportRequest->getExpectedAt()),
             ]),
         ]);
     }
