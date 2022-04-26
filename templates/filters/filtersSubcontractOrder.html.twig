@@ -15,5 +15,10 @@
         placeholder: 'Statut',
         names: true,
     } %}
-    {% include 'filters/filter_item/filterType.html.twig' %}
+    {% if types is not empty %}
+        Type&nbsp;:
+        {% include 'filters/filter_item/filterTypeIcon.html.twig' with {
+            types: types
+        } %}
+    {% endif %}
 {% endblock %}

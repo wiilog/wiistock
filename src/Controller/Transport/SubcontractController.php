@@ -46,8 +46,12 @@ class SubcontractController extends AbstractController
         $typesRepository = $em->getRepository(Type::class);
 
         return $this->render('transport/subcontract/index.html.twig', [
-            'statuts' => $statusRepository->findByCategorieName(CategorieStatut::TRANSPORT_ORDER_DELIVERY),
-            'types' => $typesRepository->findByCategoryLabels([CategoryType::DELIVERY_TRANSPORT])
+            'statuts' => $statusRepository->findByCategoryNameAndStatusCodes(CategorieStatut::TRANSPORT_REQUEST_DELIVERY, [
+                TransportRequest::STATUS_SUBCONTRACTED, TransportRequest::STATUS_ONGOING, TransportRequest::STATUS_FINISHED, TransportRequest::STATUS_NOT_DELIVERED
+            ]),
+            'types' => $typesRepository->findByCategoryLabels([
+                CategoryType::DELIVERY_TRANSPORT, CategoryType::COLLECT_TRANSPORT,
+            ]),
         ]);
     }
 
@@ -64,9 +68,10 @@ class SubcontractController extends AbstractController
             $request->request,
             $filters,
             [[
-                "field" => FiltreSup::FIELD_STATUT,
+                "field" => "Awaiting validation request",
                 "value" => TransportRequest::STATUS_AWAITING_VALIDATION
-            ]]
+            ]],
+            true
         );
 
         $subcontractOrderResult = $transportRequestRepository->findByParamAndFilters(
@@ -80,7 +85,6 @@ class SubcontractController extends AbstractController
 
         $transportRequests = [];
         foreach ($awaitingValidationResult["data"] as $requestUp) {
-            $requestUp->setExpectedAt(new DateTime());
             $transportRequests["A valider"][] = $requestUp;
         }
         foreach ($subcontractOrderResult["data"] as $requestDown) {

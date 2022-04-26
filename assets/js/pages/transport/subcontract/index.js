@@ -2,6 +2,7 @@ import '@styles/pages/transport/common.scss';
 import '@styles/pages/transport/subcontract.scss';
 import {$document} from "@app/app";
 import {GET, POST} from "@app/ajax";
+import {initializeFilters} from "@app/pages/transport/common";
 
 global.editStatusChange = editStatusChange;
 
@@ -11,6 +12,15 @@ const finishedStatus = "Terminée";
 const notDeliveredStatus = "Non livrée";
 
 $(function () {
+
+    // filtres enregistrés en base pour chaque utilisateur
+    let path = Routing.generate('filter_get_by_page');
+    let params = JSON.stringify(PAGE_MVT_TRACA);
+    $.post(path, params, function (data) {
+        displayFiltersSup(data);
+    }, 'json');
+
+    initializeFilters(PAGE_SUBCONTRACT_ORDERS);
 
     let table = initDataTable('tableSubcontractOrders', {
         processing: true,
