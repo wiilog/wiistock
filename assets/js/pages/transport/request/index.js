@@ -41,6 +41,10 @@ $(function() {
         submitTransportRequest(form, data, table);
     });
 
+    if ($modalTransportRequest.find('#prefilled').val() === "1") {
+        $modalTransportRequest.modal('show');
+    }
+
     $(document).arrive('.cancel-request-button', function (){
         $(this).on('click', function(){
             cancelRequest($(this).data('request-id'));

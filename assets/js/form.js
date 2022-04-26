@@ -137,6 +137,13 @@ export default class Form {
             }
         }
 
+        if(errors.length) {
+            console.error(`%cForm errors (${errors.length}) %c`, ...[
+                `font-weight: bold;`,
+                `font-weight: normal;`,
+            ], errors);
+        }
+
         if(config.ignoreErrors) {
             return data;
         }
