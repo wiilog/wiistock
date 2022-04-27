@@ -233,10 +233,19 @@
                          data-request-type>
                         <div class="col-12 wii-describe {{ not modeCollectEdit ? 'd-none' }}"
                              data-request-type="{{ DISCR_COLLECT }}">
-                            Laisser vide si quantité non connue
+                           <div class="d-none" id="text-info">Laisser vide si quantité non connue</div>
                         </div>
                         <div class="col-12">
                             <div class="row request-line-container">
+                                <div class="d-none warning-empty-natures">
+                                    {% include 'utils/warningSelectEmpty.html.twig' with {
+                                        array: [],
+                                        warningLabel: 'Attention ! Aucune nature de colis n\'a été créée',
+                                        redirectPath: path('nature_param_index'),
+                                        redirectLabel: 'Aller vers la création des natures',
+                                        block: true
+                                    } %}
+                                </div>
                                 {% for lineIndex, nature in natures %}
                                     {% set allowedForms = nature.allowedForms ?? {} %}
                                     {% set natureTypeCollect = allowedForms[constant('App\\Entity\\Nature::TRANSPORT_COLLECT_CODE')] ?? [] %}
