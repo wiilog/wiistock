@@ -271,7 +271,39 @@
             <div class="col-lg-4 col-md-6 col-12">
                 <div class="wii-box mr-3">
                     <div class="header wii-title">Données</div>
-                    <div class="">A REMPLIR</div>{# TODO REMOVE #}
+                    <div class="">
+                        {% set requiresTemperatureTracking = false %}
+                        {% set roundHasStarted = request.roundHasStarted %}
+                        {% for line in request.lines %}
+                            {% set requiresTemperatureTracking = requiresTemperatureTracking or line.nature.temperatureRanges | length %}
+                        {% endfor %}
+
+                        <div class="d-flex justify-content-between p-3">
+                            <span class="wii-field-name">Dernière position connue</span>
+                            <span class="wii-medium-text">
+                                {% if requiresTemperatureTracking %}
+                                    La demande ne nécessite pas de suivi de température
+                                {% elseif not roundHasStarted %}
+                                    La tournée n'a pas commencé
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        {# TODO: afficher la carte #}
+
+                        <div class="d-flex justify-content-between p-3">
+                            <span class="wii-field-name">Courbe de températures</span>
+                            <span class="wii-medium-text">
+                                {% if requiresTemperatureTracking %}
+                                    La demande ne nécessite pas de suivi de température
+                                {% elseif not roundHasStarted %}
+                                    La tournée n'a pas commencé
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        {# TODO: afficher les graphiques #}
+                    </div>
                 </div>
             </div>
         </div>

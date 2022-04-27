@@ -336,6 +336,12 @@ abstract class TransportRequest {
         return Stream::from($this->orders)->some(fn(TransportOrder $order) => !$order->getTransportRoundLines()->isEmpty());
     }
 
+    public function roundHasStarted(): bool {
+        return Stream::from($this->orders)
+            ->map(fn(TransportOrder $order) => $order->getTransportRoundLines()->last())
+            ->some(fn(TransportRoundLine|bool $round) => $round && $round->getTransportRound()->getBeganAt() !== null);
+    }
+
     public function isSubcontracted(): bool {
         $lastOrder = $this->getOrders()->last() ?: null;
         return $lastOrder?->isSubcontracted() ?: false;
