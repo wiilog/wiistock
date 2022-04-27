@@ -47,3 +47,19 @@
         </div>
     </div>
 </div>
+
+<div class="wii-section-title">Demande à valider</div>
+<div class="wii-section">
+    <div class="row">
+        <div class="col-md-4 col-12">
+            {{ form.select(setting('TRANSPORT_DELIVERY_DESTINATAIRES_MAIL'), "Destinataire(s) mail", false, {
+                multiple: true,
+                type: 'user',
+                items: destinatairesMail,
+                values: destinatairesMail,
+                placeholder: 'Ajoutez des éléments',
+                labelClass: 'wii-field-name w-100',
+            }) }}
+        </div>
+    </div>
+</div>
