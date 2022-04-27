@@ -8,6 +8,7 @@ use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\FreeField;
+use App\Entity\Pack;
 use App\Entity\Setting;
 use App\Entity\StatusHistory;
 use App\Entity\Transport\TransportCollectRequestLine;
@@ -26,8 +27,11 @@ use App\Entity\Transport\TransportRequestLine;
 use App\Entity\Type;
 use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
+use App\Service\PackService;
 use App\Service\PDFGeneratorService;
+use App\Service\StatusHistoryService;
 use App\Service\StringService;
+use App\Service\Transport\TransportHistoryService;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Transport\TransportCollectRequest;
 use App\Entity\Utilisateur;
@@ -198,7 +202,7 @@ class RequestController extends AbstractController {
                          TransportService $transportService,
                          TransportRequest $transportRequest): JsonResponse {
 
-        $transportService->updateTransportRequest($entityManager, $transportRequest, $request->request);
+        $transportService->updateTransportRequest($entityManager, $transportRequest, $request->request, $this->getUser());
         $entityManager->flush();
 
         return $this->json([
@@ -207,12 +211,12 @@ class RequestController extends AbstractController {
         ]);
     }
 
-    #[Route("/packing-api/{transportRequest}", name: "transport_request_packing_api", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
-    public function packingApi(TransportRequest $transport): JsonResponse {
+    #[Route("/packing-api/{transportRequest}", name: "transport_request_packing_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    public function packingApi(TransportDeliveryRequest $transportRequest): JsonResponse {
         return $this->json([
             "success" => true,
             "html" => $this->renderView('transport/request/packing-content.html.twig', [
-                'request' => $transport
+                'request' => $transportRequest
             ]),
         ]);
     }
@@ -221,14 +225,78 @@ class RequestController extends AbstractController {
     #[HasPermission([Menu::DEM, Action::EDIT_TRANSPORT], mode: HasPermission::IN_JSON)]
     public function packing(Request $request,
                             EntityManagerInterface $entityManager,
-                            TransportService $transportService,
-                            TransportRequest $transportRequest): JsonResponse {
-        // TODO
+                            PackService $packService,
+                            TransportHistoryService $transportHistoryService,
+                            StatusHistoryService $statusHistoryService,
+                            TransportRequest $transportRequest ): JsonResponse {
+        $data = $request->request->all();
+        $natureRepository = $entityManager->getRepository(Nature::class);
+        $statusRepository = $entityManager->getRepository(Statut::class);
 
+        $order = $transportRequest->getOrders()->last() ?: null;
+
+        $canPacking = (
+            isset($order)
+            && $order->getPacks()->isEmpty()
+            && $transportRequest instanceof TransportDeliveryRequest
+            && in_array($transportRequest->getStatus()?->getCode(), [TransportRequest::STATUS_TO_PREPARE, TransportRequest::STATUS_SUBCONTRACTED])
+        );
+
+        if (!$canPacking) {
+            throw new FormException("Impossible d'effectuer un colisage pour cette demande");
+        }
+
+        foreach($data as $natureId => $quantity){
+            $nature = $natureRepository->find($natureId);
+            if ($quantity > 0 && $nature) {
+                for ($packIndex = 0; $packIndex < $quantity; $packIndex++) {
+                    $orderLine = new TransportDeliveryOrderPack();
+                    $orderLine->setOrder($order);
+                    $pack = $packService->createPack([
+                        'orderLine' => $orderLine,
+                        'nature' => $nature,
+                    ]);
+                    $entityManager->persist($orderLine);
+                    $entityManager->persist($pack);
+                }
+            }
+            else {
+                throw new FormException("Formulaire mal complété, veuillez réessayer");
+            }
+        }
+        if($transportRequest->getStatus()->getCode() == TransportRequest::STATUS_TO_PREPARE) {
+            $status = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_REQUEST_DELIVERY, TransportRequest::STATUS_TO_DELIVER);
+            $statusHistory = $statusHistoryService->updateStatus($entityManager, $transportRequest, $status);
+        }
+
+
+        $transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_LABELS_PRINTING, [
+            'history' => $statusHistory ?? null,
+            'user' => $this->getUser()
+        ]);
+
+        $entityManager->flush();
         return $this->json([
             "success" => true,
             "message" => "Votre demande de transport a bien été mise à jour",
         ]);
+    }
+    #[Route("/check/{transportRequest}", name: "transport_request_packing_check", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::EDIT_TRANSPORT], mode: HasPermission::IN_JSON)]
+    public function packingCheck(TransportRequest $transportRequest ): JsonResponse {
+        $order = $transportRequest->getOrders()->last() ?: null;
+        if($order->getPacks()->isEmpty()) {
+            return $this->json([
+                "success" => true,
+                "message" => "Colisage possible",
+            ]);
+        }
+        else {
+            return $this->json([
+                "success" => false,
+                "message" => "Colisage déjà effectué",
+            ]);
+        }
     }
 
     #[Route('/api', name: 'transport_request_api', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
@@ -408,8 +476,14 @@ class RequestController extends AbstractController {
                 ->toArray()
             : [];
 
-        $associatedNaturesAndPacks = Stream::from($transportRequest->getOrders())
-            ->flatMap(fn(TransportOrder $order) => $order->getPacks()->toArray())
+        $requestPacksList = Stream::from($transportRequest->getOrders())
+            ->flatMap(fn(TransportOrder $order) => $order->getPacks()->toArray());
+
+        $packCounter = $requestPacksList->count();
+        /* [
+           natureId => [Pack, Pack]
+        ]*/
+        $associatedNaturesAndPacks = $requestPacksList
             ->keymap(function(TransportDeliveryOrderPack $transportDeliveryOrderPack) {
                 $nature = $transportDeliveryOrderPack->getPack()->getNature();
                 return [
@@ -418,14 +492,16 @@ class RequestController extends AbstractController {
                 ];
             }, true)
             ->toArray();
+        $packingLabel = $packCounter == 0 ? 'Colisage non fait' : ($packCounter . ' colis');
 
         return $this->json([
             "success" => true,
+            "packingLabel" => $packingLabel,
             "template" => $this->renderView('transport/request/packs.html.twig', [
                 "transportCollectRequestLines" => $transportCollectRequestLines,
                 "transportDeliveryRequestLines" => $transportDeliveryRequestLines,
                 "associatedNaturesAndPacks" => $associatedNaturesAndPacks,
-                "request" => $transportRequest
+                "request" => $transportRequest,
             ]),
         ]);
     }
@@ -563,7 +639,7 @@ class RequestController extends AbstractController {
         $fileName = $PDFGeneratorService->getBarcodeFileName($config, 'transport');
         return new PdfResponse(
             $PDFGeneratorService->generatePDFBarCodes($fileName, $config, true),
-            $fileName
+            $fileName,
         );
         /*return new Response($PDFGeneratorService->generatePDFBarCodes($fileName, $config, true));*/
     }

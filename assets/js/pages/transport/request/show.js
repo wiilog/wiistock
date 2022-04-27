@@ -1,12 +1,17 @@
 import '@styles/pages/transport/show.scss';
 import "@app/pages/transport/common";
-import {initializeForm, cancelRequest, deleteRequest} from "@app/pages/transport/request/common";
+import {initializeForm, cancelRequest, initializePacking, deleteRequest,} from "@app/pages/transport/request/common";
 import AJAX, {GET, POST} from "@app/ajax";
 import Flash from "@app/flash";
 import {saveAs} from "file-saver";
 
 $(function () {
     const transportRequest = $(`input[name=transportRequestId]`).val();
+    initializePacking(() => {
+        getPacks(transportRequest);
+        getStatusHistory(transportRequest);
+        getTransportHistory(transportRequest);
+    });
 
     $('.cancel-request-button').on('click', function(){
         cancelRequest($(this).data('request-id'));
@@ -14,11 +19,6 @@ $(function () {
 
     $('.delete-request-button').on('click', function(){
         deleteRequest($(this).data('request-id'));
-    });
-
-
-    $(`.print-barcodes`).on(`click`, function() {
-        printBarcodes($(this), transportRequest)
     });
 
     getStatusHistory(transportRequest);
@@ -53,9 +53,11 @@ function getTransportHistory(transportRequest) {
 
 function getPacks(transportRequest) {
     $.get(Routing.generate(`transport_packs_api`, {transportRequest}, true))
-        .then(({template}) => {
+        .then(({template, packingLabel}) => {
             const $packsContainer = $(`.packs-container`);
-            $packsContainer.empty().append(template);
+            $packsContainer.html(template);
+            const $packingLabelCounter = $('.packing-label-counter');
+            $packingLabelCounter.text(packingLabel);
         });
 }
 
@@ -79,18 +81,6 @@ function submitTransportRequestEdit(form, data) {
                     message || `Une erreur s'est produite`
                 );
                 table.ajax.reload();
-            });
-    });
-}
-
-function printBarcodes($button, transportRequest) {
-    wrapLoadingOnActionButton($button, () => {
-        Flash.add(`info`, `Génération des étiquettes de colis en cours`);
-        return AJAX.route(GET, `print_transport_packs`, {transportRequest})
-            .raw()
-            .then(response => response.blob())
-            .then((response) => {
-                saveAs(response);
             });
     });
 }

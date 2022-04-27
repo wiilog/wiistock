@@ -13,7 +13,7 @@
     {% endif %}
     {% for line in transportDeliveryRequestLines %}
         <div class="pack-wrapper {{ loop.last ? 'pb-4' : 'pb-2' }}">
-            {% set packsCount = (associatedNaturesAndPacks[line.nature.label] ?? [])|length %}
+            {% set packsCount = (associatedNaturesAndPacks[line.nature.id] ?? [])|length %}
             <div class="nature-line px-2">
                 <div class="row align-items-center">
                     <div class="col-md-4 col-12 d-flex align-items-center">

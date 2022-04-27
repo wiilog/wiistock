@@ -96,7 +96,7 @@ class TransportService {
             $expectedAt->setTime(0, 0);
         }
 
-        $this->updateTransportRequest($entityManager, $transportRequest, $data, $mainDelivery?->getContact(), $expectedAt ?? null);
+        $this->updateTransportRequest($entityManager, $transportRequest, $data, $user, $mainDelivery?->getContact(), $expectedAt ?? null);
 
         $transportRequest
             ->setType($type)
@@ -110,6 +110,7 @@ class TransportService {
     public function updateTransportRequest(EntityManagerInterface   $entityManager,
                                            TransportRequest         $transportRequest,
                                            InputBag                 $data,
+                                           Utilisateur              $loggedUser,
                                            ?TransportRequestContact $customContact = null,
                                            ?DateTime                $customExpectedAt = null): void {
 
@@ -143,7 +144,8 @@ class TransportService {
         if (!$transportRequest->getStatus()) {
             $statusHistory = $this->statusHistoryService->updateStatus($entityManager, $transportRequest, $status);
             $this->transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_REQUEST_CREATION, [
-                'history' => $statusHistory
+                'history' => $statusHistory,
+                'user' => $loggedUser,
             ]);
         }
         else if ($transportRequest->getStatus()->getId() !== $status->getId()){

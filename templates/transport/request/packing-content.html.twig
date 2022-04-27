@@ -7,7 +7,7 @@
             {% set nature = line.nature %}
             <div class="col-md-6 col-12">
                 {% set nature = line.nature %}
-                {{ form.number(nature.id, nature.label, false) }}
+                {{ form.number(nature.id, nature.label, true, '', { min: 1 } ) }}
             </div>
          {% endfor %}
     </div>

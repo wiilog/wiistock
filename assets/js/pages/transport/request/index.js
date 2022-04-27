@@ -1,6 +1,6 @@
 import AJAX, {GET, POST} from "@app/ajax";
 import Flash from "@app/flash";
-import {initializeForm, cancelRequest, deleteRequest} from "@app/pages/transport/request/common";
+import {initializeForm, cancelRequest, deleteRequest, initializePacking,} from "@app/pages/transport/request/common";
 import {initializeFilters} from "@app/pages/transport/common";
 
 $(function() {
@@ -34,6 +34,9 @@ $(function() {
         columns: [
             {data: 'content', name: 'content', orderable: false},
         ],
+    });
+    initializePacking(() => {
+        table.ajax.reload();
     });
 
     const form = initializeForm($modalTransportRequest);
