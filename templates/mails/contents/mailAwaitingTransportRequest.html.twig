@@ -1,0 +1,18 @@
+{% extends 'mails/template.html.twig' %}
+
+{% block content %}
+    <p>Bonjour,</p>
+    <p>Une demande de transport est à valider avec les informations suivantes :</p>
+    <ul>
+        <li> Numéro de demande : <b>{{ transportRequest.number }}</b></li>
+        <li> Date de création : <b>{{ transportRequest.createdAt | format_helper('longDate', {short: true, time: true}, '') }}</b></li>
+        <li> Date de livraison : <b>{{ transportRequest.expectedAt | format_helper('longDate', {short: true, time: true}, '') }}</b></li>
+        <li> Demandeur : <b>{{ transportRequest.createdBy.username }}</b></li>
+        <li> Type : <b>{{ transportRequest.type.label }}</b></li>
+        <li> N° dossier : <b>{{ transportRequest.contact.fileNumber }}</b></li>
+        <li> Adresse : <b>{{ transportRequest.contact.address}}</b></li>
+    </ul>
+
+    <br>
+
+{% endblock %}

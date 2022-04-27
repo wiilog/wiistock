@@ -26,6 +26,7 @@ use App\Entity\Transport\TransportRequestLine;
 use App\Entity\Type;
 use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
+use App\Service\MailerService;
 use App\Service\PDFGeneratorService;
 use App\Service\StringService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -41,7 +42,9 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Service\Attribute\Required;
+use Twig\Environment;
 use WiiCommon\Helper\Stream;
 
 
@@ -171,7 +174,10 @@ class RequestController extends AbstractController {
     #[HasPermission([Menu::DEM, Action::CREATE_TRANSPORT], mode: HasPermission::IN_JSON)]
     public function new(Request $request,
                         EntityManagerInterface $entityManager,
-                        TransportService $transportService): JsonResponse {
+                        TransportService $transportService,
+                        MailerService $mailerService,
+                        Environment $templating,
+                        RouterInterface $router): JsonResponse {
 
         $settingRepository = $entityManager->getRepository(Setting::class);
 
@@ -191,6 +197,20 @@ class RequestController extends AbstractController {
         $mainTransportRequest = $transportDeliveryRequest ?? $transportRequest;
         $validationMessage = null;
         if ($mainTransportRequest->getStatus()?->getCode() === TransportRequest::STATUS_AWAITING_VALIDATION) {
+            $userRepository = $entityManager->getRepository(Utilisateur::class);
+            $paramReceivers = $settingRepository->getOneParamByLabel(Setting::TRANSPORT_DELIVERY_DESTINATAIRES_MAIL);
+            $receivers = $userRepository->findBy(['id' => explode(',', $paramReceivers)]);
+
+            if(!empty($receivers)) {
+                $mailerService->sendMail(
+                    'FOLLOW GT // Nouvelle demande de transport à valider',
+                    $templating->render('mails/contents/mailAwaitingTransportRequest.html.twig', [
+                        'transportRequest' => $mainTransportRequest,
+                        'urlSuffix' => $router->generate("transport_subcontract_index")
+                    ]),
+                    $receivers
+                );
+            }
             $validationMessage = 'Votre demande de transport est en attente de validation';
         }
         else if ($mainTransportRequest->getStatus()?->getCode() === TransportRequest::STATUS_SUBCONTRACTED) {
