@@ -792,7 +792,11 @@ class TrackingMovementService
 
                     // we update quantity if it's reference article from collecte
                     if (isset($collecteOrder) && ($article instanceof ReferenceArticle)) {
-                        $article->setQuantiteStock(($article->getQuantiteStock() ?? 0) + $mouvementStockPrise->getQuantity());
+                        $stockQuantity = ($article->getQuantiteStock() ?? 0) + $mouvementStockPrise->getQuantity();
+                        $referenceArticleRepository->updateFields($article, [
+                            'quantiteStock' => $stockQuantity
+                        ]);
+                        $article->setQuantiteStock($stockQuantity);
                     }
                 }
             }
