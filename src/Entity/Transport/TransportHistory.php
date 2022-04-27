@@ -25,11 +25,9 @@ class TransportHistory {
     private ?DateTime $date = null;
 
     #[ORM\ManyToOne(targetEntity: TransportRequest::class, inversedBy: 'history')]
-    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?TransportRequest $request = null;
 
     #[ORM\ManyToOne(targetEntity: TransportOrder::class, inversedBy: 'history')]
-    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?TransportOrder $order = null;
 
     #[ORM\Column(type: 'string', length: 255)]
@@ -57,7 +55,7 @@ class TransportHistory {
     #[ORM\OneToOne(targetEntity: Emplacement::class)]
     private ?Emplacement $location = null;
 
-    #[ORM\OneToOne(targetEntity: StatusHistory::class, cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(targetEntity: StatusHistory::class, cascade: ['persist'])]
     private ?StatusHistory $statusHistory = null;
 
     public function getId(): ?int {
