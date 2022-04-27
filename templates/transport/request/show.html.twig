@@ -281,9 +281,7 @@
                         <div class="d-flex justify-content-between p-3">
                             <span class="wii-field-name">Dernière position connue</span>
                             <span class="wii-medium-text">
-                                {% if requiresTemperatureTracking %}
-                                    La demande ne nécessite pas de suivi de température
-                                {% elseif not roundHasStarted %}
+                                {% if not roundHasStarted %}
                                     La tournée n'a pas commencé
                                 {% endif %}
                             </span>
@@ -294,10 +292,11 @@
                         <div class="d-flex justify-content-between p-3">
                             <span class="wii-field-name">Courbe de températures</span>
                             <span class="wii-medium-text">
-                                {% if requiresTemperatureTracking %}
+                                 {% if not roundHasStarted %}
+                                     La tournée n'a pas commencé
+                                {% elseif requiresTemperatureTracking %}
+                                    {# TODO déplacer sur le graphique #}
                                     La demande ne nécessite pas de suivi de température
-                                {% elseif not roundHasStarted %}
-                                    La tournée n'a pas commencé
                                 {% endif %}
                             </span>
                         </div>
