@@ -63,6 +63,12 @@
     border-radius: 4px;
     padding: 10px 5px;
 
+    &.no-cursor {
+        div,tbody,tr,td{
+            cursor: initial !important;
+        }
+    }
+
     div,tbody,tr,td {
         cursor: pointer !important;
     }

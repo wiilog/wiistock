@@ -63,7 +63,7 @@ class RequestController extends AbstractController {
 
         $token = $request->query->get('x-api-key');
 
-        $tokenIsValid = $_SERVER['CLB_API_KEY'] && $token === $_SERVER['CLB_API_KEY'];
+        $tokenIsValid = isset($_SERVER['CLB_API_KEY']) && $token === $_SERVER['CLB_API_KEY'];
         $content = $request->query->get('content');
         if (!$content) {
             $response = false;
@@ -342,7 +342,7 @@ class RequestController extends AbstractController {
     }
 
     #[Route("/{transportRequest}/status-history-api", name: "transport_request_status_history_api", options: ['expose' => true], methods: "GET")]
-    public function statusHistoryApi(TransportRequest $transportRequest) {
+    public function statusHistoryApi(EntityManagerInterface $manager, TransportRequest $transportRequest) {
         $round = !$transportRequest->getOrders()->isEmpty() && !$transportRequest->getOrders()->first()->getTransportRoundLines()->isEmpty()
             ? $transportRequest->getOrders()->first()->getTransportRoundLines()->last()
             : null;
@@ -372,7 +372,8 @@ class RequestController extends AbstractController {
                     ])
                     ->toArray(),
                 "request" => $transportRequest,
-                "round" => $round
+                "round" => $round,
+                "timeSlot" => $this->transportService->getTimeSlot($manager, $transportRequest->getExpectedAt()),
             ]),
         ]);
     }

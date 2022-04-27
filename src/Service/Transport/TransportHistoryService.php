@@ -50,6 +50,7 @@ class TransportHistoryService {
     public const TYPE_SUBCONTRACTED = "SUBCONTRACTED";
     public const TYPE_REJECTED_DELIVERY = "REJECTED_DELIVERY";
     public const TYPE_CANCELLED = "CANCELLED";
+    public const TYPE_NOT_DELIVERED = "NOT DELIVERED";
 
     private const CATEGORIES = [
         self::CATEGORY_TIMELINE => [],
@@ -72,7 +73,7 @@ class TransportHistoryService {
         self::TYPE_ADD_COMMENT => "{user} a laissé un commentaire",
         self::TYPE_ADD_ATTACHMENT => "{user} a ajouté des pièces jointes",
         self::TYPE_FAILED => "{user} n'a pas pu effectuer la {category}",
-        self::TYPE_PACKS_FAILED => "{user} a déposé le colis {pack} sur {location}",
+        self::TYPE_PACKS_FAILED => "{user} a déposé les colis {packs} sur {location}",
         self::TYPE_PACKS_DEPOSITED => "{user} a déposé les objets sur {location}",
         self::TYPE_NO_MONITORING => "Le suivi en temps réel n'est pas disponible car la livraison est un horaire non ouvré {message}",
         self::TYPE_SUBCONTRACT_UPDATE => "{user} a indiqué que la livraison était {status} le {statusDate}",
@@ -80,6 +81,7 @@ class TransportHistoryService {
         self::TYPE_SUBCONTRACTED => "La demande a été sous-traitée",
         self::TYPE_REJECTED_DELIVERY => "La livraison a été rejetée de la tournée",
         self::TYPE_CANCELLED => "{user} a annulé la {category}",
+        self::TYPE_NOT_DELIVERED =>"La livraison n'a pas était livrée"
     ];
 
     #[Required]
@@ -208,12 +210,12 @@ class TransportHistoryService {
 
     private function getCategoryFromType(string $type): string {
         return match($type) {
-            self::TYPE_REQUEST_CREATION, self::TYPE_LABELS_PRINTING, self::TYPE_ONGOING, self::TYPE_FINISHED => self::CATEGORY_TIMELINE,
-            self::TYPE_AFFECTED_ROUND => self::CATEGORY_INFORMATION,
-            self::TYPE_DROP_REJECTED_PACK, self::TYPE_FAILED, self::TYPE_NO_MONITORING, self::TYPE_SUBCONTRACT_UPDATE => self::CATEGORY_WARNING,
+            self::TYPE_REQUEST_CREATION, self::TYPE_LABELS_PRINTING, self::TYPE_ONGOING, self::TYPE_FINISHED, self::TYPE_SUBCONTRACT_UPDATE, self::TYPE_AWAITING_VALIDATION, self::TYPE_SUBCONTRACTED, self::TYPE_PACKS_DEPOSITED => self::CATEGORY_TIMELINE,
+            self::TYPE_AFFECTED_ROUND, self::TYPE_PACKS_FAILED, self::TYPE_CONTACT_VALIDATED => self::CATEGORY_INFORMATION,
+            self::TYPE_DROP_REJECTED_PACK, self::TYPE_FAILED, self::TYPE_NO_MONITORING, self::TYPE_REJECTED_DELIVERY, self::TYPE_CANCELLED => self::CATEGORY_WARNING,
             self::TYPE_ADD_COMMENT => self::CATEGORY_COMMENT,
             self::TYPE_ADD_ATTACHMENT => self::CATEGORY_ATTACHMENT,
-            default => self::CATEGORY_ATTACHMENT
+            default => throw new RuntimeException("Unknown type")
         };
     }
 
