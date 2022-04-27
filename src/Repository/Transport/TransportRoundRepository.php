@@ -64,7 +64,6 @@ class TransportRoundRepository extends EntityRepository {
 
         $qb->orderBy("transport_round.beganAt", "DESC");
 
-        dump($qb->getQuery()->getResult());
         return [
             "data" => $qb->getQuery()->getResult(),
             "count" => $countFiltered,
