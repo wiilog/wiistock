@@ -2,8 +2,6 @@ import '@styles/pages/transport/show.scss';
 import "@app/pages/transport/common-show";
 
 $(function () {
-    initDateTimePicker();
-
     const $modalCollectTimeSlot = $("#modalCollectTimeSlot");
     InitModal(
         $modalCollectTimeSlot,

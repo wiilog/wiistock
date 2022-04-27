@@ -30,38 +30,38 @@ class HistoryController extends AbstractController
     #[Route("/{id}/{type}/status-history-api", name: "status_history_api", options: ['expose' => true], methods: "GET")]
     public function statusHistoryApi(int $id, string $type, EntityManagerInterface $entityManager) {
         $entity = null;
-        if($type === self::ORDER ) {
+        if($type === self::ORDER) {
             $entity = $entityManager->find(TransportOrder::class, $id);
         }
         else if ($type === self::REQUEST) {
             $entity = $entityManager->find(TransportRequest::class, $id);
-            $round = !$entity->getOrders()->isEmpty() && !$entity->getOrders()->first()->getTransportRoundLines()->isEmpty()
-                ? $entity->getOrders()->first()->getTransportRoundLines()->last()
-                : null;
+
+            $round = null;
+            $orders = $entity->getOrders();
+            if($orders->count()) {
+                $round = $orders->last()->getTransportRoundLines()->last() ?: null;
+            }
         }
 
         $statusWorkflow = [];
         if ($entity instanceof TransportOrder) {
-            $statusWorkflow = $entity->getRequest() instanceof TransportDeliveryRequest && $entity->getRequest()->getCollect()
+            $isDelivery = $entity->getRequest() instanceof TransportDeliveryRequest;
+            $isDeliveryCollect = $isDelivery && $entity->getRequest()->getCollect();
+
+            $statusWorkflow =  $isDeliveryCollect
                 ? TransportOrder::STATUS_WORKFLOW_DELIVERY_COLLECT
-                : ($entity->getRequest() instanceof TransportDeliveryRequest
+                : ($isDelivery
                     ? TransportOrder::STATUS_WORKFLOW_DELIVERY
                     : TransportOrder::STATUS_WORKFLOW_COLLECT);
-
-        }
-        else if ($entity instanceof TransportDeliveryRequest || $entity instanceof TransportCollectRequest) {
-            if ($entity instanceof TransportDeliveryRequest) {
+        } else if ($entity instanceof TransportDeliveryRequest) {
                 $statusWorkflow = $entity->isSubcontracted()
-                    ? TransportRequest::STATUS_WORKFLOW_DELIVERY_SUBCONTRACTED
-                    : ($entity->getCollect()
-                        ? TransportRequest::STATUS_WORKFLOW_DELIVERY_COLLECT
-                        : TransportRequest::STATUS_WORKFLOW_DELIVERY_CLASSIC);
-            }
-            else {
-                $statusWorkflow = TransportRequest::STATUS_WORKFLOW_COLLECT;
-            }
-        }
-        else {
+                ? TransportRequest::STATUS_WORKFLOW_DELIVERY_SUBCONTRACTED
+                : ($entity->getCollect()
+                    ? TransportRequest::STATUS_WORKFLOW_DELIVERY_COLLECT
+                    : TransportRequest::STATUS_WORKFLOW_DELIVERY_CLASSIC);
+        } else if($entity instanceof TransportCollectRequest) {
+            $statusWorkflow = TransportRequest::STATUS_WORKFLOW_COLLECT;
+        } else {
             throw new RuntimeException('Unknown transport request type');
         }
 

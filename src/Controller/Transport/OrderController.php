@@ -39,12 +39,13 @@ class OrderController extends AbstractController {
     public function settingsTimeSlot(EntityManagerInterface $entityManager, Request $request){
         $data = json_decode($request->getContent(), true);
 
-        $choosenDate = DateTime::createFromFormat("d/m/Y" , $data["dateCollect"]);
-        if ($choosenDate > new DateTime()){
+        $choosenDate = DateTime::createFromFormat("Y-m-d" , $data["dateCollect"]);
+        $choosenDate->setTime(0, 0);
+        if ($choosenDate >= new DateTime("today midnight")){
             $order = $entityManager->find(TransportOrder::class, $data["orderId"]);
             $order->getRequest()
                 ->setTimeSlot($entityManager->find(CollectTimeSlot::class, $data["timeSlot"]))
-                ->setExpectedAt($choosenDate);
+                ->setValidationDate($choosenDate);
             $entityManager->flush();
             return $this->json([
                 "success" => true,
@@ -74,11 +75,11 @@ class OrderController extends AbstractController {
         $freeFields = $freeFieldRepository->findByTypeAndCategorieCLLabel($transportRequest->getType(), $categoryFF);
 
         $packsCount = !$transportRequest->getOrders()->isEmpty()
-            ? $transportRequest->getOrders()->first()->getPacks()->count()
+            ? $transportRequest->getOrders()->last()->getPacks()->count()
             : 0;
 
         $hasRejectedPacks = !$transportRequest->getOrders()->isEmpty()
-            && Stream::from($transportRequest->getOrders()->first()->getPacks())
+            && Stream::from($transportRequest->getOrders()->last()->getPacks())
                 ->some(fn(TransportDeliveryOrderPack $pack) => $pack->isRejected());
 
         $round = !$transportOrder->getTransportRoundLines()->isEmpty()

@@ -11,11 +11,10 @@
                 <label class="wii-field-name w-100 ">
                     Date validée avec le patient
                 </label>
-                    <input type="text"
+                    <input type="date"
                            class="form-control needed data cursor-default filter-date-min mb-3 w-100 "
                            name="dateCollect"
-                           id="expectedDate"
-                           placeholder="jj/mm/aaaa"
+                           min="{{ 'now' | date('Y-m-d') }}"
                            autocomplete="off"/>
                 <label class="wii-field-name w-100">
                     Créneau passage

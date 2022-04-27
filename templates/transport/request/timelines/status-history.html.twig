@@ -1,19 +1,20 @@
 {% set cancelledStatusesName = constant('App\\Entity\\Transport\\TransportRequest::CANCELED_STATUSES') %}
 {% set entityStatusName = entity.status.nom %}
-{% set order = order ?? ((request.orders | last) ?: null) %}
+{% set request = entity is instanceof('App\\Entity\\Transport\\TransportRequest') ? entity : entity.request %}
+{% set order = (request.orders | last) ?: null %}
 {% set roundLine = order ? (order.transportRoundLines | last) ?: null : null %}
 
-{% set lastHistory = statusesHistory is not empty ? statusesHistory|last : null %}
-{% set lastStatus = lastHistory ? lastHistory['status'] : null %}
+{% set lastHistory = statusesHistory | last ?: null %}
+{% set lastStatus = lastHistory ? lastHistory.status : null %}
 {% set followingStatusIndex = lastStatus is not null ? ((statusWorkflow|flip)[lastStatus] ?? null) : 0 %}
 {% set followingStatuses = followingStatusIndex is not null ? statusWorkflow|slice(followingStatusIndex + 1) : [] %}
 
 {% for history in statusesHistory %}
-    {% set state = (entityStatusName == history['status'] and entityStatusName in cancelledStatusesName)
+    {% set state = (entityStatusName == history.status and entityStatusName in cancelledStatusesName)
         ? 'cancelled'
-        : (history['status'] in cancelledStatusesName
+        : (history.status in cancelledStatusesName
             ? 'cancelled'
-            : (entityStatusName == history['status'] and loop.last
+            : (entityStatusName == history.status and loop.last
                 ? 'current'
                 : 'past'))
     %}

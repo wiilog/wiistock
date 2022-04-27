@@ -110,7 +110,7 @@
                                     {% if request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
                                         <span>{{ request.expectedAt|format_helper('longDate', {time: true}) }}</span>
                                     {% else %}
-                                        <span>{{ request.expectedAt|format_helper('date') }}</span>
+                                        <span>{{ request.expectedAt|format_helper('longDate') }}</span>
                                     {% endif %}
                                 </span>
                             </div>
@@ -121,8 +121,8 @@
                                 <div class="box-item my-2">
                                     <span class="wii-field-name">Date validée avec le patient</span>
                                     <span class="wii-body-text">
-                                        {% if request_collect.expectedAt is not null %}
-                                            <span class="">{{ request_collect.expectedAt|format_helper('date') }}</span>
+                                        {% if request_collect.validationDate is not null %}
+                                            <span class="">{{ request_collect.validationDate|format_helper('longDate') }}</span>
                                         {% else %}
                                             <span>-</span>
                                         {% endif %}
@@ -131,7 +131,7 @@
                                 <div class="box-item my-2">
                                     <span class="wii-field-name">Créneau passage</span>
                                     <span class="wii-body-text">
-                                        {% if request_collect.TimeSlot.Name is not null %}
+                                        {% if request_collect.TimeSlot and request_collect.TimeSlot.Name is not null %}
                                             <span>{{ request_collect.TimeSlot.Name }}</span>
                                         {% else %}
                                             <span>-</span>

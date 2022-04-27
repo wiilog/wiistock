@@ -144,11 +144,11 @@ class RequestController extends AbstractController {
             ->toArray();
 
         $packsCount = !$transportRequest->getOrders()->isEmpty()
-            ? $transportRequest->getOrders()->first()->getPacks()->count()
+            ? $transportRequest->getOrders()->last()->getPacks()->count()
             : 0;
 
         $hasRejectedPacks = !$transportRequest->getOrders()->isEmpty()
-            && Stream::from($transportRequest->getOrders()->first()->getPacks())
+            && Stream::from($transportRequest->getOrders()->last()->getPacks())
                 ->some(fn(TransportDeliveryOrderPack $pack) => $pack->isRejected());
 
         return $this->render('transport/request/show.html.twig', [
@@ -341,43 +341,6 @@ class RequestController extends AbstractController {
         ]);
     }
 
-    #[Route("/{transportRequest}/status-history-api", name: "transport_request_status_history_api", options: ['expose' => true], methods: "GET")]
-    public function statusHistoryApi(EntityManagerInterface $manager, TransportRequest $transportRequest) {
-        $round = !$transportRequest->getOrders()->isEmpty() && !$transportRequest->getOrders()->first()->getTransportRoundLines()->isEmpty()
-            ? $transportRequest->getOrders()->first()->getTransportRoundLines()->last()
-            : null;
-
-        if ($transportRequest instanceof TransportDeliveryRequest) {
-            $statusWorkflow = $transportRequest->isSubcontracted()
-                ? TransportRequest::STATUS_WORKFLOW_DELIVERY_SUBCONTRACTED
-                : ($transportRequest->getCollect()
-                    ? TransportRequest::STATUS_WORKFLOW_DELIVERY_COLLECT
-                    : TransportRequest::STATUS_WORKFLOW_DELIVERY_CLASSIC);
-        }
-        else if ($transportRequest instanceof TransportCollectRequest) {
-            $statusWorkflow = TransportRequest::STATUS_WORKFLOW_COLLECT;
-        }
-        else {
-            throw new RuntimeException('Unknown transport request type');
-        }
-
-        return $this->json([
-            "success" => true,
-            "template" => $this->renderView('transport/request/timelines/status-history.html.twig', [
-                "statusWorkflow" => $statusWorkflow,
-                "statusesHistory" => Stream::from($transportRequest->getStatusHistory())
-                    ->map(fn(StatusHistory $statusHistory) => [
-                        "status" => FormatHelper::status($statusHistory->getStatus()),
-                        "date" => FormatHelper::longDate($statusHistory->getDate(), ["short" => true, "time" => true])
-                    ])
-                    ->toArray(),
-                "request" => $transportRequest,
-                "round" => $round,
-                "timeSlot" => $this->transportService->getTimeSlot($manager, $transportRequest->getExpectedAt()),
-            ]),
-        ]);
-    }
-
     #[Route("/collect-already-exists", name: "transport_request_collect_already_exists", options: ['expose' => true], methods: "GET")]
     public function collectAlreadyExists(EntityManagerInterface $entityManager,
                                          Request $request): JsonResponse {
@@ -441,7 +404,7 @@ class RequestController extends AbstractController {
     public function printTransportPacks(TransportRequest $transportRequest,
                                         PDFGeneratorService $PDFGeneratorService,
                                         EntityManagerInterface $manager): Response {
-        $packs = !$transportRequest->getOrders()->isEmpty() ? $transportRequest->getOrders()->first()->getPacks() : [];
+        $packs = !$transportRequest->getOrders()->isEmpty() ? $transportRequest->getOrders()->last()->getPacks() : [];
         $contact = $transportRequest->getContact();
         $contactName = $contact->getName();
         $contactFileNumber = $contact->getFileNumber();
