@@ -200,14 +200,17 @@ class RequestController extends AbstractController {
             $userRepository = $entityManager->getRepository(Utilisateur::class);
             $paramReceivers = $settingRepository->getOneParamByLabel(Setting::TRANSPORT_DELIVERY_DESTINATAIRES_MAIL);
             $receivers = $userRepository->findBy(['id' => explode(',', $paramReceivers)]);
-            $mailerService->sendMail(
-                'FOLLOW GT // Nouvelle demande de transport à valider',
-                $templating->render('mails/contents/mailAwaitingTransportRequest.html.twig', [
-                    'transportRequest' => $mainTransportRequest,
-                    'urlSuffix' => $router->generate("transport_subcontract_index")
-                ]),
-                $receivers
-            );
+
+            if(!empty($receivers)) {
+                $mailerService->sendMail(
+                    'FOLLOW GT // Nouvelle demande de transport à valider',
+                    $templating->render('mails/contents/mailAwaitingTransportRequest.html.twig', [
+                        'transportRequest' => $mainTransportRequest,
+                        'urlSuffix' => $router->generate("transport_subcontract_index")
+                    ]),
+                    $receivers
+                );
+            }
             $validationMessage = 'Votre demande de transport est en attente de validation';
         }
         else if ($mainTransportRequest->getStatus()?->getCode() === TransportRequest::STATUS_SUBCONTRACTED) {

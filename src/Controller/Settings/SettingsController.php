@@ -889,31 +889,27 @@ class SettingsController extends AbstractController {
                         ->toArray(),
                 ],
                 self::MENU_TRANSPORT_REQUESTS => [
-                    self::MENU_CONFIGURATIONS => function() use ($userRepository, $settingRepository){
-
-                        return [
-
-                                "transportDeliveryRequestEmergencies" =>
-                                    Stream::from(explode(',', $settingRepository->getOneParamByLabel(Setting::TRANSPORT_DELIVERY_REQUEST_EMERGENCIES)))
-                                        ->filter(fn(string $value) => $value)
-                                        ->keymap(fn(string $value) => [
-                                            $value, [
-                                                "value" => $value,
-                                                "label" => $value,
-                                                "selected" => true,
-                                            ],
-                                        ])
-                                        ->toArray(),
-                                "destinatairesMail" =>
-                                    Stream::from($userRepository->findBy(['id' => explode(',', $settingRepository->getOneParamByLabel(Setting::TRANSPORT_DELIVERY_DESTINATAIRES_MAIL))]))
-                                        ->map(fn(Utilisateur $user) => [
-                                            "value" => $user->getId(),
-                                            "label" => $user->getUsername(),
-                                            "selected" => true
-                                        ])
-                                        ->toArray()
-                            ];
-                        },
+                    self::MENU_CONFIGURATIONS => fn() => [
+                        "transportDeliveryRequestEmergencies" =>
+                            Stream::from(explode(',', $settingRepository->getOneParamByLabel(Setting::TRANSPORT_DELIVERY_REQUEST_EMERGENCIES)))
+                                ->filter(fn(string $value) => $value)
+                                ->keymap(fn(string $value) => [
+                                    $value, [
+                                        "value" => $value,
+                                        "label" => $value,
+                                        "selected" => true,
+                                    ],
+                                ])
+                                ->toArray(),
+                        "receiversEmails" =>
+                            Stream::from($userRepository->findBy(['id' => explode(',', $settingRepository->getOneParamByLabel(Setting::TRANSPORT_DELIVERY_DESTINATAIRES_MAIL))]))
+                                ->map(fn(Utilisateur $user) => [
+                                    "value" => $user->getId(),
+                                    "label" => $user->getUsername(),
+                                    "selected" => true
+                                ])
+                                ->toArray()
+                    ],
                     self::MENU_DELIVERY_TYPES_FREE_FIELDS => fn() => [
                         "types" => $this->typeGenerator(CategoryType::DELIVERY_TRANSPORT),
                         'category' => CategoryType::DELIVERY_TRANSPORT,

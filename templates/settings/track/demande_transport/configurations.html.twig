@@ -52,11 +52,11 @@
 <div class="wii-section">
     <div class="row">
         <div class="col-md-4 col-12">
-            {{ form.select(setting('TRANSPORT_DELIVERY_DESTINATAIRES_MAIL'), "Destinataire(s) mail", false, {
+            {{ form.select(setting('TRANSPORT_DELIVERY_DESTINATAIRES_MAIL'), "Destinataire(s)", false, {
                 multiple: true,
                 type: 'user',
-                items: destinatairesMail,
-                values: destinatairesMail,
+                items: receiversEmails,
+                values: receiversEmails,
                 placeholder: 'Ajoutez des éléments',
                 labelClass: 'wii-field-name w-100',
             }) }}
