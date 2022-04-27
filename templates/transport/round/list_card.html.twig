@@ -1,0 +1,81 @@
+<div class="transport-request-container col-12 col-xl-7 p-1">
+    <a href="{{ path('transport_round_show', {transportRound: round.id}) }}" class="transport-request-card">
+        <table class="transport-content w-100">
+            <tr style="border-bottom: 5px solid transparent;">
+                <div class="h-100 d-flex flex-column" style="padding-top: 10px; padding-left: 10px; padding-right: 0;">
+                    {% set rejectedDelivery = round.transportRoundLines|filter(line => line.rejectedAt)|length == round.transportRoundLines|length %}
+                    {% if rejectedDelivery %}
+                        <img src="{{ asset('svg/rejected-delivery.svg') }}" width="18px"
+                             height="18px" class="has-tooltip" title="Livraison rejetée">
+                    {% else %}
+                        {% set hasRejectedPacks = round.transportRoundLines|some(line => line.rejectedAt) %}
+                        {% if hasRejectedPacks %}
+                            <img src="{{ asset('svg/rejected-pack.svg') }}" width="18px" height="18px"
+                                 class="has-tooltip" title="Un ou plusieurs colis ont été rejetés">
+                        {% endif %}
+
+                        {# TODO Gérer l'affichage de l'icône en fonction du lastMassage du sensor. Faire la WIIS-7229 avant #}
+                        {#<img src="{{ asset('svg/temperature.svg') }}" width="18px" height="18px"
+                             class="{{ not hasRejectedPacks ? 'mt-2' }} has-tooltip"
+                             title="Une ou plusieurs températures relevées sont incorrectes">#}
+                    {% endif %}
+                </div>
+                <td class="transport-category-container w-25 vertical-align-middle">
+                    <div>
+                        <span class="transport-category">{{ round.number }}</span>
+                    </div>
+                </td>
+                <td class="transport-details-container vertical-align-middle">
+                    {% set status = round.status|format_helper('status') %}
+                    <span class="transport-badge mb-0 {{ constant('App\\Entity\\Transport\\TransportRequest::STATUS_COLOR')[status] ?? '' }}">
+                        {{ status }}
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="transport-details-container">
+                    Livreur : <span class="text-nowrap">
+                        <span class="transport-value">{{ round.deliverer|format_helper('user') }}</span>
+                    </span>
+                </td>
+                <td class="transport-details-container" style="width: 30%;">
+                    Créée le : <span class="text-nowrap">
+                        <span class="transport-value">{{ round.createdAt|format_helper('longDate', {short: true, time: true, year: false}, '') }}</span>
+                    </span>
+                </td>
+                <td class="transport-details-container">
+                    Km estimés : <span class="text-nowrap">
+                        <span class="transport-value">{{ round.estimatedDistance ? round.estimatedDistance ~ 'km' : '-' }}</span>
+                    </span>
+                </td>
+                <td class="transport-details-container">
+                    Temps estimé : <span class="text-nowrap">
+                        <span class="transport-value">{{ round.estimatedTime ? round.estimatedTime ~ 'min' : '-' }}</span>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="transport-details-container">
+                    Transports effectués : <span class="text-nowrap">
+                        <span class="transport-value">{{ round.transportRoundLines|filter(line => line.fulfilledAt)|length ~ ' / ' ~ round.transportRoundLines|length }}</span>
+                    </span>
+                </td>
+                <td class="transport-details-container" style="width: 30%;">
+                    Terminée le : <span class="text-nowrap">
+                        <span class="transport-value">{{ round.endedAt ? round.endedAt|format_helper('longDate', {short: true, time: true}, '') : '-' }}</span>
+                    </span>
+                </td>
+                <td class="transport-details-container">
+                    Km réels : <span class="text-nowrap">
+                        <span class="transport-value">{{ round.realDistance ? round.realDistance ~ 'km' : '-' }}</span>
+                    </span>
+                </td>
+                <td class="transport-details-container">
+                    Temps réel : <span class="text-nowrap">
+                        <span class="transport-value">{{ realTime }}</span>
+                    </span>
+                </td>
+            </tr>
+        </table>
+    </a>
+</div>
