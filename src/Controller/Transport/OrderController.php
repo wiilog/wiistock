@@ -9,6 +9,7 @@ use App\Entity\CategoryType;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField;
 use App\Entity\Menu;
+use App\Entity\Transport\CollectTimeSlot;
 use App\Entity\Transport\TransportCollectRequest;
 use App\Entity\Transport\TransportDeliveryOrderPack;
 use App\Entity\Transport\TransportDeliveryRequest;
@@ -34,7 +35,32 @@ class OrderController extends AbstractController {
     #[Required]
     public TransportService $transportService;
 
+    #[Route("/validate-time-slot", name: "validate_time_slot", options: ["expose" => true], methods: "POST")]
+    public function settingsTimeSlot(EntityManagerInterface $entityManager, Request $request){
+        $data = json_decode($request->getContent(), true);
+
+        $choosenDate = DateTime::createFromFormat("d/m/Y" , $data["dateCollect"]);
+        if ($choosenDate > new DateTime()){
+            $order = $entityManager->find(TransportOrder::class, $data["orderId"]);
+            $order->getRequest()
+                ->setTimeSlot($entityManager->find(CollectTimeSlot::class, $data["timeSlot"]))
+                ->setExpectedAt($choosenDate);
+            $entityManager->flush();
+            return $this->json([
+                "success" => true,
+                "msg" => "La date de collecte a été modifiée avec succès"
+            ]);
+        }
+        else{
+            return $this->json([
+                "success" => false,
+                "msg" => "La date de collecte doit être supérieure à la date actuelle"
+            ]);
+        }
+    }
+
     #[Route("/voir/{id}", name: "transport_order_show", methods: "GET")]
+    #[HasPermission([Menu::ORDRE, Action::DISPLAY_TRANSPORT])]
     public function show(TransportOrder $id,
                          EntityManagerInterface $entityManager): Response {
 
@@ -59,13 +85,7 @@ class OrderController extends AbstractController {
             ? $transportOrder->getTransportRoundLines()->last()->getTransportRound()
             : null ;
 
-        if ($round != null) {
-            $deliverer = !$round->getDeliverer()
-                ? $round->getDeliverer()
-                : null ;
-        } else {
-            $deliverer = null ;
-        }
+        $timeSlots = $entityManager->getRepository(CollectTimeSlot::class)->findAll();
 
         return $this->render('transport/order/show.html.twig', [
             'order' => $transportOrder,
@@ -73,7 +93,7 @@ class OrderController extends AbstractController {
             'packsCount' => $packsCount,
             'hasRejectedPacks' => $hasRejectedPacks,
             'round' => $round,
-            'deliverer'=> $deliverer
+            'timeSlots' => $timeSlots
         ]);
     }
 

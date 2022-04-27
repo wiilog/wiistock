@@ -104,23 +104,48 @@
                     </div>
                     <div class="row content">
                         <div class="col-6 d-flex flex-column">
-                            <span class="wii-field-name">Date attendue</span>
-                            <span class="wii-field-text">
-                                {% if request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
-                                    {{ request.expectedAt|format_helper('longDate', {time: true}) }}
-                                {% else %}
-                                    {{ request.expectedAt|format_helper('date') }}
-                                {% endif %}
-                            </span>
+                            <div class="box-item my-2">
+                                <span class="wii-field-name">Date attendue</span>
+                                <span class="wii-body-text">
+                                    {% if request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
+                                        <span>{{ request.expectedAt|format_helper('longDate', {time: true}) }}</span>
+                                    {% else %}
+                                        <span>{{ request.expectedAt|format_helper('date') }}</span>
+                                    {% endif %}
+                                </span>
+                            </div>
                         </div>
-                        {# Only for collect view #}
-                        {% if request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') %}
+                        {# only for collect order #}
+                        {% if request_collect is not null and request_delivery is null %}
                             <div class="col-6 d-flex flex-column">
-                                <span class="wii-field-name">Date validée avec le patient</span>
-                                {% if request_collect.validationDate %}
-                                    <span class="wii-field-text">
-                                        {{ request.validationDate|format_helper('date') }}
+                                <div class="box-item my-2">
+                                    <span class="wii-field-name">Date validée avec le patient</span>
+                                    <span class="wii-body-text">
+                                        {% if request_collect.expectedAt is not null %}
+                                            <span class="">{{ request_collect.expectedAt|format_helper('date') }}</span>
+                                        {% else %}
+                                            <span>-</span>
+                                        {% endif %}
                                     </span>
+                                </div>
+                                <div class="box-item my-2">
+                                    <span class="wii-field-name">Créneau passage</span>
+                                    <span class="wii-body-text">
+                                        {% if request_collect.TimeSlot.Name is not null %}
+                                            <span>{{ request_collect.TimeSlot.Name }}</span>
+                                        {% else %}
+                                            <span>-</span>
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                {# only when the order has not been assigned to a round #}
+                                {% if round is null %} {# TODO verifier la condition #}
+                                <button class="btn btn-primary minw-105px submit-button"
+                                        data-target="#modalCollectTimeSlot"
+                                        data-toggle='modal'>
+                                    <img class="mr-2" src="{{ asset('svg/pencil-white.svg') }}" alt="Icône Crayon" width="15px">
+                                    Renseigner date patient
+                                </button>
                                 {% endif %}
                             </div>
                         {% endif %}
@@ -136,15 +161,15 @@
                                 {% if round is not null %}
                                     <a class="text-primary underlined" href="{# TODO path('transport_round_show',{'transportRound':round.id}) } #}">{{ round.number }}</a>
                                 {% else %}
-                                    <span href="">-</span>
+                                    <span>-</span>
                                 {% endif %}
                             </span>
                         </div>
                         <div class="col-6 d-flex flex-column">
                             <span class="wii-field-name">Livreur</span>
                             <span class="wii-field-text">
-                                {% if deliverer is not null %}
-                                    <span>{{ deliverer.username }}</span>
+                                {% if round and  round.deliverer is not null %}
+                                    <span>{{ round.deliverer.username }}</span>
                                 {% else %}
                                     <span>-</span>
                                 {% endif %}
@@ -251,12 +276,13 @@
         </div>
     </div>
 
+    {% include 'transport/order/modal_collect_time_slot.html.twig' with {'timeSlots':timeSlots , 'orderId': order.id} %}
+
     <input type="hidden" value="{{ order.id }}" name="transportId">
     <input type="hidden" value="{{ constant('App\\Controller\\Transport\\HistoryController::ORDER') }}" name="transportType">
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
-    {{ encore_entry_script_tags('transport-order-show') }}
     {{ encore_entry_script_tags('transport-order-show') }}
 {% endblock %}

@@ -1,0 +1,43 @@
+<form method="" class="modal show" id="modalCollectTimeSlot" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title wii-title" title="Date de collecte">Date de collecte</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body modal-input container-fluid ">
+                <label class="wii-field-name w-100 ">
+                    Date validée avec le patient
+                </label>
+                    <input type="text"
+                           class="form-control needed data cursor-default filter-date-min mb-3 w-100 "
+                           name="dateCollect"
+                           id="expectedDate"
+                           placeholder="jj/mm/aaaa"
+                           autocomplete="off"/>
+                <label class="wii-field-name w-100">
+                    Créneau passage
+                </label>
+                <select class="data w-100 form-control needed" name="timeSlot" >
+                    {% for timeSlot in timeSlots %}
+                        <option value="{{ timeSlot.id }}">
+                            {{ timeSlot.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button type="button"
+                        class="btn btn-outline-secondary "
+                        data-dismiss="modal">Annuler
+                </button>
+                <button type="button"
+                        class="btn btn-success submit-button">Envoyer sur le planning
+                </button>
+            </div>
+        </div>
+    </div>
+    <input class="data" type="hidden" value="{{ orderId }}" name="orderId">
+</form>
