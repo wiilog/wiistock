@@ -12,16 +12,17 @@
         }
     }
 
-    .transport-subcontract-status-container{
+    .transport-subcontract-status-container {
         width: 15%;
         font-size: 1rem;
     }
 
-    .transport-subcontract-button-container{
+    .transport-subcontract-button-container {
         height: 80px;
         display: flex;
         flex-direction: column;
-        align-items: start;
+        align-items: flex-end;
+        padding-right: 16px !important;
 
         button{
             display: flex;
@@ -32,4 +33,8 @@
             font-weight: normal;
         }
     }
+}
+
+.modal-dialog{
+    max-width: 800px;
 }

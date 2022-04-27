@@ -1,7 +1,26 @@
 import '@styles/pages/transport/common.scss';
 import '@styles/pages/transport/subcontract.scss';
+import {$document} from "@app/app";
+import {GET, POST} from "@app/ajax";
+import {initializeFilters} from "@app/pages/transport/common";
 
-$(function() {
+global.editStatusChange = editStatusChange;
+
+const subcontractStatus = "Sous-traitée";
+const onGoingStatus = "En cours";
+const finishedStatus = "Terminée";
+const notDeliveredStatus = "Non livrée";
+
+$(function () {
+
+    // filtres enregistrés en base pour chaque utilisateur
+    let path = Routing.generate('filter_get_by_page');
+    let params = JSON.stringify(PAGE_MVT_TRACA);
+    $.post(path, params, function (data) {
+        displayFiltersSup(data);
+    }, 'json');
+
+    initializeFilters(PAGE_SUBCONTRACT_ORDERS);
 
     let table = initDataTable('tableSubcontractOrders', {
         processing: true,
@@ -30,4 +49,87 @@ $(function() {
             {data: 'content', name: 'content', orderable: false},
         ],
     });
+
+    $document.arrive('.accept-request, .subcontract-request', function () {
+        $(this).on('click', function () {
+            const requestId = $(this).siblings('[name=requestId]').val();
+            const buttonType = $(this).data('type') ;
+            wrapLoadingOnActionButton($(this), () =>
+                AJAX.route(POST, 'transport_request_treat', {requestId, buttonType}).json().then(() => table.ajax.reload())
+            )
+        });
+    });
+
+    $document.arrive('.modal-edit-subcontracted-request', function (){
+        const requestStatusCode = $('select[name=status]').find(":selected").text();
+        manageModal(requestStatusCode);
+    });
+
+    let modalModifySubcontractedRequest = $('#modalEditSubcontractedRequest');
+    let submitModifySubcontractedRequest = $('#submitEditSubcontractedRequest');
+    let urlModifySubcontractedRequest = Routing.generate('subcontract_request_edit', true);
+    InitModal(modalModifySubcontractedRequest, submitModifySubcontractedRequest, urlModifySubcontractedRequest, {tables: [table]});
 });
+
+function editStatusChange($select){
+    manageModal($select.find(":selected").text());
+}
+
+function manageModal(requestStatusCode){
+    const startDateDiv = $('.startDateDiv');
+    const inputStartDate = startDateDiv.find('[name=delivery-start-date]');
+    const endDateDiv = $('.endDateDiv');
+    const inputEndDate = endDateDiv.find('[name=delivery-end-date]');
+    const comment = $('[name=commentaire]');
+    const labelComment = $('.label-'+comment.attr('name'));
+    switch (requestStatusCode){
+        case subcontractStatus:
+            toggleSubcontractStatus(startDateDiv, inputStartDate, endDateDiv, inputEndDate, comment, labelComment);
+            break;
+        case onGoingStatus:
+            toggleOnGoingStatus(startDateDiv, inputStartDate, endDateDiv, inputEndDate, comment, labelComment)
+            break;
+        case finishedStatus:
+            toggleFinishedStatus(startDateDiv, inputStartDate, endDateDiv, inputEndDate, comment, labelComment)
+            break;
+        case notDeliveredStatus:
+            toggleNotDeliveredStatus(startDateDiv, inputStartDate, endDateDiv, inputEndDate, comment, labelComment)
+            break;
+    }
+}
+
+function toggleSubcontractStatus(startDateDiv, inputStartDate, endDateDiv, inputEndDate, comment, labelComment){
+    startDateDiv.addClass('d-none');
+    inputStartDate.removeClass('needed');
+    endDateDiv.addClass('d-none');
+    inputEndDate.removeClass('needed');
+    labelComment.html(labelComment.text().replace(" *", ""));
+    comment.removeClass('needed');
+}
+
+function toggleOnGoingStatus(startDateDiv, inputStartDate, endDateDiv, inputEndDate, comment, labelComment){
+    startDateDiv.removeClass('d-none');
+    inputStartDate.addClass('needed');
+    endDateDiv.addClass('d-none');
+    inputEndDate.removeClass('needed');
+    labelComment.html(labelComment.text().replace(" *", ""));
+    comment.removeClass('needed');
+}
+
+function toggleFinishedStatus(startDateDiv, inputStartDate, endDateDiv, inputEndDate, comment, labelComment){
+    startDateDiv.removeClass('d-none');
+    inputStartDate.addClass('needed');
+    endDateDiv.removeClass('d-none');
+    inputEndDate.addClass('needed');
+    labelComment.html(labelComment.text().replace(" *", ""));
+    comment.removeClass('needed');
+}
+
+function toggleNotDeliveredStatus(startDateDiv, inputStartDate, endDateDiv, inputEndDate, comment, labelComment){
+    startDateDiv.removeClass('d-none');
+    inputStartDate.addClass('needed');
+    endDateDiv.removeClass('d-none');
+    inputEndDate.addClass('needed');
+    labelComment.html(labelComment.text().concat(" *"));
+    comment.addClass('needed');
+}

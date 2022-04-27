@@ -32,7 +32,7 @@
 {% for followingStatus in followingStatuses %}
     {% set finishedStatusName = constant('App\\Entity\\Transport\\TransportRequest::STATUS_FINISHED') %}
     {% set estimatedAt = round ? round.estimatedAt|format_helper('longDate', {short: true, time: true}, '') :
-        (request.timeSlot ? request.timeSlot.name : null) %}
+        (request.timeSlot is defined and request.timeSlot ? request.timeSlot.name : null) %}
     <div class="history-line">
         <div class="history-date">
             <div class="title-left future">{{ followingStatus }}</div>

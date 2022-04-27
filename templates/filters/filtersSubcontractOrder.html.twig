@@ -15,5 +15,12 @@
         placeholder: 'Statut',
         names: true,
     } %}
-    {% include 'filters/filter_item/filterType.html.twig' %}
+    {% if types is not empty %}
+        <div class="d-flex justify-content-center align-items-center text-nowrap">
+            Type&nbsp;:
+            {% include 'filters/filter_item/filterTypeIcon.html.twig' with {
+                types: types
+            } %}
+        </div>
+    {% endif %}
 {% endblock %}
