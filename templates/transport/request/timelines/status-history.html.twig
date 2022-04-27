@@ -1,21 +1,24 @@
 {% set cancelledStatusesName = constant('App\\Entity\\Transport\\TransportRequest::CANCELED_STATUSES') %}
-{% set requestStatusName = request.status.nom %}
-{% set order = order ?? ((request.orders | last) ?: null) %}
+{% set entityStatusName = entity.status.nom %}
+{% set request = entity is instanceof('App\\Entity\\Transport\\TransportRequest') ? entity : entity.request %}
+{% set order = (request.orders | last) ?: null %}
 {% set roundLine = order ? (order.transportRoundLines | last) ?: null : null %}
 
-{% set lastHistory = statusesHistory is not empty ? statusesHistory|last : null %}
-{% set lastStatus = lastHistory ? lastHistory['status'] : null %}
+{% set lastHistory = statusesHistory | last ?: null %}
+{% set lastStatus = lastHistory ? lastHistory.status : null %}
 {% set followingStatusIndex = lastStatus is not null ? ((statusWorkflow|flip)[lastStatus] ?? null) : 0 %}
 {% set followingStatuses = followingStatusIndex is not null ? statusWorkflow|slice(followingStatusIndex + 1) : [] %}
 
 {% for history in statusesHistory %}
-    {% set state = (requestStatusName == history['status'] and requestStatusName in cancelledStatusesName)
+    {% set state = (entityStatusName == history.status and entityStatusName in cancelledStatusesName)
         ? 'cancelled'
-        : (history['status'] in cancelledStatusesName
-        ? 'cancelled'
-        : (requestStatusName == history['status'] and loop.last
-        ? 'current'
-        : 'past')) %}
+        : (history.status in cancelledStatusesName
+            ? 'cancelled'
+            : (entityStatusName == history.status and loop.last
+                ? 'current'
+                : 'past'))
+    %}
+
     <div class="history-line">
         <div class="history-date">
             <div class="title-left {{ state }}">{{ history['status'] }}</div>

@@ -22,6 +22,15 @@ class TransportDeliveryRequest extends TransportRequest {
         parent::__construct();
     }
 
+    public function getExpectedAt(): ?DateTime {
+        return $this->expectedAt;
+    }
+
+    public function setExpectedAt(DateTime $expectedAt): self {
+        $this->expectedAt = $expectedAt;
+        return $this;
+    }
+
     public function getEmergency(): ?string
     {
         return $this->emergency;

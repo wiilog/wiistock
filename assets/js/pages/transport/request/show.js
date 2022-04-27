@@ -1,5 +1,5 @@
 import '@styles/pages/transport/show.scss';
-import "@app/pages/transport/common";
+import "@app/pages/transport/common-show";
 import {initializeForm, cancelRequest, deleteRequest} from "@app/pages/transport/request/common";
 import AJAX, {GET, POST} from "@app/ajax";
 import Flash from "@app/flash";
@@ -26,10 +26,6 @@ $(function () {
         }
     });
 
-    getStatusHistory(transportRequest);
-    getTransportHistory(transportRequest);
-    getPacks(transportRequest);
-
     const $modals = $("#modalTransportDeliveryRequest, #modalTransportCollectRequest");
     $modals.each(function() {
         const $modal = $(this);
@@ -39,30 +35,6 @@ $(function () {
         });
     });
 });
-
-function getStatusHistory(transportRequest) {
-    $.get(Routing.generate(`transport_request_status_history_api`, {transportRequest}, true))
-        .then(({template}) => {
-            const $statusHistoryContainer = $(`.status-history-container`);
-            $statusHistoryContainer.empty().append(template);
-        });
-}
-
-function getTransportHistory(transportRequest) {
-    $.get(Routing.generate(`transport_history_api`, {transportRequest}, true))
-        .then(({template}) => {
-            const $transportHistoryContainer = $(`.transport-history-container`);
-            $transportHistoryContainer.empty().append(template);
-        });
-}
-
-function getPacks(transportRequest) {
-    $.get(Routing.generate(`transport_packs_api`, {transportRequest}, true))
-        .then(({template}) => {
-            const $packsContainer = $(`.packs-container`);
-            $packsContainer.empty().append(template);
-        });
-}
 
 function submitTransportRequestEdit(form, data) {
     const $modal = form.element;

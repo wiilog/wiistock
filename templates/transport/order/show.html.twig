@@ -1,81 +1,28 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Demande | Transport | Détails{% endblock %}
-{% block titleLink path('transport_request_index') %}
+{% block title %}Ordre | Transport | Détails{% endblock %}
+{% block titleLink path('transport_order_index') %}
 
 {% block stylesheets %}
     {{ parent() }}
-    {{ encore_entry_link_tags('transport-request-show') }}
+    {{ encore_entry_link_tags('transport-order-show') }}
 {% endblock %}
 
 {% block page_content %}
+    {% set request = order.request %}
     {% set requestType = request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') ? 'Livraison' : 'Collecte' %}
     {% set request_delivery = request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') ? request : null %}
     {% set request_collect = request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') ? request : request_delivery.collect %}
-    <div class="wii-box-container mb-4">
+    <div class="wii-box-container mb-4 ml-3 mr-3">
         <div class="row">
             <div class="col-lg-4 col-md-6 col-12">
-                <div class="wii-box transport-details">
+                <div class="wii-box transport-details order-transport">
                     <div class="d-flex align-items-center mr-3">
-                        <div class="mx-2">
-                            {% if request_delivery or request.canBeCancelled or request.canBeUpdated %}
-                                <div class="dropdown dropright">
-                                    <div class="d-flex pointer" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                        <img alt="Actions" src="{{ asset('svg/dotsblack.svg') }}" height="20px" width="8px">
-                                    </div>
-                                    <div class="dropdown-menu dropdown-follow-gt pointer">
-                                        {% if request_delivery %}
-                                            <div class="dropdown-item pointer">
-                                                <i class="fas fa-print mr-2"></i> Imprimer les étiquettes
-                                            </div>
-                                        {% endif %}
-
-                                        {% if request.canBeUpdated %}
-                                            {% if request_delivery is not null %}
-                                                <div class="dropdown-item pointer"
-                                                     data-target="#modalTransportDeliveryRequest"
-                                                     data-toggle="modal">
-                                                    <i class="fa fa-pen mr-2"></i> Modifier la livraison
-                                                </div>
-                                            {% endif %}
-
-                                            {% if request_collect is not null %}
-                                                <div class="dropdown-item pointer"
-                                                     data-target="#modalTransportCollectRequest"
-                                                     data-toggle="modal">
-                                                    <i class="fa fa-pen mr-2"></i> Modifier la collecte
-                                                </div>
-                                            {% endif %}
-                                        {% endif %}
-
-                                        {% if request_delivery and request.status.code in constant('App\\Entity\\Transport\\TransportRequest::STATUS_WORKFLOW_DELIVERY_CLASSIC')|slice(1) %}
-                                            <div class="dropdown-item pointer">
-                                                <i class="fas fa-file mr-2"></i> Générer bon de transport
-                                            </div>
-                                        {% endif %}
-
-                                        {% if request.canBeCancelled %}
-                                            <div class="dropdown-item pointer cancel-request-button"
-                                                 data-request-id="{{ request.id }}">
-                                                <i class="fas fa-ban mr-2"></i> Annuler
-                                            </div>
-                                        {% endif %}
-
-                                        {% if request.canBeDeleted %}
-                                            <div class="dropdown-item pointer delete-request-button"
-                                                 data-request-id="{{ request.id }}">
-                                                <i class="fas fa-trash mr-2"></i> Supprimer
-                                            </div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            {% endif %}
-                        </div>
-                        <div class="d-flex py-2 w-100 justify-content-between">
+                        <div class="d-flex mx-3 py-2 w-100 justify-content-between">
                             <div class="d-flex flex-column">
                                 <span class="wii-title" title="Acheminement">Transport</span>
                                 <span
-                                    class="wii-medium-text">{{ constant('App\\Entity\\Transport\\TransportRequest::NUMBER_PREFIX') ~ request.number }}</span>
+                                    class="wii-medium-text">{{ constant('App\\Entity\\Transport\\TransportOrder::NUMBER_PREFIX') ~ request.number }}</span>
                             </div>
                             <div class="d-flex align-items-center justify-content-end">
                                 <strong>{{ request.createdBy|format_helper('user') }}</strong>
@@ -101,10 +48,11 @@
                                 <div class="col">
                                     <div class="d-flex align-items-center">
                                         {% if request_delivery.type.logo %}
-                                            <img src="{{ app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ request_delivery.type.logo.fileName }}"
-                                                 alt="Image type {{ request_delivery.type|format_helper('type') }}"
-                                                 class="mr-2"
-                                                 width="20px">
+                                            <img
+                                                src="{{ app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ request_delivery.type.logo.fileName }}"
+                                                alt="Image type {{ request_delivery.type|format_helper('type') }}"
+                                                class="mr-2"
+                                                width="20px">
                                         {% endif %}
                                         <span class="wii-describe">{{ request_delivery.type|format_helper('type') }}</span>
                                     </div>
@@ -122,10 +70,11 @@
                                 <div class="col">
                                     <div class="d-flex align-items-center">
                                         {% if request_collect.type.logo %}
-                                            <img src="{{ app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ request_collect.type.logo.fileName }}"
-                                                 alt="Image type {{ request_collect.type|format_helper('type') }}"
-                                                 class="mr-2"
-                                                 width="20px">
+                                            <img
+                                                src="{{ app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ request_collect.type.logo.fileName }}"
+                                                alt="Image type {{ request_collect.type|format_helper('type') }}"
+                                                class="mr-2"
+                                                width="20px">
                                         {% endif %}
                                         <span class="wii-describe">{{ request_collect.type|format_helper('type') }}</span>
                                     </div>
@@ -155,40 +104,94 @@
                     </div>
                     <div class="row content">
                         <div class="col-6 d-flex flex-column">
-                            <span class="wii-field-name">Date attendue</span>
-                            <span class="wii-field-text">
-                                {% if request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
-                                    {{ request.expectedAt|format_helper('longDate', {time: true}) }}
-                                {% else %}
-                                    {{ request.expectedAt|format_helper('date') }}
-                                {% endif %}
-                            </span>
+                            <div class="box-item my-2">
+                                <span class="wii-field-name">Date attendue</span>
+                                <span class="wii-body-text">
+                                    {% if request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
+                                        <span>{{ request.expectedAt|format_helper('longDate', {time: true}) }}</span>
+                                    {% else %}
+                                        <span>{{ request.expectedAt|format_helper('longDate') }}</span>
+                                    {% endif %}
+                                </span>
+                            </div>
                         </div>
-                        {# Only for collect view #}
-                        {% if request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') %}
+                        {# only for collect order #}
+                        {% if request_collect is not null and request_delivery is null %}
                             <div class="col-6 d-flex flex-column">
-                                <span class="wii-field-name">Date validée avec le patient</span>
-                                {% if request_collect.validationDate %}
-                                    <span class="wii-field-text">
-                                        {{ request.validationDate|format_helper('date') }}
+                                <div class="box-item my-2">
+                                    <span class="wii-field-name">Date validée avec le patient</span>
+                                    <span class="wii-body-text">
+                                        {% if request_collect.validationDate is not null %}
+                                            <span class="">{{ request_collect.validationDate|format_helper('longDate') }}</span>
+                                        {% else %}
+                                            <span>-</span>
+                                        {% endif %}
                                     </span>
+                                </div>
+                                <div class="box-item my-2">
+                                    <span class="wii-field-name">Créneau passage</span>
+                                    <span class="wii-body-text">
+                                        {% if request_collect.TimeSlot and request_collect.TimeSlot.Name is not null %}
+                                            <span>{{ request_collect.TimeSlot.Name }}</span>
+                                        {% else %}
+                                            <span>-</span>
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                {# only when the order has not been assigned to a round #}
+                                {% if round is null %} {# TODO verifier la condition #}
+                                <button class="btn btn-primary minw-105px submit-button"
+                                        data-target="#modalCollectTimeSlot"
+                                        data-toggle='modal'>
+                                    <img class="mr-2" src="{{ asset('svg/pencil-white.svg') }}" alt="Icône Crayon" width="15px">
+                                    Renseigner date patient
+                                </button>
                                 {% endif %}
                             </div>
                         {% endif %}
                     </div>
                     <div class="header">
+                        <img src="{{ asset('svg/delivery.svg') }}" alt="Icône calendrier" width="15px">
+                        <span class="wii-field-name ml-2">Détails transport</span>
+                    </div>
+                    <div class="row content col-12">
+                        <div class="col-6 d-flex flex-column">
+                            <span class="wii-field-name">Tournée</span>
+                            <span class="wii-field-text">
+                                {% if round is not null %}
+                                    <a class="text-primary underlined" href="{# TODO path('transport_round_show',{'transportRound':round.id}) } #}">{{ round.number }}</a>
+                                {% else %}
+                                    <span>-</span>
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="col-6 d-flex flex-column">
+                            <span class="wii-field-name">Livreur</span>
+                            <span class="wii-field-text">
+                                {% if round and  round.deliverer is not null %}
+                                    <span>{{ round.deliverer.username }}</span>
+                                {% else %}
+                                    <span>-</span>
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="header">
                         <img src="{{ asset('svg/information.svg') }}" alt="Icône information" width="15px">
                         <span class="wii-field-name ml-2">Autres informations</span>
                     </div>
-                        {% include 'free_field/freeFieldsShow.html.twig' with {
-                            containerClass: 'row content flex-wrap',
-                            emptyLabel: 'Aucun champ libre renseigné',
-                            values: request.freeFields,
-                            freeFields: freeFields
-                        } %}
+                    {% include 'free_field/freeFieldsShow.html.twig' with {
+                        containerClass: 'row content flex-wrap',
+                        emptyLabel: 'Aucun champ libre renseigné',
+                        values: request.freeFields,
+                        freeFields: freeFields
+                    } %}
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6 col-12 pl-xl-0 pr-xl-0">
+                <div class="wii-box">
                     <div class="header">
-                        <img src="{{ asset('svg/user.svg') }}" alt="Icône utilisateur" width="15px">
-                        <span class="wii-field-name ml-2">Informations patient</span>
+                        <span class="wii-title">Informations patient</span>
                     </div>
                     <div class="row content">
                         {% set transportRequestContact = request.contact %}
@@ -232,35 +235,9 @@
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-lg-4 col-md-6 col-12 p-0">
-                <div class="wii-box">
-                    <div class="header optioned d-flex justify-content-between align-items-center">
-                        <div class="d-flex align-items-center">
-                            <span class="wii-title">Colis</span>
-                            <div>
-                                <span class="wii-describe ml-3">{{ not request_collect and packsCount == 0 ? 'Colisage non fait' : (packsCount ~ ' colis') }}</span>
-                            </div>
-                            {% if hasRejectedPacks %}
-                                <div>
-                                    <img src="{{ asset('svg/rejected-pack.svg') }}" class="ml-3 my-auto" width="25px" height="25px">
-                                </div>
-                            {% endif %}
-                        </div>
-                        <button class="btn btn-sm btn-primary print-barcodes d-flex align-items-center" data-is-packed="{{ packsCount != 0 ? 1 : 0 }}">
-                            <i class="wii-icon wii-icon-printer-white mr-2"></i>Imprimer les étiquettes
-                        </button>
-                    </div>
-                    <div class="bordered packs-container">
-                        <div class="content d-flex align-items-center justify-content-center">
-                            <div class="spinner-border text-primary" role="status"></div>
-                            <span class="ml-3">Génération de la liste des colis en cours...</span>
-                        </div>
-                    </div>
-                </div>
                 <div class="wii-box">
                     <div class="header wii-title">Historique de transport</div>
-                    <div class="content bordered transport-history-container">
+                    <div class="content transport-history-container">
                         <div class="d-flex align-items-center justify-content-center">
                             <div class="spinner-border text-primary" role="status"></div>
                             <span class="ml-3">Génération de l'historique de transport en cours...</span>
@@ -269,41 +246,43 @@
                 </div>
             </div>
             <div class="col-lg-4 col-md-6 col-12">
-                <div class="wii-box mr-3">
+                <div class="wii-box">
+                    <div class="d-flex justify-content-between header">
+                        <div class="d-flex flex-column">
+                            <span class="wii-title">Colis</span>
+                        </div>
+                        <div class="d-flex align-items-center flex-column justify-content-end ">
+                            <div class="d-flex align-items-center">
+                            <span class="wii-describe ">
+                                {{ not request_collect and packsCount == 0 ? 'Colisage non fait' : 'Colisage fait' }}</span>
+                                {% if hasRejectedPacks %}
+                                    <img src="{{ asset('svg/rejected-pack.svg') }}" class="ml-2" width="25px" height="25px">
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="packs-container">
+                        <div class="content d-flex align-items-center justify-content-center">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <span class="ml-3">Génération de la liste des colis en cours...</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="wii-box">
                     <div class="header wii-title">Données</div>
-                    <div class="">A REMPLIR</div>{# TODO REMOVE #}
+                    <div class="row content"> <div class="col-auto"> A REMPLIR</div>   </div> {# TODO REMOVE #}
                 </div>
             </div>
         </div>
     </div>
-    {% include 'transport/request/delete.html.twig' %}
 
-    {% if request_delivery is not null %}
-        {% include 'transport/request/form.html.twig' with {
-            id: 'modalTransportDeliveryRequest',
-            request: request_delivery,
-            types: types,
-            natures: natures,
-            temperatures: temperatures,
-            selectedLines: selectedLines,
-        } %}
-    {% endif %}
-    {% if request_collect is not null %}
-        {% include 'transport/request/form.html.twig' with {
-            id: 'modalTransportCollectRequest',
-            request: request_collect,
-            types: types,
-            natures: natures,
-            temperatures: temperatures,
-            selectedLines: selectedLines,
-        } %}
-    {% endif %}
+    {% include 'transport/order/modal_collect_time_slot.html.twig' with {'timeSlots':timeSlots , 'orderId': order.id} %}
 
-    <input type="hidden" value="{{ request.id }}" name="transportId">
-    <input type="hidden" value="{{ constant('App\\Controller\\Transport\\HistoryController::REQUEST') }}" name="transportType">
+    <input type="hidden" value="{{ order.id }}" name="transportId">
+    <input type="hidden" value="{{ constant('App\\Controller\\Transport\\HistoryController::ORDER') }}" name="transportType">
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
-    {{ encore_entry_script_tags('transport-request-show') }}
+    {{ encore_entry_script_tags('transport-order-show') }}
 {% endblock %}

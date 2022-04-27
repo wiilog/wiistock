@@ -119,8 +119,6 @@ abstract class TransportRequest {
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $validationDate = null;
 
-    protected ?DateTime $expectedAt = null;
-
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'transportRequests')]
     private ?Utilisateur $createdBy = null;
 
@@ -207,15 +205,9 @@ abstract class TransportRequest {
         return $this;
     }
 
-    public function getExpectedAt(): ?DateTime {
-        return $this->expectedAt;
-    }
+    public abstract function getExpectedAt(): ?DateTime;
 
-    public function setExpectedAt(DateTime $expectedAt): self {
-        $this->expectedAt = $expectedAt;
-
-        return $this;
-    }
+    public abstract function setExpectedAt(DateTime $expectedAt): self;
 
     public function getCreatedBy(): ?Utilisateur {
         return $this->createdBy;
