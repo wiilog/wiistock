@@ -159,6 +159,7 @@ class RequestController extends AbstractController {
         /** @var Utilisateur $user */
         $user = $this->getUser();
         $data = $request->request;
+        $printLabel = $data->get('printLabels');
 
         $deliveryData = $data->has('delivery') ? json_decode($data->get('delivery'), true) : null;
         if (is_array($deliveryData) && !empty($deliveryData)) {
@@ -188,9 +189,12 @@ class RequestController extends AbstractController {
 
         $entityManager->flush();
 
+        dump($transportRequest);
         return $this->json([
             "success" => true,
             "message" => "Votre demande de transport a bien été créée",
+            "printLabel" => $printLabel,
+            "transportRequestId" => $transportRequest->getId(),
             'validationMessage' => $validationMessage
         ]);
     }
@@ -232,7 +236,6 @@ class RequestController extends AbstractController {
         $data = $request->request->all();
         $natureRepository = $entityManager->getRepository(Nature::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
-
         $order = $transportRequest->getOrders()->last() ?: null;
 
         $canPacking = (

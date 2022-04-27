@@ -1,7 +1,16 @@
 import AJAX, {GET, POST} from "@app/ajax";
 import Flash from "@app/flash";
-import {initializeForm, cancelRequest, deleteRequest, initializePacking,} from "@app/pages/transport/request/common";
+import {
+    initializeForm,
+    cancelRequest,
+    deleteRequest,
+    initializePacking,
+    printBarcodes,
+    packingOrPrint,
+    submitPackingModal,
+} from "@app/pages/transport/request/common";
 import {initializeFilters} from "@app/pages/transport/common";
+import Form from "@app/form";
 
 $(function() {
     const $modalTransportRequest = $("#modalTransportRequest");
@@ -77,7 +86,11 @@ function submitTransportRequest(form, data, table) {
                     if (can) {
                         return AJAX.route(POST, 'transport_request_new')
                             .json(data)
-                            .then(({success, message, validationMessage}) => {
+                            .then(({success, message, validationMessage, printLabel, transportRequestId}) => {
+                                console.log(printLabel);
+                                if(printLabel === '1') {
+                                    printBarcodesWithCreation(transportRequestId);
+                                }
                                 if (validationMessage) {
                                     Modal.confirm({
                                         message: validationMessage,
@@ -89,6 +102,7 @@ function submitTransportRequest(form, data, table) {
                                                 table.ajax.reload();
                                             }
                                         },
+
                                         cancelButton: {
                                             hidden: true
                                         },
@@ -111,6 +125,16 @@ function submitTransportRequest(form, data, table) {
                 });
         });
     }
+}
+
+function printBarcodesWithCreation(transportRequest) {
+    const $modalPacking = $('#modalTransportRequestPacking');
+    Form.create($modalPacking).onSubmit(function(data) {
+        wrapLoadingOnActionButton($modalPacking.find('[type=submit]'), () => {
+            return submitPackingModal($modalPacking, data);
+        });
+    })
+    return packingOrPrint(transportRequest);
 }
 
 function saveDeliveryForLinkedCollect($modal, data) {
