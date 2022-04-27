@@ -145,8 +145,8 @@ function onTypeChange($form, type) {
         $container.removeClass('d-none');
         $form.find('button[type=submit]').prop("disabled" ,true);
         $container.parent().addClass('justify-content-center');
-
-    } else {
+    }
+    else {
         $form.find('button[type=submit]').prop("disabled" ,false);
         $container.addClass('d-none');
         $container.parent().removeClass('justify-content-center')
