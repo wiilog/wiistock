@@ -29,16 +29,17 @@ export function initializeForm($form, editForm = false) {
     return form;
 }
 
-export function initializePacking(callback) {
+export function initializePacking(submitCallback) {
     const $modalPacking = $('#modalTransportRequestPacking');
     $(document).on("click", ".print-request-button", function() {
         const $button = $(this);
         wrapLoadingOnActionButton($button, () => packingOrPrint($button.data('request-id')));
     });
+
     Form.create($modalPacking).onSubmit(function(data) {
         wrapLoadingOnActionButton($modalPacking.find('[type=submit]'), () => {
             return submitPackingModal($modalPacking, data, () => {
-                callback();
+                submitCallback();
             });
         });
     })

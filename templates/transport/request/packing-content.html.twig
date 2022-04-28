@@ -5,7 +5,7 @@
     <div class="row">
         {% for line in request.lines %}
             {% set nature = line.nature %}
-            <div class="col-md-6 col-12">
+            <div class="col-md-6 col-12 my-2">
                 {% set nature = line.nature %}
                 {{ form.number(nature.id, nature.label, true, '', { min: 1 } ) }}
             </div>

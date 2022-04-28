@@ -13,6 +13,7 @@ use App\Entity\Transport\TransportHistory;
 use App\Entity\Transport\TransportOrder;
 use App\Entity\Transport\TransportRequest;
 use App\Helper\FormatHelper;
+use App\Service\Transport\TransportHistoryService;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Google\Service\Eventarc\Transport;
@@ -27,8 +28,8 @@ class HistoryController extends AbstractController
     public const REQUEST = "request";
     public const ORDER = "order";
 
-    #[Route("/{id}/{type}/status-history-api", name: "status_history_api", options: ['expose' => true], methods: "GET")]
-    public function statusHistoryApi(int $id, string $type, EntityManagerInterface $entityManager) {
+    #[Route("/{type}/{id}/status-history-api", name: "status_history_api", options: ['expose' => true], methods: "GET")]
+    public function statusHistoryApi(int $id, string $type, EntityManagerInterface $entityManager): JsonResponse {
         $entity = null;
         if($type === self::ORDER) {
             $entity = $entityManager->find(TransportOrder::class, $id);
@@ -43,7 +44,6 @@ class HistoryController extends AbstractController
             }
         }
 
-        $statusWorkflow = [];
         if ($entity instanceof TransportOrder) {
             $isDelivery = $entity->getRequest() instanceof TransportDeliveryRequest;
             $isDeliveryCollect = $isDelivery && $entity->getRequest()->getCollect();
@@ -54,7 +54,7 @@ class HistoryController extends AbstractController
                     ? TransportOrder::STATUS_WORKFLOW_DELIVERY
                     : TransportOrder::STATUS_WORKFLOW_COLLECT);
         } else if ($entity instanceof TransportDeliveryRequest) {
-                $statusWorkflow = $entity->isSubcontracted()
+            $statusWorkflow = $entity->isSubcontracted()
                 ? TransportRequest::STATUS_WORKFLOW_DELIVERY_SUBCONTRACTED
                 : ($entity->getCollect()
                     ? TransportRequest::STATUS_WORKFLOW_DELIVERY_COLLECT
@@ -62,7 +62,7 @@ class HistoryController extends AbstractController
         } else if($entity instanceof TransportCollectRequest) {
             $statusWorkflow = TransportRequest::STATUS_WORKFLOW_COLLECT;
         } else {
-            throw new RuntimeException('Unknown transport request type');
+            throw new RuntimeException('Unknown transport type');
         }
 
         return $this->json([
@@ -81,8 +81,11 @@ class HistoryController extends AbstractController
         ]);
     }
 
-    #[Route("/{id}/{type}/transport-history-api", name: "transport_history_api", options: ['expose' => true], methods: "GET")]
-    public function transportHistoryApi(int $id, string $type, EntityManagerInterface $entityManager) {
+    #[Route("/{type}/{id}/transport-history-api", name: "transport_history_api", options: ['expose' => true], methods: "GET")]
+    public function transportHistoryApi(int $id,
+                                        string $type,
+                                        TransportHistoryService $transportHistoryService,
+                                        EntityManagerInterface $entityManager): JsonResponse {
         $entity = null;
 
         if($type === self::ORDER ) {
@@ -92,30 +95,31 @@ class HistoryController extends AbstractController
             $entity = $entityManager->find(TransportRequest::class, $id);
         }
 
-
         return $this->json([
             "success" => true,
             "template" => $this->renderView('transport/request/timelines/transport-history.html.twig', [
                 "entity" => $entity,
                 "history" => Stream::from($entity->getHistory())
                     ->sort(fn(TransportHistory $h1, TransportHistory $h2) => $h2->getDate() <=> $h1->getDate())
+                    ->map(fn (TransportHistory $transportHistory) => [
+                        'record' => $transportHistory,
+                        'icon' => $transportHistoryService->getIconFromType($transportHistory->getType()),
+                    ])
                     ->toArray()
             ]),
         ]);
     }
 
-    #[Route("/{id}/{type}/transport-packs-api", name: "transport_packs_api", options: ['expose' => true], methods: "GET")]
+    #[Route("/{type}/{id}/transport-packs-api", name: "transport_packs_api", options: ['expose' => true], methods: "GET")]
     public function transportPacksApi(int $id, string $type, EntityManagerInterface $entityManager): JsonResponse {
-
         $transportRequest = null;
 
-        if($type === self::ORDER ) {
+        if ($type === self::ORDER) {
             $transportRequest = $entityManager->find(TransportOrder::class, $id)->getRequest();
         }
         else if ($type === self::REQUEST) {
             $transportRequest = $entityManager->find(TransportRequest::class, $id);
         }
-
 
         $transportDelivery = $transportRequest instanceof TransportDeliveryRequest ? $transportRequest : null;
         $transportCollect = $transportRequest instanceof TransportCollectRequest ? $transportRequest : $transportDelivery->getCollect();
@@ -132,8 +136,12 @@ class HistoryController extends AbstractController
                 ->toArray()
             : [];
 
-        $associatedNaturesAndPacks = Stream::from($transportRequest->getOrders())
-            ->flatMap(fn(TransportOrder $order) => $order->getPacks()->toArray())
+        $requestPacksList = Stream::from($transportRequest->getOrders())
+            ->flatMap(fn(TransportOrder $order) => $order->getPacks()->toArray());
+
+        $packCounter = $requestPacksList->count();
+        /* [natureId => [Pack, Pack]] */
+        $associatedNaturesAndPacks = $requestPacksList
             ->keymap(function(TransportDeliveryOrderPack $transportDeliveryOrderPack) {
                 $nature = $transportDeliveryOrderPack->getPack()->getNature();
                 return [
@@ -143,8 +151,19 @@ class HistoryController extends AbstractController
             }, true)
             ->toArray();
 
+        if ($transportRequest instanceof TransportCollectRequest) {
+            $packingLabel = '';
+        }
+        else {
+            $packingLabel = $packCounter > 0
+                ? ($packCounter . ' colis')
+                : 'Colisage non fait';
+        }
+dump($transportCollectRequestLines);
+dump($transportDeliveryRequestLines);
         return $this->json([
             "success" => true,
+            "packingLabel" => $packingLabel,
             "template" => $this->renderView('transport/request/packs.html.twig', [
                 "transportCollectRequestLines" => $transportCollectRequestLines,
                 "transportDeliveryRequestLines" => $transportDeliveryRequestLines,

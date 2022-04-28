@@ -1,3 +1,4 @@
+import '@styles/pages/transport/common.scss';
 import AJAX, {GET, POST} from "@app/ajax";
 import Flash from "@app/flash";
 import {

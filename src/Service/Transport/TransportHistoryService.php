@@ -48,6 +48,7 @@ class TransportHistoryService {
     public const TYPE_SUBCONTRACT_UPDATE = "SUBCONTRACT_UPDATE";
     public const TYPE_AWAITING_VALIDATION = "AWAITING_VALIDATION";
     public const TYPE_SUBCONTRACTED = "SUBCONTRACTED";
+    public const TYPE_ACCEPTED = "ACCEPTED";
     public const TYPE_REJECTED_DELIVERY = "REJECTED_DELIVERY";
     public const TYPE_CANCELLED = "CANCELLED";
     public const TYPE_NOT_DELIVERED = "NOT DELIVERED";
@@ -79,9 +80,10 @@ class TransportHistoryService {
         self::TYPE_SUBCONTRACT_UPDATE => "{user} a indiqué que la livraison était {status} le {statusDate}",
         self::TYPE_AWAITING_VALIDATION => "La demande est en attente de validation",
         self::TYPE_SUBCONTRACTED => "La demande a été sous-traitée",
+        self::TYPE_ACCEPTED => "La demande a été acceptée",
         self::TYPE_REJECTED_DELIVERY => "La livraison a été rejetée de la tournée",
         self::TYPE_CANCELLED => "{user} a annulé la {category}",
-        self::TYPE_NOT_DELIVERED =>"La livraison n'a pas était livrée"
+        self::TYPE_NOT_DELIVERED => "La livraison n'a pas était livrée"
     ];
 
     #[Required]
@@ -198,16 +200,6 @@ class TransportHistoryService {
         return str_replace(array_keys($replace), array_values($replace), self::CONTENT[$history->getType()]);
     }
 
-    public function retrieveHistory(TransportDeliveryRequest|TransportOrder $transport): array {
-        return Stream::from($transport->getHistory())
-            ->map(fn(TransportHistory $history) => [
-                "category" => self::CATEGORIES[$history->getType()],
-                "text" => $this->formatHistory($history),
-                "date" => FormatHelper::longDate($history->getDate(), ["time" => true]),
-            ])
-            ->toArray();
-    }
-
     private function getCategoryFromType(string $type): string {
         return match($type) {
             self::TYPE_REQUEST_CREATION, self::TYPE_LABELS_PRINTING, self::TYPE_ONGOING, self::TYPE_FINISHED, self::TYPE_SUBCONTRACT_UPDATE, self::TYPE_AWAITING_VALIDATION, self::TYPE_SUBCONTRACTED, self::TYPE_PACKS_DEPOSITED => self::CATEGORY_TIMELINE,
@@ -216,6 +208,17 @@ class TransportHistoryService {
             self::TYPE_ADD_COMMENT => self::CATEGORY_COMMENT,
             self::TYPE_ADD_ATTACHMENT => self::CATEGORY_ATTACHMENT,
             default => throw new RuntimeException("Unknown type")
+        };
+    }
+
+    public function getIconFromType(string $type): string {
+        $category = $this->getCategoryFromType($type);
+        return match ($category) {
+            self::CATEGORY_ATTACHMENT => 'timeline-attachment.svg',
+            self::CATEGORY_COMMENT => 'timeline-comment.svg',
+            self::CATEGORY_WARNING => 'timeline-urgent.svg',
+            self::CATEGORY_INFORMATION => 'timeline-information.svg',
+            default => 'timeline.svg', // CATEGORY_TIMELINE
         };
     }
 

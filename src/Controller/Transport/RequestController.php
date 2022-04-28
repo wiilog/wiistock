@@ -27,6 +27,7 @@ use App\Entity\Type;
 use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
 use App\Service\MailerService;
+use App\Service\PackService;
 use App\Service\PDFGeneratorService;
 use App\Service\StatusHistoryService;
 use App\Service\Transport\TransportHistoryService;
@@ -36,7 +37,6 @@ use App\Entity\Utilisateur;
 use DateTime;
 use App\Service\Transport\TransportService;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
-use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -44,7 +44,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment;
 use WiiCommon\Helper\Stream;
 
@@ -307,7 +306,6 @@ class RequestController extends AbstractController {
             $statusHistory = $statusHistoryService->updateStatus($entityManager, $transportRequest, $status);
         }
 
-
         $transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_LABELS_PRINTING, [
             'history' => $statusHistory ?? null,
             'user' => $this->getUser()
@@ -320,7 +318,7 @@ class RequestController extends AbstractController {
         ]);
     }
 
-    #[Route("/check/{transportRequest}", name: "transport_request_packing_check", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[Route("/{transportRequest}/packing-check", name: "transport_request_packing_check", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::EDIT_TRANSPORT], mode: HasPermission::IN_JSON)]
     public function packingCheck(TransportRequest $transportRequest ): JsonResponse {
         $order = $transportRequest->getOrders()->last() ?: null;
@@ -482,102 +480,6 @@ class RequestController extends AbstractController {
             'redirect' => $this->generateUrl('transport_request_index')
         ]);
     }
-//TODO ===============
-    #[Route("/{transportRequest}/status-history-api", name: "transport_request_status_history_api", options: ['expose' => true], methods: "GET")]
-    public function statusHistoryApi(TransportRequest $transportRequest) {
-        $round = !$transportRequest->getOrders()->isEmpty() && !$transportRequest->getOrders()->first()->getTransportRoundLines()->isEmpty()
-            ? $transportRequest->getOrders()->first()->getTransportRoundLines()->last()
-            : null;
-
-        if ($transportRequest instanceof TransportDeliveryRequest) {
-            $statusWorkflow = $transportRequest->isSubcontracted()
-                ? TransportRequest::STATUS_WORKFLOW_DELIVERY_SUBCONTRACTED
-                : ($transportRequest->getCollect()
-                    ? TransportRequest::STATUS_WORKFLOW_DELIVERY_COLLECT
-                    : TransportRequest::STATUS_WORKFLOW_DELIVERY_CLASSIC);
-        }
-        else if ($transportRequest instanceof TransportCollectRequest) {
-            $statusWorkflow = TransportRequest::STATUS_WORKFLOW_COLLECT;
-        }
-        else {
-            throw new RuntimeException('Unkown transport request type');
-        }
-
-        return $this->json([
-            "success" => true,
-            "template" => $this->renderView('transport/request/timelines/status-history.html.twig', [
-                "statusWorkflow" => $statusWorkflow,
-                "statusesHistory" => Stream::from($transportRequest->getStatusHistory())
-                    ->map(fn(StatusHistory $statusHistory) => [
-                        "status" => FormatHelper::status($statusHistory->getStatus()),
-                        "date" => FormatHelper::longDate($statusHistory->getDate(), ["short" => true, "time" => true])
-                    ])
-                    ->toArray(),
-                "request" => $transportRequest,
-                "round" => $round
-            ]),
-        ]);
-    }
-
-    #[Route("/{transportRequest}/transport-history-api", name: "transport_history_api", options: ['expose' => true], methods: "GET")]
-    public function transportHistoryApi(TransportRequest $transportRequest) {
-        return $this->json([
-            "success" => true,
-            "template" => $this->renderView('transport/request/timelines/transport-history.html.twig', [
-                "request" => $transportRequest,
-                "history" => Stream::from($transportRequest->getHistory())
-                    ->sort(fn(TransportHistory $h1, TransportHistory $h2) => $h2->getDate() <=> $h1->getDate())
-                    ->toArray()
-            ]),
-        ]);
-    }
-
-    #[Route("/{transportRequest}/transport-packs-api", name: "transport_packs_api", options: ['expose' => true], methods: "GET")]
-    public function transportPacksApi(TransportRequest $transportRequest): JsonResponse {
-        $transportDelivery = $transportRequest instanceof TransportDeliveryRequest ? $transportRequest : null;
-        $transportCollect = $transportRequest instanceof TransportCollectRequest ? $transportRequest : $transportDelivery->getCollect();
-
-        $transportDeliveryRequestLines = $transportDelivery
-            ? $transportDelivery->getLines()
-                ->filter(fn($line) => $line instanceof TransportDeliveryRequestLine)
-                ->toArray()
-            : [];
-
-        $transportCollectRequestLines = $transportCollect
-            ? $transportCollect->getLines()
-                ->filter(fn($line) => $line instanceof TransportCollectRequestLine)
-                ->toArray()
-            : [];
-
-        $requestPacksList = Stream::from($transportRequest->getOrders())
-            ->flatMap(fn(TransportOrder $order) => $order->getPacks()->toArray());
-
-        $packCounter = $requestPacksList->count();
-        /* [natureId => [Pack, Pack]] */
-        $associatedNaturesAndPacks = $requestPacksList
-            ->keymap(function(TransportDeliveryOrderPack $transportDeliveryOrderPack) {
-                $nature = $transportDeliveryOrderPack->getPack()->getNature();
-                return [
-                    $nature->getId(),
-                    $transportDeliveryOrderPack
-                ];
-            }, true)
-            ->toArray();
-
-        $packingLabel = $packCounter == 0 ? 'Colisage non fait' : ($packCounter . ' colis');
-
-        return $this->json([
-            "success" => true,
-            "packingLabel" => $packingLabel,
-            "template" => $this->renderView('transport/request/packs.html.twig', [
-                "transportCollectRequestLines" => $transportCollectRequestLines,
-                "transportDeliveryRequestLines" => $transportDeliveryRequestLines,
-                "associatedNaturesAndPacks" => $associatedNaturesAndPacks,
-                "request" => $transportRequest,
-            ]),
-        ]);
-    }
-//TODO ===============
 
     #[Route("/collect-already-exists", name: "transport_request_collect_already_exists", options: ['expose' => true], methods: "GET")]
     public function collectAlreadyExists(EntityManagerInterface $entityManager,
@@ -598,7 +500,13 @@ class RequestController extends AbstractController {
     }
 
     #[Route("/annuler/{transportRequest}", name: "transport_request_cancel", options: ['expose' => true], methods: "POST")]
-    public function cancel(TransportRequest $transportRequest, EntityManagerInterface $entityManager): Response {
+    public function cancel(TransportRequest $transportRequest,
+                           TransportHistoryService $transportHistoryService,
+                           StatusHistoryService $statusHistoryService,
+                           EntityManagerInterface $entityManager): Response {
+
+        /** @var Utilisateur $loggedUser */
+        $loggedUser = $this->getUser();
 
         $success = $transportRequest->canBeCancelled();
         $statusRepository = $entityManager->getRepository(Statut::class);
@@ -615,13 +523,24 @@ class RequestController extends AbstractController {
         }
 
         $statusRequest = $statusRepository->findOneByCategorieNameAndStatutCode($categoryRequest, TransportRequest::STATUS_CANCELLED);
-        $statusOrder = $statusRepository->findOneByCategorieNameAndStatutCode($categoryOrder, TransportOrder::STATUS_CANCELLED);
 
         if ($success) {
             $msg = 'Demande annulée.';
-            $transportRequest->setStatus($statusRequest);
-            if($transportRequest->getOrders()->last() !== false){
-                $transportRequest->getOrders()->last()->setStatus($statusOrder);
+
+            $statusHistoryRequest = $statusHistoryService->updateStatus($entityManager, $transportRequest, $statusRequest);
+            $transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_CANCELLED, [
+                'history' => $statusHistoryRequest,
+                'user' => $loggedUser
+            ]);
+
+            $transportOrder = $transportRequest->getOrders()->last();
+            if ($transportOrder) {
+                $statusOrder = $statusRepository->findOneByCategorieNameAndStatutCode($categoryOrder, TransportOrder::STATUS_CANCELLED);
+                $statusHistoryOrder = $statusHistoryService->updateStatus($entityManager, $transportOrder, $statusOrder);
+                $transportHistoryService->persistTransportHistory($entityManager, $transportOrder, TransportHistoryService::TYPE_CANCELLED, [
+                    'history' => $statusHistoryOrder,
+                    'user' => $loggedUser
+                ]);
             }
 
             $entityManager->flush();

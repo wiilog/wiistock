@@ -149,6 +149,10 @@ class TransportService {
                 'history' => $statusHistory,
                 'user' => $loggedUser,
             ]);
+
+            if ($subcontracted) {
+                $this->transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_NO_MONITORING);
+            }
         }
         else if ($transportRequest->getStatus()->getId() !== $status->getId()){
             throw new FormException('Impossible : votre modification engendre une modification du statut de la demande');
@@ -186,7 +190,7 @@ class TransportService {
 
         if ($transportRequest->getOrders()->isEmpty()
             && $status->getCode() !== TransportRequest::STATUS_AWAITING_VALIDATION) {
-            $this->persistTransportOrder($entityManager, $transportRequest, $subcontracted);
+            $this->persistTransportOrder($entityManager, $transportRequest, $loggedUser, $subcontracted);
         }
 
         $transportRequest->setLines([]);
@@ -227,6 +231,7 @@ class TransportService {
 
     public function persistTransportOrder(EntityManagerInterface $entityManager,
                                           TransportRequest $transportRequest,
+                                          Utilisateur $user,
                                           bool $subcontracted = false): TransportOrder {
         $statusRepository = $entityManager->getRepository(Statut::class);
 
@@ -248,7 +253,8 @@ class TransportService {
         $status = $statusRepository->findOneByCategorieNameAndStatutCode($categoryStatusName, $statusCode);
         $statusHistory = $this->statusHistoryService->updateStatus($entityManager, $transportOrder, $status);
         $this->transportHistoryService->persistTransportHistory($entityManager, $transportOrder, TransportHistoryService::TYPE_REQUEST_CREATION, [
-            'history' => $statusHistory
+            'history' => $statusHistory,
+            'user' => $user
         ]);
 
         $transportOrder
