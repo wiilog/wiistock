@@ -37,7 +37,7 @@
                 <input name="delivery-start-date"
                        type="datetime-local"
                        class="form-control w-100 data"
-                       value="{{ transportOrder.startedAt | date('Y-m-d\\TH:i') }}">
+                       value="{{ statutRequest.nom != "Sous-traitée" ? (transportOrder.startedAt | date('Y-m-d\\TH:i')) : "" }}">
             </label>
         </div>
         <div class="col-md-6 col-12 endDateDiv">
