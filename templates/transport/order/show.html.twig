@@ -283,17 +283,19 @@
 
                         {# TODO: afficher la carte #}
 
-                        <div class="d-flex justify-content-between p-3">
-                            <span class="wii-field-name">Courbe de températures</span>
-                            <span class="wii-medium-text">
-                                 {% if not roundHasStarted %}
-                                     La tournée n'a pas commencé
-                                 {% elseif requiresTemperatureTracking %}
-                                     {# TODO déplacer sur le graphique #}
-                                     La demande ne nécessite pas de suivi de température
-                                 {% endif %}
-                            </span>
-                        </div>
+                        {% if request_delivery %}
+                            <div class="d-flex justify-content-between p-3">
+                                <span class="wii-field-name">Courbe de températures</span>
+                                <span class="wii-medium-text">
+                                     {% if not roundHasStarted %}
+                                         La tournée n'a pas commencé
+                                     {% elseif requiresTemperatureTracking %}
+                                         {# TODO déplacer sur le graphique #}
+                                         La demande ne nécessite pas de suivi de température
+                                     {% endif %}
+                                </span>
+                            </div>
+                        {% endif %}
 
                         {# TODO: afficher les graphiques #}
                     </div>
