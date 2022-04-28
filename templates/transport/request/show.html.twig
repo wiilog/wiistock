@@ -12,13 +12,14 @@
     {% set requestType = request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') ? 'Livraison' : 'Collecte' %}
     {% set request_delivery = request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') ? request : null %}
     {% set request_collect = request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') ? request : request_delivery.collect %}
+
     <div class="wii-box-container mb-4">
         <div class="row">
             <div class="col-lg-4 col-md-6 col-12">
                 <div class="wii-box transport-details">
                     <div class="d-flex align-items-center mr-3">
                         <div class="mx-2">
-                            {% if request_delivery or request.canBeCancelled or request.canBeUpdated %}
+                            {% if request_delivery or request.canBeDeleted or request.canBeCancelled or request.canBeUpdated %}
                                 <div class="dropdown dropright">
                                     <div class="d-flex pointer" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                         <img alt="Actions" src="{{ asset('svg/dotsblack.svg') }}" height="20px" width="8px">
@@ -271,7 +272,7 @@
             <div class="col-lg-4 col-md-6 col-12">
                 <div class="wii-box mr-3">
                     <div class="header wii-title">Données</div>
-                    <div class="">
+                    <div class="content">
                         {% set requiresTemperatureTracking = false %}
                         {% set roundHasStarted = request.roundHasStarted %}
                         {% for line in request.lines %}

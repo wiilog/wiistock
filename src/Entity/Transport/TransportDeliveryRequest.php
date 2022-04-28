@@ -75,21 +75,13 @@ class TransportDeliveryRequest extends TransportRequest {
     public function canBeUpdated(): bool {
         return in_array($this->getStatus()?->getCode(), [
             TransportRequest::STATUS_AWAITING_VALIDATION,
-            TransportRequest::STATUS_TO_PREPARE,
-            TransportRequest::STATUS_TO_DELIVER,
-            TransportRequest::STATUS_SUBCONTRACTED,
+            TransportRequest::STATUS_AWAITING_PLANNING,
+            TransportRequest::STATUS_TO_COLLECT,
         ]);
     }
 
     public function canBeCancelled(): bool {
-        return (
-            $this->isInRound()
-            && in_array($this->getStatus()?->getCode(), [
-                TransportRequest::STATUS_TO_PREPARE,
-                TransportRequest::STATUS_TO_DELIVER,
-                TransportRequest::STATUS_ONGOING,
-            ])
-        );
+        return $this->isInRound();
     }
 
 }
