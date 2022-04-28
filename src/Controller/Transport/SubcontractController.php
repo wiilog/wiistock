@@ -46,10 +46,23 @@ class SubcontractController extends AbstractController
         $statusRepository = $em->getRepository(Statut::class);
         $typesRepository = $em->getRepository(Type::class);
 
+        $statuses =  [
+            TransportRequest::STATUS_SUBCONTRACTED,
+            TransportRequest::STATUS_ONGOING,
+            TransportRequest::STATUS_FINISHED,
+            TransportRequest::STATUS_NOT_DELIVERED
+        ];
+
+        $statuses = $statusRepository->findByCategoryNameAndStatusCodes(CategorieStatut::TRANSPORT_REQUEST_DELIVERY, $statuses);
+        foreach($statuses as $index => $status){
+            if($status->getCode() === TransportRequest::STATUS_SUBCONTRACTED){
+                unset($statuses[$index]);
+                array_unshift($statuses, $status);
+            }
+        }
+
         return $this->render('transport/subcontract/index.html.twig', [
-            'statuts' => array_reverse($statusRepository->findByCategoryNameAndStatusCodes(CategorieStatut::TRANSPORT_REQUEST_DELIVERY, [
-                TransportRequest::STATUS_SUBCONTRACTED, TransportRequest::STATUS_ONGOING, TransportRequest::STATUS_FINISHED, TransportRequest::STATUS_NOT_DELIVERED
-            ])),
+            'statuts' => $statuses,
             'types' => $typesRepository->findByCategoryLabels([
                 CategoryType::DELIVERY_TRANSPORT
             ]),
