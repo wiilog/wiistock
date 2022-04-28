@@ -9,6 +9,14 @@
 {% set followingStatusIndex = lastStatus is not null ? ((statusWorkflow|flip)[lastStatus] ?? null) : 0 %}
 {% set followingStatuses = followingStatusIndex is not null ? statusWorkflow|slice(followingStatusIndex + 1) : [] %}
 
+{% set statusName = request.status|format_helper('status') %}
+{% set headerClass = statusName in constant('App\\Entity\\Transport\\TransportRequest::CANCELED_STATUSES') ? 'bg-red-light' : 'bg-green-light' %}
+{% set requestType = request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') ? 'Livraison' : 'Collecte' %}
+
+<div class="header timeline d-flex justify-content-center {{ headerClass }}">
+    <img src="{{ asset('svg/timeline-status.svg') }}" alt="Icône statut timeline" width="15px" class="mr-2">
+    <span>{{ requestType }} <strong>{{ request.status|format_helper('status') }}</strong></span>
+</div>
 {% for history in statusesHistory %}
     {% set state = (entityStatusName == history.status and entityStatusName in cancelledStatusesName)
         ? 'cancelled'

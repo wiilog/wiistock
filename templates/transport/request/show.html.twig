@@ -9,7 +9,6 @@
 {% endblock %}
 
 {% block page_content %}
-    {% set requestType = request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') ? 'Livraison' : 'Collecte' %}
     {% set request_delivery = request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') ? request : null %}
     {% set request_collect = request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') ? request : request_delivery.collect %}
 
@@ -25,12 +24,6 @@
                                         <img alt="Actions" src="{{ asset('svg/dotsblack.svg') }}" height="20px" width="8px">
                                     </div>
                                     <div class="dropdown-menu dropdown-follow-gt pointer">
-                                        {% if request_delivery %}
-                                            <div class="dropdown-item pointer">
-                                                <i class="fas fa-print mr-2"></i> Imprimer les étiquettes
-                                            </div>
-                                        {% endif %}
-
                                         {% if request.canBeUpdated %}
                                             {% if request_delivery is not null %}
                                                 <div class="dropdown-item pointer"
@@ -138,12 +131,6 @@
                         <div class="d-flex align-items-center">
                         </div>
                     </div>
-                    {% set statusName = request.status|format_helper('status') %}
-                    <div class="header timeline d-flex justify-content-center
-                        {{ statusName in constant('App\\Entity\\Transport\\TransportRequest::CANCELED_STATUSES') ? 'bg-red-light' : 'bg-green-light' }}">
-                        <img src="{{ asset('svg/timeline-status.svg') }}" alt="Icône statut timeline" width="15px" class="mr-2">
-                        <span>{{ requestType }} <strong>{{ request.status|format_helper('status') }}</strong></span>
-                    </div>
                     <div class="content status-history-container">
                         <div class="d-flex align-items-center justify-content-center">
                             <div class="spinner-border text-primary" role="status"></div>
@@ -240,7 +227,7 @@
                         <div class="d-flex align-items-center">
                             <span class="wii-title">Colis</span>
                             <div>
-                                <span class="wii-describe ml-3">{{ not request_collect and packsCount == 0 ? 'Colisage non fait' : (packsCount ~ ' colis') }}</span>
+                                <span class="wii-describe packing-label-counter ml-3"></span>
                             </div>
                             {% if hasRejectedPacks %}
                                 <div>
@@ -248,9 +235,12 @@
                                 </div>
                             {% endif %}
                         </div>
-                        <button class="btn btn-sm btn-primary print-barcodes d-flex align-items-center" data-is-packed="{{ packsCount != 0 ? 1 : 0 }}">
-                            <i class="wii-icon wii-icon-printer-white mr-2"></i>Imprimer les étiquettes
-                        </button>
+                        {% if request.status.code in constant('App\\Entity\\Transport\\TransportRequest::STATUS_PRINT_PACKING')%}
+                            <button class="btn btn-sm btn-primary print-request-button d-flex align-items-center"
+                                    data-request-id="{{ request.id }}">
+                                <i class="wii-icon wii-icon-printer-white mr-2"></i>Imprimer les étiquettes
+                            </button>
+                        {% endif %}
                     </div>
                     <div class="bordered packs-container">
                         <div class="content d-flex align-items-center justify-content-center">
@@ -309,6 +299,7 @@
         </div>
     </div>
     {% include 'transport/request/delete.html.twig' %}
+    {% include 'transport/request/packing.html.twig' %}
 
     {% if request_delivery is not null %}
         {% include 'transport/request/form.html.twig' with {

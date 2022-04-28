@@ -193,7 +193,7 @@ class OrderController extends AbstractController {
 
             foreach ($orders as $order) {
                 $currentRow[] = $this->renderView("transport/request/list_card.html.twig", [
-                    "prefix" => "OTR",
+                    "prefix" => TransportOrder::NUMBER_PREFIX,
                     "request" => $order->getRequest(),
                     "order" => $order,
                     "path" => "transport_order_show"

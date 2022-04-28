@@ -71,6 +71,13 @@ abstract class TransportRequest {
         TransportRequest::STATUS_FINISHED,
     ];
 
+    public const STATUS_PRINT_PACKING = [
+        TransportRequest::STATUS_TO_PREPARE,
+        TransportRequest::STATUS_TO_DELIVER,
+        TransportRequest::STATUS_ONGOING,
+        TransportRequest::STATUS_SUBCONTRACTED,
+    ];
+
     public const STATUS_WORKFLOW_DELIVERY_COLLECT = [
         TransportRequest::STATUS_TO_PREPARE,
         TransportRequest::STATUS_TO_DELIVER,
