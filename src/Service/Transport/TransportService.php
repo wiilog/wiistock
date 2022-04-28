@@ -5,6 +5,7 @@ namespace App\Service\Transport;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Nature;
+use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Transport\CollectTimeSlot;
 use App\Entity\Transport\TemperatureRange;
@@ -144,15 +145,18 @@ class TransportService {
 
         ['status' => $status, 'subcontracted' => $subcontracted] = $this->getStatusRequest($entityManager, $transportRequest, $expectedAt);
         if (!$transportRequest->getStatus()) {
+            if ($subcontracted) {
+                $settingRepository = $entityManager->getRepository(Setting::class);
+                $this->transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_NO_MONITORING, [
+                    'message' => $settingRepository->getOneParamByLabel(Setting::NON_BUSINESS_HOURS_MESSAGE) ?: ''
+                ]);
+            }
+
             $statusHistory = $this->statusHistoryService->updateStatus($entityManager, $transportRequest, $status);
             $this->transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_REQUEST_CREATION, [
                 'history' => $statusHistory,
                 'user' => $loggedUser,
             ]);
-
-            if ($subcontracted) {
-                $this->transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_NO_MONITORING);
-            }
         }
         else if ($transportRequest->getStatus()->getId() !== $status->getId()){
             throw new FormException('Impossible : votre modification engendre une modification du statut de la demande');
@@ -223,7 +227,7 @@ class TransportService {
         }
 
         if ($transportRequest->getLines()->isEmpty()) {
-            //throw new FormException('Vous devez sélectionner au moins une nature de colis dans vote demande');
+            throw new FormException('Vous devez sélectionner au moins une nature de colis dans vote demande');
         }
 
         $entityManager->persist($transportRequest);

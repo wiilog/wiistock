@@ -87,7 +87,7 @@ function submitTransportRequest(form, data, table) {
         table.ajax.reload();
 
         if(printLabels) {
-            packingOrPrint(transportRequest);
+            packingOrPrint(transportRequest, true);
         }
     };
 
@@ -101,7 +101,7 @@ function submitTransportRequest(form, data, table) {
                     if (can) {
                         return AJAX.route(POST, 'transport_request_new')
                             .json(data)
-                            .then(({success, message, validationMessage, printLabel, transportRequestId}) => {
+                            .then(({success, message, validationMessage, transportRequestId}) => {
                                 if (validationMessage) {
                                     Modal.confirm({
                                         message: validationMessage,
@@ -109,19 +109,19 @@ function submitTransportRequest(form, data, table) {
                                             color: 'success',
                                             label: 'Fermer',
                                             click: () => {
-                                                closeCreationModal(printLabel, transportRequestId);
+                                                closeCreationModal(transportRequestId);
                                             }
                                         },
                                         cancelButton: {
                                             hidden: true
                                         },
                                         cancelled: () => {
-                                            closeCreationModal(printLabel, transportRequestId);
+                                            closeCreationModal(transportRequestId);
                                         },
                                     });
                                 }
                                 else if (success) {
-                                    closeCreationModal(printLabel, transportRequestId);
+                                    closeCreationModal(transportRequestId);
                                 }
 
                                 Flash.add(

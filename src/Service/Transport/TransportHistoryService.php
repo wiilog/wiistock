@@ -76,7 +76,7 @@ class TransportHistoryService {
         self::TYPE_FAILED => "{user} n'a pas pu effectuer la {category}",
         self::TYPE_PACKS_FAILED => "{user} a déposé les colis {packs} sur {location}",
         self::TYPE_PACKS_DEPOSITED => "{user} a déposé les objets sur {location}",
-        self::TYPE_NO_MONITORING => "Le suivi en temps réel n'est pas disponible car la livraison est un horaire non ouvré {message}",
+        self::TYPE_NO_MONITORING => "Le suivi en temps réel n'est pas disponible car la livraison est un horaire non ouvré. {message}",
         self::TYPE_SUBCONTRACT_UPDATE => "{user} a indiqué que la livraison était {status} le {statusDate}",
         self::TYPE_AWAITING_VALIDATION => "La demande est en attente de validation",
         self::TYPE_SUBCONTRACTED => "La demande a été sous-traitée",
@@ -116,6 +116,7 @@ class TransportHistoryService {
             ->setUser($params["user"] ?? null)
             ->setPack($params["pack"] ?? null)
             ->setRound($params["round"] ?? null)
+            ->setMessage($params["message"] ?? null)
             ->setDeliverer($params["deliverer"] ?? null)
             ->setReason($params["reason"] ?? null)
             ->setAttachments($params["attachments"] ?? [])
@@ -185,10 +186,11 @@ class TransportHistoryService {
 
     public function formatHistory(TransportHistory $history): string {
         $replace = [
-            "{category}" => $this->formatEntity($history->getRequest()?get_class($history->getRequest()):get_class($history->getOrder()->getRequest())),
+            "{category}" => $this->formatEntity($history->getRequest() ? get_class($history->getRequest()) : get_class($history->getOrder()->getRequest())),
             "{user}" => $this->formatEntity($history->getUser()),
             "{pack}" => $this->formatEntity($history->getPack()),
             "{round}" => $this->formatEntity($history->getRound()),
+            "{message}" => $this->formatEntity($history->getMessage()),
             "{deliverer}" => $this->formatEntity($history->getDeliverer()),
             "{reason}" => $this->formatEntity($history->getReason()),
             "{status}" => $this->formatEntity($history->getStatusHistory()?->getStatus()),
