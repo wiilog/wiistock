@@ -1054,12 +1054,12 @@ class SettingsController extends AbstractController {
             $hours = $shift->getStart() . '-' . $shift->getEnd();
             if ($edit) {
                 $data[] = [
-                    "actions" => $this->canDelete() ? "
+                    "actions" => "
                         <button class='btn btn-silent delete-row' data-id='{$shift->getId()}'>
                             <i class='wii-icon wii-icon-trash text-primary'></i>
                         </button>
-                    " : "",
-                    "name" => "<input name='id' type='hidden' value='{$shift->getId()}'><input name='name' class='$class' data-global-error='Nom du créneau' value='{$shift->getName()}'/>",
+                    " ,
+                    "name" => "<input name='id' type='hidden' class='$class' value='{$shift->getId()}'><input name='name' class='$class' data-global-error='Nom du créneau' value='{$shift->getName()}'/>",
                     "hours" => "<input name='hours' class='$class' data-global-error='Heures' value='{$hours}'/>",
                 ];
             } else {
