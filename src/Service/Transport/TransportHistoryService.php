@@ -111,7 +111,8 @@ class TransportHistoryService {
             }
         }
 
-        $history->setType($type)
+        $history
+            ->setType($type)
             ->setDate(new DateTime())
             ->setUser($params["user"] ?? null)
             ->setPack($params["pack"] ?? null)

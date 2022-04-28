@@ -72,7 +72,7 @@
                                     class="wii-medium-text">{{ constant('App\\Entity\\Transport\\TransportRequest::NUMBER_PREFIX') ~ request.number }}</span>
                             </div>
                             <div class="d-flex align-items-center justify-content-end">
-                                <strong>{{ request.createdBy|format_helper('user') }}</strong>
+                                <span class="wii-field-name">{{ request.createdBy|format_helper('user') }}</span>
                             </div>
                         </div>
                     </div>
@@ -143,7 +143,7 @@
                     </div>
                     <div class="row content">
                         <div class="col-6 d-flex flex-column">
-                            <span class="wii-field-name">Date attendue</span>
+                            <span class="wii-field-name">Date et heure attendue</span>
                             <span class="wii-field-text">
                                 {% if request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
                                     {{ request.expectedAt|format_helper('longDate', {time: true}) }}
@@ -186,7 +186,7 @@
                                 N° dossier {{ transportRequestContact.fileNumber }}
                             </span>
                         </div>
-                        <div class="col-6 d-flex">
+                        <div class="col-6 d-flex align-items-start">
                             <img src="{{ asset('svg/phone.svg') }}" alt="Icône téléphone"
                                  width="20px">
                             <div class="d-flex flex-column ml-2 justify-content-center">
@@ -194,7 +194,7 @@
                                 <span class="wii-field-text">{{ transportRequestContact.contact }}</span>
                             </div>
                         </div>
-                        <div class="col-6 d-flex">
+                        <div class="col-6 d-flex align-items-start">
                             <img src="{{ asset('svg/user-contact.svg') }}" alt="Icône personne à prévenir"
                                  width="20px">
                             <div class="d-flex flex-column ml-2 justify-content-center">
@@ -202,7 +202,7 @@
                                 <span class="wii-field-text">{{ transportRequestContact.personToContact }}</span>
                             </div>
                         </div>
-                        <div class="col-6 d-flex mt-3">
+                        <div class="col-6 d-flex mt-3 align-items-start">
                             <img src="{{ asset('svg/location-blue.svg') }}" alt="Icône emplacement"
                                  width="20px">
                             <div class="d-flex flex-column ml-2 justify-content-center">
@@ -210,7 +210,7 @@
                                 <span class="wii-field-text">{{ transportRequestContact.address }}</span>
                             </div>
                         </div>
-                        <div class="col-6 d-flex mt-3">
+                        <div class="col-6 d-flex mt-3 align-items-start">
                             <img src="{{ asset('svg/question-mark.svg') }}" alt="Icône remarque"
                                  width="20px">
                             <div class="d-flex flex-column ml-2 justify-content-center">
@@ -235,7 +235,7 @@
                                 </div>
                             {% endif %}
                         </div>
-                        {% if request.status.code in constant('App\\Entity\\Transport\\TransportRequest::STATUS_PRINT_PACKING')%}
+                        {% if request_delivery and request.status.code in constant('App\\Entity\\Transport\\TransportRequest::STATUS_PRINT_PACKING')%}
                             <button class="btn btn-sm btn-primary print-request-button d-flex align-items-center"
                                     data-request-id="{{ request.id }}">
                                 <i class="wii-icon wii-icon-printer-white mr-2"></i>Imprimer les étiquettes
@@ -279,18 +279,19 @@
                         </div>
 
                         {# TODO: afficher la carte #}
-
-                        <div class="d-flex justify-content-between p-3">
-                            <span class="wii-field-name">Courbe de températures</span>
-                            <span class="wii-medium-text">
-                                 {% if not roundHasStarted %}
-                                     La tournée n'a pas commencé
-                                {% elseif requiresTemperatureTracking %}
-                                    {# TODO déplacer sur le graphique #}
-                                    La demande ne nécessite pas de suivi de température
-                                {% endif %}
-                            </span>
-                        </div>
+                        {% if request_delivery %}
+                            <div class="d-flex justify-content-between p-3">
+                                <span class="wii-field-name">Courbe de températures</span>
+                                <span class="wii-medium-text">
+                                     {% if not roundHasStarted %}
+                                         La tournée n'a pas commencé
+                                    {% elseif requiresTemperatureTracking %}
+                                        {# TODO déplacer sur le graphique #}
+                                        La demande ne nécessite pas de suivi de température
+                                    {% endif %}
+                                </span>
+                            </div>
+                        {% endif %}
 
                         {# TODO: afficher les graphiques #}
                     </div>
