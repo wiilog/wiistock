@@ -23,7 +23,7 @@ class TransportDeliveryOrderPack {
     private ?TransportOrder $order = null;
 
     #[ORM\Column(type: 'boolean')]
-    private ?bool $rejected = null;
+    private ?bool $rejected = false;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'transportDeliveryOrderRejectedPacks')]
     private ?Utilisateur $rejectedBy = null;

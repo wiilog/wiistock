@@ -1,7 +1,17 @@
+import '@styles/pages/transport/common.scss';
 import AJAX, {GET, POST} from "@app/ajax";
 import Flash from "@app/flash";
-import {initializeForm, cancelRequest, deleteRequest} from "@app/pages/transport/request/common";
+import {
+    initializeForm,
+    cancelRequest,
+    deleteRequest,
+    initializePacking,
+    printBarcodes,
+    packingOrPrint,
+    submitPackingModal,
+} from "@app/pages/transport/request/common";
 import {initializeFilters} from "@app/pages/transport/common";
+import Form from "@app/form";
 
 $(function() {
     const $modalTransportRequest = $("#modalTransportRequest");
@@ -35,6 +45,9 @@ $(function() {
             {data: 'content', name: 'content', orderable: false},
         ],
     });
+    initializePacking(() => {
+        table.ajax.reload();
+    });
 
     const form = initializeForm($modalTransportRequest);
     form.onSubmit((data) => {
@@ -67,6 +80,16 @@ function submitTransportRequest(form, data, table) {
     const $modal = form.element;
     const $submit = $modal.find('[type=submit]');
     const collectLinked = Boolean(Number(data.get('collectLinked')));
+    const printLabels = Boolean(Number(data.get('printLabels')));
+
+    const closeCreationModal = (transportRequest) => {
+        $modal.modal('hide');
+        table.ajax.reload();
+
+        if(printLabels) {
+            packingOrPrint(transportRequest);
+        }
+    };
 
     if (collectLinked) {
         saveDeliveryForLinkedCollect($modal, data);
@@ -78,7 +101,7 @@ function submitTransportRequest(form, data, table) {
                     if (can) {
                         return AJAX.route(POST, 'transport_request_new')
                             .json(data)
-                            .then(({success, message, validationMessage}) => {
+                            .then(({success, message, validationMessage, printLabel, transportRequestId}) => {
                                 if (validationMessage) {
                                     Modal.confirm({
                                         message: validationMessage,
@@ -86,22 +109,21 @@ function submitTransportRequest(form, data, table) {
                                             color: 'success',
                                             label: 'Fermer',
                                             click: () => {
-                                                $modal.modal('hide');
-                                                table.ajax.reload();
+                                                closeCreationModal(printLabel, transportRequestId);
                                             }
                                         },
                                         cancelButton: {
                                             hidden: true
                                         },
                                         cancelled: () => {
-                                            $modal.modal('hide');
+                                            closeCreationModal(printLabel, transportRequestId);
                                         },
                                     });
                                 }
                                 else if (success) {
-                                    $modal.modal('hide');
-                                    table.ajax.reload();
+                                    closeCreationModal(printLabel, transportRequestId);
                                 }
+
                                 Flash.add(
                                     success ? 'success' : 'danger',
                                     message || `Une erreur s'est produite`

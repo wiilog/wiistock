@@ -8,12 +8,14 @@ use App\Entity\FiltreSup;
 use App\Entity\Pack;
 use App\Entity\TrackingMovement;
 use App\Entity\Nature;
+use App\Entity\Transport\TransportDeliveryOrderPack;
 use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
 use App\Repository\NatureRepository;
 use App\Repository\PackRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use RuntimeException;
 use Symfony\Component\Security\Core\Security;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
@@ -183,27 +185,48 @@ class PackService {
         if (!empty($options['code'])) {
             $pack = $this->createPackWithCode($options['code']);
         } else {
-            /** @var Arrivage $arrival */
-            $arrival = $options['arrival'];
+            if(isset($options['arrival'])) {
+                /** @var Arrivage $arrival */
+                $arrival = $options['arrival'];
 
-            /** @var Nature $nature */
-            $nature = $options['nature'];
+                /** @var Nature $nature */
+                $nature = $options['nature'];
 
-            $arrivalNum = $arrival->getNumeroArrivage();
-            $newCounter = $arrival->getPacks()->count() + 1;
+                $arrivalNum = $arrival->getNumeroArrivage();
+                $counter = $arrival->getPacks()->count() + 1;
+                $counterStr = sprintf("%03u", $counter);
 
-            if ($newCounter < 10) {
-                $newCounter = "00" . $newCounter;
-            } elseif ($newCounter < 100) {
-                $newCounter = "0" . $newCounter;
+                $code = (($nature->getPrefix() ?? '') . $arrivalNum . $counterStr ?? '');
+                $pack = $this
+                    ->createPackWithCode($code)
+                    ->setNature($nature);
+
+                $arrival->addPack($pack);
             }
+            else if (isset($options['orderLine'])) {
+                /** @var Nature $nature */
+                $nature = $options['nature'];
 
-            $code = (($nature->getPrefix() ?? '') . $arrivalNum . $newCounter ?? '');
-            $pack = $this
-                ->createPackWithCode($code)
-                ->setNature($nature);
+                /** @var TransportDeliveryOrderPack $orderLine */
+                $orderLine = $options['orderLine'];
+                $order = $orderLine->getOrder();
+                $request = $order->getRequest();
 
-            $arrival->addPack($pack);
+                $requestNumber = $request->getNumber();
+                $naturePrefix = $nature->getPrefix() ?? '';
+                $counter = $order->getPacks()->count();
+                $counterStr = sprintf("%03u", $counter);
+
+                $code = $naturePrefix . $requestNumber . $counterStr;
+                $pack = $this
+                    ->createPackWithCode($code)
+                    ->setNature($nature);
+
+                $orderLine->setPack($pack);
+            }
+            else {
+                throw new RuntimeException('Unhandled pack configuration');
+            }
         }
         return $pack;
     }
