@@ -240,8 +240,8 @@ class SubcontractController extends AbstractController
 
         $attachmentService->manageAttachments($entityManager, $transportOrder, $request->files);
 
-        $statusHistoryRequest = $statusHistoryService->updateStatus($entityManager, $transportRequest, $statutRequest);
-        $statusHistoryOrder = $statusHistoryService->updateStatus($entityManager, $transportOrder, $statutOrder);
+        $statusHistoryRequest = $statusHistoryService->updateStatus($entityManager, $transportRequest, $statutRequest, $startedAt);
+        $statusHistoryOrder = $statusHistoryService->updateStatus($entityManager, $transportOrder, $statutOrder, $startedAt);
 
         $historyType = match($statutRequest->getCode()) {
             TransportRequest::STATUS_ONGOING => TransportHistoryService::TYPE_ONGOING,
