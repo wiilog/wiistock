@@ -1,5 +1,12 @@
 const confirmationModalId = 'confirmation-modal'
 
+//fixes the backdrop when multiple modals are open
+$(document).on('show.bs.modal', '.modal', function() {
+    const zIndex = 1040 + 10 * $('.modal:visible').length;
+    $(this).css('z-index', zIndex);
+    setTimeout(() => $('.modal-backdrop').not('.modal-stack').css('z-index', zIndex - 1).addClass('modal-stack'));
+});
+
 const $CONFIRMATION_MODAL = $(`
     <div class="modal fade" role="dialog" aria-hidden="true" id="${confirmationModalId}">
         <div class="modal-dialog modal-dialog-centered" role="document">
