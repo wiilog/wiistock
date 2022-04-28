@@ -261,6 +261,9 @@ class SubcontractController extends AbstractController
 
         $entityManager->flush();
 
-        return $this->json($this->redirectToRoute('transport_subcontract_index'));
+        return $this->json([
+            "success" => true,
+            "msg" => "La sous-traitance a bien été mise à jour",
+        ]);
     }
 }
