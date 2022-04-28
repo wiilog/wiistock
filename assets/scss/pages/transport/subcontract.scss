@@ -1,7 +1,7 @@
 @import "../../variables";
 
 .transport-request-card{
-    height: 140px;
+    height: 120px;
 
     .transport-subcontract-contact, .transport-subcontract-details-container {
         width: 20%;
@@ -19,9 +19,7 @@
 
     .transport-subcontract-button-container {
         height: 80px;
-        display: flex;
-        flex-direction: column;
-        align-items: flex-end;
+        vertical-align: middle;
         padding-right: 16px !important;
 
         button{
