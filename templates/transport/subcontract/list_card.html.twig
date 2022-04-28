@@ -12,15 +12,17 @@
                 <img alt="Actions" src="{{ asset('svg/dotsblack.svg') }}" height="20px" width="8px">
             </div>
             <div class="dropdown-menu dropdown-follow-gt pointer">
-                <div class="dropdown-item pointer">
+                <a href="{{ path('transport_request_show', {id: request.id}) }}" class="dropdown-item pointer">
                     <i class="fas fa-external-link-alt mr-2"></i> Voir la demande
-                </div>
-                <div data-id='{{ request.id }}' data-target='#modalEditSubcontractedRequest' data-toggle='modal'
-                     class='dropdown-item pointer'
-                     onclick="editRow($(this), Routing.generate('subcontract_request_edit_api', true), $('#modalEditSubcontractedRequest'), $('#submitEditSubcontractedRequest'))">
-                    <i class='fas fa-edit'></i>
-                    Modifier
-                </div>
+                </a>
+                {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
+                    <div data-id='{{ request.id }}' data-target='#modalEditSubcontractedRequest' data-toggle='modal'
+                         class='dropdown-item pointer'
+                         onclick="editRow($(this), Routing.generate('subcontract_request_edit_api', true), $('#modalEditSubcontractedRequest'), $('#submitEditSubcontractedRequest'))">
+                        <i class='fas fa-edit mr-2'></i>
+                        Modifier
+                    </div>
+                {% endif %}
             </div>
         </div>
         <table class="transport-content">
@@ -68,7 +70,7 @@
                 </td>
                 <td class="transport-subcontract-details-container">
                     <div class="mb-2">
-                        Commencée le :  <span style="font-weight: bold">{{ order.startedAt ? order.startedAt | format_helper('longDate', {short: true, time: true}) : "-" }}</span>
+                        Commencée le : <span style="font-weight: bold">{{ order.startedAt ? order.startedAt | format_helper('longDate', {short: true, time: true}) : "-" }}</span>
                     </div>
                     <div>
                         Livrée le : <span style="font-weight: bold"></span> {{ transportOrderHistory ? transportOrderHistory.date | format_helper('longDate', {short: true, time: true}) : "-" }}

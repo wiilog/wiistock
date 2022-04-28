@@ -1108,11 +1108,11 @@ class SettingsController extends AbstractController {
 
             if ($edit) {
                 $data[] = [
-                    "actions" => $this->canDelete() ? "
+                    "actions" => "
                         <button class='btn btn-silent delete-row' data-id='{$shift->getId()}'>
                             <i class='wii-icon wii-icon-trash text-primary'></i>
                         </button>
-                    " : "",
+                    ",
                     "id" => $shift->getId(),
                     "hour" => "<input name='hour' class='$class' data-global-error='Heure' value='{$hour}'/>",
                     "deliverers" => $deliverers,

@@ -5,7 +5,7 @@ import Flash, {ERROR, SUCCESS} from "@app/flash";
 
 export function initializeForm($form, editForm = false) {
     const form = Form
-        .create($form)
+        .create($form, {clearOnOpen: !editForm})
         .addProcessor((_, errors, $form) => {
             validateNatureForm($form, errors)
         })
@@ -45,17 +45,22 @@ export function initializePacking(submitCallback) {
     })
 }
 
-export function packingOrPrint(transportRequest) {
-    return AJAX.route(POST, `transport_request_packing_check`, {transportRequest})
-        .json()
-        .then((result) => {
-            if (result.success) {
-                return openPackingModal(transportRequest);
-            }
-            else {
-                return printBarcodes(transportRequest);
-            }
-        });
+export function packingOrPrint(transportRequest, force = false) {
+    if (!force) {
+        return AJAX.route(POST, `transport_request_packing_check`, {transportRequest})
+            .json()
+            .then((result) => {
+                if (result.success) {
+                    return openPackingModal(transportRequest);
+                }
+                else {
+                    return printBarcodes(transportRequest);
+                }
+            });
+    }
+    else {
+        return openPackingModal(transportRequest);
+    }
 }
 
 export function openPackingModal(transportRequest) {
@@ -94,8 +99,7 @@ export function printBarcodes(transportRequest) {
                 saveAs(blob, fileName);
                 Flash.add(SUCCESS, "Vos étiquettes ont bien été téléchargées");
             });
-        })
-        ;
+        });
 }
 
 
@@ -122,7 +126,8 @@ export function submitPackingModal($modalPacking, data, callback) {
 function onFormOpened(form, editForm) {
     const $modal = form.element;
 
-    $modal.find('delivery').remove();
+    $modal.find('[name=delivery][type=hidden]').remove();
+    $modal.find('[name=printLabels][type=hidden]').remove();
     const $requestType = $modal.find('[name=requestType]');
     $requestType
         .prop('checked', false)

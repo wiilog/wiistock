@@ -114,8 +114,8 @@
                                 <div class="box-item my-2">
                                     <span class="wii-field-name">Date validée avec le patient</span>
                                     <span class="wii-body-text">
-                                        {% if request_collect.validationDate is not null %}
-                                            <span class="">{{ request_collect.validationDate|format_helper('longDate') }}</span>
+                                        {% if request_collect.validatedDate is not null %}
+                                            <span class="">{{ request_collect.validatedDate | format_helper('longDate') }}</span>
                                         {% else %}
                                             <span>-</span>
                                         {% endif %}
@@ -124,8 +124,8 @@
                                 <div class="box-item my-2">
                                     <span class="wii-field-name">Créneau passage</span>
                                     <span class="wii-body-text">
-                                        {% if request_collect.TimeSlot and request_collect.TimeSlot.Name is not null %}
-                                            <span>{{ request_collect.TimeSlot.Name }}</span>
+                                        {% if request_collect.timeSlot and request_collect.timeSlot.Name is not null %}
+                                            <span>{{ request_collect.timeSlot.Name }}</span>
                                         {% else %}
                                             <span>-</span>
                                         {% endif %}
@@ -302,7 +302,7 @@
         </div>
     </div>
 
-    {% include 'transport/order/modal_collect_time_slot.html.twig' with {'timeSlots':timeSlots , 'orderId': order.id} %}
+    {% include 'transport/order/modal_collect_time_slot.html.twig' with {timeSlots: timeSlots , order: order} %}
 
     <input type="hidden" value="{{ order.id }}" name="transportId">
     <input type="hidden" value="{{ constant('App\\Controller\\Transport\\HistoryController::ORDER') }}" name="transportType">

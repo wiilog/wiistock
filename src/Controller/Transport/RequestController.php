@@ -178,7 +178,7 @@ class RequestController extends AbstractController {
                         RouterInterface $router): JsonResponse {
 
         $settingRepository = $entityManager->getRepository(Setting::class);
-
+        $prefixDeliveryRequest = TransportRequest::NUMBER_PREFIX;
         /** @var Utilisateur $user */
         $user = $this->getUser();
         $data = $request->request;
@@ -193,6 +193,9 @@ class RequestController extends AbstractController {
         $transportRequest = $transportService->persistTransportRequest($entityManager, $user, $data, $transportDeliveryRequest ?? null);
 
         $mainTransportRequest = $transportDeliveryRequest ?? $transportRequest;
+        $transportDeliveryRequest = $mainTransportRequest instanceof TransportDeliveryRequest ? $mainTransportRequest : null;
+        $transportCollectRequest = $mainTransportRequest instanceof TransportCollectRequest ? $mainTransportRequest : $transportDeliveryRequest?->getCollect();
+
         $validationMessage = null;
         if ($mainTransportRequest->getStatus()?->getCode() === TransportRequest::STATUS_AWAITING_VALIDATION) {
             $userRepository = $entityManager->getRepository(Utilisateur::class);
@@ -204,7 +207,8 @@ class RequestController extends AbstractController {
                     'FOLLOW GT // Nouvelle demande de transport à valider',
                     $templating->render('mails/contents/mailAwaitingTransportRequest.html.twig', [
                         'transportRequest' => $mainTransportRequest,
-                        'urlSuffix' => $router->generate("transport_subcontract_index")
+                        'urlSuffix' => $router->generate("transport_subcontract_index"),
+                        'prefix' => $prefixDeliveryRequest
                     ]),
                     $receivers
                 );
@@ -228,7 +232,8 @@ class RequestController extends AbstractController {
         return $this->json([
             "success" => true,
             "message" => "Votre demande de transport a bien été créée",
-            "transportRequestId" => $transportRequest->getId(),
+            "deliveryId" => $transportDeliveryRequest?->getId(),
+            "collectId" => $transportCollectRequest?->getId(),
             'validationMessage' => $validationMessage
         ]);
     }
@@ -404,7 +409,8 @@ class RequestController extends AbstractController {
                     "prefix" => TransportRequest::NUMBER_PREFIX,
                     "request" => $transportRequest,
                     "timeSlot" => $transportService->getTimeSlot($entityManager, $transportRequest->getExpectedAt()),
-                    "path" => "transport_request_show"
+                    "path" => "transport_request_show",
+                    "displayDropdown" => true
                 ]);
             }
 

@@ -1,17 +1,16 @@
 import '@styles/pages/transport/common.scss';
 import AJAX, {GET, POST} from "@app/ajax";
 import Flash from "@app/flash";
+import Modal from "@app/modal";
+
 import {
     initializeForm,
     cancelRequest,
     deleteRequest,
     initializePacking,
-    printBarcodes,
     packingOrPrint,
-    submitPackingModal,
 } from "@app/pages/transport/request/common";
 import {initializeFilters} from "@app/pages/transport/common";
-import Form from "@app/form";
 
 $(function() {
     const $modalTransportRequest = $("#modalTransportRequest");
@@ -74,7 +73,6 @@ $(function() {
 /**
  * @param {Form} form
  * @param {FormData} data
- * @param data
  */
 function submitTransportRequest(form, data, table) {
     const $modal = form.element;
@@ -87,7 +85,7 @@ function submitTransportRequest(form, data, table) {
         table.ajax.reload();
 
         if(printLabels) {
-            packingOrPrint(transportRequest);
+            packingOrPrint(transportRequest, true);
         }
     };
 
@@ -101,7 +99,7 @@ function submitTransportRequest(form, data, table) {
                     if (can) {
                         return AJAX.route(POST, 'transport_request_new')
                             .json(data)
-                            .then(({success, message, validationMessage, printLabel, transportRequestId}) => {
+                            .then(({success, message, validationMessage, deliveryId}) => {
                                 if (validationMessage) {
                                     Modal.confirm({
                                         message: validationMessage,
@@ -109,19 +107,19 @@ function submitTransportRequest(form, data, table) {
                                             color: 'success',
                                             label: 'Fermer',
                                             click: () => {
-                                                closeCreationModal(printLabel, transportRequestId);
+                                                closeCreationModal(deliveryId);
                                             }
                                         },
                                         cancelButton: {
                                             hidden: true
                                         },
                                         cancelled: () => {
-                                            closeCreationModal(printLabel, transportRequestId);
+                                            closeCreationModal(deliveryId);
                                         },
                                     });
                                 }
                                 else if (success) {
-                                    closeCreationModal(printLabel, transportRequestId);
+                                    closeCreationModal(deliveryId);
                                 }
 
                                 Flash.add(
@@ -141,6 +139,9 @@ function saveDeliveryForLinkedCollect($modal, data) {
     const $deliveryData = $(`<input type="hidden" class="data" name="delivery"/>`);
     $deliveryData.val(deliveryData);
     $modal.prepend($deliveryData);
+    const $printLabels = $(`<input type="hidden" class="data" name="printLabels"/>`);
+    $printLabels.val(data.get('printLabels'));
+    $modal.prepend($printLabels);
 
     const $requestType = $modal.find('[name=requestType]');
     $requestType

@@ -49,7 +49,7 @@ class OrderController extends AbstractController {
             $order
                 ->getRequest()
                 ->setTimeSlot($entityManager->find(CollectTimeSlot::class, $data["timeSlot"]))
-                ->setValidationDate($choosenDate);
+                ->setValidatedDate($choosenDate);
 
             $toAssignStatus = $entityManager->getRepository(Statut::class)
                 ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_COLLECT, TransportOrder::STATUS_TO_ASSIGN);
@@ -64,13 +64,13 @@ class OrderController extends AbstractController {
             $entityManager->flush();
             return $this->json([
                 "success" => true,
-                "msg" => "La date de collecte a été modifiée avec succès"
+                "msg" => "La date de collecte a été modifiée avec succès",
             ]);
         }
         else{
             return $this->json([
                 "success" => false,
-                "msg" => "La date de collecte doit être supérieure à la date actuelle"
+                "msg" => "La date de collecte doit être supérieure à la date actuelle",
             ]);
         }
     }
@@ -109,7 +109,7 @@ class OrderController extends AbstractController {
             'packsCount' => $packsCount,
             'hasRejectedPacks' => $hasRejectedPacks,
             'round' => $round,
-            'timeSlots' => $timeSlots
+            'timeSlots' => $timeSlots,
         ]);
     }
 
@@ -158,8 +158,12 @@ class OrderController extends AbstractController {
         $queryResult = $transportRepository->findByParamAndFilters($request->request, $filters);
 
         $transportOrders = [];
+        /** @var TransportOrder $order */
         foreach ($queryResult["data"] as $order) {
-            $transportOrders[$order->getRequest()->getExpectedAt()->format("dmY")][] = $order;
+            $request = $order->getRequest();
+            $date = $request->getValidatedDate() ?? $request->getExpectedAt();
+
+            $transportOrders[$date->format("dmY")][] = $order;
         }
 
         $rows = [];
@@ -211,7 +215,8 @@ class OrderController extends AbstractController {
                     "prefix" => TransportOrder::NUMBER_PREFIX,
                     "request" => $order->getRequest(),
                     "order" => $order,
-                    "path" => "transport_order_show"
+                    "path" => "transport_order_show",
+                    "displayDropdown" => false,
                 ]);
             }
 
