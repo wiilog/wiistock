@@ -193,6 +193,9 @@ class RequestController extends AbstractController {
         $transportRequest = $transportService->persistTransportRequest($entityManager, $user, $data, $transportDeliveryRequest ?? null);
 
         $mainTransportRequest = $transportDeliveryRequest ?? $transportRequest;
+        $transportDeliveryRequest = $mainTransportRequest instanceof TransportDeliveryRequest ? $mainTransportRequest : null;
+        $transportCollectRequest = $mainTransportRequest instanceof TransportCollectRequest ? $mainTransportRequest : $transportDeliveryRequest?->getCollect();
+
         $validationMessage = null;
         if ($mainTransportRequest->getStatus()?->getCode() === TransportRequest::STATUS_AWAITING_VALIDATION) {
             $userRepository = $entityManager->getRepository(Utilisateur::class);
@@ -229,7 +232,8 @@ class RequestController extends AbstractController {
         return $this->json([
             "success" => true,
             "message" => "Votre demande de transport a bien été créée",
-            "transportRequestId" => $transportRequest->getId(),
+            "deliveryId" => $transportDeliveryRequest?->getId(),
+            "collectId" => $transportCollectRequest?->getId(),
             'validationMessage' => $validationMessage
         ]);
     }

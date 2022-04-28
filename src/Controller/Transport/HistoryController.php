@@ -159,8 +159,7 @@ class HistoryController extends AbstractController
                 ? ($packCounter . ' colis')
                 : 'Colisage non fait';
         }
-dump($transportCollectRequestLines);
-dump($transportDeliveryRequestLines);
+
         return $this->json([
             "success" => true,
             "packingLabel" => $packingLabel,

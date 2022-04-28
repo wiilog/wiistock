@@ -5,7 +5,7 @@ import Flash, {ERROR, SUCCESS} from "@app/flash";
 
 export function initializeForm($form, editForm = false) {
     const form = Form
-        .create($form)
+        .create($form, {clearOnOpen: !editForm})
         .addProcessor((_, errors, $form) => {
             validateNatureForm($form, errors)
         })
@@ -99,8 +99,7 @@ export function printBarcodes(transportRequest) {
                 saveAs(blob, fileName);
                 Flash.add(SUCCESS, "Vos étiquettes ont bien été téléchargées");
             });
-        })
-        ;
+        });
 }
 
 
@@ -127,7 +126,8 @@ export function submitPackingModal($modalPacking, data, callback) {
 function onFormOpened(form, editForm) {
     const $modal = form.element;
 
-    $modal.find('delivery').remove();
+    $modal.find('[name=delivery][type=hidden]').remove();
+    $modal.find('[name=printLabels][type=hidden]').remove();
     const $requestType = $modal.find('[name=requestType]');
     $requestType
         .prop('checked', false)
