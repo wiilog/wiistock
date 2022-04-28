@@ -156,9 +156,9 @@
                         {% if request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') %}
                             <div class="col-6 d-flex flex-column">
                                 <span class="wii-field-name">Date validée avec le patient</span>
-                                {% if request_collect.validationDate %}
+                                {% if request_collect.validatedDate %}
                                     <span class="wii-field-text">
-                                        {{ request.validationDate|format_helper('date') }}
+                                        {{ request.validatedDate|format_helper('date') }}
                                     </span>
                                 {% endif %}
                             </div>

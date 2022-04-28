@@ -124,7 +124,7 @@ abstract class TransportRequest {
     private ?DateTime $createdAt = null;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
-    private ?DateTime $validationDate = null;
+    private ?DateTime $validatedDate = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'transportRequests')]
     private ?Utilisateur $createdBy = null;
@@ -202,12 +202,12 @@ abstract class TransportRequest {
         return $this;
     }
 
-    public function getValidationDate(): ?DateTime {
-        return $this->validationDate;
+    public function getValidatedDate(): ?DateTime {
+        return $this->validatedDate;
     }
 
-    public function setValidationDate(?DateTime $validationDate): self {
-        $this->validationDate = $validationDate;
+    public function setValidatedDate(?DateTime $validatedDate): self {
+        $this->validatedDate = $validatedDate;
 
         return $this;
     }
