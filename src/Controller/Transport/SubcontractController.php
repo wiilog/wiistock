@@ -65,15 +65,7 @@ class SubcontractController extends AbstractController
 
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_SUBCONTRACT_ORDERS, $this->getUser());
 
-        $awaitingValidationResult = $transportRequestRepository->findByParamAndFilters(
-            $request->request,
-            $filters,
-            [[
-                "field" => "Awaiting validation request",
-                "value" => TransportRequest::STATUS_AWAITING_VALIDATION
-            ]],
-            true
-        );
+        $awaitingValidationResult = $transportRequestRepository->findAwaitingValidation();
 
         $subcontractOrderResult = $transportRequestRepository->findByParamAndFilters(
             $request->request,
@@ -85,11 +77,10 @@ class SubcontractController extends AbstractController
         );
 
         $transportRequests = [];
-        foreach ($awaitingValidationResult["data"] as $requestUp) {
+        foreach ($awaitingValidationResult as $requestUp) {
             $transportRequests["A valider"][] = $requestUp;
         }
         foreach ($subcontractOrderResult["data"] as $requestDown) {
-            $requestDown->setExpectedAt(new DateTime());
             $transportRequests[$requestDown->getExpectedAt()->format("dmY")][] = $requestDown;
         }
 
@@ -133,8 +124,8 @@ class SubcontractController extends AbstractController
 
         return $this->json([
             "data" => $rows,
-            "recordsTotal" => $awaitingValidationResult["total"] + $subcontractOrderResult["total"],
-            "recordsFiltered" => $awaitingValidationResult["count"] + $subcontractOrderResult["count"],
+            "recordsTotal" => count($awaitingValidationResult) + $subcontractOrderResult["total"],
+            "recordsFiltered" => count($awaitingValidationResult) + $subcontractOrderResult["count"],
         ]);
     }
 

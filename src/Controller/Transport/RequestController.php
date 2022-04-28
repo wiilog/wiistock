@@ -340,7 +340,6 @@ class RequestController extends AbstractController {
 
     #[Route("/supprimer/{transportRequest}", name: "transport_request_delete", options: ['expose' => true], methods: "DELETE")]
     public function delete(TransportRequest $transportRequest, EntityManagerInterface $entityManager): Response {
-
         $success = $transportRequest->canBeDeleted();
 
         if ($success) {
