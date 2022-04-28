@@ -4,7 +4,7 @@
     <p>Bonjour,</p>
     <p>Une demande de transport est à valider avec les informations suivantes :</p>
     <ul>
-        <li> Numéro de demande : <b>{{ transportRequest.number }}</b></li>
+        <li> Numéro de demande : <b>{{ prefix }}{{ transportRequest.number }}</b></li>
         <li> Date de création : <b>{{ transportRequest.createdAt | format_helper('longDate', {short: true, time: true}, '') }}</b></li>
         <li> Date de livraison : <b>{{ transportRequest.expectedAt | format_helper('longDate', {short: true, time: true}, '') }}</b></li>
         <li> Demandeur : <b>{{ transportRequest.createdBy.username }}</b></li>

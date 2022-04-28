@@ -181,7 +181,7 @@ class RequestController extends AbstractController {
                         RouterInterface $router): JsonResponse {
 
         $settingRepository = $entityManager->getRepository(Setting::class);
-
+        $prefixDeliveryRequest = TransportRequest::NUMBER_PREFIX;
         /** @var Utilisateur $user */
         $user = $this->getUser();
         $data = $request->request;
@@ -207,7 +207,8 @@ class RequestController extends AbstractController {
                     'FOLLOW GT // Nouvelle demande de transport à valider',
                     $templating->render('mails/contents/mailAwaitingTransportRequest.html.twig', [
                         'transportRequest' => $mainTransportRequest,
-                        'urlSuffix' => $router->generate("transport_subcontract_index")
+                        'urlSuffix' => $router->generate("transport_subcontract_index"),
+                        'prefix' => $prefixDeliveryRequest
                     ]),
                     $receivers
                 );
