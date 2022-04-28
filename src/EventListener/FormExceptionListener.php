@@ -11,12 +11,16 @@ class FormExceptionListener {
 
     public function onKernelException(ExceptionEvent $event) {
         if($event->getThrowable() instanceof FormException) {
-            $exception = $event->getThrowable();
+            $throwable = $event->getThrowable();
+
             $event->allowCustomResponseCode();
-            $event->setResponse(new JsonResponse([
-                "success" => false,
-                "msg" => $exception->getMessage(),
-            ], $exception->getCode() ?: Response::HTTP_OK));
+            $event->setResponse(new JsonResponse(
+                [
+                    "success" => false,
+                    "msg" => $throwable->getMessage(),
+                ],
+                $throwable->getCode() ?: Response::HTTP_OK
+            ));
         }
     }
 

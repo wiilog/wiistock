@@ -8,7 +8,6 @@ use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\FreeField;
-use App\Entity\Pack;
 use App\Entity\Setting;
 use App\Entity\StatusHistory;
 use App\Entity\Transport\TransportCollectRequestLine;
@@ -30,7 +29,6 @@ use App\Helper\FormatHelper;
 use App\Service\PackService;
 use App\Service\PDFGeneratorService;
 use App\Service\StatusHistoryService;
-use App\Service\StringService;
 use App\Service\Transport\TransportHistoryService;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Transport\TransportCollectRequest;
@@ -45,7 +43,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
 
@@ -159,7 +156,6 @@ class RequestController extends AbstractController {
         /** @var Utilisateur $user */
         $user = $this->getUser();
         $data = $request->request;
-        $printLabel = $data->get('printLabels');
 
         $deliveryData = $data->has('delivery') ? json_decode($data->get('delivery'), true) : null;
         if (is_array($deliveryData) && !empty($deliveryData)) {
@@ -189,11 +185,9 @@ class RequestController extends AbstractController {
 
         $entityManager->flush();
 
-        dump($transportRequest);
         return $this->json([
             "success" => true,
             "message" => "Votre demande de transport a bien été créée",
-            "printLabel" => $printLabel,
             "transportRequestId" => $transportRequest->getId(),
             'validationMessage' => $validationMessage
         ]);
@@ -284,6 +278,7 @@ class RequestController extends AbstractController {
             "message" => "Votre demande de transport a bien été mise à jour",
         ]);
     }
+
     #[Route("/check/{transportRequest}", name: "transport_request_packing_check", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::EDIT_TRANSPORT], mode: HasPermission::IN_JSON)]
     public function packingCheck(TransportRequest $transportRequest ): JsonResponse {
@@ -483,9 +478,7 @@ class RequestController extends AbstractController {
             ->flatMap(fn(TransportOrder $order) => $order->getPacks()->toArray());
 
         $packCounter = $requestPacksList->count();
-        /* [
-           natureId => [Pack, Pack]
-        ]*/
+        /* [natureId => [Pack, Pack]] */
         $associatedNaturesAndPacks = $requestPacksList
             ->keymap(function(TransportDeliveryOrderPack $transportDeliveryOrderPack) {
                 $nature = $transportDeliveryOrderPack->getPack()->getNature();
@@ -495,6 +488,7 @@ class RequestController extends AbstractController {
                 ];
             }, true)
             ->toArray();
+
         $packingLabel = $packCounter == 0 ? 'Colisage non fait' : ($packCounter . ' colis');
 
         return $this->json([
@@ -642,9 +636,8 @@ class RequestController extends AbstractController {
         $fileName = $PDFGeneratorService->getBarcodeFileName($config, 'transport');
         return new PdfResponse(
             $PDFGeneratorService->generatePDFBarCodes($fileName, $config, true),
-            $fileName,
+            $fileName
         );
-        /*return new Response($PDFGeneratorService->generatePDFBarCodes($fileName, $config, true));*/
     }
 
 }

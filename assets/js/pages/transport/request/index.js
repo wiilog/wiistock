@@ -75,6 +75,16 @@ function submitTransportRequest(form, data, table) {
     const $modal = form.element;
     const $submit = $modal.find('[type=submit]');
     const collectLinked = Boolean(Number(data.get('collectLinked')));
+    const printLabels = Boolean(Number(data.get('printLabels')));
+
+    const closeCreationModal = (transportRequest) => {
+        $modal.modal('hide');
+        table.ajax.reload();
+
+        if(printLabels) {
+            packingOrPrint(transportRequest);
+        }
+    };
 
     if (collectLinked) {
         saveDeliveryForLinkedCollect($modal, data);
@@ -87,10 +97,6 @@ function submitTransportRequest(form, data, table) {
                         return AJAX.route(POST, 'transport_request_new')
                             .json(data)
                             .then(({success, message, validationMessage, printLabel, transportRequestId}) => {
-                                console.log(printLabel);
-                                if(printLabel === '1') {
-                                    printBarcodesWithCreation(transportRequestId);
-                                }
                                 if (validationMessage) {
                                     Modal.confirm({
                                         message: validationMessage,
@@ -98,23 +104,21 @@ function submitTransportRequest(form, data, table) {
                                             color: 'success',
                                             label: 'Fermer',
                                             click: () => {
-                                                $modal.modal('hide');
-                                                table.ajax.reload();
+                                                closeCreationModal(printLabel, transportRequestId);
                                             }
                                         },
-
                                         cancelButton: {
                                             hidden: true
                                         },
                                         cancelled: () => {
-                                            $modal.modal('hide');
+                                            closeCreationModal(printLabel, transportRequestId);
                                         },
                                     });
                                 }
                                 else if (success) {
-                                    $modal.modal('hide');
-                                    table.ajax.reload();
+                                    closeCreationModal(printLabel, transportRequestId);
                                 }
+
                                 Flash.add(
                                     success ? 'success' : 'danger',
                                     message || `Une erreur s'est produite`
@@ -125,16 +129,6 @@ function submitTransportRequest(form, data, table) {
                 });
         });
     }
-}
-
-function printBarcodesWithCreation(transportRequest) {
-    const $modalPacking = $('#modalTransportRequestPacking');
-    Form.create($modalPacking).onSubmit(function(data) {
-        wrapLoadingOnActionButton($modalPacking.find('[type=submit]'), () => {
-            return submitPackingModal($modalPacking, data);
-        });
-    })
-    return packingOrPrint(transportRequest);
 }
 
 function saveDeliveryForLinkedCollect($modal, data) {
