@@ -3,13 +3,13 @@
     <div class="wii-section-title">Sous-traitant</div>
     <div class="row my-3">
         <div class="col-md-6 col-12">
-            <label for="subcontractor">
+            <label for="subcontractor" class="wii-field-name">
                 Sous-traitant*
             </label>
             <input type="text" id="subcontractor" class="form-control data needed" name="subcontractor" value="{{ transportOrder.subcontractor }}">
         </div>
         <div class="col-md-6 col-12">
-            <label for="registrationNumber">
+            <label for="registrationNumber" class="wii-field-name">
                 Immatriculation*
             </label>
             <input type="text" id="registrationNumber" class="form-control data needed" name="registrationNumber" value="{{ transportOrder.registrationNumber }}">
@@ -19,7 +19,7 @@
     <div class="wii-section-title">Livraison</div>
     <div class="row my-3">
         <div class="col-md-6 col-12">
-            <label for="status">Statut*</label>
+            <label for="status" class="wii-field-name">Statut*</label>
             <select name="status" class="form-control data w-100 needed" onchange="editStatusChange($(this))"
                 {{ (statutRequest.nom == "Terminée" or statutRequest.nom == "Non livrée") ? "disabled" : "" }}>
                 <option name="statut" class="data" value="{{ statutRequest.id }}" selected disabled>{{ statutRequest.nom }}</option>
@@ -32,7 +32,7 @@
 
     <div class="row my-3">
         <div class="col-md-6 col-12 startDateDiv">
-            <label class="w-100 delivery-start-date-label">
+            <label class="w-100 wii-field-name">
                 Date et heure de début de livraison *
                 <input name="delivery-start-date"
                        type="datetime-local"
@@ -41,7 +41,7 @@
             </label>
         </div>
         <div class="col-md-6 col-12 endDateDiv">
-            <label class="w-100">
+            <label class="w-100 wii-field-name">
                 Date et heure de fin de livraison *
                 <input name="delivery-end-date"
                        type="datetime-local"
