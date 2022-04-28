@@ -405,7 +405,8 @@ class RequestController extends AbstractController {
                     "prefix" => TransportRequest::NUMBER_PREFIX,
                     "request" => $transportRequest,
                     "timeSlot" => $transportService->getTimeSlot($entityManager, $transportRequest->getExpectedAt()),
-                    "path" => "transport_request_show"
+                    "path" => "transport_request_show",
+                    "displayDropdown" => true
                 ]);
             }
 

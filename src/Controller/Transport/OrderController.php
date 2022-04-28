@@ -196,7 +196,8 @@ class OrderController extends AbstractController {
                     "prefix" => TransportOrder::NUMBER_PREFIX,
                     "request" => $order->getRequest(),
                     "order" => $order,
-                    "path" => "transport_order_show"
+                    "path" => "transport_order_show",
+                    "displayDropdown" => false,
                 ]);
             }
 
