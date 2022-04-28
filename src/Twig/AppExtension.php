@@ -9,6 +9,7 @@ use App\Service\SpecificService;
 use App\Service\Transport\TransportHistoryService;
 use App\Service\UserService;
 use App\Helper\FormatHelper;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 use ReflectionClass;
 use Symfony\Component\HttpKernel\KernelInterface;
@@ -17,6 +18,7 @@ use Twig\TwigFilter;
 use Twig\TwigFunction;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigTest;
+use WiiCommon\Helper\Stream;
 
 class AppExtension extends AbstractExtension {
 
@@ -74,6 +76,7 @@ class AppExtension extends AbstractExtension {
             new TwigFilter("format_helper", [$this, "formatHelper"]),
             new TwigFilter("json_decode", "json_decode"),
             new TwigFilter("flip", [$this, "flip"]),
+            new TwigFilter("some", [$this, "some"]),
         ];
     }
 
@@ -220,5 +223,9 @@ class AppExtension extends AbstractExtension {
 
     public function formatHistory(TransportHistory $history): ?string {
         return $this->transportHistoryService->formatHistory($history);
+    }
+
+    public function some(Collection|array $array, callable $callback): bool {
+        return Stream::from($array)->some($callback);
     }
 }

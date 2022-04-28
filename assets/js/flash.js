@@ -14,7 +14,7 @@ export default class Flash {
 
     static serverError(error = null, unique = false) {
         if(error) {
-            console.error(`%cServer error : %c${error}`, ...[
+            console.error(`%cServer error: %c${error}`, ...[
                 `font-weight: bold;`,
                 `font-weight: normal;`,
             ]);

@@ -26,7 +26,7 @@ use App\Entity\Transport\TransportRequestLine;
 use App\Entity\Type;
 use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
-use App\Service\PackService;
+use App\Service\MailerService;
 use App\Service\PDFGeneratorService;
 use App\Service\StatusHistoryService;
 use App\Service\Transport\TransportHistoryService;
@@ -43,6 +43,9 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\RouterInterface;
+use Symfony\Contracts\Service\Attribute\Required;
+use Twig\Environment;
 use WiiCommon\Helper\Stream;
 
 
@@ -54,11 +57,21 @@ class RequestController extends AbstractController {
      */
     #[Route("/liste", name: "transport_request_index", methods: "GET")]
     #[HasPermission([Menu::DEM, Action::DISPLAY_TRANSPORT])]
-    public function index(EntityManagerInterface $entityManager): Response {
+    public function index(EntityManagerInterface $entityManager, Request $request): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
         $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
 
+        $token = $request->query->get('x-api-key');
+
+        $tokenIsValid = isset($_SERVER['CLB_API_KEY']) && $token === $_SERVER['CLB_API_KEY'];
+        $content = $request->query->get('content');
+        if (!$content) {
+            $response = false;
+        } else {
+            $content = str_replace(["\r", "\n"], ['\\r', '\\n'], $content);
+            $response = json_decode($content, true);
+        }
         return $this->render('transport/request/index.html.twig', [
             'newRequest' => new TransportDeliveryRequest(),
             'categories' => [
@@ -71,6 +84,16 @@ class RequestController extends AbstractController {
                     "icon" => "cart-collect",
                     "label" => "Collecte",
                 ],
+            ],
+            'prefilled' => $tokenIsValid && $response,
+            'informations' => $tokenIsValid && $response ? $response : [
+                'Prenom' => '',
+                'Nom' => '',
+                'Nodos' => '',
+                'Contact' => '',
+                'Adresse' => '',
+                'PersonnesAPrevenir' => '',
+                'Remarques' => '',
             ],
             'types' => $typeRepository->findByCategoryLabels([
                 CategoryType::DELIVERY_TRANSPORT, CategoryType::COLLECT_TRANSPORT,
@@ -97,9 +120,10 @@ class RequestController extends AbstractController {
         ]);
     }
 
-    #[Route("/voir/{transportRequest}", name: "transport_request_show", methods: "GET")]
-    public function show(TransportRequest $transportRequest,
+    #[Route("/voir/{id}", name: "transport_request_show", methods: "GET")]
+    public function show(TransportRequest $id,
                          EntityManagerInterface $entityManager): Response {
+        $transportRequest = $id;
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
@@ -121,11 +145,11 @@ class RequestController extends AbstractController {
             ->toArray();
 
         $packsCount = !$transportRequest->getOrders()->isEmpty()
-            ? $transportRequest->getOrders()->first()->getPacks()->count()
-            : null;
+            ? $transportRequest->getOrders()->last()->getPacks()->count()
+            : 0;
 
         $hasRejectedPacks = !$transportRequest->getOrders()->isEmpty()
-            && Stream::from($transportRequest->getOrders()->first()->getPacks())
+            && Stream::from($transportRequest->getOrders()->last()->getPacks())
                 ->some(fn(TransportDeliveryOrderPack $pack) => $pack->isRejected());
 
         return $this->render('transport/request/show.html.twig', [
@@ -149,7 +173,10 @@ class RequestController extends AbstractController {
     #[HasPermission([Menu::DEM, Action::CREATE_TRANSPORT], mode: HasPermission::IN_JSON)]
     public function new(Request $request,
                         EntityManagerInterface $entityManager,
-                        TransportService $transportService): JsonResponse {
+                        TransportService $transportService,
+                        MailerService $mailerService,
+                        Environment $templating,
+                        RouterInterface $router): JsonResponse {
 
         $settingRepository = $entityManager->getRepository(Setting::class);
 
@@ -169,6 +196,20 @@ class RequestController extends AbstractController {
         $mainTransportRequest = $transportDeliveryRequest ?? $transportRequest;
         $validationMessage = null;
         if ($mainTransportRequest->getStatus()?->getCode() === TransportRequest::STATUS_AWAITING_VALIDATION) {
+            $userRepository = $entityManager->getRepository(Utilisateur::class);
+            $paramReceivers = $settingRepository->getOneParamByLabel(Setting::TRANSPORT_DELIVERY_DESTINATAIRES_MAIL);
+            $receivers = $userRepository->findBy(['id' => explode(',', $paramReceivers)]);
+
+            if(!empty($receivers)) {
+                $mailerService->sendMail(
+                    'FOLLOW GT // Nouvelle demande de transport à valider',
+                    $templating->render('mails/contents/mailAwaitingTransportRequest.html.twig', [
+                        'transportRequest' => $mainTransportRequest,
+                        'urlSuffix' => $router->generate("transport_subcontract_index")
+                    ]),
+                    $receivers
+                );
+            }
             $validationMessage = 'Votre demande de transport est en attente de validation';
         }
         else if ($mainTransportRequest->getStatus()?->getCode() === TransportRequest::STATUS_SUBCONTRACTED) {
@@ -365,6 +406,7 @@ class RequestController extends AbstractController {
                     "prefix" => TransportRequest::NUMBER_PREFIX,
                     "request" => $transportRequest,
                     "timeSlot" => $transportService->getTimeSlot($entityManager, $transportRequest->getExpectedAt()),
+                    "path" => "transport_request_show"
                 ]);
             }
 
@@ -393,6 +435,39 @@ class RequestController extends AbstractController {
         if ($success) {
             // TODO supprimer la demande et toutes les données liées, il faut attendre que tout soit effectif (liaisons colis, ordres, ....)
             $msg = 'Demande supprimée.';
+
+            /**
+             * @var TransportOrder $transportOrder
+             */
+            $transportOrder = $transportRequest->getOrders()->first();
+
+            /**
+             * @var StatusHistory[] $statusesHistories
+             */
+            $statusesHistories = Stream::from($transportRequest->getStatusHistory())
+                ->concat($transportOrder->getStatusHistory())
+                ->toArray();
+
+            /**
+             * @var TransportHistory[] $histories
+             */
+            $histories = Stream::from($transportRequest->getHistory())
+                ->concat($transportOrder->getHistory())
+                ->toArray();
+
+            foreach ($statusesHistories as $status) {
+                $transportRequest->removeStatusHistory($status);
+                $transportOrder->removeStatusHistory($status);
+                $entityManager->remove($status);
+            }
+
+            foreach ($histories as $history) {
+                $transportRequest->removeHistory($history);
+                $transportOrder->removeHistory($history);
+                $entityManager->remove($history);
+            }
+
+            $entityManager->flush();
             $entityManager->remove($transportRequest);
             $entityManager->flush();
         }
@@ -407,7 +482,7 @@ class RequestController extends AbstractController {
             'redirect' => $this->generateUrl('transport_request_index')
         ]);
     }
-
+//TODO ===============
     #[Route("/{transportRequest}/status-history-api", name: "transport_request_status_history_api", options: ['expose' => true], methods: "GET")]
     public function statusHistoryApi(TransportRequest $transportRequest) {
         $round = !$transportRequest->getOrders()->isEmpty() && !$transportRequest->getOrders()->first()->getTransportRoundLines()->isEmpty()
@@ -502,7 +577,7 @@ class RequestController extends AbstractController {
             ]),
         ]);
     }
-
+//TODO ===============
 
     #[Route("/collect-already-exists", name: "transport_request_collect_already_exists", options: ['expose' => true], methods: "GET")]
     public function collectAlreadyExists(EntityManagerInterface $entityManager,
@@ -567,7 +642,7 @@ class RequestController extends AbstractController {
     public function printTransportPacks(TransportRequest $transportRequest,
                                         PDFGeneratorService $PDFGeneratorService,
                                         EntityManagerInterface $manager): Response {
-        $packs = !$transportRequest->getOrders()->isEmpty() ? $transportRequest->getOrders()->first()->getPacks() : [];
+        $packs = !$transportRequest->getOrders()->isEmpty() ? $transportRequest->getOrders()->last()->getPacks() : [];
         $contact = $transportRequest->getContact();
         $contactName = $contact->getName();
         $contactFileNumber = $contact->getFileNumber();

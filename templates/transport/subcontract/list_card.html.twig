@@ -1,0 +1,103 @@
+{% set order = order ?? ((request.orders | last) ?: null) %}
+{% set transportOrderHistory = order.history ? (order.history |  filter(h => h.type == historyType) | last) : null %}
+
+<div class="transport-request-container col-12 p-1">
+    <div data-id='{{ request.id }}'
+         data-target='#modalEditSubcontractedRequest'
+         data-toggle='modal'
+         class="transport-request-card"
+         onclick="editRow($(this), Routing.generate('subcontract_request_edit_api', true), $('#modalEditSubcontractedRequest'), $('#submitEditSubcontractedRequest'))">
+        <div class="dropdown dropright">
+            <div class="d-flex" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <img alt="Actions" src="{{ asset('svg/dotsblack.svg') }}" height="20px" width="8px">
+            </div>
+            <div class="dropdown-menu dropdown-follow-gt pointer">
+                <div class="dropdown-item pointer">
+                    <i class="fas fa-external-link-alt mr-2"></i> Voir la demande
+                </div>
+                <div data-id='{{ request.id }}' data-target='#modalEditSubcontractedRequest' data-toggle='modal'
+                     class='dropdown-item pointer'
+                     onclick="editRow($(this), Routing.generate('subcontract_request_edit_api', true), $('#modalEditSubcontractedRequest'), $('#submitEditSubcontractedRequest'))">
+                    <i class='fas fa-edit'></i>
+                    Modifier
+                </div>
+            </div>
+        </div>
+        <table class="transport-content">
+            <tr>
+                <td class="transport-category-container">
+                    <div>
+                        <span class="transport-category">
+                            <span class="wii-icon wii-icon-cart-delivery wii-icon-25px-primary mr-1"></span>
+                            {{ prefix }}{{ request.number }}
+                        </span>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <span class="transport-badge type mt-3 subcontract-card">
+                        {% if request.type.logo %}
+                            <img src="{{ request.type.logo.fullPath }}" width="18" height="18" class="mr-2"
+                                 alt="Logo type {{ request.type.label }}"/>
+                        {% endif %}
+
+                        {{ request.type.label }}
+                    </span>
+                </td>
+                <td class="transport-category-container">
+                    <div class="mb-2 px-5">
+                        Créée le : {{ request.createdAt | format_helper('longDate', {short: true, time: true}) }}
+                    </div>
+                    <div class="px-5">
+                        <span style="font-weight: bold">A livrer à :  {{ request.expectedAt | format_helper('longDate', {short: true, time: true}) }}</span>
+                    </div>
+                </td>
+                <td class="transport-subcontract-contact">
+                    <div class="px-5">
+                    {{ request.contact.name }}<br>
+                    <span class="wii-small-text">N° dossier {{ request.contact.fileNumber }}</span>
+                    </div>
+                </td>
+                <td class="transport-subcontract-details-container">
+                    <img src="{{ asset('svg/iot/location.svg') }}"
+                         class="icon"
+                         alt="Image urgence"
+                         width="10px">
+                    {{ request.contact.address }}
+                </td>
+                <td class="transport-subcontract-details-container">
+                    <div class="mb-2">
+                        Commencée le :  <span style="font-weight: bold">{{ order.startedAt ? order.startedAt | format_helper('longDate', {short: true, time: true}) : "-" }}</span>
+                    </div>
+                    <div>
+                        Livrée le : <span style="font-weight: bold"></span> {{ transportOrderHistory ? transportOrderHistory.date | format_helper('longDate', {short: true, time: true}) : "-" }}
+                    </div>
+                </td>
+                <td class="transport-subcontract-details-container">
+                    <div class="mb-2">
+                        Sous-traitant : <span style="font-weight: bold">{{ order.subcontractor ?? "-" }}</span>
+                    </div>
+                    <div>
+                        Immatriculation : <span style="font-weight: bold">{{ order.registrationNumber ?? "-" }}</span>
+                    </div>
+                </td>
+                <td class="transport-subcontract-status-container">
+                    {% if request.status %}
+                        <div>
+                            <span class="transport-badge {{ constant('App\\Entity\\Transport\\TransportRequest::STATUS_COLOR')[request.status.nom] }}">
+                                {{ request.status.nom }}
+                            </span>
+                        </div>
+                    {% endif %}
+                    {% for attachment in order.attachments %}
+                        <div>
+                            <a href="{{ attachment.fullPath is defined and attachment.fullPath is not null ? attachment.fullPath : '/uploads/attachements/' ~ attachment.fileName }}"
+                               download="{{ attachment.originalName }}" title="{{ attachment.originalName }}" class="text-primary underlined">{{ attachment.originalName }}</a>
+                        </div>
+                    {% endfor %}
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>

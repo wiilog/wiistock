@@ -1,5 +1,5 @@
 import '@styles/pages/transport/show.scss';
-import "@app/pages/transport/common";
+import "@app/pages/transport/common-show";
 import {initializeForm, cancelRequest, initializePacking, deleteRequest,} from "@app/pages/transport/request/common";
 import AJAX, {GET, POST} from "@app/ajax";
 import Flash from "@app/flash";
@@ -34,7 +34,7 @@ $(function () {
         });
     });
 });
-
+//TODO ==================
 function getStatusHistory(transportRequest) {
     $.get(Routing.generate(`transport_request_status_history_api`, {transportRequest}, true))
         .then(({template}) => {
@@ -60,7 +60,7 @@ function getPacks(transportRequest) {
             $packingLabelCounter.text(packingLabel);
         });
 }
-
+//TODO ==================
 function submitTransportRequestEdit(form, data) {
     const $modal = form.element;
     const $submit = $modal.find('[type=submit]');
@@ -80,7 +80,7 @@ function submitTransportRequestEdit(form, data) {
                     success ? 'success' : 'danger',
                     message || `Une erreur s'est produite`
                 );
-                table.ajax.reload();
+                window.location.reload();
             });
     });
 }

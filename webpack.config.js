@@ -24,6 +24,9 @@ Encore
     .addEntry('transport-request-index', './assets/js/pages/transport/request/index.js')
     .addEntry('transport-request-show', './assets/js/pages/transport/request/show.js')
     .addEntry('transport-order-index', './assets/js/pages/transport/order/index.js')
+    .addEntry('transport-order-show', './assets/js/pages/transport/order/show.js')
+    .addEntry('transport-round-index', './assets/js/pages/transport/round/index.js')
+    .addEntry('transport-subcontract-index', './assets/js/pages/transport/subcontract/index.js')
     .autoProvidejQuery()
 
     // When enabled, Webpack "splits" your files into smaller pieces for greater optimization.

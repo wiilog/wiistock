@@ -90,6 +90,17 @@ class StatutRepository extends EntityRepository {
         return $queryBuilder->getQuery()->execute();
     }
 
+    public function findByCategorieNamesAndStatusCodes(?array $categorieNames, ?array $statusCodes) {
+        $queryBuilder = $this->createQueryBuilder('status')
+            ->join('status.categorie', 'categorie')
+            ->andWhere('categorie.nom IN (:categorieNames)')
+            ->andWhere('status.code IN (:statusCodes)')
+            ->setParameter("categorieNames", $categorieNames, Connection::PARAM_STR_ARRAY)
+            ->setParameter("statusCodes", $statusCodes, Connection::PARAM_STR_ARRAY);
+
+        return $queryBuilder->getQuery()->execute();
+    }
+
     public function findByCategoryNameAndStatusCodes($categoryName, $statusCodes) {
         $em = $this->getEntityManager();
         $query = $em->createQuery(

@@ -3,7 +3,11 @@
 {% set roundLine = order ? (order.transportRoundLines | last) ?: null : null %}
 
 <div class="transport-request-container col-12 col-xl-6 p-1">
-    <a href="{{ path('transport_request_show', {transportRequest: request.id}) }}" class="transport-request-card">
+    {% if entity is instanceof ('App\\Entity\\Transport\\TransportRequest') %}
+        <a href="{{ path('transport_request_show', {id: entity.id}) }}" class="transport-request-card">
+    {% elseif entity is instanceof ('App\\Entity\\Transport\\TransportOrder')%}
+        <a href="{{ path('transport_order_show', {id: entity.id}) }}" class="transport-request-card">
+    {% endif  %}
         {% set isDeliveryTransportRequest = request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
 
         {% if isDeliveryTransportRequest or request.canBeCancelled or request.canBeDeleted %}
@@ -63,7 +67,7 @@
                         {% endif %}
                     </div>
                 </td>
-                <td class="transport-details-container">
+                <td class="transport-details-container" style="border-right: 5px solid transparent !important;border-left: 5px solid transparent !important;">
                     {% if request.status %}
                         <span class="transport-badge {{ constant('App\\Entity\\Transport\\TransportRequest::STATUS_COLOR')[entity.status.nom] }}">
                             {{ entity.status.nom }}
@@ -131,7 +135,7 @@
                         <br>
 
                         <div class="mt-1">
-                            {% if not order or order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ASSIGNED') %}
+                            {% if not order or order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_TO_ASSIGN') or order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_TO_CONTACT') %}
                                 Estimée à : <span class="transport-value">-</span>
                             {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ASSIGNED') %}
                                 Estimée à : <span class="transport-value">{{ request.timeSlot.name }}</span>

@@ -9,8 +9,11 @@
 {% set modeEdit = request.id is not null %}
 {% set modeDeliveryEdit = modeEdit and request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
 {% set modeCollectEdit = modeEdit and request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') %}
+{% set informations = informations ?? [] %}
+{% set prefilled = prefilled ?? "" %}
 
 <div class="modal fade" role="dialog" id="{{ modalId }}" data-modal-type="new">
+    <input type="hidden" value="{{ prefilled }}" id="prefilled">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -50,20 +53,44 @@
                         <div class="col-md-6 col-12">
                             <div class="row">
                                 <div class="col-12 mb-2">
-                                    {{ form.input('contactName', 'Patient', true, contact.name, {
-                                        disabled: request.id is not null
-                                    }) }}
+                                    {{ form.input(
+                                        'contactName',
+                                        'Patient',
+                                        true,
+                                        contact.name ?? (
+                                            informations.Prenom ?? null and informations.Nom ?? null
+                                                ? (informations.Prenom ~ ' ' ~ informations.Nom)
+                                        ),
+                                        {
+                                            disabled: request.id is not null,
+                                            noClear: true
+                                        }
+                                    ) }}
                                 </div>
                                 <div class="col-12 mb-2">
-                                    {{ form.input('contactFileNumber', 'N° dossier', true, contact.fileNumber, {
-                                        disabled: request.id is not null
-                                    }) }}
+                                    {{ form.input(
+                                        'contactFileNumber',
+                                        'N° dossier',
+                                        true,
+                                        contact.fileNumber ?? (informations.Nodos ?? ''),
+                                        {
+                                            disabled: request.id is not null,
+                                            noClear: true
+                                        }
+                                    ) }}
                                 </div>
                                 <div class="col-12 mb-2">
-                                    {{ form.textarea('contactContact', 'Contact', true, contact.contact, {
-                                        style: 'min-height: 104px;',
-                                        resizeVertical: false,
-                                    }) }}
+                                    {{ form.textarea(
+                                        'contactContact',
+                                        'Contact',
+                                        true,
+                                        contact.contact ?? (informations.Contact ?? ''),
+                                        {
+                                            style: 'min-height: 104px;',
+                                            resizeVertical: false,
+                                            noClear: true
+                                        }
+                                    ) }}
                                 </div>
                             </div>
                         </div>
@@ -71,25 +98,46 @@
                             <div class="row">
                                 <div class="col-12 mb-2">
                                     <div class="d-flex">
-                                        {{ form.textarea('contactAddress', 'Adresse', true, contact.address, {
-                                            style: 'min-height: 104px;',
-                                            resizeVertical: false,
-                                        }) }}
+                                        {{ form.textarea(
+                                            'contactAddress',
+                                            'Adresse',
+                                            true,
+                                            contact.address ?? (informations.Adresse ?? ''),
+                                            {
+                                                style: 'min-height: 104px;',
+                                                resizeVertical: false,
+                                                noClear: true
+                                            }
+                                        ) }}
                                     </div>
                                 </div>
                                 <div class="col-12 mb-2">
-                                    {{ form.textarea('contactPersonToContact', 'Personne à prévenir', true, contact.personToContact, {
-                                        style: 'min-height: 104px;',
-                                        resizeVertical: false,
-                                    }) }}
+                                    {{ form.textarea(
+                                        'contactPersonToContact',
+                                        'Personne à prévenir',
+                                        true,
+                                        contact.personToContact ?? (informations.PersonnesAPrevenir ?? ''),
+                                        {
+                                            style: 'min-height: 104px;',
+                                            resizeVertical: false,
+                                            noClear: true
+                                        }
+                                    ) }}
                                 </div>
                             </div>
                         </div>
                         <div class="col-12 mb-2">
-                            {{ form.textarea('contactObservation', 'Remarque', false, contact.observation, {
-                                style: 'min-height: 104px;',
-                                resizeVertical: false,
-                            }) }}
+                            {{ form.textarea(
+                                'contactObservation',
+                                'Remarque',
+                                false,
+                                contact.observation ?? (informations.Remarques ?? ''),
+                                {
+                                    style: 'min-height: 104px;',
+                                    resizeVertical: false,
+                                    noClear: true
+                                }
+                            ) }}
                         </div>
                     </div>
 
@@ -104,6 +152,12 @@
                     <div class="row d-none"
                          data-request-type>
                         <div class="col-auto mb-3">
+                            {% if types is empty %}
+                                Aucun type disponible<br>
+                                <a href="/parametrage/afficher/track/demande_transport/types_champs_libres_livraisons" class="btn btn-primary mt-2">Configuration des types de livraison</a><br>
+                                <a href="/parametrage/afficher/track/demande_transport/types_champs_libres_collectes" class="btn btn-primary mt-1">Configuration des types de collecte</a>
+                            {% endif %}
+
                             {{ form.switch('type', null, true, types|map((type) => {
                                 value: type.id,
                                 label: type.label,
@@ -200,7 +254,7 @@
                                         <div class="col-lg-6 col-12 nature-item {{ not modeEdit ? 'd-none' }}"
                                              data-type="{{ natureType|json_encode }}">
                                             <div class="row align-items-center my-2 nature-item-wrapper">
-                                                <div class="col-4">
+                                                <div class="{{ nature.temperatureRanges is empty ? 'col-6' : 'col-5' }}">
                                                     {{ form.checkbox('selected', nature.label, false, isSelected, {
                                                         multipleKey: multipleKey,
                                                         error: 'global'
@@ -212,7 +266,7 @@
                                                            {{ form.multiple_key({multipleKey: multipleKey}) }}/>
                                                 </div>
                                                 {% if nature.temperatureRanges is not empty %}
-                                                    <div class="col-4 {{ not modeDeliveryEdit ? 'd-none' }}"
+                                                    <div class="col-3 px-0 {{ not modeDeliveryEdit ? 'd-none' }}"
                                                          data-request-type="{{ DISCR_DELIVERY }}">
                                                         <div class="{{ not modeDeliveryEdit or not isSelected ? 'd-none' }}"
                                                              data-nature-is-selected>
@@ -232,7 +286,7 @@
                                                         </div>
                                                     </div>
                                                 {% endif %}
-                                                <div class="col-5 {{ not modeEdit ? 'd-none' }}"
+                                                <div class="{{ nature.temperatureRanges is empty ? 'col-6' : 'col-4' }} {{ not modeEdit ? 'd-none' }}"
                                                      data-request-type="{{ DISCR_COLLECT }}">
                                                     <div class="{{ not modeEdit or not isSelected ? 'd-none' }}"
                                                          data-nature-is-selected>

@@ -251,8 +251,8 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\OneToMany(mappedBy: 'createdBy', targetEntity: ReferenceArticle::class)]
     private Collection $createdByReferenceArticles;
 
-    #[ORM\OneToMany(mappedBy: 'deliverer', targetEntity: Vehicle::class)]
-    private Collection $vehicles;
+    #[ORM\OneToOne(mappedBy: 'deliverer', targetEntity: Vehicle::class)]
+    private ?Vehicle $vehicle = null;
 
     #[ORM\Column(type: "boolean", nullable: false, options: ["default" => false])]
     private ?bool $deliverer = false;
@@ -267,7 +267,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     private Collection $transportDeliveryOrderRejectedPacks;
 
     #[ORM\ManyToOne(targetEntity: TransportRoundStartingHour::class, inversedBy: 'deliverers')]
-    private $TransportRoundStartingHour;
+    private ?TransportRoundStartingHour $TransportRoundStartingHour = null;
 
     public function __construct() {
         $this->receptions = new ArrayCollection();
@@ -307,7 +307,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         $this->visibilityGroups = new ArrayCollection();
         $this->editedByReferenceArticles = new ArrayCollection();
         $this->createdByReferenceArticles = new ArrayCollection();
-        $this->vehicles = new ArrayCollection();
         $this->transportRequests = new ArrayCollection();
         $this->transportRounds = new ArrayCollection();
         $this->transportDeliveryOrderRejectedPacks = new ArrayCollection();
@@ -1782,31 +1781,20 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         return $this;
     }
 
-    /**
-     * @return Collection<int, Vehicle>
-     */
-    public function getVehicles(): Collection
+    public function getVehicle(): ?Vehicle
     {
-        return $this->vehicles;
+        return $this->vehicle;
     }
 
-    public function addVehicle(Vehicle $vehicle): self
-    {
-        if (!$this->vehicles->contains($vehicle)) {
-            $this->vehicles[] = $vehicle;
-            $vehicle->setDeliverer($this);
+    public function setVehicle(?Vehicle $vehicle): self {
+        if($this->vehicle && $this->vehicle->getDeliverer() !== $this) {
+            $oldVehicle = $this->vehicle;
+            $this->vehicle = null;
+            $oldVehicle->setDeliverer(null);
         }
-
-        return $this;
-    }
-
-    public function removeVehicle(Vehicle $vehicle): self
-    {
-        if ($this->vehicles->removeElement($vehicle)) {
-            // set the owning side to null (unless already changed)
-            if ($vehicle->getDeliverer() === $this) {
-                $vehicle->setDeliverer(null);
-            }
+        $this->example = $vehicle;
+        if($this->vehicle && $this->vehicle->getDeliverer() !== $this) {
+            $this->vehicle->setDeliverer($this);
         }
 
         return $this;

@@ -81,4 +81,13 @@ class TransportCollectRequest extends TransportRequest {
         ]);
     }
 
+    public function getExpectedAt(): ?DateTime {
+        return $this->expectedAt;
+    }
+
+    public function setExpectedAt(DateTime $expectedAt): self {
+        $this->expectedAt = $expectedAt;
+        return $this;
+    }
+
 }

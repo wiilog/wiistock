@@ -207,7 +207,7 @@
         {{ _self.label(label, required, inline, options.labelOptions ?? {}) }}
         {{ _self.tooltip(options.tooltip ?? null, inline) }}
         <input type="{{ options.type ?? 'text' }}"
-               class="form-control w-100 data"
+               class="form-control w-100 data {{ options.noClear is defined and options.noClear ? 'no-clear' }}"
                value="{{ value }}"
                placeholder="{{ options.placeholder ?? '' }}"
                {{ required ? 'required' }}
@@ -277,7 +277,7 @@
     <label class="w-100 {{ options.labelClass ?? '' }}">
         {{ _self.label(label, required, inline, labelOptions) }}
         {{ _self.tooltip(options.tooltip ?? null, inline) }}
-        <textarea class="form-control minw-100 w-100 data"
+        <textarea class="form-control minw-100 w-100 data  {{ options.noClear is defined and options.noClear ? 'no-clear' }}"
                   {{ _self.common_attributes(name, options) }}
                   rows="{{ options.rows ?? 3 }}"
                   style="{{ resizeVertical ? 'resize: vertical;' : 'resize: none;' }} {{ options.style ?? '' }}"

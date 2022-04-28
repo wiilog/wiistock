@@ -17,48 +17,52 @@
                 <div class="wii-box transport-details">
                     <div class="d-flex align-items-center mr-3">
                         <div class="mx-2">
-                            <div class="dropdown dropright">
-                                <div class="d-flex pointer" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    <img alt="Actions" src="{{ asset('svg/dotsblack.svg') }}" height="20px" width="8px">
-                                </div>
-                                <div class="dropdown-menu dropdown-follow-gt pointer">
-                                    {% if request.canBeUpdated %}
-                                        {% if request_delivery is not null %}
-                                            <div class="dropdown-item pointer"
-                                                 data-target="#modalTransportDeliveryRequest"
-                                                 data-toggle="modal">
-                                                <i class="fa fa-pen mr-2"></i> Modifier la livraison
-                                            </div>
-                                        {% endif %}
-                                        {% if request_collect is not null %}
-                                            <div class="dropdown-item pointer"
-                                                 data-target="#modalTransportCollectRequest"
-                                                 data-toggle="modal">
-                                                <i class="fa fa-pen mr-2"></i> Modifier la collecte
-                                            </div>
-                                        {% endif %}
-                                    {% endif %}
-
-                                    {# TODO gérer condition affichage #}
-                                    <div class="dropdown-item pointer">
-                                        <i class="fas fa-file mr-2"></i> Générer bon de transport
+                            {% if request_delivery or request.canBeCancelled or request.canBeUpdated %}
+                                <div class="dropdown dropright">
+                                    <div class="d-flex pointer" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <img alt="Actions" src="{{ asset('svg/dotsblack.svg') }}" height="20px" width="8px">
                                     </div>
+                                    <div class="dropdown-menu dropdown-follow-gt pointer">
+                                        {% if request.canBeUpdated %}
+                                            {% if request_delivery is not null %}
+                                                <div class="dropdown-item pointer"
+                                                     data-target="#modalTransportDeliveryRequest"
+                                                     data-toggle="modal">
+                                                    <i class="fa fa-pen mr-2"></i> Modifier la livraison
+                                                </div>
+                                            {% endif %}
 
-                                    {% if request.canBeCancelled %}
-                                        <div class="dropdown-item pointer cancel-request-button"
-                                             data-request-id="{{ request.id }}">
-                                            <i class="fas fa-ban mr-2"></i> Annuler
-                                        </div>
-                                    {% endif %}
+                                            {% if request_collect is not null %}
+                                                <div class="dropdown-item pointer"
+                                                     data-target="#modalTransportCollectRequest"
+                                                     data-toggle="modal">
+                                                    <i class="fa fa-pen mr-2"></i> Modifier la collecte
+                                                </div>
+                                            {% endif %}
+                                        {% endif %}
 
-                                    {% if request.canBeDeleted %}
-                                        <div class="dropdown-item pointer delete-request-button"
-                                             data-request-id="{{ request.id }}">
-                                            <i class="fas fa-trash mr-2"></i> Supprimer
-                                        </div>
-                                    {% endif %}
+                                        {% if request_delivery and request.status.code in constant('App\\Entity\\Transport\\TransportRequest::STATUS_WORKFLOW_DELIVERY_CLASSIC')|slice(1) %}
+                                            <div class="dropdown-item pointer">
+                                                <i class="fas fa-file mr-2"></i> Générer bon de transport
+                                            </div>
+                                        {% endif %}
+
+                                        {% if request.canBeCancelled %}
+                                            <div class="dropdown-item pointer cancel-request-button"
+                                                 data-request-id="{{ request.id }}">
+                                                <i class="fas fa-ban mr-2"></i> Annuler
+                                            </div>
+                                        {% endif %}
+
+                                        {% if request.canBeDeleted %}
+                                            <div class="dropdown-item pointer delete-request-button"
+                                                 data-request-id="{{ request.id }}">
+                                                <i class="fas fa-trash mr-2"></i> Supprimer
+                                            </div>
+                                        {% endif %}
+                                    </div>
                                 </div>
-                            </div>
+                            {% endif %}
                         </div>
                         <div class="d-flex py-2 w-100 justify-content-between">
                             <div class="d-flex flex-column">
@@ -218,11 +222,11 @@
             </div>
             <div class="col-lg-4 col-md-6 col-12 p-0">
                 <div class="wii-box">
-                    <div class="header {{ packsCount == 0 ? 'optioned' }} d-flex justify-content-between align-items-center">
+                    <div class="header optioned d-flex justify-content-between align-items-center">
                         <div class="d-flex align-items-center">
                             <span class="wii-title">Colis</span>
                             <div>
-                                <span class="wii-describe packing-label-counter ml-3">{{ packsCount == 0 ? 'Colisage non fait' : (packsCount ~ ' colis') }}</span>
+                                <span class="wii-describe packing-label-counter ml-3"></span>
                             </div>
                             {% if hasRejectedPacks %}
                                 <div>
@@ -231,7 +235,8 @@
                             {% endif %}
                         </div>
                         {% if request.status.code in constant('App\\Entity\\Transport\\TransportRequest::STATUS_PRINT_PACKING')%}
-                            <button class="btn btn-sm btn-primary print-request-button d-flex align-items-center" data-request-id = "{{ request.id }}">
+                            <button class="btn btn-sm btn-primary print-request-button d-flex align-items-center"
+                                    data-request-id="{{ request.id }}">
                                 <i class="wii-icon wii-icon-printer-white mr-2"></i>Imprimer les étiquettes
                             </button>
                         {% endif %}
@@ -256,7 +261,38 @@
             <div class="col-lg-4 col-md-6 col-12">
                 <div class="wii-box mr-3">
                     <div class="header wii-title">Données</div>
-                    <div class="">A REMPLIR</div>{# TODO REMOVE #}
+                    <div class="">
+                        {% set requiresTemperatureTracking = false %}
+                        {% set roundHasStarted = request.roundHasStarted %}
+                        {% for line in request.lines %}
+                            {% set requiresTemperatureTracking = requiresTemperatureTracking or line.nature.temperatureRanges | length %}
+                        {% endfor %}
+
+                        <div class="d-flex justify-content-between p-3">
+                            <span class="wii-field-name">Dernière position connue</span>
+                            <span class="wii-medium-text">
+                                {% if not roundHasStarted %}
+                                    La tournée n'a pas commencé
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        {# TODO: afficher la carte #}
+
+                        <div class="d-flex justify-content-between p-3">
+                            <span class="wii-field-name">Courbe de températures</span>
+                            <span class="wii-medium-text">
+                                 {% if not roundHasStarted %}
+                                     La tournée n'a pas commencé
+                                {% elseif requiresTemperatureTracking %}
+                                    {# TODO déplacer sur le graphique #}
+                                    La demande ne nécessite pas de suivi de température
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        {# TODO: afficher les graphiques #}
+                    </div>
                 </div>
             </div>
         </div>
@@ -285,7 +321,8 @@
         } %}
     {% endif %}
 
-    <input type="hidden" value="{{ request.id }}" name="transportRequestId">
+    <input type="hidden" value="{{ request.id }}" name="transportId">
+    <input type="hidden" value="{{ constant('App\\Controller\\Transport\\HistoryController::REQUEST') }}" name="transportType">
 {% endblock %}
 
 {% block javascripts %}

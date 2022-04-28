@@ -25,7 +25,7 @@ use WiiCommon\Helper\Stream;
  */
 class TransportRequestRepository extends EntityRepository {
 
-    public function findByParamAndFilters(InputBag $params, $filters) {
+    public function findByParamAndFilters(InputBag $params, array $filters, array $customFilters = [], $fromSubcontract = false): array {
         $qb = $this->createQueryBuilder("transport_request")
             ->leftJoin(TransportDeliveryRequest::class, "delivery", Join::WITH, "transport_request.id = delivery.id")
             ->leftJoin(TransportCollectRequest::class, "collect", Join::WITH, "transport_request.id = collect.id")
@@ -53,17 +53,31 @@ class TransportRequestRepository extends EntityRepository {
         }
 
         // filtres sup
-        foreach ($filters as $filter) {
+        foreach (array_merge($filters, $customFilters) as $filter) {
             switch ($filter['field']) {
                 case FiltreSup::FIELD_STATUT:
                     $value = Stream::explode(",", $filter['value'])
                         ->map(fn($line) => explode(":", $line))
                         ->toArray();
 
+                    if($fromSubcontract){
+                        $value[] = TransportRequest::STATUS_AWAITING_VALIDATION;
+                    }
+
                     $qb
                         ->join('transport_request.status', 'filter_status')
                         ->andWhere('filter_status.nom IN (:filter_status_value)')
                         ->setParameter('filter_status_value', $value);
+                    break;
+                case "Awaiting validation request":
+                    $val = Stream::explode(",", $filter['value'])
+                        ->map(fn($line) => explode(":", $line))
+                        ->toArray();
+
+                    $qb
+                        ->join('transport_request.status', 'filter_status_awaiting')
+                        ->andWhere('filter_status_awaiting.nom IN (:filter_status_val)')
+                        ->setParameter('filter_status_val', $val);
                     break;
                 case FiltreSup::FIELD_CATEGORY:
                     $qb->join("transport_request.type", "filter_category_type")
@@ -93,6 +107,13 @@ class TransportRequestRepository extends EntityRepository {
                         ->andWhere('filter_requester.id in (:filter_requester_values)')
                         ->setParameter('filter_requester_values', $value);
                     break;
+                case "subcontracted":
+                    if (isset($filter['value'])) {
+                        $qb
+                            ->join('transport_request.orders', 'filter_subcontract_order')
+                            ->andWhere('filter_subcontract_order.subcontracted = :filter_subcontract_value')
+                            ->setParameter('filter_subcontract_value', $filter['value']);
+                    }
             }
         }
 

@@ -589,6 +589,7 @@ class SettingsController extends AbstractController {
         $alertTemplateRepository = $this->manager->getRepository(AlertTemplate::class);
         $translationRepository = $this->manager->getRepository(Translation::class);
         $settingRepository = $this->manager->getRepository(Setting::class);
+        $userRepository = $this->manager->getRepository(Utilisateur::class);
 
         return [
             self::CATEGORY_GLOBAL => [
@@ -900,6 +901,14 @@ class SettingsController extends AbstractController {
                                     ],
                                 ])
                                 ->toArray(),
+                        "receiversEmails" =>
+                            Stream::from($userRepository->findBy(['id' => explode(',', $settingRepository->getOneParamByLabel(Setting::TRANSPORT_DELIVERY_DESTINATAIRES_MAIL))]))
+                                ->map(fn(Utilisateur $user) => [
+                                    "value" => $user->getId(),
+                                    "label" => $user->getUsername(),
+                                    "selected" => true
+                                ])
+                                ->toArray()
                     ],
                     self::MENU_DELIVERY_TYPES_FREE_FIELDS => fn() => [
                         "types" => $this->typeGenerator(CategoryType::DELIVERY_TRANSPORT),

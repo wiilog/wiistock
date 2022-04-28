@@ -109,7 +109,7 @@ class TransportService {
 
     public function updateTransportRequest(EntityManagerInterface   $entityManager,
                                            TransportRequest         $transportRequest,
-                                           InputBag                 $data,
+                                           ?InputBag                 $data,
                                            Utilisateur              $loggedUser,
                                            ?TransportRequestContact $customContact = null,
                                            ?DateTime                $customExpectedAt = null): void {
@@ -117,7 +117,7 @@ class TransportService {
         $natureRepository = $entityManager->getRepository(Nature::class);
         $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
 
-        $expectedAtStr = $data->get('expectedAt');
+        $expectedAtStr = $data?->get('expectedAt');
 
         if ($transportRequest->getId()
             && !$transportRequest->canBeUpdated()) {
@@ -126,19 +126,21 @@ class TransportService {
 
         if ($transportRequest instanceof TransportDeliveryRequest) {
             $transportRequest
-                ->setEmergency($data->get('emergency') ?: null);
+                ->setEmergency($data?->get('emergency'));
         }
 
         if (isset($customExpectedAt)) {
             $expectedAt = $customExpectedAt;
         }
-        else {
+        else if(isset($expectedAtStr)){
             $expectedAt = FormatHelper::parseDatetime($expectedAtStr);
 
             if (!$expectedAt) {
                 throw new FormException("Le format de date est invalide");
             }
         }
+
+        $expectedAt = $expectedAt ?? $transportRequest->getExpectedAt();
 
         ['status' => $status, 'subcontracted' => $subcontracted] = $this->getStatusRequest($entityManager, $transportRequest, $expectedAt);
         if (!$transportRequest->getStatus()) {
@@ -155,7 +157,7 @@ class TransportService {
         $transportRequest
             ->setExpectedAt($expectedAt);
 
-        $this->freeFieldService->manageFreeFields($transportRequest, $data->all(), $entityManager);
+        $this->freeFieldService->manageFreeFields($transportRequest, $data?->all(), $entityManager);
 
         if ($customContact) {
             $transportRequest->setContact($customContact);
@@ -163,21 +165,23 @@ class TransportService {
         else {
             $contact = $transportRequest->getContact();
 
-            if (!$data->get('contactName') && !$contact->getName()) {
+            if (!$data?->get('contactName') && !$contact->getName()) {
                 throw new FormException('Vous devez saisir le nom du patient');
             }
 
-            if (!$data->get('contactFileNumber') && !$contact->getFileNumber()) {
+            if (!$data?->get('contactFileNumber') && !$contact->getFileNumber()) {
                 throw new FormException('Vous devez saisir le N° dossier');
             }
 
-            $contact
-                ->setName($data->get('contactName') ?: $contact->getName())
-                ->setFileNumber($data->get('contactFileNumber') ?: $contact->getFileNumber())
-                ->setContact($data->get('contactContact'))
-                ->setAddress($data->get('contactAddress'))
-                ->setPersonToContact($data->get('contactPersonToContact'))
-                ->setObservation($data->get('contactObservation'));
+            if(isset($data)){
+                $contact
+                    ->setName($data->get('contactName') ?: $contact->getName())
+                    ->setFileNumber($data->get('contactFileNumber') ?: $contact->getFileNumber())
+                    ->setContact($data->get('contactContact') ?: $contact->getContact())
+                    ->setAddress($data->get('contactAddress') ?: $contact->getAddress())
+                    ->setPersonToContact($data->get('contactPersonToContact') ?: $contact->getPersonToContact())
+                    ->setObservation($data->get('contactObservation') ?: $contact->getObservation());
+            }
         }
 
         if ($transportRequest->getOrders()->isEmpty()
@@ -186,7 +190,7 @@ class TransportService {
         }
 
         $transportRequest->setLines([]);
-        $lines = json_decode($data->get('lines', '[]'), true) ?: [];
+        $lines = json_decode($data?->get('lines', '[]') ?? "", true) ?: [];
         foreach ($lines as $line) {
             $selected = $line['selected'] ?? false;
             $natureId = $line['natureId'] ?? null;
@@ -215,7 +219,7 @@ class TransportService {
         }
 
         if ($transportRequest->getLines()->isEmpty()) {
-            throw new FormException('Vous devez sélectionner au moins une nature de colis dans vote demande');
+            //throw new FormException('Vous devez sélectionner au moins une nature de colis dans vote demande');
         }
 
         $entityManager->persist($transportRequest);
