@@ -10,7 +10,6 @@
 
 {% block page_content %}
     {% set request = order.request %}
-    {% set requestType = request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') ? 'Livraison' : 'Collecte' %}
     {% set request_delivery = request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') ? request : null %}
     {% set request_collect = request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') ? request : request_delivery.collect %}
     <div class="wii-box-container mb-4 ml-3 mr-3">
@@ -85,12 +84,6 @@
                     <div class="d-flex align-items-center ">
                         <div class="d-flex align-items-center">
                         </div>
-                    </div>
-                    {% set statusName = request.status|format_helper('status') %}
-                    <div class="header timeline d-flex justify-content-center
-                        {{ statusName in constant('App\\Entity\\Transport\\TransportRequest::CANCELED_STATUSES') ? 'bg-red-light' : 'bg-green-light' }}">
-                        <img src="{{ asset('svg/timeline-status.svg') }}" alt="Icône statut timeline" width="15px" class="mr-2">
-                        <span>{{ requestType }} <strong>{{ request.status|format_helper('status') }}</strong></span>
                     </div>
                     <div class="content status-history-container">
                         <div class="d-flex align-items-center justify-content-center">

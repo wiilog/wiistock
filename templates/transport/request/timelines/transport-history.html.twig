@@ -1,28 +1,20 @@
 {% for line in history %}
-    {% set icon = line.attachments is not empty
-        ? 'timeline-attachment.svg'
-        : (line.comment
-            ? 'timeline-comment.svg'
-            : (line.statusHistory and line.statusHistory.status.nom in [constant('App\\Entity\\Transport\\TransportRequest::STATUS_NOT_COLLECTED'), constant('App\\Entity\\Transport\\TransportRequest::STATUS_NOT_DELIVERED')]
-                ? 'timeline-urgent.svg'
-                : (line.statusHistory
-                    ? 'timeline.svg'
-                    : 'timeline-information.svg')))
-    %}
+    {% set record = line.record %}
+    {% set icon = line.icon %}
     <div class="history-line">
         <div class="history-content {{ loop.last ? 'last' }}">
-            <div class="wii-small-text date">{{ line.date|format_helper('longDate', {short: true, time: true}) }}</div>
+            <div class="wii-small-text date">{{ record.date|format_helper('longDate', {short: true, time: true}) }}</div>
             <div class="title-right">
-                <div class="summary {{ not line.comment ? 'mb-0' }}">
+                <div class="summary {{ not record.comment ? 'mb-0' }}">
                     <img src="{{ asset('svg/' ~ icon) }}" alt="Icône" width="15px">
-                    <span class="ml-2">{{ formatHistory(line)|raw }}</span>
+                    <span class="ml-2">{{ formatHistory(record)|raw }}</span>
                 </div>
-                {% if line.comment %}
-                    <div class="comment wii-describe">{{ line.comment }}</div>
+                {% if record.comment %}
+                    <div class="comment wii-describe">{{ record.comment }}</div>
                 {% endif %}
-                {% if line.attachments is not empty %}
+                {% if record.attachments is not empty %}
                     <div class="attachments">
-                        {% for attachment in line.attachments %}
+                        {% for attachment in record.attachments %}
                             {% set path = (attachment.fullPath is defined and attachment.fullPath is not null)
                                 ? attachment.fullPath
                                 : ('/uploads/attachements/' ~ attachment.fileName) %}

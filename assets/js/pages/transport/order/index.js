@@ -1,3 +1,4 @@
+import '@styles/pages/transport/common.scss';
 import {initializeFilters} from "@app/pages/transport/common";
 
 $(function() {
