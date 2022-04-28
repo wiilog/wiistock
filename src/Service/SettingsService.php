@@ -387,7 +387,7 @@ class SettingsService {
                 ->filter(fn(array $shift) => !isset($shift['id']))
                 ->filter(fn(array $shift) => isset($shift['name']))
                 ->toArray();
-dump($tables["hourShifts"]);
+
             $existingShifts = Stream::from($tables["hourShifts"])
                 ->filter(fn(array $shift) => isset($shift['id']))
                 ->filter(fn(array $shift) => isset($shift['name']))

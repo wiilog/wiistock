@@ -5,47 +5,62 @@ namespace App\Controller\Transport;
 use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\CategorieCL;
+use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField;
 use App\Entity\Menu;
+use App\Entity\Statut;
 use App\Entity\Transport\CollectTimeSlot;
 use App\Entity\Transport\TransportCollectRequest;
 use App\Entity\Transport\TransportDeliveryOrderPack;
 use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\Transport\TransportOrder;
-use App\Entity\Transport\TransportRequest;
 use App\Entity\Type;
-use App\Entity\WorkFreeDay;
 use App\Helper\FormatHelper;
-use App\Service\Transport\TransportService;
+use App\Service\StatusHistoryService;
+use App\Service\Transport\TransportHistoryService;
+use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
 
 #[Route("transport/ordre")]
 class OrderController extends AbstractController {
 
-    #[Required]
-    public TransportService $transportService;
-
     #[Route("/validate-time-slot", name: "validate_time_slot", options: ["expose" => true], methods: "POST")]
-    public function settingsTimeSlot(EntityManagerInterface $entityManager, Request $request){
+    public function settingsTimeSlot(EntityManagerInterface $entityManager,
+                                     Request $request,
+                                     TransportHistoryService $transportHistoryService,
+                                     StatusHistoryService $statusHistoryService,
+                                     UserService $userService){
         $data = json_decode($request->getContent(), true);
 
         $choosenDate = DateTime::createFromFormat("Y-m-d" , $data["dateCollect"]);
         $choosenDate->setTime(0, 0);
         if ($choosenDate >= new DateTime("today midnight")){
             $order = $entityManager->find(TransportOrder::class, $data["orderId"]);
-            $order->getRequest()
+
+            $order
+                ->getRequest()
                 ->setTimeSlot($entityManager->find(CollectTimeSlot::class, $data["timeSlot"]))
                 ->setValidationDate($choosenDate);
+
+            $toAssignStatus = $entityManager->getRepository(Statut::class)
+                ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_COLLECT, TransportOrder::STATUS_TO_ASSIGN);
+
+            $statusHistoryRequest = $statusHistoryService->updateStatus($entityManager, $order, $toAssignStatus);
+
+            $transportHistoryService->persistTransportHistory($entityManager, $order, TransportHistoryService::TYPE_CONTACT_VALIDATED, [
+                'user' => $userService->getUser(),
+                'history' => $statusHistoryRequest
+            ]);
+
             $entityManager->flush();
             return $this->json([
                 "success" => true,
