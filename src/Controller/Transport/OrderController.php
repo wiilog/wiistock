@@ -201,6 +201,7 @@ class OrderController extends AbstractController {
                     "request" => $order->getRequest(),
                     "order" => $order,
                     "path" => "transport_order_show",
+                    "displayDropdown" => false,
                 ]);
             }
 
