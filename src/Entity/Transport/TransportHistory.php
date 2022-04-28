@@ -52,6 +52,9 @@ class TransportHistory {
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $comment = null;
 
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $message = null;
+
     #[ORM\OneToOne(targetEntity: Emplacement::class)]
     private ?Emplacement $location = null;
 
@@ -137,6 +140,16 @@ class TransportHistory {
 
     public function setComment(?string $comment): self {
         $this->comment = $comment;
+
+        return $this;
+    }
+
+    public function getMessage(): ?string {
+        return $this->message;
+    }
+
+    public function setMessage(?string $message): self {
+        $this->message = $message;
 
         return $this;
     }

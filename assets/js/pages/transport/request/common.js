@@ -45,17 +45,22 @@ export function initializePacking(submitCallback) {
     })
 }
 
-export function packingOrPrint(transportRequest) {
-    return AJAX.route(POST, `transport_request_packing_check`, {transportRequest})
-        .json()
-        .then((result) => {
-            if (result.success) {
-                return openPackingModal(transportRequest);
-            }
-            else {
-                return printBarcodes(transportRequest);
-            }
-        });
+export function packingOrPrint(transportRequest, force = false) {
+    if (!force) {
+        return AJAX.route(POST, `transport_request_packing_check`, {transportRequest})
+            .json()
+            .then((result) => {
+                if (result.success) {
+                    return openPackingModal(transportRequest);
+                }
+                else {
+                    return printBarcodes(transportRequest);
+                }
+            });
+    }
+    else {
+        return openPackingModal(transportRequest);
+    }
 }
 
 export function openPackingModal(transportRequest) {
