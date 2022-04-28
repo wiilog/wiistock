@@ -48,8 +48,8 @@ class OrderController extends AbstractController {
                 CategoryType::DELIVERY_TRANSPORT, CategoryType::COLLECT_TRANSPORT,
             ]),
             'statuts' => [
-                TransportOrder::STATUS_TO_ASSIGN,
                 TransportOrder::STATUS_TO_CONTACT,
+                TransportOrder::STATUS_TO_ASSIGN,
                 TransportOrder::STATUS_ASSIGNED,
                 TransportOrder::STATUS_ONGOING,
                 TransportOrder::STATUS_FINISHED,
