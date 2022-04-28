@@ -47,10 +47,10 @@
                 </td>
                 <td class="transport-category-container">
                     <div class="mb-2 px-5">
-                        Créée le : {{ request.createdAt | format_helper('longDate', {short: true, time: true}) }}
+                        Créée le : {{ request.createdAt | format_helper('longDate', {short: true, time: true, year: false }) }}
                     </div>
                     <div class="px-5">
-                        <span style="font-weight: bold">A livrer à :  {{ request.expectedAt | format_helper('longDate', {short: true, time: true}) }}</span>
+                        <span style="font-weight: bold">A livrer à :  {{ request.expectedAt | format_helper('longDate', {short: true, time: true, year: false}) }}</span>
                     </div>
                 </td>
                 <td class="transport-subcontract-contact">
@@ -64,14 +64,13 @@
                          class="icon"
                          alt="Image urgence"
                          width="10px">
-                    {{ request.contact.address }}
                 </td>
                 <td class="transport-subcontract-details-container">
                     <div class="mb-2">
-                        Commencée le :  <span style="font-weight: bold">{{ order.startedAt ? order.startedAt | format_helper('longDate', {short: true, time: true}) : "-" }}</span>
+                        Commencée le :  <span style="font-weight: bold">{{ order.startedAt ? order.startedAt | format_helper('longDate', {short: true, time: true, year: false}) : "-" }}</span>
                     </div>
                     <div>
-                        Livrée le : <span style="font-weight: bold"></span> {{ transportOrderHistory ? transportOrderHistory.date | format_helper('longDate', {short: true, time: true}) : "-" }}
+                        Livrée le :  <span style="font-weight: bold">{{ order.treatedAt ? order.treatedAt | format_helper('longDate', {short: true, time: true, year: false}) : "-" }}</span>
                     </div>
                 </td>
                 <td class="transport-subcontract-details-container">

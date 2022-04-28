@@ -220,6 +220,7 @@ class SubcontractController extends AbstractController
         $transportOrder = $transportRequest->getOrders()->last();
 
         $startedAt = FormatHelper::parseDatetime($data->get('delivery-start-date'));
+        $treatedAt = FormatHelper::parseDatetime($data->get('delivery-end-date'));
         $statutRequest = $statutRepository->find($data->get('status') !== "null" ? $data->get('status') : $data->get('statut'));
 
         $statutOrder = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_DELIVERY, match($statutRequest->getCode()) {
@@ -236,12 +237,13 @@ class SubcontractController extends AbstractController
         $transportOrder->setSubcontractor($data->get('subcontractor'));
         $transportOrder->setRegistrationNumber($data->get('registrationNumber'));
         $transportOrder->setStartedAt($startedAt);
+        $transportOrder->setTreatedAt($treatedAt);
         $transportOrder->setComment($data->get('commentaire'));
 
         $attachmentService->manageAttachments($entityManager, $transportOrder, $request->files);
 
-        $statusHistoryRequest = $statusHistoryService->updateStatus($entityManager, $transportRequest, $statutRequest);
-        $statusHistoryOrder = $statusHistoryService->updateStatus($entityManager, $transportOrder, $statutOrder);
+        $statusHistoryRequest = $statusHistoryService->updateStatus($entityManager, $transportRequest, $statutRequest, $treatedAt);
+        $statusHistoryOrder = $statusHistoryService->updateStatus($entityManager, $transportOrder, $statutOrder, $treatedAt);
 
         $historyType = match($statutRequest->getCode()) {
             TransportRequest::STATUS_ONGOING => TransportHistoryService::TYPE_ONGOING,

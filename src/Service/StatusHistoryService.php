@@ -14,10 +14,11 @@ class StatusHistoryService {
 
     public function updateStatus(EntityManagerInterface          $entityManager,
                                  TransportRequest|TransportOrder $entity,
-                                 Statut                          $status): StatusHistory {
+                                 Statut                          $status,
+                                 ?DateTime                       $date = null): StatusHistory {
         $history = (new StatusHistory())
             ->setStatus($status)
-            ->setDate(new DateTime());
+            ->setDate($date ?? new DateTime());
 
         $entity->setStatus($status);
 
