@@ -625,7 +625,7 @@ class RequestController extends AbstractController {
                 'labels' => [
                     "$contactName - $contactFileNumber",
                     ...$cleanedContactAdress,
-                    ($temperatureRanges[$pack->getPack()->getNature()->getLabel()] ?? '- ') . " °C",
+                    ($temperatureRanges[$pack->getPack()->getNature()->getLabel()] ?? '- °C'),
                     "$position/$total"
                 ],
                 'logo' => $logo
