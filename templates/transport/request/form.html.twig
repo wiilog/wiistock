@@ -266,7 +266,8 @@
                                                            name="natureId"
                                                            {{ form.multiple_key({multipleKey: multipleKey}) }}/>
                                                 </div>
-                                                {% if nature.temperatureRanges is not empty %}
+                                                {% if nature.temperatureRanges is not empty
+                                                    and request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
                                                     <div class="col-3 px-0 {{ not modeDeliveryEdit ? 'd-none' }}"
                                                          data-request-type="{{ DISCR_DELIVERY }}">
                                                         <div class="{{ not modeDeliveryEdit or not isSelected ? 'd-none' }}"
@@ -286,10 +287,10 @@
                                                             }) }}
                                                         </div>
                                                     </div>
-                                                {% else  %}
+                                                {% elseif request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') and request.id %}
                                                     <div class="col-3"></div>
                                                 {% endif %}
-                                                <div class="{{ not modeEdit ? 'col-6' : 'col-3'}} {{ not modeEdit ? 'd-none' }}"
+                                                <div class="col-3 {{ not modeEdit ? 'd-none' }}"
                                                      data-request-type="{{ DISCR_COLLECT }}">
                                                     <div class="{{ not modeEdit or not isSelected ? 'd-none' }}"
                                                          data-nature-is-selected>
