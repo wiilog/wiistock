@@ -269,7 +269,9 @@ class SettingsService {
             foreach ($removedRanges as $entity) {
                 if (!$entity->getLocations()->isEmpty() || !$entity->getNatures()->isEmpty()) {
                     throw new RuntimeException("La plage de température {$entity->getValue()} ne peut pas être supprimée car elle est utilisée par des natures ou emplacements");
-                } else {
+                }else if(!$entity->getTransportDeliveryRequestNatures()->isEmpty()){
+                    throw new RuntimeException("La plage de température {$entity->getValue()} ne peut pas être supprimée car elle est utilisée par des demandes de transport");
+                } else{
                     $this->manager->remove($entity);
                 }
             }
