@@ -13,8 +13,6 @@ import {
 import {initializeFilters} from "@app/pages/transport/common";
 
 $(function() {
-    const $modalTransportRequest = $("#modalTransportRequest");
-
     initializeFilters(PAGE_TRANSPORT_REQUESTS)
 
     let table = initDataTable('tableTransportRequests', {
@@ -44,16 +42,23 @@ $(function() {
             {data: 'content', name: 'content', orderable: false},
         ],
     });
+
     initializePacking(() => {
         table.ajax.reload();
     });
 
+    const $modalTransportRequest = $("#modalTransportRequest");
     const form = initializeForm($modalTransportRequest);
-    form.onSubmit((data) => {
-        submitTransportRequest(form, data, table);
-    });
+    form
+        .onSubmit((data) => {
+            submitTransportRequest(form, data, table);
+        })
+        .onOpen(() => {
+            // run after onOpen in initializeForm
+            prefillForm($modalTransportRequest);
+        });
 
-    if ($modalTransportRequest.find('#prefilled').val() === "1") {
+    if (isPrefillInformationGiven()) {
         $modalTransportRequest.modal('show');
     }
 
@@ -198,4 +203,52 @@ function canSubmit($form) {
     else {
         return new Promise(((resolve) => {resolve(true)}))
     }
+}
+
+function prefillForm($modal) {
+    if (isPrefillInformationGiven()) {
+        const {content} = GetRequestQuery() || {};
+        const formContent = JSON.parse(content || '');
+
+        if (formContent['Prenom'] || formContent['Nom']) {
+            const $contactName = $modal.find('[name=contactName]');
+            $contactName.val(`${formContent['Prenom'] || ''}${formContent['Prenom'] ? ' ' :''}${formContent['Nom'] || ''}`)
+        }
+
+        if (formContent['Nodos']) {
+            const $contactFileNumber = $modal.find('[name=contactFileNumber]');
+            $contactFileNumber.val(formContent['Nodos']);
+        }
+
+        if (formContent['Contact']) {
+            const $contactContact = $modal.find('[name=contactContact]');
+            $contactContact.val(formContent['Contact']);
+        }
+
+        if (formContent['Adresse']) {
+            const $contactAddress = $modal.find('[name=contactAddress]');
+            $contactAddress.val(formContent['Adresse']);
+        }
+
+        if (formContent['PersonnesAPrevenir']) {
+            const $contactPersonToContact = $modal.find('[name=contactPersonToContact]');
+            $contactPersonToContact.val(formContent['PersonnesAPrevenir']);
+        }
+
+        if (formContent['Remarques']) {
+            const $contactObservation = $modal.find('[name=contactObservation]');
+            $contactObservation.val(formContent['Remarques']);
+        }
+    }
+}
+
+function isPrefillInformationGiven() {
+    const CLB_API_KEY = $('#CLB_API_KEY').val();
+    const {'x-api-key': xApiKey, content} = GetRequestQuery() || {};
+
+    return (
+        CLB_API_KEY
+        && xApiKey === CLB_API_KEY
+        && Object.keys(JSON.parse(content || '')).length > 0
+    );
 }
