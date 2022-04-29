@@ -248,7 +248,7 @@ export function cancelRequest(transportRequest){
     });
 }
 
-export function deleteRequest(transportRequest){
+export function deleteRequest(table, transportRequest){
     Modal.confirm({
         ajax: {
             method: 'DELETE',
@@ -260,6 +260,7 @@ export function deleteRequest(transportRequest){
         validateButton: {
             color: 'danger',
             label: 'Supprimer'
-        }
+        },
+        tables: [table],
     });
 }

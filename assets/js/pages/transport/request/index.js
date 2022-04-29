@@ -65,7 +65,7 @@ $(function() {
 
     $(document).arrive('.delete-request-button', function (){
         $(this).on('click', function(){
-            deleteRequest($(this).data('request-id'));
+            deleteRequest(table, $(this).data('request-id'));
         });
     });
 });
