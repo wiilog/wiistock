@@ -11,6 +11,7 @@
 {% block page_content %}
     {% set request_delivery = request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') ? request : null %}
     {% set request_collect = request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') ? request : request_delivery.collect %}
+    {% set order = order ?? ((request.orders | last) ?: null) %}
 
     <div class="wii-box-container mb-4">
         <div class="row">
@@ -272,7 +273,9 @@
                         <div class="d-flex justify-content-between p-3">
                             <span class="wii-field-name">Dernière position connue</span>
                             <span class="wii-medium-text">
-                                {% if not roundHasStarted %}
+                                {% if order.subcontracted %}
+                                    Le suivi de température n'est pas disponible car la demande est sur un horaire non ouvré
+                                {% elseif not roundHasStarted %}
                                     La tournée n'a pas commencé
                                 {% endif %}
                             </span>
@@ -283,7 +286,9 @@
                             <div class="d-flex justify-content-between p-3">
                                 <span class="wii-field-name">Courbe de températures</span>
                                 <span class="wii-medium-text">
-                                     {% if not roundHasStarted %}
+                                     {% if order.subcontracted %}
+                                         Le suivi de température n'est pas disponible car la demande est sur un horaire non ouvré
+                                     {% elseif not roundHasStarted %}
                                          La tournée n'a pas commencé
                                     {% elseif requiresTemperatureTracking %}
                                         {# TODO déplacer sur le graphique #}

@@ -22,7 +22,8 @@
                 </label>
                 <select class="data w-100 form-control needed" name="timeSlot" >
                     {% for timeSlot in timeSlots %}
-                        <option value="{{ timeSlot.id }}" {{ timeSlot.id == request.timeSlot.id ? 'selected' }}>
+                        <option value="{{ timeSlot.id }}"
+                            {{ request.timeSlot and timeSlot.id == request.timeSlot.id ? 'selected' }}>
                             {{ timeSlot.name }}
                         </option>
                     {% endfor %}
