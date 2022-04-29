@@ -8,6 +8,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
+use App\Entity\StatusHistory;
 use App\Entity\Statut;
 use App\Entity\Transport\TransportCollectRequest;
 use App\Entity\Transport\TransportHistory;
@@ -30,7 +31,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-
+use WiiCommon\Helper\Stream;
 
 
 #[Route("transport/sous-traitance")]
@@ -231,7 +232,6 @@ class SubcontractController extends AbstractController
     #[HasPermission([Menu::ORDRE, Action::EDIT_TRANSPORT_SUBCONTRACT], mode: HasPermission::IN_JSON)]
     public function edit(EntityManagerInterface $entityManager,
                             Request $request,
-                            TransportService $transportService,
                             AttachmentService $attachmentService,
                             TransportHistoryService $transportHistoryService,
                             StatusHistoryService $statusHistoryService): ?Response
@@ -248,9 +248,9 @@ class SubcontractController extends AbstractController
         $loggedUser = $this->getUser();
 
         $startedAt = FormatHelper::parseDatetime($data->get('delivery-start-date'));
-        $statutRequest = $statutRepository->find($data->get('status') !== "null" ? $data->get('status') : $data->get('statut'));
+        $statusRequest = $statutRepository->find($data->get('status') !== "null" ? $data->get('status') : $data->get('statut'));
 
-        $statutOrder = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_DELIVERY, match($statutRequest->getCode()) {
+        $statutOrder = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_DELIVERY, match($statusRequest->getCode()) {
             TransportRequest::STATUS_ONGOING => TransportOrder::STATUS_ONGOING,
             TransportRequest::STATUS_SUBCONTRACTED => TransportOrder::STATUS_SUBCONTRACTED,
             TransportRequest::STATUS_FINISHED => TransportOrder::STATUS_FINISHED,
@@ -266,7 +266,7 @@ class SubcontractController extends AbstractController
 
         $attachmentService->manageAttachments($entityManager, $transportOrder, $request->files);
 
-        $statusHistoryRequest = $statusHistoryService->updateStatus($entityManager, $transportRequest, $statutRequest, $startedAt);
+        $statusHistoryRequest = $statusHistoryService->updateStatus($entityManager, $transportRequest, $statusRequest, $startedAt);
         $statusHistoryOrder = $statusHistoryService->updateStatus($entityManager, $transportOrder, $statutOrder, $startedAt);
 
         $transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_SUBCONTRACT_UPDATE, [
