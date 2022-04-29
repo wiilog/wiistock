@@ -15,7 +15,7 @@ class StatusHistoryService {
     public function updateStatus(EntityManagerInterface          $entityManager,
                                  TransportRequest|TransportOrder $entity,
                                  Statut                          $status,
-                                 DateTime                        $date = null): StatusHistory {
+                                 ?DateTime                       $date = null): StatusHistory {
         $history = (new StatusHistory())
             ->setStatus($status)
             ->setDate($date ?? new DateTime());
