@@ -46,8 +46,7 @@ class OrderController extends AbstractController {
         if ($choosenDate >= new DateTime("today midnight")){
             $order = $entityManager->find(TransportOrder::class, $data["orderId"]);
 
-            $order
-                ->getRequest()
+            $order->getRequest()
                 ->setTimeSlot($entityManager->find(CollectTimeSlot::class, $data["timeSlot"]))
                 ->setValidatedDate($choosenDate);
 

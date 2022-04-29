@@ -304,7 +304,13 @@
         </div>
     </div>
 
-    {% include 'transport/order/modal_collect_time_slot.html.twig' with {timeSlots: timeSlots , order: order} %}
+    {% if request_collect and not request_delivery %}
+        {% include 'transport/order/modal_collect_time_slot.html.twig' with {
+            timeSlots: timeSlots ,
+            order: order,
+            request: request_collect,
+        } %}
+    {% endif %}
 
     <input type="hidden" value="{{ order.id }}" name="transportId">
     <input type="hidden" value="{{ constant('App\\Controller\\Transport\\HistoryController::ORDER') }}" name="transportType">
