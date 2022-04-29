@@ -16,6 +16,7 @@ use App\Entity\Transport\TransportCollectRequest;
 use App\Entity\Transport\TransportDeliveryOrderPack;
 use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\Transport\TransportOrder;
+use App\Entity\Transport\TransportRequest;
 use App\Entity\Type;
 use App\Helper\FormatHelper;
 use App\Service\StatusHistoryService;
@@ -50,15 +51,29 @@ class OrderController extends AbstractController {
                 ->setTimeSlot($entityManager->find(CollectTimeSlot::class, $data["timeSlot"]))
                 ->setValidatedDate($choosenDate);
 
-            $toAssignStatus = $entityManager->getRepository(Statut::class)
-                ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_COLLECT, TransportOrder::STATUS_TO_ASSIGN);
+            { //update the order's history
+                $status = $entityManager->getRepository(Statut::class)
+                    ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_COLLECT, TransportOrder::STATUS_TO_ASSIGN);
 
-            $statusHistoryRequest = $statusHistoryService->updateStatus($entityManager, $order, $toAssignStatus);
+                $statusHistoryRequest = $statusHistoryService->updateStatus($entityManager, $order, $status);
 
-            $transportHistoryService->persistTransportHistory($entityManager, $order, TransportHistoryService::TYPE_CONTACT_VALIDATED, [
-                'user' => $userService->getUser(),
-                'history' => $statusHistoryRequest
-            ]);
+                $transportHistoryService->persistTransportHistory($entityManager, $order, TransportHistoryService::TYPE_CONTACT_VALIDATED, [
+                    'user' => $userService->getUser(),
+                    'history' => $statusHistoryRequest
+                ]);
+            }
+
+            { //update the request's history
+                $status = $entityManager->getRepository(Statut::class)
+                    ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_REQUEST_COLLECT, TransportRequest::STATUS_TO_COLLECT);
+
+                $statusHistoryRequest = $statusHistoryService->updateStatus($entityManager, $order->getRequest(), $status);
+
+                $transportHistoryService->persistTransportHistory($entityManager, $order->getRequest(), TransportHistoryService::TYPE_CONTACT_VALIDATED, [
+                    'user' => $userService->getUser(),
+                    'history' => $statusHistoryRequest
+                ]);
+            }
 
             $entityManager->flush();
             return $this->json([
