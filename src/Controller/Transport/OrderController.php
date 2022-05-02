@@ -4,17 +4,24 @@ namespace App\Controller\Transport;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
+use App\Entity\CategorieCL;
+use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\FiltreSup;
+use App\Entity\FreeField;
 use App\Entity\Menu;
+use App\Entity\Statut;
+use App\Entity\Transport\CollectTimeSlot;
 use App\Entity\Transport\TransportCollectRequest;
+use App\Entity\Transport\TransportDeliveryOrderPack;
 use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\Transport\TransportOrder;
 use App\Entity\Transport\TransportRequest;
 use App\Entity\Type;
-use App\Entity\WorkFreeDay;
 use App\Helper\FormatHelper;
-use App\Repository\DaysWorkedRepository;
+use App\Service\StatusHistoryService;
+use App\Service\Transport\TransportHistoryService;
+use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -26,6 +33,99 @@ use WiiCommon\Helper\Stream;
 
 #[Route("transport/ordre")]
 class OrderController extends AbstractController {
+
+    #[Route("/validate-time-slot", name: "validate_time_slot", options: ["expose" => true], methods: "POST")]
+    public function settingsTimeSlot(EntityManagerInterface $entityManager,
+                                     Request $request,
+                                     TransportHistoryService $transportHistoryService,
+                                     StatusHistoryService $statusHistoryService,
+                                     UserService $userService){
+        $data = json_decode($request->getContent(), true);
+
+        $choosenDate = DateTime::createFromFormat("Y-m-d" , $data["dateCollect"]);
+        $choosenDate->setTime(0, 0);
+        if ($choosenDate >= new DateTime("today midnight")){
+            $order = $entityManager->find(TransportOrder::class, $data["orderId"]);
+
+            $order->getRequest()
+                ->setTimeSlot($entityManager->find(CollectTimeSlot::class, $data["timeSlot"]))
+                ->setValidatedDate($choosenDate);
+
+            { //update the order's history
+                $status = $entityManager->getRepository(Statut::class)
+                    ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_COLLECT, TransportOrder::STATUS_TO_ASSIGN);
+
+                $statusHistoryRequest = $statusHistoryService->updateStatus($entityManager, $order, $status);
+
+                $transportHistoryService->persistTransportHistory($entityManager, $order, TransportHistoryService::TYPE_CONTACT_VALIDATED, [
+                    'user' => $userService->getUser(),
+                    'history' => $statusHistoryRequest
+                ]);
+            }
+
+            { //update the request's history
+                $status = $entityManager->getRepository(Statut::class)
+                    ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_REQUEST_COLLECT, TransportRequest::STATUS_TO_COLLECT);
+
+                $statusHistoryRequest = $statusHistoryService->updateStatus($entityManager, $order->getRequest(), $status);
+
+                $transportHistoryService->persistTransportHistory($entityManager, $order->getRequest(), TransportHistoryService::TYPE_CONTACT_VALIDATED, [
+                    'user' => $userService->getUser(),
+                    'history' => $statusHistoryRequest
+                ]);
+            }
+
+            $entityManager->flush();
+            return $this->json([
+                "success" => true,
+                "msg" => "La date de collecte a été modifiée avec succès",
+            ]);
+        }
+        else{
+            return $this->json([
+                "success" => false,
+                "msg" => "La date de collecte doit être supérieure à la date actuelle",
+            ]);
+        }
+    }
+
+    #[Route("/voir/{id}", name: "transport_order_show", methods: "GET")]
+    #[HasPermission([Menu::ORDRE, Action::DISPLAY_TRANSPORT])]
+    public function show(TransportOrder $id,
+                         EntityManagerInterface $entityManager): Response {
+
+        $transportOrder = $id;
+        $transportRequest = $transportOrder->getRequest();
+
+        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+        $categoryFF = $transportRequest instanceof TransportDeliveryRequest
+            ? CategorieCL::DELIVERY_TRANSPORT
+            : CategorieCL::COLLECT_TRANSPORT;
+        $freeFields = $freeFieldRepository->findByTypeAndCategorieCLLabel($transportRequest->getType(), $categoryFF);
+
+        $packsCount = !$transportRequest->getOrders()->isEmpty()
+            ? $transportRequest->getOrders()->last()->getPacks()->count()
+            : 0;
+
+        $hasRejectedPacks = !$transportRequest->getOrders()->isEmpty()
+            && Stream::from($transportRequest->getOrders()->last()->getPacks())
+                ->some(fn(TransportDeliveryOrderPack $pack) => $pack->isRejected());
+
+        $round = !$transportOrder->getTransportRoundLines()->isEmpty()
+            ? $transportOrder->getTransportRoundLines()->last()->getTransportRound()
+            : null ;
+
+        $timeSlots = $entityManager->getRepository(CollectTimeSlot::class)->findAll();
+
+        return $this->render('transport/order/show.html.twig', [
+            'order' => $transportOrder,
+            'freeFields' => $freeFields,
+            'packsCount' => $packsCount,
+            'hasRejectedPacks' => $hasRejectedPacks,
+            'round' => $round,
+            'timeSlots' => $timeSlots,
+        ]);
+    }
 
     #[Route("/liste", name: "transport_order_index", methods: "GET")]
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_TRANSPORT])]
@@ -48,8 +148,8 @@ class OrderController extends AbstractController {
                 CategoryType::DELIVERY_TRANSPORT, CategoryType::COLLECT_TRANSPORT,
             ]),
             'statuts' => [
-                TransportOrder::STATUS_TO_ASSIGN,
                 TransportOrder::STATUS_TO_CONTACT,
+                TransportOrder::STATUS_TO_ASSIGN,
                 TransportOrder::STATUS_ASSIGNED,
                 TransportOrder::STATUS_ONGOING,
                 TransportOrder::STATUS_FINISHED,
@@ -72,8 +172,12 @@ class OrderController extends AbstractController {
         $queryResult = $transportRepository->findByParamAndFilters($request->request, $filters);
 
         $transportOrders = [];
+        /** @var TransportOrder $order */
         foreach ($queryResult["data"] as $order) {
-            $transportOrders[$order->getRequest()->getExpectedAt()->format("dmY")][] = $order;
+            $request = $order->getRequest();
+            $date = $request->getValidatedDate() ?? $request->getExpectedAt();
+
+            $transportOrders[$date->format("dmY")][] = $order;
         }
 
         $rows = [];
@@ -122,9 +226,11 @@ class OrderController extends AbstractController {
 
             foreach ($orders as $order) {
                 $currentRow[] = $this->renderView("transport/request/list_card.html.twig", [
-                    "prefix" => "OTR",
+                    "prefix" => TransportOrder::NUMBER_PREFIX,
                     "request" => $order->getRequest(),
                     "order" => $order,
+                    "path" => "transport_order_show",
+                    "displayDropdown" => false,
                 ]);
             }
 

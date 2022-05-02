@@ -32,6 +32,31 @@ class TransportOrder {
     public const STATUS_NOT_COLLECTED = 'Non collecté';
     public const STATUS_SUBCONTRACTED = 'Sous-traité';
 
+    public const STATUS_WORKFLOW_COLLECT = [
+        self::STATUS_TO_CONTACT,
+        self::STATUS_TO_ASSIGN,
+        self::STATUS_ASSIGNED,
+        self::STATUS_ONGOING,
+        self::STATUS_FINISHED,
+        self::STATUS_DEPOSITED,
+    ];
+
+    public const STATUS_WORKFLOW_DELIVERY = [
+        self::STATUS_TO_ASSIGN,
+        self::STATUS_ASSIGNED,
+        self::STATUS_ONGOING,
+        self::STATUS_FINISHED,
+    ];
+
+    public const STATUS_WORKFLOW_DELIVERY_COLLECT = [
+        self::STATUS_TO_ASSIGN,
+        self::STATUS_ASSIGNED,
+        self::STATUS_ONGOING,
+        self::STATUS_FINISHED,
+        self::STATUS_DEPOSITED,
+    ];
+
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]

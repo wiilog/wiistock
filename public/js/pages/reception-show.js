@@ -38,7 +38,6 @@ function initPageModals() {
         keepForm: true,
         keepModal: true
     });
-    registerNumberInputProtection($modalAddLigneArticle.find('input[type="number"]'));
 
     let $modalDeleteArticle = $("#modalDeleteLigneArticle");
     let $submitDeleteArticle = $("#submitDeleteLigneArticle");

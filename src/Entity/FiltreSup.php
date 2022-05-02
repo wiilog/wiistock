@@ -78,6 +78,7 @@ class FiltreSup {
     const PAGE_TRANSPORT_REQUESTS = 'transportRequests';
     const PAGE_TRANSPORT_ORDERS = 'transportOrders';
     const PAGE_SUBCONTRACT_ORDERS = 'subcontractOrders';
+    const PAGE_TRANSPORT_ROUNDS = 'transportRounds';
     const PAGE_IMPORT = 'import';
 
     #[ORM\Id]

@@ -2,14 +2,14 @@
     <input type="hidden" name="transportRequestStatusCode" value="{{ transportRequest.status.code }}">
     <div class="wii-section-title">Sous-traitant</div>
     <div class="row my-3">
-        <div class="col-md-6 col-12">
-            <label for="subcontractor">
+        <div class="col-md-6 col-12 form-group">
+            <label for="subcontractor" class="wii-field-name">
                 Sous-traitant*
             </label>
             <input type="text" id="subcontractor" class="form-control data needed" name="subcontractor" value="{{ transportOrder.subcontractor }}">
         </div>
-        <div class="col-md-6 col-12">
-            <label for="registrationNumber">
+        <div class="col-md-6 col-12 form-group">
+            <label for="registrationNumber" class="wii-field-name">
                 Immatriculation*
             </label>
             <input type="text" id="registrationNumber" class="form-control data needed" name="registrationNumber" value="{{ transportOrder.registrationNumber }}">
@@ -18,10 +18,14 @@
 
     <div class="wii-section-title">Livraison</div>
     <div class="row my-3">
-        <div class="col-md-6 col-12">
-            <label for="status">Statut*</label>
-            <select name="status" class="form-control data w-100 needed" onchange="editStatusChange($(this))"
-                {{ (statutRequest.nom == "Terminée" or statutRequest.nom == "Non livrée") ? "disabled" : "" }}>
+        <div class="col-md-6 col-12 form-group">
+            {% set statusCode = statutRequest.code %}
+            {% set isSubcontractedStatus = statusCode == constant('App\\Entity\\Transport\\TransportRequest::STATUS_SUBCONTRACTED') %}
+            {% set disabled = statusCode == constant('App\\Entity\\Transport\\TransportRequest::STATUS_FINISHED')
+                or statusCode == constant('App\\Entity\\Transport\\TransportRequest::STATUS_NOT_DELIVERED') %}
+            <label for="status" class="wii-field-name">Statut{{ isSubcontractedStatus ? '*' }}</label>
+            <select name="status" class="form-control data w-100 {{ isSubcontractedStatus ? 'needed' }}" onchange="editStatusChange($(this))"
+                {{ disabled ? "disabled" }}>
                 <option name="statut" class="data" value="{{ statutRequest.id }}" selected disabled>{{ statutRequest.nom }}</option>
                 {% for status in subcontractTransportStatus %}
                     <option value="{{ status.id }}">{{ status.nom }}</option>
@@ -31,21 +35,22 @@
     </div>
 
     <div class="row my-3">
-        <div class="col-md-6 col-12 startDateDiv">
-            <label class="w-100 delivery-start-date-label">
+        <div class="col-md-6 col-12 startDateDiv form-group">
+            <label class="w-100 wii-field-name">
                 Date et heure de début de livraison *
                 <input name="delivery-start-date"
                        type="datetime-local"
                        class="form-control w-100 data"
-                       value="{{ transportOrder.startedAt | date('Y-m-d\\TH:i') }}">
+                       value="{{ transportOrder.startedAt ? (transportOrder. startedAt| date('Y-m-d\\TH:i')) : "" }}">
             </label>
         </div>
-        <div class="col-md-6 col-12 endDateDiv">
-            <label class="w-100">
+        <div class="col-md-6 col-12 endDateDiv form-group">
+            <label class="w-100 wii-field-name">
                 Date et heure de fin de livraison *
                 <input name="delivery-end-date"
                        type="datetime-local"
-                       class="form-control w-100 data">
+                       class="form-control w-100 data"
+                       value="{{ transportOrder.treatedAt ? (transportOrder.treatedAt | date('Y-m-d\\TH:i')) : "" }}">
             </label>
         </div>
     </div>
@@ -54,7 +59,7 @@
         <div class="col-md-8 col-12">
             <label class="bold label-commentaire">Commentaire</label>{# TODO gérer le fin qu'il soit obligatoire suivant le statut #}
             <input class="commentaire form-control data" name="commentaire" type="hidden">
-            <div class="editor-container" data-wysiwyg></div>
+            <div class="editor-container" data-wysiwyg>{{ transportOrder.comment|raw }}</div>
         </div>
         <div class="form-group col-md-4 col-12">
             {% include 'attachment/attachment.html.twig' with {

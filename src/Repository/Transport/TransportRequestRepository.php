@@ -60,24 +60,10 @@ class TransportRequestRepository extends EntityRepository {
                         ->map(fn($line) => explode(":", $line))
                         ->toArray();
 
-                    if($fromSubcontract){
-                        $value[] = TransportRequest::STATUS_AWAITING_VALIDATION;
-                    }
-
                     $qb
                         ->join('transport_request.status', 'filter_status')
                         ->andWhere('filter_status.nom IN (:filter_status_value)')
                         ->setParameter('filter_status_value', $value);
-                    break;
-                case "Awaiting validation request":
-                    $val = Stream::explode(",", $filter['value'])
-                        ->map(fn($line) => explode(":", $line))
-                        ->toArray();
-
-                    $qb
-                        ->join('transport_request.status', 'filter_status_awaiting')
-                        ->andWhere('filter_status_awaiting.nom IN (:filter_status_val)')
-                        ->setParameter('filter_status_val', $val);
                     break;
                 case FiltreSup::FIELD_CATEGORY:
                     $qb->join("transport_request.type", "filter_category_type")
@@ -134,6 +120,15 @@ class TransportRequestRepository extends EntityRepository {
             "count" => $countFiltered,
             "total" => $total,
         ];
+    }
+
+    public function findAwaitingValidation() {
+        return $this->createQueryBuilder("request")
+            ->join("request.status", "status")
+            ->where("status.nom = :awaiting_validation")
+            ->setParameter("awaiting_validation", TransportRequest::STATUS_AWAITING_VALIDATION)
+            ->getQuery()
+            ->getResult();
     }
 
     public function getLastNumberByDate(string $date): ?string {

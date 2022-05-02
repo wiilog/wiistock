@@ -1,23 +1,24 @@
+import AJAX, {GET, POST} from "@app/ajax";
+import Flash from "@app/flash";
 import '@styles/pages/transport/common.scss';
+import {initializeForm, cancelRequest, deleteRequest} from "@app/pages/transport/request/common";
 import {initializeFilters} from "@app/pages/transport/common";
 
 $(function() {
-    initializeFilters(PAGE_TRANSPORT_ORDERS)
-
-    let table = initDataTable('tableTransportOrders', {
+    let table = initDataTable('tableRounds', {
         processing: true,
         serverSide: true,
         ordering: false,
         searching: false,
-        pageLength: 24,
-        lengthMenu: [24, 48, 72, 96],
+        pageLength: 10,
+        lengthMenu: [10, 25, 50, 100],
         ajax: {
-            url: Routing.generate(`transport_order_api`),
+            url: Routing.generate(`transport_round_api`),
             type: "POST",
             data: data => {
                 data.dateMin = $(`.filters [name="dateMin"]`).val();
                 data.dateMax = $(`.filters [name="dateMax"]`).val();
-            },
+            }
         },
         domConfig: {
             removeInfo: true

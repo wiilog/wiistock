@@ -195,7 +195,6 @@ function editRow(button, path, modal, submit, setMaxQuantity = false, afterLoadi
         if (wantsFreeFieldsRequireCheck) {
             toggleRequiredChampsLibres(modal.find('#typeEdit'), 'edit');
         }
-        registerNumberInputProtection($modalBody.find('input[type="number"]'));
 
         if (setMaxQuantity) {
             setMaxQuantityEdit($('#referenceEdit'));
@@ -957,21 +956,6 @@ function fillDemandeurField($modal) {
         }
         $operatorSelect2.trigger('change');
     }
-}
-
-function registerNumberInputProtection($inputs) {
-    const forbiddenChars = [
-        "e",
-        "E",
-        "+",
-        "-"
-    ];
-
-    $inputs.on("keydown", function (e) {
-        if (forbiddenChars.includes(e.key)) {
-            e.preventDefault();
-        }
-    });
 }
 
 function limitTextareaLength($textarea, lineNumber, lineLength) {

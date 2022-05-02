@@ -51,34 +51,28 @@ class TransportCollectRequest extends TransportRequest {
     }
 
     public function canBeDeleted(): bool {
-        return (
-            !$this->isInRound()
-            && in_array($this->getStatus()?->getCode(), [
-                TransportRequest::STATUS_TO_COLLECT,
-                TransportRequest::STATUS_AWAITING_PLANNING,
-                TransportRequest::STATUS_AWAITING_VALIDATION,
-            ])
-        );
-    }
-
-    public function canBeCancelled(): bool {
-        return (
-            $this->isInRound()
-            && in_array($this->getStatus()?->getCode(), [
-                TransportRequest::STATUS_TO_COLLECT,
-                TransportRequest::STATUS_ONGOING,
-                TransportRequest::STATUS_AWAITING_PLANNING,
-            ])
-        );
+        return !$this->isInRound();
     }
 
     public function canBeUpdated(): bool {
         return in_array($this->getStatus()?->getCode(), [
             TransportRequest::STATUS_AWAITING_VALIDATION,
-            TransportRequest::STATUS_TO_PREPARE,
-            TransportRequest::STATUS_TO_DELIVER,
-            TransportRequest::STATUS_SUBCONTRACTED,
+            TransportRequest::STATUS_AWAITING_PLANNING,
+            TransportRequest::STATUS_TO_COLLECT,
         ]);
+    }
+
+    public function canBeCancelled(): bool {
+        return $this->isInRound();
+    }
+
+    public function getExpectedAt(): ?DateTime {
+        return $this->expectedAt;
+    }
+
+    public function setExpectedAt(DateTime $expectedAt): self {
+        $this->expectedAt = $expectedAt;
+        return $this;
     }
 
 }

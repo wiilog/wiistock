@@ -13,7 +13,7 @@
     {% endif %}
     {% for line in transportDeliveryRequestLines %}
         <div class="pack-wrapper {{ loop.last ? 'pb-4' : 'pb-2' }}">
-            {% set packsCount = (associatedNaturesAndPacks[line.nature.label] ?? [])|length %}
+            {% set packsCount = (associatedNaturesAndPacks[line.nature.id] ?? [])|length %}
             <div class="nature-line px-2">
                 <div class="row align-items-center">
                     <div class="col-md-4 col-12 d-flex align-items-center">
@@ -21,10 +21,10 @@
                         {% if logo %}
                             <img src="{{ path ~ asset('uploads/attachements/' ~ logo.fileName) }}" height="30px" alt="">
                         {% endif %}
-                        <strong class="wii-field-name ml-2">{{ line.nature.label }}</strong>
+                        <strong class="wii-field-name">{{ line.nature.label }}</strong>
                     </div>
                     <div class="col-md-4 col-12"><strong class="wii-field-name">Quantité</strong>&nbsp;: {{ packsCount > 0 ? packsCount : '-' }}</div>
-                    <div class="col-md-4 col-12"><strong class="wii-field-name">Température</strong>&nbsp;: {{ line.temperatureRange ? line.temperatureRange.value : '-°C' }}</div>
+                    <div class="col-md-4 col-12"><strong class="wii-field-name">Température</strong>&nbsp;: {{ line.temperatureRange ? (line.temperatureRange.value) : '- °C' }}</div>
                 </div>
             </div>
             {% if packsCount > 0 %}
@@ -75,7 +75,7 @@
                         {% if logo %}
                             <img src="{{ path ~ asset('uploads/attachements/' ~ logo.fileName) }}">
                         {% endif %}
-                        <strong class="wii-field-name ml-2">{{ line.nature.label }}</strong>
+                        <strong class="wii-field-name">{{ line.nature.label }}</strong>
                     </div>
                     <div class="col-md-4 col-12"><strong class="wii-field-name">Quantité à collecter</strong>&nbsp;: {{ line.quantityToCollect is not null ? line.quantityToCollect : '-' }}</div>
                     <div class="col-md-4 col-12"><strong class="wii-field-name">Quantité collectée</strong>&nbsp;: {{ line.collectedQuantity is not null ? line.collectedQuantity : '-' }}</div>

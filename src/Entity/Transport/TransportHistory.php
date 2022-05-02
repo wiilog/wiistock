@@ -25,11 +25,9 @@ class TransportHistory {
     private ?DateTime $date = null;
 
     #[ORM\ManyToOne(targetEntity: TransportRequest::class, inversedBy: 'history')]
-    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?TransportRequest $request = null;
 
     #[ORM\ManyToOne(targetEntity: TransportOrder::class, inversedBy: 'history')]
-    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?TransportOrder $order = null;
 
     #[ORM\Column(type: 'string', length: 255)]
@@ -54,10 +52,13 @@ class TransportHistory {
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $comment = null;
 
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $message = null;
+
     #[ORM\OneToOne(targetEntity: Emplacement::class)]
     private ?Emplacement $location = null;
 
-    #[ORM\OneToOne(targetEntity: StatusHistory::class, cascade: ['persist', 'remove'])]
+    #[ORM\ManyToOne(targetEntity: StatusHistory::class, cascade: ['persist'], inversedBy: 'transportHistory')]
     private ?StatusHistory $statusHistory = null;
 
     public function getId(): ?int {
@@ -143,6 +144,16 @@ class TransportHistory {
         return $this;
     }
 
+    public function getMessage(): ?string {
+        return $this->message;
+    }
+
+    public function setMessage(?string $message): self {
+        $this->message = $message;
+
+        return $this;
+    }
+
     public function getType(): ?string {
         return $this->type;
     }
@@ -186,7 +197,11 @@ class TransportHistory {
     }
 
     public function setStatusHistory(?StatusHistory $statusHistory): self {
+        if($this->statusHistory && $this->statusHistory !== $statusHistory) {
+            $this->statusHistory->removeTransportHistory($this);
+        }
         $this->statusHistory = $statusHistory;
+        $statusHistory?->addTransportHistory($this);
 
         return $this;
     }

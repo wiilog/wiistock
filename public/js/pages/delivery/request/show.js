@@ -77,7 +77,6 @@ function ajaxGetAndFillArticle($select) {
             Select2Old.user($editNewArticle.find('.ajax-autocomplete-user-edit[name=managers]'));
 
             setMaxQuantity($select);
-            registerNumberInputProtection($selection.find('input[type="number"]'));
         }, 'json');
     }
 }
