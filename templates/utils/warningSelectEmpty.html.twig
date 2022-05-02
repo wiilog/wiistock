@@ -1,12 +1,13 @@
+{% set block = block is defined and block  %}
 {% if array is empty %}
-    <div class="row align-items-center justify-content-center mb-3">
-        <div class="col-auto">
+    <div class="{{ not block ? 'd-flex align-items-center justify-content-center mb-3' }}">
+        <div class="{{ not block ? 'col-auto' }}">
             <span title="{{ title is defined ? title }}">
                 <i class="fas fa-exclamation-triangle"></i>
                 {{ warningLabel }}
             </span>
         </div>
-        <div class="col-auto">
+        <div class="{{ not block ? 'col-auto' : 'text-center' }}">
             <a href="{{ redirectPath }}" class="btn btn-sm btn-primary" target="_blank">
                 <i class='fa fa-directions mr-2'></i> {{ redirectLabel }}
             </a>

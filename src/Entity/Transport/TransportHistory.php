@@ -58,7 +58,7 @@ class TransportHistory {
     #[ORM\OneToOne(targetEntity: Emplacement::class)]
     private ?Emplacement $location = null;
 
-    #[ORM\OneToOne(targetEntity: StatusHistory::class, cascade: ['persist'])]
+    #[ORM\ManyToOne(targetEntity: StatusHistory::class, cascade: ['persist'], inversedBy: 'transportHistory')]
     private ?StatusHistory $statusHistory = null;
 
     public function getId(): ?int {
@@ -197,7 +197,11 @@ class TransportHistory {
     }
 
     public function setStatusHistory(?StatusHistory $statusHistory): self {
+        if($this->statusHistory && $this->statusHistory !== $statusHistory) {
+            $this->statusHistory->removeTransportHistory($this);
+        }
         $this->statusHistory = $statusHistory;
+        $statusHistory?->addTransportHistory($this);
 
         return $this;
     }

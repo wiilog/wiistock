@@ -113,7 +113,7 @@ class TransportHistoryService {
 
         $history
             ->setType($type)
-            ->setDate(new DateTime())
+            ->setDate($params["date"] ?? new DateTime())
             ->setUser($params["user"] ?? null)
             ->setPack($params["pack"] ?? null)
             ->setRound($params["round"] ?? null)
