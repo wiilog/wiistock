@@ -1,6 +1,10 @@
 export function initializeFilters(page) {
-    initDateTimePicker('#dateMin, #dateMax', 'DD/MM/YYYY', {
+    initDateTimePicker('#dateMin', 'DD/MM/YYYY', {
         setTodayDate: true
+    });
+
+    initDateTimePicker('#dateMax', 'DD/MM/YYYY', {
+        setTodayDate: false
     });
 
     let path = Routing.generate('filter_get_by_page');
