@@ -4,8 +4,10 @@ namespace App\Controller\Transport;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
+use App\Entity\CategorieStatut;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
+use App\Entity\Statut;
 use App\Entity\Transport\TransportRound;
 use App\Helper\FormatHelper;
 use DateTime;
@@ -20,9 +22,13 @@ use Symfony\Component\Routing\Annotation\Route;
 class RoundController extends AbstractController {
 
     #[Route("/liste", name: "transport_round_index", methods: "GET")]
-    public function index(): Response {
-        // TODO
-        return $this->render('transport/round/index.html.twig');
+    public function index(EntityManagerInterface $em): Response {
+        $statusRepository = $em->getRepository(Statut::class);
+        $statuses = $statusRepository->findByCategorieName(CategorieStatut::TRANSPORT_ORDER_DELIVERY);
+
+        return $this->render('transport/round/index.html.twig',[
+            'statuts' => $statuses
+        ]);
     }
 
     #[Route('/api', name: 'transport_round_api', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
@@ -36,9 +42,9 @@ class RoundController extends AbstractController {
 
         $transportRounds = [];
         foreach ($queryResult["data"] as $transportRound) {
-            $beganAtStr = $transportRound->getBeganAt()?->format("dmY");
-            if ($beganAtStr) {
-                $transportRounds[$beganAtStr][] = $transportRound;
+            $expectedAtStr = $transportRound->getExpectedAt()?->format("dmY");
+            if ($expectedAtStr) {
+                $transportRounds[$expectedAtStr][] = $transportRound;
             }
         }
 
@@ -70,7 +76,7 @@ class RoundController extends AbstractController {
                 $hours = null;
                 $minutes = null;
                 if($transportRound->getEndedAt()) {
-                    $timestamp = $transportRound->getEndedAt()->getTimestamp() - $transportRound->getBeganAt()->getTimestamp();
+                    $timestamp = $transportRound->getEndedAt()->getTimestamp() - $transportRound->getExpectedAt()->getTimestamp();
                     $hours = floor(($timestamp / 60) / 60);
                     $minutes = floor($timestamp / 60) - ($hours * 60);
                 }

@@ -47,6 +47,8 @@ class FiltreSup {
     const FIELD_ALERT = 'alert';
 	const FIELD_DISPATCH_NUMBER = 'dispatchNumber';
     const FIELD_MANAGERS = 'managers';
+    const FIELD_ROUND_NUMBER = 'roundNumber';
+    const FIELD_DELIVERERS = 'deliverers';
 	const PAGE_PURCHASE_REQUEST = 'rpurchase';
 	const PAGE_TRANSFER_REQUEST = 'rtransfer';
 	const PAGE_TRANSFER_ORDER = 'otransfer';

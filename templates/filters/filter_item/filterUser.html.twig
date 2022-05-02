@@ -1,5 +1,6 @@
 {% set name = name is defined ? name : 'utilisateurs' %}
 {% set managersFilter = managersFilter is defined ? managersFilter : '' %}
+{% set delivererOnly = delivererOnly ?? 0 %}
 
 <div class="col-auto m-1 select-filter pr-0">
     <div class="select2-overflow">
@@ -7,6 +8,8 @@
             <select class="form-control data ajax-autocomplete-user filter-select2"
                     data-s2="user"
                     data-placeholder="{{ placeholder is defined ? placeholder : 'Utilisateurs' }}"
+                    data-include-params="input[name=delivererOnly]"
+                    data-include-params-parent=".select-filter"
                     name="{{ name }}"
                     multiple="multiple"
                     {{ disabled }}>
@@ -16,4 +19,6 @@
             </select>
         </div>
     </div>
+    <input type="hidden" value="{{ delivererOnly }}" name="delivererOnly"/>
 </div>
+

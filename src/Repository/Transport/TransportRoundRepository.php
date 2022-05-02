@@ -32,25 +32,47 @@ class TransportRoundRepository extends EntityRepository {
             $date = DateTime::createFromFormat("d/m/Y", $params->get("dateMin"));
             $date = $date->format("Y-m-d");
 
-            $qb->andWhere('delivery.expectedAt >= :datetimeMin OR collect.expectedAt >= :dateMin')
-                ->setParameter('datetimeMin', "$date 00:00:00")
-                ->setParameter('dateMin', $date);
+            $qb->andWhere('transport_round.expectedAt >= :datetimeMin')
+                ->setParameter('datetimeMin', "$date 00:00:00");
         }
 
         if($params->get("dateMax")) {
             $date = DateTime::createFromFormat("d/m/Y", $params->get("dateMax"));
             $date = $date->format("Y-m-d");
 
-            $qb->andWhere('delivery.expectedAt <= :datetimeMax OR collect.expectedAt <= :dateMax')
-                ->setParameter('datetimeMax', "$date 23:59:59")
-                ->setParameter('dateMax', $date);
+            $qb->andWhere('transport_round.expectedAt <= :datetimeMax')
+                ->setParameter('datetimeMax', "$date 23:59:59");
         }
 
         // filtres sup
-        /*foreach ($filters as $filter) {
+        foreach ($filters as $filter) {
             switch ($filter['field']) {
+                case FiltreSup::FIELD_STATUT:
+                    $value = Stream::explode(",", $filter['value'])
+                        ->map(fn($line) => explode(":", $line))
+                        ->toArray();
+
+                    $qb
+                        ->join('transport_round.status', 'filter_status')
+                        ->andWhere('filter_status.nom IN (:status)')
+                        ->setParameter('status', $value);
+                    break;
+                case FiltreSup::FIELD_ROUND_NUMBER:
+                    $qb->andWhere("transport_round.number LIKE :filter_round_number")
+                        ->setParameter("filter_round_number", "%" . $filter['value'] . "%");
+                    break;
+                case FiltreSup::FIELD_DELIVERERS:
+                    $value = Stream::explode(",", $filter['value'])
+                        ->map(fn($line) => explode(":", $line))
+                        ->toArray();
+
+                    $qb
+                        ->join('transport_round.deliverer', 'filter_deliverer')
+                        ->andWhere('filter_deliverer.id in (:filter_deliverer_values)')
+                        ->setParameter('filter_deliverer_values', $value);
+                    break;
             }
-        }*/
+        }
 
         // compte éléments filtrés
         $countFiltered = QueryCounter::count($qb, "transport_round");
@@ -62,7 +84,7 @@ class TransportRoundRepository extends EntityRepository {
             $qb->setMaxResults($params->getInt('length'));
         }
 
-        $qb->orderBy("transport_round.beganAt", "DESC");
+        $qb->orderBy("transport_round.expectedAt", "DESC");
 
         return [
             "data" => $qb->getQuery()->getResult(),
