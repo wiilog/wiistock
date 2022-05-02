@@ -16,6 +16,9 @@ doctrine:
             collate: utf8mb4_unicode_ci
 
         url: '%env(resolve:DATABASE_URL)%'
+        options:
+            !php/const:PDO::MYSQL_ATTR_SSL_CA: '/etc/ca-certificates/cert.pem'
+            !php/const:PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT: false
     orm:
         auto_generate_proxy_classes: '%kernel.debug%'
         naming_strategy: doctrine.orm.naming_strategy.underscore_number_aware
