@@ -198,6 +198,7 @@ function onRequestTypeChange($form, requestType) {
         .prop('disabled', true);
 
     $form.find('[data-type]').addClass('d-none');
+    $form.find(`.warning-empty-natures`).addClass(`d-none`);
 
     if (requestType) {
         const $specificItemsToDisplay = $specificsItems.filter(`[data-request-type=""], [data-request-type="${requestType}"]`);
