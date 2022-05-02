@@ -1346,13 +1346,13 @@ class SettingsController extends AbstractController {
 
             if(in_array($categoryLabel, [CategoryType::DELIVERY_TRANSPORT, CategoryType::COLLECT_TRANSPORT])) {
                 $data[] = [
-                    "label" => "Logo",
+                    "label" => "Logo*",
                     "value" => $this->renderView("form_element.html.twig", [
                         "element" => "image",
                         "arguments" => [
                             "logo",
                             null,
-                            false,
+                            true,
                             $type?->getLogo()?->getFullPath(),
                         ],
                     ]),
