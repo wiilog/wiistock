@@ -249,7 +249,7 @@ class SubcontractController extends AbstractController
 
         $startedAt = FormatHelper::parseDatetime($data->get('delivery-start-date'));
         $treatedAt = FormatHelper::parseDatetime($data->get('delivery-end-date'));
-        $statutRequest = $statutRepository->find($data->get('status') !== "null" ? $data->get('status') : $data->get('statut'));
+        $statusRequest = $statutRepository->find($data->get('status') !== "null" ? $data->get('status') : $data->get('statut'));
 
         $statutOrder = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_DELIVERY, match($statusRequest->getCode()) {
             TransportRequest::STATUS_ONGOING => TransportOrder::STATUS_ONGOING,
@@ -259,7 +259,7 @@ class SubcontractController extends AbstractController
             default => throw new RuntimeException("Unhandled status code"),
         });
 
-        $transportRequest->setStatus($statutRequest);
+        $transportRequest->setStatus($statusRequest);
         $transportOrder->setStatus($statutOrder)
             ->setSubcontractor($data->get('subcontractor'))
             ->setRegistrationNumber($data->get('registrationNumber'))
@@ -269,17 +269,23 @@ class SubcontractController extends AbstractController
 
         $attachmentService->manageAttachments($entityManager, $transportOrder, $request->files);
 
-        $statusHistoryRequest = $statusHistoryService->updateStatus($entityManager, $transportRequest, $statutRequest, $treatedAt);
-        $statusHistoryOrder = $statusHistoryService->updateStatus($entityManager, $transportOrder, $statutOrder, $treatedAt);
+        $date = in_array($statusRequest->getCode(), [TransportRequest::STATUS_FINISHED, TransportRequest::STATUS_NOT_DELIVERED])
+            ? $treatedAt
+            : $startedAt;
+
+        $statusHistoryRequest = $statusHistoryService->updateStatus($entityManager, $transportRequest, $statusRequest, $date);
+        $statusHistoryOrder = $statusHistoryService->updateStatus($entityManager, $transportOrder, $statutOrder, $date);
 
         $transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_SUBCONTRACT_UPDATE, [
             'history' => $statusHistoryRequest,
-            'user' => $loggedUser
+            'user' => $loggedUser,
+            'date' => $date
         ]);
 
         $transportHistoryService->persistTransportHistory($entityManager, $transportOrder, TransportHistoryService::TYPE_SUBCONTRACT_UPDATE, [
             'history' => $statusHistoryOrder,
-            'user' => $loggedUser
+            'user' => $loggedUser,
+            'date' => $date
         ]);
 
         $entityManager->flush();
