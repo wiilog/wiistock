@@ -562,9 +562,6 @@ class SettingsService {
                     if (isset($data["keep-logo"]) && !$data["keep-logo"]) {
                         $type->setLogo(null);
                     }
-                    else if($type->getLogo() === null){
-                        throw new RuntimeException("Vous devez ajouter un logo pour le type");
-                    }
                 }
             } else if (isset($tables["category"])) {
                 $category = $categoryTypeRepository->findOneBy(["label" => $tables["category"]]);
