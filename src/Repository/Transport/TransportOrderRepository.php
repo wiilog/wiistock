@@ -110,5 +110,13 @@ class TransportOrderRepository extends EntityRepository {
             "total" => $total,
         ];
     }
+    public function findOrdersForPlanning() {
+        return $this->createQueryBuilder("transport_order")
+            ->join("transport_order.status", "status")
+            ->where("status.nom IN (:planning_orders_statuses)")
+            ->setParameter("planning_orders_statuses", [TransportOrder::STATUS_TO_ASSIGN, TransportOrder::STATUS_ASSIGNED, TransportOrder::STATUS_ONGOING])
+            ->getQuery()
+            ->getResult();
+    }
 
 }

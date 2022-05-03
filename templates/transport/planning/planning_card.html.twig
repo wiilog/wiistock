@@ -1,58 +1,44 @@
-<!-- debut de la card -->
-<div class="col-md-6 col-12 p-1 d-flex">
-    <div class="order-card to-assign"><!-- ici la class to-assiqn pour que la carte soie orange-->
-        <span class="transport-type">
-            <img src="{{ asset('svg/cookie.svg') }}" width="15px" alt="">
-            <span>Type</span>
-        </span>
-        <span class="wii-body-text py-1">Nom patient</span>
-        <span class="wii-small-text py-1">N°80445245</span>
-        <div class="wii-field-name py-1">
-            <img src="{{ asset('svg/clock-black.svg') }}" alt="Icône horloge" width="13px">
-            <span>14:00</span>
-            <img src="{{ asset('svg/timeline-urgent.svg') }}" alt="Icône urgent" width="13px">
-        </div>
-        <span class="underlined py-1">T210510-02</span>
-        <span class="wii-body-text text-nowrap py-1">nom livreur</span>
-    </div>
-</div>
-<!--fin de la card -->
-<!-- debut de la card -->
-<div class="col-md-6 col-12 p-1 d-flex">
-    <div class="order-card assigned">  <!-- ici la class assigned pour que la carte soie verte-->
-        <span class="transport-type">
-            <img src="{{ asset('svg/cookie.svg') }}" width="15px" alt="">
-            <span>Type</span>
-        </span>
-        <span class="wii-body-text py-1">Nom patient</span>
-        <span class="wii-small-text py-1">N°80445245</span>
-        <div class="wii-field-name py-1">
-            <img src="{{ asset('svg/clock-black.svg') }}" alt="Icône horloge" width="13px">
-            <span>14:00</span>
-            <img src="{{ asset('svg/timeline-urgent.svg') }}" alt="Icône urgent" width="13px">
-        </div>
-        <span class="underlined py-1">T210510-02</span>
-        <span class="wii-body-text text-nowrap py-1">nom livreur</span>
-    </div>
-</div>
-<!--fin de la card -->
-<!-- debut de la card -->
-<div class="col-md-6 col-12 p-1 d-flex">
-    <div class="order-card ongoing"><!-- ici la class ongoing pour que la carte soie violet-->
-        <span class="transport-type">
-            <img src="{{ asset('svg/cookie.svg') }}" width="15px" alt="">
-            <span>Type</span>
-        </span>
-        <span class="wii-body-text py-1">Nom patient</span>
-        <span class="wii-small-text py-1">N°80445245</span>
-        <div class="wii-field-name py-1">
-            <img src="{{ asset('svg/clock-black.svg') }}" alt="Icône horloge" width="13px">
-            <span>14:00</span>
-            <img src="{{ asset('svg/timeline-urgent.svg') }}" alt="Icône urgent" width="13px">
-        </div>
-        <span class="underlined py-1">T210510-02</span>
-        <span class="wii-body-text text-nowrap py-1">nom livreur</span>
-    </div>
-</div>
-<!--fin de la card -->
+{% set isOrderToAssign = (order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_TO_ASSIGN')) %}
+{% set cardClass =
+        isOrderToAssign ? 'to-assign' :
+            (order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ASSIGNED') ? 'assigned' :
+                (order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ONGOING') ? 'ongoing' : ''))
+%}
+{% set request = order.request ?? null %}
+{% set roundLine = order ? (order.transportRoundLines | last) ?: null : null %}
 
+<!-- debut de la card -->
+<div class="p-1 d-flex">
+    <div class="order-card {{ cardClass }}">
+        <span class="transport-type">
+            <label for="type-filter-{{ request.type.id }}" class="d-inline-flex align-items-center">
+                {% if request.type.logo %}
+                    <img src="{{ request.type.logo ? request.type.logo.fullPath }}" class="mr-2" width="15">
+                {% endif %}
+                {{ request.type.label }}
+            </label>
+        </span>
+
+        <div class="d-flex justify-content-between">
+            <span class="wii-body-text py-1">{{ request.contact.name }}</span>
+            <span class="wii-small-text py-1">N°{{ request.contact.fileNumber }}</span>
+        </div>
+        <div class="wii-field-name py-1 d-flex justify-content-between">
+            <div>
+                <img src="{{ asset('svg/clock-black.svg') }}" alt="Icône horloge" width="13px">
+                <span>{{ request.expectedAt | format_helper('time', true, true) }}</span>
+                {% if request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') and request.emergency %}
+                    <img src="{{ asset('svg/timeline-urgent.svg') }}" alt="Icône urgent" width="13px">
+                {% endif %}
+            </div>
+            {% if isOrderToAssign and order.packs is not empty %}
+                <span class="wii-body-text">Colisage fait</span>
+            {% endif %}
+        </div>
+        {% if not isOrderToAssign and roundLine is not null%}
+            <span class="underlined py-1">T{{ roundLine.transportRound.number }}</span>
+            <span class="wii-body-text text-nowrap py-1">{{ roundLine.transportRound.deliverer.username }}</span>
+        {% endif %}
+    </div>
+</div>
+<!-- fin de la card -->

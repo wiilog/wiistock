@@ -46,8 +46,9 @@
 
 .card-container {
     overflow-y: auto;
-    height: 60vh;
+    //height: 60vh;
     padding: 2px !important;
+    column-count: 2;
 }
 
 .transport-type{

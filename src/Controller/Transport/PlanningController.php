@@ -2,7 +2,9 @@
 
 namespace App\Controller\Transport;
 
+use App\Entity\Transport\TransportOrder;
 use App\Entity\Transport\TransportRequest;
+use App\Entity\Transport\TransportRound;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -17,16 +19,11 @@ class PlanningController extends AbstractController {
      */
     #[Route("/liste", name: "transport_planning_index", methods: "GET")]
     public function index(EntityManagerInterface $manager,): Response {
-        $transportRequestRepository = $manager->getRepository(TransportRequest::class);
+        $transportOrderRepository = $manager->getRepository(TransportOrder::class);
 
-        $transportRequests = $transportRequestRepository;
-        return $this->render('transport/planning/index.html.twig');
+        $transportOrders = $transportOrderRepository->findOrdersForPlanning();
+        return $this->render('transport/planning/index.html.twig', [
+            'transportOrders' => $transportOrders
+        ]);
     }
-
-    #[Route("/api", name: "transport_planning_api", methods: "POST")]
-    public function api(): Response {
-
-        return [];
-    }
-
 }
