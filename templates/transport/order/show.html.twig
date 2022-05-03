@@ -275,7 +275,7 @@
                         <div class="d-flex justify-content-between p-3">
                             <span class="wii-field-name">Dernière position connue</span>
                             <span class="wii-medium-text">
-                                {% if order.subcontracted %}
+                                {% if order is not null and order.subcontracted %}
                                     Le suivi de température n'est pas disponible car la demande est sur un horaire non ouvré
                                 {% elseif not roundHasStarted %}
                                     La tournée n'a pas commencé
@@ -289,7 +289,7 @@
                             <div class="d-flex justify-content-between p-3">
                                 <span class="wii-field-name">Courbe de températures</span>
                                 <span class="wii-medium-text">
-                                     {% if order.subcontracted %}
+                                     {% if order is not null and order.subcontracted %}
                                          Le suivi de température n'est pas disponible car la demande est sur un horaire non ouvré
                                      {% elseif not roundHasStarted %}
                                          La tournée n'a pas commencé
