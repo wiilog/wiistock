@@ -79,17 +79,15 @@
                                             <img src="{{ asset('svg/cookie.svg') }}" alt="Icône livraison" width="15px">
                                         </div>
                                     </div>
-                                    <div class="content card-container">
-                                        <div class="mx-0 align-items-start">
-                                            {# TODO foreach sur les demande pour l'affichages des cards #}
-                                            {% for transportOrder in transportOrders %}
-                                                {% if transportOrder.request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
-                                                    {% include 'transport/planning/planning_card.html.twig' with {
-                                                        'order': transportOrder
-                                                    } %}
-                                                {% endif %}
-                                            {% endfor %}
-                                        </div>
+                                    <div class="card-columns">
+                                        {# TODO foreach sur les demande pour l'affichages des cards #}
+                                        {% for transportOrder in transportOrders %}
+                                            {% if transportOrder.request is not null and transportOrder.request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
+                                                {% include 'transport/planning/planning_card.html.twig' with {
+                                                    'order': transportOrder
+                                                } %}
+                                            {% endif %}
+                                        {% endfor %}
                                     </div>
                                 </div>
                             </div>
@@ -103,16 +101,14 @@
                                             <img src="{{ asset('svg/cookie.svg') }}" alt="Icône livraison" width="15px">
                                         </div>
                                     </div>
-                                    <div class="content card-container">
-                                        <div class="mx-0 align-items-start">
-                                            {% for transportOrder in transportOrders %}
-                                                {% if transportOrder.request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') %}
-                                                    {% include 'transport/planning/planning_card.html.twig' with {
-                                                        'order': transportOrder
-                                                    } %}
-                                                {% endif %}
-                                            {% endfor %}
-                                        </div>
+                                    <div class="card-columns">
+                                       {% for transportOrder in transportOrders %}
+                                           {% if transportOrder.request is not null and transportOrder.request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') %}
+                                               {% include 'transport/planning/planning_card.html.twig' with {
+                                                   'order': transportOrder
+                                               } %}
+                                           {% endif %}
+                                       {% endfor %}
                                     </div>
                                 </div>
                             </div>

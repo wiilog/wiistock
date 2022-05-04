@@ -8,7 +8,7 @@
 {% set roundLine = order ? (order.transportRoundLines | last) ?: null : null %}
 
 <!-- debut de la card -->
-<div class="p-1 d-flex">
+<div class="p-1 card m-0 border-0">
     <div class="order-card {{ cardClass }}">
         <span class="transport-type">
             <label for="type-filter-{{ request.type.id }}" class="d-inline-flex align-items-center">
