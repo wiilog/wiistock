@@ -1,11 +1,17 @@
 @import "../../variables";
 
+.transport-content td {
+    width: 200px !important;
+    max-width: 200px !important;
+    white-space: initial !important;
+}
+
 .transport-request-card{
     height: 120px;
 
     .transport-subcontract-contact, .transport-subcontract-details-container {
-        width: 15%;
-        max-width: 15%;
+        width: calc(100% / 7);
+        max-width: calc(100% / 7);
         font-size: 1rem;
 
         .wii-small-text {

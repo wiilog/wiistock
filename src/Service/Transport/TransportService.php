@@ -276,9 +276,10 @@ class TransportService {
                                       TransportRequest $transportRequest,
                                       DateTime $expectedAt): array {
         $statusRepository = $entityManager->getRepository(Statut::class);
-        $now = new DateTime();
+        $now = (new DateTime())->setTime(0, 0);
+        $expectedAtForDiff = (clone $expectedAt)->setTime(0, 0);
 
-        $diff = $now->diff($expectedAt);
+        $diff = $now->diff($expectedAtForDiff);
         if ($transportRequest instanceof TransportDeliveryRequest) {
             $category = CategorieStatut::TRANSPORT_REQUEST_DELIVERY;
 

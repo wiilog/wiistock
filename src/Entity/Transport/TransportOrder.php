@@ -105,10 +105,10 @@ class TransportOrder {
     #[ORM\JoinColumn(nullable: true)]
     private ?Attachment $signature;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $returnedAt = null;
 
-    #[ORM\Column(type: 'string')]
+    #[ORM\Column(type: 'string', nullable: true)]
     private ?string $returnReason = null;
 
     public function __construct() {

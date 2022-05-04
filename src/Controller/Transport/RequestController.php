@@ -63,16 +63,9 @@ class RequestController extends AbstractController {
 
         $token = $request->query->get('x-api-key');
 
-        $tokenIsValid = isset($_SERVER['CLB_API_KEY']) && $token === $_SERVER['CLB_API_KEY'];
-        $content = $request->query->get('content');
-        if (!$content) {
-            $response = false;
-        } else {
-            $content = str_replace(["\r", "\n"], ['\\r', '\\n'], $content);
-            $response = json_decode($content, true);
-        }
         return $this->render('transport/request/index.html.twig', [
             'newRequest' => new TransportDeliveryRequest(),
+            'CLB_API_KEY' => $_SERVER['CLB_API_KEY'] ?? null,
             'categories' => [
                 [
                     "category" => CategoryType::DELIVERY_TRANSPORT,
@@ -84,18 +77,9 @@ class RequestController extends AbstractController {
                     "label" => "Collecte",
                 ],
             ],
-            'prefilled' => $tokenIsValid && $response,
-            'informations' => $tokenIsValid && $response ? $response : [
-                'Prenom' => '',
-                'Nom' => '',
-                'Nodos' => '',
-                'Contact' => '',
-                'Adresse' => '',
-                'PersonnesAPrevenir' => '',
-                'Remarques' => '',
-            ],
             'types' => $typeRepository->findByCategoryLabels([
-                CategoryType::DELIVERY_TRANSPORT, CategoryType::COLLECT_TRANSPORT,
+                CategoryType::DELIVERY_TRANSPORT,
+                CategoryType::COLLECT_TRANSPORT,
             ]),
             'natures' => $natureRepository->findByAllowedForms([
                 Nature::TRANSPORT_COLLECT_CODE,
