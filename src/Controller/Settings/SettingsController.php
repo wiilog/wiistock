@@ -1040,7 +1040,7 @@ class SettingsController extends AbstractController {
      * @Route("/creneaux-horaires-api", name="settings_hour_shift_api", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::SETTINGS_GLOBAL})
      */
-    public function hourShiftsApi(Request $request, EntityManagerInterface $manager) {
+    public function timeSlotsApi(Request $request, EntityManagerInterface $manager) {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
         $class = "form-control data";
 
@@ -1054,17 +1054,21 @@ class SettingsController extends AbstractController {
             $hours = $shift->getStart() . '-' . $shift->getEnd();
             if ($edit) {
                 $data[] = [
-                    "actions" => "
+                    "actions" => $this->canDelete() ? "
                         <button class='btn btn-silent delete-row' data-id='{$shift->getId()}'>
                             <i class='wii-icon wii-icon-trash text-primary'></i>
                         </button>
-                    " ,
+                    " : "",
                     "name" => "<input name='id' type='hidden' class='$class' value='{$shift->getId()}'><input name='name' class='$class' data-global-error='Nom du créneau' value='{$shift->getName()}'/>",
                     "hours" => "<input name='hours' class='$class' data-global-error='Heures' value='{$hours}'/>",
                 ];
             } else {
                 $data[] = [
-                    "actions" => "",
+                    "actions" => $this->canDelete() ? "
+                        <button class='btn btn-silent delete-row-view' data-type='timeSlots' data-id='{$shift->getId()}'>
+                            <i class='wii-icon wii-icon-trash text-primary'></i>
+                        </button>
+                    " : "",
                     "name" => $shift->getName(),
                     "hours" => $hours,
                 ];
@@ -1108,18 +1112,22 @@ class SettingsController extends AbstractController {
 
             if ($edit) {
                 $data[] = [
-                    "actions" => "
+                    "actions" => $this->canDelete() ? "
                         <button class='btn btn-silent delete-row' data-id='{$shift->getId()}'>
                             <i class='wii-icon wii-icon-trash text-primary'></i>
                         </button>
-                    ",
+                    " : "",
                     "id" => $shift->getId(),
                     "hour" => "<input name='hour' class='$class' data-global-error='Heure' value='{$hour}'/>",
                     "deliverers" => $deliverers,
                 ];
             } else {
                 $data[] = [
-                    "actions" => "",
+                    "actions" => $this->canDelete() ? "
+                        <button class='btn btn-silent delete-row-view' data-type='startingHours' data-id='{$shift->getId()}'>
+                            <i class='wii-icon wii-icon-trash text-primary'></i>
+                        </button>
+                    " : "",
                     "id" => $shift->getId(),
                     "hour" => $hour,
                     "deliverers" => Stream::from($shift->getDeliverers())
@@ -1338,13 +1346,13 @@ class SettingsController extends AbstractController {
 
             if(in_array($categoryLabel, [CategoryType::DELIVERY_TRANSPORT, CategoryType::COLLECT_TRANSPORT])) {
                 $data[] = [
-                    "label" => "Logo",
+                    "label" => "Logo*",
                     "value" => $this->renderView("form_element.html.twig", [
                         "element" => "image",
                         "arguments" => [
                             "logo",
                             null,
-                            false,
+                            true,
                             $type?->getLogo()?->getFullPath(),
                         ],
                     ]),
@@ -2053,6 +2061,30 @@ class SettingsController extends AbstractController {
         }
 
         return $this->json($response);
+    }
+
+    /**
+     * @Route("/delete-row/{type}/{id}", name="settings_delete_row", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
+     */
+    public function deleteRow(EntityManagerInterface $manager, SettingsService $service, string $type, int $id): Response {
+        try {
+            match($type) {
+                "timeSlots" => $service->deleteTimeSlot($manager->find(CollectTimeSlot::class, $id)),
+                "startingHours" => $service->deleteStartingHour($manager->find(TransportRoundStartingHour::class, $id)),
+            };
+
+            $manager->flush();
+
+            return $this->json([
+                "success" => true,
+                "msg" => "L'enregistrement a bien été supprimé",
+            ]);
+        } catch(Throwable $e) {
+            return $this->json([
+                "success" => false,
+                "msg" => $e->getMessage(),
+            ]);
+        }
     }
 
 }

@@ -1,4 +1,4 @@
-<form method="" class="modal show" id="modalCollectTimeSlot" role="dialog" aria-hidden="true">
+<div class="modal show" id="modalCollectTimeSlot" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -15,14 +15,15 @@
                            class="form-control needed data cursor-default filter-date-min mb-3 w-100 "
                            name="dateCollect"
                            min="{{ 'now' | date('Y-m-d') }}"
-                           value="{{ order.request.validatedDate | date('Y-m-d') }}"
+                           value="{{ request.validatedDate | date('Y-m-d') }}"
                            autocomplete="off"/>
                 <label class="wii-field-name w-100">
                     Créneau passage
                 </label>
                 <select class="data w-100 form-control needed" name="timeSlot" >
                     {% for timeSlot in timeSlots %}
-                        <option value="{{ timeSlot.id }}" {{ timeSlot.id == order.request.timeSlot.id ? 'selected' }}>
+                        <option value="{{ timeSlot.id }}"
+                            {{ request.timeSlot and timeSlot.id == request.timeSlot.id ? 'selected' }}>
                             {{ timeSlot.name }}
                         </option>
                     {% endfor %}
@@ -39,5 +40,6 @@
             </div>
         </div>
     </div>
+
     <input class="data" type="hidden" value="{{ order.id }}" name="orderId">
-</form>
+</div>

@@ -7,7 +7,7 @@ export default class Form {
     submitListeners;
     openListeners;
     closeListeners;
-    processors;
+    processors = [];
     uploads = {};
 
     static create(selector, {clearOnOpen} = {}) {
@@ -222,7 +222,7 @@ export default class Form {
         if($field.is(`[data-s2-initialized]`)) {
             $field = $field.parent().find(`.select2-selection`);
         } else if($field.is(`[type="file"]`)) {
-            $field = $field.parent();
+            $field = $field.siblings('.btn');
         }
 
         if($field.is(`[data-wysiwyg]`)) {
@@ -362,17 +362,16 @@ function treatInputError($input, errors, form) {
         } else {
             const valueIsEmpty = (
                 $input.is(`[data-wysiwyg]`) ? !$input.find(`.ql-editor`).text() :  // for wysuwyg fields
-                    ($input.is(`select[multiple]`) && Array.isArray($input.val())) ? $input.val().length === 0 : // for select2 multiple
-                        !$input.val() // other fiels
+                ($input.is(`select[multiple]`) && Array.isArray($input.val())) ? $input.val().length === 0 : // for select2 multiple
+                $input.is(`[type="file"]`) ? (!$input.val() && !$input.siblings('.preview-container').find('img').attr('src')) : // for input file
+                !$input.val() // other fields
             );
 
             if (valueIsEmpty) {
-                if (!$input.is(`[type="file"]`) || form instanceof Form && !form.uploads[$input.attr(`name`)]) {
-                    errors.push({
-                        elements: [$input],
-                        message: `Ce champ est requis`,
-                    });
-                }
+                errors.push({
+                    elements: [$input],
+                    message: `Ce champ est requis`,
+                });
             }
         }
     }

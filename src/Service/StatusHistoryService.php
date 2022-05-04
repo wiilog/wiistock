@@ -12,8 +12,10 @@ use RuntimeException;
 
 class StatusHistoryService {
 
-    public function updateStatus(EntityManagerInterface $entityManager, TransportRequest|TransportOrder $entity,
-                                 Statut $status, DateTime $date = null): StatusHistory {
+    public function updateStatus(EntityManagerInterface          $entityManager,
+                                 TransportRequest|TransportOrder $entity,
+                                 Statut                          $status,
+                                 ?DateTime                       $date = null): StatusHistory {
         $history = (new StatusHistory())
             ->setStatus($status)
             ->setDate($date ?? new DateTime());
@@ -21,17 +23,27 @@ class StatusHistoryService {
         $entity->setStatus($status);
 
         if ($entity instanceof TransportRequest) {
-            $history->setTransportRequest($entity);
+            $method = "setTransportRequest";
         }
         else if ($entity instanceof TransportOrder) {
-            $history->setTransportOrder($entity);
+            $method = "setTransportOrder";
         }
         else {
-            throw new RuntimeException('Unavailable entity type');
+            throw new RuntimeException("Unsupported entity type");
+        }
+
+        $latestStatus = $entity->getStatusHistory()->last();
+        if ($latestStatus && $latestStatus->getStatus()->getId() === $status->getId()) {
+            $latestStatus->setDate($date ?? new DateTime());
+            return $latestStatus;
+        }
+        else {
+            $history->{$method}($entity);
         }
 
         $entityManager->persist($history);
 
         return $history;
     }
+
 }

@@ -48,18 +48,16 @@
                     </span>
                 </td>
                 <td class="transport-category-container">
-                    <div class="mb-2 px-5">
+                    <div class="mb-2">
                         Créée le : {{ request.createdAt | format_helper('longDate', {short: true, time: true}) }}
                     </div>
-                    <div class="px-5">
+                    <div>
                         <span style="font-weight: bold">A livrer à :  {{ request.expectedAt | format_helper('longDate', {short: true, time: true}) }}</span>
                     </div>
                 </td>
                 <td class="transport-subcontract-contact">
-                    <div class="px-5">
                     {{ request.contact.name }}<br>
                     <span class="wii-small-text">N° dossier {{ request.contact.fileNumber }}</span>
-                    </div>
                 </td>
                 <td class="transport-subcontract-details-container">
                     <img src="{{ asset('svg/iot/location.svg') }}"
