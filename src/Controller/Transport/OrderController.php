@@ -171,14 +171,17 @@ class OrderController extends AbstractController {
 
         $queryResult = $transportRepository->findByParamAndFilters($request->request, $filters);
 
-        $transportOrders = [];
-        /** @var TransportOrder $order */
-        foreach ($queryResult["data"] as $order) {
-            $request = $order->getRequest();
-            $date = $request->getValidatedDate() ?? $request->getExpectedAt();
-
-            $transportOrders[$date->format("dmY")][] = $order;
-        }
+        $transportOrders = Stream::from($queryResult["data"])
+            ->keymap(function (TransportOrder $order) {
+                $request = $order->getRequest();
+                $date = $request->getValidatedDate() ?? $request->getExpectedAt();
+                $key = $date->format("dmY");
+                return [
+                    $key,
+                    $order
+                ];
+            }, true)
+            ->toArray();
 
         $rows = [];
         $currentRow = [];
