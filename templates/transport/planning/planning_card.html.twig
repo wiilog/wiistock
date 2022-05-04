@@ -5,9 +5,9 @@
                 (order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ONGOING') ? 'ongoing' : ''))
 %}
 {% set request = order.request ?? null %}
+{% set isCollect = request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') %}
 {% set roundLine = order ? (order.transportRoundLines | last) ?: null : null %}
 
-<!-- debut de la card -->
 <div class="p-1 card m-0 border-0">
     <div class="order-card {{ cardClass }}">
         <span class="transport-type">
@@ -26,8 +26,12 @@
         <div class="wii-field-name py-1 d-flex justify-content-between">
             <div>
                 <img src="{{ asset('svg/clock-black.svg') }}" alt="Icône horloge" width="13px">
-                <span>{{ request.expectedAt | format_helper('time', true, true) }}</span>
-                {% if request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') and request.emergency %}
+                {% if isCollect and request.timeSlot is not null %}
+                    <span>{{ request.timeSlot.name }}</span>
+                {% else %}
+                    <span>{{ request.expectedAt | format_helper('time', true, true) }}</span>
+                {% endif %}
+                {% if not isCollect and request.emergency %}
                     <img src="{{ asset('svg/timeline-urgent.svg') }}" alt="Icône urgent" width="13px">
                 {% endif %}
             </div>
@@ -41,4 +45,3 @@
         {% endif %}
     </div>
 </div>
-<!-- fin de la card -->

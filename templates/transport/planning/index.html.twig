@@ -56,66 +56,8 @@
                 <span>Planifier une tournée</span>
             </button>
         </div>
-        <div class="row d-flex">
-            <!-- debut planning une semaine -->
-            <div class="col-md-6 col-12 h-100">
-                <div class="wii-box border border-bottom-0">
-                    <div class="header">
-                        <span class="wii-title">La date</span>
-                    </div>
-                    <div class="wii-box mt-0 ">
-                        <div class="col-12 d-flex px-0">
-                            <div class="col-6 px-0 pr-1">
-                                <div class="planning-card-container border-right border-bottom">
-                                    <div class="type-header">
-                                        <img src="{{ asset('svg/delivery.svg') }}" alt="Icône livraison" width="15px">
-                                        <span class="wii-field-name ml-2"> NB Livraison</span>
-                                        <div class="mx-2 d-flex">
-                                            <span class="wii-body-text mr-1">13</span>
-                                            <img src="{{ asset('svg/cookie.svg') }}" alt="Icône livraison" width="15px">
-                                        </div>
-                                        <div class="mx-2 d-flex">
-                                            <span class="wii-body-text mr-1">13</span>
-                                            <img src="{{ asset('svg/cookie.svg') }}" alt="Icône livraison" width="15px">
-                                        </div>
-                                    </div>
-                                    <div class="card-columns">
-                                        {# TODO foreach sur les demande pour l'affichages des cards #}
-                                        {% for transportOrder in transportOrders %}
-                                            {% if transportOrder.request is not null and transportOrder.request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
-                                                {% include 'transport/planning/planning_card.html.twig' with {
-                                                    'order': transportOrder
-                                                } %}
-                                            {% endif %}
-                                        {% endfor %}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-6 px-0 pl-1">
-                                <div class="border-left border-bottom planning-card-container ">
-                                    <div class="type-header">
-                                        <img src="{{ asset('svg/collect.svg') }}" alt="Icône collecte" width="15px">
-                                        <span class="wii-field-name ml-2">NB Collectes</span>
-                                        <div class="mx-2 d-flex">
-                                            <span class="wii-body-text mr-1">13</span>
-                                            <img src="{{ asset('svg/cookie.svg') }}" alt="Icône livraison" width="15px">
-                                        </div>
-                                    </div>
-                                    <div class="card-columns">
-                                       {% for transportOrder in transportOrders %}
-                                           {% if transportOrder.request is not null and transportOrder.request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') %}
-                                               {% include 'transport/planning/planning_card.html.twig' with {
-                                                   'order': transportOrder
-                                               } %}
-                                           {% endif %}
-                                       {% endfor %}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="row d-flex planning-container">
+
         </div>
     </div>
 {% endblock %}
