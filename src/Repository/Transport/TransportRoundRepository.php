@@ -74,8 +74,9 @@ class TransportRoundRepository extends EntityRepository {
 
     public function findMobileTransportRoundsByUser(Utilisateur $user): array {
         return $this->createQueryBuilder('transport_round')
-            ->where('transport_round.deliverer = :user')
+            ->andWhere('transport_round.deliverer = :user')
             ->andWhere('transport_round.endedAt IS NULL')
+            ->orderBy('transport_round.expectedAt', 'ASC')
             ->setParameter('user', $user)
             ->getQuery()
             ->getResult();

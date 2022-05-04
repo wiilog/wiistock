@@ -42,6 +42,7 @@ use App\Service\EmplacementDataService;
 use App\Service\MobileApiService;
 use App\Service\NotificationService;
 use PhpParser\Node\Param;
+use Symfony\Bundle\MakerBundle\Str;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use WiiCommon\Helper\Stream;
 
@@ -2379,6 +2380,7 @@ class MobileController extends AbstractFOSRestController
         $user = $this->getUser();
 
         $transportRounds = $transportRoundRepository->findMobileTransportRoundsByUser($user);
+        dump(Stream::from($transportRounds)->map(fn($t) => FormatHelper::datetime($t->getExpectedAt())));
         $data = Stream::from($transportRounds)
             ->map(function(TransportRound $round) use ($transportRoundLineRepository, $freeFieldRepository) {
                 $lines = $transportRoundLineRepository->findLinesByRound($round);
@@ -2399,22 +2401,27 @@ class MobileController extends AbstractFOSRestController
                 $remainingDeliveries = 0;
                 foreach ($lines as $line) {
                     $packs = $line->getOrder()->getPacks();
+                    $partiallyLoaded = Stream::from($packs)
+                        ->some(fn(TransportDeliveryOrderPack $orderPack) => !$orderPack->isLoaded());
+                    if(!$partiallyLoaded) {
+                        $remainingDeliveries += 1;
+                    }
                 }
 
                 return [
                     'id' => $round->getId(),
                     'number' => $round->getNumber(),
                     'status' => FormatHelper::status($round->getStatus()),
-                    'date' => FormatHelper::datetime($round->getExpectedAt()),
+                    'date' => FormatHelper::date($round->getExpectedAt()),
                     'estimated_distance' => $round->getEstimatedDistance(),
-                    'estimated_time' => $round->getEstimatedTime(),
+                    'estimated_time' => str_replace(':', 'h', $round->getEstimatedTime()) . 'min',
                     'remaining_transports' => Stream::from($lines)
                         ->filter(fn(TransportRoundLine $line) => !$line->getFulfilledAt())
                         ->count(),
                     'total_transports' => count($lines),
                     'remaining_loaded' => $remainingLoaded,
                     'total_loaded' => $totalLoaded,
-                    'remaining_deliveries' => 0,
+                    'remaining_deliveries' => $remainingDeliveries,
                     'total_deliveries' => Stream::from($lines)
                         ->filter(fn(TransportRoundLine $line) => $line->getOrder()->getRequest() instanceof TransportDeliveryRequest)
                         ->count(),
