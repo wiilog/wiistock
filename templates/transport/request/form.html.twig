@@ -9,11 +9,11 @@
 {% set modeEdit = request.id is not null %}
 {% set modeDeliveryEdit = modeEdit and request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
 {% set modeCollectEdit = modeEdit and request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') %}
-{% set informations = informations ?? [] %}
-{% set prefilled = prefilled ?? "" %}
 
-<div class="modal fade" role="dialog" id="{{ modalId }}" data-modal-type="new">
-    <input type="hidden" value="{{ prefilled }}" id="prefilled">
+<div class="modal fade"
+     role="dialog"
+     id="{{ modalId }}"
+     data-modal-type="{{ modeEdit ? 'edit' : 'new' }}">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -53,44 +53,20 @@
                         <div class="col-md-6 col-12">
                             <div class="row">
                                 <div class="col-12 mb-2">
-                                    {{ form.input(
-                                        'contactName',
-                                        'Patient',
-                                        true,
-                                        contact.name ?? (
-                                            informations.Prenom ?? null and informations.Nom ?? null
-                                                ? (informations.Prenom ~ ' ' ~ informations.Nom)
-                                        ),
-                                        {
-                                            disabled: request.id is not null,
-                                            noClear: true
-                                        }
-                                    ) }}
+                                    {{ form.input('contactName', 'Patient', true, contact.name, {
+                                        disabled: request.id is not null,
+                                    }) }}
                                 </div>
                                 <div class="col-12 mb-2">
-                                    {{ form.input(
-                                        'contactFileNumber',
-                                        'N° dossier',
-                                        true,
-                                        contact.fileNumber ?? (informations.Nodos ?? ''),
-                                        {
-                                            disabled: request.id is not null,
-                                            noClear: true
-                                        }
-                                    ) }}
+                                    {{ form.input('contactFileNumber', 'N° dossier', true, contact.fileNumber, {
+                                        disabled: request.id is not null,
+                                    }) }}
                                 </div>
                                 <div class="col-12 mb-2">
-                                    {{ form.textarea(
-                                        'contactContact',
-                                        'Contact',
-                                        true,
-                                        contact.contact ?? (informations.Contact ?? ''),
-                                        {
-                                            style: 'min-height: 104px;',
-                                            resizeVertical: false,
-                                            noClear: true
-                                        }
-                                    ) }}
+                                    {{ form.textarea('contactContact', 'Contact', true, contact.contact, {
+                                        style: 'min-height: 104px;',
+                                        resizeVertical: false,
+                                    }) }}
                                 </div>
                             </div>
                         </div>
@@ -98,46 +74,25 @@
                             <div class="row">
                                 <div class="col-12 mb-2">
                                     <div class="d-flex">
-                                        {{ form.textarea(
-                                            'contactAddress',
-                                            'Adresse',
-                                            true,
-                                            contact.address ?? (informations.Adresse ?? ''),
-                                            {
-                                                style: 'min-height: 104px;',
-                                                resizeVertical: false,
-                                                noClear: true
-                                            }
-                                        ) }}
+                                        {{ form.textarea('contactAddress', 'Adresse', true, contact.address, {
+                                            style: 'min-height: 104px;',
+                                            resizeVertical: false,
+                                        }) }}
                                     </div>
                                 </div>
                                 <div class="col-12 mb-2">
-                                    {{ form.textarea(
-                                        'contactPersonToContact',
-                                        'Personne à prévenir',
-                                        true,
-                                        contact.personToContact ?? (informations.PersonnesAPrevenir ?? ''),
-                                        {
-                                            style: 'min-height: 104px;',
-                                            resizeVertical: false,
-                                            noClear: true
-                                        }
-                                    ) }}
+                                    {{ form.textarea('contactPersonToContact', 'Personne à prévenir', true, contact.personToContact, {
+                                        style: 'min-height: 104px;',
+                                        resizeVertical: false,
+                                    }) }}
                                 </div>
                             </div>
                         </div>
                         <div class="col-12 mb-2">
-                            {{ form.textarea(
-                                'contactObservation',
-                                'Remarque',
-                                false,
-                                contact.observation ?? (informations.Remarques ?? ''),
-                                {
-                                    style: 'min-height: 104px;',
-                                    resizeVertical: false,
-                                    noClear: true
-                                }
-                            ) }}
+                            {{ form.textarea('contactObservation', 'Remarque', false, contact.observation, {
+                                style: 'min-height: 104px;',
+                                resizeVertical: false,
+                            }) }}
                         </div>
                     </div>
 
