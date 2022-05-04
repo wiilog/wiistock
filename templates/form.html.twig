@@ -306,12 +306,12 @@
         {{ _self.label(label, required, inline, labelOptions) }}
         {{ _self.tooltip(options.tooltip ?? null, inline) }}
         <div class="form-group d-flex m-0">
-            <div class="preview-container stripped-background d-flex p-1 mr-1">
+            <div class="preview-container stripped-background d-flex">
                 <img src="{{ image ? (app.request.scheme ~ '://' ~ app.request.httpHost ~ "/" ~ image) : '' }}"
                      id="preview-{{ name }}"
                      alt="image"
                      height="50px"
-                     class="image {{ not image ? 'd-none' }}"/>
+                     class="image m-1 {{ not image ? 'd-none' }}"/>
             </div>
             <button class="btn btn-primary d-flex p-1 align-items-center justify-content-center"
                     onclick="$('#upload-{{ name }}').click();">
