@@ -2,6 +2,7 @@
 
 namespace App\Repository\Transport;
 
+use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\TransportRoundLine;
 use Doctrine\ORM\EntityRepository;
 
@@ -11,4 +12,12 @@ use Doctrine\ORM\EntityRepository;
  * @method TransportRoundLine[]    findAll()
  * @method TransportRoundLine[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class TransportRoundLineRepository extends EntityRepository {}
+class TransportRoundLineRepository extends EntityRepository {
+    public function findLinesByRound(TransportRound $line): array {
+        return $this->createQueryBuilder('transport_round_line')
+            ->andWhere('transport_round_line = :round')
+            ->setParameter('round', $line)
+            ->getQuery()
+            ->getResult();
+    }
+}

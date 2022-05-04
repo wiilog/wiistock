@@ -28,6 +28,9 @@ class TransportRound
     private ?DateTime $createdAt = null;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?DateTime $expectedAt = null;
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $endedAt = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'transportRounds')]
@@ -98,6 +101,18 @@ class TransportRound
     public function setCreatedAt(DateTime $createdAt): self
     {
         $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    public function getExpectedAt(): ?DateTime
+    {
+        return $this->expectedAt;
+    }
+
+    public function setExpectedAt(DateTime $expectedAt): self
+    {
+        $this->expectedAt = $expectedAt;
 
         return $this;
     }

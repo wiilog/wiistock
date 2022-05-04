@@ -149,7 +149,7 @@ class RequestController extends AbstractController {
 
         $hasRejectedPacks = !$transportRequest->getOrders()->isEmpty()
             && Stream::from($transportRequest->getOrders()->last()->getPacks())
-                ->some(fn(TransportDeliveryOrderPack $pack) => $pack->isRejected());
+                ->some(fn(TransportDeliveryOrderPack $pack) => !$pack->isLoaded());
 
         return $this->render('transport/request/show.html.twig', [
             'request' => $transportRequest,
