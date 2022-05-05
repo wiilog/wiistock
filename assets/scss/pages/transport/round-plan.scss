@@ -1,0 +1,90 @@
+.transport-type{
+    background-color: #FFFFFF;
+    padding: 3px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    word-break: break-word;
+    img{
+        margin-right: 3px;
+    }
+}
+
+.order-card{
+    background-color: #f2f3f7;
+    border-radius: 5px;
+    margin : 5px 10px;
+    display: flex;
+
+    .affected-number{
+        background-color: #3353d7 ;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #FFFFFF;
+        width: 23px;
+        border-bottom-left-radius: inherit;
+        border-top-left-radius: inherit ;
+    }
+
+    .card-content{
+        flex: 1 1 auto;
+        div{
+            margin: 3px 3px;
+        }
+
+        .details{
+            margin-left: 5px;
+            margin-right: 5px;
+        }
+    }
+
+    .first-line{
+
+        height: min-content;
+        display: flex;
+
+        .head{
+            display: flex;
+            flex-wrap: wrap-reverse;
+            justify-content: space-between;
+            flex : 1 ;
+
+            .types{
+                display: flex;
+                width: fit-content;
+                flex-wrap: wrap;
+                margin: 0;
+            }
+        }
+    }
+
+    .sticky{
+        position: sticky;
+        left: 100%;
+        top: 0%;
+        display: flex;
+        .time{
+            display: flex;
+            align-items: center;
+            height: 32px ;
+            flex-wrap: nowrap;
+        }
+    }
+
+    .btn-cross{
+        margin: 5px 3px ;
+        padding: 5px;
+        height: 30px;
+        width: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+
+}
+.card-container{
+    max-height: 80vh;
+    overflow-y: auto;
+}

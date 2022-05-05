@@ -1,1 +1,160 @@
-test
+{% extends 'layout.html.twig' %}
+
+{% block title %}Ordre | Planning | Planifier une tournée{% endblock %}
+{% block titleLink path('transport_round_plan') %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('transport-round-plan') }}
+{% endblock %}
+
+{% block page_content %}
+    <div class="wii-box-container mb-4 ml-3 mr-3">
+        <div class="row">
+            <div class="col-lg-3 col-md-6 col-12">
+                <div class="wii-box">
+                    <div class="header">
+                        <span class="wii-title">Transport à affecter</span>
+                    </div>
+                    <div class="d-flex flex-column card-container">
+
+
+                        <div class="order-card">
+
+                            {#
+                            <div class="affected-number">
+                                50
+                            </div>
+                            #}
+
+                            <div class="card-content">
+                                <div class="first-line">
+                                    <div class="head">
+                                        <div class="types">
+                                            <div class="transport-type">
+                                                <img src="{{ asset('svg/cookie.svg') }}" class="mr-2" width="15">
+                                                Chimiooo
+                                            </div>
+
+                                            {#
+                                            <div class="transport-type">
+                                                <img src="{{ asset('svg/cookie.svg') }}" class="mr-2" width="15">
+                                                autre
+                                            </div>
+                                            #}
+
+                                        </div>
+                                    </div>
+                                    <div class="sticky">
+                                        <div class="time">
+                                            <strong>
+                                                <img src="{{ asset('svg/clock-black.svg') }}" alt="Icône horloge" width="13px" class="mr-1">
+                                                10:00
+                                            </strong>
+                                        </div>
+
+                                        {#
+                                        <button type="button" class="btn btn-outline-primary btn-cross">
+                                            <img src="{{ asset('svg/cross-blue.svg') }}" width="13px">
+                                        </button>
+                                        #}
+
+                                    </div>
+                                </div>
+                                <div class="ml-2">
+                                    <span class="wii-field-text">
+                                        Francis Cabrel
+                                    </span>
+                                    <span class="wii-small-text">
+                                        N°5354133
+                                    </span>
+                                </div>
+                                <div>
+                                    <img src="{{ asset('svg/location.svg') }}" width="13px" alt="">
+                                    2 allée des charmilles 69018 LYON
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6 col-12">
+                <div class="wii-box">
+                    <div class="header">
+                        <span class="wii-title">Transports Affectées</span>
+                    </div>
+                    <div class="d-flex flex-column card-container">
+
+                        {% for n in 1..36%}
+                        <div class="order-card">
+                            <div class="affected-number">
+                                50
+                            </div>
+                            <div class="card-content">
+                                <div class="first-line">
+                                    <div class="head">
+                                        <div class="types">
+                                            <div class="transport-type">
+                                                <img src="{{ asset('svg/cookie.svg') }}" class="mr-2" width="15">
+                                                Chimioooo ooooooo
+                                            </div>
+                                            <div class="transport-type">
+                                                <img src="{{ asset('svg/cookie.svg') }}" class="mr-2" width="15">
+                                                autre
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="sticky">
+                                        <div class="time">
+                                            <strong>
+                                                <img src="{{ asset('svg/clock-black.svg') }}" alt="Icône horloge" width="13px" class="mr-1">
+                                                10:00
+                                            </strong>
+                                        </div>
+                                        <button type="button" class="btn btn-outline-primary btn-cross">
+                                            <img src="{{ asset('svg/cross-blue.svg') }}" width="13px">
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="ml-2">
+                                    <span class="wii-field-text">
+                                        Francis Cabrel
+                                    </span>
+                                    <span class="wii-small-text">
+                                        N°5354133
+                                    </span>
+                                </div>
+                                <div>
+                                    <img src="{{ asset('svg/location.svg') }}" width="13px" alt="">
+                                    2 allée des charmilles 69018 LYON
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6 col-md-12 col-12">
+                <div class="wii-box">
+                    <div class="header d-flex justify-content-between">
+                        <span class="wii-title">Nouvelle tournée</span>
+                        <div class="wii-body-text">
+                            <div>T2132165-03</div>
+                            <div>Mar 24 mai</div>
+                        </div>
+                    </div>
+                    <div class="row content">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('transport-round-plan') }}
+{% endblock %}

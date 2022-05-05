@@ -12,7 +12,7 @@ use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
+ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -111,6 +111,7 @@ class RoundController extends AbstractController {
             "html" => $this->renderView('transport/round/round-content.html.twig'),
         ]);
     }
+
     #[Route("/voir/{transportRound}", name: "transport_round_show", methods: "GET")]
     public function show(TransportRound $transportRound): Response {
         // TODO Faire la page de show
@@ -122,6 +123,7 @@ class RoundController extends AbstractController {
     public function plan(Request $request, EntityManagerInterface $entityManager): Response
     {
         // TODO Faire la page planifier
+        $date = $request->query->get('dateRound');
         return $this->render('transport/round/plan.html.twig');
     }
 }
