@@ -2,6 +2,7 @@
     <div class="col-md-6 col-12 h-100">
         <div class="wii-box border border-bottom-0">
             <div class="header">
+                <input type="hidden" value="{{ dateForContainer }}" class="date-container">
                 <span class="wii-title">{{ dateForContainer | date_modify("+#{i}days") | format_helper('longDate', {short: false, time: false, year: false}) }}</span>
             </div>
             <div class="wii-box mt-0 ">
@@ -11,31 +12,28 @@
                             <div class="type-header">
                                 <img src="{{ asset('svg/delivery.svg') }}" alt="Icône livraison" width="15px">
                                 <span class="wii-field-name ml-2">
-{# {{ deliveryAndCollectCount[dateForContainer | date_modify("+#{i}days") | date('Y-m-d')]['delivery'] }} Livraison#}
+                                    {{ deliveryAndCollectCount[dateForContainer | date_modify("+#{i}days") | date('Y-m-d')]['delivery'] ?? 0 }} Livraison
                                 </span>
                                 <div class="mx-2 d-flex">
-                                    <span class="wii-body-text mr-1">13</span>
-                                    <img src="{{ asset('svg/cookie.svg') }}" alt="Icône livraison" width="15px">
-                                </div>
-                                <div class="mx-2 d-flex">
-                                    <span class="wii-body-text mr-1">13</span>
-                                    <img src="{{ asset('svg/cookie.svg') }}" alt="Icône livraison" width="15px">
+                                    {% if typesCount[dateForContainer | date_modify("+#{i}days") | date('Y-m-d')]['delivery'] is defined %}
+                                        {% for typeId,typeLabel in typesCount[dateForContainer | date_modify("+#{i}days") | date('Y-m-d')]['delivery'] %}
+                                            <div class="ml-3">
+                                                <span class="wii-body-text mr-1">{{ typeLabel }}</span>
+                                                {% if typeIdToFullPath[typeId] is defined %}
+                                                    <img src="{{ typeIdToFullPath[typeId] }}" alt="Icône livraison" width="15px">
+                                                {% endif %}
+                                            </div>
+                                        {% endfor %}
+                                    {% endif %}
                                 </div>
                             </div>
                             <div class="bottom-border">
                                 <div class="card-container">
                                     {% for transportOrder in transportOrders[dateForContainer | date_modify("+#{i}days") | date('Y-m-d') ] %}
-                                        {% if transportOrder.request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
+                                        {% if transportOrder is not empty and transportOrder.request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
                                             {% include 'transport/planning/planning_card.html.twig' with {
                                                 'order': transportOrder
                                             } %}
-
-                                            {% for n in 0..11 %}
-                                                {% include 'transport/planning/planning_card.html.twig' with {
-                                                    'order': transportOrder
-                                                } %}
-                                            {% endfor%}
-
                                         {% endif %}
                                     {% endfor %}
                                 </div>
@@ -48,17 +46,25 @@
                             <div class="type-header">
                                 <img src="{{ asset('svg/collect.svg') }}" alt="Icône collecte" width="15px">
                                 <span class="wii-field-name ml-2">
-{# {{ deliveryAndCollectCount[dateForContainer | date_modify("+#{i}days") | date('Y-m-d')]['collect'] }} Collectes #}
+                                    {{ deliveryAndCollectCount[dateForContainer | date_modify("+#{i}days") | date('Y-m-d')]['collect'] }} Collecte
                                 </span>
                                 <div class="mx-2 d-flex">
-                                    <span class="wii-body-text mr-1">13</span>
-                                    <img src="{{ asset('svg/cookie.svg') }}" alt="Icône livraison" width="15px">
+                                    {% if typesCount[dateForContainer | date_modify("+#{i}days") | date('Y-m-d')]['collect'] is defined %}
+                                        {% for typeId,typeLabel in typesCount[dateForContainer | date_modify("+#{i}days") | date('Y-m-d')]['collect'] %}
+                                            <div class="ml-3">
+                                                <span class="wii-body-text mr-1">{{ typeLabel }}</span>
+                                                {% if typeIdToFullPath[typeId] is defined %}
+                                                    <img src="{{ typeIdToFullPath[typeId] }}" alt="Icône livraison" width="15px">
+                                                {% endif %}
+                                            </div>
+                                        {% endfor %}
+                                    {% endif %}
                                 </div>
                             </div>
                             <div class="bottom-border">
                                 <div class="card-container">
                                     {% for transportOrder in transportOrders[dateForContainer | date_modify("+#{i}days") | date('Y-m-d') ] %}
-                                        {% if transportOrder.request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') %}
+                                        {% if transportOrder is not empty and transportOrder.request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') %}
                                             {% include 'transport/planning/planning_card.html.twig' with {
                                                 'order': transportOrder
                                             } %}

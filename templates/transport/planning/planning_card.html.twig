@@ -1,5 +1,7 @@
 {% set isOrderToAssign = (order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_TO_ASSIGN')) %}
-{% set cardClass = isOrderToAssign ? 'to-assign' : (order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ASSIGNED') ? 'assigned' :
+{% set cardClass =
+    isOrderToAssign ? 'to-assign' :
+    (order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ASSIGNED') ? 'assigned' :
     (order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ONGOING') ? 'ongoing' : '')) %}
 {% set request = order.request ?? null %}
 {% set isCollect = request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') %}
@@ -16,6 +18,14 @@
                     {{ request.type.label }}
                 </label>
             </div>
+            {% if not isCollect and request.collect is not null and request.collect.type.logo %}
+                <div class="transport-type">
+                    <label for="type-filter-{{ request.type.id }}" class="d-inline-flex align-items-center">
+                        <img src="{{ request.collect.type.logo ? request.collect.type.logo.fullPath }}" class="mr-2" width="15">
+                    </label>
+                </div>
+                {{ request.type.label }}
+            {% endif %}
             <div class="details">
                 <div class="d-flex py-auto flex-wrap">
                     <span class="wii-body-text py-1 mr-2">{{ request.contact.name }}</span>
