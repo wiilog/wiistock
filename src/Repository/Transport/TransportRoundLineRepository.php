@@ -13,11 +13,5 @@ use Doctrine\ORM\EntityRepository;
  * @method TransportRoundLine[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
 class TransportRoundLineRepository extends EntityRepository {
-    public function findLinesByRound(TransportRound $line): array {
-        return $this->createQueryBuilder('transport_round_line')
-            ->andWhere('transport_round_line = :round')
-            ->setParameter('round', $line)
-            ->getQuery()
-            ->getResult();
-    }
+
 }

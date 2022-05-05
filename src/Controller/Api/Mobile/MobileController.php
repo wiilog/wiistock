@@ -2375,14 +2375,13 @@ class MobileController extends AbstractFOSRestController
      */
     public function transportRounds(EntityManagerInterface $manager): Response {
         $transportRoundRepository = $manager->getRepository(TransportRound::class);
-        $transportRoundLineRepository = $manager->getRepository(TransportRoundLine::class);
         $freeFieldRepository = $manager->getRepository(FreeField::class);
         $user = $this->getUser();
 
         $transportRounds = $transportRoundRepository->findMobileTransportRoundsByUser($user);
         $data = Stream::from($transportRounds)
-            ->map(function(TransportRound $round) use ($transportRoundLineRepository, $freeFieldRepository) {
-                $lines = $transportRoundLineRepository->findLinesByRound($round);
+            ->map(function(TransportRound $round) use ($freeFieldRepository) {
+                $lines = $round->getTransportRoundLines();
 
                 /** @var TransportRoundLine $line */
                 $totalLoaded = 0;
@@ -2471,6 +2470,8 @@ class MobileController extends AbstractFOSRestController
                                     'contact' => $contact->getContact(),
                                     'person_to_contact' => $contact->getPersonToContact(),
                                     'observation' => $contact->getObservation(),
+                                    'latitude' => $contact->getAddressLatitude(),
+                                    'longitude' => $contact->getAddressLongitude(),
                                 ],
                                 'comment' => $order->getComment(),
                                 'photos' => Stream::from($order->getAttachments())
