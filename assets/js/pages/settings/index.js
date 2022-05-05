@@ -24,6 +24,7 @@ import {
 } from "./statuses";
 import {initializeAlertTemplate, initializeNotifications} from "./alert-template";
 import {onHeaderPageEditStop} from "./utils";
+import Form from '../../form';
 
 global.triggerReminderEmails = triggerReminderEmails;
 global.saveTranslations = saveTranslations;
