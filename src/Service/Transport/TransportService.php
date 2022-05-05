@@ -192,9 +192,10 @@ class TransportService {
             }
         }
 
-        if ($transportRequest->getOrders()->isEmpty()
-            && $status->getCode() !== TransportRequest::STATUS_AWAITING_VALIDATION) {
-            $this->persistTransportOrder($entityManager, $transportRequest, $loggedUser, $subcontracted);
+        if (!$transportRequest->getOrder()) {
+            if ($status->getCode() !== TransportRequest::STATUS_AWAITING_VALIDATION) {
+                $this->persistTransportOrder($entityManager, $transportRequest, $loggedUser, $subcontracted);
+            }
         }
 
         $transportRequest->setLines([]);

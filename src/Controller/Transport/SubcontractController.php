@@ -187,7 +187,7 @@ class SubcontractController extends AbstractController
             'history' => $statusHistory,
         ]);
 
-        if ($transportRequest->getOrders()->isEmpty()) {
+        if (!$transportRequest->getOrder()) {
             $transportService->persistTransportOrder($entityManager, $transportRequest, $loggedUser, $subcontracted);
         }
 
@@ -207,8 +207,7 @@ class SubcontractController extends AbstractController
             $statutRepository = $entityManager->getRepository(Statut::class);
             $transportRequest = $transportRequestRepository->find($data['id']);
 
-            /** @var TransportOrder $transportOrder */
-            $transportOrder = $transportRequest->getOrders()->last();
+            $transportOrder = $transportRequest->getOrder();
 
             $statusForSelect =
                 [($transportRequest->getStatus()->getCode() == TransportRequest::STATUS_SUBCONTRACTED ? TransportRequest::STATUS_ONGOING : ""),
@@ -241,8 +240,7 @@ class SubcontractController extends AbstractController
         $data = $request->request;
         $transportRequest = $transportRequestRepository->find($data->get('id'));
 
-        /** @var TransportOrder $transportOrder */
-        $transportOrder = $transportRequest->getOrders()->last();
+        $transportOrder = $transportRequest->getOrder();
 
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();

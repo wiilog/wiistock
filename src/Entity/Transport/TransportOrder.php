@@ -86,7 +86,7 @@ class TransportOrder {
     #[ORM\Column(type: 'boolean')]
     private ?bool $subcontracted = null;
 
-    #[ORM\ManyToOne(targetEntity: TransportRequest::class, inversedBy: 'orders')]
+    #[ORM\ManyToOne(targetEntity: TransportRequest::class, inversedBy: 'order')]
     private ?TransportRequest $request = null;
 
     #[ORM\OneToMany(mappedBy: 'order', targetEntity: TransportHistory::class)]
@@ -197,11 +197,15 @@ class TransportOrder {
     }
 
     public function setRequest(?TransportRequest $request): self {
-        if ($this->request && $this->request !== $request) {
-            $this->request->removeOrder($this);
+        if($this->request && $this->request->getOrder() !== $this) {
+            $oldRequest = $this->request;
+            $this->request = null;
+            $oldRequest->setOrder(null);
         }
         $this->request = $request;
-        $request?->addOrder($this);
+        if($this->request && $this->request->getOrder() !== $this) {
+            $this->request->setOrder($this);
+        }
 
         return $this;
     }

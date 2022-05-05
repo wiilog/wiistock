@@ -51,14 +51,7 @@ class TransportHistoryService {
     public const TYPE_ACCEPTED = "ACCEPTED";
     public const TYPE_REJECTED_DELIVERY = "REJECTED_DELIVERY";
     public const TYPE_CANCELLED = "CANCELLED";
-
-    private const CATEGORIES = [
-        self::CATEGORY_TIMELINE => [],
-        self::CATEGORY_INFORMATION => [],
-        self::CATEGORY_WARNING => [],
-        self::CATEGORY_COMMENT => [],
-        self::CATEGORY_ATTACHMENT => [],
-    ];
+    public const TYPE_REQUEST_EDITED = "REQUEST_EDITED";
 
     public const CONTENT = [
         self::TYPE_REQUEST_CREATION => "{user} a créé la {category}",
@@ -82,6 +75,7 @@ class TransportHistoryService {
         self::TYPE_ACCEPTED => "La demande a été acceptée",
         self::TYPE_REJECTED_DELIVERY => "La livraison a été rejetée de la tournée",
         self::TYPE_CANCELLED => "{user} a annulé la {category}",
+        self::TYPE_REQUEST_EDITED => "La demande a été modifiée"
     ];
 
     #[Required]
@@ -217,6 +211,7 @@ class TransportHistoryService {
             self::TYPE_PACKS_DEPOSITED => self::CATEGORY_TIMELINE,
 
             self::TYPE_AFFECTED_ROUND,
+            self::TYPE_REQUEST_EDITED,
             self::TYPE_PACKS_FAILED,
             self::TYPE_CONTACT_VALIDATED => self::CATEGORY_INFORMATION,
 

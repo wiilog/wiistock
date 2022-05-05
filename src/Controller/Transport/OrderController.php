@@ -103,12 +103,10 @@ class OrderController extends AbstractController {
             : CategorieCL::COLLECT_TRANSPORT;
         $freeFields = $freeFieldRepository->findByTypeAndCategorieCLLabel($transportRequest->getType(), $categoryFF);
 
-        $packsCount = !$transportRequest->getOrders()->isEmpty()
-            ? $transportRequest->getOrders()->last()->getPacks()->count()
-            : 0;
+        $packsCount = $transportRequest->getOrder()?->getPacks()->count() ?: 0;
 
-        $hasRejectedPacks = !$transportRequest->getOrders()->isEmpty()
-            && Stream::from($transportRequest->getOrders()->last()->getPacks())
+        $hasRejectedPacks = $transportRequest->getOrder()
+            && Stream::from($transportRequest->getOrder()?->getPacks() ?: [])
                 ->some(fn(TransportDeliveryOrderPack $pack) => $pack->isRejected());
 
         $round = !$transportOrder->getTransportRoundLines()->isEmpty()

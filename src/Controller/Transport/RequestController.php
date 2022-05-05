@@ -127,12 +127,10 @@ class RequestController extends AbstractController {
             ->filter(fn($_, $key) => $key !== 0)
             ->toArray();
 
-        $packsCount = !$transportRequest->getOrders()->isEmpty()
-            ? $transportRequest->getOrders()->last()->getPacks()->count()
-            : 0;
+        $packsCount = $transportRequest->getOrder()?->getPacks()->count() ?: 0;
 
-        $hasRejectedPacks = !$transportRequest->getOrders()->isEmpty()
-            && Stream::from($transportRequest->getOrders()->last()->getPacks())
+        $hasRejectedPacks = $transportRequest->getOrder()
+            && Stream::from($transportRequest->getOrder()?->getPacks() ?: [])
                 ->some(fn(TransportDeliveryOrderPack $pack) => $pack->isRejected());
 
         return $this->render('transport/request/show.html.twig', [
@@ -259,7 +257,7 @@ class RequestController extends AbstractController {
         $data = $request->request->all();
         $natureRepository = $entityManager->getRepository(Nature::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
-        $order = $transportRequest->getOrders()->last() ?: null;
+        $order = $transportRequest->getOrder();
 
         $canPacking = (
             isset($order)
@@ -309,8 +307,8 @@ class RequestController extends AbstractController {
 
     #[Route("/{transportRequest}/packing-check", name: "transport_request_packing_check", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::EDIT_TRANSPORT], mode: HasPermission::IN_JSON)]
-    public function packingCheck(TransportRequest $transportRequest ): JsonResponse {
-        $order = $transportRequest->getOrders()->last() ?: null;
+    public function packingCheck(TransportRequest $transportRequest): JsonResponse {
+        $order = $transportRequest->getOrder();
         if($order->getPacks()->isEmpty()) {
             return $this->json([
                 "success" => true,
@@ -426,7 +424,7 @@ class RequestController extends AbstractController {
             /**
              * @var TransportOrder $transportOrder
              */
-            $transportOrder = $transportRequest->getOrders()->first();
+            $transportOrder = $transportRequest->getOrder();
 
             /**
              * @var StatusHistory[] $statusesHistories
@@ -522,7 +520,7 @@ class RequestController extends AbstractController {
                 'user' => $loggedUser
             ]);
 
-            $transportOrder = $transportRequest->getOrders()->last();
+            $transportOrder = $transportRequest->getOrder();
             if ($transportOrder) {
                 $statusOrder = $statusRepository->findOneByCategorieNameAndStatutCode($categoryOrder, TransportOrder::STATUS_CANCELLED);
                 $statusHistoryOrder = $statusHistoryService->updateStatus($entityManager, $transportOrder, $statusOrder);
@@ -550,7 +548,7 @@ class RequestController extends AbstractController {
     public function printTransportPacks(TransportRequest $transportRequest,
                                         PDFGeneratorService $PDFGeneratorService,
                                         EntityManagerInterface $manager): Response {
-        $packs = !$transportRequest->getOrders()->isEmpty() ? $transportRequest->getOrders()->last()->getPacks() : [];
+        $packs = Stream::from($transportRequest->getOrder()?->getPacks() ?: []);
         $contact = $transportRequest->getContact();
         $contactName = $contact->getName();
         $contactFileNumber = $contact->getFileNumber();
