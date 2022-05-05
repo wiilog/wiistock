@@ -106,4 +106,11 @@ class RoundController extends AbstractController {
         // TODO Faire la page de show
         return $this->render('transport/round/show.html.twig');
     }
+
+    #[Route("/planifier", name: "transport_round_plan", methods: "GET")]
+    public function plan(TransportRound $transportRound): Response
+    {
+        // TODO Faire la page planifier
+        return $this->render('transport/round/plan.html.twig');
+    }
 }
