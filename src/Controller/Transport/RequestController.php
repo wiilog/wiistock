@@ -56,12 +56,18 @@ class RequestController extends AbstractController {
      */
     #[Route("/liste", name: "transport_request_index", methods: "GET")]
     #[HasPermission([Menu::DEM, Action::DISPLAY_TRANSPORT])]
-    public function index(EntityManagerInterface $entityManager, Request $request): Response {
+    public function index(EntityManagerInterface $entityManager,
+                          Request $request): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
         $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
 
-        $token = $request->query->get('x-api-key');
+        $natures = $natureRepository->findByAllowedForms([Nature::TRANSPORT_COLLECT_CODE, Nature::TRANSPORT_DELIVERY_CODE]);
+        $requestLines = Stream::from($natures)
+            ->map(fn(Nature $nature) => [
+                'nature' => $nature,
+            ])
+            ->toArray();
 
         return $this->render('transport/request/index.html.twig', [
             'newRequest' => new TransportDeliveryRequest(),
@@ -81,10 +87,7 @@ class RequestController extends AbstractController {
                 CategoryType::DELIVERY_TRANSPORT,
                 CategoryType::COLLECT_TRANSPORT,
             ]),
-            'natures' => $natureRepository->findByAllowedForms([
-                Nature::TRANSPORT_COLLECT_CODE,
-                Nature::TRANSPORT_DELIVERY_CODE
-            ]),
+            'requestLines' => $requestLines,
             'temperatures' => $temperatureRangeRepository->findAll(),
             'statuts' => [
                 TransportRequest::STATUS_AWAITING_VALIDATION,
@@ -103,10 +106,9 @@ class RequestController extends AbstractController {
         ]);
     }
 
-    #[Route("/voir/{id}", name: "transport_request_show", methods: "GET")]
-    public function show(TransportRequest $id,
+    #[Route("/voir/{transportRequest}", name: "transport_request_show", methods: "GET")]
+    public function show(TransportRequest $transportRequest,
                          EntityManagerInterface $entityManager): Response {
-        $transportRequest = $id;
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $natureRepository = $entityManager->getRepository(Nature::class);

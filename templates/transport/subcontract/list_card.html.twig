@@ -1,4 +1,4 @@
-{% set order = order ?? ((request.orders | last) ?: null) %}
+{% set order = order ?? request.order %}
 {% set transportOrderHistory = order.history ? (order.history |  filter(h => h.type == historyType) | last) : null %}
 
 <div class="transport-request-container col-12 p-1">

@@ -322,13 +322,16 @@ abstract class TransportRequest {
     }
 
     public function isInRound(): bool {
-        return Stream::from($this->orders)->some(fn(TransportOrder $order) => !$order->getTransportRoundLines()->isEmpty());
+        return $this->getOrder()
+            ?->getTransportRoundLines()
+            ->isEmpty() ?: false;
     }
 
     public function roundHasStarted(): bool {
-        return Stream::from($this->orders)
-            ->map(fn(TransportOrder $order) => $order->getTransportRoundLines()->last())
-            ->some(fn(TransportRoundLine|bool $round) => $round && $round->getTransportRound()->getBeganAt() !== null);
+        $lastRoundLine = $this->getOrder()
+            ?->getTransportRoundLines()
+            ->last() ?: null;
+        return $lastRoundLine?->getTransportRound()?->getBeganAt() !== null;
     }
 
     public function isSubcontracted(): bool {

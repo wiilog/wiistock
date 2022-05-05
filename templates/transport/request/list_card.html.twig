@@ -1,5 +1,5 @@
 {% set entity = order ?? request %}
-{% set order = order ?? ((request.orders | last) ?: null) %}
+{% set order = order ?? request.order %}
 {% set roundLine = order ? (order.transportRoundLines | last) ?: null : null %}
 
 <div class="transport-request-container col-12 col-xl-6 p-1">
