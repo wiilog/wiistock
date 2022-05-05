@@ -149,12 +149,13 @@
 
 {% macro select(name, label, required, options = {}) %}
     {% set inline = options.inline ?? false %}
+    {% set widthInput = options.widthInput ?? 100 %}
     {% set value = options.value ?? null %}
     {% set values = value
         ? (value is iterable ? value : [value])
         : [] %}
 
-    <label class="w-100 {{ not options.search ?? true ? 'no-search' }}">
+    <label class="w-{{ widthInput }} {{ not options.search ?? true ? 'no-search' }}">
         {{ _self.label(label, required, inline, options.labelOptions ?? {}) }}
         {% if label %}
             {{ _self.tooltip(options.tooltip ?? null, inline) }}
@@ -203,7 +204,8 @@
 
 {% macro input(name, label, required, value = '', options = {}) %}
     {% set inline = options.inline ?? false %}
-    <label class="w-100 {{ options.labelClass ?? '' }} {{ inline ? 'labelled-field' }}">
+    {% set widthInput = options.widthInput ?? 100 %}
+    <label class="{{ options.labelClass ?? '' }} {{ inline ? 'labelled-field' }} w-{{ widthInput }}">
         {{ _self.label(label, required, inline, options.labelOptions ?? {}) }}
         {{ _self.tooltip(options.tooltip ?? null, inline) }}
         <input type="{{ options.type ?? 'text' }}"

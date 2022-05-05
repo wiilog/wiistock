@@ -11,6 +11,7 @@ use App\Helper\FormatHelper;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -101,14 +102,24 @@ class RoundController extends AbstractController {
         ]);
     }
 
+    #[Route("/planning-api/form", name: "plan_round_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::ORDRE, Action::SCHEDULE_TRANSPORT_ROUND], mode: HasPermission::IN_JSON)]
+    public function planRoundApi(): JsonResponse
+    {
+        return $this->json([
+            "success" => true,
+            "html" => $this->renderView('transport/round/round-content.html.twig'),
+        ]);
+    }
     #[Route("/voir/{transportRound}", name: "transport_round_show", methods: "GET")]
     public function show(TransportRound $transportRound): Response {
         // TODO Faire la page de show
         return $this->render('transport/round/show.html.twig');
     }
 
-    #[Route("/planifier", name: "transport_round_plan", methods: "GET")]
-    public function plan(TransportRound $transportRound): Response
+    #[Route("/planifier", name: "transport_round_plan", options: ['expose' => true], methods: "GET")]
+    #[HasPermission([Menu::ORDRE, Action::SCHEDULE_TRANSPORT_ROUND])]
+    public function plan(Request $request, EntityManagerInterface $entityManager): Response
     {
         // TODO Faire la page planifier
         return $this->render('transport/round/plan.html.twig');
