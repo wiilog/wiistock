@@ -64,7 +64,11 @@ class EmplacementRepository extends EntityRepository
         return $this->createQueryBuilder('location')
             ->select('location.id')
             ->addSelect('location.label')
+            ->addSelect("GROUP_CONCAT(join_temperature_ranges.value SEPARATOR ';') AS temperature_ranges")
             ->where('location.isActive = true')
+            ->leftJoin('location.temperatureRanges', 'join_temperature_ranges')
+            ->groupBy('location.id')
+            ->addGroupBy('location.label')
             ->getQuery()
             ->getResult();
     }
