@@ -1,10 +1,5 @@
 <div class="row new-container px-3">
     <div class="col-4">
-        <label class="wii-field-name">Nom du modèle*</label>
-        <input type="text" class="form-control data needed required" name="name"/>
-    </div>
-
-    <div class="col-4">
         <label class="wii-field-name">Type d'alerte*</label>
         <select name="type" class="form-control data needed w-100" onchange="onTemplateTypeChange($(this))" data-s2>
             {% for index, type in templateTypes %}

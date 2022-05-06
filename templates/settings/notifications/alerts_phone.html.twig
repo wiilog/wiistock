@@ -3,8 +3,8 @@
         {% for phoneNumber in phoneNumbers %}
             <div class="phone-number-container d-flex {{ loop.index != 1 ? 'mt-2' }}">
                 <input class="form-control data-array phone-number {{ edit ? 'edit' }}" name="receivers" type="text" value="{{ phoneNumber }}" {{ not edit ? 'disabled' }}>
-                {% if loop.index != 1 and edit %}
-                    <button class="btn d-block" onclick="deletePhoneNumber($(this))"><i class="far fa-trash-alt"></i></button>
+                {% if loop.index != 1 and not edit %}
+                    <button class="btn d-block" onclick="deletePhoneNumber($(this))"><i class="wii-icon wii-icon-trash"></i></button>
                 {% endif %}
             </div>
         {% endfor %}
@@ -16,7 +16,7 @@
     {% if edit %}
         <button class="btn btn-primary mt-3"
                 onclick="addPhoneNumber($(this))" type="button">
-            <i class="fa fa-plus"></i>
+            <i class="fa fa-plus"></i> Ajouter un destinataire
         </button>
     {% endif %}
 </div>
@@ -24,6 +24,6 @@
 <template class="phone-number-template">
     <div class="phone-number-container d-flex mt-2">
         <input class="form-control data-array edit" name="receivers" type="text">
-        <button class="btn d-block" onclick="deletePhoneNumber($(this))"><i class="far fa-trash-alt"></i></button>
+        <button class="btn btn-outline-primary d-block" onclick="deletePhoneNumber($(this))"><i class="wii-icon wii-icon-trash"></i></button>
     </div>
 </template>
