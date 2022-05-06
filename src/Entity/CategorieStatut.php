@@ -32,6 +32,7 @@ class CategorieStatut {
     const TRANSPORT_REQUEST_COLLECT = 'demande de transport collecte';
     const TRANSPORT_ORDER_DELIVERY = 'ordre de transport livraison';
     const TRANSPORT_ORDER_COLLECT = 'ordre de transport collecte';
+    const TRANSPORT_ROUND = 'tournée';
     const IMPORT = 'import';
 
     #[ORM\Id]
