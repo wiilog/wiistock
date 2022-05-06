@@ -31,6 +31,7 @@ use App\Entity\Transport\TransportCollectRequest;
 use App\Entity\Transport\TransportDeliveryOrderPack;
 use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\Transport\TransportDeliveryRequestLine;
+use App\Entity\Transport\TransportRequest;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\TransportRoundLine;
 use App\Entity\Type;
@@ -1782,7 +1783,7 @@ class MobileController extends AbstractFOSRestController
     }
 
     /**
-     * @Rest\Get("/api/nomade-versions", condition="request.isXmlHttpRequest()")
+     * @Rest\Get("/api/nomade-versions")
      */
     public function getAvailableVersionsAction()
     {
@@ -2424,9 +2425,13 @@ class MobileController extends AbstractFOSRestController
                         ->filter(fn(TransportRoundLine $line) => $line->getOrder()->getRequest() instanceof TransportDeliveryRequest)
                         ->count(),
                     'lines' => Stream::from($lines)
+                        ->filter(fn(TransportRoundLine $line) =>
+                            !$line->getCancelledAt()
+                            || $line->getCancelledAt() > $line->getTransportRound()->getBeganAt())
                         ->map(function(TransportRoundLine $line) use ($freeFieldRepository) {
                             $order = $line->getOrder();
                             $request = $order->getRequest();
+                            $collect = $request instanceof TransportDeliveryRequest ? $request->getCollect() : null;
                             $contact = $request->getContact();
                             $isCollect = $request instanceof TransportCollectRequest;
                             $categoryFF = $isCollect
@@ -2445,8 +2450,19 @@ class MobileController extends AbstractFOSRestController
                                 'id' => $line->getTransportRound()->getId(),
                                 'number' => $request->getNumber(),
                                 'type' => FormatHelper::type($request->getType()),
-                                'type_icon' => $request->getType()?->getLogo()?->getFullPath(),
+                                'type_icon' => $request->getType()?->getLogo() ? $_SERVER["APP_URL"] . $request->getType()->getLogo()->getFullPath() : null,
                                 'kind' => $isCollect ? 'collect' : 'delivery',
+                                'collect' => $collect ? [
+                                    'type' => $collect->getType()->getLabel(),
+                                    'type_icon' => $collect->getType()?->getLogo() ? $_SERVER["APP_URL"] . $collect->getType()->getLogo()->getFullPath() : null,
+                                    'time_slot' => $collect->getTimeSlot()->getName(),
+                                    'success' => $collect->getStatus()->getCode() === TransportRequest::STATUS_FINISHED,
+                                    'failure' => in_array($collect->getStatus()->getCode(), [
+                                        TransportRequest::STATUS_NOT_DELIVERED,
+                                        TransportRequest::STATUS_NOT_COLLECTED,
+                                        TransportRequest::STATUS_CANCELLED,
+                                    ]),
+                                ] : null,
                                 'packs' => Stream::from($line->getOrder()->getPacks())
                                     ->map(function(TransportDeliveryOrderPack $orderPack) use ($temperatureRanges) {
                                         $pack = $orderPack->getPack();
@@ -2463,10 +2479,11 @@ class MobileController extends AbstractFOSRestController
                                     ? $request->getTimeSlot()->getName()
                                     : FormatHelper::datetime($request->getExpectedAt()),
                                 'estimated_time' => $line->getEstimatedAt()?->format('H:i'),
+                                'expected_time' => $request->getExpectedAt()?->format('H:i'),
                                 'time_slot' => $isCollect ? $request->getTimeSlot()->getName() : null,
                                 'contact' => [
                                     'file_number' => $contact->getFileNumber(),
-                                    'address' => $contact->getAddress(),
+                                    'address' => str_replace("\n", "<br>", $contact->getAddress()),
                                     'contact' => $contact->getContact(),
                                     'person_to_contact' => $contact->getPersonToContact(),
                                     'observation' => $contact->getObservation(),
@@ -2485,6 +2502,12 @@ class MobileController extends AbstractFOSRestController
                                         'value' => $freeFieldsValues[$freeField->getId()] ?? '',
                                     ]),
                                 'priority' => $line->getPriority(),
+                                'cancelled' => !!$line->getCancelledAt(),
+                                'success' => $request->getStatus()->getCode() === TransportRequest::STATUS_FINISHED,
+                                'failure' => in_array($request->getStatus()->getCode(), [
+                                    TransportRequest::STATUS_NOT_DELIVERED,
+                                    TransportRequest::STATUS_NOT_COLLECTED,
+                                ]),
                             ];
                         }),
                 ];
