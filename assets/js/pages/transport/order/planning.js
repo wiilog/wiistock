@@ -14,21 +14,50 @@ $(function () {
             }
         });
     });
+
     $('.today-date').on('click', function (){
         currentDate = moment();
-        wrapLoadingOnActionButton($(this), () => getOrders(null, $(this)));
+        wrapLoadingOnActionButton($(this), () => updateFilter($(this)));
     });
 
     $('.increment-date').on('click', function (){
-        currentDate = currentDate.add(1, 'days');
-        wrapLoadingOnActionButton($(this), () => getOrders(null, $(this)));
+       if( currentDate < moment().add(6, 'days')){
+            currentDate = currentDate.add(2, 'days');
+            wrapLoadingOnActionButton($(this), () => updateFilter($(this)));
+            $('.decrement-date').attr('disabled', false);
+       }else{
+           $(this).attr('disabled', true);
+       }
     });
 
     $('.decrement-date').on('click', function (){
-        currentDate = currentDate.subtract(1, 'days');
-        wrapLoadingOnActionButton($(this), () => getOrders(null, $(this)));
+        if( currentDate > moment().subtract(6, 'days')) {
+            currentDate = currentDate.subtract(2, 'days');
+            wrapLoadingOnActionButton($(this), () => updateFilter($(this)));
+            $('.increment-date').attr('disabled', false);
+        }else{
+            $(this).attr('disabled', true);
+        }
     });
 })
+
+function updateFilter( $button = null){
+    if(!$('.planning-switch').find('input:checked').length){
+        return(getOrders(null , $button));
+    }
+    else {
+        let response = null ;
+        $('.planning-switch').children().each(function(){
+            if($(this).find('input').is(':checked')){
+                response = getOrders($(this).attr('class'), $(this));
+            }
+        });
+        if($button !== null){
+            $button.popLoader();
+        }
+        return (response ? response : Promise.resolve());
+    }
+}
 
 function getOrders(statut = null, $button = null){
     return AJAX.route(GET,'transport_planning_api',{
