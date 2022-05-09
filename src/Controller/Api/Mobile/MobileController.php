@@ -1542,8 +1542,6 @@ class MobileController extends AbstractFOSRestController
         $transferOrderRepository = $entityManager->getRepository(TransferOrder::class);
         $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
-        $transportRoundRepository = $entityManager->getRepository(TransportRound::class);
-        $transportRoundLineRepository = $entityManager->getRepository(TransportRoundLine::class);
 
         $rights = $userService->getMobileRights($user);
         $parameters = $this->mobileApiService->getMobileParameters($settingRepository);
@@ -2471,6 +2469,7 @@ class MobileController extends AbstractFOSRestController
                                         return [
                                             'code' => $pack->getCode(),
                                             'nature' => FormatHelper::nature($nature),
+                                            'nature_id' => $nature->getId(),
                                             'temperature_range' => $temperatureRanges[$nature->getLabel()],
                                             'color' => $nature->getColor(),
                                         ];
