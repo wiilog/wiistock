@@ -391,6 +391,10 @@ function formatInputValue($input) {
         value = $input.val() || null;
     }
 
+    if (Array.isArray(value)) {
+        value = value.join(';');
+    }
+
     if (typeof value === `string`) {
         value = value.trim();
     }
