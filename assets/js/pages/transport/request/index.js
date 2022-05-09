@@ -47,7 +47,7 @@ $(function() {
         table.ajax.reload();
     });
 
-    const $modalTransportRequest = $("#modalTransportRequest");
+    const $modalTransportRequest = $(`[data-modal-type=new]`);
     const form = initializeForm($modalTransportRequest);
     form
         .onSubmit((data) => {
