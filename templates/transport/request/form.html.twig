@@ -110,8 +110,16 @@
                         <div class="col-auto mb-3">
                             {% if types is empty %}
                                 Aucun type disponible<br>
-                                <a href="/parametrage/afficher/track/demande_transport/types_champs_libres_livraisons" class="btn btn-primary mt-2">Configuration des types de livraison</a><br>
-                                <a href="/parametrage/afficher/track/demande_transport/types_champs_libres_collectes" class="btn btn-primary mt-1">Configuration des types de collecte</a>
+                            <a href="{{ path('settings_item', {
+                                'category': constant('App\\Controller\\Settings\\SettingsController::CATEGORY_TRACKING'),
+                                'menu': constant('App\\Controller\\Settings\\SettingsController::MENU_TRANSPORT_REQUESTS'),
+                                'submenu': constant('App\\Controller\\Settings\\SettingsController::MENU_DELIVERY_TYPES_FREE_FIELDS'),
+                            }) }}" class="btn btn-primary mt-2">Configuration des types de livraison</a><br>
+                            <a href="{{ path('settings_item', {
+                                'category': constant('App\\Controller\\Settings\\SettingsController::CATEGORY_TRACKING'),
+                                'menu': constant('App\\Controller\\Settings\\SettingsController::MENU_TRANSPORT_REQUESTS'),
+                                'submenu': constant('App\\Controller\\Settings\\SettingsController::MENU_COLLECT_TYPES_FREE_FIELDS'),
+                            }) }}" class="btn btn-primary mt-2">Configuration des types de collecte</a>
                             {% endif %}
 
                             {{ form.switch('type', null, true, types|map((type) => {

@@ -401,7 +401,7 @@ class SettingsController extends AbstractController {
     private const CATEGORY_GLOBAL = "global";
     public const CATEGORY_STOCK = "stock";
     public const CATEGORY_TRACING = "trace";
-    private const CATEGORY_TRACKING = "track";
+    public const CATEGORY_TRACKING = "track";
     private const CATEGORY_MOBILE = "mobile";
     private const CATEGORY_DASHBOARDS = "dashboards";
     private const CATEGORY_IOT = "iot";
@@ -440,16 +440,16 @@ class SettingsController extends AbstractController {
     public const MENU_HANDLINGS = "services";
     private const MENU_REQUEST_TEMPLATES = "modeles_demande";
 
-    private const MENU_TRANSPORT_REQUESTS = "demande_transport";
+    public const MENU_TRANSPORT_REQUESTS = "demande_transport";
     private const MENU_ROUNDS = "tournees";
     private const MENU_TEMPERATURES = "temperatures";
 
     private const MENU_DELIVERIES = "livraisons";
     private const MENU_DELIVERY_REQUEST_TEMPLATES = "modeles_demande_livraisons";
-    private const MENU_DELIVERY_TYPES_FREE_FIELDS = "types_champs_libres_livraisons";
+    public const MENU_DELIVERY_TYPES_FREE_FIELDS = "types_champs_libres_livraisons";
     private const MENU_COLLECTS = "collectes";
     private const MENU_COLLECT_REQUEST_TEMPLATES = "modeles_demande_collectes";
-    private const MENU_COLLECT_TYPES_FREE_FIELDS = "types_champs_libres_collectes";
+    public const MENU_COLLECT_TYPES_FREE_FIELDS = "types_champs_libres_collectes";
     public const MENU_PURCHASE_STATUSES = "statuts_achats";
 
     private const MENU_PREPARATIONS = "preparations";
