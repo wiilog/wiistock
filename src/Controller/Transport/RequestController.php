@@ -309,13 +309,15 @@ class RequestController extends AbstractController {
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_TRANSPORT_REQUESTS, $this->getUser());
         $queryResult = $transportRepository->findByParamAndFilters($request->request, $filters);
 
-        $transportRequests = [];
-        foreach ($queryResult["data"] as $transportRequest) {
-            $expectedAtStr = $transportRequest->getExpectedAt()?->format("dmY");
-            if ($expectedAtStr) {
-                $transportRequests[$expectedAtStr][] = $transportRequest;
-            }
-        }
+        $transportRequests = Stream::from($queryResult["data"])
+            ->keymap(function(TransportRequest $transportRequest) {
+                $date = $transportRequest->getValidatedDate() ?? $transportRequest->getExpectedAt();
+                $key = $date->format("dmY");
+                return [
+                    $key,
+                    $transportRequest
+                ];
+            },true)->toArray();
 
         $rows = [];
         $currentRow = [];
