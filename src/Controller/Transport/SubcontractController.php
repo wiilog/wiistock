@@ -8,10 +8,8 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
-use App\Entity\StatusHistory;
 use App\Entity\Statut;
 use App\Entity\Transport\TransportCollectRequest;
-use App\Entity\Transport\TransportHistory;
 use App\Entity\Transport\TransportOrder;
 use App\Entity\Transport\TransportRequest;
 use App\Entity\Utilisateur;
@@ -25,13 +23,11 @@ use App\Helper\FormatHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-use WiiCommon\Helper\Stream;
 
 
 #[Route("transport/sous-traitance")]
@@ -162,19 +158,21 @@ class SubcontractController extends AbstractController
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
 
+        $transportOrder = $transportRequest->getOrder();
+
         if($buttonType === self::VALIDATE) {
-            $subcontracted = false;
             $status = $statutRepository->findOneByCategorieNameAndStatutCode(
                 $transportRequest instanceof TransportCollectRequest
                     ? CategorieStatut::TRANSPORT_REQUEST_COLLECT
                     : CategorieStatut::TRANSPORT_REQUEST_DELIVERY,
                 $transportRequest instanceof TransportCollectRequest
                     ? TransportRequest::STATUS_AWAITING_PLANNING
-                    : TransportRequest::STATUS_TO_PREPARE
+                    : (($transportOrder && !$transportOrder->getPacks()->isEmpty())
+                        ? TransportRequest::STATUS_TO_DELIVER
+                        : TransportRequest::STATUS_TO_PREPARE)
                 );
             $transportHistoryType = TransportHistoryService::TYPE_ACCEPTED;
         } else {
-            $subcontracted = true;
             $status = $statutRepository->findOneByCategorieNameAndStatutCode(
                 CategorieStatut::TRANSPORT_REQUEST_DELIVERY,
                 TransportRequest::STATUS_SUBCONTRACTED
@@ -187,8 +185,11 @@ class SubcontractController extends AbstractController
             'history' => $statusHistory,
         ]);
 
-        if (!$transportRequest->getOrder()) {
-            $transportService->persistTransportOrder($entityManager, $transportRequest, $loggedUser, $subcontracted);
+        if (!$transportOrder) {
+            $transportService->persistTransportOrder($entityManager, $transportRequest, $loggedUser);
+        }
+        else {
+            $transportService->updateTransportOrderStatus($entityManager, $transportRequest, $transportOrder, $loggedUser);
         }
 
         $entityManager->flush();

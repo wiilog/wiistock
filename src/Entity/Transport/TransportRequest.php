@@ -2,6 +2,7 @@
 
 namespace App\Entity\Transport;
 
+use App\Entity\Nature;
 use App\Entity\StatusHistory;
 use App\Entity\Statut;
 use App\Entity\Type;
@@ -344,6 +345,12 @@ abstract class TransportRequest {
      */
     public function getLines(): Collection {
         return $this->lines;
+    }
+
+    public function getLine(Nature $nature): ?TransportRequestLine {
+        $filteredLines = $this->lines
+            ->filter(fn(TransportRequestLine $line) => $line->getNature()?->getId() === $nature->getId());
+        return $filteredLines->last() ?: null;
     }
 
     public function addLine(TransportRequestLine $line): self {

@@ -89,13 +89,11 @@ class OrderController extends AbstractController {
         }
     }
 
-    #[Route("/voir/{id}", name: "transport_order_show", methods: "GET")]
+    #[Route("/voir/{transport}", name: "transport_order_show", methods: "GET")]
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_TRANSPORT])]
-    public function show(TransportOrder $id,
+    public function show(TransportOrder $transport,
                          EntityManagerInterface $entityManager): Response {
-
-        $transportOrder = $id;
-        $transportRequest = $transportOrder->getRequest();
+        $transportRequest = $transport->getRequest();
 
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $categoryFF = $transportRequest instanceof TransportDeliveryRequest
@@ -109,14 +107,14 @@ class OrderController extends AbstractController {
             && Stream::from($transportRequest->getOrder()?->getPacks() ?: [])
                 ->some(fn(TransportDeliveryOrderPack $pack) => $pack->isRejected());
 
-        $round = !$transportOrder->getTransportRoundLines()->isEmpty()
-            ? $transportOrder->getTransportRoundLines()->last()->getTransportRound()
+        $round = !$transport->getTransportRoundLines()->isEmpty()
+            ? $transport->getTransportRoundLines()->last()->getTransportRound()
             : null ;
 
         $timeSlots = $entityManager->getRepository(CollectTimeSlot::class)->findAll();
 
         return $this->render('transport/order/show.html.twig', [
-            'order' => $transportOrder,
+            'order' => $transport,
             'freeFields' => $freeFields,
             'packsCount' => $packsCount,
             'hasRejectedPacks' => $hasRejectedPacks,
@@ -127,7 +125,7 @@ class OrderController extends AbstractController {
 
     #[Route("/liste", name: "transport_order_index", methods: "GET")]
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_TRANSPORT])]
-    public function index(Request $request, EntityManagerInterface $manager): Response {
+    public function index(EntityManagerInterface $manager): Response {
         $typeRepository = $manager->getRepository(Type::class);
 
         return $this->render('transport/order/index.html.twig', [

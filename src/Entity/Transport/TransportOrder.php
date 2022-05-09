@@ -31,6 +31,7 @@ class TransportOrder {
     public const STATUS_NOT_DELIVERED = 'Non livré';
     public const STATUS_NOT_COLLECTED = 'Non collecté';
     public const STATUS_SUBCONTRACTED = 'Sous-traité';
+    public const STATUS_AWAITING_VALIDATION = 'En attente de validation';
 
     public const STATUS_WORKFLOW_COLLECT = [
         self::STATUS_TO_CONTACT,
@@ -247,6 +248,12 @@ class TransportOrder {
         return Stream::from($this->getPacks())
             ->filter(fn(TransportDeliveryOrderPack $pack) => $pack->isRejected())
             ->count();
+    }
+
+    public function getPacksForLine(TransportRequestLine $line): Stream {
+        $nature = $line->getNature();
+        return Stream::from($this->packs)
+            ->filter(fn (TransportDeliveryOrderPack $deliveryPack) => $deliveryPack->getPack()?->getNature()?->getId() === $nature->getId());
     }
 
     /**

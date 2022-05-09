@@ -9,7 +9,7 @@
         {% set route = 'transport_order_show' %}
     {% endif %}
 
-    <a href="{{ path(route, {id: entity.id}) }}" class="transport-request-card">
+    <a href="{{ path(route, {transport: entity.id}) }}" class="transport-request-card">
         {% set isDeliveryTransportRequest = request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
 
         {% if displayDropdown and (isDeliveryTransportRequest or request.canBeCancelled or request.canBeDeleted) %}
