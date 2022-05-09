@@ -13,15 +13,15 @@
     <div class="m-0 m-md-4 p-4 wii-page-card">
         <div class="d-flex">
             <div>
-                <button class="btn btn-outline-primary  mr-0" tabindex="0">
+                <button class="btn btn-outline-primary today-date mr-0" tabindex="0">
                     Aujourd'hui
                 </button>
             </div>
             <div class="mx-3">
-                <button class="btn btn-outline-primary  mr-0" tabindex="0">
+                <button class="btn btn-outline-primary decrement-date mr-0" tabindex="0">
                     <img src="{{ asset('svg/arrow.svg') }}"  style="transform:rotate(180deg);" alt="Icône left arrow" width="15px">
                 </button>
-                <button class="btn btn-outline-primary" tabindex="0">
+                <button class="btn btn-outline-primary increment-date" tabindex="0">
                     <img src="{{ asset('svg/arrow.svg') }}" alt="Icône right arrow" width="15px">
                 </button>
             </div>
@@ -56,157 +56,8 @@
                 <span>Planifier une tournée</span>
             </button>
         </div>
-        <div class="row d-flex">
-            <!-- debut planning une semaine -->
-            <div class="col-md-6 col-12 h-100">
-                <div class="wii-box border border-bottom-0">
-                    <div class="header">
-                        <span class="wii-title">La date</span>
-                    </div>
-                    <div class="wii-box mt-0 ">
-                        <div class="col-12 d-flex px-0">
-                            <div class="col-6 px-0 pr-1">
-                                <div class="planning-card-container border-right border-bottom">
-                                    <div class="type-header">
-                                        <img src="{{ asset('svg/delivery.svg') }}" alt="Icône livraison" width="15px">
-                                        <span class="wii-field-name ml-2"> NB Livraison</span>
-                                        <div class="mx-2 d-flex">
-                                            <span class="wii-body-text mr-1">13</span>
-                                            <img src="{{ asset('svg/cookie.svg') }}" alt="Icône livraison" width="15px">
-                                        </div>
-                                        <div class="mx-2 d-flex">
-                                            <span class="wii-body-text mr-1">13</span>
-                                            <img src="{{ asset('svg/cookie.svg') }}" alt="Icône livraison" width="15px">
-                                        </div>
-                                    </div>
-                                    <div class=" content card-container">
-                                        <div class="row mx-0 align-items-start">
-                                            <!-- debut de la card -->
-                                                <div class="col-md-6 col-12 p-1 d-flex">
-                                                    <div class="order-card to-assign"><!-- ici la class to-assiqn pour que la carte soie orange-->
-                                                        <span class="transport-type">
-                                                            <img src="{{ asset('svg/cookie.svg') }}" width="15px" alt="">
-                                                            <span>Type</span>
-                                                        </span>
-                                                        <span class="wii-body-text py-1">Nom patient</span>
-                                                        <span class="wii-small-text py-1">N°80445245</span>
-                                                        <div class="wii-field-name py-1">
-                                                            <img src="{{ asset('svg/clock-black.svg') }}" alt="Icône horloge" width="13px">
-                                                            <span>14:00</span></span>
-                                                            <img src="{{ asset('svg/timeline-urgent.svg') }}" alt="Icône urgent" width="13px">
-                                                        </div>
-                                                        <span class="underlined py-1">T210510-02</span>
-                                                        <span class="wii-body-text text-nowrap py-1">nom livreur</span>
-                                                    </div>
-                                                </div>
-                                            <!--fin de la card -->
-                                            <!-- debut de la card -->
-                                            <div class="col-md-6 col-12 p-1 d-flex">
-                                                <div class="order-card assigned">  <!-- ici la class assigned pour que la carte soie verte-->
-                                                        <span class="transport-type">
-                                                            <img src="{{ asset('svg/cookie.svg') }}" width="15px" alt="">
-                                                            <span>Type</span>
-                                                        </span>
-                                                    <span class="wii-body-text py-1">Nom patient</span>
-                                                    <span class="wii-small-text py-1">N°80445245</span>
-                                                    <div class="wii-field-name py-1">
-                                                        <img src="{{ asset('svg/clock-black.svg') }}" alt="Icône horloge" width="13px">
-                                                        <span>14:00</span></span>
-                                                        <img src="{{ asset('svg/timeline-urgent.svg') }}" alt="Icône urgent" width="13px">
-                                                    </div>
-                                                    <span class="underlined py-1">T210510-02</span>
-                                                    <span class="wii-body-text text-nowrap py-1">nom livreur</span>
-                                                </div>
-                                            </div>
-                                            <!--fin de la card -->
-                                            <!-- debut de la card -->
-                                            <div class="col-md-6 col-12 p-1 d-flex">
-                                                <div class="order-card ongoing"><!-- ici la class ongoing pour que la carte soie violet-->
-                                                        <span class="transport-type">
-                                                            <img src="{{ asset('svg/cookie.svg') }}" width="15px" alt="">
-                                                            <span>Type</span>
-                                                        </span>
-                                                    <span class="wii-body-text py-1">Nom patient</span>
-                                                    <span class="wii-small-text py-1">N°80445245</span>
-                                                    <div class="wii-field-name py-1">
-                                                        <img src="{{ asset('svg/clock-black.svg') }}" alt="Icône horloge" width="13px">
-                                                        <span>14:00</span></span>
-                                                        <img src="{{ asset('svg/timeline-urgent.svg') }}" alt="Icône urgent" width="13px">
-                                                    </div>
-                                                    <span class="underlined py-1">T210510-02</span>
-                                                    <span class="wii-body-text text-nowrap py-1">nom livreur</span>
-                                                </div>
-                                            </div>
-                                            <!--fin de la card -->
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-6 px-0 pl-1">
-                                <div class="border-left border-bottom planning-card-container ">
-                                    <div class="type-header">
-                                        <img src="{{ asset('svg/collect.svg') }}" alt="Icône collecte" width="15px">
-                                        <span class="wii-field-name ml-2">NB Collectes</span>
-                                        <div class="mx-2 d-flex">
-                                            <span class="wii-body-text mr-1">13</span>
-                                            <img src="{{ asset('svg/cookie.svg') }}" alt="Icône livraison" width="15px">
-                                        </div>
-                                    </div>
-                                    <div class=" content card-container">
-                                        <div class="row mx-0 align-items-start">
-                                            <!-- ici metre card d'odre -->
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- debut planning une semaine -->
-            <div class="col-md-6 col-12 h-100">
-                <div class="wii-box border border-bottom-0">
-                    <div class="header">
-                        <span class="wii-title">La date</span>
-                    </div>
-                    <div class="wii-box mt-0 ">
-                        <div class="col-12 d-flex px-0">
-                            <div class="col-6 px-0 pr-1">
-                                <div class="planning-card-container border-right border-bottom">
-                                    <div class="type-header">
-                                        <img src="{{ asset('svg/delivery.svg') }}" alt="Icône livraison" width="15px">
-                                        <span class="wii-field-name ml-2"> NB Livraison</span>
+        <div class="row d-flex planning-container">
 
-                                        <div class="mx-2 d-flex">
-                                            <span class="wii-body-text mr-1">13</span>
-                                            <img src="{{ asset('svg/cookie.svg') }}" alt="Icône livraison" width="15px">
-                                        </div>
-                                    </div>
-                                    <div class=" content card-container">
-                                        <div class="row mx-0 align-items-start">
-                                            <!-- ici metre card d'odre -->
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-6 px-0 pl-1">
-                                <div class="border-left border-bottom planning-card-container ">
-                                    <div class="type-header">
-                                        <img src="{{ asset('svg/collect.svg') }}" alt="Icône collecte" width="15px">
-                                        <span class="wii-field-name ml-2">NB Collectes</span>
-                                    </div>
-                                    <div class=" content card-container">
-                                        <div class="row mx-0 align-items-start">
-                                            <!-- ici metre card d'odre -->
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!--fin plannig une semaine -->
         </div>
     </div>
 {% endblock %}

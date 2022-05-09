@@ -1,0 +1,59 @@
+{% set isOrderToAssign = (order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_TO_ASSIGN')) %}
+{% set cardClass = isOrderToAssign ? 'to-assign' : (order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ASSIGNED') ? 'assigned' :
+    (order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ONGOING') ? 'ongoing' : '')) %}
+{% set request = order.request ?? null %}
+{% set isCollect = request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') %}
+{% set roundLine = order ? (order.transportRoundLines | last) ?: null : null %}
+
+<div class="planning-card">
+    <div class="p-1 planning-card-content m-0 border-0">
+        <div class="order-card {{ cardClass }}">
+            <div class="transport-type">
+                <label for="type-filter-{{ request.type.id }}" class="d-inline-flex align-items-center">
+                    {% if request.type.logo %}
+                        <img src="{{ request.type.logo ? request.type.logo.fullPath }}" class="mr-2" width="15">
+                    {% endif %}
+                    {{ request.type.label }}
+                </label>
+            </div>
+            {% if not isCollect and request.collect is not null and request.collect.type.logo %}
+                <div class="transport-type">
+                    <label for="type-filter-{{ request.type.id }}" class="d-inline-flex align-items-center">
+                        <img src="{{ request.collect.type.logo ? request.collect.type.logo.fullPath }}" class="mr-2" width="15">
+                    </label>
+                </div>
+                {{ request.type.label }}
+            {% endif %}
+            <div class="details">
+                <div class="d-flex py-auto flex-wrap">
+                    <span class="wii-body-text py-1 mr-2">{{ request.contact.name }}</span>
+                    <span class="wii-small-text py-1">N°{{ request.contact.fileNumber }}</span>
+                </div>
+                <div class="wii-field-name d-flex flex-wrap">
+                    <span>
+                        <img src="{{ asset('svg/clock-black.svg') }}" alt="Icône horloge" width="13px" class="mr1">
+                        {% if isCollect and request.timeSlot is not null %}
+                            <span>{{ request.timeSlot.name }}</span>
+                        {% else %}
+                            <span>{{ request.expectedAt | format_helper('time', true, true) }}</span>
+                        {% endif %}
+                        {% if not isCollect and request.emergency %}
+                            <img src="{{ asset('svg/timeline-urgent.svg') }}" alt="Icône urgent" width="13px" class="mr-1">
+                        {% endif %}
+                    </span>
+                    <span>
+                        {% if isOrderToAssign and order.packs is not empty %}
+                            <span class="wii-body-text">Colisage fait</span>
+                        {% endif %}
+                    </span>
+                </div>
+                {% if not isOrderToAssign and roundLine is not null %}
+                    <div class="d-flex flex-wrap">
+                        <span class="underlined py-1 mr-1">T{{ roundLine.transportRound.number }}</span>
+                        <span class="wii-body-text text-nowrap py-1">{{ roundLine.transportRound.deliverer.username }}</span>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
