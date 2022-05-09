@@ -113,14 +113,7 @@ class TransportRequestRepository extends EntityRepository {
             $qb->setMaxResults($params->getInt('length'));
         }
 
-        $qb->orderBy(
-            "IF(
-                delivery.expectedAt IS NOT NULL,
-                delivery.expectedAt,
-                IF(transport_request.validatedDate IS NOT NULL,
-                transport_request.validatedDate,
-                collect.expectedAt)
-            )", "DESC");
+        $qb->orderBy("COALESCE(delivery.expectedAt, transport_request.validatedDate, collect.expectedAt)", "DESC");
 
         return [
             "data" => $qb->getQuery()->getResult(),
