@@ -10,6 +10,7 @@
 {% endblock %}
 
 {% block page_content %}
+    {% include 'transport/round/transport_round.html.twig' %}
     <div class="m-0 m-md-4 p-4 wii-page-card">
         <div class="d-flex">
             <div>
@@ -59,10 +60,13 @@
                     </label>
                 </div>
             </div>
-            <button class="btn btn-primary ml-auto" tabindex="0">
+            {% set planRound = hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::SCHEDULE_TRANSPORT_ROUND')) %}
+            {% if planRound %}
+            <button class="btn btn-primary ml-auto plan-round-button" tabindex="0">
                 <img src="{{ asset('svg/delivery-white.svg') }}" alt="Icône tournéé" width="15px">
                 <span>Planifier une tournée</span>
             </button>
+            {% endif %}
         </div>
         <div class="row d-flex planning-container">
 

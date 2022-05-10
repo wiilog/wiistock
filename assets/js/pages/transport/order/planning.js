@@ -1,11 +1,12 @@
 import '@styles/pages/transport/planning.scss';
-import {GET} from "@app/ajax";
+import AJAX, {GET} from "@app/ajax";
 import moment from 'moment';
 
 let currentDate = moment();
 
 $(function () {
     getOrders();
+    initializeRoundPlan();
 
     const $button = $('.planning-switch').find('[name=status]');
 
@@ -53,6 +54,67 @@ function getOrders() {
         .then(({template})=>{
             $('.planning-container').html(template);
         });
+}
+
+export function initializeRoundPlan() {
+    const $modalRoundPlan = $('#modalRoundPlan');
+    $(document).on("click", ".plan-round-button", function() {
+        const $button = $(this);
+        wrapLoadingOnActionButton($button, () => openPlanRoundModal($modalRoundPlan));
+    });
+
+    Form.create($modalRoundPlan).onSubmit(function(data) {
+        wrapLoadingOnActionButton($modalRoundPlan.find('[type=submit]'), () => {
+            return submitRoundModal(data);
+        });
+    })
+}
+
+export function openPlanRoundModal($modalRoundPlan) {
+    const $modalBody = $modalRoundPlan.find('.modal-body');
+    $modalBody.html(`
+        <div class="row justify-content-center">
+             <div class="col-auto">
+                <div class="spinner-border" role="status">
+                    <span class="sr-only">Loading...</span>
+                </div>
+             </div>
+        </div>
+    `);
+
+    $modalRoundPlan.modal('show');
+    return AJAX.route(GET, `plan_round_api`)
+        .json()
+        .then((result) => {
+            if (result && result.success) {
+                $modalBody.html(result.html);
+            }
+            buttonModalManagement();
+        });
+}
+
+export function submitRoundModal(data) {
+    const roundInfo = data.get('roundInfo');
+    const params = {};
+    if(roundInfo === 'newRound') {
+        params['dateRound'] = data.get('date');
+    }
+    else if (roundInfo === 'editRound') {
+        params['transportRound'] = data.get('round');
+    }
+    window.location.href = Routing.generate('transport_round_plan', params);
+}
+
+function buttonModalManagement() {
+    $('.roundInfo-date').attr('checked', 'checked');
+    $('[name=roundInfo]').change(function(){
+        if($('.roundInfo-number').is(':checked')){
+            $('[name=round]').attr('disabled', false).attr('required', true);
+        }
+        else {
+            $('[name=round]').attr('disabled', true).attr('required', false);
+        }
+    });
 }
 
 /**

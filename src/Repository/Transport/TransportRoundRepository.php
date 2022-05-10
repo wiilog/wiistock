@@ -70,4 +70,18 @@ class TransportRoundRepository extends EntityRepository {
             "total" => $total,
         ];
     }
+    public function getForSelect(?string $term): array {
+
+        $query = $this->createQueryBuilder("transport_round");
+
+        return $query->select("transport_round.id AS id, transport_round.number AS text")
+            ->join('transport_round.status', 'round_status')
+            ->andWhere('round_status.nom like :statut')
+            ->andWhere("transport_round.number LIKE :term")
+
+            ->setParameter("term", "%$term%")
+            ->setParameter("statut", TransportRound::STATUS_AWAITING_DELIVERER)
+            ->getQuery()
+            ->getArrayResult();
+    }
 }
