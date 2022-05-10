@@ -2,6 +2,7 @@
 
 namespace App\Entity\Transport;
 
+use App\Entity\Attachment;
 use App\Entity\StatusHistory;
 use App\Entity\Statut;
 use App\Entity\Traits\AttachmentTrait;
@@ -57,7 +58,6 @@ class TransportOrder {
         self::STATUS_DEPOSITED,
     ];
 
-
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
@@ -102,6 +102,16 @@ class TransportOrder {
     #[ORM\OneToMany(mappedBy: 'transportOrder', targetEntity: StatusHistory::class)]
     private Collection $statusHistory;
 
+    #[ORM\OneToOne(inversedBy: 'transportOrder', targetEntity: Attachment::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Attachment $signature;
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?DateTime $returnedAt = null;
+
+    #[ORM\Column(type: 'string', nullable: true)]
+    private ?string $returnReason = null;
+
     public function __construct() {
         $this->history = new ArrayCollection();
         $this->packs = new ArrayCollection();
@@ -119,6 +129,26 @@ class TransportOrder {
 
     public function setStatus(?Statut $status): self {
         $this->status = $status;
+
+        return $this;
+    }
+
+    public function getReturnedAt(): ?DateTime {
+        return $this->returnedAt;
+    }
+
+    public function setReturnedAt(?DateTime $returnedAt): self {
+        $this->returnedAt = $returnedAt;
+
+        return $this;
+    }
+
+    public function getReturnReason(): ?string {
+        return $this->returnReason;
+    }
+
+    public function setReturnReason(?string $returnReason): self {
+        $this->returnReason = $returnReason;
 
         return $this;
     }
@@ -240,13 +270,13 @@ class TransportOrder {
 
     public function isRejected(): bool {
         return !$this->getPacks()->isEmpty() && Stream::from($this->getPacks())
-            ->filter(fn(TransportDeliveryOrderPack $pack) => !$pack->isRejected())
+            ->filter(fn(TransportDeliveryOrderPack $pack) => $pack->isLoaded())
             ->isEmpty();
     }
 
     public function hasRejectedPacks(): bool {
         return Stream::from($this->getPacks())
-            ->filter(fn(TransportDeliveryOrderPack $pack) => $pack->isRejected())
+            ->filter(fn(TransportDeliveryOrderPack $pack) => !$pack->isLoaded())
             ->count();
     }
 
@@ -332,6 +362,24 @@ class TransportOrder {
             if ($statusHistory->getTransportOrder() === $this) {
                 $statusHistory->setTransportOrder(null);
             }
+        }
+
+        return $this;
+    }
+
+    public function getSignature(): ?Attachment {
+        return $this->signature;
+    }
+
+    public function setSignature(?Attachment $signature): self {
+        if($this->signature && $this->signature->getTransportOrder() !== $this) {
+            $oldExample = $this->signature;
+            $this->signature = null;
+            $oldExample->setTransportOrder(null);
+        }
+        $this->signature = $signature;
+        if($this->signature && $this->signature->getTransportOrder() !== $this) {
+            $this->signature->setTransportOrder($this);
         }
 
         return $this;

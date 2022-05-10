@@ -6,6 +6,7 @@ use App\Entity\FiltreSup;
 use App\Entity\Transport\TransportCollectRequest;
 use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\Transport\TransportRound;
+use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
@@ -70,8 +71,18 @@ class TransportRoundRepository extends EntityRepository {
             "total" => $total,
         ];
     }
-    public function getForSelect(?string $term): array {
 
+    public function findMobileTransportRoundsByUser(Utilisateur $user): array {
+        return $this->createQueryBuilder('transport_round')
+            ->andWhere('transport_round.deliverer = :user')
+            ->andWhere('transport_round.endedAt IS NULL')
+            ->orderBy('transport_round.expectedAt', 'ASC')
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function getForSelect(?string $term): array {
         $query = $this->createQueryBuilder("transport_round");
 
         return $query->select("transport_round.id AS id, transport_round.number AS text")
