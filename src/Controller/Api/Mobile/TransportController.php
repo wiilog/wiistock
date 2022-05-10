@@ -16,9 +16,11 @@ use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\TransportRoundLine;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
 use FOS\RestBundle\Controller\Annotations as Rest;
+use Symfony\Bundle\MakerBundle\Str;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use WiiCommon\Helper\Stream;
@@ -129,7 +131,8 @@ class TransportController extends AbstractFOSRestController {
                                             'nature_id' => $nature->getId(),
                                             'temperature_range' => $temperatureRanges[$nature->getLabel()],
                                             'color' => $nature->getColor(),
-                                            'rejected' => !!$orderPack->getRejectReason()
+                                            'rejected' => !!$orderPack->getRejectReason(),
+                                            'loaded' => $orderPack->isLoaded()
                                         ];
                                     }),
                                 'expected_at' => $isCollect
@@ -221,6 +224,41 @@ class TransportController extends AbstractFOSRestController {
         $manager->flush();
         return $this->json([
             'success' => true
+        ]);
+    }
+
+    /**
+     * @Rest\Get("/api/has-new-packs", name="api_has_new_packs", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function hasNewPacks(Request $request, EntityManagerInterface $manager): Response {
+        $data = $request->query;
+        $round = $manager->find(TransportRound::class, $data->get('round'));
+        $currentPacks = json_decode($data->get('packs'));
+
+        $transportRoundLineRepository = $manager->getRepository(TransportRoundLine::class);
+
+        $lines = $transportRoundLineRepository->findLinesByRound($round);
+        $updatedPacks = Stream::from($lines)
+            ->map(fn(TransportRoundLine $line) => $line->getOrder()->getPacks());
+
+        $updatedPackCodes = Stream::from($updatedPacks)
+            ->reduce(function(array $acc, Collection $packs) {
+                $acc[] = Stream::from($packs)
+                    ->map(fn(TransportDeliveryOrderPack $orderPack) => $orderPack->getPack()->getCode())
+                    ->toArray();
+                return $acc;
+            }, []);
+
+        $updatedPackCodes = Stream::from($updatedPackCodes)->flatten()->toArray();
+
+        $hasNewPacks = Stream::diff($currentPacks, $updatedPackCodes)
+            ->toArray();
+
+        return $this->json([
+            'success' => true,
+            'has_new_packs' => !empty($hasNewPacks)
         ]);
     }
 }
