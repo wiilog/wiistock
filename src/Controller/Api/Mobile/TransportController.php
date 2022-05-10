@@ -6,6 +6,7 @@ use App\Annotation as Wii;
 use App\Entity\Attachment;
 use App\Entity\CategorieCL;
 use App\Entity\FreeField;
+use App\Entity\Pack;
 use App\Entity\Setting;
 use App\Entity\Transport\TransportCollectRequest;
 use App\Entity\Transport\TransportDeliveryOrderPack;
@@ -18,15 +19,15 @@ use App\Helper\FormatHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
 use FOS\RestBundle\Controller\Annotations as Rest;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use WiiCommon\Helper\Stream;
 
 class TransportController extends AbstractFOSRestController {
 
-    /** @var Utilisateur|null */
-    private $user;
+    private Utilisateur|null $user;
 
-    public function getUser(): Utilisateur {
+    public function getUser(): ?Utilisateur {
         return $this->user;
     }
 
@@ -53,13 +54,15 @@ class TransportController extends AbstractFOSRestController {
                 /** @var TransportRoundLine $line */
                 $totalLoaded = 0;
                 foreach ($lines as $line) {
-                    $totalLoaded += $line->getOrder()->getPacks()->count();
+                    $totalLoaded += Stream::from($line->getOrder()->getPacks())
+                        ->filter(fn(TransportDeliveryOrderPack $orderPack) => !$orderPack->getRejectReason())
+                        ->count();
                 }
 
                 $loadedPacks = 0;
                 foreach ($lines as $line) {
                     $loadedPacks += Stream::from($line->getOrder()->getPacks())
-                        ->filter(fn(TransportDeliveryOrderPack $orderPack) => $orderPack->isLoaded())
+                        ->filter(fn(TransportDeliveryOrderPack $orderPack) => $orderPack->isLoaded() && !$orderPack->getRejectReason())
                         ->count();
                 }
 
@@ -67,7 +70,7 @@ class TransportController extends AbstractFOSRestController {
                 foreach ($lines as $line) {
                     $packs = $line->getOrder()->getPacks();
                     $partiallyLoaded = Stream::from($packs)
-                        ->some(fn(TransportDeliveryOrderPack $orderPack) => !$orderPack->isLoaded());
+                        ->some(fn(TransportDeliveryOrderPack $orderPack) => !$orderPack->isLoaded() && $orderPack->getRejectReason());
                     if(!$partiallyLoaded) {
                         $doneDeliveries += 1;
                     }
@@ -104,9 +107,10 @@ class TransportController extends AbstractFOSRestController {
                             $freeFieldsValues = $request->getFreeFields();
                             $temperatureRanges = Stream::from($request->getLines())
                                 ->filter(fn($line) => $line instanceof TransportDeliveryRequestLine)
-                                ->keymap(function(TransportDeliveryRequestLine $line) {
-                                    return [$line->getNature()->getLabel(), $line->getTemperatureRange()?->getValue()];
-                                })->toArray();
+                                ->keymap(fn(TransportDeliveryRequestLine $line) => [
+                                    $line->getNature()->getLabel(),
+                                    $line->getTemperatureRange()?->getValue()
+                                ])->toArray();
 
                             return [
                                 'id' => $line->getTransportRound()->getId(),
@@ -125,6 +129,7 @@ class TransportController extends AbstractFOSRestController {
                                             'nature_id' => $nature->getId(),
                                             'temperature_range' => $temperatureRanges[$nature->getLabel()],
                                             'color' => $nature->getColor(),
+                                            'rejected' => !!$orderPack->getRejectReason()
                                         ];
                                     }),
                                 'expected_at' => $isCollect
@@ -174,6 +179,48 @@ class TransportController extends AbstractFOSRestController {
             'pack' => explode(",", $packRejectMotives),
             'delivery' => explode(",", $deliveryRejectMotives),
             'collect' => explode(",", $collectRejectMotives)
+        ]);
+    }
+
+    /**
+     * @Rest\Post("/api/reject-pack", name="api_reject_pack", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function rejectPack(Request $request, EntityManagerInterface $manager): Response {
+        $data = $request->request;
+        $pack = $manager->getRepository(Pack::class)->findOneBy(['code' => $data->get('pack')]);
+        $rejectMotive = $data->get('rejectMotive');
+
+        $transportDeliveryOrderPack = $pack->getTransportDeliveryOrderPack();
+
+        $transportDeliveryOrderPack
+            ->setRejectedBy($this->getUser())
+            ->setRejectReason($rejectMotive);
+
+        $manager->flush();
+        return $this->json([
+            'success' => true,
+        ]);
+    }
+
+    /**
+     * @Rest\Post("/api/load-packs", name="api_load_packs", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function loadPacks(Request $request, EntityManagerInterface $manager): Response {
+        $data = $request->request;
+        $packs = $manager->getRepository(Pack::class)->findBy(['code' => json_decode($data->get('packs'))]);
+
+        foreach ($packs as $pack) {
+            $orderPack = $pack->getTransportDeliveryOrderPack();
+            $orderPack->setLoaded(true);
+        }
+
+        $manager->flush();
+        return $this->json([
+            'success' => true
         ]);
     }
 }
