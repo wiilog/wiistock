@@ -2,6 +2,7 @@
 
 namespace App\Repository\Transport;
 
+use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\TransportRoundLine;
 use Doctrine\ORM\EntityRepository;
 
@@ -11,4 +12,6 @@ use Doctrine\ORM\EntityRepository;
  * @method TransportRoundLine[]    findAll()
  * @method TransportRoundLine[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class TransportRoundLineRepository extends EntityRepository {}
+class TransportRoundLineRepository extends EntityRepository {
+
+}
