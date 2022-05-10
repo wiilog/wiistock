@@ -105,7 +105,7 @@ class OrderController extends AbstractController {
 
         $hasRejectedPacks = $transportRequest->getOrder()
             && Stream::from($transportRequest->getOrder()?->getPacks() ?: [])
-                ->some(fn(TransportDeliveryOrderPack $pack) => $pack->isRejected());
+                ->some(fn(TransportDeliveryOrderPack $pack) => $pack->isLoaded() === false);
 
         $round = !$transport->getTransportRoundLines()->isEmpty()
             ? $transport->getTransportRoundLines()->last()->getTransportRound()
