@@ -16,28 +16,30 @@
                     {{ request.type.label }}
                 </label>
             </div>
-            {% if not isCollect and request.collect is not null and request.collect.type.logo %}
+            {% if not isCollect and request.collect is not null %}
                 <div class="transport-type">
-                    <label for="type-filter-{{ request.type.id }}" class="d-inline-flex align-items-center">
-                        <img src="{{ request.collect.type.logo ? request.collect.type.logo.fullPath }}" class="mr-2" width="15">
+                    <label for="type-filter-{{ request.collect.type.id }}" class="d-inline-flex align-items-center">
+                        {% if request.collect.type.logo %}
+                            <img src="{{ request.collect.type.logo ? request.collect.type.logo.fullPath }}" class="mr-2" height="15">
+                        {% endif %}
+                        {{ request.collect.type.label }}
                     </label>
                 </div>
-                {{ request.type.label }}
             {% endif %}
             <div class="details">
-                <div class="d-flex py-auto flex-wrap">
-                    <span class="wii-body-text py-1 mr-2">{{ request.contact.name }}</span>
-                    <span class="wii-small-text py-1">N°{{ request.contact.fileNumber }}</span>
+                <div class="d-flex pt-2 flex-wrap">
+                    <span class="wii-body-text mr-2">{{ request.contact.name }}</span>
+                    <span class="wii-small-text">N°{{ request.contact.fileNumber }}</span>
                 </div>
-                <div class="wii-field-name d-flex flex-wrap">
-                    <span>
-                        <img src="{{ asset('svg/clock-black.svg') }}" alt="Icône horloge" width="13px" class="mr1">
+                <div class="wii-field-name d-flex flex-wrap pt-2">
+                    <span class="d-flex align-items-center mr-2">
+                        <img src="{{ asset('svg/clock-black.svg') }}" alt="Icône horloge" width="13px" class="mr-1">
                         {% if isCollect and request.timeSlot is not null %}
                             <span>{{ request.timeSlot.name }}</span>
                         {% else %}
                             <span>{{ request.expectedAt | format_helper('time', true, true) }}</span>
                         {% endif %}
-                        {% if not isCollect and request.emergency %}
+                        {% if not isCollect and request.emergency is not empty %}
                             <img src="{{ asset('svg/timeline-urgent.svg') }}" alt="Icône urgent" width="13px" class="mr-1">
                         {% endif %}
                     </span>
@@ -48,9 +50,9 @@
                     </span>
                 </div>
                 {% if not isOrderToAssign and roundLine is not null %}
-                    <div class="d-flex flex-wrap">
+                    <div class="d-flex flex-wrap pt-2">
                         <span class="underlined py-1 mr-1">T{{ roundLine.transportRound.number }}</span>
-                        <span class="wii-body-text text-nowrap py-1">{{ roundLine.transportRound.deliverer.username }}</span>
+                        <span class="wii-body-text text-nowrap py-1">{{ roundLine.transportRound.deliverer ? roundLine.transportRound.deliverer.username }}</span>
                     </div>
                 {% endif %}
             </div>

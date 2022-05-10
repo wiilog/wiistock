@@ -34,14 +34,23 @@ class PlanningController extends AbstractController
         $data = $request->query;
         $transportOrderRepository = $manager->getRepository(TransportOrder::class);
 
-        $currentDate = DateTime::createFromFormat('Y-m-d',$data?->get('currentDate'));
+        $currentDate = DateTime::createFromFormat('Y-m-d', $data?->get('currentDate'));
 
         if (!$currentDate) {
             throw new RuntimeException('Invalid date');
         }
 
+        $statuses = Stream::explode(',', $data?->get('statuses'))
+            ->filterMap(fn($status) => match($status) {
+                'ongoing'   => TransportOrder::STATUS_ONGOING,
+                'assigned'  => TransportOrder::STATUS_ASSIGNED,
+                'to-assign' => TransportOrder::STATUS_TO_ASSIGN,
+                default => null
+            })
+            ->toArray();
+
         $dateForContainer = clone $currentDate;
-        $transportOrders = $transportOrderRepository->findOrdersForPlanning($currentDate, $dateForContainer->modify("+1 day"), explode(" ", $data?->get('statusForFilter'))[0]);
+        $transportOrders = $transportOrderRepository->findOrdersForPlanning($currentDate, $dateForContainer->modify("+1 day"), $statuses);
         $orderedTransportOrders = [];
         $typesCount = [];
 
