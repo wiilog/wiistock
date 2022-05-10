@@ -1,4 +1,5 @@
 {% extends 'layout.html.twig' %}
+{% import 'form.html.twig' as form %}
 
 {% block title %}Ordre | Planning | Planifier une tournée{% endblock %}
 {% block titleLink path('transport_round_plan') %}
@@ -9,149 +10,185 @@
 {% endblock %}
 
 {% block page_content %}
-    <div class="wii-box-container mb-4 ml-3 mr-3">
-        <div class="row">
-            <div class="col-lg-3 col-md-6 col-12">
-                <div class="wii-box">
-                    <div class="header">
-                        <span class="wii-title">Transport à affecter</span>
-                    </div>
-                    <div class="d-flex flex-column card-container">
-
-
-                        <div class="order-card">
-
-                            {#
+<div class="wii-box-container mb-4 ml-3 mr-3">
+    <div class="row px-3">
+        <div class="col-lg-3 col-md-6 col-12 px-2">
+            <div class="wii-box">
+                <div class="header">
+                    <span class="wii-title">Transport à affecter</span>
+                </div>
+                <div class="d-flex flex-column card-container" id="to-affect-container">
+                    {% for transportOrder in transportOrders %}
+                        <div class="order-card" id="{{transportOrder.id}}">
                             <div class="affected-number">
-                                50
                             </div>
-                            #}
-
-                            <div class="card-content">
+                            <div class="card-content pl-1">
                                 <div class="first-line">
                                     <div class="head">
                                         <div class="types">
-                                            <div class="transport-type">
-                                                <img src="{{ asset('svg/cookie.svg') }}" class="mr-2" width="15">
-                                                Chimiooo
+                                            <div class="transport-type px-2">
+                                                {% if transportOrder.request.type.logo %}
+                                                    <img src="{{ transportOrder.request.type.logo ? transportOrder.request.type.logo.fullPath }}" class="mr-2" width="15">
+                                                {% endif %}
+                                                {{ transportOrder.request.type.label }}
                                             </div>
-
-                                            {#
-                                            <div class="transport-type">
-                                                <img src="{{ asset('svg/cookie.svg') }}" class="mr-2" width="15">
-                                                autre
-                                            </div>
-                                            #}
-
+                                            {% if not transportOrder.request is instanceof('App\\Entity\\Transport\\TransportCollectRequest')
+                                                and transportOrder.request.collect is not null
+                                                and transportOrder.request.collect.type.logo
+                                            %}
+                                                <div class="transport-type px-2">
+                                                    {% if transportOrder.request.type.logo %}
+                                                        <img src="{{ transportOrder.request.collect.type.logo ? transportOrder.request.collect.type.logo.fullPath }}" class="mr-2" width="15">
+                                                    {% endif %}
+                                                    {{ transportOrder.request.collect.type.label }}
+                                                </div>
+                                            {% endif %}
                                         </div>
                                     </div>
                                     <div class="sticky">
-                                        <div class="time">
-                                            <strong>
-                                                <img src="{{ asset('svg/clock-black.svg') }}" alt="Icône horloge" width="13px" class="mr-1">
-                                                10:00
-                                            </strong>
+                                        <div class="time bold">
+                                            <img src="{{ asset('svg/clock-black.svg') }}" alt="Icône horloge" width="13px" class="mr-1">
+                                            {% if transportOrder.request is instanceof('App\\Entity\\Transport\\TransportCollectRequest')
+                                                and transportOrder.request.timeSlot is not null%}
+                                                <span>{{ transportOrder.request.timeSlot.name }}</span>
+                                            {% else %}
+                                                <span>{{ transportOrder.request.expectedAt | format_helper('time', true, true) }}</span>
+                                            {% endif %}
+                                            {% if not transportOrder.request is instanceof('App\\Entity\\Transport\\TransportCollectRequest')
+                                                and transportOrder.request.emergency %}
+                                                <img src="{{ asset('svg/timeline-urgent.svg') }}" alt="Icône urgent" width="13px" class="mr-1">
+                                            {% endif %}
                                         </div>
-
-                                        {#
                                         <button type="button" class="btn btn-outline-primary btn-cross">
                                             <img src="{{ asset('svg/cross-blue.svg') }}" width="13px">
                                         </button>
-                                        #}
 
                                     </div>
                                 </div>
                                 <div class="ml-2">
                                     <span class="wii-field-text">
-                                        Francis Cabrel
+                                       {{ transportOrder.request.contact.name }}
                                     </span>
                                     <span class="wii-small-text">
-                                        N°5354133
+                                        N°{{ transportOrder.request.contact.fileNumber }}
                                     </span>
                                 </div>
-                                <div>
+                                <div class="wii-field-text">
                                     <img src="{{ asset('svg/location.svg') }}" width="13px" alt="">
-                                    2 allée des charmilles 69018 LYON
+                                    {% if transportOrder.request.contact.address is not null %}
+                                        {{ transportOrder.request.contact.address }}
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    {% endfor %}
                 </div>
             </div>
+        </div>
 
-            <div class="col-lg-3 col-md-6 col-12">
-                <div class="wii-box">
-                    <div class="header">
-                        <span class="wii-title">Transports Affectées</span>
-                    </div>
-                    <div class="d-flex flex-column card-container">
-
-                        {% for n in 1..36%}
-                        <div class="order-card">
-                            <div class="affected-number">
-                                50
-                            </div>
-                            <div class="card-content">
-                                <div class="first-line">
-                                    <div class="head">
-                                        <div class="types">
-                                            <div class="transport-type">
-                                                <img src="{{ asset('svg/cookie.svg') }}" class="mr-2" width="15">
-                                                Chimioooo ooooooo
-                                            </div>
-                                            <div class="transport-type">
-                                                <img src="{{ asset('svg/cookie.svg') }}" class="mr-2" width="15">
-                                                autre
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="sticky">
-                                        <div class="time">
-                                            <strong>
-                                                <img src="{{ asset('svg/clock-black.svg') }}" alt="Icône horloge" width="13px" class="mr-1">
-                                                10:00
-                                            </strong>
-                                        </div>
-                                        <button type="button" class="btn btn-outline-primary btn-cross">
-                                            <img src="{{ asset('svg/cross-blue.svg') }}" width="13px">
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="ml-2">
-                                    <span class="wii-field-text">
-                                        Francis Cabrel
-                                    </span>
-                                    <span class="wii-small-text">
-                                        N°5354133
-                                    </span>
-                                </div>
-                                <div>
-                                    <img src="{{ asset('svg/location.svg') }}" width="13px" alt="">
-                                    2 allée des charmilles 69018 LYON
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
+        <div class="col-lg-3 col-md-6 col-12 px-2">
+            <div class="wii-box">
+                <div class="header">
+                    <span class="wii-title">Transports Affectées</span>
+                </div>
+                <div class="d-flex flex-column card-container" id="affected-container">
                 </div>
             </div>
+        </div>
 
-            <div class="col-lg-6 col-md-12 col-12">
-                <div class="wii-box">
-                    <div class="header d-flex justify-content-between">
-                        <span class="wii-title">Nouvelle tournée</span>
-                        <div class="wii-body-text">
-                            <div>T2132165-03</div>
-                            <div>Mar 24 mai</div>
+        <div class="col-lg-6 col-md-12 col-12 px-2">
+            <div class="wii-box">
+                <div class="header d-flex justify-content-between">
+                    <span class="wii-title">Nouvelle tournée</span>
+                    <div class="wii-body-text">
+                        <div class="bold">T2132165-03</div>
+                        <div>{{ roundDate|format_helper('longDate', {short: true, year: false}) }}</div>
+                    </div>
+                </div>
+                <div class="row content ">
+                    <div class="d-flex flex-wrap justify-content-around col-12 px-2">
+                        <div class="col-lg-4 px-0">
+                            <div class="wii-field-name">
+                                Point de départ
+                            </div>
+                            <input type="text" class="form-control cursor-default input-plan" name="contact" id="contact" placeholder="">
+                        </div>
+                        <div class="col-lg-4 ">
+                            <div class="wii-field-name">
+                                Point de départ calcul horaire
+                            </div>
+                            <input type="text" class="form-control cursor-default input-plan" name="contact" id="contact" placeholder="">
+                        </div>
+                        <div class="col-lg-4 px-0">
+                            <div class="wii-field-name">
+                                Point d'arrivée
+                            </div>
+                            <input type="text" class="form-control cursor-default input-plan" name="contact" id="contact" placeholder="">
                         </div>
                     </div>
-                    <div class="row content">
-
+                    <div class="map-container">
+                        <div id="map"></div>
+                    </div>
+                    <div class="d-flex flex-wrap px-2 w-100 col-12">
+                        <div class="col-3 px-0">
+                            <div class="wii-field-name">
+                                Liveur
+                            </div>
+                            <select class="data w-100 form-control needed pr-1" name="timeSlot">
+                                {#
+                                {% for timeSlot in timeSlots %}
+                                    <option value="{{ timeSlot.id }}"
+                                        {{ request.timeSlot and timeSlot.id == request.timeSlot.id ? 'selected' }}>
+                                        {{ timeSlot.name }}
+                                    </option>
+                                {% endfor %}
+                                #}
+                                <option value="oui">oui</option>
+                                <option value="non">non</option>
+                            </select>
+                        </div>
+                        <div class="col-3">
+                            <div class="wii-field-name">
+                                Heure de départ
+                            </div>
+                            <input type="text" class="form-control cursor-default input-plan" name="contact" id="contact" placeholder="">
+                        </div>
+                        <div class="col-5 px-0">
+                            <br>
+                            <button class="btn btn-primary ml-auto plan-round-button d-flex align-items-center" tabindex="0">
+                                    <img src="{{ asset('svg/clock-white.svg') }}" alt="Icône tournéé" width="15px">
+                                    <span class="ml-1">Calculer les horaires</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="px-2 w-100">
+                        <p class="wii-small-text py-1">
+                            Seulement une notion de Matin / Après-midi sera donnée <br>
+                            sur les demandes tant que la tournée n’est pas commencée
+                        </p>
+                        <div class="wii-body-text py-1">
+                            <strong>Kilometrage estimé </strong>: 32km
+                        </div>
+                        <div class="wii-body-text py-1">
+                            <strong>Temps estimé </strong>: 12h67
+                        </div>
+                    </div>
+                    <div class="bottom-right-buttons mx-2">
+                        <button class="btn btn-outline-secondary ml-auto plan-round-button" tabindex="0">
+                            Annuler
+                        </button>
+                        <button class="btn btn-success ml-auto plan-round-button ml-3" tabindex="0">
+                            Valider la tournée
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
+
+    <input type="hidden" value="{{ transportOrders }}" name="transportOrders">
+
 {% endblock %}
 
 {% block javascripts %}

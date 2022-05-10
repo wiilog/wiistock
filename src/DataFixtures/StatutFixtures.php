@@ -20,6 +20,7 @@ use App\Entity\TransferOrder;
 use App\Entity\TransferRequest;
 use App\Entity\Transport\TransportOrder;
 use App\Entity\Transport\TransportRequest;
+use App\Entity\Transport\TransportRound;
 use App\Repository\StatutRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
@@ -174,6 +175,11 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
                 TransportOrder::STATUS_FINISHED,
                 TransportOrder::STATUS_CANCELLED,
                 TransportOrder::STATUS_NOT_COLLECTED,
+            ],
+            CategorieStatut::TRANSPORT_ROUND => [
+                TransportRound::STATUS_AWAITING_DELIVERER,
+                TransportRound::STATUS_ONGOING,
+                TransportRound::STATUS_FINISHED,
             ],
         ];
 

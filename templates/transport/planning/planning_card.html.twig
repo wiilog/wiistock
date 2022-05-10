@@ -21,6 +21,7 @@
                     <label for="type-filter-{{ request.type.id }}" class="d-inline-flex align-items-center">
                         <img src="{{ request.collect.type.logo ? request.collect.type.logo.fullPath }}" class="mr-2" width="15">
                     </label>
+                    {{ request.collect.type.label }}
                 </div>
                 {{ request.type.label }}
             {% endif %}
@@ -31,7 +32,7 @@
                 </div>
                 <div class="wii-field-name d-flex flex-wrap">
                     <span>
-                        <img src="{{ asset('svg/clock-black.svg') }}" alt="Icône horloge" width="13px" class="mr1">
+                        <img src="{{ asset('svg/clock-black.svg') }}" alt="Icône horloge" width="13px" class="mr-1">
                         {% if isCollect and request.timeSlot is not null %}
                             <span>{{ request.timeSlot.name }}</span>
                         {% else %}

@@ -5,30 +5,34 @@
     <div class="row">
 
         <div class="col-12 my-2">
-            <div class="form-inline">
-                <div class="mr-3">
-            {{ form.radio('roundInfo', null, true, [
-                {label: 'Créer une nouvelle tournée pour le', value: 'newRound'},
-            ]) }}
+            <div class="row">
+                <div class="col-auto">
+                    {{ form.radio('roundInfo', null, true, [
+                        {label: 'Créer une nouvelle tournée pour le', value: 'newRound', inputClass:'roundInfo-date' },
+                    ]) }}
                 </div>
-            {{ form.input('date', null, true, defaultDate, {
-                type: 'date',
-                min: defaultDate | date('Y-m-d'),
-                widthInput : 0
-            }) }}
+                <div class="col-5">
+                    {{ form.input('date', null, true, defaultDate, {
+                        type: 'date',
+                        min: defaultDate | date('Y-m-d'),
+                    }) }}
+                </div>
             </div>
             <br>
             <br>
-            <div class="form-inline">
-                <div class="mr-3">
+            <div class="row">
+                <div class="col-auto">
                     {{ form.radio('roundInfo', null, true, [
-                        {label: 'Ajouter à la tournée', value: 'editRound'},
+                        {label: 'Ajouter à la tournée', value: 'editRound', inputClass:'roundInfo-number'},
                     ]) }}
                 </div>
-            {{ form.select('rounds', null, true, {
-                items: ['cat', 'dog'],
-                widthInput : 50
-            }) }}
+                <div class="col-5">
+                    {{ form.select('round', null, false, {
+                        inline: true,
+                        disabled: true,
+                        type: 'roundsDelivererPending',
+                    }) }}
+                </div>
             </div>
         </div>
     </div>

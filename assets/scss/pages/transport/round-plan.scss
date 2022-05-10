@@ -1,6 +1,7 @@
 .transport-type{
     background-color: #FFFFFF;
-    padding: 3px;
+    padding:  3px 5px ;
+
     border-radius: 4px;
     display: flex;
     align-items: center;
@@ -29,6 +30,7 @@
 
     .card-content{
         flex: 1 1 auto;
+        padding-bottom: 3px;
         div{
             margin: 3px 3px;
         }
@@ -85,6 +87,38 @@
 
 }
 .card-container{
-    max-height: 80vh;
+    height: 80vh;
     overflow-y: auto;
+    width: 100%;
+}
+
+.map-container{
+    display: flex;
+    padding: 10px;
+    width: 100%;
+    #map{
+        height: 500px;
+        width: 100%;
+        border-radius: 5px;
+    }
+}
+
+.bottom-right-buttons{
+    position: sticky;
+    left: 100%;
+    top: 100%;
+}
+
+.wii-title {
+    display: flex;
+    align-items: center;
+}
+
+
+.placeholder {
+    height: 50px ;
+    border-radius: 5px;
+    border : 1px solid #ccc;;
+    margin: 5px 10px ;
+    width: available;
 }

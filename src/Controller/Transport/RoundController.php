@@ -4,8 +4,12 @@ namespace App\Controller\Transport;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
+use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
+use App\Entity\LocationGroup;
 use App\Entity\Menu;
+use App\Entity\Transport\TransportCollectRequest;
+use App\Entity\Transport\TransportOrder;
 use App\Entity\Transport\TransportRound;
 use App\Helper\FormatHelper;
 use DateTime;
@@ -122,8 +126,57 @@ class RoundController extends AbstractController {
     #[HasPermission([Menu::ORDRE, Action::SCHEDULE_TRANSPORT_ROUND])]
     public function plan(Request $request, EntityManagerInterface $entityManager): Response
     {
-        // TODO Faire la page planifier
-        $date = $request->query->get('dateRound');
-        return $this->render('transport/round/plan.html.twig');
+        if ($request->query->get('dateRound')) {
+            $round = new TransportRound;
+            $roundDate =DateTime::createFromFormat('Y-m-d',  $request->query->get('dateRound'));
+            /// TODO : voir pour number
+        }
+        else if( $request->query->get('transportRound')){
+            $round = $entityManager->getRepository(TransportRound::class)->findOneBy(['id' => $request->query->get('transportRound')]);
+            $transportRequest = $round->getTransportRoundLines()[0]->getOrder()->getRequest();
+            $transportRequest instanceof TransportCollectRequest
+                ? $roundDate = $transportRequest->getValidatedDate() /// TODO : voir avec jade si pour une collect la date velidée avec le patient peut rester null
+                : $roundDate = $transportRequest->getExpectedAt();
+        }
+        else{
+            /// TODO: Afficher une page d'erreur
+        }
+
+        $transportOrders = $entityManager->getRepository(TransportOrder::class)->findByDate($roundDate);
+
+        return $this->render('transport/round/plan.html.twig', [
+            'roundDate' => $roundDate,
+            'transportOrders' => $transportOrders,
+        ]);
+    }
+
+    /**
+     * @Route("/select/emplacement", name="ajax_select_locations", options={"expose": true})
+     */
+    public function locations(Request $request, EntityManagerInterface $manager): Response {
+        $deliveryType = $request->query->get("deliveryType") ?? null;
+        $collectType = $request->query->get("collectType") ?? null;
+        $term = $request->query->get("term");
+        $addGroup = $request->query->getBoolean("add-group");
+
+        $locations = $manager->getRepository(Emplacement::class)->getForSelect(
+            $term,
+            [
+                'deliveryType' => $deliveryType,
+                'collectType' => $collectType,
+                'idPrefix' => $addGroup ? 'location:' : ''
+            ]
+        );
+
+        $results = $locations;
+        if($addGroup) {
+            $locationGroups = $manager->getRepository(LocationGroup::class)->getForSelect($term);
+            $results = array_merge($locations, $locationGroups);
+            usort($results, fn($a, $b) => strtolower($a['text']) <=> strtolower($b['text']));
+        }
+
+        return $this->json([
+            "results" => $results,
+        ]);
     }
 }

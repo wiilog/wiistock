@@ -106,6 +106,7 @@ export function openPlanRoundModal($modalRoundPlan) {
             if (result && result.success) {
                 $modalBody.html(result.html);
             }
+            buttonModalManagement();
         });
 }
 
@@ -116,7 +117,19 @@ export function submitRoundModal(data) {
         params['dateRound'] = data.get('date');
     }
     else if (roundInfo === 'editRound') {
-        params['transportRound'] = data.get('rounds');
+        params['transportRound'] = data.get('round');
     }
     window.location.href = Routing.generate('transport_round_plan', params);
+}
+
+function buttonModalManagement() {
+    $('.roundInfo-date').attr('checked', 'checked');
+    $('[name=roundInfo]').change(function(){
+        if($('.roundInfo-number').is(':checked')){
+            $('[name=round]').attr('disabled', false).attr('required', true);
+        }
+        else {
+            $('[name=round]').attr('disabled', true).attr('required', false);
+        }
+    });
 }

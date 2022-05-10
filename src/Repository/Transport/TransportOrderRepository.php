@@ -133,4 +133,20 @@ class TransportOrderRepository extends EntityRepository {
             ->getResult();
     }
 
+    // find by date
+    public function findByDate(\DateTime $date)
+    {
+
+        return $this->createQueryBuilder("transport_order")
+            ->join("transport_order.request", "request")
+            ->leftJoin(TransportDeliveryRequest::class, "delivery", Join::WITH, "request.id = delivery.id")
+            ->leftJoin(TransportCollectRequest::class, "collect", Join::WITH, "request.id = collect.id")
+            ->where("IFNULL(DATE_FORMAT(request.validatedDate, '%Y-%m-%d') ,IFNULL(DATE_FORMAT(delivery.expectedAt, '%Y-%m-%d'), collect.expectedAt)) = :date")
+            ->join("transport_order.status", "status")
+            ->andWhere("status.nom in (:statuses)")
+            ->setParameter("statuses", [TransportOrder::STATUS_TO_ASSIGN ])
+            ->setParameter("date", $date->format('Y-m-d'))
+            ->getQuery()
+            ->getResult();
+    }
 }
