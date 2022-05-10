@@ -6,8 +6,13 @@
 {% set DISCR_COLLECT = constant('App\\Entity\\Transport\\TransportRequest::DISCR_COLLECT') %}
 
 {% set modeEdit = request.id is not null %}
-{% set modeDeliveryEdit = modeEdit and request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
-{% set modeCollectEdit = modeEdit and request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') %}
+
+{% set isDelivery = request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
+{% set isCollect = request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') %}
+
+
+{% set modeDeliveryEdit = modeEdit and isDelivery %}
+{% set modeCollectEdit = modeEdit and isCollect %}
 
 {% set order = request.order %}
 {% set orderPacks = request.order is not null ? order.packs : [] %}
@@ -233,7 +238,7 @@
                                                            {{ form.multiple_key({multipleKey: multipleKey}) }}/>
                                                 </div>
                                                 {% if nature.temperatureRanges is not empty
-                                                    and request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
+                                                    and isDelivery %}
                                                     <div class="col-3 px-0 {{ not modeDeliveryEdit ? 'd-none' }}"
                                                          data-request-type="{{ DISCR_DELIVERY }}">
                                                         <div class="{{ not modeDeliveryEdit or not isSelected ? 'd-none' }}"
@@ -253,7 +258,7 @@
                                                             }) }}
                                                         </div>
                                                     </div>
-                                                {% elseif request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') and request.id %}
+                                                {% elseif isDelivery and request.id %}
                                                     <div class="col-3"></div>
                                                 {% endif %}
                                                 <div class="col-3 {{ not modeEdit or (orderPacks|length == 0) ? 'd-none' }}"
@@ -263,7 +268,7 @@
                                                         {{ form.number('quantity', null, false, quantity ?: null, {
                                                             labelClass: 'w-100',
                                                             multipleKey: multipleKey,
-                                                            disabled: request.order is null,
+                                                            disabled: request.id and request.order is null,
                                                             min: (modeDeliveryEdit ? quantity : 0) ?: 0
                                                         }) }}
                                                     </div>

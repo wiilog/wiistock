@@ -96,7 +96,7 @@ class TransportRequestRepository extends EntityRepository {
                 case "subcontracted":
                     if (isset($filter['value'])) {
                         $qb
-                            ->join('transport_request.orders', 'filter_subcontract_order')
+                            ->join('transport_request.order', 'filter_subcontract_order')
                             ->andWhere('filter_subcontract_order.subcontracted = :filter_subcontract_value')
                             ->setParameter('filter_subcontract_value', $filter['value']);
                     }

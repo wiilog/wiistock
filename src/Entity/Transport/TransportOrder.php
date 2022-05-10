@@ -87,7 +87,7 @@ class TransportOrder {
     #[ORM\Column(type: 'boolean')]
     private ?bool $subcontracted = null;
 
-    #[ORM\ManyToOne(targetEntity: TransportRequest::class, inversedBy: 'order')]
+    #[ORM\OneToOne(inversedBy: 'order', targetEntity: TransportRequest::class)]
     private ?TransportRequest $request = null;
 
     #[ORM\OneToMany(mappedBy: 'order', targetEntity: TransportHistory::class)]

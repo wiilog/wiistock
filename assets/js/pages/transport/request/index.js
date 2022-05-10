@@ -141,8 +141,18 @@ function submitTransportRequest(form, data, table) {
 
 function saveDeliveryForLinkedCollect($modal, data) {
     const deliveryData = JSON.stringify(data.asObject());
-    $modal.prepend($(`<input type="hidden" class="data" name="delivery"/>`, {value: deliveryData}));
-    $modal.prepend($(`<input type="hidden" class="data" name="printLabels"/>`, {value: data.get('printLabels')}));
+    $modal.prepend($(`<input/>`, {
+        type: 'hidden',
+        class: 'data',
+        name: 'delivery',
+        val: deliveryData,
+    }));
+    $modal.prepend($(`<input/>`, {
+        type: 'hidden',
+        class: 'data',
+        name: 'printLabels',
+        val: data.get('printLabels'),
+    }));
 
     const $requestType = $modal.find('[name=requestType]');
     $requestType

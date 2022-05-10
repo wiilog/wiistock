@@ -110,5 +110,23 @@ class TransportOrderRepository extends EntityRepository {
             "total" => $total,
         ];
     }
+    public function findOrdersForPlanning(\DateTime $start, \DateTime $end, array $statuses) {
+        $statuses = !empty($statuses)
+            ? $statuses
+            : [TransportOrder::STATUS_TO_ASSIGN, TransportOrder::STATUS_ASSIGNED, TransportOrder::STATUS_ONGOING];
+
+        return $this->createQueryBuilder("transport_order")
+            ->join("transport_order.status", "status")
+            ->join("transport_order.request", "request")
+            ->leftJoin(TransportDeliveryRequest::class, "delivery", Join::WITH, "request.id = delivery.id")
+            ->leftJoin(TransportCollectRequest::class, "collect", Join::WITH, "request.id = collect.id")
+            ->where("status.code IN (:planning_orders_statuses)")
+            ->andWhere("COALESCE(DATE_FORMAT(delivery.expectedAt, '%Y-%m-%d'), collect.expectedAt) BETWEEN :start AND :end")
+            ->setParameter("planning_orders_statuses", $statuses)
+            ->setParameter("start", $start->format('Y-m-d'))
+            ->setParameter("end", $end->format('Y-m-d'))
+            ->getQuery()
+            ->getResult();
+    }
 
 }
