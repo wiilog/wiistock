@@ -4,15 +4,23 @@ import Flash from "./flash";
 export default class Form {
 
     element;
-    submitCallback;
-    openCallback;
+    submitListeners;
+    openListeners;
+    closeListeners;
     processors = [];
+    uploads = {};
 
     static create(selector, {clearOnOpen} = {}) {
         const $form = $(selector);
         let form = $form.data('form');
         if (!form || !(form instanceof Form)) {
             form = new Form();
+
+            form
+                .clearOpenListeners()
+                .clearCloseListeners()
+                .clearSubmitListeners()
+                .clearProcessors();
 
             form.element = $form;
             $form.data('form', form);
@@ -24,8 +32,10 @@ export default class Form {
                         button: $(this),
                     });
 
-                    if (result && form.submitCallback) {
-                        form.submitCallback(result);
+                    if (result) {
+                        form.submitListeners.forEach((submitListener) => {
+                            submitListener(result);
+                        });
                     }
 
                     event.preventDefault();
@@ -34,14 +44,15 @@ export default class Form {
                     if (clearOnOpen) {
                         form.clear();
                     }
-                    if (form.openCallback) {
-                        form.openCallback();
-                    }
+
+                    form.openListeners.forEach((openListener) => {
+                        openListener();
+                    });
                 })
                 .on('hidden.bs.modal', function () {
-                    if (form.closeCallback) {
-                        form.closeCallback();
-                    }
+                    form.closeListeners.forEach((closeListener) => {
+                        closeListener();
+                    });
                 });
         }
 
@@ -54,17 +65,43 @@ export default class Form {
     }
 
     onOpen(callback = null) {
-        this.openCallback = callback;
+        if (callback) {
+            this.openListeners.push(callback);
+        }
         return this;
     }
 
     onClose(callback = null) {
-        this.closeCallback = callback;
+        if (callback) {
+            this.closeListeners.push(callback);
+        }
         return this;
     }
 
     onSubmit(callback = null) {
-        this.submitCallback = callback;
+        if (callback) {
+            this.submitListeners.push(callback);
+        }
+        return this;
+    }
+
+    clearOpenListeners() {
+        this.openListeners = [];
+        return this;
+    }
+
+    clearCloseListeners() {
+        this.closeListeners = [];
+        return this;
+    }
+
+    clearSubmitListeners() {
+        this.submitListeners = [];
+        return this;
+    }
+
+    clearProcessors() {
+        this.processors = [];
         return this;
     }
 
@@ -352,6 +389,10 @@ function formatInputValue($input) {
         value = $input[0].files[0] ?? null;
     } else {
         value = $input.val() || null;
+    }
+
+    if (Array.isArray(value)) {
+        value = value.join(';');
     }
 
     if (typeof value === `string`) {

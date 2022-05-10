@@ -10,60 +10,70 @@
 {% endblock %}
 
 {% block page_content %}
-    {% include 'transport/round/transport_round.html.twig' %}
     <div class="m-0 m-md-4 p-4 wii-page-card">
         <div class="d-flex">
             <div>
-                <button class="btn btn-outline-primary today-date mr-0" tabindex="0">
+                <button class="btn btn-outline-primary today-date mr-0" tabindex="0"
+                        disabled
+                        data-loader-color="black">
                     Aujourd'hui
                 </button>
             </div>
             <div class="mx-3">
-                <button class="btn btn-outline-primary decrement-date mr-0" tabindex="0">
+                <button class="btn btn-outline-primary decrement-date mr-0" tabindex="0"
+                        disabled
+                        data-loader-color="black">
                     <img src="{{ asset('svg/arrow.svg') }}"  style="transform:rotate(180deg);" alt="Icône left arrow" width="15px">
                 </button>
-                <button class="btn btn-outline-primary increment-date" tabindex="0">
+                <button class="btn btn-outline-primary increment-date" tabindex="0"
+                        data-loader-color="black">
                     <img src="{{ asset('svg/arrow.svg') }}" alt="Icône right arrow" width="15px">
                 </button>
             </div>
             <div class="planning-switch mx-4">
-                <div class="to-assign">
-                    <input type="checkbox" id="to-assign" name="to-assign" class="to-assign" value="to-assign"/>
+                <div class="to-assign"
+                     data-loader-color="black">
+                    <input type="checkbox" name="status" value="to-assign" id="to-assign" checked/>
                     <label for="to-assign">
-                            <span class="d-inline-flex align-items-center">
-                                &Agrave; affecter
-                            </span>
+                        <span class="d-inline-flex align-items-center">
+                            &Agrave; affecter
+                        </span>
                     </label>
                 </div>
-                <div class="assigned">
-                    <input type="checkbox" id="assigned" name="assigned" class="assigned" value="assigned"/>
+                <div class="assigned"
+                     data-loader-color="black">
+                    <input type="checkbox" name="status" value="assigned" id="assigned" checked/>
                     <label for="assigned">
-                            <span class="d-inline-flex align-items-center">
-                                Affectée
-                            </span>
+                        <span class="d-inline-flex align-items-center">
+                            Affecté
+                        </span>
                     </label>
                 </div>
-                <div class="ongoing">
-                    <input type="checkbox" id="ongoing" name="ongoing" class="ongoing" value="ongoing"/>
+                <div class="ongoing"
+                     data-loader-color="black">
+                    <input type="checkbox" name="status" value="ongoing" id="ongoing" checked/>
                     <label for="ongoing">
-                            <span class="d-inline-flex align-items-center">
-                                En cours
-                            </span>
+                        <span class="d-inline-flex align-items-center">
+                            En cours
+                        </span>
                     </label>
                 </div>
             </div>
             {% set planRound = hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::SCHEDULE_TRANSPORT_ROUND')) %}
             {% if planRound %}
-            <button class="btn btn-primary ml-auto plan-round-button" tabindex="0">
-                <img src="{{ asset('svg/delivery-white.svg') }}" alt="Icône tournéé" width="15px">
-                <span>Planifier une tournée</span>
-            </button>
+                <button class="btn btn-primary ml-auto plan-round-button" tabindex="0">
+                    <span class="d-inline-flex align-items-center">
+                        <img src="{{ asset('svg/delivery-white.svg') }}" alt="" width="15px" class="mr-2">
+                        <span>Planifier une tournée</span>
+                    </span>
+                </button>
             {% endif %}
         </div>
         <div class="row d-flex planning-container">
 
         </div>
     </div>
+    {% include 'transport/round/first_step_modal.html.twig' %}
 {% endblock %}
 
 {% block javascripts %}

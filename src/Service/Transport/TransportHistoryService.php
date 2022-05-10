@@ -51,15 +51,7 @@ class TransportHistoryService {
     public const TYPE_ACCEPTED = "ACCEPTED";
     public const TYPE_REJECTED_DELIVERY = "REJECTED_DELIVERY";
     public const TYPE_CANCELLED = "CANCELLED";
-    public const TYPE_NOT_DELIVERED = "NOT DELIVERED";
-
-    private const CATEGORIES = [
-        self::CATEGORY_TIMELINE => [],
-        self::CATEGORY_INFORMATION => [],
-        self::CATEGORY_WARNING => [],
-        self::CATEGORY_COMMENT => [],
-        self::CATEGORY_ATTACHMENT => [],
-    ];
+    public const TYPE_REQUEST_EDITED = "REQUEST_EDITED";
 
     public const CONTENT = [
         self::TYPE_REQUEST_CREATION => "{user} a créé la {category}",
@@ -83,7 +75,7 @@ class TransportHistoryService {
         self::TYPE_ACCEPTED => "La demande a été acceptée",
         self::TYPE_REJECTED_DELIVERY => "La livraison a été rejetée de la tournée",
         self::TYPE_CANCELLED => "{user} a annulé la {category}",
-        self::TYPE_NOT_DELIVERED => "La livraison n'a pas était livrée"
+        self::TYPE_REQUEST_EDITED => "La demande a été modifiée"
     ];
 
     #[Required]
@@ -204,11 +196,33 @@ class TransportHistoryService {
     }
 
     private function getCategoryFromType(string $type): string {
+        dump($type);
         return match($type) {
-            self::TYPE_REQUEST_CREATION, self::TYPE_LABELS_PRINTING, self::TYPE_ONGOING, self::TYPE_FINISHED, self::TYPE_SUBCONTRACT_UPDATE, self::TYPE_AWAITING_VALIDATION, self::TYPE_SUBCONTRACTED, self::TYPE_PACKS_DEPOSITED => self::CATEGORY_TIMELINE,
-            self::TYPE_AFFECTED_ROUND, self::TYPE_PACKS_FAILED, self::TYPE_CONTACT_VALIDATED => self::CATEGORY_INFORMATION,
-            self::TYPE_DROP_REJECTED_PACK, self::TYPE_FAILED, self::TYPE_NO_MONITORING, self::TYPE_REJECTED_DELIVERY, self::TYPE_CANCELLED => self::CATEGORY_WARNING,
+            self::TYPE_REQUEST_CREATION,
+            self::TYPE_BOTH_REQUEST_CREATION,
+            self::TYPE_LABELS_PRINTING,
+            self::TYPE_ONGOING,
+            self::TYPE_FINISHED,
+            self::TYPE_FINISHED_BOTH,
+            self::TYPE_SUBCONTRACT_UPDATE,
+            self::TYPE_AWAITING_VALIDATION,
+            self::TYPE_SUBCONTRACTED,
+            self::TYPE_ACCEPTED,
+            self::TYPE_PACKS_DEPOSITED => self::CATEGORY_TIMELINE,
+
+            self::TYPE_AFFECTED_ROUND,
+            self::TYPE_REQUEST_EDITED,
+            self::TYPE_PACKS_FAILED,
+            self::TYPE_CONTACT_VALIDATED => self::CATEGORY_INFORMATION,
+
+            self::TYPE_DROP_REJECTED_PACK,
+            self::TYPE_FAILED,
+            self::TYPE_NO_MONITORING,
+            self::TYPE_REJECTED_DELIVERY,
+            self::TYPE_CANCELLED => self::CATEGORY_WARNING,
+
             self::TYPE_ADD_COMMENT => self::CATEGORY_COMMENT,
+
             self::TYPE_ADD_ATTACHMENT => self::CATEGORY_ATTACHMENT,
             default => throw new RuntimeException("Unknown type")
         };

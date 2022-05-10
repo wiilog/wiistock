@@ -61,12 +61,17 @@ class TransportDeliveryRequest extends TransportRequest {
     }
 
     public function canBeDeleted(): bool {
-        $order =  $this->getOrders()->last();
-        return $this->isInRound() || $order && $order->isSubcontracted() && !in_array($this->getStatus()?->getCode(), [
-                TransportRequest::STATUS_ONGOING,
-                TransportRequest::STATUS_FINISHED,
-                TransportRequest::STATUS_NOT_DELIVERED,
-            ]);
+        $order =  $this->getOrder();
+        return !$this->isInRound()
+            || (
+                $order
+                && $order->isSubcontracted()
+                && !in_array($this->getStatus()?->getCode(), [
+                    TransportRequest::STATUS_ONGOING,
+                    TransportRequest::STATUS_FINISHED,
+                    TransportRequest::STATUS_NOT_DELIVERED,
+                ])
+            );
     }
 
     public function canBeUpdated(): bool {

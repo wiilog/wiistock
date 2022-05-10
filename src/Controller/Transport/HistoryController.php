@@ -38,9 +38,9 @@ class HistoryController extends AbstractController
             $entity = $entityManager->find(TransportRequest::class, $id);
 
             $round = null;
-            $orders = $entity->getOrders();
-            if($orders->count()) {
-                $round = $orders->last()->getTransportRoundLines()->last() ?: null;
+            $order = $entity->getOrder();
+            if($order) {
+                $round = $order->getTransportRoundLines()->last() ?: null;
             }
         }
 
@@ -136,8 +136,7 @@ class HistoryController extends AbstractController
                 ->toArray()
             : [];
 
-        $requestPacksList = Stream::from($transportRequest->getOrders())
-            ->flatMap(fn(TransportOrder $order) => $order->getPacks()->toArray());
+        $requestPacksList = Stream::from($transportRequest->getOrder()?->getPacks() ?: []);
 
         $packCounter = $requestPacksList->count();
         /* [natureId => [Pack, Pack]] */

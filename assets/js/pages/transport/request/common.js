@@ -1,5 +1,6 @@
 import '@styles/pages/transport/form.scss';
 import Form from "@app/form";
+import Modal from "@app/modal";
 import AJAX, {GET, POST} from "@app/ajax";
 import Flash, {ERROR, SUCCESS} from "@app/flash";
 
@@ -10,7 +11,10 @@ export function initializeForm($form, editForm = false) {
             validateNatureForm($form, errors)
         })
         .onOpen(() => {
-            onFormOpened(form, editForm);
+            resetForm(form);
+        })
+        .onClose(() => {
+            clearForm(form, editForm);
         });
 
     form
@@ -123,7 +127,7 @@ export function submitPackingModal($modalPacking, data, callback) {
         });
 }
 
-function onFormOpened(form, editForm) {
+function clearForm(form, editForm) {
     const $modal = form.element;
 
     $modal.find('[name=delivery][type=hidden]').remove();
@@ -138,16 +142,20 @@ function onFormOpened(form, editForm) {
         .prop('checked', false)
         .prop('disabled', false);
 
-    $requestType
-        .filter('[value=collect]')
-        .prop('checked', true)
-        .trigger('change');
-
     if (!editForm) {
         $modal
             .find('.contact-container .data, [name=expectedAt]')
             .prop('disabled', false);
     }
+}
+
+function resetForm(form) {
+    const $modal = form.element;
+    const $requestType = $modal.find('[name=requestType]');
+    $requestType
+        .filter('[value=collect]')
+        .prop('checked', true)
+        .trigger('change');
 }
 
 function onNatureCheckChange($input) {

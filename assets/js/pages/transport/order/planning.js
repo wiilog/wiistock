@@ -1,135 +1,146 @@
 import '@styles/pages/transport/planning.scss';
 import AJAX, {GET} from "@app/ajax";
+import Form from "@app/form";
+import moment from 'moment';
 
 let currentDate = moment();
+
 $(function () {
     getOrders();
-    initializeRoundPlan(() => {
-    });
+    initializeRoundPlan();
 
-    $('.planning-switch').children().each(function(){
-        $(this).on('change', function (){
-            if($(this).find('input').is(':checked')){
-                wrapLoadingOnActionButton($(this), () => getOrders($(this).attr('class'), $(this)));
-            } else {
-                wrapLoadingOnActionButton($(this), () => getOrders(null, $(this)));
-            }
-        });
+    const $button = $('.planning-switch').find('[name=status]');
+
+    $button.on('change', function (){
+        const $filter = $(this);
+        const $container = $filter.parent();
+        // at least on filter checked
+        if (!$('[name=status]:checked').exists()) {
+            $filter.prop('checked', true);
+        }
+
+        wrapLoadingOnActionButton($container, () => getOrders())
     });
 
     $('.today-date').on('click', function (){
         currentDate = moment();
-        wrapLoadingOnActionButton($(this), () => updateFilter($(this)));
+        $('.decrement-date').prop('disabled', false);
+        $('.increment-date').prop('disabled', false);
+
+        wrapLoadingOnActionButton($(this), () => getOrders());
     });
 
-    $('.increment-date').on('click', function (){
-       if( currentDate < moment().add(6, 'days')){
-            currentDate = currentDate.add(2, 'days');
-            wrapLoadingOnActionButton($(this), () => updateFilter($(this)));
-            $('.decrement-date').attr('disabled', false);
-       }else{
-           $(this).attr('disabled', true);
-       }
+    $('.decrement-date').on('click', function () {
+        changeCurrentDay('down');
+        wrapLoadingOnActionButton($(this), () => getOrders());
     });
+=========
+    initializeRoundPlan()
+>>>>>>>>> Temporary merge branch 2
+})
 
-    $('.decrement-date').on('click', function (){
-        if( currentDate > moment().subtract(6, 'days')) {
-            currentDate = currentDate.subtract(2, 'days');
-            wrapLoadingOnActionButton($(this), () => updateFilter($(this)));
-            $('.increment-date').attr('disabled', false);
-        }else{
-            $(this).attr('disabled', true);
-        }
+    $('.increment-date').on('click', function () {
+        changeCurrentDay('up');
+        wrapLoadingOnActionButton($(this), () => getOrders());
     });
 })
 
-function updateFilter( $button = null){
-    if(!$('.planning-switch').find('input:checked').length){
-        return(getOrders(null , $button));
-    }
-    else {
-        let response = null ;
-        $('.planning-switch').children().each(function(){
-            if($(this).find('input').is(':checked')){
-                response = getOrders($(this).attr('class'), $(this));
-            }
+function getOrders() {
+    const statuses = $('[name=status]:checked')
+        .map((_, input) => $(input).val())
+        .toArray()
+        .join(',');
+    return AJAX
+        .route(GET,'transport_planning_api',{
+            'statuses': statuses,
+            'currentDate': currentDate.format('YYYY-MM-DD')
+        })
+        .json()
+        .then(({template})=>{
+            $('.planning-container').html(template);
         });
-        if($button !== null){
-            $button.popLoader();
-        }
-        return (response ? response : Promise.resolve());
-    }
 }
 
-function getOrders(statut = null, $button = null){
-    return AJAX.route(GET,'transport_planning_api',{
-        'statusForFilter': statut,
-        'currentDate': currentDate.format('YYYY-MM-DD')
-    }).json().then(({template})=>{
-        $('.planning-container').empty().append(template);
-        if($button !== null){
-            $button.popLoader();
-        }
-    });
-}
-
-export function initializeRoundPlan() {
+function initializeRoundPlan() {
     const $modalRoundPlan = $('#modalRoundPlan');
     $(document).on("click", ".plan-round-button", function() {
-        const $button = $(this);
-        wrapLoadingOnActionButton($button, () => openPlanRoundModal($modalRoundPlan));
+        $modalRoundPlan.modal('show');
     });
 
-    Form.create($modalRoundPlan).onSubmit(function(data) {
-        wrapLoadingOnActionButton($modalRoundPlan.find('[type=submit]'), () => {
-            return submitRoundModal(data);
+    Form.create($modalRoundPlan)
+        .onOpen(() => {
+            const $round = $modalRoundPlan.find('[name=round]');
+            const $date = $modalRoundPlan.find('[name=date]');
+            const $radios = $modalRoundPlan.find('[name=roundInfo]');
+            const $newRoundRadio = $radios.filter('[value=newRound]');
+
+            $radios.on('change', function(){console.log()
+                if ($(this).val() === 'newRound') {
+                    $round
+                        .prop('disabled', true)
+                        .prop('required', false);
+                    $date
+                        .prop('disabled', false)
+                        .prop('required', true);
+                }
+                else {
+                    $round
+                        .prop('disabled', false)
+                        .prop('required', true);
+                    $date
+                        .prop('disabled', true)
+                        .prop('required', false);
+                }
+            });
+
+            $newRoundRadio
+                .prop('checked', true)
+                .trigger('change');
+        })
+        .onSubmit(function(data) {
+            wrapLoadingOnActionButton($modalRoundPlan.find('[type=submit]'), () => {
+                return submitRoundModal(data);
+            });
         });
-    })
 }
 
-export function openPlanRoundModal($modalRoundPlan) {
-    const $modalBody = $modalRoundPlan.find('.modal-body');
-    $modalBody.html(`
-        <div class="row justify-content-center">
-             <div class="col-auto">
-                <div class="spinner-border" role="status">
-                    <span class="sr-only">Loading...</span>
-                </div>
-             </div>
-        </div>
-    `);
-
-    $modalRoundPlan.modal('show');
-    return AJAX.route(GET, `plan_round_api`)
-        .json()
-        .then((result) => {
-            if (result && result.success) {
-                $modalBody.html(result.html);
-            }
-            buttonModalManagement();
-        });
-}
-
-export function submitRoundModal(data) {
+function submitRoundModal(data) {
     const roundInfo = data.get('roundInfo');
     const params = {};
     if(roundInfo === 'newRound') {
-        params['dateRound'] = data.get('date');
+        params.dateRound = data.get('date');
     }
     else if (roundInfo === 'editRound') {
-        params['transportRound'] = data.get('round');
+        params.transportRound = data.get('round');
     }
     window.location.href = Routing.generate('transport_round_plan', params);
 }
 
-function buttonModalManagement() {
-    $('.roundInfo-date').attr('checked', 'checked');
-    $('[name=roundInfo]').change(function(){
-        if($('.roundInfo-number').is(':checked')){
-            $('[name=round]').attr('disabled', false).attr('required', true);
-        }
-        else {
-            $('[name=round]').attr('disabled', true).attr('required', false);
-        }
-    });
+/**
+ * @param {"up"|"down"|"today"} direction
+ */
+function changeCurrentDay(direction) {
+    const $decrementDate = $('.decrement-date');
+    const $incrementDate = $('.increment-date');
+    const $todayDate = $('.today-date');
+
+    let changed = false;
+
+    if (direction === 'down' && !moment().isSame(currentDate, 'day')) {
+        currentDate = currentDate.subtract(2, 'days');
+        changed = true;
+    }
+    else if (direction === 'up' && !moment().add(6, 'days').isSame(currentDate, 'day')) {
+        currentDate = currentDate.add(2, 'days');
+        changed = true;
+    }
+    else if (direction === 'today' && !moment().isSame(currentDate, 'day')) {
+        currentDate = moment();
+        changed = true;
+    }
+
+    $todayDate.prop('disabled', moment().isSame(currentDate, 'day'));
+    $decrementDate.prop('disabled', moment().isSame(currentDate, 'day'));
+    $incrementDate.prop('disabled', moment().add(6, 'days').isSame(currentDate, 'day'));
+    return changed;
 }

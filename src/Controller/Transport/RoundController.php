@@ -106,16 +106,6 @@ class RoundController extends AbstractController {
         ]);
     }
 
-    #[Route("/planning-api/form", name: "plan_round_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
-    #[HasPermission([Menu::ORDRE, Action::SCHEDULE_TRANSPORT_ROUND], mode: HasPermission::IN_JSON)]
-    public function planRoundApi(): JsonResponse
-    {
-        return $this->json([
-            "success" => true,
-            "html" => $this->renderView('transport/round/round-content.html.twig'),
-        ]);
-    }
-
     #[Route("/voir/{transportRound}", name: "transport_round_show", methods: "GET")]
     public function show(TransportRound $transportRound): Response {
         // TODO Faire la page de show
@@ -150,33 +140,4 @@ class RoundController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/select/emplacement", name="ajax_select_locations", options={"expose": true})
-     */
-    public function locations(Request $request, EntityManagerInterface $manager): Response {
-        $deliveryType = $request->query->get("deliveryType") ?? null;
-        $collectType = $request->query->get("collectType") ?? null;
-        $term = $request->query->get("term");
-        $addGroup = $request->query->getBoolean("add-group");
-
-        $locations = $manager->getRepository(Emplacement::class)->getForSelect(
-            $term,
-            [
-                'deliveryType' => $deliveryType,
-                'collectType' => $collectType,
-                'idPrefix' => $addGroup ? 'location:' : ''
-            ]
-        );
-
-        $results = $locations;
-        if($addGroup) {
-            $locationGroups = $manager->getRepository(LocationGroup::class)->getForSelect($term);
-            $results = array_merge($locations, $locationGroups);
-            usort($results, fn($a, $b) => strtolower($a['text']) <=> strtolower($b['text']));
-        }
-
-        return $this->json([
-            "results" => $results,
-        ]);
-    }
 }

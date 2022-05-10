@@ -5,15 +5,21 @@
 {% set DISCR_DELIVERY = constant('App\\Entity\\Transport\\TransportRequest::DISCR_DELIVERY') %}
 {% set DISCR_COLLECT = constant('App\\Entity\\Transport\\TransportRequest::DISCR_COLLECT') %}
 
-{% set selectedLines = selectedLines ?? {} %}
 {% set modeEdit = request.id is not null %}
-{% set modeDeliveryEdit = modeEdit and request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
-{% set modeCollectEdit = modeEdit and request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') %}
-{% set informations = informations ?? [] %}
-{% set prefilled = prefilled ?? "" %}
 
-<div class="modal fade" role="dialog" id="{{ modalId }}" data-modal-type="new">
-    <input type="hidden" value="{{ prefilled }}" id="prefilled">
+{% set isDelivery = request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
+{% set isCollect = request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') %}
+
+
+{% set modeDeliveryEdit = modeEdit and isDelivery %}
+{% set modeCollectEdit = modeEdit and isCollect %}
+
+{% set order = request.order %}
+{% set orderPacks = request.order is not null ? order.packs : [] %}
+
+<div class="modal fade"
+     role="dialog"
+     data-modal-type="{{ modeEdit ? 'edit' : 'new' }}">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -53,44 +59,20 @@
                         <div class="col-md-6 col-12">
                             <div class="row">
                                 <div class="col-12 mb-2">
-                                    {{ form.input(
-                                        'contactName',
-                                        'Patient',
-                                        true,
-                                        contact.name ?? (
-                                            informations.Prenom ?? null and informations.Nom ?? null
-                                                ? (informations.Prenom ~ ' ' ~ informations.Nom)
-                                        ),
-                                        {
-                                            disabled: request.id is not null,
-                                            noClear: true
-                                        }
-                                    ) }}
+                                    {{ form.input('contactName', 'Patient', true, contact.name, {
+                                        disabled: request.id is not null,
+                                    }) }}
                                 </div>
                                 <div class="col-12 mb-2">
-                                    {{ form.input(
-                                        'contactFileNumber',
-                                        'N° dossier',
-                                        true,
-                                        contact.fileNumber ?? (informations.Nodos ?? ''),
-                                        {
-                                            disabled: request.id is not null,
-                                            noClear: true
-                                        }
-                                    ) }}
+                                    {{ form.input('contactFileNumber', 'N° dossier', true, contact.fileNumber, {
+                                        disabled: request.id is not null,
+                                    }) }}
                                 </div>
                                 <div class="col-12 mb-2">
-                                    {{ form.textarea(
-                                        'contactContact',
-                                        'Contact',
-                                        true,
-                                        contact.contact ?? (informations.Contact ?? ''),
-                                        {
-                                            style: 'min-height: 104px;',
-                                            resizeVertical: false,
-                                            noClear: true
-                                        }
-                                    ) }}
+                                    {{ form.textarea('contactContact', 'Contact', true, contact.contact, {
+                                        style: 'min-height: 104px;',
+                                        resizeVertical: false,
+                                    }) }}
                                 </div>
                             </div>
                         </div>
@@ -98,46 +80,25 @@
                             <div class="row">
                                 <div class="col-12 mb-2">
                                     <div class="d-flex">
-                                        {{ form.textarea(
-                                            'contactAddress',
-                                            'Adresse',
-                                            true,
-                                            contact.address ?? (informations.Adresse ?? ''),
-                                            {
-                                                style: 'min-height: 104px;',
-                                                resizeVertical: false,
-                                                noClear: true
-                                            }
-                                        ) }}
+                                        {{ form.textarea('contactAddress', 'Adresse', true, contact.address, {
+                                            style: 'min-height: 104px;',
+                                            resizeVertical: false,
+                                        }) }}
                                     </div>
                                 </div>
                                 <div class="col-12 mb-2">
-                                    {{ form.textarea(
-                                        'contactPersonToContact',
-                                        'Personne à prévenir',
-                                        true,
-                                        contact.personToContact ?? (informations.PersonnesAPrevenir ?? ''),
-                                        {
-                                            style: 'min-height: 104px;',
-                                            resizeVertical: false,
-                                            noClear: true
-                                        }
-                                    ) }}
+                                    {{ form.textarea('contactPersonToContact', 'Personne à prévenir', true, contact.personToContact, {
+                                        style: 'min-height: 104px;',
+                                        resizeVertical: false,
+                                    }) }}
                                 </div>
                             </div>
                         </div>
                         <div class="col-12 mb-2">
-                            {{ form.textarea(
-                                'contactObservation',
-                                'Remarque',
-                                false,
-                                contact.observation ?? (informations.Remarques ?? ''),
-                                {
-                                    style: 'min-height: 104px;',
-                                    resizeVertical: false,
-                                    noClear: true
-                                }
-                            ) }}
+                            {{ form.textarea('contactObservation', 'Remarque', false, contact.observation, {
+                                style: 'min-height: 104px;',
+                                resizeVertical: false,
+                            }) }}
                         </div>
                     </div>
 
@@ -154,8 +115,16 @@
                         <div class="col-auto mb-3">
                             {% if types is empty %}
                                 Aucun type disponible<br>
-                                <a href="/parametrage/afficher/track/demande_transport/types_champs_libres_livraisons" class="btn btn-primary mt-2">Configuration des types de livraison</a><br>
-                                <a href="/parametrage/afficher/track/demande_transport/types_champs_libres_collectes" class="btn btn-primary mt-1">Configuration des types de collecte</a>
+                                <a href="{{ path('settings_item', {
+                                    'category': constant('App\\Controller\\Settings\\SettingsController::CATEGORY_TRACKING'),
+                                    'menu': constant('App\\Controller\\Settings\\SettingsController::MENU_TRANSPORT_REQUESTS'),
+                                    'submenu': constant('App\\Controller\\Settings\\SettingsController::MENU_DELIVERY_TYPES_FREE_FIELDS'),
+                                }) }}" class="btn btn-primary mt-2">Configuration des types de livraison</a><br>
+                                <a href="{{ path('settings_item', {
+                                    'category': constant('App\\Controller\\Settings\\SettingsController::CATEGORY_TRACKING'),
+                                    'menu': constant('App\\Controller\\Settings\\SettingsController::MENU_TRANSPORT_REQUESTS'),
+                                    'submenu': constant('App\\Controller\\Settings\\SettingsController::MENU_COLLECT_TYPES_FREE_FIELDS'),
+                                }) }}" class="btn btn-primary mt-2">Configuration des types de collecte</a>
                             {% endif %}
 
                             {{ form.switch('type', null, true, types|map((type) => {
@@ -194,7 +163,6 @@
                             {% set expectedAtValue = request.expectedAt ? request.expectedAt|date('Y-m-d\\TH:i') %}
                             {{ form.input('expectedAt', 'Date et heure de livraison', true, expectedAtValue, {
                                 type: 'datetime-local',
-                                disabled: request.id is not null,
                             }) }}
                         </div>
                         <div class="col-md-6 col-12">
@@ -216,7 +184,6 @@
                             {% set expectedAtValue = request.expectedAt ? request.expectedAt|date('Y-m-d') %}
                             {{ form.input('expectedAt', 'Date de collecte', true, expectedAtValue, {
                                 type: 'date',
-                                disabled: request.id is not null,
                                 min: 'now' | date('Y-m-d'),
                             }) }}
                         </div>
@@ -246,14 +213,16 @@
                                         block: true
                                     } %}
                                 </div>
-                                {% for lineIndex, nature in natures %}
+                                {% for lineIndex, line in requestLines %}
+                                    {% set nature = line.nature %}
+                                    {% set quantity = line.quantity ?? null %}
+                                    {% set temperatureRange = line.temperatureRange ?? null %}
+                                    {% set isSelected = line.selected ?? false %}
+
                                     {% set allowedForms = nature.allowedForms ?? {} %}
                                     {% set natureTypeCollect = allowedForms[constant('App\\Entity\\Nature::TRANSPORT_COLLECT_CODE')] ?? [] %}
                                     {% set natureTypeDelivery = allowedForms[constant('App\\Entity\\Nature::TRANSPORT_DELIVERY_CODE')] ?? [] %}
                                     {% set natureType = natureTypeCollect|merge(natureTypeDelivery) %}
-
-                                    {% set isSelected = selectedLines[nature.id] is defined %}
-                                    {% set value = isSelected ? selectedLines[nature.id] : null %}
 
                                     {% if natureType is not empty %}
                                         {% set multipleKey = {
@@ -267,7 +236,8 @@
                                                     {{ form.checkbox('selected', nature.label, false, isSelected, {
                                                         labelClass: 'text-break',
                                                         multipleKey: multipleKey,
-                                                        error: 'global'
+                                                        disabled: modeDeliveryEdit and isSelected and quantity > 0,
+                                                        error: 'global',
                                                     }) }}
                                                     <input type="hidden"
                                                            value="{{ nature.id }}"
@@ -276,7 +246,7 @@
                                                            {{ form.multiple_key({multipleKey: multipleKey}) }}/>
                                                 </div>
                                                 {% if nature.temperatureRanges is not empty
-                                                    and request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
+                                                    and isDelivery %}
                                                     <div class="col-3 px-0 {{ not modeDeliveryEdit ? 'd-none' }}"
                                                          data-request-type="{{ DISCR_DELIVERY }}">
                                                         <div class="{{ not modeDeliveryEdit or not isSelected ? 'd-none' }}"
@@ -286,7 +256,7 @@
                                                                 items: nature.temperatureRanges|map((temperature, key) => ({
                                                                     label: temperature.value,
                                                                     value: temperature.id,
-                                                                    selected: value is not null ? (value == temperature.id) : (key == 0)
+                                                                    selected: temperatureRange is not null ? (temperatureRange == temperature.id) : (key == 0)
                                                                 })),
                                                                 inputClass: 'needs-default',
                                                                 multipleKey: multipleKey,
@@ -296,16 +266,18 @@
                                                             }) }}
                                                         </div>
                                                     </div>
-                                                {% elseif request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') and request.id %}
+                                                {% elseif isDelivery and request.id %}
                                                     <div class="col-3"></div>
                                                 {% endif %}
-                                                <div class="col-3 {{ not modeEdit ? 'd-none' }}"
+                                                <div class="col-3 {{ not modeEdit or (orderPacks|length == 0) ? 'd-none' }}"
                                                      data-request-type="{{ DISCR_COLLECT }}">
                                                     <div class="{{ not modeEdit or not isSelected ? 'd-none' }}"
                                                          data-nature-is-selected>
-                                                        {{ form.number('quantity', null, false, modeDeliveryEdit ? null : value, {
+                                                        {{ form.number('quantity', null, false, quantity ?: null, {
                                                             labelClass: 'w-100',
                                                             multipleKey: multipleKey,
+                                                            disabled: request.id and request.order is null,
+                                                            min: (modeDeliveryEdit ? quantity : 0) ?: 0
                                                         }) }}
                                                     </div>
                                                 </div>
