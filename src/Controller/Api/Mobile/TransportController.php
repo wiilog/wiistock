@@ -11,6 +11,7 @@ use App\Entity\Transport\TransportCollectRequest;
 use App\Entity\Transport\TransportDeliveryOrderPack;
 use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\Transport\TransportDeliveryRequestLine;
+use App\Entity\Transport\TransportRequest;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\TransportRoundLine;
 use App\Entity\Utilisateur;
@@ -34,6 +35,7 @@ class TransportController extends AbstractFOSRestController {
         $this->user = $user;
     }
 
+
     /**
      * @Rest\Get("/api/transport-rounds", name="api_transport_rounds", methods={"GET"}, condition="request.isXmlHttpRequest()")
      * @Wii\RestAuthenticated()
@@ -41,14 +43,13 @@ class TransportController extends AbstractFOSRestController {
      */
     public function transportRounds(EntityManagerInterface $manager): Response {
         $transportRoundRepository = $manager->getRepository(TransportRound::class);
-        $transportRoundLineRepository = $manager->getRepository(TransportRoundLine::class);
         $freeFieldRepository = $manager->getRepository(FreeField::class);
         $user = $this->getUser();
 
         $transportRounds = $transportRoundRepository->findMobileTransportRoundsByUser($user);
         $data = Stream::from($transportRounds)
-            ->map(function(TransportRound $round) use ($transportRoundLineRepository, $freeFieldRepository) {
-                $lines = $transportRoundLineRepository->findLinesByRound($round);
+            ->map(function(TransportRound $round) use ($freeFieldRepository) {
+                $lines = $round->getTransportRoundLines();
 
                 /** @var TransportRoundLine $line */
                 $totalLoaded = 0;
@@ -91,9 +92,13 @@ class TransportController extends AbstractFOSRestController {
                         ->filter(fn(TransportRoundLine $line) => $line->getOrder()->getRequest() instanceof TransportDeliveryRequest)
                         ->count(),
                     'lines' => Stream::from($lines)
+                        ->filter(fn(TransportRoundLine $line) =>
+                            !$line->getCancelledAt()
+                            || $line->getCancelledAt() > $line->getTransportRound()->getBeganAt())
                         ->map(function(TransportRoundLine $line) use ($freeFieldRepository) {
                             $order = $line->getOrder();
                             $request = $order->getRequest();
+                            $collect = $request instanceof TransportDeliveryRequest ? $request->getCollect() : null;
                             $contact = $request->getContact();
                             $isCollect = $request instanceof TransportCollectRequest;
                             $categoryFF = $isCollect
@@ -112,8 +117,19 @@ class TransportController extends AbstractFOSRestController {
                                 'id' => $line->getTransportRound()->getId(),
                                 'number' => $request->getNumber(),
                                 'type' => FormatHelper::type($request->getType()),
-                                'type_icon' => $request->getType()?->getLogo()?->getFullPath(),
+                                'type_icon' => $request->getType()?->getLogo() ? $_SERVER["APP_URL"] . $request->getType()->getLogo()->getFullPath() : null,
                                 'kind' => $isCollect ? 'collect' : 'delivery',
+                                'collect' => $collect ? [
+                                    'type' => $collect->getType()->getLabel(),
+                                    'type_icon' => $collect->getType()?->getLogo() ? $_SERVER["APP_URL"] . $collect->getType()->getLogo()->getFullPath() : null,
+                                    'time_slot' => $collect->getTimeSlot()->getName(),
+                                    'success' => $collect->getStatus()->getCode() === TransportRequest::STATUS_FINISHED,
+                                    'failure' => in_array($collect->getStatus()->getCode(), [
+                                        TransportRequest::STATUS_NOT_DELIVERED,
+                                        TransportRequest::STATUS_NOT_COLLECTED,
+                                        TransportRequest::STATUS_CANCELLED,
+                                    ]),
+                                ] : null,
                                 'packs' => Stream::from($line->getOrder()->getPacks())
                                     ->map(function(TransportDeliveryOrderPack $orderPack) use ($temperatureRanges) {
                                         $pack = $orderPack->getPack();
@@ -131,13 +147,17 @@ class TransportController extends AbstractFOSRestController {
                                     ? $request->getTimeSlot()->getName()
                                     : FormatHelper::datetime($request->getExpectedAt()),
                                 'estimated_time' => $line->getEstimatedAt()?->format('H:i'),
+                                'expected_time' => $request->getExpectedAt()?->format('H:i'),
                                 'time_slot' => $isCollect ? $request->getTimeSlot()->getName() : null,
                                 'contact' => [
                                     'file_number' => $contact->getFileNumber(),
-                                    'address' => $contact->getAddress(),
+                                    'name' => $contact->getName(),
+                                    'address' => str_replace("\n", "<br>", $contact->getAddress()),
                                     'contact' => $contact->getContact(),
                                     'person_to_contact' => $contact->getPersonToContact(),
                                     'observation' => $contact->getObservation(),
+                                    'latitude' => $contact->getAddressLatitude(),
+                                    'longitude' => $contact->getAddressLongitude(),
                                 ],
                                 'comment' => $order->getComment(),
                                 'photos' => Stream::from($order->getAttachments())
@@ -151,6 +171,12 @@ class TransportController extends AbstractFOSRestController {
                                         'value' => $freeFieldsValues[$freeField->getId()] ?? '',
                                     ]),
                                 'priority' => $line->getPriority(),
+                                'cancelled' => !!$line->getCancelledAt(),
+                                'success' => $request->getStatus()->getCode() === TransportRequest::STATUS_FINISHED,
+                                'failure' => in_array($request->getStatus()->getCode(), [
+                                    TransportRequest::STATUS_NOT_DELIVERED,
+                                    TransportRequest::STATUS_NOT_COLLECTED,
+                                ]),
                             ];
                         }),
                 ];
@@ -158,6 +184,7 @@ class TransportController extends AbstractFOSRestController {
 
         return $this->json($data);
     }
+
 
     /**
      * @Rest\Get("/api/reject-motives", name="api_reject_motives", methods={"GET"}, condition="request.isXmlHttpRequest()")
