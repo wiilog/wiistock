@@ -89,13 +89,11 @@ class OrderController extends AbstractController {
         }
     }
 
-    #[Route("/voir/{id}", name: "transport_order_show", methods: "GET")]
+    #[Route("/voir/{transport}", name: "transport_order_show", methods: "GET")]
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_TRANSPORT])]
-    public function show(TransportOrder $id,
+    public function show(TransportOrder $transport,
                          EntityManagerInterface $entityManager): Response {
-
-        $transportOrder = $id;
-        $transportRequest = $transportOrder->getRequest();
+        $transportRequest = $transport->getRequest();
 
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $categoryFF = $transportRequest instanceof TransportDeliveryRequest
@@ -103,22 +101,20 @@ class OrderController extends AbstractController {
             : CategorieCL::COLLECT_TRANSPORT;
         $freeFields = $freeFieldRepository->findByTypeAndCategorieCLLabel($transportRequest->getType(), $categoryFF);
 
-        $packsCount = !$transportRequest->getOrders()->isEmpty()
-            ? $transportRequest->getOrders()->last()->getPacks()->count()
-            : 0;
+        $packsCount = $transportRequest->getOrder()?->getPacks()->count() ?: 0;
 
-        $hasRejectedPacks = !$transportRequest->getOrders()->isEmpty()
-            && Stream::from($transportRequest->getOrders()->last()->getPacks())
+        $hasRejectedPacks = $transportRequest->getOrder()
+            && Stream::from($transportRequest->getOrder()?->getPacks() ?: [])
                 ->some(fn(TransportDeliveryOrderPack $pack) => !$pack->isLoaded());
 
-        $round = !$transportOrder->getTransportRoundLines()->isEmpty()
-            ? $transportOrder->getTransportRoundLines()->last()->getTransportRound()
+        $round = !$transport->getTransportRoundLines()->isEmpty()
+            ? $transport->getTransportRoundLines()->last()->getTransportRound()
             : null ;
 
         $timeSlots = $entityManager->getRepository(CollectTimeSlot::class)->findAll();
 
         return $this->render('transport/order/show.html.twig', [
-            'order' => $transportOrder,
+            'order' => $transport,
             'freeFields' => $freeFields,
             'packsCount' => $packsCount,
             'hasRejectedPacks' => $hasRejectedPacks,
@@ -129,7 +125,7 @@ class OrderController extends AbstractController {
 
     #[Route("/liste", name: "transport_order_index", methods: "GET")]
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_TRANSPORT])]
-    public function index(Request $request, EntityManagerInterface $manager): Response {
+    public function index(EntityManagerInterface $manager): Response {
         $typeRepository = $manager->getRepository(Type::class);
 
         return $this->render('transport/order/index.html.twig', [
@@ -171,14 +167,17 @@ class OrderController extends AbstractController {
 
         $queryResult = $transportRepository->findByParamAndFilters($request->request, $filters);
 
-        $transportOrders = [];
-        /** @var TransportOrder $order */
-        foreach ($queryResult["data"] as $order) {
-            $request = $order->getRequest();
-            $date = $request->getValidatedDate() ?? $request->getExpectedAt();
-
-            $transportOrders[$date->format("dmY")][] = $order;
-        }
+        $transportOrders = Stream::from($queryResult["data"])
+            ->keymap(function (TransportOrder $order) {
+                $request = $order->getRequest();
+                $date = $request->getValidatedDate() ?? $request->getExpectedAt();
+                $key = $date->format("dmY");
+                return [
+                    $key,
+                    $order
+                ];
+            }, true)
+            ->toArray();
 
         $rows = [];
         $currentRow = [];

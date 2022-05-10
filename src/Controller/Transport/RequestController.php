@@ -37,6 +37,7 @@ use App\Entity\Utilisateur;
 use DateTime;
 use App\Service\Transport\TransportService;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
+use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -56,12 +57,18 @@ class RequestController extends AbstractController {
      */
     #[Route("/liste", name: "transport_request_index", methods: "GET")]
     #[HasPermission([Menu::DEM, Action::DISPLAY_TRANSPORT])]
-    public function index(EntityManagerInterface $entityManager, Request $request): Response {
+    public function index(EntityManagerInterface $entityManager,
+                          Request $request): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
         $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
 
-        $token = $request->query->get('x-api-key');
+        $natures = $natureRepository->findByAllowedForms([Nature::TRANSPORT_COLLECT_CODE, Nature::TRANSPORT_DELIVERY_CODE]);
+        $requestLines = Stream::from($natures)
+            ->map(fn(Nature $nature) => [
+                'nature' => $nature,
+            ])
+            ->toArray();
 
         return $this->render('transport/request/index.html.twig', [
             'newRequest' => new TransportDeliveryRequest(),
@@ -81,10 +88,7 @@ class RequestController extends AbstractController {
                 CategoryType::DELIVERY_TRANSPORT,
                 CategoryType::COLLECT_TRANSPORT,
             ]),
-            'natures' => $natureRepository->findByAllowedForms([
-                Nature::TRANSPORT_COLLECT_CODE,
-                Nature::TRANSPORT_DELIVERY_CODE
-            ]),
+            'requestLines' => $requestLines,
             'temperatures' => $temperatureRangeRepository->findAll(),
             'statuts' => [
                 TransportRequest::STATUS_AWAITING_VALIDATION,
@@ -103,50 +107,25 @@ class RequestController extends AbstractController {
         ]);
     }
 
-    #[Route("/voir/{id}", name: "transport_request_show", methods: "GET")]
-    public function show(TransportRequest $id,
+    #[Route("/voir/{transport}", name: "transport_request_show", methods: "GET")]
+    public function show(TransportRequest       $transport,
                          EntityManagerInterface $entityManager): Response {
-        $transportRequest = $id;
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
-        $typeRepository = $entityManager->getRepository(Type::class);
-        $natureRepository = $entityManager->getRepository(Nature::class);
-        $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
 
-        $categoryFF = $transportRequest instanceof TransportDeliveryRequest
+        $categoryFF = $transport instanceof TransportDeliveryRequest
             ? CategorieCL::DELIVERY_TRANSPORT
             : CategorieCL::COLLECT_TRANSPORT;
-        $freeFields = $freeFieldRepository->findByTypeAndCategorieCLLabel($transportRequest->getType(), $categoryFF);
+        $freeFields = $freeFieldRepository->findByTypeAndCategorieCLLabel($transport->getType(), $categoryFF);
 
-        $selectedLines = Stream::from($transportRequest->getLines())
-            ->keymap(fn(TransportRequestLine $line) => [
-                $line->getNature()?->getId() ?: 0,
-                $line instanceof TransportDeliveryRequestLine
-                    ? $line->getTemperatureRange()?->getId()
-                    : ($line instanceof TransportCollectRequestLine ? $line->getQuantityToCollect() : null)
-            ])
-            ->filter(fn($_, $key) => $key !== 0)
-            ->toArray();
+        $packsCount = $transport->getOrder()?->getPacks()->count() ?: 0;
 
-        $packsCount = !$transportRequest->getOrders()->isEmpty()
-            ? $transportRequest->getOrders()->last()->getPacks()->count()
-            : 0;
-
-        $hasRejectedPacks = !$transportRequest->getOrders()->isEmpty()
-            && Stream::from($transportRequest->getOrders()->last()->getPacks())
-                ->some(fn(TransportDeliveryOrderPack $pack) => !$pack->isLoaded());
+        $hasRejectedPacks = $transport->getOrder()
+            && Stream::from($transport->getOrder()?->getPacks() ?: [])
+                ->some(fn(TransportDeliveryOrderPack $pack) => $pack->isRejected());
 
         return $this->render('transport/request/show.html.twig', [
-            'request' => $transportRequest,
-            'selectedLines' => $selectedLines,
+            'request' => $transport,
             'freeFields' => $freeFields,
-            "types" => $typeRepository->findByCategoryLabels([
-                CategoryType::DELIVERY_TRANSPORT, CategoryType::COLLECT_TRANSPORT,
-            ]),
-            "natures" => $natureRepository->findByAllowedForms([
-                Nature::TRANSPORT_COLLECT_CODE,
-                Nature::TRANSPORT_DELIVERY_CODE
-            ]),
-            "temperatures" => $temperatureRangeRepository->findAll(),
             "packsCount" => $packsCount,
             "hasRejectedPacks" => $hasRejectedPacks
         ]);
@@ -252,14 +231,14 @@ class RequestController extends AbstractController {
     #[HasPermission([Menu::DEM, Action::EDIT_TRANSPORT], mode: HasPermission::IN_JSON)]
     public function packing(Request $request,
                             EntityManagerInterface $entityManager,
-                            PackService $packService,
+                            TransportService $transportService,
                             TransportHistoryService $transportHistoryService,
                             StatusHistoryService $statusHistoryService,
                             TransportRequest $transportRequest ): JsonResponse {
         $data = $request->request->all();
         $natureRepository = $entityManager->getRepository(Nature::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
-        $order = $transportRequest->getOrders()->last() ?: null;
+        $order = $transportRequest->getOrder();
 
         $canPacking = (
             isset($order)
@@ -276,20 +255,14 @@ class RequestController extends AbstractController {
             $nature = $natureRepository->find($natureId);
             if ($quantity > 0 && $nature) {
                 for ($packIndex = 0; $packIndex < $quantity; $packIndex++) {
-                    $orderLine = new TransportDeliveryOrderPack();
-                    $orderLine->setOrder($order);
-                    $pack = $packService->createPack([
-                        'orderLine' => $orderLine,
-                        'nature' => $nature,
-                    ]);
-                    $entityManager->persist($orderLine);
-                    $entityManager->persist($pack);
+                    $transportService->persistDeliveryPack($entityManager, $order, $nature);
                 }
             }
             else {
                 throw new FormException("Formulaire mal complété, veuillez réessayer");
             }
         }
+
         if($transportRequest->getStatus()->getCode() == TransportRequest::STATUS_TO_PREPARE) {
             $status = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_REQUEST_DELIVERY, TransportRequest::STATUS_TO_DELIVER);
             $statusHistory = $statusHistoryService->updateStatus($entityManager, $transportRequest, $status);
@@ -309,8 +282,8 @@ class RequestController extends AbstractController {
 
     #[Route("/{transportRequest}/packing-check", name: "transport_request_packing_check", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::EDIT_TRANSPORT], mode: HasPermission::IN_JSON)]
-    public function packingCheck(TransportRequest $transportRequest ): JsonResponse {
-        $order = $transportRequest->getOrders()->last() ?: null;
+    public function packingCheck(TransportRequest $transportRequest): JsonResponse {
+        $order = $transportRequest->getOrder();
         if($order->getPacks()->isEmpty()) {
             return $this->json([
                 "success" => true,
@@ -336,13 +309,15 @@ class RequestController extends AbstractController {
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_TRANSPORT_REQUESTS, $this->getUser());
         $queryResult = $transportRepository->findByParamAndFilters($request->request, $filters);
 
-        $transportRequests = [];
-        foreach ($queryResult["data"] as $transportRequest) {
-            $expectedAtStr = $transportRequest->getExpectedAt()?->format("dmY");
-            if ($expectedAtStr) {
-                $transportRequests[$expectedAtStr][] = $transportRequest;
-            }
-        }
+        $transportRequests = Stream::from($queryResult["data"])
+            ->keymap(function(TransportRequest $transportRequest) {
+                $date = $transportRequest->getValidatedDate() ?? $transportRequest->getExpectedAt();
+                $key = $date->format("dmY");
+                return [
+                    $key,
+                    $transportRequest
+                ];
+            },true)->toArray();
 
         $rows = [];
         $currentRow = [];
@@ -426,7 +401,7 @@ class RequestController extends AbstractController {
             /**
              * @var TransportOrder $transportOrder
              */
-            $transportOrder = $transportRequest->getOrders()->first();
+            $transportOrder = $transportRequest->getOrder();
 
             /**
              * @var StatusHistory[] $statusesHistories
@@ -522,7 +497,7 @@ class RequestController extends AbstractController {
                 'user' => $loggedUser
             ]);
 
-            $transportOrder = $transportRequest->getOrders()->last();
+            $transportOrder = $transportRequest->getOrder();
             if ($transportOrder) {
                 $statusOrder = $statusRepository->findOneByCategorieNameAndStatutCode($categoryOrder, TransportOrder::STATUS_CANCELLED);
                 $statusHistoryOrder = $statusHistoryService->updateStatus($entityManager, $transportOrder, $statusOrder);
@@ -550,7 +525,7 @@ class RequestController extends AbstractController {
     public function printTransportPacks(TransportRequest $transportRequest,
                                         PDFGeneratorService $PDFGeneratorService,
                                         EntityManagerInterface $manager): Response {
-        $packs = !$transportRequest->getOrders()->isEmpty() ? $transportRequest->getOrders()->last()->getPacks() : [];
+        $packs = Stream::from($transportRequest->getOrder()?->getPacks() ?: []);
         $contact = $transportRequest->getContact();
         $contactName = $contact->getName();
         $contactFileNumber = $contact->getFileNumber();
@@ -621,6 +596,63 @@ class RequestController extends AbstractController {
             $PDFGeneratorService->generatePDFBarCodes($fileName, $config, true),
             $fileName
         );
+    }
+
+    #[Route("/modifier-api/{transportRequest}", name: "transport_request_edit_api", options: ['expose' => true], methods: "GET")]
+    #[HasPermission([Menu::DEM, Action::EDIT_TRANSPORT], mode: HasPermission::IN_JSON)]
+    public function editTemplate(EntityManagerInterface $entityManager,
+                                 TransportRequest       $transportRequest): JsonResponse {
+        $natureRepository = $entityManager->getRepository(Nature::class);
+        $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
+
+        if ($transportRequest instanceof TransportCollectRequest) {
+            $collectNatures = $natureRepository->findByAllowedForms([Nature::TRANSPORT_COLLECT_CODE]);
+            $requestLines = Stream::from($collectNatures)
+                ->map(function(Nature $nature) use ($transportRequest) {
+                    /** @var TransportCollectRequestLine $line */
+                    $line = $transportRequest->getLine($nature);
+                    return [
+                        'selected' => (bool) $line,
+                        'nature' => $nature,
+                        'quantity' => $line?->getQuantityToCollect()
+                    ];
+                })
+                ->toArray();
+        }
+        else if ($transportRequest instanceof TransportDeliveryRequest) {
+            $deliveryNatures = $natureRepository->findByAllowedForms([Nature::TRANSPORT_DELIVERY_CODE]);
+            $requestLines = Stream::from($deliveryNatures)
+                ->map(function(Nature $nature) use ($transportRequest) {
+                    /** @var TransportDeliveryRequestLine $line */
+                    $line = $transportRequest->getLine($nature);
+                    return [
+                        'nature' => $nature,
+                        'selected' => (bool) $line,
+                        'quantity' => ($line ? $transportRequest->getOrder()?->getPacksForLine($line)?->count() : 0) ?: null,
+                        'temperatureRange' => $line?->getTemperatureRange()?->getId(),
+                    ];
+                })
+                ->toArray();
+        }
+        else {
+            throw new RuntimeException('Invalid request type');
+        }
+
+        $types = $typeRepository->findByCategoryLabels([
+            CategoryType::DELIVERY_TRANSPORT,
+            CategoryType::COLLECT_TRANSPORT,
+        ]);
+
+        return $this->json([
+            'success' => true,
+            'template' => $this->renderView('transport/request/form.html.twig', [
+                "requestLines" => $requestLines,
+                "request" => $transportRequest,
+                "types" => $types,
+                "temperatures" => $temperatureRangeRepository->findAll(),
+            ])
+       ]);
     }
 
 }
