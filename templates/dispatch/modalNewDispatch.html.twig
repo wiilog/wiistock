@@ -15,14 +15,18 @@
                         <div class="col-12">
                             <div class="form-group">
                                 <label class="wii-field-text pointer">
-                                    <input type="radio" class="no-clear data" name="existingOrNot" value="0" checked>
-                                    Créer une nouvelle demande
+                                    <div class="wii-radio">
+                                        <input type="radio" class="no-clear data" name="existingOrNot" value="0" checked>
+                                        Créer une nouvelle demande
+                                    </div>
                                 </label>
                             </div>
                             <div class="form-group">
                                 <label class="wii-field-text pointer">
-                                    <input type="radio" class="no-clear data" name="existingOrNot" value="1">
-                                    Ajouter à une demande existante
+                                    <div class="wii-radio">
+                                        <input type="radio" class="no-clear data" name="existingOrNot" value="1">
+                                        Ajouter à une demande existante
+                                    </div>
                                 </label>
                             </div>
                         </div>
@@ -277,25 +281,25 @@
                     {% endif %}
 
                     <div class="col-12 mt-3">
-                    {% if typeChampsLibres is not empty %}
-                        <!-- CHAMPS LIBRES -->
-                        <span class="toggle-collapsible expanded">Champs libres</span>
-                        <div class="collapsible expanded free-fields-container mb-2">
-                            {% for type in typeChampsLibres %}
-                                <div class="d-none"
-                                     data-type="{{ type.typeId }}">
-                                    {% include 'free_field/freeFieldsEdit.html.twig' with {
-                                        freeFields: type.champsLibres,
-                                        freeFieldValues: [],
-                                        colType: 'col-md-4 col-12',
-                                        requiredType: 'requiredCreate',
-                                        actionType: 'new',
-                                        disabledNeeded: true
-                                    } %}
-                                </div>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
+                        {% if typeChampsLibres is not empty %}
+                            <!-- CHAMPS LIBRES -->
+                            <span class="toggle-collapsible expanded">Champs libres</span>
+                            <div class="collapsible expanded free-fields-container mb-2">
+                                {% for type in typeChampsLibres %}
+                                    <div class="d-none"
+                                         data-type="{{ type.typeId }}">
+                                        {% include 'free_field/freeFieldsEdit.html.twig' with {
+                                            freeFields: type.champsLibres,
+                                            freeFieldValues: [],
+                                            colType: 'col-md-4 col-12',
+                                            requiredType: 'requiredCreate',
+                                            actionType: 'new',
+                                            disabledNeeded: true
+                                        } %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
                     </div>
 
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_COMMENT_DISPATCH') %}
