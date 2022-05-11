@@ -11,6 +11,9 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: TransportDeliveryOrderPackRepository::class)]
 class TransportDeliveryOrderPack {
 
+    public const LOADED_STATE = 'loaded';
+    public const REJECTED_STATE = 'rejected';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
@@ -22,8 +25,8 @@ class TransportDeliveryOrderPack {
     #[ORM\ManyToOne(targetEntity: TransportOrder::class, inversedBy: 'packs')]
     private ?TransportOrder $order = null;
 
-    #[ORM\Column(type: 'boolean')]
-    private ?bool $loaded = false;
+    #[ORM\Column(type: 'string')]
+    private ?string $state = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'transportDeliveryOrderRejectedPacks')]
     private ?Utilisateur $rejectedBy = null;
@@ -70,12 +73,12 @@ class TransportDeliveryOrderPack {
         return $this;
     }
 
-    public function isLoaded(): ?bool {
-        return $this->loaded;
+    public function getState(): ?string {
+        return $this->state;
     }
 
-    public function setLoaded(bool $loaded): self {
-        $this->loaded = $loaded;
+    public function setState(string $state): self {
+        $this->state = $state;
 
         return $this;
     }
