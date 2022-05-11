@@ -9,6 +9,7 @@ use App\Entity\Transport\TransportRound;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
 use DateTime;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
 use JetBrains\PhpStorm\ArrayShape;
@@ -116,5 +117,17 @@ class TransportRoundRepository extends EntityRepository {
             ->setParameter("awaitingDelivererStatus", TransportRound::STATUS_AWAITING_DELIVERER)
             ->getQuery()
             ->getArrayResult();
+    }
+
+    public function getLastNumberByDate(string $date): ?string {
+        $result = $this->createQueryBuilder('request')
+            ->select('request.number')
+            ->where('request.number LIKE :value')
+            ->orderBy('request.createdAt', Criteria::DESC)
+            ->addOrderBy('request.number', Criteria::DESC)
+            ->setParameter('value', $date . '%')
+            ->getQuery()
+            ->execute();
+        return $result ? $result[0]['number'] : null;
     }
 }
