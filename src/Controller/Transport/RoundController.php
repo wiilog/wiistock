@@ -4,13 +4,16 @@ namespace App\Controller\Transport;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
+use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
+use App\Entity\LocationGroup;
 use App\Entity\Menu;
 use App\Entity\Transport\TransportRound;
 use App\Helper\FormatHelper;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -106,4 +109,13 @@ class RoundController extends AbstractController {
         // TODO Faire la page de show
         return $this->render('transport/round/show.html.twig');
     }
+
+    #[Route("/planifier", name: "transport_round_plan", options: ['expose' => true], methods: "GET")]
+    #[HasPermission([Menu::ORDRE, Action::SCHEDULE_TRANSPORT_ROUND])]
+    public function plan(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        // TODO Faire la page planifier
+        return $this->render('transport/round/plan.html.twig');
+    }
+
 }

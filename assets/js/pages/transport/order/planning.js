@@ -1,11 +1,13 @@
 import '@styles/pages/transport/planning.scss';
-import {GET} from "@app/ajax";
+import AJAX, {GET} from "@app/ajax";
+import Form from "@app/form";
 import moment from 'moment';
 
 let currentDate = moment();
 
 $(function () {
     getOrders();
+    initializeRoundPlan();
 
     const $button = $('.planning-switch').find('[name=status]');
 
@@ -53,6 +55,61 @@ function getOrders() {
         .then(({template})=>{
             $('.planning-container').html(template);
         });
+}
+
+function initializeRoundPlan() {
+    const $modalRoundPlan = $('#modalRoundPlan');
+    $(document).on("click", ".plan-round-button", function() {
+        $modalRoundPlan.modal('show');
+    });
+
+    Form.create($modalRoundPlan)
+        .onOpen(() => {
+            const $round = $modalRoundPlan.find('[name=round]');
+            const $date = $modalRoundPlan.find('[name=date]');
+            const $radios = $modalRoundPlan.find('[name=roundInfo]');
+            const $newRoundRadio = $radios.filter('[value=newRound]');
+
+            $radios.on('change', function(){console.log()
+                if ($(this).val() === 'newRound') {
+                    $round
+                        .prop('disabled', true)
+                        .prop('required', false);
+                    $date
+                        .prop('disabled', false)
+                        .prop('required', true);
+                }
+                else {
+                    $round
+                        .prop('disabled', false)
+                        .prop('required', true);
+                    $date
+                        .prop('disabled', true)
+                        .prop('required', false);
+                }
+            });
+
+            $newRoundRadio
+                .prop('checked', true)
+                .trigger('change');
+        })
+        .onSubmit(function(data) {
+            wrapLoadingOnActionButton($modalRoundPlan.find('[type=submit]'), () => {
+                return submitRoundModal(data);
+            });
+        });
+}
+
+function submitRoundModal(data) {
+    const roundInfo = data.get('roundInfo');
+    const params = {};
+    if(roundInfo === 'newRound') {
+        params.dateRound = data.get('date');
+    }
+    else if (roundInfo === 'editRound') {
+        params.transportRound = data.get('round');
+    }
+    window.location.href = Routing.generate('transport_round_plan', params);
 }
 
 /**

@@ -8,6 +8,7 @@ const ROUTES = {
     dispatchType: `ajax_select_dispatch_type`,
     status: `ajax_select_status`,
     location: `ajax_select_locations`,
+    roundsDelivererPending: `ajax_select_rounds_deliverer_pending`,
     pack: `ajax_select_packs`,
     nature: `ajax_select_natures`,
     sensor: `ajax_select_sensors`,
@@ -45,6 +46,7 @@ const INSTANT_SELECT_TYPES = {
     triggerSensorWithoutPairing: true,
     triggerSensorCodeWithoutPairing: true,
     businessUnit: true,
+    roundsDelivererPending: true,
 }
 
 export default class Select2 {
