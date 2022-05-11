@@ -1,0 +1,77 @@
+{% set isCollect = request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') %}
+<div class="transport-request-container col-12 col-xl-6 p-1">
+    <div class="transport-request-card no-cursor">
+        <table class="transport-content">
+            <tr>
+                <td class="transport-category-container">
+                    <div>
+                        <span class="transport-category">
+                            <span class="wii-icon wii-icon-cart-{{ isCollect ? "collect" : "delivery" }} wii-icon-25px-primary mr-1"></span>
+                            {{ prefix }}{{ request.number }}
+                        </span>
+                    </div>
+                </td>
+                <td class="transport-creation-contact">
+                    <span class="transport-badge type">
+                        {% if request.type.logo %}
+                            <img src="{{ request.type.logo.fullPath }}" width="18" height="18" class="mr-2"
+                                 alt="Logo type {{ request.type.label }}"/>
+                        {% endif %}
+
+                        {{ request.type.label }}
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="transport-category-container" style="width: 25%;">
+                    <div class="mb-3 mr-5">
+                        Créée le : {{ request.createdAt | format_helper('longDate', {short: true, time: true, year: false}) }}
+                    </div>
+                    <div>
+                        {% if isCollect %}
+                            A collecter le : <span style="font-weight: bold">{{ request.expectedAt | format_helper('longDate', {short: true, year: false}) }}</span>
+                        {% else %}
+                            A livrer à : <span style="font-weight: bold">{{ request.expectedAt | format_helper('time', true, true) }}</span>
+                        {% endif %}
+
+                        {% if request.emergency is defined and request.emergency %}
+                        <span style="color: #D73353; font-weight: bold; margin-left: 15px;">
+                            {{ request.emergency }}
+                            <img src="{{ asset('svg/urgence.svg') }}"
+                                 class="icon"
+                                 alt="Image urgence"
+                                 width="15px">
+                        </span>
+                        {% endif %}
+                    </div>
+                </td>
+                <td class="transport-creation-contact">
+                    {{ request.contact.name }}<br>
+                    <span class="wii-small-text">N° dossier {{ request.contact.fileNumber }}</span>
+                </td>
+                <td class="transport-details-container">
+                    <img src="{{ asset('svg/iot/location.svg') }}"
+                         class="icon"
+                         alt="Image urgence"
+                         width="10px">
+                    {{ request.contact.address }}
+                </td>
+            </tr>
+        </table>
+        <table>
+            <tr>
+                <td class="transport-subcontract-button-container">
+                    <input type="hidden" value="{{ request.id }}" name="requestId">
+                    <button class="btn btn-primary submit-button w-120px mb-2 mr-3 accept-request" data-type="{{ constant('App\\Controller\\Transport\\SubcontractController::VALIDATE') }}">
+                        <img alt="Accepter" src="{{ asset('svg/tick-blanc.svg') }}" height="20px" class="mr-2"> <span>Accepter</span>
+                    </button>
+                    {% if not isCollect %}
+                        <button class="btn btn-outline-primary w-120px mr-3 submit-button subcontract-request" data-type="{{ constant('App\\Controller\\Transport\\SubcontractController::SUBCONTRACT') }}">
+                            Sous-traiter
+                        </button>
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>

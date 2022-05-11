@@ -24,6 +24,7 @@ import {
 } from "./statuses";
 import {initializeAlertTemplate, initializeNotifications} from "./alert-template";
 import {onHeaderPageEditStop} from "./utils";
+import Form from '../../form';
 
 global.triggerReminderEmails = triggerReminderEmails;
 global.saveTranslations = saveTranslations;
@@ -101,6 +102,30 @@ $(function() {
     let canEdit = $(`input#edit`).val();
 
     updateMenu(submenu || menu, canEdit);
+
+    document.body.addEventListener(`click`, function(event) {
+        const $target = $(event.target);
+
+        let $button;
+        if($target.is(`.delete-row-view`)) {
+            $button = $target;
+        } else if($target.closest(`.delete-row-view`).exists()) {
+            $button = $target.closest(`.delete-row-view`);
+        } else {
+            return;
+        }
+
+        event.handled = true;
+        event.stopPropagation();
+        event.preventDefault();
+
+        const id = $button.data(`id`);
+        const type = $button.data(`type`);
+
+        AJAX.route(`POST`, `settings_delete_row`, {id, type})
+            .json()
+            .then(() => $target.closest(`tr`).remove());
+    }, true);
 
     $(`.settings-item`).on(`click`, function() {
         const editing = $(`.settings-content`).find(`.dataTables_wrapper`).is('.current-editing');

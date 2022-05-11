@@ -1,0 +1,203 @@
+{% extends 'layout.html.twig' %}
+{% import 'form.html.twig' as form %}
+
+{% block title %}Ordre | Planning | Planifier une tournée{% endblock %}
+{% block titleLink path('transport_round_plan') %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('transport-round-plan') }}
+{% endblock %}
+
+{% block page_content %}
+    <div class="wii-box-container mb-4 ml-3 mr-3">
+        <div class="row px-3">
+    {#        TODO print orders #}
+            <div class="col-lg-3 col-md-6 col-12 px-2">
+                <div class="wii-box">
+                    <div class="header">
+                        <span class="wii-title">Transport à affecter</span>
+                    </div>
+                    <div class="d-flex flex-column card-container" id="to-affect-container">
+                        {% for transportOrder in transportOrders %}
+                            <div class="order-card" data-order-id="{{transportOrder.id}}">
+                                <div class="affected-number d-none">
+                                </div>
+                                <div class="card-content pl-1">
+                                    <div class="first-line">
+                                        <div class="head">
+                                            <div class="types">
+                                                <div class="transport-type px-2">
+                                                    {% if transportOrder.request.type.logo %}
+                                                        <img src="{{ transportOrder.request.type.logo.fullPath }}" alt="" class="mr-2" width="15">
+                                                    {% endif %}
+                                                    {{ transportOrder.request.type.label }}
+                                                </div>
+                                                {% if not transportOrder.request is instanceof('App\\Entity\\Transport\\TransportCollectRequest')
+                                                    and transportOrder.request.collect is not null
+                                                    and transportOrder.request.collect.type.logo
+                                                %}
+                                                    <div class="transport-type px-2">
+                                                        {% set collectType = transportOrder.request.collect.type %}
+                                                        {% if collectType.logo %}
+                                                            <img src="{{ collectType.logo.fullPath }}" class="mr-2" width="15">
+                                                        {% endif %}
+                                                        {{ collectType.label }}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="sticky">
+                                            <div class="time bold">
+                                                <img src="{{ asset('svg/clock-black.svg') }}" alt="Icône horloge" width="13px" class="mr-1">
+                                                {% if transportOrder.request is instanceof('App\\Entity\\Transport\\TransportCollectRequest')
+                                                    and transportOrder.request.timeSlot is not null%}
+                                                    <span>{{ transportOrder.request.timeSlot.name }}</span>
+                                                {% else %}
+                                                    <span>{{ transportOrder.request.expectedAt | format_helper('time', true, true) }}</span>
+                                                {% endif %}
+                                                {% if not transportOrder.request is instanceof('App\\Entity\\Transport\\TransportCollectRequest')
+                                                    and transportOrder.request.emergency %}
+                                                    <img src="{{ asset('svg/timeline-urgent.svg') }}" alt="Icône urgent" width="13px" class="mr-1">
+                                                {% endif %}
+                                            </div>
+                                            <button type="button" class="btn btn-outline-primary btn-cross d-none">
+                                                <img src="{{ asset('svg/cross-blue.svg') }}" width="13px">
+                                            </button>
+
+                                        </div>
+                                    </div>
+                                    <div class="ml-2">
+                                        <span class="wii-field-text">
+                                           {{ transportOrder.request.contact.name }}
+                                        </span>
+                                        <span class="wii-small-text">
+                                            N°{{ transportOrder.request.contact.fileNumber }}
+                                        </span>
+                                    </div>
+                                    <div class="wii-field-text">
+                                        <img src="{{ asset('svg/location-black.svg') }}" width="13px" alt="">
+                                        {% if transportOrder.request.contact.address is not null %}
+                                            {{ transportOrder.request.contact.address }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6 col-12 px-2">
+                <div class="wii-box">
+                    <div class="header">
+                        <span class="wii-title">Transports Affectées</span>
+                    </div>
+                    <div class="d-flex flex-column card-container" id="affected-container">
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6 col-md-12 col-12 px-2 round-form-container">
+                <input type="hidden" value="{{ contactData|json_encode }}" name="contactData">
+                <input type="hidden" class="data round-number" name="number" value="{{ round.number }}"/>
+                <input type="hidden" class="data" name="expectedAtDate" value="{{ round.expectedAt|date('Y-m-d') }}"/>
+                {% if round.id %}
+                    <input type="hidden" class="data" name="transportRoundId" value="{{ round.id }}"/>
+                {% endif %}
+
+                <div class="wii-box">
+                    <div class="header d-flex justify-content-between">
+                        <span class="wii-title">Nouvelle tournée</span>
+                        <div class="wii-body-text">
+                            <div class="bold">{{ prefixNumber }}<span class="round-number">{{ round.number }}</span></div>
+                            <div>{{ round.expectedAt|format_helper('longDate', {short: true, year: false}) }}</div>
+                        </div>
+                    </div>
+                    <div class="row content">
+                        <div class="d-flex flex-wrap justify-content-around col-12 px-2">
+                            <div class="col-lg-4 col-12">
+                                {{ form.input('startPoint', 'Point de départ', true, round.startPoint, {
+                                    attributes: {
+                                        'data-short-label': 'Départ tournée'
+                                    }
+                                }) }}
+                            </div>
+                            <div class="col-lg-4 col-12">
+                                {{ form.input('startPointScheduleCalculation', 'Point de départ calcul horaire', true, round.startPointScheduleCalculation, {
+                                    attributes: {
+                                        'data-short-label': 'départ calcule horaire'
+                                    }
+                                }) }}
+                            </div>
+                            <div class="col-lg-4 col-12">
+                                {{ form.input('endPoint', 'Point d\'arrivée', true, round.endPoint, {
+                                    attributes: {
+                                        'data-short-label': 'Fin tournée'
+                                    }
+                                }) }}
+                            </div>
+                        </div>
+                        <div class="map-container">
+                            <div id="map"></div>
+                        </div>
+                        <div class="d-flex flex-wrap px-2 w-100 col-12">
+                            <div class="col-3 px-0">
+                                {{ form.select('deliverer', "Livreur", true, {
+                                    value: round.deliverer ? {label: round.deliverer.username, value: round.deliverer.id} : null,
+                                    type: 'user',
+                                    attributes: {
+                                        'data-other-params': "true",
+                                        'data-other-params-deliverer-only': 1
+                                    },
+                                }) }}
+                            </div>
+                            <div class="col-3">
+                                {{ form.input(
+                                    'expectedAtTime',
+                                    'Heure de départ',
+                                    true,
+                                    (round.id and round.expectedAt) ? (round.expectedAt|date('H:i')) : null
+                                ) }}
+                            </div>
+                            <div class="col-5 px-0">
+                                <br>
+                                <button class="btn btn-primary ml-auto plan-round-button d-flex align-items-center" tabindex="0">
+                                    <img src="{{ asset('svg/clock-white.svg') }}" alt="Icône tournéé" width="15px" class="mr-2">
+                                    <span class="ml-1">Calculer les horaires</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="px-2 w-100">
+                            <p class="wii-small-text py-1">
+                                Seulement une notion de Matin / Après-midi sera donnée <br>
+                                sur les demandes tant que la tournée n’est pas commencée
+                            </p>
+                            <div class="wii-body-text py-1">
+                                <strong>Kilometrage estimé </strong>: 32km
+                            </div>
+                            <div class="wii-body-text py-1">
+                                <strong>Temps estimé </strong>: 12h67
+                            </div>
+                        </div>
+                        <div class="bottom-right-buttons mx-2">
+                            <button class="btn btn-outline-secondary ml-auto plan-round-button" tabindex="0">
+{#                                TODO action #}
+                                Annuler
+                            </button>
+                            <button class="btn btn-success ml-auto ml-3"
+                                    type="submit">
+                                Valider la tournée
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('transport-round-plan') }}
+{% endblock %}

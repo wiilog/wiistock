@@ -54,9 +54,11 @@ jQuery.fn.popLoader = function() {
  */
 export function wrapLoadingOnActionButton($button, action = null, endLoading = true) {
     if (!$button.hasClass(LOADING_CLASS)) {
-        const loadingColor = ($button.hasClass('btn-light') || $button.hasClass('btn-link'))
-            ? 'black'
-            : 'white';
+        const loadingColor = (
+            $button.data('loader-color') ? $button.data('loader-color') :
+            ($button.hasClass('btn-light') || $button.hasClass('btn-link')) ? 'black'
+            : 'white'
+        );
 
         $button.pushLoader(loadingColor);
 

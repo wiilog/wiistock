@@ -15,16 +15,20 @@
         placeholder: 'Statut',
         names: true,
     } %}
-    Transport&nbsp;:
-    {% if categories is not empty %}
-        {% include 'filters/filter_item/filterCategory.html.twig' with {
-            categories: categories
-        } %}
-    {% endif %}
+    <div class="row no-gutters ml-1 align-items-center">
+        Transport&nbsp;:
+        {% if categories is not empty %}
+            {% include 'filters/filter_item/filterCategory.html.twig' with {
+                categories: categories
+            } %}
+        {% endif %}
+    </div>
     {% if types is not empty %}
-        Type&nbsp;:
-        {% include 'filters/filter_item/filterTypeIcon.html.twig' with {
-            types: types
-        } %}
+        <div class="row no-gutters ml-1 align-items-center">
+            Type&nbsp;:
+            {% include 'filters/filter_item/filterTypeIcon.html.twig' with {
+                types: types
+            } %}
+        </div>
     {% endif %}
 {% endblock %}

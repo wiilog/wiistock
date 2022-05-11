@@ -61,5 +61,22 @@ export default class Wiistock {
 
             $input.trigger(`change`);
         });
+
+        Wiistock.registerNumberInputProtection()
+    }
+
+    static registerNumberInputProtection() {
+        const forbiddenChars = [
+            "e",
+            "E",
+            "+",
+            "-"
+        ];
+
+        $(document).on(`keydown`, `input[type=number]`, function (e) {
+            if (forbiddenChars.includes(e.key)) {
+                e.preventDefault();
+            }
+        });
     }
 }

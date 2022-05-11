@@ -47,7 +47,6 @@
         </div>
     </div>
     <div class="col-12">
-        <input type="hidden" value="1" name="delivererOnly">
         <table id="table-starting-hours" data-table-processing="startingHours"></table>
     </div>
     <div class="col-12 mb-3 mt-4">
@@ -99,7 +98,7 @@
 
 <div class="wii-section row">
     <div class="col-8">
-        {{ form.select(setting('TRANSPORT_ROUND_PACK_REJECT_MOTIVES'), "Motifs d'écartements", false, {
+        {{ form.select(setting('TRANSPORT_ROUND_PACK_REJECT_MOTIVES'), "Motifs d'écartement", false, {
             type: null,
             editable: true,
             noEmptyOption: true,
@@ -113,7 +112,7 @@
 </div>
 
 <div class="wii-section-title">
-    Collectes/Livraisons
+    Collectes / Livraisons
 </div>
 
 <div class="wii-section row">
@@ -134,7 +133,6 @@
             type: null,
             editable: true,
             multiple: true,
-            hiddenDropdown: true,
             noEmptyOption: true,
             values: collectRejectMotives,
             items: collectRejectMotives,

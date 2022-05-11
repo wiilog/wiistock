@@ -25,6 +25,8 @@ class TransportOrderRepository extends EntityRepository {
             ->join("transport_order.request", "transport_request")
             ->leftJoin(TransportDeliveryRequest::class, "delivery", Join::WITH, "transport_request.id = delivery.id")
             ->leftJoin(TransportCollectRequest::class, "collect", Join::WITH, "transport_request.id = collect.id")
+            ->leftJoin("collect.delivery", "collect_delivery")
+            ->andWhere("collect_delivery IS NULL")
             ->andWhere("transport_order.subcontracted = false");
 
         $total = QueryCounter::count($qb, "transport_order");
@@ -33,7 +35,7 @@ class TransportOrderRepository extends EntityRepository {
             $date = \DateTime::createFromFormat("d/m/Y", $params->get("dateMin"));
             $date = $date->format("Y-m-d");
 
-            $qb->andWhere('delivery.expectedAt >= :datetimeMin OR collect.expectedAt >= :dateMin')
+            $qb->andWhere('delivery.expectedAt >= :datetimeMin OR COALESCE(collect.validatedDate, collect.expectedAt) >= :dateMin')
                 ->setParameter('datetimeMin', "$date 00:00:00")
                 ->setParameter('dateMin', $date);
         }
@@ -42,7 +44,7 @@ class TransportOrderRepository extends EntityRepository {
             $date = \DateTime::createFromFormat("d/m/Y", $params->get("dateMax"));
             $date = $date->format("Y-m-d");
 
-            $qb->andWhere('delivery.expectedAt <= :datetimeMax OR collect.expectedAt <= :dateMax')
+            $qb->andWhere('delivery.expectedAt <= :datetimeMax OR COALESCE(collect.validatedDate, collect.expectedAt) <= :dateMax')
                 ->setParameter('datetimeMax', "$date 23:59:59")
                 ->setParameter('dateMax', $date);
         }
@@ -100,7 +102,7 @@ class TransportOrderRepository extends EntityRepository {
             $qb->setMaxResults($params->getInt('length'));
         }
 
-        $qb->orderBy("CASE WHEN delivery.expectedAt IS NOT NULL THEN delivery.expectedAt ELSE collect.expectedAt END", "DESC");
+        $qb->orderBy("IFNULL(delivery.expectedAt, IFNULL(transport_request.validatedDate, collect.expectedAt))", "DESC");
 
         return [
             "data" => $qb->getQuery()->getResult(),
@@ -108,5 +110,38 @@ class TransportOrderRepository extends EntityRepository {
             "total" => $total,
         ];
     }
+    public function findOrdersForPlanning(\DateTime $start, \DateTime $end, array $statuses) {
+        $statuses = !empty($statuses)
+            ? $statuses
+            : [TransportOrder::STATUS_TO_ASSIGN, TransportOrder::STATUS_ASSIGNED, TransportOrder::STATUS_ONGOING];
 
+        return $this->createQueryBuilder("transport_order")
+            ->join("transport_order.status", "status")
+            ->join("transport_order.request", "request")
+            ->leftJoin(TransportDeliveryRequest::class, "delivery", Join::WITH, "request.id = delivery.id")
+            ->leftJoin(TransportCollectRequest::class, "collect", Join::WITH, "request.id = collect.id")
+            ->where("status.code IN (:planning_orders_statuses)")
+            ->andWhere("COALESCE(DATE_FORMAT(delivery.expectedAt, '%Y-%m-%d'), collect.expectedAt) BETWEEN :start AND :end")
+            ->setParameter("planning_orders_statuses", $statuses)
+            ->setParameter("start", $start->format('Y-m-d'))
+            ->setParameter("end", $end->format('Y-m-d'))
+            ->getQuery()
+            ->getResult();
+    }
+
+    // find by date
+    public function findByDate(\DateTime $date)
+    {
+        return $this->createQueryBuilder("transport_order")
+            ->join("transport_order.request", "request")
+            ->leftJoin(TransportDeliveryRequest::class, "delivery", Join::WITH, "request.id = delivery.id")
+            ->leftJoin(TransportCollectRequest::class, "collect", Join::WITH, "request.id = collect.id")
+            ->where("IFNULL(DATE_FORMAT(request.validatedDate, '%Y-%m-%d') ,IFNULL(DATE_FORMAT(delivery.expectedAt, '%Y-%m-%d'), collect.expectedAt)) = :date")
+            ->join("transport_order.status", "status")
+            ->andWhere("status.nom in (:statuses)")
+            ->setParameter("statuses", [TransportOrder::STATUS_TO_ASSIGN ])
+            ->setParameter("date", $date->format('Y-m-d'))
+            ->getQuery()
+            ->getResult();
+    }
 }

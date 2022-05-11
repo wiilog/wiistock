@@ -271,7 +271,11 @@ function initEditatable(datatable, onDatatableInit = null) {
             if(config.mode === MODE_CLICK_EDIT || config.mode === MODE_CLICK_EDIT_AND_ADD) {
                 $rows
                     .off(`click.${id}.startEdit`)
-                    .on(`click.${id}.startEdit`, 'td:not(.no-interaction)', function() {
+                    .on(`click.${id}.startEdit`, 'td:not(.no-interaction)', function(event) {
+                        if(event.handled) {
+                            return;
+                        }
+
                         if(datatable.state === STATE_VIEWING) {
                             const $row = $(this).parent();
                             const rowIndex = $rows.index($row);

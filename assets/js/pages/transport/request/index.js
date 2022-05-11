@@ -1,11 +1,18 @@
+import '@styles/pages/transport/common.scss';
 import AJAX, {GET, POST} from "@app/ajax";
 import Flash from "@app/flash";
-import {initializeForm, cancelRequest, deleteRequest} from "@app/pages/transport/request/common";
+import Modal from "@app/modal";
+
+import {
+    initializeForm,
+    cancelRequest,
+    deleteRequest,
+    initializePacking,
+    packingOrPrint,
+} from "@app/pages/transport/request/common";
 import {initializeFilters} from "@app/pages/transport/common";
 
 $(function() {
-    const $modalTransportRequest = $("#modalTransportRequest");
-
     initializeFilters(PAGE_TRANSPORT_REQUESTS)
 
     let table = initDataTable('tableTransportRequests', {
@@ -36,12 +43,22 @@ $(function() {
         ],
     });
 
-    const form = initializeForm($modalTransportRequest);
-    form.onSubmit((data) => {
-        submitTransportRequest(form, data, table);
+    initializePacking(() => {
+        table.ajax.reload();
     });
 
-    if ($modalTransportRequest.find('#prefilled').val() === "1") {
+    const $modalTransportRequest = $(`[data-modal-type=new]`);
+    const form = initializeForm($modalTransportRequest);
+    form
+        .onSubmit((data) => {
+            submitTransportRequest(form, data, table);
+        })
+        .onOpen(() => {
+            // run after onOpen in initializeForm
+            prefillForm($modalTransportRequest);
+        });
+
+    if (isPrefillInformationGiven()) {
         $modalTransportRequest.modal('show');
     }
 
@@ -53,7 +70,7 @@ $(function() {
 
     $(document).arrive('.delete-request-button', function (){
         $(this).on('click', function(){
-            deleteRequest($(this).data('request-id'));
+            deleteRequest(table, $(this).data('request-id'));
         });
     });
 });
@@ -61,12 +78,21 @@ $(function() {
 /**
  * @param {Form} form
  * @param {FormData} data
- * @param data
  */
 function submitTransportRequest(form, data, table) {
     const $modal = form.element;
     const $submit = $modal.find('[type=submit]');
     const collectLinked = Boolean(Number(data.get('collectLinked')));
+    const printLabels = Boolean(Number(data.get('printLabels')));
+
+    const closeCreationModal = (transportRequest) => {
+        $modal.modal('hide');
+        table.ajax.reload();
+
+        if(printLabels) {
+            packingOrPrint(transportRequest, true);
+        }
+    };
 
     if (collectLinked) {
         saveDeliveryForLinkedCollect($modal, data);
@@ -78,7 +104,7 @@ function submitTransportRequest(form, data, table) {
                     if (can) {
                         return AJAX.route(POST, 'transport_request_new')
                             .json(data)
-                            .then(({success, message, validationMessage}) => {
+                            .then(({success, message, validationMessage, deliveryId}) => {
                                 if (validationMessage) {
                                     Modal.confirm({
                                         message: validationMessage,
@@ -86,22 +112,21 @@ function submitTransportRequest(form, data, table) {
                                             color: 'success',
                                             label: 'Fermer',
                                             click: () => {
-                                                $modal.modal('hide');
-                                                table.ajax.reload();
+                                                closeCreationModal(deliveryId);
                                             }
                                         },
                                         cancelButton: {
                                             hidden: true
                                         },
                                         cancelled: () => {
-                                            $modal.modal('hide');
+                                            closeCreationModal(deliveryId);
                                         },
                                     });
                                 }
                                 else if (success) {
-                                    $modal.modal('hide');
-                                    table.ajax.reload();
+                                    closeCreationModal(deliveryId);
                                 }
+
                                 Flash.add(
                                     success ? 'success' : 'danger',
                                     message || `Une erreur s'est produite`
@@ -116,9 +141,18 @@ function submitTransportRequest(form, data, table) {
 
 function saveDeliveryForLinkedCollect($modal, data) {
     const deliveryData = JSON.stringify(data.asObject());
-    const $deliveryData = $(`<input type="hidden" class="data" name="delivery"/>`);
-    $deliveryData.val(deliveryData);
-    $modal.prepend($deliveryData);
+    $modal.prepend($(`<input/>`, {
+        type: 'hidden',
+        class: 'data',
+        name: 'delivery',
+        val: deliveryData,
+    }));
+    $modal.prepend($(`<input/>`, {
+        type: 'hidden',
+        class: 'data',
+        name: 'printLabels',
+        val: data.get('printLabels'),
+    }));
 
     const $requestType = $modal.find('[name=requestType]');
     $requestType
@@ -175,4 +209,52 @@ function canSubmit($form) {
     else {
         return new Promise(((resolve) => {resolve(true)}))
     }
+}
+
+function prefillForm($modal) {
+    if (isPrefillInformationGiven()) {
+        const {content} = GetRequestQuery() || {};
+        const formContent = JSON.parse(content || '');
+
+        if (formContent['Prenom'] || formContent['Nom']) {
+            const $contactName = $modal.find('[name=contactName]');
+            $contactName.val(`${formContent['Prenom'] || ''}${formContent['Prenom'] ? ' ' :''}${formContent['Nom'] || ''}`)
+        }
+
+        if (formContent['Nodos']) {
+            const $contactFileNumber = $modal.find('[name=contactFileNumber]');
+            $contactFileNumber.val(formContent['Nodos']);
+        }
+
+        if (formContent['Contact']) {
+            const $contactContact = $modal.find('[name=contactContact]');
+            $contactContact.val(formContent['Contact']);
+        }
+
+        if (formContent['Adresse']) {
+            const $contactAddress = $modal.find('[name=contactAddress]');
+            $contactAddress.val(formContent['Adresse']);
+        }
+
+        if (formContent['PersonnesAPrevenir']) {
+            const $contactPersonToContact = $modal.find('[name=contactPersonToContact]');
+            $contactPersonToContact.val(formContent['PersonnesAPrevenir']);
+        }
+
+        if (formContent['Remarques']) {
+            const $contactObservation = $modal.find('[name=contactObservation]');
+            $contactObservation.val(formContent['Remarques']);
+        }
+    }
+}
+
+function isPrefillInformationGiven() {
+    const CLB_API_KEY = $('#CLB_API_KEY').val();
+    const {'x-api-key': xApiKey, content} = GetRequestQuery() || {};
+
+    return (
+        CLB_API_KEY
+        && xApiKey === CLB_API_KEY
+        && Object.keys(JSON.parse(content || '')).length > 0
+    );
 }

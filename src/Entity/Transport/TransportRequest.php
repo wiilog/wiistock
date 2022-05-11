@@ -2,6 +2,7 @@
 
 namespace App\Entity\Transport;
 
+use App\Entity\Nature;
 use App\Entity\StatusHistory;
 use App\Entity\Statut;
 use App\Entity\Type;
@@ -71,6 +72,13 @@ abstract class TransportRequest {
         TransportRequest::STATUS_FINISHED,
     ];
 
+    public const STATUS_PRINT_PACKING = [
+        TransportRequest::STATUS_TO_PREPARE,
+        TransportRequest::STATUS_TO_DELIVER,
+        TransportRequest::STATUS_ONGOING,
+        TransportRequest::STATUS_SUBCONTRACTED,
+    ];
+
     public const STATUS_WORKFLOW_DELIVERY_COLLECT = [
         TransportRequest::STATUS_TO_PREPARE,
         TransportRequest::STATUS_TO_DELIVER,
@@ -117,9 +125,7 @@ abstract class TransportRequest {
     private ?DateTime $createdAt = null;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
-    private ?DateTime $validationDate = null;
-
-    protected ?DateTime $expectedAt = null;
+    private ?DateTime $validatedDate = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'transportRequests')]
     private ?Utilisateur $createdBy = null;
@@ -127,8 +133,8 @@ abstract class TransportRequest {
     #[ORM\Column(type: 'json', nullable: true)]
     private ?array $freeFields = [];
 
-    #[ORM\OneToMany(mappedBy: 'request', targetEntity: TransportOrder::class, cascade: ['persist', 'remove'])]
-    private Collection $orders;
+    #[ORM\OneToOne(mappedBy: 'request', targetEntity: TransportOrder::class, cascade: ['persist', 'remove'])]
+    private ?TransportOrder $order = null;
 
     #[ORM\OneToMany(mappedBy: 'request', targetEntity: TransportHistory::class)]
     private Collection $history;
@@ -143,7 +149,6 @@ abstract class TransportRequest {
     private Collection $lines;
 
     public function __construct() {
-        $this->orders = new ArrayCollection();
         $this->history = new ArrayCollection();
         $this->statusHistory = new ArrayCollection();
         $this->lines = new ArrayCollection();
@@ -197,25 +202,19 @@ abstract class TransportRequest {
         return $this;
     }
 
-    public function getValidationDate(): ?DateTime {
-        return $this->validationDate;
+    public function getValidatedDate(): ?DateTime {
+        return $this->validatedDate;
     }
 
-    public function setValidationDate(?DateTime $validationDate): self {
-        $this->validationDate = $validationDate;
+    public function setValidatedDate(?DateTime $validatedDate): self {
+        $this->validatedDate = $validatedDate;
 
         return $this;
     }
 
-    public function getExpectedAt(): ?DateTime {
-        return $this->expectedAt;
-    }
+    public abstract function getExpectedAt(): ?DateTime;
 
-    public function setExpectedAt(DateTime $expectedAt): self {
-        $this->expectedAt = $expectedAt;
-
-        return $this;
-    }
+    public abstract function setExpectedAt(DateTime $expectedAt): self;
 
     public function getCreatedBy(): ?Utilisateur {
         return $this->createdBy;
@@ -241,28 +240,19 @@ abstract class TransportRequest {
         return $this;
     }
 
-    /**
-     * @return Collection<int, TransportOrder>
-     */
-    public function getOrders(): Collection {
-        return $this->orders;
+    public function getOrder(): ?TransportOrder {
+        return $this->order;
     }
 
-    public function addOrder(TransportOrder $transportOrder): self {
-        if (!$this->orders->contains($transportOrder)) {
-            $this->orders[] = $transportOrder;
-            $transportOrder->setRequest($this);
+    public function setOrder(?TransportOrder $order): self {
+        if($this->order && $this->order->getRequest() !== $this) {
+            $oldOrder = $this->order;
+            $this->order = null;
+            $oldOrder->setRequest(null);
         }
-
-        return $this;
-    }
-
-    public function removeOrder(TransportOrder $transportOrder): self {
-        if ($this->orders->removeElement($transportOrder)) {
-            // set the owning side to null (unless already changed)
-            if ($transportOrder->getRequest() === $this) {
-                $transportOrder->setRequest(null);
-            }
+        $this->order = $order;
+        if($this->order && $this->order->getRequest() !== $this) {
+            $this->order->setRequest($this);
         }
 
         return $this;
@@ -333,12 +323,21 @@ abstract class TransportRequest {
     }
 
     public function isInRound(): bool {
-        return Stream::from($this->orders)->some(fn(TransportOrder $order) => !$order->getTransportRoundLines()->isEmpty());
+        return $this->getOrder()
+            ?->getTransportRoundLines()
+            ->isEmpty() ?: false;
+    }
+
+    public function roundHasStarted(): bool {
+        $lastRoundLine = $this->getOrder()
+            ?->getTransportRoundLines()
+            ->last() ?: null;
+        return $lastRoundLine?->getTransportRound()?->getBeganAt() !== null;
     }
 
     public function isSubcontracted(): bool {
-        $lastOrder = $this->getOrders()->last() ?: null;
-        return $lastOrder?->isSubcontracted() ?: false;
+        $order = $this->getOrder();
+        return $order?->isSubcontracted() ?: false;
     }
 
     /**
@@ -346,6 +345,12 @@ abstract class TransportRequest {
      */
     public function getLines(): Collection {
         return $this->lines;
+    }
+
+    public function getLine(Nature $nature): ?TransportRequestLine {
+        $filteredLines = $this->lines
+            ->filter(fn(TransportRequestLine $line) => $line->getNature()?->getId() === $nature->getId());
+        return $filteredLines->last() ?: null;
     }
 
     public function addLine(TransportRequestLine $line): self {

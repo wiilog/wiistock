@@ -51,7 +51,7 @@
             <th class="th"
                 style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;"
                 title="référence">
-                {{ 'reference.Référence'|trans }}
+                {{ 'reference.référence'|trans }}
             </th>
             <th class="th"
                 style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">
@@ -105,7 +105,7 @@
                             {% set supplierArticle = purchaseRequestLine.reference.articlesFournisseur|first %}
                             <td class="td"
                                 style="border: 1px solid black; border-bottom: none !important; padding: 10px; text-align: center;">
-                                {{ supplierArticle.label }}
+                                {{ supplierArticle.fournisseur }}
                             </td>
                             <td class="td"
                                 style="border: 1px solid black; border-bottom: none !important; padding: 10px; text-align: center;">
@@ -151,7 +151,7 @@
                         <tr>
                             <td class="td"
                                 style="border: 1px solid black; padding: 10px; text-align: center;">
-                                {{ supplierArticle.label }}
+                                {{ supplierArticle.fournisseur }}
                             </td>
                             <td class="td"
                                 style="border: 1px solid black; padding: 10px; text-align: center;">

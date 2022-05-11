@@ -8,6 +8,7 @@ const ROUTES = {
     dispatchType: `ajax_select_dispatch_type`,
     status: `ajax_select_status`,
     location: `ajax_select_locations`,
+    roundsDelivererPending: `ajax_select_rounds_deliverer_pending`,
     pack: `ajax_select_packs`,
     nature: `ajax_select_natures`,
     sensor: `ajax_select_sensors`,
@@ -45,6 +46,7 @@ const INSTANT_SELECT_TYPES = {
     triggerSensorWithoutPairing: true,
     triggerSensorCodeWithoutPairing: true,
     businessUnit: true,
+    roundsDelivererPending: true,
 }
 
 export default class Select2 {
@@ -109,10 +111,11 @@ export default class Select2 {
                     }
                 }
                 const allowClear = !($element.is(`[multiple]`) || $element.is(`[data-no-empty-option]`));
+                const editable = $element.is('[data-editable]');
 
                 $element.select2({
                     placeholder: $element.data(`placeholder`) || '',
-                    tags: $element.is('[data-editable]'),
+                    tags: editable,
                     allowClear,
                     dropdownParent,
                     language: {
@@ -146,6 +149,12 @@ export default class Select2 {
                     $results.find(`.select2-results__option--highlighted`).removeClass(`select2-results__option--highlighted`);
                     $highlighted.addClass("select2-results__option--highlighted");
                 })
+
+                if(editable) {
+                    $element.on(`select2:unselect`, event => {
+                        event.params.data.element.remove();
+                    });
+                }
 
                 $element.on('select2:open', function (e) {
                     const evt = "scroll.select2";

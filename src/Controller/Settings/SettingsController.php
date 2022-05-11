@@ -401,7 +401,7 @@ class SettingsController extends AbstractController {
     private const CATEGORY_GLOBAL = "global";
     public const CATEGORY_STOCK = "stock";
     public const CATEGORY_TRACING = "trace";
-    private const CATEGORY_TRACKING = "track";
+    public const CATEGORY_TRACKING = "track";
     private const CATEGORY_MOBILE = "mobile";
     private const CATEGORY_DASHBOARDS = "dashboards";
     private const CATEGORY_IOT = "iot";
@@ -440,16 +440,16 @@ class SettingsController extends AbstractController {
     public const MENU_HANDLINGS = "services";
     private const MENU_REQUEST_TEMPLATES = "modeles_demande";
 
-    private const MENU_TRANSPORT_REQUESTS = "demande_transport";
+    public const MENU_TRANSPORT_REQUESTS = "demande_transport";
     private const MENU_ROUNDS = "tournees";
     private const MENU_TEMPERATURES = "temperatures";
 
     private const MENU_DELIVERIES = "livraisons";
     private const MENU_DELIVERY_REQUEST_TEMPLATES = "modeles_demande_livraisons";
-    private const MENU_DELIVERY_TYPES_FREE_FIELDS = "types_champs_libres_livraisons";
+    public const MENU_DELIVERY_TYPES_FREE_FIELDS = "types_champs_libres_livraisons";
     private const MENU_COLLECTS = "collectes";
     private const MENU_COLLECT_REQUEST_TEMPLATES = "modeles_demande_collectes";
-    private const MENU_COLLECT_TYPES_FREE_FIELDS = "types_champs_libres_collectes";
+    public const MENU_COLLECT_TYPES_FREE_FIELDS = "types_champs_libres_collectes";
     public const MENU_PURCHASE_STATUSES = "statuts_achats";
 
     private const MENU_PREPARATIONS = "preparations";
@@ -589,6 +589,7 @@ class SettingsController extends AbstractController {
         $alertTemplateRepository = $this->manager->getRepository(AlertTemplate::class);
         $translationRepository = $this->manager->getRepository(Translation::class);
         $settingRepository = $this->manager->getRepository(Setting::class);
+        $userRepository = $this->manager->getRepository(Utilisateur::class);
 
         return [
             self::CATEGORY_GLOBAL => [
@@ -900,6 +901,14 @@ class SettingsController extends AbstractController {
                                     ],
                                 ])
                                 ->toArray(),
+                        "receiversEmails" =>
+                            Stream::from($userRepository->findBy(['id' => explode(',', $settingRepository->getOneParamByLabel(Setting::TRANSPORT_DELIVERY_DESTINATAIRES_MAIL))]))
+                                ->map(fn(Utilisateur $user) => [
+                                    "value" => $user->getId(),
+                                    "label" => $user->getUsername(),
+                                    "selected" => true
+                                ])
+                                ->toArray()
                     ],
                     self::MENU_DELIVERY_TYPES_FREE_FIELDS => fn() => [
                         "types" => $this->typeGenerator(CategoryType::DELIVERY_TRANSPORT),
@@ -1031,7 +1040,7 @@ class SettingsController extends AbstractController {
      * @Route("/creneaux-horaires-api", name="settings_hour_shift_api", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::SETTINGS_GLOBAL})
      */
-    public function hourShiftsApi(Request $request, EntityManagerInterface $manager) {
+    public function timeSlotsApi(Request $request, EntityManagerInterface $manager) {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
         $class = "form-control data";
 
@@ -1050,12 +1059,16 @@ class SettingsController extends AbstractController {
                             <i class='wii-icon wii-icon-trash text-primary'></i>
                         </button>
                     " : "",
-                    "name" => "<input name='id' type='hidden' value='{$shift->getId()}'><input name='name' class='$class' data-global-error='Nom du créneau' value='{$shift->getName()}'/>",
+                    "name" => "<input name='id' type='hidden' class='$class' value='{$shift->getId()}'><input name='name' class='$class' data-global-error='Nom du créneau' value='{$shift->getName()}'/>",
                     "hours" => "<input name='hours' class='$class' data-global-error='Heures' value='{$hours}'/>",
                 ];
             } else {
                 $data[] = [
-                    "actions" => "",
+                    "actions" => $this->canDelete() ? "
+                        <button class='btn btn-silent delete-row-view' data-type='timeSlots' data-id='{$shift->getId()}'>
+                            <i class='wii-icon wii-icon-trash text-primary'></i>
+                        </button>
+                    " : "",
                     "name" => $shift->getName(),
                     "hours" => $hours,
                 ];
@@ -1110,7 +1123,11 @@ class SettingsController extends AbstractController {
                 ];
             } else {
                 $data[] = [
-                    "actions" => "",
+                    "actions" => $this->canDelete() ? "
+                        <button class='btn btn-silent delete-row-view' data-type='startingHours' data-id='{$shift->getId()}'>
+                            <i class='wii-icon wii-icon-trash text-primary'></i>
+                        </button>
+                    " : "",
                     "id" => $shift->getId(),
                     "hour" => $hour,
                     "deliverers" => Stream::from($shift->getDeliverers())
@@ -1329,13 +1346,13 @@ class SettingsController extends AbstractController {
 
             if(in_array($categoryLabel, [CategoryType::DELIVERY_TRANSPORT, CategoryType::COLLECT_TRANSPORT])) {
                 $data[] = [
-                    "label" => "Logo",
+                    "label" => "Logo*",
                     "value" => $this->renderView("form_element.html.twig", [
                         "element" => "image",
                         "arguments" => [
                             "logo",
                             null,
-                            false,
+                            true,
                             $type?->getLogo()?->getFullPath(),
                         ],
                     ]),
@@ -2044,6 +2061,30 @@ class SettingsController extends AbstractController {
         }
 
         return $this->json($response);
+    }
+
+    /**
+     * @Route("/delete-row/{type}/{id}", name="settings_delete_row", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
+     */
+    public function deleteRow(EntityManagerInterface $manager, SettingsService $service, string $type, int $id): Response {
+        try {
+            match($type) {
+                "timeSlots" => $service->deleteTimeSlot($manager->find(CollectTimeSlot::class, $id)),
+                "startingHours" => $service->deleteStartingHour($manager->find(TransportRoundStartingHour::class, $id)),
+            };
+
+            $manager->flush();
+
+            return $this->json([
+                "success" => true,
+                "msg" => "L'enregistrement a bien été supprimé",
+            ]);
+        } catch(Throwable $e) {
+            return $this->json([
+                "success" => false,
+                "msg" => $e->getMessage(),
+            ]);
+        }
     }
 
 }

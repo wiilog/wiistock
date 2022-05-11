@@ -48,16 +48,10 @@ class TransportHistoryService {
     public const TYPE_SUBCONTRACT_UPDATE = "SUBCONTRACT_UPDATE";
     public const TYPE_AWAITING_VALIDATION = "AWAITING_VALIDATION";
     public const TYPE_SUBCONTRACTED = "SUBCONTRACTED";
+    public const TYPE_ACCEPTED = "ACCEPTED";
     public const TYPE_REJECTED_DELIVERY = "REJECTED_DELIVERY";
     public const TYPE_CANCELLED = "CANCELLED";
-
-    private const CATEGORIES = [
-        self::CATEGORY_TIMELINE => [],
-        self::CATEGORY_INFORMATION => [],
-        self::CATEGORY_WARNING => [],
-        self::CATEGORY_COMMENT => [],
-        self::CATEGORY_ATTACHMENT => [],
-    ];
+    public const TYPE_REQUEST_EDITED = "REQUEST_EDITED";
 
     public const CONTENT = [
         self::TYPE_REQUEST_CREATION => "{user} a créé la {category}",
@@ -72,14 +66,16 @@ class TransportHistoryService {
         self::TYPE_ADD_COMMENT => "{user} a laissé un commentaire",
         self::TYPE_ADD_ATTACHMENT => "{user} a ajouté des pièces jointes",
         self::TYPE_FAILED => "{user} n'a pas pu effectuer la {category}",
-        self::TYPE_PACKS_FAILED => "{user} a déposé le colis {pack} sur {location}",
+        self::TYPE_PACKS_FAILED => "{user} a déposé les colis {packs} sur {location}",
         self::TYPE_PACKS_DEPOSITED => "{user} a déposé les objets sur {location}",
-        self::TYPE_NO_MONITORING => "Le suivi en temps réel n'est pas disponible car la livraison est un horaire non ouvré {message}",
+        self::TYPE_NO_MONITORING => "Le suivi en temps réel n'est pas disponible car la livraison est un horaire non ouvré. {message}",
         self::TYPE_SUBCONTRACT_UPDATE => "{user} a indiqué que la livraison était {status} le {statusDate}",
         self::TYPE_AWAITING_VALIDATION => "La demande est en attente de validation",
         self::TYPE_SUBCONTRACTED => "La demande a été sous-traitée",
+        self::TYPE_ACCEPTED => "La demande a été acceptée",
         self::TYPE_REJECTED_DELIVERY => "La livraison a été rejetée de la tournée",
         self::TYPE_CANCELLED => "{user} a annulé la {category}",
+        self::TYPE_REQUEST_EDITED => "La demande a été modifiée"
     ];
 
     #[Required]
@@ -107,11 +103,13 @@ class TransportHistoryService {
             }
         }
 
-        $history->setType($type)
-            ->setDate(new DateTime())
+        $history
+            ->setType($type)
+            ->setDate($params["date"] ?? new DateTime())
             ->setUser($params["user"] ?? null)
             ->setPack($params["pack"] ?? null)
             ->setRound($params["round"] ?? null)
+            ->setMessage($params["message"] ?? null)
             ->setDeliverer($params["deliverer"] ?? null)
             ->setReason($params["reason"] ?? null)
             ->setAttachments($params["attachments"] ?? [])
@@ -181,10 +179,11 @@ class TransportHistoryService {
 
     public function formatHistory(TransportHistory $history): string {
         $replace = [
-            "{category}" => $this->formatEntity(get_class($history->getRequest())),
+            "{category}" => $this->formatEntity($history->getRequest() ? get_class($history->getRequest()) : get_class($history->getOrder()->getRequest())),
             "{user}" => $this->formatEntity($history->getUser()),
             "{pack}" => $this->formatEntity($history->getPack()),
             "{round}" => $this->formatEntity($history->getRound()),
+            "{message}" => $this->formatEntity($history->getMessage()),
             "{deliverer}" => $this->formatEntity($history->getDeliverer()),
             "{reason}" => $this->formatEntity($history->getReason()),
             "{status}" => $this->formatEntity($history->getStatusHistory()?->getStatus()),
@@ -196,24 +195,46 @@ class TransportHistoryService {
         return str_replace(array_keys($replace), array_values($replace), self::CONTENT[$history->getType()]);
     }
 
-    public function retrieveHistory(TransportDeliveryRequest|TransportOrder $transport): array {
-        return Stream::from($transport->getHistory())
-            ->map(fn(TransportHistory $history) => [
-                "category" => self::CATEGORIES[$history->getType()],
-                "text" => $this->formatHistory($history),
-                "date" => FormatHelper::longDate($history->getDate(), ["time" => true]),
-            ])
-            ->toArray();
-    }
-
     private function getCategoryFromType(string $type): string {
         return match($type) {
-            self::TYPE_REQUEST_CREATION, self::TYPE_LABELS_PRINTING, self::TYPE_ONGOING, self::TYPE_FINISHED => self::CATEGORY_TIMELINE,
-            self::TYPE_AFFECTED_ROUND => self::CATEGORY_INFORMATION,
-            self::TYPE_DROP_REJECTED_PACK, self::TYPE_FAILED, self::TYPE_NO_MONITORING, self::TYPE_SUBCONTRACT_UPDATE => self::CATEGORY_WARNING,
+            self::TYPE_REQUEST_CREATION,
+            self::TYPE_BOTH_REQUEST_CREATION,
+            self::TYPE_LABELS_PRINTING,
+            self::TYPE_ONGOING,
+            self::TYPE_FINISHED,
+            self::TYPE_FINISHED_BOTH,
+            self::TYPE_SUBCONTRACT_UPDATE,
+            self::TYPE_AWAITING_VALIDATION,
+            self::TYPE_SUBCONTRACTED,
+            self::TYPE_ACCEPTED,
+            self::TYPE_PACKS_DEPOSITED => self::CATEGORY_TIMELINE,
+
+            self::TYPE_AFFECTED_ROUND,
+            self::TYPE_REQUEST_EDITED,
+            self::TYPE_PACKS_FAILED,
+            self::TYPE_CONTACT_VALIDATED => self::CATEGORY_INFORMATION,
+
+            self::TYPE_DROP_REJECTED_PACK,
+            self::TYPE_FAILED,
+            self::TYPE_NO_MONITORING,
+            self::TYPE_REJECTED_DELIVERY,
+            self::TYPE_CANCELLED => self::CATEGORY_WARNING,
+
             self::TYPE_ADD_COMMENT => self::CATEGORY_COMMENT,
+
             self::TYPE_ADD_ATTACHMENT => self::CATEGORY_ATTACHMENT,
-            default => self::CATEGORY_ATTACHMENT
+            default => throw new RuntimeException("Unknown type")
+        };
+    }
+
+    public function getIconFromType(string $type): string {
+        $category = $this->getCategoryFromType($type);
+        return match ($category) {
+            self::CATEGORY_ATTACHMENT => 'timeline-attachment.svg',
+            self::CATEGORY_COMMENT => 'timeline-comment.svg',
+            self::CATEGORY_WARNING => 'timeline-urgent.svg',
+            self::CATEGORY_INFORMATION => 'timeline-information.svg',
+            default => 'timeline.svg', // CATEGORY_TIMELINE
         };
     }
 

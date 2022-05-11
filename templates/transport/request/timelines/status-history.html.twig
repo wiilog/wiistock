@@ -1,43 +1,105 @@
 {% set cancelledStatusesName = constant('App\\Entity\\Transport\\TransportRequest::CANCELED_STATUSES') %}
-{% set requestStatusName = request.status.nom %}
+{% set entityStatusName = entity.status.nom %}
+{% set request = entity is instanceof('App\\Entity\\Transport\\TransportRequest') ? entity : entity.request %}
+{% set order = request.order %}
+{% set roundLine = order ? (order.transportRoundLines | last) ?: null : null %}
 
-{% set lastHistory = statusesHistory is not empty ? statusesHistory|last : null %}
-{% set lastStatus = lastHistory ? lastHistory['status'] : null %}
+{% set lastHistory = statusesHistory | last ?: null %}
+{% set lastStatus = lastHistory ? lastHistory.status : null %}
 {% set followingStatusIndex = lastStatus is not null ? ((statusWorkflow|flip)[lastStatus] ?? null) : 0 %}
 {% set followingStatuses = followingStatusIndex is not null ? statusWorkflow|slice(followingStatusIndex + 1) : [] %}
 
+{% set statusName = request.status|format_helper('status') %}
+{% set headerClass = statusName in constant('App\\Entity\\Transport\\TransportRequest::CANCELED_STATUSES') ? 'bg-red-light' : 'bg-green-light' %}
+{% set requestType = request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') ? 'Livraison' : 'Collecte' %}
+
+<div class="header timeline d-flex justify-content-center {{ headerClass }}">
+    <img src="{{ asset('svg/timeline-status.svg') }}" alt="Icône statut timeline" width="15px" class="mr-2">
+    <span>{{ requestType }} <strong>{{ entityStatusName }}</strong></span>
+</div>
 {% for history in statusesHistory %}
-    {% set state = (requestStatusName == history['status'] and requestStatusName in cancelledStatusesName)
+    {% set state = (entityStatusName == history.status and entityStatusName in cancelledStatusesName)
         ? 'cancelled'
-        : (history['status'] in cancelledStatusesName
+        : (history.status in cancelledStatusesName
             ? 'cancelled'
-            : (requestStatusName == history['status'] and loop.last
+            : (entityStatusName == history.status and loop.last
                 ? 'current'
                 : 'past'))
     %}
+
     <div class="history-line">
         <div class="history-date">
             <div class="title-left {{ state }}">{{ history['status'] }}</div>
         </div>
         <div class="history-status
-            {{ loop.last ? 'last-status-history'}}
+            {{ loop.last ? 'last-status-history' }}
             {{ loop.last and followingStatuses is empty ? 'last' }}
             {{ state }}">
-            <div class="title-right {{ state }} {{ not history['date'] ? 'bg-transparent' }}">{{ history['date'] }}</div>
+            <div class="title-right {{ state }} {{ not history['date'] ? 'bg-transparent' }}">
+                <span class="ml-2">{{ history['date'] }}</span>
+            </div>
         </div>
     </div>
 {% endfor %}
-
-{% for remainingStatus in followingStatuses %}
-    {% set finishedStatusName = constant('App\\Entity\\Transport\\TransportRequest::STATUS_FINISHED') %}
-    {% set state = 'future' %}
+{% for followingStatus in followingStatuses %}
+    {% set finishedStatusesName = [constant('App\\Entity\\Transport\\TransportOrder::STATUS_FINISHED'), constant('App\\Entity\\Transport\\TransportRequest::STATUS_FINISHED') ] %}
+    {% set estimatedAt = round ? round.estimatedAt|format_helper('longDate', {short: true, time: true}, '') :
+        (request.timeSlot is defined and request.timeSlot ? request.timeSlot.name : null) %}
     <div class="history-line">
         <div class="history-date">
-            <div class="title-left {{ state }}">{{ remainingStatus }}</div>
+            <div class="title-left future">{{ followingStatus }}</div>
         </div>
-        <div class="history-status {{ loop.last ? 'last' }} {{ state }}">
-            <div class="title-right {{ round and remainingStatus == finishedStatusName ? state : 'bg-transparent' }}">
-                {{ round and remainingStatus == finishedStatusName ? 'Estimée au ' ~ round.estimatedAt|format_helper('date') }}
+        <div class="history-status future {{ loop.last ? 'last' }}">
+            <div class="title-right text-left {{ followingStatus in finishedStatusesName ? 'future' : 'bg-transparent' }}">
+                {% if followingStatus in finishedStatusesName %}
+                    <span class="ml-2">
+                    {% if request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
+                        {% if not order or order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_TO_ASSIGN') %}
+                            Estimée à : <span class="transport-value">-</span>
+                        {% elseif order.subcontracted %}
+                            Estimée à : <span class="wii-big-text">Non disponible</span>
+                        {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ASSIGNED') %}
+                            {% if prefix == 'DTR' %}
+                                Estimée à : <span
+                                class="transport-value">{{ timeSlot ? timeSlot.name : request.expectedAt | date('H:i') }}</span>
+                            {% else %}
+                                Estimée à : <span class="transport-value">{{ request.expectedAt | date('H:i') }}</span>
+                            {% endif %}
+                        {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ONGOING') %}
+                            Estimée à : <span class="transport-value">
+                                {{ roundLine ? roundLine.estimatedAt | date('H:i') : '-' }}
+                            </span>
+                        {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_FINISHED') %}
+                            Faite à : <span
+                                class="transport-value">{{ roundLine ? roundLine.fulfilledAt | date('H:i') : '-' }}</span>
+                        {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_NOT_DELIVERED') %}
+                            Non livrée le : <span
+                                class="transport-value">{{ roundLine ? roundLine.rejectedAt | format_helper('longDate', {short: true, year: false}) : '-' }}</span>
+                        {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_CANCELLED') %}
+                            Annulée le : <span
+                                class="transport-value">{{ roundLine ? roundLine.cancelledAt | format_helper('longDate', {short: true, year: false}) : '' }}</span>
+                        {% endif %}
+                    {% elseif request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') %}
+                        {% if not order or order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_TO_ASSIGN') or order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_TO_CONTACT') %}
+                            Estimée à : <span class="transport-value">-</span>
+                        {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ASSIGNED') %}
+                            Estimée à : <span class="transport-value">{{ request.timeSlot.name }}</span>
+                        {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ONGOING') %}
+                            Estimée à : <span
+                                class="transport-value">{{ roundLine ? roundLine.estimatedAt | date('H:i') : '-' }}</span>
+                        {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_FINISHED') %}
+                            Faite à : <span
+                                class="transport-value">{{ roundLine ? roundLine.fulfilledAt | date('H:i') : '-' }}</span>
+                        {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_NOT_COLLECTED') %}
+                            Non collectée le : {{ roundLine ? (roundLine.rejectedAt | format_helper('longDate', {short: true, year: false})) : '-' }}
+                        {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_CANCELLED') %}
+                            Annulée le : <span
+                            class="transport-value">{{ roundLine ? (roundLine.cancelledAt | format_helper('longDate', {short: true, year: false})) : '-' }}</span>
+                        {% endif %}
+                    {% endif %}
+                        </span>
+                {% endif %}
+
             </div>
         </div>
     </div>

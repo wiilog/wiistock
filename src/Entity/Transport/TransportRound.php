@@ -13,6 +13,12 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: TransportRoundRepository::class)]
 class TransportRound
 {
+    public const NUMBER_PREFIX = 'T';
+
+    public const STATUS_AWAITING_DELIVERER = 'En attente livreur';
+    public const STATUS_ONGOING = 'En cours';
+    public const STATUS_FINISHED = 'Terminée';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
@@ -26,6 +32,9 @@ class TransportRound
 
     #[ORM\Column(type: 'datetime')]
     private ?DateTime $createdAt = null;
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?DateTime $expectedAt = null;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $endedAt = null;
@@ -98,6 +107,18 @@ class TransportRound
     public function setCreatedAt(DateTime $createdAt): self
     {
         $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    public function getExpectedAt(): ?DateTime
+    {
+        return $this->expectedAt;
+    }
+
+    public function setExpectedAt(DateTime $expectedAt): self
+    {
+        $this->expectedAt = $expectedAt;
 
         return $this;
     }

@@ -25,6 +25,8 @@ const PAGE_STATUS = 'status';
 const PAGE_EMPLACEMENT = 'emplacement';
 const PAGE_TRANSPORT_REQUESTS = 'transportRequests';
 const PAGE_TRANSPORT_ORDERS = 'transportOrders';
+const PAGE_SUBCONTRACT_ORDERS = 'subcontractOrders';
+const PAGE_TRANSPORT_ROUNDS = 'transportRounds';
 const PAGE_URGENCES = 'urgences';
 const PAGE_NOTIFICATIONS = 'notifications';
 const STATUT_ACTIF = 'disponible';
@@ -194,7 +196,6 @@ function editRow(button, path, modal, submit, setMaxQuantity = false, afterLoadi
         if (wantsFreeFieldsRequireCheck) {
             toggleRequiredChampsLibres(modal.find('#typeEdit'), 'edit');
         }
-        registerNumberInputProtection($modalBody.find('input[type="number"]'));
 
         if (setMaxQuantity) {
             setMaxQuantityEdit($('#referenceEdit'));
@@ -729,6 +730,7 @@ function displayFiltersSup(data) {
                 case 'emergencyMultiple':
                 case 'businessUnit':
                 case 'managers':
+                case 'deliverers':
                     let valuesElement = element.value.split(',');
                     let $select = $(`.filter-select2[name="${element.field}"]`);
                     $select.find('option').prop('selected', false);
@@ -956,21 +958,6 @@ function fillDemandeurField($modal) {
         }
         $operatorSelect2.trigger('change');
     }
-}
-
-function registerNumberInputProtection($inputs) {
-    const forbiddenChars = [
-        "e",
-        "E",
-        "+",
-        "-"
-    ];
-
-    $inputs.on("keydown", function (e) {
-        if (forbiddenChars.includes(e.key)) {
-            e.preventDefault();
-        }
-    });
 }
 
 function limitTextareaLength($textarea, lineNumber, lineLength) {

@@ -269,7 +269,9 @@ class SettingsService {
             foreach ($removedRanges as $entity) {
                 if (!$entity->getLocations()->isEmpty() || !$entity->getNatures()->isEmpty()) {
                     throw new RuntimeException("La plage de température {$entity->getValue()} ne peut pas être supprimée car elle est utilisée par des natures ou emplacements");
-                } else {
+                }else if(!$entity->getTransportDeliveryRequestNatures()->isEmpty()){
+                    throw new RuntimeException("La plage de température {$entity->getValue()} ne peut pas être supprimée car elle est utilisée par des demandes de transport");
+                } else{
                     $this->manager->remove($entity);
                 }
             }
@@ -368,7 +370,7 @@ class SettingsService {
             }
         }
 
-        if (isset($tables["hourShifts"])) {
+        if (isset($tables["hourShifts"]) && count($tables["hourShifts"]) && count($tables["hourShifts"][0])) {
             $editShift = function(CollectTimeSlot $shift, array $edition) {
                 $hours = $edition["hours"] ?? null;
                 if ($hours && !preg_match("/^\d{2}:\d{2}-\d{2}:\d{2}$/", $hours)) {
@@ -398,12 +400,7 @@ class SettingsService {
                 if (!empty($existingShifts[$existingShift->getId()])) {
                     $editShift($existingShift, $existingShifts[$existingShift->getId()]);
                 } else {
-                    $canDelete = $existingShift->getTransportCollectRequests()->isEmpty();
-                    if ($canDelete) {
-                        $this->manager->remove($existingShift);
-                    } else {
-                        throw new RuntimeException("Le créneau " . $existingShift->getName() . " est utilisé. Impossible de le supprimer.");
-                    }
+                    $this->deleteTimeSlot($existingShift);
                 }
             }
 
@@ -472,10 +469,7 @@ class SettingsService {
                 if (!empty($existingShifts[$existingShift->getId()])) {
                     $editShift($existingShift, $existingShifts[$existingShift->getId()]);
                 } else {
-                    foreach ($existingShift->getDeliverers() as $deliverer) {
-                        $deliverer->setTransportRoundStartingHour(null);
-                    }
-                    $this->manager->remove($existingShift);
+                    $this->deleteStartingHour($existingShift);
                 }
             }
 
@@ -1031,6 +1025,22 @@ class SettingsService {
         }
 
         return $isWorked;
+    }
+
+    public function deleteTimeSlot(CollectTimeSlot $timeSlot) {
+        $canDelete = $timeSlot->getTransportCollectRequests()->isEmpty();
+        if ($canDelete) {
+            $this->manager->remove($timeSlot);
+        } else {
+            throw new RuntimeException("Le créneau " . $timeSlot->getName() . " est utilisé. Impossible de le supprimer.");
+        }
+    }
+
+    public function deleteStartingHour(TransportRoundStartingHour $startingHour) {
+        foreach ($startingHour->getDeliverers() as $deliverer) {
+            $deliverer->setTransportRoundStartingHour(null);
+        }
+        $this->manager->remove($startingHour);
     }
 
 }

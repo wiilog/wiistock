@@ -24,15 +24,23 @@
         }
     }
 }
+.order-transport{
+    margin-left: 0px !important ;
+}
 
 .bordered {
     border-top: 1px solid $grey;
 }
 
 .status-history-container {
-    max-height: 400px;
-    overflow-y: auto;
+    padding-top: 0 !important;
     overflow-x: hidden;
+
+    .header {
+        margin-right: -30px;
+        margin-left: -30px;
+        margin-bottom: 15px;
+    }
 
     .history-line {
         display: flex;
@@ -73,13 +81,13 @@
 
             .title-right {
                 font-size: 15px;
-                padding: 5px 10px;
+                padding: 5px 15px 5px 10px;
                 color: $black !important;
                 text-align: center;
                 border-radius: 15px;
-                width: 80%;
                 margin-left: 3px;
                 min-height: 30px;
+                width: fit-content;
 
                 &.past {
                     background-color: rgba(51, 83, 215, 0.1);
@@ -91,6 +99,7 @@
 
                 &.future {
                     background-color: #E8E8E8;
+                    color: #666666 !important;
                 }
 
                 &.cancelled {

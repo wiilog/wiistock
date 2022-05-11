@@ -2,10 +2,13 @@
 
 namespace App\Entity;
 
+use App\Entity\Transport\TransportHistory;
 use App\Entity\Transport\TransportOrder;
 use App\Entity\Transport\TransportRequest;
 use App\Repository\Transport\StatusHistoryRepository;
 use DateTime;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: StatusHistoryRepository::class)]
@@ -17,11 +20,9 @@ class StatusHistory {
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: TransportOrder::class, inversedBy: 'statusHistory')]
-    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?TransportOrder $transportOrder = null;
 
     #[ORM\ManyToOne(targetEntity: TransportRequest::class, inversedBy: 'statusHistory')]
-    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?TransportRequest $transportRequest = null;
 
     #[ORM\Column(type: 'datetime')]
@@ -30,8 +31,12 @@ class StatusHistory {
     #[ORM\ManyToOne(targetEntity: Statut::class)]
     private ?Statut $status = null;
 
+    #[ORM\OneToMany(mappedBy: 'statusHistory', targetEntity: TransportHistory::class)]
+    private Collection $transportHistory;
+
     public function __construct() {
         $this->date = new DateTime();
+        $this->transportHistory = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -82,6 +87,42 @@ class StatusHistory {
 
     public function setStatus(?Statut $status): self {
         $this->status = $status;
+
+        return $this;
+    }
+
+    public function getTransportHistory(): Collection {
+        return $this->transportHistory;
+    }
+
+    public function addTransportHistory(TransportHistory $transportHistory): self {
+        if (!$this->transportHistory->contains($transportHistory)) {
+            $this->transportHistory[] = $transportHistory;
+            $transportHistory->setStatusHistory($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTransportHistory(TransportHistory $transportHistory): self {
+        if ($this->transportHistory->removeElement($transportHistory)) {
+            if ($transportHistory->getStatusHistory() === $this) {
+                $transportHistory->setStatusHistory(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setTransportHistory(?array $transportHistory): self {
+        foreach($this->getTransportHistory()->toArray() as $history) {
+            $this->removeTransportHistory($history);
+        }
+
+        $this->transportHistory = new ArrayCollection();
+        foreach($transportHistory as $history) {
+            $this->addTransportHistory($history);
+        }
 
         return $this;
     }

@@ -85,7 +85,7 @@
                                 </label>
                             </div>
                         </div>
-                        <div class="my-4 ml-3">
+                        <div class="my-4">
                             {% set plural = referenceArticle.attachments | length > 1 ? 's' : '' %}
                             <span class="wii-subtitle">Pièce{{ plural }} jointe{{ plural }}</span>
                             <div class="d-flex flex-wrap">
@@ -126,7 +126,7 @@
                 <div class="wii-box">
                     <div class="header wii-title">Gestion quantité</div>
                     <div class="content">
-                        <div class="d-flex">
+                        <div class="row">
                             <div class="col-auto d-flex">
                                 {% set isReferenceManagementQuantity = referenceArticle.typeQuantite == constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_REFERENCE') %}
                                 <img src="{{ asset('svg/' ~ (isReferenceManagementQuantity ? 'pack.svg' : 'reference_article/article.svg')) }}"
@@ -136,7 +136,7 @@
                                 </span>
                             </div>
                         </div>
-                        <div class="d-flex mt-4">
+                        <div class="row mt-4">
                             {% if isReferenceManagementQuantity %}
                                 <div class="col-6 d-flex">
                                     <img src="{{ asset('svg/reference_article/location.svg') }}" alt="Icône emplacement" width="20px">
@@ -166,7 +166,7 @@
                             {% endif %}
                         </div>
 
-                        <div class="d-flex mt-3">
+                        <div class="row mt-3">
                             <div class="col-6 d-flex">
                                 <img src="{{ asset('svg/reference_article/manager.svg') }}" alt="Icône utilisateur" width="20px">
                                 <div class="box-item ml-3">
@@ -186,7 +186,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="d-flex mt-3">
+                        <div class="row mt-3">
                             {% if isReferenceManagementQuantity %}
                                 <div class="col-4 d-flex">
                                     <img src="{{ asset('svg/reference_article/price.svg') }}" alt="Icône prix" width="15px">
@@ -258,7 +258,7 @@
                 <div class="wii-box mt-3">
                     <div class="header wii-title">Inventaires</div>
                     <div class="content">
-                        <div class="d-flex">
+                        <div class="row">
                             <div class="col-6 d-flex">
                                 <img src="{{ asset('svg/reference_article/warehouse.svg') }}" alt="Icône catégorie d'inventaire" width="20px">
                                 <div class="box-item ml-3">
@@ -266,7 +266,7 @@
                                     <span class="wii-body-text">{{ referenceArticle.category ? referenceArticle.category.label : '-' }}</span>
                                 </div>
                             </div>
-                            <div class="col-6 d-flex">
+                            <div class="col-6 row">
                                 <img src="{{ asset('svg/calendar.svg') }}" alt="Icône calendrier" width="20px">
                                 <div class="box-item ml-3">
                                     <span class="wii-field-name">Date de dernier inventaire</span>

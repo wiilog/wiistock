@@ -1,15 +1,20 @@
 import '@styles/pages/transport/form.scss';
 import Form from "@app/form";
-
+import Modal from "@app/modal";
+import AJAX, {GET, POST} from "@app/ajax";
+import Flash, {ERROR, SUCCESS} from "@app/flash";
 
 export function initializeForm($form, editForm = false) {
     const form = Form
-        .create($form)
+        .create($form, {clearOnOpen: !editForm})
         .addProcessor((_, errors, $form) => {
             validateNatureForm($form, errors)
         })
         .onOpen(() => {
-            onFormOpened(form, editForm);
+            resetForm(form);
+        })
+        .onClose(() => {
+            clearForm(form, editForm);
         });
 
     form
@@ -28,10 +33,105 @@ export function initializeForm($form, editForm = false) {
     return form;
 }
 
-function onFormOpened(form, editForm) {
+export function initializePacking(submitCallback) {
+    const $modalPacking = $('#modalTransportRequestPacking');
+    $(document).on("click", ".print-request-button", function() {
+        const $button = $(this);
+        wrapLoadingOnActionButton($button, () => packingOrPrint($button.data('request-id')));
+    });
+
+    Form.create($modalPacking).onSubmit(function(data) {
+        wrapLoadingOnActionButton($modalPacking.find('[type=submit]'), () => {
+            return submitPackingModal($modalPacking, data, () => {
+                submitCallback();
+            });
+        });
+    })
+}
+
+export function packingOrPrint(transportRequest, force = false) {
+    if (!force) {
+        return AJAX.route(POST, `transport_request_packing_check`, {transportRequest})
+            .json()
+            .then((result) => {
+                if (result.success) {
+                    return openPackingModal(transportRequest);
+                }
+                else {
+                    return printBarcodes(transportRequest);
+                }
+            });
+    }
+    else {
+        return openPackingModal(transportRequest);
+    }
+}
+
+export function openPackingModal(transportRequest) {
+    const $modal = $('#modalTransportRequestPacking');
+    const $modalBody = $modal.find('.modal-body');
+    $modalBody.html(`
+        <div class="row justify-content-center">
+             <div class="col-auto">
+                <div class="spinner-border" role="status">
+                    <span class="sr-only">Loading...</span>
+                </div>
+             </div>
+        </div>
+    `);
+    $modal.modal('show');
+    return AJAX.route(GET, `transport_request_packing_api`, {transportRequest})
+        .json()
+        .then((result) => {
+            if (result && result.success) {
+                $modalBody.html(result.html);
+            }
+        });
+}
+
+export function printBarcodes(transportRequest) {
+    Flash.add(`info`, `Génération des étiquettes de colis en cours`);
+    return AJAX.route(GET, `print_transport_packs`, {transportRequest})
+        .raw()
+        .then(response => {
+            if(!response.ok) {
+                Flash.add(ERROR, "Erreur lors de l'impression des étiquettes")
+                throw new Error('printing error');
+            }
+            return response.blob().then((blob) => {
+                const fileName = response.headers.get("content-disposition").split("filename=")[1];
+                saveAs(blob, fileName);
+                Flash.add(SUCCESS, "Vos étiquettes ont bien été téléchargées");
+            });
+        });
+}
+
+
+export function submitPackingModal($modalPacking, data, callback) {
+    const transportRequest = data.get('request');
+    data.delete('request');
+    return AJAX.route(POST, `transport_request_packing`, {transportRequest})
+        .json(data)
+        .then((result) => {
+            if (result.success === true) {
+                const printing = printBarcodes(transportRequest);
+                printing.then(() => {
+                    $modalPacking.modal('hide');
+                    callback();
+                });
+                return printing;
+            }
+            else {
+                Flash.add(ERROR, result.message || 'Une erreur est survenue lors du colisage');
+            }
+        });
+}
+
+function clearForm(form, editForm) {
     const $modal = form.element;
 
-    $modal.find('delivery').remove();
+    $modal.find('[name=delivery][type=hidden]').remove();
+    $modal.find('[name=printLabels][type=hidden]').remove();
     const $requestType = $modal.find('[name=requestType]');
     $requestType
         .prop('checked', false)
@@ -42,11 +142,6 @@ function onFormOpened(form, editForm) {
         .prop('checked', false)
         .prop('disabled', false);
 
-    $requestType
-        .filter('[value=collect]')
-        .prop('checked', true)
-        .trigger('change');
-
     if (!editForm) {
         $modal
             .find('.contact-container .data, [name=expectedAt]')
@@ -54,9 +149,19 @@ function onFormOpened(form, editForm) {
     }
 }
 
+function resetForm(form) {
+    const $modal = form.element;
+    const $requestType = $modal.find('[name=requestType]');
+    $requestType
+        .filter('[value=collect]')
+        .prop('checked', true)
+        .trigger('change');
+}
+
 function onNatureCheckChange($input) {
     const $container = $input.closest('.nature-item');
     const $toDisplay = $container.find('[data-nature-is-selected]');
+    const $textInfo = $('#text-info');
     if ($input.prop('checked')) {
         $toDisplay.removeClass('d-none');
     }
@@ -72,6 +177,13 @@ function onNatureCheckChange($input) {
                 .val(null)
                 .trigger('change');
         }
+    }
+
+    if ($('.nature-item-wrapper input[type=checkbox]:checked').exists()) {
+        $textInfo.removeClass('d-none');
+    }
+    else {
+        $textInfo.addClass('d-none');
     }
 }
 
@@ -94,6 +206,7 @@ function onRequestTypeChange($form, requestType) {
         .prop('disabled', true);
 
     $form.find('[data-type]').addClass('d-none');
+    $form.find(`.warning-empty-natures`).addClass(`d-none`);
 
     if (requestType) {
         const $specificItemsToDisplay = $specificsItems.filter(`[data-request-type=""], [data-request-type="${requestType}"]`);
@@ -124,13 +237,25 @@ function onTypeChange($form, type) {
         .prop('checked', false)
         .trigger('change');
 
-    $form.find(`[data-type]`).each(function() {
+    $form.find(`[data-type]`).each(function () {
         const $element = $(this);
         const allowedTypes = $element.data('type');
         if (allowedTypes.some((t) => (t == type))) {
             $element.removeClass('d-none');
         }
     });
+
+    const $container = $form.find('.warning-empty-natures');
+    if ($('.nature-item:not(.d-none)').length === 0) {
+        $container.removeClass('d-none');
+        $form.find('button[type=submit]').prop("disabled" ,true);
+        $container.parent().addClass('justify-content-center');
+    }
+    else {
+        $form.find('button[type=submit]').prop("disabled" ,false);
+        $container.addClass('d-none');
+        $container.parent().removeClass('justify-content-center')
+    }
 }
 
 export function cancelRequest(transportRequest){
@@ -152,7 +277,7 @@ export function cancelRequest(transportRequest){
     });
 }
 
-export function deleteRequest(transportRequest){
+export function deleteRequest(table, transportRequest){
     Modal.confirm({
         ajax: {
             method: 'DELETE',
@@ -164,6 +289,7 @@ export function deleteRequest(transportRequest){
         validateButton: {
             color: 'danger',
             label: 'Supprimer'
-        }
+        },
+        tables: [table],
     });
 }

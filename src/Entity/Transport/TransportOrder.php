@@ -2,6 +2,7 @@
 
 namespace App\Entity\Transport;
 
+use App\Entity\Attachment;
 use App\Entity\StatusHistory;
 use App\Entity\Statut;
 use App\Entity\Traits\AttachmentTrait;
@@ -31,6 +32,31 @@ class TransportOrder {
     public const STATUS_NOT_DELIVERED = 'Non livré';
     public const STATUS_NOT_COLLECTED = 'Non collecté';
     public const STATUS_SUBCONTRACTED = 'Sous-traité';
+    public const STATUS_AWAITING_VALIDATION = 'En attente de validation';
+
+    public const STATUS_WORKFLOW_COLLECT = [
+        self::STATUS_TO_CONTACT,
+        self::STATUS_TO_ASSIGN,
+        self::STATUS_ASSIGNED,
+        self::STATUS_ONGOING,
+        self::STATUS_FINISHED,
+        self::STATUS_DEPOSITED,
+    ];
+
+    public const STATUS_WORKFLOW_DELIVERY = [
+        self::STATUS_TO_ASSIGN,
+        self::STATUS_ASSIGNED,
+        self::STATUS_ONGOING,
+        self::STATUS_FINISHED,
+    ];
+
+    public const STATUS_WORKFLOW_DELIVERY_COLLECT = [
+        self::STATUS_TO_ASSIGN,
+        self::STATUS_ASSIGNED,
+        self::STATUS_ONGOING,
+        self::STATUS_FINISHED,
+        self::STATUS_DEPOSITED,
+    ];
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -61,7 +87,7 @@ class TransportOrder {
     #[ORM\Column(type: 'boolean')]
     private ?bool $subcontracted = null;
 
-    #[ORM\ManyToOne(targetEntity: TransportRequest::class, inversedBy: 'orders')]
+    #[ORM\OneToOne(inversedBy: 'order', targetEntity: TransportRequest::class)]
     private ?TransportRequest $request = null;
 
     #[ORM\OneToMany(mappedBy: 'order', targetEntity: TransportHistory::class)]
@@ -76,11 +102,22 @@ class TransportOrder {
     #[ORM\OneToMany(mappedBy: 'transportOrder', targetEntity: StatusHistory::class)]
     private Collection $statusHistory;
 
+    #[ORM\OneToOne(inversedBy: 'transportOrder', targetEntity: Attachment::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Attachment $signature;
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?DateTime $returnedAt = null;
+
+    #[ORM\Column(type: 'string', nullable: true)]
+    private ?string $returnReason = null;
+
     public function __construct() {
         $this->history = new ArrayCollection();
         $this->packs = new ArrayCollection();
         $this->transportRoundLines = new ArrayCollection();
         $this->statusHistory = new ArrayCollection();
+        $this->attachments = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -93,6 +130,26 @@ class TransportOrder {
 
     public function setStatus(?Statut $status): self {
         $this->status = $status;
+
+        return $this;
+    }
+
+    public function getReturnedAt(): ?DateTime {
+        return $this->returnedAt;
+    }
+
+    public function setReturnedAt(?DateTime $returnedAt): self {
+        $this->returnedAt = $returnedAt;
+
+        return $this;
+    }
+
+    public function getReturnReason(): ?string {
+        return $this->returnReason;
+    }
+
+    public function setReturnReason(?string $returnReason): self {
+        $this->returnReason = $returnReason;
 
         return $this;
     }
@@ -172,11 +229,15 @@ class TransportOrder {
     }
 
     public function setRequest(?TransportRequest $request): self {
-        if ($this->request && $this->request !== $request) {
-            $this->request->removeOrder($this);
+        if($this->request && $this->request->getOrder() !== $this) {
+            $oldRequest = $this->request;
+            $this->request = null;
+            $oldRequest->setOrder(null);
         }
         $this->request = $request;
-        $request?->addOrder($this);
+        if($this->request && $this->request->getOrder() !== $this) {
+            $this->request->setOrder($this);
+        }
 
         return $this;
     }
@@ -210,14 +271,20 @@ class TransportOrder {
 
     public function isRejected(): bool {
         return !$this->getPacks()->isEmpty() && Stream::from($this->getPacks())
-            ->filter(fn(TransportDeliveryOrderPack $pack) => !$pack->isRejected())
+            ->filter(fn(TransportDeliveryOrderPack $orderPack) => $orderPack->getState() === TransportDeliveryOrderPack::REJECTED_STATE)
             ->isEmpty();
     }
 
     public function hasRejectedPacks(): bool {
         return Stream::from($this->getPacks())
-            ->filter(fn(TransportDeliveryOrderPack $pack) => $pack->isRejected())
+            ->filter(fn(TransportDeliveryOrderPack $orderPack) => $orderPack->getState() === TransportDeliveryOrderPack::REJECTED_STATE)
             ->count();
+    }
+
+    public function getPacksForLine(TransportRequestLine $line): Stream {
+        $nature = $line->getNature();
+        return Stream::from($this->packs)
+            ->filter(fn (TransportDeliveryOrderPack $deliveryPack) => $deliveryPack->getPack()?->getNature()?->getId() === $nature->getId());
     }
 
     /**
@@ -296,6 +363,24 @@ class TransportOrder {
             if ($statusHistory->getTransportOrder() === $this) {
                 $statusHistory->setTransportOrder(null);
             }
+        }
+
+        return $this;
+    }
+
+    public function getSignature(): ?Attachment {
+        return $this->signature;
+    }
+
+    public function setSignature(?Attachment $signature): self {
+        if($this->signature && $this->signature->getTransportOrder() !== $this) {
+            $oldExample = $this->signature;
+            $this->signature = null;
+            $oldExample->setTransportOrder(null);
+        }
+        $this->signature = $signature;
+        if($this->signature && $this->signature->getTransportOrder() !== $this) {
+            $this->signature->setTransportOrder($this);
         }
 
         return $this;
