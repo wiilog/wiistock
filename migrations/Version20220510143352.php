@@ -27,7 +27,7 @@ final class Version20220510143352 extends AbstractMigration
         $this->addSql('INSERT INTO action (menu_id, label, sub_menu_id, display_order) VALUES (
             (SELECT id FROM menu WHERE menu.label = :menu),
             :action,
-            (SELECT id FROM sub_menu WHERE sub_menu.label = :sub_menu),
+            (SELECT id FROM sub_menu INNER JOIN menu m on sub_menu.menu_id = m.id WHERE sub_menu.label = :sub_menu AND m.label = :menu),
             5
         )', [
             'menu' => Menu::REFERENTIEL,
