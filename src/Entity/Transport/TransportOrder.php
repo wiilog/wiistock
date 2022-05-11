@@ -270,7 +270,7 @@ class TransportOrder {
 
     public function isRejected(): bool {
         return !$this->getPacks()->isEmpty() && Stream::from($this->getPacks())
-            ->filter(fn(TransportDeliveryOrderPack $pack) => $pack->isLoaded())
+            ->filter(fn(TransportDeliveryOrderPack $pack) => $pack->isLoaded() === true || $pack->isLoaded() === null)
             ->isEmpty();
     }
 
