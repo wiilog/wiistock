@@ -98,7 +98,7 @@ class TransportService {
             $entityManager,
             null,
             TransportRequest::class,
-            UniqueNumberService::DATE_COUNTER_FORMAT_TRANSPORT_REQUEST
+            UniqueNumberService::DATE_COUNTER_FORMAT_TRANSPORT
         );
 
         if ($mainDelivery) {

@@ -34,16 +34,14 @@ $(function () {
         changeCurrentDay('down');
         wrapLoadingOnActionButton($(this), () => getOrders());
     });
-=========
     initializeRoundPlan()
->>>>>>>>> Temporary merge branch 2
-})
+
 
     $('.increment-date').on('click', function () {
         changeCurrentDay('up');
         wrapLoadingOnActionButton($(this), () => getOrders());
     });
-})
+});
 
 function getOrders() {
     const statuses = $('[name=status]:checked')

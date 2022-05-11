@@ -4,12 +4,18 @@ namespace App\Controller\Transport;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
+use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\LocationGroup;
 use App\Entity\Menu;
+use App\Entity\Statut;
+use App\Entity\Transport\TransportCollectRequest;
+use App\Entity\Transport\TransportOrder;
 use App\Entity\Transport\TransportRound;
 use App\Helper\FormatHelper;
+use App\Service\HttpService;
+use App\Service\UniqueNumberService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -116,19 +122,16 @@ class RoundController extends AbstractController {
 
     #[Route("/planifier", name: "transport_round_plan", options: ['expose' => true], methods: "GET")]
     #[HasPermission([Menu::ORDRE, Action::SCHEDULE_TRANSPORT_ROUND])]
-    public function plan(Request $request, EntityManagerInterface $entityManager): Response
+    public function plan(Request $request, EntityManagerInterface $entityManager, UniqueNumberService $uniqueNumberService): Response
     {
         if ($request->query->get('dateRound')) {
-            $round = new TransportRound;
-            $roundDate =DateTime::createFromFormat('Y-m-d',  $request->query->get('dateRound'));
+            $round = new TransportRound();
+            $roundDate = DateTime::createFromFormat('Y-m-d',  $request->query->get('dateRound'));
             /// TODO : voir pour number
         }
         else if( $request->query->get('transportRound')){
             $round = $entityManager->getRepository(TransportRound::class)->findOneBy(['id' => $request->query->get('transportRound')]);
-            $transportRequest = $round->getTransportRoundLines()[0]->getOrder()->getRequest();
-            $transportRequest instanceof TransportCollectRequest
-                ? $roundDate = $transportRequest->getValidatedDate() /// TODO : voir avec jade si pour une collect la date velidée avec le patient peut rester null
-                : $roundDate = $transportRequest->getExpectedAt();
+            $roundDate = $round->getExpectedAt();
         }
         else{
             /// TODO: Afficher une page d'erreur
@@ -136,10 +139,44 @@ class RoundController extends AbstractController {
 
         $transportOrders = $entityManager->getRepository(TransportOrder::class)->findByDate($roundDate);
 
+        $contactDataByOrderId = [];
+        foreach ($transportOrders as $transportOrder) {
+            $request = $transportOrder->getRequest();
+            $contactDataByOrderId[ $transportOrder->getId() ] = [
+                'latitude' => $request->getContact()->getAddressLatitude(),
+                'longitude' => $request->getContact()->getAddressLongitude(),
+                'contact' => $request->getContact()->getName(),
+                'time' => $request instanceof TransportCollectRequest
+                    ? ( $request->getTimeSlot()?->getName() ?: $request->getExpectedAt()->format('H:i') )
+                    : $request->getExpectedAt()->format('H:i')
+            ];
+        }
+
+        $number = $uniqueNumberService->create(
+            $entityManager,
+            null,
+            TransportRound::class,
+            UniqueNumberService::DATE_COUNTER_FORMAT_TRANSPORT
+        );
+        dump($number);
+
         return $this->render('transport/round/plan.html.twig', [
+            'round' => $round,
             'roundDate' => $roundDate,
             'transportOrders' => $transportOrders,
+            'contactData' => $contactDataByOrderId,
+            'number' => $number
         ]);
     }
 
+    #[Route("/api-get-address-coordinates", name: "transport_round_address_coordinates_get", options: ['expose' => true], methods: "GET")]
+    public function getAddressCoordinates(Request $request, HttpService $httpService): Response
+    {
+        [$lat, $lon] = $httpService->fetchCoordinates($request->query->get('address'));
+        return $this->json([
+            'success' => true,
+            'latitude' => $lat,
+            'longitude' => $lon
+        ]);
+    }
 }

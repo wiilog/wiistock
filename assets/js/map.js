@@ -1,7 +1,22 @@
 import Leaflet from "leaflet";
 import AJAX from "./ajax";
+import {remove} from "leaflet/src/dom/DomUtil";
 
 const FIND_COORDINATES = `https://nominatim.openstreetmap.org/search`;
+
+const LocationIcon = L.Icon.extend({
+    options: {
+        iconSize: [30, 30],
+        iconAnchor: [15, 30],
+        popupAnchor: [0,-30]
+    }
+});
+
+const locationIcons = {
+    blackLocation: new LocationIcon({iconUrl: "/svg/location-black.svg"}),
+    blueLocation: new LocationIcon({iconUrl: "/svg/location-blue.svg"}),
+    greyLocation: new LocationIcon({iconUrl: "/svg/location-grey.svg"})
+}
 
 export class Map {
     id;
@@ -14,39 +29,31 @@ export class Map {
         map.map = Leaflet.map(id, options);
         map.map.setView([46.467247, 2.960474], 5);
         Leaflet.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map.map);
-
         return map;
     }
 
-    setMarkers(locations, fit = true) {
-        for(const location of this.locations) {
-            this.removeMarker(location);
+    setMarker(options) {
+        const existing = this.locations.find(l => l.latitude === options.latitude && l.longitude === options.longitude);
+        if (existing) {
+           this.removeMarker(existing);
         }
 
-        for(const location of locations) {
-            this.addMarker(location);
-        }
-
-        if(fit) {
-            this.fitBounds();
-        }
-    }
-
-    addMarker(location) {
-        const existing = this.locations.find(l => l.latitude === location.latitude && l.longitude === location.longitude);
-        if(existing) {
-            return;
-        }
-
-        const marker = Leaflet.marker([location.latitude, location.longitude]);
+        const marker = Leaflet.marker([options.latitude, options.longitude], {icon: locationIcons[options.icon] || locationIcons.greyLocation});
         this.map.addLayer(marker);
 
-        if(location.title) {
-            marker.bindPopup(location.title);
+        if (options.popUp) {
+            const className = options.isFocused ? "leaflet-popup-border" : undefined;
+
+            marker.bindPopup(options.popUp, {
+                closeButton: false,
+                autoClose: false,
+                closeOnClick: false,
+                className
+            }).openPopup();
         }
 
-        location.marker = marker;
-        this.locations.push(location);
+        options.marker = marker;
+        this.locations.push(options);
     }
 
     removeMarker(location) {
@@ -55,11 +62,11 @@ export class Map {
     }
 
     fitBounds() {
-        if(!this.locations.length) {
+        if (!this.locations.length) {
             this.map.flyTo([46.467247, 2.960474], 5);
         } else {
             const bounds = Leaflet.latLngBounds();
-            for(const location of this.locations) {
+            for (const location of this.locations) {
                 bounds.extend(Leaflet.latLng(location.latitude, location.longitude));
             }
 

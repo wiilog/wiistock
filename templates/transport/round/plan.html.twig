@@ -19,8 +19,8 @@
                 </div>
                 <div class="d-flex flex-column card-container" id="to-affect-container">
                     {% for transportOrder in transportOrders %}
-                        <div class="order-card" id="{{transportOrder.id}}">
-                            <div class="affected-number">
+                        <div class="order-card" data-order-id="{{transportOrder.id}}">
+                            <div class="affected-number d-none">
                             </div>
                             <div class="card-content pl-1">
                                 <div class="first-line">
@@ -59,7 +59,7 @@
                                                 <img src="{{ asset('svg/timeline-urgent.svg') }}" alt="Icône urgent" width="13px" class="mr-1">
                                             {% endif %}
                                         </div>
-                                        <button type="button" class="btn btn-outline-primary btn-cross">
+                                        <button type="button" class="btn btn-outline-primary btn-cross d-none">
                                             <img src="{{ asset('svg/cross-blue.svg') }}" width="13px">
                                         </button>
 
@@ -74,7 +74,7 @@
                                     </span>
                                 </div>
                                 <div class="wii-field-text">
-                                    <img src="{{ asset('svg/location.svg') }}" width="13px" alt="">
+                                    <img src="{{ asset('svg/location-black.svg') }}" width="13px" alt="">
                                     {% if transportOrder.request.contact.address is not null %}
                                         {{ transportOrder.request.contact.address }}
                                     {% endif %}
@@ -101,29 +101,29 @@
                 <div class="header d-flex justify-content-between">
                     <span class="wii-title">Nouvelle tournée</span>
                     <div class="wii-body-text">
-                        <div class="bold">T2132165-03</div>
+                        <div class="bold">T{{ number }}</div>
                         <div>{{ roundDate|format_helper('longDate', {short: true, year: false}) }}</div>
                     </div>
                 </div>
                 <div class="row content ">
-                    <div class="d-flex flex-wrap justify-content-around col-12 px-2">
+                    <div class="d-flex flex-wrap justify-content-around round-details-container col-12 px-2">
                         <div class="col-lg-4 px-0">
                             <div class="wii-field-name">
                                 Point de départ
                             </div>
-                            <input type="text" class="form-control cursor-default input-plan" name="contact" id="contact" placeholder="">
+                            <input type="text" class="form-control cursor-default input-plan" name="startPoint" data-short-label="Départ tournée"  placeholder="">
                         </div>
                         <div class="col-lg-4 ">
                             <div class="wii-field-name">
                                 Point de départ calcul horaire
                             </div>
-                            <input type="text" class="form-control cursor-default input-plan" name="contact" id="contact" placeholder="">
+                            <input type="text" class="form-control cursor-default input-plan" name="startPointScheduleCalculation" data-short-label="départ calcule horaire" placeholder="">
                         </div>
                         <div class="col-lg-4 px-0">
                             <div class="wii-field-name">
                                 Point d'arrivée
                             </div>
-                            <input type="text" class="form-control cursor-default input-plan" name="contact" id="contact" placeholder="">
+                            <input type="text" class="form-control cursor-default input-plan" name="endPoint" data-short-label="Fin tournée" placeholder="">
                         </div>
                     </div>
                     <div class="map-container">
@@ -187,7 +187,7 @@
     </div>
 </div>
 
-    <input type="hidden" value="{{ transportOrders }}" name="transportOrders">
+   <input type="hidden" value="{{ contactData|json_encode }}" name="contactData">
 
 {% endblock %}
 

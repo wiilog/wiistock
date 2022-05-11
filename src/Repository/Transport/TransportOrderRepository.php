@@ -132,7 +132,6 @@ class TransportOrderRepository extends EntityRepository {
     // find by date
     public function findByDate(\DateTime $date)
     {
-
         return $this->createQueryBuilder("transport_order")
             ->join("transport_order.request", "request")
             ->leftJoin(TransportDeliveryRequest::class, "delivery", Join::WITH, "request.id = delivery.id")
