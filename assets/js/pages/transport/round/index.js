@@ -5,6 +5,8 @@ import {initializeForm, cancelRequest, deleteRequest} from "@app/pages/transport
 import {initializeFilters} from "@app/pages/transport/common";
 
 $(function() {
+    initializeFilters(PAGE_TRANSPORT_ROUNDS);
+
     let table = initDataTable('tableRounds', {
         processing: true,
         serverSide: true,

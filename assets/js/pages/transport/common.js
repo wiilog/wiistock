@@ -1,6 +1,6 @@
 export function initializeFilters(page) {
     initDateTimePicker('#dateMin', 'DD/MM/YYYY', {
-        setTodayDate: true
+        setTodayDate: page !== PAGE_TRANSPORT_ROUNDS
     });
 
     initDateTimePicker('#dateMax', 'DD/MM/YYYY', {
