@@ -26,6 +26,7 @@ const PAGE_EMPLACEMENT = 'emplacement';
 const PAGE_TRANSPORT_REQUESTS = 'transportRequests';
 const PAGE_TRANSPORT_ORDERS = 'transportOrders';
 const PAGE_SUBCONTRACT_ORDERS = 'subcontractOrders';
+const PAGE_TRANSPORT_ROUNDS = 'transportRounds';
 const PAGE_URGENCES = 'urgences';
 const PAGE_NOTIFICATIONS = 'notifications';
 const STATUT_ACTIF = 'disponible';
@@ -729,6 +730,7 @@ function displayFiltersSup(data) {
                 case 'emergencyMultiple':
                 case 'businessUnit':
                 case 'managers':
+                case 'deliverers':
                     let valuesElement = element.value.split(',');
                     let $select = $(`.filter-select2[name="${element.field}"]`);
                     $select.find('option').prop('selected', false);
