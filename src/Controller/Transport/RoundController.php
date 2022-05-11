@@ -78,17 +78,17 @@ class RoundController extends AbstractController {
             foreach ($rounds as $transportRound) {
                 $hours = null;
                 $minutes = null;
-                if($transportRound->getEndedAt()) {
-                    $timestamp = $transportRound->getEndedAt()->getTimestamp() - $transportRound->getExpectedAt()->getTimestamp();
+                if ($transportRound->getBeganAt() && $transportRound->getEndedAt()) {
+                    $timestamp = $transportRound->getEndedAt()->getTimestamp() - $transportRound->getBeganAt()->getTimestamp();
                     $hours = floor(($timestamp / 60) / 60);
                     $minutes = floor($timestamp / 60) - ($hours * 60);
                 }
 
                 $currentRow[] = $this->renderView("transport/round/list_card.html.twig", [
-                    "prefix" => "T",
+                    "prefix" => TransportRound::NUMBER_PREFIX,
                     "round" => $transportRound,
-                    "realTime" => $transportRound->getEndedAt()
-                        ? $hours . "h" . $minutes . "min"
+                    "realTime" => isset($hours) && isset($minutes)
+                        ? ($hours . "h" . $minutes . "min")
                         : '-'
                 ]);
             }
