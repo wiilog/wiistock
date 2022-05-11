@@ -257,7 +257,9 @@ class TransportController extends AbstractFOSRestController {
             $orderPack
                 ->setState(TransportDeliveryOrderPack::LOADED_STATE);
 
-            $trackingMovementService->createTrackingMovement($pack, $location, $user, $now, true, true,TrackingMovement::TYPE_DEPOSE);
+            $trackingMovement = $trackingMovementService
+                ->createTrackingMovement($pack, $location, $user, $now, true, true,TrackingMovement::TYPE_DEPOSE);
+            $manager->persist($trackingMovement);
         }
 
         $manager->flush();
