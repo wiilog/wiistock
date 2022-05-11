@@ -1,0 +1,18 @@
+{% extends 'filters/filters.html.twig' %}
+
+{% block filters %}
+    {% include 'filters/filter_item/filterDate.html.twig' with {
+        databasePersisted: false,
+    } %}
+    {% include 'filters/filter_item/filterRoundNumber.html.twig' %}
+    {% include 'filters/filter_item/filterUser.html.twig' with {
+        name: 'deliverers',
+        placeholder: 'Livreur',
+        delivererOnly: true
+    } %}
+    {% include 'filters/filter_item/filterStatus.html.twig' with {
+        name: 'statut',
+        placeholder: 'Statut',
+        names: true,
+    } %}
+{% endblock %}

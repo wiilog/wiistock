@@ -21,7 +21,6 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
 use FOS\RestBundle\Controller\Annotations as Rest;
-use Symfony\Bundle\MakerBundle\Str;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use WiiCommon\Helper\Stream;
@@ -266,7 +265,7 @@ class TransportController extends AbstractFOSRestController {
 
         $transportRoundLineRepository = $manager->getRepository(TransportRoundLine::class);
 
-        $lines = $transportRoundLineRepository->findLinesByRound($round);
+        $lines = $round->getTransportRoundLines();
         $updatedPacks = Stream::from($lines)
             ->map(fn(TransportRoundLine $line) => $line->getOrder()->getPacks());
 
@@ -280,12 +279,12 @@ class TransportController extends AbstractFOSRestController {
 
         $updatedPackCodes = Stream::from($updatedPackCodes)->flatten()->toArray();
 
-        $hasNewPacks = Stream::diff($currentPacks, $updatedPackCodes)
+        $newPacks = Stream::diff($currentPacks, $updatedPackCodes)
             ->toArray();
 
         return $this->json([
             'success' => true,
-            'has_new_packs' => !empty($hasNewPacks)
+            'has_new_packs' => !empty($newPacks)
         ]);
     }
 }
