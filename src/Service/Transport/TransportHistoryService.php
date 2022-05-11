@@ -196,7 +196,6 @@ class TransportHistoryService {
     }
 
     private function getCategoryFromType(string $type): string {
-        dump($type);
         return match($type) {
             self::TYPE_REQUEST_CREATION,
             self::TYPE_BOTH_REQUEST_CREATION,

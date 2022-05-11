@@ -117,6 +117,7 @@ class TransportOrder {
         $this->packs = new ArrayCollection();
         $this->transportRoundLines = new ArrayCollection();
         $this->statusHistory = new ArrayCollection();
+        $this->attachments = new ArrayCollection();
     }
 
     public function getId(): ?int {

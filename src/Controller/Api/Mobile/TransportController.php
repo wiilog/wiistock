@@ -5,21 +5,27 @@ namespace App\Controller\Api\Mobile;
 use App\Annotation as Wii;
 use App\Entity\Attachment;
 use App\Entity\CategorieCL;
+use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
 use App\Entity\FreeField;
 use App\Entity\Pack;
 use App\Entity\Setting;
+use App\Entity\Statut;
 use App\Entity\TrackingMovement;
 use App\Entity\Transport\TransportCollectRequest;
 use App\Entity\Transport\TransportDeliveryOrderPack;
 use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\Transport\TransportDeliveryRequestLine;
+use App\Entity\Transport\TransportOrder;
 use App\Entity\Transport\TransportRequest;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\TransportRoundLine;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
+use App\Service\AttachmentService;
+use App\Service\StatusHistoryService;
 use App\Service\TrackingMovementService;
+use App\Service\Transport\TransportHistoryService;
 use DateTime;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
@@ -300,6 +306,54 @@ class TransportController extends AbstractFOSRestController {
         return $this->json([
             'success' => true,
             'has_new_packs' => !empty($newPacks)
+        ]);
+    }
+
+    /**
+     * @Rest\Post("/api/finish-transport", name="api_finish-transport", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function finishTransport(Request $request,
+                                    EntityManagerInterface $manager,
+                                    TransportHistoryService $historyService,
+                                    StatusHistoryService $statusHistoryService,
+                                    AttachmentService $attachmentService): Response {
+        $data = $request->request;
+        $files = $request->files;
+        $order = $manager->find(TransportOrder::class, $data->get('id'));
+        $request = $order->getRequest();
+        $now = new DateTime('now');
+
+        $signature = $files->get('signature');
+        $photo = $files->get('photo');
+
+        $signatureAttachment = $attachmentService->createAttachements([$signature])[0];
+        $photoAttachment = $attachmentService->createAttachements([$photo])[0];
+
+        $order
+            ->setComment($data->get('comment'))
+            ->setSignature($signatureAttachment)
+            ->addAttachment($photoAttachment)
+            ->setTreatedAt($now);
+
+        $categoryStatus = $request instanceof TransportCollectRequest
+            ? CategorieStatut::TRANSPORT_ORDER_COLLECT
+            : CategorieStatut::TRANSPORT_ORDER_DELIVERY;
+        $status = $manager->getRepository(Statut::class)
+            ->findOneByCategorieNameAndStatutCode($categoryStatus, TransportOrder::STATUS_FINISHED);
+
+        $statusHistoryRequest = $statusHistoryService->updateStatus($manager, $order, $status);
+
+        $historyService->persistTransportHistory($manager, $order, TransportHistoryService::TYPE_FINISHED, [
+            'user' => $this->getUser(),
+            'history' => $statusHistoryRequest,
+            'attachments' => [$signatureAttachment, $photoAttachment]
+        ]);
+
+        $manager->flush();
+        return $this->json([
+            'success' => true
         ]);
     }
 }
