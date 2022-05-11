@@ -176,11 +176,13 @@ class TransportController extends AbstractFOSRestController {
                                 'signature' => $order->getSignature()?->getFullPath(),
                                 'requester' => FormatHelper::user($request->getCreatedBy()),
                                 'free_fields' => Stream::from($freeFields)
-                                    ->map(fn(FreeField $freeField) => [
-                                        'id' => $freeField->getId(),
-                                        'label' => $freeField->getLabel(),
-                                        'value' => $freeFieldsValues[$freeField->getId()] ?? '',
-                                    ]),
+                                    ->map(function(FreeField $freeField) use($freeFieldsValues) {
+                                        return [
+                                            'id' => $freeField->getId(),
+                                            'label' => $freeField->getLabel(),
+                                            'value' => FormatHelper::freeField($freeFieldsValues[$freeField->getId()] ?? "", $freeField),
+                                        ];
+                                     }),
                                 'priority' => $line->getPriority(),
                                 'cancelled' => !!$line->getCancelledAt(),
                                 'success' => $request->getStatus()->getCode() === TransportRequest::STATUS_FINISHED,
