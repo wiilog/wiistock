@@ -31,6 +31,7 @@ export default class Form {
                     const result = Form.process(form, {
                         button: $(this),
                     });
+                    console.log('aaaaaaaaaaaaaaaaa')
 
                     if (result) {
                         form.submitListeners.forEach((submitListener) => {
@@ -186,7 +187,12 @@ export default class Form {
 
         // display errors under each field
         for(const error of errors) {
-            error.elements.forEach($elem => Form.showInvalid($elem, error.message));
+            if (error.elements && error.elements.length > 0) {
+                error.elements.forEach(($elem) => Form.showInvalid($elem, error.message));
+            }
+            else {
+                Flash.add(`danger`, error.message);
+            }
         }
 
         return errors.length === 0 ? data : false;

@@ -23,7 +23,7 @@ final class Version20220510143352 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        dump("1");
+      /*  dump("1");
         // this up() migration is auto-generated, please modify it to your needs
         $this->addSql('INSERT INTO action (menu_id, label, sub_menu_id, display_order) VALUES (
             (SELECT menu.id FROM menu WHERE menu.label = :menu),
@@ -53,7 +53,7 @@ final class Version20220510143352 extends AbstractMigration
                 'role' => $roleId,
             ]);
             dump("4");
-        }
+        }*/
     }
 
     public function down(Schema $schema): void

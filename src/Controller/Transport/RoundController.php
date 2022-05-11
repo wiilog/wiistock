@@ -5,16 +5,20 @@ namespace App\Controller\Transport;
 use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
-use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
-use App\Entity\LocationGroup;
 use App\Entity\Menu;
 use App\Entity\Statut;
 use App\Entity\Transport\TransportCollectRequest;
+use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\Transport\TransportOrder;
 use App\Entity\Transport\TransportRound;
+use App\Entity\Transport\TransportRoundLine;
+use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
 use App\Service\HttpService;
+use App\Service\StatusHistoryService;
+use App\Service\Transport\TransportHistoryService;
 use App\Service\UniqueNumberService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -22,7 +26,9 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use WiiCommon\Helper\Stream;
 
 
 #[Route("transport/tournee")]
@@ -33,8 +39,8 @@ class RoundController extends AbstractController {
         $statusRepository = $em->getRepository(Statut::class);
         $statuses = $statusRepository->findByCategorieName(CategorieStatut::TRANSPORT_ORDER_DELIVERY);
 
-        return $this->render('transport/round/index.html.twig',[
-            'statuts' => $statuses
+        return $this->render('transport/round/index.html.twig', [
+            'statuts' => $statuses,
         ]);
     }
 
@@ -93,7 +99,7 @@ class RoundController extends AbstractController {
                     "round" => $transportRound,
                     "realTime" => isset($hours) && isset($minutes)
                         ? ($hours . "h" . $minutes . "min")
-                        : '-'
+                        : '-',
                 ]);
             }
 
@@ -122,22 +128,36 @@ class RoundController extends AbstractController {
 
     #[Route("/planifier", name: "transport_round_plan", options: ['expose' => true], methods: "GET")]
     #[HasPermission([Menu::ORDRE, Action::SCHEDULE_TRANSPORT_ROUND])]
-    public function plan(Request $request, EntityManagerInterface $entityManager, UniqueNumberService $uniqueNumberService): Response
-    {
+    public function plan(Request $request,
+                         EntityManagerInterface $entityManager,
+                         UniqueNumberService $uniqueNumberService): Response {
         if ($request->query->get('dateRound')) {
             $round = new TransportRound();
-            $roundDate = DateTime::createFromFormat('Y-m-d',  $request->query->get('dateRound'));
-            /// TODO : voir pour number
+
+            $expectedAt = DateTime::createFromFormat('Y-m-d',  $request->query->get('dateRound'));
+            $number = $uniqueNumberService->create(
+                $entityManager,
+                null,
+                TransportRound::class,
+                UniqueNumberService::DATE_COUNTER_FORMAT_TRANSPORT
+            );
+
+            $round
+                ->setExpectedAt($expectedAt)
+                ->setNumber($number);
         }
         else if( $request->query->get('transportRound')){
             $round = $entityManager->getRepository(TransportRound::class)->findOneBy(['id' => $request->query->get('transportRound')]);
-            $roundDate = $round->getExpectedAt();
+
+            if (!$round || $round->getStatus()?->getCode() !== TransportRound::STATUS_AWAITING_DELIVERER) {
+                throw new NotFoundHttpException('Impossible de planifier cette tournée');
+            }
         }
         else{
-            /// TODO: Afficher une page d'erreur
+            throw new NotFoundHttpException('Impossible de planifier une tournée');
         }
 
-        $transportOrders = $entityManager->getRepository(TransportOrder::class)->findByDate($roundDate);
+        $transportOrders = $entityManager->getRepository(TransportOrder::class)->findByDate($round->getExpectedAt());
 
         $contactDataByOrderId = [];
         foreach ($transportOrders as $transportOrder) {
@@ -148,25 +168,148 @@ class RoundController extends AbstractController {
                 'contact' => $request->getContact()->getName(),
                 'time' => $request instanceof TransportCollectRequest
                     ? ( $request->getTimeSlot()?->getName() ?: $request->getExpectedAt()->format('H:i') )
-                    : $request->getExpectedAt()->format('H:i')
+                    : $request->getExpectedAt()->format('H:i'),
             ];
         }
 
-        $number = $uniqueNumberService->create(
-            $entityManager,
-            null,
-            TransportRound::class,
-            UniqueNumberService::DATE_COUNTER_FORMAT_TRANSPORT
-        );
-        dump($number);
-
         return $this->render('transport/round/plan.html.twig', [
             'round' => $round,
-            'roundDate' => $roundDate,
+            'prefixNumber' => TransportRound::NUMBER_PREFIX,
             'transportOrders' => $transportOrders,
             'contactData' => $contactDataByOrderId,
-            'number' => $number
         ]);
+    }
+
+    #[Route("/save", name: "transport_round_save", options: ['expose' => true], methods: "POST", condition: 'request.isXmlHttpRequest()')]
+    public function save(Request                 $request,
+                         EntityManagerInterface  $entityManager,
+                         StatusHistoryService    $statusHistoryService,
+                         TransportHistoryService $transportHistoryService,
+                         UniqueNumberService     $uniqueNumberService): JsonResponse {
+
+        $transportRoundRepository = $entityManager->getRepository(TransportRound::class);
+        $userRepository = $entityManager->getRepository(Utilisateur::class);
+        $transportOrderRepository = $entityManager->getRepository(TransportOrder::class);
+        $statusRepository = $entityManager->getRepository(Statut::class);
+
+        $number = $request->request->get('number');
+        $expectedAtDate = $request->request->get('expectedAtDate');
+        $expectedAtTime = $request->request->get('expectedAtTime');
+        $startPoint = $request->request->get('startPoint');
+        $startPointScheduleCalculation = $request->request->get('startPointScheduleCalculation');
+        $endPoint = $request->request->get('endPoint');
+        $deliverer = $request->request->get('deliverer');
+        $transportRoundId = $request->request->get('transportRoundId');
+        $affectedOrderIds = Stream::explode(',', $request->request->get('affectedOrders'))->toArray();
+
+        $expectedAt = FormatHelper::parseDatetime("$expectedAtDate $expectedAtTime");
+        if (!$expectedAt) {
+            throw new FormException('Format de la date attendue invalide');
+        }
+
+        if ($transportRoundId) {
+            $transportRound = $transportRoundRepository->find($transportRoundId);
+
+            if ($transportRound->getStatus()?->getCode() !== TransportRound::STATUS_AWAITING_DELIVERER) {
+                throw new FormException('Impossible de planifier cette tournée');
+            }
+        }
+        else {
+            $transportRound = $transportRoundRepository->findOneBy(['number' => $number]);
+            if ($transportRound) {
+                $exception = new FormException('Une tournée avec le même numéro a été créée en même temps. Le code a été actualisé, veuillez enregistrer de nouveau.');
+                $exception->setData([
+                    'newNumber' => $uniqueNumberService->create(
+                        $entityManager,
+                        null,
+                        TransportRound::class,
+                        UniqueNumberService::DATE_COUNTER_FORMAT_TRANSPORT
+                    ),
+                ]);
+                throw $exception;
+            }
+
+            // TODO ajouter historique de transport / status à la tournée ?
+            $roundStatus = $statusRepository
+                ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ROUND, TransportRound::STATUS_AWAITING_DELIVERER);
+
+            $transportRound = new TransportRound();
+            $transportRound
+                ->setCreatedAt(new DateTime())
+                ->setNumber($number)
+                ->setStatus($roundStatus);
+
+            $entityManager->persist($transportRound);
+        }
+
+        $deliverer = $userRepository->find($deliverer);
+
+//        TODO set estimated ?
+        $transportRound
+            ->setExpectedAt($expectedAt)
+            ->setDeliverer($deliverer)
+            ->setStartPoint($startPoint)
+            ->setStartPoint($startPointScheduleCalculation)
+            ->setEndPoint($endPoint);
+
+        $affectedOrders = $transportOrderRepository->findBy(['id' => $affectedOrderIds]);
+        if (empty($affectedOrders)) {
+            throw new FormException("Il n'y a aucun ordre dans la tournée, veuillez réessayer");
+        }
+
+        $collectOrderAffectedStatus = $statusRepository
+            ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_DELIVERY, TransportOrder::STATUS_ASSIGNED);
+
+        $deliveryOrderAffectedStatus = $statusRepository
+            ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_DELIVERY, TransportOrder::STATUS_ASSIGNED);
+
+
+        // TODO remove lines ? avec un setTransportRoundLines([])
+        /** @var TransportOrder $order */
+        foreach ($affectedOrders as $index => $orderId) {
+            $order = $transportOrderRepository->find($orderId);
+            if ($order) {
+                // TODO check si l'ordre est déjà dans une tournée
+                $line = new TransportRoundLine();
+                // TODO            $line->setEstimatedAt() ??
+                $line
+                    ->setOrder($order)
+                    ->setPriority($index + 1);
+                $entityManager->persist($line);
+                $transportRound->addTransportRoundLine($line);
+
+
+                // TODO uniquement à l'ordre ou à la request aussi ?
+                // set order status + add status history + add transport history
+                $status = $order->getRequest() instanceof TransportDeliveryRequest ? $deliveryOrderAffectedStatus : $collectOrderAffectedStatus;
+
+                $statusHistory = $statusHistoryService->updateStatus($entityManager, $order, $status);
+
+                $transportHistoryService->persistTransportHistory($entityManager, $order, TransportHistoryService::TYPE_AFFECTED_ROUND, [
+                    'user' => $this->getUser(),
+                    'deliverer' => $transportRound->getDeliverer(),
+                    'round' => $transportRound,
+                    'history' => $statusHistory,
+                ]);
+            }
+            else {
+                throw new FormException("Une ordre affecté n'existe plus, veuillez réessayer");
+            }
+        }
+
+        if ($transportRound->getTransportRoundLines()->isEmpty()) {
+            throw new FormException("Il n'y a aucun ordre dans la tournée, veuillez réessayer");
+        }
+
+        $entityManager->flush();
+
+        return $this->json([
+            'success' => true,
+            'msg' => 'La tournée ' . TransportRound::NUMBER_PREFIX . $transportRound->getNumber() . ' a été planifiée avec succes',
+            'redirect' => $this->generateUrl('transport_round_show', [
+                'transportRound' => $transportRound->getId(),
+            ]),
+       ]);
     }
 
     #[Route("/api-get-address-coordinates", name: "transport_round_address_coordinates_get", options: ['expose' => true], methods: "GET")]
@@ -176,7 +319,7 @@ class RoundController extends AbstractController {
         return $this->json([
             'success' => true,
             'latitude' => $lat,
-            'longitude' => $lon
+            'longitude' => $lon,
         ]);
     }
 }

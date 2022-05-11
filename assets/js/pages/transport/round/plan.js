@@ -2,7 +2,9 @@ import '@styles/pages/transport/common.scss';
 import '@styles/pages/transport/round-plan.scss'
 import {Map} from '@app/map';
 import Sortable from "../../../sortable";
-import {GET} from "@app/ajax";
+import AJAX, {GET, POST} from "@app/ajax";
+import Form from "@app/form";
+import Flash, {ERROR} from "@app/flash";
 
 $(function () {
     const map = Map.create(`map`);
@@ -10,6 +12,7 @@ $(function () {
     const contactData = JSON.parse($(`input[name=contactData]`).val());
 
     updateCardsContainers(map, contactData);
+    initializeForm();
     map.fitBounds();
 
     const sortable = Sortable.create(`.card-container`, {
@@ -53,9 +56,14 @@ $(function () {
         });
     });
 
-    $('.round-details-container [name=startPoint],' +
-        '.round-details-container [name=startPointScheduleCalculation],' +
-        '.round-details-container [name=endPoint]').on('change', function () {
+    $.merge(
+        $('.round-form-container [name=startPoint]'),
+        $.merge(
+            $('.round-form-container [name=startPointScheduleCalculation]'),
+            $('.round-form-container [name=endPoint]')
+        )
+    ).on('change', function () {
+        // TODO supprimer le marker deja présent pour le point
         placeAddressMarker($(this), map);
     });
 
@@ -117,17 +125,63 @@ function placeAddressMarker($input, map){
     AJAX.route(GET,'transport_round_address_coordinates_get', {address})
         .json()
         .then(function (response) {
-            console.log(response);
             if (response.success) {
-                map.setMarker({
-                    latitude: response.latitude,
-                    longitude: response.longitude,
-                    icon: "blackLocation",
-                    popUp: createPopupContent({contact: $input.data('short-label')}),
-                });
+                if ($input.attr('name') !== 'endPoint' || map.locations.every(({latitude, longitude}) => (latitude !== response.latitude || longitude !== response.longitude))) {
+                    map.setMarker({
+                        latitude: response.latitude,
+                        longitude: response.longitude,
+                        icon: "blackLocation",
+                        popUp: createPopupContent({contact: $input.data('short-label')}),
+                    });
+                }
             }
             else {
                 /// TODO show error
             }
         });
+}
+
+function initializeForm() {
+    Form.create($('.round-form-container'))
+        .addProcessor((data, errors) => {
+            const $affectedOrders = $('#affected-container .order-card');
+            if (!$affectedOrders.exists()) {
+                errors.push({message: 'Vous devez ajouter au moins un ordre dans la tournée pour continuer'});
+            }
+            else {
+                const orderIds = $affectedOrders
+                    .map((_, orderCard) => $(orderCard).data('order-id'))
+                    .toArray()
+                    .join(',')
+                data.append('affectedOrders', orderIds);
+            }
+        })
+        .onSubmit((data) => {
+            AJAX.route(POST, 'transport_round_save')
+                .json(data)
+                .then(({success, msg, data, redirect}) => {
+                    if (!success) {
+                        if (data.newNumber) {
+                            resetRoundNumber(data.newNumber);
+                        }
+                        Flash.add(ERROR, msg, true, true);
+                    }
+                    else {
+                        location.href = redirect;
+                    }
+                })
+        })
+
+}
+
+function resetRoundNumber(number) {
+    $('.round-number').each(function() {
+        const $elem = $(this);
+        if ($elem.is('input')) {
+            $elem.val(number);
+        }
+        else {
+            $elem.text(number);
+        }
+    });
 }
