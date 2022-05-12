@@ -93,7 +93,7 @@
                     {% for attachment in order.attachments %}
                         <div>
                             <a href="{{ attachment.fullPath is defined and attachment.fullPath is not null ? attachment.fullPath : '/uploads/attachements/' ~ attachment.fileName }}"
-                               download="{{ attachment.originalName }}" title="{{ attachment.originalName }}" class="text-primary underlined">{{ attachment.originalName }}</a>
+                               download="{{ attachment.originalName }}" title="{{ attachment.originalName }}" class="text-primary underlined stop-propagation">{{ attachment.originalName }}</a>
                         </div>
                     {% endfor %}
                 </td>
