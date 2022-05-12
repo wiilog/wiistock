@@ -22,17 +22,15 @@ use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
 use App\Service\FreeFieldService;
-use App\Service\HttpService;
+use App\Service\GeoService;
 use App\Service\PackService;
 use App\Service\SettingsService;
 use App\Service\StatusHistoryService;
 use App\Service\UniqueNumberService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Google\Service\CloudDomains\Contact;
 use JetBrains\PhpStorm\ArrayShape;
 use Symfony\Component\HttpFoundation\InputBag;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\Service\Attribute\Required;
 
 class TransportService {
@@ -56,7 +54,7 @@ class TransportService {
     public PackService $packService;
 
     #[Required]
-    public HttpService $httpService;
+    public GeoService $geoService;
 
     public function persistTransportRequest(EntityManagerInterface $entityManager,
                                             Utilisateur $user,
@@ -227,7 +225,7 @@ class TransportService {
             throw new FormException('Vous devez sélectionner au moins une nature de colis dans vote demande');
         }
 
-        [$lat, $lon] = $this->httpService->fetchCoordinates($transportRequest->getContact()->getAddress());
+        [$lat, $lon] = $this->geoService->fetchCoordinates($transportRequest->getContact()->getAddress());
         $transportRequest->getContact()->setAddressLatitude($lat);
         $transportRequest->getContact()->setAddressLongitude($lon);
     }
@@ -374,7 +372,7 @@ class TransportService {
         foreach ($lines as $line) {
             $selected = $line['selected'] ?? false;
             $natureId = $line['natureId'] ?? null;
-            $quantity = $line['quantity'] ?? 0;
+            $quantity = $line['quantity'] ?? null;
             $temperatureId = $line['temperature'] ?? null;
             $nature = $natureId ? $natureRepository->find($natureId) : null;
             if ($selected && $nature) {

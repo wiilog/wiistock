@@ -37,7 +37,7 @@ class RoundController extends AbstractController {
     #[Route("/liste", name: "transport_round_index", methods: "GET")]
     public function index(EntityManagerInterface $em): Response {
         $statusRepository = $em->getRepository(Statut::class);
-        $statuses = $statusRepository->findByCategorieName(CategorieStatut::TRANSPORT_ORDER_DELIVERY);
+        $statuses = $statusRepository->findByCategorieName(CategorieStatut::TRANSPORT_ROUND);
 
         return $this->render('transport/round/index.html.twig', [
             'statuts' => $statuses,
