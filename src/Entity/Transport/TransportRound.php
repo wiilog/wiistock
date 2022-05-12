@@ -45,6 +45,9 @@ class TransportRound
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $beganAt = null;
 
+    #[ORM\Column(type: 'json')]
+    private ?array $coordinates = [];
+
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $startPoint = null;
 
@@ -261,6 +264,15 @@ class TransportRound
             }
         }
 
+        return $this;
+    }
+
+    public function getCoordinates(): array {
+        return $this->coordinates ?? [];
+    }
+
+    public function setCoordinates(array $coordinates): self {
+        $this->coordinates = $coordinates;
         return $this;
     }
 

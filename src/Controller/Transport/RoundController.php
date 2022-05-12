@@ -200,6 +200,7 @@ class RoundController extends AbstractController {
         $endPoint = $request->request->get('endPoint');
         $deliverer = $request->request->get('deliverer');
         $transportRoundId = $request->request->get('transportRoundId');
+        $coordinates = json_decode($request->request->get('coordinates'), true) ?: [];
         $affectedOrderIds = Stream::explode(',', $request->request->get('affectedOrders'))->toArray();
 
         $expectedAt = FormatHelper::parseDatetime("$expectedAtDate $expectedAtTime");
@@ -249,8 +250,9 @@ class RoundController extends AbstractController {
             ->setExpectedAt($expectedAt)
             ->setDeliverer($deliverer)
             ->setStartPoint($startPoint)
-            ->setStartPoint($startPointScheduleCalculation)
-            ->setEndPoint($endPoint);
+            ->setStartPointScheduleCalculation($startPointScheduleCalculation)
+            ->setEndPoint($endPoint)
+            ->setCoordinates($coordinates);
 
         $affectedOrders = $transportOrderRepository->findBy(['id' => $affectedOrderIds]);
         if (empty($affectedOrders)) {
@@ -262,7 +264,6 @@ class RoundController extends AbstractController {
 
         $deliveryOrderAffectedStatus = $statusRepository
             ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_DELIVERY, TransportOrder::STATUS_ASSIGNED);
-
 
         // TODO remove lines ? avec un setTransportRoundLines([])
         /** @var TransportOrder $order */
