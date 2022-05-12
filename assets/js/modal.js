@@ -86,10 +86,9 @@ export default class Modal {
                             if (result.success || !keepOnError) {
                                 $modal.modal('hide');
                             }
-                            if (result.redirect) {
+                            if (!table && result.redirect) {
                                 window.location.href = result.redirect;
-                            }
-                            if(table) {
+                            } else {
                                 table.ajax.reload();
                             }
                         });

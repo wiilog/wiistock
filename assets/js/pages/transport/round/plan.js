@@ -121,7 +121,7 @@ function createPopupContent(contactInformation, index) {
 
 function placeAddressMarker($input, map){
     const address = $input.val();
-    console.log(address);
+
     AJAX.route(GET,'transport_round_address_coordinates_get', {address})
         .json()
         .then(function (response) {

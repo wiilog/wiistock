@@ -31,7 +31,6 @@ export default class Form {
                     const result = Form.process(form, {
                         button: $(this),
                     });
-                    console.log('aaaaaaaaaaaaaaaaa')
 
                     if (result) {
                         form.submitListeners.forEach((submitListener) => {
