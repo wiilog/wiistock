@@ -1542,7 +1542,7 @@ class SettingsController extends AbstractController {
                     ->map(fn(string $value) => "<option value='$value' " . ($value === $freeField->getDefaultValue() ? "selected" : "") . ">$value</option>")
                     ->join("");
 
-                $defaultValue = "<select name='defaultValue' class='form-control data' data-global-error='Valeur par défaut'>$options</select>";
+                $defaultValue = "<select name='defaultValue' class='form-control data' data-global-error='Valeur par défaut'><option></option>$options</select>";
             } else if($freeField->getTypage() !== FreeField::TYPE_LIST_MULTIPLE) {
                 if(!$edit) {
                     $defaultValue = $freeField->getDefaultValue();
@@ -1584,7 +1584,7 @@ class SettingsController extends AbstractController {
                     "displayedCreate" => ($freeField->getDisplayedCreate() ? "oui" : "non"),
                     "requiredCreate" => ($freeField->isRequiredCreate() ? "oui" : "non"),
                     "requiredEdit" => ($freeField->isRequiredEdit() ? "oui" : "non"),
-                    "defaultValue" => $defaultValue,
+                    "defaultValue" => $defaultValue ?? "",
                     "elements" => $freeField->getTypage() == FreeField::TYPE_LIST || $freeField->getTypage() == FreeField::TYPE_LIST_MULTIPLE ? $this->renderView('free_field/freeFieldElems.html.twig', ['elems' => $freeField->getElements()]) : '',
                 ];
             }
