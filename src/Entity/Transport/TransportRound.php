@@ -19,6 +19,12 @@ class TransportRound
     public const STATUS_ONGOING = 'En cours';
     public const STATUS_FINISHED = 'Terminée';
 
+    public const STATUS_COLOR = [
+        self::STATUS_AWAITING_DELIVERER => "preparing",
+        self::STATUS_ONGOING => "ongoing",
+        self::STATUS_FINISHED => "finished",
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]

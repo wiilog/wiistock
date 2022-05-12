@@ -27,7 +27,7 @@
                 </td>
                 <td class="transport-details-container vertical-align-middle">
                     {% set status = round.status|format_helper('status') %}
-                    <span class="transport-badge mb-0 {{ constant('App\\Entity\\Transport\\TransportRequest::STATUS_COLOR')[status] ?? '' }}">
+                    <span class="transport-badge mb-0 {{ constant('App\\Entity\\Transport\\TransportRound::STATUS_COLOR')[status] ?? '' }}">
                         {{ status }}
                     </span>
                 </td>
