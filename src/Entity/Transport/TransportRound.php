@@ -244,6 +244,12 @@ class TransportRound
         return $this;
     }
 
+    public function getTransportRoundLine(TransportOrder $transportOrder): ?TransportRoundLine {
+        return $this->transportRoundLines
+            ->filter(fn(TransportRoundLine $line) => $line->getOrder()?->getId() === $transportOrder->getId())
+            ->first() ?: null;
+    }
+
     /**
      * @return Collection<int, TransportRoundLine>
      */
