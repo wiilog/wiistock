@@ -88,7 +88,8 @@ export default class Modal {
                             }
                             if (!table && result.redirect) {
                                 window.location.href = result.redirect;
-                            } else {
+                            }
+                            if (table) {
                                 table.ajax.reload();
                             }
                         });
