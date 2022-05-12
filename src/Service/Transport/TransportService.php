@@ -22,6 +22,7 @@ use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
 use App\Service\FreeFieldService;
+use App\Service\GeoService;
 use App\Service\HttpService;
 use App\Service\PackService;
 use App\Service\SettingsService;
@@ -56,7 +57,7 @@ class TransportService {
     public PackService $packService;
 
     #[Required]
-    public HttpService $httpService;
+    public GeoService $geoService;
 
     public function persistTransportRequest(EntityManagerInterface $entityManager,
                                             Utilisateur $user,
@@ -227,7 +228,7 @@ class TransportService {
             throw new FormException('Vous devez sélectionner au moins une nature de colis dans vote demande');
         }
 
-        [$lat, $lon] = $this->httpService->fetchCoordinates($transportRequest->getContact()->getAddress());
+        [$lat, $lon] = $this->geoService->fetchCoordinates($transportRequest->getContact()->getAddress());
         $transportRequest->getContact()->setAddressLatitude($lat);
         $transportRequest->getContact()->setAddressLongitude($lon);
     }

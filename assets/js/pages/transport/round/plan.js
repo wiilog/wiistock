@@ -18,6 +18,7 @@ $(function () {
     const sortable = Sortable.create(`.card-container`, {
         acceptFrom: `.card-container`,
         placeholderClass: 'placeholder',
+        items: ':not(.assigned-transport)'
     });
 
     $(sortable).on('sortupdate', function (){
@@ -25,7 +26,7 @@ $(function () {
     })
 
     $('.btn-cross').on('click', (event) => {
-        removeCard(event.currentTarget , map);
+        removeCard(event.currentTarget , map, contactData);
     });
 
     $('.card-container .order-card').on('mouseenter', function(){
@@ -102,11 +103,11 @@ function updateCardsContainers(map, contactData) {
     });
 }
 
-function removeCard(btn , map) {
+function removeCard(btn , map ,contactData) {
     let card = btn.parentNode.parentNode.parentNode.parentNode
     card.parentNode.removeChild(card);
     $('#to-affect-container').append(card);
-    updateCardsContainers(map);
+    updateCardsContainers(map ,contactData);
 }
 
 function createPopupContent(contactInformation, index) {
@@ -157,6 +158,7 @@ function initializeForm() {
             }
         })
         .onSubmit((data) => {
+            /// TODO Add loader ? on submit button
             AJAX.route(POST, 'transport_round_save')
                 .json(data)
                 .then(({success, msg, data, redirect}) => {

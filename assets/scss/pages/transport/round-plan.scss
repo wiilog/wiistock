@@ -19,6 +19,7 @@
     margin : 5px 10px;
     display: flex;
     border: 1px solid $white;
+    cursor: pointer;
 
     &.focus-border{
         border: 1px solid $primary;

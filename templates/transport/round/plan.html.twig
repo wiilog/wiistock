@@ -94,6 +94,68 @@
                         <span class="wii-title">Transports Affectées</span>
                     </div>
                     <div class="d-flex flex-column card-container" id="affected-container">
+                        {% for transport in affectedTransports %}
+                            {% set transportOrder = transport.order %}
+                            <div class="order-card assigned-transport" data-order-id="{{transportOrder.id}}">
+                                <div class="affected-number d-none">
+                                </div>
+                                <div class="card-content pl-1">
+                                    <div class="first-line">
+                                        <div class="head">
+                                            <div class="types">
+                                                <div class="transport-type px-2">
+                                                    {% if transportOrder.request.type.logo %}
+                                                        <img src="{{ transportOrder.request.type.logo.fullPath }}" alt="" class="mr-2" width="15">
+                                                    {% endif %}
+                                                    {{ transportOrder.request.type.label }}
+                                                </div>
+                                                {% if not transportOrder.request is instanceof('App\\Entity\\Transport\\TransportCollectRequest')
+                                                    and transportOrder.request.collect is not null
+                                                    and transportOrder.request.collect.type.logo
+                                                %}
+                                                    <div class="transport-type px-2">
+                                                        {% set collectType = transportOrder.request.collect.type %}
+                                                        {% if collectType.logo %}
+                                                            <img src="{{ collectType.logo.fullPath }}" class="mr-2" width="15">
+                                                        {% endif %}
+                                                        {{ collectType.label }}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="sticky">
+                                            <div class="time bold">
+                                                <img src="{{ asset('svg/clock-black.svg') }}" alt="Icône horloge" width="13px" class="mr-1">
+                                                {% if transportOrder.request is instanceof('App\\Entity\\Transport\\TransportCollectRequest')
+                                                    and transportOrder.request.timeSlot is not null%}
+                                                    <span>{{ transportOrder.request.timeSlot.name }}</span>
+                                                {% else %}
+                                                    <span>{{ transportOrder.request.expectedAt | format_helper('time', true, true) }}</span>
+                                                {% endif %}
+                                                {% if not transportOrder.request is instanceof('App\\Entity\\Transport\\TransportCollectRequest')
+                                                    and transportOrder.request.emergency %}
+                                                    <img src="{{ asset('svg/timeline-urgent.svg') }}" alt="Icône urgent" width="13px" class="mr-1">
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="ml-2">
+                                            <span class="wii-field-text">
+                                               {{ transportOrder.request.contact.name }}
+                                            </span>
+                                        <span class="wii-small-text">
+                                                N°{{ transportOrder.request.contact.fileNumber }}
+                                            </span>
+                                    </div>
+                                    <div class="wii-field-text">
+                                        <img src="{{ asset('svg/location-black.svg') }}" width="13px" alt="">
+                                        {% if transportOrder.request.contact.address is not null %}
+                                            {{ transportOrder.request.contact.address }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
@@ -141,31 +203,33 @@
                         <div class="map-container">
                             <div id="map"></div>
                         </div>
-                        <div class="d-flex flex-wrap px-2 w-100 col-12">
-                            <div class="col-3 px-0">
-                                {{ form.select('deliverer', "Livreur", true, {
-                                    value: round.deliverer ? {label: round.deliverer.username, value: round.deliverer.id} : null,
-                                    type: 'user',
-                                    attributes: {
-                                        'data-other-params': "true",
-                                        'data-other-params-deliverer-only': 1
-                                    },
-                                }) }}
-                            </div>
-                            <div class="col-3">
-                                {{ form.input(
-                                    'expectedAtTime',
-                                    'Heure de départ',
-                                    true,
-                                    (round.id and round.expectedAt) ? (round.expectedAt|date('H:i')) : null
-                                ) }}
-                            </div>
-                            <div class="col-5 px-0">
-                                <br>
-                                <button class="btn btn-primary ml-auto plan-round-button d-flex align-items-center" tabindex="0">
-                                    <img src="{{ asset('svg/clock-white.svg') }}" alt="Icône tournéé" width="15px" class="mr-2">
-                                    <span class="ml-1">Calculer les horaires</span>
-                                </button>
+                        <div class="px-2 col-12">
+                            <div class="row">
+                                <div class="col-3 ">
+                                    {{ form.select('deliverer', "Livreur", true, {
+                                        items: round.deliverer ? [{label: round.deliverer.username, value: round.deliverer.id, selected: true}] : [],
+                                        type: 'user',
+                                        attributes: {
+                                            'data-other-params': "true",
+                                            'data-other-params-deliverer-only': 1
+                                        },
+                                    }) }}
+                                </div>
+                                <div class="col-3">
+                                    {{ form.input(
+                                        'expectedAtTime',
+                                        'Heure de départ',
+                                        true,
+                                        (round.id and round.expectedAt) ? (round.expectedAt|date('H:i')) : null,
+                                    { type: 'time' }
+                                    ) }}
+                                </div>
+                                <div class="col-3 align-self-end">
+                                    <button class="btn btn-primary ml-auto plan-round-button d-flex align-items-center" tabindex="0">
+                                        <img src="{{ asset('svg/clock-white.svg') }}" alt="Icône tournéé" width="15px" class="mr-2">
+                                        <span class="ml-1">Calculer les horaires</span>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                         <div class="px-2 w-100">

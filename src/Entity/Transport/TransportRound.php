@@ -8,6 +8,7 @@ use App\Repository\Transport\TransportRoundRepository;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TransportRoundRepository::class)]
@@ -245,7 +246,25 @@ class TransportRound
      */
     public function getTransportRoundLines(): Collection
     {
-        return $this->transportRoundLines;
+        $criteria = Criteria::create();
+        return $this->transportRoundLines
+            ->matching(
+                $criteria
+                    ->orderBy(['priority' => 'ASC'])
+            );
+    }
+
+    public function setTransportRoundLines(?array $lines): self {
+        foreach($this->getTransportRoundLines()->toArray() as $line) {
+            $this->removeTransportRoundLine($line);
+        }
+
+        $this->transportRoundLines = new ArrayCollection();
+        foreach($lines as $line) {
+            $this->addTransportRoundLine($line);
+        }
+
+        return $this;
     }
 
     public function addTransportRoundLine(TransportRoundLine $transportRoundLine): self
