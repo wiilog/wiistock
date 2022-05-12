@@ -3,24 +3,14 @@
 namespace App\Service;
 
 use App\Exceptions\HttpException;
-use RuntimeException;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\TransportRoundLine;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
-use Symfony\Contracts\HttpClient\ResponseInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
-use Throwable;
 
 class GeoService
 {
-
-    public const GET = "GET";
-    public const POST = "POST";
-    public const PUT = "PUT";
-    public const PATCH = "PATCH";
-    public const DELETE = "DELETE";
-
     public const MILES_TO_KM = 1.60934;
 
     #[Required]
