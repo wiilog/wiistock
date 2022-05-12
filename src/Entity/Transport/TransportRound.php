@@ -13,7 +13,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: TransportRoundRepository::class)]
 class TransportRound
 {
-    public const NUMBER_PREFIX = 'TR';
+    public const NUMBER_PREFIX = 'T';
 
     public const STATUS_AWAITING_DELIVERER = 'En attente livreur';
     public const STATUS_ONGOING = 'En cours';
