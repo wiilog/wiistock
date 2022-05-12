@@ -80,10 +80,7 @@ class TransportController extends AbstractFOSRestController {
 
                 $doneDeliveries = 0;
                 foreach ($lines as $line) {
-                    $packs = $line->getOrder()->getPacks();
-                    $partiallyLoaded = Stream::from($packs)
-                        ->some(fn(TransportDeliveryOrderPack $orderPack) => $orderPack->getState() !== TransportDeliveryOrderPack::LOADED_STATE && $orderPack->getRejectReason());
-                    if(!$partiallyLoaded) {
+                    if($line->getFulfilledAt()) {
                         $doneDeliveries += 1;
                     }
                 }
@@ -137,7 +134,7 @@ class TransportController extends AbstractFOSRestController {
                                 'collect' => $collect ? [
                                     'type' => $collect->getType()->getLabel(),
                                     'type_icon' => $collect->getType()?->getLogo() ? $_SERVER["APP_URL"] . $collect->getType()->getLogo()->getFullPath() : null,
-                                    'time_slot' => $collect->getTimeSlot()->getName(),
+                                    'time_slot' => $collect->getTimeSlot()?->getName(),
                                     'success' => $collect->getStatus()->getCode() === TransportRequest::STATUS_FINISHED,
                                     'failure' => in_array($collect->getStatus()->getCode(), [
                                         TransportRequest::STATUS_NOT_DELIVERED,
