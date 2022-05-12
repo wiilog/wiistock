@@ -122,6 +122,7 @@ class TransportOrderRepository extends EntityRepository {
             ->leftJoin(TransportCollectRequest::class, "collect", Join::WITH, "request.id = collect.id")
             ->where("status.code IN (:planning_orders_statuses)")
             ->andWhere("COALESCE(DATE_FORMAT(delivery.expectedAt, '%Y-%m-%d'), collect.expectedAt) BETWEEN :start AND :end")
+            ->andWhere("transport_order.subcontracted = 0")
             ->setParameter("planning_orders_statuses", $statuses)
             ->setParameter("start", $start->format('Y-m-d'))
             ->setParameter("end", $end->format('Y-m-d'))

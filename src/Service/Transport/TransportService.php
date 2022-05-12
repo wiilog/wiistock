@@ -30,10 +30,8 @@ use App\Service\StatusHistoryService;
 use App\Service\UniqueNumberService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Google\Service\CloudDomains\Contact;
 use JetBrains\PhpStorm\ArrayShape;
 use Symfony\Component\HttpFoundation\InputBag;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\Service\Attribute\Required;
 
 class TransportService {
@@ -375,7 +373,7 @@ class TransportService {
         foreach ($lines as $line) {
             $selected = $line['selected'] ?? false;
             $natureId = $line['natureId'] ?? null;
-            $quantity = $line['quantity'] ?? 0;
+            $quantity = $line['quantity'] ?? null;
             $temperatureId = $line['temperature'] ?? null;
             $nature = $natureId ? $natureRepository->find($natureId) : null;
             if ($selected && $nature) {
