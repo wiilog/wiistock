@@ -27,7 +27,7 @@ class Vehicle implements PairedEntity
     #[ORM\Column(type: 'string', length: 255)]
     private ?string $registrationNumber = null;
 
-    #[ORM\OneToOne(inversedBy: 'vehicle', targetEntity: Utilisateur::class)]
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'vehicles')]
     private ?Utilisateur $deliverer = null;
 
     #[ORM\OneToMany(mappedBy: 'vehicle', targetEntity: Emplacement::class)]
@@ -148,15 +148,11 @@ class Vehicle implements PairedEntity
     }
 
     public function setDeliverer(?Utilisateur $deliverer): self {
-        if($this->deliverer && $this->deliverer->getVehicle() !== $this) {
-            $oldDeliverer = $this->deliverer;
-            $this->deliverer = null;
-            $oldDeliverer->setVehicle(null);
+        if($this->deliverer && $this->deliverer !== $deliverer) {
+            $this->deliverer->removeVehicle($this);
         }
         $this->deliverer = $deliverer;
-        if($this->deliverer && $this->deliverer->getVehicle() !== $this) {
-            $this->deliverer->setVehicle($this);
-        }
+        $deliverer?->addVehicle($this);
 
         return $this;
     }
