@@ -149,7 +149,7 @@
                         </div>
                     </div>
 
-                    {% set displayCollectDate = modeCollectEdit and request_collect.delivery is null %}
+                    {% set displayCollectDate = modeCollectEdit and request.delivery is null %}
                     <div class="wii-section-title my-3 {{ not modeDeliveryEdit and not displayCollectDate ? 'd-none' }}"
                          data-request-type>
                         <div class="d-flex align-items-center">
