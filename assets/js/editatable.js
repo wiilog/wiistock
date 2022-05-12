@@ -237,7 +237,7 @@ function initEditatable(datatable, onDatatableInit = null) {
             const $parent = datatable.element.closest(`.wii-box`);
 
             $parent.find(`.dataTables_wrapper`)
-                .css(`overflow-x`, `scroll`);
+                .css(`overflow-x`, `auto`);
 
             $parent.find(`.dataTables_scrollBody, .dataTables_scrollHead`)
                 .css('overflow', `visible`)

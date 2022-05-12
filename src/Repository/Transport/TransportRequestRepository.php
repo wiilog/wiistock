@@ -30,7 +30,7 @@ class TransportRequestRepository extends EntityRepository {
             ->leftJoin(TransportDeliveryRequest::class, "delivery", Join::WITH, "transport_request.id = delivery.id")
             ->leftJoin(TransportCollectRequest::class, "collect", Join::WITH, "transport_request.id = collect.id")
             ->leftJoin("collect.delivery", "collect_delivery")
-            ->andWhere("(collect IS NULL OR collect_delivery IS NULL)");
+            ->andWhere("delivery IS NOT NULL OR collect_delivery IS NULL");
 
         $total = QueryCounter::count($qb, "transport_request");
 
@@ -38,7 +38,7 @@ class TransportRequestRepository extends EntityRepository {
             $date = \DateTime::createFromFormat("d/m/Y", $params->get("dateMin"));
             $date = $date->format("Y-m-d");
 
-            $qb->andWhere('delivery.expectedAt >= :datetimeMin OR collect.expectedAt >= :dateMin')
+            $qb->andWhere('delivery.expectedAt >= :datetimeMin OR COALESCE(collect.validatedDate, collect.expectedAt) >= :dateMin')
                 ->setParameter('datetimeMin', "$date 00:00:00")
                 ->setParameter('dateMin', $date);
         }
@@ -47,7 +47,7 @@ class TransportRequestRepository extends EntityRepository {
             $date = \DateTime::createFromFormat("d/m/Y", $params->get("dateMax"));
             $date = $date->format("Y-m-d");
 
-            $qb->andWhere('delivery.expectedAt <= :datetimeMax OR collect.expectedAt <= :dateMax')
+            $qb->andWhere('delivery.expectedAt <= :datetimeMax OR COALESCE(collect.validatedDate, collect.expectedAt) <= :dateMax')
                 ->setParameter('datetimeMax', "$date 23:59:59")
                 ->setParameter('dateMax', $date);
         }

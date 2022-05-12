@@ -149,7 +149,7 @@
                         </div>
                     </div>
 
-                    {% set displayCollectDate = modeCollectEdit and request_collect.delivery is null %}
+                    {% set displayCollectDate = modeCollectEdit and request.delivery is null %}
                     <div class="wii-section-title my-3 {{ not modeDeliveryEdit and not displayCollectDate ? 'd-none' }}"
                          data-request-type>
                         <div class="d-flex align-items-center">
@@ -207,7 +207,7 @@
                                 <div class="d-none warning-empty-natures">
                                     {% include 'utils/warningSelectEmpty.html.twig' with {
                                         array: [],
-                                        warningLabel: 'Attention ! Aucune nature de colis n\'a été créée',
+                                        warningLabel: 'Attention ! Aucune nature de colis n\'a été paramétrée',
                                         redirectPath: path('nature_param_index'),
                                         redirectLabel: 'Aller vers la création des natures',
                                         block: true

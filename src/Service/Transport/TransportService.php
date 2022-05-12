@@ -98,7 +98,7 @@ class TransportService {
             $entityManager,
             null,
             TransportRequest::class,
-            UniqueNumberService::DATE_COUNTER_FORMAT_TRANSPORT_REQUEST
+            UniqueNumberService::DATE_COUNTER_FORMAT_TRANSPORT
         );
 
         if ($mainDelivery) {
@@ -113,6 +113,8 @@ class TransportService {
             ->setNumber($number)
             ->setCreatedAt(new DateTime())
             ->setCreatedBy($user);
+
+        $entityManager->persist($transportRequest);
 
         return $transportRequest;
     }
@@ -228,8 +230,6 @@ class TransportService {
         [$lat, $lon] = $this->httpService->fetchCoordinates($transportRequest->getContact()->getAddress());
         $transportRequest->getContact()->setAddressLatitude($lat);
         $transportRequest->getContact()->setAddressLongitude($lon);
-
-        $entityManager->persist($transportRequest);
     }
 
     public function persistTransportOrder(EntityManagerInterface $entityManager,

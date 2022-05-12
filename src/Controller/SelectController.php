@@ -260,7 +260,7 @@ class SelectController extends AbstractController {
      */
     public function user(Request $request, EntityManagerInterface $manager): Response {
         $addDropzone = $request->query->getBoolean("add-dropzone") ?? false;
-        $delivererOnly = $request->query->getBoolean("delivererOnly") ?? false;
+        $delivererOnly = $request->query->getBoolean("deliverer-only") ?? false;
 
         $results = $manager->getRepository(Utilisateur::class)->getForSelect(
             $request->query->get("term"),

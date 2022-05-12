@@ -2,12 +2,15 @@
 
 namespace App\Service;
 
+use App\Exceptions\HttpException;
+use RuntimeException;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\TransportRoundLine;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
+use Throwable;
 
 class HttpService
 {
@@ -32,9 +35,12 @@ class HttpService
             $body = json_encode($data);
         }
 
-        return $this->client->request($method, $url, [
-            "body" => $body,
-        ]);
+            return $this->client->request($method, $url, [
+                "body" => $body,
+            ]);
+        } catch (Throwable $e) {
+            throw new HttpException("Une erreur est survenue lors de l'éxecution de la requête", $e->getMessage());
+        }
     }
 
     public function fetchCoordinates(string $address): array
@@ -50,6 +56,9 @@ class HttpService
 
         $result = json_decode($request->getContent(), true);
         $coordinates = $result["candidates"][0]["location"] ?? [null, null];
+        if($coordinates === null || ($coordinates["x"] ?? null) === null || ($coordinates["y"] ?? null) === null) {
+            throw new HttpException("L'adresse n'a pas pu être trouvée");
+        }
 
         return [
             $coordinates["y"], //latitude

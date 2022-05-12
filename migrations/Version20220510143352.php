@@ -23,24 +23,26 @@ final class Version20220510143352 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
+      /*  dump("1");
         // this up() migration is auto-generated, please modify it to your needs
         $this->addSql('INSERT INTO action (menu_id, label, sub_menu_id, display_order) VALUES (
-            (SELECT id FROM menu WHERE menu.label = :menu),
+            (SELECT menu.id FROM menu WHERE menu.label = :menu),
             :action,
-            (SELECT id FROM sub_menu WHERE sub_menu.label = :sub_menu),
+            (SELECT sub_menu.id FROM sub_menu INNER JOIN menu m on sub_menu.menu_id = m.id WHERE sub_menu.label = :sub_menu AND m.label = :menu),
             5
         )', [
             'menu' => Menu::REFERENTIEL,
             'action' => Action::DISPLAY_PACK_NATURE,
             'sub_menu' => ActionsFixtures::SUB_MENU_PAGE,
         ]);
-
+        dump("2");
         $existingRoles = $this->connection
             ->executeQuery("SELECT id FROM role where role.label <> :aucun_access", [
                 'aucun_access' => Role::NO_ACCESS_USER
             ])
             ->fetchAllAssociative();
         foreach ($existingRoles as $role) {
+            dump("3");
             $roleId = $role['id'];
             // this up() migration is auto-generated, please modify it to your needs
             $this->addSql('INSERT INTO action_role (action_id, role_id) VALUES (
@@ -50,7 +52,8 @@ final class Version20220510143352 extends AbstractMigration
                 'action' => Action::DISPLAY_PACK_NATURE,
                 'role' => $roleId,
             ]);
-        }
+            dump("4");
+        }*/
     }
 
     public function down(Schema $schema): void

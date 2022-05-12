@@ -6,12 +6,13 @@
 
     <div class="form-group col-12">
         <label>Livreur</label>
-        <select class="form-control data w-100" data-s2="user" name="deliverer" data-include-params="input[name=delivererOnly]">
+        <select class="form-control data w-100" data-s2="user" name="deliverer"
+                data-other-params
+                data-other-params-deliverer-only="1">
             {% if vehicle.deliverer %}
                 <option value="{{ vehicle.deliverer.id }}">{{ vehicle.deliverer.username }}</option>
             {% endif %}
         </select>
-        <input type="hidden" value="1" name="delivererOnly">
     </div>
 
     <div class="form-group col-12">
