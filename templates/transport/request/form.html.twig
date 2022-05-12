@@ -55,50 +55,47 @@
                         <i class="wii-icon wii-icon-user bg-primary mr-1"></i>
                         Informations Patient
                     </div>
-                    <div class="row contact-container">
-                        <div class="col-md-6 col-12">
-                            <div class="row">
-                                <div class="col-12 mb-2">
-                                    {{ form.input('contactName', 'Patient', true, contact.name, {
-                                        disabled: request.id is not null,
-                                    }) }}
-                                </div>
-                                <div class="col-12 mb-2">
-                                    {{ form.input('contactFileNumber', 'N° dossier', true, contact.fileNumber, {
-                                        disabled: request.id is not null,
-                                    }) }}
-                                </div>
-                                <div class="col-12 mb-2">
-                                    {{ form.textarea('contactContact', 'Contact', true, contact.contact, {
+                    <div class="contact-container">
+                        <div class="row">
+                            <div class="col-md-6 col-12 mb-2">
+                                {{ form.input('contactName', 'Patient', true, contact.name, {
+                                    disabled: request.id is not null,
+                                }) }}
+
+                                {{ form.input('contactFileNumber', 'N° dossier', true, contact.fileNumber, {
+                                    disabled: request.id is not null,
+                                }) }}
+                            </div>
+                            <div class="col-md-6 col-12 mb-2">
+                                <div class="d-flex">
+                                    {{ form.textarea('contactAddress', 'Adresse', true, contact.address, {
                                         style: 'min-height: 104px;',
                                         resizeVertical: false,
                                     }) }}
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6 col-12">
-                            <div class="row">
-                                <div class="col-12 mb-2">
-                                    <div class="d-flex">
-                                        {{ form.textarea('contactAddress', 'Adresse', true, contact.address, {
-                                            style: 'min-height: 104px;',
-                                            resizeVertical: false,
-                                        }) }}
-                                    </div>
-                                </div>
-                                <div class="col-12 mb-2">
-                                    {{ form.textarea('contactPersonToContact', 'Personne à prévenir', true, contact.personToContact, {
-                                        style: 'min-height: 104px;',
-                                        resizeVertical: false,
-                                    }) }}
-                                </div>
+                        <div class="row">
+                            <div class="col-md-6 col-12 mb-2">
+                                {{ form.textarea('contactContact', 'Contact', true, contact.contact, {
+                                    style: 'min-height: 104px;',
+                                    resizeVertical: false,
+                                }) }}
+                            </div>
+                            <div class="col-md-6 col-12 mb-2">
+                                {{ form.textarea('contactPersonToContact', 'Personne à prévenir', true, contact.personToContact, {
+                                    style: 'min-height: 104px;',
+                                    resizeVertical: false,
+                                }) }}
                             </div>
                         </div>
-                        <div class="col-12 mb-2">
-                            {{ form.textarea('contactObservation', 'Remarque', false, contact.observation, {
-                                style: 'min-height: 104px;',
-                                resizeVertical: false,
-                            }) }}
+                        <div class="row">
+                            <div class="col-12 mb-2">
+                                {{ form.textarea('contactObservation', 'Remarque', false, contact.observation, {
+                                    style: 'min-height: 104px;',
+                                    resizeVertical: false,
+                                }) }}
+                            </div>
                         </div>
                     </div>
 
