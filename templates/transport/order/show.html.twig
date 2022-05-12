@@ -98,13 +98,10 @@
                     <div class="row content">
                         <div class="col-6 d-flex flex-column">
                             <div class="box-item my-2">
-                                <span class="wii-field-name">Date et heure attendue</span>
+                                {% set isCollect = request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') %}
+                                <span class="wii-field-name">Date{{ not isCollect ? ' et heure' }} attendue</span>
                                 <span class="wii-body-text">
-                                    {% if request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
-                                        <span>{{ request.expectedAt|format_helper('longDate', {time: true}) }}</span>
-                                    {% else %}
-                                        <span>{{ request.expectedAt|format_helper('longDate') }}</span>
-                                    {% endif %}
+                                    {{ request.expectedAt|format_helper('longDate', {short: true, time: not isCollect}) }}
                                 </span>
                             </div>
                         </div>
@@ -132,13 +129,14 @@
                                     </span>
                                 </div>
                                 {# only when the order has not been assigned to a round #}
-                                {% if round is null %} {# TODO verifier la condition #}
-                                <button class="btn btn-primary minw-105px submit-button"
-                                        data-target="#modalCollectTimeSlot"
-                                        data-toggle='modal'>
-                                    <img class="mr-2" src="{{ asset('svg/pencil-white.svg') }}" alt="Icône Crayon" width="15px">
-                                    Renseigner date patient
-                                </button>
+                                {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT_TRANSPORT'))
+                                    and round is null %}
+                                    <button class="btn btn-primary minw-105px submit-button"
+                                            data-target="#modalCollectTimeSlot"
+                                            data-toggle='modal'>
+                                        <img class="mr-2" src="{{ asset('svg/pencil-white.svg') }}" alt="Icône Crayon" width="15px">
+                                        Renseigner date patient
+                                    </button>
                                 {% endif %}
                             </div>
                         {% endif %}

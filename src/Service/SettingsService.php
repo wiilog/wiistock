@@ -248,7 +248,7 @@ class SettingsService {
                 ->keymap(fn(TemperatureRange $range) => [$range->getValue(), $range])
                 ->toArray();
             $removedRanges = Stream::from($existingRanges)->toArray();
-            $submittedTemperatureRanges = Stream::explode(",", $request->request->get("temperatureRanges"))
+            $submittedTemperatureRanges = Stream::explode(";", $request->request->get("temperatureRanges"))
                 ->unique()
                 ->toArray();
 
@@ -592,7 +592,7 @@ class SettingsService {
                         ? $this->manager->find(CategorieCL::class, $item["category"])
                         : ($type?->getCategory()->getCategorieCLs()->first() ?: null)
                     )
-                    ->setDefaultValue($item["defaultValue"] ?? null)
+                    ->setDefaultValue(($item["defaultValue"] ?? null) === "null" ? "" : $item["defaultValue"] ?? null)
                     ->setElements(isset($item["elements"]) ? explode(";", $item["elements"]) : null)
                     ->setDisplayedCreate($item["displayedCreate"])
                     ->setRequiredCreate($item["requiredCreate"])
