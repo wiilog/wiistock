@@ -142,13 +142,10 @@
                     </div>
                     <div class="row content">
                         <div class="col-6 d-flex flex-column">
-                            <span class="wii-field-name">Date et heure attendue</span>
+                            {% set isCollect = request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') %}
+                            <span class="wii-field-name">Date{{ not isCollect ? ' et heure' }} attendue</span>
                             <span class="wii-field-text">
-                                {% if request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
-                                    {{ request.expectedAt|format_helper('longDate', {time: true}) }}
-                                {% else %}
-                                    {{ request.expectedAt|format_helper('date') }}
-                                {% endif %}
+                                {{ request.expectedAt|format_helper('longDate', {short: true, time: not isCollect}) }}
                             </span>
                         </div>
                         {# Only for collect view #}
