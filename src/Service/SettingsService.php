@@ -376,7 +376,14 @@ class SettingsService {
                 if ($hours && !preg_match("/^\d{2}:\d{2}-\d{2}:\d{2}$/", $hours)) {
                     throw new RuntimeException("Le champ horaires doit être au format HH:MM-HH:MM");
                 }
+
                 $hours = explode('-', $hours);
+                $startHour = str_replace(":","",$hours[0]);
+                $endHour = str_replace(":","",$hours[1]);
+                if (intval($startHour) >= intval($endHour)) {
+                    throw new RuntimeException("L'heure de début doit être inférieur à la date de fin du créneau horaire.");
+                }
+
                 $shift
                     ->setName($edition['name'])
                     ->setStart($hours[0])
