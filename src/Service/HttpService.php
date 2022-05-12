@@ -50,7 +50,7 @@ class HttpService {
 
         $result = json_decode($request->getContent(), true);
         $coordinates = $result["candidates"][0]["location"] ?? [null, null];
-        if($coordinates === null || ($coordinates[0] ?? null) === null || ($coordinates[1] ?? null) === null) {
+        if($coordinates === null || ($coordinates["x"] ?? null) === null || ($coordinates["y"] ?? null) === null) {
             throw new HttpException("L'adresse n'a pas pu être trouvée");
         }
 
