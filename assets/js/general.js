@@ -74,6 +74,11 @@ export default class Wiistock {
         ];
 
         $(document).on(`keydown`, `input[type=number]`, function (e) {
+            const step = Number($(this).attr(`step`));
+            if(step % 1 === 0 && (e.key === `,` || e.key === `.`)) {
+                e.preventDefault();
+            }
+
             if (forbiddenChars.includes(e.key)) {
                 e.preventDefault();
             }
