@@ -9576,7 +9576,7 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/wiilog/common-php.git",
-                "reference": "4daed749bd44715b38a1d64b17f6991e6ea33932"
+                "reference": "c45a4059a55528bae58fc3d1845e4fd3c52a46ea"
             },
             "require-dev": {
                 "dama/doctrine-test-bundle": "^6.6",
@@ -9590,7 +9590,7 @@
                     "WiiCommon\\": "src/"
                 }
             },
-            "time": "2021-12-15T14:31:26+00:00"
+            "time": "2022-05-12T13:30:29+00:00"
         },
         {
             "name": "willdurand/jsonp-callback-validator",
@@ -11837,5 +11837,5 @@
         "ext-mysqli": "*"
     },
     "platform-dev": [],
-    "plugin-api-version": "2.2.0"
+    "plugin-api-version": "2.3.0"
 }
