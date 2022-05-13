@@ -147,17 +147,12 @@ class RoundController extends AbstractController {
             $round
                 ->setExpectedAt($expectedAt)
                 ->setNumber($number);
-
-            $affectedTransports = [] ;
         }
         else if( $request->query->get('transportRound')){
             $round = $entityManager->getRepository(TransportRound::class)->findOneBy(['id' => $request->query->get('transportRound')]);
 
             if (!$round || $round->getStatus()?->getCode() !== TransportRound::STATUS_AWAITING_DELIVERER) {
                 throw new NotFoundHttpException('Impossible de planifier cette tournée');
-            }
-            else {
-                $affectedTransports = $round->getTransportRoundLines();
             }
         }
         else{
@@ -166,12 +161,10 @@ class RoundController extends AbstractController {
 
         $transportOrders = $entityManager->getRepository(TransportOrder::class)->findByDate($round->getExpectedAt());
 
-        $contactDataByOrderId = [];
-
         $contactDataByOrderId = Stream::from(
-                $transportOrders,
-                Stream::from ($affectedTransports) -> map(fn(TransportRoundLine $transportRoundLine) => $transportRoundLine->getOrder())
-            )
+            $transportOrders,
+            Stream::from($round->getTransportRoundLines())->map(fn(TransportRoundLine $transportRoundLine) => $transportRoundLine->getOrder())
+        )
             ->keymap(function(TransportOrder  $transportOrder){
                 $request = $transportOrder->getRequest();
                 return [
@@ -193,7 +186,6 @@ class RoundController extends AbstractController {
             'prefixNumber' => TransportRound::NUMBER_PREFIX,
             'transportOrders' => $transportOrders,
             'contactData' => $contactDataByOrderId,
-            'affectedTransports' => $affectedTransports
         ]);
     }
 
