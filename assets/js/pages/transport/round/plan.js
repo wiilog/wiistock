@@ -26,8 +26,8 @@ $(function () {
         updateCardsContainers(map, contactData);
     })
 
-    $('.btn-cross').on('click', (event) => {
-        removeCard(event.currentTarget , map, contactData);
+    $('.btn-cross').on('click', function() {
+        removeCard($(this), map, contactData);
     });
 
     $('.card-container .order-card').on('mouseenter', function(){
@@ -104,10 +104,10 @@ function updateCardsContainers(map, contactData) {
     });
 }
 
-function removeCard(btn , map ,contactData) {
-    let card = btn.parentNode.parentNode.parentNode.parentNode
-    card.parentNode.removeChild(card);
-    $('#to-affect-container').append(card);
+function removeCard($button, map, contactData) {
+    const $card = $button.closest('.order-card');
+    $card.remove();
+    $('#to-affect-container').append($card);
     updateCardsContainers(map ,contactData);
 }
 
