@@ -184,15 +184,6 @@ class TransportController extends AbstractFOSRestController {
                                 'requester' => FormatHelper::user($request->getCreatedBy()),
                                 'free_fields' => Stream::from($freeFields)
                                     ->map(function(FreeField $freeField) use($line, $freeFieldsValues) {
-                                        if($line->getOrder()->getRequest()->getId() === 60) {
-                                            dump($freeFieldsValues);
-                                            dump([
-                                                'id' => $freeField->getId(),
-                                                'label' => $freeField->getLabel(),
-                                                'value' => FormatHelper::freeField($freeFieldsValues[$freeField->getId()] ?? "",
-                                                    $freeField),
-                                            ]);
-                                        }
                                         return [
                                             'id' => $freeField->getId(),
                                             'label' => $freeField->getLabel(),
