@@ -17,6 +17,8 @@
 {% set order = request.order %}
 {% set orderPacks = request.order is not null ? order.packs : [] %}
 
+{% set assignedOrder = order is not null and order.status.code == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ASSIGNED') %}
+
 <div class="modal fade"
      role="dialog"
      data-modal-type="{{ modeEdit ? 'edit' : 'new' }}">
@@ -71,6 +73,7 @@
                                     {{ form.textarea('contactAddress', 'Adresse', true, contact.address, {
                                         style: 'min-height: 104px;',
                                         resizeVertical: false,
+                                        disabled: assignedOrder
                                     }) }}
                                 </div>
                             </div>
@@ -160,6 +163,7 @@
                             {% set expectedAtValue = request.expectedAt ? request.expectedAt|date('Y-m-d\\TH:i') %}
                             {{ form.input('expectedAt', 'Date et heure de livraison', true, expectedAtValue, {
                                 type: 'datetime-local',
+                                disabled: assignedOrder
                             }) }}
                         </div>
                         <div class="col-md-6 col-12">
@@ -171,7 +175,8 @@
                                 value: label
                             })) %}
                             {{ form.select('emergency', 'Urgence', false, {
-                                items: [{label: 'Non urgent', value: ''}]|merge(emergenciesValues)
+                                items: [{label: 'Non urgent', value: ''}]|merge(emergenciesValues),
+                                disabled: assignedOrder
                             }) }}
                         </div>
                     </div>
@@ -182,6 +187,7 @@
                             {{ form.input('expectedAt', 'Date de collecte', true, expectedAtValue, {
                                 type: 'date',
                                 min: 'now' | date('Y-m-d'),
+                                disabled: assignedOrder
                             }) }}
                         </div>
                     </div>
