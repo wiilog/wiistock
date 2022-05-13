@@ -238,17 +238,24 @@ class TransportController extends AbstractFOSRestController {
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
      */
-    public function rejectPack(Request $request, EntityManagerInterface $manager): Response {
+    public function rejectPack(Request $request, EntityManagerInterface $manager, TransportHistoryService $historyService): Response {
         $data = $request->request;
         $pack = $manager->getRepository(Pack::class)->findOneBy(['code' => $data->get('pack')]);
         $rejectMotive = $data->get('rejectMotive');
 
         $transportDeliveryOrderPack = $pack->getTransportDeliveryOrderPack();
+        [$order, $request] = [$transportDeliveryOrderPack->getOrder(), $transportDeliveryOrderPack->getOrder()->getRequest()];
 
         $transportDeliveryOrderPack
             ->setRejectedBy($this->getUser())
             ->setRejectReason($rejectMotive)
             ->setState(TransportDeliveryOrderPack::REJECTED_STATE);
+
+        $historyService->persistTransportHistory($manager, [$order, $request], TransportHistoryService::TYPE_DROP_REJECTED_PACK, [
+            'user' => $this->getUser(),
+            'pack' => $pack,
+            'reason' => $rejectMotive
+        ]);
 
         $manager->flush();
         return $this->json([
@@ -266,7 +273,8 @@ class TransportController extends AbstractFOSRestController {
                               TrackingMovementService $trackingMovementService): Response {
         $data = $request->request;
         $packs = $manager->getRepository(Pack::class)->findBy(['code' => json_decode($data->get('packs'))]);
-        $location = $manager->getRepository(Emplacement::class)->find($data->get('location'));
+        $location = $manager->find(Emplacement::class, $data->get('location'));
+        $round = $manager->find(TransportRound::class, $data->get('round'));
         $now = new DateTime();
         $user = $this->getUser();
 
@@ -278,6 +286,12 @@ class TransportController extends AbstractFOSRestController {
             $trackingMovement = $trackingMovementService
                 ->createTrackingMovement($pack, $location, $user, $now, true, true,TrackingMovement::TYPE_DEPOSE);
             $manager->persist($trackingMovement);
+        }
+
+        if($round->getStatus()->getCode() !== TransportRound::STATUS_ONGOING) {
+            $onGoingStatus = $manager->getRepository(Statut::class)
+                ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ROUND, TransportRound::STATUS_ONGOING);
+            $round->setStatus($onGoingStatus);
         }
 
         $manager->flush();
