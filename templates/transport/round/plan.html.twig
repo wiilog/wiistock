@@ -34,7 +34,10 @@
                     <div class="d-flex flex-column card-container" id="affected-container">
                         {% for line in round.transportRoundLines %}
                             {% set transportOrder = line.order %}
-                            {% include 'transport/round/plan_order_card.html.twig' with {transportOrder: transportOrder} %}
+                            {% include 'transport/round/plan_order_card.html.twig' with {
+                                transportOrder: transportOrder,
+                                removeButton: false,
+                            } %}
                         {% endfor %}
                     </div>
                 </div>

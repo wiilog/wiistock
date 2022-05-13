@@ -1,3 +1,4 @@
+{% set removeButton = removeButton ?? true %}
 <div class="order-card" data-order-id="{{transportOrder.id}}">
     <div class="affected-number d-none">
     </div>
@@ -39,9 +40,11 @@
                         <img src="{{ asset('svg/timeline-urgent.svg') }}" alt="Icône urgent" width="13px" class="mr-1">
                     {% endif %}
                 </div>
-                <button type="button" class="btn btn-outline-primary btn-cross d-none">
-                    <img src="{{ asset('svg/cross-blue.svg') }}" width="13px">
-                </button>
+                {% if removeButton %}
+                    <button type="button" class="btn btn-outline-primary btn-cross d-none">
+                        <img src="{{ asset('svg/cross-blue.svg') }}" width="13px">
+                    </button>
+                {% endif %}
             </div>
         </div>
         <div class="ml-2">
