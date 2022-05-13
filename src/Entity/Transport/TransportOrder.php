@@ -270,7 +270,7 @@ class TransportOrder {
     }
 
     public function isRejected(): bool {
-        return Stream::from($this->getPacks())
+        return !$this->getPacks()->isEmpty() && Stream::from($this->getPacks())
             ->every(fn(TransportDeliveryOrderPack $orderPack) => $orderPack->getState() === TransportDeliveryOrderPack::REJECTED_STATE);
     }
 
