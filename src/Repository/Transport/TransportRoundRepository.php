@@ -3,15 +3,12 @@
 namespace App\Repository\Transport;
 
 use App\Entity\FiltreSup;
-use App\Entity\Transport\TransportCollectRequest;
-use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\Query\Expr\Join;
 use JetBrains\PhpStorm\ArrayShape;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;

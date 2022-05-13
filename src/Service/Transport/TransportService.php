@@ -23,7 +23,6 @@ use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
 use App\Service\FreeFieldService;
 use App\Service\GeoService;
-use App\Service\HttpService;
 use App\Service\PackService;
 use App\Service\SettingsService;
 use App\Service\StatusHistoryService;

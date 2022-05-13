@@ -33,7 +33,6 @@ use App\Helper\FormatHelper;
 use App\Repository\IOT\AlertTemplateRepository;
 use App\Repository\IOT\RequestTemplateRepository;
 use App\Repository\SettingRepository;
-use App\Repository\Transport\CollectTimeSlotRepository;
 use App\Repository\TypeRepository;
 use App\Service\CacheService;
 use App\Service\PackService;
