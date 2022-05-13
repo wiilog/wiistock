@@ -428,7 +428,12 @@ class RequestController extends AbstractController {
                     $transportOrder->removeHistory($history);
                     $entityManager->remove($history);
                 }
-            } else {
+
+                foreach($transportOrder->getPacks() as $pack) {
+                    $transportOrder->removePack($pack);
+                    $entityManager->remove($pack);
+                }
+           } else {
                 $statusesHistories = $transportRequest->getStatusHistory();
                 $histories = $transportRequest->getHistory();
 
