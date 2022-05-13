@@ -220,7 +220,6 @@ class SubcontractController extends AbstractController
                 'subcontractTransportStatus' => $statutRepository->findByCategoryNameAndStatusCodes(CategorieStatut::TRANSPORT_REQUEST_DELIVERY, $statusForSelect),
                 'statutRequest' => $transportRequest->getStatus(),
                 'attachments' => $transportOrder->getAttachments()
-
             ]);
 
             return new JsonResponse($json);
@@ -258,8 +257,7 @@ class SubcontractController extends AbstractController
             default => throw new RuntimeException("Unhandled status code"),
         });
 
-        $transportRequest->setStatus($statusRequest);
-        $transportOrder->setStatus($statutOrder)
+        $transportOrder
             ->setSubcontractor($data->get('subcontractor'))
             ->setRegistrationNumber($data->get('registrationNumber'))
             ->setStartedAt($startedAt)

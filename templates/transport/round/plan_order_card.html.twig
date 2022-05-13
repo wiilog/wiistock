@@ -1,0 +1,62 @@
+<div class="order-card" data-order-id="{{transportOrder.id}}">
+    <div class="affected-number d-none">
+    </div>
+    <div class="card-content pl-1">
+        <div class="first-line">
+            <div class="head">
+                <div class="types">
+                    <div class="transport-type px-2">
+                        {% if transportOrder.request.type.logo %}
+                            <img src="{{ transportOrder.request.type.logo.fullPath }}" alt="" class="mr-2" width="15">
+                        {% endif %}
+                        {{ transportOrder.request.type.label }}
+                    </div>
+                    {% if not transportOrder.request is instanceof('App\\Entity\\Transport\\TransportCollectRequest')
+                        and transportOrder.request.collect is not null
+                        and transportOrder.request.collect.type.logo
+                    %}
+                        <div class="transport-type px-2">
+                            {% set collectType = transportOrder.request.collect.type %}
+                            {% if collectType.logo %}
+                                <img src="{{ collectType.logo.fullPath }}" class="mr-2" width="15">
+                            {% endif %}
+                            {{ collectType.label }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="sticky">
+                <div class="time bold">
+                    <img src="{{ asset('svg/clock-black.svg') }}" alt="Icône horloge" width="13px" class="mr-1">
+                    {% if transportOrder.request is instanceof('App\\Entity\\Transport\\TransportCollectRequest')
+                        and transportOrder.request.timeSlot is not null%}
+                        <span>{{ transportOrder.request.timeSlot.name }}</span>
+                    {% else %}
+                        <span>{{ transportOrder.request.expectedAt | format_helper('time', true, true) }}</span>
+                    {% endif %}
+                    {% if not transportOrder.request is instanceof('App\\Entity\\Transport\\TransportCollectRequest')
+                        and transportOrder.request.emergency %}
+                        <img src="{{ asset('svg/timeline-urgent.svg') }}" alt="Icône urgent" width="13px" class="mr-1">
+                    {% endif %}
+                </div>
+                <button type="button" class="btn btn-outline-primary btn-cross d-none">
+                    <img src="{{ asset('svg/cross-blue.svg') }}" width="13px">
+                </button>
+            </div>
+        </div>
+        <div class="ml-2">
+            <span class="wii-field-text">
+               {{ transportOrder.request.contact.name }}
+            </span>
+            <span class="wii-small-text">
+                N°{{ transportOrder.request.contact.fileNumber }}
+            </span>
+        </div>
+        <div class="wii-field-text">
+            <img src="{{ asset('svg/location-black.svg') }}" width="13px" alt="">
+            {% if transportOrder.request.contact.address is not null %}
+                {{ transportOrder.request.contact.address }}
+            {% endif %}
+        </div>
+    </div>
+</div>
