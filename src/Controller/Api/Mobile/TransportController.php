@@ -78,10 +78,14 @@ class TransportController extends AbstractFOSRestController {
                         ->count();
                 }
 
-                $doneDeliveries = 0;
+                $readyDeliveries = 0;
                 foreach ($lines as $line) {
-                    if($line->getFulfilledAt()) {
-                        $doneDeliveries += 1;
+                    $isReady = Stream::from($line->getOrder()->getPacks())
+                        ->filter(fn(TransportDeliveryOrderPack $orderPack) => $orderPack->getState() === null)
+                        ->isEmpty();
+
+                    if($isReady) {
+                        $readyDeliveries += 1;
                     }
                 }
 
@@ -92,16 +96,16 @@ class TransportController extends AbstractFOSRestController {
                     'date' => FormatHelper::date($round->getExpectedAt()),
                     'estimated_distance' => $round->getEstimatedDistance(),
                     'estimated_time' => str_replace(':', 'h', $round->getEstimatedTime()) . 'min',
+                    'ready_deliveries' => $readyDeliveries,
+                    'total_ready_deliveries' => Stream::from($lines)
+                        ->filter(fn(TransportRoundLine $line) => $line->getOrder()->getRequest() instanceof TransportDeliveryRequest)
+                        ->count(),
+                    'loaded_packs' => $loadedPacks,
+                    'total_loaded' => $totalLoaded,
                     'done_transports' => Stream::from($lines)
                         ->filter(fn(TransportRoundLine $line) => $line->getFulfilledAt())
                         ->count(),
                     'total_transports' => count($lines),
-                    'loaded_packs' => $loadedPacks,
-                    'total_loaded' => $totalLoaded,
-                    'done_deliveries' => $doneDeliveries,
-                    'total_deliveries' => Stream::from($lines)
-                        ->filter(fn(TransportRoundLine $line) => $line->getOrder()->getRequest() instanceof TransportDeliveryRequest)
-                        ->count(),
                     'lines' => Stream::from($lines)
                         ->filter(fn(TransportRoundLine $line) =>
                             !$line->getCancelledAt()
