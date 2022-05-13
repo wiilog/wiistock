@@ -8,7 +8,6 @@ use ReflectionClass;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Component\HttpKernel\KernelInterface;
-use Throwable;
 
 
 class AttachmentService {

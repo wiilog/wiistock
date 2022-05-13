@@ -1,5 +1,4 @@
 {% set order = order ?? request.order %}
-{% set transportOrderHistory = order.history ? (order.history |  filter(h => h.type == historyType) | last) : null %}
 
 <div class="transport-request-container col-12 p-1">
     <div data-id='{{ request.id }}'
@@ -71,7 +70,7 @@
                         Commencée le : <span style="font-weight: bold">{{ order.startedAt ? order.startedAt | format_helper('longDate', {short: true, time: true}) : "-" }}</span>
                     </div>
                     <div>
-                        Livrée le : <span style="font-weight: bold"></span> {{ transportOrderHistory ? transportOrderHistory.date | format_helper('longDate', {short: true, time: true}) : "-" }}
+                        Livrée le : <span style="font-weight: bold"></span> {{ order.treatedAt ? order.treatedAt | format_helper('longDate', {short: true, time: true}) : "-" }}
                     </div>
                 </td>
                 <td class="transport-subcontract-details-container">
