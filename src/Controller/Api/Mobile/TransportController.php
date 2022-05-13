@@ -130,7 +130,7 @@ class TransportController extends AbstractFOSRestController {
                                 ])->toArray();
 
                             return [
-                                'id' => $line->getTransportRound()->getId(),
+                                'id' => $line->getOrder()->getRequest()->getId(),
                                 'number' => $request->getNumber(),
                                 'type' => FormatHelper::type($request->getType()),
                                 'type_icon' => $request->getType()?->getLogo() ? $_SERVER["APP_URL"] . $request->getType()->getLogo()->getFullPath() : null,
@@ -183,7 +183,16 @@ class TransportController extends AbstractFOSRestController {
                                 'signature' => $order->getSignature()?->getFullPath(),
                                 'requester' => FormatHelper::user($request->getCreatedBy()),
                                 'free_fields' => Stream::from($freeFields)
-                                    ->map(function(FreeField $freeField) use($freeFieldsValues) {
+                                    ->map(function(FreeField $freeField) use($line, $freeFieldsValues) {
+                                        if($line->getOrder()->getRequest()->getId() === 60) {
+                                            dump($freeFieldsValues);
+                                            dump([
+                                                'id' => $freeField->getId(),
+                                                'label' => $freeField->getLabel(),
+                                                'value' => FormatHelper::freeField($freeFieldsValues[$freeField->getId()] ?? "",
+                                                    $freeField),
+                                            ]);
+                                        }
                                         return [
                                             'id' => $freeField->getId(),
                                             'label' => $freeField->getLabel(),
