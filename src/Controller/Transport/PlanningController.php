@@ -64,15 +64,31 @@ class PlanningController extends AbstractController
         foreach ($transportOrders as $transportOrder) {
             $requestExpectedAt = $transportOrder->getRequest()->getExpectedAt()->format('Y-m-d');
             $requestType = $transportOrder->getRequest() instanceof TransportDeliveryRequest ? 'delivery' : 'collect';
+            $orderStatus = $transportOrder->getStatus()->getCode();
             $typeId = $transportOrder->getRequest()->getType()->getId();
             $typeIdToFullPath[$typeId] = $transportOrder->getRequest()->getType()->getLogo()?->getFullPath();
+
             if(!isset($typesCount[$requestExpectedAt][$requestType][$typeId])){
                 $typesCount[$requestExpectedAt][$requestType][$typeId] = 0;
             }
-            $typesCount[$requestExpectedAt][$requestType][$typeId] ++;
+            $typesCount[$requestExpectedAt][$requestType][$typeId]++;
 
-            $orderedTransportOrders[$requestExpectedAt][] = $transportOrder;
+            if (!isset($orderedTransportOrders[$requestExpectedAt][$orderStatus])) {
+                $orderedTransportOrders[$requestExpectedAt][$orderStatus] = [];
+            }
+            $orderedTransportOrders[$requestExpectedAt][$orderStatus][] = $transportOrder;
        }
+
+        $orders = [];
+        foreach ($orderedTransportOrders as $day => $transportOrdersByDay) {
+            $ordersForDay = $transportOrdersByDay[TransportOrder::STATUS_ASSIGNED] ?? [];
+            array_unshift($ordersForDay, $transportOrdersByDay[TransportOrder::STATUS_TO_ASSIGN] ?? []);
+            $ordersForDay[] = $transportOrdersByDay[TransportOrder::STATUS_ONGOING] ?? [];
+            $ordersForDay = Stream::from($ordersForDay)
+                ->flatten()
+                ->toArray();
+            $orders[$day] = $ordersForDay;
+        }
 
         $deliveryAndCollectCount = [
             $currentDate => [
@@ -100,7 +116,7 @@ class PlanningController extends AbstractController
         return $this->json([
             'success' => true,
             'template' => $this->renderView("transport/planning/planning_by_date_container.html.twig", [
-                'transportOrders' => $orderedTransportOrders,
+                'transportOrders' => $orders,
                 'dateForContainer' => $currentDate,
                 'deliveryAndCollectCount' => $deliveryAndCollectCount,
                 'typesCount' => $typesCount,
