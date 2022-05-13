@@ -160,6 +160,8 @@ function applyState(datatable, state, params, rowIndex) {
     const $datatablePaging = $datatableWrapper.find(`.datatable-paging`);
     const $requiredMarks = $datatableWrapper.find('.required-mark');
 
+    $element.data('needs-processing', state !== STATE_VIEWING);
+
     if (state !== STATE_VIEWING) {
         $requiredMarks.removeClass('d-none');
         $datatablePaging.addClass('d-none');

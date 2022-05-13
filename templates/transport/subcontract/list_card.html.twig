@@ -70,7 +70,7 @@
                         Commencée le : <span style="font-weight: bold">{{ order.startedAt ? order.startedAt | format_helper('longDate', {short: true, time: true}) : "-" }}</span>
                     </div>
                     <div>
-                        Livrée le : <span style="font-weight: bold"></span> {{ order.treatedAt ? order.treatedAt | format_helper('longDate', {short: true, time: true}) : "-" }}
+                        Livrée le : <span style="font-weight: bold"> {{ order.treatedAt ? order.treatedAt | format_helper('longDate', {short: true, time: true}) : "-" }}</span>
                     </div>
                 </td>
                 <td class="transport-subcontract-details-container">

@@ -406,7 +406,7 @@ function formatInputValue($input) {
         value = $input.val() || null;
     }
 
-    if (Array.isArray(value)) {
+    if ($input.parents('.free-field').exists() && Array.isArray(value)) {
         value = value.join(';');
     }
 
