@@ -11,6 +11,7 @@ use App\Entity\Statut;
 use App\Entity\Transport\TransportCollectRequest;
 use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\Transport\TransportOrder;
+use App\Entity\Transport\TransportRequest;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\TransportRoundLine;
 use App\Entity\Utilisateur;
@@ -139,7 +140,8 @@ class RoundController extends AbstractController {
                 $entityManager,
                 null,
                 TransportRound::class,
-                UniqueNumberService::DATE_COUNTER_FORMAT_TRANSPORT
+                UniqueNumberService::DATE_COUNTER_FORMAT_TRANSPORT,
+                $expectedAt
             );
 
             $round
@@ -165,29 +167,26 @@ class RoundController extends AbstractController {
         $transportOrders = $entityManager->getRepository(TransportOrder::class)->findByDate($round->getExpectedAt());
 
         $contactDataByOrderId = [];
-        foreach ($transportOrders as $transportOrder) {
-            $request = $transportOrder->getRequest();
-            $contactDataByOrderId[ $transportOrder->getId() ] = [
-                'latitude' => $request->getContact()->getAddressLatitude(),
-                'longitude' => $request->getContact()->getAddressLongitude(),
-                'contact' => $request->getContact()->getName(),
-                'time' => $request instanceof TransportCollectRequest
-                    ? ( $request->getTimeSlot()?->getName() ?: $request->getExpectedAt()->format('H:i') )
-                    : $request->getExpectedAt()->format('H:i'),
-            ];
-        }
-        foreach ($affectedTransports as $transportRound) {
-            $transportOrder = $transportRound->getOrder();
-            $request = $transportOrder->getRequest();
-            $contactDataByOrderId[ $transportOrder->getId() ] = [
-                'latitude' => $request->getContact()->getAddressLatitude(),
-                'longitude' => $request->getContact()->getAddressLongitude(),
-                'contact' => $request->getContact()->getName(),
-                'time' => $request instanceof TransportCollectRequest
-                    ? ( $request->getTimeSlot()?->getName() ?: $request->getExpectedAt()->format('H:i') )
-                    : $request->getExpectedAt()->format('H:i'),
-            ];
-        }
+
+        $contactDataByOrderId = Stream::from(
+                $transportOrders,
+                Stream::from ($affectedTransports) -> map(fn(TransportRoundLine $transportRoundLine) => $transportRoundLine->getOrder())
+            )
+            ->keymap(function(TransportOrder  $transportOrder){
+                $request = $transportOrder->getRequest();
+                return [
+                    $transportOrder->getId(),
+                    [
+                        'latitude' => $request->getContact()->getAddressLatitude(),
+                        'longitude' => $request->getContact()->getAddressLongitude(),
+                        'contact' => $request->getContact()->getName(),
+                        'time' => $request instanceof TransportCollectRequest
+                            ? ( $request->getTimeSlot()?->getName() ?: $request->getExpectedAt()->format('H:i') )
+                            : $request->getExpectedAt()->format('H:i'),
+                    ]
+                ];
+            })
+            ->toArray();
 
         return $this->render('transport/round/plan.html.twig', [
             'round' => $round,
