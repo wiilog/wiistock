@@ -178,6 +178,16 @@ export default class Form {
                 `font-weight: bold;`,
                 `font-weight: normal;`,
             ], errors);
+            const $firstInvalidElement = errors[0].elements[0];
+            const $scrollableParent = $firstInvalidElement.parents(`.modal`).exists()
+                ? $firstInvalidElement.parents(`.modal`).first()
+                : $firstInvalidElement.parents(`body`);
+
+            if($scrollableParent) {
+                $scrollableParent.animate({
+                    scrollTop: $firstInvalidElement.offset().top
+                }, 1000);
+            }
         }
 
         if(config.ignoreErrors) {

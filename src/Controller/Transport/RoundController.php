@@ -16,6 +16,7 @@ use App\Entity\Transport\TransportRoundLine;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
+use App\Service\GeoService;
 use App\Service\HttpService;
 use App\Service\StatusHistoryService;
 use App\Service\Transport\TransportHistoryService;
@@ -314,9 +315,9 @@ class RoundController extends AbstractController {
     }
 
     #[Route("/api-get-address-coordinates", name: "transport_round_address_coordinates_get", options: ['expose' => true], methods: "GET")]
-    public function getAddressCoordinates(Request $request, HttpService $httpService): Response
+    public function getAddressCoordinates(Request $request, GeoService $geoService): Response
     {
-        [$lat, $lon] = $httpService->fetchCoordinates($request->query->get('address'));
+        [$lat, $lon] = $geoService->fetchCoordinates($request->query->get('address'));
         return $this->json([
             'success' => true,
             'latitude' => $lat,
