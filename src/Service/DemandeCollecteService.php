@@ -5,8 +5,6 @@ namespace App\Service;
 
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
-use App\Entity\CategorieCL;
-use App\Entity\CategoryType;
 use App\Entity\Collecte;
 use App\Entity\CollecteReference;
 use App\Entity\FiltreSup;

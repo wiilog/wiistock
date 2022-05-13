@@ -188,7 +188,7 @@ class TransportOrder {
         return $this->startedAt;
     }
 
-    public function setStartedAt(DateTime $startedAt): self {
+    public function setStartedAt(?DateTime $startedAt): self {
         $this->startedAt = $startedAt;
 
         return $this;

@@ -2,15 +2,11 @@
 
 namespace App\Repository\Transport;
 
-use App\Entity\Dispatch;
 use App\Entity\FiltreSup;
-use App\Entity\FreeField;
 use App\Entity\Transport\TransportCollectRequest;
 use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\Transport\TransportRequest;
-use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
-use App\Service\VisibleColumnService;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\Expr\Join;

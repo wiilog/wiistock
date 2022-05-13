@@ -2,7 +2,6 @@
 
 namespace App\Repository\Transport;
 
-use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\TransportRoundLine;
 use Doctrine\ORM\EntityRepository;
 

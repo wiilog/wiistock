@@ -12,7 +12,6 @@ use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: TransportRequestRepository::class)]
 #[ORM\InheritanceType('JOINED')]

@@ -8,6 +8,7 @@ use App\Repository\Transport\TransportRoundRepository;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TransportRoundRepository::class)]
@@ -50,6 +51,9 @@ class TransportRound
 
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $beganAt = null;
+
+    #[ORM\Column(type: 'json')]
+    private ?array $coordinates = [];
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $startPoint = null;
@@ -240,12 +244,36 @@ class TransportRound
         return $this;
     }
 
+    public function getTransportRoundLine(TransportOrder $transportOrder): ?TransportRoundLine {
+        return $this->transportRoundLines
+            ->filter(fn(TransportRoundLine $line) => $line->getOrder()?->getId() === $transportOrder->getId())
+            ->first() ?: null;
+    }
+
     /**
      * @return Collection<int, TransportRoundLine>
      */
     public function getTransportRoundLines(): Collection
     {
-        return $this->transportRoundLines;
+        $criteria = Criteria::create();
+        return $this->transportRoundLines
+            ->matching(
+                $criteria
+                    ->orderBy(['priority' => 'ASC'])
+            );
+    }
+
+    public function setTransportRoundLines(?array $lines): self {
+        foreach($this->getTransportRoundLines()->toArray() as $line) {
+            $this->removeTransportRoundLine($line);
+        }
+
+        $this->transportRoundLines = new ArrayCollection();
+        foreach($lines as $line) {
+            $this->addTransportRoundLine($line);
+        }
+
+        return $this;
     }
 
     public function addTransportRoundLine(TransportRoundLine $transportRoundLine): self
@@ -267,6 +295,15 @@ class TransportRound
             }
         }
 
+        return $this;
+    }
+
+    public function getCoordinates(): array {
+        return $this->coordinates ?? [];
+    }
+
+    public function setCoordinates(array $coordinates): self {
+        $this->coordinates = $coordinates;
         return $this;
     }
 

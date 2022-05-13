@@ -1,5 +1,6 @@
 @import "../../variables";
 
+
 .transport-type{
     background-color: #FFFFFF;
     padding:  3px 5px ;
@@ -19,6 +20,7 @@
     margin : 5px 10px;
     display: flex;
     border: 1px solid $white;
+    cursor: pointer;
 
     &.focus-border{
         border: 1px solid $primary;
@@ -34,7 +36,7 @@
         align-items: center;
         justify-content: center;
         color: #FFFFFF;
-        width: 23px;
+        min-width: 23px;
         border-bottom-left-radius: inherit;
         border-top-left-radius: inherit ;
     }

@@ -210,17 +210,29 @@ class SubcontractController extends AbstractController
 
             $transportOrder = $transportRequest->getOrder();
 
-            $statusForSelect =
-                [($transportRequest->getStatus()->getCode() == TransportRequest::STATUS_SUBCONTRACTED ? TransportRequest::STATUS_ONGOING : ""),
-                TransportRequest::STATUS_FINISHED, TransportRequest::STATUS_NOT_DELIVERED];
+            $statusesForSelect = match ($transportRequest->getStatus()?->getCode()) {
+                TransportRequest::STATUS_SUBCONTRACTED => [
+                    TransportRequest::STATUS_SUBCONTRACTED,
+                    TransportRequest::STATUS_ONGOING,
+                    TransportRequest::STATUS_FINISHED,
+                    TransportRequest::STATUS_NOT_DELIVERED
+                ],
+                TransportRequest::STATUS_ONGOING => [
+                    TransportRequest::STATUS_ONGOING,
+                    TransportRequest::STATUS_FINISHED,
+                    TransportRequest::STATUS_NOT_DELIVERED
+                ],
+                default => [
+                    TransportRequest::STATUS_FINISHED,
+                    TransportRequest::STATUS_NOT_DELIVERED
+                ]
+            };
 
             $json = $this->renderView('transport/subcontract/modalEditSubcontractedRequestContent.html.twig', [
                 'transportRequest' => $transportRequest,
                 'transportOrder' => $transportOrder,
-                'subcontractTransportStatus' => $statutRepository->findByCategoryNameAndStatusCodes(CategorieStatut::TRANSPORT_REQUEST_DELIVERY, $statusForSelect),
-                'statutRequest' => $transportRequest->getStatus(),
+                'subcontractStatuses' => $statutRepository->findByCategoryNameAndStatusCodes(CategorieStatut::TRANSPORT_REQUEST_DELIVERY, $statusesForSelect),
                 'attachments' => $transportOrder->getAttachments()
-
             ]);
 
             return new JsonResponse($json);
@@ -258,8 +270,7 @@ class SubcontractController extends AbstractController
             default => throw new RuntimeException("Unhandled status code"),
         });
 
-        $transportRequest->setStatus($statusRequest);
-        $transportOrder->setStatus($statutOrder)
+        $transportOrder
             ->setSubcontractor($data->get('subcontractor'))
             ->setRegistrationNumber($data->get('registrationNumber'))
             ->setStartedAt($startedAt)
