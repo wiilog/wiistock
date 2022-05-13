@@ -157,7 +157,7 @@ $(function() {
             try {
                 form.element.find(`[data-table-processing]`).each(function () {
                     const datatable = EditableDatatable.of(this);
-                    if (datatable) {
+                    if (datatable && $(this).data('needs-processing')) {
                         const tableData = datatable.data();
                         tables[$(this).data(`table-processing`)] = tableData;
                         tables[`category`] = $(this).data(`category`);
