@@ -288,14 +288,12 @@ class SubcontractController extends AbstractController
 
         $transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_SUBCONTRACT_UPDATE, [
             'history' => $statusHistoryRequest,
-            'user' => $loggedUser,
-            'date' => $date
+            'user' => $loggedUser
         ]);
 
         $transportHistoryService->persistTransportHistory($entityManager, $transportOrder, TransportHistoryService::TYPE_SUBCONTRACT_UPDATE, [
             'history' => $statusHistoryOrder,
-            'user' => $loggedUser,
-            'date' => $date
+            'user' => $loggedUser
         ]);
 
         $entityManager->flush();

@@ -134,10 +134,12 @@ class TransportHistoryService {
                     return "<span class='text-primary underlined'>{$entity->getNumber()}</span>";
                 }
                 else if($entity instanceof DateTime) {
-                    return FormatHelper::datetime($entity);
+                    $date = FormatHelper::longDate($entity, ['time' => true, 'year' => true]);
+                    return "<span class='font-weight-bold'>{$date}</span>";
                 }
                 else if($entity instanceof Statut) {
-                    return FormatHelper::status($entity);
+                    $status = FormatHelper::status($entity);
+                    return "<span class='font-weight-bold'>{$status}</span>";
                 }
                 else if($entity instanceof Collection) {
                     if ($entity->get(0) instanceof Attachment) {
