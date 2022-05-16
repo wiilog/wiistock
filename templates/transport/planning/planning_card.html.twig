@@ -40,7 +40,7 @@
                             <span>{{ request.expectedAt | format_helper('time', true, true) }}</span>
                         {% endif %}
                         {% if not isCollect and request.emergency is not empty %}
-                            <img src="{{ asset('svg/timeline-urgent.svg') }}" alt="Icône urgent" width="13px" class="mr-1">
+                            <img src="{{ asset('svg/timeline-urgent.svg') }}" alt="Icône urgent" width="13px" class="mx-2">
                         {% endif %}
                     </span>
                     <span>
@@ -51,7 +51,7 @@
                 </div>
                 {% if not isOrderToAssign and roundLine is not null %}
                     <div class="d-flex flex-wrap pt-2">
-                        <span class="underlined py-1 mr-1">T{{ roundLine.transportRound.number }}</span>
+                        <a href="{{ path('transport_round_show', {transportRound: roundLine.transportRound.id}) }}" class="py-1 mr-1 underlined">T{{ roundLine.transportRound.number }}</a>
                         <span class="wii-body-text text-nowrap py-1">{{ roundLine.transportRound.deliverer ? roundLine.transportRound.deliverer.username }}</span>
                     </div>
                 {% endif %}
