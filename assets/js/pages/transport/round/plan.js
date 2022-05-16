@@ -53,13 +53,21 @@ $(function () {
     });
 
     $('.deliverer-picker').on('change',function (){
-        if($(this).val()){
-            $('.btn-calculate-time').removeClass('btn-disabled');
-            $('input[name="expectedAtTime"]').attr('disabled', false);
-
+        const $btnCalculateTime = $('.btn-calculate-time');
+        const $inputTime = $('input[name="expectedAtTime"]');
+        const $delivererPicker = $(this);
+        if($delivererPicker.val()){
+            $btnCalculateTime.removeClass('btn-disabled');
+            $inputTime.prop('disabled', false);
+            const [deliverer] = $delivererPicker.select2('data');
+            if(deliverer){
+                $inputTime.val(deliverer.startingHour);
+            }
         }else{
-            $('.btn-calculate-time').addClass('btn-disabled');
-            $('input[name="expectedAtTime"]').attr('disabled', true);
+            $btnCalculateTime.addClass('btn-disabled');
+            $inputTime
+                .prop('disabled', true)
+                .val(null);
         }
     })
 });
