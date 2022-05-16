@@ -65,21 +65,21 @@
                     <div class="row content">
                         <div class="d-flex flex-wrap justify-content-around col-12 px-2">
                             <div class="col-lg-4 col-12">
-                                {{ form.input('startPoint', 'Point de départ', true, round.startPoint, {
+                                {{ form.input('startPoint', 'Point de départ', true, round.startPoint ?? setting_value('TRANSPORT_ROUND_KM_START_POINT'), {
                                     attributes: {
                                         'data-short-label': 'Départ tournée'
                                     }
                                 }) }}
                             </div>
                             <div class="col-lg-4 col-12">
-                                {{ form.input('startPointScheduleCalculation', 'Point de départ calcul horaire', true, round.startPointScheduleCalculation, {
+                                {{ form.input('startPointScheduleCalculation', 'Point de départ calcul horaire', true, round.startPointScheduleCalculation ?? setting_value('TRANSPORT_ROUND_HOURLY_BILLING_START_POINT'), {
                                     attributes: {
                                         'data-short-label': 'départ calcul horaire'
                                     }
                                 }) }}
                             </div>
                             <div class="col-lg-4 col-12">
-                                {{ form.input('endPoint', 'Point d\'arrivée', true, round.endPoint, {
+                                {{ form.input('endPoint', 'Point d\'arrivée', true, round.endPoint ?? setting_value('TRANSPORT_ROUND_END_POINT'), {
                                     attributes: {
                                         'data-short-label': 'Fin tournée'
                                     }

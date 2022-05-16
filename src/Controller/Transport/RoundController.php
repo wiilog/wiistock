@@ -7,6 +7,7 @@ use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
+use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Transport\TransportCollectRequest;
 use App\Entity\Transport\TransportDeliveryRequest;
@@ -159,6 +160,18 @@ class RoundController extends AbstractController {
         }
 
         $transportOrders = $entityManager->getRepository(TransportOrder::class)->findByDate($round->getExpectedAt());
+        $transportOrders = Stream::from($transportOrders)
+            ->sort(function (TransportOrder $a, TransportOrder $b) {
+                $getOrderTimestamp = function (TransportOrder $order) {
+                    $request = $order->getRequest();
+                    $dateTime = $request instanceof TransportCollectRequest
+                        ? DateTime::createFromFormat('Y-m-d H:i', $request->getValidatedDate()->format('Y-m-d') . ' ' . $request->getTimeslot()->getEnd())
+                        : $request->getExpectedAt();
+                    return $dateTime->getTimestamp();
+                };
+                return $getOrderTimestamp($a) <=> $getOrderTimestamp($b);
+            })
+            ->toArray();
 
         $contactDataByOrderId = Stream::from(
             $transportOrders,

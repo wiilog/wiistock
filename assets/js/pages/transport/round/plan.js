@@ -15,6 +15,10 @@ $(function () {
     initializeRoundPointMarkers(map);
     initializeForm();
     map.fitBounds();
+    placeAddressMarker($('.round-form-container [name=startPoint]'), map);
+    placeAddressMarker($('.round-form-container [name=startPointScheduleCalculation]'), map);
+    placeAddressMarker($('.round-form-container [name=endPoint]'), map);
+    intialiseMousehooverEvent(map , contactData);
 
     const sortable = Sortable.create(`.card-container`, {
         placeholderClass: 'placeholder',
@@ -36,34 +40,6 @@ $(function () {
 
     $('.btn-cross').on('click', function() {
         removeCard($(this), map, contactData);
-    });
-
-    $('.card-container .order-card').on('mouseenter', function(){
-        const $card = $(this);
-        const currentIndex = $card.find('.affected-number:not(.d-none)').text();
-        $card.addClass('focus-border');
-        let contact = contactData[$card.data('order-id')];
-        map.setMarker({
-            latitude: contact.latitude,
-            longitude: contact.longitude,
-            icon: currentIndex ? "blueLocation" : "greyLocation",
-            popUp: createPopupContent(contact, currentIndex),
-            isFocused: true,
-        });
-    });
-
-    $('.card-container .order-card').on('mouseleave',function (){
-        const $card = $(this);
-        $card.removeClass('focus-border');
-        const currentIndex = $card.find('.affected-number:not(.d-none)').text();
-
-        let contact = contactData[$card.data('order-id')];
-        map.setMarker({
-            latitude: contact.latitude,
-            longitude: contact.longitude,
-            icon: currentIndex ? "blueLocation" : "greyLocation",
-            popUp: createPopupContent(contact, currentIndex),
-        });
     });
 
     $.merge(
@@ -88,6 +64,37 @@ $(function () {
     })
 });
 
+function intialiseMousehooverEvent(map, contactData) {
+
+    $('.card-container .order-card').on('mouseenter', function(){
+        const $card = $(this);
+        const currentIndex = $card.find('.affected-number:not(.d-none)').text();
+        $card.addClass('focus-border');
+        let contact = contactData[$card.data('order-id')];
+        map.setMarker({
+            latitude: contact.latitude,
+            longitude: contact.longitude,
+            icon: currentIndex ? "blueLocation" : "greyLocation",
+            popUp: createPopupContent(contact, currentIndex),
+            isFocused: true,
+        });
+    }).on('mouseleave',function (){
+        const $card = $(this);
+        $card.removeClass('focus-border');
+        const currentIndex = $card.find('.affected-number:not(.d-none)').text();
+
+        let contact = contactData[$card.data('order-id')];
+        map.setMarker({
+            latitude: contact.latitude,
+            longitude: contact.longitude,
+            icon: currentIndex ? "blueLocation" : "greyLocation",
+            popUp: createPopupContent(contact, currentIndex, !currentIndex ? onclick: function () {
+                affectCard($card, map, contactData);
+            }),
+        });
+    });
+}
+
 function updateCardsContainers(map, contactData) {
     $('#to-affect-container').children().each((index, card) => {
         const $card = $(card);
@@ -104,7 +111,7 @@ function updateCardsContainers(map, contactData) {
                 affectCard($card, map, contactData);
             }
         });
-        ;
+        intialiseMousehooverEvent(map, contactData)
     });
 
     $('#affected-container').children().each((index, card) => {
