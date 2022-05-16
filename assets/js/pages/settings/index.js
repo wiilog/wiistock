@@ -124,7 +124,11 @@ $(function() {
 
         AJAX.route(`POST`, `settings_delete_row`, {id, type})
             .json()
-            .then(() => $target.closest(`tr`).remove());
+            .then(({success}) => {
+                if (success) {
+                    $target.closest(`tr`).remove();
+                }
+            });
     }, true);
 
     $(`.settings-item`).on(`click`, function() {
