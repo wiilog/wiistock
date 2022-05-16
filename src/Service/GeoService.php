@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\Transport\TransportOrder;
 use App\Exceptions\HttpException;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\TransportRoundLine;
@@ -42,18 +43,17 @@ class GeoService
         ];
     }
 
-    public function getStopsCoordinates(TransportRound $transportRound)
+    public function getStopsCoordinates(array $transportOrders)
     {
-        $coordinates = Stream::from($transportRound->getTransportRoundLines())
-            ->map(function (TransportRoundLine $line) {
-                $contact = $line->getOrder()->getRequest()->getContact();
+        return Stream::from($transportOrders)
+            ->map(function (TransportOrder $order) {
+                $contact = $order->getRequest()->getContact();
                 return [
                     "longitude" => $contact->getAddressLongitude(),
                     "latitude" => $contact->getAddressLatitude()
                 ];
             })
             ->toArray();
-        $this->fetchStopsData($coordinates);
     }
 
     public function estimateRoundTime($time): string

@@ -17,10 +17,18 @@ $(function () {
     map.fitBounds();
 
     const sortable = Sortable.create(`.card-container`, {
-        acceptFrom: `.card-container`,
         placeholderClass: 'placeholder',
-        items: ':not(.assigned-transport)'
     });
+
+    Sortable.create(`#affected-container`, {
+        acceptFrom: '#to-affect-container',
+        items: '.to-assign'
+    });
+
+    Sortable.create(`#affected-container`, {
+        acceptFrom: '.card-container',
+    });
+
 
     $(sortable).on('sortupdate', function (){
         updateCardsContainers(map, contactData);
@@ -65,10 +73,19 @@ $(function () {
             $('.round-form-container [name=endPoint]')
         )
     ).on('change', function () {
-        // TODO supprimer le marker deja présent pour le point
         placeAddressMarker($(this), map);
     });
 
+    $('.deliverer-picker').on('change',function (){
+        if($(this).val()){
+            $('.btn-calculate-time').removeClass('btn-disabled');
+            $('input[name="expectedAtTime"]').attr('disabled', false);
+
+        }else{
+            $('.btn-calculate-time').addClass('btn-disabled');
+            $('input[name="expectedAtTime"]').attr('disabled', true);
+        }
+    })
 });
 
 function updateCardsContainers(map, contactData) {
@@ -82,9 +99,12 @@ function updateCardsContainers(map, contactData) {
             latitude: contact.latitude,
             longitude: contact.longitude,
             icon: "greyLocation",
-            popUp: createPopupContent(contact),
+            popUp: createPopupContent(contact, null),
+            onclick: function () {
+                affectCard($card, map, contactData);
+            }
         });
-
+        ;
     });
 
     $('#affected-container').children().each((index, card) => {
@@ -92,14 +112,15 @@ function updateCardsContainers(map, contactData) {
         $card.find('.affected-number')
             .removeClass('d-none')
             .text(index + 1);
-        $card.find('.btn-cross').removeClass('d-none');
-
+        $card.find('.btn-cross').removeClass('d-none').on('click', function() {
+            removeCard($(this), map, contactData);
+        });
         let contact = contactData[$card.data('order-id')];
         map.setMarker({
             latitude: contact.latitude,
             longitude: contact.longitude,
             icon: "blueLocation",
-            popUp: createPopupContent(contact, index + 1)
+            popUp: createPopupContent(contact, index + 1),
         });
     });
 }
@@ -202,6 +223,7 @@ function addRoundPointMarker(map, $input, {latitude, longitude}) {
             longitude,
             icon: "blackLocation",
             popUp: createPopupContent({contact: $input.data('short-label')}),
+            name: $input.data('short-label'),
         });
     }
 }
@@ -216,3 +238,10 @@ function initializeRoundPointMarkers(map) {
         addRoundPointMarker(map, $input, pointCoordinates);
     }
 }
+
+function affectCard($card, map, contactData) {
+    $card.remove();
+    $('#affected-container').append($card);
+    updateCardsContainers(map ,contactData);
+}
+
