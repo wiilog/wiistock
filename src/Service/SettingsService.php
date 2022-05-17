@@ -248,7 +248,7 @@ class SettingsService {
                 ->keymap(fn(TemperatureRange $range) => [$range->getValue(), $range])
                 ->toArray();
             $removedRanges = Stream::from($existingRanges)->toArray();
-            $submittedTemperatureRanges = Stream::explode(";", $request->request->get("temperatureRanges"))
+            $submittedTemperatureRanges = Stream::explode(",", $request->request->get("temperatureRanges"))
                 ->unique()
                 ->toArray();
 
