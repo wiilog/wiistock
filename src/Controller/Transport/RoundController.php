@@ -260,7 +260,6 @@ class RoundController extends AbstractController {
                 throw $exception;
             }
 
-            // TODO ajouter historique de transport / status à la tournée ?
             $roundStatus = $statusRepository
                 ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ROUND, TransportRound::STATUS_AWAITING_DELIVERER);
 
@@ -317,7 +316,6 @@ class RoundController extends AbstractController {
                     $entityManager->persist($line);
                     $transportRound->addTransportRoundLine($line);
 
-                    // TODO uniquement à l'ordre ou à la request aussi ?
                     // set order status + add status history + add transport history
                     $status = $order->getRequest() instanceof TransportDeliveryRequest ? $deliveryOrderAssignStatus : $collectOrderAssignStatus;
 
