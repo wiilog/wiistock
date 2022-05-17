@@ -13,6 +13,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 use ReflectionClass;
 use Symfony\Component\HttpKernel\KernelInterface;
+use Throwable;
 use Twig\Markup;
 use Twig\TwigFilter;
 use Twig\TwigFunction;
@@ -64,6 +65,7 @@ class AppExtension extends AbstractExtension {
             new TwigFunction('call', [$this, 'call']),
             new TwigFunction('interleave', [$this, 'interleave']),
             new TwigFunction('formatHistory', [$this, 'formatHistory']),
+            new TwigFunction('isImage', [$this, 'isImage']),
         ];
     }
 
@@ -227,5 +229,16 @@ class AppExtension extends AbstractExtension {
 
     public function some(Collection|array $array, callable $callback): bool {
         return Stream::from($array)->some($callback);
+    }
+
+    public function isImage(string $path): bool {
+        try {
+            $imagesize = getimagesize($this->kernel->getProjectDir() . '/' . $path);
+            $imageType = $imagesize[2] ?? null;
+            return in_array($imageType, [IMAGETYPE_GIF, IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_BMP]);
+        }
+        catch (Throwable) {
+            return false;
+        }
     }
 }

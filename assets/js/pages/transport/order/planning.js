@@ -72,7 +72,7 @@ function initializeRoundPlan() {
             const $radios = $modalRoundPlan.find('[name=roundInfo]');
             const $newRoundRadio = $radios.filter('[value=newRound]');
 
-            $radios.on('change', function(){console.log()
+            $radios.on('change', function(){
                 if ($(this).val() === 'newRound') {
                     $round
                         .prop('disabled', true)

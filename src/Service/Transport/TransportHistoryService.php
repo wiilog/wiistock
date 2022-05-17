@@ -106,6 +106,7 @@ class TransportHistoryService {
         $history
             ->setType($type)
             ->setDate($params["date"] ?? new DateTime())
+            ->setStatusDate($params["statusDate"] ?? new DateTime())
             ->setUser($params["user"] ?? null)
             ->setPack($params["pack"] ?? null)
             ->setRound($params["round"] ?? null)
@@ -113,6 +114,7 @@ class TransportHistoryService {
             ->setDeliverer($params["deliverer"] ?? null)
             ->setReason($params["reason"] ?? null)
             ->setAttachments($params["attachments"] ?? [])
+            ->setComment($params["comment"] ?? null)
             ->setStatusHistory($params["history"] ?? null)
             ->setLocation($params["location"] ?? null);
 
@@ -134,23 +136,32 @@ class TransportHistoryService {
                     return "<span class='text-primary underlined'>{$entity->getNumber()}</span>";
                 }
                 else if($entity instanceof DateTime) {
-                    return FormatHelper::datetime($entity);
+                    $date = FormatHelper::longDate($entity, ['time' => true, 'year' => true]);
+                    return "<span class='font-weight-bold'>{$date}</span>";
                 }
                 else if($entity instanceof Statut) {
-                    return FormatHelper::status($entity);
+                    $status = FormatHelper::status($entity);
+                    return "<span class='font-weight-bold'>{$status}</span>";
                 }
                 else if($entity instanceof Collection) {
                     if ($entity->get(0) instanceof Attachment) {
                         $formatedValue = Stream::from($entity)->map(function(Attachment $attachment) {
                             $name = $attachment->getOriginalName();
-                            $path = $this->kernel->getProjectDir() . '/public/uploads/attachements/' . $attachment->getFileName();
+                            $publicUrl = $attachment->getFullPath();
+                            $imagePath = $this->kernel->getProjectDir() . '/public' . $publicUrl;
+
+                            $imagesize = getimagesize($imagePath);
+                            $imageType = $imagesize[2] ?? null;
+                            $isImage = in_array($imageType, [IMAGETYPE_GIF, IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_BMP]);
 
                             return
-                                "<div class='attachment-line'>
-                                    <img src='$path' alt='$name'>
-                                    <span class='text-primary underlined'>$name</span>
+                                "<div class='attachment-line mt-2'>" .
+                                    ($isImage ? "<img src='$publicUrl' alt='$name'>" : '') .
+                                    "<a class='text-primary underlined pointer'
+                                        download='$name'
+                                        href='$publicUrl'>$name</a>
                                 </div>";
-                        })->join(";");
+                        })->join("");
                     } else {
                         return "";
                     }
@@ -187,9 +198,9 @@ class TransportHistoryService {
             "{deliverer}" => $this->formatEntity($history->getDeliverer()),
             "{reason}" => $this->formatEntity($history->getReason()),
             "{status}" => $this->formatEntity($history->getStatusHistory()?->getStatus()),
-            "{statusDate}" => $this->formatEntity($history->getStatusHistory()?->getDate()),
-            "{comment}" => $this->formatEntity($history->getComment()),
-            "{attachments}" => $this->formatEntity($history->getAttachments())
+            "{statusDate}" => $history->getStatusDate()
+                ? $this->formatEntity($history->getStatusDate())
+                : $this->formatEntity($history->getStatusHistory()?->getDate()),
         ];
 
         return str_replace(array_keys($replace), array_values($replace), self::CONTENT[$history->getType()]);

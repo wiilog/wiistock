@@ -66,6 +66,7 @@ class HistoryController extends AbstractController
         return $this->json([
             "success" => true,
             "template" => $this->renderView('transport/request/timelines/status-history.html.twig', [
+                "timeSlot" => $entity instanceof TransportCollectRequest ? $entity->getTimeSlot() : null,
                 "statusWorkflow" => $statusWorkflow,
                 "statusesHistory" => Stream::from($entity->getStatusHistory())
                     ->map(fn(StatusHistory $statusHistory) => [

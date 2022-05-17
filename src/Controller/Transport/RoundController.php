@@ -95,7 +95,16 @@ class RoundController extends AbstractController {
                     $minutes = floor($timestamp / 60) - ($hours * 60);
                 }
 
+                $hasRejectedPacks = false;
+                foreach ($transportRound->getTransportRoundLines() as $line) {
+                    if($line->getOrder()->hasRejectedPacks()) {
+                        $hasRejectedPacks = true;
+                        break;
+                    }
+                }
+
                 $currentRow[] = $this->renderView("transport/round/list_card.html.twig", [
+                    "hasRejectedPacks" => $hasRejectedPacks,
                     "prefix" => TransportRound::NUMBER_PREFIX,
                     "round" => $transportRound,
                     "realTime" => isset($hours) && isset($minutes)
@@ -275,8 +284,7 @@ class RoundController extends AbstractController {
             ->setEndPoint($endPoint)
             ->setCoordinates($coordinates);
 
-        $affectedOrders = $transportOrderRepository->findBy(['id' => $affectedOrderIds]);
-        if (empty($affectedOrders)) {
+        if (empty($affectedOrderIds)) {
             throw new FormException("Il n'y a aucun ordre dans la tournée, veuillez réessayer");
         }
 
@@ -287,7 +295,7 @@ class RoundController extends AbstractController {
             ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_DELIVERY, TransportOrder::STATUS_ASSIGNED);
 
         /** @var TransportOrder $order */
-        foreach ($affectedOrders as $index => $orderId) {
+        foreach ($affectedOrderIds as $index => $orderId) {
             $order = $transportOrderRepository->find($orderId);
             if ($order) {
                 $affectationAllowed = (
@@ -315,7 +323,7 @@ class RoundController extends AbstractController {
 
                     $statusHistory = $statusHistoryService->updateStatus($entityManager, $order, $status);
 
-                    $transportHistoryService->persistTransportHistory($entityManager, $order, TransportHistoryService::TYPE_AFFECTED_ROUND, [
+                    $transportHistoryService->persistTransportHistory($entityManager, [$order->getRequest(), $order], TransportHistoryService::TYPE_AFFECTED_ROUND, [
                         'user' => $this->getUser(),
                         'deliverer' => $transportRound->getDeliverer(),
                         'round' => $transportRound,
@@ -327,7 +335,7 @@ class RoundController extends AbstractController {
                     ->setPriority($priority);
             }
             else {
-                throw new FormException("Une ordre affecté n'existe plus, veuillez réessayer");
+                throw new FormException("Un ordre affecté n'existe plus, veuillez réessayer");
             }
         }
 

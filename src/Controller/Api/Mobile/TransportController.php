@@ -130,7 +130,7 @@ class TransportController extends AbstractFOSRestController {
                                 ])->toArray();
 
                             return [
-                                'id' => $line->getTransportRound()->getId(),
+                                'id' => $line->getOrder()->getRequest()->getId(),
                                 'number' => $request->getNumber(),
                                 'type' => FormatHelper::type($request->getType()),
                                 'type_icon' => $request->getType()?->getLogo() ? $_SERVER["APP_URL"] . $request->getType()->getLogo()->getFullPath() : null,
@@ -183,7 +183,7 @@ class TransportController extends AbstractFOSRestController {
                                 'signature' => $order->getSignature()?->getFullPath(),
                                 'requester' => FormatHelper::user($request->getCreatedBy()),
                                 'free_fields' => Stream::from($freeFields)
-                                    ->map(function(FreeField $freeField) use($freeFieldsValues) {
+                                    ->map(function(FreeField $freeField) use($line, $freeFieldsValues) {
                                         return [
                                             'id' => $freeField->getId(),
                                             'label' => $freeField->getLabel(),
@@ -229,17 +229,24 @@ class TransportController extends AbstractFOSRestController {
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
      */
-    public function rejectPack(Request $request, EntityManagerInterface $manager): Response {
+    public function rejectPack(Request $request, EntityManagerInterface $manager, TransportHistoryService $historyService): Response {
         $data = $request->request;
         $pack = $manager->getRepository(Pack::class)->findOneBy(['code' => $data->get('pack')]);
         $rejectMotive = $data->get('rejectMotive');
 
         $transportDeliveryOrderPack = $pack->getTransportDeliveryOrderPack();
+        [$order, $request] = [$transportDeliveryOrderPack->getOrder(), $transportDeliveryOrderPack->getOrder()->getRequest()];
 
         $transportDeliveryOrderPack
             ->setRejectedBy($this->getUser())
             ->setRejectReason($rejectMotive)
             ->setState(TransportDeliveryOrderPack::REJECTED_STATE);
+
+        $historyService->persistTransportHistory($manager, [$order, $request], TransportHistoryService::TYPE_DROP_REJECTED_PACK, [
+            'user' => $this->getUser(),
+            'pack' => $pack,
+            'reason' => $rejectMotive
+        ]);
 
         $manager->flush();
         return $this->json([
@@ -257,7 +264,8 @@ class TransportController extends AbstractFOSRestController {
                               TrackingMovementService $trackingMovementService): Response {
         $data = $request->request;
         $packs = $manager->getRepository(Pack::class)->findBy(['code' => json_decode($data->get('packs'))]);
-        $location = $manager->getRepository(Emplacement::class)->find($data->get('location'));
+        $location = $manager->find(Emplacement::class, $data->get('location'));
+        $round = $manager->find(TransportRound::class, $data->get('round'));
         $now = new DateTime();
         $user = $this->getUser();
 
@@ -269,6 +277,12 @@ class TransportController extends AbstractFOSRestController {
             $trackingMovement = $trackingMovementService
                 ->createTrackingMovement($pack, $location, $user, $now, true, true,TrackingMovement::TYPE_DEPOSE);
             $manager->persist($trackingMovement);
+        }
+
+        if($round->getStatus()->getCode() !== TransportRound::STATUS_ONGOING) {
+            $onGoingStatus = $manager->getRepository(Statut::class)
+                ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ROUND, TransportRound::STATUS_ONGOING);
+            $round->setStatus($onGoingStatus);
         }
 
         $manager->flush();
@@ -351,6 +365,58 @@ class TransportController extends AbstractFOSRestController {
             'history' => $statusHistoryRequest,
             'attachments' => [$signatureAttachment, $photoAttachment]
         ]);
+
+        $manager->flush();
+        return $this->json([
+            'success' => true
+        ]);
+    }
+
+    /**
+     * @Rest\Post("/api/patch-round-status", name="api_patch_round_status", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function patchRoundStatus(Request $request,
+                                     EntityManagerInterface $manager,
+                                     TransportHistoryService $historyService,
+                                     StatusHistoryService $statusHistoryService): Response {
+        $round = $manager->find(TransportRound::class, $request->request->get('round'));
+        $user = $this->getUser();
+        $now = new DateTime();
+
+        $statusRespository = $manager->getRepository(Statut::class);
+        $onGoingStatus = $statusRespository
+            ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ROUND, TransportRound::STATUS_ONGOING);
+
+        $round
+            ->setStatus($onGoingStatus)
+            ->setBeganAt($now);
+
+        $orders = Stream::from($round->getTransportRoundLines())->map(fn(TransportRoundLine $line) => $line->getOrder());
+        $requests = Stream::from($orders)->map(fn(TransportOrder $order) => $order->getRequest());
+        $entities = Stream::from($orders)->concat($requests)->toArray();
+
+        foreach ($entities as $entity) {
+            if($entity instanceof TransportOrder) {
+                $statusCode = TransportOrder::STATUS_ONGOING;
+                $categoryStatus = $entity->getRequest() instanceof TransportCollectRequest
+                    ? CategorieStatut::TRANSPORT_ORDER_COLLECT
+                    : CategorieStatut::TRANSPORT_ORDER_DELIVERY;
+            } else {
+                $statusCode = TransportRequest::STATUS_ONGOING;
+                $categoryStatus = $entity instanceof TransportCollectRequest
+                    ? CategorieStatut::TRANSPORT_REQUEST_COLLECT
+                    : CategorieStatut::TRANSPORT_REQUEST_DELIVERY;
+            }
+            $status = $statusRespository->findOneByCategorieNameAndStatutCode($categoryStatus, $statusCode);
+
+            $statusHistoryRequest = $statusHistoryService->updateStatus($manager, $entity, $status);
+            $historyService->persistTransportHistory($manager, $entity, TransportHistoryService::TYPE_ONGOING, [
+                'user' => $user,
+                'history' => $statusHistoryRequest,
+            ]);
+        }
 
         $manager->flush();
         return $this->json([

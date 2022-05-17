@@ -441,4 +441,23 @@ class TransportService {
         $entityManager->persist($pack);
         return $orderPack;
     }
+
+    public function updateSubcontractedRequestStatus(EntityManagerInterface          $entityManager,
+                                                     Utilisateur                     $loggedUser,
+                                                     TransportRequest|TransportOrder $transport,
+                                                     Statut                          $status,
+                                                     DateTime                        $dateTime,
+                                                     bool                            $setStatus): void {
+
+        $statusHistory = $this->statusHistoryService->updateStatus($entityManager, $transport, $status, $dateTime, [
+            'forceCreation' => false,
+            'setStatus' => $setStatus
+        ]);
+
+        $this->transportHistoryService->persistTransportHistory($entityManager, $transport, TransportHistoryService::TYPE_SUBCONTRACT_UPDATE, [
+            'history' => $statusHistory,
+            'statusDate' => $dateTime,
+            'user' => $loggedUser
+        ]);
+    }
 }

@@ -124,7 +124,11 @@ $(function() {
 
         AJAX.route(`POST`, `settings_delete_row`, {id, type})
             .json()
-            .then(() => $target.closest(`tr`).remove());
+            .then(({success}) => {
+                if (success) {
+                    $target.closest(`tr`).remove();
+                }
+            });
     }, true);
 
     $(`.settings-item`).on(`click`, function() {
@@ -157,7 +161,7 @@ $(function() {
             try {
                 form.element.find(`[data-table-processing]`).each(function () {
                     const datatable = EditableDatatable.of(this);
-                    if (datatable) {
+                    if (datatable && $(this).data('needs-processing')) {
                         const tableData = datatable.data();
                         tables[$(this).data(`table-processing`)] = tableData;
                         tables[`category`] = $(this).data(`category`);

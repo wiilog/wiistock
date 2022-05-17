@@ -103,14 +103,20 @@ class AttachmentService {
         }
     }
 
-    public function manageAttachments(EntityManagerInterface $entityManager, $attachmentEntity, FileBag $files) {
+    /**
+     * @return Attachment[]
+     */
+    public function manageAttachments(EntityManagerInterface $entityManager, $attachmentEntity, FileBag $files): array {
         $reflect = new ReflectionClass($attachmentEntity);
         $dedicatedAttachmentFolder = strtolower($reflect->getShortName()) . '/' . $attachmentEntity->getId();
+        $addedAttachments = [];
         foreach ($files as $file) {
             $attachment = $this->saveFileInDedicatedFolder($file, $dedicatedAttachmentFolder);
             $attachmentEntity->addAttachment($attachment);
+            $addedAttachments[] = $attachment;
             $entityManager->persist($attachment);
         }
+        return $addedAttachments;
     }
 
     private function saveFileInDedicatedFolder(UploadedFile $uploadedFile, string $dedicatedSubFolder): Attachment {
