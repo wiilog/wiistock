@@ -145,6 +145,27 @@ function loadItems($container, config, type, edit = false) {
                     $itemContainer.toggleClass('main-entity-content-form', Boolean(edit))
                     $itemContainer.empty();
 
+                    if(config.name === "alertTemplates"){
+                        const $editButton = $container.find(`.edit-button`);
+                        const $pageHeader = $container.find(`.management-header div:last-child`);
+                        const $addButton = $container.find(`.add-entity`);
+                        const $deleteButton = $container.find('.delete-main-entity');
+                        const $managementBody = $container.find('.management-body');
+                        const $managementHeader = $container.find('.management-header');
+
+                        $editButton.on('click', function(){
+                            $pageHeader.addClass('d-none');
+                            $managementBody.css('margin-top', '0');
+                            $managementBody.css('border-top-left-radius', '0').css('border-top-right-radius', '0');
+                            $managementHeader.css('border-bottom-left-radius', '0').css('border-bottom-right-radius', '0');
+                        });
+
+                        $addButton.on('click', function(){
+                            $deleteButton.parent().addClass('d-none');
+                            $editButton.parent().addClass('d-none');
+                        })
+                    }
+
                     for (const item of data.data) {
                         if (item.breakline) {
                             $itemContainer.append(`<div class="w-100"></div>`);

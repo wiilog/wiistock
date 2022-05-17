@@ -28,9 +28,6 @@ class AlertTemplateController extends AbstractController
         $edit = $request->query->getBoolean("edit");
         $category = $template?->getType();
 
-        $alertType = $template?->getType() ? ($template->getType() === AlertTemplate::PUSH ? 'Notifications ' .$template->getType(). "/web" :
-                        ($template->getType() === AlertTemplate::SMS ? strtoupper(AlertTemplate::SMS) : "Email")) : '';
-
         if ($edit) {
             $name = $template?->getName();
             $data = [[
@@ -50,13 +47,13 @@ class AlertTemplateController extends AbstractController
                 $data[] = [
                     "class" => "col-md-8",
                     "label" => "Type d'alerte",
-                    "value" => $alertType,
+                    "value" => AlertTemplate::TEMPLATE_TYPES[$template->getType()]." <input type='hidden' name='type' class='data form-control' value='{$template->getType()}' >",
                 ];
             }
             else {
                 $data[] = [
                     "label" => '',
-                    "class" => "row col-md-12",
+                    "class" => "col-md-12",
                     "value" => $this->renderView('settings/notifications/new.html.twig', [
                         'templateTypes' => AlertTemplate::TEMPLATE_TYPES
                     ]),
@@ -178,7 +175,7 @@ class AlertTemplateController extends AbstractController
                 $image = $template?->getConfig()['image'] ?? '';
                 $data[] = [
                     "label" => "Type d'alerte",
-                    "value" => 'Notifications ' . AlertTemplate::PUSH . '/web',
+                    "value" => AlertTemplate::TEMPLATE_TYPES[AlertTemplate::PUSH],
                 ];
 
                 $data[] = [
@@ -198,7 +195,7 @@ class AlertTemplateController extends AbstractController
                     "class" => "col-md-12",
                     "noFullWidth" => true,
                     "label" => "Type d'alerte",
-                    "value" => strtoupper(AlertTemplate::SMS),
+                    "value" => AlertTemplate::TEMPLATE_TYPES[AlertTemplate::SMS],
                 ];
 
                 $data[] = [
@@ -230,7 +227,7 @@ class AlertTemplateController extends AbstractController
                     "class" => "col-md-12",
                     "noFullWidth" => true,
                     "label" => "Type d'alerte",
-                    "value" => "Email",
+                    "value" => AlertTemplate::TEMPLATE_TYPES[AlertTemplate::MAIL],
                 ];
 
                 $data[] = [

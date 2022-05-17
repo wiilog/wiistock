@@ -9,7 +9,7 @@
     {% if phoneNumbers is defined and phoneNumbers is not empty %}
         {% for phoneNumber in phoneNumbers %}
             <div class="phone-number-container d-flex {{ loop.index != 1 ? 'mt-2' }}">
-                <input class="form-control data-array phone-number" name="receivers" type="text" value="{{ phoneNumber }}">
+                <input class="form-control data-array phone-number" data-intl-tel-input name="receivers" type="text" value="{{ phoneNumber }}">
                 {% if loop.index != 1 %}
                     <button class="btn d-block" onclick="deletePhoneNumber($(this))"><i class="wii-icon wii-icon-trash"></i></button>
                 {% endif %}
@@ -17,7 +17,7 @@
         {% endfor %}
     {% else %}
         <div class="phone-number-container">
-            <input class="form-control data-array phone-number" name="receivers" type="text">
+            <input class="form-control data-array phone-number" data-intl-tel-input name="receivers" type="text">
         </div>
     {% endif %}
     <button class="btn btn-primary mt-3"
@@ -26,7 +26,7 @@
     </button>
 </div>
 
-<div class="col-12 form-group mt-1">
+<div class="col-md-4 col-12 form-group mt-1">
     <label class="mb-2 wii-field-name">SMS*</label>
     <textarea name="content"
               style="resize: none"
@@ -34,7 +34,7 @@
               class="form-control data needed">{{ config ? config['content'] }}</textarea>
 </div>
 
-<div class="col-12">
+<div class="col-md-4 col-12">
     {% include 'variables_dictionary.html.twig' with {dictionary: 'ALERT_DICTIONARY'} %}
 </div>
 

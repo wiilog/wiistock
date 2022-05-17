@@ -135,3 +135,22 @@
 textarea {
     resize: none;
 }
+
+.alert-title {
+    font-size: 16px;
+    margin-top: 10px;
+    margin-right: -$grid-gutter-width;
+    margin-left: -$grid-gutter-width;
+}
+
+.hide-arrow {
+    .phone-number {
+         border: none;
+         background-color: transparent;
+         padding-left: 40px !important;
+     }
+
+    .iti__arrow {
+        display: none;
+    }
+}
