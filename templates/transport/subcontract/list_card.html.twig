@@ -48,10 +48,14 @@
                 </td>
                 <td class="transport-category-container">
                     <div class="mb-2">
-                        Créée le : {{ request.createdAt | format_helper('longDate', {short: true, time: true}) }}
+                        <span class="d-xl-none">Créé le :<br> {{ request.createdAt | date('d/m/Y H:i') }}</span>
+                        <span class="d-none d-xl-block">Créé le : {{ request.createdAt | format_helper('longDate', {short: true, time: true}) }}</span>
                     </div>
                     <div>
-                        <span style="font-weight: bold">A livrer à :  {{ request.expectedAt | format_helper('longDate', {short: true, time: true}) }}</span>
+                        <span class="bold">
+                            <span class="d-xl-none">A livrer à :<br> {{  request.expectedAt | date('d/m/Y H:i') }}</span>
+                            <span class="d-none d-xl-block">A livrer à : {{  request.expectedAt | format_helper('longDate', {short: true, time: true}) }}</span>
+                        </span>
                     </div>
                 </td>
                 <td class="transport-subcontract-contact">
@@ -67,10 +71,20 @@
                 </td>
                 <td class="transport-subcontract-details-container">
                     <div class="mb-2">
-                        Commencée le : <span style="font-weight: bold">{{ order.startedAt ? order.startedAt | format_helper('longDate', {short: true, time: true}) : "-" }}</span>
+                        <span class="d-xl-none">
+                            Commencée le  :<br><span class="bold">{{ order.startedAt ? order.startedAt | format_helper('longDate', {short: true, time: true}) : "-" }}</span>
+                        </span>
+                        <span class="d-none d-xl-block">
+                            Commencée le :<span class="bold">{{ order.startedAt ? order.startedAt | format_helper('longDate', {short: true, time: true}) : "-" }}</span>
+                        </span>
                     </div>
                     <div>
-                        Livrée le : <span style="font-weight: bold"> {{ order.treatedAt ? order.treatedAt | format_helper('longDate', {short: true, time: true}) : "-" }}</span>
+                        <span class="d-xl-none">
+                            Livrée le :<br> <span style="font-weight: bold"> {{ order.treatedAt ? order.treatedAt | format_helper('longDate', {short: true, time: true}) : "-" }}</span>
+                        </span>
+                        <span class="d-none d-xl-block">
+                            Livrée le : <span style="font-weight: bold"> {{ order.treatedAt ? order.treatedAt | format_helper('longDate', {short: true, time: true}) : "-" }}</span>
+                        </span>
                     </div>
                 </td>
                 <td class="transport-subcontract-details-container">
