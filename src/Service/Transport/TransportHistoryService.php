@@ -56,7 +56,7 @@ class TransportHistoryService {
     public const CONTENT = [
         self::TYPE_REQUEST_CREATION => "{user} a créé la {category}",
         self::TYPE_BOTH_REQUEST_CREATION => "{user} a créé la livraison et une collecte",
-        self::TYPE_AFFECTED_ROUND => "{user} a affecté la {category} à la tournée T{round} et au livreur {deliverer}",
+        self::TYPE_AFFECTED_ROUND => "{user} a affecté la {category} à la tournée {round} et au livreur {deliverer}",
         self::TYPE_CONTACT_VALIDATED => "{user} a validé la date de collecte avec le patient",
         self::TYPE_LABELS_PRINTING => "{user} a préparé la livraison",
         self::TYPE_ONGOING => "{user} a débuté la {category}",
@@ -133,7 +133,8 @@ class TransportHistoryService {
                     return $entity->getCode();
                 }
                 else if($entity instanceof TransportRound) {
-                    return "<span class='text-primary underlined'>{$entity->getNumber()}</span>";
+                    $numberPrefix = TransportRound::NUMBER_PREFIX;
+                    return "<span class='text-primary underlined'>{$numberPrefix}{$entity->getNumber()}</span>";
                 }
                 else if($entity instanceof DateTime) {
                     $date = FormatHelper::longDate($entity, ['time' => true, 'year' => true]);
