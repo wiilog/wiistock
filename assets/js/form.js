@@ -31,7 +31,6 @@ export default class Form {
                     const result = Form.process(form, {
                         button: $(this),
                     });
-                    console.log('aaaaaaaaaaaaaaaaa')
 
                     if (result) {
                         form.submitListeners.forEach((submitListener) => {
@@ -179,6 +178,16 @@ export default class Form {
                 `font-weight: bold;`,
                 `font-weight: normal;`,
             ], errors);
+            const $firstInvalidElement = errors[0].elements[0];
+            const $scrollableParent = $firstInvalidElement.parents(`.modal`).exists()
+                ? $firstInvalidElement.parents(`.modal`).first()
+                : $firstInvalidElement.parents(`body`);
+
+            if($scrollableParent) {
+                $scrollableParent.animate({
+                    scrollTop: $firstInvalidElement.offset().top
+                }, 1000);
+            }
         }
 
         if(config.ignoreErrors) {
@@ -397,7 +406,7 @@ function formatInputValue($input) {
         value = $input.val() || null;
     }
 
-    if (Array.isArray(value)) {
+    if ($input.parents('.free-field').exists() && Array.isArray(value)) {
         value = value.join(';');
     }
 

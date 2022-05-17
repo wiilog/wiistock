@@ -17,6 +17,8 @@
 {% set order = request.order %}
 {% set orderPacks = request.order is not null ? order.packs : [] %}
 
+{% set assignedOrder = order is not null and order.status.code == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ASSIGNED') %}
+
 <div class="modal fade"
      role="dialog"
      data-modal-type="{{ modeEdit ? 'edit' : 'new' }}">
@@ -55,50 +57,49 @@
                         <i class="wii-icon wii-icon-user bg-primary mr-1"></i>
                         Informations Patient
                     </div>
-                    <div class="row contact-container">
-                        <div class="col-md-6 col-12">
-                            <div class="row">
-                                <div class="col-12 mb-2">
+                    <div class="contact-container">
+                        <div class="row">
+                            <div class="col-md-6 col-12 mb-2">
+                                <div class="mb-2">
                                     {{ form.input('contactName', 'Patient', true, contact.name, {
                                         disabled: request.id is not null,
                                     }) }}
                                 </div>
-                                <div class="col-12 mb-2">
-                                    {{ form.input('contactFileNumber', 'N° dossier', true, contact.fileNumber, {
-                                        disabled: request.id is not null,
-                                    }) }}
-                                </div>
-                                <div class="col-12 mb-2">
-                                    {{ form.textarea('contactContact', 'Contact', true, contact.contact, {
+                                {{ form.input('contactFileNumber', 'N° dossier', true, contact.fileNumber, {
+                                    disabled: request.id is not null,
+                                }) }}
+                            </div>
+                            <div class="col-md-6 col-12 mb-2">
+                                <div class="d-flex">
+                                    {{ form.textarea('contactAddress', 'Adresse', true, contact.address, {
                                         style: 'min-height: 104px;',
                                         resizeVertical: false,
+                                        disabled: assignedOrder
                                     }) }}
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6 col-12">
-                            <div class="row">
-                                <div class="col-12 mb-2">
-                                    <div class="d-flex">
-                                        {{ form.textarea('contactAddress', 'Adresse', true, contact.address, {
-                                            style: 'min-height: 104px;',
-                                            resizeVertical: false,
-                                        }) }}
-                                    </div>
-                                </div>
-                                <div class="col-12 mb-2">
-                                    {{ form.textarea('contactPersonToContact', 'Personne à prévenir', true, contact.personToContact, {
-                                        style: 'min-height: 104px;',
-                                        resizeVertical: false,
-                                    }) }}
-                                </div>
+                        <div class="row">
+                            <div class="col-md-6 col-12 mb-2">
+                                {{ form.textarea('contactContact', 'Contact', true, contact.contact, {
+                                    style: 'min-height: 104px;',
+                                    resizeVertical: false,
+                                }) }}
+                            </div>
+                            <div class="col-md-6 col-12 mb-2">
+                                {{ form.textarea('contactPersonToContact', 'Personne à prévenir', true, contact.personToContact, {
+                                    style: 'min-height: 104px;',
+                                    resizeVertical: false,
+                                }) }}
                             </div>
                         </div>
-                        <div class="col-12 mb-2">
-                            {{ form.textarea('contactObservation', 'Remarque', false, contact.observation, {
-                                style: 'min-height: 104px;',
-                                resizeVertical: false,
-                            }) }}
+                        <div class="row">
+                            <div class="col-12 mb-2">
+                                {{ form.textarea('contactObservation', 'Remarque', false, contact.observation, {
+                                    style: 'min-height: 104px;',
+                                    resizeVertical: false,
+                                }) }}
+                            </div>
                         </div>
                     </div>
 
@@ -149,7 +150,7 @@
                         </div>
                     </div>
 
-                    {% set displayCollectDate = modeCollectEdit and request_collect.delivery is null %}
+                    {% set displayCollectDate = modeCollectEdit and request.delivery is null %}
                     <div class="wii-section-title my-3 {{ not modeDeliveryEdit and not displayCollectDate ? 'd-none' }}"
                          data-request-type>
                         <div class="d-flex align-items-center">
@@ -163,6 +164,7 @@
                             {% set expectedAtValue = request.expectedAt ? request.expectedAt|date('Y-m-d\\TH:i') %}
                             {{ form.input('expectedAt', 'Date et heure de livraison', true, expectedAtValue, {
                                 type: 'datetime-local',
+                                disabled: assignedOrder
                             }) }}
                         </div>
                         <div class="col-md-6 col-12">
@@ -174,7 +176,8 @@
                                 value: label
                             })) %}
                             {{ form.select('emergency', 'Urgence', false, {
-                                items: [{label: 'Non urgent', value: ''}]|merge(emergenciesValues)
+                                items: [{label: 'Non urgent', value: ''}]|merge(emergenciesValues),
+                                disabled: assignedOrder
                             }) }}
                         </div>
                     </div>
@@ -185,6 +188,7 @@
                             {{ form.input('expectedAt', 'Date de collecte', true, expectedAtValue, {
                                 type: 'date',
                                 min: 'now' | date('Y-m-d'),
+                                disabled: assignedOrder
                             }) }}
                         </div>
                     </div>
@@ -207,7 +211,7 @@
                                 <div class="d-none warning-empty-natures">
                                     {% include 'utils/warningSelectEmpty.html.twig' with {
                                         array: [],
-                                        warningLabel: 'Attention ! Aucune nature de colis n\'a été créée',
+                                        warningLabel: 'Attention ! Aucune nature de colis n\'a été paramétrée',
                                         redirectPath: path('nature_param_index'),
                                         redirectLabel: 'Aller vers la création des natures',
                                         block: true

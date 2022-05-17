@@ -19,7 +19,7 @@ class FiltreSup {
     const FIELD_PROVIDERS = 'providers';
     const FIELD_CATEGORY = 'category';
     const FIELD_TYPE = 'type';
-    const FIELD_FILE_NUMBER = 'fieldNumber';
+    const FIELD_FILE_NUMBER = 'fileNumber';
     const FIELD_CONTACT = 'contact';
     const FIELD_EMPLACEMENT = 'emplacement';
     const FIELD_COLIS = 'colis';

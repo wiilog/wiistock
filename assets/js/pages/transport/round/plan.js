@@ -12,20 +12,22 @@ $(function () {
     const contactData = JSON.parse($(`input[name=contactData]`).val());
 
     updateCardsContainers(map, contactData);
+    initializeRoundPointMarkers(map);
     initializeForm();
     map.fitBounds();
 
     const sortable = Sortable.create(`.card-container`, {
         acceptFrom: `.card-container`,
         placeholderClass: 'placeholder',
+        items: ':not(.assigned-transport)'
     });
 
     $(sortable).on('sortupdate', function (){
         updateCardsContainers(map, contactData);
     })
 
-    $('.btn-cross').on('click', (event) => {
-        removeCard(event.currentTarget , map);
+    $('.btn-cross').on('click', function() {
+        removeCard($(this), map, contactData);
     });
 
     $('.card-container .order-card').on('mouseenter', function(){
@@ -102,11 +104,11 @@ function updateCardsContainers(map, contactData) {
     });
 }
 
-function removeCard(btn , map) {
-    let card = btn.parentNode.parentNode.parentNode.parentNode
-    card.parentNode.removeChild(card);
-    $('#to-affect-container').append(card);
-    updateCardsContainers(map);
+function removeCard($button, map, contactData) {
+    const $card = $button.closest('.order-card');
+    $card.remove();
+    $('#to-affect-container').append($card);
+    updateCardsContainers(map ,contactData);
 }
 
 function createPopupContent(contactInformation, index) {
@@ -121,19 +123,24 @@ function createPopupContent(contactInformation, index) {
 
 function placeAddressMarker($input, map){
     const address = $input.val();
-    console.log(address);
+    const $form = $input.closest('.round-form-container');
+
     AJAX.route(GET,'transport_round_address_coordinates_get', {address})
         .json()
         .then(function (response) {
             if (response.success) {
-                if ($input.attr('name') !== 'endPoint' || map.locations.every(({latitude, longitude}) => (latitude !== response.latitude || longitude !== response.longitude))) {
-                    map.setMarker({
-                        latitude: response.latitude,
-                        longitude: response.longitude,
-                        icon: "blackLocation",
-                        popUp: createPopupContent({contact: $input.data('short-label')}),
-                    });
-                }
+                const $coordinates = $form.find('[name=coordinates]');
+                let coordinates = JSON.parse($coordinates.val()) || {};
+                coordinates = Array.isArray(coordinates) ? {} : coordinates;
+                coordinates[$input.attr('name')] = {
+                    latitude: response.latitude,
+                    longitude: response.longitude
+                };
+                $coordinates.val(JSON.stringify(coordinates));
+
+                const latitude = response.latitude;
+                const longitude = response.longitude;
+                addRoundPointMarker(map, $input, {latitude, longitude});
             }
             else {
                 /// TODO show error
@@ -157,6 +164,7 @@ function initializeForm() {
             }
         })
         .onSubmit((data) => {
+            /// TODO Add loader ? on submit button
             AJAX.route(POST, 'transport_round_save')
                 .json(data)
                 .then(({success, msg, data, redirect}) => {
@@ -184,4 +192,27 @@ function resetRoundNumber(number) {
             $elem.text(number);
         }
     });
+}
+
+function addRoundPointMarker(map, $input, {latitude, longitude}) {
+    if ($input.attr('name') !== 'endPoint'
+        || map.locations.every(({latitude: saved_latitude, longitude: saved_longitude}) => (saved_latitude !== latitude || saved_longitude !== longitude))) {
+        map.setMarker({
+            latitude,
+            longitude,
+            icon: "blackLocation",
+            popUp: createPopupContent({contact: $input.data('short-label')}),
+        });
+    }
+}
+
+function initializeRoundPointMarkers(map) {
+    const $form = $('.round-form-container');
+    const $coordinates = $form.find('[name=coordinates]')
+    const coordinates = JSON.parse($coordinates.val());
+    for(const name of Object.keys(coordinates)) {
+        const pointCoordinates = coordinates[name];
+        const $input = $form.find(`[name=${name}]`);
+        addRoundPointMarker(map, $input, pointCoordinates);
+    }
 }

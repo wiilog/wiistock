@@ -37,9 +37,11 @@ class UniqueNumberService
     public function create(EntityManagerInterface $entityManager,
                            ?string                $prefix,
                            string                 $entity,
-                           string                 $format): string {
+                           string                 $format,
+                           ?DateTime              $numberDate = null): string {
 
-        $date = new DateTime('now');
+
+        $date = $numberDate ?? new DateTime('now');
         $entityRepository = $entityManager->getRepository($entity);
 
         if (!method_exists($entityRepository, 'getLastNumberByDate')) {

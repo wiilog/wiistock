@@ -22,12 +22,10 @@ use App\Entity\Transport\TransportDeliveryRequestLine;
 use App\Entity\Transport\TransportHistory;
 use App\Entity\Transport\TransportOrder;
 use App\Entity\Transport\TransportRequest;
-use App\Entity\Transport\TransportRequestLine;
 use App\Entity\Type;
 use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
 use App\Service\MailerService;
-use App\Service\PackService;
 use App\Service\PDFGeneratorService;
 use App\Service\StatusHistoryService;
 use App\Service\Transport\TransportHistoryService;
@@ -121,7 +119,7 @@ class RequestController extends AbstractController {
 
         $hasRejectedPacks = $transport->getOrder()
             && Stream::from($transport->getOrder()?->getPacks() ?: [])
-                ->some(fn(TransportDeliveryOrderPack $orderPack) => $orderPack->getState() !== TransportDeliveryOrderPack::LOADED_STATE);
+                ->some(fn(TransportDeliveryOrderPack $orderPack) => $orderPack->getState() === TransportDeliveryOrderPack::REJECTED_STATE);
 
         return $this->render('transport/request/show.html.twig', [
             'request' => $transport,
@@ -402,31 +400,50 @@ class RequestController extends AbstractController {
              * @var TransportOrder $transportOrder
              */
             $transportOrder = $transportRequest->getOrder();
+            if($transportOrder) {
+                /**
+                 * @var StatusHistory[] $statusesHistories
+                 */
+                $statusesHistories = Stream::from($transportRequest->getStatusHistory())
+                    ->concat($transportOrder->getStatusHistory())
+                    ->toArray();
 
-            /**
-             * @var StatusHistory[] $statusesHistories
-             */
-            $statusesHistories = Stream::from($transportRequest->getStatusHistory())
-                ->concat($transportOrder->getStatusHistory())
-                ->toArray();
+                /**
+                 * @var TransportHistory[] $histories
+                 */
+                $histories = Stream::from($transportRequest->getHistory())
+                    ->concat($transportOrder->getHistory())
+                    ->toArray();
 
-            /**
-             * @var TransportHistory[] $histories
-             */
-            $histories = Stream::from($transportRequest->getHistory())
-                ->concat($transportOrder->getHistory())
-                ->toArray();
+                foreach ($statusesHistories as $status) {
+                    $transportRequest->removeStatusHistory($status);
+                    $transportOrder->removeStatusHistory($status);
+                    $entityManager->remove($status);
+                }
 
-            foreach ($statusesHistories as $status) {
-                $transportRequest->removeStatusHistory($status);
-                $transportOrder->removeStatusHistory($status);
-                $entityManager->remove($status);
-            }
+                foreach ($histories as $history) {
+                    $transportRequest->removeHistory($history);
+                    $transportOrder->removeHistory($history);
+                    $entityManager->remove($history);
+                }
 
-            foreach ($histories as $history) {
-                $transportRequest->removeHistory($history);
-                $transportOrder->removeHistory($history);
-                $entityManager->remove($history);
+                foreach($transportOrder->getPacks() as $pack) {
+                    $transportOrder->removePack($pack);
+                    $entityManager->remove($pack);
+                }
+           } else {
+                $statusesHistories = $transportRequest->getStatusHistory();
+                $histories = $transportRequest->getHistory();
+
+                foreach ($statusesHistories as $status) {
+                    $transportRequest->removeStatusHistory($status);
+                    $entityManager->remove($status);
+                }
+
+                foreach ($histories as $history) {
+                    $transportRequest->removeHistory($history);
+                    $entityManager->remove($history);
+                }
             }
 
             $entityManager->flush();
@@ -434,7 +451,7 @@ class RequestController extends AbstractController {
             $entityManager->flush();
         }
         else {
-            $msg = 'Le statut de cette demande rends impossible sa suppression.';
+            $msg = 'Le statut de cette demande rend impossible sa suppression.';
         }
 
         return $this->json([

@@ -12,7 +12,6 @@ use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: TransportRequestRepository::class)]
 #[ORM\InheritanceType('JOINED')]
@@ -323,9 +322,13 @@ abstract class TransportRequest {
     }
 
     public function isInRound(): bool {
-        return $this->getOrder()
-            ?->getTransportRoundLines()
-            ->isEmpty() ?: false;
+        $lines = $this->getOrder()?->getTransportRoundLines();
+
+        if ($lines === null) {
+            return false;
+        } else {
+            return !$lines->isEmpty();
+        }
     }
 
     public function roundHasStarted(): bool {

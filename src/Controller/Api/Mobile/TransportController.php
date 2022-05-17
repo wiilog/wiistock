@@ -78,13 +78,14 @@ class TransportController extends AbstractFOSRestController {
                         ->count();
                 }
 
-                $doneDeliveries = 0;
+                $readyDeliveries = 0;
                 foreach ($lines as $line) {
-                    $packs = $line->getOrder()->getPacks();
-                    $partiallyLoaded = Stream::from($packs)
-                        ->some(fn(TransportDeliveryOrderPack $orderPack) => $orderPack->getState() !== TransportDeliveryOrderPack::LOADED_STATE && $orderPack->getRejectReason());
-                    if(!$partiallyLoaded) {
-                        $doneDeliveries += 1;
+                    $isReady = Stream::from($line->getOrder()->getPacks())
+                        ->filter(fn(TransportDeliveryOrderPack $orderPack) => $orderPack->getState() === null)
+                        ->isEmpty();
+
+                    if($isReady) {
+                        $readyDeliveries += 1;
                     }
                 }
 
@@ -95,16 +96,16 @@ class TransportController extends AbstractFOSRestController {
                     'date' => FormatHelper::date($round->getExpectedAt()),
                     'estimated_distance' => $round->getEstimatedDistance(),
                     'estimated_time' => str_replace(':', 'h', $round->getEstimatedTime()) . 'min',
+                    'ready_deliveries' => $readyDeliveries,
+                    'total_ready_deliveries' => Stream::from($lines)
+                        ->filter(fn(TransportRoundLine $line) => $line->getOrder()->getRequest() instanceof TransportDeliveryRequest)
+                        ->count(),
+                    'loaded_packs' => $loadedPacks,
+                    'total_loaded' => $totalLoaded,
                     'done_transports' => Stream::from($lines)
                         ->filter(fn(TransportRoundLine $line) => $line->getFulfilledAt())
                         ->count(),
                     'total_transports' => count($lines),
-                    'loaded_packs' => $loadedPacks,
-                    'total_loaded' => $totalLoaded,
-                    'done_deliveries' => $doneDeliveries,
-                    'total_deliveries' => Stream::from($lines)
-                        ->filter(fn(TransportRoundLine $line) => $line->getOrder()->getRequest() instanceof TransportDeliveryRequest)
-                        ->count(),
                     'lines' => Stream::from($lines)
                         ->filter(fn(TransportRoundLine $line) =>
                             !$line->getCancelledAt()
@@ -129,7 +130,7 @@ class TransportController extends AbstractFOSRestController {
                                 ])->toArray();
 
                             return [
-                                'id' => $line->getTransportRound()->getId(),
+                                'id' => $line->getOrder()->getRequest()->getId(),
                                 'number' => $request->getNumber(),
                                 'type' => FormatHelper::type($request->getType()),
                                 'type_icon' => $request->getType()?->getLogo() ? $_SERVER["APP_URL"] . $request->getType()->getLogo()->getFullPath() : null,
@@ -137,7 +138,7 @@ class TransportController extends AbstractFOSRestController {
                                 'collect' => $collect ? [
                                     'type' => $collect->getType()->getLabel(),
                                     'type_icon' => $collect->getType()?->getLogo() ? $_SERVER["APP_URL"] . $collect->getType()->getLogo()->getFullPath() : null,
-                                    'time_slot' => $collect->getTimeSlot()->getName(),
+                                    'time_slot' => $collect->getTimeSlot()?->getName(),
                                     'success' => $collect->getStatus()->getCode() === TransportRequest::STATUS_FINISHED,
                                     'failure' => in_array($collect->getStatus()->getCode(), [
                                         TransportRequest::STATUS_NOT_DELIVERED,
@@ -182,7 +183,16 @@ class TransportController extends AbstractFOSRestController {
                                 'signature' => $order->getSignature()?->getFullPath(),
                                 'requester' => FormatHelper::user($request->getCreatedBy()),
                                 'free_fields' => Stream::from($freeFields)
-                                    ->map(function(FreeField $freeField) use($freeFieldsValues) {
+                                    ->map(function(FreeField $freeField) use($line, $freeFieldsValues) {
+                                        if($line->getOrder()->getRequest()->getId() === 60) {
+                                            dump($freeFieldsValues);
+                                            dump([
+                                                'id' => $freeField->getId(),
+                                                'label' => $freeField->getLabel(),
+                                                'value' => FormatHelper::freeField($freeFieldsValues[$freeField->getId()] ?? "",
+                                                    $freeField),
+                                            ]);
+                                        }
                                         return [
                                             'id' => $freeField->getId(),
                                             'label' => $freeField->getLabel(),

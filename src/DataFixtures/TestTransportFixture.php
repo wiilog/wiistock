@@ -15,7 +15,6 @@ use App\Entity\Utilisateur;
 use App\Repository\StatutRepository;
 use App\Repository\TypeRepository;
 use App\Repository\UtilisateurRepository;
-use App\Service\UniqueNumberService;
 use DateTime;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;

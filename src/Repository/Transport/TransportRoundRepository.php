@@ -3,15 +3,12 @@
 namespace App\Repository\Transport;
 
 use App\Entity\FiltreSup;
-use App\Entity\Transport\TransportCollectRequest;
-use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\Query\Expr\Join;
 use JetBrains\PhpStorm\ArrayShape;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
@@ -108,13 +105,14 @@ class TransportRoundRepository extends EntityRepository {
     public function getForSelect(?string $term): array {
         $query = $this->createQueryBuilder("transport_round");
 
-        return $query->select("transport_round.id AS id, transport_round.number AS text")
+        return $query->select("transport_round.id AS id, CONCAT(:roundPrefix, transport_round.number) AS text")
             ->join('transport_round.status', 'round_status')
             ->andWhere('round_status.code like :awaitingDelivererStatus')
             ->andWhere("transport_round.number LIKE :term")
 
             ->setParameter("term", "%$term%")
             ->setParameter("awaitingDelivererStatus", TransportRound::STATUS_AWAITING_DELIVERER)
+            ->setParameter("roundPrefix", TransportRound::NUMBER_PREFIX)
             ->getQuery()
             ->getArrayResult();
     }

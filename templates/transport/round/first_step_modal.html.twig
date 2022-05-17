@@ -22,7 +22,7 @@
                         <div class="col-5">
                             {{ form.input('date', null, true, defaultDate, {
                                 type: 'date',
-                                min: defaultDate | date('Y-m-d'),
+                                min: defaultDate | date_modify('-1 day') | date('Y-m-d'),
                             }) }}
                         </div>
                     </div>

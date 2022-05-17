@@ -70,7 +70,7 @@ $(function() {
 
     $(document).arrive('.delete-request-button', function (){
         $(this).on('click', function(){
-            deleteRequest(table, $(this).data('request-id'));
+            deleteRequest($(this).data('request-id'), table);
         });
     });
 });

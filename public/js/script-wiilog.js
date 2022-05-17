@@ -50,6 +50,16 @@ $(function () {
         $('.select2-container.select2-container--open').remove();
     });
 
+    $(".stop-propagation").on("click", function (e) {
+        e.stopPropagation();
+    });
+
+    $(document).arrive(`.stop-propagation`, function() {
+        $(this).on("click", function (e) {
+            e.stopPropagation();
+        });
+    });
+
     $('[data-toggle="popover"]').popover();
 
     setTimeout(() => {

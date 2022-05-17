@@ -248,7 +248,7 @@ class SettingsService {
                 ->keymap(fn(TemperatureRange $range) => [$range->getValue(), $range])
                 ->toArray();
             $removedRanges = Stream::from($existingRanges)->toArray();
-            $submittedTemperatureRanges = Stream::explode(",", $request->request->get("temperatureRanges"))
+            $submittedTemperatureRanges = Stream::explode(";", $request->request->get("temperatureRanges"))
                 ->unique()
                 ->toArray();
 
@@ -376,7 +376,14 @@ class SettingsService {
                 if ($hours && !preg_match("/^\d{2}:\d{2}-\d{2}:\d{2}$/", $hours)) {
                     throw new RuntimeException("Le champ horaires doit être au format HH:MM-HH:MM");
                 }
+
                 $hours = explode('-', $hours);
+                $startHour = str_replace(":","",$hours[0]);
+                $endHour = str_replace(":","",$hours[1]);
+                if (intval($startHour) >= intval($endHour)) {
+                    throw new RuntimeException("L'heure de début doit être inférieur à la date de fin du créneau horaire.");
+                }
+
                 $shift
                     ->setName($edition['name'])
                     ->setStart($hours[0])
@@ -592,7 +599,7 @@ class SettingsService {
                         ? $this->manager->find(CategorieCL::class, $item["category"])
                         : ($type?->getCategory()->getCategorieCLs()->first() ?: null)
                     )
-                    ->setDefaultValue($item["defaultValue"] ?? null)
+                    ->setDefaultValue(($item["defaultValue"] ?? null) === "null" ? "" : $item["defaultValue"] ?? null)
                     ->setElements(isset($item["elements"]) ? explode(";", $item["elements"]) : null)
                     ->setDisplayedCreate($item["displayedCreate"])
                     ->setRequiredCreate($item["requiredCreate"])

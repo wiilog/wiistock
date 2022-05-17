@@ -25,7 +25,7 @@ class TransportDeliveryOrderPack {
     #[ORM\ManyToOne(targetEntity: TransportOrder::class, inversedBy: 'packs')]
     private ?TransportOrder $order = null;
 
-    #[ORM\Column(type: 'string')]
+    #[ORM\Column(type: 'string', nullable: true)]
     private ?string $state = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'transportDeliveryOrderRejectedPacks')]

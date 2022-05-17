@@ -39,7 +39,7 @@
                         {% for transportDeliveryOrderPack in associatedNaturesAndPacks[line.nature.id] ?? [] %}
                             <tr>
                                 <td class="wii-field-text">{{ transportDeliveryOrderPack.pack.code }}</td>
-                                <td class="wii-field-text">{{ transportDeliveryOrderPack.rejected ? 'Oui' : '-' }}</td>
+                                <td class="wii-field-text">{{ transportDeliveryOrderPack.state == constant('App\\Entity\\Transport\\TransportDeliveryOrderPack::REJECTED_STATE') ? 'Oui' : '-' }}</td>
                                 <td class="wii-field-text">{{ transportDeliveryOrderPack.rejectReason ?? '-' }}</td>
                                 {% if isCanceledStatus %}
                                     <td class="wii-field-text">
@@ -77,7 +77,7 @@
                         {% endif %}
                         <strong class="wii-field-name">{{ line.nature.label }}</strong>
                     </div>
-                    <div class="col-md-4 col-12"><strong class="wii-field-name">Quantité à collecter</strong>&nbsp;: {{ line.quantityToCollect is not null ? line.quantityToCollect : '-' }}</div>
+                    <div class="col-md-4 col-12"><strong class="wii-field-name">Quantité à collecter</strong>&nbsp;: {{ line.quantityToCollect is not null ? line.quantityToCollect : '/' }}</div>
                     <div class="col-md-4 col-12"><strong class="wii-field-name">Quantité collectée</strong>&nbsp;: {{ line.collectedQuantity is not null ? line.collectedQuantity : '-' }}</div>
                 </div>
             </div>

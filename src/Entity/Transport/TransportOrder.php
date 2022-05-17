@@ -188,7 +188,7 @@ class TransportOrder {
         return $this->startedAt;
     }
 
-    public function setStartedAt(DateTime $startedAt): self {
+    public function setStartedAt(?DateTime $startedAt): self {
         $this->startedAt = $startedAt;
 
         return $this;
@@ -270,15 +270,13 @@ class TransportOrder {
     }
 
     public function isRejected(): bool {
-        return !$this->getPacks()->isEmpty() && Stream::from($this->getPacks())
-            ->filter(fn(TransportDeliveryOrderPack $orderPack) => $orderPack->getState() === TransportDeliveryOrderPack::REJECTED_STATE)
-            ->isEmpty();
+        return Stream::from($this->getPacks())
+            ->every(fn(TransportDeliveryOrderPack $orderPack) => $orderPack->getState() === TransportDeliveryOrderPack::REJECTED_STATE);
     }
 
     public function hasRejectedPacks(): bool {
         return Stream::from($this->getPacks())
-            ->filter(fn(TransportDeliveryOrderPack $orderPack) => $orderPack->getState() === TransportDeliveryOrderPack::REJECTED_STATE)
-            ->count();
+            ->some(fn(TransportDeliveryOrderPack $orderPack) => $orderPack->getState() === TransportDeliveryOrderPack::REJECTED_STATE);
     }
 
     public function getPacksForLine(TransportRequestLine $line): Stream {

@@ -16,7 +16,7 @@ use App\Entity\Transport\TransportRoundLine;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
-use App\Service\HttpService;
+use App\Service\GeoService;
 use App\Service\StatusHistoryService;
 use App\Service\Transport\TransportHistoryService;
 use App\Service\UniqueNumberService;
@@ -37,7 +37,7 @@ class RoundController extends AbstractController {
     #[Route("/liste", name: "transport_round_index", methods: "GET")]
     public function index(EntityManagerInterface $em): Response {
         $statusRepository = $em->getRepository(Statut::class);
-        $statuses = $statusRepository->findByCategorieName(CategorieStatut::TRANSPORT_ORDER_DELIVERY);
+        $statuses = $statusRepository->findByCategorieName(CategorieStatut::TRANSPORT_ROUND);
 
         return $this->render('transport/round/index.html.twig', [
             'statuts' => $statuses,
@@ -139,7 +139,8 @@ class RoundController extends AbstractController {
                 $entityManager,
                 null,
                 TransportRound::class,
-                UniqueNumberService::DATE_COUNTER_FORMAT_TRANSPORT
+                UniqueNumberService::DATE_COUNTER_FORMAT_TRANSPORT,
+                $expectedAt
             );
 
             $round
@@ -159,18 +160,25 @@ class RoundController extends AbstractController {
 
         $transportOrders = $entityManager->getRepository(TransportOrder::class)->findByDate($round->getExpectedAt());
 
-        $contactDataByOrderId = [];
-        foreach ($transportOrders as $transportOrder) {
-            $request = $transportOrder->getRequest();
-            $contactDataByOrderId[ $transportOrder->getId() ] = [
-                'latitude' => $request->getContact()->getAddressLatitude(),
-                'longitude' => $request->getContact()->getAddressLongitude(),
-                'contact' => $request->getContact()->getName(),
-                'time' => $request instanceof TransportCollectRequest
-                    ? ( $request->getTimeSlot()?->getName() ?: $request->getExpectedAt()->format('H:i') )
-                    : $request->getExpectedAt()->format('H:i'),
-            ];
-        }
+        $contactDataByOrderId = Stream::from(
+            $transportOrders,
+            Stream::from($round->getTransportRoundLines())->map(fn(TransportRoundLine $transportRoundLine) => $transportRoundLine->getOrder())
+        )
+            ->keymap(function(TransportOrder  $transportOrder){
+                $request = $transportOrder->getRequest();
+                return [
+                    $transportOrder->getId(),
+                    [
+                        'latitude' => $request->getContact()->getAddressLatitude(),
+                        'longitude' => $request->getContact()->getAddressLongitude(),
+                        'contact' => $request->getContact()->getName(),
+                        'time' => $request instanceof TransportCollectRequest
+                            ? ( $request->getTimeSlot()?->getName() ?: $request->getExpectedAt()->format('H:i') )
+                            : $request->getExpectedAt()->format('H:i'),
+                    ]
+                ];
+            })
+            ->toArray();
 
         return $this->render('transport/round/plan.html.twig', [
             'round' => $round,
@@ -200,6 +208,7 @@ class RoundController extends AbstractController {
         $endPoint = $request->request->get('endPoint');
         $deliverer = $request->request->get('deliverer');
         $transportRoundId = $request->request->get('transportRoundId');
+        $coordinates = json_decode($request->request->get('coordinates'), true) ?: [];
         $affectedOrderIds = Stream::explode(',', $request->request->get('affectedOrders'))->toArray();
 
         $expectedAt = FormatHelper::parseDatetime("$expectedAtDate $expectedAtTime");
@@ -249,51 +258,62 @@ class RoundController extends AbstractController {
             ->setExpectedAt($expectedAt)
             ->setDeliverer($deliverer)
             ->setStartPoint($startPoint)
-            ->setStartPoint($startPointScheduleCalculation)
-            ->setEndPoint($endPoint);
+            ->setStartPointScheduleCalculation($startPointScheduleCalculation)
+            ->setEndPoint($endPoint)
+            ->setCoordinates($coordinates);
 
-        $affectedOrders = $transportOrderRepository->findBy(['id' => $affectedOrderIds]);
-        if (empty($affectedOrders)) {
+        if (empty($affectedOrderIds)) {
             throw new FormException("Il n'y a aucun ordre dans la tournée, veuillez réessayer");
         }
 
-        $collectOrderAffectedStatus = $statusRepository
+        $collectOrderAssignStatus = $statusRepository
+            ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_COLLECT, TransportOrder::STATUS_ASSIGNED);
+
+        $deliveryOrderAssignStatus = $statusRepository
             ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_DELIVERY, TransportOrder::STATUS_ASSIGNED);
 
-        $deliveryOrderAffectedStatus = $statusRepository
-            ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_DELIVERY, TransportOrder::STATUS_ASSIGNED);
-
-
-        // TODO remove lines ? avec un setTransportRoundLines([])
         /** @var TransportOrder $order */
-        foreach ($affectedOrders as $index => $orderId) {
+        foreach ($affectedOrderIds as $index => $orderId) {
             $order = $transportOrderRepository->find($orderId);
             if ($order) {
-                // TODO check si l'ordre est déjà dans une tournée
-                $line = new TransportRoundLine();
-                // TODO            $line->setEstimatedAt() ??
+                $affectationAllowed = (
+                    $order->getTransportRoundLines()->isEmpty()
+                    || Stream::from ($order->getTransportRoundLines())
+                        ->map(fn(TransportRoundLine $line) => $line->getTransportRound())
+                        ->every(fn(TransportRound $round) => $round->getStatus()?->getCode() === TransportRound::STATUS_FINISHED)
+                );
+                $priority = $index + 1;
+                if (!$affectationAllowed) {
+                    throw new FormException("L'ordre n°{$priority} est déjà affecté à une tournée non terminée");
+                }
+
+                $line = $transportRound->getTransportRoundLine($order);
+                if (!isset($line)) {
+                    $line = new TransportRoundLine();
+                    // TODO            $line->setEstimatedAt() ??
+                    $line->setOrder($order);
+                    $entityManager->persist($line);
+                    $transportRound->addTransportRoundLine($line);
+
+                    // TODO uniquement à l'ordre ou à la request aussi ?
+                    // set order status + add status history + add transport history
+                    $status = $order->getRequest() instanceof TransportDeliveryRequest ? $deliveryOrderAssignStatus : $collectOrderAssignStatus;
+
+                    $statusHistory = $statusHistoryService->updateStatus($entityManager, $order, $status);
+
+                    $transportHistoryService->persistTransportHistory($entityManager, [$order->getRequest(), $order], TransportHistoryService::TYPE_AFFECTED_ROUND, [
+                        'user' => $this->getUser(),
+                        'deliverer' => $transportRound->getDeliverer(),
+                        'round' => $transportRound,
+                        'history' => $statusHistory,
+                    ]);
+                }
+
                 $line
-                    ->setOrder($order)
-                    ->setPriority($index + 1);
-                $entityManager->persist($line);
-                $transportRound->addTransportRoundLine($line);
-
-
-                // TODO uniquement à l'ordre ou à la request aussi ?
-                // set order status + add status history + add transport history
-                $status = $order->getRequest() instanceof TransportDeliveryRequest ? $deliveryOrderAffectedStatus : $collectOrderAffectedStatus;
-
-                $statusHistory = $statusHistoryService->updateStatus($entityManager, $order, $status);
-
-                $transportHistoryService->persistTransportHistory($entityManager, $order, TransportHistoryService::TYPE_AFFECTED_ROUND, [
-                    'user' => $this->getUser(),
-                    'deliverer' => $transportRound->getDeliverer(),
-                    'round' => $transportRound,
-                    'history' => $statusHistory,
-                ]);
+                    ->setPriority($priority);
             }
             else {
-                throw new FormException("Une ordre affecté n'existe plus, veuillez réessayer");
+                throw new FormException("Un ordre affecté n'existe plus, veuillez réessayer");
             }
         }
 
@@ -313,9 +333,9 @@ class RoundController extends AbstractController {
     }
 
     #[Route("/api-get-address-coordinates", name: "transport_round_address_coordinates_get", options: ['expose' => true], methods: "GET")]
-    public function getAddressCoordinates(Request $request, HttpService $httpService): Response
+    public function getAddressCoordinates(Request $request, GeoService $geoService): Response
     {
-        [$lat, $lon] = $httpService->fetchCoordinates($request->query->get('address'));
+        [$lat, $lon] = $geoService->fetchCoordinates($request->query->get('address'));
         return $this->json([
             'success' => true,
             'latitude' => $lat,
