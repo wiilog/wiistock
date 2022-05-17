@@ -195,6 +195,11 @@ export default class Select2 {
                         $element.siblings('.select2-container')
                             .addClass('hidden-dropdown') ;
                     }
+
+                    if ($element.is('[data-disabled-dropdown-options]')) {
+                        $element.siblings('.select2-container')
+                            .addClass('disabled-dropdown-options') ;
+                    }
                 });
 
                 $element.on('select2:close', function (e) {
