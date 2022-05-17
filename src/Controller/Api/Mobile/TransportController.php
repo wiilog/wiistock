@@ -371,4 +371,56 @@ class TransportController extends AbstractFOSRestController {
             'success' => true
         ]);
     }
+
+    /**
+     * @Rest\Post("/api/patch-round-status", name="api_patch_round_status", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function patchRoundStatus(Request $request,
+                                     EntityManagerInterface $manager,
+                                     TransportHistoryService $historyService,
+                                     StatusHistoryService $statusHistoryService): Response {
+        $round = $manager->find(TransportRound::class, $request->request->get('round'));
+        $user = $this->getUser();
+        $now = new DateTime();
+
+        $statusRespository = $manager->getRepository(Statut::class);
+        $onGoingStatus = $statusRespository
+            ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ROUND, TransportRound::STATUS_ONGOING);
+
+        $round
+            ->setStatus($onGoingStatus)
+            ->setBeganAt($now);
+
+        $orders = Stream::from($round->getTransportRoundLines())->map(fn(TransportRoundLine $line) => $line->getOrder());
+        $requests = Stream::from($orders)->map(fn(TransportOrder $order) => $order->getRequest());
+        $entities = Stream::from($orders)->concat($requests)->toArray();
+
+        foreach ($entities as $entity) {
+            if($entity instanceof TransportOrder) {
+                $statusCode = TransportOrder::STATUS_ONGOING;
+                $categoryStatus = $entity->getRequest() instanceof TransportCollectRequest
+                    ? CategorieStatut::TRANSPORT_ORDER_COLLECT
+                    : CategorieStatut::TRANSPORT_ORDER_DELIVERY;
+            } else {
+                $statusCode = TransportRequest::STATUS_ONGOING;
+                $categoryStatus = $entity instanceof TransportCollectRequest
+                    ? CategorieStatut::TRANSPORT_REQUEST_COLLECT
+                    : CategorieStatut::TRANSPORT_REQUEST_DELIVERY;
+            }
+            $status = $statusRespository->findOneByCategorieNameAndStatutCode($categoryStatus, $statusCode);
+
+            $statusHistoryRequest = $statusHistoryService->updateStatus($manager, $entity, $status);
+            $historyService->persistTransportHistory($manager, $entity, TransportHistoryService::TYPE_ONGOING, [
+                'user' => $user,
+                'history' => $statusHistoryRequest,
+            ]);
+        }
+
+        $manager->flush();
+        return $this->json([
+            'success' => true
+        ]);
+    }
 }
