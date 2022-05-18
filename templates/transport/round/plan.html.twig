@@ -37,6 +37,7 @@
                             {% include 'transport/round/plan_order_card.html.twig' with {
                                 transportOrder: transportOrder,
                                 removeButton: false,
+                                assigned : true
                             } %}
                         {% endfor %}
                     </div>
@@ -64,21 +65,21 @@
                     <div class="row content">
                         <div class="d-flex flex-wrap justify-content-around col-12 px-2">
                             <div class="col-lg-4 col-12">
-                                {{ form.input('startPoint', 'Point de départ', true, round.startPoint, {
+                                {{ form.input('startPoint', 'Point de départ', true, round.startPoint ?? setting_value('TRANSPORT_ROUND_KM_START_POINT'), {
                                     attributes: {
                                         'data-short-label': 'Départ tournée'
                                     }
                                 }) }}
                             </div>
                             <div class="col-lg-4 col-12">
-                                {{ form.input('startPointScheduleCalculation', 'Point de départ calcul horaire', true, round.startPointScheduleCalculation, {
+                                {{ form.input('startPointScheduleCalculation', 'Point de départ calcul horaire', true, round.startPointScheduleCalculation ?? setting_value('TRANSPORT_ROUND_HOURLY_BILLING_START_POINT'), {
                                     attributes: {
-                                        'data-short-label': 'départ calcule horaire'
+                                        'data-short-label': 'départ calcul horaire'
                                     }
                                 }) }}
                             </div>
                             <div class="col-lg-4 col-12">
-                                {{ form.input('endPoint', 'Point d\'arrivée', true, round.endPoint, {
+                                {{ form.input('endPoint', 'Point d\'arrivée', true, round.endPoint ?? setting_value('TRANSPORT_ROUND_END_POINT'), {
                                     attributes: {
                                         'data-short-label': 'Fin tournée'
                                     }
@@ -98,19 +99,24 @@
                                             'data-other-params': "true",
                                             'data-other-params-deliverer-only': 1
                                         },
+                                        inputClass: 'deliverer-picker',
                                     }) }}
                                 </div>
-                                <div class="col-3">
+                                <div class="col-3 start-time-picker-container">
                                     {{ form.input(
                                         'expectedAtTime',
                                         'Heure de départ',
                                         true,
                                         (round.id and round.expectedAt) ? (round.expectedAt|date('H:i')) : null,
-                                    { type: 'time' }
+                                        {
+                                            type: 'time',
+                                            inputClass: 'start-hour-form',
+                                            disabled: round.deliverer ? false : true,
+                                        }
                                     ) }}
                                 </div>
                                 <div class="col-auto align-self-end">
-                                    <button class="btn btn-primary ml-auto plan-round-button d-flex align-items-center" tabindex="0">
+                                    <button class="btn {% if not round.deliverer %} btn-disabled {%endif%} btn-primary ml-auto  plan-round-button d-flex align-items-center btn-calculate-time" tabindex="0">
                                         <img src="{{ asset('svg/clock-white.svg') }}" alt="Icône tournéé" width="15px" class="mr-2">
                                         <span class="ml-1">Calculer les horaires</span>
                                     </button>
@@ -132,7 +138,7 @@
                         </div>
                         <div class="bottom-right-buttons mx-2">
                             <button class="btn btn-outline-secondary ml-auto plan-round-button" tabindex="0">
-{#                                TODO action #}
+                            {# TODO action #}
                                 Annuler
                             </button>
                             <button class="btn btn-success ml-auto ml-3"
