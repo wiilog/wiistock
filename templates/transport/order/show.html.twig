@@ -150,7 +150,7 @@
                             <span class="wii-field-name">Tournée</span>
                             <span class="wii-field-text">
                                 {% if round is not null %}
-                                    <a class="text-primary underlined" href="{# TODO path('transport_round_show',{'transportRound':round.id}) } #}">{{ round.number }}</a>
+                                    <a class="text-primary underlined" href="{{ path('transport_round_show', {transportRound: round.id}) }}">T{{ round.number }}</a>
                                 {% else %}
                                     <span>-</span>
                                 {% endif %}

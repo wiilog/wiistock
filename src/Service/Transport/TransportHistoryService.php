@@ -134,7 +134,10 @@ class TransportHistoryService {
                 }
                 else if($entity instanceof TransportRound) {
                     $numberPrefix = TransportRound::NUMBER_PREFIX;
-                    return "<span class='text-primary underlined'>{$numberPrefix}{$entity->getNumber()}</span>";
+                    $url = $this->router->generate('transport_round_show', [
+                        'transportRound' => $entity->getId()
+                    ]);
+                    return "<a class='text-primary underlined' href='$url'>$numberPrefix{$entity->getNumber()}</a>";
                 }
                 else if($entity instanceof DateTime) {
                     $date = FormatHelper::longDate($entity, ['time' => true, 'year' => true]);
