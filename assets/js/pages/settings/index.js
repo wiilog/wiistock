@@ -385,6 +385,8 @@ function initializeStockArticlesLabels($container) {
         } else {
             $destination.val(0);
             $recipient.val(0);
+            $destination.prop(`checked`, false);
+            $recipient.prop(`checked`, false);
         }
     })
 
