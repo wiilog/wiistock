@@ -7,6 +7,7 @@ use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
+use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Transport\TransportCollectRequest;
 use App\Entity\Transport\TransportDeliveryRequest;
@@ -168,6 +169,18 @@ class RoundController extends AbstractController {
         }
 
         $transportOrders = $entityManager->getRepository(TransportOrder::class)->findByDate($round->getExpectedAt());
+        $transportOrders = Stream::from($transportOrders)
+            ->sort(function (TransportOrder $a, TransportOrder $b) {
+                $getOrderTimestamp = function (TransportOrder $order) {
+                    $request = $order->getRequest();
+                    $dateTime = $request instanceof TransportCollectRequest
+                        ? DateTime::createFromFormat('Y-m-d H:i', $request->getValidatedDate()->format('Y-m-d') . ' ' . $request->getTimeslot()->getEnd())
+                        : $request->getExpectedAt();
+                    return $dateTime->getTimestamp();
+                };
+                return $getOrderTimestamp($a) <=> $getOrderTimestamp($b);
+            })
+            ->toArray();
 
         $contactDataByOrderId = Stream::from(
             $transportOrders,
@@ -247,7 +260,6 @@ class RoundController extends AbstractController {
                 throw $exception;
             }
 
-            // TODO ajouter historique de transport / status à la tournée ?
             $roundStatus = $statusRepository
                 ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ROUND, TransportRound::STATUS_AWAITING_DELIVERER);
 
@@ -304,7 +316,6 @@ class RoundController extends AbstractController {
                     $entityManager->persist($line);
                     $transportRound->addTransportRoundLine($line);
 
-                    // TODO uniquement à l'ordre ou à la request aussi ?
                     // set order status + add status history + add transport history
                     $status = $order->getRequest() instanceof TransportDeliveryRequest ? $deliveryOrderAssignStatus : $collectOrderAssignStatus;
 
