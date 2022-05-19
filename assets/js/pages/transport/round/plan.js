@@ -179,7 +179,7 @@ function placeAddressMarker($input, map){
                 addRoundPointMarker(map, $input, {latitude, longitude});
             }
             else {
-                /// TODO show error
+                Flash.add(ERROR, "Une erreur s'est produite lors de la récupération de la position de l'adresse GPS")
             }
         });
 }

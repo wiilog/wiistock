@@ -3,9 +3,7 @@
 namespace App\Service;
 
 use App\Entity\Transport\TransportOrder;
-use App\Exceptions\HttpException;
-use App\Entity\Transport\TransportRound;
-use App\Entity\Transport\TransportRoundLine;
+use App\Exceptions\GeoException;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
@@ -24,17 +22,27 @@ class GeoService
     {
         $url = "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates";
 
-        $request = $this->httpService->request("GET", $url, [
-            "f" => "json",
-            "token" => $_SERVER["ARCGIS_API_KEY"],
-            "SingleLine" => $address,
-            "maxLocations" => 1,
-        ]);
+        if (!isset($_SERVER['ARCGIS_API_KEY'])) {
+            throw new GeoException("La configuration de l'instance permettant de récupérer les informations GPS est invalide");
+        }
+
+        try {
+            $request = $this->httpService->request("GET", $url, [
+                "f" => "json",
+                "token" => $_SERVER["ARCGIS_API_KEY"],
+                "SingleLine" => $address,
+                "maxLocations" => 1,
+            ]);
+        }
+        catch (\Throwable) {
+            throw new GeoException('Erreur lors de la récupération des informations GPS');
+        }
 
         $result = json_decode($request->getContent(), true);
         $coordinates = $result["candidates"][0]["location"] ?? [null, null];
-        if($coordinates === null || ($coordinates["x"] ?? null) === null || ($coordinates["y"] ?? null) === null) {
-            throw new HttpException("L'adresse n'a pas pu être trouvée");
+
+        if(!isset($coordinates['x']) || !isset($coordinates["y"])) {
+            throw new GeoException("L'adresse n'a pas pu être trouvée");
         }
 
         return [
@@ -70,6 +78,10 @@ class GeoService
 // tableau a construire en utilisant HttpService::getStopsCoordinates()
     public function fetchStopsData(array $coordinates): array
     {
+        if (!isset($_SERVER['ARCGIS_API_KEY'])) {
+            throw new GeoException("La configuration de l'instance permettant de récupérer les informations GPS est invalide");
+        }
+
         $stopsData = [
             'success' => true,
             'msg' => 'OK'
@@ -100,6 +112,7 @@ class GeoService
                 ],
             ];
         }
+
         try {
             $request = $this->httpService->request("GET", $url, [
                 "f" => "json",
@@ -119,12 +132,8 @@ class GeoService
                     "time" => $this->estimateRoundTime(intval($direction["summary"]["totalTime"]))
                 ];
             }
-        } catch (\Exception $ignored) {
-            $stopsData = [
-                'success' => false,
-                'msg' => 'Erreur lors de la récupération des informations GPS',
-                'data' => []
-            ];
+        } catch (\Exception) {
+            throw new GeoException('Erreur lors de la récupération des informations GPS');
         }
         return $stopsData;
     }
