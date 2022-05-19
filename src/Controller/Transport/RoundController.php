@@ -169,7 +169,7 @@ class RoundController extends AbstractController {
             throw new NotFoundHttpException('Impossible de planifier une tournée');
         }
 
-        $transportOrders = $entityManager->getRepository(TransportOrder::class)->findByDate($round->getExpectedAt());
+        $transportOrders = $entityManager->getRepository(TransportOrder::class)->findToAssignByDate($round->getExpectedAt());
         $transportOrders = Stream::from($transportOrders)
             ->sort(function (TransportOrder $a, TransportOrder $b) {
                 $getOrderTimestamp = function (TransportOrder $order) {
