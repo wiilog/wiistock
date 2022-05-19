@@ -2,6 +2,7 @@
 
 namespace App\Entity\Transport;
 
+use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\Utilisateur;
 use App\Repository\Transport\TransportDeliveryOrderPackRepository;
@@ -117,4 +118,12 @@ class TransportDeliveryOrderPack {
         return $this;
     }
 
+    public function getPackTemperature(Nature $nature): ?string
+    {
+        /** @var TransportDeliveryRequestLine $line */
+        $line = $this->order->getRequest()->getLines()
+            ->filter(fn(TransportDeliveryRequestLine $line) => $line->getNature() === $nature)
+            ->first();
+        return $line->getTemperatureRange()?->getValue();
+    }
 }
