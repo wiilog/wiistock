@@ -277,8 +277,13 @@ class TransportOrder implements StatusHistoryContainer {
     }
 
     public function hasRejectedPacks(): bool {
+        return $this->countRejectedPacks() > 0 ;
+    }
+
+    public function countRejectedPacks(): int {
         return Stream::from($this->getPacks())
-            ->some(fn(TransportDeliveryOrderPack $orderPack) => $orderPack->getState() === TransportDeliveryOrderPack::REJECTED_STATE);
+            ->filter(fn(TransportDeliveryOrderPack $orderPack) => $orderPack->getState() === TransportDeliveryOrderPack::REJECTED_STATE)
+            ->count();
     }
 
     public function getPacksForLine(TransportRequestLine $line): Stream {

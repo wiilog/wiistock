@@ -12,6 +12,7 @@ use App\Entity\Transport\TransportDeliveryRequestLine;
 use App\Entity\Transport\TransportHistory;
 use App\Entity\Transport\TransportOrder;
 use App\Entity\Transport\TransportRequest;
+use App\Entity\Transport\TransportRound;
 use App\Helper\FormatHelper;
 use App\Service\Transport\TransportHistoryService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -25,6 +26,7 @@ class HistoryController extends AbstractController
 {
     public const REQUEST = "request";
     public const ORDER = "order";
+    public const ROUND = "round";
 
     #[Route("/{type}/{id}/status-history-api", name: "status_history_api", options: ['expose' => true], methods: "GET")]
     public function statusHistoryApi(int $id, string $type, EntityManagerInterface $entityManager): JsonResponse {
@@ -40,6 +42,9 @@ class HistoryController extends AbstractController
             if($order) {
                 $round = $order->getTransportRoundLines()->last() ?: null;
             }
+        }
+        else if ($type === self::ROUND) {
+            $entity = $entityManager->find(TransportRound::class, $id);
         }
 
         if ($entity instanceof TransportOrder) {
@@ -59,6 +64,8 @@ class HistoryController extends AbstractController
                     : TransportRequest::STATUS_WORKFLOW_DELIVERY_CLASSIC);
         } else if($entity instanceof TransportCollectRequest) {
             $statusWorkflow = TransportRequest::STATUS_WORKFLOW_COLLECT;
+        } else if ($entity instanceof TransportRound) {
+            $statusWorkflow = TransportRound::STATUS_WORKFLOW_ROUND;
         } else {
             throw new RuntimeException('Unknown transport type');
         }
