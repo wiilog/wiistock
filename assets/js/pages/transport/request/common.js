@@ -293,3 +293,7 @@ export function deleteRequest(transportRequest, table = null){
         table: table,
     });
 }
+
+export function transportPDF(transportId){
+    Wiistock.download(Routing.generate('print_transport_note', {transportRequest: transportId}));
+}
