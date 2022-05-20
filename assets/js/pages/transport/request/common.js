@@ -152,10 +152,17 @@ function clearForm(form, editForm) {
 function resetForm(form) {
     const $modal = form.element;
     const $requestType = $modal.find('[name=requestType]');
-    $requestType
-        .filter('[value=collect]')
-        .prop('checked', true)
-        .trigger('change');
+    if ($requestType.is(':not(input[type=hidden])')) {
+        $requestType
+            .filter('[value=collect]')
+            .prop('checked', true)
+            .trigger('change');
+    }
+
+    const $type = $modal.find('[name=type]')
+    if ($type.is('input[type=hidden]')) {
+        onTypeChange($modal, $type.val(), false);
+    }
 }
 
 function onNatureCheckChange($input) {
@@ -226,16 +233,18 @@ function onRequestTypeChange($form, requestType) {
     }
 }
 
-function onTypeChange($form, type) {
+function onTypeChange($form, type, resetValues = true) {
     $form
         .find('[data-type]')
         .addClass('d-none');
 
-    $form
-        .find('[data-type]')
-        .find('[type=checkbox]')
-        .prop('checked', false)
-        .trigger('change');
+    if (resetValues) {
+        $form
+            .find('[data-type]')
+            .find('[type=checkbox]')
+            .prop('checked', false)
+            .trigger('change');
+    }
 
     $form.find(`[data-type]`).each(function () {
         const $element = $(this);

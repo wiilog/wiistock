@@ -19,7 +19,7 @@ class TransportRoundStartingHour
     #[ORM\Column(type: 'string', length: 255)]
     private $hour;
 
-    #[ORM\OneToMany(mappedBy: 'TransportRoundStartingHour', targetEntity: Utilisateur::class)]
+    #[ORM\OneToMany(mappedBy: 'transportRoundStartingHour', targetEntity: Utilisateur::class)]
     private $deliverers;
 
     public function __construct()
