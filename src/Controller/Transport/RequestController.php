@@ -695,7 +695,7 @@ class RequestController extends AbstractController {
 
         if ($category === CategoryType::DELIVERY_TRANSPORT) {
             $nameFile = 'export_demande_livraison.csv';
-            $csvHeader = array_merge([
+            $csvTransport = [
                 'N°demande',
                 'Transport',
                 'Type',
@@ -713,7 +713,9 @@ class RequestController extends AbstractController {
                 'Date Sous-traitées',
                 'Date En cours',
                 'Date Terminée/Non Livrée',
-                'Commentaire',
+                'Commentaire'];
+
+            $csvPaks = [
                 'Nature colis',
                 'Nombre de colis à livrer',
                 'Températures',
@@ -721,10 +723,11 @@ class RequestController extends AbstractController {
                 'Ecarté',
                 'Motif écartement',
                 'Retrounée le',
-            ], $freeFieldsConfigDelivery['freeFieldsHeader'] );
+            ];
+            $csvHeader = array_merge($csvTransport, $freeFieldsConfigDelivery['freeFieldsHeader'], $csvPaks);
         } else {
             $nameFile = 'export_demande_collecte.csv';
-            $csvHeader = array_merge([
+            $csvCollect = [
                 'N°demande',
                 'Transport',
                 'Type',
@@ -742,11 +745,14 @@ class RequestController extends AbstractController {
                 'Date En cours',
                 'Date Terminée/Non Collectée',
                 'Date Objets déposés',
-                'Commentaire',
+                'Commentaire'
+                ];
+                $csvLines = [
                 'Nature colis',
                 'Quantité à collecter',
                 'Quantités collectées',
-            ],$freeFieldsConfigCollect['freeFieldsHeader']) ;
+            ];
+            $csvHeader = array_merge($csvCollect, $freeFieldsConfigCollect['freeFieldsHeader'], $csvLines);
         }
         $transportRequestIterator = $transportRequestRepository->iterateTransportRequestByDates($dateTimeMin, $dateTimeMax, $category);
 

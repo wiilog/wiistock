@@ -474,7 +474,7 @@ class TransportService {
                 isset($statusRequest[TransportRequest::STATUS_ONGOING]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_ONGOING]) : '',
                 isset($statusRequest[TransportRequest::STATUS_FINISHED]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_FINISHED]) : (isset($statusRequest[TransportRequest::STATUS_CANCELLED]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_CANCELLED]) : '' ),
                 $request->getContact()->getObservation(),
-            ]);
+            ], $freeFields);
 
             $packs = $request->getOrder()?->getPacks();
 
@@ -488,14 +488,12 @@ class TransportService {
                         $pack->getRejectedBy() ? 'Oui' : ($pack->getRejectReason() ? 'Oui' : 'Non'),
                         $pack->getRejectReason() ?: '',
                         FormatHelper::datetime($pack->getReturnedAt()),
-                    ], $freeFields);
+                    ]);
                     $csvService->putLine($output, $dataTransportDeliveryRequestPacks );
                 }
             }
             else {
-                $tableEmpty = ['','','','','','',''];
-                $lines = array_merge($dataTransportDeliveryRequest, $tableEmpty,$freeFields);
-                $csvService->putLine($output, $lines);
+                $csvService->putLine($output, $dataTransportDeliveryRequest);
             }
         }
         else if($request instanceof TransportCollectRequest) {
@@ -508,7 +506,7 @@ class TransportService {
                 isset($statusRequest[TransportRequest::STATUS_FINISHED]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_FINISHED]) : (isset($statusRequest[TransportRequest::STATUS_CANCELLED]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_CANCELLED]) : '' ),
                 isset($statusRequest[TransportRequest::STATUS_DEPOSITED]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_DEPOSITED]): '',
                 $request->getContact()->getObservation(),
-            ]);
+            ],$freeFields);
 
             $lines = $request->getLines()?:null;
             if ($lines && !$lines->isEmpty()) {
@@ -518,13 +516,13 @@ class TransportService {
                         $line->getNature()?->getLabel()? : '',
                         $line->getQuantityToCollect()? : '',
                         $line->getCollectedQuantity()? : '',
-                    ], $freeFields);
+                    ]);
                     $csvService->putLine($output, $dataTransportCollectRequestPacks);
                 }
             }
             else {
                 $tableEmpty = ['','',''];
-                $lines = array_merge($dataTransportCollectRequest, $tableEmpty, $freeFields);
+                $lines = array_merge($dataTransportCollectRequest, $tableEmpty);
                 $csvService->putLine($output, $lines);
             }
         }
