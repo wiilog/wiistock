@@ -444,15 +444,13 @@ class TransportService {
     }
 
     public function putLine($output, CSVExportService $csvService, TransportRequest $request, $freeFieldsConfig): void {
-        $lastOnGoingStatusHistory =  $request->getLastStatusHistory(TransportRequest::STATUS_ONGOING);
-        $lastFinishedStatusHistory =  $request->getLastStatusHistory(TransportRequest::STATUS_FINISHED);
-        $lastCanceledStatusHistory =  $request->getLastStatusHistory(TransportRequest::STATUS_CANCELLED);
+        $statusRequest = $request->getLastStatusHistory();
         $freeFieldValues = $request->getFreeFields();
         $freeFields = [];
+
         foreach ($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
             $freeFields[] = FormatHelper::freeField($freeFieldValues[$freeFieldId] ?? '', $freeField);
         }
-
         $dataTransportRequest = [
             $request->getNumber(),
             $request instanceof TransportDeliveryRequest ? ($request->getCollect() ? "Livraison-Collecte" : "Livraison") : "Collecte",
@@ -465,21 +463,16 @@ class TransportService {
             str_replace("\n", " / ", $request->getContact()->getAddress()),
             $request->getContact()->getAddress() ? FormatHelper::bool($this->isMetropolis($request->getContact()->getAddress())) : '',
             FormatHelper::datetime($request->getExpectedAt()),
-
             ];
 
         if($request instanceof TransportDeliveryRequest) {
-            $lastToPreparedStatusHistory = $request->getLastStatusHistory(TransportRequest::STATUS_TO_PREPARE);
-            $lastToDeliveredStatusHistory =  $request->getLastStatusHistory(TransportRequest::STATUS_TO_DELIVER);
-            $lastSubContractStatusHistory =  $request->getLastStatusHistory(TransportRequest::STATUS_SUBCONTRACTED);
-
             $dataTransportDeliveryRequest = array_merge($dataTransportRequest, [
                 FormatHelper::datetime($request->getValidatedDate()),
-                $lastToPreparedStatusHistory ? FormatHelper::datetime($lastToPreparedStatusHistory->getDate()) : '',
-                $lastToDeliveredStatusHistory ? FormatHelper::datetime($lastToDeliveredStatusHistory->getDate()) : '',
-                $lastSubContractStatusHistory ? FormatHelper::datetime($lastSubContractStatusHistory->getDate()) : '',
-                $lastOnGoingStatusHistory ? FormatHelper::datetime($lastOnGoingStatusHistory->getDate()) : '',
-                $lastFinishedStatusHistory ? FormatHelper::datetime($lastFinishedStatusHistory->getDate()) : ($lastCanceledStatusHistory ? FormatHelper::datetime($lastCanceledStatusHistory->getDate()) : ''),
+                isset($statusRequest[TransportRequest::STATUS_TO_PREPARE]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_TO_PREPARE]) : '',
+                isset($statusRequest[TransportRequest::STATUS_TO_DELIVER]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_TO_DELIVER]) : '',
+                isset($statusRequest[TransportRequest::STATUS_SUBCONTRACTED]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_SUBCONTRACTED]) : '',
+                isset($statusRequest[TransportRequest::STATUS_ONGOING]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_ONGOING]) : '',
+                isset($statusRequest[TransportRequest::STATUS_FINISHED]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_FINISHED]) : (isset($statusRequest[TransportRequest::STATUS_CANCELLED]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_CANCELLED]) : '' ),
                 $request->getContact()->getObservation(),
             ]);
 
@@ -504,21 +497,16 @@ class TransportService {
                 $lines = array_merge($dataTransportDeliveryRequest, $tableEmpty,$freeFields);
                 $csvService->putLine($output, $lines);
             }
-
         }
         else if($request instanceof TransportCollectRequest) {
-            $lastAwaitingPlanningStatusHistory = $request->getLastStatusHistory(TransportRequest::STATUS_AWAITING_PLANNING);
-            $lastToCollectStatusHistory = $request->getLastStatusHistory(TransportRequest::STATUS_TO_COLLECT);
-            $lastDepositedStatusHistory = $request->getLastStatusHistory(TransportRequest::STATUS_DEPOSITED);
-
             $dataTransportCollectRequest = array_merge($dataTransportRequest, [
                 FormatHelper::datetime($request->getValidatedDate()),
                 FormatHelper::datetime($request->getCreatedAt()),
-                $lastAwaitingPlanningStatusHistory ? FormatHelper::datetime($lastAwaitingPlanningStatusHistory->getDate()) : '',
-                $lastToCollectStatusHistory ? FormatHelper::datetime($lastToCollectStatusHistory->getDate()) : '',
-                $lastOnGoingStatusHistory ? FormatHelper::datetime($lastOnGoingStatusHistory->getDate()) : '',
-                $lastFinishedStatusHistory ? FormatHelper::datetime($lastFinishedStatusHistory->getDate()) : ($lastCanceledStatusHistory ? FormatHelper::datetime($lastCanceledStatusHistory->getDate()) : ''),
-                $lastDepositedStatusHistory ? FormatHelper::datetime($lastDepositedStatusHistory->getDate()) : '',
+                isset($statusRequest[TransportRequest::STATUS_AWAITING_PLANNING]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_AWAITING_PLANNING]) : '',
+                isset($statusRequest[TransportRequest::STATUS_TO_COLLECT]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_TO_COLLECT]) : '',
+                isset($statusRequest[TransportRequest::STATUS_ONGOING]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_ONGOING]) : '',
+                isset($statusRequest[TransportRequest::STATUS_FINISHED]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_FINISHED]) : (isset($statusRequest[TransportRequest::STATUS_CANCELLED]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_CANCELLED]) : '' ),
+                isset($statusRequest[TransportRequest::STATUS_DEPOSITED]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_DEPOSITED]): '',
                 $request->getContact()->getObservation(),
             ]);
 
