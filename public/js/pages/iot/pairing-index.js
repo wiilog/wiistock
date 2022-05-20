@@ -41,9 +41,9 @@ function pairingList(search = '', filter = '', types = '', elements = '') {
     const $pairings = $('.pairings');
     const path = Routing.generate('pairing_api', {
         search: search,
-        filter: filter,
-        types: types,
-        elements: elements
+        filter: filter || [],
+        types: types || [],
+        elements: elements || []
     }, true);
 
     $.get(path, (response) => {
@@ -129,7 +129,7 @@ function getActiveButtonsValues() {
         activeElementButtons.push($(this).data('id'));
     });
 
-    return {activeTypeButtons, activeElementButtons}
+    return {activeTypeButtons, activeElementButtons};
 }
 
 function getSearchValue() {

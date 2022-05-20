@@ -15,6 +15,7 @@ use App\Entity\Menu;
 
 use App\Entity\Pack;
 
+use App\Entity\Transport\Vehicle;
 use App\Service\IOT\IOTService;
 use App\Service\IOT\PairingService;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -184,7 +185,9 @@ class PairingController extends AbstractController {
                 $article = $entityManager->getRepository(Article::class)->find($data['article']);
             } else if(isset($data['pack'])) {
                 $pack = $entityManager->getRepository(Pack::class)->find($data['pack']);
-            } else {
+            } else if(isset($data['vehicle'])) {
+                $vehicle =$entityManager->getRepository(Vehicle::class)->find($data['vehicle']);
+            }else {
                 $typeLocation = explode(':', $data['locations']);
                 if ($typeLocation[0] == 'location') {
                     $location = $entityManager->getRepository(Emplacement::class)->find($typeLocation[1]);
@@ -193,7 +196,7 @@ class PairingController extends AbstractController {
                 }
             }
 
-            $pairingLocation = $pairingService->createPairing($data['date-pairing'], $sensorWrapper, $article ?? null, $location ?? null, $locationGroup ?? null, $pack ?? null);
+            $pairingLocation = $pairingService->createPairing($data['date-pairing'], $sensorWrapper, $article ?? null, $location ?? null, $locationGroup ?? null, $pack ?? null, $vehicle ?? null);
             $entityManager->persist($pairingLocation);
 
             try {
