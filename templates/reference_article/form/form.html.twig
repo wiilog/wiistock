@@ -183,7 +183,7 @@
                                 <input type="hidden"
                                        class="data"
                                        name="statut"
-                                       value="{{ reference.statut }}">
+                                       value="{{ reference.statut.code }}">
                                 <input type="hidden"
                                        class="data"
                                        name="mobileSync"
@@ -452,7 +452,7 @@
                                                 <input type="hidden"
                                                        class="data"
                                                        name="buyer"
-                                                       value="{{ reference.buyer.id }}">
+                                                       value="{{ reference.buyer.id ?? null }}">
                                             </div>
                                         {% endif %}
                                     </div>

@@ -393,24 +393,19 @@ class RefArticleDataService {
 
         $refArticle->setStockManagement($data['stockManagement'] ?? null);
 
-        if (!isset($data["managers"])) {
-            $managers = $refArticle->getManagers();
-            foreach ($managers as $manager) {
-                $refArticle->addManager($manager);
-                $entityManager->persist($refArticle);
-            }
-        } else if (!empty($data["managers"])) {
+        if (isset($data['managers'])) {
             $refArticle->getManagers()->clear();
-            $managers = is_string($data["managers"]) ? explode(',', $data['managers']) : $data["managers"];
-            foreach ($managers as $manager) {
-                $refArticle->addManager($userRepository->find($manager));
-                $entityManager->persist($refArticle);
+
+            if (!empty($data['managers'])) {
+                $managers = is_string($data['managers'])
+                    ? explode(',', $data['managers'])
+                    : $data['managers'];
+                foreach ($managers as $manager) {
+                    $refArticle->addManager($userRepository->find($manager));
+                }
             }
-        } else {
-            $refArticle->getManagers()->clear();
-            $entityManager->persist($refArticle);
         }
-        $entityManager->flush();
+
         if (isset($data["visibility-group"]) && $data["visibility-group"] !== 'null') {
             $refArticle->setProperties(['visibilityGroup' => $data['visibility-group'] ? $visibilityGroupRepository->find(intval($data['visibility-group'])) : null]);
         } else {
