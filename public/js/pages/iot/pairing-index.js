@@ -130,6 +130,7 @@ function getActiveButtonsValues() {
     });
 
     return {activeTypeButtons, activeElementButtons};
+
 }
 
 function getSearchValue() {
