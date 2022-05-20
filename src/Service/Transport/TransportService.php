@@ -375,7 +375,6 @@ class TransportService {
         $lines = json_decode($data?->get('lines', '[]') ?? "", true) ?: [];
 
         $treatedNatures = [];
-        dump($lines);
 
         foreach ($lines as $line) {
             $selected = (bool) ($line['selected'] ?? false);
@@ -387,7 +386,6 @@ class TransportService {
 
                 $line = $transportRequest->getLine($nature);
                 $treatedNatures[] = $nature->getId();
-                dump($line);
 
                 if (!isset($line)) {
                     if ($transportRequest instanceof TransportDeliveryRequest) {
