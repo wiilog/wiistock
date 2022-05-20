@@ -180,14 +180,6 @@
                             </label>
                         {% else %}
                             <div class="d-flex align-content-center mt-4">
-                                <input type="hidden"
-                                       class="data"
-                                       name="statut"
-                                       value="{{ reference.statut.code }}">
-                                <input type="hidden"
-                                       class="data"
-                                       name="mobileSync"
-                                       value=" {{ reference.needsMobileSync }}">
                                 <span class="reference-status wii-body-text mr-3"
                                       style="background-color: {{ statuses[reference.statut.code]['color'] }};">
                                     Référence {{ statuses[reference.statut.code]['status'] }}
@@ -237,10 +229,6 @@
                                         <span class="wii-body-text">{{ reference.visibilityGroup ? reference.visibilityGroup.label : '-' }}</span>
                                     </label>
                                 </div>
-                                <input type="hidden"
-                                       class="data"
-                                       name="visibilityGroup"
-                                       value="{{ reference.visibilityGroup ? reference.visibilityGroup.id : ''}}">
                             {% endif %}
                         </div>
                     </div>
@@ -449,10 +437,6 @@
                                                     <span class="wii-field-name">Acheteur</span>
                                                     <span class="wii-body-text">{{ reference.buyer ? reference.buyer.username : '-' }}</span>
                                                 </label>
-                                                <input type="hidden"
-                                                       class="data"
-                                                       name="buyer"
-                                                       value="{{ reference.buyer.id ?? null }}">
                                             </div>
                                         {% endif %}
                                     </div>
@@ -494,17 +478,13 @@
                                             </div>
                                         </div>
                                     {% else %}
-                                        <input type="hidden"
-                                               name="stockManagement"
-                                               class="data"
-                                               value="{{ reference.stockManagement }}">
                                         <div class="col-12 col-md-4 mt-3">
                                             <div class="reference {{ reference.typeQuantite != 'reference' ? 'd-none' }}">
                                                 <label>
-                                                        <span class="icon wii-field-name">
-                                                            <img src="{{ asset('svg/reference_article/euro.svg') }}" class="icon" alt="Image euro">
-                                                            Prix unitaire (€)
-                                                        </span>
+                                                    <span class="icon wii-field-name">
+                                                        <img src="{{ asset('svg/reference_article/euro.svg') }}" class="icon" alt="Image euro">
+                                                        Prix unitaire (€)
+                                                    </span>
                                                     <input type="number" name="prix" class="form-control w-100 data"
                                                            value="{{ reference.prixUnitaire }}" min="0">
                                                 </label>
@@ -635,10 +615,6 @@
                                     </select>
                                 {% else %}
                                     <span class="font-weight-regular">{{ reference.category ? reference.category.label : '-' }}</span>
-                                    <input  type="hidden"
-                                            name="categorie"
-                                            class="data"
-                                            value="{{ reference.category.id ?? null }}">
                                 {% endif %}
                             </label>
                         </div>
