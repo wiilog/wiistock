@@ -33,12 +33,19 @@ export class Map {
     }
 
     setMarker(options) {
-        const existing = this.locations.find(l => l.latitude === options.latitude && l.longitude === options.longitude);
+        const existing = this.locations.find(l => (l.latitude === options.latitude && l.longitude === options.longitude) || (options.name && l.name === options.name));
         if (existing) {
            this.removeMarker(existing);
         }
 
         const marker = Leaflet.marker([options.latitude, options.longitude], {icon: locationIcons[options.icon] || locationIcons.greyLocation});
+
+        if (options.onclick){
+            marker.on('click', function (){
+                options.onclick();
+        });
+        }
+
         this.map.addLayer(marker);
 
         if (options.popUp) {

@@ -1,5 +1,6 @@
 {% set removeButton = removeButton ?? true %}
-<div class="order-card" data-order-id="{{transportOrder.id}}">
+{% set assigned = assigned ?? true %}
+<div class="order-card {% if assigned%}assigned{%else%}to-assign{%endif%} " data-order-id="{{transportOrder.id}}">
     <div class="affected-number d-none">
     </div>
     <div class="card-content pl-1">

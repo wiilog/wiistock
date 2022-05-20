@@ -109,10 +109,11 @@ class TransportRoundRepository extends EntityRepository {
             ->join('transport_round.status', 'round_status')
             ->andWhere('round_status.code like :awaitingDelivererStatus')
             ->andWhere("transport_round.number LIKE :term")
-
+            ->andWhere("transport_round.expectedAt >= :now")
             ->setParameter("term", "%$term%")
             ->setParameter("awaitingDelivererStatus", TransportRound::STATUS_AWAITING_DELIVERER)
             ->setParameter("roundPrefix", TransportRound::NUMBER_PREFIX)
+            ->setParameter("now", new DateTime('now'))
             ->getQuery()
             ->getArrayResult();
     }

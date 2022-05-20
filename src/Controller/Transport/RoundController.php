@@ -7,6 +7,7 @@ use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
+use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Transport\TransportCollectRequest;
 use App\Entity\Transport\TransportDeliveryRequest;
@@ -130,9 +131,25 @@ class RoundController extends AbstractController {
     }
 
     #[Route("/voir/{transportRound}", name: "transport_round_show", methods: "GET")]
-    public function show(TransportRound $transportRound): Response {
-        // TODO Faire la page de show
-        return $this->render('transport/round/show.html.twig');
+    public function show(TransportRound $transportRound,
+                         EntityManagerInterface $entityManager,
+    ): Response {
+        $realTime = null;
+        if ( $transportRound->getBeganAt() != null & $transportRound->getEndedAt() != null  ) {
+            $realTimeDif = $transportRound->getEndedAt()->diff($transportRound->getBeganAt());
+            $realTimeJ = $realTimeDif->format("%a");
+            $realTime = $realTimeDif->format("%h") + ($realTimeJ * 24) . "h" . $realTimeDif->format(" %i") . "min";
+        }
+
+        // count rejected pack for all orders of this round
+        $rejectedPackCount = 0 ;
+
+
+
+        return $this->render('transport/round/show.html.twig', [
+            "transportRound" => $transportRound,
+            "realTime" => $realTime,
+        ]);
     }
 
     #[Route("/planifier", name: "transport_round_plan", options: ['expose' => true], methods: "GET")]
@@ -168,6 +185,18 @@ class RoundController extends AbstractController {
         }
 
         $transportOrders = $entityManager->getRepository(TransportOrder::class)->findByDate($round->getExpectedAt());
+        $transportOrders = Stream::from($transportOrders)
+            ->sort(function (TransportOrder $a, TransportOrder $b) {
+                $getOrderTimestamp = function (TransportOrder $order) {
+                    $request = $order->getRequest();
+                    $dateTime = $request instanceof TransportCollectRequest
+                        ? DateTime::createFromFormat('Y-m-d H:i', $request->getValidatedDate()->format('Y-m-d') . ' ' . $request->getTimeslot()->getEnd())
+                        : $request->getExpectedAt();
+                    return $dateTime->getTimestamp();
+                };
+                return $getOrderTimestamp($a) <=> $getOrderTimestamp($b);
+            })
+            ->toArray();
 
         $contactDataByOrderId = Stream::from(
             $transportOrders,
@@ -247,7 +276,6 @@ class RoundController extends AbstractController {
                 throw $exception;
             }
 
-            // TODO ajouter historique de transport / status à la tournée ?
             $roundStatus = $statusRepository
                 ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ROUND, TransportRound::STATUS_AWAITING_DELIVERER);
 
@@ -255,7 +283,9 @@ class RoundController extends AbstractController {
             $transportRound
                 ->setCreatedAt(new DateTime())
                 ->setNumber($number)
-                ->setStatus($roundStatus);
+                ->setCreatedBy($this->getUser());
+
+            $statusHistoryService->updateStatus($entityManager, $transportRound, $roundStatus);
 
             $entityManager->persist($transportRound);
         }
@@ -304,7 +334,6 @@ class RoundController extends AbstractController {
                     $entityManager->persist($line);
                     $transportRound->addTransportRoundLine($line);
 
-                    // TODO uniquement à l'ordre ou à la request aussi ?
                     // set order status + add status history + add transport history
                     $status = $order->getRequest() instanceof TransportDeliveryRequest ? $deliveryOrderAssignStatus : $collectOrderAssignStatus;
 
