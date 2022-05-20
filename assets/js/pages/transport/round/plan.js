@@ -100,7 +100,7 @@ function initialiseMouseHoverEvent(map, contactData) {
                 latitude: contact.latitude,
                 longitude: contact.longitude,
                 icon: currentIndex ? "blueLocation" : "greyLocation",
-                popUp: createPopupContent(contact, currentIndex),
+                popUp: map.createPopupContent(contact, currentIndex),
                 isFocused: true,
             });
         })
@@ -114,7 +114,7 @@ function initialiseMouseHoverEvent(map, contactData) {
             latitude: contact.latitude,
             longitude: contact.longitude,
             icon: currentIndex ? "blueLocation" : "greyLocation",
-            popUp: createPopupContent(contact, currentIndex),
+            popUp: map.createPopupContent(contact, currentIndex),
             onclick: () => {
                 if (!currentIndex) {
                     affectCard($card, map, contactData);
@@ -137,7 +137,7 @@ function updateCardsContainers(map, contactData) {
             latitude: contact.latitude,
             longitude: contact.longitude,
             icon: "greyLocation",
-            popUp: createPopupContent(contact, null),
+            popUp: map.createPopupContent(contact, null),
             onclick: function () {
                 affectCard($card, map, contactData);
             }
@@ -159,7 +159,7 @@ function updateCardsContainers(map, contactData) {
             latitude: contact.latitude,
             longitude: contact.longitude,
             icon: "blueLocation",
-            popUp: createPopupContent(contact, index + 1),
+            popUp: map.createPopupContent(contact, index + 1),
         });
     });
 }
@@ -169,16 +169,6 @@ function removeCard($button, map, contactData) {
     $card.remove();
     $('#to-affect-container').append($card);
     updateCardsContainers(map ,contactData);
-}
-
-function createPopupContent(contactInformation, index) {
-    const htmlIndex = index ? `<span class='index'>${index}</span>` : ``;
-    const htmlTime = contactInformation.time ? `<span class='time'>${contactInformation.time || ""}</span>` : ``;
-    return `
-        ${htmlIndex}
-        <span class='contact'>${contactInformation.contact || ""}</span>
-        ${htmlTime}
-    `;
 }
 
 function placeAddressMarker($input, map){
@@ -264,7 +254,7 @@ function addRoundPointMarker(map, $input, {latitude, longitude}) {
             latitude,
             longitude,
             icon: "blackLocation",
-            popUp: createPopupContent({contact: $input.data('short-label')}),
+            popUp: map.createPopupContent({contact: $input.data('short-label')}),
             name: $input.data('short-label'),
         });
     }
