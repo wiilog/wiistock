@@ -127,6 +127,7 @@ class TransportService {
                                            ?DateTime                $customExpectedAt = null): array {
 
         $expectedAtStr = $data?->get('expectedAt');
+        $creation = !$transportRequest->getId();
 
         if ($transportRequest->getId()
             && !$transportRequest->canBeUpdated()) {
@@ -152,7 +153,7 @@ class TransportService {
         $expectedAt = $expectedAt ?? $transportRequest->getExpectedAt();
 
         ['status' => $status, 'subcontracted' => $subcontracted] = $this->getStatusRequest($entityManager, $transportRequest, $expectedAt);
-        if (!$transportRequest->getId()) { // transport creation
+        if ($creation) { // transport creation
             if ($subcontracted) {
                 $settingRepository = $entityManager->getRepository(Setting::class);
                 $this->transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_NO_MONITORING, [
@@ -171,7 +172,11 @@ class TransportService {
                 throw new FormException("La modification de cette demande de transport n'est pas autorisée");
             }
 
-            if ($transportRequest->getStatus()?->getId() !== $status->getId()){
+            $canChangeStatus = (
+                $transportRequest->getExpectedAt() != $expectedAt
+                && $transportRequest->getStatus()?->getId() !== $status->getId()
+            );
+            if ($canChangeStatus){
                 $statusHistory = $this->statusHistoryService->updateStatus($entityManager, $transportRequest, $status);
             }
 
@@ -229,20 +234,28 @@ class TransportService {
         }
 
         $oldAddress = $oldAddress ?? null;
-        $address = $transportRequest->getContact()?->getAddress();
+        $contact = $transportRequest->getContact();
+        $address = $contact->getAddress();
+        $oldLat = $contact->getAddressLatitude();
+        $oldLon = $contact->getAddressLongitude();
 
-        if ($oldAddress && $address && $oldAddress !== $address) {
+        if ($address
+            && (
+                ($oldAddress && $oldAddress !== $address)
+                || !$oldLat
+                || !$oldLon
+            )) {
             try {
                 [$lat, $lon] = $this->geoService->fetchCoordinates($transportRequest->getContact()->getAddress());
             } catch (GeoException $exception) {
                 throw new FormException($exception->getMessage());
             }
-            $transportRequest->getContact()->setAddressLatitude($lat);
-            $transportRequest->getContact()->setAddressLongitude($lon);
+            $contact->setAddressLatitude($lat);
+            $contact->setAddressLongitude($lon);
         }
-        else {
-            $transportRequest->getContact()->setAddressLatitude(null);
-            $transportRequest->getContact()->setAddressLongitude(null);
+        else if (!$address) {
+            $contact->setAddressLatitude(null);
+            $contact->setAddressLongitude(null);
         }
 
         return $linesResult;
