@@ -1568,7 +1568,7 @@ class DispatchController extends AbstractController {
         $arrivals = [];
         $arrival = null;
         if($request->query->has('arrivals')) {
-            $arrivalsIds = (array) $request->query->get('arrivals');
+            $arrivalsIds = $request->query->all('arrivals');
             $arrivals = $arrivageRepository->findBy(['id' => $arrivalsIds]);
         } else {
             $arrival = $arrivageRepository->find($request->query->get('arrival'));

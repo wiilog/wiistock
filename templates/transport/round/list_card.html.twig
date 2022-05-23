@@ -8,7 +8,6 @@
                         <img src="{{ asset('svg/rejected-delivery.svg') }}" width="18px"
                              height="18px" class="has-tooltip" title="Livraison rejetée">
                     {% else %}
-                        {% set hasRejectedPacks = round.transportRoundLines|some(line => line.rejectedAt) %}
                         {% if hasRejectedPacks %}
                             <img src="{{ asset('svg/rejected-pack.svg') }}" width="18px" height="18px"
                                  class="has-tooltip" title="Un ou plusieurs colis ont été rejetés">

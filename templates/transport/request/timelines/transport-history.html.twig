@@ -10,7 +10,7 @@
                     <span class="ml-2">{{ formatHistory(record)|raw }}</span>
                 </div>
                 {% if record.comment %}
-                    <div class="comment wii-describe">{{ record.comment }}</div>
+                    <div class="comment wii-describe">{{ record.comment|raw }}</div>
                 {% endif %}
                 {% if record.attachments is not empty %}
                     <div class="attachments">
@@ -20,7 +20,9 @@
                                 : ('/uploads/attachements/' ~ attachment.fileName) %}
                             {% set name = attachment.originalName %}
                             <div class="attachment-line mt-2">
-                                <img src="{{ path }}">
+                                {% if isImage('public' ~ path) %}
+                                    <img src="{{ path }}" alt=""/>
+                                {% endif %}
                                 <a class="text-primary underlined pointer"
                                    download="{{ name }}"
                                    href="{{ path }}">{{ name }}</a>

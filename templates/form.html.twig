@@ -166,6 +166,7 @@
             {% if options.type is defined %}
                 data-s2="{{ options.type }}"
                 {% if options.hiddenDropdown ?? false %}data-hidden-dropdown{% endif %}
+                {% if options.disabledDropdownOptions ?? false %}data-disabled-dropdown-options{% endif %}
                 {% if options.editable ?? false %}data-editable{% endif %}
                 {% if options.noEmptyOption ?? false %}data-no-empty-option{% endif %}
                 {% if options.placeholder is defined %}data-placeholder="{{ options.placeholder }}"{% endif %}
@@ -189,6 +190,7 @@
                     <option value="{{ text.value }}"
                             {{ (text.selected ?? false) or text.value in values ? 'selected' }}
                             {{ text.disabled ?? false ? 'disabled' }}
+                            {% if text.class is defined and text.class %}class="{{ text.class }}"{% endif %}
                             {% for dataKey, dataValue in text %}
                                 data-{{ dataKey }}="{{ dataValue }}"
                             {% endfor %}>

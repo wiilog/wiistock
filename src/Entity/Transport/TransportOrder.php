@@ -3,6 +3,7 @@
 namespace App\Entity\Transport;
 
 use App\Entity\Attachment;
+use App\Entity\Interfaces\StatusHistoryContainer;
 use App\Entity\StatusHistory;
 use App\Entity\Statut;
 use App\Entity\Traits\AttachmentTrait;
@@ -10,11 +11,12 @@ use App\Repository\Transport\TransportOrderRepository;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
 use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: TransportOrderRepository::class)]
-class TransportOrder {
+class TransportOrder implements StatusHistoryContainer {
 
     use AttachmentTrait;
 
@@ -270,7 +272,7 @@ class TransportOrder {
     }
 
     public function isRejected(): bool {
-        return Stream::from($this->getPacks())
+        return !$this->getPacks()->isEmpty() && Stream::from($this->getPacks())
             ->every(fn(TransportDeliveryOrderPack $orderPack) => $orderPack->getState() === TransportDeliveryOrderPack::REJECTED_STATE);
     }
 
@@ -342,8 +344,14 @@ class TransportOrder {
     /**
      * @return Collection<int, StatusHistory>
      */
-    public function getStatusHistory(): Collection {
-        return $this->statusHistory;
+    public function getStatusHistory(string $order = Criteria::ASC): Collection {
+        return $this->statusHistory
+            ->matching(Criteria::create()
+                ->orderBy([
+                    'date' => $order,
+                    'id' => $order
+                ])
+            );
     }
 
     public function addStatusHistory(StatusHistory $statusHistory): self {

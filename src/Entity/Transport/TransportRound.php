@@ -259,7 +259,7 @@ class TransportRound
         return $this->transportRoundLines
             ->matching(
                 $criteria
-                    ->orderBy(['priority' => 'ASC'])
+                    ->orderBy(['priority' => Criteria::ASC])
             );
     }
 

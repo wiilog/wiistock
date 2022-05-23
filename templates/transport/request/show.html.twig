@@ -41,8 +41,9 @@
                                             {% endif %}
                                         {% endif %}
 
-                                        {% if request_delivery and request.status.code in constant('App\\Entity\\Transport\\TransportRequest::STATUS_WORKFLOW_DELIVERY_CLASSIC')|slice(1) %}
-                                            <div class="dropdown-item pointer">
+                                        {% if request_delivery and request.status.code in constant('App\\Entity\\Transport\\TransportRequest::STATUS_WORKFLOW_DELIVERY_CLASSIC')|slice(1) and request.order.packs is not empty %}
+                                            <div class="dropdown-item pointer print-transport-button"
+                                                 data-request-id="{{ request.id }}">
                                                 <i class="fas fa-file mr-2"></i> Générer bon de transport
                                             </div>
                                         {% endif %}
@@ -145,7 +146,7 @@
                             {% set isCollect = request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') %}
                             <span class="wii-field-name">Date{{ not isCollect ? ' et heure' }} attendue</span>
                             <span class="wii-field-text">
-                                {{ request.expectedAt|format_helper('longDate', {short: true, time: not isCollect}) }}
+                                {{ request.expectedAt | format_helper('longDate', {short: true, time: not isCollect}) }}
                             </span>
                         </div>
                         {# Only for collect view #}
@@ -154,7 +155,7 @@
                                 <span class="wii-field-name">Date validée avec le patient</span>
                                 {% if request_collect.validatedDate %}
                                     <span class="wii-field-text">
-                                        {{ request.validatedDate|format_helper('date') }}
+                                        {{ request.validatedDate | format_helper('longDate',{short: true, time: false}) }}
                                     </span>
                                 {% endif %}
                             </div>
@@ -182,7 +183,7 @@
                                 N° dossier {{ transportRequestContact.fileNumber }}
                             </span>
                         </div>
-                        <div class="col-6 d-flex align-items-start">
+                        <div class="col-6 d-flex align-items-center">
                             <img src="{{ asset('svg/phone.svg') }}" alt="Icône téléphone"
                                  width="20px">
                             <div class="d-flex flex-column ml-2 justify-content-center">
@@ -190,7 +191,7 @@
                                 <span class="wii-field-text">{{ transportRequestContact.contact }}</span>
                             </div>
                         </div>
-                        <div class="col-6 d-flex align-items-start">
+                        <div class="col-6 d-flex align-items-center">
                             <img src="{{ asset('svg/user-contact.svg') }}" alt="Icône personne à prévenir"
                                  width="20px">
                             <div class="d-flex flex-column ml-2 justify-content-center">
@@ -198,7 +199,7 @@
                                 <span class="wii-field-text">{{ transportRequestContact.personToContact }}</span>
                             </div>
                         </div>
-                        <div class="col-6 d-flex mt-3 align-items-start">
+                        <div class="col-6 d-flex mt-3 align-items-center">
                             <img src="{{ asset('svg/location-blue.svg') }}" alt="Icône emplacement"
                                  width="20px">
                             <div class="d-flex flex-column ml-2 justify-content-center">
@@ -206,7 +207,7 @@
                                 <span class="wii-field-text">{{ transportRequestContact.address }}</span>
                             </div>
                         </div>
-                        <div class="col-6 d-flex mt-3 align-items-start">
+                        <div class="col-6 d-flex mt-3 align-items-center">
                             <img src="{{ asset('svg/question-mark.svg') }}" alt="Icône remarque"
                                  width="20px">
                             <div class="d-flex flex-column ml-2 justify-content-center">

@@ -2,6 +2,7 @@
 
 namespace App\Entity\Transport;
 
+use App\Entity\Interfaces\StatusHistoryContainer;
 use App\Entity\Nature;
 use App\Entity\StatusHistory;
 use App\Entity\Statut;
@@ -11,6 +12,7 @@ use App\Repository\Transport\TransportRequestRepository;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
 use WiiCommon\Helper\Stream;
 
@@ -21,7 +23,7 @@ use WiiCommon\Helper\Stream;
     self::DISCR_DELIVERY => TransportDeliveryRequest::class,
     self::DISCR_COLLECT => TransportCollectRequest::class,
 ])]
-abstract class TransportRequest {
+abstract class TransportRequest implements StatusHistoryContainer {
 
     public const NUMBER_PREFIX = 'DTR';
 
@@ -288,8 +290,14 @@ abstract class TransportRequest {
     /**
      * @return Collection<int, StatusHistory>
      */
-    public function getStatusHistory(): Collection {
-        return $this->statusHistory;
+    public function getStatusHistory(string $order = Criteria::ASC): Collection {
+        return $this->statusHistory
+            ->matching(Criteria::create()
+                ->orderBy([
+                    'date' => $order,
+                    'id' => $order
+                ])
+            );
     }
 
     public function addStatusHistory(StatusHistory $statusHistory): self {

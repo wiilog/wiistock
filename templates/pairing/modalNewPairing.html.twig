@@ -59,6 +59,14 @@
                                 Article
                             </button>
                         </div>
+                        <div class="d-flex justify-content-center mr-2">
+                            <button type="button"
+                                    class="btn btn-primary button-vehicle data d-flex align-items-center"
+                                    onclick="visible($('.vehicle'))">
+                                <span class="wii-icon wii-icon-iot-vehicle mr-2"></span>
+                                Véhicule
+                            </button>
+                        </div>
                     </div>
 
                     <div class="col-12 mt-2 container location d-none">
@@ -88,6 +96,17 @@
                             <div class="form-group col-md-4 col-12">
                                 <select class="form-control data w-100" name="article" data-s2="articleWithoutPairing"
                                         data-placeholder="Sélectionnez un code barre">
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 mt-2 container vehicle d-none">
+                        <div class="row">
+                            <label class="col-12">Véhicule*</label>
+                            <div class="form-group col-md-4 col-12">
+                                <select class="form-control data w-100" name="vehicle" data-s2="vehicles"
+                                        data-placeholder="Sélectionnez une immatriculation">
                                 </select>
                             </div>
                         </div>
