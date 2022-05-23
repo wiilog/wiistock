@@ -18,10 +18,17 @@
                 <div class="wii-box transport-details order-transport">
                     <div class="d-flex align-items-center mr-3">
                         <div class="d-flex mx-3 py-2 w-100 justify-content-between">
-                            <div class="d-flex flex-column">
-                                <span class="wii-title" title="Acheminement">Transport</span>
-                                <span
-                                    class="wii-medium-text">{{ constant('App\\Entity\\Transport\\TransportOrder::NUMBER_PREFIX') ~ request.number }}</span>
+                            <div class="d-flex align-items-center">
+                                <div class="d-flex flex-column">
+                                    <span class="wii-title" title="Acheminement">Transport</span>
+                                    <span class="wii-medium-text">
+                                        {{ constant('App\\Entity\\Transport\\TransportOrder::NUMBER_PREFIX') ~ request.number }}
+                                    </span>
+                                </div>
+                                {% if order.rejected %}
+                                    <img src="{{ asset('svg/rejected-delivery.svg') }}" class="ml-3"
+                                         alt="Livraison rejetée" title="Livraison rejetée" width="25px">
+                                {% endif %}
                             </div>
                             <div class="d-flex align-items-center justify-content-end">
                                 <span class="wii-field-name">{{ request.createdBy|format_helper('user') }}</span>
@@ -141,32 +148,35 @@
                             </div>
                         {% endif %}
                     </div>
-                    <div class="header">
-                        <img src="{{ asset('svg/delivery.svg') }}" alt="Icône calendrier" width="15px">
-                        <span class="wii-field-name ml-2">Détails transport</span>
-                    </div>
-                    <div class="row content col-12">
-                        <div class="col-6 d-flex flex-column">
-                            <span class="wii-field-name">Tournée</span>
-                            <span class="wii-field-text">
-                                {% if round is not null %}
-                                    <a class="text-primary underlined" href="{{ path('transport_round_show', {transportRound: round.id}) }}">T{{ round.number }}</a>
-                                {% else %}
-                                    <span>-</span>
-                                {% endif %}
-                            </span>
+                    {% if not order.rejected %}
+                        <div class="header">
+                            <img src="{{ asset('svg/delivery.svg') }}" alt="Icône calendrier" width="15px">
+                            <span class="wii-field-name ml-2">Détails transport</span>
                         </div>
-                        <div class="col-6 d-flex flex-column">
-                            <span class="wii-field-name">Livreur</span>
-                            <span class="wii-field-text">
-                                {% if round and  round.deliverer is not null %}
-                                    <span>{{ round.deliverer|format_helper('user') }}</span>
-                                {% else %}
-                                    <span>-</span>
-                                {% endif %}
-                            </span>
+                        <div class="row content col-12">
+                            <div class="col-6 d-flex flex-column">
+                                <span class="wii-field-name">Tournée</span>
+                                <span class="wii-field-text">
+                                    {% if round is not null %}
+                                        <a class="text-primary underlined"
+                                           href="{{ path('transport_round_show', {transportRound: round.id}) }}">T{{ round.number }}</a>
+                                    {% else %}
+                                        <span>-</span>
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="col-6 d-flex flex-column">
+                                <span class="wii-field-name">Livreur</span>
+                                <span class="wii-field-text">
+                                    {% if round and  round.deliverer is not null %}
+                                        <span>{{ round.deliverer|format_helper('user') }}</span>
+                                    {% else %}
+                                        <span>-</span>
+                                    {% endif %}
+                                </span>
+                            </div>
                         </div>
-                    </div>
+                    {% endif %}
                     <div class="header">
                         <img src="{{ asset('svg/information.svg') }}" alt="Icône information" width="15px">
                         <span class="wii-field-name ml-2">Autres informations</span>
