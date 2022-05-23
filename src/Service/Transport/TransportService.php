@@ -38,6 +38,23 @@ use WiiCommon\Helper\Stream;
 
 class TransportService {
 
+    private const LYON_POSTAL_CODES = [
+        69000, 69001, 69002, 69003, 69004,
+        69005, 69006, 69007, 69008, 69009,
+        69003, 69029, 69033, 69034, 69040,
+        69044, 69046, 69063, 69068, 69069,
+        69071, 69072, 69081, 69085, 69087,
+        69088, 69089, 69091, 69096, 69100,
+        69116, 69117, 69123, 69127, 69142,
+        69143, 69149, 69152, 69153, 69163,
+        69168, 69191, 69194, 69199, 69202,
+        69204, 69205, 69207, 69233, 69244,
+        69250, 69256, 69259, 69260, 69266,
+        69271, 69273, 69275, 69276, 69278,
+        69279, 69282, 69283, 69284, 69286,
+        69290, 69292, 69293, 69296,
+    ];
+
     #[Required]
     public UniqueNumberService $uniqueNumberService;
 
@@ -499,7 +516,7 @@ class TransportService {
             str_replace("\n", " / ", $request->getContact()->getAddress()),
             $request->getContact()->getAddress() ? FormatHelper::bool($this->isMetropolis($request->getContact()->getAddress())) : '',
             FormatHelper::datetime($request->getExpectedAt()),
-            ];
+        ];
 
         if($request instanceof TransportDeliveryRequest) {
             $dataTransportDeliveryRequest = array_merge($dataTransportRequest, [
@@ -510,7 +527,7 @@ class TransportService {
                 isset($statusRequest[TransportRequest::STATUS_ONGOING]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_ONGOING]) : '',
                 isset($statusRequest[TransportRequest::STATUS_FINISHED]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_FINISHED]) : (isset($statusRequest[TransportRequest::STATUS_CANCELLED]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_CANCELLED]) : '' ),
                 $request->getContact()->getObservation(),
-            ], $freeFields);
+            ]);
 
             $packs = $request->getOrder()?->getPacks();
 
@@ -524,12 +541,13 @@ class TransportService {
                         $pack->getRejectedBy() ? 'Oui' : ($pack->getRejectReason() ? 'Oui' : 'Non'),
                         $pack->getRejectReason() ?: '',
                         FormatHelper::datetime($pack->getReturnedAt()),
-                    ]);
-                    $csvService->putLine($output, $dataTransportDeliveryRequestPacks );
+                    ], $freeFields);
+                    $csvService->putLine($output, $dataTransportDeliveryRequestPacks);
                 }
             }
             else {
-                $csvService->putLine($output, $dataTransportDeliveryRequest);
+                $offset = array_fill(0, 7, "");
+                $csvService->putLine($output, array_merge($dataTransportDeliveryRequest, $offset, $freeFields));
             }
         }
         else if($request instanceof TransportCollectRequest) {
@@ -542,7 +560,7 @@ class TransportService {
                 isset($statusRequest[TransportRequest::STATUS_FINISHED]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_FINISHED]) : (isset($statusRequest[TransportRequest::STATUS_CANCELLED]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_CANCELLED]) : '' ),
                 isset($statusRequest[TransportRequest::STATUS_DEPOSITED]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_DEPOSITED]): '',
                 $request->getContact()->getObservation(),
-            ],$freeFields);
+            ]);
 
             $lines = $request->getLines()?:null;
             if ($lines && !$lines->isEmpty()) {
@@ -552,29 +570,26 @@ class TransportService {
                         $line->getNature()?->getLabel()? : '',
                         $line->getQuantityToCollect()? : '',
                         $line->getCollectedQuantity()? : '',
-                    ]);
+                    ], $freeFields);
                     $csvService->putLine($output, $dataTransportCollectRequestPacks);
                 }
             }
             else {
-                $tableEmpty = ['','',''];
-                $lines = array_merge($dataTransportCollectRequest, $tableEmpty);
+                $offset = array_fill(0, 3, "");
+                $lines = array_merge($dataTransportCollectRequest, $offset, $freeFields);
                 $csvService->putLine($output, $lines);
             }
         }
     }
 
     public function isMetropolis(string|null $address): ?bool  {
-        $postalCodeMetropolisStr = $_SERVER['POSTAL_CODE_METROPOLIS'] ?? null;
-        if($postalCodeMetropolisStr) {
-            $postalCodeMetropolis = explode(",", $postalCodeMetropolisStr);
-            preg_match("/\s(\d{5})/", $address, $postalCode);
-            foreach ($postalCode as $code) {
-                if (in_array($code, $postalCodeMetropolis)) {
-                    return true;
-                }
+        preg_match("/(\d{5})/", $address, $postalCode);
+        foreach ($postalCode as $code) {
+            if (in_array($code, self::LYON_POSTAL_CODES)) {
+                return true;
             }
         }
+
         return false;
     }
 
@@ -634,7 +649,7 @@ class TransportService {
                 $transportRound,
                 FormatHelper::user($transportRoundDeliverer),
                 $request->getContact()->getObservation(),
-            ], $freeFields);
+            ]);
 
             $packs = $order->getPacks();
 
@@ -649,12 +664,13 @@ class TransportService {
                         $pack->getRejectedBy() ? 'Oui' : ($pack->getRejectReason() ? 'Oui' : 'Non'),
                         $pack->getRejectReason() ?: '',
                         FormatHelper::datetime($pack->getReturnedAt()),
-                    ]);
+                    ], $freeFields);
                     $csvService->putLine($output, $dataTransportDeliveryRequestPacks);
                 }
             }
             else {
-                $csvService->putLine($output, $dataTransportDeliveryRequest);
+                $offset = array_fill(0, 8, "");
+                $csvService->putLine($output, array_merge($dataTransportDeliveryRequest, $offset, $freeFields));
             }
         }
         else if($request instanceof TransportCollectRequest) {
@@ -670,7 +686,7 @@ class TransportService {
                 $transportRound,
                 FormatHelper::user($transportRoundDeliverer),
                 $request->getContact()->getObservation(),
-            ],$freeFields);
+            ]);
 
             $lines = $request->getLines()?:null;
             if ($lines && !$lines->isEmpty()) {
@@ -680,12 +696,13 @@ class TransportService {
                         $line->getNature()?->getLabel()? : '',
                         $line->getQuantityToCollect()? : '',
                         $line->getCollectedQuantity()? : '',
-                    ]);
+                    ], $freeFields);
                     $csvService->putLine($output, $dataTransportCollectRequestPacks);
                 }
             }
             else {
-                $csvService->putLine($output, $dataTransportCollectRequest);
+                $offset = array_fill(0, 3, "");
+                $csvService->putLine($output, array_merge($dataTransportCollectRequest, $offset, $freeFields));
             }
         }
     }

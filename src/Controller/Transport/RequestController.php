@@ -656,7 +656,7 @@ class RequestController extends AbstractController {
 
         if ($category === CategoryType::DELIVERY_TRANSPORT) {
             $nameFile = 'export_demande_livraison.csv';
-            $csvTransport = [
+            $transportHeader = [
                 'N°demande',
                 'Transport',
                 'Type',
@@ -676,7 +676,7 @@ class RequestController extends AbstractController {
                 'Date Terminée/Non Livrée',
                 'Commentaire'];
 
-            $csvPaks = [
+            $packsHeader = [
                 'Nature colis',
                 'Nombre de colis à livrer',
                 'Températures',
@@ -685,10 +685,10 @@ class RequestController extends AbstractController {
                 'Motif écartement',
                 'Retrounée le',
             ];
-            $csvHeader = array_merge($csvTransport, $freeFieldsConfigDelivery['freeFieldsHeader'], $csvPaks);
+            $csvHeader = array_merge($transportHeader, $packsHeader, $freeFieldsConfigDelivery['freeFieldsHeader']);
         } else {
             $nameFile = 'export_demande_collecte.csv';
-            $csvCollect = [
+            $transportHeader = [
                 'N°demande',
                 'Transport',
                 'Type',
@@ -706,14 +706,15 @@ class RequestController extends AbstractController {
                 'Date En cours',
                 'Date Terminée/Non Collectée',
                 'Date Objets déposés',
-                'Commentaire'
-                ];
-                $csvLines = [
+                'Commentaire',
+            ];
+
+            $naturesHeader = [
                 'Nature colis',
                 'Quantité à collecter',
                 'Quantités collectées',
             ];
-            $csvHeader = array_merge($csvCollect, $freeFieldsConfigCollect['freeFieldsHeader'], $csvLines);
+            $csvHeader = array_merge($transportHeader, $naturesHeader, $freeFieldsConfigCollect['freeFieldsHeader']);
         }
         $transportRequestIterator = $transportRequestRepository->iterateTransportRequestByDates($dateTimeMin, $dateTimeMax, $category);
 

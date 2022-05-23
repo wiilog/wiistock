@@ -274,7 +274,7 @@ class OrderController extends AbstractController {
 
         if ($category === CategoryType::DELIVERY_TRANSPORT) {
             $nameFile = 'export_ordre_livraison.csv';
-            $csvTransport = [
+            $transportHeader = [
                 'N°demande',
                 'Transport',
                 'Type',
@@ -295,7 +295,7 @@ class OrderController extends AbstractController {
                 'Livreur',
                 'Commentaire'];
 
-            $csvPaks = [
+            $packsHeader = [
                 'Nature colis',
                 'Nombre de colis à livrer',
                 'Températures',
@@ -305,7 +305,7 @@ class OrderController extends AbstractController {
                 'Motif écartement',
                 'Retrounée le',
             ];
-            $csvHeader = array_merge($csvTransport, $freeFieldsConfigDelivery['freeFieldsHeader'], $csvPaks);
+            $csvHeader = array_merge($transportHeader, $packsHeader, $freeFieldsConfigDelivery['freeFieldsHeader']);
         } else {
             $nameFile = 'export_ordre_collecte.csv';
             $csvCollect = [
@@ -331,12 +331,14 @@ class OrderController extends AbstractController {
                 'Livreur',
                 'Commentaire'
             ];
+
             $csvLines = [
                 'Nature colis',
                 'Quantité à collecter',
                 'Quantités collectées',
             ];
-            $csvHeader = array_merge($csvCollect, $freeFieldsConfigCollect['freeFieldsHeader'], $csvLines);
+
+            $csvHeader = array_merge($csvCollect, $csvLines, $freeFieldsConfigCollect['freeFieldsHeader']);
         }
 
         $transportOrderIterator = $transportOrderRepository->iterateTransportOrderByDates($dateTimeMin, $dateTimeMax, $category);
