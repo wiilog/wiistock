@@ -23,6 +23,7 @@ class Sensor {
     const LOCATION_GROUP = 'location-group';
     const PACK = 'pack';
     const ARTICLE = 'article';
+    const VEHICLE = 'vehicle';
     const PREPARATION = 'preparation';
     const DELIVERY_REQUEST = 'delivery-request';
     const COLLECT_REQUEST = 'collect-request';
@@ -31,6 +32,7 @@ class Sensor {
         'Emplacement' => self::LOCATION,
         'Colis' => self::PACK,
         'Article' => self::ARTICLE,
+        'Véhicule' => self::VEHICLE,
         'Préparation' => self::PREPARATION,
         'Ordre de collecte' => self::COLLECT_REQUEST,
     ];

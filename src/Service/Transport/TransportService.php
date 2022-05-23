@@ -400,7 +400,6 @@ class TransportService {
         $lines = json_decode($data?->get('lines', '[]') ?? "", true) ?: [];
 
         $treatedNatures = [];
-
         $createdPacks = [];
 
         foreach ($lines as $line) {

@@ -33,6 +33,7 @@ const ROUTES = {
     businessUnit: `ajax_select_business_unit`,
     carrier: 'ajax_select_carrier',
     types: 'ajax_select_types',
+    vehicles: 'ajax_select_vehicles',
 }
 
 const INSTANT_SELECT_TYPES = {

@@ -9,6 +9,7 @@ import {
     deleteRequest,
     initializePacking,
     packingOrPrint,
+    transportPDF,
 } from "@app/pages/transport/request/common";
 import {initializeFilters} from "@app/pages/transport/common";
 
@@ -71,6 +72,12 @@ $(function() {
     $(document).arrive('.delete-request-button', function (){
         $(this).on('click', function(){
             deleteRequest($(this).data('request-id'), table);
+        });
+    });
+
+    $(document).arrive('.print-transport-button', function (){
+        $(this).on('click', function(){
+            transportPDF($(this).data('request-id'));
         });
     });
 });

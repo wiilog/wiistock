@@ -79,7 +79,7 @@ class PairingService
         return $data;
     }
 
-    public function createPairing($end, SensorWrapper $sensorWrapper,  $article,  $location, $locationGroup, $pack){
+    public function createPairing($end, SensorWrapper $sensorWrapper,  $article,  $location, $locationGroup, $pack, $vehicle){
         $pairing = new Pairing();
         if (!empty($end)){
             $endPairing = new DateTime($end);
@@ -93,6 +93,7 @@ class PairingService
             ->setLocationGroup($locationGroup)
             ->setLocation($location)
             ->setPack($pack)
+            ->setVehicle($vehicle)
             ->setActive(true);
 
         return $pairing;

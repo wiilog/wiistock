@@ -26,8 +26,9 @@
                             </div>
                         {% endif %}
 
-                        {% if request.status.code in constant('App\\Entity\\Transport\\TransportRequest::STATUS_WORKFLOW_DELIVERY_CLASSIC')|slice(1) %}
-                            <div class="dropdown-item pointer">
+                        {% if request.status.code in constant('App\\Entity\\Transport\\TransportRequest::STATUS_WORKFLOW_DELIVERY_CLASSIC')|slice(1) and request.order.packs is not empty %}
+                            <div class="dropdown-item pointer print-transport-button"
+                                data-request-id="{{ request.id }}">
                                 <i class="fas fa-file mr-2"></i> Générer bon de transport
                             </div>
                         {% endif %}

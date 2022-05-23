@@ -622,4 +622,15 @@ class RequestController extends AbstractController {
        ]);
     }
 
+    #[Route("/bon-de-transport/{transportRequest}", name: "print_transport_note", options: ['expose' => true], methods: "GET")]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_TRANSPORT])]
+    public function printTransportNote(TransportRequest $transportRequest,
+                                             PDFGeneratorService $pdfService,
+                                             EntityManagerInterface $entityManager): Response {
+
+        return new PdfResponse(
+            $pdfService->generatePDFTransport($transportRequest),
+            "{$transportRequest->getNumber()}-bon-transport.pdf"
+        );
+    }
 }

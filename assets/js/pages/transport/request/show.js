@@ -1,7 +1,7 @@
 import '@styles/pages/transport/show.scss';
 import AJAX, {GET, POST} from "@app/ajax";
 import Flash, {ERROR, SUCCESS} from "@app/flash";
-import {initializeForm, cancelRequest, initializePacking, deleteRequest,} from "@app/pages/transport/request/common";
+import {initializeForm, cancelRequest, initializePacking, deleteRequest, transportPDF} from "@app/pages/transport/request/common";
 import {getPacks, getStatusHistory, getTransportHistory} from "@app/pages/transport/common";
 
 
@@ -25,6 +25,10 @@ $(function () {
 
     $('.delete-request-button').on('click', function(){
         deleteRequest($(this).data('request-id'));
+    });
+
+    $('.print-transport-button').on('click', function(){
+        transportPDF($(this).data('request-id'));
     });
 
     $('.edit-button').on('click', function(){
