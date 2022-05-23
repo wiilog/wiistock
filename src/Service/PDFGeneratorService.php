@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\Dispatch;
 use App\Entity\Setting;
+use App\Entity\Transport\TransportRequest;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -209,6 +210,31 @@ class PDFGeneratorService {
             (($barcodeCounter === 1 && !empty($smartBarcodeLabel)) ? ('_' . $smartBarcodeLabel) : '') .
             '.pdf'
         );
+    }
+
+    public function generatePDFTransport(TransportRequest $transportRequest): string {
+        $settingRepository = $this->entityManager->getRepository(Setting::class);
+        $appLogo = $settingRepository->getOneParamByLabel(Setting::FILE_SHIPMENT_NOTE_LOGO);
+        $society = $settingRepository->getOneParamByLabel(Setting::SHIPMENT_NOTE_COMPANY_DETAILS);
+        $originator = $settingRepository->getOneParamByLabel(Setting::SHIPMENT_NOTE_ORIGINATOR);
+        $sender = $settingRepository->getOneParamByLabel(Setting::SHIPMENT_NOTE_SENDER_DETAILS);
+
+        $content = $this->templating->render("prints/transport_template.html.twig", [
+            "app_logo" => $appLogo ?? "",
+            "society" => $society,
+            "requestNumber" => $transportRequest->getNumber() ?? "",
+            "originator" => $originator,
+            "sender" => $sender,
+            "round" => $transportRequest->getOrder()->getTransportRoundLines()->last(),
+            "request" => $transportRequest,
+        ]);
+
+        return $this->PDFGenerator->getOutputFromHtml($content, [
+            "page-size" => "A4",
+            "orientation" => "portrait",
+            "enable-local-file-access" => true,
+            "encoding" => "UTF-8",
+        ]);
     }
 
 }

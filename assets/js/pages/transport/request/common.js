@@ -92,17 +92,9 @@ export function openPackingModal(transportRequest) {
 export function printBarcodes(transportRequest) {
     Flash.add(`info`, `Génération des étiquettes de colis en cours`);
     return AJAX.route(GET, `print_transport_packs`, {transportRequest})
-        .raw()
-        .then(response => {
-            if(!response.ok) {
-                Flash.add(ERROR, "Erreur lors de l'impression des étiquettes")
-                throw new Error('printing error');
-            }
-            return response.blob().then((blob) => {
-                const fileName = response.headers.get("content-disposition").split("filename=")[1];
-                saveAs(blob, fileName);
-                Flash.add(SUCCESS, "Vos étiquettes ont bien été téléchargées");
-            });
+        .file({
+            success: "Vos étiquettes ont bien été téléchargées",
+            error: "Erreur lors de l'impression des étiquettes"
         });
 }
 
@@ -301,4 +293,8 @@ export function deleteRequest(transportRequest, table = null){
         },
         table: table,
     });
+}
+
+export function transportPDF(transportId){
+    Wiistock.download(Routing.generate('print_transport_note', {transportRequest: transportId}));
 }

@@ -294,7 +294,7 @@
                                 {% endfor %}
                             </div>
                         </div>
-                        <div class="col-12 mt-3 d-none"
+                        <div class="col-12 mt-3 {{ not modeDeliveryEdit ? 'd-none' }}"
                              data-request-type="{{ DISCR_DELIVERY }}">
                             {{ form.checkbox('printLabels', 'Imprimer les étiquettes', false, false, {
                                 slider: true

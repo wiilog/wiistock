@@ -59,6 +59,12 @@
                     </label>
                 </div>
             </div>
+            <div class="d-flex align-items-center">
+                <i class="wii-icon wii-icon-info mr-1"></i>
+                <span class="wii-body-text">
+                    N'oubliez pas de valider les dates de collecte avec le patient.
+                </span>
+            </div>
             {% set planRound = hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::SCHEDULE_TRANSPORT_ROUND')) %}
             {% if planRound %}
                 <button class="btn btn-primary ml-auto plan-round-button" tabindex="0">

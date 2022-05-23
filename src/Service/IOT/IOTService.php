@@ -28,6 +28,7 @@ use App\Entity\OrdreCollecteReference;
 use App\Entity\Pack;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\Statut;
+use App\Entity\Transport\Vehicle;
 use App\Entity\Type;
 use App\Helper\FormatHelper;
 use App\Repository\ArticleRepository;
@@ -627,6 +628,8 @@ class IOTService
             $code = Sensor::ARTICLE;
         } else if($pairedEntity instanceof Pack) {
             $code = Sensor::PACK;
+        } else if($pairedEntity instanceof Vehicle) {
+            $code = Sensor::VEHICLE;
         } else if($pairedEntity instanceof Preparation) {
             $code = Sensor::PREPARATION;
         } else if($pairedEntity instanceof OrdreCollecte) {

@@ -156,4 +156,8 @@ class Vehicle implements PairedEntity
 
         return $this;
     }
+
+    public function __toString() {
+        return $this->registrationNumber;
+    }
 }
