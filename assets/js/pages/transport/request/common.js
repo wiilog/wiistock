@@ -92,17 +92,9 @@ export function openPackingModal(transportRequest) {
 export function printBarcodes(transportRequest) {
     Flash.add(`info`, `Génération des étiquettes de colis en cours`);
     return AJAX.route(GET, `print_transport_packs`, {transportRequest})
-        .raw()
-        .then(response => {
-            if(!response.ok) {
-                Flash.add(ERROR, "Erreur lors de l'impression des étiquettes")
-                throw new Error('printing error');
-            }
-            return response.blob().then((blob) => {
-                const fileName = response.headers.get("content-disposition").split("filename=")[1];
-                saveAs(blob, fileName);
-                Flash.add(SUCCESS, "Vos étiquettes ont bien été téléchargées");
-            });
+        .file({
+            success: "Vos étiquettes ont bien été téléchargées",
+            error: "Erreur lors de l'impression des étiquettes"
         });
 }
 
@@ -152,10 +144,17 @@ function clearForm(form, editForm) {
 function resetForm(form) {
     const $modal = form.element;
     const $requestType = $modal.find('[name=requestType]');
-    $requestType
-        .filter('[value=collect]')
-        .prop('checked', true)
-        .trigger('change');
+    if ($requestType.is(':not(input[type=hidden])')) {
+        $requestType
+            .filter('[value=collect]')
+            .prop('checked', true)
+            .trigger('change');
+    }
+
+    const $type = $modal.find('[name=type]')
+    if ($type.is('input[type=hidden]')) {
+        onTypeChange($modal, $type.val(), false);
+    }
 }
 
 function onNatureCheckChange($input) {
@@ -226,16 +225,18 @@ function onRequestTypeChange($form, requestType) {
     }
 }
 
-function onTypeChange($form, type) {
+function onTypeChange($form, type, resetValues = true) {
     $form
         .find('[data-type]')
         .addClass('d-none');
 
-    $form
-        .find('[data-type]')
-        .find('[type=checkbox]')
-        .prop('checked', false)
-        .trigger('change');
+    if (resetValues) {
+        $form
+            .find('[data-type]')
+            .find('[type=checkbox]')
+            .prop('checked', false)
+            .trigger('change');
+    }
 
     $form.find(`[data-type]`).each(function () {
         const $element = $(this);

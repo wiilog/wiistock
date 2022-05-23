@@ -884,6 +884,9 @@ class SettingsController extends AbstractController {
                             "label" => $range->getValue(),
                             "value" => $range->getValue(),
                             "selected" => true,
+                            "class" => !($range->getLocations()->isEmpty() && $range->getNatures()->isEmpty() && $range->getTransportDeliveryRequestNatures()->isEmpty())
+                                ? 'no-deletable'
+                                : 'deletable',
                         ])
                         ->toArray(),
                 ],

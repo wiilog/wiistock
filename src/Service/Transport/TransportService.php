@@ -20,6 +20,7 @@ use App\Entity\Transport\TransportRequestContact;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
+use App\Exceptions\GeoException;
 use App\Helper\FormatHelper;
 use App\Service\FreeFieldService;
 use App\Service\GeoService;
@@ -32,6 +33,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use JetBrains\PhpStorm\ArrayShape;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Contracts\Service\Attribute\Required;
+use WiiCommon\Helper\Stream;
 
 class TransportService {
 
@@ -122,7 +124,7 @@ class TransportService {
                                            ?InputBag                $data,
                                            Utilisateur              $loggedUser,
                                            ?TransportRequestContact $customContact = null,
-                                           ?DateTime                $customExpectedAt = null): void {
+                                           ?DateTime                $customExpectedAt = null): array {
 
         $expectedAtStr = $data?->get('expectedAt');
 
@@ -199,6 +201,7 @@ class TransportService {
             }
 
             if(isset($data)){
+                $oldAddress = $contact->getAddress();
                 $contact
                     ->setName($data->get('contactName') ?: $contact->getName())
                     ->setFileNumber($data->get('contactFileNumber') ?: $contact->getFileNumber())
@@ -219,15 +222,30 @@ class TransportService {
             $this->updateTransportOrderStatus($entityManager, $transportRequest, $transportOrder, $loggedUser);
         }
 
-        $this->updateTransportRequestLines($entityManager, $transportRequest, $data);
+        $linesResult = $this->updateTransportRequestLines($entityManager, $transportRequest, $data);
 
         if ($transportRequest->getLines()->isEmpty()) {
             throw new FormException('Vous devez sélectionner au moins une nature de colis dans vote demande');
         }
 
-        [$lat, $lon] = $this->geoService->fetchCoordinates($transportRequest->getContact()->getAddress());
-        $transportRequest->getContact()->setAddressLatitude($lat);
-        $transportRequest->getContact()->setAddressLongitude($lon);
+        $oldAddress = $oldAddress ?? null;
+        $address = $transportRequest->getContact()?->getAddress();
+
+        if ($oldAddress && $address && $oldAddress !== $address) {
+            try {
+                [$lat, $lon] = $this->geoService->fetchCoordinates($transportRequest->getContact()->getAddress());
+            } catch (GeoException $exception) {
+                throw new FormException($exception->getMessage());
+            }
+            $transportRequest->getContact()->setAddressLatitude($lat);
+            $transportRequest->getContact()->setAddressLongitude($lon);
+        }
+        else {
+            $transportRequest->getContact()->setAddressLatitude(null);
+            $transportRequest->getContact()->setAddressLongitude(null);
+        }
+
+        return $linesResult;
     }
 
     public function persistTransportOrder(EntityManagerInterface $entityManager,
@@ -356,9 +374,10 @@ class TransportService {
         return null;
     }
 
+    #[ArrayShape(["createdPacks" => 'array'])]
     public function updateTransportRequestLines(EntityManagerInterface $entityManager,
                                                 TransportRequest       $transportRequest,
-                                                ?InputBag              $data) {
+                                                ?InputBag              $data): array {
 
         $natureRepository = $entityManager->getRepository(Nature::class);
         $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
@@ -368,9 +387,10 @@ class TransportService {
         $lines = json_decode($data?->get('lines', '[]') ?? "", true) ?: [];
 
         $treatedNatures = [];
+        $createdPacks = [];
 
         foreach ($lines as $line) {
-            $selected = $line['selected'] ?? false;
+            $selected = (bool) ($line['selected'] ?? false);
             $natureId = $line['natureId'] ?? null;
             $quantity = $line['quantity'] ?? null;
             $temperatureId = $line['temperature'] ?? null;
@@ -390,10 +410,12 @@ class TransportService {
                     else {
                         throw new \RuntimeException('Unknown request type');
                     }
+
+                    $transportRequest->addLine($line);
+                    $entityManager->persist($line);
                 }
 
                 $line->setNature($nature);
-                $transportRequest->addLine($line);
 
                 if ($line instanceof TransportDeliveryRequestLine) {
                     $temperature = $temperatureId ? $temperatureRangeRepository->find($temperatureId) : null;
@@ -404,7 +426,7 @@ class TransportService {
                         $orderPackCountForNature = $transportOrder->getPacksForLine($line)->count();
                         $quantityDelta = $quantity - $orderPackCountForNature;
                         for ($packIndex = 0; $packIndex < $quantityDelta; $packIndex++) {
-                            $this->persistDeliveryPack($entityManager, $transportOrder, $nature);
+                            $createdPacks[] = $this->persistDeliveryPack($entityManager, $transportOrder, $nature);
                         }
                     }
                 }
@@ -414,8 +436,6 @@ class TransportService {
                 else {
                     throw new \RuntimeException('Unknown request type');
                 }
-
-                $entityManager->persist($line);
             }
         }
 
@@ -429,6 +449,10 @@ class TransportService {
                 $entityManager->remove($line);
             }
         }
+
+        return [
+            'createdPacks' => $createdPacks
+        ];
     }
 
     public function persistDeliveryPack(EntityManagerInterface $entityManager,
@@ -459,5 +483,84 @@ class TransportService {
             'statusDate' => $dateTime,
             'user' => $loggedUser
         ]);
+    }
+
+    public function createPrintPackConfig(TransportRequest $transportRequest,
+                                          string           $logo,
+                                          array            $deliveryPackIds = []): array {
+        $packs = Stream::from($transportRequest->getOrder()?->getPacks() ?: []);
+        $contact = $transportRequest->getContact();
+        $contactName = $contact->getName();
+        $contactFileNumber = $contact->getFileNumber();
+        $contactAddress = $contact->getAddress();
+
+        $contactAddress = preg_replace('/\s(\d{5})/', "\n$1", $contactAddress);
+
+        $maxLineLength = 40;
+        $cleanedContactAddress = Stream::explode("\n", $contactAddress)
+            ->flatMap(function (string $part) use ($maxLineLength) {
+                $part = trim($part);
+                $lineLength = strlen($part);
+                if ($lineLength > $maxLineLength) {
+                    $results = [];
+
+                    while (!empty($part)) {
+                        $words = explode(" ", $part);
+                        $finalPart = "";
+                        foreach ($words as $word) {
+                            if (empty($finalPart) || strlen($finalPart) + strlen($word) < $maxLineLength) {
+                                if (!empty($finalPart)) {
+                                    $finalPart .= " ";
+                                }
+                                $finalPart .= $word;
+                            } else {
+                                break;
+                            }
+                        }
+                        $results[] = trim($finalPart);
+                        if (strlen($finalPart) < strlen($part)) {
+                            $part = trim(substr($part, strlen($finalPart)));
+                        } else {
+                            break;
+                        }
+                    }
+                    return $results;
+                } else {
+                    return [$part];
+                }
+            })
+            ->filterMap(fn(string $line) => trim($line))
+            ->toArray();
+
+        $temperatureRanges = Stream::from($transportRequest->getLines())
+            ->filter(fn($line) => $line instanceof TransportDeliveryRequestLine)
+            ->keymap(fn(TransportDeliveryRequestLine $line) => [
+                $line->getNature()->getLabel(),
+                $line->getTemperatureRange()?->getValue()
+            ])
+            ->toArray();
+
+        $filteredPacksEmpty = (
+            empty($deliveryPackIds)
+            || Stream::from($packs)
+                ->filter(fn(TransportDeliveryOrderPack $pack) => in_array($pack->getId(), $deliveryPackIds))
+                ->isEmpty()
+        );
+
+        $total = $packs->count();
+        return $packs
+            ->keymap(fn(TransportDeliveryOrderPack $pack, int $index) => [(string) ($index + 1), $pack])
+            ->filter(fn(TransportDeliveryOrderPack $pack) => ($filteredPacksEmpty || in_array($pack->getId(), $deliveryPackIds)))
+            ->map(fn(TransportDeliveryOrderPack $pack, int $position) => [
+                'code' => $pack->getPack()->getCode(),
+                'labels' => [
+                    "$contactName - $contactFileNumber",
+                    ...$cleanedContactAddress,
+                    ($temperatureRanges[$pack->getPack()->getNature()->getLabel()] ?? '- °C'),
+                    "$position/$total"
+                ],
+                'logo' => $logo
+            ])
+            ->values();
     }
 }
