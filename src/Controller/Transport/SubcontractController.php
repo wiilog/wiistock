@@ -8,10 +8,8 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
-use App\Entity\StatusHistory;
 use App\Entity\Statut;
 use App\Entity\Transport\TransportCollectRequest;
-use App\Entity\Transport\TransportHistory;
 use App\Entity\Transport\TransportOrder;
 use App\Entity\Transport\TransportRequest;
 use App\Entity\Utilisateur;
@@ -25,13 +23,11 @@ use App\Helper\FormatHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-use WiiCommon\Helper\Stream;
 
 
 #[Route("transport/sous-traitance")]
@@ -162,19 +158,21 @@ class SubcontractController extends AbstractController
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
 
+        $transportOrder = $transportRequest->getOrder();
+
         if($buttonType === self::VALIDATE) {
-            $subcontracted = false;
             $status = $statutRepository->findOneByCategorieNameAndStatutCode(
                 $transportRequest instanceof TransportCollectRequest
                     ? CategorieStatut::TRANSPORT_REQUEST_COLLECT
                     : CategorieStatut::TRANSPORT_REQUEST_DELIVERY,
                 $transportRequest instanceof TransportCollectRequest
                     ? TransportRequest::STATUS_AWAITING_PLANNING
-                    : TransportRequest::STATUS_TO_PREPARE
+                    : (($transportOrder && !$transportOrder->getPacks()->isEmpty())
+                        ? TransportRequest::STATUS_TO_DELIVER
+                        : TransportRequest::STATUS_TO_PREPARE)
                 );
             $transportHistoryType = TransportHistoryService::TYPE_ACCEPTED;
         } else {
-            $subcontracted = true;
             $status = $statutRepository->findOneByCategorieNameAndStatutCode(
                 CategorieStatut::TRANSPORT_REQUEST_DELIVERY,
                 TransportRequest::STATUS_SUBCONTRACTED
@@ -187,8 +185,11 @@ class SubcontractController extends AbstractController
             'history' => $statusHistory,
         ]);
 
-        if ($transportRequest->getOrders()->isEmpty()) {
-            $transportService->persistTransportOrder($entityManager, $transportRequest, $loggedUser, $subcontracted);
+        if (!$transportOrder) {
+            $transportService->persistTransportOrder($entityManager, $transportRequest, $loggedUser);
+        }
+        else {
+            $transportService->updateTransportOrderStatus($entityManager, $transportRequest, $transportOrder, $loggedUser);
         }
 
         $entityManager->flush();
@@ -207,20 +208,31 @@ class SubcontractController extends AbstractController
             $statutRepository = $entityManager->getRepository(Statut::class);
             $transportRequest = $transportRequestRepository->find($data['id']);
 
-            /** @var TransportOrder $transportOrder */
-            $transportOrder = $transportRequest->getOrders()->last();
+            $transportOrder = $transportRequest->getOrder();
 
-            $statusForSelect =
-                [($transportRequest->getStatus()->getCode() == TransportRequest::STATUS_SUBCONTRACTED ? TransportRequest::STATUS_ONGOING : ""),
-                TransportRequest::STATUS_FINISHED, TransportRequest::STATUS_NOT_DELIVERED];
+            $statusesForSelect = match ($transportRequest->getStatus()?->getCode()) {
+                TransportRequest::STATUS_SUBCONTRACTED => [
+                    TransportRequest::STATUS_SUBCONTRACTED,
+                    TransportRequest::STATUS_ONGOING,
+                    TransportRequest::STATUS_FINISHED,
+                    TransportRequest::STATUS_NOT_DELIVERED
+                ],
+                TransportRequest::STATUS_ONGOING => [
+                    TransportRequest::STATUS_ONGOING,
+                    TransportRequest::STATUS_FINISHED,
+                    TransportRequest::STATUS_NOT_DELIVERED
+                ],
+                default => [
+                    TransportRequest::STATUS_FINISHED,
+                    TransportRequest::STATUS_NOT_DELIVERED
+                ]
+            };
 
             $json = $this->renderView('transport/subcontract/modalEditSubcontractedRequestContent.html.twig', [
                 'transportRequest' => $transportRequest,
                 'transportOrder' => $transportOrder,
-                'subcontractTransportStatus' => $statutRepository->findByCategoryNameAndStatusCodes(CategorieStatut::TRANSPORT_REQUEST_DELIVERY, $statusForSelect),
-                'statutRequest' => $transportRequest->getStatus(),
+                'subcontractStatuses' => $statutRepository->findByCategoryNameAndStatusCodes(CategorieStatut::TRANSPORT_REQUEST_DELIVERY, $statusesForSelect),
                 'attachments' => $transportOrder->getAttachments()
-
             ]);
 
             return new JsonResponse($json);
@@ -230,28 +242,26 @@ class SubcontractController extends AbstractController
 
     #[Route('/modifier', name: 'subcontract_request_edit', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::ORDRE, Action::EDIT_TRANSPORT_SUBCONTRACT], mode: HasPermission::IN_JSON)]
-    public function edit(EntityManagerInterface $entityManager,
-                            Request $request,
-                            AttachmentService $attachmentService,
-                            TransportHistoryService $transportHistoryService,
-                            StatusHistoryService $statusHistoryService): ?Response
-    {
+    public function edit(EntityManagerInterface  $entityManager,
+                         Request                 $request,
+                         TransportService        $transportService,
+                         AttachmentService       $attachmentService,
+                         TransportHistoryService $transportHistoryService): ?Response {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $transportRequestRepository = $entityManager->getRepository(TransportRequest::class);
         $data = $request->request;
         $transportRequest = $transportRequestRepository->find($data->get('id'));
 
-        /** @var TransportOrder $transportOrder */
-        $transportOrder = $transportRequest->getOrders()->last();
+        $transportOrder = $transportRequest->getOrder();
 
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
 
         $startedAt = FormatHelper::parseDatetime($data->get('delivery-start-date'));
         $treatedAt = FormatHelper::parseDatetime($data->get('delivery-end-date'));
-        $statusRequest = $statutRepository->find($data->get('status') !== "null" ? $data->get('status') : $data->get('statut'));
+        $statusRequest = $statutRepository->find($data->get('status'));
 
-        $statutOrder = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_DELIVERY, match($statusRequest->getCode()) {
+        $statusOrder = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_DELIVERY, match($statusRequest->getCode()) {
             TransportRequest::STATUS_ONGOING => TransportOrder::STATUS_ONGOING,
             TransportRequest::STATUS_SUBCONTRACTED => TransportOrder::STATUS_SUBCONTRACTED,
             TransportRequest::STATUS_FINISHED => TransportOrder::STATUS_FINISHED,
@@ -259,34 +269,67 @@ class SubcontractController extends AbstractController
             default => throw new RuntimeException("Unhandled status code"),
         });
 
-        $transportRequest->setStatus($statusRequest);
-        $transportOrder->setStatus($statutOrder)
+        $oldRequestStatus = $transportRequest->getStatus();
+        $oldStartedDate = $transportOrder->getStartedAt();
+        $oldTreatedDate = $transportOrder->getTreatedAt();
+        $oldComment = $transportOrder->getComment();
+
+        $transportOrder
             ->setSubcontractor($data->get('subcontractor'))
             ->setRegistrationNumber($data->get('registrationNumber'))
             ->setStartedAt($startedAt)
             ->setTreatedAt($treatedAt)
             ->setComment($data->get('commentaire'));
 
-        $attachmentService->manageAttachments($entityManager, $transportOrder, $request->files);
+        $addedAttachments = $attachmentService->manageAttachments($entityManager, $transportOrder, $request->files);
 
         $date = in_array($statusRequest->getCode(), [TransportRequest::STATUS_FINISHED, TransportRequest::STATUS_NOT_DELIVERED])
             ? $treatedAt
             : $startedAt;
 
-        $statusHistoryRequest = $statusHistoryService->updateStatus($entityManager, $transportRequest, $statusRequest, $date);
-        $statusHistoryOrder = $statusHistoryService->updateStatus($entityManager, $transportOrder, $statutOrder, $date);
+        $ongoingStatusRequest = $statutRepository->findOneByCategorieNameAndStatutCode($statusRequest->getCategorie()->getNom(), TransportRequest::STATUS_ONGOING);
+        $ongoingStatusOrder = $statutRepository->findOneByCategorieNameAndStatutCode($statusOrder->getCategorie()->getNom(), TransportOrder::STATUS_ONGOING);
 
-        $transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_SUBCONTRACT_UPDATE, [
-            'history' => $statusHistoryRequest,
-            'user' => $loggedUser,
-            'date' => $date
-        ]);
+        if ($oldRequestStatus?->getId() !== $statusRequest->getId()) {
+            $transportService->updateSubcontractedRequestStatus($entityManager, $loggedUser, $transportRequest, $statusRequest, $date, true);
+            $transportService->updateSubcontractedRequestStatus($entityManager, $loggedUser, $transportOrder, $statusOrder, $date, true);
 
-        $transportHistoryService->persistTransportHistory($entityManager, $transportOrder, TransportHistoryService::TYPE_SUBCONTRACT_UPDATE, [
-            'history' => $statusHistoryOrder,
-            'user' => $loggedUser,
-            'date' => $date
-        ]);
+            // if we jump ongoing status and we set directly a end status
+            // we create ongoing status history
+            // call after current status for sort in the timeline
+            if ($oldRequestStatus?->getCode() !== TransportRequest::STATUS_ONGOING
+                && in_array($statusRequest->getCode(), [TransportRequest::STATUS_FINISHED, TransportRequest::STATUS_NOT_DELIVERED])) {
+
+                $transportService->updateSubcontractedRequestStatus($entityManager, $loggedUser, $transportRequest, $ongoingStatusRequest, $startedAt, false);
+                $transportService->updateSubcontractedRequestStatus($entityManager, $loggedUser, $transportOrder, $ongoingStatusOrder, $startedAt, false);
+            }
+        }
+
+        // if we change treatedAt without changing status
+        if ($oldTreatedDate && $oldTreatedDate != $treatedAt) {
+            $transportService->updateSubcontractedRequestStatus($entityManager, $loggedUser, $transportRequest, $transportRequest->getStatus(), $treatedAt, false);
+            $transportService->updateSubcontractedRequestStatus($entityManager, $loggedUser, $transportOrder, $transportOrder->getStatus(), $treatedAt, false);
+        }
+
+        // if we change startedAt without changing status
+        if ($oldStartedDate && $oldStartedDate != $startedAt) {
+            $transportService->updateSubcontractedRequestStatus($entityManager, $loggedUser, $transportRequest, $ongoingStatusRequest, $startedAt, false);
+            $transportService->updateSubcontractedRequestStatus($entityManager, $loggedUser, $transportOrder, $ongoingStatusOrder, $startedAt, false);
+        }
+
+        if ($oldComment !== $transportOrder->getComment()) {
+            $transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_ADD_COMMENT, [
+                'user' => $loggedUser,
+                'comment' => $transportOrder->getComment()
+            ]);
+        }
+
+        if (!empty($addedAttachments)) {
+            $transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_ADD_ATTACHMENT, [
+                'user' => $loggedUser,
+                'attachments' => $addedAttachments
+            ]);
+        }
 
         $entityManager->flush();
 

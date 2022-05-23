@@ -22,6 +22,12 @@ class TransportRequestContact {
     #[ORM\Column(type: 'text')]
     private ?string $address = null;
 
+    #[ORM\Column(type: 'string')]
+    private ?string $addressLatitude = null;
+
+    #[ORM\Column(type: 'string')]
+    private ?string $addressLongitude = null;
+
     #[ORM\Column(type: 'text')]
     private ?string $contact = null;
 
@@ -62,6 +68,24 @@ class TransportRequestContact {
     public function setAddress(string $address): self {
         $this->address = $address;
 
+        return $this;
+    }
+
+    public function getAddressLatitude(): ?string {
+        return $this->addressLatitude;
+    }
+
+    public function setAddressLatitude(?string $addressLatitude): self {
+        $this->addressLatitude = $addressLatitude;
+        return $this;
+    }
+
+    public function getAddressLongitude(): ?string {
+        return $this->addressLongitude;
+    }
+
+    public function setAddressLongitude(?string $addressLongitude): self {
+        $this->addressLongitude = $addressLongitude;
         return $this;
     }
 

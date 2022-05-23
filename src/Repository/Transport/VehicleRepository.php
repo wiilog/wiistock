@@ -2,7 +2,6 @@
 
 namespace App\Repository\Transport;
 
-use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Transport\Vehicle;
 use App\Helper\QueryCounter;
 use Doctrine\ORM\EntityRepository;

@@ -19,16 +19,18 @@
     <div class="wii-section-title">Livraison</div>
     <div class="row my-3">
         <div class="col-md-6 col-12 form-group">
-            {% set statusCode = statutRequest.code %}
-            {% set isSubcontractedStatus = statusCode == constant('App\\Entity\\Transport\\TransportRequest::STATUS_SUBCONTRACTED') %}
-            {% set disabled = statusCode == constant('App\\Entity\\Transport\\TransportRequest::STATUS_FINISHED')
-                or statusCode == constant('App\\Entity\\Transport\\TransportRequest::STATUS_NOT_DELIVERED') %}
-            <label for="status" class="wii-field-name">Statut{{ isSubcontractedStatus ? '*' }}</label>
-            <select name="status" class="form-control data w-100 {{ isSubcontractedStatus ? 'needed' }}" onchange="editStatusChange($(this))"
-                {{ disabled ? "disabled" }}>
-                <option name="statut" class="data" value="{{ statutRequest.id }}" selected disabled>{{ statutRequest.nom }}</option>
-                {% for status in subcontractTransportStatus %}
-                    <option value="{{ status.id }}">{{ status.nom }}</option>
+            {% set statusCode = transportRequest.status.code %}
+            {% set statusDisabled = (
+                statusCode == constant('App\\Entity\\Transport\\TransportRequest::STATUS_FINISHED')
+                or statusCode == constant('App\\Entity\\Transport\\TransportRequest::STATUS_NOT_DELIVERED')
+            )%}
+            <label for="status" class="wii-field-name">Statut*</label>
+            <select name="status"
+                    class="form-control data w-100 needed"
+                    onchange="editStatusChange($(this))"
+                    {{ statusDisabled ? "disabled" }}>
+                {% for status in subcontractStatuses %}
+                    <option value="{{ status.id }}" {{ transportRequest.status.id == status.id ? 'selected' }}>{{ status.nom }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -56,9 +58,11 @@
     </div>
 
     <div class="row my-3">
-        <div class="col-md-8 col-12">
-            <label class="bold label-commentaire">Commentaire</label>{# TODO gérer le fin qu'il soit obligatoire suivant le statut #}
-            <input class="commentaire form-control data" name="commentaire" type="hidden">
+        <div class="col-md-8 col-12 form-group">
+            <label class="bold label-commentaire">Commentaire</label>
+            <input class="commentaire form-control data"
+                   name="commentaire"
+                   type="hidden">
             <div class="editor-container" data-wysiwyg>{{ transportOrder.comment|raw }}</div>
         </div>
         <div class="form-group col-md-4 col-12">

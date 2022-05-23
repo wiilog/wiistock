@@ -33,7 +33,6 @@ use App\Helper\FormatHelper;
 use App\Repository\IOT\AlertTemplateRepository;
 use App\Repository\IOT\RequestTemplateRepository;
 use App\Repository\SettingRepository;
-use App\Repository\Transport\CollectTimeSlotRepository;
 use App\Repository\TypeRepository;
 use App\Service\CacheService;
 use App\Service\PackService;
@@ -401,7 +400,7 @@ class SettingsController extends AbstractController {
     private const CATEGORY_GLOBAL = "global";
     public const CATEGORY_STOCK = "stock";
     public const CATEGORY_TRACING = "trace";
-    private const CATEGORY_TRACKING = "track";
+    public const CATEGORY_TRACKING = "track";
     private const CATEGORY_MOBILE = "mobile";
     private const CATEGORY_DASHBOARDS = "dashboards";
     private const CATEGORY_IOT = "iot";
@@ -440,16 +439,16 @@ class SettingsController extends AbstractController {
     public const MENU_HANDLINGS = "services";
     private const MENU_REQUEST_TEMPLATES = "modeles_demande";
 
-    private const MENU_TRANSPORT_REQUESTS = "demande_transport";
+    public const MENU_TRANSPORT_REQUESTS = "demande_transport";
     private const MENU_ROUNDS = "tournees";
     private const MENU_TEMPERATURES = "temperatures";
 
     private const MENU_DELIVERIES = "livraisons";
     private const MENU_DELIVERY_REQUEST_TEMPLATES = "modeles_demande_livraisons";
-    private const MENU_DELIVERY_TYPES_FREE_FIELDS = "types_champs_libres_livraisons";
+    public const MENU_DELIVERY_TYPES_FREE_FIELDS = "types_champs_libres_livraisons";
     private const MENU_COLLECTS = "collectes";
     private const MENU_COLLECT_REQUEST_TEMPLATES = "modeles_demande_collectes";
-    private const MENU_COLLECT_TYPES_FREE_FIELDS = "types_champs_libres_collectes";
+    public const MENU_COLLECT_TYPES_FREE_FIELDS = "types_champs_libres_collectes";
     public const MENU_PURCHASE_STATUSES = "statuts_achats";
 
     private const MENU_PREPARATIONS = "preparations";
@@ -1346,13 +1345,13 @@ class SettingsController extends AbstractController {
 
             if(in_array($categoryLabel, [CategoryType::DELIVERY_TRANSPORT, CategoryType::COLLECT_TRANSPORT])) {
                 $data[] = [
-                    "label" => "Logo",
+                    "label" => "Logo*",
                     "value" => $this->renderView("form_element.html.twig", [
                         "element" => "image",
                         "arguments" => [
                             "logo",
                             null,
-                            false,
+                            true,
                             $type?->getLogo()?->getFullPath(),
                         ],
                     ]),
@@ -1542,7 +1541,7 @@ class SettingsController extends AbstractController {
                     ->map(fn(string $value) => "<option value='$value' " . ($value === $freeField->getDefaultValue() ? "selected" : "") . ">$value</option>")
                     ->join("");
 
-                $defaultValue = "<select name='defaultValue' class='form-control data' data-global-error='Valeur par défaut'>$options</select>";
+                $defaultValue = "<select name='defaultValue' class='form-control data' data-global-error='Valeur par défaut'><option></option>$options</select>";
             } else if($freeField->getTypage() !== FreeField::TYPE_LIST_MULTIPLE) {
                 if(!$edit) {
                     $defaultValue = $freeField->getDefaultValue();
@@ -1584,7 +1583,7 @@ class SettingsController extends AbstractController {
                     "displayedCreate" => ($freeField->getDisplayedCreate() ? "oui" : "non"),
                     "requiredCreate" => ($freeField->isRequiredCreate() ? "oui" : "non"),
                     "requiredEdit" => ($freeField->isRequiredEdit() ? "oui" : "non"),
-                    "defaultValue" => $defaultValue,
+                    "defaultValue" => $defaultValue ?? "",
                     "elements" => $freeField->getTypage() == FreeField::TYPE_LIST || $freeField->getTypage() == FreeField::TYPE_LIST_MULTIPLE ? $this->renderView('free_field/freeFieldElems.html.twig', ['elems' => $freeField->getElements()]) : '',
                 ];
             }

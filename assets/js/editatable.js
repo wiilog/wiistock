@@ -160,6 +160,8 @@ function applyState(datatable, state, params, rowIndex) {
     const $datatablePaging = $datatableWrapper.find(`.datatable-paging`);
     const $requiredMarks = $datatableWrapper.find('.required-mark');
 
+    $element.data('needs-processing', state !== STATE_VIEWING);
+
     if (state !== STATE_VIEWING) {
         $requiredMarks.removeClass('d-none');
         $datatablePaging.addClass('d-none');
@@ -237,7 +239,7 @@ function initEditatable(datatable, onDatatableInit = null) {
             const $parent = datatable.element.closest(`.wii-box`);
 
             $parent.find(`.dataTables_wrapper`)
-                .css(`overflow-x`, `scroll`);
+                .css(`overflow-x`, `auto`);
 
             $parent.find(`.dataTables_scrollBody, .dataTables_scrollHead`)
                 .css('overflow', `visible`)

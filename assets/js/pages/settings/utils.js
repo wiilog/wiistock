@@ -111,6 +111,7 @@ export function createManagementPage($container, config) {
                 $pageBody.prepend($title);
             }
             $title.html(config.newTitle);
+            $(`#page-title .bold`).text(config.newTitle);
         }
 
         $pageBody.find(`.main-entity-content`).addClass('creation-mode');
@@ -339,6 +340,7 @@ export function createManagementHeaderPage($container, config) {
                 $pageBody.prepend($title);
             }
             $title.html(config.newTitle);
+            $(`#page-title .bold`).text(config.newTitle);
         }
         $pageBody.find(`.main-entity-content`).addClass('creation-mode');
         const $itemContainer = $container.find(`.main-entity-content`);

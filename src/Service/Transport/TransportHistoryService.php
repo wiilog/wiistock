@@ -51,15 +51,7 @@ class TransportHistoryService {
     public const TYPE_ACCEPTED = "ACCEPTED";
     public const TYPE_REJECTED_DELIVERY = "REJECTED_DELIVERY";
     public const TYPE_CANCELLED = "CANCELLED";
-    public const TYPE_NOT_DELIVERED = "NOT DELIVERED";
-
-    private const CATEGORIES = [
-        self::CATEGORY_TIMELINE => [],
-        self::CATEGORY_INFORMATION => [],
-        self::CATEGORY_WARNING => [],
-        self::CATEGORY_COMMENT => [],
-        self::CATEGORY_ATTACHMENT => [],
-    ];
+    public const TYPE_REQUEST_EDITED = "REQUEST_EDITED";
 
     public const CONTENT = [
         self::TYPE_REQUEST_CREATION => "{user} a créé la {category}",
@@ -83,7 +75,7 @@ class TransportHistoryService {
         self::TYPE_ACCEPTED => "La demande a été acceptée",
         self::TYPE_REJECTED_DELIVERY => "La livraison a été rejetée de la tournée",
         self::TYPE_CANCELLED => "{user} a annulé la {category}",
-        self::TYPE_NOT_DELIVERED => "La livraison n'a pas était livrée"
+        self::TYPE_REQUEST_EDITED => "La demande a été modifiée"
     ];
 
     #[Required]
@@ -114,6 +106,7 @@ class TransportHistoryService {
         $history
             ->setType($type)
             ->setDate($params["date"] ?? new DateTime())
+            ->setStatusDate($params["statusDate"] ?? new DateTime())
             ->setUser($params["user"] ?? null)
             ->setPack($params["pack"] ?? null)
             ->setRound($params["round"] ?? null)
@@ -121,6 +114,7 @@ class TransportHistoryService {
             ->setDeliverer($params["deliverer"] ?? null)
             ->setReason($params["reason"] ?? null)
             ->setAttachments($params["attachments"] ?? [])
+            ->setComment($params["comment"] ?? null)
             ->setStatusHistory($params["history"] ?? null)
             ->setLocation($params["location"] ?? null);
 
@@ -142,23 +136,32 @@ class TransportHistoryService {
                     return "<span class='text-primary underlined'>{$entity->getNumber()}</span>";
                 }
                 else if($entity instanceof DateTime) {
-                    return FormatHelper::datetime($entity);
+                    $date = FormatHelper::longDate($entity, ['time' => true, 'year' => true]);
+                    return "<span class='font-weight-bold'>{$date}</span>";
                 }
                 else if($entity instanceof Statut) {
-                    return FormatHelper::status($entity);
+                    $status = FormatHelper::status($entity);
+                    return "<span class='font-weight-bold'>{$status}</span>";
                 }
                 else if($entity instanceof Collection) {
                     if ($entity->get(0) instanceof Attachment) {
                         $formatedValue = Stream::from($entity)->map(function(Attachment $attachment) {
                             $name = $attachment->getOriginalName();
-                            $path = $this->kernel->getProjectDir() . '/public/uploads/attachements/' . $attachment->getFileName();
+                            $publicUrl = $attachment->getFullPath();
+                            $imagePath = $this->kernel->getProjectDir() . '/public' . $publicUrl;
+
+                            $imagesize = getimagesize($imagePath);
+                            $imageType = $imagesize[2] ?? null;
+                            $isImage = in_array($imageType, [IMAGETYPE_GIF, IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_BMP]);
 
                             return
-                                "<div class='attachment-line'>
-                                    <img src='$path' alt='$name'>
-                                    <span class='text-primary underlined'>$name</span>
+                                "<div class='attachment-line mt-2'>" .
+                                    ($isImage ? "<img src='$publicUrl' alt='$name'>" : '') .
+                                    "<a class='text-primary underlined pointer'
+                                        download='$name'
+                                        href='$publicUrl'>$name</a>
                                 </div>";
-                        })->join(";");
+                        })->join("");
                     } else {
                         return "";
                     }
@@ -195,9 +198,9 @@ class TransportHistoryService {
             "{deliverer}" => $this->formatEntity($history->getDeliverer()),
             "{reason}" => $this->formatEntity($history->getReason()),
             "{status}" => $this->formatEntity($history->getStatusHistory()?->getStatus()),
-            "{statusDate}" => $this->formatEntity($history->getStatusHistory()?->getDate()),
-            "{comment}" => $this->formatEntity($history->getComment()),
-            "{attachments}" => $this->formatEntity($history->getAttachments())
+            "{statusDate}" => $history->getStatusDate()
+                ? $this->formatEntity($history->getStatusDate())
+                : $this->formatEntity($history->getStatusHistory()?->getDate()),
         ];
 
         return str_replace(array_keys($replace), array_values($replace), self::CONTENT[$history->getType()]);
@@ -205,10 +208,31 @@ class TransportHistoryService {
 
     private function getCategoryFromType(string $type): string {
         return match($type) {
-            self::TYPE_REQUEST_CREATION, self::TYPE_LABELS_PRINTING, self::TYPE_ONGOING, self::TYPE_FINISHED, self::TYPE_SUBCONTRACT_UPDATE, self::TYPE_AWAITING_VALIDATION, self::TYPE_SUBCONTRACTED, self::TYPE_PACKS_DEPOSITED => self::CATEGORY_TIMELINE,
-            self::TYPE_AFFECTED_ROUND, self::TYPE_PACKS_FAILED, self::TYPE_CONTACT_VALIDATED => self::CATEGORY_INFORMATION,
-            self::TYPE_DROP_REJECTED_PACK, self::TYPE_FAILED, self::TYPE_NO_MONITORING, self::TYPE_REJECTED_DELIVERY, self::TYPE_CANCELLED => self::CATEGORY_WARNING,
+            self::TYPE_REQUEST_CREATION,
+            self::TYPE_BOTH_REQUEST_CREATION,
+            self::TYPE_LABELS_PRINTING,
+            self::TYPE_ONGOING,
+            self::TYPE_FINISHED,
+            self::TYPE_FINISHED_BOTH,
+            self::TYPE_SUBCONTRACT_UPDATE,
+            self::TYPE_AWAITING_VALIDATION,
+            self::TYPE_SUBCONTRACTED,
+            self::TYPE_ACCEPTED,
+            self::TYPE_PACKS_DEPOSITED => self::CATEGORY_TIMELINE,
+
+            self::TYPE_AFFECTED_ROUND,
+            self::TYPE_REQUEST_EDITED,
+            self::TYPE_PACKS_FAILED,
+            self::TYPE_CONTACT_VALIDATED => self::CATEGORY_INFORMATION,
+
+            self::TYPE_DROP_REJECTED_PACK,
+            self::TYPE_FAILED,
+            self::TYPE_NO_MONITORING,
+            self::TYPE_REJECTED_DELIVERY,
+            self::TYPE_CANCELLED => self::CATEGORY_WARNING,
+
             self::TYPE_ADD_COMMENT => self::CATEGORY_COMMENT,
+
             self::TYPE_ADD_ATTACHMENT => self::CATEGORY_ATTACHMENT,
             default => throw new RuntimeException("Unknown type")
         };

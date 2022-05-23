@@ -1,5 +1,6 @@
 import '@styles/pages/transport/form.scss';
 import Form from "@app/form";
+import Modal from "@app/modal";
 import AJAX, {GET, POST} from "@app/ajax";
 import Flash, {ERROR, SUCCESS} from "@app/flash";
 
@@ -10,7 +11,10 @@ export function initializeForm($form, editForm = false) {
             validateNatureForm($form, errors)
         })
         .onOpen(() => {
-            onFormOpened(form, editForm);
+            resetForm(form);
+        })
+        .onClose(() => {
+            clearForm(form, editForm);
         });
 
     form
@@ -123,7 +127,7 @@ export function submitPackingModal($modalPacking, data, callback) {
         });
 }
 
-function onFormOpened(form, editForm) {
+function clearForm(form, editForm) {
     const $modal = form.element;
 
     $modal.find('[name=delivery][type=hidden]').remove();
@@ -138,11 +142,6 @@ function onFormOpened(form, editForm) {
         .prop('checked', false)
         .prop('disabled', false);
 
-    $requestType
-        .filter('[value=collect]')
-        .prop('checked', true)
-        .trigger('change');
-
     if (!editForm) {
         $modal
             .find('.contact-container .data, [name=expectedAt]')
@@ -150,9 +149,19 @@ function onFormOpened(form, editForm) {
     }
 }
 
+function resetForm(form) {
+    const $modal = form.element;
+    const $requestType = $modal.find('[name=requestType]');
+    $requestType
+        .filter('[value=collect]')
+        .prop('checked', true)
+        .trigger('change');
+}
+
 function onNatureCheckChange($input) {
     const $container = $input.closest('.nature-item');
     const $toDisplay = $container.find('[data-nature-is-selected]');
+    const $textInfo = $('#text-info');
     if ($input.prop('checked')) {
         $toDisplay.removeClass('d-none');
     }
@@ -168,6 +177,13 @@ function onNatureCheckChange($input) {
                 .val(null)
                 .trigger('change');
         }
+    }
+
+    if ($('.nature-item-wrapper input[type=checkbox]:checked').exists()) {
+        $textInfo.removeClass('d-none');
+    }
+    else {
+        $textInfo.addClass('d-none');
     }
 }
 
@@ -190,6 +206,7 @@ function onRequestTypeChange($form, requestType) {
         .prop('disabled', true);
 
     $form.find('[data-type]').addClass('d-none');
+    $form.find(`.warning-empty-natures`).addClass(`d-none`);
 
     if (requestType) {
         const $specificItemsToDisplay = $specificsItems.filter(`[data-request-type=""], [data-request-type="${requestType}"]`);
@@ -220,13 +237,25 @@ function onTypeChange($form, type) {
         .prop('checked', false)
         .trigger('change');
 
-    $form.find(`[data-type]`).each(function() {
+    $form.find(`[data-type]`).each(function () {
         const $element = $(this);
         const allowedTypes = $element.data('type');
         if (allowedTypes.some((t) => (t == type))) {
             $element.removeClass('d-none');
         }
     });
+
+    const $container = $form.find('.warning-empty-natures');
+    if ($('.nature-item:not(.d-none)').length === 0) {
+        $container.removeClass('d-none');
+        $form.find('button[type=submit]').prop("disabled" ,true);
+        $container.parent().addClass('justify-content-center');
+    }
+    else {
+        $form.find('button[type=submit]').prop("disabled" ,false);
+        $container.addClass('d-none');
+        $container.parent().removeClass('justify-content-center')
+    }
 }
 
 export function cancelRequest(transportRequest){
@@ -248,7 +277,7 @@ export function cancelRequest(transportRequest){
     });
 }
 
-export function deleteRequest(table, transportRequest){
+export function deleteRequest(transportRequest, table = null){
     Modal.confirm({
         ajax: {
             method: 'DELETE',
@@ -261,6 +290,6 @@ export function deleteRequest(table, transportRequest){
             color: 'danger',
             label: 'Supprimer'
         },
-        tables: [table],
+        table: table,
     });
 }

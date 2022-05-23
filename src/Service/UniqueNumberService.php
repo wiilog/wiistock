@@ -15,7 +15,7 @@ class UniqueNumberService
     const MAX_RETRY = 5;
     const DATE_COUNTER_FORMAT_DEFAULT = 'YmdCCCC';
     const DATE_COUNTER_FORMAT_RECEPTION = 'ymdCCCC';
-    const DATE_COUNTER_FORMAT_TRANSPORT_REQUEST = 'ymd-CC';
+    const DATE_COUNTER_FORMAT_TRANSPORT = 'ymd-CC';
 
     const ENTITIES_NUMBER_WITHOUT_DASH = [
         Reception::class,
@@ -37,9 +37,11 @@ class UniqueNumberService
     public function create(EntityManagerInterface $entityManager,
                            ?string                $prefix,
                            string                 $entity,
-                           string                 $format): string {
+                           string                 $format,
+                           ?DateTime              $numberDate = null): string {
 
-        $date = new DateTime('now');
+
+        $date = $numberDate ?? new DateTime('now');
         $entityRepository = $entityManager->getRepository($entity);
 
         if (!method_exists($entityRepository, 'getLastNumberByDate')) {

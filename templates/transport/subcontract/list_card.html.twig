@@ -1,5 +1,4 @@
-{% set order = order ?? ((request.orders | last) ?: null) %}
-{% set transportOrderHistory = order.history ? (order.history |  filter(h => h.type == historyType) | last) : null %}
+{% set order = order ?? request.order %}
 
 <div class="transport-request-container col-12 p-1">
     <div data-id='{{ request.id }}'
@@ -12,7 +11,7 @@
                 <img alt="Actions" src="{{ asset('svg/dotsblack.svg') }}" height="20px" width="8px">
             </div>
             <div class="dropdown-menu dropdown-follow-gt pointer">
-                <a href="{{ path('transport_request_show', {id: request.id}) }}" class="dropdown-item pointer">
+                <a href="{{ path('transport_request_show', {transport: request.id}) }}" class="dropdown-item pointer">
                     <i class="fas fa-external-link-alt mr-2"></i> Voir la demande
                 </a>
                 {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
@@ -48,18 +47,20 @@
                     </span>
                 </td>
                 <td class="transport-category-container">
-                    <div class="mb-2 px-5">
-                        Créée le : {{ request.createdAt | format_helper('longDate', {short: true, time: true, year: false }) }}
+                    <div class="mb-2">
+                        <span class="d-xl-none">Créé le :<br> {{ request.createdAt | date('d/m/Y H:i') }}</span>
+                        <span class="d-none d-xl-block">Créé le : {{ request.createdAt | format_helper('longDate', {short: true, time: true}) }}</span>
                     </div>
-                    <div class="px-5">
-                        <span style="font-weight: bold">A livrer à :  {{ request.expectedAt | format_helper('longDate', {short: true, time: true, year: false}) }}</span>
+                    <div>
+                        <span class="bold">
+                            <span class="d-xl-none">A livrer à :<br> {{  request.expectedAt | date('d/m/Y H:i') }}</span>
+                            <span class="d-none d-xl-block">A livrer à : {{  request.expectedAt | format_helper('longDate', {short: true, time: true}) }}</span>
+                        </span>
                     </div>
                 </td>
                 <td class="transport-subcontract-contact">
-                    <div class="px-5">
                     {{ request.contact.name }}<br>
                     <span class="wii-small-text">N° dossier {{ request.contact.fileNumber }}</span>
-                    </div>
                 </td>
                 <td class="transport-subcontract-details-container">
                     <img src="{{ asset('svg/iot/location.svg') }}"
@@ -70,10 +71,20 @@
                 </td>
                 <td class="transport-subcontract-details-container">
                     <div class="mb-2">
-                        Commencée le :  <span style="font-weight: bold">{{ order.startedAt ? order.startedAt | format_helper('longDate', {short: true, time: true, year: false}) : "-" }}</span>
+                        <span class="d-xl-none">
+                            Commencée le  :<br><span class="bold">{{ order.startedAt ? order.startedAt | format_helper('longDate', {short: true, time: true}) : "-" }}</span>
+                        </span>
+                        <span class="d-none d-xl-block">
+                            Commencée le :<span class="bold">{{ order.startedAt ? order.startedAt | format_helper('longDate', {short: true, time: true}) : "-" }}</span>
+                        </span>
                     </div>
                     <div>
-                        Livrée le :  <span style="font-weight: bold">{{ order.treatedAt ? order.treatedAt | format_helper('longDate', {short: true, time: true, year: false}) : "-" }}</span>
+                        <span class="d-xl-none">
+                            Livrée le :<br> <span style="font-weight: bold"> {{ order.treatedAt ? order.treatedAt | format_helper('longDate', {short: true, time: true}) : "-" }}</span>
+                        </span>
+                        <span class="d-none d-xl-block">
+                            Livrée le : <span style="font-weight: bold"> {{ order.treatedAt ? order.treatedAt | format_helper('longDate', {short: true, time: true}) : "-" }}</span>
+                        </span>
                     </div>
                 </td>
                 <td class="transport-subcontract-details-container">
@@ -95,7 +106,7 @@
                     {% for attachment in order.attachments %}
                         <div>
                             <a href="{{ attachment.fullPath is defined and attachment.fullPath is not null ? attachment.fullPath : '/uploads/attachements/' ~ attachment.fileName }}"
-                               download="{{ attachment.originalName }}" title="{{ attachment.originalName }}" class="text-primary underlined">{{ attachment.originalName }}</a>
+                               download="{{ attachment.originalName }}" title="{{ attachment.originalName }}" class="text-primary underlined stop-propagation">{{ attachment.originalName }}</a>
                         </div>
                     {% endfor %}
                 </td>

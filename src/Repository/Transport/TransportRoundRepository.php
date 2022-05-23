@@ -3,13 +3,12 @@
 namespace App\Repository\Transport;
 
 use App\Entity\FiltreSup;
-use App\Entity\Transport\TransportCollectRequest;
-use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\Transport\TransportRound;
+use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
 use DateTime;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\Query\Expr\Join;
 use JetBrains\PhpStorm\ArrayShape;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
@@ -32,25 +31,47 @@ class TransportRoundRepository extends EntityRepository {
             $date = DateTime::createFromFormat("d/m/Y", $params->get("dateMin"));
             $date = $date->format("Y-m-d");
 
-            $qb->andWhere('delivery.expectedAt >= :datetimeMin OR collect.expectedAt >= :dateMin')
-                ->setParameter('datetimeMin', "$date 00:00:00")
-                ->setParameter('dateMin', $date);
+            $qb->andWhere('transport_round.expectedAt >= :datetimeMin')
+                ->setParameter('datetimeMin', "$date 00:00:00");
         }
 
         if($params->get("dateMax")) {
             $date = DateTime::createFromFormat("d/m/Y", $params->get("dateMax"));
             $date = $date->format("Y-m-d");
 
-            $qb->andWhere('delivery.expectedAt <= :datetimeMax OR collect.expectedAt <= :dateMax')
-                ->setParameter('datetimeMax', "$date 23:59:59")
-                ->setParameter('dateMax', $date);
+            $qb->andWhere('transport_round.expectedAt <= :datetimeMax')
+                ->setParameter('datetimeMax', "$date 23:59:59");
         }
 
         // filtres sup
-        /*foreach ($filters as $filter) {
+        foreach ($filters as $filter) {
             switch ($filter['field']) {
+                case FiltreSup::FIELD_STATUT:
+                    $value = Stream::explode(",", $filter['value'])
+                        ->map(fn($line) => explode(":", $line))
+                        ->toArray();
+
+                    $qb
+                        ->join('transport_round.status', 'filter_status')
+                        ->andWhere('filter_status.nom IN (:status)')
+                        ->setParameter('status', $value);
+                    break;
+                case FiltreSup::FIELD_ROUND_NUMBER:
+                    $qb->andWhere("transport_round.number LIKE :filter_round_number")
+                        ->setParameter("filter_round_number", "%" . $filter['value'] . "%");
+                    break;
+                case FiltreSup::FIELD_DELIVERERS:
+                    $value = Stream::explode(",", $filter['value'])
+                        ->map(fn($line) => explode(":", $line))
+                        ->toArray();
+
+                    $qb
+                        ->join('transport_round.deliverer', 'filter_deliverer')
+                        ->andWhere('filter_deliverer.id in (:filter_deliverer_values)')
+                        ->setParameter('filter_deliverer_values', $value);
+                    break;
             }
-        }*/
+        }
 
         // compte éléments filtrés
         $countFiltered = QueryCounter::count($qb, "transport_round");
@@ -62,12 +83,49 @@ class TransportRoundRepository extends EntityRepository {
             $qb->setMaxResults($params->getInt('length'));
         }
 
-        $qb->orderBy("transport_round.beganAt", "DESC");
+        $qb->orderBy("transport_round.expectedAt", "DESC");
 
         return [
             "data" => $qb->getQuery()->getResult(),
             "count" => $countFiltered,
             "total" => $total,
         ];
+    }
+
+    public function findMobileTransportRoundsByUser(Utilisateur $user): array {
+        return $this->createQueryBuilder('transport_round')
+            ->andWhere('transport_round.deliverer = :user')
+            ->andWhere('transport_round.endedAt IS NULL')
+            ->orderBy('transport_round.expectedAt', 'ASC')
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function getForSelect(?string $term): array {
+        $query = $this->createQueryBuilder("transport_round");
+
+        return $query->select("transport_round.id AS id, CONCAT(:roundPrefix, transport_round.number) AS text")
+            ->join('transport_round.status', 'round_status')
+            ->andWhere('round_status.code like :awaitingDelivererStatus')
+            ->andWhere("transport_round.number LIKE :term")
+
+            ->setParameter("term", "%$term%")
+            ->setParameter("awaitingDelivererStatus", TransportRound::STATUS_AWAITING_DELIVERER)
+            ->setParameter("roundPrefix", TransportRound::NUMBER_PREFIX)
+            ->getQuery()
+            ->getArrayResult();
+    }
+
+    public function getLastNumberByDate(string $date): ?string {
+        $result = $this->createQueryBuilder('request')
+            ->select('request.number')
+            ->where('request.number LIKE :value')
+            ->orderBy('request.createdAt', Criteria::DESC)
+            ->addOrderBy('request.number', Criteria::DESC)
+            ->setParameter('value', $date . '%')
+            ->getQuery()
+            ->execute();
+        return $result ? $result[0]['number'] : null;
     }
 }

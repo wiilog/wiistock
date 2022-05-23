@@ -2,6 +2,8 @@
 
 namespace App\Entity\Transport;
 
+use App\Entity\Interfaces\StatusHistoryContainer;
+use App\Entity\Nature;
 use App\Entity\StatusHistory;
 use App\Entity\Statut;
 use App\Entity\Type;
@@ -10,8 +12,8 @@ use App\Repository\Transport\TransportRequestRepository;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
-use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: TransportRequestRepository::class)]
 #[ORM\InheritanceType('JOINED')]
@@ -20,7 +22,7 @@ use WiiCommon\Helper\Stream;
     self::DISCR_DELIVERY => TransportDeliveryRequest::class,
     self::DISCR_COLLECT => TransportCollectRequest::class,
 ])]
-abstract class TransportRequest {
+abstract class TransportRequest implements StatusHistoryContainer {
 
     public const NUMBER_PREFIX = 'DTR';
 
@@ -132,8 +134,8 @@ abstract class TransportRequest {
     #[ORM\Column(type: 'json', nullable: true)]
     private ?array $freeFields = [];
 
-    #[ORM\OneToMany(mappedBy: 'request', targetEntity: TransportOrder::class, cascade: ['persist', 'remove'])]
-    private Collection $orders;
+    #[ORM\OneToOne(mappedBy: 'request', targetEntity: TransportOrder::class, cascade: ['persist', 'remove'])]
+    private ?TransportOrder $order = null;
 
     #[ORM\OneToMany(mappedBy: 'request', targetEntity: TransportHistory::class)]
     private Collection $history;
@@ -148,7 +150,6 @@ abstract class TransportRequest {
     private Collection $lines;
 
     public function __construct() {
-        $this->orders = new ArrayCollection();
         $this->history = new ArrayCollection();
         $this->statusHistory = new ArrayCollection();
         $this->lines = new ArrayCollection();
@@ -240,28 +241,19 @@ abstract class TransportRequest {
         return $this;
     }
 
-    /**
-     * @return Collection<int, TransportOrder>
-     */
-    public function getOrders(): Collection {
-        return $this->orders;
+    public function getOrder(): ?TransportOrder {
+        return $this->order;
     }
 
-    public function addOrder(TransportOrder $transportOrder): self {
-        if (!$this->orders->contains($transportOrder)) {
-            $this->orders[] = $transportOrder;
-            $transportOrder->setRequest($this);
+    public function setOrder(?TransportOrder $order): self {
+        if($this->order && $this->order->getRequest() !== $this) {
+            $oldOrder = $this->order;
+            $this->order = null;
+            $oldOrder->setRequest(null);
         }
-
-        return $this;
-    }
-
-    public function removeOrder(TransportOrder $transportOrder): self {
-        if ($this->orders->removeElement($transportOrder)) {
-            // set the owning side to null (unless already changed)
-            if ($transportOrder->getRequest() === $this) {
-                $transportOrder->setRequest(null);
-            }
+        $this->order = $order;
+        if($this->order && $this->order->getRequest() !== $this) {
+            $this->order->setRequest($this);
         }
 
         return $this;
@@ -297,8 +289,14 @@ abstract class TransportRequest {
     /**
      * @return Collection<int, StatusHistory>
      */
-    public function getStatusHistory(): Collection {
-        return $this->statusHistory;
+    public function getStatusHistory(string $order = Criteria::ASC): Collection {
+        return $this->statusHistory
+            ->matching(Criteria::create()
+                ->orderBy([
+                    'date' => $order,
+                    'id' => $order
+                ])
+            );
     }
 
     public function addStatusHistory(StatusHistory $statusHistory): self {
@@ -332,18 +330,25 @@ abstract class TransportRequest {
     }
 
     public function isInRound(): bool {
-        return Stream::from($this->orders)->some(fn(TransportOrder $order) => !$order->getTransportRoundLines()->isEmpty());
+        $lines = $this->getOrder()?->getTransportRoundLines();
+
+        if ($lines === null) {
+            return false;
+        } else {
+            return !$lines->isEmpty();
+        }
     }
 
     public function roundHasStarted(): bool {
-        return Stream::from($this->orders)
-            ->map(fn(TransportOrder $order) => $order->getTransportRoundLines()->last())
-            ->some(fn(TransportRoundLine|bool $round) => $round && $round->getTransportRound()->getBeganAt() !== null);
+        $lastRoundLine = $this->getOrder()
+            ?->getTransportRoundLines()
+            ->last() ?: null;
+        return $lastRoundLine?->getTransportRound()?->getBeganAt() !== null;
     }
 
     public function isSubcontracted(): bool {
-        $lastOrder = $this->getOrders()->last() ?: null;
-        return $lastOrder?->isSubcontracted() ?: false;
+        $order = $this->getOrder();
+        return $order?->isSubcontracted() ?: false;
     }
 
     /**
@@ -351,6 +356,12 @@ abstract class TransportRequest {
      */
     public function getLines(): Collection {
         return $this->lines;
+    }
+
+    public function getLine(Nature $nature): ?TransportRequestLine {
+        $filteredLines = $this->lines
+            ->filter(fn(TransportRequestLine $line) => $line->getNature()?->getId() === $nature->getId());
+        return $filteredLines->last() ?: null;
     }
 
     public function addLine(TransportRequestLine $line): self {

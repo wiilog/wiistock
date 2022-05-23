@@ -14,9 +14,7 @@ use App\Entity\Transport\TransportOrder;
 use App\Entity\Transport\TransportRequest;
 use App\Helper\FormatHelper;
 use App\Service\Transport\TransportHistoryService;
-use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
-use Google\Service\Eventarc\Transport;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
@@ -38,9 +36,9 @@ class HistoryController extends AbstractController
             $entity = $entityManager->find(TransportRequest::class, $id);
 
             $round = null;
-            $orders = $entity->getOrders();
-            if($orders->count()) {
-                $round = $orders->last()->getTransportRoundLines()->last() ?: null;
+            $order = $entity->getOrder();
+            if($order) {
+                $round = $order->getTransportRoundLines()->last() ?: null;
             }
         }
 
@@ -68,6 +66,7 @@ class HistoryController extends AbstractController
         return $this->json([
             "success" => true,
             "template" => $this->renderView('transport/request/timelines/status-history.html.twig', [
+                "timeSlot" => $entity instanceof TransportCollectRequest ? $entity->getTimeSlot() : null,
                 "statusWorkflow" => $statusWorkflow,
                 "statusesHistory" => Stream::from($entity->getStatusHistory())
                     ->map(fn(StatusHistory $statusHistory) => [
@@ -136,8 +135,7 @@ class HistoryController extends AbstractController
                 ->toArray()
             : [];
 
-        $requestPacksList = Stream::from($transportRequest->getOrders())
-            ->flatMap(fn(TransportOrder $order) => $order->getPacks()->toArray());
+        $requestPacksList = Stream::from($transportRequest->getOrder()?->getPacks() ?: []);
 
         $packCounter = $requestPacksList->count();
         /* [natureId => [Pack, Pack]] */

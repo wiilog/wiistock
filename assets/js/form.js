@@ -4,8 +4,9 @@ import Flash from "./flash";
 export default class Form {
 
     element;
-    submitCallback;
-    openCallback;
+    submitListeners;
+    openListeners;
+    closeListeners;
     processors = [];
     uploads = {};
 
@@ -14,6 +15,12 @@ export default class Form {
         let form = $form.data('form');
         if (!form || !(form instanceof Form)) {
             form = new Form();
+
+            form
+                .clearOpenListeners()
+                .clearCloseListeners()
+                .clearSubmitListeners()
+                .clearProcessors();
 
             form.element = $form;
             $form.data('form', form);
@@ -25,8 +32,10 @@ export default class Form {
                         button: $(this),
                     });
 
-                    if (result && form.submitCallback) {
-                        form.submitCallback(result);
+                    if (result) {
+                        form.submitListeners.forEach((submitListener) => {
+                            submitListener(result);
+                        });
                     }
 
                     event.preventDefault();
@@ -35,14 +44,15 @@ export default class Form {
                     if (clearOnOpen) {
                         form.clear();
                     }
-                    if (form.openCallback) {
-                        form.openCallback();
-                    }
+
+                    form.openListeners.forEach((openListener) => {
+                        openListener();
+                    });
                 })
                 .on('hidden.bs.modal', function () {
-                    if (form.closeCallback) {
-                        form.closeCallback();
-                    }
+                    form.closeListeners.forEach((closeListener) => {
+                        closeListener();
+                    });
                 });
         }
 
@@ -55,17 +65,43 @@ export default class Form {
     }
 
     onOpen(callback = null) {
-        this.openCallback = callback;
+        if (callback) {
+            this.openListeners.push(callback);
+        }
         return this;
     }
 
     onClose(callback = null) {
-        this.closeCallback = callback;
+        if (callback) {
+            this.closeListeners.push(callback);
+        }
         return this;
     }
 
     onSubmit(callback = null) {
-        this.submitCallback = callback;
+        if (callback) {
+            this.submitListeners.push(callback);
+        }
+        return this;
+    }
+
+    clearOpenListeners() {
+        this.openListeners = [];
+        return this;
+    }
+
+    clearCloseListeners() {
+        this.closeListeners = [];
+        return this;
+    }
+
+    clearSubmitListeners() {
+        this.submitListeners = [];
+        return this;
+    }
+
+    clearProcessors() {
+        this.processors = [];
         return this;
     }
 
@@ -142,6 +178,16 @@ export default class Form {
                 `font-weight: bold;`,
                 `font-weight: normal;`,
             ], errors);
+            const $firstInvalidElement = errors[0].elements[0];
+            const $scrollableParent = $firstInvalidElement.parents(`.modal`).exists()
+                ? $firstInvalidElement.parents(`.modal`).first()
+                : $firstInvalidElement.parents(`body`);
+
+            if($scrollableParent) {
+                $scrollableParent.animate({
+                    scrollTop: $firstInvalidElement.offset().top
+                }, 1000);
+            }
         }
 
         if(config.ignoreErrors) {
@@ -150,7 +196,12 @@ export default class Form {
 
         // display errors under each field
         for(const error of errors) {
-            error.elements.forEach($elem => Form.showInvalid($elem, error.message));
+            if (error.elements && error.elements.length > 0) {
+                error.elements.forEach(($elem) => Form.showInvalid($elem, error.message));
+            }
+            else {
+                Flash.add(`danger`, error.message);
+            }
         }
 
         return errors.length === 0 ? data : false;
@@ -186,7 +237,7 @@ export default class Form {
         if($field.is(`[data-s2-initialized]`)) {
             $field = $field.parent().find(`.select2-selection`);
         } else if($field.is(`[type="file"]`)) {
-            $field = $field.parent();
+            $field = $field.siblings('.btn');
         }
 
         if($field.is(`[data-wysiwyg]`)) {
@@ -326,17 +377,16 @@ function treatInputError($input, errors, form) {
         } else {
             const valueIsEmpty = (
                 $input.is(`[data-wysiwyg]`) ? !$input.find(`.ql-editor`).text() :  // for wysuwyg fields
-                    ($input.is(`select[multiple]`) && Array.isArray($input.val())) ? $input.val().length === 0 : // for select2 multiple
-                        !$input.val() // other fiels
+                ($input.is(`select[multiple]`) && Array.isArray($input.val())) ? $input.val().length === 0 : // for select2 multiple
+                $input.is(`[type="file"]`) ? (!$input.val() && !$input.siblings('.preview-container').find('img').attr('src')) : // for input file
+                !$input.val() // other fields
             );
 
             if (valueIsEmpty) {
-                if (!$input.is(`[type="file"]`) || form instanceof Form && !form.uploads[$input.attr(`name`)]) {
-                    errors.push({
-                        elements: [$input],
-                        message: `Ce champ est requis`,
-                    });
-                }
+                errors.push({
+                    elements: [$input],
+                    message: `Ce champ est requis`,
+                });
             }
         }
     }
@@ -354,6 +404,10 @@ function formatInputValue($input) {
         value = $input[0].files[0] ?? null;
     } else {
         value = $input.val() || null;
+    }
+
+    if ($input.parents('.free-field').exists() && Array.isArray(value)) {
+        value = value.join(';');
     }
 
     if (typeof value === `string`) {

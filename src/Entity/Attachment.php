@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Transport\TransportOrder;
 use App\Repository\AttachmentRepository;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -50,8 +51,11 @@ class Attachment {
     #[ORM\JoinColumn(nullable: true)]
     private ?Handling $handling = null;
 
-    #[ORM\OneToOne(targetEntity: ReferenceArticle::class, mappedBy: 'image')]
+    #[ORM\OneToOne(mappedBy: 'image', targetEntity: ReferenceArticle::class)]
     private ?ReferenceArticle $referenceArticle = null;
+
+    #[ORM\OneToOne(mappedBy: 'signature', targetEntity: TransportOrder::class)]
+    private ?TransportOrder $transportOrder = null;
 
     public function getId(): ?int {
         return $this->id;
@@ -163,6 +167,16 @@ class Attachment {
 
     public function setReferenceArticle(?ReferenceArticle $referenceArticle): self {
         $this->referenceArticle = $referenceArticle;
+
+        return $this;
+    }
+
+    public function getTransportOrder(): ?TransportOrder {
+        return $this->transportOrder;
+    }
+
+    public function setTransportOrder(?TransportOrder $transportOrder): self {
+        $this->transportOrder = $transportOrder;
 
         return $this;
     }

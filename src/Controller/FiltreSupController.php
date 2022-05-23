@@ -54,6 +54,7 @@ class FiltreSupController extends AbstractController
                 'subject' => FiltreSup::FIELD_SUBJECT,
                 'destination' => FiltreSup::FIELD_DESTINATION,
                 'fileNumber' => FiltreSup::FIELD_FILE_NUMBER,
+                'roundNumber' => FiltreSup::FIELD_ROUND_NUMBER,
                 'category' => FiltreSup::FIELD_CATEGORY,
                 'contact' => FiltreSup::FIELD_CONTACT,
             ];
@@ -110,6 +111,7 @@ class FiltreSupController extends AbstractController
                 'dispatchNumber' => FiltreSup::FIELD_DISPATCH_NUMBER,
                 'emergencyMultiple' => FiltreSup::FIELD_EMERGENCY_MULTIPLE,
                 'businessUnit' => FiltreSup::FIELD_BUSINESS_UNIT,
+                'deliverers' => FiltreSup::FIELD_DELIVERERS,
             ];
 
             foreach ($filterLabelsSelect2 as $filterLabel => $filterName) {

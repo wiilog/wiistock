@@ -1,5 +1,5 @@
 import '@styles/pages/transport/show.scss';
-import AJAX, {POST} from "@app/ajax";
+import AJAX, {GET, POST} from "@app/ajax";
 import Flash from "@app/flash";
 import {initializeForm, cancelRequest, initializePacking, deleteRequest,} from "@app/pages/transport/request/common";
 import {getPacks, getStatusHistory, getTransportHistory} from "@app/pages/transport/common";
@@ -27,13 +27,8 @@ $(function () {
         deleteRequest($(this).data('request-id'));
     });
 
-    const $modals = $("#modalTransportDeliveryRequest, #modalTransportCollectRequest");
-    $modals.each(function() {
-        const $modal = $(this);
-        const form = initializeForm($modal, true);
-        form.onSubmit((data) => {
-            submitTransportRequestEdit(form, data);
-        });
+    $('.edit-button').on('click', function(){
+        openEditModal($(this));
     });
 });
 
@@ -59,4 +54,30 @@ function submitTransportRequestEdit(form, data) {
                 window.location.reload();
             });
     });
+}
+
+function openEditModal($button) {
+    const $oldEditModal = $('[data-modal-type="edit"]');
+    $oldEditModal.remove();
+
+    const transportRequest = $button.data('request-id');
+    $button.pushLoader(`black`);
+
+    AJAX.route(GET, 'transport_request_edit_api', {transportRequest})
+        .json()
+        .then(({template}) => {
+            const $modal = $(template);
+            $('body').append($modal);
+
+            const form = initializeForm($modal, true);
+            form.onSubmit((data) => {
+                submitTransportRequestEdit(form, data);
+            });
+
+            $modal.modal('show');
+            $button.popLoader();
+        })
+        .catch(() => {
+            $button.popLoader();
+        });
 }

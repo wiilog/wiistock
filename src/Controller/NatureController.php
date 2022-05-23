@@ -32,9 +32,8 @@ class NatureController extends AbstractController
     /** @Required */
     public UserService $userService;
 
-    /**
-     * @Route("/", name="nature_param_index")
-     */
+    #[Route('/', name: "nature_param_index", options: ['expose' => true], methods: 'GET')]
+    #[HasPermission([Menu::REFERENTIEL, Action::DISPLAY_PACK_NATURE])]
     public function index(EntityManagerInterface $manager)
     {
         $typeRepository = $manager->getRepository(Type::class);
@@ -50,9 +49,8 @@ class NatureController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/api", name="nature_param_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     */
+    #[Route("/api", name: "nature_param_api", options: ["expose" => true], methods: "GET|POST", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::REFERENTIEL, Action::DISPLAY_PACK_NATURE], mode: HasPermission::IN_JSON)]
     public function api(Request $request, NatureService $natureService): Response
     {
         return $this->json($natureService->getDataForDatatable($request->request));

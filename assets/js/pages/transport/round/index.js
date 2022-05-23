@@ -1,10 +1,9 @@
-import AJAX, {GET, POST} from "@app/ajax";
-import Flash from "@app/flash";
 import '@styles/pages/transport/common.scss';
-import {initializeForm, cancelRequest, deleteRequest} from "@app/pages/transport/request/common";
 import {initializeFilters} from "@app/pages/transport/common";
 
 $(function() {
+    initializeFilters(PAGE_TRANSPORT_ROUNDS);
+
     let table = initDataTable('tableRounds', {
         processing: true,
         serverSide: true,
@@ -33,3 +32,4 @@ $(function() {
         ],
     });
 });
+

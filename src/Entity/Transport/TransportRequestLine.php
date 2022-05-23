@@ -3,9 +3,7 @@
 namespace App\Entity\Transport;
 
 use App\Entity\Nature;
-use App\Repository\Transport\TransportDeliveryRequestLineRepository;
 use App\Repository\Transport\TransportRequestLineRepository;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TransportRequestLineRepository::class)]
