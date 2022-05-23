@@ -47,6 +47,7 @@ class TransportHistoryService {
     public const TYPE_NO_MONITORING = "NO_MONITORING";
     public const TYPE_SUBCONTRACT_UPDATE = "SUBCONTRACT_UPDATE";
     public const TYPE_AWAITING_VALIDATION = "AWAITING_VALIDATION";
+    public const TYPE_AWAITING_PLANNING = "AWAITING_PLANNING";
     public const TYPE_SUBCONTRACTED = "SUBCONTRACTED";
     public const TYPE_ACCEPTED = "ACCEPTED";
     public const TYPE_REJECTED_DELIVERY = "REJECTED_DELIVERY";
@@ -71,6 +72,7 @@ class TransportHistoryService {
         self::TYPE_NO_MONITORING => "Le suivi en temps réel n'est pas disponible car la livraison est un horaire non ouvré. {message}",
         self::TYPE_SUBCONTRACT_UPDATE => "{user} a indiqué que la livraison était {status} le {statusDate}",
         self::TYPE_AWAITING_VALIDATION => "La demande est en attente de validation",
+        self::TYPE_AWAITING_PLANNING => "La demande est en attente de planification",
         self::TYPE_SUBCONTRACTED => "La demande a été sous-traitée",
         self::TYPE_ACCEPTED => "La demande a été acceptée",
         self::TYPE_REJECTED_DELIVERY => "La livraison a été rejetée de la tournée",

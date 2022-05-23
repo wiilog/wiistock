@@ -76,4 +76,13 @@ class VehicleRepository extends EntityRepository
             'total' => $total
         ];
     }
+
+    public function getForSelect(?string $term) {
+        return $this->createQueryBuilder("vehicle")
+            ->select("vehicle.id AS id, vehicle.registrationNumber AS text")
+            ->where("vehicle.registrationNumber LIKE :term")
+            ->setParameter("term", "%$term%")
+            ->getQuery()
+            ->getArrayResult();
+    }
 }

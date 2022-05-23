@@ -14,6 +14,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
+use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: TransportRequestRepository::class)]
 #[ORM\InheritanceType('JOINED')]
@@ -397,5 +398,12 @@ abstract class TransportRequest implements StatusHistoryContainer {
         return $this;
     }
 
-
+    public function getLastStatusHistory(array $statusCode) : array|null
+    {
+        return Stream::from($this->getStatusHistory())
+            ->filter(fn(StatusHistory $history) => in_array($history->getStatus()->getCode(),$statusCode))
+            ->sort(fn(StatusHistory $s1, StatusHistory $s2) => $s2->getId() <=> $s1->getId())
+            ->keymap(fn(StatusHistory $history) => [$history->getStatus()->getCode(), $history->getDate()])
+            ->toArray();
+    }
 }

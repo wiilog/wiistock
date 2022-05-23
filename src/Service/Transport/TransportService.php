@@ -22,6 +22,7 @@ use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Exceptions\GeoException;
 use App\Helper\FormatHelper;
+use App\Service\CSVExportService;
 use App\Service\FreeFieldService;
 use App\Service\GeoService;
 use App\Service\PackService;
@@ -33,8 +34,26 @@ use Doctrine\ORM\EntityManagerInterface;
 use JetBrains\PhpStorm\ArrayShape;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Contracts\Service\Attribute\Required;
+use WiiCommon\Helper\Stream;
 
 class TransportService {
+
+    private const LYON_POSTAL_CODES = [
+        69000, 69001, 69002, 69003, 69004,
+        69005, 69006, 69007, 69008, 69009,
+        69003, 69029, 69033, 69034, 69040,
+        69044, 69046, 69063, 69068, 69069,
+        69071, 69072, 69081, 69085, 69087,
+        69088, 69089, 69091, 69096, 69100,
+        69116, 69117, 69123, 69127, 69142,
+        69143, 69149, 69152, 69153, 69163,
+        69168, 69191, 69194, 69199, 69202,
+        69204, 69205, 69207, 69233, 69244,
+        69250, 69256, 69259, 69260, 69266,
+        69271, 69273, 69275, 69276, 69278,
+        69279, 69282, 69283, 69284, 69286,
+        69290, 69292, 69293, 69296,
+    ];
 
     #[Required]
     public UniqueNumberService $uniqueNumberService;
@@ -123,9 +142,10 @@ class TransportService {
                                            ?InputBag                $data,
                                            Utilisateur              $loggedUser,
                                            ?TransportRequestContact $customContact = null,
-                                           ?DateTime                $customExpectedAt = null): void {
+                                           ?DateTime                $customExpectedAt = null): array {
 
         $expectedAtStr = $data?->get('expectedAt');
+        $creation = !$transportRequest->getId();
 
         if ($transportRequest->getId()
             && !$transportRequest->canBeUpdated()) {
@@ -151,7 +171,7 @@ class TransportService {
         $expectedAt = $expectedAt ?? $transportRequest->getExpectedAt();
 
         ['status' => $status, 'subcontracted' => $subcontracted] = $this->getStatusRequest($entityManager, $transportRequest, $expectedAt);
-        if (!$transportRequest->getId()) { // transport creation
+        if ($creation) { // transport creation
             if ($subcontracted) {
                 $settingRepository = $entityManager->getRepository(Setting::class);
                 $this->transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_NO_MONITORING, [
@@ -170,7 +190,11 @@ class TransportService {
                 throw new FormException("La modification de cette demande de transport n'est pas autorisée");
             }
 
-            if ($transportRequest->getStatus()?->getId() !== $status->getId()){
+            $canChangeStatus = (
+                $transportRequest->getExpectedAt() != $expectedAt
+                && $transportRequest->getStatus()?->getId() !== $status->getId()
+            );
+            if ($canChangeStatus){
                 $statusHistory = $this->statusHistoryService->updateStatus($entityManager, $transportRequest, $status);
             }
 
@@ -200,6 +224,7 @@ class TransportService {
             }
 
             if(isset($data)){
+                $oldAddress = $contact->getAddress();
                 $contact
                     ->setName($data->get('contactName') ?: $contact->getName())
                     ->setFileNumber($data->get('contactFileNumber') ?: $contact->getFileNumber())
@@ -217,24 +242,41 @@ class TransportService {
             }
         }
         else {
-            $this->updateTransportOrderStatus($entityManager, $transportRequest, $transportOrder, $loggedUser);
+            $this->updateOrderInitialStatus($entityManager, $transportRequest, $transportOrder, $loggedUser);
         }
 
-        $this->updateTransportRequestLines($entityManager, $transportRequest, $data);
+        $linesResult = $this->updateTransportRequestLines($entityManager, $transportRequest, $data);
 
         if ($transportRequest->getLines()->isEmpty()) {
             throw new FormException('Vous devez sélectionner au moins une nature de colis dans vote demande');
         }
 
-        try {
-            [$lat, $lon] = $this->geoService->fetchCoordinates($transportRequest->getContact()->getAddress());
+        $oldAddress = $oldAddress ?? null;
+        $contact = $transportRequest->getContact();
+        $address = $contact->getAddress();
+        $oldLat = $contact->getAddressLatitude();
+        $oldLon = $contact->getAddressLongitude();
+
+        if ($address
+            && (
+                ($oldAddress && $oldAddress !== $address)
+                || !$oldLat
+                || !$oldLon
+            )) {
+            try {
+                [$lat, $lon] = $this->geoService->fetchCoordinates($transportRequest->getContact()->getAddress());
+            } catch (GeoException $exception) {
+                throw new FormException($exception->getMessage());
+            }
+            $contact->setAddressLatitude($lat);
+            $contact->setAddressLongitude($lon);
         }
-        catch(GeoException $exception) {
-            throw new FormException($exception->getMessage());
+        else if (!$address) {
+            $contact->setAddressLatitude(null);
+            $contact->setAddressLongitude(null);
         }
 
-        $transportRequest->getContact()->setAddressLatitude($lat);
-        $transportRequest->getContact()->setAddressLongitude($lon);
+        return $linesResult;
     }
 
     public function persistTransportOrder(EntityManagerInterface $entityManager,
@@ -242,7 +284,7 @@ class TransportService {
                                           Utilisateur $user): TransportOrder {
 
         $transportOrder = new TransportOrder();
-        $this->updateTransportOrderStatus($entityManager, $transportRequest, $transportOrder, $user);
+        $this->updateOrderInitialStatus($entityManager, $transportRequest, $transportOrder, $user);
 
         $transportOrder
             ->setCreatedAt(new DateTime())
@@ -253,10 +295,11 @@ class TransportService {
         return $transportOrder;
     }
 
-    public function updateTransportOrderStatus(EntityManagerInterface $entityManager,
-                                               TransportRequest $transportRequest,
-                                               TransportOrder $transportOrder,
-                                               Utilisateur $user): void {
+    public function updateOrderInitialStatus(EntityManagerInterface $entityManager,
+                                             TransportRequest       $transportRequest,
+                                             TransportOrder         $transportOrder,
+                                             Utilisateur            $user): void {
+        $creation = !$transportOrder->getId();
 
         $statusRepository = $entityManager->getRepository(Statut::class);
 
@@ -279,9 +322,21 @@ class TransportService {
             throw new \RuntimeException('Unknown request type');
         }
 
+        if ($creation) {
+            $transportHistoryType = TransportHistoryService::TYPE_REQUEST_CREATION;
+        }
+        else {
+            $transportHistoryType = match($statusCode) {
+                TransportOrder::STATUS_TO_ASSIGN => TransportHistoryService::TYPE_ACCEPTED,
+                TransportOrder::STATUS_SUBCONTRACTED => TransportHistoryService::TYPE_SUBCONTRACTED,
+                TransportOrder::STATUS_TO_CONTACT => TransportHistoryService::TYPE_AWAITING_PLANNING,
+                TransportOrder::STATUS_AWAITING_VALIDATION => TransportHistoryService::TYPE_AWAITING_VALIDATION,
+            };
+        }
+
         $status = $statusRepository->findOneByCategorieNameAndStatutCode($categoryStatusName, $statusCode);
         $statusHistory = $this->statusHistoryService->updateStatus($entityManager, $transportOrder, $status);
-        $this->transportHistoryService->persistTransportHistory($entityManager, $transportOrder, TransportHistoryService::TYPE_REQUEST_CREATION, [
+        $this->transportHistoryService->persistTransportHistory($entityManager, $transportOrder, $transportHistoryType, [
             'history' => $statusHistory,
             'user' => $user
         ]);
@@ -292,15 +347,16 @@ class TransportService {
 
     #[ArrayShape(["status" => Statut::class, "subcontracted" => "bool"])]
     private function getStatusRequest(EntityManagerInterface $entityManager,
-                                      TransportRequest $transportRequest,
-                                      DateTime $expectedAt): array {
+                                      TransportRequest       $transportRequest,
+                                      DateTime               $expectedAt): array {
         $statusRepository = $entityManager->getRepository(Statut::class);
-        $now = (new DateTime())->setTime(0, 0);
+        $now = new DateTime();
+        $nowAtMidnight = (clone $now)->setTime(0, 0);
         $expectedAtForDiff = (clone $expectedAt)->setTime(0, 0);
 
         $transportOrder = $transportRequest->getOrder();
 
-        $diff = $now->diff($expectedAtForDiff);
+        $diff = $nowAtMidnight->diff($expectedAtForDiff);
         if ($transportRequest instanceof TransportDeliveryRequest) {
             $category = CategorieStatut::TRANSPORT_REQUEST_DELIVERY;
 
@@ -363,9 +419,10 @@ class TransportService {
         return null;
     }
 
+    #[ArrayShape(["createdPacks" => 'array'])]
     public function updateTransportRequestLines(EntityManagerInterface $entityManager,
                                                 TransportRequest       $transportRequest,
-                                                ?InputBag              $data) {
+                                                ?InputBag              $data): array {
 
         $natureRepository = $entityManager->getRepository(Nature::class);
         $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
@@ -375,9 +432,10 @@ class TransportService {
         $lines = json_decode($data?->get('lines', '[]') ?? "", true) ?: [];
 
         $treatedNatures = [];
+        $createdPacks = [];
 
         foreach ($lines as $line) {
-            $selected = $line['selected'] ?? false;
+            $selected = (bool) ($line['selected'] ?? false);
             $natureId = $line['natureId'] ?? null;
             $quantity = $line['quantity'] ?? null;
             $temperatureId = $line['temperature'] ?? null;
@@ -397,10 +455,12 @@ class TransportService {
                     else {
                         throw new \RuntimeException('Unknown request type');
                     }
+
+                    $transportRequest->addLine($line);
+                    $entityManager->persist($line);
                 }
 
                 $line->setNature($nature);
-                $transportRequest->addLine($line);
 
                 if ($line instanceof TransportDeliveryRequestLine) {
                     $temperature = $temperatureId ? $temperatureRangeRepository->find($temperatureId) : null;
@@ -411,7 +471,7 @@ class TransportService {
                         $orderPackCountForNature = $transportOrder->getPacksForLine($line)->count();
                         $quantityDelta = $quantity - $orderPackCountForNature;
                         for ($packIndex = 0; $packIndex < $quantityDelta; $packIndex++) {
-                            $this->persistDeliveryPack($entityManager, $transportOrder, $nature);
+                            $createdPacks[] = $this->persistDeliveryPack($entityManager, $transportOrder, $nature);
                         }
                     }
                 }
@@ -421,8 +481,6 @@ class TransportService {
                 else {
                     throw new \RuntimeException('Unknown request type');
                 }
-
-                $entityManager->persist($line);
             }
         }
 
@@ -436,6 +494,10 @@ class TransportService {
                 $entityManager->remove($line);
             }
         }
+
+        return [
+            'createdPacks' => $createdPacks
+        ];
     }
 
     public function persistDeliveryPack(EntityManagerInterface $entityManager,
@@ -447,6 +509,229 @@ class TransportService {
         $entityManager->persist($orderPack);
         $entityManager->persist($pack);
         return $orderPack;
+    }
+
+    public function putLineRequest($output, CSVExportService $csvService, TransportRequest $request, $freeFieldsConfig): void {
+        $statusCodeExportCSV = [
+            TransportRequest::STATUS_TO_PREPARE,
+            TransportRequest::STATUS_TO_DELIVER,
+            TransportRequest::STATUS_ONGOING,
+            TransportRequest::STATUS_FINISHED,
+            TransportRequest::STATUS_CANCELLED,
+            TransportRequest::STATUS_SUBCONTRACTED,
+            TransportRequest::STATUS_AWAITING_PLANNING,
+            TransportRequest::STATUS_TO_COLLECT,
+            TransportRequest::STATUS_DEPOSITED
+        ];
+
+        $statusRequest = $request->getLastStatusHistory($statusCodeExportCSV);
+        $freeFieldValues = $request->getFreeFields();
+        $freeFields = [];
+
+        foreach ($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
+            $freeFields[] = FormatHelper::freeField($freeFieldValues[$freeFieldId] ?? '', $freeField);
+        }
+        $dataTransportRequest = [
+            $request->getNumber(),
+            $request instanceof TransportDeliveryRequest ? ($request->getCollect() ? "Livraison-Collecte" : "Livraison") : "Collecte",
+            FormatHelper::type($request->getType()),
+            FormatHelper::status($request->getStatus()),
+            ...($request instanceof TransportDeliveryRequest ? [FormatHelper::bool(!empty($request->getEmergency()))] : []),
+            FormatHelper::user($request->getCreatedBy()),
+            $request->getContact()->getName(),
+            $request->getContact()->getFileNumber(),
+            str_replace("\n", " / ", $request->getContact()->getAddress()),
+            $request->getContact()->getAddress() ? FormatHelper::bool($this->isMetropolis($request->getContact()->getAddress())) : '',
+            FormatHelper::datetime($request->getExpectedAt()),
+        ];
+
+        if($request instanceof TransportDeliveryRequest) {
+            $dataTransportDeliveryRequest = array_merge($dataTransportRequest, [
+                FormatHelper::datetime($request->getValidatedDate()),
+                isset($statusRequest[TransportRequest::STATUS_TO_PREPARE]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_TO_PREPARE]) : '',
+                isset($statusRequest[TransportRequest::STATUS_TO_DELIVER]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_TO_DELIVER]) : '',
+                isset($statusRequest[TransportRequest::STATUS_SUBCONTRACTED]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_SUBCONTRACTED]) : '',
+                isset($statusRequest[TransportRequest::STATUS_ONGOING]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_ONGOING]) : '',
+                isset($statusRequest[TransportRequest::STATUS_FINISHED]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_FINISHED]) : (isset($statusRequest[TransportRequest::STATUS_CANCELLED]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_CANCELLED]) : '' ),
+                $request->getContact()->getObservation(),
+            ]);
+
+            $packs = $request->getOrder()?->getPacks();
+
+            if ($packs && !$packs->isEmpty()) {
+                foreach ($packs as $pack) {
+                    $dataTransportDeliveryRequestPacks = array_merge($dataTransportDeliveryRequest, [
+                        $pack->getPack()?->getNature()?->getLabel() ?: '',
+                        $pack->getPack()?->getQuantity() ?: '0',
+                        $pack->getPack()?->getNature() ? $pack->getPackTemperature($pack->getPack()->getNature()) ?: '' : '',
+                        $pack->getPack()?->getCode() ?: '',
+                        $pack->getRejectedBy() ? 'Oui' : ($pack->getRejectReason() ? 'Oui' : 'Non'),
+                        $pack->getRejectReason() ?: '',
+                        FormatHelper::datetime($pack->getReturnedAt()),
+                    ], $freeFields);
+                    $csvService->putLine($output, $dataTransportDeliveryRequestPacks);
+                }
+            }
+            else {
+                $offset = array_fill(0, 7, "");
+                $csvService->putLine($output, array_merge($dataTransportDeliveryRequest, $offset, $freeFields));
+            }
+        }
+        else if($request instanceof TransportCollectRequest) {
+            $dataTransportCollectRequest = array_merge($dataTransportRequest, [
+                FormatHelper::datetime($request->getValidatedDate()),
+                FormatHelper::datetime($request->getCreatedAt()),
+                isset($statusRequest[TransportRequest::STATUS_AWAITING_PLANNING]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_AWAITING_PLANNING]) : '',
+                isset($statusRequest[TransportRequest::STATUS_TO_COLLECT]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_TO_COLLECT]) : '',
+                isset($statusRequest[TransportRequest::STATUS_ONGOING]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_ONGOING]) : '',
+                isset($statusRequest[TransportRequest::STATUS_FINISHED]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_FINISHED]) : (isset($statusRequest[TransportRequest::STATUS_CANCELLED]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_CANCELLED]) : '' ),
+                isset($statusRequest[TransportRequest::STATUS_DEPOSITED]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_DEPOSITED]): '',
+                $request->getContact()->getObservation(),
+            ]);
+
+            $lines = $request->getLines()?:null;
+            if ($lines && !$lines->isEmpty()) {
+                /** @var TransportCollectRequestLine $line */
+                foreach ($lines as $line) {
+                    $dataTransportCollectRequestPacks = array_merge($dataTransportCollectRequest, [
+                        $line->getNature()?->getLabel()? : '',
+                        $line->getQuantityToCollect()? : '',
+                        $line->getCollectedQuantity()? : '',
+                    ], $freeFields);
+                    $csvService->putLine($output, $dataTransportCollectRequestPacks);
+                }
+            }
+            else {
+                $offset = array_fill(0, 3, "");
+                $lines = array_merge($dataTransportCollectRequest, $offset, $freeFields);
+                $csvService->putLine($output, $lines);
+            }
+        }
+    }
+
+    public function isMetropolis(string|null $address): ?bool  {
+        preg_match("/(\d{5})/", $address, $postalCode);
+        foreach ($postalCode as $code) {
+            if (in_array($code, self::LYON_POSTAL_CODES)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
+    public function putLineOrder($output, CSVExportService $csvService, TransportOrder $order, $freeFieldsConfig): void {
+        $statusCode = [
+            TransportOrder::STATUS_TO_ASSIGN,
+            TransportOrder::STATUS_ASSIGNED,
+            TransportOrder::STATUS_ONGOING,
+            TransportOrder::STATUS_FINISHED,
+            TransportOrder::STATUS_CANCELLED,
+        ];
+
+        $request = $order->getRequest();
+        $statusOrder = $order->getLastStatusHistory($statusCode);
+        $freeFieldValues = $order->getRequest()->getFreeFields();
+        $round = $order->getTransportRoundLines()->last();
+        $freeFields = [];
+
+
+        foreach ($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
+            $freeFields[] = FormatHelper::freeField($freeFieldValues[$freeFieldId] ?? '', $freeField);
+        }
+
+        $transportRound = null;
+        $transportRoundDeliverer = null;
+        $estimatedDate = null;
+        if($round) {
+            $transportRound = $round->getTransportRound()->getNumber();
+            $transportRoundDeliverer = $round->getTransportRound()->getDeliverer();
+            $estimatedDate = $round->getTransportRound()->getTransportRoundLine($order)->getEstimatedAt();
+        }
+
+
+        $dataTransportRequest = [
+            $request->getNumber(),
+            $request instanceof TransportDeliveryRequest ? ($request->getCollect() ? "Livraison-Collecte" : "Livraison") : "Collecte",
+            FormatHelper::type($request->getType()),
+            FormatHelper::status($order->getStatus()),
+            ...($request instanceof TransportDeliveryRequest ? [FormatHelper::bool(!empty($request->getEmergency()))] : []),
+            FormatHelper::user($request->getCreatedBy()),
+            $request->getContact()->getName(),
+            $request->getContact()->getFileNumber(),
+            str_replace("\n", " / ", $request->getContact()->getAddress()),
+            $request->getContact()->getAddress() ? FormatHelper::bool($this->isMetropolis($request->getContact()->getAddress())) : '',
+            FormatHelper::datetime($request->getExpectedAt()),
+        ];
+
+
+        if($request instanceof TransportDeliveryRequest) {
+            $dataTransportDeliveryRequest = array_merge($dataTransportRequest, [
+                isset($statusOrder[TransportOrder::STATUS_TO_ASSIGN]) ? FormatHelper::datetime($statusOrder[TransportOrder::STATUS_TO_ASSIGN]) : '',
+                isset($statusOrder[TransportOrder::STATUS_ASSIGNED]) ? FormatHelper::datetime($statusOrder[TransportOrder::STATUS_ASSIGNED]) : '',
+                isset($statusOrder[TransportOrder::STATUS_ONGOING]) ? FormatHelper::datetime($statusOrder[TransportOrder::STATUS_ONGOING]) : '',
+                FormatHelper::date($estimatedDate),
+                isset($statusOrder[TransportOrder::STATUS_FINISHED]) ? FormatHelper::datetime($statusOrder[TransportOrder::STATUS_FINISHED]) : (isset($statusOrder[TransportOrder::STATUS_CANCELLED]) ? FormatHelper::datetime($statusOrder[TransportOrder::STATUS_CANCELLED]) : '' ),
+                $transportRound,
+                FormatHelper::user($transportRoundDeliverer),
+                $request->getContact()->getObservation(),
+            ]);
+
+            $packs = $order->getPacks();
+
+            if ($packs && !$packs->isEmpty()) {
+                foreach ($packs as $pack) {
+                    $dataTransportDeliveryRequestPacks = array_merge($dataTransportDeliveryRequest, [
+                        $pack->getPack()?->getNature()?->getLabel() ?: '',
+                        $pack->getPack()?->getQuantity() ?: '0',
+                        $pack->getPack()?->getNature() ? $pack->getPackTemperature($pack->getPack()->getNature()) ?: '' : '',
+                        FormatHelper::bool($pack->getPack()?->getActivePairing()?->hasExceededThreshold()),
+                        $pack->getPack()?->getCode() ?: '',
+                        $pack->getRejectedBy() ? 'Oui' : ($pack->getRejectReason() ? 'Oui' : 'Non'),
+                        $pack->getRejectReason() ?: '',
+                        FormatHelper::datetime($pack->getReturnedAt()),
+                    ], $freeFields);
+                    $csvService->putLine($output, $dataTransportDeliveryRequestPacks);
+                }
+            }
+            else {
+                $offset = array_fill(0, 8, "");
+                $csvService->putLine($output, array_merge($dataTransportDeliveryRequest, $offset, $freeFields));
+            }
+        }
+        else if($request instanceof TransportCollectRequest) {
+            $dataTransportCollectRequest = array_merge($dataTransportRequest, [
+                FormatHelper::datetime($request->getCreatedAt()),
+                FormatHelper::datetime($request->getValidatedDate()),
+                isset($statusOrder[TransportOrder::STATUS_TO_ASSIGN]) ? FormatHelper::datetime($statusOrder[TransportOrder::STATUS_TO_ASSIGN]) : '',
+                isset($statusOrder[TransportOrder::STATUS_ASSIGNED]) ? FormatHelper::datetime($statusOrder[TransportOrder::STATUS_ASSIGNED]) : '',
+                isset($statusOrder[TransportOrder::STATUS_ONGOING]) ? FormatHelper::datetime($statusOrder[TransportOrder::STATUS_ONGOING]) : '',
+                FormatHelper::date($estimatedDate),
+                isset($statusOrder[TransportOrder::STATUS_FINISHED]) ? FormatHelper::datetime($statusOrder[TransportOrder::STATUS_FINISHED]) : (isset($statusOrder[TransportOrder::STATUS_CANCELLED]) ? FormatHelper::datetime($statusOrder[TransportOrder::STATUS_CANCELLED]) : '' ),
+                $order->getTreatedAt(),
+                $transportRound,
+                FormatHelper::user($transportRoundDeliverer),
+                $request->getContact()->getObservation(),
+            ]);
+
+            $lines = $request->getLines()?:null;
+            if ($lines && !$lines->isEmpty()) {
+                /** @var TransportCollectRequestLine $line */
+                foreach ($lines as $line) {
+                    $dataTransportCollectRequestPacks = array_merge($dataTransportCollectRequest, [
+                        $line->getNature()?->getLabel()? : '',
+                        $line->getQuantityToCollect()? : '',
+                        $line->getCollectedQuantity()? : '',
+                    ], $freeFields);
+                    $csvService->putLine($output, $dataTransportCollectRequestPacks);
+                }
+            }
+            else {
+                $offset = array_fill(0, 3, "");
+                $csvService->putLine($output, array_merge($dataTransportCollectRequest, $offset, $freeFields));
+            }
+        }
     }
 
     public function updateSubcontractedRequestStatus(EntityManagerInterface          $entityManager,
@@ -466,5 +751,84 @@ class TransportService {
             'statusDate' => $dateTime,
             'user' => $loggedUser
         ]);
+    }
+
+    public function createPrintPackConfig(TransportRequest $transportRequest,
+                                          string           $logo,
+                                          array            $deliveryPackIds = []): array {
+        $packs = Stream::from($transportRequest->getOrder()?->getPacks() ?: []);
+        $contact = $transportRequest->getContact();
+        $contactName = $contact->getName();
+        $contactFileNumber = $contact->getFileNumber();
+        $contactAddress = $contact->getAddress();
+
+        $contactAddress = preg_replace('/\s(\d{5})/', "\n$1", $contactAddress);
+
+        $maxLineLength = 40;
+        $cleanedContactAddress = Stream::explode("\n", $contactAddress)
+            ->flatMap(function (string $part) use ($maxLineLength) {
+                $part = trim($part);
+                $lineLength = strlen($part);
+                if ($lineLength > $maxLineLength) {
+                    $results = [];
+
+                    while (!empty($part)) {
+                        $words = explode(" ", $part);
+                        $finalPart = "";
+                        foreach ($words as $word) {
+                            if (empty($finalPart) || strlen($finalPart) + strlen($word) < $maxLineLength) {
+                                if (!empty($finalPart)) {
+                                    $finalPart .= " ";
+                                }
+                                $finalPart .= $word;
+                            } else {
+                                break;
+                            }
+                        }
+                        $results[] = trim($finalPart);
+                        if (strlen($finalPart) < strlen($part)) {
+                            $part = trim(substr($part, strlen($finalPart)));
+                        } else {
+                            break;
+                        }
+                    }
+                    return $results;
+                } else {
+                    return [$part];
+                }
+            })
+            ->filterMap(fn(string $line) => trim($line))
+            ->toArray();
+
+        $temperatureRanges = Stream::from($transportRequest->getLines())
+            ->filter(fn($line) => $line instanceof TransportDeliveryRequestLine)
+            ->keymap(fn(TransportDeliveryRequestLine $line) => [
+                $line->getNature()->getLabel(),
+                $line->getTemperatureRange()?->getValue()
+            ])
+            ->toArray();
+
+        $filteredPacksEmpty = (
+            empty($deliveryPackIds)
+            || Stream::from($packs)
+                ->filter(fn(TransportDeliveryOrderPack $pack) => in_array($pack->getId(), $deliveryPackIds))
+                ->isEmpty()
+        );
+
+        $total = $packs->count();
+        return $packs
+            ->keymap(fn(TransportDeliveryOrderPack $pack, int $index) => [(string) ($index + 1), $pack])
+            ->filter(fn(TransportDeliveryOrderPack $pack) => ($filteredPacksEmpty || in_array($pack->getId(), $deliveryPackIds)))
+            ->map(fn(TransportDeliveryOrderPack $pack, int $position) => [
+                'code' => $pack->getPack()->getCode(),
+                'labels' => [
+                    "$contactName - $contactFileNumber",
+                    ...$cleanedContactAddress,
+                    ($temperatureRanges[$pack->getPack()->getNature()->getLabel()] ?? '- °C'),
+                    "$position/$total"
+                ],
+                'logo' => $logo
+            ])
+            ->values();
     }
 }

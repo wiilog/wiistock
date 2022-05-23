@@ -19,6 +19,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Role;
 use App\Entity\Statut;
 use App\Entity\Transport\TransportRound;
+use App\Entity\Transport\Vehicle;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -537,6 +538,18 @@ class SelectController extends AbstractController {
 
         return $this->json([
             "results" => $carriers
+        ]);
+    }
+
+    /**
+     * @Route("/select/vehicles", name="ajax_select_vehicles", options={"expose": true})
+     */
+    public function vehicles(Request $request, EntityManagerInterface $entityManager): Response {
+        $search = $request->query->get('term');
+        $vehicles = $entityManager->getRepository(Vehicle::class)->getForSelect($search);
+
+        return $this->json([
+            "results" => $vehicles
         ]);
     }
 }
