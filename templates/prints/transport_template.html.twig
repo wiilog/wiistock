@@ -7,102 +7,94 @@
             width: 100%;
             height: 100%;
         }
+
         .header {
-            margin-bottom: 20px;
+            width: 80%;
             margin-left: 10%;
             margin-right: 10%;
+            margin-bottom: 15px;
         }
-        .logos {
-            float: left;
+
+        .header td:last-child {
+            text-align: right;
         }
-        .header-right {
-            float: right;
-        }
+
         .content {
             margin-left: 10%;
             margin-right: 10%;
         }
-        table {
+
+        .content table {
             border: black solid 1px;
             border-collapse: collapse;
             width: 100%;
+            padding-top: 1cm;
         }
-        thead {
+
+        .content th {
             background-color: rgb(82, 86, 89);
             color: white;
         }
-        td {
+
+        .content td {
             width: 50%;
         }
-        th, td {
-            border: black solid 1px;
 
+        .content th, .content td {
+            border: black solid 1px;
+            padding: 3px 7px;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <div class="logos">
+<table class="header">
+    <tr>
+        <td>
             {% if app_logo %}
-                <img src="{{ 'https://' ~ app.request.httpHost ~ '/' ~ app_logo }}"
-                     alt="Logo paramétré"/>
+                <img src="{{ 'https://' ~ app.request.httpHost ~ '/' ~ app_logo }}" alt="Logo paramétré"/>
             {% endif %}
-        </div>
-        <div class="header-right">
+        </td>
+        <td>
             <div>BL N° {{ requestNumber }}</div>
             <div>{{ society }}</div>
-        </div>
-    </div>
-    <div class="content">
-        <table class="">
-            <thead>
-                <tr>
-                    <th colspan="2">Suivi course</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>Donneur d'ordre : {{ originator }}</td>
-                    <td>Coursier : {{ round.deliverer.username ?? "" }}</td>
-                </tr>
-                <tr>
-                    <td>Date de demande : {{ request.createdAt | format_helper('longDate', {short: false, time: true, year: true}) }}</td>
-                    <td>Véhicule : {{ round.deliverer.username.vehicle.registrationNumber ?? "" }}</td>
-                </tr>
-            </tbody>
-        </table>
-        <table class="">
-            <thead>
-                <tr>
-                    <th>Expediteur</th>
-                    <th>Destinataire</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>{{ sender }}</td>
-                    <td>{{ request.contact.address }}</td>
-                </tr>
-            </tbody>
-        </table>
-        <table class="packs">
-            <thead>
+        </td>
+    </tr>
+</table>
+<div class="content">
+    <table>
+        <tr>
+            <th colspan="8">Suivi course</th>
+        </tr>
+        <tr>
+            <td colspan="4">Donneur d'ordre : {{ originator }}</td>
+            <td colspan="4">Coursier : {{ round.deliverer.username ?? "" }}</td>
+        </tr>
+        <tr>
+            <td colspan="4">Date de demande
+                : {{ request.createdAt | date('d/m/Y') }}</td>
+            <td colspan="4">Véhicule : {{ round.deliverer.username.vehicle.registrationNumber ?? "" }}</td>
+        </tr>
+        <tr>
+            <th colspan="4">Expediteur</th>
+            <th colspan="4">Destinataire</th>
+        </tr>
+        <tr>
+            <td colspan="4">{{ sender }}</td>
+            <td colspan="4">{{ request.contact.address }}</td>
+        </tr>
+        <tr>
+            <th colspan="2">Colis</th>
+            <th colspan="1">Quantité</th>
+            <th colspan="5">Informations</th>
+        </tr>
+        {% for line in request.order.packs %}
             <tr>
-                <th>Colis</th>
-                <th>Quantité</th>
-                <th>Informations</th>
+                <td colspan="2" style="width: 30%;">{{ line.pack.code }}</td>
+                <td colspan="1" style="width: 15%;">{{ line.pack.quantity }}</td>
+                <td colspan="5">{{ line.pack.nature.label }}</td>
             </tr>
-            </thead>
-            <tbody>
-            {% for line in request.order.packs %}
-                <tr>
-                    <td style="width: 30%;">{{ line.pack.code }}</td>
-                    <td style="width: 15%;">{{ line.pack.quantity }}</td>
-                    <td>{{ line.pack.nature.label }}</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    </div>
+        {% endfor %}
+    </table>
+</div>
 </body>
 </html>
