@@ -7,6 +7,7 @@ use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
+use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Transport\TransportCollectRequest;
 use App\Entity\Transport\TransportDeliveryRequest;
@@ -15,6 +16,7 @@ use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\TransportRoundLine;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
+use App\Exceptions\GeoException;
 use App\Helper\FormatHelper;
 use App\Service\GeoService;
 use App\Service\StatusHistoryService;
@@ -167,7 +169,19 @@ class RoundController extends AbstractController {
             throw new NotFoundHttpException('Impossible de planifier une tournée');
         }
 
-        $transportOrders = $entityManager->getRepository(TransportOrder::class)->findByDate($round->getExpectedAt());
+        $transportOrders = $entityManager->getRepository(TransportOrder::class)->findToAssignByDate($round->getExpectedAt());
+        $transportOrders = Stream::from($transportOrders)
+            ->sort(function (TransportOrder $a, TransportOrder $b) {
+                $getOrderTimestamp = function (TransportOrder $order) {
+                    $request = $order->getRequest();
+                    $dateTime = $request instanceof TransportCollectRequest
+                        ? DateTime::createFromFormat('Y-m-d H:i', $request->getValidatedDate()->format('Y-m-d') . ' ' . $request->getTimeslot()->getEnd())
+                        : $request->getExpectedAt();
+                    return $dateTime->getTimestamp();
+                };
+                return $getOrderTimestamp($a) <=> $getOrderTimestamp($b);
+            })
+            ->toArray();
 
         $contactDataByOrderId = Stream::from(
             $transportOrders,
@@ -247,7 +261,6 @@ class RoundController extends AbstractController {
                 throw $exception;
             }
 
-            // TODO ajouter historique de transport / status à la tournée ?
             $roundStatus = $statusRepository
                 ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ROUND, TransportRound::STATUS_AWAITING_DELIVERER);
 
@@ -304,7 +317,6 @@ class RoundController extends AbstractController {
                     $entityManager->persist($line);
                     $transportRound->addTransportRoundLine($line);
 
-                    // TODO uniquement à l'ordre ou à la request aussi ?
                     // set order status + add status history + add transport history
                     $status = $order->getRequest() instanceof TransportDeliveryRequest ? $deliveryOrderAssignStatus : $collectOrderAssignStatus;
 
@@ -344,7 +356,13 @@ class RoundController extends AbstractController {
     #[Route("/api-get-address-coordinates", name: "transport_round_address_coordinates_get", options: ['expose' => true], methods: "GET")]
     public function getAddressCoordinates(Request $request, GeoService $geoService): Response
     {
-        [$lat, $lon] = $geoService->fetchCoordinates($request->query->get('address'));
+        try {
+            [$lat, $lon] = $geoService->fetchCoordinates($request->query->get('address'));
+        }
+        catch (GeoException $exception) {
+            throw new FormException($exception->getMessage());
+        }
+
         return $this->json([
             'success' => true,
             'latitude' => $lat,

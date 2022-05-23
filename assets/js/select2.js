@@ -151,8 +151,14 @@ export default class Select2 {
                 })
 
                 if(editable) {
-                    $element.on(`select2:unselect`, event => {
-                        event.params.data.element.remove();
+                    $element.on(`select2:unselecting`, event => {
+                        const $option = $(event.params.args.data.element);
+                        if ($option.hasClass('no-deletable')) {
+                            event.preventDefault();
+                            Flash.add(`danger`, `Cet élément est utilisé, vous ne pouvez pas le supprimer.`);
+                        } else {
+                            $option.remove();
+                        }
                     });
                 }
 
@@ -194,6 +200,11 @@ export default class Select2 {
                     if ($element.is('[data-hidden-dropdown]')) {
                         $element.siblings('.select2-container')
                             .addClass('hidden-dropdown') ;
+                    }
+
+                    if ($element.is('[data-disabled-dropdown-options]')) {
+                        $element.siblings('.select2-container')
+                            .addClass('disabled-dropdown-options') ;
                     }
                 });
 

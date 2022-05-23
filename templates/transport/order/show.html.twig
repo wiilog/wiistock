@@ -150,7 +150,7 @@
                             <span class="wii-field-name">Tournée</span>
                             <span class="wii-field-text">
                                 {% if round is not null %}
-                                    <a class="text-primary underlined" href="{# TODO path('transport_round_show',{'transportRound':round.id}) } #}">{{ round.number }}</a>
+                                    <a class="text-primary underlined" href="{{ path('transport_round_show', {transportRound: round.id}) }}">T{{ round.number }}</a>
                                 {% else %}
                                     <span>-</span>
                                 {% endif %}
@@ -192,7 +192,7 @@
                                 N° dossier {{ transportRequestContact.fileNumber }}
                             </span>
                         </div>
-                        <div class="col-6 d-flex align-items-start">
+                        <div class="col-6 d-flex align-items-center">
                             <img src="{{ asset('svg/phone.svg') }}" alt="Icône téléphone"
                                  width="20px">
                             <div class="d-flex flex-column ml-2 justify-content-center">
@@ -200,7 +200,7 @@
                                 <span class="wii-field-text">{{ transportRequestContact.contact }}</span>
                             </div>
                         </div>
-                        <div class="col-6 d-flex align-items-start">
+                        <div class="col-6 d-flex align-items-center">
                             <img src="{{ asset('svg/user-contact.svg') }}" alt="Icône personne à prévenir"
                                  width="20px">
                             <div class="d-flex flex-column ml-2 justify-content-center">
@@ -208,7 +208,7 @@
                                 <span class="wii-field-text">{{ transportRequestContact.personToContact }}</span>
                             </div>
                         </div>
-                        <div class="col-6 d-flex mt-3 align-items-start">
+                        <div class="col-6 d-flex mt-3 align-items-center">
                             <img src="{{ asset('svg/location-blue.svg') }}" alt="Icône emplacement"
                                  width="20px">
                             <div class="d-flex flex-column ml-2 justify-content-center">
@@ -216,7 +216,7 @@
                                 <span class="wii-field-text">{{ transportRequestContact.address }}</span>
                             </div>
                         </div>
-                        <div class="col-6 d-flex mt-3 align-items-start">
+                        <div class="col-6 d-flex mt-3 align-items-center">
                             <img src="{{ asset('svg/question-mark.svg') }}" alt="Icône remarque"
                                  width="20px">
                             <div class="d-flex flex-column ml-2 justify-content-center">

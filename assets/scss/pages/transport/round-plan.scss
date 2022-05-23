@@ -129,7 +129,7 @@
 
 
 .placeholder {
-    height: 50px ;
+    min-height: 50px ;
     border-radius: 5px;
     border : 1px solid #ccc;;
     margin: 5px 10px ;
@@ -151,20 +151,24 @@
         border-radius: 5px;
         padding: 0;
         display: flex;
-        .leaflet-popup-content{
+
+        .leaflet-popup-content {
             margin: 0;
             padding: 0;
             display: flex;
-            .index{
+
+            .index {
                 border-radius: 5px 0 0 5px;
                 padding: 5px;
                 background-color: #3353d7;
                 color: #FFFFFF;
             }
-            .contact{
+
+            .contact {
                 padding: 5px;
             }
-            .time{
+
+            .time {
                 font-weight: bold;
                 padding: 5px;
             }
