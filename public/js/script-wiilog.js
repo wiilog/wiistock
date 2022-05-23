@@ -711,6 +711,15 @@ function warningEmptyDatesForCsv() {
     });
 }
 
+function warningEmptyTypeTransportForCsv() {
+    showBSAlert('Veuillez saisir un type de transport dans le filtre en haut de page.', 'danger');
+    const buttonsType = $( ".wii-expanded-switch" ).first();
+    buttonsType.addClass('is-invalid');
+    $('.is-invalid').on('click', function () {
+        $(this).parent().find('.is-invalid').removeClass('is-invalid');
+    });
+}
+
 function displayFiltersSup(data) {
     data.forEach(function (element) {
         const $element = $(`.filters [name="${element.field}"]`);
@@ -911,7 +920,10 @@ function initOnTheFlyCopies($elems) {
     });
 }
 
-function saveExportFile(routeName, needsDateFilters = true, routeParam = {}) {
+function saveExportFile(routeName, needsDateFilters = true, routeParam = {}, needsAdditionalFilters = false) {
+
+    const buttonTypeTransport = $("input[name='category']:checked")
+
     const $spinner = $('#spinner');
     loadSpinner($spinner);
 
@@ -923,29 +935,38 @@ function saveExportFile(routeName, needsDateFilters = true, routeParam = {}) {
         const name = $input.attr('name');
         const val = $input.val();
         if (name && val) {
-            data[name] = val;
+            if(!($input.is(':radio') && !$input.is(':checked'))) {
+                data[name] = val;
+            }
         }
     });
 
+    if (data.dateMin && data.dateMax) {
+        data.dateMin = moment(data.dateMin, 'DD/MM/YYYY').format('YYYY-MM-DD');
+        data.dateMax = moment(data.dateMax, 'DD/MM/YYYY').format('YYYY-MM-DD');
+    }
+    const dataKeys = Object.keys(data);
+    const joinedData = dataKeys
+        .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(data[key])}`)
+        .join('&');
+
     if ((data.dateMin && data.dateMax) || !needsDateFilters) {
-        if (data.dateMin && data.dateMax) {
-            data.dateMin = moment(data.dateMin, 'DD/MM/YYYY').format('YYYY-MM-DD');
-            data.dateMax = moment(data.dateMax, 'DD/MM/YYYY').format('YYYY-MM-DD');
+        if(needsAdditionalFilters) {
+            if (!buttonTypeTransport.is(':empty')) {
+                warningEmptyTypeTransportForCsv();
+            }
+            else {
+               window.location.href = `${path}?${joinedData}`;
+            }
         }
-
-        const dataKeys = Object.keys(data);
-
-        const joinedData = dataKeys
-            .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(data[key])}`)
-            .join('&');
-
-        window.location.href = `${path}?${joinedData}`;
-        hideSpinner($spinner);
+        else {
+            window.location.href = `${path}?${joinedData}`;
+        }
     }
     else {
         warningEmptyDatesForCsv();
-        hideSpinner($spinner);
     }
+    hideSpinner($spinner);
 }
 
 function fillDemandeurField($modal) {

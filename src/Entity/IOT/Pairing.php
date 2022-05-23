@@ -14,6 +14,7 @@ use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: PairingRepository::class)]
 class Pairing {
@@ -270,4 +271,11 @@ class Pairing {
         }
     }
 
+    public function hasExceededThreshold(): ?bool {
+//TODO WIIS-7229 appliquer la modification des bornes les bornes
+        return Stream::from($this->getSensorMessages())
+            ->some(fn(SensorMessage $message) => $message->getContent() < SensorMessage::LOW_TEMPERATURE_THRESHOLD
+                || $message->getContent() > SensorMessage::HIGH_TEMPERATURE_THRESHOLD);
+
+    }
 }
