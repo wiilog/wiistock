@@ -376,7 +376,10 @@ class RefArticleDataService {
             $refArticle->setNeedsMobileSync(filter_var($data['mobileSync'] ?? false, FILTER_VALIDATE_BOOLEAN));
         }
 
-        $refArticle->setBuyer(isset($data['buyer']) ? $userRepository->find($data['buyer']) : null);
+        if (isset($data['buyer'])) {
+            $refArticle->setBuyer(!empty($data['buyer']) ? $userRepository->find($data['buyer']) : null);
+        }
+
         $refArticle->setLimitWarning((empty($data['limitWarning']) && $data['limitWarning'] !== 0 && $data['limitWarning'] !== '0') ? null : intval($data['limitWarning']));
         $refArticle->setLimitSecurity((empty($data['limitSecurity']) && $data['limitSecurity'] !== 0 && $data['limitSecurity'] !== '0') ? null : intval($data['limitSecurity']));
 
@@ -391,19 +394,32 @@ class RefArticleDataService {
             }
         }
 
-        $refArticle->setStockManagement($data['stockManagement'] ?? null);
-        $refArticle->getManagers()->clear();
-        if (!empty($data["managers"])) {
-            $managers = is_string($data["managers"]) ? explode(',', $data['managers']) : $data["managers"];
-            foreach ($managers as $manager) {
-                $refArticle->addManager($userRepository->find($manager));
+        if (isset($data['stockManagement'])) {
+            $refArticle->setStockManagement($data['stockManagement'] ?? null);
+        }
+
+        if (isset($data['managers'])) {
+            $refArticle->getManagers()->clear();
+
+            if (!empty($data['managers'])) {
+                $managers = is_string($data['managers'])
+                    ? explode(',', $data['managers'])
+                    : $data['managers'];
+                foreach ($managers as $manager) {
+                    $refArticle->addManager($userRepository->find($manager));
+                }
             }
         }
+
         $entityManager->flush();
-        if (isset($data["visibility-group"]) && $data["visibility-group"] !== 'null') {
-            $refArticle->setProperties(['visibilityGroup' => $data['visibility-group'] ? $visibilityGroupRepository->find(intval($data['visibility-group'])) : null]);
-        } else {
-            $refArticle->setProperties(['visibilityGroup' => null]);
+
+        if (isset($data["visibility-group"])) {
+            if ($data["visibility-group"] !== 'null') {
+                $refArticle->setProperties(['visibilityGroup' => $data['visibility-group'] ? $visibilityGroupRepository->find(intval($data['visibility-group'])) : null]);
+            }
+            else {
+                $refArticle->setProperties(['visibilityGroup' => null]);
+            }
         }
 
 

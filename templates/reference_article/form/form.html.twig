@@ -456,7 +456,7 @@
                                                            value="{{ reference.prixUnitaire }}" min="0">
                                                 </label>
                                             </div>
-                                            <div class="article {{ not reference.id or reference.typeQuantite != 'article' ? 'd-none' }}">
+                                            <div class="article">
                                                 <label>
                                                     <span class="icon wii-field-name">
                                                         <img src="{{ asset('svg/reference_article/stock-management.svg') }}"
@@ -478,20 +478,21 @@
                                             </div>
                                         </div>
                                     {% else %}
+                                        {% if reference.id is not null and reference.typeQuantite is same as('reference') %}
                                         <div class="col-12 col-md-4 mt-3">
-                                            <div class="reference {{ reference.typeQuantite != 'reference' ? 'd-none' }}">
+                                            <div class="reference">
                                                 <label>
-                                                        <span class="icon wii-field-name">
-                                                            <img src="{{ asset('svg/reference_article/euro.svg') }}" class="icon" alt="Image euro">
-                                                            Prix unitaire (€)
-                                                        </span>
+                                                    <span class="icon wii-field-name">
+                                                        <img src="{{ asset('svg/reference_article/euro.svg') }}" class="icon" alt="Image euro">
+                                                        Prix unitaire (€)
+                                                    </span>
                                                     <input type="number" name="prix" class="form-control w-100 data"
                                                            value="{{ reference.prixUnitaire }}" min="0">
                                                 </label>
                                             </div>
                                         </div>
+                                        {% endif %}
                                     {% endif %}
-
                                     <div class="col-12 col-md-4 mt-3 {{ partialEdit ? 'mr-auto' }}">
                                         <label>
                                         <span class="icon wii-field-name">
