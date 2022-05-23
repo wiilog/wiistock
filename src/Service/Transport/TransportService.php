@@ -316,15 +316,16 @@ class TransportService {
 
     #[ArrayShape(["status" => Statut::class, "subcontracted" => "bool"])]
     private function getStatusRequest(EntityManagerInterface $entityManager,
-                                      TransportRequest $transportRequest,
-                                      DateTime $expectedAt): array {
+                                      TransportRequest       $transportRequest,
+                                      DateTime               $expectedAt): array {
         $statusRepository = $entityManager->getRepository(Statut::class);
-        $now = (new DateTime())->setTime(0, 0);
+        $now = new DateTime();
+        $nowAtMidnight = (clone $now)->setTime(0, 0);
         $expectedAtForDiff = (clone $expectedAt)->setTime(0, 0);
 
         $transportOrder = $transportRequest->getOrder();
 
-        $diff = $now->diff($expectedAtForDiff);
+        $diff = $nowAtMidnight->diff($expectedAtForDiff);
         if ($transportRequest instanceof TransportDeliveryRequest) {
             $category = CategorieStatut::TRANSPORT_REQUEST_DELIVERY;
 
