@@ -12,17 +12,20 @@ use App\Entity\Statut;
 use App\Entity\Transport\TransportCollectRequest;
 use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\Transport\TransportOrder;
+use App\Entity\Transport\TransportRequest;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\TransportRoundLine;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
 use App\Service\GeoService;
+use App\Service\PDFGeneratorService;
 use App\Service\StatusHistoryService;
 use App\Service\Transport\TransportHistoryService;
 use App\Service\UniqueNumberService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -379,5 +382,17 @@ class RoundController extends AbstractController {
             'latitude' => $lat,
             'longitude' => $lon,
         ]);
+    }
+
+    #[Route("/bon-de-transport/{transportRound}", name: "print_round_note", options: ['expose' => true], methods: "GET")]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_TRANSPORT])]
+    public function printTransportNote(TransportRound $transportRound,
+                                       PDFGeneratorService $pdfService,
+                                       EntityManagerInterface $entityManager): Response {
+
+        return new PdfResponse(
+            $pdfService->generatePDFTransportRound($transportRound),
+            "{$transportRound->getNumber()}-bon-transport.pdf"
+        );
     }
 }

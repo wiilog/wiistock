@@ -109,7 +109,7 @@
                                 <span class="wii-field-name">Commandes rejetées</span>
                                 <span class="wii-field-text">{{ nbRejectedOrders }}</span>
                             </div>
-                        {% endif %} %}
+                        {% endif %}
                     </div>
                     {% endif %}
                 </div>
@@ -129,7 +129,8 @@
                                             Ajouter un transport
                                         </div>
 
-                                        <div class="dropdown-item pointer edit-button">
+                                        <div class="dropdown-item pointer print-round-button"
+                                             data-round-id="{{ transportRound.id }}">
                                             <img src="{{ asset('svg/printer-black.svg') }}" alt="Icône urgence" width="17px" class="pr-1">
                                             Générer un bon de transport
                                         </div>
