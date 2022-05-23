@@ -224,7 +224,7 @@ class TransportService {
             }
         }
         else {
-            $this->updateTransportOrderStatus($entityManager, $transportRequest, $transportOrder, $loggedUser);
+            $this->updateOrderInitialStatus($entityManager, $transportRequest, $transportOrder, $loggedUser);
         }
 
         $linesResult = $this->updateTransportRequestLines($entityManager, $transportRequest, $data);
@@ -266,7 +266,7 @@ class TransportService {
                                           Utilisateur $user): TransportOrder {
 
         $transportOrder = new TransportOrder();
-        $this->updateTransportOrderStatus($entityManager, $transportRequest, $transportOrder, $user);
+        $this->updateOrderInitialStatus($entityManager, $transportRequest, $transportOrder, $user);
 
         $transportOrder
             ->setCreatedAt(new DateTime())
@@ -277,10 +277,11 @@ class TransportService {
         return $transportOrder;
     }
 
-    public function updateTransportOrderStatus(EntityManagerInterface $entityManager,
-                                               TransportRequest $transportRequest,
-                                               TransportOrder $transportOrder,
-                                               Utilisateur $user): void {
+    public function updateOrderInitialStatus(EntityManagerInterface $entityManager,
+                                             TransportRequest       $transportRequest,
+                                             TransportOrder         $transportOrder,
+                                             Utilisateur            $user): void {
+        $creation = !$transportOrder->getId();
 
         $statusRepository = $entityManager->getRepository(Statut::class);
 
@@ -303,9 +304,21 @@ class TransportService {
             throw new \RuntimeException('Unknown request type');
         }
 
+        if ($creation) {
+            $transportHistoryType = TransportHistoryService::TYPE_REQUEST_CREATION;
+        }
+        else {
+            $transportHistoryType = match($statusCode) {
+                TransportOrder::STATUS_TO_ASSIGN => TransportHistoryService::TYPE_ACCEPTED,
+                TransportOrder::STATUS_SUBCONTRACTED => TransportHistoryService::TYPE_SUBCONTRACTED,
+                TransportOrder::STATUS_TO_CONTACT => TransportHistoryService::TYPE_AWAITING_PLANNING,
+                TransportOrder::STATUS_AWAITING_VALIDATION => TransportHistoryService::TYPE_AWAITING_VALIDATION,
+            };
+        }
+
         $status = $statusRepository->findOneByCategorieNameAndStatutCode($categoryStatusName, $statusCode);
         $statusHistory = $this->statusHistoryService->updateStatus($entityManager, $transportOrder, $status);
-        $this->transportHistoryService->persistTransportHistory($entityManager, $transportOrder, TransportHistoryService::TYPE_REQUEST_CREATION, [
+        $this->transportHistoryService->persistTransportHistory($entityManager, $transportOrder, $transportHistoryType, [
             'history' => $statusHistory,
             'user' => $user
         ]);

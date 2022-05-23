@@ -189,7 +189,7 @@ class SubcontractController extends AbstractController
             $transportService->persistTransportOrder($entityManager, $transportRequest, $loggedUser);
         }
         else {
-            $transportService->updateTransportOrderStatus($entityManager, $transportRequest, $transportOrder, $loggedUser);
+            $transportService->updateOrderInitialStatus($entityManager, $transportRequest, $transportOrder, $loggedUser);
         }
 
         $entityManager->flush();
