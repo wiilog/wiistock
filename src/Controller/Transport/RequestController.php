@@ -760,10 +760,10 @@ class RequestController extends AbstractController {
             /** @var TransportRequest $request */
             foreach ($transportRequestIterator as $request) {
                 if ($request instanceof TransportDeliveryRequest) {
-                    $transportService->putLine($output, $CSVExportService, $request, $freeFieldsConfigDelivery);
+                    $transportService->putLineRequest($output, $CSVExportService, $request, $freeFieldsConfigDelivery);
                 }
                 else {
-                    $transportService->putLine($output, $CSVExportService, $request, $freeFieldsConfigCollect);
+                    $transportService->putLineRequest($output, $CSVExportService, $request, $freeFieldsConfigCollect);
                 }
             }
         }, $nameFile, $csvHeader);

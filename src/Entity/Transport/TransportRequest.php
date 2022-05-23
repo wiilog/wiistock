@@ -390,21 +390,10 @@ abstract class TransportRequest {
         return $this;
     }
 
-    public function getLastStatusHistory() : array|null
+    public function getLastStatusHistory(array $statusCode) : array|null
     {
-        $statusCodeExportCSV = [
-            TransportRequest::STATUS_TO_PREPARE,
-            TransportRequest::STATUS_TO_DELIVER,
-            TransportRequest::STATUS_ONGOING,
-            TransportRequest::STATUS_FINISHED,
-            TransportRequest::STATUS_CANCELLED,
-            TransportRequest::STATUS_SUBCONTRACTED,
-            TransportRequest::STATUS_AWAITING_PLANNING,
-            TransportRequest::STATUS_TO_COLLECT,
-            TransportRequest::STATUS_DEPOSITED
-        ];
         return Stream::from($this->getStatusHistory())
-            ->filter(fn(StatusHistory $history) => in_array($history->getStatus()->getCode(),$statusCodeExportCSV))
+            ->filter(fn(StatusHistory $history) => in_array($history->getStatus()->getCode(),$statusCode))
             ->sort(fn(StatusHistory $s1, StatusHistory $s2) => $s2->getId() <=> $s1->getId())
             ->keymap(fn(StatusHistory $history) => [$history->getStatus()->getCode(), $history->getDate()])
             ->toArray();

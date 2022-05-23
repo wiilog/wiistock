@@ -2,11 +2,13 @@
 
 namespace App\Repository\Transport;
 
+use App\Entity\CategoryType;
 use App\Entity\FiltreSup;
 use App\Entity\Transport\TransportCollectRequest;
 use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\Transport\TransportOrder;
 use App\Helper\QueryCounter;
+use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -144,5 +146,30 @@ class TransportOrderRepository extends EntityRepository {
             ->setParameter("date", $date->format('Y-m-d'))
             ->getQuery()
             ->getResult();
+    }
+
+    public function iterateTransportOrderByDates(DateTime $dateMin, DateTime $dateMax, string $type): iterable {
+        $dateMin = $dateMin->format("Y-m-d");
+        $dateMax = $dateMax->format("Y-m-d");
+        $qb = $this->createQueryBuilder('transport_order')
+            ->join("transport_order.request", "transport_request")
+            ->leftJoin(TransportDeliveryRequest::class, "delivery", Join::WITH, "transport_request.id = delivery.id")
+            ->leftJoin(TransportCollectRequest::class, "collect", Join::WITH, "transport_request.id = collect.id")
+            ->leftJoin("collect.delivery", "collect_delivery")
+            ->setParameter('dateMin' , "$dateMin 00:00:00")
+            ->setParameter('dateMax' , "$dateMax 23:59:59");
+
+        if($type === CategoryType::DELIVERY_TRANSPORT) {
+            $qb
+                ->where('delivery.expectedAt BETWEEN :dateMin AND :dateMax')
+                ->andWhere('delivery.id IS NOT NULL');
+        } else {
+            $qb
+                ->where(' IFNULL(collect.validatedDate , collect.expectedAt) BETWEEN :dateMin AND :dateMax')
+                ->andWhere("collect_delivery IS NULL");
+        }
+        return $qb
+            ->getQuery()
+            ->toIterable();
     }
 }
