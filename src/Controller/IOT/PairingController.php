@@ -81,7 +81,7 @@ class PairingController extends AbstractController {
             $rows[] = [
                 "id" => $pairing->getId(),
                 "type" => $type,
-                "typeIcon" => Sensor::SENSOR_ICONS[$type],
+                "typeIcon" => Sensor::SENSOR_ICONS[$type] ?? null,
                 "name" => $pairing->getSensorWrapper() ? $pairing->getSensorWrapper()->getName() : '',
                 "element" => $pairing->getEntity() ? $pairing->getEntity()->__toString() : '',
                 "elementIcon" => $elementIcon,
