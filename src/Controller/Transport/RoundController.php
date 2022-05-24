@@ -19,9 +19,11 @@ use App\Exceptions\FormException;
 use App\Exceptions\GeoException;
 use App\Helper\FormatHelper;
 use App\Service\GeoService;
+use App\Service\NotificationService;
 use App\Service\StatusHistoryService;
 use App\Service\Transport\TransportHistoryService;
 use App\Service\UniqueNumberService;
+use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -215,12 +217,17 @@ class RoundController extends AbstractController {
                          EntityManagerInterface  $entityManager,
                          StatusHistoryService    $statusHistoryService,
                          TransportHistoryService $transportHistoryService,
+                         NotificationService     $notificationService,
+                         UserService             $userService,
                          UniqueNumberService     $uniqueNumberService): JsonResponse {
 
         $transportRoundRepository = $entityManager->getRepository(TransportRound::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $transportOrderRepository = $entityManager->getRepository(TransportOrder::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
+
+        /** @var Utilisateur $loggedUser */
+        $loggedUser = $this->getUser();
 
         $number = $request->request->get('number');
         $expectedAtDate = $request->request->get('expectedAtDate');
@@ -342,6 +349,9 @@ class RoundController extends AbstractController {
         }
 
         $entityManager->flush();
+
+        $userChannel = $userService->getUserFCMChannel($loggedUser);
+        $notificationService->send($userChannel, "Une nouvelle tournée attribuée aujourd'hui");
 
         return $this->json([
             'success' => true,

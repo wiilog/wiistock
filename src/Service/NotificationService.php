@@ -73,8 +73,7 @@ class NotificationService
     /** @Required */
     public HttpClientInterface $client;
 
-    public function toTreat($entity)
-    {
+    public function toTreat($entity): void {
         $type = NotificationService::GetTypeFromEntity($entity);
         $channel = NotificationService::GetChannelFromEntity($entity);
         $title = NotificationService::READABLE_TYPES[$type] ?? '';
@@ -160,12 +159,13 @@ class NotificationService
 
     public function send(string $channel,
                          string $title,
-                         string $content,
+                         ?string $content = null,
                          ?array $data = null,
                          ?string $imageURI = null,
-                         bool $onlyData = false) {
+                         bool $onlyData = false): void {
         $client = $this->configureClient();
         $httpClient = $client->authorize();
+
         $json = [
             'message' => [
                 'topic' => $_SERVER["APP_INSTANCE"] . "-" . $channel,
@@ -174,7 +174,7 @@ class NotificationService
                         "click_action" => self::FCM_PLUGIN_ACTIVITY
                     ]
                 ],
-                'data' => $data ?? [],
+                'data' => $data ?? null,
             ],
             'validate_only' => false
         ];
@@ -185,6 +185,7 @@ class NotificationService
                 'image' => $imageURI
             ];
         }
+
         $response = $httpClient->request(
             'POST',
             'https://fcm.googleapis.com/v1/projects/follow-gt/messages:send', [
