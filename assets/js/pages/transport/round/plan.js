@@ -7,6 +7,10 @@ import Form from "@app/form";
 import Flash, {ERROR} from "@app/flash";
 
 const roundMarkerAlreadySaved = {};
+const INDEX_TO_LABEL = {
+    0: 'startPointScheduleCalculation'
+}
+let WAITING_TIMES = [];
 
 $(function () {
     const map = Map.create(`map`);
@@ -21,6 +25,7 @@ $(function () {
     initializeRoundPointMarkers(map);
     initializeForm();
 
+    WAITING_TIMES = JSON.parse($('input[name="waitingTime"]').val());
     Promise
         .all([
             placeAddressMarker($startPoint, map),
@@ -83,6 +88,97 @@ $(function () {
                 .val(null);
         }
     })
+    //LOADER LA !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    $('.btn-calculate-time').on('click', function() {
+        if (!$(this).hasClass('btn-disabled')) {
+            const $expectedAtTime = $('input[name="expectedAtTime"]');
+            const $startPoint = $('input[name="startPoint"]');
+            const $startPointScheduleCalculation = $('input[name="startPointScheduleCalculation"]');
+            const $endPoint = $('input[name="endPoint"]');
+
+            if ($expectedAtTime.val()
+                && $startPoint.val()
+                && $startPointScheduleCalculation.val()
+                && $endPoint.val()
+            ) {
+
+                const expectedTime = $expectedAtTime.val();
+                let roundHours = Number(expectedTime.substring(0, 2));
+                let roundMinutes = Number(expectedTime.substring(3, 5));
+                let expectedTimeInMinutes = roundHours * 60 + roundMinutes;
+
+                const params = {
+                    startingTime: expectedTime,
+                    startingPoint: $startPoint.val(),
+                    timeStartingPoint: $startPointScheduleCalculation.val(),
+                    endingPoint: $endPoint.val(),
+                    orders: []
+                };
+
+                $('#affected-container, #delivered-container').children().each((index, card) => {
+                    const $card = $(card);
+                    let order = $card.data('order-id');
+                    params.orders.push({
+                        index,
+                        order
+                    })
+                });
+
+                let distance = 0;
+                let time = 0;
+                let fullTime = 0;
+                let stopsTimes = [];
+
+                $.get(Routing.generate('transport_round_calculate'), params, function(response) {
+                    const roundData = Object.keys(response.data).sort().reduce((obj, key) => {
+                        obj[key] = response.data[key];
+                        return obj;
+                    }, {});
+                    Object.values(roundData).forEach((round, index) => {
+                        distance += round.distance;
+                        let roundHours = Number(round.time.substring(0, 2));
+                        let roundMinutes = Number(round.time.substring(3, 5));
+                        let roundTime = roundHours * 60 + roundMinutes;
+                        const waitingTime = round.destinationType ? Number(WAITING_TIMES[round.destinationType]) : 0;
+                        roundTime += waitingTime;
+
+                        fullTime += roundTime;
+
+                        if (index > 0) {
+                            time += roundTime;
+                        }
+
+                        const elapsed = expectedTimeInMinutes + fullTime;
+
+                        const arrivedTime = Math.floor(elapsed/60) + 'h' + (elapsed%60 < 10 ? '0' + elapsed%60 : elapsed%60);
+
+                        stopsTimes.push(arrivedTime);
+
+                        const isLastIteration = index === Object.values(roundData).length -1;
+
+                        const selector = isLastIteration
+                            ? 'endPoint'
+                            : (INDEX_TO_LABEL[index] || params.orders.find((order) => order.index === index - 1).order);
+
+                        map.estimatePopupMarker({
+                            selector,
+                            estimation: '<span class="time estimated">Estimé : ' + arrivedTime + '</span>',
+                        });
+                    });
+
+                    $('.estimatedTotalDistance').text(Number(distance).toFixed(2) + 'km');
+                    $('.estimatedTotalTime').text(Math.floor(time/60) + 'h' + (time%60 < 10 ? '0' + time%60 : time%60));
+
+                    $('input[name="estimatedTotalDistance"]').val(Number(distance).toFixed(2));
+                    $('input[name="estimatedTotalTime"]').val(Math.floor(time/60) + ':' + (time%60 < 10 ? '0' + time%60 : time%60));
+                    //TRACER LIGNES ICI!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                });
+
+            } else {
+                Flash.add(ERROR, 'Calcul impossible. Veillez bien à renseigner les points de départs, d\'arrivée, ainsi que l\'heure de départ');
+            }
+        }
+    });
 });
 
 function initialiseMouseHoverEvent(map, contactData) {
@@ -102,6 +198,7 @@ function initialiseMouseHoverEvent(map, contactData) {
                 icon: currentIndex ? "blueLocation" : "greyLocation",
                 popUp: map.createPopupContent(contact, currentIndex),
                 isFocused: true,
+                selector: $card.data('order-id')
             });
         })
         .on('mouseleave.orderCardHover',function (){
@@ -119,12 +216,13 @@ function initialiseMouseHoverEvent(map, contactData) {
                 if (!currentIndex) {
                     affectCard($card, map, contactData);
                 }
-            }
+            },
+            selector: $card.data('order-id')
         });
     });
 }
 
-function updateCardsContainers(map, contactData) {
+function updateCardsContainers(map, contactData, deletion = false) {
     initialiseMouseHoverEvent(map, contactData);
 
     $('#to-affect-container').children().each((index, card) => {
@@ -140,7 +238,9 @@ function updateCardsContainers(map, contactData) {
             popUp: map.createPopupContent(contact, null),
             onclick: function () {
                 affectCard($card, map, contactData);
-            }
+            },
+            selector: $card.data('order-id'),
+            deletion
         });
     });
 
@@ -160,6 +260,7 @@ function updateCardsContainers(map, contactData) {
             longitude: contact.longitude,
             icon: "blueLocation",
             popUp: map.createPopupContent(contact, index + 1),
+            selector: $card.data('order-id')
         });
     });
 }
@@ -168,7 +269,7 @@ function removeCard($button, map, contactData) {
     const $card = $button.closest('.order-card');
     $card.remove();
     $('#to-affect-container').append($card);
-    updateCardsContainers(map ,contactData);
+    updateCardsContainers(map ,contactData, true);
 }
 
 function placeAddressMarker($input, map){
@@ -209,6 +310,7 @@ function initializeForm() {
                 errors.push({message: 'Vous devez ajouter au moins un ordre dans la tournée pour continuer'});
             }
             else {
+                //Récupérer les estimations de temps ici!!!!!!!!!!!!!!!!!!
                 const orderIds = $affectedOrders
                     .map((_, orderCard) => $(orderCard).data('order-id'))
                     .toArray()
@@ -217,6 +319,7 @@ function initializeForm() {
             }
         })
         .onSubmit((data) => {
+            console.log(data);
             /// TODO Add loader ? on submit button
             AJAX.route(POST, 'transport_round_save')
                 .json(data)
@@ -255,7 +358,7 @@ function addRoundPointMarker(map, $input, {latitude, longitude}) {
             longitude,
             icon: "blackLocation",
             popUp: map.createPopupContent({contact: $input.data('short-label')}),
-            name: $input.data('short-label'),
+            selector: $input.attr('name'),
         });
     }
     return undefined;

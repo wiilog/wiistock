@@ -145,7 +145,7 @@ class RoundController extends AbstractController {
         $calculationsPoints['startPoint']['name'] = TransportRound::NAME_START_POINT;
         $calculationsPoints['startPointScheduleCalculation']['name'] = TransportRound::NAME_START_POINT_SCHEDULE_CALCULATION;
         $calculationsPoints['endPoint']['name'] = TransportRound::NAME_END_POINT;
-        dump($calculationsPoints);
+
         $transportPoints = Stream::from($transportRound->getTransportRoundLines())->map(function (TransportRoundLine $line) {
             if (!$line->getOrder()->isRejected()) {
                 $contact = $line->getOrder()->getRequest()->getContact();
@@ -167,11 +167,94 @@ class RoundController extends AbstractController {
         ]);
     }
 
+    #[Route("/calculer", name: "transport_round_calculate", options: ['expose' => true], methods: "GET")]
+    #[HasPermission([Menu::ORDRE, Action::SCHEDULE_TRANSPORT_ROUND])]
+    public function calculate(Request $request,
+                         GeoService $geoService,
+                         EntityManagerInterface $entityManager): Response {
+
+        $orderRepository = $entityManager->getRepository(TransportOrder::class);
+
+        $startingPointAddress = $geoService->fetchCoordinates($request->query->get('startingPoint'));
+        $timeStartingPointAddress = $geoService->fetchCoordinates($request->query->get('timeStartingPoint'));
+        $endingPointAddress = $geoService->fetchCoordinates($request->query->get('endingPoint'));
+
+        $coordinates = [
+            [
+                'index' => 0,
+                'coordinates' => [
+                    'latitude' => $startingPointAddress[0],
+                    'longitude' => $startingPointAddress[1],
+                ]
+            ],
+            [
+                'index' => 1,
+                'coordinates' => [
+                    'latitude' => $timeStartingPointAddress[0],
+                    'longitude' => $timeStartingPointAddress[1],
+                ]
+            ],
+            [
+                'index' => count($request->query->all('orders')) + 2,
+                'coordinates' => [
+                    'latitude' => $endingPointAddress[0],
+                    'longitude' => $endingPointAddress[1],
+                ]
+            ],
+        ];
+
+        $orders = Stream::from($request->query->all('orders'))
+            ->sort(fn(array $order1, array $order2) => $order1['index'] <=> $order2['index'])
+            ->keymap(function(array $order) use ($orderRepository) {
+                return [$order['index'], $orderRepository->find($order['order'])];
+            })->toArray();
+
+        $coordinates = Stream::from($request->query->all('orders'))
+            ->map(function(array $order) use ($orderRepository) {
+                $orderEntity = $orderRepository->find($order['order']);
+                return [
+                    'index' => $order['index'] + 2,
+                    'coordinates' => [
+                        'latitude' => floatval($orderEntity->getRequest()->getContact()->getAddressLatitude()),
+                        'longitude' => floatval($orderEntity->getRequest()->getContact()->getAddressLongitude()),
+                    ]
+                ];
+            })
+            ->concat($coordinates)
+            ->sort(fn(array $coordinate1, array $coordinate2) => $coordinate1['index'] <=> $coordinate2['index'])
+            ->keymap(fn(array $coordinates) => [$coordinates['index'], $coordinates['coordinates']])
+            ->toArray();
+
+
+        $roundData = $geoService->fetchStopsData($coordinates);
+
+        foreach ($roundData['data'] as $key => $roundDatum) {
+            if ($key > 0 && $key < count($roundData['data']) - 1) {
+                $request = $orders[$key - 1]->getRequest();
+                $type = $request instanceof TransportDeliveryRequest && !$request->getCollect()
+                    ? 'deliveries'
+                    :
+                    ($request instanceof TransportCollectRequest && !$request->getDelivery()
+                        ? 'collects'
+                        : 'deliveryCollects'
+                    );
+                $roundData['data'][$key]['destinationType'] = $type;
+            }
+        }
+
+        dump($roundData);
+
+        return new JsonResponse($roundData);
+    }
+
     #[Route("/planifier", name: "transport_round_plan", options: ['expose' => true], methods: "GET")]
     #[HasPermission([Menu::ORDRE, Action::SCHEDULE_TRANSPORT_ROUND])]
     public function plan(Request $request,
                          EntityManagerInterface $entityManager,
                          UniqueNumberService $uniqueNumberService): Response {
+
+        $globalParams = $entityManager->getRepository(Setting::class);
+
         if ($request->query->get('dateRound')) {
             $round = new TransportRound();
 
@@ -238,6 +321,11 @@ class RoundController extends AbstractController {
             'prefixNumber' => TransportRound::NUMBER_PREFIX,
             'transportOrders' => $transportOrders,
             'contactData' => $contactDataByOrderId,
+            'waitingTime' => json_encode([
+                'deliveries' => $globalParams->getOneParamByLabel(Setting::TRANSPORT_ROUND_DELIVERY_AVERAGE_TIME),
+                'collects' => $globalParams->getOneParamByLabel(Setting::TRANSPORT_ROUND_COLLECT_AVERAGE_TIME),
+                'deliveryCollects' => $globalParams->getOneParamByLabel(Setting::TRANSPORT_ROUND_DELIVERY_COLLECT_AVERAGE_TIME),
+            ])
         ]);
     }
 
@@ -252,7 +340,7 @@ class RoundController extends AbstractController {
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $transportOrderRepository = $entityManager->getRepository(TransportOrder::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
-
+        dump($request->request->all());
         $number = $request->request->get('number');
         $expectedAtDate = $request->request->get('expectedAtDate');
         $expectedAtTime = $request->request->get('expectedAtTime');
@@ -312,6 +400,8 @@ class RoundController extends AbstractController {
             ->setExpectedAt($expectedAt)
             ->setDeliverer($deliverer)
             ->setStartPoint($startPoint)
+            ->setEstimatedDistance(floatval($request->request->get('estimatedTotalDistance')) ?: null)
+            ->setEstimatedTime($request->request->get('estimatedTotalTime'))
             ->setStartPointScheduleCalculation($startPointScheduleCalculation)
             ->setEndPoint($endPoint)
             ->setCoordinates($coordinates);
@@ -334,7 +424,7 @@ class RoundController extends AbstractController {
                     $order->getTransportRoundLines()->isEmpty()
                     || Stream::from ($order->getTransportRoundLines())
                         ->map(fn(TransportRoundLine $line) => $line->getTransportRound())
-                        ->every(fn(TransportRound $round) => $round->getStatus()?->getCode() === TransportRound::STATUS_FINISHED)
+                        ->every(fn(TransportRound $round) => $round->getStatus()?->getCode() === TransportRound::STATUS_FINISHED || $round->getId() === $transportRound->getId())
                 );
                 $priority = $index + 1;
                 if (!$affectationAllowed) {
