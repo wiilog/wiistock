@@ -88,21 +88,24 @@
                             <div class="col-lg-4 col-12">
                                 {{ form.input('startPoint', 'Point de départ', true, round.startPoint ?? setting_value('TRANSPORT_ROUND_KM_START_POINT'), {
                                     attributes: {
-                                        'data-short-label': 'Départ tournée'
+                                        'data-short-label': 'Départ tournée',
+                                        disabled: isOnGoing ? false : true,
                                     }
                                 }) }}
                             </div>
                             <div class="col-lg-4 col-12">
                                 {{ form.input('startPointScheduleCalculation', 'Point de départ calcul horaire', true, round.startPointScheduleCalculation ?? setting_value('TRANSPORT_ROUND_HOURLY_BILLING_START_POINT'), {
                                     attributes: {
-                                        'data-short-label': 'Départ calcul horaire'
+                                        'data-short-label': 'Départ calcul horaire',
+                                        disabled: isOnGoing ? false : true,
                                     }
                                 }) }}
                             </div>
                             <div class="col-lg-4 col-12">
                                 {{ form.input('endPoint', 'Point d\'arrivée', true, round.endPoint ?? setting_value('TRANSPORT_ROUND_END_POINT'), {
                                     attributes: {
-                                        'data-short-label': 'Fin tournée'
+                                        'data-short-label': 'Fin tournée',
+                                        disabled: isOnGoing ? false : true,
                                     }
                                 }) }}
                             </div>
@@ -118,7 +121,8 @@
                                         type: 'user',
                                         attributes: {
                                             'data-other-params': "true",
-                                            'data-other-params-deliverer-only': 1
+                                            'data-other-params-deliverer-only': 1,
+                                            disabled: isOnGoing ? false : true,
                                         },
                                         inputClass: 'deliverer-picker',
                                     }) }}
@@ -132,7 +136,7 @@
                                         {
                                             type: 'time',
                                             inputClass: 'start-hour-form',
-                                            disabled: round.deliverer ? false : true,
+                                            disabled: round.deliverer and not isOnGoing ? false : true,
                                         }
                                     ) }}
                                 </div>
