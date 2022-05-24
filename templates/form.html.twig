@@ -59,6 +59,7 @@
         {{ _self.label(label, required, inline, options.labelOptions ?? {}) }}
         {{ _self.tooltip(options.tooltip ?? null, inline) }}
         <div class="{{ options.expanded ?? false ? 'wii-expanded-switch' : 'wii-switch' }} text-truncate"
+             {{ (options.error ?? 'local') == 'global' ? 'data-global-error' }}
              data-name="{{ name }}"
              data-title="{{ label | striptags }}{{ required ? '*' }}">
             {% for switch in switches %}
@@ -99,7 +100,9 @@
     {% set id = options.id ?? ('checkbox-' ~ random(100000, 10000000)) %}
     {% set checkboxClass = isSlider ? 'switch' : 'wii-checkbox' %}
     {% set containerTag = isSlider ? 'label' : 'div' %}
-    <{{ containerTag }} class="{{ checkboxClass }} {{ options.containerClass ?? '' }}">
+    <{{ containerTag }} class="{{ checkboxClass }}
+                        data-name="{{ name }}"
+                        {{ options.containerClass ?? '' }}">
         <input type="checkbox"
                id="{{ id }}"
                class="checkbox data {{ options.inputClass ?? '' }}"
@@ -129,7 +132,8 @@
 {% endmacro %}
 
 {% macro radio(name, label, required, items, options = {}) %}
-    <div class="wii-radio-container {{ options.containerClass ?? '' }}">
+    <div class="wii-radio-container {{ options.containerClass ?? '' }}"
+         data-name="{{ name }}">
         {% for item in items %}
             {% set id = random(100000, 10000000) %}
 

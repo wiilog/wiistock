@@ -238,12 +238,22 @@ class TransportService {
         $transportOrder = $transportRequest->getOrder();
         if (!$transportOrder) {
             if ($status->getCode() !== TransportRequest::STATUS_AWAITING_VALIDATION) {
-                $this->persistTransportOrder($entityManager, $transportRequest, $loggedUser);
+                $transportOrder = $this->persistTransportOrder($entityManager, $transportRequest, $loggedUser);
             }
         }
         else {
             $this->updateOrderInitialStatus($entityManager, $transportRequest, $transportOrder, $loggedUser);
         }
+
+        if (!$creation && $transportOrder) {
+            $this->transportHistoryService->persistTransportHistory(
+                $entityManager,
+                $transportOrder,
+                TransportHistoryService::TYPE_REQUEST_EDITED,
+                [ 'user' => $loggedUser,]
+            );
+        }
+
 
         $linesResult = $this->updateTransportRequestLines($entityManager, $transportRequest, $data);
 
