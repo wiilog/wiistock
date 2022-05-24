@@ -1784,21 +1784,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
 
     public function getVehicle(): ?Vehicle
     {
-        return $this->vehicle;
-    }
-
-    public function setVehicle(?Vehicle $vehicle): self {
-        if($this->vehicle && $this->vehicle->getDeliverer() !== $this) {
-            $oldVehicle = $this->vehicle;
-            $this->vehicle = null;
-            $oldVehicle->setDeliverer(null);
-        }
-        $this->example = $vehicle;
-        if($this->vehicle && $this->vehicle->getDeliverer() !== $this) {
-            $this->vehicle->setDeliverer($this);
-        }
-
-        return $this;
+        return $this->vehicles->first();
     }
 
     public function getVehicles(): Collection {
