@@ -109,7 +109,7 @@
                                 <span class="wii-field-name">Commandes rejetées</span>
                                 <span class="wii-field-text">{{ nbRejectedOrders }}</span>
                             </div>
-                        {% endif %} %}
+                        {% endif %}
                     </div>
                     {% endif %}
                 </div>
@@ -123,11 +123,17 @@
                                     <img alt="Actions" src="{{ asset('svg/dotsblack.svg') }}" height="20px" width="8px">
                                 </div>
                                 <div class="dropdown-menu dropdown-follow-gt pointer">
-                                    {# TODO faire condition affichage options  #}
+                                    {% set finishedStatusesName = constant('App\\Entity\\Transport\\TransportRound::STATUS_FINISHED') %}
+                                    {% set onGoingStatusesName = constant('App\\Entity\\Transport\\TransportRound::STATUS_ONGOING') %}
+                                    {% if transportRound.status != finishedStatusesName %}
                                         <div class="dropdown-item pointer edit-button">
-                                            <img src="{{ asset('svg/plus-black.svg') }}" alt="Icône urgence" width="17px" class="pr-1">
-                                            Ajouter un transport
+                                            {%  set isOnGoing = transportRound.status == onGoingStatusesName ? true : false %}
+                                            <a href="{{ path('transport_round_plan', {'transportRound': transportRound.id , 'isOnGoing': isOnGoing}) }}">
+                                                <img src="{{ asset('svg/plus-black.svg') }}" alt="Icône urgence" width="17px" class="pr-1">
+                                                Ajouter un transport
+                                            </a>
                                         </div>
+                                    {% endif %}
 
                                         <div class="dropdown-item pointer edit-button">
                                             <img src="{{ asset('svg/printer-black.svg') }}" alt="Icône urgence" width="17px" class="pr-1">

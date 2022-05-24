@@ -146,7 +146,6 @@ class RoundController extends AbstractController {
         $calculationsPoints['startPoint']['name'] = TransportRound::NAME_START_POINT;
         $calculationsPoints['startPointScheduleCalculation']['name'] = TransportRound::NAME_START_POINT_SCHEDULE_CALCULATION;
         $calculationsPoints['endPoint']['name'] = TransportRound::NAME_END_POINT;
-        dump($calculationsPoints);
         $transportPoints = Stream::from($transportRound->getTransportRoundLines())->map(function (TransportRoundLine $line) {
             if (!$line->getOrder()->isRejected()) {
                 $contact = $line->getOrder()->getRequest()->getContact();
@@ -173,6 +172,7 @@ class RoundController extends AbstractController {
     public function plan(Request $request,
                          EntityManagerInterface $entityManager,
                          UniqueNumberService $uniqueNumberService): Response {
+        $isOnGoing = false;
         if ($request->query->get('dateRound')) {
             $round = new TransportRound();
 
@@ -192,8 +192,11 @@ class RoundController extends AbstractController {
         else if( $request->query->get('transportRound')){
             $round = $entityManager->getRepository(TransportRound::class)->findOneBy(['id' => $request->query->get('transportRound')]);
 
-            if (!$round || $round->getStatus()?->getCode() !== TransportRound::STATUS_AWAITING_DELIVERER) {
+            if (!$round || $round->getStatus()?->getCode() == TransportRound::STATUS_FINISHED) {
                 throw new NotFoundHttpException('Impossible de planifier cette tournée');
+            }
+            elseif ($request->query->get('isOnGoing')) {
+                $isOnGoing = true;
             }
         }
         else{
@@ -213,6 +216,14 @@ class RoundController extends AbstractController {
                 return $getOrderTimestamp($a) <=> $getOrderTimestamp($b);
             })
             ->toArray();
+
+        if ($isOnGoing) {
+            $transportOrders = Stream::from($transportOrders)
+                ->filter(function (TransportOrder $order) {
+                    return $order->getRequest() instanceof TransportCollectRequest;
+                })
+                ->toArray();
+        }
 
         $contactDataByOrderId = Stream::from(
             $transportOrders,
@@ -239,6 +250,7 @@ class RoundController extends AbstractController {
             'prefixNumber' => TransportRound::NUMBER_PREFIX,
             'transportOrders' => $transportOrders,
             'contactData' => $contactDataByOrderId,
+            'isOnGoing' => $isOnGoing,
         ]);
     }
 
@@ -273,7 +285,7 @@ class RoundController extends AbstractController {
         if ($transportRoundId) {
             $transportRound = $transportRoundRepository->find($transportRoundId);
 
-            if ($transportRound->getStatus()?->getCode() !== TransportRound::STATUS_AWAITING_DELIVERER) {
+            if ($transportRound->getStatus()?->getCode() == TransportRound::STATUS_FINISHED) {
                 throw new FormException('Impossible de planifier cette tournée');
             }
         }
@@ -336,6 +348,8 @@ class RoundController extends AbstractController {
                     || Stream::from ($order->getTransportRoundLines())
                         ->map(fn(TransportRoundLine $line) => $line->getTransportRound())
                         ->every(fn(TransportRound $round) => $round->getStatus()?->getCode() === TransportRound::STATUS_FINISHED)
+                    || $order->getTransportRoundLines()
+                        ->last()->getTransportRound()->getId() === $transportRound->getId()
                 );
                 $priority = $index + 1;
                 if (!$affectationAllowed) {

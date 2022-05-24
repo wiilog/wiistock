@@ -34,9 +34,8 @@ export class Map {
 
     // coordinates:[[latitude, longitude], ..... ,[latitude, longitude]]
     setLines(coordinates, color = "black") {
-        console.log(coordinates);
         const lines = Leaflet.polyline(coordinates, {color: color});
-        console.log(this.map.addLayer(lines));
+        this.map.addLayer(lines);
     }
 
     setMarker(options) {
@@ -109,8 +108,8 @@ export class Map {
         document.getElementById(this.id).innerHTML = `<div id="map"></div>`
     }
 
-    createPopupContent(contactInformation, index) {
-        const htmlIndex = index ? `<span class='index'>${index}</span>` : ``;
+    createPopupContent(contactInformation, index , color = "#3353D7") {
+        const htmlIndex = index ? `<span class='index' style='background-color:${color}'>${index}</span>` : ``;
         const htmlTime = contactInformation.time ? `<span class='time'>${contactInformation.time || ""}</span>` : ``;
         return `
         ${htmlIndex}

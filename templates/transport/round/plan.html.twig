@@ -18,7 +18,7 @@
                     <div class="header">
                         <span class="wii-title">Transport à affecter</span>
                     </div>
-                    <div class="d-flex flex-column card-container" id="to-affect-container">
+                    <div class="d-flex flex-column card-container sortable-container cards-mouse-hover" id="to-affect-container">
                         {% for transportOrder in transportOrders %}
                             {% include 'transport/round/plan_order_card.html.twig' with {transportOrder: transportOrder} %}
                         {% endfor %}
@@ -31,15 +31,36 @@
                     <div class="header">
                         <span class="wii-title">Transports affectés</span>
                     </div>
-                    <div class="d-flex flex-column card-container" id="affected-container">
-                        {% for line in round.transportRoundLines %}
-                            {% set transportOrder = line.order %}
-                            {% include 'transport/round/plan_order_card.html.twig' with {
-                                transportOrder: transportOrder,
-                                removeButton: false,
-                                assigned : true
-                            } %}
-                        {% endfor %}
+                    <div class="d-flex flex-column card-container">
+                        {%  set onGoingStatus = constant('App\\Entity\\Transport\\TransportOrder::STATUS_ONGOING') %}
+                        {%  set finishedStatus = constant('App\\Entity\\Transport\\TransportOrder::STATUS_FINISHED') %}
+                        <div class="cards-mouse-hover" id="delivered-container">
+                            {% for line in round.transportRoundLines %}
+                                {% set transportOrder = line.order %}
+                                {% if  transportOrder.status == finishedStatus %}
+                                    {% include 'transport/round/plan_order_card.html.twig' with {
+                                        transportOrder: transportOrder,
+                                        removeButton: false,
+                                        isAssigned : true,
+                                        isFinish: true,
+                                    } %}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <div class="cards-mouse-hover sortable-container" id="affected-container">
+                            {% for line in round.transportRoundLines %}
+                                {% set transportOrder = line.order %}
+                                {% if transportOrder.status != finishedStatus %}
+
+                                    {% include 'transport/round/plan_order_card.html.twig' with {
+                                        transportOrder: transportOrder,
+                                        removeButton: false,
+                                        isAssigned : true
+                                    } %}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -151,6 +172,7 @@
             </div>
         </div>
     </div>
+    <input hidden value="{{ isOnGoing }}" name="isOnGoing">
 {% endblock %}
 
 {% block javascripts %}

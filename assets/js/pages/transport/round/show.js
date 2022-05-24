@@ -20,15 +20,12 @@ $(function () {
     const transportPoints = JSON.parse($(`input[name=transportPoints]`).val());
 
     map.setLines(placePoints(map, calculationPoint, transportPoints), "#3353D7");
-
+    map.fitBounds();
 });
 
 
 function placePoints(map, calculationPoint, transportPoints) {
     let coordinates = [];
-
-    console.log(calculationPoint);
-    console.log(transportPoints);
 
     coordinates.push(placePoint(map, calculationPoint.startPoint, "blackLocation" ));
     coordinates.push(placePoint(map, calculationPoint.startPointScheduleCalculation, "blackLocation" ));
@@ -40,7 +37,6 @@ function placePoints(map, calculationPoint, transportPoints) {
 }
 
 function placePoint(map, point, icon = "blackLocation") {
-    console.log(point);
     const latitude = point.latitude;
     const longitude = point.longitude;
 
