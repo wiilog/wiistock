@@ -139,16 +139,31 @@ class RoundController extends AbstractController {
             $realTimeDif = $transportRound->getEndedAt()->diff($transportRound->getBeganAt());
             $realTimeJ = $realTimeDif->format("%a");
             $realTime = $realTimeDif->format("%h") + ($realTimeJ * 24) . "h" . $realTimeDif->format(" %i") . "min";
-        }
+        };
 
-        // count rejected pack for all orders of this round
-        $rejectedPackCount = 0 ;
-
-
+        $calculationsPoints = $transportRound->getCoordinates();
+        $calculationsPoints['startPoint']['name'] = TransportRound::NAME_START_POINT;
+        $calculationsPoints['startPointScheduleCalculation']['name'] = TransportRound::NAME_START_POINT_SCHEDULE_CALCULATION;
+        $calculationsPoints['endPoint']['name'] = TransportRound::NAME_END_POINT;
+        dump($calculationsPoints);
+        $transportPoints = Stream::from($transportRound->getTransportRoundLines())->map(function (TransportRoundLine $line) {
+            if (!$line->getOrder()->isRejected()) {
+                $contact = $line->getOrder()->getRequest()->getContact();
+                return [
+                    'priority' => $line->getPriority(),
+                    'longitude' => $contact->getAddressLongitude(),
+                    'latitude' => $contact->getAddressLatitude(),
+                    'name' => $contact->getName(),
+                ];
+            }
+        })->toArray();
 
         return $this->render('transport/round/show.html.twig', [
             "transportRound" => $transportRound,
             "realTime" => $realTime,
+            "calculationsPoints" => $calculationsPoints,
+            "transportPoints" => $transportPoints,
+
         ]);
     }
 
