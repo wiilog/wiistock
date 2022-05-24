@@ -62,3 +62,11 @@ export function getPacks(transportId, transportType) {
             $packingLabelCounter.text(packingLabel);
         });
 }
+
+export function getTransportRoundTimeline(transportRoundId){
+    $.get(Routing.generate(`round_transport_history_api`, {id: transportRoundId}, true))
+        .then(({template}) => {
+            const $transportListContainer = $(`.transport-list-container`);
+            $transportListContainer.html(template);
+        });
+}

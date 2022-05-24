@@ -1,4 +1,5 @@
 @import "../../variables";
+@import "../../pages/transport/show";
 
 
 .transport-type{
@@ -175,3 +176,22 @@
         }
     }
 }
+
+
+
+// show
+
+.details {
+    .content {
+        padding: 15px 30px;
+    }
+
+    .header {
+        display: flex;
+        align-items: center;
+        background-color: #F2F3F7;
+        padding: 5px 15px;
+        border: none !important;
+    }
+}
+
