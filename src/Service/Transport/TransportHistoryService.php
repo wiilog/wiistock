@@ -123,18 +123,23 @@ class TransportHistoryService {
         return $history;
     }
 
-    private function formatEntity(mixed $entity): ?string {
+    private function formatEntity(mixed $entity, bool $highlighted = true): ?string {
         switch (gettype($entity)) {
             case "object":
                 if($entity instanceof Utilisateur) {
-                    return "<span class='text-primary font-weight-bold'>{$entity->getUsername()}</span>";
+                    $highlightClasses = $highlighted ? 'text-primary font-weight-bold' : '';
+
+                    return "<span class='$highlightClasses'>{$entity->getUsername()}</span>";
                 }
                 else if($entity instanceof Pack) {
                     return $entity->getCode();
                 }
                 else if($entity instanceof TransportRound) {
                     $numberPrefix = TransportRound::NUMBER_PREFIX;
-                    return "<span class='text-primary underlined'>{$numberPrefix}{$entity->getNumber()}</span>";
+                    $url = $this->router->generate('transport_round_show', [
+                        'transportRound' => $entity->getId()
+                    ]);
+                    return "<a class='text-primary underlined' href='$url'>$numberPrefix{$entity->getNumber()}</a>";
                 }
                 else if($entity instanceof DateTime) {
                     $date = FormatHelper::longDate($entity, ['time' => true, 'year' => true]);
@@ -196,7 +201,7 @@ class TransportHistoryService {
             "{pack}" => $this->formatEntity($history->getPack()),
             "{round}" => $this->formatEntity($history->getRound()),
             "{message}" => $this->formatEntity($history->getMessage()),
-            "{deliverer}" => $this->formatEntity($history->getDeliverer()),
+            "{deliverer}" => $this->formatEntity($history->getDeliverer(), false),
             "{reason}" => $this->formatEntity($history->getReason()),
             "{status}" => $this->formatEntity($history->getStatusHistory()?->getStatus()),
             "{statusDate}" => $history->getStatusDate()

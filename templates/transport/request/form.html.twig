@@ -111,45 +111,48 @@
                         </div>
                     </div>
 
-                    <div class="row d-none"
-                         data-request-type>
-                        <div class="col-auto mb-3">
-                            {% if types is empty %}
-                                Aucun type disponible<br>
-                                <a href="{{ path('settings_item', {
-                                    'category': constant('App\\Controller\\Settings\\SettingsController::CATEGORY_TRACKING'),
-                                    'menu': constant('App\\Controller\\Settings\\SettingsController::MENU_TRANSPORT_REQUESTS'),
-                                    'submenu': constant('App\\Controller\\Settings\\SettingsController::MENU_DELIVERY_TYPES_FREE_FIELDS'),
-                                }) }}" class="btn btn-primary mt-2">Configuration des types de livraison</a><br>
-                                <a href="{{ path('settings_item', {
-                                    'category': constant('App\\Controller\\Settings\\SettingsController::CATEGORY_TRACKING'),
-                                    'menu': constant('App\\Controller\\Settings\\SettingsController::MENU_TRANSPORT_REQUESTS'),
-                                    'submenu': constant('App\\Controller\\Settings\\SettingsController::MENU_COLLECT_TYPES_FREE_FIELDS'),
-                                }) }}" class="btn btn-primary mt-2">Configuration des types de collecte</a>
-                            {% endif %}
+                    {% if not modeEdit %}
+                        <div class="row d-none"
+                             data-request-type>
+                            <div class="col-auto mb-3">
+                                {% if types is empty %}
+                                    Aucun type disponible<br>
+                                    <a href="{{ path('settings_item', {
+                                        'category': constant('App\\Controller\\Settings\\SettingsController::CATEGORY_TRACKING'),
+                                        'menu': constant('App\\Controller\\Settings\\SettingsController::MENU_TRANSPORT_REQUESTS'),
+                                        'submenu': constant('App\\Controller\\Settings\\SettingsController::MENU_DELIVERY_TYPES_FREE_FIELDS'),
+                                    }) }}" class="btn btn-primary mt-2">Configuration des types de livraison</a><br>
+                                    <a href="{{ path('settings_item', {
+                                        'category': constant('App\\Controller\\Settings\\SettingsController::CATEGORY_TRACKING'),
+                                        'menu': constant('App\\Controller\\Settings\\SettingsController::MENU_TRANSPORT_REQUESTS'),
+                                        'submenu': constant('App\\Controller\\Settings\\SettingsController::MENU_COLLECT_TYPES_FREE_FIELDS'),
+                                    }) }}" class="btn btn-primary mt-2">Configuration des types de collecte</a>
+                                {% endif %}
 
-                            {{ form.switch('type', null, true, types|map((type) => {
-                                value: type.id,
-                                label: type.label,
-                                disabled: true,
-                                iconUrl: type.logo ? type.logo.fullPath : false,
-                                attributes: {
-                                    'data-request-type': (
-                                        type.category.label == constant('App\\Entity\\CategoryType::DELIVERY_TRANSPORT')
-                                            ? DISCR_DELIVERY
-                                            : DISCR_COLLECT
-                                    )
-                                }
-                            }), {expanded: true}) }}
+                                {{ form.switch('type', null, true, types|map((type) => {
+                                    value: type.id,
+                                    label: type.label,
+                                    disabled: true,
+                                    iconUrl: type.logo ? type.logo.fullPath : false,
+                                    attributes: {
+                                        'data-request-type': (
+                                            type.category.label == constant('App\\Entity\\CategoryType::DELIVERY_TRANSPORT')
+                                                ? DISCR_DELIVERY
+                                                : DISCR_COLLECT
+                                        )
+                                    }
+                                }), {expanded: true}) }}
+                            </div>
+                            <div class="col-12"
+                                 data-request-type="{{ DISCR_DELIVERY }}">
+                                {{ form.checkbox('collectLinked', 'Faire une collecte en même temps que la livraison', false, false, {
+                                    slider: true
+                                }) }}
+                            </div>
                         </div>
-                        <div class="col-12"
-                             data-request-type="{{ DISCR_DELIVERY }}">
-                            {{ form.checkbox('collectLinked', 'Faire une collecte en même temps que la livraison', false, false, {
-                                slider: true
-                            }) }}
-                        </div>
-                    </div>
-
+                    {% else %}
+                        <input type="hidden" name="type" value="{{ request.type.id }}"/>
+                    {% endif %}
                     {% set displayCollectDate = modeCollectEdit and request.delivery is null %}
                     <div class="wii-section-title my-3 {{ not modeDeliveryEdit and not displayCollectDate ? 'd-none' }}"
                          data-request-type>
@@ -235,8 +238,8 @@
                                         } %}
                                         <div class="col-lg-6 col-12 nature-item {{ not modeEdit ? 'd-none' }}"
                                              data-type="{{ natureType|json_encode }}">
-                                            <div class="row align-items-center my-2 nature-item-wrapper">
-                                                <div class="{{ not modeEdit ? 'col-6' : 'col-4' }}">
+                                            <div class="row no-gutters align-items-center my-2 nature-item-wrapper">
+                                                <div class="col pr-1">
                                                     {{ form.checkbox('selected', nature.label, false, isSelected, {
                                                         labelClass: 'text-break',
                                                         multipleKey: multipleKey,
@@ -251,7 +254,7 @@
                                                 </div>
                                                 {% if nature.temperatureRanges is not empty
                                                     and isDelivery %}
-                                                    <div class="col-3 px-0 {{ not modeDeliveryEdit ? 'd-none' }}"
+                                                    <div class="col-3 px-1 {{ not modeDeliveryEdit ? 'd-none' }}"
                                                          data-request-type="{{ DISCR_DELIVERY }}">
                                                         <div class="{{ not modeDeliveryEdit or not isSelected ? 'd-none' }}"
                                                              data-nature-is-selected>
@@ -271,9 +274,9 @@
                                                         </div>
                                                     </div>
                                                 {% elseif isDelivery and request.id %}
-                                                    <div class="col-3"></div>
+                                                    <div class="col-3 px-1"></div>
                                                 {% endif %}
-                                                <div class="col-3 {{ not modeEdit or (orderPacks|length == 0) ? 'd-none' }}"
+                                                <div class="col-4 {{ not modeEdit or (isDelivery and (orderPacks|length == 0)) ? 'd-none' }}"
                                                      data-request-type="{{ DISCR_COLLECT }}">
                                                     <div class="{{ not modeEdit or not isSelected ? 'd-none' }}"
                                                          data-nature-is-selected>
@@ -306,15 +309,14 @@
                     </div>
                     <div class="row free-fields-container">
                         {% for type in types %}
-                            <div class="col-12 d-none"
+                            <div class="col-12 {{ not modeEdit ? 'd-none' }}"
                                  data-type="{{ [type.id] | json_encode }}">
-                                {#            TODO actionType & requiredType pour la modification #}
                                 {% include 'free_field/freeFieldsEdit.html.twig' with {
                                     freeFields: type.champsLibres,
                                     freeFieldValues: request.freeFields,
                                     colType: 'col-md-6 col-12',
-                                    requiredType: 'requiredCreate',
-                                    actionType: 'new',
+                                    requiredType: modeEdit ? 'requiredEdit' : 'requiredCreate',
+                                    actionType: modeEdit ? 'edit' : 'new',
                                     disabledNeeded: true
                                 } %}
                             </div>

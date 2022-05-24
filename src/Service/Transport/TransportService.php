@@ -20,6 +20,7 @@ use App\Entity\Transport\TransportRequestContact;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
+use App\Exceptions\GeoException;
 use App\Helper\FormatHelper;
 use App\Service\FreeFieldService;
 use App\Service\GeoService;
@@ -225,7 +226,13 @@ class TransportService {
             throw new FormException('Vous devez sélectionner au moins une nature de colis dans vote demande');
         }
 
-        [$lat, $lon] = $this->geoService->fetchCoordinates($transportRequest->getContact()->getAddress());
+        try {
+            [$lat, $lon] = $this->geoService->fetchCoordinates($transportRequest->getContact()->getAddress());
+        }
+        catch(GeoException $exception) {
+            throw new FormException($exception->getMessage());
+        }
+
         $transportRequest->getContact()->setAddressLatitude($lat);
         $transportRequest->getContact()->setAddressLongitude($lon);
     }
@@ -368,9 +375,10 @@ class TransportService {
         $lines = json_decode($data?->get('lines', '[]') ?? "", true) ?: [];
 
         $treatedNatures = [];
+        dump($lines);
 
         foreach ($lines as $line) {
-            $selected = $line['selected'] ?? false;
+            $selected = (bool) ($line['selected'] ?? false);
             $natureId = $line['natureId'] ?? null;
             $quantity = $line['quantity'] ?? null;
             $temperatureId = $line['temperature'] ?? null;
@@ -379,6 +387,7 @@ class TransportService {
 
                 $line = $transportRequest->getLine($nature);
                 $treatedNatures[] = $nature->getId();
+                dump($line);
 
                 if (!isset($line)) {
                     if ($transportRequest instanceof TransportDeliveryRequest) {
@@ -390,10 +399,12 @@ class TransportService {
                     else {
                         throw new \RuntimeException('Unknown request type');
                     }
+
+                    $transportRequest->addLine($line);
+                    $entityManager->persist($line);
                 }
 
                 $line->setNature($nature);
-                $transportRequest->addLine($line);
 
                 if ($line instanceof TransportDeliveryRequestLine) {
                     $temperature = $temperatureId ? $temperatureRangeRepository->find($temperatureId) : null;
@@ -414,8 +425,6 @@ class TransportService {
                 else {
                     throw new \RuntimeException('Unknown request type');
                 }
-
-                $entityManager->persist($line);
             }
         }
 

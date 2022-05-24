@@ -35,6 +35,12 @@ class TransportRound implements StatusHistoryContainer
         TransportRound::STATUS_FINISHED,
     ];
 
+    public const NAME_START_POINT = 'Départ tournée';
+    public const NAME_START_POINT_SCHEDULE_CALCULATION = 'Départ calcul Horaire';
+    public const NAME_END_POINT = 'Arrivée tournée';
+
+
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
@@ -68,7 +74,7 @@ class TransportRound implements StatusHistoryContainer
     private ?DateTime $beganAt = null;
 
     #[ORM\Column(type: 'json')]
-    private ?array $coordinates = [];
+    private ?array $coordinates = []; // ["startPoint" : [latitude: int , longitude: int ], "$startPointScheduleCalculation" : [latitude: int , longitude: int ], "endPoint" : [latitude: int , longitude: int ]]
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $startPoint = null;
@@ -288,7 +294,7 @@ class TransportRound implements StatusHistoryContainer
         return $this->transportRoundLines
             ->matching(
                 $criteria
-                    ->orderBy(['priority' => 'ASC'])
+                    ->orderBy(['priority' => Criteria::ASC])
             );
     }
 

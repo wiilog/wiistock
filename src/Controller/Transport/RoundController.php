@@ -16,6 +16,7 @@ use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\TransportRoundLine;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
+use App\Exceptions\GeoException;
 use App\Helper\FormatHelper;
 use App\Service\GeoService;
 use App\Service\StatusHistoryService;
@@ -139,16 +140,31 @@ class RoundController extends AbstractController {
             $realTimeDif = $transportRound->getEndedAt()->diff($transportRound->getBeganAt());
             $realTimeJ = $realTimeDif->format("%a");
             $realTime = $realTimeDif->format("%h") + ($realTimeJ * 24) . "h" . $realTimeDif->format(" %i") . "min";
-        }
+        };
 
-        // count rejected pack for all orders of this round
-        $rejectedPackCount = 0 ;
-
-
+        $calculationsPoints = $transportRound->getCoordinates();
+        $calculationsPoints['startPoint']['name'] = TransportRound::NAME_START_POINT;
+        $calculationsPoints['startPointScheduleCalculation']['name'] = TransportRound::NAME_START_POINT_SCHEDULE_CALCULATION;
+        $calculationsPoints['endPoint']['name'] = TransportRound::NAME_END_POINT;
+        dump($calculationsPoints);
+        $transportPoints = Stream::from($transportRound->getTransportRoundLines())->map(function (TransportRoundLine $line) {
+            if (!$line->getOrder()->isRejected()) {
+                $contact = $line->getOrder()->getRequest()->getContact();
+                return [
+                    'priority' => $line->getPriority(),
+                    'longitude' => $contact->getAddressLongitude(),
+                    'latitude' => $contact->getAddressLatitude(),
+                    'name' => $contact->getName(),
+                ];
+            }
+        })->toArray();
 
         return $this->render('transport/round/show.html.twig', [
             "transportRound" => $transportRound,
             "realTime" => $realTime,
+            "calculationsPoints" => $calculationsPoints,
+            "transportPoints" => $transportPoints,
+
         ]);
     }
 
@@ -184,7 +200,7 @@ class RoundController extends AbstractController {
             throw new NotFoundHttpException('Impossible de planifier une tournée');
         }
 
-        $transportOrders = $entityManager->getRepository(TransportOrder::class)->findByDate($round->getExpectedAt());
+        $transportOrders = $entityManager->getRepository(TransportOrder::class)->findToAssignByDate($round->getExpectedAt());
         $transportOrders = Stream::from($transportOrders)
             ->sort(function (TransportOrder $a, TransportOrder $b) {
                 $getOrderTimestamp = function (TransportOrder $order) {
@@ -373,7 +389,13 @@ class RoundController extends AbstractController {
     #[Route("/api-get-address-coordinates", name: "transport_round_address_coordinates_get", options: ['expose' => true], methods: "GET")]
     public function getAddressCoordinates(Request $request, GeoService $geoService): Response
     {
-        [$lat, $lon] = $geoService->fetchCoordinates($request->query->get('address'));
+        try {
+            [$lat, $lon] = $geoService->fetchCoordinates($request->query->get('address'));
+        }
+        catch (GeoException $exception) {
+            throw new FormException($exception->getMessage());
+        }
+
         return $this->json([
             'success' => true,
             'latitude' => $lat,

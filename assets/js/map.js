@@ -32,10 +32,17 @@ export class Map {
         return map;
     }
 
+    // coordinates:[[latitude, longitude], ..... ,[latitude, longitude]]
+    setLines(coordinates, color = "black") {
+        console.log(coordinates);
+        const lines = Leaflet.polyline(coordinates, {color: color});
+        console.log(this.map.addLayer(lines));
+    }
+
     setMarker(options) {
-        const existing = this.locations.find(l => (l.latitude === options.latitude && l.longitude === options.longitude) || (options.name && l.name === options.name));
+        const existing = this.locations.find(l => (l.latitude === options.latitude && l.longitude === options.longitude));
         if (existing) {
-           this.removeMarker(existing);
+           this.removeLocation(existing);
         }
 
         const marker = Leaflet.marker([options.latitude, options.longitude], {icon: locationIcons[options.icon] || locationIcons.greyLocation});
@@ -43,7 +50,7 @@ export class Map {
         if (options.onclick){
             marker.on('click', function (){
                 options.onclick();
-        });
+            });
         }
 
         this.map.addLayer(marker);
@@ -51,21 +58,36 @@ export class Map {
         if (options.popUp) {
             const className = options.isFocused ? "leaflet-popup-border" : undefined;
 
-            marker.bindPopup(options.popUp, {
-                closeButton: false,
-                autoClose: false,
-                closeOnClick: false,
-                className
-            }).openPopup();
+            marker
+                .bindPopup(options.popUp, {
+                    closeButton: false,
+                    autoClose: false,
+                    closeOnClick: false,
+                    className
+                })
+                .openPopup();
         }
 
         options.marker = marker;
         this.locations.push(options);
+
+        return marker;
     }
 
-    removeMarker(location) {
+    removeLocation(location) {
         this.map.removeLayer(location.marker);
         this.locations.splice(this.locations.indexOf(location), 1);
+    }
+
+    removeMarker(marker) {
+        if (marker) {
+            this.map.removeLayer(marker);
+            const {lat, lng} = marker.getLatLng();
+            const location = this.locations.find((location) => (location.latitude === lat && location.longitude === lng));
+            if (location) {
+                this.removeLocation(location);
+            }
+        }
     }
 
     fitBounds() {
@@ -85,6 +107,16 @@ export class Map {
 
     reinitialize() {
         document.getElementById(this.id).innerHTML = `<div id="map"></div>`
+    }
+
+    createPopupContent(contactInformation, index) {
+        const htmlIndex = index ? `<span class='index'>${index}</span>` : ``;
+        const htmlTime = contactInformation.time ? `<span class='time'>${contactInformation.time || ""}</span>` : ``;
+        return `
+        ${htmlIndex}
+        <span class='contact'>${contactInformation.contact || ""}</span>
+        ${htmlTime}
+    `;
     }
 }
 

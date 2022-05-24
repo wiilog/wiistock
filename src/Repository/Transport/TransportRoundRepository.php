@@ -104,6 +104,7 @@ class TransportRoundRepository extends EntityRepository {
 
     public function getForSelect(?string $term): array {
         $query = $this->createQueryBuilder("transport_round");
+        $now = (new DateTime('now'))->setTime(0, 0);
 
         return $query->select("transport_round.id AS id, CONCAT(:roundPrefix, transport_round.number) AS text")
             ->join('transport_round.status', 'round_status')
@@ -113,7 +114,7 @@ class TransportRoundRepository extends EntityRepository {
             ->setParameter("term", "%$term%")
             ->setParameter("awaitingDelivererStatus", TransportRound::STATUS_AWAITING_DELIVERER)
             ->setParameter("roundPrefix", TransportRound::NUMBER_PREFIX)
-            ->setParameter("now", new DateTime('now'))
+            ->setParameter("now", $now)
             ->getQuery()
             ->getArrayResult();
     }
