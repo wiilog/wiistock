@@ -131,9 +131,25 @@ class RoundController extends AbstractController {
     }
 
     #[Route("/voir/{transportRound}", name: "transport_round_show", methods: "GET")]
-    public function show(TransportRound $transportRound): Response {
-        // TODO Faire la page de show
-        return $this->render('transport/round/show.html.twig');
+    public function show(TransportRound $transportRound,
+                         EntityManagerInterface $entityManager,
+    ): Response {
+        $realTime = null;
+        if ( $transportRound->getBeganAt() != null & $transportRound->getEndedAt() != null  ) {
+            $realTimeDif = $transportRound->getEndedAt()->diff($transportRound->getBeganAt());
+            $realTimeJ = $realTimeDif->format("%a");
+            $realTime = $realTimeDif->format("%h") + ($realTimeJ * 24) . "h" . $realTimeDif->format(" %i") . "min";
+        }
+
+        // count rejected pack for all orders of this round
+        $rejectedPackCount = 0 ;
+
+
+
+        return $this->render('transport/round/show.html.twig', [
+            "transportRound" => $transportRound,
+            "realTime" => $realTime,
+        ]);
     }
 
     #[Route("/planifier", name: "transport_round_plan", options: ['expose' => true], methods: "GET")]
@@ -267,7 +283,9 @@ class RoundController extends AbstractController {
             $transportRound
                 ->setCreatedAt(new DateTime())
                 ->setNumber($number)
-                ->setStatus($roundStatus);
+                ->setCreatedBy($this->getUser());
+
+            $statusHistoryService->updateStatus($entityManager, $transportRound, $roundStatus);
 
             $entityManager->persist($transportRound);
         }
