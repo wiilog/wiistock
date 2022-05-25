@@ -37,7 +37,8 @@
                             {% include 'transport/round/plan_order_card.html.twig' with {
                                 transportOrder: transportOrder,
                                 removeButton: false,
-                                assigned : true
+                                assigned : true,
+                                time : line.estimatedAt | format('H:i')
                             } %}
                         {% endfor %}
                     </div>

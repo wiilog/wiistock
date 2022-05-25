@@ -89,7 +89,7 @@ $(function () {
         }
     })
     //LOADER LA !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    $('.btn-calculate-time').on('click', function() {
+    wrapLoadingOnActionButton($('.btn-calculate-time'), () => {
         if (!$(this).hasClass('btn-disabled')) {
             const $expectedAtTime = $('input[name="expectedAtTime"]');
             const $startPoint = $('input[name="startPoint"]');
@@ -129,9 +129,9 @@ $(function () {
                 let fullTime = 0;
                 let stopsTimes = [];
 
-                $.get(Routing.generate('transport_round_calculate'), params, function(response) {
-                    const roundData = Object.keys(response.data).sort().reduce((obj, key) => {
-                        obj[key] = response.data[key];
+                return $.get(Routing.generate('transport_round_calculate'), params, function(response) {
+                    const roundData = Object.keys(response.data.roundData).sort().reduce((obj, key) => {
+                        obj[key] = response.data.roundData[key];
                         return obj;
                     }, {});
                     Object.values(roundData).forEach((round, index) => {
@@ -150,7 +150,7 @@ $(function () {
 
                         const elapsed = expectedTimeInMinutes + fullTime;
 
-                        const arrivedTime = Math.floor(elapsed/60) + 'h' + (elapsed%60 < 10 ? '0' + elapsed%60 : elapsed%60);
+                        const arrivedTime = Math.floor((elapsed/60 < 10 ? '0' + elapsed/60 : elapsed/60)) + 'h' + (elapsed%60 < 10 ? '0' + elapsed%60 : elapsed%60);
 
                         stopsTimes.push(arrivedTime);
 
@@ -167,18 +167,18 @@ $(function () {
                     });
 
                     $('.estimatedTotalDistance').text(Number(distance).toFixed(2) + 'km');
-                    $('.estimatedTotalTime').text(Math.floor(time/60) + 'h' + (time%60 < 10 ? '0' + time%60 : time%60));
+                    $('.estimatedTotalTime').text((Math.floor(time/60) < 10 ? '0' + Math.floor(time/60) : Math.floor(time/60)) + 'h' + (time%60 < 10 ? '0' + time%60 : time%60));
 
                     $('input[name="estimatedTotalDistance"]').val(Number(distance).toFixed(2));
-                    $('input[name="estimatedTotalTime"]').val(Math.floor(time/60) + ':' + (time%60 < 10 ? '0' + time%60 : time%60));
-                    //TRACER LIGNES ICI!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                    $('input[name="estimatedTotalTime"]').val((Math.floor(time/60) < 10 ? '0' + Math.floor(time/60) : Math.floor(time/60)) + ':' + (time%60 < 10 ? '0' + time%60 : time%60));
+                    map.setLines(response.data.coordinates, "#3353D7");
                 });
-
             } else {
                 Flash.add(ERROR, 'Calcul impossible. Veillez bien à renseigner les points de départs, d\'arrivée, ainsi que l\'heure de départ');
+                return new Promise((resolve) => resolve());
             }
         }
-    });
+    })
 });
 
 function initialiseMouseHoverEvent(map, contactData) {
@@ -259,7 +259,7 @@ function updateCardsContainers(map, contactData, deletion = false) {
             latitude: contact.latitude,
             longitude: contact.longitude,
             icon: "blueLocation",
-            popUp: map.createPopupContent(contact, index + 1),
+            popUp: map.createPopupContent(contact, index + 1, $card.data('order-time')),
             selector: $card.data('order-id')
         });
     });
@@ -310,12 +310,29 @@ function initializeForm() {
                 errors.push({message: 'Vous devez ajouter au moins un ordre dans la tournée pour continuer'});
             }
             else {
-                //Récupérer les estimations de temps ici!!!!!!!!!!!!!!!!!!
-                const orderIds = $affectedOrders
-                    .map((_, orderCard) => $(orderCard).data('order-id'))
-                    .toArray()
-                    .join(',')
-                data.append('affectedOrders', orderIds);
+                const $ordersAndTimes = $affectedOrders
+                    .map((_, orderCard) => {
+                        const id = $(orderCard).data('order-id');
+                        let time = null;
+                        const marker = map.getMarker({
+                            selector: Number(id)
+                        });
+                        if (marker) {
+                            const popupContent = marker.getPopup().getContent();
+                            let $currentMarkerPopupContent = $(`<div>${popupContent}</div>`);
+                            let $estimated = $currentMarkerPopupContent.find('.estimated');
+                            if ($estimated.length) {
+                                time = $estimated.text().substring(9);
+                            }
+                        }
+                        return {
+                            id,
+                            time
+                        }
+                    })
+                    .toArray();
+
+                data.append('affectedOrders', JSON.stringify($ordersAndTimes));
             }
         })
         .onSubmit((data) => {

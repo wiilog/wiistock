@@ -134,13 +134,20 @@ export class Map {
         document.getElementById(this.id).innerHTML = `<div id="map"></div>`
     }
 
-    createPopupContent(contactInformation, index) {
+    getMarker(options) {
+        return this.locations.find(l => (options.selector && l.selector === options.selector)
+            || (l.latitude === options.latitude && l.longitude === options.longitude)).marker ?? null;
+    }
+
+    createPopupContent(contactInformation, index, estimation = null) {
         const htmlIndex = index ? `<span class='index'>${index}</span>` : ``;
         const htmlTime = contactInformation.time ? `<span class='time'>${contactInformation.time || ""}</span>` : ``;
+        const estimated = estimation ? `<span class="time estimated">Estimé : ' + ${estimation} + '</span>` : ``;
         return `
             ${htmlIndex}
             <span class='contact'>${contactInformation.contact || ""}</span>
             ${htmlTime}
+            ${estimated}
     `;
     }
 }

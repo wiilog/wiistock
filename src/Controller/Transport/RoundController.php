@@ -242,9 +242,10 @@ class RoundController extends AbstractController {
             }
         }
 
-        dump($roundData);
-
-        return new JsonResponse($roundData);
+        return new JsonResponse([
+            'roundData' => $roundData,
+            'coordinates' => $coordinates
+        ]);
     }
 
     #[Route("/planifier", name: "transport_round_plan", options: ['expose' => true], methods: "GET")]
@@ -340,7 +341,6 @@ class RoundController extends AbstractController {
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $transportOrderRepository = $entityManager->getRepository(TransportOrder::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
-        dump($request->request->all());
         $number = $request->request->get('number');
         $expectedAtDate = $request->request->get('expectedAtDate');
         $expectedAtTime = $request->request->get('expectedAtTime');
@@ -350,7 +350,7 @@ class RoundController extends AbstractController {
         $deliverer = $request->request->get('deliverer');
         $transportRoundId = $request->request->get('transportRoundId');
         $coordinates = json_decode($request->request->get('coordinates'), true) ?: [];
-        $affectedOrderIds = Stream::explode(',', $request->request->get('affectedOrders'))->toArray();
+        $ordersAndTimes = json_decode($request->request->get('affectedOrders'), true);
 
         $expectedAt = FormatHelper::parseDatetime("$expectedAtDate $expectedAtTime");
         if (!$expectedAt) {
@@ -406,7 +406,7 @@ class RoundController extends AbstractController {
             ->setEndPoint($endPoint)
             ->setCoordinates($coordinates);
 
-        if (empty($affectedOrderIds)) {
+        if (empty($ordersAndTimes)) {
             throw new FormException("Il n'y a aucun ordre dans la tournée, veuillez réessayer");
         }
 
@@ -417,7 +417,8 @@ class RoundController extends AbstractController {
             ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_DELIVERY, TransportOrder::STATUS_ASSIGNED);
 
         /** @var TransportOrder $order */
-        foreach ($affectedOrderIds as $index => $orderId) {
+        foreach ($ordersAndTimes as $index => $ordersAndTime) {
+            $orderId = $ordersAndTime['id'];
             $order = $transportOrderRepository->find($orderId);
             if ($order) {
                 $affectationAllowed = (
@@ -451,8 +452,11 @@ class RoundController extends AbstractController {
                         'history' => $statusHistory,
                     ]);
                 }
-
+                $estimated = new DateTime();
+                $estimated
+                    ->setTime(intval(substr($ordersAndTime['time'], 0, 2)), intval(substr($ordersAndTime['time'], 3, 2)));
                 $line
+                    ->setEstimatedAt($estimated)
                     ->setPriority($priority);
             }
             else {
