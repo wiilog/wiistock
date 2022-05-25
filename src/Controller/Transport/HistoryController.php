@@ -13,8 +13,10 @@ use App\Entity\Transport\TransportHistory;
 use App\Entity\Transport\TransportOrder;
 use App\Entity\Transport\TransportRequest;
 use App\Entity\Transport\TransportRound;
+use App\Entity\Transport\TransportRoundLine;
 use App\Helper\FormatHelper;
 use App\Service\Transport\TransportHistoryService;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -174,6 +176,30 @@ class HistoryController extends AbstractController
                 "transportDeliveryRequestLines" => $transportDeliveryRequestLines,
                 "associatedNaturesAndPacks" => $associatedNaturesAndPacks,
                 "request" => $transportRequest
+            ]),
+        ]);
+    }
+
+    #[Route("/{id}/round-transport-history-api", name: "round_transport_history_api", options: ['expose' => true], methods: "GET")]
+    public function roundTransportListApi(int $id, EntityManagerInterface $entityManager): JsonResponse {
+        $transportRound = $entityManager->find(TransportRound::class, $id);
+
+        /** @var TransportRoundLine[] $leftArray */
+        $leftArray = $transportRound->getSortedTransportRoundLines()->toArray();
+        $test = new DateTime();
+
+        foreach ($leftArray as $line){
+            $rightArray[] = [
+                'estimated' => $line->getEstimatedAt(),
+                'real' => ''
+            ];
+        }
+
+        return $this->json([
+            "success" => true,
+            "template" => $this->renderView('transport/round/transport_timeline.html.twig', [
+                'leftArray' => $leftArray,
+                'rightArray' => $rightArray,
             ]),
         ]);
     }

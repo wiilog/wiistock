@@ -298,6 +298,16 @@ class TransportRound implements StatusHistoryContainer
             );
     }
 
+    public function getSortedTransportRoundLines(): Collection
+    {
+        $criteria = Criteria::create();
+        return $this->transportRoundLines
+            ->matching(
+                $criteria
+                    ->orderBy(['estimatedAt' => 'ASC'])
+            );
+    }
+
     public function setTransportRoundLines(?array $lines): self {
         foreach($this->getTransportRoundLines()->toArray() as $line) {
             $this->removeTransportRoundLine($line);
