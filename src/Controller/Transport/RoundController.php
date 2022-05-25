@@ -18,9 +18,11 @@ use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Exceptions\GeoException;
 use App\Helper\FormatHelper;
+use App\Service\CSVExportService;
 use App\Service\GeoService;
 use App\Service\StatusHistoryService;
 use App\Service\Transport\TransportHistoryService;
+use App\Service\Transport\TransportRoundService;
 use App\Service\UniqueNumberService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -386,4 +388,56 @@ class RoundController extends AbstractController {
             'longitude' => $lon,
         ]);
     }
+
+
+    /**
+     * @Route("/csv", name="transport_rounds_export", options={"expose"=true}, methods={"GET"})
+     */
+    public function getTransportRoundCSV(Request                $request,
+                                          CSVExportService       $CSVExportService,
+                                          TransportRoundService  $transportRoundService,
+                                          EntityManagerInterface $entityManager): Response
+    {
+
+        $transportRoundRepository = $entityManager->getRepository(TransportRound::class);
+        $dateMin = $request->query->get('dateMin');
+        $dateMax = $request->query->get('dateMax');
+
+        $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
+        $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
+
+
+            $nameFile = 'export_ordre_livraison.csv';
+            $csvHeader = [
+                'N°Tournée',
+                'Statut',
+                'Date Tournée',
+                'Date Attente livreur',
+                'Date En cours',
+                'Date Terminée',
+                'Temps estimé',
+                'Temps réel',
+                'Kilomètres estimés',
+                'Kilomètres réels',
+                'Livreur',
+                'Immatriculation',
+                'Patient',
+                'N°Demande',
+                'Adresse Livraison',
+                'Numéro de la tournée',
+                'Statut ordre de transport',
+                'Dépassement températures',
+            ];
+
+        $transportRoundsIterator = $transportRoundRepository->iterateTransportRoundsByDates($dateTimeMin, $dateTimeMax);
+
+        return $CSVExportService->streamResponse(function ($output) use ($CSVExportService, $transportRoundService, $transportRoundsIterator) {
+            /** @var TransportRound $round */
+            foreach ($transportRoundsIterator as $round) {
+                    $transportRoundService->putLineRounds($output, $CSVExportService, $round );
+            }
+        }, $nameFile, $csvHeader);
+    }
+
+
 }
