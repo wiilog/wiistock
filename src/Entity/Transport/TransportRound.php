@@ -2,6 +2,8 @@
 
 namespace App\Entity\Transport;
 
+use App\Entity\Interfaces\StatusHistoryContainer;
+use App\Entity\StatusHistory;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Repository\Transport\TransportRoundRepository;
@@ -10,9 +12,10 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
+use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: TransportRoundRepository::class)]
-class TransportRound
+class TransportRound implements StatusHistoryContainer
 {
     public const NUMBER_PREFIX = 'T';
 
@@ -26,6 +29,18 @@ class TransportRound
         self::STATUS_FINISHED => "finished",
     ];
 
+    public const STATUS_WORKFLOW_ROUND = [
+        TransportRound::STATUS_AWAITING_DELIVERER,
+        TransportRound::STATUS_ONGOING,
+        TransportRound::STATUS_FINISHED,
+    ];
+
+    public const NAME_START_POINT = 'Départ tournée';
+    public const NAME_START_POINT_SCHEDULE_CALCULATION = 'Départ calcul Horaire';
+    public const NAME_END_POINT = 'Arrivée tournée';
+
+
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
@@ -36,6 +51,9 @@ class TransportRound
 
     #[ORM\ManyToOne(targetEntity: Statut::class)]
     private ?Statut $status = null;
+
+    #[ORM\OneToMany(mappedBy: 'transportRound', targetEntity: StatusHistory::class)]
+    private Collection $statusHistory;
 
     #[ORM\Column(type: 'datetime')]
     private ?DateTime $createdAt = null;
@@ -49,11 +67,14 @@ class TransportRound
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'transportRounds')]
     private ?Utilisateur $deliverer = null;
 
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
+    private ?Utilisateur $createdBy = null;
+
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $beganAt = null;
 
     #[ORM\Column(type: 'json')]
-    private ?array $coordinates = [];
+    private ?array $coordinates = []; // ["startPoint" : [latitude: int , longitude: int ], "$startPointScheduleCalculation" : [latitude: int , longitude: int ], "endPoint" : [latitude: int , longitude: int ]]
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $startPoint = null;
@@ -79,6 +100,7 @@ class TransportRound
     public function __construct()
     {
         $this->transportRoundLines = new ArrayCollection();
+        $this->statusHistory = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -156,6 +178,19 @@ class TransportRound
         }
         $this->deliverer = $deliverer;
         $deliverer?->addTransportRound($this);
+
+        return $this;
+    }
+
+    public function getCreatedBy(): ?Utilisateur
+    {
+        return $this->createdBy;
+    }
+
+
+    public function setCreatedBy(Utilisateur $createdBy): self
+    {
+        $this->createdBy = $createdBy;
 
         return $this;
     }
@@ -305,6 +340,51 @@ class TransportRound
     public function setCoordinates(array $coordinates): self {
         $this->coordinates = $coordinates;
         return $this;
+    }
+
+    /**
+     * @return Collection<int, StatusHistory>
+     */
+    public function getStatusHistory(string $order = Criteria::ASC): Collection {
+        return $this->statusHistory
+            ->matching(Criteria::create()
+                ->orderBy([
+                    'date' => $order,
+                    'id' => $order
+                ])
+            );
+    }
+
+    public function addStatusHistory(StatusHistory $statusHistory): self {
+        if (!$this->statusHistory->contains($statusHistory)) {
+            $this->statusHistory[] = $statusHistory;
+            $statusHistory->setTransportRound($this);
+        }
+
+        return $this;
+    }
+
+    public function removeStatusHistory(StatusHistory $statusHistory): self {
+        if ($this->statusHistory->removeElement($statusHistory)) {
+            // set the owning side to null (unless already changed)
+            if ($statusHistory->getTransportRequest() === $this) {
+                $statusHistory->setTransportRequest(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function countRejectedPacks(): int {
+        return Stream::from( $this->getTransportRoundLines() )->map(function(TransportRoundLine $line) {
+            return $line->getOrder()->countRejectedPacks();
+        })->sum();
+    }
+
+    public function countRejectedOrders(): int {
+        return Stream::from( $this->getTransportRoundLines() )->filter(function(TransportRoundLine $line) {
+            return $line->getOrder()->isRejected();
+        })->count();
     }
 
 }

@@ -131,9 +131,39 @@ class RoundController extends AbstractController {
     }
 
     #[Route("/voir/{transportRound}", name: "transport_round_show", methods: "GET")]
-    public function show(TransportRound $transportRound): Response {
-        // TODO Faire la page de show
-        return $this->render('transport/round/show.html.twig');
+    public function show(TransportRound $transportRound,
+                         EntityManagerInterface $entityManager,
+    ): Response {
+        $realTime = null;
+        if ( $transportRound->getBeganAt() != null & $transportRound->getEndedAt() != null  ) {
+            $realTimeDif = $transportRound->getEndedAt()->diff($transportRound->getBeganAt());
+            $realTimeJ = $realTimeDif->format("%a");
+            $realTime = $realTimeDif->format("%h") + ($realTimeJ * 24) . "h" . $realTimeDif->format(" %i") . "min";
+        };
+
+        $calculationsPoints = $transportRound->getCoordinates();
+        $calculationsPoints['startPoint']['name'] = TransportRound::NAME_START_POINT;
+        $calculationsPoints['startPointScheduleCalculation']['name'] = TransportRound::NAME_START_POINT_SCHEDULE_CALCULATION;
+        $calculationsPoints['endPoint']['name'] = TransportRound::NAME_END_POINT;
+        $transportPoints = Stream::from($transportRound->getTransportRoundLines())->map(function (TransportRoundLine $line) {
+            if (!$line->getOrder()->isRejected()) {
+                $contact = $line->getOrder()->getRequest()->getContact();
+                return [
+                    'priority' => $line->getPriority(),
+                    'longitude' => $contact->getAddressLongitude(),
+                    'latitude' => $contact->getAddressLatitude(),
+                    'name' => $contact->getName(),
+                ];
+            }
+        })->toArray();
+
+        return $this->render('transport/round/show.html.twig', [
+            "transportRound" => $transportRound,
+            "realTime" => $realTime,
+            "calculationsPoints" => $calculationsPoints,
+            "transportPoints" => $transportPoints,
+
+        ]);
     }
 
     #[Route("/planifier", name: "transport_round_plan", options: ['expose' => true], methods: "GET")]
@@ -141,6 +171,7 @@ class RoundController extends AbstractController {
     public function plan(Request $request,
                          EntityManagerInterface $entityManager,
                          UniqueNumberService $uniqueNumberService): Response {
+        $isOnGoing = false;
         if ($request->query->get('dateRound')) {
             $round = new TransportRound();
 
@@ -160,8 +191,11 @@ class RoundController extends AbstractController {
         else if( $request->query->get('transportRound')){
             $round = $entityManager->getRepository(TransportRound::class)->findOneBy(['id' => $request->query->get('transportRound')]);
 
-            if (!$round || $round->getStatus()?->getCode() !== TransportRound::STATUS_AWAITING_DELIVERER) {
+            if (!$round || $round->getStatus()?->getCode() == TransportRound::STATUS_FINISHED) {
                 throw new NotFoundHttpException('Impossible de planifier cette tournée');
+            }
+            elseif ($request->query->get('isOnGoing')) {
+                $isOnGoing = true;
             }
         }
         else{
@@ -181,6 +215,14 @@ class RoundController extends AbstractController {
                 return $getOrderTimestamp($a) <=> $getOrderTimestamp($b);
             })
             ->toArray();
+
+        if ($isOnGoing) {
+            $transportOrders = Stream::from($transportOrders)
+                ->filter(function (TransportOrder $order) {
+                    return $order->getRequest() instanceof TransportCollectRequest;
+                })
+                ->toArray();
+        }
 
         $contactDataByOrderId = Stream::from(
             $transportOrders,
@@ -207,6 +249,7 @@ class RoundController extends AbstractController {
             'prefixNumber' => TransportRound::NUMBER_PREFIX,
             'transportOrders' => $transportOrders,
             'contactData' => $contactDataByOrderId,
+            'isOnGoing' => $isOnGoing,
         ]);
     }
 
@@ -241,7 +284,7 @@ class RoundController extends AbstractController {
         if ($transportRoundId) {
             $transportRound = $transportRoundRepository->find($transportRoundId);
 
-            if ($transportRound->getStatus()?->getCode() !== TransportRound::STATUS_AWAITING_DELIVERER) {
+            if ($transportRound->getStatus()?->getCode() == TransportRound::STATUS_FINISHED) {
                 throw new FormException('Impossible de planifier cette tournée');
             }
         }
@@ -267,7 +310,9 @@ class RoundController extends AbstractController {
             $transportRound
                 ->setCreatedAt(new DateTime())
                 ->setNumber($number)
-                ->setStatus($roundStatus);
+                ->setCreatedBy($this->getUser());
+
+            $statusHistoryService->updateStatus($entityManager, $transportRound, $roundStatus);
 
             $entityManager->persist($transportRound);
         }
@@ -302,6 +347,8 @@ class RoundController extends AbstractController {
                     || Stream::from ($order->getTransportRoundLines())
                         ->map(fn(TransportRoundLine $line) => $line->getTransportRound())
                         ->every(fn(TransportRound $round) => $round->getStatus()?->getCode() === TransportRound::STATUS_FINISHED)
+                    || $order->getTransportRoundLines()
+                        ->last()->getTransportRound()->getId() === $transportRound->getId()
                 );
                 $priority = $index + 1;
                 if (!$affectationAllowed) {
