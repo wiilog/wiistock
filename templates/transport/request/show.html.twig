@@ -66,10 +66,16 @@
                             {% endif %}
                         </div>
                         <div class="d-flex py-2 w-100 justify-content-between">
-                            <div class="d-flex flex-column">
-                                <span class="wii-title" title="Acheminement">Transport</span>
-                                <span
-                                    class="wii-medium-text">{{ constant('App\\Entity\\Transport\\TransportRequest::NUMBER_PREFIX') ~ request.number }}</span>
+                            <div class="d-flex align-items-center">
+                                <div class="d-flex flex-column">
+                                    <span class="wii-title" title="Acheminement">Transport</span>
+                                    <span
+                                        class="wii-medium-text">{{ constant('App\\Entity\\Transport\\TransportRequest::NUMBER_PREFIX') ~ request.number }}</span>
+                                </div>
+                                {% if order and order.rejected %}
+                                    <img src="{{ asset('svg/rejected-delivery.svg') }}" class="ml-3"
+                                         alt="Livraison rejetée" title="Livraison rejetée" width="25px">
+                                {% endif %}
                             </div>
                             <div class="d-flex align-items-center justify-content-end">
                                 <span class="wii-field-name">{{ request.createdBy|format_helper('user') }}</span>

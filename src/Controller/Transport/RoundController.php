@@ -96,16 +96,15 @@ class RoundController extends AbstractController {
                     $minutes = floor($timestamp / 60) - ($hours * 60);
                 }
 
-                $hasRejectedPacks = false;
-                foreach ($transportRound->getTransportRoundLines() as $line) {
-                    if($line->getOrder()->hasRejectedPacks()) {
-                        $hasRejectedPacks = true;
-                        break;
-                    }
-                }
+                $hasRejectedPacks = Stream::from($transportRound->getTransportRoundLines())
+                    ->some(fn(TransportRoundLine $line) => $line->getOrder()->hasRejectedPacks());
+
+                $hasRejectedDeliveries = Stream::from($transportRound->getTransportRoundLines())
+                    ->some(fn(TransportRoundLine $line) => $line->getOrder()->isRejected());
 
                 $currentRow[] = $this->renderView("transport/round/list_card.html.twig", [
                     "hasRejectedPacks" => $hasRejectedPacks,
+                    "hasRejectedDeliveries" => $hasRejectedDeliveries,
                     "prefix" => TransportRound::NUMBER_PREFIX,
                     "round" => $transportRound,
                     "realTime" => isset($hours) && isset($minutes)

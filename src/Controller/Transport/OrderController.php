@@ -110,7 +110,7 @@ class OrderController extends AbstractController {
 
         $round = !$transport->getTransportRoundLines()->isEmpty()
             ? $transport->getTransportRoundLines()->last()->getTransportRound()
-            : null ;
+            : null;
 
         $timeSlots = $entityManager->getRepository(CollectTimeSlot::class)->findAll();
 

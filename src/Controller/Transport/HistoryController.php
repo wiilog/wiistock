@@ -106,7 +106,8 @@ class HistoryController extends AbstractController
             "template" => $this->renderView('transport/request/timelines/transport-history.html.twig', [
                 "entity" => $entity,
                 "history" => Stream::from($entity->getHistory())
-                    ->sort(fn(TransportHistory $h1, TransportHistory $h2) => $h2->getDate() <=> $h1->getDate())
+                    ->sort(fn(TransportHistory $h1, TransportHistory $h2) => $h2->getDate() <=> $h1->getDate()
+                        || $h2->getId() <=> $h1->getId())
                     ->map(fn (TransportHistory $transportHistory) => [
                         'record' => $transportHistory,
                         'icon' => $transportHistoryService->getIconFromType($transportHistory->getType()),

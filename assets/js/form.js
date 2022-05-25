@@ -251,8 +251,12 @@ export default class Form {
         $field = $field.is(`.select2-selection`)
             ? $field.closest(`.select2-container`).siblings(`select`)
             : $field;
+        console.log($field);
         if($field.is(`[data-global-error]`)) {
-            const label = $field.data(`global-error`) || $parent.find(`.field-label`).text();
+            let label = $field.data(`global-error`) || $parent.find(`.field-label`).text();
+            label = label
+                .trim()
+                .replace(/\*$/, '');
             const prefixMessage = label ? `${label} : ` : '';
             Flash.add(`danger`, `${prefixMessage}${message}`);
         } else {
@@ -370,10 +374,18 @@ function treatInputError($input, errors, form) {
 
     if ($input.is(`[required]`) || $input.is(`[data-required]`) || $input.is(`.needed`)) {
         if (([`radio`, `checkbox`].includes($input.attr(`type`)) && !$input.is(`:checked`))) {
-            errors.push({
-                elements: [$input.closest(`.wii-radio, .wii-checkbox, .wii-switch, .wii-expanded-switch`)],
-                message: `Vous devez sélectionner au moins un élément`,
-            });
+            const $elementInError = $input.closest(`.wii-radio-container, .wii-checkbox, .wii-switch, .wii-expanded-switch`);
+            // check if element is already in error
+            const elementAlreadyInError = errors.some(({elements}) => (
+                elements
+                && elements.some((el) => $(el).data('name') === $elementInError.data('name'))
+            ));
+            if (!elementAlreadyInError) {
+                errors.push({
+                    elements: [$elementInError],
+                    message: `Vous devez sélectionner au moins un élément`,
+                });
+            }
         } else {
             const valueIsEmpty = (
                 $input.is(`[data-wysiwyg]`) ? !$input.find(`.ql-editor`).text() :  // for wysuwyg fields

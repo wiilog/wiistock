@@ -60,34 +60,31 @@ class TransportController extends AbstractFOSRestController {
 
         $transportRounds = $transportRoundRepository->findMobileTransportRoundsByUser($user);
         $data = Stream::from($transportRounds)
+            ->filter(fn(TransportRound $round) => Stream::from($round->getTransportRoundLines())
+                ->every(fn(TransportRoundLine $line) => !$line->getOrder()->isRejected()))
             ->map(function(TransportRound $round) use ($freeFieldRepository) {
-                $lines = $round->getTransportRoundLines();
+                $lines = Stream::from($round->getTransportRoundLines())
+                    ->filter(fn(TransportRoundLine $line) => !$line->getOrder()->isRejected());
 
-                /** @var TransportRoundLine $line */
-                $totalLoaded = 0;
-                foreach ($lines as $line) {
-                    $totalLoaded += Stream::from($line->getOrder()->getPacks())
-                        ->filter(fn(TransportDeliveryOrderPack $orderPack) => !$orderPack->getRejectReason())
-                        ->count();
-                }
+                $totalLoaded = Stream::from($lines)
+                    ->reduce(fn(int $acc, TransportRoundLine $line) => $acc + Stream::from($line->getOrder()->getPacks())
+                            ->filter(fn(TransportDeliveryOrderPack $orderPack) => !$orderPack->getRejectReason())
+                            ->count());
 
-                $loadedPacks = 0;
-                foreach ($lines as $line) {
-                    $loadedPacks += Stream::from($line->getOrder()->getPacks())
-                        ->filter(fn(TransportDeliveryOrderPack $orderPack) => $orderPack->getState() === TransportDeliveryOrderPack::LOADED_STATE && !$orderPack->getRejectReason())
-                        ->count();
-                }
+                $loadedPacks = Stream::from($lines)
+                    ->reduce(fn(int $acc, TransportRoundLine $line) => $acc + Stream::from($line->getOrder()->getPacks())
+                            ->filter(fn(TransportDeliveryOrderPack $orderPack) =>
+                                $orderPack->getState() === TransportDeliveryOrderPack::LOADED_STATE && !$orderPack->getRejectReason())
+                            ->count());
 
-                $readyDeliveries = 0;
-                foreach ($lines as $line) {
-                    $isReady = Stream::from($line->getOrder()->getPacks())
-                        ->filter(fn(TransportDeliveryOrderPack $orderPack) => $orderPack->getState() === null)
-                        ->isEmpty();
+                $readyDeliveries = Stream::from($lines)
+                    ->reduce(function(int $acc, TransportRoundLine $line) {
+                        $isReady = Stream::from($line->getOrder()->getPacks())
+                            ->filter(fn(TransportDeliveryOrderPack $orderPack) => $orderPack->getState() === null)
+                            ->isEmpty();
 
-                    if($isReady) {
-                        $readyDeliveries += 1;
-                    }
-                }
+                        return $isReady ? $acc + 1 : $acc;
+                    });
 
                 return [
                     'id' => $round->getId(),
@@ -200,7 +197,7 @@ class TransportController extends AbstractFOSRestController {
                             ];
                         }),
                 ];
-            })->toArray();
+            })->values();
 
         return $this->json($data);
     }
@@ -229,9 +226,13 @@ class TransportController extends AbstractFOSRestController {
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
      */
-    public function rejectPack(Request $request, EntityManagerInterface $manager, TransportHistoryService $historyService): Response {
+    public function rejectPack(Request $request,
+                               EntityManagerInterface $manager,
+                               TransportHistoryService $historyService,
+                               StatusHistoryService $statusHistoryService): Response {
         $data = $request->request;
         $pack = $manager->getRepository(Pack::class)->findOneBy(['code' => $data->get('pack')]);
+        $round = $manager->find(TransportRound::class, $data->get('round'));
         $rejectMotive = $data->get('rejectMotive');
 
         $transportDeliveryOrderPack = $pack->getTransportDeliveryOrderPack();
@@ -247,8 +248,33 @@ class TransportController extends AbstractFOSRestController {
             'pack' => $pack,
             'reason' => $rejectMotive
         ]);
-
         $manager->flush();
+
+        if($order->isRejected()) {
+            $statusRepository = $manager->getRepository(Statut::class);
+            $toPrepareStatus = $statusRepository
+                ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_REQUEST_DELIVERY, TransportRequest::STATUS_TO_PREPARE);
+
+            $toAssignStatus = $statusRepository
+                ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_DELIVERY, TransportOrder::STATUS_TO_ASSIGN);
+
+            $statusHistoryRequest = $statusHistoryService->updateStatus($manager, $request, $toPrepareStatus);
+            $historyService->persistTransportHistory($manager, $request, TransportHistoryService::TYPE_REJECTED_DELIVERY, [
+                'user' => $this->getUser(),
+                'history' => $statusHistoryRequest,
+                'round' => $round
+            ]);
+
+            $statusHistoryOrder = $statusHistoryService->updateStatus($manager, $order, $toAssignStatus);
+            $historyService->persistTransportHistory($manager, $order, TransportHistoryService::TYPE_REJECTED_DELIVERY, [
+                'user' => $this->getUser(),
+                'history' => $statusHistoryOrder,
+                'round' => $round
+            ]);
+
+            $manager->flush();
+        }
+
         return $this->json([
             'success' => true,
         ]);
