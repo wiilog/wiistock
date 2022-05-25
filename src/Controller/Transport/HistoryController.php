@@ -187,10 +187,9 @@ class HistoryController extends AbstractController
         $leftArray = $transportRound->getSortedTransportRoundLines()->toArray();
         $test = new DateTime();
 
-        foreach ($leftArray as $ignored){
+        foreach ($leftArray as $line){
             $rightArray[] = [
-                //'estimated' => $line->getEstimatedAt(),
-                'estimated' => $test->modify("+1 hour"),
+                'estimated' => $line->getEstimatedAt(),
                 'real' => ''
             ];
         }
