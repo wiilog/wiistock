@@ -7,6 +7,7 @@ use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\FiltreSup;
 use App\Entity\IOT\SensorMessage;
+use App\Entity\IOT\TriggerAction;
 use App\Entity\Menu;
 use App\Entity\Setting;
 use App\Entity\Statut;
@@ -168,27 +169,33 @@ class RoundController extends AbstractController {
 
         foreach ($transportRound->getDeliverer()?->getVehicle()?->getLocations() as $location) {
             if ($location->getActivePairing()) {
+                $triggerActions = $location->getActivePairing()->getSensorWrapper()->getTriggerActions();
+                $minTriggerActionThreshold = Stream::from($triggerActions)->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'lower')->last();
+                $maxTriggerActionThreshold = Stream::from($triggerActions)->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'higher')->last();
+                $minThreshold = $minTriggerActionThreshold?->getConfig()['temperature'];
+                $maxThreshold = $maxTriggerActionThreshold?->getConfig()['temperature'];
                 $now = new DateTime();
-                $urls = [
+                $urls[] = [
                     "fetch_url" => $router->generate("chart_data_history", [
                         "type" => IOTService::getEntityCodeFromEntity($location),
                         "id" => $location->getId(),
                         'start' => $transportRound->getCreatedAt()->format('Y-m-d\TH:i'),
                         'end' => $now->format('Y-m-d\TH:i'),
-                    ], UrlGeneratorInterface::ABSOLUTE_URL)
+
+                    ], UrlGeneratorInterface::ABSOLUTE_URL),
+                    "minTemp" => $minThreshold,
+                    "maxTemp" => $maxThreshold,
                 ];
             }
         }
-        //TODO WIIS-7229 appliquer les nouvelles bornes
+
         return $this->render('transport/round/show.html.twig', [
             "transportRound" => $transportRound,
             "realTime" => $realTime,
             "calculationsPoints" => $calculationsPoints,
             "transportPoints" => $transportPoints,
             "urls" => $urls,
-            "roundDateBegan" => $transportDateBeganAt,
-            "minTemp" => SensorMessage::LOW_TEMPERATURE_THRESHOLD,
-            "maxTemp" => SensorMessage::HIGH_TEMPERATURE_THRESHOLD,
+            "roundDateBegan" => $transportDateBeganAt
         ]);
     }
 

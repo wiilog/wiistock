@@ -34,9 +34,7 @@ export class Map {
 
     // coordinates:[[latitude, longitude], ..... ,[latitude, longitude]]
     setLines(coordinates, color = "black") {
-        console.log(coordinates);
         const lines = Leaflet.polyline(coordinates, {color: color});
-        console.log(this.map.addLayer(lines));
     }
 
     setMarker(options) {

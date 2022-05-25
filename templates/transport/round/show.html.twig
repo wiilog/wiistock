@@ -169,16 +169,15 @@
                         La tournée n'a pas commencé
                     </span>
                     {% endif %}
-
                 </div>
 
                 {% for url in urls %}
                     {% include 'IOT/data_monitoring/content.html.twig' with {
                         type : 'chart',
-                        fetch_url : url,
+                        fetch_url : url.fetch_url,
                         needsLine: true,
-                        minTemp: minTemp,
-                        maxTemp: maxTemp
+                        minTemp: url.minTemp,
+                        maxTemp: url.maxTemp
                     }
                     %}
                 {% endfor %}
