@@ -15,7 +15,7 @@ use Doctrine\ORM\Mapping as ORM;
 use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: TransportRoundRepository::class)]
-class TransportRound implements StatusHistoryContainer
+class TransportRound extends StatusHistoryContainer
 {
     public const NUMBER_PREFIX = 'T';
 

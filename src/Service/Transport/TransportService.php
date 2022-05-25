@@ -670,7 +670,7 @@ class TransportService {
             FormatHelper::user($request->getCreatedBy()),
             $request->getContact()->getName(),
             $request->getContact()->getFileNumber(),
-            str_replace("\n", " / ", $request->getContact()->getAddress()),
+            str_replace("\n", " ", $request->getContact()->getAddress()),
             $request->getContact()->getAddress() ? FormatHelper::bool($this->isMetropolis($request->getContact()->getAddress())) : '',
             FormatHelper::datetime($request->getExpectedAt()),
         ];
@@ -696,7 +696,7 @@ class TransportService {
                         $pack->getPack()?->getNature()?->getLabel() ?: '',
                         $pack->getPack()?->getQuantity() ?: '0',
                         $pack->getPack()?->getNature() ? $pack->getPackTemperature($pack->getPack()->getNature()) ?: '' : '',
-                        FormatHelper::bool($pack->getPack()?->getActivePairing()?->hasExceededThreshold()),
+                        $pack->getPack()?->getActivePairing()?->hasExceededThreshold() ? FormatHelper::bool($pack->getPack()?->getActivePairing()?->hasExceededThreshold()):"non",
                         $pack->getPack()?->getCode() ?: '',
                         $pack->getRejectedBy() ? 'Oui' : ($pack->getRejectReason() ? 'Oui' : 'Non'),
                         $pack->getRejectReason() ?: '',
