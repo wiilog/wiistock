@@ -387,4 +387,30 @@ class TransportRound implements StatusHistoryContainer
         })->count();
     }
 
+    public function getPairings(): array {
+        $roundVehicle = $this->getDeliverer()->getVehicle();
+        $roundsPairings = [];
+
+        foreach ($roundVehicle->getPairings() as $pairing) {
+            $roundsPairings[] = $pairing;
+        }
+
+        foreach($roundVehicle->getLocations() as $location){
+            foreach($location->getPairings() as $pairing){
+                $roundsPairings[] = $pairing;
+            }
+        }
+
+        foreach($this->getTransportRoundLines() as $line){
+            $order = $line->getOrder();
+            if(!$order->isRejected()) {
+                foreach($order->getPacks() as $orderPack){
+                    foreach ($orderPack->getPack()->getPairings() as $pairing) {
+                        $roundsPairings[] = $pairing;
+                    }
+                }
+            }
+        }
+        return $roundsPairings;
+    }
 }

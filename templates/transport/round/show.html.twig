@@ -171,6 +171,7 @@
     <input type="hidden" value="{{ constant('App\\Controller\\Transport\\HistoryController::ROUND') }}" name="transportType">
     <input type="hidden" value="{{ calculationsPoints | json_encode }}" name="calculationPoints">
     <input type="hidden" value="{{ transportPoints | json_encode }}" name="transportPoints">
+    <input type="hidden" value="{{ delivererPosition }}" name="delivererPosition">
 
 {% endblock %}
 

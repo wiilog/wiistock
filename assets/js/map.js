@@ -15,7 +15,8 @@ const LocationIcon = L.Icon.extend({
 const locationIcons = {
     blackLocation: new LocationIcon({iconUrl: "/svg/location-black.svg"}),
     blueLocation: new LocationIcon({iconUrl: "/svg/location-blue.svg"}),
-    greyLocation: new LocationIcon({iconUrl: "/svg/location-grey.svg"})
+    greyLocation: new LocationIcon({iconUrl: "/svg/location-grey.svg"}),
+    delivererLocation: new LocationIcon({iconUrl: "/svg/location-deliverer.svg"})
 }
 
 export class Map {
@@ -34,9 +35,8 @@ export class Map {
 
     // coordinates:[[latitude, longitude], ..... ,[latitude, longitude]]
     setLines(coordinates, color = "black") {
-        console.log(coordinates);
         const lines = Leaflet.polyline(coordinates, {color: color});
-        console.log(this.map.addLayer(lines));
+        this.map.addLayer(lines);
     }
 
     setMarker(options) {

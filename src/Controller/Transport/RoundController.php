@@ -145,7 +145,6 @@ class RoundController extends AbstractController {
         $calculationsPoints['startPoint']['name'] = TransportRound::NAME_START_POINT;
         $calculationsPoints['startPointScheduleCalculation']['name'] = TransportRound::NAME_START_POINT_SCHEDULE_CALCULATION;
         $calculationsPoints['endPoint']['name'] = TransportRound::NAME_END_POINT;
-        dump($calculationsPoints);
         $transportPoints = Stream::from($transportRound->getTransportRoundLines())->map(function (TransportRoundLine $line) {
             if (!$line->getOrder()->isRejected()) {
                 $contact = $line->getOrder()->getRequest()->getContact();
@@ -158,12 +157,16 @@ class RoundController extends AbstractController {
             }
         })->toArray();
 
+        $delivererPosition = $transportRound->getStatus() == TransportRound::STATUS_ONGOING
+            ? $transportRound->getDeliverer()->getVehicle()->getLastPosition()
+            : null;
+
         return $this->render('transport/round/show.html.twig', [
             "transportRound" => $transportRound,
             "realTime" => $realTime,
             "calculationsPoints" => $calculationsPoints,
             "transportPoints" => $transportPoints,
-
+            "delivererPosition" => $delivererPosition,
         ]);
     }
 

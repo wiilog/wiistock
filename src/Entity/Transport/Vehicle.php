@@ -5,6 +5,7 @@ namespace App\Entity\Transport;
 use App\Entity\Emplacement;
 use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\Pairing;
+use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorMessage;
 use App\Entity\IOT\SensorMessageTrait;
 use App\Entity\Utilisateur;
@@ -13,6 +14,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
+use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: VehicleRepository::class)]
 class Vehicle implements PairedEntity
@@ -163,5 +165,19 @@ class Vehicle implements PairedEntity
 
     public function __toString() {
         return $this->registrationNumber;
+    }
+
+    public function getLastPosition(): ?string {
+        $lasPosition = Stream::from($this->getSensorMessages())
+            ->filter(function(SensorMessage $sensorMessage) {
+                return $sensorMessage->getSensor()->getType()->getLabel() == Sensor::GPS;
+            })
+            ->sort(function($a, $b) {
+                return $a->getDate() < $b->getDate();
+            })
+            ->first()
+            ->getContent();
+        dump($lasPosition);
+        return $lasPosition;
     }
 }
