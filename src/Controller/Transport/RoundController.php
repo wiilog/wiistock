@@ -215,7 +215,7 @@ class RoundController extends AbstractController {
                 return [
                     'index' => $order['index'] + 2,
                     'coordinates' => [
-                        'latitude' => floatval($orderEntity->getRequest()->getContact()->getAddressLatitude()),
+                        'latitude' => floatval($orderEntity->getRequest()->getContact()->getAddressLatitude())     ,
                         'longitude' => floatval($orderEntity->getRequest()->getContact()->getAddressLongitude()),
                     ]
                 ];
@@ -395,7 +395,6 @@ class RoundController extends AbstractController {
 
         $deliverer = $userRepository->find($deliverer);
 
-//        TODO set estimated ?
         $transportRound
             ->setExpectedAt($expectedAt)
             ->setDeliverer($deliverer)

@@ -142,7 +142,7 @@ export class Map {
     createPopupContent(contactInformation, index, estimation = null) {
         const htmlIndex = index ? `<span class='index'>${index}</span>` : ``;
         const htmlTime = contactInformation.time ? `<span class='time'>${contactInformation.time || ""}</span>` : ``;
-        const estimated = estimation ? `<span class="time estimated">Estimé : ' + ${estimation} + '</span>` : ``;
+        const estimated = estimation ? `<span class="time estimated">Estimé : ${estimation}</span>` : ``;
         return `
             ${htmlIndex}
             <span class='contact'>${contactInformation.contact || ""}</span>
