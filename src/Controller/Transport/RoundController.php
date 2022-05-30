@@ -152,26 +152,36 @@ class RoundController extends AbstractController {
         $calculationsPoints['startPointScheduleCalculation']['name'] = TransportRound::NAME_START_POINT_SCHEDULE_CALCULATION;
         $calculationsPoints['endPoint']['name'] = TransportRound::NAME_END_POINT;
 
-        $transportPoints = Stream::from($transportRound->getTransportRoundLines())->map(function (TransportRoundLine $line) {
-            if (!$line->getOrder()->isRejected()) {
-                $contact = $line->getOrder()->getRequest()->getContact();
-                return [
-                    'priority' => $line->getPriority(),
-                    'longitude' => $contact->getAddressLongitude(),
-                    'latitude' => $contact->getAddressLatitude(),
-                    'name' => $contact->getName(),
-                ];
-            }
-        })->toArray();
+        $transportPoints = Stream::from($transportRound->getTransportRoundLines())
+            ->filterMap(function (TransportRoundLine $line) {
+                if (!$line->getOrder()->isRejected()) {
+                    $contact = $line->getOrder()->getRequest()->getContact();
+                    return [
+                        'priority' => $line->getPriority(),
+                        'longitude' => $contact->getAddressLongitude(),
+                        'latitude' => $contact->getAddressLatitude(),
+                        'name' => $contact->getName(),
+                    ];
+                }
+                else {
+                    return null;
+                }
+            })
+            ->toArray();
 
         $urls = [];
         $transportDateBeganAt = $transportRound->getBeganAt();
+        $locations = $transportRound->getDeliverer()?->getVehicle()?->getLocations() ?: [];
 
-        foreach ($transportRound->getDeliverer()?->getVehicle()?->getLocations() as $location) {
+        foreach ($locations as $location) {
             if ($location->getActivePairing()) {
                 $triggerActions = $location->getActivePairing()->getSensorWrapper()->getTriggerActions();
-                $minTriggerActionThreshold = Stream::from($triggerActions)->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'lower')->last();
-                $maxTriggerActionThreshold = Stream::from($triggerActions)->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'higher')->last();
+                $minTriggerActionThreshold = Stream::from($triggerActions)
+                    ->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'lower')
+                    ->last();
+                $maxTriggerActionThreshold = Stream::from($triggerActions)
+                    ->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'higher')
+                    ->last();
                 $minThreshold = $minTriggerActionThreshold?->getConfig()['temperature'];
                 $maxThreshold = $maxTriggerActionThreshold?->getConfig()['temperature'];
                 $now = new DateTime();
@@ -181,7 +191,6 @@ class RoundController extends AbstractController {
                         "id" => $location->getId(),
                         'start' => $transportRound->getCreatedAt()->format('Y-m-d\TH:i'),
                         'end' => $now->format('Y-m-d\TH:i'),
-
                     ], UrlGeneratorInterface::ABSOLUTE_URL),
                     "minTemp" => $minThreshold,
                     "maxTemp" => $maxThreshold,
