@@ -167,17 +167,13 @@ class Vehicle implements PairedEntity
         return $this->registrationNumber;
     }
 
-    public function getLastPosition(): ?string {
-        $lasPosition = Stream::from($this->getSensorMessages())
-            ->filter(function(SensorMessage $sensorMessage) {
-                return $sensorMessage->getSensor()->getType()->getLabel() == Sensor::GPS;
-            })
+    public function getLastPosition(\DateTime $start, \DateTime $end = null): ?string {
+        $end = $end ?? new \DateTime();
+        return Stream::from($this->getSensorMessagesBetween($start, $end,Sensor::GPS ))
             ->sort(function($a, $b) {
                 return $a->getDate() < $b->getDate();
             })
             ->first()
-            ->getContent();
-        dump($lasPosition);
-        return $lasPosition;
+            ?->getContent();
     }
 }

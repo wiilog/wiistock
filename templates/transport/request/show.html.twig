@@ -271,36 +271,43 @@
                         {% for line in request.lines %}
                             {% set requiresTemperatureTracking = requiresTemperatureTracking or line.nature.temperatureRanges | length %}
                         {% endfor %}
-
-                        <div class="d-flex justify-content-between p-3">
+                        <div>
                             <span class="wii-field-name">Dernière position connue</span>
                             <span class="wii-medium-text">
                                 {%  if order is not null and order.subcontracted %}
-                                    Le suivi de température n'est pas disponible car la demande est sur un horaire non ouvré
+                                    Le suivi n'est pas disponible car la demande est sur un horaire non ouvré
                                 {% elseif not roundHasStarted %}
                                     La tournée n'a pas commencé
                                 {% endif %}
+                                <div class="map-container">
+                                    <div id="map"></div>
+                                </div>
                             </span>
                         </div>
-
-                        {# TODO: afficher la carte #}
                         {% if request_delivery %}
-                            <div class="d-flex justify-content-between p-3">
+                            <div class="p-3">
                                 <span class="wii-field-name">Courbe de températures</span>
                                 <span class="wii-medium-text">
                                      {% if order is not null and order.subcontracted %}
                                          Le suivi de température n'est pas disponible car la demande est sur un horaire non ouvré
                                      {% elseif not roundHasStarted %}
                                          La tournée n'a pas commencé
-                                    {% elseif requiresTemperatureTracking %}
-                                        {# TODO déplacer sur le graphique #}
+                                    {% elseif not requiresTemperatureTracking %}
                                         La demande ne nécessite pas de suivi de température
+                                    {% else %}
+                                        {% for url in urls %}
+                                            {% include 'IOT/data_monitoring/content.html.twig' with {
+                                                type : 'chart',
+                                                fetch_url : url.fetch_url,
+                                                minTemp: minTemp,
+                                                maxTemp: maxTemp,
+                                                boxStyle: false,
+                                            } %}
+                                        {% endfor %}
                                     {% endif %}
                                 </span>
                             </div>
                         {% endif %}
-
-                        {# TODO: afficher les graphiques #}
                     </div>
                 </div>
             </div>
@@ -311,9 +318,13 @@
 
     <input type="hidden" value="{{ request.id }}" name="transportId">
     <input type="hidden" value="{{ constant('App\\Controller\\Transport\\HistoryController::REQUEST') }}" name="transportType">
+    <input type="hidden" value="{{ contactPosition | json_encode  }}" name="contactPosition">
+    <input type="hidden" value="{{ delivererPosition }}" name="delivererPosition">
+
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
     {{ encore_entry_script_tags('transport-request-show') }}
+    <script src="{{ asset('js/pages/iot/data-monitoring.js') }}?v={{ web_version }}"></script>
 {% endblock %}

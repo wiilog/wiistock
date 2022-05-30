@@ -53,10 +53,10 @@ class RoundController extends AbstractController {
     #[Route('/api', name: 'transport_round_api', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::DEM, Action::DISPLAY_TRANSPORT], mode: HasPermission::IN_JSON)]
     public function api(Request $request, EntityManagerInterface $manager): Response {
-        $filtreSupRepository = $manager->getRepository(FiltreSup::class);
+        $filterSupRepository = $manager->getRepository(FiltreSup::class);
         $roundRepository = $manager->getRepository(TransportRound::class);
 
-        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_TRANSPORT_ROUNDS, $this->getUser());
+        $filters = $filterSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_TRANSPORT_ROUNDS, $this->getUser());
         $queryResult = $roundRepository->findByParamAndFilters($request->request, $filters);
 
         $transportRounds = [];
@@ -162,22 +162,22 @@ class RoundController extends AbstractController {
             }
         })->toArray();
 
-        $delivererPosition = $transportRound->getStatus() == TransportRound::STATUS_ONGOING
-            ? $transportRound->getDeliverer()->getVehicle()->getLastPosition()
+        $delivererPosition = $transportRound->getBeganAt()
+            ? $transportRound->getDeliverer()->getVehicle()->getLastPosition( $transportRound->getBeganAt(), $transportRound->getEndedAt())
             : null;
 
         $urls = [];
         $transportDateBeganAt = $transportRound->getBeganAt();
 
+        $now = new DateTime();
         foreach ($transportRound->getDeliverer()?->getVehicle()?->getLocations() as $location) {
             if ($location->getActivePairing()) {
-                $now = new DateTime();
                 $urls = [
                     "fetch_url" => $router->generate("chart_data_history", [
                         "type" => IOTService::getEntityCodeFromEntity($location),
                         "id" => $location->getId(),
                         'start' => $transportRound->getCreatedAt()->format('Y-m-d\TH:i'),
-                        'end' => $now->format('Y-m-d\TH:i'),
+                        'end' => $transportRound->getEndedAt() ?? $now->format('Y-m-d\TH:i'),
                     ], UrlGeneratorInterface::ABSOLUTE_URL)
                 ];
             }

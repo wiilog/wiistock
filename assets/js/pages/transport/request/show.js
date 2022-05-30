@@ -1,13 +1,14 @@
 import '@styles/pages/transport/show.scss';
 import AJAX, {GET, POST} from "@app/ajax";
-import Flash, {ERROR, SUCCESS} from "@app/flash";
 import {initializeForm, cancelRequest, initializePacking, deleteRequest, transportPDF} from "@app/pages/transport/request/common";
-import {getPacks, getStatusHistory, getTransportHistory} from "@app/pages/transport/common";
+import {getPacks, getStatusHistory, getTransportHistory, placeDeliverer, initMap} from "@app/pages/transport/common";
 
 
 $(function () {
     const transportRequest = $(`input[name=transportId]`).val();
     const transportType = $(`input[name=transportType]`).val();
+    const delivererPosition= $(`input[name=delivererPosition]`).val();
+    const contactPosition = JSON.parse($(`input[name=contactPosition]`).val());
 
     getStatusHistory(transportRequest, transportType);
     getTransportHistory(transportRequest, transportType);
@@ -34,6 +35,12 @@ $(function () {
     $('.edit-button').on('click', function(){
         openEditModal($(this));
     });
+
+    const map = initMap(contactPosition)
+
+    if (delivererPosition) {
+        placeDeliverer(map, delivererPosition)
+    }
 });
 
 /**
