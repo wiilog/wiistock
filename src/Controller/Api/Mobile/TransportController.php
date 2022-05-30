@@ -106,7 +106,7 @@ class TransportController extends AbstractFOSRestController {
                     'lines' => Stream::from($lines)
                         ->filter(fn(TransportRoundLine $line) =>
                             !$line->getCancelledAt()
-                            || $line->getCancelledAt() > $line->getTransportRound()->getBeganAt())
+                            || ($line->getTransportRound()->getBeganAt() && $line->getCancelledAt() > $line->getTransportRound()->getBeganAt()))
                         ->map(function(TransportRoundLine $line) use ($freeFieldRepository) {
                             $order = $line->getOrder();
                             $request = $order->getRequest();
@@ -214,10 +214,16 @@ class TransportController extends AbstractFOSRestController {
         $deliveryRejectMotives = $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_DELIVERY_REJECT_MOTIVES);
         $collectRejectMotives = $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_COLLECT_REJECT_MOTIVES);
 
+        $packRejectMotives = explode(",", $packRejectMotives);
+        $deliveryRejectMotives = explode(",", $deliveryRejectMotives);
+        $collectRejectMotives = explode(",", $collectRejectMotives);
+
+        $deliveryRejectMotives[] = 'Autre';
+        $collectRejectMotives[] = 'Autre';
         return $this->json([
-            'pack' => explode(",", $packRejectMotives),
-            'delivery' => explode(",", $deliveryRejectMotives),
-            'collect' => explode(",", $collectRejectMotives)
+            'pack' => $packRejectMotives,
+            'delivery' => $deliveryRejectMotives,
+            'collect' => $collectRejectMotives
         ]);
     }
 
@@ -445,6 +451,81 @@ class TransportController extends AbstractFOSRestController {
         }
 
         $manager->flush();
+        return $this->json([
+            'success' => true
+        ]);
+    }
+
+    /**
+     * @Rest\Post("/api/transport-failure", name="api_transport_failure", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function transportFailure(Request $request,
+                                     EntityManagerInterface $manager,
+                                     StatusHistoryService $statusHistoryService,
+                                     TransportHistoryService $transportHistoryService,
+                                     AttachmentService $attachmentService): Response {
+        $data = $request->request;
+        $files = $request->files;
+        dump($data);
+        $order = $manager->find(TransportOrder::class, $data->get('transport'));
+        $round = $manager->find(TransportRound::class, $data->get('round'));
+        $motive = $data->get('motive');
+        $comment = $data->get('comment');
+        $request = $order->getRequest();
+        $now = new DateTime();
+
+        $order
+            ->setTreatedAt($now)
+            ->setComment($comment);
+
+        $line = $order->getTransportRoundLines()->last();
+        $line->setCancelledAt($now);
+
+        $photoAttachment = null;
+        if($files->get('photo')) {
+            $photoAttachment = $attachmentService->createAttachements([$files->get('photo')])[0];
+            $order->addAttachment($photoAttachment);
+        }
+
+        foreach ([$request, $order] as $entity) {
+            if($entity instanceof TransportOrder) {
+                [$categoryStatus, $statusCode] = $entity->getRequest() instanceof TransportCollectRequest
+                    ? [CategorieStatut::TRANSPORT_ORDER_COLLECT, TransportOrder::STATUS_NOT_COLLECTED]
+                    : [CategorieStatut::TRANSPORT_ORDER_DELIVERY, TransportOrder::STATUS_NOT_DELIVERED];
+            } else {
+                [$categoryStatus, $statusCode] = $entity instanceof TransportCollectRequest
+                    ? [CategorieStatut::TRANSPORT_REQUEST_COLLECT, TransportRequest::STATUS_NOT_COLLECTED]
+                    : [CategorieStatut::TRANSPORT_REQUEST_DELIVERY, TransportRequest::STATUS_NOT_DELIVERED];
+            }
+            $status = $manager->getRepository(Statut::class)
+                ->findOneByCategorieNameAndStatutCode($categoryStatus, $statusCode);
+
+            $statusHistory = $statusHistoryService->updateStatus($manager, $entity, $status);
+            $transportHistoryService->persistTransportHistory($manager, $entity, TransportHistoryService::TYPE_FAILED, [
+                'user' => $this->getUser(),
+                'deliverer' => $round->getDeliverer(),
+                'round' => $round,
+                'history' => $statusHistory,
+                'reason' => $motive,
+                'comment' => $comment,
+                'date' => $now,
+                'attachments' => $photoAttachment ? [$photoAttachment] : null
+            ]);
+        }
+
+        $manager->flush();
+
+        $hasRemainingOrders = Stream::from($round->getTransportRoundLines())
+            ->some(fn(TransportRoundLine $line) => !$line->getCancelledAt());
+        if(!$hasRemainingOrders) {
+            $canceledStatus = $manager->getRepository(Statut::class)
+                ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ROUND, TransportRound::STATUS_FINISHED);
+            $round->setStatus($canceledStatus);
+            $manager->flush();
+        }
+
         return $this->json([
             'success' => true
         ]);
