@@ -7,15 +7,18 @@ use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\Fournisseur;
 use App\Entity\ReferenceArticle;
+use App\Entity\Transport\TransportRound;
 use App\Entity\Utilisateur;
 use App\Service\ArticleDataService;
 use App\Service\CSVExportService;
 use App\Service\FreeFieldService;
 use App\Service\RefArticleDataService;
+use App\Service\Transport\TransportRoundService;
 use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -122,5 +125,49 @@ class DataExportController extends AbstractController {
                 $articleDataService->putArticleLine($output, $article, $freeFieldsConfig);
             }
         }, "export-articles-$today.csv", $header);
+    }
+
+
+    /**
+     * @Route("/rounds/csv", name="export_round", options={"expose"=true}, methods={"GET"})
+     */
+    public function exportRounds(
+                                 CSVExportService       $CSVExportService,
+                                 TransportRoundService  $transportRoundService,
+                                 EntityManagerInterface $entityManager): Response
+    {
+
+        $transportRoundRepository = $entityManager->getRepository(TransportRound::class);
+        $today = new DateTime();
+        $today = $today->format("d-m-Y H:i:s");
+        $nameFile = "export-articles-$today.csv";
+        $csvHeader = [
+            'N°Tournée',
+            'Date Tournée',
+            'Transport',
+            'Livreur',
+            'Immatriculation',
+            'Kilomètres',
+            'N° dossier patient',
+            'N°Demande',
+            'Adresse transport',
+            'Métropole',
+            'Numéro dans la tournée',
+            'Urgence',
+            'Date de création',
+            'Demandeur',
+            'Date demandée',
+            'Date demande terminée',
+            'Objets',
+            'Anomalie température',
+        ];
+
+        $transportRoundsIterator = $transportRoundRepository->iterateTransportRoundsFinished();
+        return $CSVExportService->streamResponse(function ($output) use ($CSVExportService, $transportRoundService, $transportRoundsIterator) {
+            /** @var TransportRound $round */
+            foreach ($transportRoundsIterator as $round) {
+                $transportRoundService->putRoundsLineParameters($output, $CSVExportService, $round);
+            }
+        }, $nameFile, $csvHeader);
     }
 }

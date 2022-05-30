@@ -143,4 +143,14 @@ class TransportRoundRepository extends EntityRepository {
             ->getQuery()
             ->toIterable();
     }
+
+    public function iterateTransportRoundsFinished(): iterable {
+
+        $qb = $this->createQueryBuilder('transport_round')
+            ->where('transport_round.endedAt IS NOT NULL')
+            ->andWhere('transport_round.id IS NOT NULL');
+        return $qb
+            ->getQuery()
+            ->toIterable();
+    }
 }
