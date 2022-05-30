@@ -32,6 +32,11 @@ export class Map {
         return map;
     }
 
+    // coordinates:[[latitude, longitude], ..... ,[latitude, longitude]]
+    setLines(coordinates, color = "black") {
+        const lines = Leaflet.polyline(coordinates, {color: color});
+    }
+
     setMarker(options) {
         const existing = this.locations.find(l => (l.latitude === options.latitude && l.longitude === options.longitude));
         if (existing) {
@@ -100,6 +105,16 @@ export class Map {
 
     reinitialize() {
         document.getElementById(this.id).innerHTML = `<div id="map"></div>`
+    }
+
+    createPopupContent(contactInformation, index) {
+        const htmlIndex = index ? `<span class='index'>${index}</span>` : ``;
+        const htmlTime = contactInformation.time ? `<span class='time'>${contactInformation.time || ""}</span>` : ``;
+        return `
+        ${htmlIndex}
+        <span class='contact'>${contactInformation.contact || ""}</span>
+        ${htmlTime}
+    `;
     }
 }
 
