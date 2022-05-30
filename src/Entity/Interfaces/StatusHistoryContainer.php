@@ -3,6 +3,7 @@
 namespace App\Entity\Interfaces;
 
 use App\Entity\StatusHistory;
+use App\Entity\Statut;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
 
@@ -16,4 +17,7 @@ interface StatusHistoryContainer {
     public function addStatusHistory(StatusHistory $statusHistory): self;
 
     public function removeStatusHistory(StatusHistory $statusHistory): self;
+
+    public function setStatus(Statut $status): self;
+
 }

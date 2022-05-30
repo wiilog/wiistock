@@ -35,6 +35,7 @@ class StatusHistoryService {
         $record->setDate($date);
 
         if ($setStatus) {
+            dump("huh");
             $historyContainer->setStatus($status);
         }
 
