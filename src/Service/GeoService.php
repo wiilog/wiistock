@@ -123,13 +123,15 @@ class GeoService
                         "wkid" => 4326,
                     ],
                     "features" => $stops,
-                ])
+                ]),
             ]);
             $result = json_decode($request->getContent(), true);
             foreach ($result['directions'] as $direction) {
-                $stopsData['data'][] = [
+                $routeIndex = intval(substr($direction["routeName"], 6, 1));
+                $stopsData['data'][$routeIndex] = [
                     "distance" => round($direction['summary']['totalLength'] * self::MILES_TO_KM, 2),
-                    "time" => $this->estimateRoundTime(intval($direction["summary"]["totalTime"]))
+                    "time" => $this->estimateRoundTime(intval($direction["summary"]["totalTime"])),
+                    "end" => $coordinates[$routeIndex+1],
                 ];
             }
         } catch (\Exception) {

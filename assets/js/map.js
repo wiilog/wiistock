@@ -39,9 +39,19 @@ export class Map {
     }
 
     setMarker(options) {
-        const existing = this.locations.find(l => (l.latitude === options.latitude && l.longitude === options.longitude));
+        const existing = this.locations.find(l => (options.selector && l.selector === options.selector)
+            || (l.latitude === options.latitude && l.longitude === options.longitude));
+        let estimated = '';
         if (existing) {
-           this.removeLocation(existing);
+            if (!options.deletion) {
+                let currentMarkerPopupContent = existing.marker.getPopup().getContent();
+                let $currentMarkerPopupContent = $(`<div>${currentMarkerPopupContent}</div>`);
+                let $estimated = $currentMarkerPopupContent.find('.estimated');
+                if ($estimated.length) {
+                    estimated = $estimated.prop('outerHTML')
+                }
+            }
+            this.removeLocation(existing);
         }
 
         const marker = Leaflet.marker([options.latitude, options.longitude], {icon: locationIcons[options.icon] || locationIcons.greyLocation});
@@ -56,9 +66,8 @@ export class Map {
 
         if (options.popUp) {
             const className = options.isFocused ? "leaflet-popup-border" : undefined;
-
             marker
-                .bindPopup(options.popUp, {
+                .bindPopup(options.popUp += estimated, {
                     closeButton: false,
                     autoClose: false,
                     closeOnClick: false,
@@ -76,6 +85,23 @@ export class Map {
     removeLocation(location) {
         this.map.removeLayer(location.marker);
         this.locations.splice(this.locations.indexOf(location), 1);
+    }
+
+    estimatePopupMarker(options) {
+        const existing = this.locations.find(l => (options.selector && l.selector === options.selector)
+            || (l.latitude === options.latitude && l.longitude === options.longitude));
+        if (existing) {
+            let marker = existing.marker;
+            let currentMarkerPopupContent = marker.getPopup().getContent();
+            let $currentMarkerPopupContent = $(`<div>${currentMarkerPopupContent}</div>`);
+            let $estimated = $currentMarkerPopupContent.find('.estimated');
+            if ($estimated.length) {
+                $estimated.html(options.estimation);
+            } else {
+                $currentMarkerPopupContent.append(options.estimation);
+            }
+            marker.setPopupContent($currentMarkerPopupContent.html());
+        }
     }
 
     removeMarker(marker) {
@@ -108,13 +134,21 @@ export class Map {
         document.getElementById(this.id).innerHTML = `<div id="map"></div>`
     }
 
-    createPopupContent(contactInformation, index , color = "#3353D7") {
+    getMarker(options) {
+        return this.locations.find(l => (options.selector && l.selector === options.selector)
+            || (l.latitude === options.latitude && l.longitude === options.longitude)).marker ?? null;
+    }
+
+    createPopupContent(contactInformation, index, options = {}) {
+        const {color = "#3353D7", time, timeLabel} = options;
         const htmlIndex = index ? `<span class='index' style='background-color:${color}'>${index}</span>` : ``;
         const htmlTime = contactInformation.time ? `<span class='time'>${contactInformation.time || ""}</span>` : ``;
+        const estimated = time ? `<span class="time estimated">${timeLabel} : ${time}</span>` : ``;
         return `
-        ${htmlIndex}
-        <span class='contact'>${contactInformation.contact || ""}</span>
-        ${htmlTime}
+            ${htmlIndex}
+            <span class='contact'>${contactInformation.contact || ""}</span>
+            ${htmlTime}
+            ${estimated}
     `;
     }
 }
