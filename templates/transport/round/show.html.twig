@@ -162,6 +162,26 @@
                         <div id="map"></div>
                     </div>
                 </div>
+                <div class="d-flex justify-content-between p-3">
+                    <span class="wii-field-name">Courbe de températures</span>
+                    {% if not roundDateBegan %}
+                    <span class="wii-medium-text">
+                        La tournée n'a pas commencé
+                    </span>
+                    {% endif %}
+
+                </div>
+
+                {% for url in urls %}
+                    {% include 'IOT/data_monitoring/content.html.twig' with {
+                        type : 'chart',
+                        fetch_url : url,
+                        needsLine: true,
+                        minTemp: minTemp,
+                        maxTemp: maxTemp
+                    }
+                    %}
+                {% endfor %}
             </div>
         </div>
     </div>
@@ -178,4 +198,5 @@
 {% block javascripts %}
     {{ parent() }}
     {{ encore_entry_script_tags('transport-round-show') }}
+    <script src="{{ asset('js/pages/iot/data-monitoring.js') }}?v={{ web_version }}"></script>
 {% endblock %}

@@ -1,7 +1,7 @@
 import '@styles/pages/transport/common.scss';
 import '@styles/pages/transport/round-plan.scss'
 import {Map} from '@app/map';
-import {getStatusHistory} from "@app/pages/transport/common";
+import {getStatusHistory, getTransportRoundTimeline} from "@app/pages/transport/common";
 
 import AJAX, {GET, POST} from "@app/ajax";
 import Flash, {ERROR} from "@app/flash";
@@ -15,6 +15,7 @@ $(function () {
     const transportType = $(`input[name=transportType]`).val();
 
     getStatusHistory(transportRound, transportType);
+    getTransportRoundTimeline(transportRound);
 
     const calculationPoint = JSON.parse($(`input[name=calculationPoints]`).val());
     const transportPoints = JSON.parse($(`input[name=transportPoints]`).val());
