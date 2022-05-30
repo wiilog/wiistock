@@ -17,7 +17,7 @@ $(function () {
     const $startPointScheduleCalculation = $('.round-form-container [name=startPointScheduleCalculation]');
     const $endPoint = $('.round-form-container [name=endPoint]');
 
-    const isOnGoing = $(`input[name=isOnGoing]`).val();
+    const isOnGoing = Boolean(Number($(`input[name=isOnGoing]`).val()));
 
     updateCardsContainers(map, contactData);
     initializeRoundPointMarkers(map);
@@ -35,39 +35,22 @@ $(function () {
 
     initialiseMouseHoverEvent(map, contactData);
 
-    let sortable;
-    if (isOnGoing) {
-        Sortable.create(`#to-affect-container`, {
-            placeholderClass: 'placeholder',
-        });
+    Sortable.create(`#to-affect-container`, {
+        placeholderClass: 'placeholder',
+    });
 
-        sortable = Sortable.create(`#affected-container`, {
-            acceptFrom: '#to-affect-container',
-            placeholderClass: 'placeholder',
-            items: '.to-assign'
-        });
+    Sortable.create(`#affected-container`, {
+        placeholderClass: 'placeholder',
+        acceptFrom: '#to-affect-container',
+        items: '.to-assign',
+    });
 
-        Sortable.create(`#affected-container`, {
-            acceptFrom: '.sortable-container',
-            placeholderClass: 'placeholder',
-        });
-    }
-    else {
-        sortable = Sortable.create(`.sortable-container`, {
-            placeholderClass: 'placeholder',
-        });
+    Sortable.create(`#affected-container`, {
+        placeholderClass: 'placeholder',
+        acceptFrom: '.sortable-container',
+    });
 
-        Sortable.create(`#affected-container`, {
-            acceptFrom: '#to-affect-container',
-            items: '.to-assign'
-        });
-
-        Sortable.create(`#affected-container`, {
-            acceptFrom: '.sortable-container',
-        });
-    }
-
-    $(sortable).on('sortupdate', function (){
+    $('.sortable-container').on('sortupdate', function (){
         updateCardsContainers(map, contactData);
     })
 
@@ -132,7 +115,7 @@ function initialiseMouseHoverEvent(map, contactData) {
 
         .on('mouseenter.orderCardHover', function(){
             const $card = $(this);
-            const color = ($card.parent().attr('id') == 'delivered-container')? "#666" : "#3353d7";
+            const color = ($card.parent().attr('id') == 'delivered-container') ? "#666" : "#3353d7";
             const currentIndex = $card.find('.affected-number:not(.d-none)').text();
             $card.addClass('focus-border');
             let contact = contactData[$card.data('order-id')];
@@ -187,9 +170,10 @@ function updateCardsContainers(map, contactData) {
     let offset = $('#delivered-container').children().length;
     $('#affected-container').children().each((index, card) => {
         const $card = $(card);
+        const cardPriority = index + 1 + offset;
         $card.find('.affected-number')
             .removeClass('d-none')
-            .text(index + 1 + offset);
+            .text(cardPriority);
         $card.find('.btn-cross')
             .removeClass('d-none')
             .on('click', function() {
@@ -200,7 +184,7 @@ function updateCardsContainers(map, contactData) {
             latitude: contact.latitude,
             longitude: contact.longitude,
             icon: "blueLocation",
-            popUp: map.createPopupContent(contact, index + 1 + offset),
+            popUp: map.createPopupContent(contact, cardPriority),
         });
     });
 }

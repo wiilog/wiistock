@@ -194,9 +194,8 @@ class RoundController extends AbstractController {
             if (!$round || $round->getStatus()?->getCode() == TransportRound::STATUS_FINISHED) {
                 throw new NotFoundHttpException('Impossible de planifier cette tournée');
             }
-            elseif ($request->query->get('isOnGoing')) {
-                $isOnGoing = true;
-            }
+
+            $isOnGoing = $round->getStatus()?->getCode() == TransportRound::STATUS_ONGOING;
         }
         else{
             throw new NotFoundHttpException('Impossible de planifier une tournée');

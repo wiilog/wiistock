@@ -48,17 +48,30 @@ class OrderController extends AbstractController {
         $choosenDate = DateTime::createFromFormat("Y-m-d" , $data["dateCollect"]);
         $choosenDate->setTime(0, 0);
         if ($choosenDate >= new DateTime("today midnight")){
-            $order = $entityManager->find(TransportOrder::class, $data["orderId"]);
+            $statusRepository = $entityManager->getRepository(Statut::class);
 
-            $order->getRequest()
+            $order = $entityManager->find(TransportOrder::class, $data["orderId"]);
+            $request = $order->getRequest();
+
+            if (!($request instanceof TransportCollectRequest)
+                || $request->getDelivery()) {
+                return $this->json([
+                    "success" => true,
+                    "msg" => "Vous ne pouvez pas valider de date avec le patient pour cette ordre",
+                ]);
+            }
+
+            $request
                 ->setTimeSlot($entityManager->find(CollectTimeSlot::class, $data["timeSlot"]))
                 ->setValidatedDate($choosenDate);
 
             { //update the order's history
-                $status = $entityManager->getRepository(Statut::class)
+                $status = $statusRepository
                     ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_COLLECT, TransportOrder::STATUS_TO_ASSIGN);
 
-                $statusHistoryRequest = $statusHistoryService->updateStatus($entityManager, $order, $status);
+                $statusHistoryRequest = $statusHistoryService->updateStatus($entityManager, $order, $status, [
+                    "forceCreation" => false,
+                ]);
 
                 $transportHistoryService->persistTransportHistory($entityManager, $order, TransportHistoryService::TYPE_CONTACT_VALIDATED, [
                     'user' => $userService->getUser(),
@@ -67,12 +80,14 @@ class OrderController extends AbstractController {
             }
 
             { //update the request's history
-                $status = $entityManager->getRepository(Statut::class)
+                $status = $statusRepository
                     ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_REQUEST_COLLECT, TransportRequest::STATUS_TO_COLLECT);
 
-                $statusHistoryRequest = $statusHistoryService->updateStatus($entityManager, $order->getRequest(), $status);
+                $statusHistoryRequest = $statusHistoryService->updateStatus($entityManager, $request, $status, [
+                    "forceCreation" => false,
+                ]);
 
-                $transportHistoryService->persistTransportHistory($entityManager, $order->getRequest(), TransportHistoryService::TYPE_CONTACT_VALIDATED, [
+                $transportHistoryService->persistTransportHistory($entityManager, $request, TransportHistoryService::TYPE_CONTACT_VALIDATED, [
                     'user' => $userService->getUser(),
                     'history' => $statusHistoryRequest
                 ]);

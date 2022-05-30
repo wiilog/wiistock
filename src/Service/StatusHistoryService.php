@@ -14,11 +14,11 @@ class StatusHistoryService {
     public function updateStatus(EntityManagerInterface $entityManager,
                                  StatusHistoryContainer $historyContainer,
                                  Statut                 $status,
-                                 ?DateTime              $date = null,
                                  array                  $options = []): StatusHistory {
 
         $forceCreation = $options['forceCreation'] ?? true;
         $setStatus = $options['setStatus'] ?? true;
+        $date = $options['date'] ?? new DateTime();
 
         if ($forceCreation) {
             $record = $this->createStatusHistory($historyContainer, $status);
@@ -32,7 +32,7 @@ class StatusHistoryService {
             }
         }
 
-        $record->setDate($date ?? new DateTime());
+        $record->setDate($date);
 
         if ($setStatus) {
             $historyContainer->setStatus($status);

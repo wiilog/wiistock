@@ -748,17 +748,18 @@ class TransportService {
                                                      Utilisateur                     $loggedUser,
                                                      TransportRequest|TransportOrder $transport,
                                                      Statut                          $status,
-                                                     DateTime                        $dateTime,
+                                                     DateTime                        $date,
                                                      bool                            $setStatus): void {
 
-        $statusHistory = $this->statusHistoryService->updateStatus($entityManager, $transport, $status, $dateTime, [
+        $statusHistory = $this->statusHistoryService->updateStatus($entityManager, $transport, $status, [
+            'date' => $date,
             'forceCreation' => false,
             'setStatus' => $setStatus
         ]);
 
         $this->transportHistoryService->persistTransportHistory($entityManager, $transport, TransportHistoryService::TYPE_SUBCONTRACT_UPDATE, [
             'history' => $statusHistory,
-            'statusDate' => $dateTime,
+            'statusDate' => $date,
             'user' => $loggedUser
         ]);
     }

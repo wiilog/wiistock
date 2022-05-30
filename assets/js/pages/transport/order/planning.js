@@ -112,6 +112,7 @@ function submitRoundModal(data) {
         params.transportRound = data.get('round');
     }
     window.location.href = Routing.generate('transport_round_plan', params);
+    return Promise.resolve();
 }
 
 /**
