@@ -54,7 +54,7 @@ function deleteRowLine(button, $submit) {
 
 function submitSensor(val = null) {
     if(val) {
-        const route = Routing.generate("get_sensor_by_name", {name: $sensorSelect.val() || $sensorInput.val()} );
+        const route = Routing.generate("get_sensor_by_name", {name: $sensorSelect.val() || $sensorInput.val()});
 
         $.get(route).then((html) => {
             const $sensorType = $modalNewTriggerAction.find('.sensor-type');
@@ -68,7 +68,38 @@ function submitSensor(val = null) {
     }
 }
 
+function onTemplateTypeChange($select){
+    const templatesHigherSelect = $modalNewTriggerAction.find("select[name=templatesForHigher]");
+    const templatesLowerSelect = $modalNewTriggerAction.find("select[name=templatesForLower]");
+    const templatesSelect = $modalEditTriggerAction.find("select[name=templates]");
+    const route = Routing.generate(`get_templates`, {type: $select.val()});
 
+    if($select.attr('name') === 'templateTypeHigher' && $select.val() !== ''){
+        $.post(route).then(({results}) => {
+            templatesHigherSelect.empty();
+            for(let option of results){
+                templatesHigherSelect.append('<option value="'+option['id']+'">'+option['text']+'</option>')
+            }
+            templatesHigherSelect.attr('disabled', $select.val() === '');
+        });
+    } else if($select.attr('name') === 'templateTypeLower' && $select.val() !== ''){
+        $.post(route).then(({results}) => {
+            templatesLowerSelect.empty();
+            for(let option of results){
+                templatesLowerSelect.append('<option value="'+option['id']+'">'+option['text']+'</option>')
+            }
+            templatesLowerSelect.attr('disabled', $select.val() === '');
+        });
+    } else if($select.attr('name') === 'templateType' && $select.val() !== ''){
+        $.post(route).then(({results}) => {
+            templatesSelect.empty();
+            for(let option of results){
+                templatesSelect.append('<option value="'+option['id']+'">'+option['text']+'</option>')
+            }
+            templatesSelect.attr('disabled', $select.val() === '');
+        });
+    }
+}
 
 function clearNewModal(clearReferenceInput = false){
     clearModal($modalNewTriggerAction);

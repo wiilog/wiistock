@@ -6,6 +6,8 @@ use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\FiltreSup;
+use App\Entity\IOT\SensorMessage;
+use App\Entity\IOT\TriggerAction;
 use App\Entity\Menu;
 use App\Entity\Setting;
 use App\Entity\Statut;
@@ -19,6 +21,7 @@ use App\Exceptions\FormException;
 use App\Exceptions\GeoException;
 use App\Helper\FormatHelper;
 use App\Service\GeoService;
+use App\Service\IOT\IOTService;
 use App\Service\StatusHistoryService;
 use App\Service\Transport\TransportHistoryService;
 use App\Service\UniqueNumberService;
@@ -30,6 +33,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Routing\RouterInterface;
 use WiiCommon\Helper\Stream;
 
 
@@ -133,6 +138,7 @@ class RoundController extends AbstractController {
     #[Route("/voir/{transportRound}", name: "transport_round_show", methods: "GET")]
     public function show(TransportRound $transportRound,
                          EntityManagerInterface $entityManager,
+                         RouterInterface $router,
     ): Response {
         $realTime = null;
         if ( $transportRound->getBeganAt() != null & $transportRound->getEndedAt() != null  ) {
@@ -145,6 +151,7 @@ class RoundController extends AbstractController {
         $calculationsPoints['startPoint']['name'] = TransportRound::NAME_START_POINT;
         $calculationsPoints['startPointScheduleCalculation']['name'] = TransportRound::NAME_START_POINT_SCHEDULE_CALCULATION;
         $calculationsPoints['endPoint']['name'] = TransportRound::NAME_END_POINT;
+
         $transportPoints = Stream::from($transportRound->getTransportRoundLines())->map(function (TransportRoundLine $line) {
             if (!$line->getOrder()->isRejected()) {
                 $contact = $line->getOrder()->getRequest()->getContact();
@@ -157,12 +164,38 @@ class RoundController extends AbstractController {
             }
         })->toArray();
 
+        $urls = [];
+        $transportDateBeganAt = $transportRound->getBeganAt();
+
+        foreach ($transportRound->getDeliverer()?->getVehicle()?->getLocations() as $location) {
+            if ($location->getActivePairing()) {
+                $triggerActions = $location->getActivePairing()->getSensorWrapper()->getTriggerActions();
+                $minTriggerActionThreshold = Stream::from($triggerActions)->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'lower')->last();
+                $maxTriggerActionThreshold = Stream::from($triggerActions)->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'higher')->last();
+                $minThreshold = $minTriggerActionThreshold?->getConfig()['temperature'];
+                $maxThreshold = $maxTriggerActionThreshold?->getConfig()['temperature'];
+                $now = new DateTime();
+                $urls[] = [
+                    "fetch_url" => $router->generate("chart_data_history", [
+                        "type" => IOTService::getEntityCodeFromEntity($location),
+                        "id" => $location->getId(),
+                        'start' => $transportRound->getCreatedAt()->format('Y-m-d\TH:i'),
+                        'end' => $now->format('Y-m-d\TH:i'),
+
+                    ], UrlGeneratorInterface::ABSOLUTE_URL),
+                    "minTemp" => $minThreshold,
+                    "maxTemp" => $maxThreshold,
+                ];
+            }
+        }
+
         return $this->render('transport/round/show.html.twig', [
             "transportRound" => $transportRound,
             "realTime" => $realTime,
             "calculationsPoints" => $calculationsPoints,
             "transportPoints" => $transportPoints,
-
+            "urls" => $urls,
+            "roundDateBegan" => $transportDateBeganAt
         ]);
     }
 

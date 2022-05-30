@@ -271,11 +271,16 @@ class Pairing {
         }
     }
 
-    public function hasExceededThreshold(): ?bool {
-//TODO WIIS-7229 appliquer la modification des bornes les bornes
+    public function hasExceededThreshold(): ?bool
+    {
+        $triggerActions = $this->getSensorWrapper()->getTriggerActions();
+        $minTriggerActionThreshold = Stream::from($triggerActions)->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'lower')->last();
+        $maxTriggerActionThreshold = Stream::from($triggerActions)->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'higher')->last();
+        $minThreshold = $minTriggerActionThreshold?->getConfig()['temperature'];
+        $maxThreshold = $maxTriggerActionThreshold?->getConfig()['temperature'];
         return Stream::from($this->getSensorMessages())
-            ->some(fn(SensorMessage $message) => $message->getContent() < SensorMessage::LOW_TEMPERATURE_THRESHOLD
-                || $message->getContent() > SensorMessage::HIGH_TEMPERATURE_THRESHOLD);
-
+            ->some(fn(SensorMessage $message) => (int) $message->getContent() < $minThreshold
+                || (int) $message->getContent() > $maxThreshold
+            );
     }
 }
