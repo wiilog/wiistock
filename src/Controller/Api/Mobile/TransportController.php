@@ -163,14 +163,14 @@ class TransportController extends AbstractFOSRestController {
         ];
     }
     
-    private function serializeTransport(EntityManagerInterface $manager, TransportRoundLine|TransportRequest $request): array {
+    private function serializeTransport(EntityManagerInterface $manager, TransportRoundLine|TransportRequest $request, TransportRoundLine $line = null): array {
         if($request instanceof TransportRoundLine) {
             $line = $request;
             $order = $line->getOrder();
             $request = $order->getRequest();
         } else {
             $order = $request->getOrder();
-            $line = $order->getTransportRoundLines()->last();
+            $line = $line ?? $order->getTransportRoundLines()->last();
         }
 
         $collect = $request instanceof TransportDeliveryRequest ? $request->getCollect() : null;
@@ -209,10 +209,9 @@ class TransportController extends AbstractFOSRestController {
             'type' => FormatHelper::type($request->getType()),
             'type_icon' => $request->getType()?->getLogo() ? $_SERVER["APP_URL"] . $request->getType()->getLogo()->getFullPath() : null,
             'kind' => $isCollect ? 'collect' : 'delivery',
-            'collect' => $collect ? [
-                ...$this->serializeTransport($manager, $collect),
+            'collect' => $collect ? array_merge($this->serializeTransport($manager, $collect, $line), [
                 "from_delivery" => true,
-            ] : null,
+            ]) : null,
             'natures_to_collect' => $naturesToCollect,
             'packs' => Stream::from($order->getPacks())
                 ->map(function(TransportDeliveryOrderPack $orderPack) use ($temperatureRanges) {
@@ -232,11 +231,11 @@ class TransportController extends AbstractFOSRestController {
                     ];
                 }),
             'expected_at' => $isCollect
-                ? $request->getTimeSlot()->getName()
+                ? $request->getTimeSlot()?->getName()
                 : FormatHelper::datetime($request->getExpectedAt()),
             'estimated_time' => $line->getEstimatedAt()?->format('H:i'),
             'expected_time' => $request->getExpectedAt()?->format('H:i'),
-            'time_slot' => $isCollect ? $request->getTimeSlot()->getName() : null,
+            'time_slot' => $isCollect ? $request->getTimeSlot()?->getName() : null,
             'contact' => [
                 'file_number' => $contact->getFileNumber(),
                 'name' => $contact->getName(),
