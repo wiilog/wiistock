@@ -64,7 +64,7 @@ export function getPacks(transportId, transportType) {
 }
 
 export function getTransportRoundTimeline(transportRoundId){
-    $.get(Routing.generate(`round_transport_history_api`, {id: transportRoundId}, true))
+    $.get(Routing.generate(`round_transport_history_api`, {round: transportRoundId}, true))
         .then(({template}) => {
             const $transportListContainer = $(`.transport-list-container`);
             $transportListContainer.html(template);

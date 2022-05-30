@@ -16,7 +16,6 @@ use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\TransportRoundLine;
 use App\Helper\FormatHelper;
 use App\Service\Transport\TransportHistoryService;
-use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -180,26 +179,37 @@ class HistoryController extends AbstractController
         ]);
     }
 
-    #[Route("/{id}/round-transport-history-api", name: "round_transport_history_api", options: ['expose' => true], methods: "GET")]
-    public function roundTransportListApi(int $id, EntityManagerInterface $entityManager): JsonResponse {
-        $transportRound = $entityManager->find(TransportRound::class, $id);
+    #[Route("/{round}/round-transport-history-api", name: "round_transport_history_api", options: ['expose' => true], methods: "GET")]
+    public function roundTransportListApi(TransportRound $round): JsonResponse {
+        $currentLine = $round->getTransportRoundLines()
+            ->filter(fn(TransportRoundLine $line) => !$line->getOrder()?->getTreatedAt())
+            ->first() ?: null;;
 
-        /** @var TransportRoundLine[] $leftArray */
-        $leftArray = $transportRound->getSortedTransportRoundLines()->toArray();
-        $test = new DateTime();
-
-        foreach ($leftArray as $line){
-            $rightArray[] = [
-                'estimated' => $line->getEstimatedAt(),
-                'real' => ''
-            ];
-        }
+        $timelineConfig = $round->getTransportRoundLines()
+            ->map(function(TransportRoundLine $line) use ($currentLine) {
+                $order = $line->getOrder();
+                $request = $order?->getRequest();
+                return [
+                    'name' => $request?->getContact()?->getName(),
+                    'link' => $order
+                        ? $this->generateUrl('transport_order_show', ['transport' => $order->getId()])
+                        : null,
+                    'hint' => $request instanceof TransportCollectRequest ? 'Collecte' : 'Livraison',
+                    'emergency' => $order?->hasRejectedPacks() || $order->isRejected(),
+                    'estimated' => $line->getEstimatedAt(),
+                    'state' => $currentLine?->getId() === $line->getId()
+                        ? 'current'
+                        : ($order?->getTreatedAt() ? 'past' : 'future'),
+//                    TODO
+                    'real' => ''
+                ];
+            })
+            ->toArray();
 
         return $this->json([
             "success" => true,
             "template" => $this->renderView('transport/round/transport_timeline.html.twig', [
-                'leftArray' => $leftArray,
-                'rightArray' => $rightArray,
+                'config' => $timelineConfig,
             ]),
         ]);
     }
