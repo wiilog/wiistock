@@ -5,6 +5,7 @@ namespace App\Service\Transport;
 
 use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\Transport\TransportRequest;
+use App\Entity\Transport\TransportRequestLine;
 use App\Entity\Transport\TransportRound;
 use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
@@ -93,17 +94,10 @@ class TransportRoundService
                 $request = $transportRoundLine->getOrder()?->getRequest() ?: null;
                 $statusRequest = $request->getLastStatusHistory([TransportRequest::STATUS_FINISHED]);
 
-                $natures = [];
-                $packs = $request->getOrder()?->getPacks();
-                if ($packs && !$packs->isEmpty()) {
-                    foreach ($packs as $pack) {
-                        $nature = $pack->getPack()->getNature()->getLabel();
-                        $natures[] = $nature;
-                    }
-                }
-                dump($natures);
-                $naturesStr = Stream::from($natures)->unique()->join(', ' );
-
+                $naturesStr = Stream::from($request->getLines() ?: [])
+                    ->filterMap(fn(TransportRequestLine $line) => $line->getNature()?->getLabel())
+                    ->unique()
+                    ->join(', ');
 
                 $ordersInformation = array_merge($dataRounds, [
                     $request instanceof TransportDeliveryRequest ? ($request->getCollect() ? "Livraison - Collecte" : "Livraison") : "Collecte",
