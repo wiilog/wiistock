@@ -145,15 +145,10 @@
     margin: 5px 10px ;
     width: available;
 }
-.leaflet-container{
-
-    .leaflet-popup-content-wrapper , .leaflet-popup-tip{
-        //border: 1px solid transparent;
-    }
-
+.leaflet-container {
     .leaflet-popup-border{
         .leaflet-popup-content-wrapper , .leaflet-popup-tip{
-            border:1px solid $primary;
+            border: 1px solid $primary;
         }
     }
 
@@ -171,15 +166,37 @@
                 border-radius: 5px 0 0 5px;
                 padding: 5px;
                 color: #FFFFFF;
+                display: inline-flex;
+                align-items: center;
             }
 
-            .contact {
+            .leaflet-popup-content-inner {
+                flex-wrap: wrap;
+                display: flex;
                 padding: 5px;
-            }
 
-            .time {
-                font-weight: bold;
-                padding: 5px;
+                .request-data {
+                    display: flex;
+                    justify-content: space-between;
+                    width: 100%;
+                }
+
+                .contact:not(:last-child) {
+                    padding-right: 5px;
+                }
+
+                .time:not(:first-child) {
+                    padding-right: 5px;
+                }
+
+                .time {
+                    font-weight: bold;
+                }
+
+                .estimated-time {
+                    color: grey;
+                    flex: 100%;
+                }
             }
         }
     }
