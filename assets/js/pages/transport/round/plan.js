@@ -198,7 +198,7 @@ function parseRouteIntels(round, distance, fullTime, time, expectedTimeInMinutes
 
     map.estimatePopupMarker({
         selector,
-        estimation: '<span class="time estimated">Estimé : ' + arrivedTime + '</span>',
+        estimation: arrivedTime,
     });
 
     return [distance, fullTime, time];

@@ -142,7 +142,7 @@ class RoundController extends AbstractController {
         if ($transportRound->getBeganAt() != null && $transportRound->getEndedAt() != null) {
             $realTimeDif = $transportRound->getEndedAt()->diff($transportRound->getBeganAt());
             $realTimeJ = $realTimeDif->format("%a");
-            $realTime = $realTimeDif->format("%h") + ($realTimeJ * 24) . "h" . $realTimeDif->format(" %i") . "min";
+            $realTime = ($realTimeDif->format("%h") + ($realTimeJ * 24)) . "h" . $realTimeDif->format(" %i") . "min";
         };
 
         $calculationsPoints = $transportRound->getCoordinates();

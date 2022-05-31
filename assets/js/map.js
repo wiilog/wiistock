@@ -95,11 +95,14 @@ export class Map {
             let marker = existing.marker;
             let currentMarkerPopupContent = marker.getPopup().getContent();
             let $currentMarkerPopupContent = $(`<div>${currentMarkerPopupContent}</div>`);
-            let $estimated = $currentMarkerPopupContent.find('.estimated');
+            let $estimated = $currentMarkerPopupContent.find('.estimated-time');
             if ($estimated.length) {
-                $estimated.html(options.estimation);
+                $estimated.text(options.estimation);
             } else {
-                $currentMarkerPopupContent.append(options.estimation);
+                $estimated = $(`<span class="estimated-time">Estimé : ${options.estimation}</span>`)
+                $currentMarkerPopupContent
+                    .find('.leaflet-popup-content-inner')
+                    .append($estimated);
             }
             marker.setPopupContent($currentMarkerPopupContent.html());
         }
@@ -139,12 +142,16 @@ export class Map {
         const {color = "#3353D7", time, timeLabel} = options;
         const htmlIndex = index ? `<span class='index' style='background-color:${color}'>${index}</span>` : ``;
         const htmlTime = contactInformation.time ? `<span class='time'>${contactInformation.time || ""}</span>` : ``;
-        const estimated = time ? `<span class="time estimated">${timeLabel} : ${time}</span>` : ``;
+        const estimated = time ? `<span class="estimated-time">${timeLabel} : ${time}</span>` : ``;
         return `
             ${htmlIndex}
-            <span class='contact'>${contactInformation.contact || ""}</span>
-            ${htmlTime}
-            ${estimated}
+            <div class="leaflet-popup-content-inner">
+                <div class="request-data">
+                    <span class='contact'>${contactInformation.contact || ""}</span>
+                    ${htmlTime}
+                </div>
+                ${estimated}
+            </div>
     `;
     }
 }
