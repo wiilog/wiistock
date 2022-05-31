@@ -135,6 +135,32 @@ class TransportController extends AbstractFOSRestController {
             }
         }
 
+        $notDeliveredOrders = Stream::from($lines)
+            ->filter(fn(TransportRoundLine $line) => in_array($line->getOrder()->getStatus()->getCode(), [TransportOrder::STATUS_CANCELLED, TransportOrder::STATUS_NOT_DELIVERED]));
+
+        $returned = Stream::from($notDeliveredOrders)
+            ->flatMap(fn(TransportRoundLine $line) => $line->getOrder()->getPacks())
+            ->filter(fn(TransportDeliveryOrderPack $pack) => $pack->getState() === TransportDeliveryOrderPack::RETURNED_STATE)
+            ->count();
+
+        $toReturn = Stream::from($notDeliveredOrders)
+            ->flatMap(fn(TransportRoundLine $line) => $line->getOrder()->getPacks())
+            ->count();
+
+        $collectedOrders = Stream::from($lines)
+            ->filter(fn(TransportRoundLine $line) =>
+                $line->getOrder()->getRequest() instanceof TransportCollectRequest &&
+                $line->getOrder()->getStatus()->getCode() === TransportOrder::STATUS_FINISHED);
+
+        $depositedPacks = Stream::from($collectedOrders)
+            ->flatMap(fn(TransportRoundLine $line) => $line->getOrder()->getPacks())
+            ->filter(fn(TransportDeliveryOrderPack $pack) => $pack->getState() === TransportDeliveryOrderPack::RETURNED_STATE)
+            ->count();
+
+        $toDeposit = Stream::from($collectedOrders)
+            ->flatMap(fn(TransportRoundLine $line) => $line->getOrder()->getPacks())
+            ->count();
+
         return [
             'id' => $round->getId(),
             'number' => $round->getNumber(),
@@ -155,11 +181,20 @@ class TransportController extends AbstractFOSRestController {
             'total_transports' => count($lines),
             'collected_packs' => $collectedPacks,
             'to_collect_packs' => $packsToCollect,
+            "not_delivered" => $notDeliveredOrders->count(),
+            "returned_packs" => $returned,
+            "packs_to_return" => $toReturn,
+            "done_collects" => $collectedOrders->count(),
+            "deposited_packs" => $depositedPacks,
+            "packs_to_deposit" => $toDeposit,
             'lines' => Stream::from($lines)
                 ->filter(fn(TransportRoundLine $line) =>
                     !$line->getCancelledAt()
                     || $line->getCancelledAt() > $line->getTransportRound()->getBeganAt())
                 ->map(fn(TransportRoundLine $line) => $this->serializeTransport($manager, $line)),
+            "to_finish" => Stream::from($lines)
+                ->map(fn(TransportRoundLine $line) => $line->getFulfilledAt() || $line->getCancelledAt() || $line->getRejectedAt())
+                ->every(),
         ];
     }
     
@@ -227,7 +262,7 @@ class TransportController extends AbstractFOSRestController {
                         'rejected' => $orderPack->getState() === TransportDeliveryOrderPack::REJECTED_STATE,
                         'loaded' => $orderPack->getState() === TransportDeliveryOrderPack::LOADED_STATE,
                         'delivered' => $orderPack->getState() === TransportDeliveryOrderPack::DELIVERED_STATE,
-                        'deposited' => $orderPack->getState() === TransportDeliveryOrderPack::DEPOSITED_STATE,
+                        'returned' => $orderPack->getState() === TransportDeliveryOrderPack::RETURNED_STATE,
                     ];
                 }),
             'expected_at' => $isCollect
