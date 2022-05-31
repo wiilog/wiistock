@@ -128,14 +128,10 @@ class DataExportController extends AbstractController {
     }
 
 
-    /**
-     * @Route("/rounds/csv", name="export_round", options={"expose"=true}, methods={"GET"})
-     */
-    public function exportRounds(
-                                 CSVExportService       $CSVExportService,
+    #[Route('/rounds/csv', name: 'export_round', options: ['expose' => true], methods: 'GET')]
+    public function exportRounds(CSVExportService       $CSVExportService,
                                  TransportRoundService  $transportRoundService,
-                                 EntityManagerInterface $entityManager): Response
-    {
+                                 EntityManagerInterface $entityManager): Response {
 
         $transportRoundRepository = $entityManager->getRepository(TransportRound::class);
         $today = new DateTime();
@@ -143,13 +139,13 @@ class DataExportController extends AbstractController {
         $nameFile = "export-articles-$today.csv";
         $csvHeader = [
             'N°Tournée',
-            'Date Tournée',
+            'Date tournée',
             'Transport',
             'Livreur',
             'Immatriculation',
             'Kilomètres',
             'N° dossier patient',
-            'N°Demande',
+            'N° Demande',
             'Adresse transport',
             'Métropole',
             'Numéro dans la tournée',
@@ -162,7 +158,7 @@ class DataExportController extends AbstractController {
             'Anomalie température',
         ];
 
-        $transportRoundsIterator = $transportRoundRepository->iterateTransportRoundsFinished();
+        $transportRoundsIterator = $transportRoundRepository->iterateFinishedTransportRounds();
         return $CSVExportService->streamResponse(function ($output) use ($CSVExportService, $transportRoundService, $transportRoundsIterator) {
             /** @var TransportRound $round */
             foreach ($transportRoundsIterator as $round) {

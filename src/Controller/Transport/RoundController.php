@@ -549,15 +549,11 @@ class RoundController extends AbstractController {
         ]);
     }
 
-
-    /**
-     * @Route("/csv", name="transport_rounds_export", options={"expose"=true}, methods={"GET"})
-     */
+    #[Route('/csv', name: 'transport_rounds_export', options: ['expose' => true], methods: 'GET')]
     public function getTransportRoundCSV(Request                $request,
-                                          CSVExportService       $CSVExportService,
-                                          TransportRoundService  $transportRoundService,
-                                          EntityManagerInterface $entityManager): Response
-    {
+                                         CSVExportService       $CSVExportService,
+                                         TransportRoundService  $transportRoundService,
+                                         EntityManagerInterface $entityManager): Response {
 
         $transportRoundRepository = $entityManager->getRepository(TransportRound::class);
         $dateMin = $request->query->get('dateMin');
@@ -566,35 +562,34 @@ class RoundController extends AbstractController {
         $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
         $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
 
-
-            $nameFile = 'export_rounds.csv';
-            $csvHeader = [
-                'N°Tournée',
-                'Statut',
-                'Date Tournée',
-                'Date Attente livreur',
-                'Date En cours',
-                'Date Terminée',
-                'Temps estimé',
-                'Temps réel',
-                'Kilomètres estimés',
-                'Kilomètres réels',
-                'Livreur',
-                'Immatriculation',
-                'Patient',
-                'N°Demande',
-                'Adresse Livraison',
-                'Numéro de la tournée',
-                'Statut ordre de transport',
-                'Dépassement températures',
-            ];
+        $nameFile = 'export_tournee.csv';
+        $csvHeader = [
+            'N°Tournée',
+            'Statut',
+            'Date Tournée',
+            'Date Attente livreur',
+            'Date En cours',
+            'Date Terminée',
+            'Temps estimé',
+            'Temps réel',
+            'Kilomètres estimés',
+            'Kilomètres réels',
+            'Livreur',
+            'Immatriculation',
+            'Patient',
+            'N°Demande',
+            'Adresse Livraison',
+            'Numéro dans la tournée',
+            'Statut ordre transport',
+            'Dépassement températures',
+        ];
 
         $transportRoundsIterator = $transportRoundRepository->iterateTransportRoundsByDates($dateTimeMin, $dateTimeMax);
 
         return $CSVExportService->streamResponse(function ($output) use ($CSVExportService, $transportRoundService, $transportRoundsIterator) {
             /** @var TransportRound $round */
             foreach ($transportRoundsIterator as $round) {
-                    $transportRoundService->putLineRounds($output, $CSVExportService, $round );
+                $transportRoundService->putLineRoundAndOrder($output, $CSVExportService, $round);
             }
         }, $nameFile, $csvHeader);
     }

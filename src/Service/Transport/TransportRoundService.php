@@ -6,11 +6,9 @@ namespace App\Service\Transport;
 use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\Transport\TransportRequest;
 use App\Entity\Transport\TransportRound;
-use App\Entity\Transport\Vehicle;
 use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use Symfony\Contracts\Service\Attribute\Required;
-use function PHPUnit\Framework\isEmpty;
 
 
 class TransportRoundService
@@ -19,54 +17,58 @@ class TransportRoundService
     #[Required]
     public TransportService $transportService;
 
-
-    public function putLineRounds($output, CSVExportService $csvService, TransportRound $round): void
-    {
-        $statusCode = [
+    /**
+     * For csv export on transport round list page
+     */
+    public function putLineRoundAndOrder($output, CSVExportService $csvService, TransportRound $round): void {
+        $roundStatuses = $round->getLastStatusHistory([
             TransportRound::STATUS_AWAITING_DELIVERER,
             TransportRound::STATUS_ONGOING,
             TransportRound::STATUS_FINISHED
-        ];
-        $statusRound = $round->getLastStatusHistory($statusCode);
+        ]);
 
-        /** @var Vehicle $vehicle */
-        $vehicle = $round->getDeliverer()?->getVehicles()?->first();
+        $vehicle = $round->getDeliverer()?->getVehicle();
 
         $transportRoundLines = $round->getTransportRoundLines();
 
         $realTime = null;
-        if ( $round->getBeganAt() != null & $round->getEndedAt() != null  ) {
-            $realTimeDif = $round->getEndedAt()->diff($round->getBeganAt());
-            $realTimeJ = $realTimeDif->format("%a");
-            $realTime = $realTimeDif->format("%h") + ($realTimeJ * 24) . ":" . $realTimeDif->format(" %i");
+        if ($round->getBeganAt() && $round->getEndedAt()) {
+            $realTimeDiff = $round->getEndedAt()->diff($round->getBeganAt());
+            $realTimeDays = (int) $realTimeDiff->format("%a");
+            $realTimeHours = (int) $realTimeDiff->format("%h");
+            $realTimeMinutes = (int) $realTimeDiff->format("%i");
+            $realTime = ($realTimeHours + ($realTimeDays * 24)) . ":" . $realTimeMinutes;
         }
 
         $dataRounds = [
-            $round->getNumber(),
-            $round->getStatus() ?: '',
+            TransportRound::NUMBER_PREFIX . $round->getNumber(),
+            FormatHelper::status($round->getStatus()),
             FormatHelper::date($round->getExpectedAt()),
-            isset($statusRound[TransportRound::STATUS_AWAITING_DELIVERER]) ? FormatHelper::datetime($statusRound[TransportRound::STATUS_AWAITING_DELIVERER]) : '',
-            isset($statusRound[TransportRound::STATUS_ONGOING]) ? FormatHelper::datetime($statusRound[TransportRound::STATUS_ONGOING]) : '',
-            isset($statusRound[TransportRound::STATUS_FINISHED]) ? FormatHelper::datetime($statusRound[TransportRound::STATUS_FINISHED]) : '',
-            $round->getEstimatedTime()?:'',
+            isset($roundStatuses[TransportRound::STATUS_AWAITING_DELIVERER]) ? FormatHelper::datetime($roundStatuses[TransportRound::STATUS_AWAITING_DELIVERER]) : '',
+            isset($roundStatuses[TransportRound::STATUS_ONGOING]) ? FormatHelper::datetime($roundStatuses[TransportRound::STATUS_ONGOING]) : '',
+            isset($roundStatuses[TransportRound::STATUS_FINISHED]) ? FormatHelper::datetime($roundStatuses[TransportRound::STATUS_FINISHED]) : '',
+            $round->getEstimatedTime() ?: '',
             $realTime ?:'',
-            $round->getEstimatedDistance()?:'',
-            $round->getRealDistance()?:'',
-            $round->getDeliverer()?:'',
-            $vehicle->getRegistrationNumber()?:'',
+            $round->getEstimatedDistance() ?: '',
+            $round->getRealDistance() ?: '',
+            FormatHelper::user($round->getDeliverer()),
+            $vehicle?->getRegistrationNumber() ?: '',
         ];
 
-        if(!$transportRoundLines->isEmpty())
+        if(!$transportRoundLines->isEmpty()) {
             foreach ($transportRoundLines as $transportRoundLine) {
+                $order = $transportRoundLine->getOrder();
+                $request = $order?->getRequest();
                 $ordersInformation = array_merge($dataRounds, [
-                    $transportRoundLine->getOrder()?->getRequest()?->getContact()?->getName()?:'',
-                    $transportRoundLine->getOrder()?->getRequest()?->getNumber()?:'',
-                    str_replace("\n", " ", $transportRoundLine->getOrder()?->getRequest()?->getContact()?->getAddress()?:''),
-                    $transportRoundLine->getPriority()?:'',
-                    $transportRoundLine->getOrder()?->getStatus()?:'',
-                    $vehicle->getActivePairing() ? FormatHelper::bool( $vehicle->getActivePairing()->hasExceededThreshold()): "Non",
-                    ]);
-            $csvService->putLine($output, $ordersInformation);
+                    $request?->getContact()?->getName() ?: '',
+                    TransportRequest::NUMBER_PREFIX . $request?->getNumber(),
+                    str_replace("\n", " ", $request?->getContact()?->getAddress() ?: ''),
+                    $transportRoundLine->getPriority() ?: '',
+                    $order?->getStatus()->getNom() ?: '',
+                    $vehicle?->getActivePairing() ? FormatHelper::bool($vehicle->getActivePairing()->hasExceededThreshold()) : "Non",
+                ]);
+                $csvService->putLine($output, $ordersInformation);
+            }
         }
         else {
             $csvService->putLine($output, $dataRounds);
@@ -74,56 +76,49 @@ class TransportRoundService
 
     }
 
-    public function putRoundsLineParameters($output, CSVExportService $csvService, TransportRound $round): void
-    {
-        $statusCode = [
-            TransportRequest::STATUS_FINISHED
-        ];
 
-        /** @var Vehicle $vehicle */
-        $vehicle = $round->getDeliverer()?->getVehicles()?->first();
+    public function putRoundsLineParameters($output, CSVExportService $csvService, TransportRound $round): void {
+        $vehicle = $round->getDeliverer()?->getVehicle();
 
         $transportRoundLines = $round->getTransportRoundLines();
 
         $dataRounds = [
-            $round->getNumber(),
+            TransportRound::NUMBER_PREFIX . $round->getNumber(),
             FormatHelper::date($round->getExpectedAt()),
         ];
 
         if (!$transportRoundLines->isEmpty()) {
             foreach ($transportRoundLines as $transportRoundLine) {
                 $request = $transportRoundLine->getOrder()?->getRequest() ?: null;
-                $statusRequest = $request->getLastStatusHistory($statusCode);
+                $statusRequest = $request->getLastStatusHistory([TransportRequest::STATUS_FINISHED]);
                 $naturesStr = '';
                 $packs = $request->getOrder()?->getPacks();
                 if ($packs && !$packs->isEmpty()) {
                     foreach ($packs as $pack) {
-                        $nature = $pack->getPack()->getNature()->getCode();
+                        $nature = $pack->getPack()->getNature()->getLabel();
                         if (!str_contains($naturesStr, $nature)) {
-                        $naturesStr = $naturesStr . " " . $nature;
+                            $naturesStr = $naturesStr . ", " . $nature;
                         }
                     }
                 }
 
                 $ordersInformation = array_merge($dataRounds, [
-                    $request instanceof TransportDeliveryRequest ? ($request->getCollect() ? "Livraison-Collecte" : "Livraison") : "Collecte",
+                    $request instanceof TransportDeliveryRequest ? ($request->getCollect() ? "Livraison - Collecte" : "Livraison") : "Collecte",
                     FormatHelper::user($round->getDeliverer()),
-                    $vehicle->getRegistrationNumber() ?: '',
+                    $vehicle?->getRegistrationNumber() ?: '',
                     $round->getRealDistance() ?: '',
                     $request->getContact()?->getFileNumber() ?: '',
-                    $request->getNumber() ?: '',
+                    TransportRequest::NUMBER_PREFIX . $request->getNumber(),
                     str_replace("\n", " ", $transportRoundLine->getOrder()?->getRequest()?->getContact()?->getAddress() ?: ''),
                     $request->getContact()->getAddress() ? FormatHelper::bool($this->transportService->isMetropolis($request->getContact()->getAddress())) : '',
                     $transportRoundLine->getPriority() ?: '',
-                    ...($request instanceof TransportDeliveryRequest ? [FormatHelper::bool(!empty($request->getEmergency()))] : []),
+                    ...($request instanceof TransportDeliveryRequest ? [$request->getEmergency() ?: ''] : ['']),
                     FormatHelper::datetime($request->getCreatedAt()),
                     FormatHelper::user($request->getCreatedBy()),
-                    FormatHelper::datetime($request->getExpectedAt()),
+                    $request instanceof TransportDeliveryRequest ? FormatHelper::datetime($request->getExpectedAt()) : FormatHelper::date($request->getExpectedAt()),
                     isset($statusRequest[TransportRequest::STATUS_FINISHED]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_FINISHED]) : '',
                     $naturesStr,
-                    $vehicle->getActivePairing() ? FormatHelper::bool($vehicle->getActivePairing()->hasExceededThreshold()) : "Non",
-
-
+                    $vehicle?->getActivePairing() ? FormatHelper::bool($vehicle->getActivePairing()->hasExceededThreshold()) : "Non",
                 ]);
                 $csvService->putLine($output, $ordersInformation);
             }
