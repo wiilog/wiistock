@@ -454,6 +454,7 @@ class ArrivageController extends AbstractController {
             || $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_NS);
 
         $arrivage = $arrivageRepository->find($post->get('id'));
+
         $fournisseurId = $post->get('fournisseur');
         $transporteurId = $post->get('transporteur');
         $destinataireId = $post->get('destinataire');
@@ -464,9 +465,8 @@ class ArrivageController extends AbstractController {
         $newDestinataire = $destinataireId ? $utilisateurRepository->find($destinataireId) : null;
         $destinataireChanged = $newDestinataire && $newDestinataire !== $arrivage->getDestinataire();
         $numeroCommadeListStr = $post->get('numeroCommandeList');
-        $dropLocation = $dropLocationId
-            ? $emplacementRepository->find($dropLocationId)
-            : $arrivage->getDropLocation();
+        $dropLocation = $dropLocationId ? $emplacementRepository->find($dropLocationId) : null;
+
         $sendMail = $settingRepository->getOneParamByLabel(Setting::SEND_MAIL_AFTER_NEW_ARRIVAL);
 
         $oldSupplierId = $arrivage->getFournisseur() ? $arrivage->getFournisseur()->getId() : null;
