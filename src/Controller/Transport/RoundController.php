@@ -136,12 +136,10 @@ class RoundController extends AbstractController {
     }
 
     #[Route("/voir/{transportRound}", name: "transport_round_show", methods: "GET")]
-    public function show(TransportRound $transportRound,
-                         EntityManagerInterface $entityManager,
-                         RouterInterface $router,
-    ): Response {
+    public function show(TransportRound         $transportRound,
+                         RouterInterface        $router): Response {
         $realTime = null;
-        if ( $transportRound->getBeganAt() != null & $transportRound->getEndedAt() != null  ) {
+        if ($transportRound->getBeganAt() != null && $transportRound->getEndedAt() != null) {
             $realTimeDif = $transportRound->getEndedAt()->diff($transportRound->getBeganAt());
             $realTimeJ = $realTimeDif->format("%a");
             $realTime = $realTimeDif->format("%h") + ($realTimeJ * 24) . "h" . $realTimeDif->format(" %i") . "min";
@@ -210,9 +208,9 @@ class RoundController extends AbstractController {
 
     #[Route("/calculer", name: "transport_round_calculate", options: ['expose' => true], methods: "GET")]
     #[HasPermission([Menu::ORDRE, Action::SCHEDULE_TRANSPORT_ROUND])]
-    public function calculate(Request $request,
-                         GeoService $geoService,
-                         EntityManagerInterface $entityManager): Response {
+    public function calculate(Request                $request,
+                              GeoService             $geoService,
+                              EntityManagerInterface $entityManager): Response {
 
         $orderRepository = $entityManager->getRepository(TransportOrder::class);
 
@@ -246,9 +244,11 @@ class RoundController extends AbstractController {
 
         $orders = Stream::from($request->query->all('orders'))
             ->sort(fn(array $order1, array $order2) => $order1['index'] <=> $order2['index'])
-            ->keymap(function(array $order) use ($orderRepository) {
-                return [$order['index'], $orderRepository->find($order['order'])];
-            })->toArray();
+            ->keymap(fn(array $order) => [
+                $order['index'],
+                $orderRepository->find($order['order'])
+            ])
+            ->toArray();
 
         $coordinates = Stream::from($request->query->all('orders'))
             ->map(function(array $order) use ($orderRepository) {

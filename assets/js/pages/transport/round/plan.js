@@ -7,10 +7,6 @@ import Form from "@app/form";
 import Flash, {ERROR} from "@app/flash";
 
 const roundMarkerAlreadySaved = {};
-const INDEX_TO_LABEL = {
-    0: 'startPointScheduleCalculation'
-}
-let WAITING_TIMES = [];
 
 $(function () {
     const map = Map.create(`map`);
@@ -27,7 +23,6 @@ $(function () {
     initializeRoundPointMarkers(map);
     initializeForm(map);
 
-    WAITING_TIMES = JSON.parse($('input[name="waitingTime"]').val());
     Promise
         .all([
             placeAddressMarker($startPoint, map),
@@ -158,19 +153,23 @@ $(function () {
 });
 
 function saveAndDisplayEstimatedTimesInDOM(distance, time) {
-    $('.estimatedTotalDistance').text(Number(distance).toFixed(2) + 'km');
-    $('.estimatedTotalTime').text((Math.floor(time/60) < 10 ? '0' + Math.floor(time/60) : Math.floor(time/60)) + 'h' + (time%60 < 10 ? '0' + time%60 : time%60));
+    const estimatedTotalTime = minutesToTime(time);
+    const strDistance = Number(distance).toFixed(2);
 
-    $('input[name="estimatedTotalDistance"]').val(Number(distance).toFixed(2));
-    $('input[name="estimatedTotalTime"]').val((Math.floor(time/60) < 10 ? '0' + Math.floor(time/60) : Math.floor(time/60)) + ':' + (time%60 < 10 ? '0' + time%60 : time%60));
+    $('.estimatedTotalDistance').text(`${strDistance}km`);
+    $('.estimatedTotalTime').text(estimatedTotalTime);
+    $('input[name="estimatedTotalDistance"]').val(strDistance);
+    $('input[name="estimatedTotalTime"]').val(estimatedTotalTime);
 }
 
 function parseRouteIntels(round, distance, fullTime, time, expectedTimeInMinutes, index, map, params, roundData) {
+    const waitingTimes = JSON.parse($('input[name="waitingTime"]').val());
+
     distance += round.distance;
     let roundHours = Number(round.time.substring(0, 2));
     let roundMinutes = Number(round.time.substring(3, 5));
     let roundTime = roundHours * 60 + roundMinutes;
-    const waitingTime = round.destinationType ? Number(WAITING_TIMES[round.destinationType]) : 0;
+    const waitingTime = round.destinationType ? Number(waitingTimes[round.destinationType]) : 0;
     roundTime += waitingTime;
 
     fullTime += roundTime;
@@ -181,12 +180,21 @@ function parseRouteIntels(round, distance, fullTime, time, expectedTimeInMinutes
 
     const elapsed = expectedTimeInMinutes + fullTime;
 
-    const arrivedTime = Math.floor((elapsed/60 < 10 ? '0' + elapsed/60 : elapsed/60)) + 'h' + (elapsed%60 < 10 ? '0' + elapsed%60 : elapsed%60);
+    const arrivedTime = minutesToTime(elapsed);
 
     const isLastIteration = index === Object.values(roundData.data).length - 1;
-    const selector = isLastIteration
-        ? 'endPoint'
-        : (INDEX_TO_LABEL[index] || params.orders.find((order) => order.index === index - 1).order);
+
+    // name of address input or order id
+    const selector = (
+        index === 0 ? 'startPointScheduleCalculation' :
+        isLastIteration ? 'endPoint' :
+        params.orders.find((order) => order.index === index - 1).order
+    );
+
+    $('#affected-container')
+        .find(`.order-card.assigned[data-order-id=${selector}]`)
+        .data('order-time', arrivedTime)
+        .attr('data-order-time', arrivedTime);
 
     map.estimatePopupMarker({
         selector,
@@ -359,22 +367,10 @@ function initializeForm(map) {
             else {
                 const ordersAndTimes = $affectedOrders
                     .map((_, orderCard) => {
-                        const id = $(orderCard).data('order-id');
-                        let time = null;
-                        const marker = map.getMarker({
-                            selector: Number(id)
-                        });
-                        if (marker) {
-                            const popupContent = marker.getPopup().getContent();
-                            let $currentMarkerPopupContent = $(`<div>${popupContent}</div>`);
-                            let $estimated = $currentMarkerPopupContent.find('.estimated');
-                            if ($estimated.length) {
-                                time = $estimated.text().substring(9);
-                            }
-                        }
+                        const $card = $(orderCard);
                         return {
-                            id,
-                            time
+                            id: $card.data('order-id'),
+                            time: $card.data('order-time')
                         }
                     })
                     .toArray();
@@ -465,4 +461,13 @@ function saveCoordinatesByAddress($form, name, pointCoordinates, marker = null) 
     }
 
     $coordinates.val(JSON.stringify(coordinates));
+}
+
+function minutesToTime(timestamp) {
+    const hours = Math.floor(timestamp / 60);
+    const strHours = (hours < 10 ? '0' : '') + hours;
+    const minutes = timestamp % 60;
+    const strMinutes = (minutes < 10 ? '0' : '') + minutes;
+
+    return `${strHours}:${strMinutes}`;
 }

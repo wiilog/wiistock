@@ -39,8 +39,10 @@ export class Map {
     }
 
     setMarker(options) {
-        const existing = this.locations.find(l => (options.selector && l.selector === options.selector)
-            || (l.latitude === options.latitude && l.longitude === options.longitude));
+        const existing = this.locations.find(l => (
+            (options.selector && l.selector === options.selector)
+            || (l.latitude === options.latitude && l.longitude === options.longitude)
+        ));
         let estimated = '';
         if (existing) {
             if (!options.deletion) {
@@ -65,13 +67,12 @@ export class Map {
         this.map.addLayer(marker);
 
         if (options.popUp) {
-            const className = options.isFocused ? "leaflet-popup-border" : undefined;
             marker
-                .bindPopup(options.popUp += estimated, {
+                .bindPopup(`${options.popUp}${estimated}`, {
                     closeButton: false,
                     autoClose: false,
                     closeOnClick: false,
-                    className
+                    className: options.isFocused ? "leaflet-popup-border" : undefined
                 })
                 .openPopup();
         }
@@ -132,11 +133,6 @@ export class Map {
 
     reinitialize() {
         document.getElementById(this.id).innerHTML = `<div id="map"></div>`
-    }
-
-    getMarker(options) {
-        return this.locations.find(l => (options.selector && l.selector === options.selector)
-            || (l.latitude === options.latitude && l.longitude === options.longitude)).marker ?? null;
     }
 
     createPopupContent(contactInformation, index, options = {}) {

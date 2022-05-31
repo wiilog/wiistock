@@ -48,7 +48,7 @@
                                         removeButton: false,
                                         isAssigned: true,
                                         isFinish: true,
-                                        time: line.fulfilledAt | date('H:i'),
+                                        time: line.fulfilledAt ? (line.fulfilledAt | date('H:i')),
                                     } %}
                                 {% endif %}
                             {% endfor %}
@@ -61,7 +61,7 @@
                                         transportOrder: transportOrder,
                                         removeButton: false,
                                         isAssigned: true,
-                                        time: line.estimatedAt | date('H:i'),
+                                        time: line.estimatedAt ? (line.estimatedAt | date('H:i')),
                                     } %}
                                 {% endif %}
                             {% endfor %}
@@ -156,8 +156,8 @@
                                     ) }}
                                 </div>
                                 <div class="col-auto align-self-end">
-                                    <button class="btn {% if not round.deliverer %} btn-disabled {%endif%} btn-primary ml-auto  plan-round-button d-flex align-items-center btn-calculate-time" tabindex="0">
-                                        <img src="{{ asset('svg/clock-white.svg') }}" alt="Icône tournéé" width="15px" class="mr-2">
+                                    <button class="btn {% if not round.deliverer %} btn-disabled {%endif%} btn-primary ml-auto d-flex align-items-center btn-calculate-time" tabindex="0">
+                                        <img src="{{ asset('svg/clock-white.svg') }}" alt="" width="15px" class="mr-2">
                                         <span class="ml-1">Calculer les horaires</span>
                                     </button>
                                 </div>
@@ -178,7 +178,7 @@
                             </div>
                         </div>
                         <div class="bottom-right-buttons mx-2">
-                            <button class="btn btn-outline-secondary ml-auto plan-round-button" tabindex="0">
+                            <button class="btn btn-outline-secondary ml-auto" tabindex="0">
                             {# TODO action #}
                                 Annuler
                             </button>
