@@ -173,14 +173,13 @@ export default class Form {
             }
         }
 
-        if(errors.length) {
+        if(errors.length > 0) {
             console.error(`%cForm errors (${errors.length}) %c`, ...[
                 `font-weight: bold;`,
                 `font-weight: normal;`,
             ], errors);
-            const [firstError] = errors;
-            if (firstError && firstError.elements && firstError.elements[0]) {
-                const $firstInvalidElement = firstError.elements[0];
+            if (errors[0].elements && errors[0].elements[0]) {
+                const $firstInvalidElement = errors[0].elements[0];
                 const $scrollableParent = $firstInvalidElement.parents(`.modal`).exists()
                     ? $firstInvalidElement.parents(`.modal`).first()
                     : $firstInvalidElement.parents(`body`);

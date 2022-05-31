@@ -16,7 +16,7 @@ use Doctrine\ORM\Mapping as ORM;
 use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: TransportOrderRepository::class)]
-class TransportOrder implements StatusHistoryContainer {
+class TransportOrder extends StatusHistoryContainer {
 
     use AttachmentTrait;
 
@@ -396,14 +396,4 @@ class TransportOrder implements StatusHistoryContainer {
 
         return $this;
     }
-
-    public function getLastStatusHistory(array $statusCode) : array|null
-    {
-        return Stream::from($this->getStatusHistory())
-            ->filter(fn(StatusHistory $history) => in_array($history->getStatus()->getCode(),$statusCode))
-            ->sort(fn(StatusHistory $s1, StatusHistory $s2) => $s2->getId() <=> $s1->getId())
-            ->keymap(fn(StatusHistory $history) => [$history->getStatus()->getCode(), $history->getDate()])
-            ->toArray();
-    }
-
 }
