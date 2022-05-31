@@ -465,7 +465,9 @@ class ArrivageController extends AbstractController {
         $newDestinataire = $destinataireId ? $utilisateurRepository->find($destinataireId) : null;
         $destinataireChanged = $newDestinataire && $newDestinataire !== $arrivage->getDestinataire();
         $numeroCommadeListStr = $post->get('numeroCommandeList');
-        $dropLocation = $dropLocationId ? $emplacementRepository->find($dropLocationId) : null;
+        $dropLocation = $post->has('dropLocation')
+            ? ($dropLocationId ? $emplacementRepository->find($dropLocationId) : null)
+            : $arrivage->getDropLocation();
 
         $sendMail = $settingRepository->getOneParamByLabel(Setting::SEND_MAIL_AFTER_NEW_ARRIVAL);
 
