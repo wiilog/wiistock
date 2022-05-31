@@ -137,32 +137,13 @@ class DataExportController extends AbstractController {
         $today = new DateTime();
         $today = $today->format("d-m-Y H:i:s");
         $nameFile = "export-tournées-$today.csv";
-        $csvHeader = [
-            'N°Tournée',
-            'Date tournée',
-            'Transport',
-            'Livreur',
-            'Immatriculation',
-            'Kilomètres',
-            'N° dossier patient',
-            'N° Demande',
-            'Adresse transport',
-            'Métropole',
-            'Numéro dans la tournée',
-            'Urgence',
-            'Date de création',
-            'Demandeur',
-            'Date demandée',
-            'Date demande terminée',
-            'Objets',
-            'Anomalie température',
-        ];
+        $csvHeader = $transportRoundService->getHeaderRoundAndRequestExport();
 
         $transportRoundsIterator = $transportRoundRepository->iterateFinishedTransportRounds();
         return $CSVExportService->streamResponse(function ($output) use ($CSVExportService, $transportRoundService, $transportRoundsIterator) {
             /** @var TransportRound $round */
             foreach ($transportRoundsIterator as $round) {
-                $transportRoundService->putRoundsLineParameters($output, $CSVExportService, $round);
+                $transportRoundService->putLineRoundAndRequest($output, $CSVExportService, $round);
             }
         }, $nameFile, $csvHeader);
     }

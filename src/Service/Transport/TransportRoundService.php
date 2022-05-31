@@ -77,7 +77,7 @@ class TransportRoundService
     }
 
 
-    public function putRoundsLineParameters($output, CSVExportService $csvService, TransportRound $round): void {
+    public function putLineRoundAndRequest($output, CSVExportService $csvService, TransportRound $round): void {
         $vehicle = $round->getDeliverer()?->getVehicle();
 
         $transportRoundLines = $round->getTransportRoundLines();
@@ -124,8 +124,31 @@ class TransportRoundService
             }
         }
         else {
-                $csvService->putLine($output, $dataRounds);
-            }
+            $csvService->putLine($output, $dataRounds);
         }
+    }
+
+    public function getHeaderRoundAndRequestExport(): array {
+        return [
+            'N° Tournée',
+            'Date tournée',
+            'Transport',
+            'Livreur',
+            'Immatriculation',
+            'Kilomètres',
+            'N° dossier patient',
+            'N° Demande',
+            'Adresse transport',
+            'Métropole',
+            'Numéro dans la tournée',
+            'Urgence',
+            'Date de création',
+            'Demandeur',
+            'Date demandée',
+            'Date demande terminée',
+            'Objets',
+            'Anomalie température',
+        ];
+    }
 
 }
