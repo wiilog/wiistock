@@ -140,7 +140,7 @@ class DataExportController extends AbstractController {
         $transportRoundRepository = $entityManager->getRepository(TransportRound::class);
         $today = new DateTime();
         $today = $today->format("d-m-Y H:i:s");
-        $nameFile = "export-articles-$today.csv";
+        $nameFile = "export-tournées-$today.csv";
         $csvHeader = [
             'N°Tournée',
             'Date Tournée',
