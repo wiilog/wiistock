@@ -105,8 +105,7 @@ class TransportController extends AbstractFOSRestController {
                     'total_transports' => count($lines),
                     'lines' => Stream::from($lines)
                         ->filter(fn(TransportRoundLine $line) =>
-                            !in_array($line->getOrder()->getStatus()->getCode(), [TransportOrder::STATUS_NOT_COLLECTED, TransportOrder::STATUS_NOT_COLLECTED])
-                            || !$line->getCancelledAt()
+                            !$line->getCancelledAt()
                             || ($line->getTransportRound()->getBeganAt() && $line->getCancelledAt() > $line->getTransportRound()->getBeganAt()))
                         ->map(function(TransportRoundLine $line) use ($freeFieldRepository) {
                             $order = $line->getOrder();
@@ -469,7 +468,6 @@ class TransportController extends AbstractFOSRestController {
                                      AttachmentService $attachmentService): Response {
         $data = $request->request;
         $files = $request->files;
-        dump($data);
         $order = $manager->find(TransportOrder::class, $data->get('transport'));
         $round = $manager->find(TransportRound::class, $data->get('round'));
         $motive = $data->get('motive');
