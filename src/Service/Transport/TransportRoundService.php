@@ -10,6 +10,7 @@ use App\Entity\Transport\Vehicle;
 use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use Symfony\Contracts\Service\Attribute\Required;
+use WiiCommon\Helper\Stream;
 use function PHPUnit\Framework\isEmpty;
 
 
@@ -94,16 +95,17 @@ class TransportRoundService
             foreach ($transportRoundLines as $transportRoundLine) {
                 $request = $transportRoundLine->getOrder()?->getRequest() ?: null;
                 $statusRequest = $request->getLastStatusHistory($statusCode);
-                $naturesStr = '';
+                $natures = [];
                 $packs = $request->getOrder()?->getPacks();
                 if ($packs && !$packs->isEmpty()) {
                     foreach ($packs as $pack) {
-                        $nature = $pack->getPack()->getNature()->getCode();
-                        if (!str_contains($naturesStr, $nature)) {
-                        $naturesStr = $naturesStr . " " . $nature;
-                        }
+                        $nature = $pack->getPack()->getNature()->getLabel();
+                        $natures[] = $nature;
                     }
                 }
+                dump($natures);
+                $naturesStr = Stream::from($natures)->unique()->join(', ' );
+
 
                 $ordersInformation = array_merge($dataRounds, [
                     $request instanceof TransportDeliveryRequest ? ($request->getCollect() ? "Livraison-Collecte" : "Livraison") : "Collecte",
@@ -115,7 +117,7 @@ class TransportRoundService
                     str_replace("\n", " ", $transportRoundLine->getOrder()?->getRequest()?->getContact()?->getAddress() ?: ''),
                     $request->getContact()->getAddress() ? FormatHelper::bool($this->transportService->isMetropolis($request->getContact()->getAddress())) : '',
                     $transportRoundLine->getPriority() ?: '',
-                    ...($request instanceof TransportDeliveryRequest ? [FormatHelper::bool(!empty($request->getEmergency()))] : []),
+                    $request instanceof TransportDeliveryRequest ? FormatHelper::bool(!empty($request->getEmergency())) :'',
                     FormatHelper::datetime($request->getCreatedAt()),
                     FormatHelper::user($request->getCreatedBy()),
                     FormatHelper::datetime($request->getExpectedAt()),
