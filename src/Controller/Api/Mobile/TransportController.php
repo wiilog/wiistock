@@ -570,8 +570,12 @@ class TransportController extends AbstractFOSRestController {
             ->setComment($comment)
             ->setTreatedAt($now);
 
-        $lastLine = $order->getTransportRoundLines()->last();
-        $lastLine->setFulfilledAt($now);
+        $isCollectFromDelivery = $request instanceof TransportCollectRequest && $request->getDelivery();
+
+        if (!$isCollectFromDelivery) {
+            $lastLine = $order->getTransportRoundLines()->last();
+            $lastLine->setFulfilledAt($now);
+        }
 
         if($signatureAttachment) {
             $order->setSignature($signatureAttachment);
@@ -630,7 +634,7 @@ class TransportController extends AbstractFOSRestController {
             if($request instanceof TransportCollectRequest && $request->getDelivery()) {
                 $request->setStatus($statusRepository->findOneByCategorieNameAndStatutCode(
                     CategorieStatut::TRANSPORT_REQUEST_COLLECT,
-                    TransportOrder::STATUS_FINISHED
+                    TransportRequest::STATUS_FINISHED
                 ));
 
                 $request = $request->getDelivery();
