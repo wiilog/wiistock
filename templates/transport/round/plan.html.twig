@@ -2,8 +2,7 @@
 {% import 'form.html.twig' as form %}
 
 {% block title %}Ordre | Planning | Planifier une tournée{% endblock %}
-{% block titleLink path('transport_round_plan') %}
-
+{% block titleLink path('transport_planning_index') %}
 {% block stylesheets %}
     {{ parent() }}
     {{ encore_entry_link_tags('transport-round-plan') }}
@@ -178,10 +177,9 @@
                             </div>
                         </div>
                         <div class="bottom-right-buttons mx-2">
-                            <button class="btn btn-outline-secondary ml-auto" tabindex="0">
-                            {# TODO action #}
+                            <a class="btn btn-outline-secondary ml-auto" tabindex="0" href="{{ path('transport_planning_index') }}">
                                 Annuler
-                            </button>
+                            </a>
                             <button class="btn btn-success ml-auto ml-3"
                                     type="submit">
                                 Valider la tournée
