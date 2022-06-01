@@ -52,7 +52,7 @@ class TransportRoundUploadFTPCommand extends Command {
 
         $csvHeader = $this->transportRoundService->getHeaderRoundAndRequestExport();
 
-        $transportRoundsIterator = $transportRoundRepository->iterateFinishedTransportRounds();
+        $transportRoundsIterator = $transportRoundRepository->iterateTodayFinishedTransportRounds();
 
         $output = tmpfile();
 

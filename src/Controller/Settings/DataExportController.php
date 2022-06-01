@@ -139,7 +139,7 @@ class DataExportController extends AbstractController {
         $nameFile = "export-tournees-$today.csv";
         $csvHeader = $transportRoundService->getHeaderRoundAndRequestExport();
 
-        $transportRoundsIterator = $transportRoundRepository->iterateTodayFinishedTransportRounds();
+        $transportRoundsIterator = $transportRoundRepository->iterateFinishedTransportRounds();
         return $CSVExportService->streamResponse(function ($output) use ($CSVExportService, $transportRoundService, $transportRoundsIterator) {
             /** @var TransportRound $round */
             foreach ($transportRoundsIterator as $round) {
