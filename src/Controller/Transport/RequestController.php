@@ -8,6 +8,7 @@ use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\FreeField;
+use App\Entity\IOT\SensorMessage;
 use App\Entity\Setting;
 use App\Entity\StatusHistory;
 use App\Entity\Transport\TransportCollectRequestLine;
@@ -27,6 +28,7 @@ use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use App\Service\FreeFieldService;
+use App\Service\IOT\IOTService;
 use App\Service\MailerService;
 use App\Service\PDFGeneratorService;
 use App\Service\StatusHistoryService;
@@ -44,6 +46,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Twig\Environment;
 use WiiCommon\Helper\Stream;
@@ -109,7 +112,8 @@ class RequestController extends AbstractController {
 
     #[Route("/voir/{transport}", name: "transport_request_show", methods: "GET")]
     public function show(TransportRequest       $transport,
-                         EntityManagerInterface $entityManager): Response {
+                         EntityManagerInterface $entityManager,
+                         RouterInterface $router): Response {
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
 
         $categoryFF = $transport instanceof TransportDeliveryRequest
@@ -117,17 +121,54 @@ class RequestController extends AbstractController {
             : CategorieCL::COLLECT_TRANSPORT;
         $freeFields = $freeFieldRepository->findByTypeAndCategorieCLLabel($transport->getType(), $categoryFF);
 
-        $packsCount = $transport->getOrder()?->getPacks()->count() ?: 0;
+        $order = $transport->getOrder();
 
-        $hasRejectedPacks = $transport->getOrder()
+        $packsCount = $order->getPacks()->count() ?: 0;
+
+        $hasRejectedPacks =  $order
             && Stream::from($transport->getOrder()?->getPacks() ?: [])
                 ->some(fn(TransportDeliveryOrderPack $orderPack) => $orderPack->getState() === TransportDeliveryOrderPack::REJECTED_STATE);
 
+        $contactPosition = [$transport->getContact()->getAddressLatitude(), $transport->getContact()->getAddressLongitude()];
+
+        $round = ! $order->getTransportRoundLines()->isEmpty()
+            ?  $order->getTransportRoundLines()->last()->getTransportRound()
+            : null;
+
+        $delivererPosition =  $round?->getBeganAt()
+            ? $round?->getDeliverer()->getVehicle()->getLastPosition($round->getBeganAt(), $round->getEndedAt())
+            : null;
+
+        if ($round) {
+            $now = new DateTime();
+            $urls = [];
+            foreach ( $order->getPacks() as $transportDeliveryPack) {
+                $pack = $transportDeliveryPack->getPack();
+                $location = $pack->getLastTracking()?->getEmplacement();
+                if ($location and $location->getActivePairing()) {
+                    $urls[] = [
+                        "fetch_url" => $router->generate("chart_data_history", [
+                            "type" => IOTService::getEntityCodeFromEntity($location),
+                            "id" => $location->getId(),
+                            'start' => $round->getBeganAt()->format('Y-m-d\TH:i'),
+                            'end' => $round->getEndedAt() ?? $now->format('Y-m-d\TH:i'),
+                        ], UrlGeneratorInterface::ABSOLUTE_URL)
+                    ];
+                }
+            }
+        }
+
+        //TODO WIIS-7229 appliquer les nouvelles bornes
         return $this->render('transport/request/show.html.twig', [
             'request' => $transport,
             'freeFields' => $freeFields,
             "packsCount" => $packsCount,
-            "hasRejectedPacks" => $hasRejectedPacks
+            "hasRejectedPacks" => $hasRejectedPacks,
+            "contactPosition" => $contactPosition,
+            "delivererPosition" => $delivererPosition,
+            'urls' => $urls ?? null,
+            "minTemp" => SensorMessage::LOW_TEMPERATURE_THRESHOLD,
+            "maxTemp" => SensorMessage::HIGH_TEMPERATURE_THRESHOLD,
         ]);
     }
 
