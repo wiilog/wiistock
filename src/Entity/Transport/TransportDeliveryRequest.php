@@ -88,4 +88,8 @@ class TransportDeliveryRequest extends TransportRequest {
         return $this->isInRound();
     }
 
+    public function isFinished(): bool {
+        return $this->getStatus()->getCode() === self::STATUS_FINISHED;
+    }
+
 }

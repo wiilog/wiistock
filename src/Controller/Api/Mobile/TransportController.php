@@ -642,10 +642,22 @@ class TransportController extends AbstractFOSRestController {
                     ? [CategorieStatut::TRANSPORT_REQUEST_COLLECT, TransportRequest::STATUS_NOT_COLLECTED]
                     : [CategorieStatut::TRANSPORT_REQUEST_DELIVERY, TransportRequest::STATUS_NOT_DELIVERED];
             }
+
             $status = $manager->getRepository(Statut::class)
                 ->findOneByCategorieNameAndStatutCode($categoryStatus, $statusCode);
 
-            $statusHistory = $statusHistoryService->updateStatus($manager, $entity, $status);
+            $collectHasDelivery = $request instanceof TransportCollectRequest
+                && $request->getDelivery()
+                && $request->getDelivery()->isFinished();
+
+            $statusHistory = null;
+            if(!$collectHasDelivery) {
+                $statusHistory = $statusHistoryService->updateStatus($manager, $entity, $status);
+            } else {
+                $notCollectedStatus = $manager->getRepository(Statut::class)
+                    ->findOneByCategorieNameAndStatutCode($categoryStatus, $statusCode);
+                $entity->setStatus($notCollectedStatus);
+            }
             $transportHistoryService->persistTransportHistory($manager, $entity, TransportHistoryService::TYPE_FAILED, [
                 'user' => $this->getUser(),
                 'deliverer' => $round->getDeliverer(),
@@ -656,6 +668,23 @@ class TransportController extends AbstractFOSRestController {
                 'date' => $now,
                 'attachments' => $photoAttachment ? [$photoAttachment] : null
             ]);
+        }
+
+        if($request instanceof TransportDeliveryRequest && $request->getCollect()) {
+            $collect = $request->getCollect();
+            $order = $collect->getOrder();
+
+            foreach ([$collect, $order] as $entity) {
+                if ($entity instanceof TransportOrder) {
+                    [$categoryStatus, $statusCode] = [CategorieStatut::TRANSPORT_ORDER_COLLECT, TransportOrder::STATUS_NOT_COLLECTED];
+                }
+                else {
+                    [$categoryStatus, $statusCode] = [CategorieStatut::TRANSPORT_REQUEST_COLLECT, TransportRequest::STATUS_NOT_COLLECTED];
+                }
+                $notCollectedStatus = $manager->getRepository(Statut::class)
+                    ->findOneByCategorieNameAndStatutCode($categoryStatus, $statusCode);
+                $entity->setStatus($notCollectedStatus);
+            }
         }
 
         $manager->flush();
