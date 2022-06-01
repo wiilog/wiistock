@@ -16,11 +16,11 @@
                                 </span>
                                 <div class="mx-2 d-flex">
                                     {% if typesCount[dateForContainer | date_modify("+#{i}days") | date('Y-m-d')]['delivery'] is defined %}
-                                        {% for typeId,typeLabel in typesCount[dateForContainer | date_modify("+#{i}days") | date('Y-m-d')]['delivery'] %}
+                                        {% for typeId, counter in typesCount[dateForContainer | date_modify("+#{i}days") | date('Y-m-d')]['delivery'] %}
                                             <div class="d-inline-flex align-items-center ml-3">
-                                                <span class="wii-body-text mr-1">{{ typeLabel }}</span>
-                                                {% if typeIdToFullPath[typeId] is defined %}
-                                                    <img src="{{ typeIdToFullPath[typeId] }}" alt="Icône livraison" width="15px">
+                                                <span class="wii-body-text mr-1">{{ counter }}</span>
+                                                {% if typeIdToFullPath[typeId] is defined and typeIdToFullPath[typeId] %}
+                                                    <img src="{{ typeIdToFullPath[typeId] }}" alt="" width="15px">
                                                 {% endif %}
                                             </div>
                                         {% endfor %}
@@ -50,11 +50,11 @@
                                 </span>
                                 <div class="mx-2 d-flex">
                                     {% if typesCount[dateForContainer | date_modify("+#{i}days") | date('Y-m-d')]['collect'] is defined %}
-                                        {% for typeId,typeLabel in typesCount[dateForContainer | date_modify("+#{i}days") | date('Y-m-d')]['collect'] %}
+                                        {% for typeId, counter in typesCount[dateForContainer | date_modify("+#{i}days") | date('Y-m-d')]['collect'] %}
                                             <div class="d-inline-flex align-items-center ml-3">
-                                                <span class="wii-body-text mr-1">{{ typeLabel }}</span>
-                                                {% if typeIdToFullPath[typeId] is defined %}
-                                                    <img src="{{ typeIdToFullPath[typeId] }}" alt="Icône livraison" width="15px">
+                                                <span class="wii-body-text mr-1">{{ counter }}</span>
+                                                {% if typeIdToFullPath[typeId] is defined and typeIdToFullPath[typeId] %}
+                                                    <img src="{{ typeIdToFullPath[typeId] }}" alt="" width="15px">
                                                 {% endif %}
                                             </div>
                                         {% endfor %}

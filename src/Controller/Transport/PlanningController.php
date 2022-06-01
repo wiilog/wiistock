@@ -62,7 +62,9 @@ class PlanningController extends AbstractController
         $typeIdToFullPath = [];
        /** @var TransportOrder $transportOrder */
         foreach ($transportOrders as $transportOrder) {
-            $requestExpectedAt = $transportOrder->getRequest()->getExpectedAt()->format('Y-m-d');
+            $requestExpectedAt = $transportOrder->getRequest() instanceof TransportDeliveryRequest
+                ? $transportOrder->getRequest()->getExpectedAt()->format('Y-m-d')
+                : $transportOrder->getRequest()->getValidatedDate()->format('Y-m-d');
             $requestType = $transportOrder->getRequest() instanceof TransportDeliveryRequest ? 'delivery' : 'collect';
             $orderStatus = $transportOrder->getStatus()->getCode();
             $typeId = $transportOrder->getRequest()->getType()->getId();
@@ -98,7 +100,7 @@ class PlanningController extends AbstractController
                     ->count(),
                 'collect' => Stream::from($transportOrders)
                     ->filter(fn(TransportOrder $order) => $order->getRequest() instanceof TransportCollectRequest
-                        && $order->getRequest()->getExpectedAt()->format('Y-m-d') === $currentDate)
+                        && $order->getRequest()->getValidatedDate()->format('Y-m-d') === $currentDate)
                     ->count(),
             ],
             $dateForContainer => [
@@ -108,7 +110,7 @@ class PlanningController extends AbstractController
                     ->count(),
                 'collect' => Stream::from($transportOrders)
                     ->filter(fn(TransportOrder $order) => $order->getRequest() instanceof TransportCollectRequest
-                        && $order->getRequest()->getExpectedAt()->format('Y-m-d') === $dateForContainer)
+                        && $order->getRequest()->getValidatedDate()->format('Y-m-d') === $dateForContainer)
                     ->count(),
             ]
         ];

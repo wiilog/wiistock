@@ -12,8 +12,10 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: TransportDeliveryOrderPackRepository::class)]
 class TransportDeliveryOrderPack {
 
-    public const LOADED_STATE = 'loaded';
-    public const REJECTED_STATE = 'rejected';
+    public const LOADED_STATE = "loaded";
+    public const REJECTED_STATE = "rejected";
+    public const DELIVERED_STATE = "delivered";
+    public const DEPOSITED_STATE = "deposited";
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

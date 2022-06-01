@@ -21,8 +21,7 @@ class VehicleController extends AbstractController
 
     #[Route('/liste', name: 'vehicle_index', methods: 'GET')]
     #[HasPermission([Menu::REFERENTIEL, Action::DISPLAY_VEHICLE])]
-    public function index(): Response
-    {
+    public function index(): Response {
         return $this->render('vehicle/index.html.twig', [
             'newVehicle' => new Vehicle(),
         ]);
@@ -30,8 +29,7 @@ class VehicleController extends AbstractController
 
     #[Route('/api', name: 'vehicle_api', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::REFERENTIEL, Action::DISPLAY_VEHICLE], mode: HasPermission::IN_JSON)]
-    public function api(Request $request, VehicleService $vehicleService): Response
-    {
+    public function api(Request $request, VehicleService $vehicleService): Response {
         $data = $vehicleService->getDataForDatatable($request->request);
 
         return $this->json($data);
@@ -53,6 +51,14 @@ class VehicleController extends AbstractController
             ]);
         } else {
             $deliverer = isset($data['deliverer']) ? $manager->find(Utilisateur::class, $data['deliverer']) : null;
+
+            if ($deliverer && $deliverer->getVehicle()) {
+                return $this->json([
+                    'success' => false,
+                    'msg' => 'Le livreur sélectionné est déjà affecté à un autre véhicule'
+                ]);
+            }
+
             $locations = $manager->getRepository(Emplacement::class)->findBy(['id' => $data['locations']]);
             $vehicle = (new Vehicle())
                 ->setRegistrationNumber($registrationNumber)
@@ -99,6 +105,15 @@ class VehicleController extends AbstractController
             ]);
         } else {
             $deliverer = isset($data['deliverer']) ? $manager->find(Utilisateur::class, $data['deliverer']) : null;
+
+            if ($deliverer
+                && $deliverer->getVehicle()?->getId() === $vehicle->getId()) {
+                return $this->json([
+                    'success' => false,
+                    'msg' => 'Le livreur sélectionné est déjà affecté à un autre véhicule'
+                ]);
+            }
+
             $locations = $manager->getRepository(Emplacement::class)->findBy(['id' => $data['locations']]);
             $vehicle
                 ->setRegistrationNumber($registrationNumber)

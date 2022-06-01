@@ -237,6 +237,8 @@ function initLineChart(element, callback) {
         // hide the chart if there are no sensors
         $element.closest('.wii-page-card').toggle(true);
         noChartData = false;
+        let lineDataMax = [];
+        let lineDataMin = [];
         sensorDates.forEach((date) => {
             data.labels.push(date);
             sensors.forEach((sensor) => {
@@ -251,12 +253,42 @@ function initLineChart(element, callback) {
                 dataset.data.push(value);
                 datasets[sensor] = dataset;
             });
+            if($element.data('needsline')) {
+                if ($element.data('mintemp') && $element.data('maxtemp')) {
+                    lineDataMax.push($element.data('maxtemp'));
+                    lineDataMin.push($element.data('mintemp'));
+                }
+            }
         });
+        if($element.data('needsline')) {
+            datasets['lineDataMax'] = {
+                data: lineDataMax,
+                pointRadius: 0,
+                pointHitRadius: 0,
+                borderColor: '#F00',
+                fill: false,
+            };
+
+            datasets['lineDataMin'] = {
+                data: lineDataMin,
+                pointRadius: 0,
+                pointHitRadius: 0,
+                borderColor: '#00F',
+                fill: false,
+            };
+        }
         data.datasets = Object.values(datasets);
-        let chart = new Chart($element, {
+        const config = {
             type: 'line',
             data,
             options: {
+                legend: {
+                    labels: {
+                        filter: function(item, chart) {
+                            return item.datasetIndex < data.datasets.length - 2;
+                        }
+                    }
+                },
                 maintainAspectRatio: false,
                 spanGaps: true,
                 scales: {
@@ -273,7 +305,8 @@ function initLineChart(element, callback) {
                     }]
                 }
             }
-        });
+        }
+        let chart = new Chart($element, config);
         $element.closest('.wii-page-card').toggle(sensors.length > 0);
         if (sensors.length === 0) {
             noChartData = true;

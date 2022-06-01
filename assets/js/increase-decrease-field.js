@@ -1,21 +1,30 @@
 export default class IncreaseDecreaseField {
     static initialize() {
+
+        const $increaseDecreaseContainer = $('.increase-decrease-field');
+        initializeInput($increaseDecreaseContainer);
+
         $(document).arrive(`.increase-decrease-field`, function() {
             const $increaseDecreaseContainer = $(this);
-            const $increaseDecreaseInput = $increaseDecreaseContainer.find('input');
-            resetIncreaseDecreaseButtons($increaseDecreaseInput);
-
-            $increaseDecreaseInput
-                .on('change keyup', function () {
-                    resetIncreaseDecreaseButtons($increaseDecreaseInput);
-                });
-            $increaseDecreaseContainer
-                .find('.increase, .decrease, input')
-                .on('click', function(){
-                    onIncreaseDecreaseButtonClicked($(this));
-                });
+            initializeInput($increaseDecreaseContainer);
         });
     }
+}
+
+function initializeInput($increaseDecreaseContainer) {
+    const $increaseDecreaseInput = $increaseDecreaseContainer.find('input');
+    resetIncreaseDecreaseButtons($increaseDecreaseInput);
+
+    $increaseDecreaseInput
+        .on('change keyup', function () {
+            resetIncreaseDecreaseButtons($increaseDecreaseInput);
+        });
+
+    $increaseDecreaseContainer
+        .find('.increase, .decrease, input')
+        .on('click', function() {
+            onIncreaseDecreaseButtonClicked($(this));
+        });
 }
 
 function resetIncreaseDecreaseButtons($input) {

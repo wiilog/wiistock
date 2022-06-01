@@ -18,7 +18,7 @@
                     <div class="header">
                         <span class="wii-title">Transport à affecter</span>
                     </div>
-                    <div class="d-flex flex-column card-container" id="to-affect-container">
+                    <div class="d-flex flex-column card-container sortable-container cards-mouse-hover" id="to-affect-container">
                         {% for transportOrder in transportOrders %}
                             {% include 'transport/round/plan_order_card.html.twig' with {transportOrder: transportOrder} %}
                         {% endfor %}
@@ -26,20 +26,47 @@
                 </div>
             </div>
 
-            <div class="col-lg-3 col-md-6 col-12 px-2">
+            <div class="col-lg-3 col-md-6 col-12 px-2 ">
                 <div class="wii-box">
                     <div class="header">
                         <span class="wii-title">Transports affectés</span>
                     </div>
-                    <div class="d-flex flex-column card-container" id="affected-container">
-                        {% for line in round.transportRoundLines %}
-                            {% set transportOrder = line.order %}
-                            {% include 'transport/round/plan_order_card.html.twig' with {
-                                transportOrder: transportOrder,
-                                removeButton: false,
-                                assigned : true
-                            } %}
-                        {% endfor %}
+                    <div class="d-flex flex-column card-container">
+                        {%  set finishedStatuses = [
+                            constant('App\\Entity\\Transport\\TransportOrder::STATUS_FINISHED'),
+                            constant('App\\Entity\\Transport\\TransportOrder::STATUS_NOT_DELIVERED'),
+                            constant('App\\Entity\\Transport\\TransportOrder::STATUS_NOT_COLLECTED'),
+                            constant('App\\Entity\\Transport\\TransportOrder::STATUS_DEPOSITED'),
+                            constant('App\\Entity\\Transport\\TransportOrder::STATUS_CANCELLED'),
+                        ] %}
+                        <div class="cards-mouse-hover" id="delivered-container">
+                            {% for line in round.transportRoundLines %}
+                                {% set transportOrder = line.order %}
+                                {% if  transportOrder.status.code in finishedStatuses %}
+                                    {% include 'transport/round/plan_order_card.html.twig' with {
+                                        transportOrder: transportOrder,
+                                        removeButton: false,
+                                        isAssigned: true,
+                                        isFinish: true,
+                                        time: line.fulfilledAt ? (line.fulfilledAt | date('H:i')),
+                                    } %}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <div class="cards-mouse-hover sortable-container" id="affected-container">
+                            {% for line in round.transportRoundLines %}
+                                {% set transportOrder = line.order %}
+                                {% if transportOrder.status.code not in finishedStatuses %}
+                                    {% include 'transport/round/plan_order_card.html.twig' with {
+                                        transportOrder: transportOrder,
+                                        removeButton: false,
+                                        isAssigned: true,
+                                        time: line.estimatedAt ? (line.estimatedAt | date('H:i')),
+                                    } %}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -49,6 +76,9 @@
                 <input type="hidden" class="data round-number" name="number" value="{{ round.number }}"/>
                 <input type="hidden" class="data" name="expectedAtDate" value="{{ round.expectedAt|date('Y-m-d') }}"/>
                 <input type="hidden" class="data" name="coordinates" value="{{ round.coordinates|json_encode }}"/>
+                <input type="hidden" class="data" name="estimatedTotalDistance" value="{{ round.estimatedDistance }}"/>
+                <input type="hidden" class="data" name="estimatedTotalTime" value="{{ round.estimatedTime }}"/>
+                <input type="hidden" name="waitingTime" value="{{ waitingTime }}"/>
 
                 {% if round.id %}
                     <input type="hidden" class="data" name="transportRoundId" value="{{ round.id }}"/>
@@ -62,42 +92,52 @@
                             <div class="wii-body-text">{{ round.expectedAt|format_helper('longDate', {short: true, year: false}) }}</div>
                         </div>
                     </div>
-                    <div class="row content">
-                        <div class="d-flex flex-wrap justify-content-around col-12 px-2">
-                            <div class="col-lg-4 col-12">
-                                {{ form.input('startPoint', 'Point de départ', true, round.startPoint ?? setting_value('TRANSPORT_ROUND_KM_START_POINT'), {
-                                    attributes: {
-                                        'data-short-label': 'Départ tournée'
-                                    }
-                                }) }}
-                            </div>
-                            <div class="col-lg-4 col-12">
-                                {{ form.input('startPointScheduleCalculation', 'Point de départ calcul horaire', true, round.startPointScheduleCalculation ?? setting_value('TRANSPORT_ROUND_HOURLY_BILLING_START_POINT'), {
-                                    attributes: {
-                                        'data-short-label': 'Départ calcul horaire'
-                                    }
-                                }) }}
-                            </div>
-                            <div class="col-lg-4 col-12">
-                                {{ form.input('endPoint', 'Point d\'arrivée', true, round.endPoint ?? setting_value('TRANSPORT_ROUND_END_POINT'), {
-                                    attributes: {
-                                        'data-short-label': 'Fin tournée'
-                                    }
-                                }) }}
-                            </div>
-                        </div>
-                        <div class="map-container">
-                            <div id="map"></div>
-                        </div>
-                        <div class="px-2 col-12">
+                    <div class="row content justify-content-around">
+                        <div class="col-12">
                             <div class="row">
-                                <div class="col-3 ">
+                                <div class="col-lg-4 col-12">
+                                    {{ form.input('startPoint', 'Point de départ', true, round.startPoint ?? setting_value('TRANSPORT_ROUND_KM_START_POINT'), {
+                                        disabled: isOnGoing,
+                                        attributes: {
+                                            'data-short-label': 'Départ tournée',
+                                        }
+                                    }) }}
+                                </div>
+                                <div class="col-lg-4 col-12">
+                                    {{ form.input('startPointScheduleCalculation', 'Point de départ calcul horaire', true, round.startPointScheduleCalculation ?? setting_value('TRANSPORT_ROUND_HOURLY_BILLING_START_POINT'), {
+                                        disabled: isOnGoing,
+                                        attributes: {
+                                            'data-short-label': 'Départ calcul horaire',
+                                        }
+                                    }) }}
+                                </div>
+                                <div class="col-lg-4 col-12">
+                                    {{ form.input('endPoint', 'Point d\'arrivée', true, round.endPoint ?? setting_value('TRANSPORT_ROUND_END_POINT'), {
+                                        disabled: isOnGoing,
+                                        attributes: {
+                                            'data-short-label': 'Fin tournée',
+                                        }
+                                    }) }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="map-container py-2">
+                                <div id="map"></div>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="row">
+                                <div class="col-3">
                                     {{ form.select('deliverer', "Livreur", true, {
                                         items: round.deliverer ? [{label: round.deliverer.username, value: round.deliverer.id, selected: true}] : [],
                                         type: 'user',
+                                        disabled: isOnGoing,
                                         attributes: {
                                             'data-other-params': "true",
-                                            'data-other-params-deliverer-only': 1
+                                            'data-other-params-deliverer-only': 1,
                                         },
                                         inputClass: 'deliverer-picker',
                                     }) }}
@@ -111,33 +151,34 @@
                                         {
                                             type: 'time',
                                             inputClass: 'start-hour-form',
-                                            disabled: round.deliverer ? false : true,
+                                            disabled: not round.deliverer or isOnGoing,
                                         }
                                     ) }}
                                 </div>
                                 <div class="col-auto align-self-end">
-                                    <button class="btn {% if not round.deliverer %} btn-disabled {%endif%} btn-primary ml-auto  plan-round-button d-flex align-items-center btn-calculate-time" tabindex="0">
-                                        <img src="{{ asset('svg/clock-white.svg') }}" alt="Icône tournéé" width="15px" class="mr-2">
+                                    <button class="btn {% if not round.deliverer %} btn-disabled {%endif%} btn-primary ml-auto d-flex align-items-center btn-calculate-time" tabindex="0">
+                                        <img src="{{ asset('svg/clock-white.svg') }}" alt="" width="15px" class="mr-2">
                                         <span class="ml-1">Calculer les horaires</span>
                                     </button>
                                 </div>
                             </div>
                         </div>
-                        <div class="px-2 w-100">
+
+                        <div class="col-12">
                             <p class="wii-small-text py-1">
                                 Seulement une notion de Matin / Après-midi sera donnée <br>
                                 sur les demandes tant que la tournée n’est pas commencée
                             </p>
                             {# TODO WIIS-7357 #}
                             <div class="wii-body-text py-1">
-                                <strong>Kilometrage estimé </strong>: 32km
+                                <strong>Kilometrage estimé </strong>: <span class="estimatedTotalDistance">{{ round.estimatedDistance ? round.estimatedDistance ~ 'km' : '-' }}</span>
                             </div>
                             <div class="wii-body-text py-1">
-                                <strong>Temps estimé </strong>: 12h67
+                                <strong>Temps estimé </strong>: <span class="estimatedTotalTime">{{ round.estimatedTime ? round.estimatedTime|replace({':': 'h'}) : '-' }}</span>
                             </div>
                         </div>
                         <div class="bottom-right-buttons mx-2">
-                            <button class="btn btn-outline-secondary ml-auto plan-round-button" tabindex="0">
+                            <button class="btn btn-outline-secondary ml-auto" tabindex="0">
                             {# TODO action #}
                                 Annuler
                             </button>
@@ -151,6 +192,7 @@
             </div>
         </div>
     </div>
+    <input type="hidden" value="{{ isOnGoing ? 1 : 0 }}" name="isOnGoing">
 {% endblock %}
 
 {% block javascripts %}

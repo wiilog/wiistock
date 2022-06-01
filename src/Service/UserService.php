@@ -192,4 +192,8 @@ class UserService
         ];
     }
 
+    public function getUserFCMChannel(Utilisateur $user): string {
+        return 'user-' . $user->getId();
+    }
+
 }
