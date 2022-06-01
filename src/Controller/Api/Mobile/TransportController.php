@@ -8,6 +8,8 @@ use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
 use App\Entity\FreeField;
+use App\Entity\IOT\AlertTemplate;
+use App\Entity\Notification;
 use App\Entity\Pack;
 use App\Entity\Setting;
 use App\Entity\Statut;
@@ -23,6 +25,7 @@ use App\Entity\Transport\TransportRoundLine;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use App\Service\AttachmentService;
+use App\Service\NotificationService;
 use App\Service\StatusHistoryService;
 use App\Service\TrackingMovementService;
 use App\Service\Transport\TransportHistoryService;
@@ -145,8 +148,8 @@ class TransportController extends AbstractFOSRestController {
                                 ] : null,
                                 'packs' => Stream::from($line->getOrder()->getPacks())
                                     ->map(function(TransportDeliveryOrderPack $orderPack) use ($temperatureRanges) {
-                                        $pack = $orderPack->getPack();
-                                        $nature = $pack->getNature();
+                                       $pack = $orderPack->getPack();
+                                         $nature = $pack->getNature();
 
                                         return [
                                             'code' => $pack->getCode(),
@@ -465,14 +468,15 @@ class TransportController extends AbstractFOSRestController {
                                      EntityManagerInterface $manager,
                                      StatusHistoryService $statusHistoryService,
                                      TransportHistoryService $transportHistoryService,
-                                     AttachmentService $attachmentService): Response {
+                                     AttachmentService $attachmentService,
+                                     NotificationService $notificationService): Response {
         $data = $request->request;
         $files = $request->files;
-        $order = $manager->find(TransportOrder::class, $data->get('transport'));
+        $request = $manager->find(TransportRequest::class, $data->get('transport'));
         $round = $manager->find(TransportRound::class, $data->get('round'));
         $motive = $data->get('motive');
         $comment = $data->get('comment');
-        $request = $order->getRequest();
+        $order = $request->getOrder();
         $now = new DateTime();
 
         $order
@@ -509,6 +513,31 @@ class TransportController extends AbstractFOSRestController {
                 'date' => $now,
                 'attachments' => $photoAttachment ? [$photoAttachment] : null
             ]);
+        }
+
+        if($request instanceof TransportDeliveryRequest) {
+            $notificationTitle = 'Notification';
+            $notificationContent = 'Une demande de livraison n\'a pas pu être livrée';
+            $notificationImage = '/svg/cross-red.svg';
+
+            $notificationService->send('notifications-web', $notificationTitle, $notificationContent, [
+                'title' => $notificationTitle,
+                'content' => $notificationContent,
+                'image' => $_SERVER['APP_URL'] .  $notificationImage
+            ], $_SERVER['APP_URL'] . $notificationImage, true);
+
+            $emitted = new Notification();
+            $emitted
+                ->setContent($notificationContent)
+                ->setSource($round->getDeliverer())
+                ->setTriggered(new DateTime());
+
+            $users = $manager->getRepository(Utilisateur::class)->findBy(['status' => true]);
+            $manager->persist($emitted);
+            foreach ($users as $user) {
+                $user
+                    ->addUnreadNotification($emitted);
+            }
         }
 
         $manager->flush();
