@@ -333,16 +333,6 @@ class TransportController extends AbstractFOSRestController {
         $now = new DateTime();
         $user = $this->getUser();
 
-        foreach ($packs as $pack) {
-            $orderPack = $pack->getTransportDeliveryOrderPack();
-            $orderPack
-                ->setState(TransportDeliveryOrderPack::LOADED_STATE);
-
-            $trackingMovement = $trackingMovementService
-                ->createTrackingMovement($pack, $location, $user, $now, true, true,TrackingMovement::TYPE_DEPOSE);
-            $manager->persist($trackingMovement);
-        }
-
         $manager->flush();
         return $this->json([
             'success' => true
@@ -430,6 +420,7 @@ class TransportController extends AbstractFOSRestController {
                                     EntityManagerInterface $manager,
                                     TransportHistoryService $historyService,
                                     StatusHistoryService $statusHistoryService,
+                                    TrackingMovementService $trackingMovementService,
                                     AttachmentService $attachmentService): Response {
         $data = $request->request;
         $files = $request->files;
@@ -443,10 +434,24 @@ class TransportController extends AbstractFOSRestController {
         $signatureAttachment = $signature ? $attachmentService->createAttachements([$signature])[0] : null;
         $photoAttachment = $photo ? $attachmentService->createAttachements([$photo])[0] : null;
 
+        $locationRepository = $manager->getRepository(Emplacement::class);
+        $patient = $locationRepository->findOneBy(["label" => "Patient"]);
+        if(!$patient) {
+            $patient = (new Emplacement())
+                ->setLabel("Patient")
+                ->setDescription("Colis livrés chez un patient")
+                ->setIsActive(true);
+
+            $manager->persist($patient);
+        }
+
         if($order->getRequest() instanceof TransportDeliveryRequest) {
             foreach($order->getPacks() as $line) {
                 if(!$line->getRejectedBy()) {
                     $line->setState(TransportDeliveryOrderPack::DELIVERED_STATE);
+                    $trackingMovement = $trackingMovementService
+                        ->createTrackingMovement($line->getPack(), $patient, $this->getUser(), $now, true, true,TrackingMovement::TYPE_DEPOSE);
+                    $manager->persist($trackingMovement);
                 }
             }
         } else {
