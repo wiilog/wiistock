@@ -495,10 +495,22 @@ class TransportController extends AbstractFOSRestController {
                     ? [CategorieStatut::TRANSPORT_REQUEST_COLLECT, TransportRequest::STATUS_NOT_COLLECTED]
                     : [CategorieStatut::TRANSPORT_REQUEST_DELIVERY, TransportRequest::STATUS_NOT_DELIVERED];
             }
+
             $status = $manager->getRepository(Statut::class)
                 ->findOneByCategorieNameAndStatutCode($categoryStatus, $statusCode);
 
-            $statusHistory = $statusHistoryService->updateStatus($manager, $entity, $status);
+            $collectHasDelivery = $request instanceof TransportCollectRequest
+                && $request->getDelivery()
+                && $request->getDelivery()->isFinished();
+
+            $statusHistory = null;
+            if(!$collectHasDelivery) {
+                $statusHistory = $statusHistoryService->updateStatus($manager, $entity, $status);
+            } else {
+                $notCollectedStatus = $manager->getRepository(Statut::class)
+                    ->findOneByCategorieNameAndStatutCode($categoryStatus, $statusCode);
+                $entity->setStatus($notCollectedStatus);
+            }
             $transportHistoryService->persistTransportHistory($manager, $entity, TransportHistoryService::TYPE_FAILED, [
                 'user' => $this->getUser(),
                 'deliverer' => $round->getDeliverer(),
@@ -511,30 +523,20 @@ class TransportController extends AbstractFOSRestController {
             ]);
         }
 
-        // TODO Voir avec Jade ce qu'il faut mettre dans l'historique de transport pour une collecte liée à une livraison non livrée
         if($request instanceof TransportDeliveryRequest && $request->getCollect()) {
             $collect = $request->getCollect();
             $order = $collect->getOrder();
+
             foreach ([$collect, $order] as $entity) {
-                if($entity instanceof TransportOrder) {
+                if ($entity instanceof TransportOrder) {
                     [$categoryStatus, $statusCode] = [CategorieStatut::TRANSPORT_ORDER_COLLECT, TransportOrder::STATUS_NOT_COLLECTED];
-                } else {
+                }
+                else {
                     [$categoryStatus, $statusCode] = [CategorieStatut::TRANSPORT_REQUEST_COLLECT, TransportRequest::STATUS_NOT_COLLECTED];
                 }
-                $status = $manager->getRepository(Statut::class)
+                $notCollectedStatus = $manager->getRepository(Statut::class)
                     ->findOneByCategorieNameAndStatutCode($categoryStatus, $statusCode);
-
-                $statusHistory = $statusHistoryService->updateStatus($manager, $entity, $status);
-                $transportHistoryService->persistTransportHistory($manager, $entity, TransportHistoryService::TYPE_FAILED, [
-                    'user' => $this->getUser(),
-                    'deliverer' => $round->getDeliverer(),
-                    'round' => $round,
-                    'history' => $statusHistory,
-                    'reason' => $motive,
-                    'comment' => $comment,
-                    'date' => $now,
-                    'attachments' => $photoAttachment ? [$photoAttachment] : null
-                ]);
+                $entity->setStatus($notCollectedStatus);
             }
         }
 

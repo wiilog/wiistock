@@ -46,12 +46,20 @@ class HistoryController extends AbstractController
             $isDelivery = $entity->getRequest() instanceof TransportDeliveryRequest;
             $isDeliveryCollect = $isDelivery && $entity->getRequest()->getCollect();
 
+            $statusWorkflowDeliveryCollect = TransportOrder::STATUS_WORKFLOW_DELIVERY_COLLECT;
+            if($entity->isFinished() && !$entity->getRequest()->getCollect()->isNotCollected()) {
+                array_pop($statusWorkflowDeliveryCollect);
+            }
             $statusWorkflow =  $isDeliveryCollect
-                ? TransportOrder::STATUS_WORKFLOW_DELIVERY_COLLECT
+                ? $statusWorkflowDeliveryCollect
                 : ($isDelivery
                     ? TransportOrder::STATUS_WORKFLOW_DELIVERY
                     : TransportOrder::STATUS_WORKFLOW_COLLECT);
         } else if ($entity instanceof TransportDeliveryRequest) {
+            $statusWorkflowDeliveryCollect = TransportRequest::STATUS_WORKFLOW_DELIVERY_COLLECT;
+            if($entity->isFinished() && !$entity->getCollect()->isNotCollected()) {
+                array_pop($statusWorkflowDeliveryCollect);
+            }
             $statusWorkflow = $entity->isSubcontracted()
                 ? TransportRequest::STATUS_WORKFLOW_DELIVERY_SUBCONTRACTED
                 : ($entity->getCollect()

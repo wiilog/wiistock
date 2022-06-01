@@ -401,4 +401,8 @@ class TransportOrder implements StatusHistoryContainer {
             ->toArray();
     }
 
+    public function isFinished(): bool {
+        return $this->getStatus()->getCode() === TransportOrder::STATUS_FINISHED;
+    }
+
 }
