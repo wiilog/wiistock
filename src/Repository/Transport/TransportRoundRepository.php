@@ -130,4 +130,24 @@ class TransportRoundRepository extends EntityRepository {
             ->execute();
         return $result ? $result[0]['number'] : null;
     }
+
+    public function iterateTransportRoundsByDates(DateTime $dateMin, DateTime $dateMax): iterable {
+        $qb = $this->createQueryBuilder('transport_round')
+            ->setParameter('dateMin', $dateMin)
+            ->setParameter('dateMax', $dateMax)
+            ->where('transport_round.expectedAt BETWEEN :dateMin AND :dateMax');
+        return $qb
+            ->getQuery()
+            ->toIterable();
+    }
+
+    public function iterateFinishedTransportRounds(): iterable {
+        $qb = $this->createQueryBuilder('transport_round')
+            ->join('transport_round.status', 'status')
+            ->where('status.code IN (:finishedStatuses)')
+            ->setParameter('finishedStatuses', [TransportRound::STATUS_FINISHED]);
+        return $qb
+            ->getQuery()
+            ->toIterable();
+    }
 }

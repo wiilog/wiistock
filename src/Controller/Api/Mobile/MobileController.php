@@ -122,6 +122,7 @@ class MobileController extends AbstractFOSRestController
 
             $rights = $userService->getMobileRights($loggedUser);
             $parameters = $this->mobileApiService->getMobileParameters($globalParametersRepository);
+
             $channels = Stream::from($rights)
                 ->filter(fn($val, $key) => $val && in_array($key, ["stock", "tracking", "group", "ungroup", "demande", "notifications"]))
                 ->takeKeys()
@@ -146,6 +147,8 @@ class MobileController extends AbstractFOSRestController
                         $channels[] = $_SERVER["APP_INSTANCE"] . "-demande-handling-" . $handlingType->getId();
                     });
             }
+
+            $channels[] = $_SERVER["APP_INSTANCE"] . "-" . $userService->getUserFCMChannel($loggedUser);
 
             $data['success'] = true;
             $data['data'] = [

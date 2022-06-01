@@ -364,9 +364,18 @@ class TransportController extends AbstractFOSRestController {
         $data = $request->request;
         $packs = $manager->getRepository(Pack::class)->findBy(['code' => json_decode($data->get('packs'))]);
         $location = $manager->find(Emplacement::class, $data->get('location'));
-        $round = $manager->find(TransportRound::class, $data->get('round'));
         $now = new DateTime();
         $user = $this->getUser();
+
+        foreach ($packs as $pack) {
+            $orderPack = $pack->getTransportDeliveryOrderPack();
+            $orderPack
+                ->setState(TransportDeliveryOrderPack::LOADED_STATE);
+
+            $trackingMovement = $trackingMovementService
+                ->createTrackingMovement($pack, $location, $user, $now, true, true,TrackingMovement::TYPE_DEPOSE);
+            $manager->persist($trackingMovement);
+        }
 
         $manager->flush();
         return $this->json([
@@ -379,7 +388,8 @@ class TransportController extends AbstractFOSRestController {
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
      */
-    public function startRound(Request $request, EntityManagerInterface $manager): Response {
+    public function startRound(Request $request, EntityManagerInterface $manager,
+                               StatusHistoryService $statusHistoryService, TransportHistoryService $historyService): Response {
         $data = $request->request;
         $round = $manager->find(TransportRound::class, $data->get('round'));
 
@@ -404,6 +414,19 @@ class TransportController extends AbstractFOSRestController {
                 $request->setStatus($collectRequestOngoing);
                 $order->setStatus($collectOrderOngoing);
             }
+
+            $statusHistoryRequest = $statusHistoryService->updateStatus($manager, $request, $request->getStatus());
+            $statusHistoryOrder = $statusHistoryService->updateStatus($manager, $order, $order->getStatus());
+
+            $historyService->persistTransportHistory($manager, $request, TransportHistoryService::TYPE_ONGOING, [
+                "user" => $this->getUser(),
+                "history" => $statusHistoryRequest,
+            ]);
+
+            $historyService->persistTransportHistory($manager, $order, TransportHistoryService::TYPE_ONGOING, [
+                "user" => $this->getUser(),
+                "history" => $statusHistoryOrder,
+            ]);
         }
 
         $manager->flush();
@@ -548,6 +571,24 @@ class TransportController extends AbstractFOSRestController {
                 ...($photoAttachment ? [$photoAttachment] : []),
             ],
         ]);
+
+        if($signatureAttachment || $photoAttachment) {
+            $historyService->persistTransportHistory($manager, $request, TransportHistoryService::TYPE_ADD_ATTACHMENT, [
+                "user" => $this->getUser(),
+                "attachments" => [
+                    ...($signatureAttachment ? [$signatureAttachment] : []),
+                    ...($photoAttachment ? [$photoAttachment] : []),
+                ],
+            ]);
+
+            $historyService->persistTransportHistory($manager, $order, TransportHistoryService::TYPE_ADD_ATTACHMENT, [
+                "user" => $this->getUser(),
+                "attachments" => [
+                    ...($signatureAttachment ? [$signatureAttachment] : []),
+                    ...($photoAttachment ? [$photoAttachment] : []),
+                ],
+            ]);
+        }
 
         $manager->flush();
 
