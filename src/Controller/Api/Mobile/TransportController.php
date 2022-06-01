@@ -565,11 +565,13 @@ class TransportController extends AbstractFOSRestController {
             }
         }
 
+        $comment = $data->get('comment');
         $order
-            ->setComment($data->get('comment'))
-            ->setTreatedAt($now)
-            ->getTransportRoundLines()->last()
-                ->setFulfilledAt($now);
+            ->setComment($comment)
+            ->setTreatedAt($now);
+
+        $lastLine = $order->getTransportRoundLines()->last();
+        $lastLine->setFulfilledAt($now);
 
         if($signatureAttachment) {
             $order->setSignature($signatureAttachment);
@@ -577,6 +579,23 @@ class TransportController extends AbstractFOSRestController {
 
         if($signatureAttachment) {
             $order->addAttachment($photoAttachment);
+        }
+
+        if ($comment) {
+            $historyService->persistTransportHistory($manager,
+                $request,
+                TransportHistoryService::TYPE_ADD_COMMENT,
+                [
+                    "user" => $this->getUser(),
+                    "comment" => $comment,
+                ]);
+            $historyService->persistTransportHistory($manager,
+                $order,
+                TransportHistoryService::TYPE_ADD_COMMENT,
+                [
+                    "user" => $this->getUser(),
+                    "comment" => $comment,
+                ]);
         }
 
         if ($signatureAttachment || $photoAttachment) {
@@ -590,7 +609,6 @@ class TransportController extends AbstractFOSRestController {
                         ...($photoAttachment ? [$photoAttachment] : []),
                     ],
                 ]);
-
             $historyService->persistTransportHistory($manager,
                 $order,
                 TransportHistoryService::TYPE_ADD_ATTACHMENT,
@@ -644,19 +662,11 @@ class TransportController extends AbstractFOSRestController {
                 [
                     "user" => $this->getUser(),
                     "history" => $statusHistoryRequest,
-                    "attachments" => [
-                        ...($signatureAttachment ? [$signatureAttachment] : []),
-                        ...($photoAttachment ? [$photoAttachment] : []),
-                    ],
                 ]);
 
             $historyService->persistTransportHistory($manager, $order, TransportHistoryService::TYPE_FINISHED, [
                 "user" => $this->getUser(),
                 "history" => $statusHistoryOrder,
-                "attachments" => [
-                    ...($signatureAttachment ? [$signatureAttachment] : []),
-                    ...($photoAttachment ? [$photoAttachment] : []),
-                ],
             ]);
         }
 

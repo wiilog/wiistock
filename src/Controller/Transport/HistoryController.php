@@ -53,7 +53,10 @@ class HistoryController extends AbstractController
             $isDeliveryCollect = $isDelivery && $entity->getRequest()->getCollect();
 
             $statusWorkflowDeliveryCollect = TransportOrder::STATUS_WORKFLOW_DELIVERY_COLLECT;
-            if($entity->isFinished() && !$entity->getRequest()->getCollect()->isNotCollected()) {
+            $request = $entity->getRequest();
+            if ($request instanceof TransportDeliveryRequest
+                && $entity->isFinished()
+                && !$request->getCollect()->isNotCollected()) {
                 array_pop($statusWorkflowDeliveryCollect);
             }
             $statusWorkflow =  $isDeliveryCollect
