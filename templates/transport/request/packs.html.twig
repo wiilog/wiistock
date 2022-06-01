@@ -39,8 +39,26 @@
                         {% for transportDeliveryOrderPack in associatedNaturesAndPacks[line.nature.id] ?? [] %}
                             <tr>
                                 <td class="wii-field-text">{{ transportDeliveryOrderPack.pack.code }}</td>
-                                <td class="wii-field-text">{{ transportDeliveryOrderPack.state == constant('App\\Entity\\Transport\\TransportDeliveryOrderPack::REJECTED_STATE') ? 'Oui' : '-' }}</td>
-                                <td class="wii-field-text">{{ transportDeliveryOrderPack.rejectReason ?? '-' }}</td>
+                                <td class="wii-field-text">
+                                    {% set packState = transportDeliveryOrderPack.state %}
+                                    {% if packState  == constant('App\\Entity\\Transport\\TransportDeliveryOrderPack::REJECTED_STATE')%}
+                                        Oui
+                                    {% elseif packState  == constant('App\\Entity\\Transport\\TransportDeliveryOrderPack::LOADED_STATE') %}
+                                        Non
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td class="wii-field-text">
+                                    {% set packRejectedReason = transportDeliveryOrderPack.rejectReason %}
+                                    {% if  packRejectedReason %}
+                                        {{  packRejectedReason }}
+                                    {% elseif not  packRejectedReason and packState  == constant('App\\Entity\\Transport\\TransportDeliveryOrderPack::LOADED_STATE') %}
+                                        /
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
                                 {% if isCanceledStatus %}
                                     <td class="wii-field-text">
                                         {{
