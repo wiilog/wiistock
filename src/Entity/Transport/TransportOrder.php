@@ -396,4 +396,18 @@ class TransportOrder extends StatusHistoryContainer {
 
         return $this;
     }
+
+    public function getLastStatusHistory(array $statusCode) : array|null
+    {
+        return Stream::from($this->getStatusHistory())
+            ->filter(fn(StatusHistory $history) => in_array($history->getStatus()->getCode(),$statusCode))
+            ->sort(fn(StatusHistory $s1, StatusHistory $s2) => $s2->getId() <=> $s1->getId())
+            ->keymap(fn(StatusHistory $history) => [$history->getStatus()->getCode(), $history->getDate()])
+            ->toArray();
+    }
+
+    public function isFinished(): bool {
+        return $this->getStatus()->getCode() === TransportOrder::STATUS_FINISHED;
+    }
+
 }

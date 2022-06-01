@@ -19,6 +19,11 @@ const locationIcons = {
 }
 
 export class Map {
+
+    static DEFAULT_OPTIONS = {
+        attributionControl: false,
+    };
+
     id;
     map;
     locations = [];
