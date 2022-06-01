@@ -89,33 +89,34 @@
                             </div>
                         </div>
 
-                        {% set nbRejectedPacks = transportRound.countRejectedPacks  %}
-                        {% set nbRejectedOrders = transportRound.countRejectedOrders %}
-                        {% if nbRejectedPacks or nbRejectedOrders %}
-                        <div class="header">
-                            <img src="{{ asset('svg/urgence.svg') }}" alt="Icône urgence" width="15px">
-                            <span class="wii-field-name ml-2">&Eacute;lément rejetées</span>
-                        </div>
-                        <div class="row content">
-                            {% if nbRejectedPacks %}
-                                <div class="col-6 d-flex flex-column">
-                                    <span class="wii-field-name">Colis rejetés</span>
-                                    <span class="wii-field-text">{{ nbRejectedPacks }}</span>
-                                </div>
-                            {% endif %}
-                            {% if nbRejectedOrders %}
-                                <div class="col-6 d-flex flex-column">
-                                    <span class="wii-field-name">Commandes rejetées</span>
-                                    <span class="wii-field-text">{{ nbRejectedOrders }}</span>
-                                </div>
-                            {% endif %}
-                        </div>
+                    {% set nbRejectedPacks = transportRound.countRejectedPacks  %}
+                    {% set nbRejectedOrders = transportRound.countRejectedOrders %}
+                    {% if nbRejectedPacks or nbRejectedOrders %}
+                    <div class="header">
+                        <img src="{{ asset('svg/urgence.svg') }}" alt="Icône urgence" width="15px">
+                        <span class="wii-field-name ml-2">&Eacute;lément rejetées</span>
+                    </div>
+                    <div class="row content">
+                        {% if nbRejectedPacks %}
+                            <div class="col-6 d-flex flex-column">
+                                <span class="wii-field-name">Colis rejetés</span>
+                                <span class="wii-field-text">{{ nbRejectedPacks }}</span>
+                            </div>
+                        {% endif %}
+                        {% if nbRejectedOrders %}
+                            <div class="col-6 d-flex flex-column">
+                                <span class="wii-field-name">Commandes rejetées</span>
+                                <span class="wii-field-text">{{ nbRejectedOrders }}</span>
+                            </div>
                         {% endif %}
                     </div>
+                    {% endif %}
                 </div>
-                <div class="wii-box">
-                    <div class="header d-flex">
-                        <div class="mr-2 w-min-content">
+            </div>
+            <div class="wii-box">
+                <div class="header d-flex">
+                    {# TODO faire la condition pour l'affiche de dropdown #}
+                    <span class="mr-2 w-min-content">
                             <div class="dropdown dropright">
                                 <div class="d-flex pointer" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     <img alt="Actions" src="{{ asset('svg/dotsblack.svg') }}" height="20px" width="8px">
@@ -131,8 +132,9 @@
                                             </a>
                                         </div>
                                     {% endif %}
-                                    <div class="dropdown-item pointer edit-button">
-                                        <img src="{{ asset('svg/printer-black.svg') }}" alt="" width="17px" class="pr-1">
+                                    <div class="dropdown-item pointer print-round-button"
+                                         data-round-id="{{ transportRound.id }}">
+                                        <img src="{{ asset('svg/printer-black.svg') }}" alt="Icône urgence" width="17px" class="pr-1">
                                         Générer un bon de transport
                                     </div>
                                 </div>

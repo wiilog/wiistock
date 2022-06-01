@@ -5,6 +5,7 @@ import {getStatusHistory, getTransportRoundTimeline} from "@app/pages/transport/
 
 import AJAX, {GET, POST} from "@app/ajax";
 import Flash, {ERROR} from "@app/flash";
+import {transportPDF} from "@app/pages/transport/request/common";
 
 
 
@@ -34,6 +35,10 @@ $(function () {
             name: "Deliverer",
         });
     }
+
+    $('.print-round-button').on('click', function (){
+        roundPDF($(this).data('round-id'));
+    });
 });
 
 
@@ -49,6 +54,9 @@ function placePoints(map, calculationPoint, transportPoints) {
     return coordinates;
 }
 
+function roundPDF(transportRoundId){
+    Wiistock.download(Routing.generate('print_round_note', {transportRound: transportRoundId}));
+}
 function placePoint(map, point, icon = "blackLocation") {
     const latitude = point.latitude;
     const longitude = point.longitude;
