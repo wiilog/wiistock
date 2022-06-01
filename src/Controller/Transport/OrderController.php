@@ -138,7 +138,7 @@ class OrderController extends AbstractController {
         $contactPosition = [$transportRequest->getContact()->getAddressLatitude(), $transportRequest->getContact()->getAddressLongitude()];
 
         $delivererPosition =  $round?->getBeganAt()
-            ? $round?->getDeliverer()->getVehicle()->getLastPosition($round->getBeganAt(), $round->getEndedAt())
+            ? $round?->getDeliverer()?->getVehicle()?->getLastPosition($round->getBeganAt(), $round->getEndedAt())
             : null;
 
         if ($round) {

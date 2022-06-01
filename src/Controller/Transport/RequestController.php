@@ -136,7 +136,7 @@ class RequestController extends AbstractController {
             : null;
 
         $delivererPosition =  $round?->getBeganAt()
-            ? $round?->getDeliverer()->getVehicle()->getLastPosition($round->getBeganAt(), $round->getEndedAt())
+            ? $round?->getDeliverer()?->getVehicle()?->getLastPosition($round->getBeganAt(), $round->getEndedAt())
             : null;
 
         if ($round) {

@@ -15,6 +15,11 @@
             margin-bottom: 15px;
         }
 
+        .logo {
+            max-width: 4cm;
+            max-height: 2cm;
+        }
+
         .header td:last-child {
             text-align: right;
         }
@@ -56,7 +61,7 @@
         <tr>
             <td>
                 {% if app_logo %}
-                    <img src="{{ app.request.scheme ~ '://' ~ app.request.httpHost ~ '/' ~ app_logo }}" alt="Logo paramétré"/>
+                    <img class="logo" src="{{ app.request.scheme ~ '://' ~ app.request.httpHost ~ '/' ~ app_logo }}" alt="Logo paramétré"/>
                 {% endif %}
             </td>
             <td>
