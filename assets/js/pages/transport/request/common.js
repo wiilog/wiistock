@@ -146,7 +146,7 @@ function resetForm(form) {
     const $requestType = $modal.find('[name=requestType]');
     if ($requestType.is(':not(input[type=hidden])')) {
         $requestType
-            .filter('[value=collect]')
+            .filter('[value=delivery]')
             .prop('checked', true)
             .trigger('change');
     }
