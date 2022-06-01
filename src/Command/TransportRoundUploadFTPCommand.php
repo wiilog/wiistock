@@ -60,8 +60,12 @@ class TransportRoundUploadFTPCommand extends Command {
 
         /** @var TransportRound $round */
         foreach ($transportRoundsIterator as $round) {
-            $this->transportRoundService->putLineRoundAndRequest($output, $this->csvExportService, $round);
+
+            $this->transportRoundService->putLineTodayRoundAndRequest($output, $this->csvExportService, $round);
         }
+
+        // we go back to the file begin to send all the file
+        fseek($output, 0);
 
         try {
             $sftp = new SFTP($strServer, intval($strServerPort));

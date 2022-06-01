@@ -9,6 +9,7 @@ use App\Entity\Transport\TransportRequestLine;
 use App\Entity\Transport\TransportRound;
 use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
+use DateTime;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
@@ -125,6 +126,69 @@ class TransportRoundService
         }
     }
 
+    public function putLineTodayRoundAndRequest($output, CSVExportService $csvService, TransportRound $round): void {
+        $vehicle = $round->getDeliverer()?->getVehicle();
+        $transportRoundLines = $round->getTransportRoundLines();
+        $now = new DateTime('now');
+        $beginDayDate = clone $now;
+        $beginDayDate->setTime(0, 0, 0);
+        $endDayDate = clone $now;
+        $endDayDate->setTime(23, 59, 59);
+
+        $upload = false;
+        foreach ($transportRoundLines as $transportRoundLine) {
+            $treatedAt = $transportRoundLine->getOrder()?->getTreatedAt() ?: null;
+            if ($treatedAt >= $beginDayDate && $treatedAt <= $endDayDate) {
+                $upload = true;
+            }
+        }
+
+        if($upload) {
+            $dataRounds = [
+                TransportRound::NUMBER_PREFIX . $round->getNumber(),
+                FormatHelper::date($round->getExpectedAt()),
+            ];
+
+            if (!$transportRoundLines->isEmpty()) {
+                foreach ($transportRoundLines as $transportRoundLine) {
+                    $order = $transportRoundLine->getOrder() ?: null;
+                    $treatedAt = $order->getTreatedAt() ?: null;
+
+                    if ($treatedAt >= $beginDayDate && $treatedAt <= $endDayDate) {
+                        $request = $order->getRequest() ?: null;
+                        $statusRequest = $request->getLastStatusHistory([TransportRequest::STATUS_FINISHED]);
+
+                        $naturesStr = Stream::from($request->getLines() ?: [])
+                            ->filterMap(fn(TransportRequestLine $line) => $line->getNature()?->getLabel())
+                            ->unique()
+                            ->join(', ');
+
+                        $ordersInformation = array_merge($dataRounds, [
+                            $request instanceof TransportDeliveryRequest ? ($request->getCollect() ? "Livraison - Collecte" : "Livraison") : "Collecte",
+                            FormatHelper::user($round->getDeliverer()),
+                            $vehicle?->getRegistrationNumber() ?: '',
+                            $round->getRealDistance() ?: '',
+                            $request->getContact()?->getFileNumber() ?: '',
+                            TransportRequest::NUMBER_PREFIX . $request->getNumber(),
+                            str_replace("\n", " ", $transportRoundLine->getOrder()?->getRequest()?->getContact()?->getAddress() ?: ''),
+                            $request->getContact()->getAddress() ? FormatHelper::bool($this->transportService->isMetropolis($request->getContact()->getAddress())) : '',
+                            $transportRoundLine->getPriority() ?: '',
+                            $request instanceof TransportDeliveryRequest ? FormatHelper::bool(!empty($request->getEmergency())) : '',
+                            FormatHelper::datetime($request->getCreatedAt()),
+                            FormatHelper::user($request->getCreatedBy()),
+                            $request instanceof TransportDeliveryRequest ? FormatHelper::datetime($request->getExpectedAt()) : FormatHelper::date($request->getExpectedAt()),
+                            isset($statusRequest[TransportRequest::STATUS_FINISHED]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_FINISHED]) : '',
+                            $naturesStr,
+                            $vehicle?->getActivePairing() ? FormatHelper::bool($vehicle->getActivePairing()->hasExceededThreshold()) : "Non",
+                        ]);
+                        $csvService->putLine($output, $ordersInformation);
+                    }
+                }
+            } else {
+                $csvService->putLine($output, $dataRounds);
+            }
+        }
+    }
     public function getHeaderRoundAndRequestExport(): array {
         return [
             'N° Tournée',
