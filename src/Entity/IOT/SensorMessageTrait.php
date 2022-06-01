@@ -29,11 +29,17 @@ trait SensorMessageTrait {
     public function getSensorMessagesBetween($start, $end, string $type = null): array {
         $criteria = Criteria::create();
         if($start) {
-            $criteria->andWhere(Criteria::expr()->gte("date", DateTime::createFromFormat("Y-m-d\TH:i", $start, new \DateTimeZone('Europe/Paris'))));
+            if (!($start instanceof DateTime)) {
+                $start = DateTime::createFromFormat("Y-m-d\TH:i", $start, new \DateTimeZone('Europe/Paris'));
+            }
+            $criteria->andWhere(Criteria::expr()->gte("date", $start));
         }
 
         if($end) {
-            $criteria->andWhere(Criteria::expr()->lte("date", DateTime::createFromFormat("Y-m-d\TH:i", $end, new \DateTimeZone('Europe/Paris'))));
+            if (!($end instanceof DateTime)) {
+                $end = DateTime::createFromFormat("Y-m-d\TH:i", $end, new \DateTimeZone('Europe/Paris'));
+            }
+            $criteria->andWhere(Criteria::expr()->lte("date", $end));
         }
 
         $criteria->orderBy(['date' => Criteria::ASC]);

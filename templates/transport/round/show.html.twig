@@ -175,7 +175,6 @@
                     {% include 'IOT/data_monitoring/content.html.twig' with {
                         type : 'chart',
                         fetch_url : url.fetch_url,
-                        needsLine: true,
                         minTemp: url.minTemp,
                         maxTemp: url.maxTemp
                     }
@@ -189,6 +188,8 @@
     <input type="hidden" value="{{ constant('App\\Controller\\Transport\\HistoryController::ROUND') }}" name="transportType">
     <input type="hidden" value="{{ calculationsPoints | json_encode }}" name="calculationPoints">
     <input type="hidden" value="{{ transportPoints | json_encode }}" name="transportPoints">
+    <input type="hidden" value="{{ delivererPosition }}" name="delivererPosition">
+
 {% endblock %}
 
 {% block javascripts %}

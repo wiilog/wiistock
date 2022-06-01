@@ -9,6 +9,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField;
+use App\Entity\IOT\SensorMessage;
 use App\Entity\Menu;
 use App\Entity\Statut;
 use App\Entity\Transport\CollectTimeSlot;
@@ -17,10 +18,12 @@ use App\Entity\Transport\TransportDeliveryOrderPack;
 use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\Transport\TransportOrder;
 use App\Entity\Transport\TransportRequest;
+use App\Entity\Transport\TransportRound;
 use App\Entity\Type;
 use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use App\Service\FreeFieldService;
+use App\Service\IOT\IOTService;
 use App\Service\StatusHistoryService;
 use App\Service\Transport\TransportHistoryService;
 use App\Service\Transport\TransportService;
@@ -31,6 +34,8 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Routing\RouterInterface;
 use WiiCommon\Helper\Stream;
 
 
@@ -110,7 +115,8 @@ class OrderController extends AbstractController {
     #[Route("/voir/{transport}", name: "transport_order_show", methods: "GET")]
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_TRANSPORT])]
     public function show(TransportOrder $transport,
-                         EntityManagerInterface $entityManager): Response {
+                         EntityManagerInterface $entityManager,
+                         RouterInterface $router): Response {
         $transportRequest = $transport->getRequest();
 
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
@@ -129,6 +135,32 @@ class OrderController extends AbstractController {
 
         $timeSlots = $entityManager->getRepository(CollectTimeSlot::class)->findAll();
 
+        $contactPosition = [$transportRequest->getContact()->getAddressLatitude(), $transportRequest->getContact()->getAddressLongitude()];
+
+        $delivererPosition =  $round?->getBeganAt()
+            ? $round?->getDeliverer()->getVehicle()->getLastPosition($round->getBeganAt(), $round->getEndedAt())
+            : null;
+
+        if ($round) {
+            $now = new DateTime();
+            $urls = [];
+            foreach ($transport->getPacks() as $transportDeliveryPack) {
+                $pack = $transportDeliveryPack->getPack();
+                $location = $pack->getLastTracking()?->getEmplacement();
+                if ($location and $location->getActivePairing()) {
+                    $urls[] = [
+                        "fetch_url" => $router->generate("chart_data_history", [
+                            "type" => IOTService::getEntityCodeFromEntity($location),
+                            "id" => $location->getId(),
+                            'start' => $round->getBeganAt()->format('Y-m-d\TH:i'),
+                            'end' => $round->getEndedAt() ?? $now->format('Y-m-d\TH:i'),
+                        ], UrlGeneratorInterface::ABSOLUTE_URL)
+                    ];
+                }
+            }
+        }
+
+        //TODO WIIS-7229 appliquer les nouvelles bornes
         return $this->render('transport/order/show.html.twig', [
             'order' => $transport,
             'freeFields' => $freeFields,
@@ -136,6 +168,11 @@ class OrderController extends AbstractController {
             'hasRejectedPacks' => $hasRejectedPacks,
             'round' => $round,
             'timeSlots' => $timeSlots,
+            'contactPosition' => $contactPosition,
+            'delivererPosition' => $delivererPosition,
+            'urls' => $urls ?? null,
+            "minTemp" => SensorMessage::LOW_TEMPERATURE_THRESHOLD,
+            "maxTemp" => SensorMessage::HIGH_TEMPERATURE_THRESHOLD,
         ]);
     }
 

@@ -30,6 +30,7 @@ use App\Service\NotificationService;
 use App\Service\StatusHistoryService;
 use App\Service\TrackingMovementService;
 use App\Service\Transport\TransportHistoryService;
+use App\Service\Transport\TransportRoundService;
 use DateTime;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
@@ -94,33 +95,26 @@ class TransportController extends AbstractFOSRestController {
     private function serializeRound(EntityManagerInterface $manager, TransportRound $round) {
         $lines = $round->getTransportRoundLines();
 
-        /** @var TransportRoundLine $line */
-        $totalLoaded = 0;
-        foreach ($lines as $line) {
-            $totalLoaded += Stream::from($line->getOrder()->getPacks())
-                ->filter(fn(TransportDeliveryOrderPack $orderPack) => !$orderPack->getRejectReason())
-                ->count();
-        }
+        $totalLoaded = Stream::from($lines)
+            ->flatMap(fn(TransportRoundLine $line) => $line->getOrder()->getPacks()->toArray())
+            ->filter(fn(TransportDeliveryOrderPack $orderPack) => !$orderPack->getRejectReason())
+            ->count();
 
-        $loadedPacks = 0;
-        foreach ($lines as $line) {
-            $loadedPacks += Stream::from($line->getOrder()->getPacks())
-                ->filter(fn(TransportDeliveryOrderPack $orderPack) => $orderPack->getState() === TransportDeliveryOrderPack::LOADED_STATE && !$orderPack->getRejectReason())
-                ->count();
-        }
+        $loadedPacks = Stream::from($lines)
+            ->flatMap(fn(TransportRoundLine $line) => $line->getOrder()->getPacks()->toArray())
+            ->filter(fn(TransportDeliveryOrderPack $orderPack) => (
+                $orderPack->getState() === TransportDeliveryOrderPack::LOADED_STATE
+                && !$orderPack->getRejectReason()
+            ))
+            ->count();
 
-        $readyDeliveries = 0;
-        foreach ($lines as $line) {
-            if($line->getOrder()->getRequest() instanceof TransportDeliveryRequest) {
-                $isReady = Stream::from($line->getOrder()->getPacks())
-                    ->filter(fn(TransportDeliveryOrderPack $orderPack) => $orderPack->getState() === null)
-                    ->isEmpty();
-
-                if ($isReady) {
-                    $readyDeliveries += 1;
-                }
-            }
-        }
+        // deliveries where packing is done
+        $readyDeliveries = Stream::from($lines)
+            ->filter(fn(TransportRoundLine $line) => (
+                $line->getOrder()->getRequest() instanceof TransportDeliveryRequest
+                && !$line->getOrder()->getPacks()->isEmpty()
+            ))
+            ->count();
 
         $collectedPacks = 0;
         $packsToCollect = 0;
@@ -403,8 +397,11 @@ class TransportController extends AbstractFOSRestController {
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
      */
-    public function startRound(Request $request, EntityManagerInterface $manager,
-                               StatusHistoryService $statusHistoryService, TransportHistoryService $historyService): Response {
+    public function startRound(Request                 $request,
+                               EntityManagerInterface  $manager,
+                               StatusHistoryService    $statusHistoryService,
+                               TransportRoundService   $transportRoundService,
+                               TransportHistoryService $historyService): Response {
         $data = $request->request;
         $round = $manager->find(TransportRound::class, $data->get('round'));
 
@@ -415,39 +412,70 @@ class TransportController extends AbstractFOSRestController {
         $deliveryOrderOngoing = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_DELIVERY, TransportOrder::STATUS_ONGOING);
         $collectOrderOngoing = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_COLLECT, TransportOrder::STATUS_ONGOING);
 
-        $round->setStatus($roundOngoing)
+        $round
+            ->setStatus($roundOngoing)
             ->setBeganAt(new DateTime());
+
+        $hasRejected = false;
 
         foreach($round->getTransportRoundLines() as $line) {
             $order = $line->getOrder();
             $request = $order->getRequest();
 
             if($request instanceof TransportDeliveryRequest) {
-                $request->setStatus($deliveryRequestOngoing);
-                $order->setStatus($deliveryOrderOngoing);
+                $hasPacks = !$order->getPacks()->isEmpty();
+                if ($hasPacks) {
+                    $requestStatus = $deliveryRequestOngoing;
+                    $orderStatus = $deliveryOrderOngoing;
+                }
+                else {
+                    $hasRejected = true;
+                    $transportRoundService->rejectTransportRoundDeliveryLine($manager, $line, $this->getUser());
+                }
             } else {
-                $request->setStatus($collectRequestOngoing);
-                $order->setStatus($collectOrderOngoing);
+                $requestStatus = $collectRequestOngoing;
+                $orderStatus = $collectOrderOngoing;
             }
 
-            $statusHistoryRequest = $statusHistoryService->updateStatus($manager, $request, $request->getStatus());
-            $statusHistoryOrder = $statusHistoryService->updateStatus($manager, $order, $order->getStatus());
+            if (isset($requestStatus) && isset($orderStatus)) {
+                $statusHistoryRequest = $statusHistoryService->updateStatus($manager, $request, $deliveryRequestOngoing);
+                $statusHistoryOrder = $statusHistoryService->updateStatus($manager, $order, $deliveryOrderOngoing);
 
-            $historyService->persistTransportHistory($manager, $request, TransportHistoryService::TYPE_ONGOING, [
-                "user" => $this->getUser(),
-                "history" => $statusHistoryRequest,
-            ]);
+                $historyService->persistTransportHistory($manager, $request, TransportHistoryService::TYPE_ONGOING, [
+                    "user" => $this->getUser(),
+                    "history" => $statusHistoryRequest,
+                ]);
 
-            $historyService->persistTransportHistory($manager, $order, TransportHistoryService::TYPE_ONGOING, [
-                "user" => $this->getUser(),
-                "history" => $statusHistoryOrder,
-            ]);
+                $historyService->persistTransportHistory($manager, $order, TransportHistoryService::TYPE_ONGOING, [
+                    "user" => $this->getUser(),
+                    "history" => $statusHistoryOrder,
+                ]);
+            }
         }
+
+
+        if ($round->getTransportRoundLines()->isEmpty()) {
+            if ($hasRejected) {
+                return $this->json([
+                    "success" => false,
+                    "msg" => "La tournée ne peut pas être débutée car aucune livraison de la tournée n'est valide"
+                ]);
+            }
+            else {
+                return $this->json([
+                    "success" => false,
+                    "msg" => "La tournée ne contient aucune ligne et ne peut être débutée"
+                ]);
+            }
+        }
+
+        $transportRoundService->updateTransportRoundLinePriority($round);
 
         $manager->flush();
 
         return $this->json([
-            "success" => true
+            "success" => true,
+            "round" => $this->serializeRound($manager, $round)
         ]);
     }
 

@@ -58,10 +58,10 @@ class RoundController extends AbstractController {
     #[Route('/api', name: 'transport_round_api', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::DEM, Action::DISPLAY_TRANSPORT], mode: HasPermission::IN_JSON)]
     public function api(Request $request, EntityManagerInterface $manager): Response {
-        $filtreSupRepository = $manager->getRepository(FiltreSup::class);
+        $filterSupRepository = $manager->getRepository(FiltreSup::class);
         $roundRepository = $manager->getRepository(TransportRound::class);
 
-        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_TRANSPORT_ROUNDS, $this->getUser());
+        $filters = $filterSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_TRANSPORT_ROUNDS, $this->getUser());
         $queryResult = $roundRepository->findByParamAndFilters($request->request, $filters);
 
         $transportRounds = [];
@@ -171,6 +171,10 @@ class RoundController extends AbstractController {
             })
             ->toArray();
 
+        $delivererPosition = $transportRound->getBeganAt()
+            ? $transportRound->getDeliverer()->getVehicle()->getLastPosition( $transportRound->getBeganAt(), $transportRound->getEndedAt())
+            : null;
+
         $urls = [];
         $transportDateBeganAt = $transportRound->getBeganAt();
         $locations = $transportRound->getDeliverer()?->getVehicle()?->getLocations() ?: [];
@@ -192,7 +196,7 @@ class RoundController extends AbstractController {
                         "type" => IOTService::getEntityCodeFromEntity($location),
                         "id" => $location->getId(),
                         'start' => $transportRound->getCreatedAt()->format('Y-m-d\TH:i'),
-                        'end' => $now->format('Y-m-d\TH:i'),
+                        'end' => $transportRound->getEndedAt() ?? $now->format('Y-m-d\TH:i'),
                     ], UrlGeneratorInterface::ABSOLUTE_URL),
                     "minTemp" => $minThreshold,
                     "maxTemp" => $maxThreshold,
@@ -205,6 +209,7 @@ class RoundController extends AbstractController {
             "realTime" => $realTime,
             "calculationsPoints" => $calculationsPoints,
             "transportPoints" => $transportPoints,
+            "delivererPosition" => $delivererPosition,
             "urls" => $urls,
             "roundDateBegan" => $transportDateBeganAt
         ]);

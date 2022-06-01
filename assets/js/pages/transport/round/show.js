@@ -22,6 +22,18 @@ $(function () {
 
     map.setLines(placePoints(map, calculationPoint, transportPoints), "#3353D7");
     map.fitBounds();
+
+    const delivererPosition= $(`input[name=delivererPosition]`).val();
+    if (delivererPosition) {
+        let position = delivererPosition.split(',');
+        map.setMarker({
+            latitude : position[0],
+            longitude : position[1],
+            icon : "delivererLocation",
+            popUp: "",
+            name: "Deliverer",
+        });
+    }
 });
 
 
