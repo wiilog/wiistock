@@ -3,12 +3,20 @@
 namespace App\Service\Transport;
 
 
+use App\Entity\CategorieStatut;
+use App\Entity\Statut;
+use App\Entity\Transport\TransportCollectRequest;
 use App\Entity\Transport\TransportDeliveryRequest;
+use App\Entity\Transport\TransportOrder;
 use App\Entity\Transport\TransportRequest;
 use App\Entity\Transport\TransportRequestLine;
 use App\Entity\Transport\TransportRound;
+use App\Entity\Transport\TransportRoundLine;
+use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
+use App\Service\StatusHistoryService;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
@@ -18,6 +26,14 @@ class TransportRoundService
 
     #[Required]
     public TransportService $transportService;
+
+    #[Required]
+    public StatusHistoryService $statusHistoryService;
+
+    #[Required]
+    public TransportHistoryService $transportHistoryService;
+
+    private array $cacheStatuses = [];
 
     /**
      * For csv export on transport round list page
@@ -77,7 +93,6 @@ class TransportRoundService
         }
 
     }
-
 
     public function putLineRoundAndRequest($output, CSVExportService $csvService, TransportRound $round): void {
         $vehicle = $round->getDeliverer()?->getVehicle();
@@ -146,6 +161,55 @@ class TransportRoundService
             'Objets',
             'Anomalie température',
         ];
+    }
+
+    public function rejectTransportRoundDeliveryLine(EntityManagerInterface $entityManager,
+                                                     TransportRoundLine     $line,
+                                                     Utilisateur            $user): void {
+        $order = $line->getOrder();
+        $request = $order->getRequest();
+
+        if ($request instanceof TransportCollectRequest) {
+            return;
+        }
+
+        $statusRepository = $entityManager->getRepository(Statut::class);
+
+        $deliveryRequestToPrepare = $this->cacheStatuses['deliveryRequestToPrepare']
+            ?? $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_REQUEST_DELIVERY, TransportRequest::STATUS_TO_PREPARE);
+
+        $deliveryOrderToAssign = $this->cacheStatuses['deliveryOrderToAssign']
+            ?? $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_DELIVERY, TransportOrder::STATUS_TO_ASSIGN);
+
+        $this->cacheStatuses['deliveryRequestToPrepare'] = $deliveryRequestToPrepare;
+        $this->cacheStatuses['deliveryOrderToAssign'] = $deliveryOrderToAssign;
+
+        $statusHistoryRequest = $this->statusHistoryService->updateStatus($entityManager, $request, $deliveryRequestToPrepare, [
+            'forceCreation' => false
+        ]);
+        $statusHistoryOrder = $this->statusHistoryService->updateStatus($entityManager, $order, $deliveryOrderToAssign);
+
+        $this->transportHistoryService->persistTransportHistory($entityManager, $request, TransportHistoryService::TYPE_REJECTED_DELIVERY, [
+            "user" => $user,
+            "history" => $statusHistoryRequest,
+        ]);
+
+        $this->transportHistoryService->persistTransportHistory($entityManager, $order, TransportHistoryService::TYPE_REJECTED_DELIVERY, [
+            "user" => $user,
+            "history" => $statusHistoryOrder,
+        ]);
+
+        $round = $line->getTransportRound();
+        $round->removeTransportRoundLine($line);
+        $entityManager->remove($line);
+    }
+
+    public function updateTransportRoundLinePriority(TransportRound $round): void {
+        $priority = 1;
+        foreach ($round->getTransportRoundLines() as $line) {
+            $line->setPriority($priority);
+            $priority++;
+        }
     }
 
 }

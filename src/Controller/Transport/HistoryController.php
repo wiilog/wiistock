@@ -197,7 +197,7 @@ class HistoryController extends AbstractController
                         ? $this->generateUrl('transport_order_show', ['transport' => $order->getId()])
                         : null,
                     'hint' => $request instanceof TransportCollectRequest ? 'Collecte' : 'Livraison',
-                    'emergency' => $order?->hasRejectedPacks() || $order->isRejected(),
+                    'emergency' => $order?->hasRejectedPacks() || $order?->isRejected(),
                     'estimated' => $line->getEstimatedAt(),
                     'state' => $currentLine?->getId() === $line->getId()
                         ? 'current'
