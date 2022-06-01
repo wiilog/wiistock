@@ -3,12 +3,6 @@ import '@styles/pages/transport/round-plan.scss'
 import {Map} from '@app/map';
 import {getStatusHistory, getTransportRoundTimeline} from "@app/pages/transport/common";
 
-import AJAX, {GET, POST} from "@app/ajax";
-import Flash, {ERROR} from "@app/flash";
-import {transportPDF} from "@app/pages/transport/request/common";
-
-
-
 $(function () {
     const map = Map.create(`map`);
 

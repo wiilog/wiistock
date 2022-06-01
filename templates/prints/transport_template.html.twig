@@ -56,7 +56,7 @@
         <tr>
             <td>
                 {% if app_logo %}
-                    <img src="{{ 'https://' ~ app.request.httpHost ~ '/' ~ app_logo }}" alt="Logo paramétré"/>
+                    <img src="{{ app.request.scheme ~ '://' ~ app.request.httpHost ~ '/' ~ app_logo }}" alt="Logo paramétré"/>
                 {% endif %}
             </td>
             <td>

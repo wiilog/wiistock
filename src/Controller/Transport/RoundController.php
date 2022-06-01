@@ -175,7 +175,7 @@ class RoundController extends AbstractController {
             ->toArray();
 
         $delivererPosition = $transportRound->getBeganAt()
-            ? $transportRound->getDeliverer()->getVehicle()->getLastPosition( $transportRound->getBeganAt(), $transportRound->getEndedAt())
+            ? $transportRound?->getDeliverer()?->getVehicle()?->getLastPosition($transportRound->getBeganAt(), $transportRound->getEndedAt())
             : null;
 
         $urls = [];

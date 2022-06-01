@@ -17,7 +17,7 @@
                         <div class="d-flex w-100 justify-content-between">
                             <div class="d-flex flex-column">
                                 <span class="wii-title" title="Acheminement">Tournée</span>
-                                <span class="wii-medium-text">{{constant('App\\Entity\\Transport\\TransportRound::NUMBER_PREFIX') ~ transportRound.number }}</span>
+                                <span class="wii-medium-text">{{ constant('App\\Entity\\Transport\\TransportRound::NUMBER_PREFIX') ~ transportRound.number }}</span>
                             </div>
                             <div class="d-flex align-items-center justify-content-end">
                                 <span class="wii-field-name">{{ transportRound.createdBy }}</span>
@@ -36,7 +36,7 @@
                         <div class="content status-history-container">
                             <div class="d-flex align-items-center justify-content-center">
                                 <div class="spinner-border text-primary" role="status"></div>
-                                <span class="ml-3">Génération de la timeline en cours...</span>
+                                <span class="ml-3">Génération de l'historique en cours</span>
                             </div>
                         </div>
                         <div class="header">
@@ -47,7 +47,7 @@
                             <div class="col-6 d-flex flex-column">
                                 <span class="wii-field-name">Temps estimé</span>
                                 {% set RoundEstimatedTime = transportRound.estimatedTime %}
-                                {%  if RoundEstimatedTime %}
+                                {% if RoundEstimatedTime %}
                                     <span class="wii-field-text">{{ RoundEstimatedTime | replace({ ':': "h" }) }}min </span>
                                 {% else %}
                                     <span class="wii-field-text">-</span>
@@ -55,7 +55,7 @@
                             </div>
                             <div class="col-6 d-flex flex-column">
                                 <span class="wii-field-name">Temps réel</span>
-                                {%  if realTime %}
+                                {% if realTime %}
                                     <span class="wii-field-text">{{ realTime }}</span>
                                 {% else %}
                                     <span class="wii-field-text">-</span>
@@ -72,7 +72,7 @@
                             <div class="col-6 d-flex flex-column">
                                 <span class="wii-field-name">Kilomères estimé</span>
                                 {% set RoundEstimatedDistance = transportRound.estimatedDistance %}
-                                {%  if RoundEstimatedDistance %}
+                                {% if RoundEstimatedDistance %}
                                     <span class="wii-field-text">{{ RoundEstimatedDistance }}km </span>
                                 {% else %}
                                     <span class="wii-field-text">-</span>
@@ -81,44 +81,45 @@
                             <div class="col-6 d-flex flex-column">
                                 <span class="wii-field-name">Kilomètres réel</span>
                                 {% set roundRealDistance = transportRound.realDistance %}
-                                {%  if roundRealDistance %}
+                                {% if roundRealDistance %}
                                     <span class="wii-field-text">{{ roundRealDistance }}Km</span>
                                 {% else %}
                                     <span class="wii-field-text">-</span>
-                                {%  endif %}
+                                {% endif %}
                             </div>
                         </div>
 
-                    {% set nbRejectedPacks = transportRound.countRejectedPacks  %}
-                    {% set nbRejectedOrders = transportRound.countRejectedOrders %}
-                    {% if nbRejectedPacks or nbRejectedOrders %}
-                    <div class="header">
-                        <img src="{{ asset('svg/urgence.svg') }}" alt="Icône urgence" width="15px">
-                        <span class="wii-field-name ml-2">&Eacute;lément rejetées</span>
-                    </div>
-                    <div class="row content">
-                        {% if nbRejectedPacks %}
-                            <div class="col-6 d-flex flex-column">
-                                <span class="wii-field-name">Colis rejetés</span>
-                                <span class="wii-field-text">{{ nbRejectedPacks }}</span>
+                        {% set nbRejectedPacks = transportRound.countRejectedPacks %}
+                        {% set nbRejectedOrders = transportRound.countRejectedOrders %}
+                        {% if nbRejectedPacks or nbRejectedOrders %}
+                            <div class="header">
+                                <img src="{{ asset('svg/urgence.svg') }}" alt="Icône urgence" width="15px">
+                                <span class="wii-field-name ml-2">&Eacute;lément rejetées</span>
+                            </div>
+                            <div class="row content">
+                                {% if nbRejectedPacks %}
+                                    <div class="col-6 d-flex flex-column">
+                                        <span class="wii-field-name">Colis rejetés</span>
+                                        <span class="wii-field-text">{{ nbRejectedPacks }}</span>
+                                    </div>
+                                {% endif %}
+                                {% if nbRejectedOrders %}
+                                    <div class="col-6 d-flex flex-column">
+                                        <span class="wii-field-name">Commandes rejetées</span>
+                                        <span class="wii-field-text">{{ nbRejectedOrders }}</span>
+                                    </div>
+                                {% endif %}
                             </div>
                         {% endif %}
-                        {% if nbRejectedOrders %}
-                            <div class="col-6 d-flex flex-column">
-                                <span class="wii-field-name">Commandes rejetées</span>
-                                <span class="wii-field-text">{{ nbRejectedOrders }}</span>
-                            </div>
-                        {% endif %}
                     </div>
-                    {% endif %}
                 </div>
-            </div>
-            <div class="wii-box">
-                <div class="header d-flex">
-                    {# TODO faire la condition pour l'affiche de dropdown #}
-                    <span class="mr-2 w-min-content">
+                <div class="wii-box">
+                    <div class="header d-flex">
+                        {# TODO faire la condition pour l'affiche de dropdown #}
+                        <div class="mr-2 w-min-content">
                             <div class="dropdown dropright">
-                                <div class="d-flex pointer" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <div class="d-flex pointer" data-toggle="dropdown" aria-haspopup="true"
+                                     aria-expanded="false">
                                     <img alt="Actions" src="{{ asset('svg/dotsblack.svg') }}" height="20px" width="8px">
                                 </div>
                                 <div class="dropdown-menu dropdown-follow-gt pointer">
@@ -127,14 +128,16 @@
                                     {% if transportRound.status.code != finishedStatusesName %}
                                         <div class="dropdown-item pointer edit-button">
                                             <a href="{{ path('transport_round_plan', {'transportRound': transportRound.id}) }}">
-                                                <img src="{{ asset('svg/plus-black.svg') }}" alt="" width="17px" class="pr-1">
+                                                <img src="{{ asset('svg/plus-black.svg') }}" alt="" width="17px"
+                                                     class="pr-1">
                                                 Ajouter un transport
                                             </a>
                                         </div>
                                     {% endif %}
                                     <div class="dropdown-item pointer print-round-button"
                                          data-round-id="{{ transportRound.id }}">
-                                        <img src="{{ asset('svg/printer-black.svg') }}" alt="Icône urgence" width="17px" class="pr-1">
+                                        <img src="{{ asset('svg/printer-black.svg') }}" alt="Icône urgence" width="17px"
+                                             class="pr-1">
                                         Générer un bon de transport
                                     </div>
                                 </div>
@@ -152,7 +155,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="col-lg-8 col-md-6 px-2">
                 <div class="wii-box">
                     <div class="header">
@@ -163,31 +165,32 @@
                             <div id="map"></div>
                         </div>
                     </div>
-                </div>
-                <div class="d-flex justify-content-between p-3">
-                    <span class="wii-field-name">Courbe de températures</span>
-                    {% if not roundDateBegan %}
-                        <span class="wii-medium-text">
-                            La tournée n'a pas commencé
-                        </span>
-                    {% endif %}
-                </div>
 
-                {% for url in urls %}
-                    {% include 'IOT/data_monitoring/content.html.twig' with {
-                        type : 'chart',
-                        fetch_url : url.fetch_url,
-                        minTemp: url.minTemp,
-                        maxTemp: url.maxTemp
-                    }
-                    %}
-                {% endfor %}
+                    <div class="d-flex justify-content-between p-3">
+                        <span class="wii-field-name">Courbe de températures</span>
+                        {% if not roundDateBegan %}
+                            <span class="wii-medium-text">
+                                La tournée n'a pas commencé
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    {% for url in urls %}
+                        {% include 'IOT/data_monitoring/content.html.twig' with {
+                            type : 'chart',
+                            fetch_url : url.fetch_url,
+                            minTemp: url.minTemp,
+                            maxTemp: url.maxTemp
+                        } %}
+                    {% endfor %}
+                </div>
             </div>
         </div>
     </div>
 
     <input type="hidden" value="{{ transportRound.id }}" name="transportId">
-    <input type="hidden" value="{{ constant('App\\Controller\\Transport\\HistoryController::ROUND') }}" name="transportType">
+    <input type="hidden" value="{{ constant('App\\Controller\\Transport\\HistoryController::ROUND') }}"
+           name="transportType">
     <input type="hidden" value="{{ calculationsPoints | json_encode }}" name="calculationPoints">
     <input type="hidden" value="{{ transportPoints | json_encode }}" name="transportPoints">
     <input type="hidden" value="{{ delivererPosition }}" name="delivererPosition">
