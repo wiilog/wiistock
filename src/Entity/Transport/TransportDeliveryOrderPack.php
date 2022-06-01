@@ -15,7 +15,7 @@ class TransportDeliveryOrderPack {
     public const LOADED_STATE = "loaded";
     public const REJECTED_STATE = "rejected";
     public const DELIVERED_STATE = "delivered";
-    public const DEPOSITED_STATE = "deposited";
+    public const RETURNED_STATE = "returned";
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
