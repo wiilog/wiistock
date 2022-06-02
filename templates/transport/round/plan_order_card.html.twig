@@ -3,6 +3,7 @@
 {% set isAssigned = isAssigned ?? false %}
 <div class="order-card {{ isAssigned ? "assigned" : "to-assign"}}"
      data-order-id="{{transportOrder.id}}"
+     data-index="{{ index ?? 0 }}"
      data-order-time="{{ time is defined ? time }}"
      data-order-time-label="{{ isFinish ? 'Réel' : 'Estimé' }}">
     <div class="affected-number {{ isFinish ? "finished" : ""}} d-none">

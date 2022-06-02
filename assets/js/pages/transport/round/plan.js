@@ -37,6 +37,7 @@ $(function () {
 
     Sortable.create(`#to-affect-container`, {
         placeholderClass: 'placeholder',
+        acceptFrom: false,
     });
 
     Sortable.create(`#affected-container`, {
@@ -45,18 +46,9 @@ $(function () {
         items: '.to-assign',
     });
 
-    Sortable.create(`#affected-container`, {
-        placeholderClass: 'placeholder',
-        acceptFrom: '.sortable-container',
-    });
-
     $('.sortable-container').on('sortupdate', function (){
         updateCardsContainers(map, contactData);
     })
-
-    $('.btn-cross').on('click', function() {
-        removeCard($(this), map, contactData);
-    });
 
     $.merge(
         $startPoint,
@@ -320,7 +312,22 @@ function updateCardsContainers(map, contactData, deletion = false) {
 function removeCard($button, map, contactData) {
     const $card = $button.closest('.order-card');
     $card.remove();
-    $('#to-affect-container').append($card);
+
+    const removedCardIndex = $card.data(`index`);
+
+    const toAffect = $('#to-affect-container');
+    const insertAfter = toAffect.find(`.order-card`)
+        .map((_, card) => $(card).data(`index`))
+        .filter((_, index) => index < removedCardIndex)
+        .sort();
+
+    const $before = toAffect.find(`.order-card[data-index=${Array.from(insertAfter).pop()}]`);
+    if(insertAfter.length === 0 || !$before.exists()) {
+        toAffect.prepend($card);
+    } else {
+        $card.insertAfter(toAffect.find(`.order-card[data-index=${Array.from(insertAfter).pop()}]`));
+    }
+
     updateCardsContainers(map, contactData, true);
 }
 
