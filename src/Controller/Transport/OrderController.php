@@ -174,7 +174,9 @@ class OrderController extends AbstractController {
                         "id" => null,
                         'start' => new DateTime('now'),
                         'end' => new DateTime('tomorrow'),
-                    ], UrlGeneratorInterface::ABSOLUTE_URL)
+                    ], UrlGeneratorInterface::ABSOLUTE_URL),
+                    "minTemp" => 0,
+                    "maxTemp" => 0,
                 ];
             }
         }
