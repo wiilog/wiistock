@@ -20,7 +20,10 @@
                     </div>
                     <div class="d-flex flex-column card-container sortable-container cards-mouse-hover" id="to-affect-container">
                         {% for transportOrder in transportOrders %}
-                            {% include 'transport/round/plan_order_card.html.twig' with {transportOrder: transportOrder} %}
+                            {% include 'transport/round/plan_order_card.html.twig' with {
+                                transportOrder: transportOrder,
+                                index: loop.index,
+                            } %}
                         {% endfor %}
                     </div>
                 </div>
