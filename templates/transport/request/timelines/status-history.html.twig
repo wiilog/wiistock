@@ -51,6 +51,7 @@
 {% endfor %}
 {% for followingStatus in followingStatuses %}
     {% set finishedStatusesName = [constant('App\\Entity\\Transport\\TransportOrder::STATUS_FINISHED'), constant('App\\Entity\\Transport\\TransportRequest::STATUS_FINISHED') ] %}
+    {% set roundLine = order ? (order.transportRoundLines | last) ?: null : null %}
     {% set estimatedAt = round ? round.estimatedAt|format_helper('longDate', {short: true, time: true}, '') :
         (transport.timeSlot is defined and transport.timeSlot ? transport.timeSlot.name : null) %}
     <div class="history-line">
@@ -69,7 +70,7 @@
                         {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ASSIGNED') %}
                             {% if transport is instanceof('App\\Entity\\Transport\\TransportRequest') %}
                                 Estimée à : <span
-                                class="transport-value">{{ timeSlot ? timeSlot.name : transport.expectedAt | date('H:i') }}</span>
+                                class="transport-value">{{ roundLine ? (roundLine.estimatedAt | date('H:i')) : (timeSlot ? timeSlot.name : transport.expectedAt | date('H:i')) }}</span>
                             {% else %}
                                 Estimée à : <span class="transport-value">{{ transport.expectedAt | date('H:i') }}</span>
                             {% endif %}
