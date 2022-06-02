@@ -189,10 +189,10 @@
                             </p>
                             {# TODO WIIS-7357 #}
                             <div class="wii-body-text py-1">
-                                <strong>Kilométrage estimé </strong>: <span class="estimatedTotalDistance">{{ round.estimatedDistance ? round.estimatedDistance ~ 'km' : '-' }}</span>
+                                <strong>Kilométrage estimé </strong>: <span class="estimatedTotalDistance">{{ round.estimatedDistance ? round.estimatedDistance ~ ' km' : '-' }}</span>
                             </div>
                             <div class="wii-body-text py-1">
-                                <strong>Temps estimé </strong>: <span class="estimatedTotalTime">{{ round.estimatedTime ? round.estimatedTime|replace({':': 'h'}) : '-' }}</span>
+                                <strong>Temps estimé </strong>: <span class="estimatedTotalTime">{{ round.estimatedTime ? round.estimatedTime|replace({':': 'h'}) ~ " min" : '-' }}</span>
                             </div>
                         </div>
                         <div class="bottom-right-buttons mx-2">

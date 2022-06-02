@@ -1,10 +1,10 @@
 {% set boxStyle = boxStyle ?? true %}
 {% if boxStyle %}
-<div class="wii-page-card mt-4">
+<div class="wii-page-card mt-4 {{ alwaysVisible ?? false ? 'always-visible' }}">
 {% endif %}
     {% if type == 'chart' %}
         <div class="max-h-px-400 w-100">
-            <canvas data-chart data-fetch-url="{{ fetch_url}}" data-needsline="{{ minTemp is defined or maxTemp is defined }}" data-maxTemp="{{ maxTemp is defined ? maxTemp }}" data-minTemp="{{ minTemp is defined ? minTemp }}" width="400" height="400"></canvas>
+            <canvas data-chart data-fetch-url="{{ fetch_url }}" data-needsline="{{ minTemp is defined or maxTemp is defined }}" data-maxTemp="{{ maxTemp is defined ? maxTemp }}" data-minTemp="{{ minTemp is defined ? minTemp }}" width="400" height="400"></canvas>
         </div>
     {% elseif type == 'map' %}
         <div data-map data-fetch-url="{{ fetch_url }}" style="height:500px;width:100%"></div>

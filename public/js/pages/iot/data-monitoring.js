@@ -307,7 +307,7 @@ function initLineChart(element, callback) {
             }
         }
         let chart = new Chart($element, config);
-        $element.closest('.wii-page-card').toggle(sensors.length > 0);
+        $element.closest('.wii-page-card:not(.always-visible)').toggle(sensors.length > 0);
         if (sensors.length === 0) {
             noChartData = true;
             callback();

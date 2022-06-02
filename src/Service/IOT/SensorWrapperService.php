@@ -50,7 +50,7 @@ class SensorWrapperService
             'lastLift' => $lastLift ? FormatHelper::datetime($lastLift->getDate()) : '',
             'battery' => $sensor ? ($sensor->getBattery() . '%') : '',
             'manager' => FormatHelper::user($sensorWrapper->getManager()),
-            'actions' => $this->templating->render('iot/sensor_wrapper/actions.html.twig', [
+            'actions' => $this->templating->render('IOT/sensor_wrapper/actions.html.twig', [
                 'sensor_wrapper' => $sensorWrapper,
             ]),
         ];

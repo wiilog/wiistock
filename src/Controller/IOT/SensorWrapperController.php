@@ -43,7 +43,7 @@ class SensorWrapperController extends AbstractController
 
         $types = $entityManager->getRepository(Type::class)->findByCategoryLabels([CategoryType::SENSOR]);
 
-        return $this->render('iot/sensor_wrapper/index.html.twig', [
+        return $this->render('IOT/sensor_wrapper/index.html.twig', [
             'freeFieldsTypes' => Stream::from($types)->map(function (Type $type) use ($freeFieldsRepository) {
                 $freeFields = $freeFieldsRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::SENSOR);
 
@@ -164,7 +164,7 @@ class SensorWrapperController extends AbstractController
         if ($data = json_decode($request->getContent(), true)) {
             $sensorWrapper = $entityManager->getRepository(SensorWrapper::class)->find($data['id']);
 
-            $json = $this->renderView('iot/sensor_wrapper/edit_content.html.twig', [
+            $json = $this->renderView('IOT/sensor_wrapper/edit_content.html.twig', [
                 'sensorWrapper' => $sensorWrapper,
             ]);
 
@@ -226,7 +226,7 @@ class SensorWrapperController extends AbstractController
     public function sensorPairingIndex($id, EntityManagerInterface $entityManager): Response
     {
         $sensor = $entityManager->getRepository(SensorWrapper::class)->find($id);
-        return $this->render('iot/sensors_pairing/index.html.twig', [
+        return $this->render('IOT/sensors_pairing/index.html.twig', [
             'sensor' => $sensor
         ]);
     }
