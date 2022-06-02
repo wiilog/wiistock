@@ -164,8 +164,9 @@ class TransportRoundRepository extends EntityRepository {
         $endDayDate->setTime(23, 59, 59);
 
         $qb = $this->createQueryBuilder('transport_round')
-            ->where('transport_round.endedAt IS NULL OR transport_round.endedAt BETWEEN :dateMin AND :dateMax')
-            ->andWhere('transport_round.beganAt IS NOT NULL OR transport_round.beganAt <= :dateMax')
+            ->andWhere('transport_round.beganAt IS NOT NULL')
+            ->andWhere('transport_round.beganAt <= :dateMax')
+            ->andWhere('(transport_round.endedAt IS NULL OR transport_round.endedAt BETWEEN :dateMin AND :dateMax)')
             ->setParameter('dateMin', $beginDayDate)
             ->setParameter('dateMax', $endDayDate);
 

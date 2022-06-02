@@ -147,7 +147,8 @@ function treatFetchCallback(json) {
     if(json.reload === true) {
         $.fn.dataTable
             .tables({visible: true, api: true})
-            .ajax.reload();
+            .ajax
+            .reload();
     }
 }
 

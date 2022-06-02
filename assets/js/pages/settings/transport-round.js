@@ -1,4 +1,5 @@
 import EditableDatatable, {MODE_CLICK_EDIT_AND_ADD, MODE_NO_EDIT, SAVE_MANUALLY} from "../../editatable";
+import AJAX, {GET} from "@app/ajax";
 
 const $managementButtons = $(`.save-settings, .discard-settings`);
 
@@ -20,9 +21,9 @@ export function initializeTransportRound($container, canEdit) {
             hour: `<input name='hour' class='form-control data' required data-global-error='Heure'/>`,
             deliverers: `
                 <select name='deliverers'
-                        required 
-                        data-s2="user" 
-                        data-parent="body" 
+                        required
+                        data-s2="user"
+                        data-parent="body"
                         class='form-control data'
                         data-global-error='Livreur(s)'
                         data-other-params
@@ -42,4 +43,13 @@ export function initializeTransportRound($container, canEdit) {
             $target.append(newOption).trigger('change');
         })
     });
+
+    $('.button-launch-import')
+        .off('click')
+        .on('click', function () {
+            wrapLoadingOnActionButton($(this), () => (
+                AJAX.route(GET, 'transport_rounds_launch_ftp_export')
+                    .json()
+            ));
+        });
 }

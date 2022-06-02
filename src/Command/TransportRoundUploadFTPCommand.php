@@ -21,9 +21,6 @@ class TransportRoundUploadFTPCommand extends Command {
     public EntityManagerInterface $entityManager;
 
     #[Required]
-    public CSVExportService $csvExportService;
-
-    #[Required]
     public TransportRoundService $transportRoundService;
 
     protected function configure() {
@@ -32,56 +29,7 @@ class TransportRoundUploadFTPCommand extends Command {
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int {
-
-        $settingRepository = $this->entityManager->getRepository(Setting::class);
-        $transportRoundRepository = $this->entityManager->getRepository(TransportRound::class);
-
-        $strServer = $settingRepository->getOneParamByLabel(Setting::FTP_ROUND_SERVER_NAME);
-        $strServerPort = $settingRepository->getOneParamByLabel(Setting::FTP_ROUND_SERVER_PORT);
-        $strServerUsername = $settingRepository->getOneParamByLabel(Setting::FTP_ROUND_SERVER_USER);
-        $strServerPassword = $settingRepository->getOneParamByLabel(Setting::FTP_ROUND_SERVER_PASSWORD);
-        $strServerPath = $settingRepository->getOneParamByLabel(Setting::FTP_ROUND_SERVER_PATH);
-
-        if (!$strServer || !$strServerPort || !$strServerUsername || !$strServerPassword || !$strServerPath) {
-            throw new \RuntimeException('Invalid settings');
-        }
-
-        $today = new DateTime();
-        $today = $today->format("d-m-Y-H-i-s");
-        $nameFile = "export-tournees-$today.csv";
-
-        $csvHeader = $this->transportRoundService->getHeaderRoundAndRequestExport();
-
-        $transportRoundsIterator = $transportRoundRepository->iterateTodayFinishedTransportRounds();
-
-        $output = tmpfile();
-
-        $this->csvExportService->putLine($output, $csvHeader);
-
-        /** @var TransportRound $round */
-        foreach ($transportRoundsIterator as $round) {
-
-            $this->transportRoundService->putLineTodayRoundAndRequest($output, $this->csvExportService, $round);
-        }
-
-        // we go back to the file begin to send all the file
-        fseek($output, 0);
-
-        try {
-            $sftp = new SFTP($strServer, intval($strServerPort));
-            $sftp_login = $sftp->login($strServerUsername, $strServerPassword);
-            if ($sftp_login) {
-                $trailingChar = $strServerPath[strlen($strServerPath) - 1];
-                $sftp->put($strServerPath . ($trailingChar !== '/' ? '/' : '') . $nameFile, $output, SFTP::SOURCE_LOCAL_FILE);
-            }
-        }
-        catch(Throwable $throwable) {
-            fclose($output);
-            throw $throwable;
-        }
-
-        fclose($output);
-
+        $this->transportRoundService->launchCSVExport($this->entityManager);
         return 0;
     }
 }
