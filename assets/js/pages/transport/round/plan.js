@@ -37,6 +37,7 @@ $(function () {
 
     Sortable.create(`#to-affect-container`, {
         placeholderClass: 'placeholder',
+        acceptFrom: false,
     });
 
     Sortable.create(`#affected-container`, {
@@ -45,18 +46,9 @@ $(function () {
         items: '.to-assign',
     });
 
-    Sortable.create(`#affected-container`, {
-        placeholderClass: 'placeholder',
-        acceptFrom: '.sortable-container',
-    });
-
     $('.sortable-container').on('sortupdate', function (){
         updateCardsContainers(map, contactData);
     })
-
-    $('.btn-cross').on('click', function() {
-        removeCard($(this), map, contactData);
-    });
 
     $.merge(
         $startPoint,
@@ -127,7 +119,6 @@ $(function () {
                     let expectedTimeInMinutes = roundHours * 60 + roundMinutes;
                     let distance = 0;
                     let time = 0;
-                    let fullTime = 0;
 
                     const params = extractParametersFromDOM($expectedAtTime, $startPoint, $startPointScheduleCalculation, $endPoint);
                     return $.get(Routing.generate('transport_round_calculate'), params, function(response) {
@@ -137,7 +128,7 @@ $(function () {
                         }, {});
 
                         Object.values(roundData.data).forEach((round, index) => {
-                            [distance, fullTime, time] = parseRouteIntels(round, distance, fullTime, time, expectedTimeInMinutes, index, map, params, roundData);
+                            [distance, time] = parseRouteIntels(round, distance, time, expectedTimeInMinutes, index, map, params, roundData);
                         });
 
                         saveAndDisplayEstimatedTimesInDOM(distance, time);
@@ -162,7 +153,7 @@ function saveAndDisplayEstimatedTimesInDOM(distance, time) {
     $('input[name="estimatedTotalTime"]').val(estimatedTotalTime);
 }
 
-function parseRouteIntels(round, distance, fullTime, time, expectedTimeInMinutes, index, map, params, roundData) {
+function parseRouteIntels(round, distance, time, expectedTimeInMinutes, index, map, params, roundData) {
     const waitingTimes = JSON.parse($('input[name="waitingTime"]').val());
 
     distance += round.distance;
@@ -172,13 +163,11 @@ function parseRouteIntels(round, distance, fullTime, time, expectedTimeInMinutes
     const waitingTime = round.destinationType ? Number(waitingTimes[round.destinationType]) : 0;
     roundTime += waitingTime;
 
-    fullTime += roundTime;
-
     if (index > 0) {
         time += roundTime;
     }
 
-    const elapsed = expectedTimeInMinutes + fullTime;
+    const elapsed = expectedTimeInMinutes + time;
 
     const arrivedTime = minutesToTime(elapsed);
 
@@ -201,7 +190,7 @@ function parseRouteIntels(round, distance, fullTime, time, expectedTimeInMinutes
         estimation: arrivedTime,
     });
 
-    return [distance, fullTime, time];
+    return [distance, time];
 }
 
 function extractParametersFromDOM($expectedAtTime, $startPoint, $startPointScheduleCalculation, $endPoint) {
@@ -323,7 +312,22 @@ function updateCardsContainers(map, contactData, deletion = false) {
 function removeCard($button, map, contactData) {
     const $card = $button.closest('.order-card');
     $card.remove();
-    $('#to-affect-container').append($card);
+
+    const removedCardIndex = $card.data(`index`);
+
+    const toAffect = $('#to-affect-container');
+    const insertAfter = toAffect.find(`.order-card`)
+        .map((_, card) => $(card).data(`index`))
+        .filter((_, index) => index < removedCardIndex)
+        .sort();
+
+    const $before = toAffect.find(`.order-card[data-index=${Array.from(insertAfter).pop()}]`);
+    if(insertAfter.length === 0 || !$before.exists()) {
+        toAffect.prepend($card);
+    } else {
+        $card.insertAfter(toAffect.find(`.order-card[data-index=${Array.from(insertAfter).pop()}]`));
+    }
+
     updateCardsContainers(map, contactData, true);
 }
 
