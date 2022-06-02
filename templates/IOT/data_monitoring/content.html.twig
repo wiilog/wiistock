@@ -1,6 +1,6 @@
 {% set boxStyle = boxStyle ?? true %}
 {% if boxStyle %}
-<div class="wii-page-card mt-4">
+<div class="wii-page-card mt-4 {{ alwaysVisible ?? false ? 'always-visible' }}">
 {% endif %}
     {% if type == 'chart' %}
         <div class="max-h-px-400 w-100">

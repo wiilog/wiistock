@@ -279,7 +279,7 @@
                                 {% elseif not roundHasStarted %}
                                     La tournée n'a pas commencé
                                 {% endif %}
-                                <div class="map-container">
+                                <div class="map-container p-3">
                                     <div id="map"></div>
                                 </div>
                             </span>
@@ -299,6 +299,7 @@
                                                  minTemp: minTemp,
                                                  maxTemp: maxTemp,
                                                  boxStyle: false,
+                                                 alwaysVisible: true,
                                              } %}
                                          {% endfor %}
                                     {% elseif not requiresTemperatureTracking %}
@@ -311,6 +312,7 @@
                                                 minTemp: minTemp,
                                                 maxTemp: maxTemp,
                                                 boxStyle: false,
+                                                alwaysVisible: true,
                                             } %}
                                         {% endfor %}
                                     {% endif %}

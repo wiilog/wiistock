@@ -30,7 +30,7 @@
                                 {{ transportRound.expectedAt | format_helper('longDate', {short: true, time:false}) }}
                             </div>
                             <div class="col-6">
-                                Livreur: <span class="bold">{{ transportRound.deliverer.username }}</span>
+                                Livreur : <span class="bold">{{ transportRound.deliverer.username }}</span>
                             </div>
                         </div>
                         <div class="content status-history-container">
@@ -46,9 +46,9 @@
                         <div class="row content">
                             <div class="col-6 d-flex flex-column">
                                 <span class="wii-field-name">Temps estimé</span>
-                                {% set RoundEstimatedTime = transportRound.estimatedTime %}
-                                {% if RoundEstimatedTime %}
-                                    <span class="wii-field-text">{{ RoundEstimatedTime | replace({ ':': "h" }) }}min </span>
+                                {% set roundEstimatedTime = transportRound.estimatedTime %}
+                                {% if roundEstimatedTime %}
+                                    <span class="wii-field-text">{{ roundEstimatedTime | replace({ ':': "h" }) }}min </span>
                                 {% else %}
                                     <span class="wii-field-text">-</span>
                                 {% endif %}
@@ -70,7 +70,7 @@
                         </div>
                         <div class="row content">
                             <div class="col-6 d-flex flex-column">
-                                <span class="wii-field-name">Kilomères estimé</span>
+                                <span class="wii-field-name">Kilomètres estimés</span>
                                 {% set RoundEstimatedDistance = transportRound.estimatedDistance %}
                                 {% if RoundEstimatedDistance %}
                                     <span class="wii-field-text">{{ RoundEstimatedDistance }}km </span>
@@ -79,7 +79,7 @@
                                 {% endif %}
                             </div>
                             <div class="col-6 d-flex flex-column">
-                                <span class="wii-field-name">Kilomètres réel</span>
+                                <span class="wii-field-name">Kilomètres réels</span>
                                 {% set roundRealDistance = transportRound.realDistance %}
                                 {% if roundRealDistance %}
                                     <span class="wii-field-text">{{ roundRealDistance }}Km</span>
@@ -164,14 +164,14 @@
                     <div class="header">
                         <span class="wii-title">Données</span>
                     </div>
-                    <div class="d-flex flex-column ">
+                    <div class="d-flex flex-column p-3">
                         <div class="map-container">
                             <div id="map"></div>
                         </div>
                     </div>
 
                     <div class="d-flex justify-content-between p-3">
-                        <span class="wii-field-name">Courbe de températures</span>
+                        <span class="wii-field-name">Courbe{{ urls | length != 1 ? 's' }} de température</span>
                         {% if not roundDateBegan %}
                             <span class="wii-medium-text">
                                 La tournée n'a pas commencé
@@ -184,7 +184,8 @@
                             type : 'chart',
                             fetch_url : url.fetch_url,
                             minTemp: url.minTemp,
-                            maxTemp: url.maxTemp
+                            maxTemp: url.maxTemp,
+                            alwaysVisible: true,
                         } %}
                     {% endfor %}
                 </div>

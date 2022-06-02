@@ -211,6 +211,19 @@ class RoundController extends AbstractController {
         $hasSomeDelivery = Stream::from($transportRound->getTransportRoundLines())
             ->some(fn (TransportRoundLine $line) => $line->getOrder()?->getRequest() instanceof TransportDeliveryRequest);
 
+        if (empty($urls)) {
+            $urls[] = [
+                "fetch_url" => $router->generate("chart_data_history", [
+                    "type" => null,
+                    "id" => null,
+                    'start' => new DateTime('now'),
+                    'end' => new DateTime('tomorrow'),
+                ], UrlGeneratorInterface::ABSOLUTE_URL),
+                "minTemp" => 0,
+                "maxTemp" => 0,
+            ];
+        }
+
         return $this->render('transport/round/show.html.twig', [
             "transportRound" => $transportRound,
             "realTime" => $realTime,
