@@ -296,26 +296,26 @@
                                              {% include 'IOT/data_monitoring/content.html.twig' with {
                                                  type : 'chart',
                                                  fetch_url : url.fetch_url,
-                                                 minTemp: minTemp,
-                                                 maxTemp: maxTemp,
+                                                 minTemp: url.minTemp,
+                                                 maxTemp: url.maxTemp,
                                                  boxStyle: false,
                                                  alwaysVisible: true,
                                              } %}
                                          {% endfor %}
                                     {% elseif not requiresTemperatureTracking %}
                                          <a class="float-right">La demande ne nécessite pas de suivi de température</a>
-                                    {% else %}
-                                        {% for url in urls %}
-                                            {% include 'IOT/data_monitoring/content.html.twig' with {
-                                                type : 'chart',
-                                                fetch_url : url.fetch_url,
-                                                minTemp: minTemp,
-                                                maxTemp: maxTemp,
-                                                boxStyle: false,
-                                                alwaysVisible: true,
-                                            } %}
-                                        {% endfor %}
-                                    {% endif %}
+                                     {% else %}
+                                         {% for url in urls %}
+                                             {% include 'IOT/data_monitoring/content.html.twig' with {
+                                                 type : 'chart',
+                                                 fetch_url : url.fetch_url,
+                                                 minTemp: url.minTemp,
+                                                 maxTemp: url.maxTemp,
+                                                 boxStyle: false,
+                                                 alwaysVisible: true,
+                                             } %}
+                                         {% endfor %}
+                                     {% endif %}
                                 </span>
                             </div>
                         {% endif %}

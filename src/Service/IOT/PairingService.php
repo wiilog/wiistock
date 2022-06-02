@@ -3,6 +3,7 @@
 
 namespace App\Service\IOT;
 
+use App\Entity\Emplacement;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\IOT\SensorMessage;
@@ -63,7 +64,9 @@ class PairingService
             $sensor = $message->getSensor();
 
             $wrapper = $sensor->getAvailableSensorWrapper();
-            $sensorCode = ($wrapper ? $wrapper->getName() . ' : ' : '') . $sensor->getCode();
+            $pairing = $wrapper->getActivePairing();
+            $label = $pairing && $pairing->getEntity() instanceof Emplacement ? $pairing->getEntity()->getLabel() : $sensor->getCode();
+            $sensorCode = ($wrapper ? $wrapper->getName() . ' : ' : '') . $label;
             if(!isset($data['colors'][$sensorCode])) {
                 srand($sensor->getId());
                 $data['colors'][$sensorCode] = sprintf('#%06X', mt_rand(0, 0xFFFFFF));

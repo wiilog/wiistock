@@ -307,8 +307,8 @@
                                              {% include 'IOT/data_monitoring/content.html.twig' with {
                                                  type : 'chart',
                                                  fetch_url : url.fetch_url,
-                                                 minTemp: minTemp,
-                                                 maxTemp: maxTemp,
+                                                 minTemp: url.minTemp,
+                                                 maxTemp: url.maxTemp,
                                                  boxStyle: false,
                                                  alwaysVisible: true,
                                              } %}
