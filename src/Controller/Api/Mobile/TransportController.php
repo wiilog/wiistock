@@ -529,6 +529,8 @@ class TransportController extends AbstractFOSRestController {
         $order = $request->getOrder();
         $now = new DateTime('now');
 
+        $isEdit = $request->getStatus()->getCode() !== TransportRequest::STATUS_ONGOING;
+
         $signature = $files->get('signature');
         $photo = $files->get('photo');
 
@@ -546,36 +548,9 @@ class TransportController extends AbstractFOSRestController {
             $manager->persist($patient);
         }
 
-        if($order->getRequest() instanceof TransportDeliveryRequest) {
-            foreach($order->getPacks() as $line) {
-                if(!$line->getRejectedBy()) {
-                    $line->setState(TransportDeliveryOrderPack::DELIVERED_STATE);
-                    $trackingMovement = $trackingMovementService
-                        ->createTrackingMovement($line->getPack(), $patient, $this->getUser(), $now, true, true,TrackingMovement::TYPE_DEPOSE);
-                    $manager->persist($trackingMovement);
-                }
-            }
-        } else {
-            $collectedPacks = Stream::from(json_decode($data->get('collectedPacks'), true))
-                ->keymap(fn(array $nature) => [$nature["nature_id"], $nature["collected_quantity"]])
-                ->toArray();
-
-            foreach($order->getRequest()->getLines() as $line) {
-                $line->setCollectedQuantity($collectedPacks[$line->getNature()->getId()]);
-            }
-        }
-
         $comment = $data->get('comment');
-        $order
-            ->setComment($comment)
-            ->setTreatedAt($now);
-
-        $isCollectFromDelivery = $request instanceof TransportCollectRequest && $request->getDelivery();
-
-        if (!$isCollectFromDelivery) {
-            $lastLine = $order->getTransportRoundLines()->last();
-            $lastLine->setFulfilledAt($now);
-        }
+        $previousComment = $order->getComment();
+        $order->setComment($comment);
 
         if($signatureAttachment) {
             $order->setSignature($signatureAttachment);
@@ -585,93 +560,121 @@ class TransportController extends AbstractFOSRestController {
             $order->addAttachment($photoAttachment);
         }
 
-        if ($comment) {
-            $historyService->persistTransportHistory($manager,
-                $request,
-                TransportHistoryService::TYPE_ADD_COMMENT,
-                [
-                    "user" => $this->getUser(),
-                    "comment" => $comment,
-                ]);
-            $historyService->persistTransportHistory($manager,
-                $order,
-                TransportHistoryService::TYPE_ADD_COMMENT,
-                [
-                    "user" => $this->getUser(),
-                    "comment" => $comment,
-                ]);
+        if ($comment && $comment != $previousComment) {
+            $historyService->persistTransportHistory($manager, $request, TransportHistoryService::TYPE_ADD_COMMENT, [
+                "user" => $this->getUser(),
+                "comment" => $comment,
+            ]);
+
+            $historyService->persistTransportHistory($manager, $order, TransportHistoryService::TYPE_ADD_COMMENT, [
+                "user" => $this->getUser(),
+                "comment" => $comment,
+            ]);
         }
 
         if ($signatureAttachment || $photoAttachment) {
-            $historyService->persistTransportHistory($manager,
-                $request,
-                TransportHistoryService::TYPE_ADD_ATTACHMENT,
-                [
-                    "user" => $this->getUser(),
-                    "attachments" => [
-                        ...($signatureAttachment ? [$signatureAttachment] : []),
-                        ...($photoAttachment ? [$photoAttachment] : []),
-                    ],
-                ]);
-            $historyService->persistTransportHistory($manager,
-                $order,
-                TransportHistoryService::TYPE_ADD_ATTACHMENT,
-                [
-                    "user" => $this->getUser(),
-                    "attachments" => [
-                        ...($signatureAttachment ? [$signatureAttachment] : []),
-                        ...($photoAttachment ? [$photoAttachment] : []),
-                    ],
-                ]);
+            $historyService->persistTransportHistory($manager, $request, TransportHistoryService::TYPE_ADD_ATTACHMENT, [
+                "user" => $this->getUser(),
+                "attachments" => [
+                    ...($signatureAttachment ? [$signatureAttachment] : []),
+                    ...($photoAttachment ? [$photoAttachment] : []),
+                ],
+            ]);
+
+            $historyService->persistTransportHistory($manager, $order, TransportHistoryService::TYPE_ADD_ATTACHMENT, [
+                "user" => $this->getUser(),
+                "attachments" => [
+                    ...($signatureAttachment ? [$signatureAttachment] : []),
+                    ...($photoAttachment ? [$photoAttachment] : []),
+                ],
+            ]);
         }
 
-        if($request instanceof TransportCollectRequest || $request->getCollect() === null) {
-            $statusRepository = $manager->getRepository(Statut::class);
+        if(!$isEdit) {
+            $order->setTreatedAt($now);
 
-            //si on termine la collecte d'une livraison collecte, alors il faut
-            //mettre a jour les données de la livraison car celles de la collecte
-            //ne sont pas utilisées
-            if($request instanceof TransportCollectRequest && $request->getDelivery()) {
-                $request->setStatus($statusRepository->findOneByCategorieNameAndStatutCode(
-                    CategorieStatut::TRANSPORT_REQUEST_COLLECT,
-                    TransportRequest::STATUS_FINISHED
-                ));
-
-                $request = $request->getDelivery();
-                $order = $request->getOrder();
+            $isCollectFromDelivery = $request instanceof TransportCollectRequest && $request->getDelivery();
+            if (!$isCollectFromDelivery) {
+                $lastLine = $order->getTransportRoundLines()->last();
+                $lastLine->setFulfilledAt($now);
             }
 
-            $requestCategory = $request instanceof TransportCollectRequest
-                ? CategorieStatut::TRANSPORT_REQUEST_COLLECT
-                : CategorieStatut::TRANSPORT_REQUEST_DELIVERY;
+            if ($request instanceof TransportDeliveryRequest) {
+                foreach ($order->getPacks() as $line) {
+                    if (!$line->getRejectedBy()) {
+                        $line->setState(TransportDeliveryOrderPack::DELIVERED_STATE);
+                        $trackingMovement = $trackingMovementService
+                            ->createTrackingMovement($line->getPack(),
+                                $patient,
+                                $this->getUser(),
+                                $now,
+                                true,
+                                true,
+                                TrackingMovement::TYPE_DEPOSE);
+                        $manager->persist($trackingMovement);
+                    }
+                }
+            }
+            else {
+                $collectedPacks = Stream::from(json_decode($data->get('collectedPacks'), true))
+                    ->keymap(fn(array $nature) => [$nature["nature_id"], $nature["collected_quantity"]])
+                    ->toArray();
 
-            $orderCategory = $request instanceof TransportCollectRequest
-                ? CategorieStatut::TRANSPORT_ORDER_COLLECT
-                : CategorieStatut::TRANSPORT_ORDER_DELIVERY;
+                foreach ($order->getRequest()->getLines() as $line) {
+                    $line->setCollectedQuantity($collectedPacks[$line->getNature()->getId()]);
+                }
+            }
 
-            $requestStatus = $statusRepository->findOneByCategorieNameAndStatutCode($requestCategory,
-                TransportRequest::STATUS_FINISHED);
-            $orderStatus = $statusRepository->findOneByCategorieNameAndStatutCode($orderCategory,
-                TransportOrder::STATUS_FINISHED);
+            if ($request instanceof TransportCollectRequest || $request->getCollect() === null) {
+                $statusRepository = $manager->getRepository(Statut::class);
 
-            $order->getRequest()->setStatus($requestStatus);
-            $order->setStatus($requestStatus);
+                //si on termine la collecte d'une livraison collecte, alors il faut
+                //mettre a jour les données de la livraison car celles de la collecte
+                //ne sont pas utilisées
+                if ($request instanceof TransportCollectRequest && $request->getDelivery()) {
+                    $request->setStatus($statusRepository->findOneByCategorieNameAndStatutCode(
+                        CategorieStatut::TRANSPORT_REQUEST_COLLECT,
+                        TransportRequest::STATUS_FINISHED
+                    ));
 
-            $statusHistoryRequest = $statusHistoryService->updateStatus($manager, $order->getRequest(), $requestStatus);
-            $statusHistoryOrder = $statusHistoryService->updateStatus($manager, $order, $orderStatus);
+                    $request = $request->getDelivery();
+                    $order = $request->getOrder();
+                }
 
-            $historyService->persistTransportHistory($manager,
-                $order->getRequest(),
-                TransportHistoryService::TYPE_FINISHED,
-                [
+                $requestCategory = $request instanceof TransportCollectRequest
+                    ? CategorieStatut::TRANSPORT_REQUEST_COLLECT
+                    : CategorieStatut::TRANSPORT_REQUEST_DELIVERY;
+
+                $orderCategory = $request instanceof TransportCollectRequest
+                    ? CategorieStatut::TRANSPORT_ORDER_COLLECT
+                    : CategorieStatut::TRANSPORT_ORDER_DELIVERY;
+
+                $requestStatus = $statusRepository->findOneByCategorieNameAndStatutCode($requestCategory,
+                    TransportRequest::STATUS_FINISHED);
+                $orderStatus = $statusRepository->findOneByCategorieNameAndStatutCode($orderCategory,
+                    TransportOrder::STATUS_FINISHED);
+
+                $order->getRequest()->setStatus($requestStatus);
+                $order->setStatus($requestStatus);
+
+                $statusHistoryRequest = $statusHistoryService->updateStatus($manager,
+                    $order->getRequest(),
+                    $requestStatus);
+                $statusHistoryOrder = $statusHistoryService->updateStatus($manager, $order, $orderStatus);
+
+                $historyService->persistTransportHistory($manager,
+                    $order->getRequest(),
+                    TransportHistoryService::TYPE_FINISHED,
+                    [
+                        "user" => $this->getUser(),
+                        "history" => $statusHistoryRequest,
+                    ]);
+
+                $historyService->persistTransportHistory($manager, $order, TransportHistoryService::TYPE_FINISHED, [
                     "user" => $this->getUser(),
-                    "history" => $statusHistoryRequest,
+                    "history" => $statusHistoryOrder,
                 ]);
-
-            $historyService->persistTransportHistory($manager, $order, TransportHistoryService::TYPE_FINISHED, [
-                "user" => $this->getUser(),
-                "history" => $statusHistoryOrder,
-            ]);
+            }
         }
 
         $manager->flush();
@@ -686,12 +689,12 @@ class TransportController extends AbstractFOSRestController {
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
      */
-    public function transportFailure(Request $request,
-                                     EntityManagerInterface $manager,
-                                     StatusHistoryService $statusHistoryService,
-                                     TransportHistoryService $transportHistoryService,
-                                     AttachmentService $attachmentService,
-                                     NotificationService $notificationService): Response {
+    public function transportFailure(Request                 $request,
+                                     EntityManagerInterface  $manager,
+                                     StatusHistoryService    $statusHistoryService,
+                                     TransportHistoryService $historyService,
+                                     AttachmentService       $attachmentService,
+                                     NotificationService     $notificationService): Response {
         $data = $request->request;
         $files = $request->files;
         $request = $manager->find(TransportRequest::class, $data->get('transport'));
@@ -701,99 +704,151 @@ class TransportController extends AbstractFOSRestController {
         $order = $request->getOrder();
         $now = new DateTime();
 
-        $order
-            ->setTreatedAt($now)
-            ->setComment($comment);
+        $isEdit = $request->getStatus()->getCode() !== TransportRequest::STATUS_ONGOING;
 
-        $photoAttachment = null;
-        if($files->get('photo')) {
-            $photoAttachment = $attachmentService->createAttachements([$files->get('photo')])[0];
+        $signature = $files->get('signature');
+        $photo = $files->get('photo');
+
+        $signatureAttachment = $signature ? $attachmentService->createAttachements([$signature])[0] : null;
+        $photoAttachment = $photo ? $attachmentService->createAttachements([$photo])[0] : null;
+
+        $order->setComment($comment);
+
+        if($signatureAttachment) {
+            $order->setSignature($signatureAttachment);
+        }
+
+        if($signatureAttachment) {
             $order->addAttachment($photoAttachment);
         }
 
-        foreach ([$request, $order] as $entity) {
-            if($entity instanceof TransportOrder) {
-                [$categoryStatus, $statusCode] = $entity->getRequest() instanceof TransportCollectRequest
-                    ? [CategorieStatut::TRANSPORT_ORDER_COLLECT, TransportOrder::STATUS_NOT_COLLECTED]
-                    : [CategorieStatut::TRANSPORT_ORDER_DELIVERY, TransportOrder::STATUS_NOT_DELIVERED];
-            } else {
-                [$categoryStatus, $statusCode] = $entity instanceof TransportCollectRequest
-                    ? [CategorieStatut::TRANSPORT_REQUEST_COLLECT, TransportRequest::STATUS_NOT_COLLECTED]
-                    : [CategorieStatut::TRANSPORT_REQUEST_DELIVERY, TransportRequest::STATUS_NOT_DELIVERED];
-            }
+        if ($comment) {
+            $historyService->persistTransportHistory($manager, $request, TransportHistoryService::TYPE_ADD_COMMENT, [
+                "user" => $this->getUser(),
+                "comment" => $comment,
+            ]);
 
-            $status = $manager->getRepository(Statut::class)
-                ->findOneByCategorieNameAndStatutCode($categoryStatus, $statusCode);
-
-            $collectHasDelivery = $request instanceof TransportCollectRequest && $request->getDelivery();
-
-            $statusHistory = null;
-            if(!$collectHasDelivery) {
-                $statusHistory = $statusHistoryService->updateStatus($manager, $entity, $status, [
-                    "setStatus" => true,
-                ]);
-
-                dump($statusHistory);
-            } else {
-                //pas d'historique de statut car livraison collecte
-                $notCollectedStatus = $manager->getRepository(Statut::class)
-                    ->findOneByCategorieNameAndStatutCode($categoryStatus, $statusCode);
-                $entity->setStatus($notCollectedStatus);
-            }
-
-            $transportHistoryService->persistTransportHistory($manager, $entity, TransportHistoryService::TYPE_FAILED, [
-                'user' => $this->getUser(),
-                'deliverer' => $round->getDeliverer(),
-                'round' => $round,
-                'history' => $statusHistory,
-                'reason' => $motive,
-                'comment' => $comment,
-                'date' => $now,
-                'attachments' => $photoAttachment ? [$photoAttachment] : null
+            $historyService->persistTransportHistory($manager, $order, TransportHistoryService::TYPE_ADD_COMMENT, [
+                "user" => $this->getUser(),
+                "comment" => $comment,
             ]);
         }
 
-        if($request instanceof TransportDeliveryRequest) {
-            $notificationTitle = 'Notification';
-            $notificationContent = 'Une demande de livraison n\'a pas pu être livrée';
-            $notificationImage = '/svg/cross-red.svg';
+        if ($signatureAttachment || $photoAttachment) {
+            $historyService->persistTransportHistory($manager, $request, TransportHistoryService::TYPE_ADD_ATTACHMENT, [
+                "user" => $this->getUser(),
+                "attachments" => [
+                    ...($signatureAttachment ? [$signatureAttachment] : []),
+                    ...($photoAttachment ? [$photoAttachment] : []),
+                ],
+            ]);
 
-            $notificationService->send('notifications-web', $notificationTitle, $notificationContent, [
-                'title' => $notificationTitle,
-                'content' => $notificationContent,
-                'image' => $_SERVER['APP_URL'] .  $notificationImage
-            ], $_SERVER['APP_URL'] . $notificationImage, true);
-
-            $emitted = new Notification();
-            $emitted
-                ->setContent($notificationContent)
-                ->setSource($round->getDeliverer())
-                ->setTriggered(new DateTime());
-
-            $users = $manager->getRepository(Utilisateur::class)->findBy(['status' => true]);
-            $manager->persist($emitted);
-            foreach ($users as $user) {
-                $user
-                    ->addUnreadNotification($emitted);
-            }
+            $historyService->persistTransportHistory($manager, $order, TransportHistoryService::TYPE_ADD_ATTACHMENT, [
+                "user" => $this->getUser(),
+                "attachments" => [
+                    ...($signatureAttachment ? [$signatureAttachment] : []),
+                    ...($photoAttachment ? [$photoAttachment] : []),
+                ],
+            ]);
         }
 
-        if($request instanceof TransportDeliveryRequest && $request->getCollect()) {
-            $collect = $request->getCollect();
-            $order = $collect->getOrder();
+        if(!$isEdit) {
+            $order->setTreatedAt($now);
 
-            foreach ([$collect, $order] as $entity) {
+            $isCollectFromDelivery = $request instanceof TransportCollectRequest && $request->getDelivery();
+            if (!$isCollectFromDelivery) {
+                $lastLine = $order->getTransportRoundLines()->last();
+                $lastLine->setFulfilledAt($now);
+            }
+
+            foreach ([$request, $order] as $entity) {
                 if ($entity instanceof TransportOrder) {
-                    [$categoryStatus, $statusCode] = [CategorieStatut::TRANSPORT_ORDER_COLLECT, TransportOrder::STATUS_NOT_COLLECTED];
+                    [$categoryStatus, $statusCode] = $entity->getRequest() instanceof TransportCollectRequest
+                        ? [CategorieStatut::TRANSPORT_ORDER_COLLECT, TransportOrder::STATUS_NOT_COLLECTED]
+                        : [CategorieStatut::TRANSPORT_ORDER_DELIVERY, TransportOrder::STATUS_NOT_DELIVERED];
                 }
                 else {
-                    [$categoryStatus, $statusCode] = [CategorieStatut::TRANSPORT_REQUEST_COLLECT, TransportRequest::STATUS_NOT_COLLECTED];
+                    [$categoryStatus, $statusCode] = $entity instanceof TransportCollectRequest
+                        ? [CategorieStatut::TRANSPORT_REQUEST_COLLECT, TransportRequest::STATUS_NOT_COLLECTED]
+                        : [CategorieStatut::TRANSPORT_REQUEST_DELIVERY, TransportRequest::STATUS_NOT_DELIVERED];
                 }
 
-                //pas d'historique de statut car livraison collecte
-                $notCollectedStatus = $manager->getRepository(Statut::class)
+                $status = $manager->getRepository(Statut::class)
                     ->findOneByCategorieNameAndStatutCode($categoryStatus, $statusCode);
-                $entity->setStatus($notCollectedStatus);
+
+                $collectHasDelivery = $request instanceof TransportCollectRequest && $request->getDelivery();
+
+                $statusHistory = null;
+                if (!$collectHasDelivery) {
+                    $statusHistory = $statusHistoryService->updateStatus($manager, $entity, $status, [
+                        "setStatus" => true,
+                    ]);
+                }
+                else {
+                    //pas d'historique de statut car livraison collecte
+                    $notCollectedStatus = $manager->getRepository(Statut::class)
+                        ->findOneByCategorieNameAndStatutCode($categoryStatus, $statusCode);
+                    $entity->setStatus($notCollectedStatus);
+                }
+
+                $historyService->persistTransportHistory($manager, $entity, TransportHistoryService::TYPE_FAILED, [
+                    'user' => $this->getUser(),
+                    'deliverer' => $round->getDeliverer(),
+                    'round' => $round,
+                    'history' => $statusHistory,
+                    'reason' => $motive,
+                    'comment' => $comment,
+                    'date' => $now,
+                    'attachments' => $photoAttachment ? [$photoAttachment] : null
+                ]);
+            }
+
+            if ($request instanceof TransportDeliveryRequest) {
+                $notificationTitle = 'Notification';
+                $notificationContent = 'Une demande de livraison n\'a pas pu être livrée';
+                $notificationImage = '/svg/cross-red.svg';
+
+                $notificationService->send('notifications-web', $notificationTitle, $notificationContent, [
+                    'title' => $notificationTitle,
+                    'content' => $notificationContent,
+                    'image' => $_SERVER['APP_URL'] . $notificationImage
+                ], $_SERVER['APP_URL'] . $notificationImage, true);
+
+                $emitted = new Notification();
+                $emitted
+                    ->setContent($notificationContent)
+                    ->setSource($round->getDeliverer())
+                    ->setTriggered(new DateTime());
+
+                $users = $manager->getRepository(Utilisateur::class)->findBy(['status' => true]);
+                $manager->persist($emitted);
+                foreach ($users as $user) {
+                    $user
+                        ->addUnreadNotification($emitted);
+                }
+            }
+
+            if ($request instanceof TransportDeliveryRequest && $request->getCollect()) {
+                $collect = $request->getCollect();
+                $order = $collect->getOrder();
+
+                foreach ([$collect, $order] as $entity) {
+                    if ($entity instanceof TransportOrder) {
+                        [$categoryStatus, $statusCode] = [
+                            CategorieStatut::TRANSPORT_ORDER_COLLECT, TransportOrder::STATUS_NOT_COLLECTED
+                        ];
+                    }
+                    else {
+                        [$categoryStatus, $statusCode] = [
+                            CategorieStatut::TRANSPORT_REQUEST_COLLECT, TransportRequest::STATUS_NOT_COLLECTED
+                        ];
+                    }
+
+                    //pas d'historique de statut car livraison collecte
+                    $notCollectedStatus = $manager->getRepository(Statut::class)
+                        ->findOneByCategorieNameAndStatutCode($categoryStatus, $statusCode);
+                    $entity->setStatus($notCollectedStatus);
+                }
             }
         }
 
