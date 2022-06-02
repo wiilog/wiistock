@@ -165,6 +165,16 @@ class RequestController extends AbstractController {
                     ];
                 }
             }
+            if (empty($urls)) {
+                $urls[] = [
+                    "fetch_url" => $router->generate("chart_data_history", [
+                        "type" => null,
+                        "id" => null,
+                        'start' => new DateTime('now'),
+                        'end' => new DateTime('tomorrow'),
+                    ], UrlGeneratorInterface::ABSOLUTE_URL)
+                ];
+            }
         }
 
         return $this->render('transport/request/show.html.twig', [
