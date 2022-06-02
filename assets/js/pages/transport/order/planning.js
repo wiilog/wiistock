@@ -22,10 +22,15 @@ $(function () {
         wrapLoadingOnActionButton($container, () => getOrders())
     });
 
-    $('.today-date').on('click', function (){
+    $('.today-date').on('click', function () {
         currentDate = moment();
-        $('.decrement-date').prop('disabled', false);
-        $('.increment-date').prop('disabled', false);
+        const $decrementDate = $(`.decrement-date`);
+        const $incrementDate = $(`.increment-date`);
+        $decrementDate.prop('disabled', true);
+        $decrementDate.find(`.icon`).toggleClass('disabled', true);
+        $incrementDate.prop('disabled', false);
+        $incrementDate.find(`.icon`).toggleClass('disabled', false);
+        $(this).prop(`disabled`, true);
 
         wrapLoadingOnActionButton($(this), () => getOrders());
     });
@@ -140,6 +145,8 @@ function changeCurrentDay(direction) {
 
     $todayDate.prop('disabled', moment().isSame(currentDate, 'day'));
     $decrementDate.prop('disabled', moment().isSame(currentDate, 'day'));
+    $decrementDate.find(`.icon`).toggleClass(`disabled`, moment().isSame(currentDate, 'day'));
     $incrementDate.prop('disabled', moment().add(6, 'days').isSame(currentDate, 'day'));
+    $incrementDate.find(`.icon`).toggleClass(`disabled`, moment().add(6, 'days').isSame(currentDate, 'day'));
     return changed;
 }
