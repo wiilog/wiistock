@@ -134,12 +134,16 @@
                                             </a>
                                         </div>
                                     {% endif %}
-                                    <div class="dropdown-item pointer print-round-button"
-                                         data-round-id="{{ transportRound.id }}">
-                                        <img src="{{ asset('svg/printer-black.svg') }}" alt="Icône urgence" width="17px"
-                                             class="pr-1">
-                                        Générer un bon de transport
-                                    </div>
+                                    {% if hasSomeDelivery %}
+                                        <div class="dropdown-item pointer print-round-button"
+                                             data-round-id="{{ transportRound.id }}">
+                                            <img src="{{ asset('svg/printer-black.svg') }}"
+                                                 alt=""
+                                                 width="17px"
+                                                 class="pr-1">
+                                            Générer un bon de transport
+                                        </div>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>

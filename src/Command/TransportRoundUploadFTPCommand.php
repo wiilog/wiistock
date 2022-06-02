@@ -1,19 +1,15 @@
 <?php
+// Every day at 23:00
+// 00 23 * * *
 
 namespace App\Command;
 
-use App\Entity\Setting;
-use App\Entity\Transport\TransportRound;
-use App\Service\CSVExportService;
 use App\Service\Transport\TransportRoundService;
-use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use phpseclib3\Net\SFTP;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Contracts\Service\Attribute\Required;
-use Throwable;
 
 class TransportRoundUploadFTPCommand extends Command {
 
