@@ -26,7 +26,7 @@
                         </span>
                     </label>
                 </div>
-                <div class="wii-radio my-1">
+                <div class="wii-radio my-1 mt-1">
                     <input type="radio" id="radio-841744" class="data force-data" value="1" style="margin-left: 3px"
                            name="{{ setting('INCLUDE_RECIPIENT_DROPZONE_LOCATION_IN_ARTICLE_LABEL') }}"
                            value="{{ setting_value('INCLUDE_RECIPIENT_DROPZONE_LOCATION_IN_ARTICLE_LABEL') }}"
@@ -39,19 +39,24 @@
 
                 </div>
             </div>
-
-            {{ form.checkbox(setting('INCLUDE_EXPIRATION_DATE_IN_ARTICLE_LABEL'), 'Afficher date de péremption', false, setting_value('INCLUDE_EXPIRATION_DATE_IN_ARTICLE_LABEL'), {
-                containerClass: 'mt-2',
-            }) }}
+            <div class="mt-1">
+                {{ form.checkbox(setting('INCLUDE_EXPIRATION_DATE_IN_ARTICLE_LABEL'), 'Afficher date de péremption', false, setting_value('INCLUDE_EXPIRATION_DATE_IN_ARTICLE_LABEL'), {
+                    containerClass: 'mt-2',
+                }) }}
+            </div>
         </div>
         <div class="col-md-6 col-12 my-1">
             {{ form.checkbox(setting('INCLUDE_RECIPIENT_IN_ARTICLE_LABEL'), 'Afficher le destinataire', false, setting_value('INCLUDE_RECIPIENT_IN_ARTICLE_LABEL')) }}
-            {{ form.checkbox(setting('INCLUDE_QTT_IN_LABEL'), 'Afficher la quantité', false, setting_value('INCLUDE_QTT_IN_LABEL'), {
-                containerClass: 'mt-2',
-            }) }}
-            {{ form.checkbox(setting('INCLUDE_BATCH_NUMBER_IN_ARTICLE_LABEL'), 'Afficher le numéro de lot', false, setting_value('INCLUDE_BATCH_NUMBER_IN_ARTICLE_LABEL'), {
-                containerClass: 'mt-2',
-            }) }}
+            <div class="mt-1">
+                {{ form.checkbox(setting('INCLUDE_QTT_IN_LABEL'), 'Afficher la quantité', false, setting_value('INCLUDE_QTT_IN_LABEL'), {
+                    containerClass: 'mt-2',
+                }) }}
+            </div>
+            <div class="mt-1">
+                {{ form.checkbox(setting('INCLUDE_BATCH_NUMBER_IN_ARTICLE_LABEL'), 'Afficher le numéro de lot', false, setting_value('INCLUDE_BATCH_NUMBER_IN_ARTICLE_LABEL'), {
+                    containerClass: 'mt-2',
+                }) }}
+            </div>
         </div>
     </div>
 </div>

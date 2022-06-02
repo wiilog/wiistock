@@ -13,28 +13,28 @@
     <div class="m-0 m-md-4 p-4 wii-page-card">
         <div class="d-flex">
             <div>
-                <button class="btn btn-outline-primary today-date mr-0" tabindex="0"
+                <button class="btn btn-outline-primary today-date mr-0 h-100" tabindex="0"
                         disabled
                         data-loader-color="black">
                     Aujourd'hui
                 </button>
             </div>
             <div class="mx-3">
-                <button class="btn btn-outline-primary decrement-date mr-0" tabindex="0"
+                <button class="btn btn-outline-primary decrement-date mr-0 h-100" tabindex="0"
                         disabled
                         data-loader-color="black">
-                    <img src="{{ asset('svg/arrow.svg') }}"  style="transform:rotate(180deg);" alt="Icône left arrow" width="15px">
+                    <i class="icon disabled"></i>
                 </button>
-                <button class="btn btn-outline-primary increment-date" tabindex="0"
+                <button class="btn btn-outline-primary increment-date h-100" tabindex="0"
                         data-loader-color="black">
-                    <img src="{{ asset('svg/arrow.svg') }}" alt="Icône right arrow" width="15px">
+                    <i class="icon"></i>
                 </button>
             </div>
             <div class="planning-switch mx-4">
                 <div class="to-assign"
                      data-loader-color="black">
                     <input type="checkbox" name="status" value="to-assign" id="to-assign" checked/>
-                    <label for="to-assign">
+                    <label for="to-assign" class="h-100">
                         <span class="d-inline-flex align-items-center">
                             &Agrave; affecter
                         </span>
@@ -43,7 +43,7 @@
                 <div class="assigned"
                      data-loader-color="black">
                     <input type="checkbox" name="status" value="assigned" id="assigned" checked/>
-                    <label for="assigned">
+                    <label for="assigned" class="h-100">
                         <span class="d-inline-flex align-items-center">
                             Affecté
                         </span>
@@ -52,7 +52,7 @@
                 <div class="ongoing"
                      data-loader-color="black">
                     <input type="checkbox" name="status" value="ongoing" id="ongoing" checked/>
-                    <label for="ongoing">
+                    <label for="ongoing" class="h-100">
                         <span class="d-inline-flex align-items-center">
                             En cours
                         </span>
