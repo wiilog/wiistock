@@ -835,7 +835,7 @@ class TransportService {
                 'labels' => [
                     "$contactName - $contactFileNumber",
                     ...$cleanedContactAddress,
-                    ($temperatureRanges[$pack->getPack()->getNature()->getLabel()] ?? '- °C'),
+                    ($temperatureRanges[$pack->getPack()->getNature()->getLabel()] ?? ''),
                     "$position/$total"
                 ],
                 'logo' => $logo

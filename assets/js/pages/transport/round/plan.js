@@ -145,10 +145,11 @@ $(function () {
 
 function saveAndDisplayEstimatedTimesInDOM(distance, time) {
     const estimatedTotalTime = minutesToTime(time);
+    const estimatedTotalTimeDisplayed = minutesToTime(time, 'h');
     const strDistance = Number(distance).toFixed(2);
 
-    $('.estimatedTotalDistance').text(`${strDistance}km`);
-    $('.estimatedTotalTime').text(estimatedTotalTime);
+    $('.estimatedTotalDistance').text(`${strDistance} km`);
+    $('.estimatedTotalTime').text(`${estimatedTotalTimeDisplayed} min`);
     $('input[name="estimatedTotalDistance"]').val(strDistance);
     $('input[name="estimatedTotalTime"]').val(estimatedTotalTime);
 }
@@ -467,11 +468,11 @@ function saveCoordinatesByAddress($form, name, pointCoordinates, marker = null) 
     $coordinates.val(JSON.stringify(coordinates));
 }
 
-function minutesToTime(timestamp) {
+function minutesToTime(timestamp, separator = ':') {
     const hours = Math.floor(timestamp / 60);
     const strHours = (hours < 10 ? '0' : '') + hours;
     const minutes = timestamp % 60;
     const strMinutes = (minutes < 10 ? '0' : '') + minutes;
 
-    return `${strHours}:${strMinutes}`;
+    return `${strHours}${separator}${strMinutes}`;
 }

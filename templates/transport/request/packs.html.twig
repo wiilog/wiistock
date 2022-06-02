@@ -24,7 +24,7 @@
                         <strong class="wii-field-name">{{ line.nature.label }}</strong>
                     </div>
                     <div class="col-md-4 col-12"><strong class="wii-field-name">Quantité</strong>&nbsp;: {{ packsCount > 0 ? packsCount : '-' }}</div>
-                    <div class="col-md-4 col-12"><strong class="wii-field-name">Température</strong>&nbsp;: {{ line.temperatureRange ? (line.temperatureRange.value) : '- °C' }}</div>
+                    <div class="col-md-4 col-12"><strong class="wii-field-name">Température</strong>&nbsp;: {{ line.temperatureRange ? (line.temperatureRange.value) : '/' }}</div>
                 </div>
             </div>
             {% if packsCount > 0 %}
