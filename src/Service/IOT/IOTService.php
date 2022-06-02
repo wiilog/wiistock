@@ -475,9 +475,21 @@ class IOTService
                         $this->treatAddMessageOrdrePrepa($entity, $sensorMessage);
                     } else if ($entity instanceof OrdreCollecte) {
                         $this->treatAddMessageOrdreCollecte($entity, $sensorMessage);
+                    } else if ($entity instanceof Vehicle) {
+                        $this->treatAddMessageForVehicle($entity, $sensorMessage, $articleRepository, $packRepository);
                     }
                 }
             }
+        }
+    }
+
+    private function treatAddMessageForVehicle(Vehicle $vehicle,
+                                               SensorMessage $sensorMessage,
+                                               ArticleRepository $articleRepository,
+                                               PackRepository $packRepository) {
+        $vehicle->addSensorMessage($sensorMessage);
+        foreach ($vehicle->getLocations() as $location) {
+            $this->treatAddMessageLocation($location, $sensorMessage, $articleRepository, $packRepository);
         }
     }
 

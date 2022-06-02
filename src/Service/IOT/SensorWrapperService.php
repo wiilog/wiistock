@@ -48,7 +48,7 @@ class SensorWrapperService
             'name' => $sensorWrapper->getName() ?? '',
             'code' => $sensor ? $sensor->getCode() : '',
             'lastLift' => $lastLift ? FormatHelper::datetime($lastLift->getDate()) : '',
-            'battery' => $sensor ? ($sensor->getBattery() . '%') : '',
+            'battery' => $sensor ? ($sensor->getBattery() === -1 ? 'Inconnu (regarder sur l\'objet)' : $sensor->getBattery() . '%') : '',
             'manager' => FormatHelper::user($sensorWrapper->getManager()),
             'actions' => $this->templating->render('IOT/sensor_wrapper/actions.html.twig', [
                 'sensor_wrapper' => $sensorWrapper,
