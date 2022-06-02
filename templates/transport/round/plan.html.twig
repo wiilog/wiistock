@@ -16,7 +16,7 @@
             <div class="col-lg-3 col-md-6 col-12 px-2">
                 <div class="wii-box">
                     <div class="header">
-                        <span class="wii-title">Transport à affecter</span>
+                        <span class="wii-title">Transports à affecter</span>
                     </div>
                     <div class="d-flex flex-column card-container sortable-container cards-mouse-hover" id="to-affect-container">
                         {% for transportOrder in transportOrders %}
@@ -103,6 +103,9 @@
                                         disabled: isOnGoing,
                                         attributes: {
                                             'data-short-label': 'Départ tournée',
+                                        },
+                                        labelOptions: {
+                                            removeAsterisk: true
                                         }
                                     }) }}
                                 </div>
@@ -111,6 +114,9 @@
                                         disabled: isOnGoing,
                                         attributes: {
                                             'data-short-label': 'Départ calcul horaire',
+                                        },
+                                        labelOptions: {
+                                            removeAsterisk: true
                                         }
                                     }) }}
                                 </div>
@@ -119,6 +125,9 @@
                                         disabled: isOnGoing,
                                         attributes: {
                                             'data-short-label': 'Fin tournée',
+                                        },
+                                        labelOptions: {
+                                            removeAsterisk: true
                                         }
                                     }) }}
                                 </div>
@@ -143,6 +152,9 @@
                                             'data-other-params-deliverer-only': 1,
                                         },
                                         inputClass: 'deliverer-picker',
+                                        labelOptions: {
+                                            removeAsterisk: true
+                                        }
                                     }) }}
                                 </div>
                                 <div class="col-3 start-time-picker-container">
@@ -155,11 +167,14 @@
                                             type: 'time',
                                             inputClass: 'start-hour-form',
                                             disabled: not round.deliverer or isOnGoing,
+                                            labelOptions: {
+                                                removeAsterisk: true
+                                            }
                                         }
                                     ) }}
                                 </div>
-                                <div class="col-auto align-self-end">
-                                    <button class="btn {% if not round.deliverer %} btn-disabled {%endif%} btn-primary ml-auto d-flex align-items-center btn-calculate-time" tabindex="0">
+                                <div class="col-auto">
+                                    <button class="btn btn-primary ml-auto mt-4 d-flex align-items-center btn-calculate-time" tabindex="0" {% if not round.deliverer %}disabled{%endif%}>
                                         <img src="{{ asset('svg/clock-white.svg') }}" alt="" width="15px" class="mr-2">
                                         <span class="ml-1">Calculer les horaires</span>
                                     </button>
@@ -174,7 +189,7 @@
                             </p>
                             {# TODO WIIS-7357 #}
                             <div class="wii-body-text py-1">
-                                <strong>Kilometrage estimé </strong>: <span class="estimatedTotalDistance">{{ round.estimatedDistance ? round.estimatedDistance ~ 'km' : '-' }}</span>
+                                <strong>Kilométrage estimé </strong>: <span class="estimatedTotalDistance">{{ round.estimatedDistance ? round.estimatedDistance ~ 'km' : '-' }}</span>
                             </div>
                             <div class="wii-body-text py-1">
                                 <strong>Temps estimé </strong>: <span class="estimatedTotalTime">{{ round.estimatedTime ? round.estimatedTime|replace({':': 'h'}) : '-' }}</span>

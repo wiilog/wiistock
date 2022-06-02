@@ -33,9 +33,9 @@
                     <img src="{{ label.url }}" alt="{{ label.alt ?? '' }}" width="15px" class="mr-2">
                 {% endif %}
 
-                {{ label.text | raw }}{{ required ? '*' }}
+                {{ label.text | raw }}{{ required and options.removeAsterisk is not defined ? '*' }}
             {% else %}
-                {{ label | raw }}{{ required ? '*' }}
+                {{ label | raw }}{{ required and options.removeAsterisk is not defined ? '*' }}
             {% endif %}
         </span>
     {% endif %}
