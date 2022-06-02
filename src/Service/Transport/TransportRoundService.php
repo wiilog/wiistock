@@ -4,6 +4,7 @@ namespace App\Service\Transport;
 
 
 use App\Entity\CategorieStatut;
+use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Transport\TransportCollectRequest;
 use App\Entity\Transport\TransportDeliveryRequest;
@@ -15,9 +16,12 @@ use App\Entity\Transport\TransportRoundLine;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
+use DateTime;
 use App\Service\StatusHistoryService;
 use Doctrine\ORM\EntityManagerInterface;
+use phpseclib3\Net\SFTP;
 use Symfony\Contracts\Service\Attribute\Required;
+use Throwable;
 use WiiCommon\Helper\Stream;
 
 
@@ -32,6 +36,9 @@ class TransportRoundService
 
     #[Required]
     public TransportHistoryService $transportHistoryService;
+
+    #[Required]
+    public CSVExportService $CSVExportService;
 
     private array $cacheStatuses = [];
 
@@ -94,52 +101,62 @@ class TransportRoundService
 
     }
 
-    public function putLineRoundAndRequest($output, CSVExportService $csvService, TransportRound $round): void {
+    public function putLineRoundAndRequest($output,
+                                           TransportRound $round,
+                                           callable $filter = null): void {
         $vehicle = $round->getDeliverer()?->getVehicle();
+        $lines = $round->getTransportRoundLines();
 
-        $transportRoundLines = $round->getTransportRoundLines();
+        $roundExportable = (
+            !$filter
+            || Stream::from($lines)->some(fn(TransportRoundLine $line) => $filter($line))
+        );
 
-        $dataRounds = [
-            TransportRound::NUMBER_PREFIX . $round->getNumber(),
-            FormatHelper::date($round->getExpectedAt()),
-        ];
+        if($roundExportable) {
+            $dataRounds = [
+                TransportRound::NUMBER_PREFIX . $round->getNumber(),
+                FormatHelper::date($round->getExpectedAt()),
+            ];
 
-        if (!$transportRoundLines->isEmpty()) {
-            foreach ($transportRoundLines as $transportRoundLine) {
-                $request = $transportRoundLine->getOrder()?->getRequest() ?: null;
-                $statusRequest = $request->getLastStatusHistory([TransportRequest::STATUS_FINISHED]);
+            if (!$lines->isEmpty()) {
+                foreach ($lines as $line) {
+                    $order = $line->getOrder() ?: null;
 
-                $naturesStr = Stream::from($request->getLines() ?: [])
-                    ->filterMap(fn(TransportRequestLine $line) => $line->getNature()?->getLabel())
-                    ->unique()
-                    ->join(', ');
+                    if (!$filter || $filter($line)) {
+                        $request = $order->getRequest() ?: null;
+                        $statusRequest = $request->getLastStatusHistory([TransportRequest::STATUS_FINISHED]);
 
-                $ordersInformation = array_merge($dataRounds, [
-                    $request instanceof TransportDeliveryRequest ? ($request->getCollect() ? "Livraison - Collecte" : "Livraison") : "Collecte",
-                    FormatHelper::user($round->getDeliverer()),
-                    $vehicle?->getRegistrationNumber() ?: '',
-                    $round->getRealDistance() ?: '',
-                    $request->getContact()?->getFileNumber() ?: '',
-                    TransportRequest::NUMBER_PREFIX . $request->getNumber(),
-                    str_replace("\n", " ", $transportRoundLine->getOrder()?->getRequest()?->getContact()?->getAddress() ?: ''),
-                    $request->getContact()->getAddress() ? FormatHelper::bool($this->transportService->isMetropolis($request->getContact()->getAddress())) : '',
-                    $transportRoundLine->getPriority() ?: '',
-                    $request instanceof TransportDeliveryRequest ? FormatHelper::bool(!empty($request->getEmergency())) :'',
-                    FormatHelper::datetime($request->getCreatedAt()),
-                    FormatHelper::user($request->getCreatedBy()),
-                    $request instanceof TransportDeliveryRequest ? FormatHelper::datetime($request->getExpectedAt()) : FormatHelper::date($request->getExpectedAt()),
-                    isset($statusRequest[TransportRequest::STATUS_FINISHED]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_FINISHED]) : '',
-                    $naturesStr,
-                    $vehicle?->getActivePairing() ? FormatHelper::bool($vehicle->getActivePairing()->hasExceededThreshold()) : "Non",
-                ]);
-                $csvService->putLine($output, $ordersInformation);
+                        $naturesStr = Stream::from($request->getLines() ?: [])
+                            ->filterMap(fn(TransportRequestLine $line) => $line->getNature()?->getLabel())
+                            ->unique()
+                            ->join(', ');
+
+                        $ordersInformation = array_merge($dataRounds, [
+                            $request instanceof TransportDeliveryRequest ? ($request->getCollect() ? "Livraison - Collecte" : "Livraison") : "Collecte",
+                            FormatHelper::user($round->getDeliverer()),
+                            $vehicle?->getRegistrationNumber() ?: '',
+                            $round->getRealDistance() ?: '',
+                            $request->getContact()?->getFileNumber() ?: '',
+                            TransportRequest::NUMBER_PREFIX . $request->getNumber(),
+                            str_replace("\n", " ", $line->getOrder()?->getRequest()?->getContact()?->getAddress() ?: ''),
+                            $request->getContact()->getAddress() ? FormatHelper::bool($this->transportService->isMetropolis($request->getContact()->getAddress())) : '',
+                            $line->getPriority() ?: '',
+                            $request instanceof TransportDeliveryRequest ? FormatHelper::bool(!empty($request->getEmergency())) : '',
+                            FormatHelper::datetime($request->getCreatedAt()),
+                            FormatHelper::user($request->getCreatedBy()),
+                            $request instanceof TransportDeliveryRequest ? FormatHelper::datetime($request->getExpectedAt()) : FormatHelper::date($request->getExpectedAt()),
+                            isset($statusRequest[TransportRequest::STATUS_FINISHED]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_FINISHED]) : '',
+                            $naturesStr,
+                            $vehicle?->getActivePairing() ? FormatHelper::bool($vehicle->getActivePairing()->hasExceededThreshold()) : "Non",
+                        ]);
+                        $this->CSVExportService->putLine($output, $ordersInformation);
+                    }
+                }
+            } else {
+                $this->CSVExportService->putLine($output, $dataRounds);
             }
         }
-        else {
-            $csvService->putLine($output, $dataRounds);
-        }
     }
-
     public function getHeaderRoundAndRequestExport(): array {
         return [
             'N° Tournée',
@@ -210,6 +227,71 @@ class TransportRoundService
             $line->setPriority($priority);
             $priority++;
         }
+    }
+
+    public function launchCSVExport(EntityManagerInterface $entityManager): void {
+
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $transportRoundRepository = $entityManager->getRepository(TransportRound::class);
+
+        $strServer = $settingRepository->getOneParamByLabel(Setting::FTP_ROUND_SERVER_NAME);
+        $strServerPort = $settingRepository->getOneParamByLabel(Setting::FTP_ROUND_SERVER_PORT);
+        $strServerUsername = $settingRepository->getOneParamByLabel(Setting::FTP_ROUND_SERVER_USER);
+        $strServerPassword = $settingRepository->getOneParamByLabel(Setting::FTP_ROUND_SERVER_PASSWORD);
+        $strServerPath = $settingRepository->getOneParamByLabel(Setting::FTP_ROUND_SERVER_PATH);
+
+        if (!$strServer || !$strServerPort || !$strServerUsername || !$strServerPassword || !$strServerPath) {
+            throw new \RuntimeException('Invalid settings');
+        }
+
+        $today = new DateTime();
+        $today = $today->format("d-m-Y-H-i-s");
+        $nameFile = "export-tournees-$today.csv";
+
+        $csvHeader = $this->getHeaderRoundAndRequestExport();
+
+        $transportRoundsIterator = $transportRoundRepository->iterateTodayFinishedTransportRounds();
+
+        $output = tmpfile();
+
+        $this->CSVExportService->putLine($output, $csvHeader);
+
+        $now = new DateTime('now');
+        $beginDayDate = clone $now;
+        $beginDayDate->setTime(0, 0, 0);
+        $endDayDate = clone $now;
+        $endDayDate->setTime(23, 59, 59);
+
+        /** @var TransportRound $round */
+        foreach ($transportRoundsIterator as $round) {
+            $this->putLineRoundAndRequest($output, $round, function(TransportRoundLine $line) use ($beginDayDate, $endDayDate) {
+                $order = $line->getOrder();
+                $treatedAt = $order?->getTreatedAt() ?: null;
+
+                return (
+                    $treatedAt >= $beginDayDate
+                    && $treatedAt <= $endDayDate
+                );
+            });
+        }
+
+        // we go back to the file begin to send all the file
+        fseek($output, 0);
+
+        try {
+            $sftp = new SFTP($strServer, intval($strServerPort));
+            $sftp_login = $sftp->login($strServerUsername, $strServerPassword);
+            if ($sftp_login) {
+                $trailingChar = $strServerPath[strlen($strServerPath) - 1];
+                $sftp->put($strServerPath . ($trailingChar !== '/' ? '/' : '') . $nameFile, $output, SFTP::SOURCE_LOCAL_FILE);
+            }
+        }
+        catch(Throwable $throwable) {
+            fclose($output);
+            throw $throwable;
+        }
+
+        fclose($output);
     }
 
 }

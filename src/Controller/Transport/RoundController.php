@@ -14,7 +14,6 @@ use App\Entity\Statut;
 use App\Entity\Transport\TransportCollectRequest;
 use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\Transport\TransportOrder;
-use App\Entity\Transport\TransportRequest;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\TransportRoundLine;
 use App\Entity\Utilisateur;
@@ -22,6 +21,7 @@ use App\Exceptions\FormException;
 use App\Exceptions\GeoException;
 use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
+use App\Service\ExceptionLoggerService;
 use App\Service\GeoService;
 use App\Service\PDFGeneratorService;
 use App\Service\NotificationService;
@@ -42,6 +42,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
+use Throwable;
 use WiiCommon\Helper\Stream;
 
 
@@ -613,7 +614,28 @@ class RoundController extends AbstractController {
         }, $nameFile, $csvHeader);
     }
 
+    #[Route('/launch-ftp-export', name: 'transport_rounds_launch_ftp_export', options: ['expose' => true], methods: 'GET', condition: "request.isXmlHttpRequest()")]
+    public function exportFTPTransportRoundCSV(Request                $request,
+                                               ExceptionLoggerService $exceptionLoggerService,
+                                               TransportRoundService  $transportRoundService,
+                                               EntityManagerInterface $entityManager): Response {
 
+        try {
+            $transportRoundService->launchCSVExport($entityManager);
+        }
+        catch(Throwable $throwable) {
+            $exceptionLoggerService->sendLog($throwable, $request);
+            return $this->json([
+                "success" => false,
+                "msg" => $throwable->getMessage()
+            ]);
+        }
+
+        return $this->json([
+            "success" => true,
+            "msg" => "L'export a été réalisé avec succès"
+        ]);
+    }
 
     #[Route("/bon-de-transport/{transportRound}", name: "print_round_note", options: ['expose' => true], methods: "GET")]
     #[HasPermission([Menu::DEM, Action::DISPLAY_TRANSPORT])]

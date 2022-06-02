@@ -155,4 +155,23 @@ class TransportRoundRepository extends EntityRepository {
             ->getQuery()
             ->toIterable();
     }
+
+    public function iterateTodayFinishedTransportRounds(): iterable {
+        $now = new DateTime('now');
+        $beginDayDate = clone $now;
+        $beginDayDate->setTime(0, 0, 0);
+        $endDayDate = clone $now;
+        $endDayDate->setTime(23, 59, 59);
+
+        $qb = $this->createQueryBuilder('transport_round')
+            ->andWhere('transport_round.beganAt IS NOT NULL')
+            ->andWhere('transport_round.beganAt <= :dateMax')
+            ->andWhere('(transport_round.endedAt IS NULL OR transport_round.endedAt BETWEEN :dateMin AND :dateMax)')
+            ->setParameter('dateMin', $beginDayDate)
+            ->setParameter('dateMax', $endDayDate);
+
+        return $qb
+            ->getQuery()
+            ->toIterable();
+    }
 }

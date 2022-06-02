@@ -136,14 +136,14 @@ class DataExportController extends AbstractController {
         $transportRoundRepository = $entityManager->getRepository(TransportRound::class);
         $today = new DateTime();
         $today = $today->format("d-m-Y H:i:s");
-        $nameFile = "export-tournées-$today.csv";
+        $nameFile = "export-tournees-$today.csv";
         $csvHeader = $transportRoundService->getHeaderRoundAndRequestExport();
 
         $transportRoundsIterator = $transportRoundRepository->iterateFinishedTransportRounds();
-        return $CSVExportService->streamResponse(function ($output) use ($CSVExportService, $transportRoundService, $transportRoundsIterator) {
+        return $CSVExportService->streamResponse(function ($output) use ($transportRoundService, $transportRoundsIterator) {
             /** @var TransportRound $round */
             foreach ($transportRoundsIterator as $round) {
-                $transportRoundService->putLineRoundAndRequest($output, $CSVExportService, $round);
+                $transportRoundService->putLineRoundAndRequest($output, $round);
             }
         }, $nameFile, $csvHeader);
     }
