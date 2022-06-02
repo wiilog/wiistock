@@ -156,6 +156,16 @@ class RequestController extends AbstractController {
                     ];
                 }
             }
+            if (empty($urls)) {
+                $urls[] = [
+                    "fetch_url" => $router->generate("chart_data_history", [
+                        "type" => IOTService::getEntityCodeFromEntity($location),
+                        "id" => null,
+                        'start' => new DateTime('now'),
+                        'end' => new DateTime('tomorrow'),
+                    ], UrlGeneratorInterface::ABSOLUTE_URL)
+                ];
+            }
         }
 
         //TODO WIIS-7229 appliquer les nouvelles bornes
