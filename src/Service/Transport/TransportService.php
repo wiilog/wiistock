@@ -765,7 +765,7 @@ class TransportService {
     }
 
     public function createPrintPackConfig(TransportRequest $transportRequest,
-                                          string           $logo,
+                                          ?string          $logo,
                                           array            $deliveryPackIds = []): array {
         $packs = Stream::from($transportRequest->getOrder()?->getPacks() ?: []);
         $contact = $transportRequest->getContact();
