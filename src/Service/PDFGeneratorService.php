@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\Dispatch;
 use App\Entity\Setting;
+use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\Transport\TransportRequest;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\TransportRoundLine;
@@ -225,7 +226,7 @@ class PDFGeneratorService {
         $content = $this->templating->render("prints/transport_template.html.twig", [
             "app_logo" => $appLogo ?? "",
             "society" => $society,
-            "requestNumber" => $transportRequest->getNumber() ?? "",
+            "requestNumber" => TransportRequest::NUMBER_PREFIX . $transportRequest->getNumber(),
             "originator" => $originator,
             "sender" => $sender,
             "round" => $transportRequest->getOrder()->getTransportRoundLines()->last(),
@@ -234,7 +235,7 @@ class PDFGeneratorService {
 
         return $this->PDFGenerator->getOutputFromHtml($content, [
             "page-size" => "A4",
-            "orientation" => "portrait",
+            "orientation" => "landscape",
             "enable-local-file-access" => true,
             "encoding" => "UTF-8",
         ]);
@@ -251,20 +252,24 @@ class PDFGeneratorService {
 
         /** @var TransportRoundLine $line */
         foreach ($transportRound->getTransportRoundLines() as $line) {
-            $content = $content . $this->templating->render("prints/transport_template.html.twig", [
-                    "app_logo" => $appLogo ?? "",
-                    "society" => $society,
-                    "requestNumber" => $transportRound->getNumber() ?? "",
-                    "originator" => $originator,
-                    "sender" => $sender,
-                    "round" => $transportRound,
-                    "request" => $line->getOrder()->getRequest(),
-                ]);
+            $request = $line->getOrder()?->getRequest();
+            if ($request instanceof TransportDeliveryRequest) {
+                $requestNumber = TransportRequest::NUMBER_PREFIX . $request?->getNumber();
+                $content .= $this->templating->render("prints/transport_template.html.twig", [
+                        "app_logo" => $appLogo ?? "",
+                        "society" => $society,
+                        "requestNumber" => $requestNumber,
+                        "originator" => $originator,
+                        "sender" => $sender,
+                        "round" => $transportRound,
+                        "request" => $request,
+                    ]);
+            }
         }
 
         return $this->PDFGenerator->getOutputFromHtml($content, [
             "page-size" => "A4",
-            "orientation" => "portrait",
+            "orientation" => "landscape",
             "enable-local-file-access" => true,
             "encoding" => "UTF-8",
         ]);

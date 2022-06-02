@@ -76,13 +76,12 @@
                 <th colspan="8">Suivi course</th>
             </tr>
             <tr>
-                <td colspan="4">Donneur d'ordre : {{ originator }}</td>
-                <td colspan="4">Coursier : {{ round.deliverer.username ?? "" }}</td>
+                <td colspan="4">Donneur d'ordre&nbsp;: {{ originator }}</td>
+                <td colspan="4">Coursier&nbsp;: {{ round.deliverer.username ?? "" }}</td>
             </tr>
             <tr>
-                <td colspan="4">Date de demande
-                    : {{ request.createdAt | date('d/m/Y') }}</td>
-                <td colspan="4">Véhicule : {{ round.deliverer.username.vehicle.registrationNumber ?? "" }}</td>
+                <td colspan="4">Date de demande&nbsp;: {{ request.createdAt | date('d/m/Y') }}</td>
+                <td colspan="4">Véhicule&nbsp;: {{ round.deliverer.vehicle.registrationNumber ?? "" }}</td>
             </tr>
             <tr>
                 <th colspan="4">Expediteur</th>
