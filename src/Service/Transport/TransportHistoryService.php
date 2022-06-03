@@ -87,7 +87,7 @@ class TransportHistoryService {
     public KernelInterface $kernel;
 
     public function persistTransportHistory(EntityManagerInterface                $entityManager,
-                                            array|TransportRequest|TransportOrder $transports,
+                                            array|TransportRequest|TransportOrder|TransportRound $transports,
                                             string                                $type,
                                             array                                 $params = []): TransportHistory {
         $transports = is_array($transports) ? $transports : [$transports];
@@ -99,6 +99,9 @@ class TransportHistoryService {
             }
             else if ($transport instanceof TransportOrder) {
                 $history->setOrder($transport);
+            }
+            else if ($transport instanceof TransportRound) {
+                $history->setRound($transport);
             }
             else {
                 throw new RuntimeException('Unavailable transport type');
