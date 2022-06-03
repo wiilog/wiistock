@@ -156,8 +156,7 @@ class TransportController extends AbstractFOSRestController {
         $toDeposit = Stream::from($collectedOrders)
             ->flatMap(fn(TransportRoundLine $line) => $line->getOrder()->getPacks())
             ->count();
-        dump($round->getNumber());
-dump($round->getTransportRoundLines()->toArray());
+
         return [
             'id' => $round->getId(),
             'number' => $round->getNumber(),
