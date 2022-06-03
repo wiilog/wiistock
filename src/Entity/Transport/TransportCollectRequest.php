@@ -63,7 +63,10 @@ class TransportCollectRequest extends TransportRequest {
     }
 
     public function canBeCancelled(): bool {
-        return $this->isInRound();
+        return $this->isInRound()
+            && $this->getStatus()->getCode() !== TransportRequest::STATUS_CANCELLED
+            && $this->getStatus()->getCode() !== TransportRequest::STATUS_NOT_COLLECTED
+            && $this->getStatus()->getCode() !== TransportRequest::STATUS_FINISHED ;
     }
 
     public function getExpectedAt(): ?DateTime {
