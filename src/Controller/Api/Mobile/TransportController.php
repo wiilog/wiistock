@@ -40,6 +40,7 @@ use FOS\RestBundle\Controller\Annotations as Rest;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use WiiCommon\Helper\Stream;
+use function GuzzleHttp\Promise\inspect;
 
 class TransportController extends AbstractFOSRestController {
 
@@ -193,6 +194,7 @@ class TransportController extends AbstractFOSRestController {
                 ->filter(fn(TransportRoundLine $line) =>
                     !$line->getCancelledAt()
                     || ($line->getTransportRound()->getBeganAt() && $line->getCancelledAt() > $line->getTransportRound()->getBeganAt()))
+                ->sort(fn(TransportRoundLine $a, TransportRoundLine $b) => (($a->getFulfilledAt() !== null) <=> ($b->getFulfilledAt() !== null)))
                 ->map(fn(TransportRoundLine $line) => $this->serializeTransport($manager, $line)),
             "to_finish" => Stream::from($lines)
                 ->map(fn(TransportRoundLine $line) => $line->getFulfilledAt() || $line->getCancelledAt() || $line->getRejectedAt())
@@ -243,6 +245,7 @@ class TransportController extends AbstractFOSRestController {
         return [
             'id' => $request->getId(),
             'number' => $request->getNumber(),
+            'status' => $request->getStatus()->getNom(),
             'type' => FormatHelper::type($request->getType()),
             'type_icon' => $request->getType()?->getLogo() ? $_SERVER["APP_URL"] . $request->getType()->getLogo()->getFullPath() : null,
             'kind' => $isCollect ? 'collect' : 'delivery',
@@ -268,7 +271,7 @@ class TransportController extends AbstractFOSRestController {
                     ];
                 }),
             'expected_at' => $isCollect
-                ? $request->getTimeSlot()?->getName()
+                ? ($request->getTimeSlot()?->getName() ?? FormatHelper::datetime($request->getDelivery()?->getExpectedAt()))
                 : FormatHelper::datetime($request->getExpectedAt()),
             'estimated_time' => $line->getEstimatedAt()?->format('H:i'),
             'expected_time' => $request->getExpectedAt()?->format('H:i'),
@@ -549,7 +552,10 @@ class TransportController extends AbstractFOSRestController {
         $order = $request->getOrder();
         $now = new DateTime('now');
 
-        $isEdit = $request->getStatus()->getCode() !== TransportRequest::STATUS_ONGOING;
+        $isEdit = $request->getStatus()->getCode() !== TransportRequest::STATUS_ONGOING &&
+            $request->getStatus()->getCode() !== TransportRequest::STATUS_TO_DELIVER &&
+            $request->getStatus()->getCode() !== TransportRequest::STATUS_TO_COLLECT &&
+            $request->getStatus()->getCode() !== TransportRequest::STATUS_AWAITING_PLANNING;
 
         $signature = $files->get('signature');
         $photo = $files->get('photo');
@@ -724,7 +730,10 @@ class TransportController extends AbstractFOSRestController {
         $order = $request->getOrder();
         $now = new DateTime();
 
-        $isEdit = $request->getStatus()->getCode() !== TransportRequest::STATUS_ONGOING;
+        $isEdit = $request->getStatus()->getCode() !== TransportRequest::STATUS_ONGOING &&
+            $request->getStatus()->getCode() !== TransportRequest::STATUS_TO_DELIVER &&
+            $request->getStatus()->getCode() !== TransportRequest::STATUS_TO_COLLECT &&
+            $request->getStatus()->getCode() !== TransportRequest::STATUS_AWAITING_PLANNING;
 
         $signature = $files->get('signature');
         $photo = $files->get('photo');
