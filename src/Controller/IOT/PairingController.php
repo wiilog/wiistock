@@ -16,6 +16,7 @@ use App\Entity\Menu;
 use App\Entity\Pack;
 
 use App\Entity\Transport\Vehicle;
+use App\Service\GeoService;
 use App\Service\IOT\IOTService;
 use App\Service\IOT\PairingService;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -222,7 +223,7 @@ class PairingController extends AbstractController {
     /**
      * @Route("/map-data/{pairing}", name="pairing_map_data", condition="request.isXmlHttpRequest()")
      */
-    public function getMapData(Request $request, Pairing $pairing, DataMonitoringService $dataMonitoringService): JsonResponse
+    public function getMapData(Request $request, Pairing $pairing, GeoService $geoService, DataMonitoringService $dataMonitoringService): JsonResponse
     {
         $filters = $request->query->all();
         $associatedMessages = $pairing->getSensorMessagesBetween(
@@ -248,7 +249,7 @@ class PairingController extends AbstractController {
                 ->toArray();
             if ($coordinates[0] !== -1.0 || $coordinates[1] !== -1.0) {
                 if ($lastCoordinates) {
-                    $distanceBetweenLastPoint = $dataMonitoringService->vincentyGreatCircleDistance($lastCoordinates[0], $lastCoordinates[1], $coordinates[0], $coordinates[1]);
+                    $distanceBetweenLastPoint = $geoService->vincentyGreatCircleDistance($lastCoordinates[0], $lastCoordinates[1], $coordinates[0], $coordinates[1]);
                     $interval = $lastDate->diff($message->getDate());
                     if ($distanceBetweenLastPoint > 200.0 || (($interval->days * 24) + $interval->h) > 23) {
                         $data[$sensorCode][$dateStr] = $coordinates;

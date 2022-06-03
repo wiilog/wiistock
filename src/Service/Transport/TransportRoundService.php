@@ -4,6 +4,8 @@ namespace App\Service\Transport;
 
 
 use App\Entity\CategorieStatut;
+use App\Entity\IOT\Sensor;
+use App\Entity\IOT\SensorMessage;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Transport\TransportCollectRequest;
@@ -16,6 +18,7 @@ use App\Entity\Transport\TransportRoundLine;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
+use App\Service\GeoService;
 use DateTime;
 use App\Service\StatusHistoryService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -99,6 +102,30 @@ class TransportRoundService
             $csvService->putLine($output, $dataRounds);
         }
 
+    }
+
+    public function calculateRoundRealDistance(TransportRound $transportRound, GeoService $geoService): float
+    {
+        $vehicle = $transportRound->getDeliverer()?->getVehicle();
+        return $geoService->getDistanceBetween(
+            Stream::from($vehicle->getSensorMessagesBetween($transportRound->getBeganAt(), $transportRound->getEndedAt(), Sensor::GPS))
+                ->map(function (SensorMessage $message) {
+                    $content = $message->getContent();
+                    if ($content && $content !== '-1,-1') {
+                        $coordinates = Stream::explode(',', $content)
+                            ->map(fn($coordinate) => floatval($coordinate))
+                            ->toArray();
+
+                        return [
+                            'latitude' => $coordinates[0],
+                            'longitude' => $coordinates[1],
+                        ];
+                    }
+                    return null;
+                })
+                ->filter()
+                ->toArray()
+        );
     }
 
     public function putLineRoundAndRequest($output,

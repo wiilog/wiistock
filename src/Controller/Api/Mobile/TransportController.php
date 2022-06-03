@@ -26,6 +26,7 @@ use App\Entity\Transport\TransportRoundLine;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use App\Service\AttachmentService;
+use App\Service\GeoService;
 use App\Service\NotificationService;
 use App\Service\StatusHistoryService;
 use App\Service\TrackingMovementService;
@@ -388,6 +389,26 @@ class TransportController extends AbstractFOSRestController {
         $manager->flush();
         return $this->json([
             'success' => true
+        ]);
+    }
+
+    /**
+     * @Rest\Post("/api/finish-round", name="api_finish_round", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function finishRound(Request                 $request,
+                               EntityManagerInterface  $manager,
+                               GeoService $geoService,
+                               TransportRoundService   $transportRoundService): Response {
+        $data = $request->request;
+        $round = $manager->find(TransportRound::class, $data->get('round'));
+
+        $round->setRealDistance($transportRoundService->calculateRoundRealDistance($round, $geoService));
+        $manager->flush();
+
+        return $this->json([
+            "success" => true,
         ]);
     }
 

@@ -82,7 +82,7 @@
                                 <span class="wii-field-name">Kilomètres réels</span>
                                 {% set roundRealDistance = transportRound.realDistance %}
                                 {% if roundRealDistance %}
-                                    <span class="wii-field-text">{{ roundRealDistance }}Km</span>
+                                    <span class="wii-field-text">{{ roundRealDistance/1000 }}Km</span>
                                 {% else %}
                                     <span class="wii-field-text">-</span>
                                 {% endif %}

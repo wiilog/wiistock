@@ -158,7 +158,7 @@ class RequestController extends AbstractController {
                             "type" => IOTService::getEntityCodeFromEntity($location),
                             "id" => $location->getId(),
                             'start' => $round->getBeganAt()->format('Y-m-d\TH:i'),
-                            'end' => $round->getEndedAt() ?? $now->format('Y-m-d\TH:i'),
+                            'end' => $round->getEndedAt()->format('Y-m-d\TH:i') ?? $now->format('Y-m-d\TH:i'),
                         ], UrlGeneratorInterface::ABSOLUTE_URL),
                         "minTemp" => $minThreshold,
                         "maxTemp" => $maxThreshold

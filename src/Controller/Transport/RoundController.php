@@ -6,6 +6,7 @@ use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\FiltreSup;
+use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorMessage;
 use App\Entity\IOT\TriggerAction;
 use App\Entity\Menu;
@@ -151,7 +152,7 @@ class RoundController extends AbstractController {
             $realTimeDif = $transportRound->getEndedAt()->diff($transportRound->getBeganAt());
             $realTimeJ = $realTimeDif->format("%a");
             $realTime = ($realTimeDif->format("%h") + ($realTimeJ * 24)) . "h" . $realTimeDif->format(" %i") . "min";
-        };
+        }
 
         $calculationsPoints = $transportRound->getCoordinates();
         $calculationsPoints['startPoint']['name'] = TransportRound::NAME_START_POINT;
@@ -200,7 +201,7 @@ class RoundController extends AbstractController {
                         "type" => IOTService::getEntityCodeFromEntity($location),
                         "id" => $location->getId(),
                         'start' => $transportRound->getCreatedAt()->format('Y-m-d\TH:i'),
-                        'end' => $transportRound->getEndedAt() ?? $now->format('Y-m-d\TH:i'),
+                        'end' => $transportRound->getEndedAt()->format('Y-m-d\TH:i') ?? $now->format('Y-m-d\TH:i'),
                     ], UrlGeneratorInterface::ABSOLUTE_URL),
                     "minTemp" => $minThreshold,
                     "maxTemp" => $maxThreshold,
@@ -223,7 +224,6 @@ class RoundController extends AbstractController {
                 "maxTemp" => 0,
             ];
         }
-
         return $this->render('transport/round/show.html.twig', [
             "transportRound" => $transportRound,
             "realTime" => $realTime,
