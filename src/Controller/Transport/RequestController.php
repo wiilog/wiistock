@@ -125,8 +125,7 @@ class RequestController extends AbstractController {
         $order = $transport->getOrder();
 
 
-        $order ? $packsCount = $order->getPacks()?->count() ?: 0 : $packsCount = 0;
-
+        $packsCount = $order?->getPacks()?->count() ?? 0;
 
         $hasRejectedPacks =  $order
             && Stream::from($transport->getOrder()?->getPacks() ?: [])
@@ -134,10 +133,11 @@ class RequestController extends AbstractController {
 
         $contactPosition = [$transport->getContact()->getAddressLatitude(), $transport->getContact()->getAddressLongitude()];
 
-        $order ? $round = ! $order->getTransportRoundLines()->isEmpty()
-            ?  $order->getTransportRoundLines()->last()->getTransportRound()
-            : null : $round = null;
-
+        if($order && $order->getTransportRoundLines()->count()) {
+            $round = $order->getTransportRoundLines()->last()->getTransportRound();
+        } else {
+            $round = null;
+        }
 
         $delivererPosition =  $round?->getBeganAt()
             ? $round?->getDeliverer()?->getVehicle()?->getLastPosition($round->getBeganAt(), $round->getEndedAt())
