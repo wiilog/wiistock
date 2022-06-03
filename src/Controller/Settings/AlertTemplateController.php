@@ -39,21 +39,21 @@ class AlertTemplateController extends AbstractController
 
             if ($template) {
                 $data[] = [
-                    "label" => "Type d'alerte",
-                    "value" => 'Notifications ' . $template->getType(),
+                    "class" => "col-md-4",
+                    "label" => "Nom du modèle*",
+                    "value" => "<input name='name' class='data form-control' value='$name' required>",
                 ];
 
                 $data[] = [
-                    "class" => "col-md-9",
-                    "noFullWidth" => true,
-                    "label" => "Nom du modèle*",
-                    "value" => "<input name='name' class='data form-control' value='$name' required>",
+                    "class" => "col-md-8",
+                    "label" => "Type d'alerte",
+                    "value" => AlertTemplate::TEMPLATE_TYPES[$template->getType()]." <input type='hidden' name='type' class='data form-control' value='{$template->getType()}' >",
                 ];
             }
             else {
                 $data[] = [
                     "label" => '',
-                    "class" => "row col-md-12",
+                    "class" => "col-md-12",
                     "value" => $this->renderView('settings/notifications/new.html.twig', [
                         'templateTypes' => AlertTemplate::TEMPLATE_TYPES
                     ]),
@@ -63,8 +63,11 @@ class AlertTemplateController extends AbstractController
             if ($category === AlertTemplate::PUSH) {
                 $content = $template?->getConfig()['content'] ?? '';
                 $image = $template?->getConfig()['image'] ?? '';
+
+
+
                 $data[] = [
-                    "class" => "col-md-6",
+                    "class" => "col-md-4",
                     "label" => "Texte de notification*",
                     "value" => "<textarea class='data form-control' name='content' required style='min-height: 100px;'>$content</textarea>",
                 ];
@@ -79,6 +82,8 @@ class AlertTemplateController extends AbstractController
                         'options' => []
                     ]),
                 ];
+
+
             }
             else if ($category === AlertTemplate::MAIL) {
                 $subject = $template?->getConfig()['subject'];
@@ -91,18 +96,22 @@ class AlertTemplateController extends AbstractController
                         $users .= "<option value='$email' selected>$email</option>";
                     }
                 }
+
                 $data[] = [
+                    "class" => "col-md-4",
                     "label" => "Destinataire*",
                     "value" => "<select data-s2 data-parent='body' data-editable multiple name='receivers' class='data form-control' required>$users</select>",
                 ];
 
                 $data[] = [
                     "label" => "Objet*",
+                    "class" => "col-md-4",
                     "value" => "<input name='subject' class='data form-control' required value='$subject'>",
                 ];
 
                 $data[] = [
                     "label" => 'Image de début de mail',
+                    "class" => "col-md-4",
                     "value" => $this->renderView('image_input.html.twig', [
                         'name' => "image",
                         'label' => "",
@@ -114,7 +123,7 @@ class AlertTemplateController extends AbstractController
 
                 $data[] = [
                     "class" => "col-md-8",
-                    "label" => "Corp du mail*",
+                    "label" => "Corps de l'email*",
                     "value" => "<div class='editor-container data' name='content' data-wysiwyg>$rawContent</div>",
                 ];
 
@@ -147,7 +156,7 @@ class AlertTemplateController extends AbstractController
                 ];
 
                 $data[] = [
-                    "class" => "col-md-8",
+                    "class" => "col-md-4",
                     "label" => "SMS*",
                     "value" => "<textarea class='data form-control' name='content' required style='min-height: 100px;'>$rawContent</textarea>",
                 ];
@@ -166,11 +175,11 @@ class AlertTemplateController extends AbstractController
                 $image = $template?->getConfig()['image'] ?? '';
                 $data[] = [
                     "label" => "Type d'alerte",
-                    "value" => 'Notifications ' . AlertTemplate::PUSH,
+                    "value" => AlertTemplate::TEMPLATE_TYPES[AlertTemplate::PUSH],
                 ];
 
                 $data[] = [
-                    "label" => "Texte de notification*",
+                    "label" => "Texte de notification",
                     "value" => $content,
                 ];
                 if ($image) {
@@ -186,7 +195,7 @@ class AlertTemplateController extends AbstractController
                     "class" => "col-md-12",
                     "noFullWidth" => true,
                     "label" => "Type d'alerte",
-                    "value" => 'Notifications ' . AlertTemplate::SMS,
+                    "value" => AlertTemplate::TEMPLATE_TYPES[AlertTemplate::SMS],
                 ];
 
                 $data[] = [
@@ -218,7 +227,7 @@ class AlertTemplateController extends AbstractController
                     "class" => "col-md-12",
                     "noFullWidth" => true,
                     "label" => "Type d'alerte",
-                    "value" => AlertTemplate::MAIL,
+                    "value" => AlertTemplate::TEMPLATE_TYPES[AlertTemplate::MAIL],
                 ];
 
                 $data[] = [
@@ -243,7 +252,7 @@ class AlertTemplateController extends AbstractController
 
                 $data[] = [
                     "class" => "col-md-8",
-                    "label" => "Corp du mail",
+                    "label" => "Corps de l'email",
                     "value" => strip_tags($content),
                 ];
 

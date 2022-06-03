@@ -143,6 +143,9 @@ export default class Form {
         eachInputs(form, config, ($input, value) => {
             treatInputError($input, errors, form);
             if (value !== null) {
+                if($input.is('[data-intl-tel-input]')){
+                    $input.val(window.intlTelInputGlobals.getInstance($input[0]).getNumber());
+                }
                 const $multipleKey = $input.closest(`[data-multiple-key]`);
                 if ($multipleKey.exists()) {
                     const multipleKey = JSON.parse(data.get($multipleKey.data(`multiple-key`)) || `{}`);
@@ -306,7 +309,7 @@ function ignoreInput($input, config) {
 function eachInputs(form, config, callback) {
     const classes = config.classes;
     const $form = getFormElement(form);
-    const $inputs = $form.find(`.fileInput, .wii-switch, .wii-switch-no-style, select.${classes.data}, input.${classes.data}, input[data-repeat], textarea.${classes.data}, .data[data-wysiwyg]`);
+    const $inputs = $form.find(`.fileInput, .wii-switch, .wii-switch-no-style, select.${classes.data}, input.${classes.data}, input.${classes.array}, input[data-repeat], textarea.${classes.data}, .data[data-wysiwyg]`);
     for(const input of $inputs) {
         let $input = $(input);
 

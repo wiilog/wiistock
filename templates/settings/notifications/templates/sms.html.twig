@@ -1,28 +1,32 @@
 {% set template = template is defined and template ? template : '' %}
 {% set config = config is defined and config is not empty ? config : [] %}
+<div class="col-4">
+    <label class="wii-field-name">Nom du modèle*</label>
+    <input type="text" class="form-control data needed required" name="name"/>
+</div>
 <div class="form-group col-12 phone-number-wrapper">
     <label class="wii-field-name">Destinataires</label>
     {% if phoneNumbers is defined and phoneNumbers is not empty %}
         {% for phoneNumber in phoneNumbers %}
             <div class="phone-number-container d-flex {{ loop.index != 1 ? 'mt-2' }}">
-                <input class="form-control data-array phone-number" name="receivers" type="text" value="{{ phoneNumber }}">
+                <input class="form-control data-array phone-number" data-intl-tel-input name="receivers" type="text" value="{{ phoneNumber }}">
                 {% if loop.index != 1 %}
-                    <button class="btn d-block" onclick="deletePhoneNumber($(this))"><i class="far fa-trash-alt"></i></button>
+                    <button class="btn d-block" onclick="deletePhoneNumber($(this))"><i class="wii-icon wii-icon-trash"></i></button>
                 {% endif %}
             </div>
         {% endfor %}
     {% else %}
         <div class="phone-number-container">
-            <input class="form-control data-array phone-number" name="receivers" type="text">
+            <input class="form-control data-array phone-number" data-intl-tel-input name="receivers" type="text">
         </div>
     {% endif %}
     <button class="btn btn-primary mt-3"
             onclick="addPhoneNumber($(this))" type="button">
-        <i class="fa fa-plus"></i>
+        <i class="fa fa-plus"></i> Ajouter un destinataire
     </button>
 </div>
 
-<div class="col-12 form-group mt-1">
+<div class="col-md-4 col-12 form-group mt-1">
     <label class="mb-2 wii-field-name">SMS*</label>
     <textarea name="content"
               style="resize: none"
@@ -30,13 +34,13 @@
               class="form-control data needed">{{ config ? config['content'] }}</textarea>
 </div>
 
-<div class="col-12">
+<div class="col-md-4 col-12">
     {% include 'variables_dictionary.html.twig' with {dictionary: 'ALERT_DICTIONARY'} %}
 </div>
 
 <template class="phone-number-template">
     <div class="phone-number-container d-flex mt-2">
         <input class="form-control data-array" name="receivers" type="text">
-        <button class="btn d-block" onclick="deletePhoneNumber($(this))"><i class="far fa-trash-alt"></i></button>
+        <button class="btn btn-outline-primary d-block" onclick="deletePhoneNumber($(this))"><i class="wii-icon wii-icon-trash"></i></button>
     </div>
 </template>

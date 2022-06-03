@@ -16,7 +16,7 @@ class AlertTemplate {
     public const PUSH = "push";
     public const TEMPLATE_TYPES = [
         self::SMS => 'SMS',
-        self::MAIL => 'Mail',
+        self::MAIL => 'Email',
         self::PUSH => 'Notifications Push/Web',
     ];
 
