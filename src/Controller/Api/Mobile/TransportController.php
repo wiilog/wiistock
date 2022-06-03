@@ -39,6 +39,7 @@ use FOS\RestBundle\Controller\Annotations as Rest;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use WiiCommon\Helper\Stream;
+use function GuzzleHttp\Promise\inspect;
 
 class TransportController extends AbstractFOSRestController {
 
@@ -269,7 +270,7 @@ class TransportController extends AbstractFOSRestController {
                     ];
                 }),
             'expected_at' => $isCollect
-                ? $request->getTimeSlot()?->getName()
+                ? ($request->getTimeSlot()?->getName() ?? FormatHelper::datetime($request->getDelivery()?->getExpectedAt()))
                 : FormatHelper::datetime($request->getExpectedAt()),
             'estimated_time' => $line->getEstimatedAt()?->format('H:i'),
             'expected_time' => $request->getExpectedAt()?->format('H:i'),
