@@ -86,7 +86,7 @@ export function initMap(contactPosition) {
     return map;
 }
 
-export function placeDeliverer(map , delivererPosition) {
+export function placeDeliverer(map , delivererPosition , name = null) {
     if (delivererPosition) {
         let position = delivererPosition.split(',');
         map.setMarker({
