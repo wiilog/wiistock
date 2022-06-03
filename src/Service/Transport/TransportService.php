@@ -147,8 +147,7 @@ class TransportService {
         $expectedAtStr = $data?->get('expectedAt');
         $creation = !$transportRequest->getId();
 
-        if ($transportRequest->getId()
-            && !$transportRequest->canBeUpdated()) {
+        if ($transportRequest->getId() && !$transportRequest->canBeUpdated()) {
             throw new FormException("Votre demande de transport n'est pas modifiable");
         }
 

@@ -575,18 +575,10 @@ class TransportController extends AbstractFOSRestController {
         }
 
         $comment = $data->get('comment');
-        $previousComment = $order->getComment();
-        $order->setComment($comment);
 
-        if($signatureAttachment) {
-            $order->setSignature($signatureAttachment);
-        }
+        if ($comment && $comment != $order->getComment()) {
+            $order->setComment($comment);
 
-        if($signatureAttachment) {
-            $order->addAttachment($photoAttachment);
-        }
-
-        if ($comment && $comment != $previousComment) {
             $historyService->persistTransportHistory($manager, $request, TransportHistoryService::TYPE_ADD_COMMENT, [
                 "user" => $this->getUser(),
                 "comment" => $comment,
@@ -599,6 +591,14 @@ class TransportController extends AbstractFOSRestController {
         }
 
         if ($signatureAttachment || $photoAttachment) {
+            if($signatureAttachment) {
+                $order->setSignature($signatureAttachment);
+            }
+
+            if($signatureAttachment) {
+                $order->addAttachment($photoAttachment);
+            }
+
             $historyService->persistTransportHistory($manager, $request, TransportHistoryService::TYPE_ADD_ATTACHMENT, [
                 "user" => $this->getUser(),
                 "attachments" => [
@@ -735,23 +735,9 @@ class TransportController extends AbstractFOSRestController {
             $request->getStatus()->getCode() !== TransportRequest::STATUS_TO_COLLECT &&
             $request->getStatus()->getCode() !== TransportRequest::STATUS_AWAITING_PLANNING;
 
-        $signature = $files->get('signature');
-        $photo = $files->get('photo');
+        if ($comment && $order->getComment() != $comment) {
+            $order->setComment($comment);
 
-        $signatureAttachment = $signature ? $attachmentService->createAttachements([$signature])[0] : null;
-        $photoAttachment = $photo ? $attachmentService->createAttachements([$photo])[0] : null;
-
-        $order->setComment($comment);
-
-        if($signatureAttachment) {
-            $order->setSignature($signatureAttachment);
-        }
-
-        if($signatureAttachment) {
-            $order->addAttachment($photoAttachment);
-        }
-
-        if ($comment) {
             $historyService->persistTransportHistory($manager, $request, TransportHistoryService::TYPE_ADD_COMMENT, [
                 "user" => $this->getUser(),
                 "comment" => $comment,
@@ -761,6 +747,20 @@ class TransportController extends AbstractFOSRestController {
                 "user" => $this->getUser(),
                 "comment" => $comment,
             ]);
+        }
+
+        $signature = $files->get('signature');
+        $photo = $files->get('photo');
+
+        $signatureAttachment = $signature ? $attachmentService->createAttachements([$signature])[0] : null;
+        $photoAttachment = $photo ? $attachmentService->createAttachements([$photo])[0] : null;
+
+        if($signatureAttachment) {
+            $order->setSignature($signatureAttachment);
+        }
+
+        if($signatureAttachment) {
+            $order->addAttachment($photoAttachment);
         }
 
         if ($signatureAttachment || $photoAttachment) {
@@ -784,10 +784,21 @@ class TransportController extends AbstractFOSRestController {
         if(!$isEdit) {
             $order->setTreatedAt($now);
 
+            $historyService->persistTransportHistory($manager, $request, TransportHistoryService::TYPE_ADD_COMMENT, [
+                "user" => $this->getUser(),
+                "comment" => $motive,
+            ]);
+
+            $historyService->persistTransportHistory($manager, $order, TransportHistoryService::TYPE_ADD_COMMENT, [
+                "user" => $this->getUser(),
+                "comment" => $motive,
+            ]);
+
             $isCollectFromDelivery = $request instanceof TransportCollectRequest && $request->getDelivery();
             if (!$isCollectFromDelivery) {
                 $lastLine = $order->getTransportRoundLines()->last();
-                $lastLine->setFulfilledAt($now);
+                $lastLine->setFulfilledAt($now)
+                    ->setRejectedAt($now);
             }
 
             foreach ([$request, $order] as $entity) {
@@ -877,6 +888,24 @@ class TransportController extends AbstractFOSRestController {
                     $notCollectedStatus = $manager->getRepository(Statut::class)
                         ->findOneByCategorieNameAndStatutCode($categoryStatus, $statusCode);
                     $entity->setStatus($notCollectedStatus);
+                }
+            }
+
+            if($request instanceof TransportCollectRequest && !$request->getDelivery()) {
+                $settingsRepository = $manager->getRepository(Setting::class);
+                $statusRepository = $manager->getRepository(Statut::class);
+
+                $workflowEndMotives = $settingsRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_COLLECT_WORKFLOW_ENDING_MOTIVE);
+                $workflowEndMotives = explode(",", $workflowEndMotives);
+
+                if(!in_array($motive, $workflowEndMotives)) {
+                    $requestStatus = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_REQUEST_COLLECT, TransportRequest::STATUS_AWAITING_PLANNING);
+                    $orderStatus = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_COLLECT, TransportOrder::STATUS_TO_CONTACT);
+
+                    $request->setStatus($requestStatus)
+                        ->setTimeSlot(null);
+
+                    $order->setStatus($orderStatus);
                 }
             }
         }

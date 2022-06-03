@@ -16,9 +16,11 @@
 {% set headerClass = statusName in constant('App\\Entity\\Transport\\TransportRequest::CANCELED_STATUSES') ? 'bg-red-light' : 'bg-green-light' %}
 {% set requestType = transport is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest')
     ? 'Livraison'
-    : transport is instanceof('App\\Entity\\Transport\\TransportRound')
-        ? 'Tournée'
-        : 'Demande'
+    : transport is instanceof('App\\Entity\\Transport\\TransportCollectRequest')
+        ? 'Collecte'
+        : transport is instanceof('App\\Entity\\Transport\\TransportRound')
+            ? 'Tournée'
+            : 'Demande'
 %}
 
 <div class="header timeline d-flex justify-content-center {{ headerClass }}">
