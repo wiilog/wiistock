@@ -1,0 +1,26 @@
+{% for index, line in config %}
+    {% set name = line['name'] %}
+    {% set link = line['link'] %}
+    {% set hint = line['hint'] %}
+    {% set emergency = line['emergency'] %}
+    {% set estimated = line['estimated'] %}
+    {% set real = line['real'] %}
+    {% set state = line['state'] %}
+    <div class="history-line">
+        <div class="history-date">
+            <div class="title-left {{ state }}">
+                {% if emergency %}
+                    <img alt="" src="{{ asset('svg/rejected-pack.svg') }}" height="20px" />
+                {% endif %}
+                {{ index + 1 }}. <a href="{{ link }}">{{ name }}</a>
+            </div>
+            <div class="wii-small-text transport-list-type">{{ hint }}</div>
+        </div>
+        <div class="history-status {{ state }}">
+            <div class="title-right">
+                <span class="ml-2">Estimé : {{ estimated | format_helper('time', true, true) }}</span>
+                <span class="ml-2">Réel : <span class="bold">{{ real }}</span></span>
+            </div>
+        </div>
+    </div>
+{% endfor %}

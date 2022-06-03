@@ -5,14 +5,22 @@
 {% set DISCR_DELIVERY = constant('App\\Entity\\Transport\\TransportRequest::DISCR_DELIVERY') %}
 {% set DISCR_COLLECT = constant('App\\Entity\\Transport\\TransportRequest::DISCR_COLLECT') %}
 
-{% set selectedLines = selectedLines ?? {} %}
 {% set modeEdit = request.id is not null %}
-{% set modeDeliveryEdit = modeEdit and request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
-{% set modeCollectEdit = modeEdit and request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') %}
+
+{% set isDelivery = request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
+{% set isCollect = request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') %}
+
+
+{% set modeDeliveryEdit = modeEdit and isDelivery %}
+{% set modeCollectEdit = modeEdit and isCollect %}
+
+{% set order = request.order %}
+{% set orderPacks = request.order is not null ? order.packs : [] %}
+
+{% set assignedOrder = order is not null and order.status.code == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ASSIGNED') %}
 
 <div class="modal fade"
      role="dialog"
-     id="{{ modalId }}"
      data-modal-type="{{ modeEdit ? 'edit' : 'new' }}">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
@@ -31,14 +39,14 @@
                             <div class="col-auto">
                                 {{ form.switch('requestType', null, true, [
                                     {
-                                        value: DISCR_COLLECT,
-                                        label: 'Collecte',
-                                        wiiIcon: 'cart-collect'
-                                    },
-                                    {
                                         value: DISCR_DELIVERY,
                                         label: 'Livraison',
                                         wiiIcon: 'cart-delivery'
+                                    },
+                                    {
+                                        value: DISCR_COLLECT,
+                                        label: 'Collecte',
+                                        wiiIcon: 'cart-collect'
                                     },
                                 ]) }}
                             </div>
@@ -49,50 +57,49 @@
                         <i class="wii-icon wii-icon-user bg-primary mr-1"></i>
                         Informations Patient
                     </div>
-                    <div class="row contact-container">
-                        <div class="col-md-6 col-12">
-                            <div class="row">
-                                <div class="col-12 mb-2">
+                    <div class="contact-container">
+                        <div class="row">
+                            <div class="col-md-6 col-12 mb-2">
+                                <div class="mb-2">
                                     {{ form.input('contactName', 'Patient', true, contact.name, {
                                         disabled: request.id is not null,
                                     }) }}
                                 </div>
-                                <div class="col-12 mb-2">
-                                    {{ form.input('contactFileNumber', 'N° dossier', true, contact.fileNumber, {
-                                        disabled: request.id is not null,
-                                    }) }}
-                                </div>
-                                <div class="col-12 mb-2">
-                                    {{ form.textarea('contactContact', 'Contact', true, contact.contact, {
+                                {{ form.input('contactFileNumber', 'N° dossier', true, contact.fileNumber, {
+                                    disabled: request.id is not null,
+                                }) }}
+                            </div>
+                            <div class="col-md-6 col-12 mb-2">
+                                <div class="d-flex">
+                                    {{ form.textarea('contactAddress', 'Adresse', true, contact.address, {
                                         style: 'min-height: 104px;',
                                         resizeVertical: false,
+                                        disabled: assignedOrder
                                     }) }}
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6 col-12">
-                            <div class="row">
-                                <div class="col-12 mb-2">
-                                    <div class="d-flex">
-                                        {{ form.textarea('contactAddress', 'Adresse', true, contact.address, {
-                                            style: 'min-height: 104px;',
-                                            resizeVertical: false,
-                                        }) }}
-                                    </div>
-                                </div>
-                                <div class="col-12 mb-2">
-                                    {{ form.textarea('contactPersonToContact', 'Personne à prévenir', true, contact.personToContact, {
-                                        style: 'min-height: 104px;',
-                                        resizeVertical: false,
-                                    }) }}
-                                </div>
+                        <div class="row">
+                            <div class="col-md-6 col-12 mb-2">
+                                {{ form.textarea('contactContact', 'Contact', true, contact.contact, {
+                                    style: 'min-height: 104px;',
+                                    resizeVertical: false,
+                                }) }}
+                            </div>
+                            <div class="col-md-6 col-12 mb-2">
+                                {{ form.textarea('contactPersonToContact', 'Personne à prévenir', true, contact.personToContact, {
+                                    style: 'min-height: 104px;',
+                                    resizeVertical: false,
+                                }) }}
                             </div>
                         </div>
-                        <div class="col-12 mb-2">
-                            {{ form.textarea('contactObservation', 'Remarque', false, contact.observation, {
-                                style: 'min-height: 104px;',
-                                resizeVertical: false,
-                            }) }}
+                        <div class="row">
+                            <div class="col-12 mb-2">
+                                {{ form.textarea('contactObservation', 'Remarque', false, contact.observation, {
+                                    style: 'min-height: 104px;',
+                                    resizeVertical: false,
+                                }) }}
+                            </div>
                         </div>
                     </div>
 
@@ -104,38 +111,49 @@
                         </div>
                     </div>
 
-                    <div class="row d-none"
-                         data-request-type>
-                        <div class="col-auto mb-3">
-                            {% if types is empty %}
-                                Aucun type disponible<br>
-                                <a href="/parametrage/afficher/track/demande_transport/types_champs_libres_livraisons" class="btn btn-primary mt-2">Configuration des types de livraison</a><br>
-                                <a href="/parametrage/afficher/track/demande_transport/types_champs_libres_collectes" class="btn btn-primary mt-1">Configuration des types de collecte</a>
-                            {% endif %}
+                    {% if not modeEdit %}
+                        <div class="row d-none"
+                             data-request-type>
+                            <div class="col-auto mb-3">
+                                {% if types is empty %}
+                                    Aucun type disponible<br>
+                                    <a href="{{ path('settings_item', {
+                                        'category': constant('App\\Controller\\Settings\\SettingsController::CATEGORY_TRACKING'),
+                                        'menu': constant('App\\Controller\\Settings\\SettingsController::MENU_TRANSPORT_REQUESTS'),
+                                        'submenu': constant('App\\Controller\\Settings\\SettingsController::MENU_DELIVERY_TYPES_FREE_FIELDS'),
+                                    }) }}" class="btn btn-primary mt-2">Configuration des types de livraison</a><br>
+                                    <a href="{{ path('settings_item', {
+                                        'category': constant('App\\Controller\\Settings\\SettingsController::CATEGORY_TRACKING'),
+                                        'menu': constant('App\\Controller\\Settings\\SettingsController::MENU_TRANSPORT_REQUESTS'),
+                                        'submenu': constant('App\\Controller\\Settings\\SettingsController::MENU_COLLECT_TYPES_FREE_FIELDS'),
+                                    }) }}" class="btn btn-primary mt-2">Configuration des types de collecte</a>
+                                {% endif %}
 
-                            {{ form.switch('type', null, true, types|map((type) => {
-                                value: type.id,
-                                label: type.label,
-                                disabled: true,
-                                iconUrl: type.logo ? type.logo.fullPath : false,
-                                attributes: {
-                                    'data-request-type': (
-                                        type.category.label == constant('App\\Entity\\CategoryType::DELIVERY_TRANSPORT')
-                                            ? DISCR_DELIVERY
-                                            : DISCR_COLLECT
-                                    )
-                                }
-                            }), {expanded: true}) }}
+                                {{ form.switch('type', null, true, types|map((type) => {
+                                    value: type.id,
+                                    label: type.label,
+                                    disabled: true,
+                                    iconUrl: type.logo ? type.logo.fullPath : false,
+                                    attributes: {
+                                        'data-request-type': (
+                                            type.category.label == constant('App\\Entity\\CategoryType::DELIVERY_TRANSPORT')
+                                                ? DISCR_DELIVERY
+                                                : DISCR_COLLECT
+                                        )
+                                    }
+                                }), {expanded: true}) }}
+                            </div>
+                            <div class="col-12"
+                                 data-request-type="{{ DISCR_DELIVERY }}">
+                                {{ form.checkbox('collectLinked', 'Faire une collecte en même temps que la livraison', false, false, {
+                                    slider: true
+                                }) }}
+                            </div>
                         </div>
-                        <div class="col-12"
-                             data-request-type="{{ DISCR_DELIVERY }}">
-                            {{ form.checkbox('collectLinked', 'Faire une collecte en même temps que la livraison', false, false, {
-                                slider: true
-                            }) }}
-                        </div>
-                    </div>
-
-                    {% set displayCollectDate = modeCollectEdit and request_collect.delivery is null %}
+                    {% else %}
+                        <input type="hidden" name="type" value="{{ request.type.id }}"/>
+                    {% endif %}
+                    {% set displayCollectDate = modeCollectEdit and request.delivery is null %}
                     <div class="wii-section-title my-3 {{ not modeDeliveryEdit and not displayCollectDate ? 'd-none' }}"
                          data-request-type>
                         <div class="d-flex align-items-center">
@@ -149,7 +167,7 @@
                             {% set expectedAtValue = request.expectedAt ? request.expectedAt|date('Y-m-d\\TH:i') %}
                             {{ form.input('expectedAt', 'Date et heure de livraison', true, expectedAtValue, {
                                 type: 'datetime-local',
-                                disabled: request.id is not null,
+                                disabled: assignedOrder
                             }) }}
                         </div>
                         <div class="col-md-6 col-12">
@@ -161,7 +179,8 @@
                                 value: label
                             })) %}
                             {{ form.select('emergency', 'Urgence', false, {
-                                items: [{label: 'Non urgent', value: ''}]|merge(emergenciesValues)
+                                items: [{label: 'Non urgent', value: ''}]|merge(emergenciesValues),
+                                disabled: assignedOrder
                             }) }}
                         </div>
                     </div>
@@ -171,8 +190,8 @@
                             {% set expectedAtValue = request.expectedAt ? request.expectedAt|date('Y-m-d') %}
                             {{ form.input('expectedAt', 'Date de collecte', true, expectedAtValue, {
                                 type: 'date',
-                                disabled: request.id is not null,
                                 min: 'now' | date('Y-m-d'),
+                                disabled: assignedOrder
                             }) }}
                         </div>
                     </div>
@@ -195,20 +214,22 @@
                                 <div class="d-none warning-empty-natures">
                                     {% include 'utils/warningSelectEmpty.html.twig' with {
                                         array: [],
-                                        warningLabel: 'Attention ! Aucune nature de colis n\'a été créée',
+                                        warningLabel: 'Attention ! Aucune nature de colis n\'a été paramétrée',
                                         redirectPath: path('nature_param_index'),
                                         redirectLabel: 'Aller vers la création des natures',
                                         block: true
                                     } %}
                                 </div>
-                                {% for lineIndex, nature in natures %}
+                                {% for lineIndex, line in requestLines %}
+                                    {% set nature = line.nature %}
+                                    {% set quantity = line.quantity ?? null %}
+                                    {% set temperatureRange = line.temperatureRange ?? null %}
+                                    {% set isSelected = line.selected ?? false %}
+
                                     {% set allowedForms = nature.allowedForms ?? {} %}
                                     {% set natureTypeCollect = allowedForms[constant('App\\Entity\\Nature::TRANSPORT_COLLECT_CODE')] ?? [] %}
                                     {% set natureTypeDelivery = allowedForms[constant('App\\Entity\\Nature::TRANSPORT_DELIVERY_CODE')] ?? [] %}
                                     {% set natureType = natureTypeCollect|merge(natureTypeDelivery) %}
-
-                                    {% set isSelected = selectedLines[nature.id] is defined %}
-                                    {% set value = isSelected ? selectedLines[nature.id] : null %}
 
                                     {% if natureType is not empty %}
                                         {% set multipleKey = {
@@ -217,12 +238,13 @@
                                         } %}
                                         <div class="col-lg-6 col-12 nature-item {{ not modeEdit ? 'd-none' }}"
                                              data-type="{{ natureType|json_encode }}">
-                                            <div class="row align-items-center my-2 nature-item-wrapper">
-                                                <div class="{{ not modeEdit ? 'col-6' : 'col-4' }}">
+                                            <div class="row no-gutters align-items-center my-2 nature-item-wrapper">
+                                                <div class="col pr-1">
                                                     {{ form.checkbox('selected', nature.label, false, isSelected, {
                                                         labelClass: 'text-break',
                                                         multipleKey: multipleKey,
-                                                        error: 'global'
+                                                        disabled: modeDeliveryEdit and isSelected and quantity > 0,
+                                                        error: 'global',
                                                     }) }}
                                                     <input type="hidden"
                                                            value="{{ nature.id }}"
@@ -231,8 +253,8 @@
                                                            {{ form.multiple_key({multipleKey: multipleKey}) }}/>
                                                 </div>
                                                 {% if nature.temperatureRanges is not empty
-                                                    and request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
-                                                    <div class="col-3 px-0 {{ not modeDeliveryEdit ? 'd-none' }}"
+                                                    and isDelivery %}
+                                                    <div class="col-3 px-1 {{ not modeDeliveryEdit ? 'd-none' }}"
                                                          data-request-type="{{ DISCR_DELIVERY }}">
                                                         <div class="{{ not modeDeliveryEdit or not isSelected ? 'd-none' }}"
                                                              data-nature-is-selected>
@@ -241,7 +263,7 @@
                                                                 items: nature.temperatureRanges|map((temperature, key) => ({
                                                                     label: temperature.value,
                                                                     value: temperature.id,
-                                                                    selected: value is not null ? (value == temperature.id) : (key == 0)
+                                                                    selected: temperatureRange is not null ? (temperatureRange == temperature.id) : (key == 0)
                                                                 })),
                                                                 inputClass: 'needs-default',
                                                                 multipleKey: multipleKey,
@@ -251,16 +273,18 @@
                                                             }) }}
                                                         </div>
                                                     </div>
-                                                {% elseif request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') and request.id %}
-                                                    <div class="col-3"></div>
+                                                {% elseif isDelivery and request.id %}
+                                                    <div class="col-3 px-1"></div>
                                                 {% endif %}
-                                                <div class="col-3 {{ not modeEdit ? 'd-none' }}"
+                                                <div class="col-4 {{ not modeEdit or (isDelivery and (orderPacks|length == 0)) ? 'd-none' }}"
                                                      data-request-type="{{ DISCR_COLLECT }}">
                                                     <div class="{{ not modeEdit or not isSelected ? 'd-none' }}"
                                                          data-nature-is-selected>
-                                                        {{ form.number('quantity', null, false, modeDeliveryEdit ? null : value, {
+                                                        {{ form.number('quantity', null, false, quantity ?: null, {
                                                             labelClass: 'w-100',
                                                             multipleKey: multipleKey,
+                                                            disabled: request.id and request.order is null,
+                                                            min: (modeDeliveryEdit ? quantity : 0) ?: 0
                                                         }) }}
                                                     </div>
                                                 </div>
@@ -270,7 +294,7 @@
                                 {% endfor %}
                             </div>
                         </div>
-                        <div class="col-12 mt-3 d-none"
+                        <div class="col-12 mt-3 {{ not modeDeliveryEdit ? 'd-none' }}"
                              data-request-type="{{ DISCR_DELIVERY }}">
                             {{ form.checkbox('printLabels', 'Imprimer les étiquettes', false, false, {
                                 slider: true
@@ -285,15 +309,14 @@
                     </div>
                     <div class="row free-fields-container">
                         {% for type in types %}
-                            <div class="col-12 d-none"
+                            <div class="col-12 {{ not modeEdit ? 'd-none' }}"
                                  data-type="{{ [type.id] | json_encode }}">
-                                {#            TODO actionType & requiredType pour la modification #}
                                 {% include 'free_field/freeFieldsEdit.html.twig' with {
                                     freeFields: type.champsLibres,
                                     freeFieldValues: request.freeFields,
                                     colType: 'col-md-6 col-12',
-                                    requiredType: 'requiredCreate',
-                                    actionType: 'new',
+                                    requiredType: modeEdit ? 'requiredEdit' : 'requiredCreate',
+                                    actionType: modeEdit ? 'edit' : 'new',
                                     disabledNeeded: true
                                 } %}
                             </div>

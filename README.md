@@ -6,7 +6,6 @@ Créer le fichier `config/generated.yaml` avec le contenu suivant
 ```json
 {"parameters": {"session_lifetime": 1440}}
 ```
-To do
 
 ## Security checker
 The Local PHP Security Checker is a command line tool that checks if your PHP application depends on PHP packages with known security vulnerabilities.

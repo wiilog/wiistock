@@ -8,6 +8,8 @@ use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\FreeField;
+use App\Entity\IOT\SensorMessage;
+use App\Entity\IOT\TriggerAction;
 use App\Entity\Setting;
 use App\Entity\StatusHistory;
 use App\Entity\Transport\TransportCollectRequestLine;
@@ -22,12 +24,13 @@ use App\Entity\Transport\TransportDeliveryRequestLine;
 use App\Entity\Transport\TransportHistory;
 use App\Entity\Transport\TransportOrder;
 use App\Entity\Transport\TransportRequest;
-use App\Entity\Transport\TransportRequestLine;
 use App\Entity\Type;
 use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
+use App\Service\CSVExportService;
+use App\Service\FreeFieldService;
+use App\Service\IOT\IOTService;
 use App\Service\MailerService;
-use App\Service\PackService;
 use App\Service\PDFGeneratorService;
 use App\Service\StatusHistoryService;
 use App\Service\Transport\TransportHistoryService;
@@ -37,12 +40,14 @@ use App\Entity\Utilisateur;
 use DateTime;
 use App\Service\Transport\TransportService;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
+use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Twig\Environment;
 use WiiCommon\Helper\Stream;
@@ -106,49 +111,82 @@ class RequestController extends AbstractController {
         ]);
     }
 
-    #[Route("/voir/{transportRequest}", name: "transport_request_show", methods: "GET")]
-    public function show(TransportRequest $transportRequest,
-                         EntityManagerInterface $entityManager): Response {
+    #[Route("/voir/{transport}", name: "transport_request_show", methods: "GET")]
+    public function show(TransportRequest       $transport,
+                         EntityManagerInterface $entityManager,
+                         RouterInterface $router): Response {
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
-        $typeRepository = $entityManager->getRepository(Type::class);
-        $natureRepository = $entityManager->getRepository(Nature::class);
-        $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
 
-        $categoryFF = $transportRequest instanceof TransportDeliveryRequest
+        $categoryFF = $transport instanceof TransportDeliveryRequest
             ? CategorieCL::DELIVERY_TRANSPORT
             : CategorieCL::COLLECT_TRANSPORT;
-        $freeFields = $freeFieldRepository->findByTypeAndCategorieCLLabel($transportRequest->getType(), $categoryFF);
+        $freeFields = $freeFieldRepository->findByTypeAndCategorieCLLabel($transport->getType(), $categoryFF);
 
-        $selectedLines = Stream::from($transportRequest->getLines())
-            ->keymap(fn(TransportRequestLine $line) => [
-                $line->getNature()?->getId() ?: 0,
-                $line instanceof TransportDeliveryRequestLine
-                    ? $line->getTemperatureRange()?->getId()
-                    : ($line instanceof TransportCollectRequestLine ? $line->getQuantityToCollect() : null)
-            ])
-            ->filter(fn($_, $key) => $key !== 0)
-            ->toArray();
+        $order = $transport->getOrder();
 
-        $packsCount = $transportRequest->getOrder()?->getPacks()->count() ?: 0;
+        $packsCount = $order->getPacks()->count() ?: 0;
 
-        $hasRejectedPacks = $transportRequest->getOrder()
-            && Stream::from($transportRequest->getOrder()?->getPacks() ?: [])
-                ->some(fn(TransportDeliveryOrderPack $pack) => $pack->isRejected());
+        $hasRejectedPacks =  $order
+            && Stream::from($transport->getOrder()?->getPacks() ?: [])
+                ->some(fn(TransportDeliveryOrderPack $orderPack) => $orderPack->getState() === TransportDeliveryOrderPack::REJECTED_STATE);
+
+        $contactPosition = [$transport->getContact()->getAddressLatitude(), $transport->getContact()->getAddressLongitude()];
+
+        $round = ! $order->getTransportRoundLines()->isEmpty()
+            ?  $order->getTransportRoundLines()->last()->getTransportRound()
+            : null;
+
+        $delivererPosition =  $round?->getBeganAt()
+            ? $round?->getDeliverer()?->getVehicle()?->getLastPosition($round->getBeganAt(), $round->getEndedAt())
+            : null;
+        $addedLocations = [];
+        if ($round) {
+            $now = new DateTime();
+            $urls = [];
+            foreach ($order->getPacks() as $transportDeliveryPack) {
+                $pack = $transportDeliveryPack->getPack();
+                $location = $pack->getLastTracking()?->getEmplacement();
+                if ($location and $location->getActivePairing() && !in_array($location->getId(), $addedLocations)) {
+                    $triggerActions = $location->getActivePairing()->getSensorWrapper()->getTriggerActions();
+                    $minTriggerActionThreshold = Stream::from($triggerActions)->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'lower')->last();
+                    $maxTriggerActionThreshold = Stream::from($triggerActions)->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'higher')->last();
+                    $minThreshold = $minTriggerActionThreshold?->getConfig()['temperature'];
+                    $maxThreshold = $maxTriggerActionThreshold?->getConfig()['temperature'];
+                    $addedLocations[] = $location->getId();
+                    $urls[] = [
+                        "fetch_url" => $router->generate("chart_data_history", [
+                            "type" => IOTService::getEntityCodeFromEntity($location),
+                            "id" => $location->getId(),
+                            'start' => $round->getBeganAt()->format('Y-m-d\TH:i'),
+                            'end' => $round->getEndedAt() ?? $now->format('Y-m-d\TH:i'),
+                        ], UrlGeneratorInterface::ABSOLUTE_URL),
+                        "minTemp" => $minThreshold,
+                        "maxTemp" => $maxThreshold
+                    ];
+                }
+            }
+            if (empty($urls)) {
+                $urls[] = [
+                    "fetch_url" => $router->generate("chart_data_history", [
+                        "type" => null,
+                        "id" => null,
+                        'start' => new DateTime('now'),
+                        'end' => new DateTime('tomorrow'),
+                    ], UrlGeneratorInterface::ABSOLUTE_URL),
+                    "minTemp" => 0,
+                    "maxTemp" => 0,
+                ];
+            }
+        }
 
         return $this->render('transport/request/show.html.twig', [
-            'request' => $transportRequest,
-            'selectedLines' => $selectedLines,
+            'request' => $transport,
             'freeFields' => $freeFields,
-            "types" => $typeRepository->findByCategoryLabels([
-                CategoryType::DELIVERY_TRANSPORT, CategoryType::COLLECT_TRANSPORT,
-            ]),
-            "natures" => $natureRepository->findByAllowedForms([
-                Nature::TRANSPORT_COLLECT_CODE,
-                Nature::TRANSPORT_DELIVERY_CODE
-            ]),
-            "temperatures" => $temperatureRangeRepository->findAll(),
             "packsCount" => $packsCount,
-            "hasRejectedPacks" => $hasRejectedPacks
+            "hasRejectedPacks" => $hasRejectedPacks,
+            "contactPosition" => $contactPosition,
+            "delivererPosition" => $delivererPosition,
+            'urls' => $urls ?? null,
         ]);
     }
 
@@ -229,12 +267,18 @@ class RequestController extends AbstractController {
                          TransportService $transportService,
                          TransportRequest $transportRequest): JsonResponse {
 
-        $transportService->updateTransportRequest($entityManager, $transportRequest, $request->request, $this->getUser());
+        $result = $transportService->updateTransportRequest($entityManager, $transportRequest, $request->request, $this->getUser());
+
         $entityManager->flush();
+
+        $createdPacks = Stream::from($result['createdPacks'])
+            ->map(fn(TransportDeliveryOrderPack $pack) => $pack->getId())
+            ->toArray();
 
         return $this->json([
             "success" => true,
             "message" => "Votre demande de transport a bien été mise à jour",
+            "createdPacks" => $createdPacks
         ]);
     }
 
@@ -252,7 +296,7 @@ class RequestController extends AbstractController {
     #[HasPermission([Menu::DEM, Action::EDIT_TRANSPORT], mode: HasPermission::IN_JSON)]
     public function packing(Request $request,
                             EntityManagerInterface $entityManager,
-                            PackService $packService,
+                            TransportService $transportService,
                             TransportHistoryService $transportHistoryService,
                             StatusHistoryService $statusHistoryService,
                             TransportRequest $transportRequest ): JsonResponse {
@@ -276,20 +320,14 @@ class RequestController extends AbstractController {
             $nature = $natureRepository->find($natureId);
             if ($quantity > 0 && $nature) {
                 for ($packIndex = 0; $packIndex < $quantity; $packIndex++) {
-                    $orderLine = new TransportDeliveryOrderPack();
-                    $orderLine->setOrder($order);
-                    $pack = $packService->createPack([
-                        'orderLine' => $orderLine,
-                        'nature' => $nature,
-                    ]);
-                    $entityManager->persist($orderLine);
-                    $entityManager->persist($pack);
+                    $transportService->persistDeliveryPack($entityManager, $order, $nature);
                 }
             }
             else {
                 throw new FormException("Formulaire mal complété, veuillez réessayer");
             }
         }
+
         if($transportRequest->getStatus()->getCode() == TransportRequest::STATUS_TO_PREPARE) {
             $status = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_REQUEST_DELIVERY, TransportRequest::STATUS_TO_DELIVER);
             $statusHistory = $statusHistoryService->updateStatus($entityManager, $transportRequest, $status);
@@ -336,13 +374,15 @@ class RequestController extends AbstractController {
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_TRANSPORT_REQUESTS, $this->getUser());
         $queryResult = $transportRepository->findByParamAndFilters($request->request, $filters);
 
-        $transportRequests = [];
-        foreach ($queryResult["data"] as $transportRequest) {
-            $expectedAtStr = $transportRequest->getExpectedAt()?->format("dmY");
-            if ($expectedAtStr) {
-                $transportRequests[$expectedAtStr][] = $transportRequest;
-            }
-        }
+        $transportRequests = Stream::from($queryResult["data"])
+            ->keymap(function(TransportRequest $transportRequest) {
+                $date = $transportRequest->getValidatedDate() ?? $transportRequest->getExpectedAt();
+                $key = $date->format("dmY");
+                return [
+                    $key,
+                    $transportRequest
+                ];
+            },true)->toArray();
 
         $rows = [];
         $currentRow = [];
@@ -375,7 +415,7 @@ class RequestController extends AbstractController {
             if(!$rows) {
                 $export = "<span>
                     <button type='button' class='btn btn-primary mr-1'
-                            onclick='saveExportFile(`transport_requests_export`)'>
+                            onclick='saveExportFile(`transport_requests_export`, true, {}, true )'>
                         <i class='fa fa-file-csv mr-2' style='padding: 0 2px'></i>
                         Exporter au format CSV
                     </button>
@@ -427,31 +467,50 @@ class RequestController extends AbstractController {
              * @var TransportOrder $transportOrder
              */
             $transportOrder = $transportRequest->getOrder();
+            if($transportOrder) {
+                /**
+                 * @var StatusHistory[] $statusesHistories
+                 */
+                $statusesHistories = Stream::from($transportRequest->getStatusHistory())
+                    ->concat($transportOrder->getStatusHistory())
+                    ->toArray();
 
-            /**
-             * @var StatusHistory[] $statusesHistories
-             */
-            $statusesHistories = Stream::from($transportRequest->getStatusHistory())
-                ->concat($transportOrder->getStatusHistory())
-                ->toArray();
+                /**
+                 * @var TransportHistory[] $histories
+                 */
+                $histories = Stream::from($transportRequest->getHistory())
+                    ->concat($transportOrder->getHistory())
+                    ->toArray();
 
-            /**
-             * @var TransportHistory[] $histories
-             */
-            $histories = Stream::from($transportRequest->getHistory())
-                ->concat($transportOrder->getHistory())
-                ->toArray();
+                foreach ($statusesHistories as $status) {
+                    $transportRequest->removeStatusHistory($status);
+                    $transportOrder->removeStatusHistory($status);
+                    $entityManager->remove($status);
+                }
 
-            foreach ($statusesHistories as $status) {
-                $transportRequest->removeStatusHistory($status);
-                $transportOrder->removeStatusHistory($status);
-                $entityManager->remove($status);
-            }
+                foreach ($histories as $history) {
+                    $transportRequest->removeHistory($history);
+                    $transportOrder->removeHistory($history);
+                    $entityManager->remove($history);
+                }
 
-            foreach ($histories as $history) {
-                $transportRequest->removeHistory($history);
-                $transportOrder->removeHistory($history);
-                $entityManager->remove($history);
+                foreach($transportOrder->getPacks() as $pack) {
+                    $transportOrder->removePack($pack);
+                    $entityManager->remove($pack);
+                }
+           } else {
+                $statusesHistories = $transportRequest->getStatusHistory();
+                $histories = $transportRequest->getHistory();
+
+                foreach ($statusesHistories as $status) {
+                    $transportRequest->removeStatusHistory($status);
+                    $entityManager->remove($status);
+                }
+
+                foreach ($histories as $history) {
+                    $transportRequest->removeHistory($history);
+                    $entityManager->remove($history);
+                }
             }
 
             $entityManager->flush();
@@ -459,7 +518,7 @@ class RequestController extends AbstractController {
             $entityManager->flush();
         }
         else {
-            $msg = 'Le statut de cette demande rends impossible sa suppression.';
+            $msg = 'Le statut de cette demande rend impossible sa suppression.';
         }
 
         return $this->json([
@@ -547,74 +606,18 @@ class RequestController extends AbstractController {
     }
 
     #[Route("/{transportRequest}/print-transport-packs", name: "print_transport_packs", options: ['expose' => true], methods: "GET")]
-    public function printTransportPacks(TransportRequest $transportRequest,
-                                        PDFGeneratorService $PDFGeneratorService,
-                                        EntityManagerInterface $manager): Response {
-        $packs = Stream::from($transportRequest->getOrder()?->getPacks() ?: []);
-        $contact = $transportRequest->getContact();
-        $contactName = $contact->getName();
-        $contactFileNumber = $contact->getFileNumber();
-        $contactAdress = $contact->getAddress();
+    public function printTransportPacks(TransportRequest       $transportRequest,
+                                        TransportService       $transportService,
+                                        PDFGeneratorService    $PDFGeneratorService,
+                                        Request                $request,
+                                        EntityManagerInterface $entityManager): PdfResponse {
 
-        $contactAdress = preg_replace('/\s(\d{5})/', "\n$1", $contactAdress);
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $logo = $settingRepository->getOneParamByLabel(Setting::LABEL_LOGO);
 
-        $maxLineLength = 40;
-        $cleanedContactAdress = Stream::explode("\n", $contactAdress)
-            ->flatMap(function (string $part) use ($maxLineLength) {
-                $part = trim($part);
-                $lineLength = strlen($part);
-                if ($lineLength > $maxLineLength) {
-                    $results = [];
+        $packsFilter = Stream::explode(',', $request->query->get('packs'))->toArray();
 
-                    while (!empty($part)) {
-                        $words = explode(" ", $part);
-                        $finalPart = "";
-                        foreach ($words as $word) {
-                            if (empty($finalPart) || strlen($finalPart) + strlen($word) < $maxLineLength) {
-                                if (!empty($finalPart)) {
-                                    $finalPart .= " ";
-                                }
-                                $finalPart .= $word;
-                            } else {
-                                break;
-                            }
-                        }
-                        $results[] = trim($finalPart);
-                        if (strlen($finalPart) < strlen($part)) {
-                            $part = trim(substr($part, strlen($finalPart)));
-                        } else {
-                            break;
-                        }
-                    }
-                    return $results;
-                } else {
-                    return [$part];
-                }
-            })
-            ->filterMap(fn(string $line) => trim($line))
-            ->toArray();
-        $logo = $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::LABEL_LOGO);
-
-        $temperatureRanges = Stream::from($transportRequest->getLines())
-            ->filter(fn($line) => $line instanceof TransportDeliveryRequestLine)
-            ->keymap(function(TransportDeliveryRequestLine $line) {
-                return [$line->getNature()->getLabel(), $line->getTemperatureRange()?->getValue()];
-            })->toArray();
-        $config = [];
-        $total = $packs->count();
-        foreach ($packs as $index => $pack) {
-            $position = $index + 1;
-            $config[] = [
-                'code' => $pack->getPack()->getCode(),
-                'labels' => [
-                    "$contactName - $contactFileNumber",
-                    ...$cleanedContactAdress,
-                    ($temperatureRanges[$pack->getPack()->getNature()->getLabel()] ?? '- °C'),
-                    "$position/$total"
-                ],
-                'logo' => $logo
-            ];
-        }
+        $config = $transportService->createPrintPackConfig($transportRequest, $logo, $packsFilter);
 
         $fileName = $PDFGeneratorService->getBarcodeFileName($config, 'transport');
         return new PdfResponse(
@@ -623,4 +626,166 @@ class RequestController extends AbstractController {
         );
     }
 
+    #[Route("/modifier-api/{transportRequest}", name: "transport_request_edit_api", options: ['expose' => true], methods: "GET")]
+    #[HasPermission([Menu::DEM, Action::EDIT_TRANSPORT], mode: HasPermission::IN_JSON)]
+    public function editTemplate(EntityManagerInterface $entityManager,
+                                 TransportRequest       $transportRequest): JsonResponse {
+        $natureRepository = $entityManager->getRepository(Nature::class);
+        $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
+
+        if ($transportRequest instanceof TransportCollectRequest) {
+            $collectNatures = $natureRepository->findByAllowedForms([Nature::TRANSPORT_COLLECT_CODE]);
+            $requestLines = Stream::from($collectNatures)
+                ->map(function(Nature $nature) use ($transportRequest) {
+                    /** @var TransportCollectRequestLine $line */
+                    $line = $transportRequest->getLine($nature);
+                    return [
+                        'selected' => (bool) $line,
+                        'nature' => $nature,
+                        'quantity' => $line?->getQuantityToCollect()
+                    ];
+                })
+                ->toArray();
+        }
+        else if ($transportRequest instanceof TransportDeliveryRequest) {
+            $deliveryNatures = $natureRepository->findByAllowedForms([Nature::TRANSPORT_DELIVERY_CODE]);
+            $requestLines = Stream::from($deliveryNatures)
+                ->map(function(Nature $nature) use ($transportRequest) {
+                    /** @var TransportDeliveryRequestLine $line */
+                    $line = $transportRequest->getLine($nature);
+                    return [
+                        'nature' => $nature,
+                        'selected' => (bool) $line,
+                        'quantity' => ($line ? $transportRequest->getOrder()?->getPacksForLine($line)?->count() : 0) ?: null,
+                        'temperatureRange' => $line?->getTemperatureRange()?->getId(),
+                    ];
+                })
+                ->toArray();
+        }
+        else {
+            throw new RuntimeException('Invalid request type');
+        }
+
+        $types = $typeRepository->findByCategoryLabels([
+            CategoryType::DELIVERY_TRANSPORT,
+            CategoryType::COLLECT_TRANSPORT,
+        ]);
+
+        return $this->json([
+            'success' => true,
+            'template' => $this->renderView('transport/request/form.html.twig', [
+                "requestLines" => $requestLines,
+                "request" => $transportRequest,
+                "types" => $types,
+                "temperatures" => $temperatureRangeRepository->findAll(),
+            ])
+       ]);
+    }
+
+    #[Route("/bon-de-transport/{transportRequest}", name: "print_transport_note", options: ['expose' => true], methods: "GET")]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_TRANSPORT])]
+    public function printTransportNote(TransportRequest    $transportRequest,
+                                       PDFGeneratorService $pdfService): Response {
+
+        return new PdfResponse(
+            $pdfService->generatePDFTransport($transportRequest),
+            "{$transportRequest->getNumber()}-bon-transport.pdf"
+        );
+    }
+    /**
+     * @Route("/csv", name="transport_requests_export", options={"expose"=true}, methods={"GET"})
+     */
+    public function getDeliveryRequestCSV(Request                $request,
+                                          FreeFieldService       $freeFieldService,
+                                          CSVExportService       $CSVExportService,
+                                          EntityManagerInterface $entityManager,
+                                          TransportService       $transportService): Response
+    {
+        $transportRequestRepository = $entityManager->getRepository(TransportRequest::class);
+        $dateMin = $request->query->get('dateMin');
+        $dateMax = $request->query->get('dateMax');
+        $category = $request->query->get('category');
+        $freeFieldsConfigDelivery = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DELIVERY_TRANSPORT]);
+        $freeFieldsConfigCollect = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::COLLECT_TRANSPORT]);
+
+        $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
+        $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
+
+        if ($category === CategoryType::DELIVERY_TRANSPORT) {
+            $nameFile = 'export_demande_livraison.csv';
+            $transportHeader = [
+                'N°demande',
+                'Transport',
+                'Type',
+                'Statut',
+                'Urgence',
+                'Demandeur',
+                'Patient',
+                'N°Dossier',
+                'Adresse de livraison',
+                'Métropole',
+                'Date attendue',
+                'Date A valider',
+                'Date A préparer',
+                'Date A livrer',
+                'Date Sous-traitées',
+                'Date En cours',
+                'Date Terminée/Non Livrée',
+                'Commentaire'];
+
+            $packsHeader = [
+                'Nature colis',
+                'Nombre de colis à livrer',
+                'Températures',
+                'Code Colis',
+                'Ecarté',
+                'Motif écartement',
+                'Retrounée le',
+            ];
+            $csvHeader = array_merge($transportHeader, $packsHeader, $freeFieldsConfigDelivery['freeFieldsHeader']);
+        } else {
+            $nameFile = 'export_demande_collecte.csv';
+            $transportHeader = [
+                'N°demande',
+                'Transport',
+                'Type',
+                'Statut',
+                'Demandeur',
+                'Patient',
+                'N°Dossier',
+                'Adresse de livraison',
+                'Métropole',
+                'Date attendue',
+                'Date validée avec le patient',
+                'Date A valider',
+                'Date En attente de planification',
+                'Date A collecter',
+                'Date En cours',
+                'Date Terminée/Non Collectée',
+                'Date Objets déposés',
+                'Commentaire',
+            ];
+
+            $naturesHeader = [
+                'Nature colis',
+                'Quantité à collecter',
+                'Quantités collectées',
+            ];
+            $csvHeader = array_merge($transportHeader, $naturesHeader, $freeFieldsConfigCollect['freeFieldsHeader']);
+        }
+        $transportRequestIterator = $transportRequestRepository->iterateTransportRequestByDates($dateTimeMin, $dateTimeMax, $category);
+
+        return $CSVExportService->streamResponse(function ($output) use ($CSVExportService, $transportService, $freeFieldsConfigDelivery, $freeFieldsConfigCollect, $transportRequestIterator) {
+            /** @var TransportRequest $request */
+            foreach ($transportRequestIterator as $request) {
+                if ($request instanceof TransportDeliveryRequest) {
+                    $transportService->putLineRequest($output, $CSVExportService, $request, $freeFieldsConfigDelivery);
+                }
+                else {
+                    $transportService->putLineRequest($output, $CSVExportService, $request, $freeFieldsConfigCollect);
+                }
+            }
+        }, $nameFile, $csvHeader);
+    }
 }

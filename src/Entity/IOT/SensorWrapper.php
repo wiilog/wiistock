@@ -7,6 +7,7 @@ use App\Entity\Utilisateur;
 use App\Repository\IOT\SensorWrapperRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: SensorWrapperRepository::class)]
@@ -175,4 +176,15 @@ class SensorWrapper {
         return $this;
     }
 
+    public function getActivePairing(): ?Pairing
+    {
+        $criteria = Criteria::create();
+        return $this->pairings
+            ->matching(
+                $criteria
+                    ->andWhere(Criteria::expr()->eq('active', true))
+                    ->setMaxResults(1)
+            )
+            ->first() ?: null;
+    }
 }

@@ -5,7 +5,6 @@ namespace App\Repository;
 use App\Entity\Nature;
 use App\Helper\QueryCounter;
 use Doctrine\ORM\EntityRepository;
-use JetBrains\PhpStorm\ArrayShape;
 use Symfony\Component\HttpFoundation\InputBag;
 
 /**

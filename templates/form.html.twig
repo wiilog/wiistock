@@ -12,6 +12,7 @@
     {{ options.disabled ?? false ? 'disabled' }}
     {% if options.min is defined and options.min is not null %}min="{{ options.min }}"{% endif %}
     {% if options.max is defined and options.max is not null %}max="{{ options.max }}"{% endif %}
+    {% if options.step is defined and options.step is not null %}step="{{ options.step }}"{% endif %}
 
     {{ _self.custom_attributes(options.attributes ?? []) }}
 {% endmacro %}
@@ -32,9 +33,9 @@
                     <img src="{{ label.url }}" alt="{{ label.alt ?? '' }}" width="15px" class="mr-2">
                 {% endif %}
 
-                {{ label.text | raw }}{{ required ? '*' }}
+                {{ label.text | raw }}{{ required and options.removeAsterisk is not defined ? '*' }}
             {% else %}
-                {{ label | raw }}{{ required ? '*' }}
+                {{ label | raw }}{{ required and options.removeAsterisk is not defined ? '*' }}
             {% endif %}
         </span>
     {% endif %}
@@ -58,6 +59,7 @@
         {{ _self.label(label, required, inline, options.labelOptions ?? {}) }}
         {{ _self.tooltip(options.tooltip ?? null, inline) }}
         <div class="{{ options.expanded ?? false ? 'wii-expanded-switch' : 'wii-switch' }} text-truncate"
+             {{ (options.error ?? 'local') == 'global' ? 'data-global-error' }}
              data-name="{{ name }}"
              data-title="{{ label | striptags }}{{ required ? '*' }}">
             {% for switch in switches %}
@@ -98,7 +100,9 @@
     {% set id = options.id ?? ('checkbox-' ~ random(100000, 10000000)) %}
     {% set checkboxClass = isSlider ? 'switch' : 'wii-checkbox' %}
     {% set containerTag = isSlider ? 'label' : 'div' %}
-    <{{ containerTag }} class="{{ checkboxClass }} {{ options.containerClass ?? '' }}">
+    <{{ containerTag }} class="{{ checkboxClass }}
+                        data-name="{{ name }}"
+                        {{ options.containerClass ?? '' }}">
         <input type="checkbox"
                id="{{ id }}"
                class="checkbox data {{ options.inputClass ?? '' }}"
@@ -128,7 +132,8 @@
 {% endmacro %}
 
 {% macro radio(name, label, required, items, options = {}) %}
-    <div class="wii-radio-container {{ options.containerClass ?? '' }}">
+    <div class="wii-radio-container {{ options.containerClass ?? '' }}"
+         data-name="{{ name }}">
         {% for item in items %}
             {% set id = random(100000, 10000000) %}
 
@@ -165,6 +170,7 @@
             {% if options.type is defined %}
                 data-s2="{{ options.type }}"
                 {% if options.hiddenDropdown ?? false %}data-hidden-dropdown{% endif %}
+                {% if options.disabledDropdownOptions ?? false %}data-disabled-dropdown-options{% endif %}
                 {% if options.editable ?? false %}data-editable{% endif %}
                 {% if options.noEmptyOption ?? false %}data-no-empty-option{% endif %}
                 {% if options.placeholder is defined %}data-placeholder="{{ options.placeholder }}"{% endif %}
@@ -188,6 +194,7 @@
                     <option value="{{ text.value }}"
                             {{ (text.selected ?? false) or text.value in values ? 'selected' }}
                             {{ text.disabled ?? false ? 'disabled' }}
+                            {% if text.class is defined and text.class %}class="{{ text.class }}"{% endif %}
                             {% for dataKey, dataValue in text %}
                                 data-{{ dataKey }}="{{ dataValue }}"
                             {% endfor %}>
@@ -203,6 +210,7 @@
 
 {% macro input(name, label, required, value = '', options = {}) %}
     {% set inline = options.inline ?? false %}
+
     <label class="w-100 {{ options.labelClass ?? '' }} {{ inline ? 'labelled-field' }}">
         {{ _self.label(label, required, inline, options.labelOptions ?? {}) }}
         {{ _self.tooltip(options.tooltip ?? null, inline) }}

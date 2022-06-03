@@ -2,7 +2,6 @@
 
 namespace App\Entity\Transport;
 
-use App\Entity\Nature;
 use App\Repository\Transport\TransportCollectRequestLineRepository;
 use Doctrine\ORM\Mapping as ORM;
 

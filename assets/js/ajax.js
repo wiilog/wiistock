@@ -94,6 +94,21 @@ export default class AJAX {
             });
     }
 
+    file({body, success, error}) {
+        return this.raw(body)
+            .then((response) => {
+                if (!response.ok) {
+                    Flash.add(ERROR, error)
+                    throw new Error('printing error');
+                }
+                return response.blob().then((blob) => {
+                    const fileName = response.headers.get("content-disposition").split("filename=")[1];
+                    saveAs(blob, fileName);
+                    Flash.add(SUCCESS, success);
+                });
+            });
+    }
+
     json(body) {
         const [url, config] = this.config(body);
 
@@ -132,7 +147,8 @@ function treatFetchCallback(json) {
     if(json.reload === true) {
         $.fn.dataTable
             .tables({visible: true, api: true})
-            .ajax.reload();
+            .ajax
+            .reload();
     }
 }
 

@@ -2,17 +2,45 @@
 
 namespace App\Entity\Transport;
 
+use App\Entity\Interfaces\StatusHistoryContainer;
+use App\Entity\StatusHistory;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Repository\Transport\TransportRoundRepository;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
+use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: TransportRoundRepository::class)]
-class TransportRound
+class TransportRound extends StatusHistoryContainer
 {
+    public const NUMBER_PREFIX = 'T';
+
+    public const STATUS_AWAITING_DELIVERER = 'En attente livreur';
+    public const STATUS_ONGOING = 'En cours';
+    public const STATUS_FINISHED = 'Terminée';
+
+    public const STATUS_COLOR = [
+        self::STATUS_AWAITING_DELIVERER => "preparing",
+        self::STATUS_ONGOING => "ongoing",
+        self::STATUS_FINISHED => "finished",
+    ];
+
+    public const STATUS_WORKFLOW_ROUND = [
+        TransportRound::STATUS_AWAITING_DELIVERER,
+        TransportRound::STATUS_ONGOING,
+        TransportRound::STATUS_FINISHED,
+    ];
+
+    public const NAME_START_POINT = 'Départ tournée';
+    public const NAME_START_POINT_SCHEDULE_CALCULATION = 'Départ calcul Horaire';
+    public const NAME_END_POINT = 'Arrivée tournée';
+
+
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
@@ -24,8 +52,14 @@ class TransportRound
     #[ORM\ManyToOne(targetEntity: Statut::class)]
     private ?Statut $status = null;
 
+    #[ORM\OneToMany(mappedBy: 'transportRound', targetEntity: StatusHistory::class)]
+    private Collection $statusHistory;
+
     #[ORM\Column(type: 'datetime')]
     private ?DateTime $createdAt = null;
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?DateTime $expectedAt = null;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $endedAt = null;
@@ -33,8 +67,14 @@ class TransportRound
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'transportRounds')]
     private ?Utilisateur $deliverer = null;
 
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
+    private ?Utilisateur $createdBy = null;
+
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $beganAt = null;
+
+    #[ORM\Column(type: 'json')]
+    private ?array $coordinates = []; // ["startPoint" : [latitude: int , longitude: int ], "$startPointScheduleCalculation" : [latitude: int , longitude: int ], "endPoint" : [latitude: int , longitude: int ]]
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $startPoint = null;
@@ -60,6 +100,7 @@ class TransportRound
     public function __construct()
     {
         $this->transportRoundLines = new ArrayCollection();
+        $this->statusHistory = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -102,6 +143,18 @@ class TransportRound
         return $this;
     }
 
+    public function getExpectedAt(): ?DateTime
+    {
+        return $this->expectedAt;
+    }
+
+    public function setExpectedAt(DateTime $expectedAt): self
+    {
+        $this->expectedAt = $expectedAt;
+
+        return $this;
+    }
+
     public function getEndedAt(): ?DateTime
     {
         return $this->endedAt;
@@ -125,6 +178,19 @@ class TransportRound
         }
         $this->deliverer = $deliverer;
         $deliverer?->addTransportRound($this);
+
+        return $this;
+    }
+
+    public function getCreatedBy(): ?Utilisateur
+    {
+        return $this->createdBy;
+    }
+
+
+    public function setCreatedBy(Utilisateur $createdBy): self
+    {
+        $this->createdBy = $createdBy;
 
         return $this;
     }
@@ -213,12 +279,37 @@ class TransportRound
         return $this;
     }
 
+    public function getTransportRoundLine(TransportOrder $transportOrder): ?TransportRoundLine {
+        return $this->transportRoundLines
+            ->filter(fn(TransportRoundLine $line) => $line->getOrder()?->getId() === $transportOrder->getId())
+            ->first() ?: null;
+    }
+
     /**
      * @return Collection<int, TransportRoundLine>
      */
-    public function getTransportRoundLines(): Collection
-    {
-        return $this->transportRoundLines;
+    public function getTransportRoundLines(string $sortCriteria = 'priority'): Collection {
+        $criteria = Criteria::create();
+        return $this->transportRoundLines
+            ->matching(
+                $criteria
+                    ->orderBy([
+                        $sortCriteria => Criteria::ASC
+                    ])
+            );
+    }
+
+    public function setTransportRoundLines(?array $lines): self {
+        foreach($this->getTransportRoundLines()->toArray() as $line) {
+            $this->removeTransportRoundLine($line);
+        }
+
+        $this->transportRoundLines = new ArrayCollection();
+        foreach($lines as $line) {
+            $this->addTransportRoundLine($line);
+        }
+
+        return $this;
     }
 
     public function addTransportRoundLine(TransportRoundLine $transportRoundLine): self
@@ -243,4 +334,84 @@ class TransportRound
         return $this;
     }
 
+    public function getCoordinates(): array {
+        return $this->coordinates ?? [];
+    }
+
+    public function setCoordinates(array $coordinates): self {
+        $this->coordinates = $coordinates;
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, StatusHistory>
+     */
+    public function getStatusHistory(string $order = Criteria::ASC): Collection {
+        return $this->statusHistory
+            ->matching(Criteria::create()
+                ->orderBy([
+                    'date' => $order,
+                    'id' => $order
+                ])
+            );
+    }
+
+    public function addStatusHistory(StatusHistory $statusHistory): self {
+        if (!$this->statusHistory->contains($statusHistory)) {
+            $this->statusHistory[] = $statusHistory;
+            $statusHistory->setTransportRound($this);
+        }
+
+        return $this;
+    }
+
+    public function removeStatusHistory(StatusHistory $statusHistory): self {
+        if ($this->statusHistory->removeElement($statusHistory)) {
+            // set the owning side to null (unless already changed)
+            if ($statusHistory->getTransportRequest() === $this) {
+                $statusHistory->setTransportRequest(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function countRejectedPacks(): int {
+        return Stream::from( $this->getTransportRoundLines() )->map(function(TransportRoundLine $line) {
+            return $line->getOrder()->countRejectedPacks();
+        })->sum();
+    }
+
+    public function countRejectedOrders(): int {
+        return Stream::from( $this->getTransportRoundLines() )->filter(function(TransportRoundLine $line) {
+            return $line->getOrder()->isRejected();
+        })->count();
+    }
+
+    public function getPairings(): array {
+        $roundVehicle = $this->getDeliverer()->getVehicle();
+        $roundsPairings = [];
+
+        foreach ($roundVehicle->getPairings() as $pairing) {
+            $roundsPairings[] = $pairing;
+        }
+
+        foreach($roundVehicle->getLocations() as $location){
+            foreach($location->getPairings() as $pairing){
+                $roundsPairings[] = $pairing;
+            }
+        }
+
+        foreach($this->getTransportRoundLines() as $line){
+            $order = $line->getOrder();
+            if(!$order->isRejected()) {
+                foreach($order->getPacks() as $orderPack){
+                    foreach ($orderPack->getPack()->getPairings() as $pairing) {
+                        $roundsPairings[] = $pairing;
+                    }
+                }
+            }
+        }
+        return $roundsPairings;
+    }
 }

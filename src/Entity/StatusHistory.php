@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Entity\Transport\TransportHistory;
 use App\Entity\Transport\TransportOrder;
 use App\Entity\Transport\TransportRequest;
+use App\Entity\Transport\TransportRound;
 use App\Repository\Transport\StatusHistoryRepository;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -24,6 +25,9 @@ class StatusHistory {
 
     #[ORM\ManyToOne(targetEntity: TransportRequest::class, inversedBy: 'statusHistory')]
     private ?TransportRequest $transportRequest = null;
+
+    #[ORM\ManyToOne(targetEntity: TransportRound::class, inversedBy: 'statusHistory')]
+    private ?TransportRound $transportRound = null;
 
     #[ORM\Column(type: 'datetime')]
     private ?DateTime $date;
@@ -67,6 +71,20 @@ class StatusHistory {
         }
         $this->transportRequest = $transportRequest;
         $transportRequest?->addStatusHistory($this);
+
+        return $this;
+    }
+
+    public function getTransportRound(): ?TransportRound {
+        return $this->transportRound;
+    }
+
+    public function setTransportRound(?TransportRound $transportRound): self {
+        if ($this->transportRound && $this->transportRound !== $transportRound) {
+            $this->transportRound->removeStatusHistory($this);
+        }
+        $this->transportRound = $transportRound;
+        $transportRound?->addStatusHistory($this);
 
         return $this;
     }

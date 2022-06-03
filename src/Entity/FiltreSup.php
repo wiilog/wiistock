@@ -19,7 +19,7 @@ class FiltreSup {
     const FIELD_PROVIDERS = 'providers';
     const FIELD_CATEGORY = 'category';
     const FIELD_TYPE = 'type';
-    const FIELD_FILE_NUMBER = 'fieldNumber';
+    const FIELD_FILE_NUMBER = 'fileNumber';
     const FIELD_CONTACT = 'contact';
     const FIELD_EMPLACEMENT = 'emplacement';
     const FIELD_COLIS = 'colis';
@@ -47,6 +47,8 @@ class FiltreSup {
     const FIELD_ALERT = 'alert';
 	const FIELD_DISPATCH_NUMBER = 'dispatchNumber';
     const FIELD_MANAGERS = 'managers';
+    const FIELD_ROUND_NUMBER = 'roundNumber';
+    const FIELD_DELIVERERS = 'deliverers';
 	const PAGE_PURCHASE_REQUEST = 'rpurchase';
 	const PAGE_TRANSFER_REQUEST = 'rtransfer';
 	const PAGE_TRANSFER_ORDER = 'otransfer';

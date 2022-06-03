@@ -282,7 +282,7 @@ class ArrivageService {
 
     public function createSupplierEmergencyAlert(Arrivage $arrival): ?array {
         $supplier = $arrival->getFournisseur();
-        $supplierName = $supplier ? $supplier->getNom() : null;
+        $supplierName = $supplier?->getNom();
         $isArrivalUrgent = ($supplier && $supplier->isUrgent() && $supplierName);
         $settingRepository = $this->entityManager->getRepository(Setting::class);
         return $isArrivalUrgent
@@ -317,6 +317,11 @@ class ArrivageService {
                 if (!empty($urgencesMatching)) {
                     if (!$isSEDCurrentClient) {
                         $this->setArrivalUrgent($arrival, $urgencesMatching);
+                        $alertConfigs[] = $this->createArrivalAlertConfig(
+                            $arrival,
+                            false,
+                            $urgencesMatching
+                        );
                     } else {
                         $currentAlertConfig = array_map(function (Urgence $urgence) use ($arrival, $isSEDCurrentClient) {
                             return $this->createArrivalAlertConfig(

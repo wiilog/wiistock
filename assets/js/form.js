@@ -176,11 +176,23 @@ export default class Form {
             }
         }
 
-        if(errors.length) {
+        if(errors.length > 0) {
             console.error(`%cForm errors (${errors.length}) %c`, ...[
                 `font-weight: bold;`,
                 `font-weight: normal;`,
             ], errors);
+            if (errors[0].elements && errors[0].elements[0]) {
+                const $firstInvalidElement = errors[0].elements[0];
+                const $scrollableParent = $firstInvalidElement.parents(`.modal`).exists()
+                    ? $firstInvalidElement.parents(`.modal`).first()
+                    : $firstInvalidElement.parents(`body`);
+
+                if ($scrollableParent) {
+                    $scrollableParent.animate({
+                        scrollTop: $firstInvalidElement.offset().top
+                    }, 1000);
+                }
+            }
         }
 
         if(config.ignoreErrors) {
@@ -189,7 +201,12 @@ export default class Form {
 
         // display errors under each field
         for(const error of errors) {
-            error.elements.forEach($elem => Form.showInvalid($elem, error.message));
+            if (error.elements && error.elements.length > 0) {
+                error.elements.forEach(($elem) => Form.showInvalid($elem, error.message));
+            }
+            else {
+                Flash.add(`danger`, error.message);
+            }
         }
 
         return errors.length === 0 ? data : false;
@@ -239,8 +256,12 @@ export default class Form {
         $field = $field.is(`.select2-selection`)
             ? $field.closest(`.select2-container`).siblings(`select`)
             : $field;
+        console.log($field);
         if($field.is(`[data-global-error]`)) {
-            const label = $field.data(`global-error`) || $parent.find(`.field-label`).text();
+            let label = $field.data(`global-error`) || $parent.find(`.field-label`).text();
+            label = label
+                .trim()
+                .replace(/\*$/, '');
             const prefixMessage = label ? `${label} : ` : '';
             Flash.add(`danger`, `${prefixMessage}${message}`);
         } else {
@@ -358,10 +379,18 @@ function treatInputError($input, errors, form) {
 
     if ($input.is(`[required]`) || $input.is(`[data-required]`) || $input.is(`.needed`)) {
         if (([`radio`, `checkbox`].includes($input.attr(`type`)) && !$input.is(`:checked`))) {
-            errors.push({
-                elements: [$input.closest(`.wii-radio, .wii-checkbox, .wii-switch, .wii-expanded-switch`)],
-                message: `Vous devez sélectionner au moins un élément`,
-            });
+            const $elementInError = $input.closest(`.wii-radio-container, .wii-checkbox, .wii-switch, .wii-expanded-switch`);
+            // check if element is already in error
+            const elementAlreadyInError = errors.some(({elements}) => (
+                elements
+                && elements.some((el) => $(el).data('name') === $elementInError.data('name'))
+            ));
+            if (!elementAlreadyInError) {
+                errors.push({
+                    elements: [$elementInError],
+                    message: `Vous devez sélectionner au moins un élément`,
+                });
+            }
         } else {
             const valueIsEmpty = (
                 $input.is(`[data-wysiwyg]`) ? !$input.find(`.ql-editor`).text() :  // for wysuwyg fields
@@ -394,7 +423,7 @@ function formatInputValue($input) {
         value = $input.val() || null;
     }
 
-    if (Array.isArray(value)) {
+    if ($input.parents('.free-field').exists() && Array.isArray(value)) {
         value = value.join(';');
     }
 

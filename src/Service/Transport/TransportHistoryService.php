@@ -47,6 +47,7 @@ class TransportHistoryService {
     public const TYPE_NO_MONITORING = "NO_MONITORING";
     public const TYPE_SUBCONTRACT_UPDATE = "SUBCONTRACT_UPDATE";
     public const TYPE_AWAITING_VALIDATION = "AWAITING_VALIDATION";
+    public const TYPE_AWAITING_PLANNING = "AWAITING_PLANNING";
     public const TYPE_SUBCONTRACTED = "SUBCONTRACTED";
     public const TYPE_ACCEPTED = "ACCEPTED";
     public const TYPE_REJECTED_DELIVERY = "REJECTED_DELIVERY";
@@ -71,6 +72,7 @@ class TransportHistoryService {
         self::TYPE_NO_MONITORING => "Le suivi en temps réel n'est pas disponible car la livraison est un horaire non ouvré. {message}",
         self::TYPE_SUBCONTRACT_UPDATE => "{user} a indiqué que la livraison était {status} le {statusDate}",
         self::TYPE_AWAITING_VALIDATION => "La demande est en attente de validation",
+        self::TYPE_AWAITING_PLANNING => "La demande est en attente de planification",
         self::TYPE_SUBCONTRACTED => "La demande a été sous-traitée",
         self::TYPE_ACCEPTED => "La demande a été acceptée",
         self::TYPE_REJECTED_DELIVERY => "La livraison a été rejetée de la tournée",
@@ -106,6 +108,7 @@ class TransportHistoryService {
         $history
             ->setType($type)
             ->setDate($params["date"] ?? new DateTime())
+            ->setStatusDate($params["statusDate"] ?? new DateTime())
             ->setUser($params["user"] ?? null)
             ->setPack($params["pack"] ?? null)
             ->setRound($params["round"] ?? null)
@@ -113,6 +116,7 @@ class TransportHistoryService {
             ->setDeliverer($params["deliverer"] ?? null)
             ->setReason($params["reason"] ?? null)
             ->setAttachments($params["attachments"] ?? [])
+            ->setComment($params["comment"] ?? null)
             ->setStatusHistory($params["history"] ?? null)
             ->setLocation($params["location"] ?? null);
 
@@ -121,36 +125,51 @@ class TransportHistoryService {
         return $history;
     }
 
-    private function formatEntity(mixed $entity): ?string {
+    private function formatEntity(mixed $entity, bool $highlighted = true): ?string {
         switch (gettype($entity)) {
             case "object":
                 if($entity instanceof Utilisateur) {
-                    return "<span class='text-primary font-weight-bold'>{$entity->getUsername()}</span>";
+                    $highlightClasses = $highlighted ? 'text-primary font-weight-bold' : '';
+
+                    return "<span class='$highlightClasses'>{$entity->getUsername()}</span>";
                 }
                 else if($entity instanceof Pack) {
                     return $entity->getCode();
                 }
                 else if($entity instanceof TransportRound) {
-                    return "<span class='text-primary underlined'>{$entity->getNumber()}</span>";
+                    $numberPrefix = TransportRound::NUMBER_PREFIX;
+                    $url = $this->router->generate('transport_round_show', [
+                        'transportRound' => $entity->getId()
+                    ]);
+                    return "<a class='text-primary underlined' href='$url'>$numberPrefix{$entity->getNumber()}</a>";
                 }
                 else if($entity instanceof DateTime) {
-                    return FormatHelper::datetime($entity);
+                    $date = FormatHelper::longDate($entity, ['time' => true, 'year' => true]);
+                    return "<span class='font-weight-bold'>{$date}</span>";
                 }
                 else if($entity instanceof Statut) {
-                    return FormatHelper::status($entity);
+                    $status = FormatHelper::status($entity);
+                    return "<span class='font-weight-bold'>{$status}</span>";
                 }
                 else if($entity instanceof Collection) {
                     if ($entity->get(0) instanceof Attachment) {
                         $formatedValue = Stream::from($entity)->map(function(Attachment $attachment) {
                             $name = $attachment->getOriginalName();
-                            $path = $this->kernel->getProjectDir() . '/public/uploads/attachements/' . $attachment->getFileName();
+                            $publicUrl = $attachment->getFullPath();
+                            $imagePath = $this->kernel->getProjectDir() . '/public' . $publicUrl;
+
+                            $imagesize = getimagesize($imagePath);
+                            $imageType = $imagesize[2] ?? null;
+                            $isImage = in_array($imageType, [IMAGETYPE_GIF, IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_BMP]);
 
                             return
-                                "<div class='attachment-line'>
-                                    <img src='$path' alt='$name'>
-                                    <span class='text-primary underlined'>$name</span>
+                                "<div class='attachment-line mt-2'>" .
+                                    ($isImage ? "<img src='$publicUrl' alt='$name'>" : '') .
+                                    "<a class='text-primary underlined pointer'
+                                        download='$name'
+                                        href='$publicUrl'>$name</a>
                                 </div>";
-                        })->join(";");
+                        })->join("");
                     } else {
                         return "";
                     }
@@ -184,19 +203,18 @@ class TransportHistoryService {
             "{pack}" => $this->formatEntity($history->getPack()),
             "{round}" => $this->formatEntity($history->getRound()),
             "{message}" => $this->formatEntity($history->getMessage()),
-            "{deliverer}" => $this->formatEntity($history->getDeliverer()),
+            "{deliverer}" => $this->formatEntity($history->getDeliverer(), false),
             "{reason}" => $this->formatEntity($history->getReason()),
             "{status}" => $this->formatEntity($history->getStatusHistory()?->getStatus()),
-            "{statusDate}" => $this->formatEntity($history->getStatusHistory()?->getDate()),
-            "{comment}" => $this->formatEntity($history->getComment()),
-            "{attachments}" => $this->formatEntity($history->getAttachments())
+            "{statusDate}" => $history->getStatusDate()
+                ? $this->formatEntity($history->getStatusDate())
+                : $this->formatEntity($history->getStatusHistory()?->getDate()),
         ];
 
         return str_replace(array_keys($replace), array_values($replace), self::CONTENT[$history->getType()]);
     }
 
     private function getCategoryFromType(string $type): string {
-        dump($type);
         return match($type) {
             self::TYPE_REQUEST_CREATION,
             self::TYPE_BOTH_REQUEST_CREATION,

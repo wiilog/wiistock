@@ -2,6 +2,10 @@
 
 namespace App\Entity\Transport;
 
+use App\Entity\Interfaces\StatusHistoryContainer;
+use App\Entity\IOT\Sensor;
+use App\Entity\IOT\SensorMessage;
+use App\Entity\Nature;
 use App\Entity\StatusHistory;
 use App\Entity\Statut;
 use App\Entity\Type;
@@ -10,6 +14,7 @@ use App\Repository\Transport\TransportRequestRepository;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
 use WiiCommon\Helper\Stream;
 
@@ -20,7 +25,7 @@ use WiiCommon\Helper\Stream;
     self::DISCR_DELIVERY => TransportDeliveryRequest::class,
     self::DISCR_COLLECT => TransportCollectRequest::class,
 ])]
-abstract class TransportRequest {
+abstract class TransportRequest extends StatusHistoryContainer {
 
     public const NUMBER_PREFIX = 'DTR';
 
@@ -101,9 +106,12 @@ abstract class TransportRequest {
     ];
 
     public const CANCELED_STATUSES = [
-        self::STATUS_CANCELLED,
-        self::STATUS_NOT_DELIVERED,
-        self::STATUS_NOT_COLLECTED
+        TransportRequest::STATUS_CANCELLED,
+        TransportRequest::STATUS_NOT_DELIVERED,
+        TransportRequest::STATUS_NOT_COLLECTED,
+        TransportOrder::STATUS_CANCELLED,
+        TransportOrder::STATUS_NOT_DELIVERED,
+        TransportOrder::STATUS_NOT_COLLECTED,
     ];
 
     #[ORM\Id]
@@ -287,8 +295,14 @@ abstract class TransportRequest {
     /**
      * @return Collection<int, StatusHistory>
      */
-    public function getStatusHistory(): Collection {
-        return $this->statusHistory;
+    public function getStatusHistory(string $order = Criteria::ASC): Collection {
+        return $this->statusHistory
+            ->matching(Criteria::create()
+                ->orderBy([
+                    'date' => $order,
+                    'id' => $order
+                ])
+            );
     }
 
     public function addStatusHistory(StatusHistory $statusHistory): self {
@@ -322,9 +336,13 @@ abstract class TransportRequest {
     }
 
     public function isInRound(): bool {
-        return $this->getOrder()
-            ?->getTransportRoundLines()
-            ->isEmpty() ?: false;
+        $lines = $this->getOrder()?->getTransportRoundLines();
+
+        if ($lines === null) {
+            return false;
+        } else {
+            return !$lines->isEmpty();
+        }
     }
 
     public function roundHasStarted(): bool {
@@ -344,6 +362,12 @@ abstract class TransportRequest {
      */
     public function getLines(): Collection {
         return $this->lines;
+    }
+
+    public function getLine(Nature $nature): ?TransportRequestLine {
+        $filteredLines = $this->lines
+            ->filter(fn(TransportRequestLine $line) => $line->getNature()?->getId() === $nature->getId());
+        return $filteredLines->last() ?: null;
     }
 
     public function addLine(TransportRequestLine $line): self {
@@ -378,6 +402,5 @@ abstract class TransportRequest {
 
         return $this;
     }
-
 
 }

@@ -36,8 +36,11 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
                 ->leftJoin('user.locationGroupDropzone', 'locationGroup_dropzone');
         }
 
-        if(isset($options['delivererOnly']) && $options['delivererOnly']) {
-            $qb->andWhere("user.deliverer = true");
+        if (isset($options['delivererOnly']) && $options['delivererOnly']) {
+            $qb
+                ->addSelect("join_startingHour.hour AS startingHour")
+                ->leftJoin('user.transportRoundStartingHour', 'join_startingHour')
+                ->andWhere("user.deliverer = true");
         }
 
         return $qb

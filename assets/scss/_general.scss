@@ -235,6 +235,10 @@ a {
     width: fit-content;
 }
 
+.w-min-content {
+    width: min-content;
+}
+
 .w-100 {
     + .select2-container {
         width: 100% !important;

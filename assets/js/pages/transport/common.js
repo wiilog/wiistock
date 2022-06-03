@@ -1,6 +1,8 @@
+import {Map} from "@app/map";
+
 export function initializeFilters(page) {
     initDateTimePicker('#dateMin', 'DD/MM/YYYY', {
-        setTodayDate: true
+        setTodayDate: page !== PAGE_TRANSPORT_ROUNDS
     });
 
     initDateTimePicker('#dateMax', 'DD/MM/YYYY', {
@@ -61,4 +63,38 @@ export function getPacks(transportId, transportType) {
             const $packingLabelCounter = $('.packing-label-counter');
             $packingLabelCounter.text(packingLabel);
         });
+}
+
+export function getTransportRoundTimeline(transportRoundId){
+    $.get(Routing.generate(`round_transport_history_api`, {round: transportRoundId}, true))
+        .then(({template}) => {
+            const $transportListContainer = $(`.transport-list-container`);
+            $transportListContainer.html(template);
+        });
+}
+
+export function initMap(contactPosition) {
+    const map = Map.create(`map`);
+    map.setMarker({
+        latitude : contactPosition[0],
+        longitude : contactPosition[1],
+        icon : "blueLocation",
+        popUp: "",
+        name: "contact",
+    });
+    map .fitBounds();
+    return map;
+}
+
+export function placeDeliverer(map , delivererPosition) {
+    if (delivererPosition) {
+        let position = delivererPosition.split(',');
+        map.setMarker({
+            latitude : position[0],
+            longitude : position[1],
+            icon : "delivererLocation",
+            popUp: "",
+            name: "Deliverer",
+        });
+    }
 }

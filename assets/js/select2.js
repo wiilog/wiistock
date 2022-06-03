@@ -8,6 +8,7 @@ const ROUTES = {
     dispatchType: `ajax_select_dispatch_type`,
     status: `ajax_select_status`,
     location: `ajax_select_locations`,
+    roundsDelivererPending: `ajax_select_rounds_deliverer_pending`,
     pack: `ajax_select_packs`,
     nature: `ajax_select_natures`,
     sensor: `ajax_select_sensors`,
@@ -32,6 +33,7 @@ const ROUTES = {
     businessUnit: `ajax_select_business_unit`,
     carrier: 'ajax_select_carrier',
     types: 'ajax_select_types',
+    vehicles: 'ajax_select_vehicles',
 }
 
 const INSTANT_SELECT_TYPES = {
@@ -45,6 +47,7 @@ const INSTANT_SELECT_TYPES = {
     triggerSensorWithoutPairing: true,
     triggerSensorCodeWithoutPairing: true,
     businessUnit: true,
+    roundsDelivererPending: true,
 }
 
 export default class Select2 {
@@ -149,8 +152,14 @@ export default class Select2 {
                 })
 
                 if(editable) {
-                    $element.on(`select2:unselect`, event => {
-                        event.params.data.element.remove();
+                    $element.on(`select2:unselecting`, event => {
+                        const $option = $(event.params.args.data.element);
+                        if ($option.hasClass('no-deletable')) {
+                            event.preventDefault();
+                            Flash.add(`danger`, `Cet élément est utilisé, vous ne pouvez pas le supprimer.`);
+                        } else {
+                            $option.remove();
+                        }
                     });
                 }
 
@@ -192,6 +201,11 @@ export default class Select2 {
                     if ($element.is('[data-hidden-dropdown]')) {
                         $element.siblings('.select2-container')
                             .addClass('hidden-dropdown') ;
+                    }
+
+                    if ($element.is('[data-disabled-dropdown-options]')) {
+                        $element.siblings('.select2-container')
+                            .addClass('disabled-dropdown-options') ;
                     }
                 });
 

@@ -33,7 +33,6 @@ use App\Service\ArrivageService;
 use App\Service\EmplacementDataService;
 use App\Service\MobileApiService;
 use App\Service\NotificationService;
-use PhpParser\Node\Param;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use WiiCommon\Helper\Stream;
 
@@ -123,6 +122,7 @@ class MobileController extends AbstractFOSRestController
 
             $rights = $userService->getMobileRights($loggedUser);
             $parameters = $this->mobileApiService->getMobileParameters($globalParametersRepository);
+
             $channels = Stream::from($rights)
                 ->filter(fn($val, $key) => $val && in_array($key, ["stock", "tracking", "group", "ungroup", "demande", "notifications"]))
                 ->takeKeys()
@@ -148,6 +148,8 @@ class MobileController extends AbstractFOSRestController
                     });
             }
 
+            $channels[] = $_SERVER["APP_INSTANCE"] . "-" . $userService->getUserFCMChannel($loggedUser);
+
             $data['success'] = true;
             $data['data'] = [
                 'apiKey' => $apiKey,
@@ -155,7 +157,7 @@ class MobileController extends AbstractFOSRestController
                 'rights' => $rights,
                 'parameters' => $parameters,
                 'username' => $loggedUser->getUsername(),
-                'userId' => $loggedUser->getId()
+                'userId' => $loggedUser->getId(),
             ];
         } else {
             $data['success'] = false;
@@ -193,7 +195,7 @@ class MobileController extends AbstractFOSRestController
         $mouvementsNomade = json_decode($request->request->get('mouvements'), true);
         $finishMouvementTraca = [];
         $successData['data'] = [
-            'errors' => []
+            'errors' => [],
         ];
 
         $emptyGroups = [];
@@ -217,7 +219,7 @@ class MobileController extends AbstractFOSRestController
 
         $trackingTypes = [
             TrackingMovement::TYPE_PRISE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_PRISE),
-            TrackingMovement::TYPE_DEPOSE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE)
+            TrackingMovement::TYPE_DEPOSE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE),
         ];
 
         foreach ($mouvementsNomade as $index => $mvt) {
@@ -252,13 +254,13 @@ class MobileController extends AbstractFOSRestController
                 ) {
                     $trackingTypes = [
                         TrackingMovement::TYPE_PRISE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_PRISE),
-                        TrackingMovement::TYPE_DEPOSE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE)
+                        TrackingMovement::TYPE_DEPOSE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE),
                     ];
 
                     if (empty($trackingTypes)) {
                         $trackingTypes = [
                             TrackingMovement::TYPE_PRISE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_PRISE),
-                            TrackingMovement::TYPE_DEPOSE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE)
+                            TrackingMovement::TYPE_DEPOSE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE),
                         ];
                     }
 
@@ -401,7 +403,7 @@ class MobileController extends AbstractFOSRestController
         $mouvementsNomade = json_decode($request->request->get('mouvements'), true);
         $finishMouvementTraca = [];
         $successData['data'] = [
-            'errors' => []
+            'errors' => [],
         ];
 
         $emptyGroups = [];
@@ -425,7 +427,7 @@ class MobileController extends AbstractFOSRestController
 
         $trackingTypes = [
             TrackingMovement::TYPE_PRISE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_PRISE),
-            TrackingMovement::TYPE_DEPOSE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE)
+            TrackingMovement::TYPE_DEPOSE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE),
         ];
 
         foreach ($mouvementsNomade as $index => $mvt) {
@@ -458,7 +460,7 @@ class MobileController extends AbstractFOSRestController
 
                     $trackingTypes = [
                         TrackingMovement::TYPE_PRISE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_PRISE),
-                        TrackingMovement::TYPE_DEPOSE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE)
+                        TrackingMovement::TYPE_DEPOSE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE),
                     ];
 
                     $mouvementTraca1 = $alreadySavedMovements[$mvt['date']] ?? null;
@@ -471,7 +473,7 @@ class MobileController extends AbstractFOSRestController
                         if (empty($trackingTypes)) {
                             $trackingTypes = [
                                 TrackingMovement::TYPE_PRISE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_PRISE),
-                                TrackingMovement::TYPE_DEPOSE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE)
+                                TrackingMovement::TYPE_DEPOSE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE),
                             ];
                         }
 
@@ -706,7 +708,7 @@ class MobileController extends AbstractFOSRestController
 
                     $resData['success'][] = [
                         'numero_prepa' => $preparation->getNumero(),
-                        'id_prepa' => $preparation->getId()
+                        'id_prepa' => $preparation->getId(),
                     ];
                 } catch (Throwable $throwable) {
                     // we create a new entity manager because transactional() can call close() on it if transaction failed
@@ -729,7 +731,7 @@ class MobileController extends AbstractFOSRestController
                     $resData['errors'][] = [
                         'numero_prepa' => $preparation->getNumero(),
                         'id_prepa' => $preparation->getId(),
-                        'message' => $message ?: 'Une erreur est survenue'
+                        'message' => $message ?: 'Une erreur est survenue',
                     ];
                 }
             }
@@ -956,7 +958,7 @@ class MobileController extends AbstractFOSRestController
 
                         $resData['success'][] = [
                             'numero_livraison' => $livraison->getNumero(),
-                            'id_livraison' => $livraison->getId()
+                            'id_livraison' => $livraison->getId(),
                         ];
                     } else {
                         throw new Exception(LivraisonsManagerService::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION);
@@ -982,7 +984,7 @@ class MobileController extends AbstractFOSRestController
                         'numero_livraison' => $livraison->getNumero(),
                         'id_livraison' => $livraison->getId(),
 
-                        'message' => $message ?: 'Une erreur est survenue'
+                        'message' => $message ?: 'Une erreur est survenue',
                     ];
                 }
 
@@ -1026,14 +1028,14 @@ class MobileController extends AbstractFOSRestController
                     'location' => $movement['ref_emplacement'],
                     'nature_id' => $movement['nature_id'],
                     'date' => new DateTime($date ?? 'now'),
-                    'type' => $movement['type']
+                    'type' => $movement['type'],
                 ];
             })
             ->toArray();
 
         $res = [
             'success' => true,
-            'finishedMovements' => []
+            'finishedMovements' => [],
         ];
 
         try {
@@ -1228,7 +1230,7 @@ class MobileController extends AbstractFOSRestController
 
                     $resData['success'][] = [
                         'numero_collecte' => $collecte->getNumero(),
-                        'id_collecte' => $collecte->getId()
+                        'id_collecte' => $collecte->getId(),
                     ];
 
                     $newTakings = $trackingMovementRepository->getPickingByOperatorAndNotDropped(
@@ -1294,7 +1296,7 @@ class MobileController extends AbstractFOSRestController
                     'numero_collecte' => $collecte->getNumero(),
                     'id_collecte' => $collecte->getId(),
 
-                    'message' => $message ?: 'Une erreur est survenue'
+                    'message' => $message ?: 'Une erreur est survenue',
                 ];
             }
         }
@@ -1466,12 +1468,12 @@ class MobileController extends AbstractFOSRestController
                         'id' => $type->getId(),
                         'label' => $type->getLabel(),
                     ];
-                }, $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]))
+                }, $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON])),
             ];
         } else {
             $dataResponse['data'] = [
                 'demandeLivraisonArticles' => [],
-                'demandeLivraisonTypes' => []
+                'demandeLivraisonTypes' => [],
             ];
         }
 
@@ -1621,7 +1623,7 @@ class MobileController extends AbstractFOSRestController
             $handlingExpectedDateColors = [
                 'after' => $settingRepository->getOneParamByLabel(Setting::HANDLING_EXPECTED_DATE_COLOR_AFTER),
                 'DDay' => $settingRepository->getOneParamByLabel(Setting::HANDLING_EXPECTED_DATE_COLOR_D_DAY),
-                'before' => $settingRepository->getOneParamByLabel(Setting::HANDLING_EXPECTED_DATE_COLOR_BEFORE)
+                'before' => $settingRepository->getOneParamByLabel(Setting::HANDLING_EXPECTED_DATE_COLOR_BEFORE),
             ];
 
             $handlings = $handlingRepository->getMobileHandlingsByUserTypes($user->getHandlingTypeIds());
@@ -1646,7 +1648,7 @@ class MobileController extends AbstractFOSRestController
                     return [
                         'handlingId' => $attachment['handlingId'],
                         'fileName' => $attachment['originalName'],
-                        'href' => $request->getSchemeAndHttpHost() . '/uploads/attachements/' . $attachment['fileName']
+                        'href' => $request->getSchemeAndHttpHost() . '/uploads/attachements/' . $attachment['fileName'],
                     ];
                 },
                 $attachmentRepository->getMobileAttachmentForHandling($handlingIds)
@@ -1674,7 +1676,7 @@ class MobileController extends AbstractFOSRestController
             ['natures' => $natures] = $this->mobileApiService->getNaturesData($entityManager);
             [
                 'dispatches' => $dispatches,
-                'dispatchPacks' => $dispatchPacks
+                'dispatchPacks' => $dispatchPacks,
             ] = $this->mobileApiService->getDispatchesData($entityManager, $user);
         }
 
@@ -1704,6 +1706,8 @@ class MobileController extends AbstractFOSRestController
             ),
             'transferOrders' => $transferOrders ?? [],
             'transferOrderArticles' => $transferOrderArticles ?? [],
+            'transportRounds' => $transportRounds ?? [],
+            'transportRoundLines' => $transportRoundLines ?? [],
             'handlings' => $handlings ?? [],
             'handlingAttachments' => $handlingAttachments ?? [],
             'inventoryMission' => array_merge(
@@ -1721,7 +1725,7 @@ class MobileController extends AbstractFOSRestController
             'translations' => $translations,
             'dispatches' => $dispatches ?? [],
             'dispatchPacks' => $dispatchPacks ?? [],
-            'status' => $status
+            'status' => $status,
         ];
     }
 
@@ -1739,7 +1743,7 @@ class MobileController extends AbstractFOSRestController
 
         return $this->json([
             "success" => true,
-            "data" => $this->getDataArray($nomadUser, $userService, $trackingMovementService, $request, $entityManager)
+            "data" => $this->getDataArray($nomadUser, $userService, $trackingMovementService, $request, $entityManager),
         ]);
     }
 
@@ -1769,7 +1773,7 @@ class MobileController extends AbstractFOSRestController
     }
 
     /**
-     * @Rest\Get("/api/nomade-versions", condition="request.isXmlHttpRequest()")
+     * @Rest\Get("/api/nomade-versions")
      */
     public function getAvailableVersionsAction()
     {
@@ -1849,7 +1853,7 @@ class MobileController extends AbstractFOSRestController
 
             return $this->json([
                 "success" => true,
-                "msg" => $toInsert->getId()
+                "msg" => $toInsert->getId(),
             ]);
         } else {
             throw new BadRequestHttpException("Un emplacement portant ce nom existe déjà");
@@ -1940,7 +1944,7 @@ class MobileController extends AbstractFOSRestController
                     [
                         'order' => 'asc',
                         'isCount' => false,
-                        'limit' => $packMaxNumber
+                        'limit' => $packMaxNumber,
                     ]
                 ))
                     ->map(fn(array $pack) => $pack['id'])
@@ -2054,7 +2058,7 @@ class MobileController extends AbstractFOSRestController
         if (!$parentPack) {
             $isNewGroupInstance = true;
             $parentPack = $groupService->createParentPack([
-                'parent' => $request->request->get("code")
+                'parent' => $request->request->get("code"),
             ]);
 
             $entityManager->persist($parentPack);
@@ -2180,7 +2184,7 @@ class MobileController extends AbstractFOSRestController
         if (!$logo) {
             return $this->json([
                 "success" => false,
-                'message' => 'Image non renseignée AAA'
+                'message' => 'Image non renseignée AAA',
             ]);
         }
 
@@ -2197,13 +2201,13 @@ class MobileController extends AbstractFOSRestController
         } catch (Throwable $ignored) {
             return $this->json([
                 "success" => false,
-                'message' => 'Image non renseignée'
+                'message' => 'Image non renseignée',
             ]);
         }
 
         return $this->json([
             "success" => true,
-            'image' => $image
+            'image' => $image,
         ]);
     }
 
@@ -2242,7 +2246,7 @@ class MobileController extends AbstractFOSRestController
                 $acc[$dispatchId][] = [
                     'id' => $id,
                     'natureId' => $natureId,
-                    'quantity' => $quantity
+                    'quantity' => $quantity,
                 ];
                 return $acc;
             }, [])
@@ -2351,7 +2355,7 @@ class MobileController extends AbstractFOSRestController
         $manager->flush();
 
         return $this->json([
-            "success" => true
+            "success" => true,
         ]);
     }
 

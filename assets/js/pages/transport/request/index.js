@@ -9,6 +9,7 @@ import {
     deleteRequest,
     initializePacking,
     packingOrPrint,
+    transportPDF,
 } from "@app/pages/transport/request/common";
 import {initializeFilters} from "@app/pages/transport/common";
 
@@ -47,7 +48,7 @@ $(function() {
         table.ajax.reload();
     });
 
-    const $modalTransportRequest = $("#modalTransportRequest");
+    const $modalTransportRequest = $(`[data-modal-type=new]`);
     const form = initializeForm($modalTransportRequest);
     form
         .onSubmit((data) => {
@@ -70,7 +71,13 @@ $(function() {
 
     $(document).arrive('.delete-request-button', function (){
         $(this).on('click', function(){
-            deleteRequest(table, $(this).data('request-id'));
+            deleteRequest($(this).data('request-id'), table);
+        });
+    });
+
+    $(document).arrive('.print-transport-button', function (){
+        $(this).on('click', function(){
+            transportPDF($(this).data('request-id'));
         });
     });
 });
@@ -141,12 +148,18 @@ function submitTransportRequest(form, data, table) {
 
 function saveDeliveryForLinkedCollect($modal, data) {
     const deliveryData = JSON.stringify(data.asObject());
-    const $deliveryData = $(`<input type="hidden" class="data" name="delivery"/>`);
-    $deliveryData.val(deliveryData);
-    $modal.prepend($deliveryData);
-    const $printLabels = $(`<input type="hidden" class="data" name="printLabels"/>`);
-    $printLabels.val(data.get('printLabels'));
-    $modal.prepend($printLabels);
+    $modal.prepend($(`<input/>`, {
+        type: 'hidden',
+        class: 'data',
+        name: 'delivery',
+        val: deliveryData,
+    }));
+    $modal.prepend($(`<input/>`, {
+        type: 'hidden',
+        class: 'data',
+        name: 'printLabels',
+        val: data.get('printLabels'),
+    }));
 
     const $requestType = $modal.find('[name=requestType]');
     $requestType

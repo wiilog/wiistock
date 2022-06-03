@@ -2,6 +2,7 @@
 
 namespace App\Entity\Transport;
 
+use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\Utilisateur;
 use App\Repository\Transport\TransportDeliveryOrderPackRepository;
@@ -10,6 +11,11 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TransportDeliveryOrderPackRepository::class)]
 class TransportDeliveryOrderPack {
+
+    public const LOADED_STATE = "loaded";
+    public const REJECTED_STATE = "rejected";
+    public const DELIVERED_STATE = "delivered";
+    public const RETURNED_STATE = "returned";
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -22,8 +28,8 @@ class TransportDeliveryOrderPack {
     #[ORM\ManyToOne(targetEntity: TransportOrder::class, inversedBy: 'packs')]
     private ?TransportOrder $order = null;
 
-    #[ORM\Column(type: 'boolean')]
-    private ?bool $rejected = false;
+    #[ORM\Column(type: 'string', nullable: true)]
+    private ?string $state = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'transportDeliveryOrderRejectedPacks')]
     private ?Utilisateur $rejectedBy = null;
@@ -70,12 +76,12 @@ class TransportDeliveryOrderPack {
         return $this;
     }
 
-    public function isRejected(): ?bool {
-        return $this->rejected;
+    public function getState(): ?string {
+        return $this->state;
     }
 
-    public function setRejected(bool $rejected): self {
-        $this->rejected = $rejected;
+    public function setState(string $state): self {
+        $this->state = $state;
 
         return $this;
     }
@@ -114,4 +120,12 @@ class TransportDeliveryOrderPack {
         return $this;
     }
 
+    public function getPackTemperature(Nature $nature): ?string
+    {
+        /** @var TransportDeliveryRequestLine $line */
+        $line = $this->order->getRequest()->getLines()
+            ->filter(fn(TransportDeliveryRequestLine $line) => $line->getNature() === $nature)
+            ->first();
+        return $line->getTemperatureRange()?->getValue();
+    }
 }

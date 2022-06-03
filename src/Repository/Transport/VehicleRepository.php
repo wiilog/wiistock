@@ -2,7 +2,6 @@
 
 namespace App\Repository\Transport;
 
-use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Transport\Vehicle;
 use App\Helper\QueryCounter;
 use Doctrine\ORM\EntityRepository;
@@ -76,5 +75,14 @@ class VehicleRepository extends EntityRepository
             'count' => $countFiltered,
             'total' => $total
         ];
+    }
+
+    public function getForSelect(?string $term) {
+        return $this->createQueryBuilder("vehicle")
+            ->select("vehicle.id AS id, vehicle.registrationNumber AS text")
+            ->where("vehicle.registrationNumber LIKE :term")
+            ->setParameter("term", "%$term%")
+            ->getQuery()
+            ->getArrayResult();
     }
 }

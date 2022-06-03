@@ -18,10 +18,17 @@
                 <div class="wii-box transport-details order-transport">
                     <div class="d-flex align-items-center mr-3">
                         <div class="d-flex mx-3 py-2 w-100 justify-content-between">
-                            <div class="d-flex flex-column">
-                                <span class="wii-title" title="Acheminement">Transport</span>
-                                <span
-                                    class="wii-medium-text">{{ constant('App\\Entity\\Transport\\TransportOrder::NUMBER_PREFIX') ~ request.number }}</span>
+                            <div class="d-flex align-items-center">
+                                <div class="d-flex flex-column">
+                                    <span class="wii-title" title="Acheminement">Transport</span>
+                                    <span class="wii-medium-text">
+                                        {{ constant('App\\Entity\\Transport\\TransportOrder::NUMBER_PREFIX') ~ request.number }}
+                                    </span>
+                                </div>
+                                {% if order.rejected %}
+                                    <img src="{{ asset('svg/rejected-delivery.svg') }}" class="ml-3"
+                                         alt="Livraison rejetée" title="Livraison rejetée" width="25px">
+                                {% endif %}
                             </div>
                             <div class="d-flex align-items-center justify-content-end">
                                 <span class="wii-field-name">{{ request.createdBy|format_helper('user') }}</span>
@@ -88,7 +95,7 @@
                     <div class="content status-history-container">
                         <div class="d-flex align-items-center justify-content-center">
                             <div class="spinner-border text-primary" role="status"></div>
-                            <span class="ml-3">Génération de la timeline en cours...</span>
+                            <span class="ml-3">Génération de l'historique en cours</span>
                         </div>
                     </div>
                     <div class="header">
@@ -98,13 +105,10 @@
                     <div class="row content">
                         <div class="col-6 d-flex flex-column">
                             <div class="box-item my-2">
-                                <span class="wii-field-name">Date et heure attendue</span>
+                                {% set isCollect = request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') %}
+                                <span class="wii-field-name">Date{{ not isCollect ? ' et heure' }} attendue</span>
                                 <span class="wii-body-text">
-                                    {% if request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
-                                        <span>{{ request.expectedAt|format_helper('longDate', {time: true}) }}</span>
-                                    {% else %}
-                                        <span>{{ request.expectedAt|format_helper('longDate') }}</span>
-                                    {% endif %}
+                                    {{ request.expectedAt|format_helper('longDate', {short: true, time: not isCollect}) }}
                                 </span>
                             </div>
                         </div>
@@ -132,43 +136,47 @@
                                     </span>
                                 </div>
                                 {# only when the order has not been assigned to a round #}
-                                {% if round is null %} {# TODO verifier la condition #}
-                                <button class="btn btn-primary minw-105px submit-button"
-                                        data-target="#modalCollectTimeSlot"
-                                        data-toggle='modal'>
-                                    <img class="mr-2" src="{{ asset('svg/pencil-white.svg') }}" alt="Icône Crayon" width="15px">
-                                    Renseigner date patient
-                                </button>
+                                {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT_TRANSPORT'))
+                                    and round is null %}
+                                    <button class="btn btn-primary minw-105px submit-button"
+                                            data-target="#modalCollectTimeSlot"
+                                            data-toggle='modal'>
+                                        <img class="mr-2" src="{{ asset('svg/pencil-white.svg') }}" alt="" width="15px">
+                                        Renseigner date patient
+                                    </button>
                                 {% endif %}
                             </div>
                         {% endif %}
                     </div>
-                    <div class="header">
-                        <img src="{{ asset('svg/delivery.svg') }}" alt="Icône calendrier" width="15px">
-                        <span class="wii-field-name ml-2">Détails transport</span>
-                    </div>
-                    <div class="row content col-12">
-                        <div class="col-6 d-flex flex-column">
-                            <span class="wii-field-name">Tournée</span>
-                            <span class="wii-field-text">
-                                {% if round is not null %}
-                                    <a class="text-primary underlined" href="{# TODO path('transport_round_show',{'transportRound':round.id}) } #}">{{ round.number }}</a>
-                                {% else %}
-                                    <span>-</span>
-                                {% endif %}
-                            </span>
+                    {% if not order.rejected %}
+                        <div class="header">
+                            <img src="{{ asset('svg/delivery.svg') }}" alt="Icône calendrier" width="15px">
+                            <span class="wii-field-name ml-2">Détails transport</span>
                         </div>
-                        <div class="col-6 d-flex flex-column">
-                            <span class="wii-field-name">Livreur</span>
-                            <span class="wii-field-text">
-                                {% if round and  round.deliverer is not null %}
-                                    <span>{{ round.deliverer|format_helper('user') }}</span>
-                                {% else %}
-                                    <span>-</span>
-                                {% endif %}
-                            </span>
+                        <div class="row content col-12">
+                            <div class="col-6 d-flex flex-column">
+                                <span class="wii-field-name">Tournée</span>
+                                <span class="wii-field-text">
+                                    {% if round is not null %}
+                                        <a class="text-primary underlined"
+                                           href="{{ path('transport_round_show', {transportRound: round.id}) }}">T{{ round.number }}</a>
+                                    {% else %}
+                                        <span>-</span>
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="col-6 d-flex flex-column">
+                                <span class="wii-field-name">Livreur</span>
+                                <span class="wii-field-text">
+                                    {% if round and  round.deliverer is not null %}
+                                        <span>{{ round.deliverer|format_helper('user') }}</span>
+                                    {% else %}
+                                        <span>-</span>
+                                    {% endif %}
+                                </span>
+                            </div>
                         </div>
-                    </div>
+                    {% endif %}
                     <div class="header">
                         <img src="{{ asset('svg/information.svg') }}" alt="Icône information" width="15px">
                         <span class="wii-field-name ml-2">Autres informations</span>
@@ -194,7 +202,7 @@
                                 N° dossier {{ transportRequestContact.fileNumber }}
                             </span>
                         </div>
-                        <div class="col-6 d-flex align-items-start">
+                        <div class="col-6 d-flex align-items-center">
                             <img src="{{ asset('svg/phone.svg') }}" alt="Icône téléphone"
                                  width="20px">
                             <div class="d-flex flex-column ml-2 justify-content-center">
@@ -202,7 +210,7 @@
                                 <span class="wii-field-text">{{ transportRequestContact.contact }}</span>
                             </div>
                         </div>
-                        <div class="col-6 d-flex align-items-start">
+                        <div class="col-6 d-flex align-items-center">
                             <img src="{{ asset('svg/user-contact.svg') }}" alt="Icône personne à prévenir"
                                  width="20px">
                             <div class="d-flex flex-column ml-2 justify-content-center">
@@ -210,7 +218,7 @@
                                 <span class="wii-field-text">{{ transportRequestContact.personToContact }}</span>
                             </div>
                         </div>
-                        <div class="col-6 d-flex mt-3 align-items-start">
+                        <div class="col-6 d-flex mt-3 align-items-center">
                             <img src="{{ asset('svg/location-blue.svg') }}" alt="Icône emplacement"
                                  width="20px">
                             <div class="d-flex flex-column ml-2 justify-content-center">
@@ -218,7 +226,7 @@
                                 <span class="wii-field-text">{{ transportRequestContact.address }}</span>
                             </div>
                         </div>
-                        <div class="col-6 d-flex mt-3 align-items-start">
+                        <div class="col-6 d-flex mt-3 align-items-center">
                             <img src="{{ asset('svg/question-mark.svg') }}" alt="Icône remarque"
                                  width="20px">
                             <div class="d-flex flex-column ml-2 justify-content-center">
@@ -271,8 +279,7 @@
                         {% for line in request.lines %}
                             {% set requiresTemperatureTracking = requiresTemperatureTracking or line.nature.temperatureRanges | length %}
                         {% endfor %}
-
-                        <div class="d-flex justify-content-between p-3">
+                        <div>
                             <span class="wii-field-name">Dernière position connue</span>
                             <span class="wii-medium-text">
                                 {% if order is not null and order.subcontracted %}
@@ -280,24 +287,34 @@
                                 {% elseif not roundHasStarted %}
                                     La tournée n'a pas commencé
                                 {% endif %}
+                                <div class="map-container pt-1">
+                                    <div id="map"></div>
+                                </div>
                             </span>
                         </div>
-
-                        {# TODO: afficher la carte #}
-
                         {% if request_delivery %}
-                            <div class="d-flex justify-content-between p-3">
+                            <div class="pt-3">
                                 <span class="wii-field-name">Courbe de températures</span>
-                                <span class="wii-medium-text">
+                                <div class="wii-medium-text">
                                      {% if order is not null and order.subcontracted %}
                                          Le suivi de température n'est pas disponible car la demande est sur un horaire non ouvré
                                      {% elseif not roundHasStarted %}
                                          La tournée n'a pas commencé
-                                     {% elseif requiresTemperatureTracking %}
-                                         {# TODO déplacer sur le graphique #}
+                                     {% elseif not requiresTemperatureTracking %}
                                          La demande ne nécessite pas de suivi de température
+                                     {% else %}
+                                         {% for url in urls %}
+                                             {% include 'IOT/data_monitoring/content.html.twig' with {
+                                                 type : 'chart',
+                                                 fetch_url : url.fetch_url,
+                                                 minTemp: url.minTemp,
+                                                 maxTemp: url.maxTemp,
+                                                 boxStyle: false,
+                                                 alwaysVisible: true,
+                                             } %}
+                                         {% endfor %}
                                      {% endif %}
-                                </span>
+                                </div>
                             </div>
                         {% endif %}
 
@@ -318,9 +335,13 @@
 
     <input type="hidden" value="{{ order.id }}" name="transportId">
     <input type="hidden" value="{{ constant('App\\Controller\\Transport\\HistoryController::ORDER') }}" name="transportType">
+    <input type="hidden" value="{{ contactPosition | json_encode }}" name="contactPosition">
+    <input type="hidden" value="{{ delivererPosition }}" name="delivererPosition">
+
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
     {{ encore_entry_script_tags('transport-order-show') }}
+    <script src="{{ asset('js/pages/iot/data-monitoring.js') }}?v={{ web_version }}"></script>
 {% endblock %}

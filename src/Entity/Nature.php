@@ -3,8 +3,6 @@
 namespace App\Entity;
 
 use App\Entity\Transport\TemperatureRange;
-use App\Entity\Transport\TransportCollectRequestLine;
-use App\Entity\Transport\TransportDeliveryRequestLine;
 use App\Repository\NatureRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;

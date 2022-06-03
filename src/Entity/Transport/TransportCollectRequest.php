@@ -75,4 +75,8 @@ class TransportCollectRequest extends TransportRequest {
         return $this;
     }
 
+    public function isNotCollected(): bool {
+        return $this->getStatus()->getCode() === self::STATUS_NOT_COLLECTED;
+    }
+
 }

@@ -2,11 +2,13 @@
 
 namespace App\Repository\Transport;
 
+use App\Entity\CategoryType;
 use App\Entity\FiltreSup;
 use App\Entity\Transport\TransportCollectRequest;
 use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\Transport\TransportOrder;
 use App\Helper\QueryCounter;
+use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -102,7 +104,7 @@ class TransportOrderRepository extends EntityRepository {
             $qb->setMaxResults($params->getInt('length'));
         }
 
-        $qb->orderBy("CASE WHEN delivery.expectedAt IS NOT NULL THEN delivery.expectedAt ELSE collect.expectedAt END", "DESC");
+        $qb->orderBy("IFNULL(delivery.expectedAt, IFNULL(transport_request.validatedDate, collect.expectedAt))", "DESC");
 
         return [
             "data" => $qb->getQuery()->getResult(),
@@ -111,4 +113,64 @@ class TransportOrderRepository extends EntityRepository {
         ];
     }
 
+    public function findOrdersForPlanning(\DateTime $start, \DateTime $end, array $statuses) {
+        $statuses = !empty($statuses)
+            ? $statuses
+            : [TransportOrder::STATUS_TO_ASSIGN, TransportOrder::STATUS_ASSIGNED, TransportOrder::STATUS_ONGOING];
+
+        $qb = $this->createQueryBuilder("transport_order")
+            ->join("transport_order.status", "status")
+            ->join("transport_order.request", "request")
+            ->leftJoin(TransportDeliveryRequest::class, "delivery", Join::WITH, "request.id = delivery.id")
+            ->leftJoin(TransportCollectRequest::class, "collect", Join::WITH, "request.id = collect.id")
+            ->where("status.code IN (:planning_orders_statuses)")
+            ->andWhere("IFNULL(DATE_FORMAT(request.validatedDate, '%Y-%m-%d'), IFNULL(DATE_FORMAT(delivery.expectedAt, '%Y-%m-%d'), collect.expectedAt)) BETWEEN :start AND :end")
+            ->andWhere("transport_order.subcontracted = 0")
+            ->setParameter("planning_orders_statuses", $statuses)
+            ->setParameter("start", $start->format('Y-m-d'))
+            ->setParameter("end", $end->format('Y-m-d'));
+
+        return $qb->getQuery()->getResult();
+    }
+
+    // find by date
+    public function findToAssignByDate(\DateTime $date)
+    {
+        return $this->createQueryBuilder("transport_order")
+            ->join("transport_order.request", "request")
+            ->leftJoin(TransportDeliveryRequest::class, "delivery", Join::WITH, "request.id = delivery.id")
+            ->leftJoin(TransportCollectRequest::class, "collect", Join::WITH, "request.id = collect.id")
+            ->where("IFNULL(DATE_FORMAT(request.validatedDate, '%Y-%m-%d'), IFNULL(DATE_FORMAT(delivery.expectedAt, '%Y-%m-%d'), collect.expectedAt)) = :date")
+            ->join("transport_order.status", "status")
+            ->andWhere("status.code in (:statuses)")
+            ->setParameter("statuses", [TransportOrder::STATUS_TO_ASSIGN])
+            ->setParameter("date", $date->format('Y-m-d'))
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function iterateTransportOrderByDates(DateTime $dateMin, DateTime $dateMax, string $type): iterable {
+        $dateMin = $dateMin->format("Y-m-d");
+        $dateMax = $dateMax->format("Y-m-d");
+        $qb = $this->createQueryBuilder('transport_order')
+            ->join("transport_order.request", "transport_request")
+            ->leftJoin(TransportDeliveryRequest::class, "delivery", Join::WITH, "transport_request.id = delivery.id")
+            ->leftJoin(TransportCollectRequest::class, "collect", Join::WITH, "transport_request.id = collect.id")
+            ->leftJoin("collect.delivery", "collect_delivery")
+            ->setParameter('dateMin' , "$dateMin 00:00:00")
+            ->setParameter('dateMax' , "$dateMax 23:59:59");
+
+        if($type === CategoryType::DELIVERY_TRANSPORT) {
+            $qb
+                ->where('delivery.expectedAt BETWEEN :dateMin AND :dateMax')
+                ->andWhere('delivery.id IS NOT NULL');
+        } else {
+            $qb
+                ->where(' IFNULL(collect.validatedDate , collect.expectedAt) BETWEEN :dateMin AND :dateMax')
+                ->andWhere("collect_delivery IS NULL");
+        }
+        return $qb
+            ->getQuery()
+            ->toIterable();
+    }
 }

@@ -9,6 +9,8 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField;
+use App\Entity\IOT\SensorMessage;
+use App\Entity\IOT\TriggerAction;
 use App\Entity\Menu;
 use App\Entity\Statut;
 use App\Entity\Transport\CollectTimeSlot;
@@ -17,10 +19,15 @@ use App\Entity\Transport\TransportDeliveryOrderPack;
 use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\Transport\TransportOrder;
 use App\Entity\Transport\TransportRequest;
+use App\Entity\Transport\TransportRound;
 use App\Entity\Type;
 use App\Helper\FormatHelper;
+use App\Service\CSVExportService;
+use App\Service\FreeFieldService;
+use App\Service\IOT\IOTService;
 use App\Service\StatusHistoryService;
 use App\Service\Transport\TransportHistoryService;
+use App\Service\Transport\TransportService;
 use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -28,6 +35,8 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Routing\RouterInterface;
 use WiiCommon\Helper\Stream;
 
 
@@ -45,17 +54,30 @@ class OrderController extends AbstractController {
         $choosenDate = DateTime::createFromFormat("Y-m-d" , $data["dateCollect"]);
         $choosenDate->setTime(0, 0);
         if ($choosenDate >= new DateTime("today midnight")){
-            $order = $entityManager->find(TransportOrder::class, $data["orderId"]);
+            $statusRepository = $entityManager->getRepository(Statut::class);
 
-            $order->getRequest()
+            $order = $entityManager->find(TransportOrder::class, $data["orderId"]);
+            $request = $order->getRequest();
+
+            if (!($request instanceof TransportCollectRequest)
+                || $request->getDelivery()) {
+                return $this->json([
+                    "success" => true,
+                    "msg" => "Vous ne pouvez pas valider de date avec le patient pour cette ordre",
+                ]);
+            }
+
+            $request
                 ->setTimeSlot($entityManager->find(CollectTimeSlot::class, $data["timeSlot"]))
                 ->setValidatedDate($choosenDate);
 
             { //update the order's history
-                $status = $entityManager->getRepository(Statut::class)
+                $status = $statusRepository
                     ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_COLLECT, TransportOrder::STATUS_TO_ASSIGN);
 
-                $statusHistoryRequest = $statusHistoryService->updateStatus($entityManager, $order, $status);
+                $statusHistoryRequest = $statusHistoryService->updateStatus($entityManager, $order, $status, [
+                    "forceCreation" => false,
+                ]);
 
                 $transportHistoryService->persistTransportHistory($entityManager, $order, TransportHistoryService::TYPE_CONTACT_VALIDATED, [
                     'user' => $userService->getUser(),
@@ -64,12 +86,14 @@ class OrderController extends AbstractController {
             }
 
             { //update the request's history
-                $status = $entityManager->getRepository(Statut::class)
+                $status = $statusRepository
                     ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_REQUEST_COLLECT, TransportRequest::STATUS_TO_COLLECT);
 
-                $statusHistoryRequest = $statusHistoryService->updateStatus($entityManager, $order->getRequest(), $status);
+                $statusHistoryRequest = $statusHistoryService->updateStatus($entityManager, $request, $status, [
+                    "forceCreation" => false,
+                ]);
 
-                $transportHistoryService->persistTransportHistory($entityManager, $order->getRequest(), TransportHistoryService::TYPE_CONTACT_VALIDATED, [
+                $transportHistoryService->persistTransportHistory($entityManager, $request, TransportHistoryService::TYPE_CONTACT_VALIDATED, [
                     'user' => $userService->getUser(),
                     'history' => $statusHistoryRequest
                 ]);
@@ -89,13 +113,12 @@ class OrderController extends AbstractController {
         }
     }
 
-    #[Route("/voir/{id}", name: "transport_order_show", methods: "GET")]
+    #[Route("/voir/{transport}", name: "transport_order_show", methods: "GET")]
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_TRANSPORT])]
-    public function show(TransportOrder $id,
-                         EntityManagerInterface $entityManager): Response {
-
-        $transportOrder = $id;
-        $transportRequest = $transportOrder->getRequest();
+    public function show(TransportOrder $transport,
+                         EntityManagerInterface $entityManager,
+                         RouterInterface $router): Response {
+        $transportRequest = $transport->getRequest();
 
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $categoryFF = $transportRequest instanceof TransportDeliveryRequest
@@ -105,29 +128,76 @@ class OrderController extends AbstractController {
 
         $packsCount = $transportRequest->getOrder()?->getPacks()->count() ?: 0;
 
-        $hasRejectedPacks = $transportRequest->getOrder()
-            && Stream::from($transportRequest->getOrder()?->getPacks() ?: [])
-                ->some(fn(TransportDeliveryOrderPack $pack) => $pack->isRejected());
+        $hasRejectedPacks = $transportRequest->getOrder()?->hasRejectedPacks() ?: false;
 
-        $round = !$transportOrder->getTransportRoundLines()->isEmpty()
-            ? $transportOrder->getTransportRoundLines()->last()->getTransportRound()
-            : null ;
+        $round = !$transport->getTransportRoundLines()->isEmpty()
+            ? $transport->getTransportRoundLines()->last()->getTransportRound()
+            : null;
 
         $timeSlots = $entityManager->getRepository(CollectTimeSlot::class)->findAll();
 
+        $contactPosition = [$transportRequest->getContact()->getAddressLatitude(), $transportRequest->getContact()->getAddressLongitude()];
+
+        $delivererPosition =  $round?->getBeganAt()
+            ? $round?->getDeliverer()?->getVehicle()?->getLastPosition($round->getBeganAt(), $round->getEndedAt())
+            : null;
+        $addedLocations = [];
+
+        if ($round) {
+            $now = new DateTime();
+            $urls = [];
+            foreach ($transport->getPacks() as $transportDeliveryPack) {
+                $pack = $transportDeliveryPack->getPack();
+                $location = $pack->getLastTracking()?->getEmplacement();
+                if ($location && $location->getActivePairing() && !in_array($location->getId(), $addedLocations)) {
+                    $triggerActions = $location->getActivePairing()->getSensorWrapper()->getTriggerActions();
+                    $minTriggerActionThreshold = Stream::from($triggerActions)->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'lower')->last();
+                    $maxTriggerActionThreshold = Stream::from($triggerActions)->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'higher')->last();
+                    $minThreshold = $minTriggerActionThreshold?->getConfig()['temperature'];
+                    $maxThreshold = $maxTriggerActionThreshold?->getConfig()['temperature'];
+                    $urls[] = [
+                        "fetch_url" => $router->generate("chart_data_history", [
+                            "type" => IOTService::getEntityCodeFromEntity($location),
+                            "id" => $location->getId(),
+                            'start' => $round->getBeganAt()->format('Y-m-d\TH:i'),
+                            'end' => $round->getEndedAt() ?? $now->format('Y-m-d\TH:i'),
+                        ], UrlGeneratorInterface::ABSOLUTE_URL),
+                        "minTemp" => $minThreshold,
+                        "maxTemp" => $maxThreshold
+                    ];
+                }
+            }
+            if (empty($urls)) {
+                $urls[] = [
+                    "fetch_url" => $router->generate("chart_data_history", [
+                        "type" => null,
+                        "id" => null,
+                        'start' => new DateTime('now'),
+                        'end' => new DateTime('tomorrow'),
+                    ], UrlGeneratorInterface::ABSOLUTE_URL),
+                    "minTemp" => 0,
+                    "maxTemp" => 0,
+                ];
+            }
+        }
+
+        //TODO WIIS-7229 appliquer les nouvelles bornes
         return $this->render('transport/order/show.html.twig', [
-            'order' => $transportOrder,
+            'order' => $transport,
             'freeFields' => $freeFields,
             'packsCount' => $packsCount,
             'hasRejectedPacks' => $hasRejectedPacks,
             'round' => $round,
             'timeSlots' => $timeSlots,
+            'contactPosition' => $contactPosition,
+            'delivererPosition' => $delivererPosition,
+            'urls' => $urls ?? null,
         ]);
     }
 
     #[Route("/liste", name: "transport_order_index", methods: "GET")]
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_TRANSPORT])]
-    public function index(Request $request, EntityManagerInterface $manager): Response {
+    public function index(EntityManagerInterface $manager): Response {
         $typeRepository = $manager->getRepository(Type::class);
 
         return $this->render('transport/order/index.html.twig', [
@@ -169,14 +239,17 @@ class OrderController extends AbstractController {
 
         $queryResult = $transportRepository->findByParamAndFilters($request->request, $filters);
 
-        $transportOrders = [];
-        /** @var TransportOrder $order */
-        foreach ($queryResult["data"] as $order) {
-            $request = $order->getRequest();
-            $date = $request->getValidatedDate() ?? $request->getExpectedAt();
-
-            $transportOrders[$date->format("dmY")][] = $order;
-        }
+        $transportOrders = Stream::from($queryResult["data"])
+            ->keymap(function (TransportOrder $order) {
+                $request = $order->getRequest();
+                $date = $request->getValidatedDate() ?? $request->getExpectedAt();
+                $key = $date->format("dmY");
+                return [
+                    $key,
+                    $order
+                ];
+            }, true)
+            ->toArray();
 
         $rows = [];
         $currentRow = [];
@@ -209,7 +282,7 @@ class OrderController extends AbstractController {
             if(!$rows) {
                 $export = "<span>
                     <button type='button' class='btn btn-primary mr-1'
-                            onclick='saveExportFile(`transport_orders_export`)'>
+                            onclick='saveExportFile(`transport_orders_export`, true, {}, true )'>
                         <i class='fa fa-file-csv mr-2' style='padding: 0 2px'></i>
                         Exporter au format CSV
                     </button>
@@ -247,6 +320,108 @@ class OrderController extends AbstractController {
             "recordsTotal" => $queryResult["total"],
             "recordsFiltered" => $queryResult["count"],
         ]);
+    }
+
+    /**
+     * @Route("/csv", name="transport_orders_export", options={"expose"=true}, methods={"GET"})
+     */
+    public function getDeliveryRequestCSV(Request                $request,
+                                          FreeFieldService       $freeFieldService,
+                                          CSVExportService       $CSVExportService,
+                                          EntityManagerInterface $entityManager,
+                                          TransportService       $transportService): Response
+    {
+        $transportOrderRepository = $entityManager->getRepository(TransportOrder::class);
+        $dateMin = $request->query->get('dateMin');
+        $dateMax = $request->query->get('dateMax');
+        $category = $request->query->get('category');
+        $freeFieldsConfigDelivery = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DELIVERY_TRANSPORT]);
+        $freeFieldsConfigCollect = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::COLLECT_TRANSPORT]);
+
+        $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
+        $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
+
+        if ($category === CategoryType::DELIVERY_TRANSPORT) {
+            $nameFile = 'export_ordre_livraison.csv';
+            $transportHeader = [
+                'N°demande',
+                'Transport',
+                'Type',
+                'Statut',
+                'Urgence',
+                'Demandeur',
+                'Patient',
+                'N°Dossier',
+                'Adresse de livraison',
+                'Métropole',
+                'Date attendue',
+                'Date A affecter',
+                'Date affectée',
+                'Date En cours',
+                'Date Terminée estimée',
+                'Date Terminée/Non Livrée',
+                'N°Tournee',
+                'Livreur',
+                'Commentaire'];
+
+            $packsHeader = [
+                'Nature colis',
+                'Nombre de colis à livrer',
+                'Températures',
+                'Dépassement température',
+                'Code Colis',
+                'Ecarté',
+                'Motif écartement',
+                'Retrounée le',
+            ];
+            $csvHeader = array_merge($transportHeader, $packsHeader, $freeFieldsConfigDelivery['freeFieldsHeader']);
+        } else {
+            $nameFile = 'export_ordre_collecte.csv';
+            $csvCollect = [
+                'N°demande',
+                'Transport',
+                'Type',
+                'Statut',
+                'Demandeur',
+                'Patient',
+                'N°Dossier',
+                'Adresse de livraison',
+                'Métropole',
+                'Date attendue',
+                'Date patient à contacter',
+                'Date validée avec le patient - Créneau',
+                'Date A affecter',
+                'Date Affectée',
+                'Date En cours',
+                'Date Terminée estimée',
+                'Date Terminée/Non Collectée',
+                'Date Objets déposés',
+                'N° Tournée',
+                'Livreur',
+                'Commentaire'
+            ];
+
+            $csvLines = [
+                'Nature colis',
+                'Quantité à collecter',
+                'Quantités collectées',
+            ];
+
+            $csvHeader = array_merge($csvCollect, $csvLines, $freeFieldsConfigCollect['freeFieldsHeader']);
+        }
+
+        $transportOrderIterator = $transportOrderRepository->iterateTransportOrderByDates($dateTimeMin, $dateTimeMax, $category);
+
+        return $CSVExportService->streamResponse(function ($output) use ($CSVExportService, $transportService, $freeFieldsConfigDelivery, $freeFieldsConfigCollect, $transportOrderIterator) {
+            /** @var TransportOrder $order */
+            foreach ($transportOrderIterator as $order) {
+                if ($order->getRequest() instanceof TransportDeliveryRequest) {
+                    $transportService->putLineOrder($output, $CSVExportService, $order, $freeFieldsConfigDelivery);
+                } else {
+                    $transportService->putLineOrder($output, $CSVExportService, $order, $freeFieldsConfigCollect);
+                }
+            }
+        }, $nameFile, $csvHeader);
     }
 
 }

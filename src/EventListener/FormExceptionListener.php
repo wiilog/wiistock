@@ -10,18 +10,21 @@ use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 class FormExceptionListener {
 
     public function onKernelException(ExceptionEvent $event) {
-        if($event->getThrowable() instanceof FormException) {
-            $throwable = $event->getThrowable();
-
-            $event->allowCustomResponseCode();
-            $event->setResponse(new JsonResponse(
-                [
-                    "success" => false,
-                    "msg" => $throwable->getMessage(),
-                ],
-                $throwable->getCode() ?: Response::HTTP_OK
-            ));
+        $exception = $event->getThrowable();
+        if ($exception instanceof FormException) {
+            $message = $exception->getMessage();
+            $data = $exception->getData();
         }
+        else {
+            return;
+        }
+
+        $event->allowCustomResponseCode();
+        $event->setResponse(new JsonResponse([
+            "success" => false,
+            "msg" => $message,
+            "data" => $data ?? null,
+        ], $exception->getCode() ?: Response::HTTP_OK));
     }
 
 }

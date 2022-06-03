@@ -2,48 +2,74 @@
 
 namespace App\Service;
 
+use App\Entity\Interfaces\StatusHistoryContainer;
 use App\Entity\StatusHistory;
 use App\Entity\Statut;
-use App\Entity\Transport\TransportOrder;
-use App\Entity\Transport\TransportRequest;
 use DateTime;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityManagerInterface;
-use RuntimeException;
 
 class StatusHistoryService {
 
-    public function updateStatus(EntityManagerInterface          $entityManager,
-                                 TransportRequest|TransportOrder $entity,
-                                 Statut                          $status,
-                                 ?DateTime                       $date = null): StatusHistory {
+    public function updateStatus(EntityManagerInterface $entityManager,
+                                 StatusHistoryContainer $historyContainer,
+                                 Statut                 $status,
+                                 array                  $options = []): StatusHistory {
+
+        $forceCreation = $options['forceCreation'] ?? true;
+        $setStatus = $options['setStatus'] ?? true;
+        $date = $options['date'] ?? new DateTime();
+
+        if ($forceCreation) {
+            $record = $this->createStatusHistory($historyContainer, $status);
+            $entityManager->persist($record);
+        }
+        else {
+            $record = $this->getPreviousRecord($historyContainer, $status);
+            if (!isset($record)) {
+                $record = $this->createStatusHistory($historyContainer, $status);
+                $entityManager->persist($record);
+            }
+        }
+
+        $record->setDate($date);
+
+        if ($setStatus) {
+            $historyContainer->setStatus($status);
+        }
+
+        return $record;
+    }
+
+    private function createStatusHistory(StatusHistoryContainer $historyContainer,
+                                         Statut                 $status): StatusHistory {
+
         $history = (new StatusHistory())
-            ->setStatus($status)
-            ->setDate($date ?? new DateTime());
+            ->setStatus($status);
 
-        $entity->setStatus($status);
-
-        if ($entity instanceof TransportRequest) {
-            $method = "setTransportRequest";
-        }
-        else if ($entity instanceof TransportOrder) {
-            $method = "setTransportOrder";
-        }
-        else {
-            throw new RuntimeException("Unsupported entity type");
-        }
-
-        $latestStatus = $entity->getStatusHistory()->last();
-        if ($latestStatus && $latestStatus->getStatus()->getId() === $status->getId()) {
-            $latestStatus->setDate($date ?? new DateTime());
-            return $latestStatus;
-        }
-        else {
-            $history->{$method}($entity);
-        }
-
-        $entityManager->persist($history);
+        $historyContainer->addStatusHistory($history);
 
         return $history;
+    }
+
+    private function getPreviousRecord(StatusHistoryContainer $historyContainer,
+                                       Statut                 $status): ?StatusHistory {
+        $history = $historyContainer->getStatusHistory(Criteria::DESC);
+        $record = null;
+        $currentRecord = $history->current();
+        $newStatusId = $status->getId();
+
+        while (!isset($record) && $currentRecord) {
+            $currentStatusId = $currentRecord->getStatus()->getId();
+            if ($newStatusId === $currentStatusId) {
+                $record = $currentRecord;
+            }
+            else {
+                $currentRecord = $history->next();
+            }
+        }
+
+        return $record;
     }
 
 }

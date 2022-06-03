@@ -26,6 +26,7 @@ const PAGE_EMPLACEMENT = 'emplacement';
 const PAGE_TRANSPORT_REQUESTS = 'transportRequests';
 const PAGE_TRANSPORT_ORDERS = 'transportOrders';
 const PAGE_SUBCONTRACT_ORDERS = 'subcontractOrders';
+const PAGE_TRANSPORT_ROUNDS = 'transportRounds';
 const PAGE_URGENCES = 'urgences';
 const PAGE_NOTIFICATIONS = 'notifications';
 const STATUT_ACTIF = 'disponible';
@@ -47,6 +48,16 @@ const SELECT2_TRIGGER_CHANGE = 'change.select2';
 $(function () {
     $(document).on('hide.bs.modal', function () {
         $('.select2-container.select2-container--open').remove();
+    });
+
+    $(".stop-propagation").on("click", function (e) {
+        e.stopPropagation();
+    });
+
+    $(document).arrive(`.stop-propagation`, function() {
+        $(this).on("click", function (e) {
+            e.stopPropagation();
+        });
     });
 
     $('[data-toggle="popover"]').popover();
@@ -700,6 +711,15 @@ function warningEmptyDatesForCsv() {
     });
 }
 
+function warningEmptyTypeTransportForCsv() {
+    showBSAlert('Veuillez saisir un type de transport dans le filtre en haut de page.', 'danger');
+    const buttonsType = $( ".wii-expanded-switch" ).first();
+    buttonsType.addClass('is-invalid');
+    $('.is-invalid').on('click', function () {
+        $(this).parent().find('.is-invalid').removeClass('is-invalid');
+    });
+}
+
 function displayFiltersSup(data) {
     data.forEach(function (element) {
         const $element = $(`.filters [name="${element.field}"]`);
@@ -729,6 +749,7 @@ function displayFiltersSup(data) {
                 case 'emergencyMultiple':
                 case 'businessUnit':
                 case 'managers':
+                case 'deliverers':
                     let valuesElement = element.value.split(',');
                     let $select = $(`.filter-select2[name="${element.field}"]`);
                     $select.find('option').prop('selected', false);
@@ -899,7 +920,10 @@ function initOnTheFlyCopies($elems) {
     });
 }
 
-function saveExportFile(routeName, needsDateFilters = true, routeParam = {}) {
+function saveExportFile(routeName, needsDateFilters = true, routeParam = {}, needsAdditionalFilters = false) {
+
+    const buttonTypeTransport = $("input[name='category']:checked")
+
     const $spinner = $('#spinner');
     loadSpinner($spinner);
 
@@ -911,29 +935,38 @@ function saveExportFile(routeName, needsDateFilters = true, routeParam = {}) {
         const name = $input.attr('name');
         const val = $input.val();
         if (name && val) {
-            data[name] = val;
+            if(!($input.is(':radio') && !$input.is(':checked'))) {
+                data[name] = val;
+            }
         }
     });
 
+    if (data.dateMin && data.dateMax) {
+        data.dateMin = moment(data.dateMin, 'DD/MM/YYYY').format('YYYY-MM-DD');
+        data.dateMax = moment(data.dateMax, 'DD/MM/YYYY').format('YYYY-MM-DD');
+    }
+    const dataKeys = Object.keys(data);
+    const joinedData = dataKeys
+        .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(data[key])}`)
+        .join('&');
+
     if ((data.dateMin && data.dateMax) || !needsDateFilters) {
-        if (data.dateMin && data.dateMax) {
-            data.dateMin = moment(data.dateMin, 'DD/MM/YYYY').format('YYYY-MM-DD');
-            data.dateMax = moment(data.dateMax, 'DD/MM/YYYY').format('YYYY-MM-DD');
+        if(needsAdditionalFilters) {
+            if (!buttonTypeTransport.is(':empty')) {
+                warningEmptyTypeTransportForCsv();
+            }
+            else {
+               window.location.href = `${path}?${joinedData}`;
+            }
         }
-
-        const dataKeys = Object.keys(data);
-
-        const joinedData = dataKeys
-            .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(data[key])}`)
-            .join('&');
-
-        window.location.href = `${path}?${joinedData}`;
-        hideSpinner($spinner);
+        else {
+            window.location.href = `${path}?${joinedData}`;
+        }
     }
     else {
         warningEmptyDatesForCsv();
-        hideSpinner($spinner);
     }
+    hideSpinner($spinner);
 }
 
 function fillDemandeurField($modal) {

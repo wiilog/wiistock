@@ -9,6 +9,7 @@ use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Utilisateur;
 use App\Repository\Transport\TransportHistoryRepository;
 use DateTime;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TransportHistoryRepository::class)]
@@ -23,6 +24,9 @@ class TransportHistory {
 
     #[ORM\Column(type: 'datetime')]
     private ?DateTime $date = null;
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?DateTime $statusDate = null;
 
     #[ORM\ManyToOne(targetEntity: TransportRequest::class, inversedBy: 'history')]
     private ?TransportRequest $request = null;
@@ -61,6 +65,10 @@ class TransportHistory {
     #[ORM\ManyToOne(targetEntity: StatusHistory::class, cascade: ['persist'], inversedBy: 'transportHistory')]
     private ?StatusHistory $statusHistory = null;
 
+    public function __construct() {
+        $this->attachments = new ArrayCollection();
+    }
+
     public function getId(): ?int {
         return $this->id;
     }
@@ -71,6 +79,16 @@ class TransportHistory {
 
     public function setDate(DateTime $date): self {
         $this->date = $date;
+
+        return $this;
+    }
+
+    public function getStatusDate(): ?DateTime {
+        return $this->statusDate;
+    }
+
+    public function setStatusDate(DateTime $statusDate): self {
+        $this->statusDate = $statusDate;
 
         return $this;
     }

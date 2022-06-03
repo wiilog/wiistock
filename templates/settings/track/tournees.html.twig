@@ -47,7 +47,6 @@
         </div>
     </div>
     <div class="col-12">
-        <input type="hidden" value="1" name="delivererOnly">
         <table id="table-starting-hours" data-table-processing="startingHours"></table>
     </div>
     <div class="col-12 mb-3 mt-4">
@@ -63,7 +62,8 @@
             setting_value('TRANSPORT_ROUND_DELIVERY_AVERAGE_TIME'),
             {
                 labelClass: 'wii-field-name w-100',
-                buttons: false
+                buttons: false,
+                step: 1,
             }
         ) }}
     </div>
@@ -75,7 +75,8 @@
             setting_value('TRANSPORT_ROUND_COLLECT_AVERAGE_TIME'),
             {
                 labelClass: 'wii-field-name w-100',
-                buttons: false
+                buttons: false,
+                step: 1,
             }
         ) }}
     </div>
@@ -87,7 +88,8 @@
             setting_value('TRANSPORT_ROUND_DELIVERY_COLLECT_AVERAGE_TIME'),
             {
                 labelClass: 'wii-field-name w-100',
-                buttons: false
+                buttons: false,
+                step: 1,
             }
         ) }}
     </div>
@@ -210,4 +212,33 @@
         }) }}
     </div>
 </div>
+<div class="wii-section-title">
+    Serveur FTP d'export des tournées
+</div>
+<div class="wii-section row">
+    <div class="row">
+        <div class="col-5">
+            {{ form.input(setting('FTP_ROUND_SERVER_NAME'), 'Serveur Hôte', true, setting_value('FTP_ROUND_SERVER_NAME')) }}
+        </div>
+        <div class="col-5">
+            {{ form.input(setting('FTP_ROUND_SERVER_PORT'), 'Port', true, setting_value('FTP_ROUND_SERVER_PORT')) }}
+        </div>
 
+        <div class="col-5">
+            {{ form.input(setting('FTP_ROUND_SERVER_USER'), 'Utilisateur', true, setting_value('FTP_ROUND_SERVER_USER')) }}
+        </div>
+        <div class="col-5">
+            {{ form.input(setting('FTP_ROUND_SERVER_PASSWORD'), 'Mot de passe', true, setting_value('FTP_ROUND_SERVER_PASSWORD'), {
+                type: 'password'
+            }) }}
+        </div>
+        <div class="col-5">
+            {{ form.input(setting('FTP_ROUND_SERVER_PATH'), "Répertoire cible de l'export", true, setting_value('FTP_ROUND_SERVER_PATH')) }}
+        </div>
+        <div class="col-5 align-self-end">
+            <button class="btn btn-primary button-launch-import">
+                Lancer l'export du jour sur le serveur
+            </button>
+        </div>
+    </div>
+</div>

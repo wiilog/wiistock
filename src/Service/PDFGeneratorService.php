@@ -4,6 +4,10 @@ namespace App\Service;
 
 use App\Entity\Dispatch;
 use App\Entity\Setting;
+use App\Entity\Transport\TransportDeliveryRequest;
+use App\Entity\Transport\TransportRequest;
+use App\Entity\Transport\TransportRound;
+use App\Entity\Transport\TransportRoundLine;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -30,10 +34,11 @@ class PDFGeneratorService {
     #[Required]
     public SettingsService $settingsService;
 
-    public function __construct(PDFGenerator $PDFGenerator,
-                                KernelInterface $kernel,
-                                Twig_Environment $templating,
-                                EntityManagerInterface $entityManager) {
+    public function __construct(PDFGenerator           $PDFGenerator,
+                                KernelInterface        $kernel,
+                                Twig_Environment       $templating,
+                                EntityManagerInterface $entityManager)
+    {
         $this->templating = $templating;
         $this->PDFGenerator = $PDFGenerator;
         $this->kernel = $kernel;
@@ -211,4 +216,62 @@ class PDFGeneratorService {
         );
     }
 
+    public function generatePDFTransport(TransportRequest $transportRequest): string {
+        $settingRepository = $this->entityManager->getRepository(Setting::class);
+        $appLogo = $settingRepository->getOneParamByLabel(Setting::FILE_SHIPMENT_NOTE_LOGO);
+        $society = $settingRepository->getOneParamByLabel(Setting::SHIPMENT_NOTE_COMPANY_DETAILS);
+        $originator = $settingRepository->getOneParamByLabel(Setting::SHIPMENT_NOTE_ORIGINATOR);
+        $sender = $settingRepository->getOneParamByLabel(Setting::SHIPMENT_NOTE_SENDER_DETAILS);
+
+        $content = $this->templating->render("prints/transport_template.html.twig", [
+            "app_logo" => $appLogo ?? "",
+            "society" => $society,
+            "requestNumber" => TransportRequest::NUMBER_PREFIX . $transportRequest->getNumber(),
+            "originator" => $originator,
+            "sender" => $sender,
+            "round" => $transportRequest->getOrder()->getTransportRoundLines()->last(),
+            "request" => $transportRequest,
+        ]);
+
+        return $this->PDFGenerator->getOutputFromHtml($content, [
+            "page-size" => "A4",
+            "orientation" => "landscape",
+            "enable-local-file-access" => true,
+            "encoding" => "UTF-8",
+        ]);
+    }
+
+    public function generatePDFTransportRound(TransportRound $transportRound): string
+    {
+        $settingRepository = $this->entityManager->getRepository(Setting::class);
+        $appLogo = $settingRepository->getOneParamByLabel(Setting::FILE_SHIPMENT_NOTE_LOGO);
+        $society = $settingRepository->getOneParamByLabel(Setting::SHIPMENT_NOTE_COMPANY_DETAILS);
+        $originator = $settingRepository->getOneParamByLabel(Setting::SHIPMENT_NOTE_ORIGINATOR);
+        $sender = $settingRepository->getOneParamByLabel(Setting::SHIPMENT_NOTE_SENDER_DETAILS);
+        $content = "";
+
+        /** @var TransportRoundLine $line */
+        foreach ($transportRound->getTransportRoundLines() as $line) {
+            $request = $line->getOrder()?->getRequest();
+            if ($request instanceof TransportDeliveryRequest) {
+                $requestNumber = TransportRequest::NUMBER_PREFIX . $request?->getNumber();
+                $content .= $this->templating->render("prints/transport_template.html.twig", [
+                        "app_logo" => $appLogo ?? "",
+                        "society" => $society,
+                        "requestNumber" => $requestNumber,
+                        "originator" => $originator,
+                        "sender" => $sender,
+                        "round" => $transportRound,
+                        "request" => $request,
+                    ]);
+            }
+        }
+
+        return $this->PDFGenerator->getOutputFromHtml($content, [
+            "page-size" => "A4",
+            "orientation" => "landscape",
+            "enable-local-file-access" => true,
+            "encoding" => "UTF-8",
+        ]);
+    }
 }

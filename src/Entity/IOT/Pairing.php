@@ -14,6 +14,7 @@ use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: PairingRepository::class)]
 class Pairing {
@@ -270,4 +271,16 @@ class Pairing {
         }
     }
 
+    public function hasExceededThreshold(): ?bool
+    {
+        $triggerActions = $this->getSensorWrapper()->getTriggerActions();
+        $minTriggerActionThreshold = Stream::from($triggerActions)->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'lower')->last();
+        $maxTriggerActionThreshold = Stream::from($triggerActions)->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'higher')->last();
+        $minThreshold = $minTriggerActionThreshold?->getConfig()['temperature'];
+        $maxThreshold = $maxTriggerActionThreshold?->getConfig()['temperature'];
+        return Stream::from($this->getSensorMessages())
+            ->some(fn(SensorMessage $message) => (int) $message->getContent() < $minThreshold
+                || (int) $message->getContent() > $maxThreshold
+            );
+    }
 }

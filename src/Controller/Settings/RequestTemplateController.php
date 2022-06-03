@@ -261,6 +261,11 @@ class RequestTemplateController extends AbstractController {
                 ];
             } else if ($category === Type::LABEL_HANDLING) {
                 $data[] = [
+                    "label" => "Commentaire",
+                    "wide" => true,
+                    "value" => "<div class='wii-one-line-wysiwyg ql-editor data' data-wysiwyg='comment'>$comment</div>",
+                ];
+                $data[] = [
                     "label" => "",
                     "wide" => true,
                     "value" => $this->renderView('attachment/attachment.html.twig', [
@@ -268,14 +273,7 @@ class RequestTemplateController extends AbstractController {
                         'attachments' => $template?->getAttachments(),
                         'editAttachments' => true,
                         'fieldNameClass' => 'wii-field-name',
-                        "small" => true,
                     ])
-                ];
-
-                $data[] = [
-                    "label" => "Commentaire",
-                    "wide" => true,
-                    "value" => "<div class='wii-one-line-wysiwyg ql-editor data' data-wysiwyg='comment'>$comment</div>",
                 ];
             }
         }
@@ -345,6 +343,18 @@ class RequestTemplateController extends AbstractController {
                     "value" => $template->getCarriedOutOperationCount() ?: '-',
                 ];
 
+            }
+
+
+            $freeFieldValues = $freeFieldService->getFilledFreeFieldArray(
+                $entityManager,
+                $template,
+                ['type' => $template->getRequestType()]
+            );
+
+            $data = array_merge($data, $freeFieldValues);
+
+            if ($template instanceof HandlingRequestTemplate) {
                 $data[] = [
                     "label" => "",
                     "value" => $this->renderView('attachment/attachment.html.twig', [
@@ -356,21 +366,12 @@ class RequestTemplateController extends AbstractController {
                     ])
                 ];
             }
-
             if (strip_tags($template->getComment())) {
                 $data[] = [
                     "label" => "Commentaire",
                     "value" => "<div class='ql-editor'>{$template->getComment()}</div>",
                 ];
             }
-
-            $freeFieldValues = $freeFieldService->getFilledFreeFieldArray(
-                $entityManager,
-                $template,
-                ['type' => $template->getRequestType()]
-            );
-
-            $data = array_merge($data, $freeFieldValues);
         }
 
         return $this->json([

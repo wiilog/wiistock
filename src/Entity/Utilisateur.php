@@ -267,7 +267,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     private Collection $transportDeliveryOrderRejectedPacks;
 
     #[ORM\ManyToOne(targetEntity: TransportRoundStartingHour::class, inversedBy: 'deliverers')]
-    private ?TransportRoundStartingHour $TransportRoundStartingHour = null;
+    private ?TransportRoundStartingHour $transportRoundStartingHour = null;
 
     public function __construct() {
         $this->receptions = new ArrayCollection();
@@ -310,6 +310,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         $this->transportRequests = new ArrayCollection();
         $this->transportRounds = new ArrayCollection();
         $this->transportDeliveryOrderRejectedPacks = new ArrayCollection();
+        $this->vehicles = new ArrayCollection();
 
         $this->recherche = Utilisateur::SEARCH_DEFAULT;
         $this->rechercheForArticle = Utilisateur::SEARCH_DEFAULT;
@@ -1781,8 +1782,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         return $this;
     }
 
-    public function getVehicle(): ?Vehicle
-    {
+    public function getVehicle(): ?Vehicle {
         return $this->vehicle;
     }
 
@@ -1792,7 +1792,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
             $this->vehicle = null;
             $oldVehicle->setDeliverer(null);
         }
-        $this->example = $vehicle;
+        $this->vehicle = $vehicle;
         if($this->vehicle && $this->vehicle->getDeliverer() !== $this) {
             $this->vehicle->setDeliverer($this);
         }
@@ -1892,12 +1892,12 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
 
     public function getTransportRoundStartingHour(): ?TransportRoundStartingHour
     {
-        return $this->TransportRoundStartingHour;
+        return $this->transportRoundStartingHour;
     }
 
-    public function setTransportRoundStartingHour(?TransportRoundStartingHour $TransportRoundStartingHour): self
+    public function setTransportRoundStartingHour(?TransportRoundStartingHour $transportRoundStartingHour): self
     {
-        $this->TransportRoundStartingHour = $TransportRoundStartingHour;
+        $this->transportRoundStartingHour = $transportRoundStartingHour;
 
         return $this;
     }

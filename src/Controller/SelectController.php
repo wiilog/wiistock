@@ -18,6 +18,8 @@ use App\Entity\PurchaseRequest;
 use App\Entity\ReferenceArticle;
 use App\Entity\Role;
 use App\Entity\Statut;
+use App\Entity\Transport\TransportRound;
+use App\Entity\Transport\Vehicle;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -59,6 +61,17 @@ class SelectController extends AbstractController {
 
         return $this->json([
             "results" => $results,
+        ]);
+    }
+
+    #[Route('/select/roundsDelivererPending', name: 'ajax_select_rounds_deliverer_pending', options: ['expose' => true], methods: 'GET', condition: 'request.isXmlHttpRequest()')]
+    public function roundsDelivererPending(Request $request, EntityManagerInterface $manager): Response {
+        $term = $request->query->get("term");
+
+        $transportRound = $manager->getRepository(TransportRound::class)->getForSelect($term);
+
+        return $this->json([
+            "results" => $transportRound,
         ]);
     }
 
@@ -248,7 +261,7 @@ class SelectController extends AbstractController {
      */
     public function user(Request $request, EntityManagerInterface $manager): Response {
         $addDropzone = $request->query->getBoolean("add-dropzone") ?? false;
-        $delivererOnly = $request->query->getBoolean("delivererOnly") ?? false;
+        $delivererOnly = $request->query->getBoolean("deliverer-only") ?? false;
 
         $results = $manager->getRepository(Utilisateur::class)->getForSelect(
             $request->query->get("term"),
@@ -525,6 +538,18 @@ class SelectController extends AbstractController {
 
         return $this->json([
             "results" => $carriers
+        ]);
+    }
+
+    /**
+     * @Route("/select/vehicles", name="ajax_select_vehicles", options={"expose": true})
+     */
+    public function vehicles(Request $request, EntityManagerInterface $entityManager): Response {
+        $search = $request->query->get('term');
+        $vehicles = $entityManager->getRepository(Vehicle::class)->getForSelect($search);
+
+        return $this->json([
+            "results" => $vehicles
         ]);
     }
 }
