@@ -23,6 +23,8 @@ use App\Entity\Transport\TransportDeliveryRequestLine;
 use App\Entity\Transport\TransportHistory;
 use App\Entity\Transport\TransportOrder;
 use App\Entity\Transport\TransportRequest;
+use App\Entity\Transport\TransportRound;
+use App\Entity\Transport\TransportRoundLine;
 use App\Entity\Type;
 use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
@@ -30,9 +32,11 @@ use App\Service\CSVExportService;
 use App\Service\FreeFieldService;
 use App\Service\IOT\IOTService;
 use App\Service\MailerService;
+use App\Service\NotificationService;
 use App\Service\PDFGeneratorService;
 use App\Service\StatusHistoryService;
 use App\Service\Transport\TransportHistoryService;
+use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Transport\TransportCollectRequest;
 use App\Entity\Utilisateur;
@@ -159,7 +163,7 @@ class RequestController extends AbstractController {
             if (empty($urls)) {
                 $urls[] = [
                     "fetch_url" => $router->generate("chart_data_history", [
-                        "type" => IOTService::getEntityCodeFromEntity($location),
+                        "type" => null,
                         "id" => null,
                         'start' => new DateTime('now'),
                         'end' => new DateTime('tomorrow'),
@@ -543,7 +547,9 @@ class RequestController extends AbstractController {
     public function cancel(TransportRequest $transportRequest,
                            TransportHistoryService $transportHistoryService,
                            StatusHistoryService $statusHistoryService,
-                           EntityManagerInterface $entityManager): Response {
+                           EntityManagerInterface $entityManager,
+                           NotificationService $notificationService,
+                           UserService $userService): Response {
 
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
@@ -566,6 +572,29 @@ class RequestController extends AbstractController {
 
         if ($success) {
             $msg = 'Demande annulée.';
+            $transportOrder = $transportRequest->getOrder();
+
+            $round= Stream::from($transportOrder->getTransportRoundLines())
+                ->sort(function (TransportRoundLine $a, TransportRoundLine $b) {
+                    return $a->getTransportRound()->getExpectedAt() <=> $b->getTransportRound()->getExpectedAt();
+                })
+                ->first()
+                ->getTransportRound();
+
+            $nextRoundLine = $round->getTransportRoundLines()
+                ->filter(fn(TransportRoundLine $line) => !$line->getOrder()?->getTreatedAt() && $line->getOrder()->getRequest()->getStatus()->getCode() !== TransportRequest::STATUS_CANCELLED)
+                ?->first();
+
+            if ($nextRoundLine) {
+                $nextDeliveryRequest = $nextRoundLine->getOrder()->getRequest();
+                //if ( $transportRequest == $nextDeliveryRequest && $round->getStatus()->getCode() == TransportRound::STATUS_ONGOING) {
+                    $userChannel = $userService->getUserFCMChannel($round->getDeliverer());
+                    $notificationService->send($userChannel, "Votre Prochain point de passage a été annulé", null, [
+                        'title' => 'Votre Prochain point de passage a été annulé',
+                        'roundId' => $round->getId(),
+                    ]);
+                //}
+            }
 
             $statusHistoryRequest = $statusHistoryService->updateStatus($entityManager, $transportRequest, $statusRequest);
             $transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_CANCELLED, [
@@ -573,7 +602,6 @@ class RequestController extends AbstractController {
                 'user' => $loggedUser
             ]);
 
-            $transportOrder = $transportRequest->getOrder();
             if ($transportOrder) {
                 $statusOrder = $statusRepository->findOneByCategorieNameAndStatutCode($categoryOrder, TransportOrder::STATUS_CANCELLED);
                 $statusHistoryOrder = $statusHistoryService->updateStatus($entityManager, $transportOrder, $statusOrder);
