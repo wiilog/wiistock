@@ -46,6 +46,11 @@ class Preparation implements PairedEntity
     private $date;
 
     /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $preparationDate;
+
+    /**
      * @ORM\Column(type="string", length=255, nullable=false, unique=true)
      */
     private $numero;
@@ -122,6 +127,19 @@ class Preparation implements PairedEntity
 
         return $this;
     }
+
+    public function getPreparationDate(): ?DateTime
+    {
+        return $this->preparationDate;
+    }
+
+    public function setPreparationDate(?DateTime $preparationDate): self
+    {
+        $this->preparationDate = $preparationDate;
+
+        return $this;
+    }
+
 
     public function getNumero(): ?string
     {

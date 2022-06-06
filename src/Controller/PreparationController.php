@@ -256,8 +256,8 @@ class PreparationController extends AbstractController
         $preparationStatus = $preparation->getStatut() ? $preparation->getStatut()->getNom() : null;
 
         $demande = $preparation->getDemande();
-        $destination = $demande ? $demande->getDestination() : null;
-        $operator = $preparation ? $preparation->getUtilisateur() : null;
+        $destination = $demande?->getDestination();
+        $operator = $preparation?->getUtilisateur();
         $comment = $preparation->getCommentaire();
 
         return $this->render('preparation/show.html.twig', [
@@ -273,6 +273,8 @@ class PreparationController extends AbstractController
                 ['label' => 'Point de livraison', 'value' => $destination ? $destination->getLabel() : ''],
                 ['label' => 'Opérateur', 'value' => $operator ? $operator->getUsername() : ''],
                 ['label' => 'Demandeur', 'value' => FormatHelper::deliveryRequester($demande)],
+                ...($demande->getExpectedAt() ? [['label' => 'Date attendue', 'value' => FormatHelper::date($demande->getExpectedAt())]] : []),
+                ...($demande->getExpectedAt() ? [['label' => 'Date attendue', 'value' => FormatHelper::date($preparation->getPreparationDate())]] : []),
                 [
                     'label' => 'Commentaire',
                     'value' => $comment ?: '',

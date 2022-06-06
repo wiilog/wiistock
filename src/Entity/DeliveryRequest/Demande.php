@@ -115,6 +115,11 @@ class Demande implements PairedEntity {
      */
     private ?DateTime $validatedAt = null;
 
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private ?DateTime $expectedAt = null;
+
     public function __construct() {
         $this->preparations = new ArrayCollection();
         $this->referenceLines = new ArrayCollection();
@@ -376,6 +381,16 @@ class Demande implements PairedEntity {
 
     public function setValidatedAt(?DateTime $validatedAt): self {
         $this->validatedAt = $validatedAt;
+
+        return $this;
+    }
+
+    public function getExpectedAt(): ?DateTime {
+        return $this->expectedAt;
+    }
+
+    public function setExpectedAt(?DateTime $expectedAt): self {
+        $this->expectedAt = $expectedAt;
 
         return $this;
     }
