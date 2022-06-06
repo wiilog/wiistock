@@ -10,6 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 class FieldsParam
 {
     const ENTITY_CODE_RECEPTION = 'réception';
+    const ENTITY_CODE_DEMANDE = 'demande';
 
     const FIELD_CODE_FOURNISSEUR = 'fournisseur';
     const FIELD_CODE_NUM_COMMANDE = 'numCommande';
@@ -108,6 +109,9 @@ class FieldsParam
     const FIELD_LABEL_UNLOADING_ZONE = 'déchargement';
     const FIELD_LABEL_CARRIED_OUT_OPERATION_COUNT = 'nombre d\'opération(s) réalisée(s)';
     const FIELD_LABEL_RECEIVERS_HANDLING = 'destinataires';
+
+    const FIELD_CODE_EXPECTED_AT = 'date attendue';
+
 
     public const FILTERED_FIELDS = [
         // Arrivages
