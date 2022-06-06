@@ -246,6 +246,9 @@ class TransportRoundService
         $round = $line->getTransportRound();
         $round->removeTransportRoundLine($line);
         $entityManager->remove($line);
+
+        $order->setRejectedAt(new DateTime());
+        $round->setRejectedOrderCount($round->getRejectedOrderCount() + 1);
     }
 
     public function updateTransportRoundLinePriority(TransportRound $round): void {

@@ -113,12 +113,8 @@ class RoundController extends AbstractController {
                 $hasRejectedPacks = Stream::from($transportRound->getTransportRoundLines())
                     ->some(fn(TransportRoundLine $line) => $line->getOrder()->hasRejectedPacks());
 
-                $hasRejectedDeliveries = Stream::from($transportRound->getTransportRoundLines())
-                    ->some(fn(TransportRoundLine $line) => $line->getOrder()->isRejected());
-
                 $currentRow[] = $this->renderView("transport/round/list_card.html.twig", [
                     "hasRejectedPacks" => $hasRejectedPacks,
-                    "hasRejectedDeliveries" => $hasRejectedDeliveries,
                     "prefix" => TransportRound::NUMBER_PREFIX,
                     "round" => $transportRound,
                     "realTime" => isset($hours) && isset($minutes)
@@ -161,18 +157,13 @@ class RoundController extends AbstractController {
 
         $transportPoints = Stream::from($transportRound->getTransportRoundLines())
             ->filterMap(function (TransportRoundLine $line) {
-                if (!$line->getOrder()->isRejected()) {
-                    $contact = $line->getOrder()->getRequest()->getContact();
-                    return [
-                        'priority' => $line->getPriority(),
-                        'longitude' => $contact->getAddressLongitude(),
-                        'latitude' => $contact->getAddressLatitude(),
-                        'name' => $contact->getName(),
-                    ];
-                }
-                else {
-                    return null;
-                }
+                $contact = $line->getOrder()->getRequest()->getContact();
+                return [
+                    'priority' => $line->getPriority(),
+                    'longitude' => $contact->getAddressLongitude(),
+                    'latitude' => $contact->getAddressLatitude(),
+                    'name' => $contact->getName(),
+                ];
             })
             ->toArray();
 
@@ -524,6 +515,8 @@ class RoundController extends AbstractController {
                     $line = new TransportRoundLine();
                     // TODO            $line->setEstimatedAt() ??
                     $line->setOrder($order);
+                    $order->setRejectedAt(null);
+
                     $entityManager->persist($line);
                     $transportRound->addTransportRoundLine($line);
 
