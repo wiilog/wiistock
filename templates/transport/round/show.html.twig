@@ -90,7 +90,7 @@
                         </div>
 
                         {% set nbRejectedPacks = transportRound.countRejectedPacks %}
-                        {% if nbRejectedPacks or nbRejectedOrders %}
+                        {% if nbRejectedPacks %}
                             <div class="header">
                                 <img src="{{ asset('svg/urgence.svg') }}" alt="Icône urgence" width="15px">
                                 <span class="wii-field-name ml-2">&Eacute;lément rejetées</span>
@@ -127,8 +127,7 @@
                                     {% if transportRound.status.code != finishedStatusesName %}
                                         <div class="dropdown-item pointer edit-button">
                                             <a href="{{ path('transport_round_plan', {'transportRound': transportRound.id}) }}">
-                                                <img src="{{ asset('svg/plus-black.svg') }}" alt="" width="17px"
-                                                     class="pr-1">
+                                                <span class="fa fa-plus mr-2"></span>
                                                 Ajouter un transport
                                             </a>
                                         </div>
@@ -136,10 +135,7 @@
                                     {% if hasSomeDelivery %}
                                         <div class="dropdown-item pointer print-round-button"
                                              data-round-id="{{ transportRound.id }}">
-                                            <img src="{{ asset('svg/printer-black.svg') }}"
-                                                 alt=""
-                                                 width="17px"
-                                                 class="pr-1">
+                                            <span class="fa fa-print mr-2"></span>
                                             Générer un bon de transport
                                         </div>
                                     {% endif %}
