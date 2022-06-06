@@ -274,7 +274,7 @@ class PreparationController extends AbstractController
                 ['label' => 'Opérateur', 'value' => $operator ? $operator->getUsername() : ''],
                 ['label' => 'Demandeur', 'value' => FormatHelper::deliveryRequester($demande)],
                 ...($demande->getExpectedAt() ? [['label' => 'Date attendue', 'value' => FormatHelper::date($demande->getExpectedAt())]] : []),
-                ...($demande->getExpectedAt() ? [['label' => 'Date attendue', 'value' => FormatHelper::date($preparation->getPreparationDate())]] : []),
+                ...($preparation->getExpectedAt() ? [['label' => 'Date de préparation', 'value' => FormatHelper::date($preparation->getExpectedAt())]] : []),
                 [
                     'label' => 'Commentaire',
                     'value' => $comment ?: '',
@@ -311,7 +311,22 @@ class PreparationController extends AbstractController
 
         $entityManager->flush();
 
-        return $this->redirectToRoute('preparation_index');
+        return $this->$this->redirectToRoute('preparation_index');
+    }
+
+    #[Route('/modifier', name: "preparation_edit", options: ['expose' => true], methods: 'POST')]
+    #[HasPermission([Menu::ORDRE, Action::EDIT_PREPARATION_DATE])]
+    public function edit(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $preparation = $entityManager->find(Preparation::class, $request->request->get('id'));
+
+        $preparation->setExpectedAt(DateTime::createFromFormat("Y-m-d", $request->request->get('expectedAt')));
+
+        $entityManager->flush();
+
+        return $this->json([
+            'success' => true
+        ]);
     }
 
     /**

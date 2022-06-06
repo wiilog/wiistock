@@ -30,6 +30,7 @@ class Preparation implements PairedEntity {
     const STATUT_EN_COURS_DE_PREPARATION = 'en cours de préparation';
     const STATUT_PREPARE = 'préparé';
     const STATUT_INCOMPLETE = 'partiellement préparé';
+    const STATUT_VALIDATED = 'validé';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
