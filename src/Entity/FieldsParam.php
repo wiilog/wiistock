@@ -110,6 +110,7 @@ class FieldsParam
     const FIELD_LABEL_CARRIED_OUT_OPERATION_COUNT = 'nombre d\'opération(s) réalisée(s)';
     const FIELD_LABEL_RECEIVERS_HANDLING = 'destinataires';
 
+    const FIELD_LABEL_EXPECTED_AT = 'expectedAt';
     const FIELD_CODE_EXPECTED_AT = 'date attendue';
 
 
