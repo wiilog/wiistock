@@ -779,7 +779,11 @@ label.required:after {
 .wii-field-name {
     color: #000000 !important;
     font-size: 14px;
-    font-weight: bold;
+    font-weight: 600;
+
+    &.wii-field-name-sub {
+        color: #666666 !important;
+    }
 }
 
 .wii-field-text {

@@ -306,7 +306,7 @@
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
                         <div class="form-group col">
-                            <label class="bold">Commentaire{{ required ? '*' }}</label>
+                            <label class="wii-field-name wii-field-name-sub">Commentaire{{ required ? '*' }}</label>
                             <input class="commentaire form-control data {{ required ? 'needed' }}" name="commentaire" type="hidden">
                             <div class="editor-container" data-wysiwyg>
                             </div>
@@ -320,7 +320,7 @@
                             {% include 'attachment/attachment.html.twig' with {
                                 'isNew': true,
                                 'required': required,
-                                'fieldNameClass': 'bold'
+                                'fieldNameClass': 'wii-field-name wii-field-name-sub'
                             } %}
                         </div>
                     {% else %}
