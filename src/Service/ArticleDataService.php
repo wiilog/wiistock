@@ -90,13 +90,14 @@ class ArticleDataService
         return $data;
     }
 
-    public function getLivraisonArticlesByRefArticle(ReferenceArticle $refArticle, Demande $request, Utilisateur $user)
+    public function getLivraisonArticlesByRefArticle(ReferenceArticle $refArticle, Demande $request, Utilisateur $user, $needsQuantitiesCheck)
     {
         if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
             $data = [
                 'modif' => $this->refArticleDataService->getViewEditRefArticle($refArticle, true),
                 'selection' => $this->templating->render('demande/newRefArticleByQuantiteRefContent.html.twig', [
-                    'maximum' => $refArticle->getQuantiteDisponible()
+                    'maximum' => $refArticle->getQuantiteDisponible(),
+                    'needsQuantitiesCheck' => $needsQuantitiesCheck,
                 ]),
             ];
         } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {

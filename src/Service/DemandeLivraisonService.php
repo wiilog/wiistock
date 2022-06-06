@@ -19,6 +19,7 @@ use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
+use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -307,6 +308,9 @@ class DemandeLivraisonService
     {
         $demandeRepository = $entityManager->getRepository(Demande::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $settings = $entityManager->getRepository(Setting::class);
+        $needsQuantitiesCheck = !$settings->getOneParamByLabel(Setting::MANAGE_PREPARATIONS_WITH_PLANNING);
+
         if ($fromNomade) {
             $demande = $this->newDemande($demandeArray, $entityManager, $champLibreService, $fromNomade);
             if ($demande instanceof Demande) {
@@ -377,9 +381,9 @@ class DemandeLivraisonService
                     $response['msg'] = "La quantité demandée d'un des articles excède la quantité disponible (" . $articleRef->getQuantiteDisponible() . ").";
                 }
             }
-            if ($response['success']) {
+            if ($response['success'] || (!$needsQuantitiesCheck && !$fromNomade)) {
                 $entityManager->persist($demande);
-                $response = $this->validateDLAfterCheck($entityManager, $demande, $fromNomade);
+                $response = $this->validateDLAfterCheck($entityManager, $demande, $fromNomade, false, true, $needsQuantitiesCheck);
             }
         } else {
             $response['entete'] = $this->templating->render('demande/demande-show-header.html.twig', [
@@ -397,7 +401,8 @@ class DemandeLivraisonService
                                          Demande $demande,
                                          bool $fromNomade = false,
                                          bool $simpleValidation = false,
-                                         bool $flush = true): array
+                                         bool $flush = true,
+                                         bool $needsQuantitiesCheck = true): array
     {
         $response = [];
         $response['success'] = true;
@@ -419,7 +424,9 @@ class DemandeLivraisonService
             $demande->setValidatedAt($date);
         }
 
-        $statutP = $statutRepository->findOneByCategorieNameAndStatutCode(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
+        $statutP = $needsQuantitiesCheck
+            ? $statutRepository->findOneByCategorieNameAndStatutCode(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER)
+            : $statutRepository->findOneByCategorieNameAndStatutCode(Preparation::CATEGORIE, Preparation::STATUT_VALIDATED);
         $preparation->setStatut($statutP);
         $entityManager->persist($preparation);
         $demande->addPreparation($preparation);
@@ -472,9 +479,10 @@ class DemandeLivraisonService
             $response['msg'] = 'Une autre préparation est en cours de création, veuillez réessayer.';
             return $response;
         }
-
-        foreach ($refArticleToUpdateQuantities as $refArticle) {
-            $this->refArticleDataService->updateRefArticleQuantities($entityManager, $refArticle);
+        if ($needsQuantitiesCheck) {
+            foreach ($refArticleToUpdateQuantities as $refArticle) {
+                $this->refArticleDataService->updateRefArticleQuantities($entityManager, $refArticle);
+            }
         }
 
         if (!$simpleValidation && $demande->getType()->getSendMail()) {

@@ -14,6 +14,7 @@ use App\Entity\Menu;
 use App\Entity\Article;
 use App\Entity\MouvementStock;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
+use App\Entity\Setting;
 use App\Entity\TrackingMovement;
 use App\Entity\ReferenceArticle;
 use App\Entity\CategorieCL;
@@ -495,11 +496,13 @@ class ArticleController extends AbstractController
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $refArticle = $referenceArticleRepository->find($data['refArticle']);
             $deliveryRequest = $requestRepository->find($data['deliveryRequestId']);
+            $settings = $entityManager->getRepository(Setting::class);
+            $needsQuantitiesCheck = !$settings->getOneParamByLabel(Setting::MANAGE_PREPARATIONS_WITH_PLANNING);
 
             if ($refArticle && $deliveryRequest) {
                 /** @var Utilisateur $currentUser */
                 $currentUser = $this->getUser();
-                $json = $this->articleDataService->getLivraisonArticlesByRefArticle($refArticle, $deliveryRequest, $currentUser);
+                $json = $this->articleDataService->getLivraisonArticlesByRefArticle($refArticle, $deliveryRequest, $currentUser, $needsQuantitiesCheck);
             } else {
                 $json = false; //TODO gérer erreur retour
             }

@@ -325,8 +325,10 @@ class DemandeController extends AbstractController
      * @Route("/api/{id}", name="demande_article_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::DISPLAY_DEM_LIVR}, mode=HasPermission::IN_JSON)
      */
-    public function articleApi(Demande $demande): Response
+    public function articleApi(Demande $demande, EntityManagerInterface $entityManager): Response
     {
+        $settings = $entityManager->getRepository(Setting::class);
+        $needsQuantitiesCheck = !$settings->getOneParamByLabel(Setting::MANAGE_PREPARATIONS_WITH_PLANNING);
         $referenceLines = $demande->getReferenceLines();
         $rowsRC = [];
         foreach ($referenceLines as $line) {
@@ -337,7 +339,7 @@ class DemandeController extends AbstractController
                 "targetLocationPicking" => FormatHelper::location($line->getTargetLocationPicking()),
                 "quantityToPick" => $line->getQuantityToPick() ?? '',
                 "barcode" => $line->getReference() ? $line->getReference()->getBarCode() : '',
-                "error" => $line->getReference()->getQuantiteDisponible() < $line->getQuantityToPick()
+                "error" => $needsQuantitiesCheck && $line->getReference()->getQuantiteDisponible() < $line->getQuantityToPick()
                     && $demande->getStatut()->getCode() === Demande::STATUT_BROUILLON,
                 "Actions" => $this->renderView(
                     'demande/datatableLigneArticleRow.html.twig',
@@ -364,7 +366,7 @@ class DemandeController extends AbstractController
                 "targetLocationPicking" => FormatHelper::location($line->getTargetLocationPicking()),
                 "quantityToPick" => $line->getQuantityToPick() ?: '',
                 "barcode" => $article->getBarCode() ?? '',
-                "error" => $article->getQuantite() < $line->getQuantityToPick() && $demande->getStatut()->getCode() === Demande::STATUT_BROUILLON,
+                "error" => $needsQuantitiesCheck && $article->getQuantite() < $line->getQuantityToPick() && $demande->getStatut()->getCode() === Demande::STATUT_BROUILLON,
                 "Actions" => $this->renderView(
                     'demande/datatableLigneArticleRow.html.twig',
                     [

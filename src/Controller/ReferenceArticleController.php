@@ -519,13 +519,14 @@ class ReferenceArticleController extends AbstractController
     public function getQuantityByRefArticleId(Request $request, EntityManagerInterface $entityManager)
     {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-
+        $settings = $entityManager->getRepository(Setting::class);
+        $needsQuantitiesCheck = !$settings->getOneParamByLabel(Setting::MANAGE_PREPARATIONS_WITH_PLANNING);
         $quantity = false;
 
         $refArticleId = $request->request->get('refArticleId');
         $refArticle = $referenceArticleRepository->find($refArticleId);
 
-        if ($refArticle) {
+        if ($refArticle && $needsQuantitiesCheck) {
             if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
                 $quantity = $refArticle->getQuantiteDisponible();
             }
