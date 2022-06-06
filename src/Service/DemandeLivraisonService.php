@@ -9,6 +9,7 @@ use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
+use App\Entity\FieldsParam;
 use App\Entity\FreeField;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
@@ -58,6 +59,9 @@ class DemandeLivraisonService
 
     /** @Required */
     public FreeFieldService $freeFieldService;
+
+    /** @Required */
+    public FieldsParamService $fieldsParamService;
 
     /** @Required */
     public NotificationService $notificationService;
@@ -268,11 +272,14 @@ class DemandeLivraisonService
             UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT
         );
 
+        $expectedAt = FormatHelper::parseDatetime($data['expectedAt']);
+
         $demande = new Demande();
         $demande
             ->setStatut($statut)
             ->setUtilisateur($utilisateur)
             ->setCreatedAt($date)
+            ->setExpectedAt($expectedAt)
             ->setType($type)
             ->setDestination($destination)
             ->setNumero($number)
@@ -404,6 +411,7 @@ class DemandeLivraisonService
         $preparationNumber = $this->preparationsManager->generateNumber($date, $entityManager);
 
         $preparation
+            ->setExpectedAt($demande->getExpectedAt())
             ->setNumero($preparationNumber)
             ->setDate($date);
 
@@ -505,15 +513,23 @@ class DemandeLivraisonService
             ['type' => $demande->getType()],
         );
 
-        return array_merge(
+        $config = [
+            ['label' => 'Statut', 'value' => $this->stringService->mbUcfirst(FormatHelper::status($demande->getStatut()))],
+            ['label' => 'Demandeur', 'value' => FormatHelper::deliveryRequester($demande)],
+            ['label' => 'Destination', 'value' => FormatHelper::location($demande->getDestination())],
+            ['label' => 'Date de la demande', 'value' => FormatHelper::datetime($demande->getCreatedAt())],
+            ['label' => 'Date de validation', 'value' => FormatHelper::datetime($demande->getValidatedAt())],
+            ['label' => 'Type', 'value' => FormatHelper::type($demande->getType())],
             [
-                ['label' => 'Statut', 'value' => $this->stringService->mbUcfirst(FormatHelper::status($demande->getStatut()))],
-                ['label' => 'Demandeur', 'value' => FormatHelper::deliveryRequester($demande)],
-                ['label' => 'Destination', 'value' => FormatHelper::location($demande->getDestination())],
-                ['label' => 'Date de la demande', 'value' => FormatHelper::datetime($demande->getCreatedAt())],
-                ['label' => 'Date de validation', 'value' => FormatHelper::datetime($demande->getValidatedAt())],
-                ['label' => 'Type', 'value' => FormatHelper::type($demande->getType())]
+                'label' => 'Date attendue',
+                'value' => FormatHelper::date($demande->getExpectedAt()),
+                'show' => ['fieldName' => FieldsParam::FIELD_CODE_EXPECTED_AT]
             ],
+        ];
+
+        $configFiltered = $this->fieldsParamService->filterHeaderConfig($config, FieldsParam::ENTITY_CODE_DEMANDE);
+        return array_merge(
+            $configFiltered,
             $freeFieldArray,
             [
                 [

@@ -42,8 +42,8 @@ class Preparation implements PairedEntity {
     #[ORM\Column(type: 'string', length: 255, nullable: false, unique: true)]
     private $numero;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
-    private $preparationDate;
+    #[ORM\Column(type: 'date', nullable: true)]
+    private ?DateTime $expectedAt = null;
 
     #[ORM\ManyToOne(targetEntity: Demande::class, inversedBy: 'preparations')]
     private $demande;
@@ -97,14 +97,12 @@ class Preparation implements PairedEntity {
         return $this;
     }
 
-    public function getPreparationDate(): ?DateTime
-    {
-        return $this->preparationDate;
+    public function getExpectedAt(): ?DateTime {
+        return $this->expectedAt;
     }
 
-    public function setPreparationDate(?DateTime $preparationDate): self
-    {
-        $this->preparationDate = $preparationDate;
+    public function setExpectedAt(?DateTime $expectedAt): self {
+        $this->expectedAt = $expectedAt;
 
         return $this;
     }

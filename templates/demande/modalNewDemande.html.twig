@@ -1,6 +1,9 @@
-<form method="" class="modal fade" data-modal-type="new" id="modalNewDemande" role="dialog" aria-labelledby="dataModalCenterTitle"
-      aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
+{% import 'form.html.twig' as form %}
+
+<div class="modal fade"
+     data-modal-type="new"
+     id="modalNewDemande">
+    <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="exampleModalLongTitle">Créer une demande</h5>
@@ -9,70 +12,95 @@
                 </button>
             </div>
             <div class="modal-body modal-input container-fluid">
-                <input type="hidden"
-                       name="defaultDeliveryLocations"
-                       data-value="{{ defaultDeliveryLocations|json_encode }}"/>
-                <input type="hidden"
-                       name="userDropzone"
-                       data-value="{{ app.user.dropzone ? {'label': app.user.dropzone.label, 'id': app.user.dropzone.id}|json_encode }}"/>
+                <form>
+                    <input type="hidden"
+                           name="defaultDeliveryLocations"
+                           data-value="{{ defaultDeliveryLocations|json_encode }}"/>
+                    <input type="hidden"
+                           name="userDropzone"
+                           data-value="{{ app.user.dropzone ? {'label': app.user.dropzone.label, 'id': app.user.dropzone.id}|json_encode }}"/>
 
-                <div class="form-group">
-                    <label for="demandeur">Demandeur</label>
-                    <select class="demandeur form-control data" name="demandeur" disabled>
-                        <option value="{{ app.user.id }}">{{ app.user.username }}</option>
-                    </select>
-                </div>
-
-                {% set uniqueType = types|length == 1 %}
-                <div class="form-group">
-                    <label for="type">Type*</label>
-                    <select name="type" class="form-control data d-block type needed
-                            {{ uniqueType ? 'needs-default' }}"
-                            onclick="typeChoice($(this))"
-                            onchange="onDeliveryTypeChange($(this), `create`)"
-                        {{ uniqueType ? 'disabled' }}
-                        {{ uniqueType ? ('data-init="' ~ (types|first).id ~ '"')|raw }}>
-                        {% if not uniqueType %}
-                            <option value="">Type à choisir...</option>
-                            {% for type in types %}
-                                <option value="{{ type.id }}">{{ type.label }}</option>
-                            {% endfor %}
-                        {% else %}
-                            {% set typeToDisplay = types|first %}
-                            <option selected value={{ typeToDisplay.id }}>{{ typeToDisplay.label }}</option>
-                        {% endif %}
-                    </select>
-                </div>
-                {% set restrictedLocations = restrictedLocations is defined and restrictedLocations %}
-                <div class="form-group w-100">
-                    <label for="destination">Destination*</label>
-                    <select name="destination" class="form-control data ajax-autocomplete-location d-block needed" id="locationDemandeLivraison">
-                    </select>
-                </div>
-                <!-- CHAMPS LIBRES -->
-                <span class="toggle-collapsible expanded">Champs libres</span>
-                <div class="collapsible expanded free-fields-container mb-2">
-                    {% for type in typeChampsLibres %}
-                        <div class="d-none"
-                             data-type="{{ type.typeId }}">
-                            {% include 'free_field/freeFieldsEdit.html.twig' with {
-                                freeFields: type.champsLibres,
-                                freeFieldValues: [],
-                                colType: 'col-md-6 col-12',
-                                requiredType: 'requiredCreate',
-                                actionType: 'new',
-                                disabledNeeded: true
-                            } %}
+                    <div class="row">
+                        <div class="col-12 col-md-6">
+                            <div class="form-group">
+                                <label for="demandeur">Demandeur</label>
+                                <select class="demandeur form-control data" name="demandeur" disabled>
+                                    <option value="{{ app.user.id }}">{{ app.user.username }}</option>
+                                </select>
+                            </div>
                         </div>
-                    {% endfor %}
-                </div>
 
-                <div class="form-group">
-                    <label for="commentaire">Commentaire</label>
-                    <input id='commentaire' class="commentaire form-control data" name="commentaire" type="hidden">
-                    <div class="editor-container" data-wysiwyg>
+                        <div class="col-12 col-md-6">
+                            {% set uniqueType = types|length == 1 %}
+                            <div class="form-group">
+                                <label for="type">Type*</label>
+                                <select name="type" class="form-control data d-block type needed
+                                        {{ uniqueType ? 'needs-default' }}"
+                                        onclick="typeChoice($(this))"
+                                        onchange="onDeliveryTypeChange($(this), `create`)"
+                                        {{ uniqueType ? 'disabled' }}
+                                        {{ uniqueType ? ('data-init="' ~ (types|first).id ~ '"')|raw }}>
+                                    {% if not uniqueType %}
+                                        <option value="">Type à choisir...</option>
+                                        {% for type in types %}
+                                            <option value="{{ type.id }}">{{ type.label }}</option>
+                                        {% endfor %}
+                                    {% else %}
+                                        {% set typeToDisplay = types|first %}
+                                        <option selected value={{ typeToDisplay.id }}>{{ typeToDisplay.label }}</option>
+                                    {% endif %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            {% set restrictedLocations = restrictedLocations is defined and restrictedLocations %}
+                            <div class="form-group w-100">
+                                <label for="destination">Destination*</label>
+                                <select name="destination" class="form-control data ajax-autocomplete-location d-block needed" id="locationDemandeLivraison">
+                                </select>
+                            </div>
+                        </div>
+
+                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EXPECTED_AT') %}
+                        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                            {% set fieldRequired = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
+                            <div class="col-12 col-md-6">
+                                <div class="form-group">
+                                    <label>Date attendue{{ fieldRequired ? '*' }}</label>
+                                    <input name="expectedAt"
+                                           type="date"
+                                           class="form-control data {{fieldRequired ? 'needed'}}"/>
+                                </div>
+                            </div>
+                        {% endif %}
                     </div>
-                </div>
+
+                    <!-- CHAMPS LIBRES -->
+                    <span class="toggle-collapsible expanded">Champs libres</span>
+                    <div class="collapsible expanded free-fields-container mb-2">
+                        {% for type in typeChampsLibres %}
+                            <div class="d-none"
+                                 data-type="{{ type.typeId }}">
+                                {% include 'free_field/freeFieldsEdit.html.twig' with {
+                                    freeFields: type.champsLibres,
+                                    freeFieldValues: [],
+                                    colType: 'col-md-6 col-12',
+                                    requiredType: 'requiredCreate',
+                                    actionType: 'new',
+                                    disabledNeeded: true
+                                } %}
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="commentaire">Commentaire</label>
+                        <input id='commentaire' class="commentaire form-control data" name="commentaire" type="hidden">
+                        <div class="editor-container" data-wysiwyg>
+                        </div>
+                    </div>
+                </form>
             </div>
             <div class="error-msg"></div>
             <div class="modal-footer">
@@ -82,4 +110,4 @@
         </div>
         <input type="hidden" name="restrictedLocations" value="{{ restrictedLocations }}">
     </div>
-</form>
+</div>

@@ -182,6 +182,7 @@ class PreparationsManagerService
         $date = new DateTime('now');
         $number = $this->generateNumber($date, $entityManager);
         $newPreparation
+            ->setExpectedAt($demande->getExpectedAt())
             ->setNumero($number)
             ->setDate($date)
             ->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::PREPARATION, Preparation::STATUT_A_TRAITER));

@@ -84,7 +84,11 @@
         </div>
     </div>
     <input type="hidden" value="{{ receptionFilter }}" id="receptionFilter">
-    {% include "demande/modalNewDemande.html.twig" with { types: types, restrictedLocations: restrictedLocations} %}
+    {% include "demande/modalNewDemande.html.twig" with {
+        types: types,
+        restrictedLocations: restrictedLocations,
+        fieldsParam: fieldsParam
+    } %}
     {% include "demande/modalShowDemande.html.twig" %}
     {% include "utils/visible_columns.html.twig" with {
         'fields': fields,
