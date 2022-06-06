@@ -76,6 +76,8 @@ class Action {
     const DISPLAY_ORDRE_LIVR = 'afficher livraisons';
     const DISPLAY_ORDRE_TRANS = 'afficher transferts';
     const DISPLAY_PREPA = 'afficher préparations';
+    const DISPLAY_PREPA_PLANNING = 'afficher préparations - planning';
+    const EDIT_PREPARATION_DATE = 'modifier la date de préparation';
     const DISPLAY_RECE = 'afficher réceptions';
     const CREATE_REF_FROM_RECEP = 'création référence depuis réception';
     const PAIR_SENSOR = "associer un capteur";
