@@ -47,3 +47,4 @@ yarn-error.log
 
 /config/fcm-config.json
 /config/packages/google_apiclient.yaml
+/rector.php

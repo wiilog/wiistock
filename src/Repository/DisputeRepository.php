@@ -262,8 +262,8 @@ class DisputeRepository extends EntityRepository
 
 		//Filter search
 		if (!empty($params)) {
-			if (!empty($params->get('search'))) {
-				$search = $params->get('search')['value'];
+			if (!empty($params->all('search'))) {
+				$search = $params->all('search')['value'];
 				if (!empty($search)) {
                     $conditions = [
                         'disputeNumber' => "dispute.number LIKE :search_value",
@@ -290,11 +290,11 @@ class DisputeRepository extends EntityRepository
 				}
 			}
 
-			if (!empty($params->get('order'))) {
-                foreach ($params->get('order') as $sort) {
+			if (!empty($params->all('order'))) {
+                foreach ($params->all('order') as $sort) {
                     $order = $sort['dir'];
                     if (!empty($order)) {
-                        $column = self::DtToDbLabels[$params->get('columns')[$sort['column']]['data']];
+                        $column = self::DtToDbLabels[$params->all('columns')[$sort['column']]['data']];
 
                         if ($column === 'type') {
                             $qb->addOrderBy('t.label', $order);
@@ -386,13 +386,13 @@ class DisputeRepository extends EntityRepository
 		return array_column($result, 'reference');
 	}
 
-    public function getLastNumberByDate(string $date, string $prefix): ?string {
+    public function getLastNumberByDate(string $date, ?string $prefix): ?string {
         $result = $this->createQueryBuilder('dispute')
             ->select('dispute.number AS number')
             ->where('dispute.number LIKE :value')
             ->orderBy('dispute.creationDate', 'DESC')
             ->addOrderBy('dispute.number', 'DESC')
-            ->setParameter('value', $prefix . '-' . $date . '%')
+            ->setParameter('value', ($prefix ? ($prefix . '-') : '') . $date . '%')
             ->getQuery()
             ->execute();
         return $result ? $result[0]['number'] : null;

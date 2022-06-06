@@ -17,8 +17,7 @@ use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Twig\Environment as Twig_Environment;
 
-class NotificationService
-{
+class NotificationService {
 
     public const CHANNELS = [
         Livraison::class => "stock",
@@ -73,8 +72,7 @@ class NotificationService
     /** @Required */
     public HttpClientInterface $client;
 
-    public function toTreat($entity)
-    {
+    public function toTreat($entity): void {
         $type = NotificationService::GetTypeFromEntity($entity);
         $channel = NotificationService::GetChannelFromEntity($entity);
         $title = NotificationService::READABLE_TYPES[$type] ?? '';
@@ -96,7 +94,7 @@ class NotificationService
             [
                 "type" => $type,
                 "id" => strval($entity->getId()),
-                'image' => $imageURI
+                'image' => $imageURI,
             ],
             $imageURI
         );
@@ -112,7 +110,7 @@ class NotificationService
         $notifications = $results['data'];
 
         $rows = [];
-        foreach($notifications as $notification) {
+        foreach ($notifications as $notification) {
             $rows[] = $this->dataRowNotification($notification);
         }
 
@@ -134,8 +132,8 @@ class NotificationService
                 'source' => $notification->getSource(),
                 'triggered' => $notification->getTriggered(),
                 'content' => $notification->getContent(),
-                'image' => $src
-            ])
+                'image' => $src,
+            ]),
         ];
     }
 
@@ -152,44 +150,48 @@ class NotificationService
                 ],
                 "body" => json_encode([
                     'to' => "/topics/$topic",
-                    'registration_tokens' => [$token]
-                ])
+                    'registration_tokens' => [$token],
+                ]),
             ]
         );
     }
 
     public function send(string $channel,
                          string $title,
-                         string $content,
+                         ?string $content = null,
                          ?array $data = null,
                          ?string $imageURI = null,
-                         bool $onlyData = false) {
-        $client = $this->configureClient();
-        $httpClient = $client->authorize();
-        $json = [
-            'message' => [
-                'topic' => $_SERVER["APP_INSTANCE"] . "-" . $channel,
-                'android' => [
-                    "notification" => [
-                        "click_action" => self::FCM_PLUGIN_ACTIVITY
-                    ]
+                         bool $onlyData = false): void {
+        try {
+            $client = $this->configureClient();
+            $httpClient = $client->authorize();
+
+            $json = [
+                'message' => [
+                    'topic' => $_SERVER["APP_INSTANCE"] . "-" . $channel,
+                    'android' => [
+                        "notification" => [
+                            "click_action" => self::FCM_PLUGIN_ACTIVITY,
+                        ],
+                    ],
+                    'data' => $data ?? null,
                 ],
-                'data' => $data ?? [],
-            ],
-            'validate_only' => false
-        ];
-        if (!$onlyData) {
-            $json['message']['notification'] = [
-                'title' => $title,
-                'body' => $content,
-                'image' => $imageURI
+                'validate_only' => false,
             ];
+            if (!$onlyData) {
+                $json['message']['notification'] = [
+                    'title' => $title,
+                    'body' => $content,
+                    'image' => $imageURI,
+                ];
+            }
+
+            $response = $httpClient->request("POST", "https://fcm.googleapis.com/v1/projects/follow-gt/messages:send", [
+                'json' => $json,
+            ]);
+        } catch (\Throwable $ignored) {
+
         }
-        $response = $httpClient->request(
-            'POST',
-            'https://fcm.googleapis.com/v1/projects/follow-gt/messages:send', [
-            'json' => $json
-        ]);
     }
 
     public static function GetTypeFromEntity($entity): ?string {
@@ -200,7 +202,8 @@ class NotificationService
         if ($entity instanceof Handling
             || $entity instanceof Dispatch) {
             return $entity->getType()->isNotificationsEmergency($entity->getEmergency());
-        } else {
+        }
+        else {
             return false;
         }
     }
@@ -209,15 +212,20 @@ class NotificationService
         $res = null;
         if ($entity instanceof Preparation) {
             $res = "stock-delivery-" . $entity->getDemande()->getType()->getId();
-        } else if ($entity instanceof Livraison) {
+        }
+        else if ($entity instanceof Livraison) {
             $res = "stock-delivery-" . $entity->getPreparation()->getDemande()->getType()->getId();
-        } else if ($entity instanceof Dispatch) {
+        }
+        else if ($entity instanceof Dispatch) {
             $res = "tracking-dispatch-" . $entity->getType()->getId();
-        } else if ($entity instanceof Handling) {
+        }
+        else if ($entity instanceof Handling) {
             $res = "demande-handling-" . $entity->getType()->getId();
-        } else if ($entity instanceof OrdreCollecte) {
+        }
+        else if ($entity instanceof OrdreCollecte) {
             $res = "stock";
-        } else if ($entity instanceof TransferOrder) {
+        }
+        else if ($entity instanceof TransferOrder) {
             $res = "tracking";
         }
         return $res;
@@ -225,7 +233,7 @@ class NotificationService
 
     private static function GetValueFromEntityKey(array $array, $entity) {
         $res = null;
-        foreach($array as $class => $value) {
+        foreach ($array as $class => $value) {
             if (is_a($entity, $class)) {
                 $res = $value;
                 break;
@@ -243,4 +251,5 @@ class NotificationService
         $client->setAccessToken($accessToken);
         return $client;
     }
+
 }

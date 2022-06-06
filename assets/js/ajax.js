@@ -1,10 +1,10 @@
 import Flash, {ERROR, SUCCESS} from "./flash";
 
-export const GET = `POST`;
+export const GET = `GET`;
 export const POST = `POST`;
-export const PUT = `POST`;
-export const PATCH = `POST`;
-export const DELETE = `POST`;
+export const PUT = `PUT`;
+export const PATCH = `PATCH`;
+export const DELETE = `DELETE`;
 
 export default class AJAX {
     method;
@@ -68,7 +68,10 @@ export default class AJAX {
 
         const config = {
             method: this.method,
-            body
+            body,
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
+            }
         };
 
         return [url, config];
@@ -88,6 +91,21 @@ export default class AJAX {
             .catch(error => {
                 Flash.serverError(error, true);
                 throw error;
+            });
+    }
+
+    file({body, success, error}) {
+        return this.raw(body)
+            .then((response) => {
+                if (!response.ok) {
+                    Flash.add(ERROR, error)
+                    throw new Error('printing error');
+                }
+                return response.blob().then((blob) => {
+                    const fileName = response.headers.get("content-disposition").split("filename=")[1];
+                    saveAs(blob, fileName);
+                    Flash.add(SUCCESS, success);
+                });
             });
     }
 
@@ -129,7 +147,8 @@ function treatFetchCallback(json) {
     if(json.reload === true) {
         $.fn.dataTable
             .tables({visible: true, api: true})
-            .ajax.reload();
+            .ajax
+            .reload();
     }
 }
 

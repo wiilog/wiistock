@@ -2,11 +2,10 @@
 
 namespace App\Entity;
 
+use App\Repository\SettingRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass="App\Repository\SettingRepository")
- */
+#[ORM\Entity(repositoryClass: SettingRepository::class)]
 class Setting {
 
     const DEFAULT_WEBSITE_LOGO_VALUE = '/img/followGTwhite.svg';
@@ -80,7 +79,7 @@ class Setting {
     const FONTS = [
         Setting::FONT_MONTSERRAT => Setting::FONT_MONTSERRAT,
         Setting::FONT_TAHOMA => Setting::FONT_TAHOMA,
-        Setting::FONT_MYRIAD => Setting::FONT_MYRIAD
+        Setting::FONT_MYRIAD => Setting::FONT_MYRIAD,
     ];
 
     // dispatches
@@ -163,22 +162,46 @@ class Setting {
         'label' => "1252 Europe de l'ouest Windows",
     ];
 
+    const NON_BUSINESS_HOURS_MESSAGE = 'NON_BUSINESS_HOURS_MESSAGE';
+    const SHIPMENT_NOTE_COMPANY_DETAILS = 'SHIPMENT_NOTE_COMPANY_DETAILS';
+    const SHIPMENT_NOTE_SENDER_DETAILS = 'SHIPMENT_NOTE_SENDER_DETAILS';
+    const SHIPMENT_NOTE_ORIGINATOR = 'SHIPMENT_NOTE_ORIGINATOR';
+    const FILE_SHIPMENT_NOTE_LOGO = 'FILE_SHIPMENT_NOTE_LOGO';
 
-    /**
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer")
-     */
+    const TRANSPORT_DELIVERY_REQUEST_EMERGENCIES = 'TRANSPORT_DELIVERY_REQUEST_EMERGENCIES';
+    const TRANSPORT_DELIVERY_DESTINATAIRES_MAIL = 'TRANSPORT_DELIVERY_DESTINATAIRES_MAIL';
+
+    // tournées
+    const TRANSPORT_ROUND_PACK_REJECT_MOTIVES = 'TRANSPORT_ROUND_PACK_REJECT_MOTIVES';
+    const TRANSPORT_ROUND_DELIVERY_REJECT_MOTIVES = 'TRANSPORT_ROUND_DELIVERY_REJECT_MOTIVES';
+    const TRANSPORT_ROUND_COLLECT_REJECT_MOTIVES = 'TRANSPORT_ROUND_COLLECT_REJECT_MOTIVES';
+    const TRANSPORT_ROUND_END_ROUND_LOCATIONS = 'TRANSPORT_ROUND_END_ROUND_LOCATIONS';
+    const TRANSPORT_ROUND_COLLECTED_PACKS_LOCATIONS = 'TRANSPORT_ROUND_COLLECTED_PACKS_LOCATIONS';
+    const TRANSPORT_ROUND_REJECTED_PACKS_LOCATIONS = 'TRANSPORT_ROUND_REJECTED_PACKS_LOCATIONS';
+    const TRANSPORT_ROUND_NEEDED_NATURES_TO_DROP = 'TRANSPORT_ROUND_NEEDED_NATURES_TO_DROP';
+    const TRANSPORT_ROUND_DELIVERY_AVERAGE_TIME = 'TRANSPORT_ROUND_DELIVERY_AVERAGE_TIME';
+    const TRANSPORT_ROUND_COLLECT_AVERAGE_TIME = 'TRANSPORT_ROUND_COLLECT_AVERAGE_TIME';
+    const TRANSPORT_ROUND_DELIVERY_COLLECT_AVERAGE_TIME = 'TRANSPORT_ROUND_DELIVERY_COLLECT_AVERAGE_TIME';
+    const TRANSPORT_ROUND_KM_START_POINT = 'TRANSPORT_ROUND_KM_START_POINT';
+    const TRANSPORT_ROUND_HOURLY_BILLING_START_POINT = 'TRANSPORT_ROUND_HOURLY_BILLING_START_POINT';
+    const TRANSPORT_ROUND_END_POINT = 'TRANSPORT_ROUND_END_POINT';
+    const TRANSPORT_ROUND_COLLECT_WORKFLOW_ENDING_MOTIVE = 'TRANSPORT_ROUND_COLLECT_WORKFLOW_ENDING_MOTIVE';
+
+    const FTP_ROUND_SERVER_NAME = 'FTP_ROUND_SERVER_NAME';
+    const FTP_ROUND_SERVER_PORT = 'FTP_ROUND_SERVER_PORT';
+    const FTP_ROUND_SERVER_USER = 'FTP_ROUND_SERVER_USER';
+    const FTP_ROUND_SERVER_PASSWORD = 'FTP_ROUND_SERVER_PASSWORD';
+    const FTP_ROUND_SERVER_PATH = 'FTP_ROUND_SERVER_PATH';
+
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $label = null;
 
-    /**
-     * @ORM\Column(type="text", nullable=true)
-     */
+    #[ORM\Column(type: 'text', nullable: true)]
     private ?string $value = null;
 
     public function getId(): ?int {

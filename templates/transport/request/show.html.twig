@@ -1,0 +1,341 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Demande | Transport | Détails{% endblock %}
+{% block titleLink path('transport_request_index') %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('transport-request-show') }}
+{% endblock %}
+
+{% block page_content %}
+    {% set request_delivery = request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') ? request : null %}
+    {% set request_collect = request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') ? request : request_delivery.collect %}
+    {% set order = order ?? request.order %}
+
+    <div class="wii-box-container mb-4">
+        <div class="row">
+            <div class="col-lg-4 col-md-6 col-12">
+                <div class="wii-box transport-details">
+                    <div class="d-flex align-items-center mr-3">
+                        <div class="mx-2">
+                            {% if request_delivery or request.canBeDeleted or request.canBeCancelled or request.canBeUpdated %}
+                                <div class="dropdown dropright">
+                                    <div class="d-flex pointer" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <img alt="Actions" src="{{ asset('svg/dotsblack.svg') }}" height="20px" width="8px">
+                                    </div>
+                                    <div class="dropdown-menu dropdown-follow-gt pointer">
+                                        {% if request.canBeUpdated %}
+                                            {% if request_delivery is not null %}
+                                                <div class="dropdown-item pointer edit-button"
+                                                     data-request-id="{{ request_delivery.id }}">
+                                                    <i class="fa fa-pen mr-2"></i> Modifier la livraison
+                                                </div>
+                                            {% endif %}
+
+                                            {% if request_collect is not null %}
+                                                <div class="dropdown-item pointer edit-button"
+                                                     data-request-id="{{ request_collect.id }}">
+                                                    <i class="fa fa-pen mr-2"></i> Modifier la collecte
+                                                </div>
+                                            {% endif %}
+                                        {% endif %}
+
+                                        {% if request_delivery and request.status.code in constant('App\\Entity\\Transport\\TransportRequest::STATUS_WORKFLOW_DELIVERY_CLASSIC')|slice(1) and request.order.packs is not empty %}
+                                            <div class="dropdown-item pointer print-transport-button"
+                                                 data-request-id="{{ request.id }}">
+                                                <i class="fas fa-file mr-2"></i> Générer bon de transport
+                                            </div>
+                                        {% endif %}
+
+                                        {% if request.canBeCancelled %}
+                                            <div class="dropdown-item pointer cancel-request-button"
+                                                 data-request-id="{{ request.id }}">
+                                                <i class="fas fa-ban mr-2"></i> Annuler
+                                            </div>
+                                        {% endif %}
+
+                                        {% if request.canBeDeleted %}
+                                            <div class="dropdown-item pointer delete-request-button"
+                                                 data-request-id="{{ request.id }}">
+                                                <i class="fas fa-trash mr-2"></i> Supprimer
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="d-flex py-2 w-100 justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <div class="d-flex flex-column">
+                                    <span class="wii-title" title="Acheminement">Transport</span>
+                                    <span
+                                        class="wii-medium-text">{{ constant('App\\Entity\\Transport\\TransportRequest::NUMBER_PREFIX') ~ request.number }}</span>
+                                </div>
+                                {% if order and order.rejected %}
+                                    <img src="{{ asset('svg/rejected-delivery.svg') }}" class="ml-3"
+                                         alt="Livraison rejetée" title="Livraison rejetée" width="25px">
+                                {% endif %}
+                            </div>
+                            <div class="d-flex align-items-center justify-content-end">
+                                <span class="wii-field-name">{{ request.createdBy|format_helper('user') }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% set hasEmergency = request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') and request.emergency != "" %}
+                    {% if hasEmergency %}
+                        <div class="d-flex align-items-center bordered emergency-container pl-3">
+                            <img src="{{ asset('svg/timeline-urgent.svg') }}" class="mr-2" alt="Icône urgence" width="17px">
+                            <strong>Urgence - {{ request.emergency }}</strong>
+                        </div>
+                    {% endif %}
+                    <div class="content {{ not hasEmergency ? 'bordered' }}">
+                        {% if request_delivery is not null %}
+                            <div class="row align-items-center">
+                                <div class="col-4">
+                                    <div class="d-flex align-items-center">
+                                        <img class="mr-2" src="{{ asset('svg/delivery.svg') }}" alt="" width="20px"/>
+                                        <strong>Livraison</strong>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="d-flex align-items-center">
+                                        {% if request_delivery.type.logo %}
+                                            <img src="{{ app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ request_delivery.type.logo.fileName }}"
+                                                 alt="Image type {{ request_delivery.type|format_helper('type') }}"
+                                                 class="mr-2"
+                                                 width="20px">
+                                        {% endif %}
+                                        <span class="wii-describe">{{ request_delivery.type|format_helper('type') }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                        {% if request_collect is not null %}
+                            <div class="row align-items-center {{ request_delivery is not null ? 'mt-2' }}">
+                                <div class="col-4">
+                                    <div class="d-flex align-items-center">
+                                        <img class="mr-2" src="{{ asset('svg/collect.svg') }}" alt="" width="20px">
+                                        <strong>Collecte</strong>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="d-flex align-items-center">
+                                        {% if request_collect.type.logo %}
+                                            <img src="{{ app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ request_collect.type.logo.fileName }}"
+                                                 alt="Image type {{ request_collect.type|format_helper('type') }}"
+                                                 class="mr-2"
+                                                 width="20px">
+                                        {% endif %}
+                                        <span class="wii-describe">{{ request_collect.type|format_helper('type') }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="d-flex align-items-center ">
+                        <div class="d-flex align-items-center">
+                        </div>
+                    </div>
+                    <div class="content status-history-container">
+                        <div class="d-flex align-items-center justify-content-center">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <span class="ml-3">Génération de l'historique en cours</span>
+                        </div>
+                    </div>
+                    <div class="header">
+                        <img src="{{ asset('svg/calendar.svg') }}" alt="Icône calendrier" width="15px">
+                        <span class="wii-field-name ml-2">Dates</span>
+                    </div>
+                    <div class="row content">
+                        <div class="col-6 d-flex flex-column">
+                            {% set isCollect = request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') %}
+                            <span class="wii-field-name">Date{{ not isCollect ? ' et heure' }} attendue</span>
+                            <span class="wii-field-text">
+                                {{ request.expectedAt | format_helper('longDate', {short: true, time: not isCollect}) }}
+                            </span>
+                        </div>
+                        {# Only for collect view #}
+                        {% if request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') %}
+                            <div class="col-6 d-flex flex-column">
+                                <span class="wii-field-name">Date validée avec le patient</span>
+                                {% if request_collect.validatedDate %}
+                                    <span class="wii-field-text">
+                                        {{ request.validatedDate | format_helper('longDate',{short: true, time: false}) }}
+                                    </span>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="header">
+                        <img src="{{ asset('svg/information.svg') }}" alt="Icône information" width="15px">
+                        <span class="wii-field-name ml-2">Autres informations</span>
+                    </div>
+                        {% include 'free_field/freeFieldsShow.html.twig' with {
+                            containerClass: 'row content flex-wrap',
+                            emptyLabel: 'Aucun champ libre renseigné',
+                            values: request.freeFields,
+                            freeFields: freeFields
+                        } %}
+                    <div class="header">
+                        <img src="{{ asset('svg/user.svg') }}" alt="Icône utilisateur" width="15px">
+                        <span class="wii-field-name ml-2">Informations patient</span>
+                    </div>
+                    <div class="row content">
+                        {% set transportRequestContact = request.contact %}
+                        <div class="col-12 d-flex align-items-center mb-3">
+                            <span class="wii-field-text">
+                                <span class="wii-field-name mr-3">{{ transportRequestContact.name }}</span>
+                                N° dossier {{ transportRequestContact.fileNumber }}
+                            </span>
+                        </div>
+                        <div class="col-6 d-flex align-items-center">
+                            <img src="{{ asset('svg/phone.svg') }}" alt="Icône téléphone"
+                                 width="20px">
+                            <div class="d-flex flex-column ml-2 justify-content-center">
+                                <span class="wii-field-name">Contact</span>
+                                <span class="wii-field-text">{{ transportRequestContact.contact }}</span>
+                            </div>
+                        </div>
+                        <div class="col-6 d-flex align-items-center">
+                            <img src="{{ asset('svg/user-contact.svg') }}" alt="Icône personne à prévenir"
+                                 width="20px">
+                            <div class="d-flex flex-column ml-2 justify-content-center">
+                                <span class="wii-field-name">Personne à prévenir</span>
+                                <span class="wii-field-text">{{ transportRequestContact.personToContact }}</span>
+                            </div>
+                        </div>
+                        <div class="col-6 d-flex mt-3 align-items-center">
+                            <img src="{{ asset('svg/location-blue.svg') }}" alt="Icône emplacement"
+                                 width="20px">
+                            <div class="d-flex flex-column ml-2 justify-content-center">
+                                <span class="wii-field-name">Adresse</span>
+                                <span class="wii-field-text">{{ transportRequestContact.address }}</span>
+                            </div>
+                        </div>
+                        <div class="col-6 d-flex mt-3 align-items-center">
+                            <img src="{{ asset('svg/question-mark.svg') }}" alt="Icône remarque"
+                                 width="20px">
+                            <div class="d-flex flex-column ml-2 justify-content-center">
+                                <span class="wii-field-name">Remarque</span>
+                                <span class="wii-field-text">{{ transportRequestContact.observation }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6 col-12 p-0">
+                <div class="wii-box">
+                    <div class="header optioned d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <span class="wii-title">Colis</span>
+                            <div>
+                                <span class="wii-describe packing-label-counter ml-3"></span>
+                            </div>
+                            {% if hasRejectedPacks %}
+                                <div>
+                                    <img src="{{ asset('svg/rejected-pack.svg') }}" class="ml-3 my-auto" width="25px" height="25px">
+                                </div>
+                            {% endif %}
+                        </div>
+                        {% if request_delivery and request.status.code in constant('App\\Entity\\Transport\\TransportRequest::STATUS_PRINT_PACKING')%}
+                            <button class="btn btn-sm btn-primary print-request-button d-flex align-items-center"
+                                    data-request-id="{{ request.id }}">
+                                <i class="wii-icon wii-icon-printer-white mr-2"></i>Imprimer les étiquettes
+                            </button>
+                        {% endif %}
+                    </div>
+                    <div class="bordered packs-container">
+                        <div class="content d-flex align-items-center justify-content-center">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <span class="ml-3">Génération de la liste des colis en cours...</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="wii-box">
+                    <div class="header wii-title">Historique de transport</div>
+                    <div class="content bordered transport-history-container">
+                        <div class="d-flex align-items-center justify-content-center">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <span class="ml-3">Génération de l'historique de transport en cours...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6 col-12">
+                <div class="wii-box mr-3">
+                    <div class="header wii-title">Données</div>
+                    <div class="content">
+                        {% set requiresTemperatureTracking = false %}
+                        {% set roundHasStarted = request.roundHasStarted %}
+                        {% for line in request.lines %}
+                            {% set requiresTemperatureTracking = requiresTemperatureTracking or line.nature.temperatureRanges | length %}
+                        {% endfor %}
+                        <div>
+                            <span class="wii-field-name">Dernière position connue</span>
+                            <span class="wii-medium-text">
+                                {%  if order is not null and order.subcontracted %}
+                                    Le suivi n'est pas disponible car la demande est sur un horaire non ouvré
+                                {% elseif not roundHasStarted %}
+                                    La tournée n'a pas commencé
+                                {% endif %}
+                                <div class="map-container p-3">
+                                    <div id="map"></div>
+                                </div>
+                            </span>
+                        </div>
+                        {% if request_delivery %}
+                            <div class="pt-3">
+                                <span class="wii-field-name">Courbe de températures</span>
+                                <span class="wii-medium-text">
+                                     {% if order is not null and order.subcontracted %}
+                                         Le suivi de température n'est pas disponible car la demande est sur un horaire non ouvré
+                                     {% elseif not roundHasStarted %}
+                                         <a class="float-right">La tournée n'a pas commencé</a>
+                                         {% for url in urls %}
+                                             {% include 'IOT/data_monitoring/content.html.twig' with {
+                                                 type : 'chart',
+                                                 fetch_url : url.fetch_url,
+                                                 minTemp: url.minTemp,
+                                                 maxTemp: url.maxTemp,
+                                                 boxStyle: false,
+                                                 alwaysVisible: true,
+                                             } %}
+                                         {% endfor %}
+                                    {% elseif not requiresTemperatureTracking %}
+                                         <a class="float-right">La demande ne nécessite pas de suivi de température</a>
+                                     {% else %}
+                                         {% for url in urls %}
+                                             {% include 'IOT/data_monitoring/content.html.twig' with {
+                                                 type : 'chart',
+                                                 fetch_url : url.fetch_url,
+                                                 minTemp: url.minTemp,
+                                                 maxTemp: url.maxTemp,
+                                                 boxStyle: false,
+                                                 alwaysVisible: true,
+                                             } %}
+                                         {% endfor %}
+                                     {% endif %}
+                                </span>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% include 'transport/request/delete.html.twig' %}
+    {% include 'transport/request/packing.html.twig' %}
+
+    <input type="hidden" value="{{ request.id }}" name="transportId">
+    <input type="hidden" value="{{ constant('App\\Controller\\Transport\\HistoryController::REQUEST') }}" name="transportType">
+    <input type="hidden" value="{{ contactPosition | json_encode  }}" name="contactPosition">
+    <input type="hidden" value="{{ delivererPosition }}" name="delivererPosition">
+
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('transport-request-show') }}
+    <script src="{{ asset('js/pages/iot/data-monitoring.js') }}?v={{ web_version }}"></script>
+{% endblock %}

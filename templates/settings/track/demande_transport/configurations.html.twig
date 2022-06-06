@@ -1,0 +1,65 @@
+{% import 'form.html.twig' as form %}
+
+<div class="wii-section-title">Demande sous-traitée</div>
+<div class="wii-section">
+    <div class="row">
+        <div class="wii-field-name col-12 d-flex align-items-center">Message paramétrable si la date et heure de la demande sont hors horaires
+            travaillés
+        </div>
+        <div class="col-lg-4 col-12 d-flex align-items-center my-1">
+            {{ form.textarea(setting('NON_BUSINESS_HOURS_MESSAGE'), null, false, setting_value('NON_BUSINESS_HOURS_MESSAGE')) }}
+        </div>
+    </div>
+</div>
+
+<div class="wii-section-title">Bon de transport</div>
+<div class="wii-section">
+    <div class="row">
+        <div class="col-lg-4 col-12 my-1">
+            {{ form.textarea(setting('SHIPMENT_NOTE_COMPANY_DETAILS'), 'Coordonnées société', false, setting_value('SHIPMENT_NOTE_COMPANY_DETAILS')) }}
+        </div>
+        <div class="col-lg-4 col-12 my-1">
+            {{ form.input(setting('SHIPMENT_NOTE_ORIGINATOR'), "Donneur d'ordre", false, setting_value('SHIPMENT_NOTE_ORIGINATOR')) }}
+        </div>
+        <div class="col-lg-4 col-12 my-1">
+            {{ form.image(setting('FILE_SHIPMENT_NOTE_LOGO'), "Logo sur bon de transport", false, setting_value('FILE_SHIPMENT_NOTE_LOGO')) }}
+        </div>
+        <div class="col-lg-4 col-12 my-1">
+            {{ form.textarea(setting('SHIPMENT_NOTE_SENDER_DETAILS'), 'Coordonnées expéditeur', false, setting_value('SHIPMENT_NOTE_SENDER_DETAILS')) }}
+        </div>
+    </div>
+</div>
+
+<div class="wii-section-title">Demande de livraison</div>
+<div class="wii-section">
+    <div class="row">
+        <div class="col-md-4 col-12">
+            {{ form.select(constant('App\\Entity\\Setting::TRANSPORT_DELIVERY_REQUEST_EMERGENCIES'), "Valeurs du champ Urgence", false, {
+                type: null,
+                editable: true,
+                noEmptyOption: true,
+                multiple: true,
+                values: transportDeliveryRequestEmergencies,
+                items: transportDeliveryRequestEmergencies,
+                placeholder: 'Ajoutez des éléments',
+                labelClass: 'wii-field-name w-100',
+            }) }}
+        </div>
+    </div>
+</div>
+
+<div class="wii-section-title">Demande à valider</div>
+<div class="wii-section">
+    <div class="row">
+        <div class="col-md-4 col-12">
+            {{ form.select(setting('TRANSPORT_DELIVERY_DESTINATAIRES_MAIL'), "Destinataire(s) mail", false, {
+                multiple: true,
+                type: 'user',
+                items: receiversEmails,
+                values: receiversEmails,
+                placeholder: 'Ajoutez des éléments',
+                labelClass: 'wii-field-name w-100',
+            }) }}
+        </div>
+    </div>
+</div>

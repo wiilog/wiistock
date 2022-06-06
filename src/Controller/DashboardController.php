@@ -18,16 +18,15 @@ use Symfony\Component\Routing\Annotation\Route;
 /**
  * @Route("/")
  */
-class
-DashboardController extends AbstractController {
+class DashboardController extends AbstractController {
 
     /**
-     * @Route("/accueil", name="accueil")
+     * Called in /index.html.twig
      */
-    public function dashboards(DashboardService $dashboardService,
-                               DashboardSettingsService $dashboardSettingsService,
-                               EntityManagerInterface $manager,
-                               SpecificService $specificService): Response {
+    public function index(DashboardService $dashboardService,
+                          DashboardSettingsService $dashboardSettingsService,
+                          EntityManagerInterface $manager,
+                          SpecificService $specificService): Response {
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
         $client  =  $specificService->getAppClient();

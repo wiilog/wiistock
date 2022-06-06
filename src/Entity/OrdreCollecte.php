@@ -3,88 +3,62 @@
 namespace App\Entity;
 
 use App\Entity\IOT\PairedEntity;
+use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorMessageTrait;
+use App\Repository\OrdreCollecteRepository;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
 
-use App\Entity\IOT\Pairing;
+#[ORM\Entity(repositoryClass: OrdreCollecteRepository::class)]
+class OrdreCollecte implements PairedEntity {
 
-/**
- * @ORM\Entity(repositoryClass="App\Repository\OrdreCollecteRepository")
- */
-class OrdreCollecte implements PairedEntity
-{
     use SensorMessageTrait;
 
     const CATEGORIE = 'ordreCollecte';
-
     const STATUT_A_TRAITER = 'à traiter';
     const STATUT_TRAITE = 'traité';
 
-    /**
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private $id;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Statut")
-     * @ORM\JoinColumn(nullable=false)
-     */
+    #[ORM\ManyToOne(targetEntity: Statut::class)]
+    #[ORM\JoinColumn(nullable: false)]
     private $statut;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="ordreCollectes")
-     * @ORM\JoinColumn(nullable=true)
-     */
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'ordreCollectes')]
+    #[ORM\JoinColumn(nullable: true)]
     private $utilisateur;
 
-    /**
-     * @ORM\Column(type="string", length=255, unique=true)
-     */
+    #[ORM\Column(type: 'string', length: 255, unique: true)]
     private $numero;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private $date;
 
-    /**
-     * @ORM\Column(type="datetime", nullable=true)
-     */
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private $treatingDate;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Collecte", inversedBy="ordreCollecte")
-     */
+    #[ORM\ManyToOne(targetEntity: Collecte::class, inversedBy: 'ordreCollecte')]
     private $demandeCollecte;
 
-    /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Article", mappedBy="ordreCollecte")
-     */
+    #[ORM\ManyToMany(targetEntity: Article::class, mappedBy: 'ordreCollecte')]
     private $articles;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\OrdreCollecteReference", mappedBy="ordreCollecte")
-     */
+    #[ORM\OneToMany(targetEntity: OrdreCollecteReference::class, mappedBy: 'ordreCollecte')]
     private $ordreCollecteReferences;
 
-	/**
-	 * @ORM\OneToMany(targetEntity="App\Entity\MouvementStock", mappedBy="collecteOrder")
-	 */
-	private $mouvements;
+    #[ORM\OneToMany(targetEntity: MouvementStock::class, mappedBy: 'collecteOrder')]
+    private $mouvements;
 
-    /**
-     * @ORM\OneToMany(targetEntity=Pairing::class, mappedBy="collectOrder", cascade={"remove"})
-     */
+    #[ORM\OneToMany(targetEntity: Pairing::class, mappedBy: 'collectOrder', cascade: ['remove'])]
     private Collection $pairings;
 
-    public function __construct()
-    {
+    public function __construct() {
         $this->articles = new ArrayCollection();
         $this->ordreCollecteReferences = new ArrayCollection();
         $this->mouvements = new ArrayCollection();
@@ -92,79 +66,65 @@ class OrdreCollecte implements PairedEntity
         $this->sensorMessages = new ArrayCollection();
     }
 
-
-    public function getId(): ?int
-    {
+    public function getId(): ?int {
         return $this->id;
     }
 
-    public function getStatut(): ?Statut
-    {
+    public function getStatut(): ?Statut {
         return $this->statut;
     }
 
-    public function setStatut(?Statut $statut): self
-    {
+    public function setStatut(?Statut $statut): self {
         $this->statut = $statut;
 
         return $this;
     }
 
-    public function getUtilisateur(): ?Utilisateur
-    {
+    public function getUtilisateur(): ?Utilisateur {
         return $this->utilisateur;
     }
 
-    public function setUtilisateur(?Utilisateur $utilisateur): self
-    {
+    public function setUtilisateur(?Utilisateur $utilisateur): self {
         $this->utilisateur = $utilisateur;
 
         return $this;
     }
 
-    public function getNumero(): ?string
-    {
+    public function getNumero(): ?string {
         return $this->numero;
     }
 
-    public function setNumero(string $numero): self
-    {
+    public function setNumero(string $numero): self {
         $this->numero = $numero;
 
         return $this;
     }
 
-    public function getDate(): ?DateTimeInterface
-    {
+    public function getDate(): ?DateTimeInterface {
         return $this->date;
     }
 
-    public function setDate(DateTimeInterface $date): self
-    {
+    public function setDate(DateTimeInterface $date): self {
         $this->date = $date;
 
         return $this;
     }
 
-    public function getTreatingDate(): ?DateTimeInterface
-    {
+    public function getTreatingDate(): ?DateTimeInterface {
         return $this->treatingDate;
     }
 
-    public function setTreatingDate(DateTimeInterface $date): self
-    {
+    public function setTreatingDate(DateTimeInterface $date): self {
         $this->treatingDate = $date;
 
         return $this;
     }
 
-    public function getDemandeCollecte(): ?Collecte
-    {
+    public function getDemandeCollecte(): ?Collecte {
         return $this->demandeCollecte;
     }
 
-    public function setDemandeCollecte(?Collecte $demandeCollecte): self
-    {
+    public function setDemandeCollecte(?Collecte $demandeCollecte): self {
         $this->demandeCollecte = $demandeCollecte;
 
         return $this;
@@ -173,14 +133,12 @@ class OrdreCollecte implements PairedEntity
     /**
      * @return Collection|Article[]
      */
-    public function getArticles(): Collection
-    {
+    public function getArticles(): Collection {
         return $this->articles;
     }
 
-    public function addArticle(Article $article): self
-    {
-        if (!$this->articles->contains($article)) {
+    public function addArticle(Article $article): self {
+        if(!$this->articles->contains($article)) {
             $this->articles[] = $article;
             $article->addOrdreCollecte($this);
         }
@@ -188,9 +146,8 @@ class OrdreCollecte implements PairedEntity
         return $this;
     }
 
-    public function removeArticle(Article $article): self
-    {
-        if ($this->articles->contains($article)) {
+    public function removeArticle(Article $article): self {
+        if($this->articles->contains($article)) {
             $this->articles->removeElement($article);
             $article->removeOrdreCollecte($this);
         }
@@ -201,14 +158,12 @@ class OrdreCollecte implements PairedEntity
     /**
      * @return Collection|OrdreCollecteReference[]
      */
-    public function getOrdreCollecteReferences(): Collection
-    {
+    public function getOrdreCollecteReferences(): Collection {
         return $this->ordreCollecteReferences;
     }
 
-    public function addOrdreCollecteReference(OrdreCollecteReference $ordreCollecteReference): self
-    {
-        if (!$this->ordreCollecteReferences->contains($ordreCollecteReference)) {
+    public function addOrdreCollecteReference(OrdreCollecteReference $ordreCollecteReference): self {
+        if(!$this->ordreCollecteReferences->contains($ordreCollecteReference)) {
             $this->ordreCollecteReferences[] = $ordreCollecteReference;
             $ordreCollecteReference->setOrdreCollecte($this);
         }
@@ -216,12 +171,11 @@ class OrdreCollecte implements PairedEntity
         return $this;
     }
 
-    public function removeOrdreCollecteReference(OrdreCollecteReference $ordreCollecteReference): self
-    {
-        if ($this->ordreCollecteReferences->contains($ordreCollecteReference)) {
+    public function removeOrdreCollecteReference(OrdreCollecteReference $ordreCollecteReference): self {
+        if($this->ordreCollecteReferences->contains($ordreCollecteReference)) {
             $this->ordreCollecteReferences->removeElement($ordreCollecteReference);
             // set the owning side to null (unless already changed)
-            if ($ordreCollecteReference->getOrdreCollecte() === $this) {
+            if($ordreCollecteReference->getOrdreCollecte() === $this) {
                 $ordreCollecteReference->setOrdreCollecte(null);
             }
         }
@@ -232,14 +186,12 @@ class OrdreCollecte implements PairedEntity
     /**
      * @return Collection|MouvementStock[]
      */
-    public function getMouvements(): Collection
-    {
+    public function getMouvements(): Collection {
         return $this->mouvements;
     }
 
-    public function addMouvement(MouvementStock $mouvement): self
-    {
-        if (!$this->mouvements->contains($mouvement)) {
+    public function addMouvement(MouvementStock $mouvement): self {
+        if(!$this->mouvements->contains($mouvement)) {
             $this->mouvements[] = $mouvement;
             $mouvement->setCollecteOrder($this);
         }
@@ -247,12 +199,11 @@ class OrdreCollecte implements PairedEntity
         return $this;
     }
 
-    public function removeMouvement(MouvementStock $mouvement): self
-    {
-        if ($this->mouvements->contains($mouvement)) {
+    public function removeMouvement(MouvementStock $mouvement): self {
+        if($this->mouvements->contains($mouvement)) {
             $this->mouvements->removeElement($mouvement);
             // set the owning side to null (unless already changed)
-            if ($mouvement->getCollecteOrder() === $this) {
+            if($mouvement->getCollecteOrder() === $this) {
                 $mouvement->setCollecteOrder(null);
             }
         }
@@ -263,8 +214,7 @@ class OrdreCollecte implements PairedEntity
     /**
      * @return Collection|Pairing[]
      */
-    public function getPairings(): Collection
-    {
+    public function getPairings(): Collection {
         return $this->pairings;
     }
 
@@ -279,9 +229,8 @@ class OrdreCollecte implements PairedEntity
             ->first() ?: null;
     }
 
-    public function addPairing(Pairing $pairing): self
-    {
-        if (!$this->pairings->contains($pairing)) {
+    public function addPairing(Pairing $pairing): self {
+        if(!$this->pairings->contains($pairing)) {
             $this->pairings[] = $pairing;
             $pairing->setCollectOrder($this);
         }
@@ -289,11 +238,10 @@ class OrdreCollecte implements PairedEntity
         return $this;
     }
 
-    public function removePairing(Pairing $pairing): self
-    {
-        if ($this->pairings->removeElement($pairing)) {
+    public function removePairing(Pairing $pairing): self {
+        if($this->pairings->removeElement($pairing)) {
             // set the owning side to null (unless already changed)
-            if ($pairing->getCollectOrder() === $this) {
+            if($pairing->getCollectOrder() === $this) {
                 $pairing->setCollectOrder(null);
             }
         }
@@ -301,8 +249,8 @@ class OrdreCollecte implements PairedEntity
         return $this;
     }
 
-    public function __toString()
-    {
+    public function __toString() {
         return $this->numero;
     }
+
 }

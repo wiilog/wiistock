@@ -14,6 +14,7 @@ use App\Entity\LocationGroup;
 use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\ReferenceArticle;
+use App\Entity\Role;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -64,7 +65,21 @@ class FormatHelper {
         ReferenceArticle::QUANTITY_TYPE_ARTICLE => 'Article',
     ];
 
-    public static function parseDatetime(?string $date, array $expectedFormats = ["Y-m-d H:i:s", "d/m/Y H:i:s", "Y-m-d H:i", "d/m/Y H:i"]): ?DateTimeInterface {
+    private const LANDING_PAGE_LABELS = [
+        Role::LANDING_PAGE_DASHBOARD => 'Dashboard',
+        Role::LANDING_PAGE_TRANSPORT_PLANNING => 'Planning',
+        Role::LANDING_PAGE_TRANSPORT_REQUEST => 'Demande de transport',
+    ];
+
+    public static function parseDatetime(?string $date, array $expectedFormats = [
+        "Y-m-d H:i:s",
+        "d/m/Y H:i:s",
+        "Y-m-d H:i",
+        "Y-m-d\TH:i",
+        "d/m/Y H:i",
+        "Y-m-d",
+        "d/m/Y"
+    ]): ?DateTime {
         if (empty($date)) {
             return null;
         }
@@ -84,6 +99,10 @@ class FormatHelper {
 
     public static function quantityTypeLabel(?string $quantityType, string $else = ""): string {
         return self::QUANTITY_TYPE_LABELS[$quantityType] ?? $else;
+    }
+
+    public static function landingPageLabel(?string $landingPage, string $else = ""): string {
+        return self::LANDING_PAGE_LABELS[$landingPage] ?? $else;
     }
 
     public static function handlingRequester(Handling $handling, $else = ""): string {
@@ -183,7 +202,11 @@ class FormatHelper {
         return $date ? $date->format($addAt ? "d/m/Y à H:i" : "d/m/Y H:i") : $else;
     }
 
-    public static function longDate(?DateTimeInterface $date, bool $short = false, bool $time = false, $else = "-"): ?string {
+    public static function longDate(?DateTimeInterface $date, array $options = [], $else = "-"): ?string {
+        $short = $options['short'] ?? false;
+        $time = $options['time'] ?? false;
+        $year = $options['year'] ?? true;
+
         return $date
             ? (($short
                 ? substr(self::WEEK_DAYS[$date->format("N")], 0, 3)
@@ -191,9 +214,8 @@ class FormatHelper {
                     . " "
                     . $date->format("d")
                     . " "
-                    . self::MONTHS[$date->format("n")]
-                    . " "
-                    . $date->format("Y")
+                    . strtolower(self::MONTHS[$date->format("n")])
+                    . ($year ? (" " . $date->format("Y")) : '')
             . ($time ? $date->format(" à H:i") : ""))
             : $else;
     }

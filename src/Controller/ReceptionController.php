@@ -1350,9 +1350,7 @@ class ReceptionController extends AbstractController {
      * @Route("/obtenir-modal-for-ref", name="get_modal_new_ref", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::ORDRE, Action::CREATE_REF_FROM_RECEP}, mode=HasPermission::IN_JSON)
      */
-    public function checkIfQuantityArticle(): Response {
-        $entityManager = $this->getDoctrine()->getManager();
-
+    public function checkIfQuantityArticle(EntityManagerInterface $entityManager): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);

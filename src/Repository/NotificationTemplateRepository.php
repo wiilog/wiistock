@@ -29,8 +29,8 @@ class NotificationTemplateRepository extends EntityRepository
         $total = QueryCounter::count($qb, "notification_template");
 
         if (!empty($params)) {
-            if (!empty($params->get('search'))) {
-                $search = $params->get('search')['value'];
+            if (!empty($params->all('search'))) {
+                $search = $params->all('search')['value'];
                 if (!empty($search)) {
                     $exprBuilder = $qb->expr();
                     $qb->andWhere($exprBuilder->orX(

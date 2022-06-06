@@ -1,0 +1,34 @@
+{% extends 'filters/filters.html.twig' %}
+
+{% block filters %}
+    {% include 'filters/filter_item/filterDate.html.twig' with {
+        databasePersisted: false,
+    } %}
+    {% include 'filters/filter_item/filterUser.html.twig' with {
+        name: 'requesters',
+        placeholder: 'Demandeurs'
+    } %}
+    {% include 'filters/filter_item/filterFileNumber.html.twig' %}
+    {% include 'filters/filter_item/filterContact.html.twig' %}
+    {% include 'filters/filter_item/filterStatus.html.twig' with {
+        name: 'statut',
+        placeholder: 'Statut',
+        names: true,
+    } %}
+    <div class="row no-gutters ml-1 align-items-center">
+        Transport&nbsp;:
+        {% if categories is not empty %}
+            {% include 'filters/filter_item/filterCategory.html.twig' with {
+                categories: categories
+            } %}
+        {% endif %}
+    </div>
+    {% if types is not empty %}
+        <div class="row no-gutters ml-1 align-items-center">
+            Type&nbsp;:
+            {% include 'filters/filter_item/filterTypeIcon.html.twig' with {
+                types: types
+            } %}
+        </div>
+    {% endif %}
+{% endblock %}

@@ -106,7 +106,7 @@ class OrdreCollecteController extends AbstractController
                            OrdreCollecte $ordreCollecte,
                            OrdreCollecteService $ordreCollecteService): Response
     {
-        $rows = $request->request->get('rows');
+        $rows = $request->request->all('rows');
         if (!empty($rows) && ($ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER)) {
 
             $date = new DateTime('now');

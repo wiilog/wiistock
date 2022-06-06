@@ -3,145 +3,106 @@
 namespace App\Entity;
 
 use App\Entity\IOT\PairedEntity;
+use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorMessageTrait;
+use App\Entity\Transport\TransportDeliveryOrderPack;
+use App\Entity\Transport\TransportHistory;
 use App\Helper\FormatHelper;
+use App\Repository\PackRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
 
-use App\Entity\IOT\Pairing;
-
-/**
- * @ORM\Entity(repositoryClass="App\Repository\PackRepository")
- */
+#[ORM\Entity(repositoryClass: PackRepository::class)]
 class Pack implements PairedEntity {
 
     use SensorMessageTrait;
 
     public const CONFIRM_CREATE_GROUP = 'CONFIRM_CREATE_GROUP';
     public const PACK_IS_GROUP = 'PACK_IS_GROUP';
-
     public const EMPTY_ROUND_PACK = 'passageavide';
 
-    /**
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $code = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Arrivage", inversedBy="packs")
-     */
+    #[ORM\ManyToOne(targetEntity: Arrivage::class, inversedBy: 'packs')]
     private ?Arrivage $arrivage = null;
 
-    /**
-     * @ORM\ManyToMany(targetEntity=Dispute::class, mappedBy="packs")
-     */
+    #[ORM\ManyToMany(targetEntity: Dispute::class, mappedBy: 'packs')]
     private Collection $disputes;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Nature", inversedBy="packs")
-     */
+    #[ORM\ManyToOne(targetEntity: Nature::class, inversedBy: 'packs')]
     private ?Nature $nature = null;
 
-    /**
-     * @ORM\OneToOne(targetEntity=TrackingMovement::class, inversedBy="linkedPackLastDrop")
-     * @ORM\JoinColumn(nullable=true, onDelete="SET NULL")
-     */
+    #[ORM\OneToOne(inversedBy: 'linkedPackLastDrop', targetEntity: TrackingMovement::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: "SET NULL")]
     private ?TrackingMovement $lastDrop = null;
 
-    /**
-     * @ORM\OneToOne(targetEntity=TrackingMovement::class, inversedBy="linkedPackLastTracking")
-     * @ORM\JoinColumn(nullable=true, onDelete="SET NULL")
-     */
+    #[ORM\OneToOne(inversedBy: 'linkedPackLastTracking', targetEntity: TrackingMovement::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: "SET NULL")]
     private ?TrackingMovement $lastTracking = null;
 
-    /**
-     * @ORM\OneToMany(targetEntity=TrackingMovement::class, mappedBy="pack")
-     * @ORM\JoinColumn(onDelete="CASCADE")
-     * @ORM\OrderBy({"datetime" = "DESC", "id" = "DESC"})
-     */
+    #[ORM\OneToMany(mappedBy: 'pack', targetEntity: TrackingMovement::class)]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
+    #[ORM\OrderBy(['datetime' => 'DESC', 'id' => 'DESC'])]
     private Collection $trackingMovements;
 
-    /**
-     * @ORM\Column(type="integer", options={"default": 1})
-     */
+    #[ORM\Column(type: 'integer', options: ['default' => 1])]
     private ?int $quantity = 1;
 
-    /**
-     * @ORM\Column(type="decimal", precision=12, scale=3, nullable=true)
-     */
+    #[ORM\Column(type: 'decimal', precision: 12, scale: 3, nullable: true)]
     private ?float $weight = null;
 
-    /**
-     * @ORM\Column(type="decimal", precision=12, scale=3, nullable=true)
-     */
+    #[ORM\Column(type: 'decimal', precision: 12, scale: 3, nullable: true)]
     private ?float $volume = null;
 
-    /**
-     * @ORM\Column(type="text", nullable=true)
-     */
+    #[ORM\Column(type: 'text', nullable: true)]
     private ?string $comment = null;
 
-    /**
-     * @ORM\Column(type="integer", nullable=true)
-     */
+    #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $groupIteration = null;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\DispatchPack", mappedBy="pack", orphanRemoval=true)
-     */
+    #[ORM\OneToMany(mappedBy: 'pack', targetEntity: DispatchPack::class, orphanRemoval: true)]
     private Collection $dispatchPacks;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\LocationClusterRecord", mappedBy="pack", cascade={"remove"})
-     */
+    #[ORM\OneToMany(mappedBy: 'pack', targetEntity: LocationClusterRecord::class, cascade: ['remove'])]
     private Collection $locationClusterRecords;
 
-    /**
-     * @ORM\OneToOne(targetEntity="App\Entity\Article", inversedBy="trackingPack")
-     * @ORM\JoinColumn(nullable=true)
-     */
+    #[ORM\OneToOne(inversedBy: 'trackingPack', targetEntity: Article::class)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Article $article = null;
 
-    /**
-     * @ORM\OneToOne(targetEntity="App\Entity\ReferenceArticle", inversedBy="trackingPack")
-     * @ORM\JoinColumn(nullable=true)
-     */
+    #[ORM\OneToOne(inversedBy: 'trackingPack', targetEntity: ReferenceArticle::class)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?ReferenceArticle $referenceArticle = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Pack::class, inversedBy="children")
-     * @ORM\JoinColumn(nullable=true)
-     */
+    #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: 'children')]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Pack $parent = null;
 
-    /**
-     * @ORM\OneToMany(targetEntity=Pack::class, mappedBy="parent")
-     */
+    #[ORM\OneToMany(mappedBy: 'parent', targetEntity: Pack::class)]
     private ?Collection $children;
 
-    /**
-     * @ORM\OneToMany(targetEntity=TrackingMovement::class, mappedBy="packParent")
-     */
+    #[ORM\OneToMany(mappedBy: 'packParent', targetEntity: TrackingMovement::class)]
     private ?Collection $childTrackingMovements;
 
-    /**
-     * @ORM\OneToMany(targetEntity=Pairing::class, mappedBy="pack", cascade={"remove"})
-     */
+    #[ORM\OneToMany(mappedBy: 'pack', targetEntity: Pairing::class, cascade: ['remove'])]
     private Collection $pairings;
 
-    /**
-     * @ORM\Column(type="boolean")
-     */
+    #[ORM\Column(type: 'boolean')]
     private bool $deliveryDone = false;
+
+    #[ORM\OneToMany(mappedBy: 'pack', targetEntity: TransportHistory::class)]
+    private Collection $transportHistory;
+
+    #[ORM\OneToOne(mappedBy: 'pack', targetEntity: TransportDeliveryOrderPack::class)]
+    private ?TransportDeliveryOrderPack $transportDeliveryOrderPack = null;
 
     public function __construct() {
         $this->disputes = new ArrayCollection();
@@ -154,8 +115,7 @@ class Pack implements PairedEntity {
         $this->sensorMessages = new ArrayCollection();
     }
 
-    public function getId(): ?int
-    {
+    public function getId(): ?int {
         return $this->id;
     }
 
@@ -168,13 +128,11 @@ class Pack implements PairedEntity {
         return $this;
     }
 
-    public function getArrivage(): ?Arrivage
-    {
+    public function getArrivage(): ?Arrivage {
         return $this->arrivage;
     }
 
-    public function setArrivage(?Arrivage $arrivage): self
-    {
+    public function setArrivage(?Arrivage $arrivage): self {
         $this->arrivage = $arrivage;
 
         return $this;
@@ -183,14 +141,12 @@ class Pack implements PairedEntity {
     /**
      * @return Collection|Dispute[]
      */
-    public function getDisputes(): Collection
-    {
+    public function getDisputes(): Collection {
         return $this->disputes;
     }
 
-    public function addDispute(Dispute $dispute): self
-    {
-        if (!$this->disputes->contains($dispute)) {
+    public function addDispute(Dispute $dispute): self {
+        if(!$this->disputes->contains($dispute)) {
             $this->disputes[] = $dispute;
             $dispute->addPack($this);
         }
@@ -198,9 +154,8 @@ class Pack implements PairedEntity {
         return $this;
     }
 
-    public function removeDispute(Dispute $dispute): self
-    {
-        if ($this->disputes->contains($dispute)) {
+    public function removeDispute(Dispute $dispute): self {
+        if($this->disputes->contains($dispute)) {
             $this->disputes->removeElement($dispute);
             $dispute->removePack($this);
         }
@@ -208,20 +163,17 @@ class Pack implements PairedEntity {
         return $this;
     }
 
-    public function getNature(): ?Nature
-    {
+    public function getNature(): ?Nature {
         return $this->nature;
     }
 
-    public function setNature(?Nature $nature): self
-    {
+    public function setNature(?Nature $nature): self {
         $this->nature = $nature;
 
         return $this;
     }
 
-    public function getLastDrop(): ?TrackingMovement
-    {
+    public function getLastDrop(): ?TrackingMovement {
         return $this->lastDrop;
     }
 
@@ -241,13 +193,11 @@ class Pack implements PairedEntity {
         return $this;
     }
 
-    public function getLastTracking(): ?TrackingMovement
-    {
+    public function getLastTracking(): ?TrackingMovement {
         return $this->lastTracking;
     }
 
-    public function setLastTracking(?TrackingMovement $lastTracking): self
-    {
+    public function setLastTracking(?TrackingMovement $lastTracking): self {
         if($this->lastTracking && $this->lastTracking->getLinkedPackLastTracking() !== $this) {
             $oldLastTracking = $this->lastTracking;
             $this->lastTracking = null;
@@ -271,14 +221,13 @@ class Pack implements PairedEntity {
         $criteria = Criteria::create()
             ->orderBy([
                 'datetime' => $order,
-                'id' => $order
+                'id' => $order,
             ]);
         return $this->trackingMovements->matching($criteria);
     }
 
-    public function addTrackingMovement(TrackingMovement $trackingMovement): self
-    {
-        if (!$this->trackingMovements->contains($trackingMovement)) {
+    public function addTrackingMovement(TrackingMovement $trackingMovement): self {
+        if(!$this->trackingMovements->contains($trackingMovement)) {
             // push on top new movement
             $trackingMovements = $this->trackingMovements->toArray();
             array_unshift($trackingMovements, $trackingMovement);
@@ -290,12 +239,11 @@ class Pack implements PairedEntity {
         return $this;
     }
 
-    public function removeTrackingMovement(TrackingMovement $trackingMovement): self
-    {
-        if ($this->trackingMovements->contains($trackingMovement)) {
+    public function removeTrackingMovement(TrackingMovement $trackingMovement): self {
+        if($this->trackingMovements->contains($trackingMovement)) {
             $this->trackingMovements->removeElement($trackingMovement);
             // set the owning side to null (unless already changed)
-            if ($trackingMovement->getPack() === $this) {
+            if($trackingMovement->getPack() === $this) {
                 $trackingMovement->setPack(null);
             }
         }
@@ -310,9 +258,8 @@ class Pack implements PairedEntity {
         return $this->dispatchPacks;
     }
 
-    public function addDispatchPack(DispatchPack $dispatchPack): self
-    {
-        if (!$this->dispatchPacks->contains($dispatchPack)) {
+    public function addDispatchPack(DispatchPack $dispatchPack): self {
+        if(!$this->dispatchPacks->contains($dispatchPack)) {
             $this->dispatchPacks[] = $dispatchPack;
             $dispatchPack->setPack($this);
         }
@@ -320,12 +267,11 @@ class Pack implements PairedEntity {
         return $this;
     }
 
-    public function removeDispatchPack(DispatchPack $dispatchPack): self
-    {
-        if ($this->dispatchPacks->contains($dispatchPack)) {
+    public function removeDispatchPack(DispatchPack $dispatchPack): self {
+        if($this->dispatchPacks->contains($dispatchPack)) {
             $this->dispatchPacks->removeElement($dispatchPack);
             // set the owning side to null (unless already changed)
-            if ($dispatchPack->getPack() === $this) {
+            if($dispatchPack->getPack() === $this) {
                 $dispatchPack->setPack(null);
             }
         }
@@ -381,7 +327,7 @@ class Pack implements PairedEntity {
      * @return self
      */
     public function addLocationClusterRecord(LocationClusterRecord $locationClusterRecord): self {
-        if (!$this->locationClusterRecords->contains($locationClusterRecord)) {
+        if(!$this->locationClusterRecords->contains($locationClusterRecord)) {
             $this->locationClusterRecords[] = $locationClusterRecord;
             $locationClusterRecord->setPack($this);
         }
@@ -393,10 +339,10 @@ class Pack implements PairedEntity {
      * @return self
      */
     public function removeLocationClusterRecord(LocationClusterRecord $locationClusterRecord): self {
-        if ($this->locationClusterRecords->contains($locationClusterRecord)) {
+        if($this->locationClusterRecords->contains($locationClusterRecord)) {
             $this->locationClusterRecords->removeElement($locationClusterRecord);
             // set the owning side to null (unless already changed)
-            if ($locationClusterRecord->getPack() === $this) {
+            if($locationClusterRecord->getPack() === $this) {
                 $locationClusterRecord->setPack(null);
             }
         }
@@ -408,13 +354,13 @@ class Pack implements PairedEntity {
     }
 
     public function setArticle(?Article $article): self {
-        if ($this->article && $this->article->getTrackingPack() !== $this) {
+        if($this->article && $this->article->getTrackingPack() !== $this) {
             $oldArticle = $this->article;
             $this->article = null;
             $oldArticle->setTrackingPack(null);
         }
         $this->article = $article;
-        if ($this->article && $this->article->getTrackingPack() !== $this) {
+        if($this->article && $this->article->getTrackingPack() !== $this) {
             $this->article->setTrackingPack($this);
         }
         return $this;
@@ -425,12 +371,12 @@ class Pack implements PairedEntity {
     }
 
     public function setReferenceArticle(?ReferenceArticle $referenceArticle): self {
-        if (isset($this->referenceArticle)
+        if(isset($this->referenceArticle)
             && $this->referenceArticle !== $referenceArticle) {
             $this->referenceArticle->setTrackingPack(null);
         }
         $this->referenceArticle = $referenceArticle;
-        if (isset($this->referenceArticle)
+        if(isset($this->referenceArticle)
             && $this->referenceArticle->getTrackingPack() !== $referenceArticle->getTrackingPack()) {
             $this->referenceArticle->setTrackingPack($this);
         }
@@ -462,7 +408,7 @@ class Pack implements PairedEntity {
     }
 
     public function setParent(?Pack $parent): self {
-        if ($this->parent
+        if($this->parent
             && $this->parent !== $parent) {
             $this->parent->removeChild($this);
         }
@@ -482,7 +428,7 @@ class Pack implements PairedEntity {
     }
 
     public function addChild(Pack $child): self {
-        if (!$this->children->contains($child)) {
+        if(!$this->children->contains($child)) {
             $this->children[] = $child;
             $child->setParent($this);
         }
@@ -491,8 +437,8 @@ class Pack implements PairedEntity {
     }
 
     public function removeChild(Pack $child): self {
-        if ($this->children->removeElement($child)) {
-            if ($child->getParent() === $this) {
+        if($this->children->removeElement($child)) {
+            if($child->getParent() === $this) {
                 $child->setParent(null);
             }
         }
@@ -522,7 +468,7 @@ class Pack implements PairedEntity {
     }
 
     public function addChildTrackingMovement(TrackingMovement $movement): self {
-        if (!$this->childTrackingMovements->contains($movement)) {
+        if(!$this->childTrackingMovements->contains($movement)) {
             $this->childTrackingMovements[] = $movement;
             $movement->setPackParent($this);
         }
@@ -531,8 +477,8 @@ class Pack implements PairedEntity {
     }
 
     public function removeChildTrackingMovement(TrackingMovement $movement): self {
-        if ($this->childTrackingMovements->removeElement($movement)) {
-            if ($movement->getPackParent() === $this) {
+        if($this->childTrackingMovements->removeElement($movement)) {
+            if($movement->getPackParent() === $this) {
                 $movement->setPackParent(null);
             }
         }
@@ -569,7 +515,7 @@ class Pack implements PairedEntity {
             "quantity" => $lastTracking ? $lastTracking->getQuantity() : 1,
             "type" => $lastTracking && $lastTracking->getType() ? $lastTracking->getType()->getCode() : null,
             "ref_emplacement" => $lastTracking && $lastTracking->getEmplacement() ? $lastTracking->getEmplacement()->getLabel() : null,
-            "date" => $lastTracking ? FormatHelper::datetime($lastTracking->getDatetime()) : ''
+            "date" => $lastTracking ? FormatHelper::datetime($lastTracking->getDatetime()) : '',
         ];
     }
 
@@ -580,15 +526,14 @@ class Pack implements PairedEntity {
             "natureId" => $this->getNature() ? $this->getNature()->getId() : null,
             "packs" => $this->getChildren()
                 ->map(fn(Pack $pack) => $pack->serialize())
-                ->toArray()
+                ->toArray(),
         ];
     }
 
     /**
      * @return Collection|Pairing[]
      */
-    public function getPairings(): Collection
-    {
+    public function getPairings(): Collection {
         return $this->pairings;
     }
 
@@ -603,9 +548,8 @@ class Pack implements PairedEntity {
             ->first() ?: null;
     }
 
-    public function addPairing(Pairing $pairing): self
-    {
-        if (!$this->pairings->contains($pairing)) {
+    public function addPairing(Pairing $pairing): self {
+        if(!$this->pairings->contains($pairing)) {
             $this->pairings[] = $pairing;
             $pairing->setPack($this);
         }
@@ -614,9 +558,9 @@ class Pack implements PairedEntity {
     }
 
     public function removePairing(Pairing $pairing): self {
-        if ($this->pairings->removeElement($pairing)) {
+        if($this->pairings->removeElement($pairing)) {
             // set the owning side to null (unless already changed)
-            if ($pairing->getPack() === $this) {
+            if($pairing->getPack() === $this) {
                 $pairing->setPack(null);
             }
         }
@@ -636,4 +580,52 @@ class Pack implements PairedEntity {
         $this->deliveryDone = $deliveryDone;
         return $this;
     }
+
+    public function getTransportDeliveryOrderPack(): ?TransportDeliveryOrderPack {
+        return $this->transportDeliveryOrderPack;
+    }
+
+    public function setTransportDeliveryOrderPack(?TransportDeliveryOrderPack $transportDeliveryOrderPack): self {
+        if($this->transportDeliveryOrderPack && $this->transportDeliveryOrderPack->getPack() !== $this) {
+            $oldTransportDeliveryOrderPack = $this->transportDeliveryOrderPack;
+            $this->transportDeliveryOrderPack = null;
+            $oldTransportDeliveryOrderPack->setPack(null);
+        }
+        $this->transportDeliveryOrderPack = $transportDeliveryOrderPack;
+        if($this->transportDeliveryOrderPack && $this->transportDeliveryOrderPack->getPack() !== $this) {
+            $this->transportDeliveryOrderPack->setPack($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, TransportHistory>
+     */
+    public function getTransportHistories(): Collection {
+        return $this->transportHistory;
+    }
+
+    public function addTransportHistory(TransportHistory $transportHistory): self
+    {
+        if (!$this->transportHistory->contains($transportHistory)) {
+            $this->transportHistory[] = $transportHistory;
+            $transportHistory->setPack($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTransportHistory(TransportHistory $transportHistory): self
+    {
+        if ($this->transportHistory->removeElement($transportHistory)) {
+            // set the owning side to null (unless already changed)
+            if ($transportHistory->getPack() === $this) {
+                $transportHistory->setPack(null);
+            }
+        }
+
+        return $this;
+    }
+
 }

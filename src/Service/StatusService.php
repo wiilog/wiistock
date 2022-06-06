@@ -3,10 +3,7 @@
 namespace App\Service;
 
 use App\Controller\Settings\StatusController;
-use App\Entity\CategorieStatut;
 use App\Entity\Statut;
-use App\Entity\Type;
-use Doctrine\ORM\EntityManagerInterface;
 use JetBrains\PhpStorm\ArrayShape;
 use WiiCommon\Helper\Stream;
 

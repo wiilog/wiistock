@@ -190,12 +190,10 @@ class DisputeController extends AbstractController
      * @Route("/add_Comment/{dispute}", name="add_comment", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
     public function addComment(Request $request,
-                               DisputeService $disputeService,
+                               DisputeService $disputeService, EntityManagerInterface $em,
                                Dispute $dispute): Response
     {
         if ($data = (json_decode($request->getContent(), true) ?? [])) {
-            $em = $this->getDoctrine()->getManager();
-
             /** @var Utilisateur $currentUser */
             $currentUser = $this->getUser();
 

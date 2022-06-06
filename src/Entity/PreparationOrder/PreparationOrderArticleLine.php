@@ -4,45 +4,32 @@ namespace App\Entity\PreparationOrder;
 
 use App\Entity\Article;
 use App\Entity\Emplacement;
+use App\Repository\PreparationOrder\PreparationOrderArticleLineRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass="App\Repository\PreparationOrder\PreparationOrderArticleLineRepository")
- */
-class PreparationOrderArticleLine
-{
-    /**
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer")
-     */
+#[ORM\Entity(repositoryClass: PreparationOrderArticleLineRepository::class)]
+class PreparationOrderArticleLine {
+
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    /**
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Column(type: 'integer')]
     private ?int $quantityToPick = null;
 
-    /**
-     * @ORM\Column(type="integer", nullable=true)
-     */
+    #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $pickedQuantity = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Article::class, inversedBy="preparationOrderLines")
-     * @ORM\JoinColumn(nullable=false)
-     */
+    #[ORM\ManyToOne(targetEntity: Article::class, inversedBy: 'preparationOrderLines')]
+    #[ORM\JoinColumn(nullable: false)]
     private ?Article $article = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Preparation::class, inversedBy="articleLines")
-     * @ORM\JoinColumn(nullable=false, onDelete="CASCADE")
-     */
+    #[ORM\ManyToOne(targetEntity: Preparation::class, inversedBy: 'articleLines')]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?Preparation $preparation = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Emplacement::class, inversedBy="preparationOrderArticleLines")
-     */
+    #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'preparationOrderArticleLines')]
     private ?Emplacement $targetLocationPicking = null;
 
     public function getId(): ?int {
@@ -63,8 +50,7 @@ class PreparationOrderArticleLine
         return $this->pickedQuantity;
     }
 
-    public function setPickedQuantity(?int $pickedQuantity): self
-    {
+    public function setPickedQuantity(?int $pickedQuantity): self {
         $this->pickedQuantity = $pickedQuantity;
 
         return $this;
@@ -88,13 +74,11 @@ class PreparationOrderArticleLine
         return $this;
     }
 
-    public function getPreparation(): ?Preparation
-    {
+    public function getPreparation(): ?Preparation {
         return $this->preparation;
     }
 
-    public function setPreparation(?Preparation $preparation): self
-    {
+    public function setPreparation(?Preparation $preparation): self {
         if($this->preparation && $this->preparation !== $preparation) {
             $this->preparation->removeArticleLine($this);
         }
@@ -110,8 +94,7 @@ class PreparationOrderArticleLine
         return $this->targetLocationPicking;
     }
 
-    public function setTargetLocationPicking(?Emplacement $targetLocationPicking): self
-    {
+    public function setTargetLocationPicking(?Emplacement $targetLocationPicking): self {
         if($this->targetLocationPicking && $this->targetLocationPicking !== $targetLocationPicking) {
             $this->targetLocationPicking->removePreparationOrderArticleLine($this);
         }
@@ -124,4 +107,5 @@ class PreparationOrderArticleLine
 
         return $this;
     }
+
 }

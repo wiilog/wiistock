@@ -1,0 +1,212 @@
+@import "../../variables";
+
+.transport-table {
+    .dataTables_scrollHead {
+        display: none;
+    }
+
+    .dataTables_scrollBody {
+        th, td {
+            border: none !important;
+            border-bottom: none !important;
+            padding: 0 !important;
+
+            & > * {
+                max-width: initial !important;
+            }
+        }
+
+        tr {
+            cursor: initial !important;
+
+            &:hover {
+                background: white !important;
+            }
+        }
+    }
+
+    .transport-row {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .transport-list-date {
+        color: $primary;
+        font-weight: 600;
+        font-size: 1.2rem;
+
+        .transport-counts {
+            display: inline-block;
+            color: black;
+            font-weight: normal;
+            margin-left: 20px;
+
+            .wii-icon:not(:first-child) {
+                margin-left: 10px;
+            }
+        }
+    }
+}
+
+.transport-request-container:first-child {
+    margin-top: 0 !important;
+}
+
+.transport-request-card {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 110px;
+    border: 1px solid $grey;
+    border-radius: 4px;
+    padding: 10px 5px;
+
+    &.no-cursor {
+        div,tbody,tr,td{
+            cursor: initial !important;
+        }
+    }
+
+    div,tbody,tr,td {
+        cursor: pointer !important;
+    }
+    .transport-content {
+        flex: 1 1 auto;
+        margin-left: 15px;
+    }
+
+    .transport-category-container {
+        width: 120px;
+    }
+
+    .transport-category-container, .transport-details-container, .transport-creation-container {
+        margin: 0 16px;
+        white-space: normal;
+        font-size: 0.9rem;
+    }
+
+    .transport-details-container, .transport-creation-contact, .transport-creator {
+        width: 25%;
+        font-size: 1rem;
+
+        .wii-small-text {
+            font-size: 0.9rem;
+        }
+    }
+
+    .transport-category {
+        display: flex;
+        align-items: center;
+        font-weight: bold;
+        font-size: 1.2rem;
+    }
+
+    .transport-badge {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        padding: 5px 12px;
+        border-radius: 4px;
+        color: black;
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+        height: 30px;
+
+        img {
+            max-height: 30px;
+            max-width: 30px;
+        }
+
+        &.type {
+            color: #666666;
+            background: #F2F3F7;
+        }
+
+        &.preparing {
+            background: #EAEDFA;
+        }
+
+        &.to-validate {
+            background: #F5D8CB;
+        }
+
+        &.subcontracted {
+            background: #CBE8F5;
+        }
+
+        &.ongoing {
+            background: #D8CBF5;
+        }
+
+        &.finished {
+            background: #CCF0EB;
+        }
+
+        &.cancelled {
+            background: #F8DDE3;
+        }
+    }
+
+    .transport-value {
+        font-weight: bold;
+    }
+
+    .transport-status-icon {
+        position: absolute;
+        top: 10px; right: 10px;
+        width: 20px;
+        height: 20px;
+    }
+}
+
+@media (max-width: $mobile-breakpoint) {
+    .transport-list-date {
+        display: flex;
+        flex-direction: column;
+
+        .transport-counts {
+            margin-left: 0 !important;
+        }
+    }
+
+    .transport-content {
+        margin-left: 3px !important;
+    }
+
+    .transport-content tbody {
+        display: flex;
+
+        tr {
+            flex: 1 1 auto;
+            display: flex;
+            flex-direction: column;
+            background: transparent !important;
+            max-width: 50%;
+
+            td {
+                flex: 1 1 auto;
+                width: 100% !important;
+                max-width: initial !important;
+                margin: 0 !important;
+
+                &:not([a]) {
+                    padding-top: 3px !important;
+                }
+
+                & > div {
+                    padding: 0 !important;
+                }
+            }
+        }
+    }
+}
+
+.dropdown-menu {
+    .dropdown-item {
+        svg, i {
+            width: 16px;
+        }
+    }
+}

@@ -4,45 +4,31 @@ namespace App\Entity\DeliveryRequest;
 
 use App\Entity\Article;
 use App\Entity\Emplacement;
-use Doctrine\ORM\Mapping as ORM;
 use App\Repository\DeliveryRequest\DeliveryRequestArticleLineRepository;
+use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass=DeliveryRequestArticleLineRepository::class)
- */
-class DeliveryRequestArticleLine
-{
-    /**
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer")
-     */
+#[ORM\Entity(repositoryClass: DeliveryRequestArticleLineRepository::class)]
+class DeliveryRequestArticleLine {
+
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    /**
-     * @ORM\Column(type="integer", nullable=true)
-     */
+    #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $quantityToPick = null;
 
-    /**
-     * @ORM\Column(type="integer", nullable=true)
-     */
+    #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $pickedQuantity = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Article::class, inversedBy="deliveryRequestLines")
-     */
+    #[ORM\ManyToOne(targetEntity: Article::class, inversedBy: 'deliveryRequestLines')]
     private ?Article $article = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Demande::class, inversedBy="articleLines")
-     * @ORM\JoinColumn(onDelete="CASCADE")
-     */
+    #[ORM\ManyToOne(targetEntity: Demande::class, inversedBy: 'articleLines')]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?Demande $request = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Emplacement::class, inversedBy="deliveryRequestArticleLines")
-     */
+    #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'deliveryRequestArticleLines')]
     private ?Emplacement $targetLocationPicking = null;
 
     public function getId(): ?int {
@@ -59,8 +45,7 @@ class DeliveryRequestArticleLine
         return $this;
     }
 
-    public function setPickedQuantity(?int $pickedQuantity): self
-    {
+    public function setPickedQuantity(?int $pickedQuantity): self {
         $this->pickedQuantity = $pickedQuantity;
 
         return $this;
@@ -74,8 +59,7 @@ class DeliveryRequestArticleLine
         return $this->article;
     }
 
-    public function setArticle(?Article $article): self
-    {
+    public function setArticle(?Article $article): self {
         if($this->article && $this->article !== $article) {
             $this->article->removeDeliveryRequestLine($this);
         }
@@ -93,8 +77,7 @@ class DeliveryRequestArticleLine
         return $this->request;
     }
 
-    public function setRequest(?Demande $request): self
-    {
+    public function setRequest(?Demande $request): self {
         if($this->request && $this->request !== $request) {
             $this->request->removeArticleLine($this);
         }
@@ -112,8 +95,7 @@ class DeliveryRequestArticleLine
         return $this->targetLocationPicking;
     }
 
-    public function setTargetLocationPicking(?Emplacement $targetLocationPicking): self
-    {
+    public function setTargetLocationPicking(?Emplacement $targetLocationPicking): self {
         if($this->targetLocationPicking && $this->targetLocationPicking !== $targetLocationPicking) {
             $this->targetLocationPicking->removeDeliveryRequestArticleLine($this);
         }
@@ -126,4 +108,5 @@ class DeliveryRequestArticleLine
 
         return $this;
     }
+
 }

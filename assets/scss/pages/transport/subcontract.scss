@@ -1,0 +1,45 @@
+@import "../../variables";
+
+.transport-content td {
+    width: 200px !important;
+    max-width: 200px !important;
+    white-space: initial !important;
+}
+
+.transport-request-card{
+    height: 120px;
+
+    .transport-subcontract-contact, .transport-subcontract-details-container {
+        width: calc(100% / 7);
+        max-width: calc(100% / 7);
+        font-size: 1rem;
+
+        .wii-small-text {
+            font-size: 0.9rem;
+        }
+    }
+
+    .transport-subcontract-status-container {
+        width: 100px;
+        font-size: 1rem;
+    }
+
+    .transport-subcontract-button-container {
+        height: 80px;
+        vertical-align: middle;
+        padding-right: 16px !important;
+
+        button{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 3px 3px 0 3px;
+            padding: 5px 8px;
+            font-weight: normal;
+        }
+    }
+}
+
+.modal-dialog{
+    max-width: 800px;
+}

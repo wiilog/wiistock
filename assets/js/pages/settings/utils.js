@@ -101,7 +101,7 @@ export function createManagementPage($container, config) {
     $addButton.on(`click`, function() {
         selectedEntity = null;
 
-        $container.find(`.delete-main-entity`).addClass(`d-none`);
+        $container.find(`.delete-main-entity`).parent().addClass(`d-none`);
         $pageBody.removeClass('d-none');
 
         if (config.newTitle) {
@@ -111,6 +111,7 @@ export function createManagementPage($container, config) {
                 $pageBody.prepend($title);
             }
             $title.html(config.newTitle);
+            $(`#page-title .bold`).text(config.newTitle);
         }
 
         $pageBody.find(`.main-entity-content`).addClass('creation-mode');
@@ -145,6 +146,27 @@ function loadItems($container, config, type, edit = false) {
                     $itemContainer.toggleClass('main-entity-content-form', Boolean(edit))
                     $itemContainer.empty();
 
+                    if(config.name === "alertTemplates"){
+                        const $editButton = $container.find(`.edit-button`);
+                        const $pageHeader = $container.find(`.management-header div:last-child`);
+                        const $addButton = $container.find(`.add-entity`);
+                        const $deleteButton = $container.find('.delete-main-entity');
+                        const $managementBody = $container.find('.management-body');
+                        const $managementHeader = $container.find('.management-header');
+
+                        $editButton.on('click', function(){
+                            $pageHeader.addClass('d-none');
+                            $managementBody.css('margin-top', '0');
+                            $managementBody.css('border-top-left-radius', '0').css('border-top-right-radius', '0');
+                            $managementHeader.css('border-bottom-left-radius', '0').css('border-bottom-right-radius', '0');
+                        });
+
+                        $addButton.on('click', function(){
+                            $deleteButton.parent().addClass('d-none');
+                            $editButton.parent().addClass('d-none');
+                        })
+                    }
+
                     for (const item of data.data) {
                         if (item.breakline) {
                             $itemContainer.append(`<div class="w-100"></div>`);
@@ -161,13 +183,14 @@ function loadItems($container, config, type, edit = false) {
                             const fixedClass = item.class;
                             const noFullWidth = item.noFullWidth;
 
+                            const label = item.label !== undefined ? `<span class="wii-field-name">${item.label}</span>` : ' ';
                             $itemContainer.append(`
                                 <div class="main-entity-content-item ${item.wide ? `col-md-6` : (isBigger ? "col-md-4" : "col-md-3")} col-12 ${item.hidden ? `d-none` : ``} ${fixedClass ? fixedClass : ''}"
                                      ${data}>
                                     <div class="d-flex align-items-center py-2 w-100">
                                         ${item.icon ? `<img src="/svg/reference_article/${item.icon}.svg" alt="Icône" width="20px">` : ``}
                                         <div class="d-grid ${!isBigger && !noFullWidth ? "w-100" : ""}">
-                                            <span class="wii-field-name">${item.label}</span>
+                                            ${label}
                                             ${isBigger ? value : wiiTextBody}
                                         </div>
                                     </div>
@@ -281,12 +304,21 @@ function addNewEntity($container, entity) {
     }
     else {
         const inputId = `entity-${Math.floor(Math.random() * 1000000)}`;
-        $container.find(`[name=entity] + label:last`).after(`
+        const $newEntity = $(`
             <input type="radio" id="${inputId}" name="entity" value="${entity.id}" class="data" checked>
             <label for="${inputId}">
                 <span class="d-inline-flex align-items-center field-label nowrap">${entity.label}</span>
             </label>
         `);
+        const $switchContainer = $container.find(`.wii-expanded-switch[data-name=entity]`);
+        const $lastEntity = $switchContainer.find(`[name=entity] + label:last`);
+
+        if ($lastEntity.exists()) {
+            $lastEntity.after($newEntity);
+        }
+        else {
+            $switchContainer.html($newEntity);
+        }
 
         $container.find(`#${entity.id}`).prop(`checked`, true);
     }
@@ -330,6 +362,7 @@ export function createManagementHeaderPage($container, config) {
                 $pageBody.prepend($title);
             }
             $title.html(config.newTitle);
+            $(`#page-title .bold`).text(config.newTitle);
         }
         $pageBody.find(`.main-entity-content`).addClass('creation-mode');
         const $itemContainer = $container.find(`.main-entity-content`);

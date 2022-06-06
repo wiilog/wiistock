@@ -3,18 +3,23 @@
 namespace App\Twig;
 
 use App\Entity\Setting;
+use App\Entity\Transport\TransportHistory;
 use App\Service\FieldsParamService;
 use App\Service\SpecificService;
+use App\Service\Transport\TransportHistoryService;
 use App\Service\UserService;
 use App\Helper\FormatHelper;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 use ReflectionClass;
 use Symfony\Component\HttpKernel\KernelInterface;
+use Throwable;
 use Twig\Markup;
 use Twig\TwigFilter;
 use Twig\TwigFunction;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigTest;
+use WiiCommon\Helper\Stream;
 
 class AppExtension extends AbstractExtension {
 
@@ -43,6 +48,9 @@ class AppExtension extends AbstractExtension {
      */
     public KernelInterface $kernel;
 
+    /** @Required */
+    public TransportHistoryService $transportHistoryService;
+
     private array $settingsCache = [];
 
     public function getFunctions() {
@@ -56,6 +64,8 @@ class AppExtension extends AbstractExtension {
             new TwigFunction('setting_value', [$this, 'settingValue']),
             new TwigFunction('call', [$this, 'call']),
             new TwigFunction('interleave', [$this, 'interleave']),
+            new TwigFunction('formatHistory', [$this, 'formatHistory']),
+            new TwigFunction('isImage', [$this, 'isImage']),
         ];
     }
 
@@ -67,6 +77,8 @@ class AppExtension extends AbstractExtension {
             new TwigFilter('ellipsis', [$this, 'ellipsis']),
             new TwigFilter("format_helper", [$this, "formatHelper"]),
             new TwigFilter("json_decode", "json_decode"),
+            new TwigFilter("flip", [$this, "flip"]),
+            new TwigFilter("some", [$this, "some"]),
         ];
     }
 
@@ -205,5 +217,28 @@ class AppExtension extends AbstractExtension {
     public function isInstanceOf($entity, string $class): bool {
         $reflexionClass = new ReflectionClass($class);
         return $reflexionClass->isInstance($entity);
+    }
+
+    public function flip(array $array): array {
+        return array_flip($array);
+    }
+
+    public function formatHistory(TransportHistory $history): ?string {
+        return $this->transportHistoryService->formatHistory($history);
+    }
+
+    public function some(Collection|array $array, callable $callback): bool {
+        return Stream::from($array)->some($callback);
+    }
+
+    public function isImage(string $path): bool {
+        try {
+            $imagesize = getimagesize($this->kernel->getProjectDir() . '/' . $path);
+            $imageType = $imagesize[2] ?? null;
+            return in_array($imageType, [IMAGETYPE_GIF, IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_BMP]);
+        }
+        catch (Throwable) {
+            return false;
+        }
     }
 }

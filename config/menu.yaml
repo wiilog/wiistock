@@ -2,7 +2,7 @@ parameters:
     menu_config:
         -   label: 'Accueil'
             icon: 'accueil'
-            path: 'accueil'
+            path: 'app_index'
 
         -   label: 'Traçabilité'
             icon: 'traca'
@@ -88,6 +88,11 @@ parameters:
                     rights:
                         menu: App\Entity\Menu::DEM
                         action: App\Entity\Action::DISPLAY_PURCHASE_REQUESTS
+                -   label: 'Transport'
+                    path: 'transport_request_index'
+                    rights:
+                        menu: App\Entity\Menu::DEM
+                        action: App\Entity\Action::DISPLAY_TRANSPORT
 
         -   label: 'Ordre'
             icon: 'ordre'
@@ -119,6 +124,26 @@ parameters:
                     rights:
                         menu: App\Entity\Menu::ORDRE
                         action: App\Entity\Action::DISPLAY_RECE
+                -   label: 'Transport'
+                    path: 'transport_order_index'
+                    rights:
+                        menu: App\Entity\Menu::ORDRE
+                        action: App\Entity\Action::DISPLAY_TRANSPORT
+                -   label: 'Planning'
+                    path: 'transport_planning_index'
+                    rights:
+                        menu: App\Entity\Menu::ORDRE
+                        action: App\Entity\Action::DISPLAY_TRANSPORT_PLANNING
+                -   label: 'Tournée'
+                    path: 'transport_round_index'
+                    rights:
+                        menu: App\Entity\Menu::ORDRE
+                        action: App\Entity\Action::DISPLAY_TRANSPORT_ROUND
+                -   label: 'Sous-traitance'
+                    path: 'transport_subcontract_index'
+                    rights:
+                        menu: App\Entity\Menu::ORDRE
+                        action: App\Entity\Action::DISPLAY_TRANSPORT_SUBCONTRACT
 
         -   label: 'Stock'
             icon: 'stock'
@@ -183,6 +208,14 @@ parameters:
                     isTranslation: true
                     title: Natures de colis
                     path: 'nature_param_index'
+                    rights:
+                        menu: App\Entity\Menu::REFERENTIEL
+                        action: App\Entity\Action::DISPLAY_PACK_NATURE
+                -   label: 'Véhicules'
+                    path: 'vehicle_index'
+                    rights:
+                        menu: App\Entity\Menu::REFERENTIEL
+                        action: App\Entity\Action::DISPLAY_VEHICLE
 
         -   label: 'IoT.IoT'
             isTranslation: true
@@ -213,6 +246,8 @@ parameters:
                     action: App\Entity\Action::SETTINGS_GLOBAL
                 -   menu: App\Entity\Menu::PARAM
                     action: App\Entity\Action::SETTINGS_STOCK
+                -   menu: App\Entity\Menu::PARAM
+                    action: App\Entity\Action::SETTINGS_TRACING
                 -   menu: App\Entity\Menu::PARAM
                     action: App\Entity\Action::SETTINGS_TRACKING
                 -   menu: App\Entity\Menu::PARAM

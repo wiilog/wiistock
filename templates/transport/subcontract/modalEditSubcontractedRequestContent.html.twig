@@ -1,0 +1,76 @@
+<div class="modal-edit-subcontracted-request">
+    <input type="hidden" name="transportRequestStatusCode" value="{{ transportRequest.status.code }}">
+    <div class="wii-section-title">Sous-traitant</div>
+    <div class="row my-3">
+        <div class="col-md-6 col-12 form-group">
+            <label for="subcontractor" class="wii-field-name">
+                Sous-traitant*
+            </label>
+            <input type="text" id="subcontractor" class="form-control data needed" name="subcontractor" value="{{ transportOrder.subcontractor }}">
+        </div>
+        <div class="col-md-6 col-12 form-group">
+            <label for="registrationNumber" class="wii-field-name">
+                Immatriculation*
+            </label>
+            <input type="text" id="registrationNumber" class="form-control data needed" name="registrationNumber" value="{{ transportOrder.registrationNumber }}">
+        </div>
+    </div>
+
+    <div class="wii-section-title">Livraison</div>
+    <div class="row my-3">
+        <div class="col-md-6 col-12 form-group">
+            {% set statusCode = transportRequest.status.code %}
+            {% set statusDisabled = (
+                statusCode == constant('App\\Entity\\Transport\\TransportRequest::STATUS_FINISHED')
+                or statusCode == constant('App\\Entity\\Transport\\TransportRequest::STATUS_NOT_DELIVERED')
+            )%}
+            <label for="status" class="wii-field-name">Statut*</label>
+            <select name="status"
+                    class="form-control data w-100 needed"
+                    onchange="editStatusChange($(this))"
+                    {{ statusDisabled ? "disabled" }}>
+                {% for status in subcontractStatuses %}
+                    <option value="{{ status.id }}" {{ transportRequest.status.id == status.id ? 'selected' }}>{{ status.nom }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <div class="row my-3">
+        <div class="col-md-6 col-12 startDateDiv form-group">
+            <label class="w-100 wii-field-name">
+                Date et heure de début de livraison *
+                <input name="delivery-start-date"
+                       type="datetime-local"
+                       class="form-control w-100 data"
+                       value="{{ transportOrder.startedAt ? (transportOrder. startedAt| date('Y-m-d\\TH:i')) : "" }}">
+            </label>
+        </div>
+        <div class="col-md-6 col-12 endDateDiv form-group">
+            <label class="w-100 wii-field-name">
+                Date et heure de fin de livraison *
+                <input name="delivery-end-date"
+                       type="datetime-local"
+                       class="form-control w-100 data"
+                       value="{{ transportOrder.treatedAt ? (transportOrder.treatedAt | date('Y-m-d\\TH:i')) : "" }}">
+            </label>
+        </div>
+    </div>
+
+    <div class="row my-3">
+        <div class="col-md-8 col-12 form-group">
+            <label class="bold label-commentaire">Commentaire</label>
+            <input class="commentaire form-control data"
+                   name="commentaire"
+                   type="hidden">
+            <div class="editor-container" data-wysiwyg>{{ transportOrder.comment|raw }}</div>
+        </div>
+        <div class="form-group col-md-4 col-12">
+            {% include 'attachment/attachment.html.twig' with {
+                'isNew': false,
+                'required': false,
+                'fieldNameClass': 'bold'
+            } %}
+        </div>
+    </div>
+</div>

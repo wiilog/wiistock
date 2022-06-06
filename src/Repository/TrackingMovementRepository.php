@@ -150,8 +150,8 @@ class TrackingMovementRepository extends EntityRepository
 
         //Filter search
         if (!empty($params)) {
-            if (!empty($params->get('search'))) {
-                $search = $params->get('search')['value'];
+            if (!empty($params->all('search'))) {
+                $search = $params->all('search')['value'];
                 if (!empty($search)) {
                     $conditions = [
                         "date" =>  "DATE_FORMAT(tracking_movement.datetime, '%d/%m/%Y %H:%i:%s') LIKE :search_value",
@@ -182,10 +182,10 @@ class TrackingMovementRepository extends EntityRepository
                 }
             }
 
-            if (!empty($params->get('order'))) {
-                $order = $params->get('order')[0]['dir'];
+            if (!empty($params->all('order'))) {
+                $order = $params->all('order')[0]['dir'];
                 if (!empty($order)) {
-                    $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']] ?? $params->get('columns')[$params->get('order')[0]['column']]['data'];
+                    $column = self::DtToDbLabels[$params->all('columns')[$params->all('order')[0]['column']]['data']] ?? $params->all('columns')[$params->all('order')[0]['column']]['data'];
 
                     if ($column === 'emplacement') {
                         $qb
@@ -408,10 +408,10 @@ class TrackingMovementRepository extends EntityRepository
 
         //Filter search
         if (!empty($params)) {
-            if (!empty($params->get('order'))) {
-                $order = $params->get('order')[0]['dir'];
+            if (!empty($params->all('order'))) {
+                $order = $params->all('order')[0]['dir'];
                 if (!empty($order)) {
-                    $column = $params->get('columns')[$params->get('order')[0]['column']]['data'];
+                    $column = $params->all('columns')[$params->all('order')[0]['column']]['data'];
                     if ($column === 'group') {
                         $qb
                             ->leftJoin('tracking_movement.pack', 'order_pack')

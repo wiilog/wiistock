@@ -6,10 +6,8 @@ Créer le fichier `config/generated.yaml` avec le contenu suivant
 ```json
 {"parameters": {"session_lifetime": 1440}}
 ```
-To do
 
 ## Security checker
-
 The Local PHP Security Checker is a command line tool that checks if your PHP application depends on PHP packages with known security vulnerabilities.
 It uses the Security Advisories Database behind the scenes. Download a binary from
 the [releases page on Github](https://github.com/fabpot/local-php-security-checker/releases), rename it to local-php-security-checker and make it
@@ -28,9 +26,7 @@ local-php-security-checker
 ```php
 class Entity {
 
-    /**
-     * @ORM\OneToOne (targetEntity=Example::class, inversedBy="entity")
-     */
+    #[OneToOne(targetEntity: Example::class, inversedBy: "entity")]
     private ?Example $example = null;
 
     public function getExample(): ?Example {
@@ -59,9 +55,7 @@ class Entity {
 ```php
 class Entity {
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Example::class, inversedBy="entities")
-     */
+    #[ManyToOne(targetEntity: Example::class, inversedBy: "entities")]
     private ?Example $example = null;
 
     public function getExample(): ?Example {
@@ -73,9 +67,7 @@ class Entity {
             $this->example->removeEntity($this);
         }
         $this->example = $example;
-        if($example) {
-            $example->addEntity($this);
-        }
+        $example?->addEntity($this);
     
         return $this;
     }
@@ -88,9 +80,7 @@ class Entity {
 ```php
 class Entity {
 
-    /**
-     * @ORM\OneToMany(targetEntity=Example::class, mappedBy="entity")
-     */
+    #[OneToMany(targetEntity: Example::class, mappedBy: "entity")]
     private Collection $examples;
     
     public function __construct() {
@@ -98,7 +88,7 @@ class Entity {
     }
 
     /**
-     * @return Collection|Example[]
+     * @return Collection<int, Example>
      */
     public function getExamples(): Collection {
         return $this->examples;
@@ -143,9 +133,7 @@ class Entity {
 ```php
 class Entity {
 
-    /**
-     * @ORM\ManyToMany(targetEntity=Example::class, mappedBy="entities")
-     */
+    #[ManyToMany(targetEntity: Example::class, mappedBy: "entities")]
     private Collection $examples;
 
     /**

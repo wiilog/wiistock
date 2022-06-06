@@ -8,7 +8,6 @@ use App\Entity\Arrivage;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
-use App\Entity\Dispatch;
 use App\Entity\Emplacement;
 use App\Entity\FreeField;
 use App\Entity\Chauffeur;
@@ -28,7 +27,6 @@ use App\Service\VisibleColumnService;
 use WiiCommon\Helper\Stream;
 use App\Service\ArrivageService;
 use App\Service\AttachmentService;
-use App\Service\DispatchService;
 use App\Service\FieldsParamService;
 use App\Service\TrackingMovementService;
 use App\Service\PackService;
@@ -101,9 +99,7 @@ class ArrivageController extends AbstractController {
             'users' => $utilisateurRepository->findBy(['status' => true], ['username'=> 'ASC']),
             'fournisseurs' => $fournisseurRepository->findBy([], ['nom' => 'ASC']),
             'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
-            'natures' => $natureRepository->findBy([
-                'displayed' => true
-            ]),
+            'natures' => $natureRepository->findByAllowedForms([Nature::ARRIVAL_CODE]),
             'statuts' => $statuses,
             'typesArrival' => $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]),
             'fieldsParam' => $fieldsParam,
@@ -738,9 +734,7 @@ class ArrivageController extends AbstractController {
             'acheteurs' => $acheteursNames,
             'disputeStatuses' => $statutRepository->findByCategorieName(CategorieStatut::DISPUTE_ARR, 'displayOrder'),
             'allColis' => $arrivage->getPacks(),
-            'natures' => $natureRepository->findBy([
-                'displayed' => true
-            ]),
+            'natures' => $natureRepository->findByAllowedForms([Nature::ARRIVAL_CODE]),
             'printColis' => $printColis,
             'printArrivage' => $printArrivage,
             'canBeDeleted' => $arrivageRepository->countUnsolvedDisputesByArrivage($arrivage) == 0,

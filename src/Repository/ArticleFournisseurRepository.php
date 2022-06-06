@@ -144,12 +144,12 @@ class ArticleFournisseurRepository extends EntityRepository
 
         // prise en compte des paramètres issus du datatable
         if (!empty($params)) {
-            if (!empty($params->get('order')))
+            if (!empty($params->all('order')))
             {
-                $order = $params->get('order')[0]['dir'];
+                $order = $params->all('order')[0]['dir'];
                 if (!empty($order))
                 {
-                    $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
+                    $column = self::DtToDbLabels[$params->all('columns')[$params->all('order')[0]['column']]['data']];
                     if ($column === 'fournisseur') {
                         $queryBuilder
                             ->leftJoin('supplier_article.fournisseur', 'f')
@@ -167,8 +167,8 @@ class ArticleFournisseurRepository extends EntityRepository
                     }
                 }
             }
-            if (!empty($params->get('search'))) {
-                $search = $params->get('search')['value'];
+            if (!empty($params->all('search'))) {
+                $search = $params->all('search')['value'];
                 if (!empty($search)) {
                     $queryBuilder
                         ->leftJoin('supplier_article.fournisseur', 'f2')

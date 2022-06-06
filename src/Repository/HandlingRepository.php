@@ -231,8 +231,8 @@ class HandlingRepository extends EntityRepository
 
 		//Filter search
 		if (!empty($params)) {
-			if (!empty($params->get('search'))) {
-				$search = $params->get('search')['value'];
+			if (!empty($params->all('search'))) {
+				$search = $params->all('search')['value'];
 				if (!empty($search)) {
 					$qb
                         ->leftJoin("handling.type", 'search_type')
@@ -254,12 +254,12 @@ class HandlingRepository extends EntityRepository
 						->setParameter('search_value', '%' . $search . '%');
 				}
 			}
-            if (!empty($params->get('order')))
+            if (!empty($params->all('order')))
             {
-                $order = $params->get('order')[0]['dir'];
+                $order = $params->all('order')[0]['dir'];
                 if (!empty($order))
                 {
-                    $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
+                    $column = self::DtToDbLabels[$params->all('columns')[$params->all('order')[0]['column']]['data']];
                     if ($column === 'type') {
                         $qb
                             ->leftJoin('handling.type', 'order_type')
@@ -351,7 +351,7 @@ class HandlingRepository extends EntityRepository
             ->orderBy('handling.creationDate', 'DESC')
             ->addOrderBy('handling.number', 'DESC')
             ->addOrderBy('handling.id', 'DESC')
-            ->setParameter('value', Handling::PREFIX_NUMBER . '-' . $date . '%')
+            ->setParameter('value', Handling::NUMBER_PREFIX . '-' . $date . '%')
             ->getQuery()
             ->execute();
         return $result ? $result[0]['number'] : null;

@@ -34,24 +34,40 @@
         <main class="col-xl-9 col-8">
             <div class="wii-box">
                 <div class="wii-section role-header">
-                    <div class="row">
-                        <div class="col-md-4 col-12">
-                            {{ form.input('label', 'Libellé', true, role.label, {labelClass: 'wii-field-name'}) }}
+                    <div class="row align-items-end">
+                        <div class="col-xl-auto col-12 my-1">
+                            {{ form.input('label', 'Libellé', true, role.label, {
+                                error: 'global'
+                            }) }}
                         </div>
-                        <div class="col-md-4 col-12">
+                        <div class="col-xl-auto col-12 my-1">
                             {% set quantityTypeValues = [
+                                constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_ARTICLE'),
                                 constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_REFERENCE'),
-                                constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_ARTICLE')
                             ] %}
                             {{ form.switch(
                                 'quantityType',
                                 'Ajout quantité',
                                 true,
-                                quantityTypeValues | reverse | map((value) => {label: value | format_helper('quantityTypeLabel'), value: value, checked: value == role.quantityType}),
-                                {labelClass: 'wii-field-name'}
+                                quantityTypeValues | map((value) => {label: value | format_helper('quantityTypeLabel'), value: value, checked: value == role.quantityType}),
+                                { error: 'global' }
                             ) }}
                         </div>
-                        <div class="col-md-4 col-12 mt-md-4">
+                        <div class="col-xl-auto col-12 my-1">
+                            {% set landingPageValues = [
+                                constant('App\\Entity\\Role::LANDING_PAGE_DASHBOARD'),
+                                constant('App\\Entity\\Role::LANDING_PAGE_TRANSPORT_PLANNING'),
+                                constant('App\\Entity\\Role::LANDING_PAGE_TRANSPORT_REQUEST'),
+                            ] %}
+                            {{ form.switch(
+                                'landingPage',
+                                'Accueil',
+                                true,
+                                landingPageValues | map((value) => {label: value | format_helper('landingPageLabel'), value: value, checked: value == role.landingPage}),
+                                { error: 'global' }
+                            ) }}
+                        </div>
+                        <div class="col-xl-auto col-12 my-1 pb-xl-2">
                             {{ form.checkbox('isMailSendAccountCreation', 'Réception email création nouveau compte', false, role.isMailSendAccountCreation) }}
                         </div>
                     </div>

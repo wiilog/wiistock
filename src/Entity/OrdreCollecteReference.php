@@ -2,73 +2,58 @@
 
 namespace App\Entity;
 
+use App\Repository\OrdreCollecteReferenceRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass="App\Repository\OrdreCollecteReferenceRepository")
- */
-class OrdreCollecteReference
-{
-    /**
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer")
-     */
+#[ORM\Entity(repositoryClass: OrdreCollecteReferenceRepository::class)]
+class OrdreCollecteReference {
+
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private $id;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\OrdreCollecte", inversedBy="ordreCollecteReferences")
-     */
+    #[ORM\ManyToOne(targetEntity: OrdreCollecte::class, inversedBy: 'ordreCollecteReferences')]
     private $ordreCollecte;
 
-    /**
-     * @ORM\Column(type="integer", nullable=true)
-     */
+    #[ORM\Column(type: 'integer', nullable: true)]
     private $quantite;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\ReferenceArticle", inversedBy="ordreCollecteReferences")
-     */
+    #[ORM\ManyToOne(targetEntity: ReferenceArticle::class, inversedBy: 'ordreCollecteReferences')]
     private $referenceArticle;
 
-    public function getId(): ?int
-    {
+    public function getId(): ?int {
         return $this->id;
     }
 
-    public function getOrdreCollecte(): ?OrdreCollecte
-    {
+    public function getOrdreCollecte(): ?OrdreCollecte {
         return $this->ordreCollecte;
     }
 
-    public function setOrdreCollecte(?OrdreCollecte $ordreCollecte): self
-    {
+    public function setOrdreCollecte(?OrdreCollecte $ordreCollecte): self {
         $this->ordreCollecte = $ordreCollecte;
 
         return $this;
     }
 
-    public function getQuantite(): ?int
-    {
+    public function getQuantite(): ?int {
         return $this->quantite;
     }
 
-    public function setQuantite(?int $quantite): self
-    {
+    public function setQuantite(?int $quantite): self {
         $this->quantite = $quantite;
 
         return $this;
     }
 
-    public function getReferenceArticle(): ?ReferenceArticle
-    {
+    public function getReferenceArticle(): ?ReferenceArticle {
         return $this->referenceArticle;
     }
 
-    public function setReferenceArticle(?ReferenceArticle $referenceArticle): self
-    {
+    public function setReferenceArticle(?ReferenceArticle $referenceArticle): self {
         $this->referenceArticle = $referenceArticle;
 
         return $this;
     }
+
 }

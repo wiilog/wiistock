@@ -8,11 +8,9 @@ use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Console\Output\ConsoleOutput;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInterface {
 
-    private $encoder;
     private $specificService;
     private $output;
 
@@ -882,9 +880,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
         ]
     ];
 
-    public function __construct(UserPasswordEncoderInterface $encoder,
-                                SpecificService $specificService) {
-        $this->encoder = $encoder;
+    public function __construct(SpecificService $specificService) {
         $this->specificService = $specificService;
         $this->output = new ConsoleOutput();
     }

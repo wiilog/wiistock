@@ -3,17 +3,15 @@
 namespace App\Entity\IOT;
 
 use App\Entity\Traits\FreeFieldsManagerTrait;
-use App\Repository\IOT\RequestTemplateRepository;
 use App\Entity\Type;
+use App\Repository\IOT\RequestTemplateRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass=RequestTemplateRepository::class)
- * @ORM\InheritanceType("JOINED")
- * @ORM\DiscriminatorColumn(name="discr", type="string")
- */
+#[ORM\Entity(repositoryClass: RequestTemplateRepository::class)]
+#[ORM\InheritanceType('JOINED')]
+#[ORM\DiscriminatorColumn(name: 'discr', type: 'string')]
 abstract class RequestTemplate {
 
     use FreeFieldsManagerTrait;
@@ -22,32 +20,22 @@ abstract class RequestTemplate {
     public const TYPE_DELIVERY = 2;
     public const TYPE_COLLECT = 3;
 
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Type::class, inversedBy="requestTemplates")
-     * @ORM\JoinColumn(nullable=false)
-     */
+    #[ORM\ManyToOne(targetEntity: Type::class, inversedBy: 'requestTemplates')]
+    #[ORM\JoinColumn(nullable: false)]
     private ?Type $type = null;
 
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
+    #[ORM\Column(type: 'string', length: 255)]
     private ?string $name = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Type::class, inversedBy="requestTypeTemplates")
-     */
+    #[ORM\ManyToOne(targetEntity: Type::class, inversedBy: 'requestTypeTemplates')]
     private ?Type $requestType = null;
 
-    /**
-     * @ORM\OneToMany(targetEntity=TriggerAction::class, mappedBy="requestTemplate")
-     */
+    #[ORM\OneToMany(targetEntity: TriggerAction::class, mappedBy: 'requestTemplate')]
     private Collection $triggerActions;
 
     public function __construct() {
@@ -63,11 +51,11 @@ abstract class RequestTemplate {
     }
 
     public function setType(?Type $type): self {
-        if ($this->type && $this->type !== $type) {
+        if($this->type && $this->type !== $type) {
             $this->type->removeRequestTemplate($this);
         }
         $this->type = $type;
-        if ($type) {
+        if($type) {
             $type->addRequestTemplate($this);
         }
 
@@ -88,11 +76,11 @@ abstract class RequestTemplate {
     }
 
     public function setRequestType(?Type $requestType): self {
-        if ($this->requestType && $this->requestType !== $requestType) {
+        if($this->requestType && $this->requestType !== $requestType) {
             $this->requestType->removeRequestTypeTemplate($this);
         }
         $this->requestType = $requestType;
-        if ($requestType) {
+        if($requestType) {
             $requestType->addRequestTypeTemplate($this);
         }
 
@@ -107,7 +95,7 @@ abstract class RequestTemplate {
     }
 
     public function addTriggerAction(TriggerAction $triggerAction): self {
-        if (!$this->triggerActions->contains($triggerAction)) {
+        if(!$this->triggerActions->contains($triggerAction)) {
             $this->triggerActions[] = $triggerAction;
             $triggerAction->setRequestTemplate($this);
         }
@@ -116,8 +104,8 @@ abstract class RequestTemplate {
     }
 
     public function removeTriggerAction(TriggerAction $triggerAction): self {
-        if ($this->triggerActions->removeElement($triggerAction)) {
-            if ($triggerAction->getRequestTemplate() === $this) {
+        if($this->triggerActions->removeElement($triggerAction)) {
+            if($triggerAction->getRequestTemplate() === $this) {
                 $triggerAction->setRequestTemplate(null);
             }
         }

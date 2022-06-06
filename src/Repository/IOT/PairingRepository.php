@@ -32,8 +32,8 @@ class PairingRepository extends EntityRepository {
         $total = QueryCounter::count($qb, "sensors_pairing");
 
         if(!empty($params)) {
-            if(!empty($params->get('search'))) {
-                $search = $params->get('search')['value'];
+            if(!empty($params->all('search'))) {
+                $search = $params->all('search')['value'];
                 if(!empty($search)) {
                     $exprBuilder = $qb->expr();
                     $qb
@@ -61,10 +61,10 @@ class PairingRepository extends EntityRepository {
                 }
             }
 
-            if(!empty($params->get('order'))) {
-                $order = $params->get('order')[0]['dir'];
+            if(!empty($params->all('order'))) {
+                $order = $params->all('order')[0]['dir'];
                 if(!empty($order)) {
-                    $column = $params->get('columns')[$params->get('order')[0]['column']]['data'];
+                    $column = $params->all('columns')[$params->all('order')[0]['column']]['data'];
                     switch($column) {
                         case 'element':
                             $qb
@@ -141,6 +141,7 @@ class PairingRepository extends EntityRepository {
                         ->leftJoin('pairing.location', 'search_location')
                         ->leftJoin('pairing.locationGroup', 'search_locationGroup')
                         ->leftJoin('pairing.pack', 'search_pack')
+                        ->leftJoin('pairing.vehicle', 'search_vehicle')
                         ->leftJoin('pairing.preparationOrder', 'search_preparationOrder')
                         ->leftJoin('search_preparationOrder.demande', 'search_deliveryRequest')
                         ->andWhere($queryBuilder->expr()->orX(
@@ -150,6 +151,7 @@ class PairingRepository extends EntityRepository {
                             'search_location.label LIKE :value',
                             'search_locationGroup.label LIKE :value',
                             'search_pack.code LIKE :value',
+                            'search_vehicle.registrationNumber LIKE :value',
                             'search_preparationOrder.numero LIKE :value',
                             'search_deliveryRequest.numero LIKE :value',
                         ))
@@ -157,15 +159,15 @@ class PairingRepository extends EntityRepository {
                 }
             }
 
-            if($filters->has('filter') && !empty($filters->get('filter'))) {
+            if($filters->has('filter') && !empty($filters->all('filter'))) {
                 $queryBuilder
                     ->leftJoin('pairing.sensorWrapper', 'filter_sensorWrapper')
                     ->andWhere('filter_sensorWrapper.id IN (:filter_wrappers)')
-                    ->setParameter('filter_wrappers', $filters->get('filter'), Connection::PARAM_STR_ARRAY);
+                    ->setParameter('filter_wrappers', $filters->all('filter'), Connection::PARAM_STR_ARRAY);
             }
 
-            if($filters->has('types') && !empty($filters->get('types'))) {
-                $types = Stream::from($filters->get('types'))
+            if($filters->has('types') && !empty($filters->all('types'))) {
+                $types = Stream::from($filters->all('types'))
                     ->map(fn($type) => array_search($type, Sensor::SENSOR_ICONS))
                     ->toArray();
 
@@ -177,8 +179,9 @@ class PairingRepository extends EntityRepository {
                     ->setParameter('types', $types, Connection::PARAM_STR_ARRAY);
             }
 
-            if($filters->has('elements') && !empty($filters->get('elements'))) {
-                $elements = $filters->get('elements');
+
+            if($filters->has('elements') && !empty($filters->all('elements'))) {
+                $elements = $filters->all('elements');
                 $expr = $queryBuilder->expr()->orX();
 
                 if(Stream::from($elements)->indexOf(Sensor::LOCATION) !== false) {
@@ -231,6 +234,13 @@ class PairingRepository extends EntityRepository {
                         ->leftJoin('pairing.collectOrder', 'element_collectOrder');
 
                     $expr->add('element_collectOrder IS NOT NULL');
+                }
+
+                if(Stream::from($elements)->indexOf(Sensor::VEHICLE) !== false) {
+                    $queryBuilder
+                        ->leftJoin('pairing.vehicle', 'element_vehicle');
+
+                    $expr->add('element_vehicle IS NOT NULL');
                 }
 
                 $queryBuilder->andWhere($expr);

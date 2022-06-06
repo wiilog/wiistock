@@ -2,54 +2,43 @@
 
 namespace App\Entity;
 
+use App\Repository\FiabilityByReferenceRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass="App\Repository\FiabilityByReferenceRepository")
- */
-class FiabilityByReference
-{
-    /**
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer")
-     */
+#[ORM\Entity(repositoryClass: FiabilityByReferenceRepository::class)]
+class FiabilityByReference {
+
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private $id;
 
-    /**
-     * @ORM\Column(type="date")
-     */
+    #[ORM\Column(type: 'date')]
     private $date;
 
-    /**
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Column(type: 'integer')]
     private $indicateur;
 
-    public function getId(): ?int
-    {
+    public function getId(): ?int {
         return $this->id;
     }
 
-    public function getDate(): ?\DateTimeInterface
-    {
+    public function getDate(): ?\DateTimeInterface {
         return $this->date;
     }
 
-    public function setDate(\DateTimeInterface $date): self
-    {
+    public function setDate(\DateTimeInterface $date): self {
         $this->date = $date;
 
         return $this;
     }
 
-    public function getIndicateur()
-    {
+    public function getIndicateur() {
         return $this->indicateur;
     }
 
-    public function setIndicateur($indicateur): void
-    {
+    public function setIndicateur($indicateur): void {
         $this->indicateur = $indicateur;
     }
+
 }

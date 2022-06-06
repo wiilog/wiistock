@@ -59,7 +59,7 @@ class StatusController extends AbstractController
         }
 
         $hasAccess = match($mode) {
-            self::MODE_ARRIVAL_DISPUTE, self::MODE_ARRIVAL, self::MODE_DISPATCH, self::MODE_HANDLING => $userService->hasRightFunction(Menu::PARAM, Action::SETTINGS_TRACKING),
+            self::MODE_ARRIVAL_DISPUTE, self::MODE_ARRIVAL, self::MODE_DISPATCH, self::MODE_HANDLING => $userService->hasRightFunction(Menu::PARAM, Action::SETTINGS_TRACING),
             self::MODE_RECEPTION_DISPUTE, self::MODE_PURCHASE_REQUEST => $userService->hasRightFunction(Menu::PARAM, Action::SETTINGS_STOCK)
         };
 

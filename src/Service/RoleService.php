@@ -11,8 +11,6 @@ use Symfony\Component\HttpFoundation\Request;
 use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
-use Psr\Cache\InvalidArgumentException;
 
 class RoleService
 {
@@ -82,6 +80,14 @@ class RoleService
             ];
         }
 
+        $landingPage = $request->request->get('landingPage');
+        if (!in_array($landingPage, [Role::LANDING_PAGE_DASHBOARD, Role::LANDING_PAGE_TRANSPORT_PLANNING, Role::LANDING_PAGE_TRANSPORT_REQUEST])) {
+            return [
+                "success" => false,
+                "message" => "La page d'accueil sélectionnée est invalide"
+            ];
+        }
+
         $actionIds = Stream::explode(',', $request->request->get('actions', ''))
             ->filter()
             ->toArray();
@@ -93,6 +99,7 @@ class RoleService
             ->setLabel($label)
             ->setIsMailSendAccountCreation($request->request->getBoolean('isMailSendAccountCreation'))
             ->setQuantityType($quantityType)
+            ->setLandingPage($landingPage)
             ->setActions($actions);
 
         return [

@@ -1,0 +1,193 @@
+{% set entity = order ?? request %}
+{% set order = order ?? request.order %}
+{% set roundLine = order ? (order.transportRoundLines | last) ?: null : null %}
+
+<div class="transport-request-container col-12 col-xl-6 p-1">
+    {% if entity is instanceof ('App\\Entity\\Transport\\TransportRequest') %}
+        {% set route = 'transport_request_show' %}
+    {% elseif entity is instanceof ('App\\Entity\\Transport\\TransportOrder') %}
+        {% set route = 'transport_order_show' %}
+    {% endif %}
+
+    <a href="{{ path(route, {transport: entity.id}) }}" class="transport-request-card">
+        {% set isDeliveryTransportRequest = request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
+
+        {% if displayDropdown and (isDeliveryTransportRequest or request.canBeCancelled or request.canBeDeleted) %}
+            <div class="dropdown dropright">
+                <div class="d-flex" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <img alt="Actions" src="{{ asset('svg/dotsblack.svg') }}" height="20px" width="8px">
+                </div>
+
+                <div class="dropdown-menu dropdown-follow-gt pointer">
+                    {% if isDeliveryTransportRequest %}
+                        {% if request.status.code in constant('App\\Entity\\Transport\\TransportRequest::STATUS_PRINT_PACKING') %}
+                            <div class="dropdown-item pointer print-request-button" data-request-id="{{ request.id }}">
+                                <i class="fas fa-print mr-2"></i> Imprimer les étiquettes
+                            </div>
+                        {% endif %}
+
+                        {% if request.status.code in constant('App\\Entity\\Transport\\TransportRequest::STATUS_WORKFLOW_DELIVERY_CLASSIC')|slice(1) and request.order.packs is not empty %}
+                            <div class="dropdown-item pointer print-transport-button"
+                                data-request-id="{{ request.id }}">
+                                <i class="fas fa-file mr-2"></i> Générer bon de transport
+                            </div>
+                        {% endif %}
+                    {% endif %}
+
+                    {% if request.canBeCancelled %}
+                        <div class="dropdown-item pointer cancel-request-button"
+                             data-request-id="{{ request.id }}">
+                            <i class="fas fa-ban mr-2"></i> Annuler
+                        </div>
+                    {% endif %}
+
+                    {% if request.canBeDeleted %}
+                        <div class="dropdown-item pointer delete-request-button"
+                             data-request-id="{{ request.id }}">
+                            <i class="fas fa-trash mr-2"></i> Supprimer
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+
+        <table class="transport-content">
+            <tr>
+                <td class="transport-category-container w-25">
+                    <div>
+                        {% if request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
+                            <span class="transport-category">
+                                <span class="wii-icon wii-icon-cart-delivery wii-icon-25px-primary mr-2"></span>
+                                Livraison
+                            </span>
+                        {% endif %}
+
+                        {% if request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') or request.collect %}
+                            <span class="transport-category">
+                                <span class="wii-icon wii-icon-cart-collect wii-icon-25px-primary mr-2"></span>
+                                Collecte
+                            </span>
+                        {% endif %}
+                    </div>
+                </td>
+                <td class="transport-details-container"
+                    style="border-right: 5px solid transparent !important;border-left: 5px solid transparent !important;">
+                    {% if request.status %}
+                        <span class="transport-badge {{ constant('App\\Entity\\Transport\\TransportRequest::STATUS_COLOR')[entity.status.nom] }}">
+                            {{ entity.status.nom }}
+                        </span>
+                    {% endif %}
+                </td>
+                <td class="transport-creation-contact">
+                    <span class="transport-badge type">
+                        {% if request.type.logo %}
+                            <img src="{{ request.type.logo.fullPath }}" class="mr-2"
+                                 alt="Logo type {{ request.type.label }}" width="15px"/>
+                        {% endif %}
+
+                        {{ request.type.label }}
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="transport-category-container">
+                    <div>{{ prefix }}{{ request.number }}</div>
+                </td>
+                <td class="transport-details-container">
+                    {% if request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
+                        À faire à : <span class="text-nowrap">
+                            <span class="transport-value">{{ request.expectedAt | date('H:i') }}</span>
+                            {% if request.emergency %}
+                                <img src="{{ asset('svg/reference_article/security-threshold.svg') }}" width=15
+                                     alt="Urgent"
+                                     title="Urgent"/>
+                            {% endif %}
+                        </span>
+                        <br>
+
+                        {% if not order or order.rejectedAt is empty %}
+                            {% if not order or order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_TO_ASSIGN') %}
+                                Estimée à : <span class="transport-value">-</span>
+                            {% elseif order.subcontracted %}
+                                Estimée à : <span class="wii-big-text">Non disponible</span>
+                            {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ASSIGNED') %}
+                                {% if prefix == 'DTR' %}
+                                    Estimée à : <span
+                                        class="transport-value">{{ timeSlot ? timeSlot.name : request.expectedAt | date('H:i') }}</span>
+                                {% else %}
+                                    Estimé à : <span
+                                        class="transport-value">{{ roundLine ? (roundLine.estimatedAt | date('H:i')) : ((request.validatedDate ?? request.expectedAt) | date('H:i')) }}</span>
+                                {% endif %}
+                            {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ONGOING') %}
+                                Estimée à : <span class="transport-value">
+                                    {{ roundLine ? roundLine.estimatedAt | date('H:i') : '-' }}
+                                </span>
+                            {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_FINISHED') %}
+                                Faite à : <span
+                                    class="transport-value">{{ roundLine ? roundLine.fulfilledAt | date('H:i') : '-' }}</span>
+                            {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_NOT_DELIVERED') %}
+                                Non livrée le : <span
+                                    class="transport-value">{{ order.treatedAt ? order.treatedAt | format_helper('longDate', {short: true, year: false}) : '-' }}</span>
+                            {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_CANCELLED') %}
+                                Annulée le : <span
+                                    class="transport-value">{{ roundLine ? roundLine.cancelledAt | format_helper('longDate', {short: true, year: false}) : '' }}</span>
+                            {% endif %}
+                        {% endif %}
+                    {% elseif request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') %}
+                        Planifiée le : <span class="transport-value">
+                            {% if not order or order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_TO_CONTACT') %}
+                                -
+                            {% else %}
+                                {{ (request.validatedDate ?? request.expectedAt) | format_helper('longDate', {short: true, year: false}) }}
+                            {% endif %}
+                        </span>
+                        <br>
+
+                        <div class="mt-1">
+                            {% if not order or order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_TO_ASSIGN') or order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_TO_CONTACT') %}
+                                Estimée à : <span class="transport-value">-</span>
+                            {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ASSIGNED') %}
+                                Estimée à : <span class="transport-value">{{ request.timeSlot.name }}</span>
+                            {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ONGOING') %}
+                                Estimée à : <span
+                                    class="transport-value">{{ roundLine ? roundLine.estimatedAt | date('H:i') : '-' }}</span>
+                            {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_FINISHED') %}
+                                Faite à : <span
+                                    class="transport-value">{{ roundLine ? roundLine.fulfilledAt | date('H:i') : '-' }}</span>
+                            {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_NOT_COLLECTED') %}
+                                Non collectée le : {{ order.treatedAt ? (order.treatedAt | format_helper('longDate', {short: true, year: false})) : '-' }}
+                            {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_CANCELLED') %}
+                                Annulée le : <span
+                                    class="transport-value">{{ roundLine ? (roundLine.cancelledAt | format_helper('longDate', {short: true, year: false})) : '-' }}</span>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </td>
+                <td class="transport-creation-contact">
+                    {{ request.contact.name }}<br>
+                    <div class="mt-1">
+                        <span class="wii-small-text">N° dossier {{ request.contact.fileNumber }}</span>
+                    </div>
+                </td>
+                <td class="transport-creator" style="white-space: normal !important;">
+                    {% if order and order.isRejected %}
+                        <img src="{{ asset('svg/rejected-delivery.svg') }}"
+                             class="transport-status-icon"
+                             alt="Livraison rejetée"
+                             title="Livraison rejetée"/>
+                    {% elseif order and order.hasRejectedPacks %}
+                        <img src="{{ asset('svg/rejected-pack.svg') }}"
+                             class="transport-status-icon"
+                             alt="Colis rejeté"
+                             title="Colis rejeté"/>
+                    {% endif %}
+
+                    <span class="wii-small-text">Créée le : {{ request.createdAt | format_helper('longDate', {short: true, time: true, year: false}) }}</span><br>
+                    <div class="mt-1">
+                        <span class="wii-small-text">Par : {{ request.createdBy }}</span><br>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </a>
+</div>

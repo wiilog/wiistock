@@ -492,7 +492,11 @@ function processInputsForm($modal, data, isAttachmentForm) {
             else {
                 saveData($input, data, name, val, isAttachmentForm);
             }
-        } else if ($input.hasClass('phone-number') && !dataPhonesInvalid && !$input.data('iti').isValidNumber()) {
+        }
+        else if ($input.attr('type') === 'checkbox') {
+            saveData($input, data, name, Number($input.prop('checked')), isAttachmentForm);
+        }
+        else if ($input.hasClass('phone-number') && !dataPhonesInvalid && !$input.data('iti').isValidNumber()) {
             if (!dataPhonesInvalid[name]) {
                 dataPhonesInvalid[name] = true;
             }

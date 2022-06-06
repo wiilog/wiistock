@@ -6,6 +6,7 @@ import {initUserPage} from "./users/users";
 import {initializeImports} from "./data/imports.js";
 import {initializeRolesPage} from "./users/roles";
 import {initializeRequestTemplates} from "./request-template";
+import {initializeTransportRound} from "./transport-round";
 import {
     initializeStockArticlesTypesFreeFields,
     createFreeFieldsPage,
@@ -48,6 +49,8 @@ const initializers = {
     stock_articles_types_champs_libres: initializeStockArticlesTypesFreeFields,
     stock_demandes_types_champs_libres_livraisons: createFreeFieldsPage,
     stock_demandes_types_champs_libres_collectes: createFreeFieldsPage,
+    track_demande_transport_types_champs_libres_livraisons: createFreeFieldsPage,
+    track_demande_transport_types_champs_libres_collectes: createFreeFieldsPage,
     trace_acheminements_types_champs_libres: createFreeFieldsPage,
     trace_arrivages_types_champs_libres: createFreeFieldsPage,
     trace_services_types_champs_libres: createFreeFieldsPage,
@@ -79,6 +82,7 @@ const initializers = {
     stock_demandes_statuts_achats: initializePurchaseRequestStatuses,
     stock_demandes_modeles_demande_livraisons: initializeRequestTemplates,
     stock_demandes_modeles_demande_collectes: initializeRequestTemplates,
+    track_tournees: initializeTransportRound,
 };
 
 const saveCallbacks = {
@@ -99,6 +103,34 @@ $(function() {
     let canEdit = $(`input#edit`).val();
 
     updateMenu(submenu || menu, canEdit);
+
+    document.body.addEventListener(`click`, function(event) {
+        const $target = $(event.target);
+
+        let $button;
+        if($target.is(`.delete-row-view`)) {
+            $button = $target;
+        } else if($target.closest(`.delete-row-view`).exists()) {
+            $button = $target.closest(`.delete-row-view`);
+        } else {
+            return;
+        }
+
+        event.handled = true;
+        event.stopPropagation();
+        event.preventDefault();
+
+        const id = $button.data(`id`);
+        const type = $button.data(`type`);
+
+        AJAX.route(`POST`, `settings_delete_row`, {id, type})
+            .json()
+            .then(({success}) => {
+                if (success) {
+                    $target.closest(`tr`).remove();
+                }
+            });
+    }, true);
 
     $(`.settings-item`).on(`click`, function() {
         const editing = $(`.settings-content`).find(`.dataTables_wrapper`).is('.current-editing');
@@ -130,7 +162,7 @@ $(function() {
             try {
                 form.element.find(`[data-table-processing]`).each(function () {
                     const datatable = EditableDatatable.of(this);
-                    if (datatable) {
+                    if (datatable && $(this).data('needs-processing')) {
                         const tableData = datatable.data();
                         tables[$(this).data(`table-processing`)] = tableData;
                         tables[`category`] = $(this).data(`category`);
@@ -301,6 +333,32 @@ function initializeWorkingHours($container, canEdit) {
             {data: `hours`, title: `Horaires de travail<br><div class='wii-small-text'>Horaires sous la forme HH:MM-HH:MM;HH:MM-HH:MM</div>`},
             {data: `worked`, title: `Travaillé`},
         ],
+    });
+    initializeHourShifts($container, canEdit);
+}
+
+function initializeHourShifts($container, canEdit) {
+    const table = EditableDatatable.create(`#table-hour-shifts`, {
+        route: Routing.generate('settings_hour_shift_api', true),
+        mode: canEdit ? MODE_CLICK_EDIT_AND_ADD : MODE_NO_EDIT,
+        save: SAVE_MANUALLY,
+        needsPagingHide: true,
+        onEditStart: () => {
+            $managementButtons.removeClass('d-none')
+        },
+        onEditStop: () => {
+            $managementButtons.addClass('d-none')
+        },
+        columns: [
+            {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
+            {data: `name`, title: `Nom du créneau`},
+            {data: `hours`, title: `Heures<br><div class='wii-small-text'>Horaires sous la forme HH:MM-HH:MM</div>`},
+        ],
+        form: {
+            actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
+            name: `<input name='name' class='form-control data' data-global-error='Nom du créneau'/>`,
+            hours: `<input name='hours' class='form-control data' data-global-error='Heures'/>`,
+        },
     });
 }
 

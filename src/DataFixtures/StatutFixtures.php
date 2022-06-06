@@ -18,6 +18,9 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\TransferOrder;
 use App\Entity\TransferRequest;
+use App\Entity\Transport\TransportOrder;
+use App\Entity\Transport\TransportRequest;
+use App\Entity\Transport\TransportRound;
 use App\Repository\StatutRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
@@ -45,7 +48,7 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
             CategorieStatut::TRANSFER_REQUEST,
             CategorieStatut::TRANSFER_ORDER,
             CategorieStatut::IMPORT,
-            CategorieStatut::PURCHASE_REQUEST
+            CategorieStatut::PURCHASE_REQUEST,
         ];
 
         $categoriesStatus = [
@@ -134,7 +137,52 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
 				Import::STATUS_IN_PROGRESS => Statut::NOT_TREATED,
 				Import::STATUS_CANCELLED => Statut::NOT_TREATED,
 				Import::STATUS_DRAFT => Statut::DRAFT
-			]
+			],
+            CategorieStatut::TRANSPORT_REQUEST_DELIVERY => [
+                TransportRequest::STATUS_AWAITING_VALIDATION,
+                TransportRequest::STATUS_TO_PREPARE,
+                TransportRequest::STATUS_TO_DELIVER,
+                TransportRequest::STATUS_ONGOING,
+                TransportRequest::STATUS_FINISHED,
+                TransportRequest::STATUS_CANCELLED,
+                TransportRequest::STATUS_NOT_DELIVERED,
+                TransportRequest::STATUS_SUBCONTRACTED,
+            ],
+            CategorieStatut::TRANSPORT_REQUEST_COLLECT => [
+                TransportRequest::STATUS_AWAITING_VALIDATION,
+                TransportRequest::STATUS_AWAITING_PLANNING,
+                TransportRequest::STATUS_TO_COLLECT,
+                TransportRequest::STATUS_ONGOING,
+                TransportRequest::STATUS_FINISHED,
+                TransportRequest::STATUS_DEPOSITED,
+                TransportRequest::STATUS_CANCELLED,
+                TransportRequest::STATUS_NOT_COLLECTED,
+            ],
+            CategorieStatut::TRANSPORT_ORDER_DELIVERY => [
+                TransportOrder::STATUS_TO_ASSIGN,
+                TransportOrder::STATUS_ASSIGNED,
+                TransportOrder::STATUS_ONGOING,
+                TransportOrder::STATUS_FINISHED,
+                TransportOrder::STATUS_CANCELLED,
+                TransportOrder::STATUS_NOT_DELIVERED,
+                TransportOrder::STATUS_SUBCONTRACTED,
+                TransportOrder::STATUS_AWAITING_VALIDATION,
+            ],
+            CategorieStatut::TRANSPORT_ORDER_COLLECT => [
+                TransportOrder::STATUS_TO_CONTACT,
+                TransportOrder::STATUS_TO_ASSIGN,
+                TransportOrder::STATUS_ASSIGNED,
+                TransportOrder::STATUS_ONGOING,
+                TransportOrder::STATUS_FINISHED,
+                TransportOrder::STATUS_CANCELLED,
+                TransportOrder::STATUS_NOT_COLLECTED,
+                TransportOrder::STATUS_AWAITING_VALIDATION,
+            ],
+            CategorieStatut::TRANSPORT_ROUND => [
+                TransportRound::STATUS_AWAITING_DELIVERER,
+                TransportRound::STATUS_ONGOING,
+                TransportRound::STATUS_FINISHED,
+            ],
         ];
 
     	foreach ($categoriesStatus as $categoryName => $statuses) {

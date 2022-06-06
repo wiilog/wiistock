@@ -1,0 +1,16 @@
+{% import 'form.html.twig' as form %}
+
+<div class="wii-section">
+    <div class="row">
+        <div class="col-lg-6 col-12">
+            {{ form.select('temperatureRanges', 'Plages de température', false, {
+                type: null,
+                editable: true,
+                multiple: true,
+                items: temperatureRanges,
+                placeholder: 'Ajoutez des températures',
+                disabledDropdownOptions: true,
+            }) }}
+        </div>
+    </div>
+</div>

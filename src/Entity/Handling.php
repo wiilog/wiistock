@@ -4,130 +4,91 @@ namespace App\Entity;
 
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\Traits\FreeFieldsManagerTrait;
+use App\Repository\HandlingRepository;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass="App\Repository\HandlingRepository")
- */
+#[ORM\Entity(repositoryClass: HandlingRepository::class)]
 class Handling {
+
     use FreeFieldsManagerTrait;
 
     const CATEGORIE = 'service';
+    const NUMBER_PREFIX = 'S';
 
-    const PREFIX_NUMBER = 'S';
-
-    /**
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private $id;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private $creationDate;
 
-    /**
-     * @ORM\Column(type="string", length=64)
-     */
+    #[ORM\Column(type: 'string', length: 64)]
     private $subject;
 
-    /**
-     * @ORM\Column(type="integer", nullable=true, options={"unsigned": true})
-     */
+    #[ORM\Column(type: 'integer', nullable: true, options: ['unsigned' => true])]
     private $treatmentDelay;
 
-    /**
-     * @ORM\Column(type="text", nullable=true)
-     */
+    #[ORM\Column(type: 'text', nullable: true)]
     private $comment;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="handlings")
-     */
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'handlings')]
     private $requester;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="handlings")
-     * @ORM\JoinColumn(nullable=false)
-     */
+    #[ORM\ManyToOne(targetEntity: Type::class, inversedBy: 'handlings')]
+    #[ORM\JoinColumn(nullable: false)]
     private $type;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="handlings")
-     * @ORM\JoinColumn(nullable=false)
-     */
+    #[ORM\ManyToOne(targetEntity: Statut::class, inversedBy: 'handlings')]
+    #[ORM\JoinColumn(nullable: false)]
     private $status;
 
-    /**
-     * @ORM\Column(type="string", length=64)
-     */
+    #[ORM\Column(type: 'string', length: 64)]
     private $destination;
 
-    /**
-     * @ORM\Column(type="string", length=64)
-     */
+    #[ORM\Column(type: 'string', length: 64)]
     private $source;
 
-	/**
-	 * @ORM\Column(type="datetime", nullable=true)
-	 */
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private $desiredDate;
 
-    /**
-     * @ORM\Column(type="datetime", nullable=true)
-     */
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private $validationDate;
 
-    /**
-     * @ORM\Column(type="string", length=255, unique=true)
-     */
+    #[ORM\Column(type: 'string', length: 255, unique: true)]
     private $number;
 
-    /**
-     * @ORM\Column(type="string", nullable=true)
-     */
+    #[ORM\Column(type: 'string', nullable: true)]
     private $emergency;
 
-    /**
-     * @ORM\OneToMany(targetEntity="Attachment", mappedBy="handling")
-     */
+    #[ORM\OneToMany(targetEntity: 'Attachment', mappedBy: 'handling')]
     private $attachments;
 
-    /**
-     * @ORM\Column(type="integer", nullable=true)
-     */
+    #[ORM\Column(type: 'integer', nullable: true)]
     private $carriedOutOperationCount;
 
     /**
      * @var Utilisateur|null
-     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="treatedHandlings")
      */
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'treatedHandlings')]
     private $treatedByHandling;
 
-    /**
-     * @ORM\ManyToMany(targetEntity=Utilisateur::class, inversedBy="receivedHandlings")
-     */
+    #[ORM\ManyToMany(targetEntity: Utilisateur::class, inversedBy: 'receivedHandlings')]
     private Collection $receivers;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=SensorWrapper::class)
-     */
+    #[ORM\ManyToOne(targetEntity: SensorWrapper::class)]
     private ?SensorWrapper $triggeringSensorWrapper = null;
 
-    public function __construct()
-    {
+    public function __construct() {
         $this->attachments = new ArrayCollection();
         $this->emergency = false;
         $this->receivers = new ArrayCollection();
     }
 
-    public function getId(): ?int
-    {
+    public function getId(): ?int {
         return $this->id;
     }
 
@@ -140,145 +101,121 @@ class Handling {
         return $this;
     }
 
-    public function getCreationDate(): ?DateTime
-    {
+    public function getCreationDate(): ?DateTime {
         return $this->creationDate;
     }
 
-    public function setCreationDate(DateTime $creationDate): self
-    {
+    public function setCreationDate(DateTime $creationDate): self {
         $this->creationDate = $creationDate;
 
         return $this;
     }
 
-    public function getSubject(): ?string
-    {
+    public function getSubject(): ?string {
         return $this->subject;
     }
 
-    public function setSubject(string $subject): self
-    {
+    public function setSubject(string $subject): self {
         $this->subject = $subject;
 
         return $this;
     }
 
-    public function getComment(): ?string
-    {
+    public function getComment(): ?string {
         return $this->comment;
     }
 
-    public function setComment(?string $comment): self
-    {
+    public function setComment(?string $comment): self {
         $this->comment = $comment;
 
         return $this;
     }
 
-    public function getRequester(): ?utilisateur
-    {
+    public function getRequester(): ?utilisateur {
         return $this->requester;
     }
 
-    public function setRequester(?utilisateur $requester): self
-    {
+    public function setRequester(?utilisateur $requester): self {
         $this->requester = $requester;
 
         return $this;
     }
 
-    public function getStatus(): ?Statut
-    {
+    public function getStatus(): ?Statut {
         return $this->status;
     }
 
-    public function setStatus(?Statut $status): self
-    {
+    public function setStatus(?Statut $status): self {
         $this->status = $status;
 
         return $this;
     }
 
-    public function getDestination(): ?string
-    {
+    public function getDestination(): ?string {
         return $this->destination;
     }
 
-    public function setDestination(?string $destination): self
-    {
+    public function setDestination(?string $destination): self {
         $this->destination = $destination;
 
         return $this;
     }
 
-    public function getSource(): ?string
-    {
+    public function getSource(): ?string {
         return $this->source;
     }
 
-    public function setSource(?string $source): self
-    {
+    public function setSource(?string $source): self {
         $this->source = $source;
 
         return $this;
     }
 
-    public function getDesiredDate(): ?DateTime
-    {
+    public function getDesiredDate(): ?DateTime {
         return $this->desiredDate;
     }
 
-    public function setDesiredDate(?DateTime $desiredDate): self
-    {
+    public function setDesiredDate(?DateTime $desiredDate): self {
         $this->desiredDate = $desiredDate;
 
         return $this;
     }
 
-    public function getValidationDate(): ?DateTime
-    {
+    public function getValidationDate(): ?DateTime {
         return $this->validationDate;
     }
 
-    public function setValidationDate(?DateTime $validationDate): self
-    {
+    public function setValidationDate(?DateTime $validationDate): self {
         $this->validationDate = $validationDate;
 
         return $this;
     }
 
-    public function getNumber(): ?string
-    {
+    public function getNumber(): ?string {
         return $this->number;
     }
 
-    public function setNumber(string $number): self
-    {
+    public function setNumber(string $number): self {
         $this->number = $number;
 
         return $this;
     }
 
-    public function getType(): ?Type
-    {
+    public function getType(): ?Type {
         return $this->type;
     }
 
-    public function setType(?Type $type): self
-    {
+    public function setType(?Type $type): self {
         $this->type = $type;
 
         return $this;
     }
 
-    public function getEmergency(): ?string
-    {
+    public function getEmergency(): ?string {
         return $this->emergency;
     }
 
-    public function setEmergency(?string $emergency): self
-    {
+    public function setEmergency(?string $emergency): self {
         $this->emergency = $emergency;
         return $this;
     }
@@ -286,13 +223,11 @@ class Handling {
     /**
      * @return Collection|Attachment[]
      */
-    public function getAttachments(): Collection
-    {
+    public function getAttachments(): Collection {
         return $this->attachments;
     }
 
-    public function setAttachments($attachments): self
-    {
+    public function setAttachments($attachments): self {
         foreach($attachments as $attachment) {
             $this->addAttachment($attachment);
         }
@@ -300,9 +235,8 @@ class Handling {
         return $this;
     }
 
-    public function addAttachment(Attachment $attachment): self
-    {
-        if (!$this->attachments->contains($attachment)) {
+    public function addAttachment(Attachment $attachment): self {
+        if(!$this->attachments->contains($attachment)) {
             $this->attachments[] = $attachment;
             $attachment->setHandling($this);
         }
@@ -310,12 +244,11 @@ class Handling {
         return $this;
     }
 
-    public function removeAttachment(Attachment $attachment): self
-    {
-        if ($this->attachments->contains($attachment)) {
+    public function removeAttachment(Attachment $attachment): self {
+        if($this->attachments->contains($attachment)) {
             $this->attachments->removeElement($attachment);
             // set the owning side to null (unless already changed)
-            if ($attachment->getHandling() === $this) {
+            if($attachment->getHandling() === $this) {
                 $attachment->setHandling(null);
             }
         }
@@ -323,15 +256,13 @@ class Handling {
         return $this;
     }
 
-    public function setTreatedByHandling(?utilisateur $treatedBy): self
-    {
+    public function setTreatedByHandling(?utilisateur $treatedBy): self {
         $this->treatedByHandling = $treatedBy;
 
         return $this;
     }
 
-    public function getTreatedByHandling(): ?Utilisateur
-    {
+    public function getTreatedByHandling(): ?Utilisateur {
         return $this->treatedByHandling;
     }
 
@@ -356,16 +287,14 @@ class Handling {
     /**
      * @return Collection|Utilisateur[]
      */
-    public function getReceivers(): Collection
-    {
+    public function getReceivers(): Collection {
         return $this->receivers;
     }
 
-    public function addReceiver(Utilisateur $receiver): self
-    {
-        if (!$this->receivers->contains($receiver)) {
+    public function addReceiver(Utilisateur $receiver): self {
+        if(!$this->receivers->contains($receiver)) {
             $this->receivers[] = $receiver;
-            if (!$receiver->getReceivedHandlings()->contains($this)) {
+            if(!$receiver->getReceivedHandlings()->contains($this)) {
                 $receiver->addReceivedHandling($this);
             }
         }
@@ -373,12 +302,12 @@ class Handling {
         return $this;
     }
 
-    public function removeReceiver(Utilisateur $receiver): self
-    {
-        if ($this->receivers->removeElement($receiver)) {
+    public function removeReceiver(Utilisateur $receiver): self {
+        if($this->receivers->removeElement($receiver)) {
             $receiver->removeReceivedHandling($this);
         }
 
         return $this;
     }
+
 }

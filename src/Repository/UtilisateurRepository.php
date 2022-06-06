@@ -9,6 +9,7 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bridge\Doctrine\Security\User\UserLoaderInterface;
 use Symfony\Component\HttpFoundation\InputBag;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
  * @method Utilisateur|null find($id, $lockMode = null, $lockVersion = null)
@@ -33,6 +34,13 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
                 )
                 ->leftJoin('user.locationDropzone', 'location_dropzone')
                 ->leftJoin('user.locationGroupDropzone', 'locationGroup_dropzone');
+        }
+
+        if (isset($options['delivererOnly']) && $options['delivererOnly']) {
+            $qb
+                ->addSelect("join_startingHour.hour AS startingHour")
+                ->leftJoin('user.transportRoundStartingHour', 'join_startingHour')
+                ->andWhere("user.deliverer = true");
         }
 
         return $qb
@@ -89,11 +97,11 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
     {
         $qb = $this->createQueryBuilder('user');
 
-        if (!empty($params->get('order'))) {
-            $order = $params->get('order')[0]['dir'];
+        if (!empty($params->all('order'))) {
+            $order = $params->all('order')[0]['dir'];
 
             if (!empty($order)) {
-                $column = $params->get('columns')[$params->get('order')[0]['column']]['data'];
+                $column = $params->all('columns')[$params->all('order')[0]['column']]['data'];
 
                 switch ($column) {
                     case 'dropzone':
@@ -122,8 +130,8 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
             }
         }
 
-        if (!empty($params->get('search'))) {
-            $search = $params->get('search')['value'];
+        if (!empty($params->all('search'))) {
+            $search = $params->all('search')['value'];
             if (!empty($search)) {
                 $exprBuilder = $qb->expr();
                 $qb
@@ -270,6 +278,10 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
         ))
             ->getQuery()
             ->getResult();
+    }
+
+    public function loadUserByIdentifier(string $identifier): ?UserInterface {
+        return $this->findOneBy(["email" => $identifier]);
     }
 
 }

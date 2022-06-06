@@ -163,9 +163,9 @@ class DataImportController extends AbstractController
     /**
      * @Route("/lier", name="import_links", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
-	public function defineLinks(Request $request): Response
+	public function defineLinks(Request $request, EntityManagerInterface $manager): Response
 	{
-		$importRepository = $this->getDoctrine()->getRepository(Import::class);
+		$importRepository = $manager->getRepository(Import::class);
 		$data = json_decode($request->getContent(), true);
 
 		$importId = $data['importId'];
@@ -180,7 +180,7 @@ class DataImportController extends AbstractController
         }
 
         $import->setColumnToField($data);
-        $this->getDoctrine()->getManager()->flush();
+        $manager->flush();
 
 		return new JsonResponse([
 			'success' => true,
@@ -239,17 +239,16 @@ class DataImportController extends AbstractController
     /**
      * @Route("/annuler-import", name="import_cancel", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
-	public function cancelImport(Request $request)
+	public function cancelImport(Request $request, EntityManagerInterface $manager)
     {
-        $em = $this->getDoctrine()->getManager();
-        $statusRepository = $em->getRepository(Statut::class);
+        $statusRepository = $manager->getRepository(Statut::class);
 
         $importId = (int)$request->request->get('importId');
 
-        $import = $em->getRepository(Import::class)->find($importId);
+        $import = $manager->getRepository(Import::class)->find($importId);
         if ($import->getStatus() == Import::STATUS_PLANNED) {
             $import->setStatus($statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_CANCELLED));
-            $em->flush();
+            $manager->flush();
         }
 
         return new JsonResponse();
@@ -257,15 +256,14 @@ class DataImportController extends AbstractController
     /**
      * @Route("/supprimer-import", name="import_delete", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
-	public function deleteImport(Request $request)
+	public function deleteImport(Request $request, EntityManagerInterface $manager)
     {
-        $em = $this->getDoctrine()->getManager();
         $importId = (int)$request->request->get('importId');
-        $import = $em->getRepository(Import::class)->find($importId);
+        $import = $manager->getRepository(Import::class)->find($importId);
 
         if ($import && $import->getStatus()->getNom() === Import::STATUS_DRAFT) {
-            $em->remove($import);
-            $em->flush();
+            $manager->remove($import);
+            $manager->flush();
         }
 
         return new JsonResponse();

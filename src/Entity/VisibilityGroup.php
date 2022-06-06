@@ -7,41 +7,27 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass=VisibilityGroupRepository::class)
- */
+#[ORM\Entity(repositoryClass: VisibilityGroupRepository::class)]
 class VisibilityGroup {
 
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
+    #[ORM\Column(type: 'string', length: 255)]
     private ?string $label = null;
 
-    /**
-     * @ORM\Column(type="text", nullable=true)
-     */
+    #[ORM\Column(type: 'text', nullable: true)]
     private ?string $description = null;
 
-    /**
-     * @ORM\Column(type="boolean", nullable=false)
-     */
+    #[ORM\Column(type: 'boolean', nullable: false)]
     private bool $active = true;
 
-    /**
-     * @ORM\ManyToMany(targetEntity=Utilisateur::class, inversedBy="visibilityGroups")
-     */
+    #[ORM\ManyToMany(targetEntity: Utilisateur::class, inversedBy: 'visibilityGroups')]
     private Collection $users;
 
-    /**
-     * @ORM\OneToMany(targetEntity=ReferenceArticle::class, mappedBy="visibilityGroup")
-     */
+    #[ORM\OneToMany(targetEntity: ReferenceArticle::class, mappedBy: 'visibilityGroup')]
     private Collection $articleReferences;
 
     public function __construct() {
@@ -81,7 +67,7 @@ class VisibilityGroup {
     }
 
     public function addUser(Utilisateur $user): self {
-        if (!$this->users->contains($user)) {
+        if(!$this->users->contains($user)) {
             $this->users[] = $user;
             $user->addVisibilityGroup($this);
         }
@@ -90,7 +76,7 @@ class VisibilityGroup {
     }
 
     public function removeUser(Utilisateur $user): self {
-        if ($this->users->removeElement($user)) {
+        if($this->users->removeElement($user)) {
             $user->removeVisibilityGroup($this);
         }
 
@@ -118,7 +104,7 @@ class VisibilityGroup {
     }
 
     public function addArticleReference(ReferenceArticle $articleReference): self {
-        if (!$this->articleReferences->contains($articleReference)) {
+        if(!$this->articleReferences->contains($articleReference)) {
             $this->articleReferences[] = $articleReference;
             $articleReference->setVisibilityGroup($this);
         }
@@ -127,8 +113,8 @@ class VisibilityGroup {
     }
 
     public function removeArticleReference(ReferenceArticle $articleReference): self {
-        if ($this->articleReferences->removeElement($articleReference)) {
-            if ($articleReference->getVisibilityGroup() === $this) {
+        if($this->articleReferences->removeElement($articleReference)) {
+            if($articleReference->getVisibilityGroup() === $this) {
                 $articleReference->setVisibilityGroup(null);
             }
         }
@@ -157,4 +143,5 @@ class VisibilityGroup {
         $this->active = $active;
         return $this;
     }
+
 }

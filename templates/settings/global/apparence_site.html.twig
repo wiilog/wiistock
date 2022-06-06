@@ -6,7 +6,6 @@
             <div class="row">
                 <div class="col-auto">
                     {{ form.image(setting('FILE_WEBSITE_LOGO'), 'Logo sur web entête', false, setting_value('FILE_WEBSITE_LOGO'), {
-                        labelClass: 'w-100 wii-field-name',
                         defaultValue: setting('DEFAULT_WEBSITE_LOGO_VALUE'),
                     }) }}
                 </div>
@@ -17,7 +16,6 @@
             <div class="row">
                 <div class="col-auto">
                     {{ form.image(setting('FILE_MOBILE_LOGO_LOGIN'), 'Logo sur nomade page connexion', false, setting_value('FILE_MOBILE_LOGO_LOGIN'), {
-                        labelClass: 'w-100 wii-field-name',
                         defaultValue: setting('DEFAULT_MOBILE_LOGO_LOGIN_VALUE'),
                     }) }}
                 </div>
@@ -28,7 +26,6 @@
             <div class="row">
                 <div class="col-auto">
                     {{ form.image(setting('FILE_EMAIL_LOGO'), 'Logo sur les emails', false, setting_value('FILE_EMAIL_LOGO'), {
-                        labelClass: 'w-100 wii-field-name',
                         defaultValue: setting('DEFAULT_EMAIL_LOGO_VALUE'),
                     }) }}
                 </div>
@@ -39,7 +36,6 @@
             <div class="row">
                 <div class="col-auto">
                     {{ form.image(setting('FILE_MOBILE_LOGO_HEADER'), 'Logo sur nomade entête', false, setting_value('FILE_MOBILE_LOGO_HEADER'), {
-                        labelClass: 'w-100 wii-field-name',
                         defaultValue: setting('DEFAULT_MOBILE_LOGO_HEADER_VALUE'),
                     }) }}
                 </div>
@@ -50,7 +46,6 @@
     <div class="row">
         <div class="form-group w-fit-content col-6">
             {{ form.select(setting('FONT_FAMILY'), 'Choix de la police', true, {
-                labelClass: 'wii-field-name w-100',
                 items: setting('FONTS'),
                 value: setting_value('FONT_FAMILY')
             }) }}
@@ -64,11 +59,10 @@
                 false,
                 setting_value('MAX_SESSION_TIME'),
                 {
-                    labelClass: 'w-100',
                     tooltip: {
-                    text: "Ce paramètre définit le temps d'inactivité maximum en minutes avant que l'utilisateur soit
-                        déconnecté. Le paramétrage ne prendra effet qu'à la prochaine connexion de l'utilisateur.",
-                }
+                        text: "Ce paramètre définit le temps d'inactivité maximum en minutes avant que l'utilisateur soit
+                            déconnecté. Le paramétrage ne prendra effet qu'à la prochaine connexion de l'utilisateur.",
+                    }
                 }) }}
         </div>
     </div>

@@ -23,6 +23,10 @@ const PAGE_RECEIPT_ASSOCIATION = 'receipt_association';
 const PAGE_DISPATCHES = 'acheminement';
 const PAGE_STATUS = 'status';
 const PAGE_EMPLACEMENT = 'emplacement';
+const PAGE_TRANSPORT_REQUESTS = 'transportRequests';
+const PAGE_TRANSPORT_ORDERS = 'transportOrders';
+const PAGE_SUBCONTRACT_ORDERS = 'subcontractOrders';
+const PAGE_TRANSPORT_ROUNDS = 'transportRounds';
 const PAGE_URGENCES = 'urgences';
 const PAGE_NOTIFICATIONS = 'notifications';
 const STATUT_ACTIF = 'disponible';
@@ -44,6 +48,16 @@ const SELECT2_TRIGGER_CHANGE = 'change.select2';
 $(function () {
     $(document).on('hide.bs.modal', function () {
         $('.select2-container.select2-container--open').remove();
+    });
+
+    $(".stop-propagation").on("click", function (e) {
+        e.stopPropagation();
+    });
+
+    $(document).arrive(`.stop-propagation`, function() {
+        $(this).on("click", function (e) {
+            e.stopPropagation();
+        });
     });
 
     $('[data-toggle="popover"]').popover();
@@ -152,7 +166,7 @@ function showRow(button, path, modal) {
  *
  * @param {Document} button
  * @param {string} path le chemin pris pour envoyer les données.
- * @param {Document} modal la modalde modification
+ * @param {Document} modal la modale de modification
  * @param {Document|string} submit le bouton de validation du form pour le edit
  * @param setMaxQuantity
  * @param afterLoadingEditModal
@@ -192,7 +206,6 @@ function editRow(button, path, modal, submit, setMaxQuantity = false, afterLoadi
         if (wantsFreeFieldsRequireCheck) {
             toggleRequiredChampsLibres(modal.find('#typeEdit'), 'edit');
         }
-        registerNumberInputProtection($modalBody.find('input[type="number"]'));
 
         if (setMaxQuantity) {
             setMaxQuantityEdit($('#referenceEdit'));
@@ -343,20 +356,24 @@ function clearModal(modal) {
         }
     })
 
-    let inputs = $modal.find('.modal-body').find(".data,.data-array");
+    let $inputs = $modal.find('.modal-body').find(".data:not([type=radio]),.data-array:not([type=radio])");
+
     // on vide tous les inputs (sauf les disabled et les input hidden)
-    inputs.each(function () {
-        if ($(this).attr('disabled') !== 'disabled' && $(this).attr('type') !== 'hidden' && !$(this).hasClass('no-clear')) {
-            if ($(this).hasClass('needs-default')) {
-                $(this).val($(this).data('init'));
-            } else {
-                $(this).val("");
+    $inputs.each(function () {
+        const $input = $(this);
+        if (!$input.closest('.wii-switch').exists()) {
+            if ($input.attr('disabled') !== 'disabled' && $input.attr('type') !== 'hidden' && !$input.hasClass('no-clear')) {
+                if ($input.hasClass('needs-default')) {
+                    $input.val($input.data('init'));
+                } else {
+                    $input.val("");
+                }
             }
+            // on enlève les classes is-invalid
+            $input.removeClass('is-invalid');
+            $input.next().find('.select2-selection').removeClass('is-invalid');
+            //TODO protection ?
         }
-        // on enlève les classes is-invalid
-        $(this).removeClass('is-invalid');
-        $(this).next().find('.select2-selection').removeClass('is-invalid');
-        //TODO protection ?
     });
     // on vide tous les select2
     let selects = $modal
@@ -439,7 +456,8 @@ function saveFilters(page, tableSelector, callback) {
         'filter-select2': ($input) => ($input.select2('data') || [])
                 .filter(({id, text}) => (id.trim() && text.trim()))
                 .map(({id, text}) => ({id, text})),
-        'filter-checkbox': ($input) => $input.is(':checked')
+        'filter-checkbox': ($input) => $input.is(':checked'),
+        'filter-switch': ($input) => $input.closest(`.wii-expanded-switch, .wii-switch`).find(':checked').val(),
     };
 
     let params = {
@@ -640,8 +658,19 @@ function onFlyFormSubmit(path, button, toHide, buttonAdd, $select = null) {
     }
 }
 
-function initDateTimePicker(dateInput = '#dateMin, #dateMax, #expectedDate', format = 'DD/MM/YYYY', minDate = false, defaultHours = null, defaultMinutes = null, disableDates = null) {
-    let options = {
+/**
+ * @param {string} dateInput
+ * @param {string} format
+ * @param {{}|{
+ *      minDate: boolean,
+ *      defaultHours: number|null,
+ *      defaultMinutes: number|null,
+ *      disableDates: boolean|null,
+ *      setTodayDate: boolean,
+ * }} options
+ */
+function initDateTimePicker(dateInput = '#dateMin, #dateMax, #expectedDate', format = 'DD/MM/YYYY', options = {}) {
+    let config = {
         format: format,
         useCurrent: false,
         locale: moment.locale('fr'),
@@ -656,20 +685,21 @@ function initDateTimePicker(dateInput = '#dateMin, #dateMax, #expectedDate', for
             selectMonth: 'Choisir le mois',
             selectYear: 'Choisir l\'année',
             selectDecade: 'Choisir la décennie',
-        }
+        },
+        ...(options.setTodayDate ? {defaultDate: moment()} : null)
     };
-    if (disableDates) {
-        options.disabledDates = disableDates;
+    if (options.disableDates) {
+        config.disabledDates = options.disableDates;
     }
-    if (minDate) {
-        options.minDate = moment().subtract(1, "days").hours(23).minutes(59).seconds(59);
+    if (options.minDate) {
+        config.minDate = moment().subtract(1, "days").hours(23).minutes(59).seconds(59);
     }
-    if (defaultHours !== null && defaultMinutes !== null) {
-        options.defaultDate = moment().hours(defaultHours).minutes(defaultMinutes);
+    if (options.defaultHours && options.defaultMinutes) {
+        config.defaultDate = moment().hours(options.defaultHours).minutes(options.defaultMinutes);
     }
 
     $(dateInput).data("dtp-initialized", "true");
-    $(dateInput).datetimepicker(options);
+    $(dateInput).datetimepicker(config);
 }
 
 
@@ -681,98 +711,115 @@ function warningEmptyDatesForCsv() {
     });
 }
 
+function warningEmptyTypeTransportForCsv() {
+    showBSAlert('Veuillez saisir un type de transport dans le filtre en haut de page.', 'danger');
+    const buttonsType = $( ".wii-expanded-switch" ).first();
+    buttonsType.addClass('is-invalid');
+    $('.is-invalid').on('click', function () {
+        $(this).parent().find('.is-invalid').removeClass('is-invalid');
+    });
+}
+
 function displayFiltersSup(data) {
     data.forEach(function (element) {
-        switch (element.field) {
-            case 'utilisateurs':
-            case 'declarants':
-            case 'providers':
-            case 'reference':
-            case 'statut':
-            case 'carriers':
-            case 'emplacement':
-            case 'demCollecte':
-            case 'disputeNumber':
-            case 'demande':
-            case 'multipleTypes':
-            case 'receivers':
-            case 'requesters':
-            case 'commandList':
-            case 'operators':
-            case 'dispatchNumber':
-            case 'emergencyMultiple':
-            case 'businessUnit':
-            case 'managers':
-                let valuesElement = element.value.split(',');
-                let $select = $(`.filter-select2[name="${element.field}"]`);
-                $select.find('option').prop('selected', false);
-                valuesElement.forEach((value) => {
-                    let valueArray = value.split(':');
-                    let id = valueArray[0];
-                    let name = valueArray[1];
-                    const $optionToSelect = $select.find(`option[value="${name}"]`).length > 0
-                        ? $select.find(`option[value="${name}"]`)
-                        : $select.find(`option[value="${id}"]`).length > 0
-                            ? $select.find(`option[value="${id}"]`)
-                            : null;
-                    if ($optionToSelect) {
-                        $optionToSelect.prop('selected', true);
-                        $select.trigger('change');
+        const $element = $(`.filters [name="${element.field}"]`);
+        if($element.is(`.filter-switch`)) {
+            $(`.filter-switch[name="${element.field}"][value="${element.value}"]`)
+                .prop(`checked`, true)
+                .trigger(`change`);
+        } else {
+            //TODO refacto !!!!!!
+            switch (element.field) {
+                case 'utilisateurs':
+                case 'declarants':
+                case 'providers':
+                case 'reference':
+                case 'statut':
+                case 'carriers':
+                case 'emplacement':
+                case 'demCollecte':
+                case 'disputeNumber':
+                case 'demande':
+                case 'multipleTypes':
+                case 'receivers':
+                case 'requesters':
+                case 'commandList':
+                case 'operators':
+                case 'dispatchNumber':
+                case 'emergencyMultiple':
+                case 'businessUnit':
+                case 'managers':
+                case 'deliverers':
+                    let valuesElement = element.value.split(',');
+                    let $select = $(`.filter-select2[name="${element.field}"]`);
+                    $select.find('option').prop('selected', false);
+                    valuesElement.forEach((value) => {
+                        let valueArray = value.split(':');
+                        let id = valueArray[0];
+                        let name = valueArray[1];
+                        const $optionToSelect = $select.find(`option[value="${name}"]`).length > 0
+                            ? $select.find(`option[value="${name}"]`)
+                            : $select.find(`option[value="${id}"]`).length > 0
+                                ? $select.find(`option[value="${id}"]`)
+                                : null;
+                        if ($optionToSelect) {
+                            $optionToSelect.prop('selected', true);
+                            $select.trigger('change');
+                        } else {
+                            let option = new Option(name, id, true, true);
+                            $select.append(option).trigger('change');
+                        }
+                    });
+                    break;
+
+                // multiple
+                case 'natures':
+                    let valuesElement2 = element.value.split(',');
+                    let $select2 = $(`.filter-select2[name="${element.field}"]`);
+                    let ids = [];
+                    valuesElement2.forEach((value) => {
+                        let valueArray = value.split(':');
+                        let id = valueArray[0];
+                        ids.push(id);
+                    });
+                    $select2.val(ids).trigger('change');
+                    break;
+
+                case 'emergency':
+                case 'customs':
+                case 'frozen':
+                    if (element.value === '1') {
+                        $('#' + element.field + '-filter').attr('checked', 'checked');
                     }
-                    else {
-                        let option = new Option(name, id, true, true);
-                        $select.append(option).trigger('change');
+                    break;
+
+                case 'litigeOrigin':
+                    const text = element.value || '';
+                    const id = text.replace('é', 'e').substring(0, 3).toUpperCase();
+                    $(`.filter-checkbox[name="${element.field}"]`).val(id).trigger('change');
+                    break;
+
+                case 'dateMin':
+                case 'dateMax':
+                    const sourceFormat = (element.value && element.value.indexOf('/') > -1)
+                        ? 'DD/MM/YYYY'
+                        : 'YYYY-MM-DD';
+                    const $fieldDate = $(`.filter-input[name="${element.field}"]`);
+                    const dateValue = moment(element.value, sourceFormat).format('DD/MM/YYYY');
+                    if ($fieldDate.data("DateTimePicker")) {
+                        $fieldDate.data("DateTimePicker").date(dateValue);
+                    } else {
+                        $fieldDate.val(dateValue);
                     }
-                });
-                break;
+                    break;
 
-            // multiple
-            case 'natures':
-                let valuesElement2 = element.value.split(',');
-                let $select2 = $(`.filter-select2[name="${element.field}"]`);
-                let ids = [];
-                valuesElement2.forEach((value) => {
-                    let valueArray = value.split(':');
-                    let id = valueArray[0];
-                    ids.push(id);
-                });
-                $select2.val(ids).trigger('change');
-                break;
-
-            case 'emergency':
-            case 'customs':
-            case 'frozen':
-                if (element.value === '1') {
-                    $('#' + element.field + '-filter').attr('checked', 'checked');
-                }
-                break;
-
-            case 'litigeOrigin':
-                const text = element.value || '';
-                const id = text.replace('é', 'e').substring(0, 3).toUpperCase();
-                $(`.filter-checkbox[name="${element.field}"]`).val(id).trigger('change');
-                break;
-
-            case 'dateMin':
-            case 'dateMax':
-                const sourceFormat = (element.value && element.value.indexOf('/') > -1)
-                    ? 'DD/MM/YYYY'
-                    : 'YYYY-MM-DD';
-                const $fieldDate = $(`.filter-input[name="${element.field}"]`);
-                const dateValue = moment(element.value, sourceFormat).format('DD/MM/YYYY');
-                if ($fieldDate.data("DateTimePicker")) {
-                    $fieldDate.data("DateTimePicker").date(dateValue);
-                } else {
-                    $fieldDate.val(dateValue);
-                }
-                break;
-
-            default:
-                const $fieldWithId = $('#' + element.field);
-                const $field = $fieldWithId.length > 0
-                    ? $fieldWithId
-                    : $('.filters-container').find(`[name="${element.field}"]`);
-                $field.val(element.value);
+                default:
+                    const $fieldWithId = $('#' + element.field);
+                    const $field = $fieldWithId.length > 0
+                        ? $fieldWithId
+                        : $('.filters-container').find(`[name="${element.field}"]`);
+                    $field.val(element.value);
+            }
         }
     });
 }
@@ -873,7 +920,10 @@ function initOnTheFlyCopies($elems) {
     });
 }
 
-function saveExportFile(routeName, needsDateFilters = true, routeParam = {}) {
+function saveExportFile(routeName, needsDateFilters = true, routeParam = {}, needsAdditionalFilters = false) {
+
+    const buttonTypeTransport = $("input[name='category']:checked")
+
     const $spinner = $('#spinner');
     loadSpinner($spinner);
 
@@ -885,29 +935,38 @@ function saveExportFile(routeName, needsDateFilters = true, routeParam = {}) {
         const name = $input.attr('name');
         const val = $input.val();
         if (name && val) {
-            data[name] = val;
+            if(!($input.is(':radio') && !$input.is(':checked'))) {
+                data[name] = val;
+            }
         }
     });
 
+    if (data.dateMin && data.dateMax) {
+        data.dateMin = moment(data.dateMin, 'DD/MM/YYYY').format('YYYY-MM-DD');
+        data.dateMax = moment(data.dateMax, 'DD/MM/YYYY').format('YYYY-MM-DD');
+    }
+    const dataKeys = Object.keys(data);
+    const joinedData = dataKeys
+        .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(data[key])}`)
+        .join('&');
+
     if ((data.dateMin && data.dateMax) || !needsDateFilters) {
-        if (data.dateMin && data.dateMax) {
-            data.dateMin = moment(data.dateMin, 'DD/MM/YYYY').format('YYYY-MM-DD');
-            data.dateMax = moment(data.dateMax, 'DD/MM/YYYY').format('YYYY-MM-DD');
+        if(needsAdditionalFilters) {
+            if (!buttonTypeTransport.is(':empty')) {
+                warningEmptyTypeTransportForCsv();
+            }
+            else {
+               window.location.href = `${path}?${joinedData}`;
+            }
         }
-
-        const dataKeys = Object.keys(data);
-
-        const joinedData = dataKeys
-            .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(data[key])}`)
-            .join('&');
-
-        window.location.href = `${path}?${joinedData}`;
-        hideSpinner($spinner);
+        else {
+            window.location.href = `${path}?${joinedData}`;
+        }
     }
     else {
         warningEmptyDatesForCsv();
-        hideSpinner($spinner);
     }
+    hideSpinner($spinner);
 }
 
 function fillDemandeurField($modal) {
@@ -930,21 +989,6 @@ function fillDemandeurField($modal) {
         }
         $operatorSelect2.trigger('change');
     }
-}
-
-function registerNumberInputProtection($inputs) {
-    const forbiddenChars = [
-        "e",
-        "E",
-        "+",
-        "-"
-    ];
-
-    $inputs.on("keydown", function (e) {
-        if (forbiddenChars.includes(e.key)) {
-            e.preventDefault();
-        }
-    });
 }
 
 function limitTextareaLength($textarea, lineNumber, lineLength) {

@@ -70,9 +70,9 @@
                     <div class="header wii-title">Demande</div>
                     <div class="content">
                         {{ form.switch('requestType', 'Type de demande', false, [
-                            {label: {wiiIcon: 'cart-delivery', text: 'Livraison'}, value: 'delivery', checked: true},
-                            {label: {wiiIcon: 'cart-collect', text: 'Collecte'}, value: 'collect'},
-                            {label: {wiiIcon: 'cart-purchase', text: 'Achat'}, value: 'purchase'},
+                            {label: 'Livraison', value: 'delivery', wiiIcon: 'cart-delivery', checked: true},
+                            {label: 'Collecte', wiiIcon: 'cart-collect', value: 'collect'},
+                            {label: 'Achat', wiiIcon: 'cart-purchase', value: 'purchase'},
                         ]) }}
 
                         <div class="mt-3">

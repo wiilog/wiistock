@@ -273,8 +273,8 @@ class ArticleRepository extends EntityRepository {
 
 		// prise en compte des paramètres issus du datatable
         if (!empty($params)) {
-            if (!empty($params->get('search'))) {
-                $searchValue = $params->get('search')['value'];
+            if (!empty($params->all('search'))) {
+                $searchValue = $params->all('search')['value'];
 
                 if (!empty($searchValue)) {
                     $search = "%$searchValue%";
@@ -400,10 +400,10 @@ class ArticleRepository extends EntityRepository {
 				$countQuery =  QueryCounter::count($queryBuilder, 'article');
 			}
 
-            if (!empty($params->get('order'))) {
-                $order = $params->get('order')[0]['dir'];
+            if (!empty($params->all('order'))) {
+                $order = $params->all('order')[0]['dir'];
                 if (!empty($order)) {
-                    $column = $params->get('columns')[$params->get('order')[0]['column']]['data'];
+                    $column = $params->all('columns')[$params->all('order')[0]['column']]['data'];
 
                     switch ($column) {
                         case "type":

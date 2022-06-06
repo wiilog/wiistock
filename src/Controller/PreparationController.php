@@ -533,7 +533,7 @@ class PreparationController extends AbstractController
                 $preparation
                     ->setStatut($statusInProgress)
                     ->setUtilisateur($this->getUser());
-                $this->getDoctrine()->getManager()->flush();
+                $entityManager->flush();
             }
 
             return new JsonResponse();

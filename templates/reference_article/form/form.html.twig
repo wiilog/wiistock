@@ -171,7 +171,7 @@
                                        class="checkbox data" {{ reference.needsMobileSync ? 'checked' }} {{ disabled }}>
                                 Synchronisation nomade
                                 <sup>
-                                    <img src="{{ asset('svg/reference_article/information.svg') }}"
+                                    <img src="{{ asset('svg/information.svg') }}"
                                          alt="Icône information"
                                          width="10px"
                                          class="has-tooltip"
@@ -192,7 +192,7 @@
                                          width="10px">
                                     <span class="wii-small-text ml-2 d-flex align-items-center" style="margin: auto 0;">
                                         Synchronisation nomade
-                                        <sup><img src="{{ asset('svg/reference_article/information.svg') }}"
+                                        <sup><img src="{{ asset('svg/information.svg') }}"
                                                   alt="Icône information"
                                                   width="10px"
                                                   class="has-tooltip"
@@ -213,7 +213,7 @@
                         <div class="col-12 col-md-6 {% if reference.id %}mt-3{% endif %}">
                             {% if not partialEdit %}
                                 <label for="visibility-group" class="wii-field-name w-100">
-                                    <i class="wii-icon wii-icon-visibility-group wii-icon-20px mr-2"></i> Groupe de visibilité
+                                    <i class="wii-icon wii-icon-visibility-group wii-icon-15px-primary mr-2"></i> Groupe de visibilité
                                     <select name="visibility-group" class="form-control data" data-s2="visibilityGroup">
                                         {% if reference.visibilityGroup %}
                                             <option value="{{ reference.visibilityGroup.id }}" selected>{{ reference.visibilityGroup.label }}</option>
@@ -262,7 +262,7 @@
                     {% if reference.id %}
                         <div class="row no-gutters">
                             <div class="col-auto">
-                                <img src="{{ asset('svg/reference_article/' ~ (isReferenceManagementQuantity ? 'pack.svg' : 'article.svg')) }}"
+                                <img src="{{ asset('svg/' ~ (isReferenceManagementQuantity ? 'pack.svg' : 'reference_article/article.svg')) }}"
                                      alt="Icône colis" width="20px">
                             </div>
                             <div class="col-auto">

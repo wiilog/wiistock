@@ -35,8 +35,8 @@ class VisibilityGroupRepository extends EntityRepository {
 
         //Filter search
         if (!empty($params)) {
-            if (!empty($params->get('search'))) {
-                $search = $params->get('search')['value'];
+            if (!empty($params->all('search'))) {
+                $search = $params->all('search')['value'];
                 if (!empty($search)) {
                     $queryBuilder
                         ->andWhere($queryBuilder->expr()->orX(
@@ -47,10 +47,10 @@ class VisibilityGroupRepository extends EntityRepository {
                 }
             }
 
-            if (!empty($params->get('order'))) {
-                $order = $params->get('order')[0]['dir'];
+            if (!empty($params->all('order'))) {
+                $order = $params->all('order')[0]['dir'];
                 if (!empty($order)) {
-                    $column = $params->get('columns')[$params->get('order')[0]['column']]['data'];
+                    $column = $params->all('columns')[$params->all('order')[0]['column']]['data'];
                     if ($column === 'status') {
                         $queryBuilder->addOrderBy("visibility_group.active", $order === 'asc' ? 'desc' : 'asc');
                     }

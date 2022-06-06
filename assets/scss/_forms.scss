@@ -26,6 +26,12 @@
     }
 }
 
+.types-container {
+    .select2-container, .select2-selection {
+        height: 100%;
+    }
+}
+
 .increase-decrease-field {
     display: flex;
     flex-direction: row;
@@ -193,6 +199,8 @@ $wii-switch-height: $input-height;
     display: inline-flex;
     flex-wrap: wrap;
     padding: 0;
+    margin-left: -1 * map-get($spacers, 1);
+    margin-right: -1 * map-get($spacers, 1);
 
     input, input + label {
         display: flex;
@@ -215,7 +223,7 @@ $wii-switch-height: $input-height;
         display: flex;
         justify-content: center;
         align-items: center;
-        margin: 5px;
+        margin: map-get($spacers, 1);
     }
 
     input:not([content]) {
@@ -277,6 +285,7 @@ $wii-switch-height: $input-height;
 
 .select2-selection--multiple .select2-search__field {
     padding: 0 5px !important;
+    min-width: 1em;
     //WIIS-7131 pas de width 100%
 }
 

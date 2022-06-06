@@ -1,0 +1,36 @@
+{% for line in history %}
+    {% set record = line.record %}
+    {% set icon = line.icon %}
+    <div class="history-line">
+        <div class="history-content {{ loop.last ? 'last' }}">
+            <div class="wii-small-text date">{{ record.date|format_helper('longDate', {short: true, time: true}) }}</div>
+            <div class="title-right">
+                <div class="summary {{ not record.comment ? 'mb-0' }}">
+                    <img src="{{ asset('svg/' ~ icon) }}" alt="Icône" width="15px">
+                    <span class="ml-2">{{ formatHistory(record)|raw }}</span>
+                </div>
+                {% if record.comment %}
+                    <div class="comment wii-describe">{{ record.comment|raw }}</div>
+                {% endif %}
+                {% if record.attachments is not empty %}
+                    <div class="attachments">
+                        {% for attachment in record.attachments %}
+                            {% set path = (attachment.fullPath is defined and attachment.fullPath is not null)
+                                ? attachment.fullPath
+                                : ('/uploads/attachements/' ~ attachment.fileName) %}
+                            {% set name = attachment.originalName %}
+                            <div class="attachment-line mt-2">
+                                {% if isImage('public' ~ path) %}
+                                    <img src="{{ path }}" alt=""/>
+                                {% endif %}
+                                <a class="text-primary underlined pointer"
+                                   download="{{ name }}"
+                                   href="{{ path }}">{{ name }}</a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endfor %}

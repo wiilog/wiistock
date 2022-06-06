@@ -8,51 +8,37 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass=DashboardRepository\PageRepository::class)
- * @ORM\Table(name="dashboard_page")
- */
-class Page
-{
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
+#[ORM\Entity(repositoryClass: DashboardRepository\PageRepository::class)]
+#[ORM\Table(name: 'dashboard_page')]
+class Page {
+
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private $id;
 
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
+    #[ORM\Column(type: 'string', length: 255)]
     private $name;
 
-    /**
-     * @ORM\OneToMany(targetEntity=PageRow::class, mappedBy="page")
-     */
+    #[ORM\OneToMany(targetEntity: PageRow::class, mappedBy: 'page')]
     private $rows;
 
-    /**
-     * @ORM\OneToOne(targetEntity=Action::class, cascade={"persist", "remove"}, inversedBy="dashboard")
-     */
+    #[ORM\OneToOne(targetEntity: Action::class, cascade: ['persist', 'remove'], inversedBy: 'dashboard')]
     private $action;
 
-    public function __construct()
-    {
+    public function __construct() {
         $this->rows = new ArrayCollection();
     }
 
-    public function getId(): ?int
-    {
+    public function getId(): ?int {
         return $this->id;
     }
 
-    public function getName(): ?string
-    {
+    public function getName(): ?string {
         return $this->name;
     }
 
-    public function setName(?string $name): self
-    {
+    public function setName(?string $name): self {
         $this->name = $name;
         $this->getAction()
             ->setLabel("Dashboard \"$name\"");
@@ -63,14 +49,12 @@ class Page
     /**
      * @return Collection|PageRow[]
      */
-    public function getRows(): Collection
-    {
+    public function getRows(): Collection {
         return $this->rows;
     }
 
-    public function addRow(PageRow $pageRow): self
-    {
-        if (!$this->rows->contains($pageRow)) {
+    public function addRow(PageRow $pageRow): self {
+        if(!$this->rows->contains($pageRow)) {
             $this->rows[] = $pageRow;
             $pageRow->setPage($this);
         }
@@ -78,11 +62,10 @@ class Page
         return $this;
     }
 
-    public function removeRow(PageRow $pageRow): self
-    {
-        if ($this->rows->removeElement($pageRow)) {
+    public function removeRow(PageRow $pageRow): self {
+        if($this->rows->removeElement($pageRow)) {
             // set the owning side to null (unless already changed)
-            if ($pageRow->getPage() === $this) {
+            if($pageRow->getPage() === $this) {
                 $pageRow->setPage(null);
             }
         }
@@ -106,4 +89,5 @@ class Page
 
         return $this;
     }
+
 }

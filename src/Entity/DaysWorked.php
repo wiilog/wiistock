@@ -2,38 +2,28 @@
 
 namespace App\Entity;
 
+use App\Repository\DaysWorkedRepository;
 use Doctrine\ORM\Mapping as ORM;
+use WiiCommon\Helper\Stream;
 
-/**
- * @ORM\Entity(repositoryClass="App\Repository\DaysWorkedRepository")
- */
+#[ORM\Entity(repositoryClass: DaysWorkedRepository::class)]
 class DaysWorked {
 
-    /**
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $day = null;
 
-    /**
-     * @ORM\Column(type="boolean")
-     */
+    #[ORM\Column(type: 'boolean')]
     private ?bool $worked = null;
 
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $times = null;
 
-    /**
-     * @ORM\Column(type="integer", nullable=true)
-     */
+    #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $displayOrder = null;
 
     public function getId(): ?int {
@@ -52,6 +42,16 @@ class DaysWorked {
 
     public function getTimes(): ?string {
         return $this->times;
+    }
+
+    /**
+     * @return array 12:00-14:00;15:00-16:00 => [[12:00, 14:00], [15:00, 16:00]]
+     */
+    public function getTimesArray(): array {
+        return Stream::explode(';', $this->times ?? '')
+            ->filter()
+            ->map(fn($day) => Stream::explode('-', $day)->toArray())
+            ->toArray();
     }
 
     public function setTimes(?string $times): self {

@@ -158,7 +158,6 @@ class UserController extends AbstractController {
             $loggedUser = $this->getUser();
 
             $typeRepository = $entityManager->getRepository(Type::class);
-            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $visibilityGroupRepository = $entityManager->getRepository(VisibilityGroup::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $roleRepository = $entityManager->getRepository(Role::class);
@@ -240,7 +239,8 @@ class UserController extends AbstractController {
                 ->setAddress($data['address'])
                 ->setDropzone($dropzone)
                 ->setEmail($data['email'])
-                ->setPhone($data['phoneNumber'] ?? '');
+                ->setPhone($data['phoneNumber'] ?? '')
+                ->setDeliverer($data['deliverer'] ?? false);
 
             $visibilityGroupsIds = is_string($data["visibility-group"]) ? explode(',', $data['visibility-group']) : $data["visibility-group"];
             if ($visibilityGroupsIds) {
@@ -362,7 +362,8 @@ class UserController extends AbstractController {
             'Types de service',
             'Dropzone',
             'Groupe(s) de visibilité',
-            'Statut'
+            'Livreur',
+            'Statut',
         ];
 
         return $CSVExportService->streamResponse(
@@ -465,7 +466,8 @@ class UserController extends AbstractController {
                 ->setStatus(true)
                 ->setDropzone($dropzone)
                 ->setAddress($data['address'])
-                ->setMobileLoginKey($uniqueMobileKey);
+                ->setMobileLoginKey($uniqueMobileKey)
+                ->setDeliverer($data['deliverer'] ?? false);
 
             if ($password !== '') {
                 $password = $encoder->hashPassword($utilisateur, $data['password']);
@@ -557,14 +559,13 @@ class UserController extends AbstractController {
     /**
      * @Route("/taille-page-arrivage", name="update_user_page_length_for_arrivage", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
-    public function updateUserPageLengthForArrivage(Request $request)
+    public function updateUserPageLengthForArrivage(Request $request, EntityManagerInterface $manager)
     {
         if ($data = json_decode($request->getContent(), true)) {
             /** @var Utilisateur $user */
             $user = $this->getUser();
             $user->setPageLengthForArrivage($data);
-            $em = $this->getDoctrine()->getManager();
-            $em->flush();
+            $manager->flush();
         }
         return new JsonResponse();
     }

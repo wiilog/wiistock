@@ -3,24 +3,58 @@ import Flash from "./flash";
 
 export default class Form {
 
-    submitCallback;
+    element;
+    submitListeners;
+    openListeners;
+    closeListeners;
     processors = [];
     uploads = {};
 
-    static create(selector) {
-        const form = new Form();
-        form.element = $(selector);
+    static create(selector, {clearOnOpen} = {}) {
+        const $form = $(selector);
+        let form = $form.data('form');
+        if (!form || !(form instanceof Form)) {
+            form = new Form();
 
-        WysiwygManager.initializeWYSIWYG(form.element);
-        form.element.on(`click`, `[type="submit"]`, function() {
-            const result = Form.process(form, {
-                button: $(this),
-            });
+            form
+                .clearOpenListeners()
+                .clearCloseListeners()
+                .clearSubmitListeners()
+                .clearProcessors();
 
-            if(result && form.submitCallback) {
-                form.submitCallback(result);
-            }
-        });
+            form.element = $form;
+            $form.data('form', form);
+
+            WysiwygManager.initializeWYSIWYG(form.element);
+            form.element
+                .on(`click`, '[type=submit]', function (event) {
+                    const result = Form.process(form, {
+                        button: $(this),
+                    });
+
+                    if (result) {
+                        form.submitListeners.forEach((submitListener) => {
+                            submitListener(result);
+                        });
+                    }
+
+                    event.preventDefault();
+                })
+                .on('shown.bs.modal', function () {
+                    if (clearOnOpen) {
+                        form.clear();
+                    }
+
+                    form.openListeners.forEach((openListener) => {
+                        openListener();
+                    });
+                })
+                .on('hidden.bs.modal', function () {
+                    form.closeListeners.forEach((closeListener) => {
+                        closeListener();
+                    });
+                });
+        }
 
         return form;
     }
@@ -30,8 +64,54 @@ export default class Form {
         return this;
     }
 
+    onOpen(callback = null) {
+        if (callback) {
+            this.openListeners.push(callback);
+        }
+        return this;
+    }
+
+    onClose(callback = null) {
+        if (callback) {
+            this.closeListeners.push(callback);
+        }
+        return this;
+    }
+
     onSubmit(callback = null) {
-        this.submitCallback = callback;
+        if (callback) {
+            this.submitListeners.push(callback);
+        }
+        return this;
+    }
+
+    clearOpenListeners() {
+        this.openListeners = [];
+        return this;
+    }
+
+    clearCloseListeners() {
+        this.closeListeners = [];
+        return this;
+    }
+
+    clearSubmitListeners() {
+        this.submitListeners = [];
+        return this;
+    }
+
+    clearProcessors() {
+        this.processors = [];
+        return this;
+    }
+
+    clear() {
+        clearFormError(this);
+        clearModal(this.element)
+    }
+
+    on(event, selector, callback) {
+        this.element.on(event, selector, callback);
         return this;
     }
 
@@ -63,6 +143,9 @@ export default class Form {
         eachInputs(form, config, ($input, value) => {
             treatInputError($input, errors, form);
             if (value !== null) {
+                if($input.is('[data-intl-tel-input]')){
+                    $input.val(window.intlTelInputGlobals.getInstance($input[0]).getNumber());
+                }
                 const $multipleKey = $input.closest(`[data-multiple-key]`);
                 if ($multipleKey.exists()) {
                     const multipleKey = JSON.parse(data.get($multipleKey.data(`multiple-key`)) || `{}`);
@@ -93,13 +176,37 @@ export default class Form {
             }
         }
 
+        if(errors.length > 0) {
+            console.error(`%cForm errors (${errors.length}) %c`, ...[
+                `font-weight: bold;`,
+                `font-weight: normal;`,
+            ], errors);
+            if (errors[0].elements && errors[0].elements[0]) {
+                const $firstInvalidElement = errors[0].elements[0];
+                const $scrollableParent = $firstInvalidElement.parents(`.modal`).exists()
+                    ? $firstInvalidElement.parents(`.modal`).first()
+                    : $firstInvalidElement.parents(`body`);
+
+                if ($scrollableParent) {
+                    $scrollableParent.animate({
+                        scrollTop: $firstInvalidElement.offset().top
+                    }, 1000);
+                }
+            }
+        }
+
         if(config.ignoreErrors) {
             return data;
         }
 
         // display errors under each field
         for(const error of errors) {
-            error.elements.forEach($elem => Form.showInvalid($elem, error.message));
+            if (error.elements && error.elements.length > 0) {
+                error.elements.forEach(($elem) => Form.showInvalid($elem, error.message));
+            }
+            else {
+                Flash.add(`danger`, error.message);
+            }
         }
 
         return errors.length === 0 ? data : false;
@@ -135,7 +242,7 @@ export default class Form {
         if($field.is(`[data-s2-initialized]`)) {
             $field = $field.parent().find(`.select2-selection`);
         } else if($field.is(`[type="file"]`)) {
-            $field = $field.parent();
+            $field = $field.siblings('.btn');
         }
 
         if($field.is(`[data-wysiwyg]`)) {
@@ -146,9 +253,17 @@ export default class Form {
 
         $field.addClass(`is-invalid`);
         $parent.find(`.invalid-feedback`).remove();
+        $field = $field.is(`.select2-selection`)
+            ? $field.closest(`.select2-container`).siblings(`select`)
+            : $field;
+        console.log($field);
         if($field.is(`[data-global-error]`)) {
-            const label = $field.data(`global-error`) || $parent.find(`.field-label`).text();
-            Flash.add(`danger`, `${label} : ${message}`);
+            let label = $field.data(`global-error`) || $parent.find(`.field-label`).text();
+            label = label
+                .trim()
+                .replace(/\*$/, '');
+            const prefixMessage = label ? `${label} : ` : '';
+            Flash.add(`danger`, `${prefixMessage}${message}`);
         } else {
             $parent.append(`<span class="invalid-feedback">${message}</span>`);
         }
@@ -194,7 +309,7 @@ function ignoreInput($input, config) {
 function eachInputs(form, config, callback) {
     const classes = config.classes;
     const $form = getFormElement(form);
-    const $inputs = $form.find(`.fileInput, .wii-switch, .wii-switch-no-style, select.${classes.data}, input.${classes.data}, input[data-repeat], textarea.${classes.data}, .data[data-wysiwyg]`);
+    const $inputs = $form.find(`.fileInput, .wii-switch, .wii-switch-no-style, select.${classes.data}, input.${classes.data}, input.${classes.array}, input[data-repeat], textarea.${classes.data}, .data[data-wysiwyg]`);
     for(const input of $inputs) {
         let $input = $(input);
 
@@ -251,6 +366,7 @@ function treatInputError($input, errors, form) {
     }
 
     if ($input.data(`repeat`)) {
+        const $form = getFormElement(form);
         const $toRepeat = $form.find(`input[name="${$input.data(`repeat`)}"`);
 
         if ($input.val() !== $toRepeat.val()) {
@@ -263,24 +379,31 @@ function treatInputError($input, errors, form) {
 
     if ($input.is(`[required]`) || $input.is(`[data-required]`) || $input.is(`.needed`)) {
         if (([`radio`, `checkbox`].includes($input.attr(`type`)) && !$input.is(`:checked`))) {
-            errors.push({
-                elements: [$input.closest(`.wii-radio, .wii-checkbox, .wii-switch`)],
-                message: `Vous devez sélectionner au moins un élément`,
-            });
+            const $elementInError = $input.closest(`.wii-radio-container, .wii-checkbox, .wii-switch, .wii-expanded-switch`);
+            // check if element is already in error
+            const elementAlreadyInError = errors.some(({elements}) => (
+                elements
+                && elements.some((el) => $(el).data('name') === $elementInError.data('name'))
+            ));
+            if (!elementAlreadyInError) {
+                errors.push({
+                    elements: [$elementInError],
+                    message: `Vous devez sélectionner au moins un élément`,
+                });
+            }
         } else {
             const valueIsEmpty = (
                 $input.is(`[data-wysiwyg]`) ? !$input.find(`.ql-editor`).text() :  // for wysuwyg fields
-                    ($input.is(`select[multiple]`) && Array.isArray($input.val())) ? $input.val().length === 0 : // for select2 multiple
-                        !$input.val() // other fiels
+                ($input.is(`select[multiple]`) && Array.isArray($input.val())) ? $input.val().length === 0 : // for select2 multiple
+                $input.is(`[type="file"]`) ? (!$input.val() && !$input.siblings('.preview-container').find('img').attr('src')) : // for input file
+                !$input.val() // other fields
             );
 
             if (valueIsEmpty) {
-                if (!$input.is(`[type="file"]`) || form instanceof Form && !form.uploads[$input.attr(`name`)]) {
-                    errors.push({
-                        elements: [$input],
-                        message: `Ce champ est requis`,
-                    });
-                }
+                errors.push({
+                    elements: [$input],
+                    message: `Ce champ est requis`,
+                });
             }
         }
     }

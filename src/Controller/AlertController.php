@@ -46,14 +46,14 @@ class AlertController extends AbstractController
      * @Route("/liste", name="alerte_index", methods="GET|POST", options={"expose"=true})
      * @HasPermission({Menu::STOCK, Action::DISPLAY_ALER})
      */
-    public function index(Request $request): Response
+    public function index(Request $request, EntityManagerInterface $manager): Response
     {
         $query = $request->query;
 
         $referenceTypes = $query->has('referenceTypes') ? $query->get('referenceTypes', '') : '';
         $managers = $query->has('managers') ? $query->get('managers', '') : '';
-        $typeRepository = $this->getDoctrine()->getRepository(Type::class);
-        $utilisateurRepository = $this->getDoctrine()->getRepository(Utilisateur::class);
+        $typeRepository = $manager->getRepository(Type::class);
+        $utilisateurRepository = $manager->getRepository(Utilisateur::class);
         if (!empty($managers)) {
             $managersIds = explode(',', $managers);
             $managersFilter = !empty($managersIds)

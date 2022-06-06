@@ -3,14 +3,12 @@
 namespace App\Entity;
 
 use App\Entity\Interfaces\Serializable;
+use App\Repository\FreeFieldRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use App\Repository\FreeFieldRepository;
 
-/**
- * @ORM\Entity(repositoryClass=FreeFieldRepository::class)
- */
+#[ORM\Entity(repositoryClass: FreeFieldRepository::class)]
 class FreeField implements Serializable {
 
     const TYPE_BOOL = 'booleen';
@@ -57,128 +55,93 @@ class FreeField implements Serializable {
         FreeField::TYPE_LIST => 'Liste',
         FreeField::TYPE_NUMBER => 'Nombre',
         FreeField::TYPE_TEXT => 'Texte',
-        FreeField::TYPE_LIST_MULTIPLE => 'Liste multiple'
+        FreeField::TYPE_LIST_MULTIPLE => 'Liste multiple',
     ];
     const SPECIC_COLLINS_BL = 'BL';
-
     const MACHINE_PDT_FREE_FIELD = 'Machine PDT';
 
-    /**
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private $id;
 
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true, unique=true)
-     */
+    #[ORM\Column(type: 'string', length: 255, nullable: true, unique: true)]
     private $label;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="champsLibres")
-     */
+    #[ORM\ManyToOne(targetEntity: Type::class, inversedBy: 'champsLibres')]
     private $type;
 
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private $typage;
 
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private $defaultValue;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\FiltreRef", mappedBy="champLibre")
-     */
+    #[ORM\OneToMany(targetEntity: FiltreRef::class, mappedBy: 'champLibre')]
     private $filters;
 
-    /**
-     * @ORM\Column(type="json", nullable=true)
-     */
+    #[ORM\Column(type: 'json', nullable: true)]
     private $elements = [];
 
-    /**
-     * @ORM\Column(type="boolean", nullable=true)
-     */
+    #[ORM\Column(type: 'boolean', nullable: true)]
     private $requiredCreate;
 
-    /**
-     * @ORM\Column(type="boolean", nullable=true)
-     */
+    #[ORM\Column(type: 'boolean', nullable: true)]
     private $requiredEdit;
 
-    /**
-     * @ORM\Column(type="boolean", nullable=true, options={"default": 1})
-     */
+    #[ORM\Column(type: 'boolean', nullable: true, options: ['default' => 1])]
     private $displayedCreate;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\CategorieCL", inversedBy="champsLibres")
-     */
-    private $categorieCL;
+    #[ORM\ManyToOne(targetEntity: CategorieCL::class, inversedBy: 'champsLibres')]
+    private ?CategorieCL $categorieCL = null;
 
-
-    public function __construct()
-    {
+    public function __construct() {
         $this->filters = new ArrayCollection();
     }
 
-    public function __toString(): string
-    {
+    public function __toString(): string {
         return $this->label;
     }
 
-    public function getId(): ?int
-    {
+    public function getId(): ?int {
         return $this->id;
     }
 
-    public function getLabel(): ?string
-    {
+    public function getLabel(): ?string {
         return $this->label;
     }
 
-    public function setLabel(?string $label): self
-    {
+    public function setLabel(?string $label): self {
         $this->label = $label;
 
         return $this;
     }
 
-    public function getType(): ?Type
-    {
+    public function getType(): ?Type {
         return $this->type;
     }
 
-    public function setType(?Type $type): self
-    {
+    public function setType(?Type $type): self {
         $this->type = $type;
 
         return $this;
     }
 
-    public function getTypage(): ?string
-    {
+    public function getTypage(): ?string {
         return $this->typage;
     }
 
-    public function setTypage(?string $typage): self
-    {
+    public function setTypage(?string $typage): self {
         $this->typage = $typage;
 
         return $this;
     }
 
-    public function getDefaultValue(): ?string
-    {
+    public function getDefaultValue(): ?string {
         return $this->defaultValue;
     }
 
-    public function setDefaultValue(?string $defaultValue): self
-    {
+    public function setDefaultValue(?string $defaultValue): self {
         $this->defaultValue = $defaultValue;
 
         return $this;
@@ -187,14 +150,12 @@ class FreeField implements Serializable {
     /**
      * @return Collection|FiltreRef[]
      */
-    public function getFilters(): Collection
-    {
+    public function getFilters(): Collection {
         return $this->filters;
     }
 
-    public function addFilter(FiltreRef $filter): self
-    {
-        if (!$this->filters->contains($filter)) {
+    public function addFilter(FiltreRef $filter): self {
+        if(!$this->filters->contains($filter)) {
             $this->filters[] = $filter;
             $filter->setChampLibre($this);
         }
@@ -202,12 +163,11 @@ class FreeField implements Serializable {
         return $this;
     }
 
-    public function removeFilter(FiltreRef $filter): self
-    {
-        if ($this->filters->contains($filter)) {
+    public function removeFilter(FiltreRef $filter): self {
+        if($this->filters->contains($filter)) {
             $this->filters->removeElement($filter);
             // set the owning side to null (unless already changed)
-            if ($filter->getChampLibre() === $this) {
+            if($filter->getChampLibre() === $this) {
                 $filter->setChampLibre(null);
             }
         }
@@ -215,37 +175,31 @@ class FreeField implements Serializable {
         return $this;
     }
 
-    public function getElements(): ?array
-    {
+    public function getElements(): ?array {
         return $this->elements ?: [];
     }
 
-    public function setElements(?array $elements): self
-    {
+    public function setElements(?array $elements): self {
         $this->elements = $elements;
 
         return $this;
     }
 
-    public function isRequiredCreate(): ?bool
-    {
+    public function isRequiredCreate(): ?bool {
         return $this->requiredCreate;
     }
 
-    public function setRequiredCreate(?bool $requiredCreate): self
-    {
+    public function setRequiredCreate(?bool $requiredCreate): self {
         $this->requiredCreate = $requiredCreate;
 
         return $this;
     }
 
-    public function isRequiredEdit(): ?bool
-    {
+    public function isRequiredEdit(): ?bool {
         return $this->requiredEdit;
     }
 
-    public function setRequiredEdit(?bool $requiredEdit): self
-    {
+    public function setRequiredEdit(?bool $requiredEdit): self {
         $this->requiredEdit = $requiredEdit;
 
         return $this;
@@ -260,13 +214,11 @@ class FreeField implements Serializable {
         return $this;
     }
 
-    public function getCategorieCL(): ?CategorieCL
-    {
+    public function getCategorieCL(): ?CategorieCL {
         return $this->categorieCL;
     }
 
-    public function setCategorieCL(?CategorieCL $categorieCL): self
-    {
+    public function setCategorieCL(?CategorieCL $categorieCL): self {
         $this->categorieCL = $categorieCL;
 
         return $this;

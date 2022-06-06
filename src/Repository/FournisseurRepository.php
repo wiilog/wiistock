@@ -112,16 +112,16 @@ class FournisseurRepository extends EntityRepository
 
         // prise en compte des paramètres issus du datatable
         if (!empty($params)) {
-            if (!empty($params->get('order'))) {
-                $order = $params->get('order')[0]['dir'];
+            if (!empty($params->all('order'))) {
+                $order = $params->all('order')[0]['dir'];
                 if (!empty($order)) {
-                    $column = $params->get('columns')[$params->get('order')[0]['column']]['data'];
+                    $column = $params->all('columns')[$params->all('order')[0]['column']]['data'];
                     $qb
                         ->orderBy('supplier.' . (self::DtToDbLabels[$column] ?? $column), $order);
                 }
             }
-            if (!empty($params->get('search'))) {
-                $search = $params->get('search')['value'];
+            if (!empty($params->all('search'))) {
+                $search = $params->all('search')['value'];
                 if (!empty($search)) {
                     $searchOr = $expr->orX(
                         'supplier.nom LIKE :value',

@@ -39,7 +39,7 @@ class ReceptionRepository extends EntityRepository
             ->orderBy('reception.date', 'DESC')
             ->addOrderBy('reception.number', 'DESC')
             ->addOrderBy('reception.id', 'DESC')
-            ->setParameter('value', Reception::PREFIX_NUMBER . $date . '%')
+            ->setParameter('value', Reception::NUMBER_PREFIX . $date . '%')
             ->getQuery()
             ->execute();
         return $result ? $result[0]['number'] : null;
@@ -193,8 +193,8 @@ class ReceptionRepository extends EntityRepository
         }
         //Filter search
         if (!empty($params)) {
-            if (!empty($params->get('search'))) {
-                $search = $params->get('search')['value'];
+            if (!empty($params->all('search'))) {
+                $search = $params->all('search')['value'];
                 if (!empty($search)) {
                     $conditions = [
                         "Date" => "DATE_FORMAT(reception.date, '%d/%m/%Y') LIKE :search_value",
@@ -223,13 +223,13 @@ class ReceptionRepository extends EntityRepository
                 }
             }
 
-            if (!empty($params->get('order')))
+            if (!empty($params->all('order')))
             {
-                foreach ($params->get('order') as $sort) {
+                foreach ($params->all('order') as $sort) {
                     $order = $sort['dir'];
                     if (!empty($order))
                     {
-                        $columnName = $params->get('columns')[$sort['column']]['data'];
+                        $columnName = $params->all('columns')[$sort['column']]['data'];
                         $column = self::DtToDbLabels[$columnName] ?? $columnName;
                         if ($column === 'statut') {
                             $qb

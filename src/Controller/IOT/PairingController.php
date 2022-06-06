@@ -15,6 +15,8 @@ use App\Entity\Menu;
 
 use App\Entity\Pack;
 
+use App\Entity\Transport\Vehicle;
+use App\Service\GeoService;
 use App\Service\IOT\IOTService;
 use App\Service\IOT\PairingService;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -80,7 +82,7 @@ class PairingController extends AbstractController {
             $rows[] = [
                 "id" => $pairing->getId(),
                 "type" => $type,
-                "typeIcon" => Sensor::SENSOR_ICONS[$type],
+                "typeIcon" => Sensor::SENSOR_ICONS[$type] ?? null,
                 "name" => $pairing->getSensorWrapper() ? $pairing->getSensorWrapper()->getName() : '',
                 "element" => $pairing->getEntity() ? $pairing->getEntity()->__toString() : '',
                 "elementIcon" => $elementIcon,
@@ -184,7 +186,9 @@ class PairingController extends AbstractController {
                 $article = $entityManager->getRepository(Article::class)->find($data['article']);
             } else if(isset($data['pack'])) {
                 $pack = $entityManager->getRepository(Pack::class)->find($data['pack']);
-            } else {
+            } else if(isset($data['vehicle'])) {
+                $vehicle =$entityManager->getRepository(Vehicle::class)->find($data['vehicle']);
+            }else {
                 $typeLocation = explode(':', $data['locations']);
                 if ($typeLocation[0] == 'location') {
                     $location = $entityManager->getRepository(Emplacement::class)->find($typeLocation[1]);
@@ -193,7 +197,7 @@ class PairingController extends AbstractController {
                 }
             }
 
-            $pairingLocation = $pairingService->createPairing($data['date-pairing'], $sensorWrapper, $article ?? null, $location ?? null, $locationGroup ?? null, $pack ?? null);
+            $pairingLocation = $pairingService->createPairing($data['date-pairing'], $sensorWrapper, $article ?? null, $location ?? null, $locationGroup ?? null, $pack ?? null, $vehicle ?? null);
             $entityManager->persist($pairingLocation);
 
             try {
@@ -219,7 +223,7 @@ class PairingController extends AbstractController {
     /**
      * @Route("/map-data/{pairing}", name="pairing_map_data", condition="request.isXmlHttpRequest()")
      */
-    public function getMapData(Request $request, Pairing $pairing, DataMonitoringService $dataMonitoringService): JsonResponse
+    public function getMapData(Request $request, Pairing $pairing, GeoService $geoService, DataMonitoringService $dataMonitoringService): JsonResponse
     {
         $filters = $request->query->all();
         $associatedMessages = $pairing->getSensorMessagesBetween(
@@ -245,7 +249,7 @@ class PairingController extends AbstractController {
                 ->toArray();
             if ($coordinates[0] !== -1.0 || $coordinates[1] !== -1.0) {
                 if ($lastCoordinates) {
-                    $distanceBetweenLastPoint = $dataMonitoringService->vincentyGreatCircleDistance($lastCoordinates[0], $lastCoordinates[1], $coordinates[0], $coordinates[1]);
+                    $distanceBetweenLastPoint = $geoService->vincentyGreatCircleDistance($lastCoordinates[0], $lastCoordinates[1], $coordinates[0], $coordinates[1]);
                     $interval = $lastDate->diff($message->getDate());
                     if ($distanceBetweenLastPoint > 200.0 || (($interval->days * 24) + $interval->h) > 23) {
                         $data[$sensorCode][$dateStr] = $coordinates;

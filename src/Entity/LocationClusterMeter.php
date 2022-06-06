@@ -3,46 +3,45 @@
 
 namespace App\Entity;
 
+use App\Repository\LocationClusterMeterRepository;
 use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass="App\Repository\LocationClusterMeterRepository")
- */
+#[ORM\Entity(repositoryClass: LocationClusterMeterRepository::class)]
 class LocationClusterMeter {
 
     /**
      * @var int|null
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer")
      */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private $id;
 
     /**
      * @var DateTime|null
-     * @ORM\Column(type="date", nullable=false)
      */
+    #[ORM\Column(type: 'date', nullable: false)]
     private $date;
 
     /**
      * @var int
-     * @ORM\Column(type="integer", nullable=false, options={"unsigned": true})
      */
+    #[ORM\Column(type: 'integer', nullable: false, options: ['unsigned' => true])]
     private $dropCounter;
 
     /**
      * @var LocationCluster|null
-     * @ORM\ManyToOne(targetEntity="App\Entity\LocationCluster", inversedBy="metersFrom")
-     * @ORM\JoinColumn(nullable=true)
      */
+    #[ORM\ManyToOne(targetEntity: LocationCluster::class, inversedBy: 'metersFrom')]
+    #[ORM\JoinColumn(nullable: true)]
     private $locationClusterFrom;
 
     /**
      * @var LocationCluster|null
-     * @ORM\ManyToOne(targetEntity="App\Entity\LocationCluster", inversedBy="metersInto")
-     * @ORM\JoinColumn(nullable=false)
      */
+    #[ORM\ManyToOne(targetEntity: LocationCluster::class, inversedBy: 'metersInto')]
+    #[ORM\JoinColumn(nullable: false)]
     private $locationClusterInto;
 
     public function __construct() {
@@ -100,7 +99,7 @@ class LocationClusterMeter {
      * @return self
      */
     public function decreaseDropCounter(): self {
-        if ($this->dropCounter > 0) {
+        if($this->dropCounter > 0) {
             $this->dropCounter -= 1;
         }
         return $this;
@@ -137,6 +136,5 @@ class LocationClusterMeter {
         $this->locationClusterInto = $locationClusterInto;
         return $this;
     }
-
 
 }

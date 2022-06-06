@@ -5,8 +5,12 @@ namespace App\Controller;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
+use App\Entity\CategoryType;
 use App\Entity\Menu;
 use App\Entity\Nature;
+use App\Entity\Transport\TemperatureRange;
+use App\Entity\Type;
+use App\Service\NatureService;
 use App\Service\UserService;
 
 use Doctrine\ORM\EntityManagerInterface;
@@ -28,44 +32,28 @@ class NatureController extends AbstractController
     /** @Required */
     public UserService $userService;
 
-    /**
-     * @Route("/", name="nature_param_index")
-     */
-    public function index()
+    #[Route('/', name: "nature_param_index", options: ['expose' => true], methods: 'GET')]
+    #[HasPermission([Menu::REFERENTIEL, Action::DISPLAY_PACK_NATURE])]
+    public function index(EntityManagerInterface $manager)
     {
-        return $this->render('nature_param/index.html.twig');
+        $typeRepository = $manager->getRepository(Type::class);
+
+        $temperatures = $manager->getRepository(TemperatureRange::class)->findBy([]);
+        $types = [
+            'transportCollect' => $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::COLLECT_TRANSPORT),
+            'transportDelivery' => $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::DELIVERY_TRANSPORT)
+        ];
+        return $this->render('nature_param/index.html.twig', [
+            'temperatures' => $temperatures,
+            'types' => $types
+        ]);
     }
 
-    /**
-     * @Route("/api", name="nature_param_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     */
-    public function api(EntityManagerInterface $entityManager): Response
+    #[Route("/api", name: "nature_param_api", options: ["expose" => true], methods: "GET|POST", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::REFERENTIEL, Action::DISPLAY_PACK_NATURE], mode: HasPermission::IN_JSON)]
+    public function api(Request $request, NatureService $natureService): Response
     {
-        $natureRepository = $entityManager->getRepository(Nature::class);
-
-        $natures = $natureRepository->findAll();
-        $rows = [];
-        foreach ($natures as $nature) {
-            $url['edit'] = $this->generateUrl('nature_api_edit', ['id' => $nature->getId()]);
-
-            $rows[] =
-                [
-                    'Label' => $nature->getLabel(),
-                    'Code' => $nature->getCode(),
-                    'Quantité par défaut' => $nature->getDefaultQuantity() ?? 'Non définie',
-                    'Préfixe' => $nature->getPrefix() ?? 'Non défini',
-                    'mobileSync' => $nature->getNeedsMobileSync() ? 'Oui' : 'Non',
-                    'displayed' => $nature->getDisplayed() ? 'Oui' : 'Non',
-                    'Couleur' => $nature->getColor() ? '<div style="background-color:' . $nature->getColor() . ';"><br></div>' : 'Non définie',
-                    'description' => $nature->getDescription() ?? 'Non définie',
-                    'Actions' => $this->renderView('nature_param/datatableNatureRow.html.twig', [
-                        'url' => $url,
-                        'natureId' => $nature->getId(),
-                    ]),
-                ];
-        }
-        $data['data'] = $rows;
-        return new JsonResponse($data);
+        return $this->json($natureService->getDataForDatatable($request->request));
     }
 
     /**
@@ -74,25 +62,51 @@ class NatureController extends AbstractController
      */
     public function new(Request $request, TranslatorInterface $translator, EntityManagerInterface $entityManager): Response {
         if ($data = json_decode($request->getContent(), true)) {
-            $em = $this->getDoctrine()->getManager();
-
             if(preg_match("[[,;]]", $data['label'])) {
                 return $this->json([
                     "success" => false,
-                    "msg" => "Le label d'une nature ne peut pas contenir ; ou ,",
+                    "msg" => "Le libellé d'une nature ne peut pas contenir ; ou ,",
                 ]);
             }
+
+            $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
 
             $nature = new Nature();
             $nature
                 ->setLabel($data['label'])
                 ->setPrefix($data['prefix'] ?? null)
                 ->setColor($data['color'])
-                ->setDisplayed($data['displayed'])
                 ->setNeedsMobileSync($data['mobileSync'] ?? false)
                 ->setDefaultQuantity($data['quantity'])
                 ->setDescription($data['description'] ?? null)
                 ->setCode($data['code']);
+
+            if (!empty($data['allowedTemperatures'])) {
+                foreach ($data['allowedTemperatures'] as $allowedTemperatureId) {
+                    $nature
+                        ->addTemperatureRange($temperatureRangeRepository->find($allowedTemperatureId));
+                }
+            }
+
+            if($data['displayedOnForms']) {
+                $allowedForms = [];
+                if($data[Nature::ARRIVAL_CODE]) {
+                    $allowedForms[Nature::ARRIVAL_CODE] = 'all';
+                }
+
+                if($data[Nature::TRANSPORT_COLLECT_CODE]) {
+                    $allowedForms[Nature::TRANSPORT_COLLECT_CODE] = $data['transportCollectTypes'];
+                }
+
+                if($data[Nature::TRANSPORT_DELIVERY_CODE]) {
+                    $allowedForms[Nature::TRANSPORT_DELIVERY_CODE] = $data['transportDeliveryTypes'];
+                }
+                $nature
+                    ->setDisplayedOnForms(true)
+                    ->setAllowedForms($allowedForms);
+            } else {
+                $nature->setDisplayedOnForms(false);
+            }
 
             $natures = $entityManager->getRepository(Nature::class)->findAll();
 
@@ -114,12 +128,13 @@ class NatureController extends AbstractController
                 $nature->setDefaultForDispatch(false);
             }
 
-            $em->persist($nature);
-            $em->flush();
+            $entityManager->persist($nature);
+            $entityManager->flush();
 
+            $natureLabel = $data['label'];
             return new JsonResponse([
                 'success' => true,
-                'msg' =>  $translator->trans('natures.une nature') . ' "' . $data['label'] . '" a bien été créée.'
+                'msg' => $translator->trans('natures.une nature') . " <strong>$natureLabel</strong> a bien été créée."
             ]);
         }
         throw new BadRequestHttpException();
@@ -130,14 +145,23 @@ class NatureController extends AbstractController
      * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function apiEdit(Request $request,
-                            EntityManagerInterface $entityManager): Response
+                            EntityManagerInterface $manager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
-            $natureRepository = $entityManager->getRepository(Nature::class);
+            $natureRepository = $manager->getRepository(Nature::class);
+            $typeRepository = $manager->getRepository(Type::class);
             $nature = $natureRepository->find($data['id']);
+
+            $temperatures = $manager->getRepository(TemperatureRange::class)->findBy([]);
+            $types = [
+                'transportCollect' => $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::COLLECT_TRANSPORT),
+                'transportDelivery' => $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::DELIVERY_TRANSPORT)
+            ];
 
             $json = $this->renderView('nature_param/modalEditNatureContent.html.twig', [
                 'nature' => $nature,
+                'temperatures' => $temperatures,
+                'types' => $types
             ]);
 
             return new JsonResponse($json);
@@ -154,6 +178,7 @@ class NatureController extends AbstractController
     {
         if ($data = json_decode($request->getContent(), true)) {
             $natureRepository = $entityManager->getRepository(Nature::class);
+            $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
             $currentNature = $natureRepository->find($data['nature']);
             $natureLabel = $currentNature->getLabel();
 
@@ -168,11 +193,41 @@ class NatureController extends AbstractController
                 ->setLabel($data['label'])
                 ->setPrefix($data['prefix'] ?? null)
                 ->setDefaultQuantity($data['quantity'])
-                ->setDisplayed($data['displayed'])
                 ->setNeedsMobileSync($data['mobileSync'] ?? false)
                 ->setDescription($data['description'] ?? null)
                 ->setColor($data['color'])
                 ->setCode($data['code']);
+
+            $currentNature->getTemperatureRanges()->clear();
+
+            if (!empty($data['allowedTemperatures'])) {
+                foreach ($data['allowedTemperatures'] as $allowedTemperatureId) {
+                    $currentNature
+                        ->addTemperatureRange($temperatureRangeRepository->find($allowedTemperatureId));
+                }
+            }
+
+            if($data['displayedOnForms']) {
+                $allowedForms = [];
+                if($data[Nature::ARRIVAL_CODE]) {
+                    $allowedForms[Nature::ARRIVAL_CODE] = 'all';
+                }
+
+                if($data[Nature::TRANSPORT_COLLECT_CODE]) {
+                    $allowedForms[Nature::TRANSPORT_COLLECT_CODE] = $data['transportCollectTypes'];
+                }
+
+                if($data[Nature::TRANSPORT_DELIVERY_CODE]) {
+                    $allowedForms[Nature::TRANSPORT_DELIVERY_CODE] = $data['transportDeliveryTypes'];
+                }
+                $currentNature
+                    ->setDisplayedOnForms(true)
+                    ->setAllowedForms($allowedForms);
+            } else {
+                $currentNature
+                    ->setDisplayedOnForms(false)
+                    ->setAllowedForms(null);
+            }
 
             $natures = $natureRepository->findAll();
 
@@ -198,7 +253,7 @@ class NatureController extends AbstractController
 
             return new JsonResponse([
                 'success' => true,
-                'msg' => 'La nature "' . $natureLabel . '" a bien été modifiée.'
+                'msg' => "La nature <strong>$natureLabel</strong> a bien été modifiée."
             ]);
         }
         throw new BadRequestHttpException();
@@ -208,7 +263,7 @@ class NatureController extends AbstractController
      * @Route("/verification", name="nature_check_delete", options={"expose"=true}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::PARAM, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
-    public function checkStatusCanBeDeleted(Request $request,
+    public function checkNatureCanBeDeleted(Request $request,
                                             EntityManagerInterface $entityManager): Response
     {
         if ($typeId = json_decode($request->getContent(), true)) {

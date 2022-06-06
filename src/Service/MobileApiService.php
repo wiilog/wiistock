@@ -2,13 +2,8 @@
 
 namespace App\Service;
 
-use App\Entity\Action;
-use App\Entity\CategoryType;
 use App\Entity\Dispatch;
 use App\Entity\DispatchPack;
-use App\Entity\FieldsParam;
-use App\Entity\FreeField;
-use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\Setting;
 use App\Entity\Translation;
@@ -68,6 +63,8 @@ class MobileApiService {
 
     public function getTranslationsData(EntityManagerInterface $entityManager): array {
         $translationsRepository = $entityManager->getRepository(Translation::class);
+
+        //TODO: récupérer tout en français
         return [
             'translations' => $translationsRepository->findAllObjects(),
         ];

@@ -172,6 +172,7 @@ class UserService
             FormatHelper::entity($user->getHandlingTypes()->toArray(), 'label', ' , '),
             $dropzone instanceof Emplacement ? FormatHelper::location($dropzone) : FormatHelper::locationGroup($dropzone),
             FormatHelper::entity($user->getVisibilityGroups()->toArray(), "label", ' / '),
+            FormatHelper::bool($user->isDeliverer()),
             $user->getStatus() ? 'Actif' : 'Inactif'
         ]);
     }
@@ -182,12 +183,17 @@ class UserService
             'notifications' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_NOTIFICATIONS, $user),
             'stock' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_STOCK, $user),
             'tracking' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_TRACA, $user),
+            'track' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_TRACK, $user),
             'group' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_GROUP, $user),
             'ungroup' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_UNGROUP, $user),
             'demande' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_HAND, $user),
             'inventoryManager' => $this->hasRightFunction(Menu::STOCK, Action::INVENTORY_MANAGER, $user),
             'emptyRound' => $this->hasRightFunction(Menu::TRACA, Action::EMPTY_ROUND, $user)
         ];
+    }
+
+    public function getUserFCMChannel(Utilisateur $user): string {
+        return 'user-' . $user->getId();
     }
 
 }

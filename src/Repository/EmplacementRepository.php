@@ -64,7 +64,11 @@ class EmplacementRepository extends EntityRepository
         return $this->createQueryBuilder('location')
             ->select('location.id')
             ->addSelect('location.label')
+            ->addSelect("GROUP_CONCAT(join_temperature_ranges.value SEPARATOR ';') AS temperature_ranges")
             ->where('location.isActive = true')
+            ->leftJoin('location.temperatureRanges', 'join_temperature_ranges')
+            ->groupBy('location.id')
+            ->addGroupBy('location.label')
             ->getQuery()
             ->getResult();
     }
@@ -153,17 +157,17 @@ class EmplacementRepository extends EntityRepository
         }
 
         if (!empty($params)) {
-            if (!empty($params->get('search'))) {
-                $search = $params->get('search')['value'];
+            if (!empty($params->all('search'))) {
+                $search = $params->all('search')['value'];
                 if (!empty($search)) {
                     $qb
                         ->andWhere('e.label LIKE :value OR e.description LIKE :value')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
-            if (!empty($params->get('order'))) {
-                $order = $params->get('order')[0]['dir'];
-                $field = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['name']];
+            if (!empty($params->all('order'))) {
+                $order = $params->all('order')[0]['dir'];
+                $field = self::DtToDbLabels[$params->all('columns')[$params->all('order')[0]['column']]['name']];
                 if (!empty($order) && $field) {
                     if($field === 'pairing') {
                         $qb->leftJoin('e.pairings', 'order_pairings')

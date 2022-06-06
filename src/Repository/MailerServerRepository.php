@@ -4,7 +4,6 @@ namespace App\Repository;
 
 use App\Entity\MailerServer;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\NonUniqueResultException;
 
 /**
  * @method MailerServer|null find($id, $lockMode = null, $lockVersion = null)

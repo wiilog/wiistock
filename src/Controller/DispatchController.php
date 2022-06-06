@@ -20,7 +20,6 @@ use App\Entity\DispatchPack;
 use App\Entity\Setting;
 use App\Entity\Attachment;
 use App\Entity\Statut;
-use App\Entity\TrackingMovement;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -278,7 +277,7 @@ class DispatchController extends AbstractController {
             ]);
         }
 
-        $dispatchNumber = $uniqueNumberService->create($entityManager, Dispatch::PREFIX_NUMBER, Dispatch::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
+        $dispatchNumber = $uniqueNumberService->create($entityManager, Dispatch::NUMBER_PREFIX, Dispatch::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
         $dispatch
             ->setCreationDate($date)
             ->setStatut($status)
@@ -1087,7 +1086,7 @@ class DispatchController extends AbstractController {
      * @param Dispatch $dispatch
      * @return JsonResponse
      */
-    public function apiDeliveryNote(Request $request,
+    public function apiDeliveryNote(Request $request, EntityManagerInterface $manager,
                                     TranslatorInterface $translator,
                                     Dispatch $dispatch): JsonResponse {
         /** @var Utilisateur $loggedUser */
@@ -1137,7 +1136,7 @@ class DispatchController extends AbstractController {
             []
         );
 
-        $fieldsParamRepository = $this->getDoctrine()->getRepository(FieldsParam::class);
+        $fieldsParamRepository = $manager->getRepository(FieldsParam::class);
 
         $html = $this->renderView('dispatch/modalPrintDeliveryNoteContent.html.twig', array_merge($deliveryNoteData, [
             'dispatchEmergencyValues' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY),
@@ -1479,8 +1478,7 @@ class DispatchController extends AbstractController {
     /**
      * @Route("/bon-de-surconsommation/{dispatch}", name="generate_overconsumption_bill", options={"expose"=true}, methods="POST")
      */
-    public function updateOverconsumption(DispatchService $dispatchService, UserService $userService, Dispatch $dispatch): Response {
-        $entityManager = $this->getDoctrine()->getManager();
+    public function updateOverconsumption(EntityManagerInterface $entityManager, DispatchService $dispatchService, UserService $userService, Dispatch $dispatch): Response {
         $settingRepository = $entityManager->getRepository(Setting::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
 
@@ -1570,7 +1568,7 @@ class DispatchController extends AbstractController {
         $arrivals = [];
         $arrival = null;
         if($request->query->has('arrivals')) {
-            $arrivalsIds = (array) $request->query->get('arrivals');
+            $arrivalsIds = $request->query->all('arrivals');
             $arrivals = $arrivageRepository->findBy(['id' => $arrivalsIds]);
         } else {
             $arrival = $arrivageRepository->find($request->query->get('arrival'));

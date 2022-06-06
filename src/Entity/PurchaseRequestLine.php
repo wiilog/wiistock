@@ -2,82 +2,57 @@
 
 namespace App\Entity;
 
+use App\Repository\PurchaseRequestLineRepository;
 use DateTimeInterface;
 use Doctrine\ORM\Mapping as ORM;
-use App\Repository\PurchaseRequestLineRepository;
 
-/**
- * @ORM\Entity(repositoryClass=PurchaseRequestLineRepository::class)
- */
-class PurchaseRequestLine
-{
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
+#[ORM\Entity(repositoryClass: PurchaseRequestLineRepository::class)]
+class PurchaseRequestLine {
+
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    /**
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Column(type: 'integer')]
     private ?int $requestedQuantity = null;
 
-    /**
-     * @ORM\Column(type="integer", nullable=true)
-     */
+    #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $orderedQuantity = null;
 
-    /**
-     * @ORM\Column(type="datetime", nullable=true)
-     */
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTimeInterface $orderDate = null;
 
-    /**
-     * @ORM\Column(type="date", nullable=true)
-     */
+    #[ORM\Column(type: 'date', nullable: true)]
     private ?DateTimeInterface $expectedDate = null;
 
-    /**
-     * @ORM\Column(type="string", nullable=true)
-     */
+    #[ORM\Column(type: 'string', nullable: true)]
     private ?string $orderNumber = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=ReferenceArticle::class, inversedBy="purchaseRequestLines")
-     * @ORM\JoinColumn(nullable=true)
-     */
+    #[ORM\ManyToOne(targetEntity: ReferenceArticle::class, inversedBy: 'purchaseRequestLines')]
+    #[ORM\JoinColumn(nullable: true)]
     private ?ReferenceArticle $reference = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=PurchaseRequest::class, inversedBy="purchaseRequestLines")
-     * @ORM\JoinColumn(nullable=false)
-     */
+    #[ORM\ManyToOne(targetEntity: PurchaseRequest::class, inversedBy: 'purchaseRequestLines')]
+    #[ORM\JoinColumn(nullable: false)]
     private ?PurchaseRequest $purchaseRequest = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Fournisseur::class, inversedBy="purchaseRequestLines")
-     * @ORM\JoinColumn(nullable=true)
-     */
+    #[ORM\ManyToOne(targetEntity: Fournisseur::class, inversedBy: 'purchaseRequestLines')]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Fournisseur $supplier = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Reception::class, inversedBy="purchaseRequestLines")
-     */
+    #[ORM\ManyToOne(targetEntity: Reception::class, inversedBy: 'purchaseRequestLines')]
     private ?Reception $reception = null;
 
-    public function getId(): ?int
-    {
+    public function getId(): ?int {
         return $this->id;
     }
 
-    public function getReference(): ?ReferenceArticle
-    {
+    public function getReference(): ?ReferenceArticle {
         return $this->reference;
     }
 
-    public function setReference(?ReferenceArticle $reference): self
-    {
+    public function setReference(?ReferenceArticle $reference): self {
         if($this->reference && $this->reference !== $reference) {
             $this->reference->removePurchaseRequestLine($this);
         }
@@ -105,61 +80,51 @@ class PurchaseRequestLine
         return $this;
     }
 
-    public function getRequestedQuantity(): ?int
-    {
+    public function getRequestedQuantity(): ?int {
         return $this->requestedQuantity;
     }
 
-    public function setRequestedQuantity(int $requestedQuantity): self
-    {
+    public function setRequestedQuantity(int $requestedQuantity): self {
         $this->requestedQuantity = $requestedQuantity;
 
         return $this;
     }
 
-    public function getOrderedQuantity(): ?int
-    {
+    public function getOrderedQuantity(): ?int {
         return $this->orderedQuantity;
     }
 
-    public function setOrderedQuantity(int $orderedQuantity): self
-    {
+    public function setOrderedQuantity(int $orderedQuantity): self {
         $this->orderedQuantity = $orderedQuantity;
 
         return $this;
     }
 
-    public function getOrderDate(): ?DateTimeInterface
-    {
+    public function getOrderDate(): ?DateTimeInterface {
         return $this->orderDate;
     }
 
-    public function setOrderDate(?DateTimeInterface $orderDate): self
-    {
+    public function setOrderDate(?DateTimeInterface $orderDate): self {
         $this->orderDate = $orderDate;
 
         return $this;
     }
 
-    public function getExpectedDate(): ?DateTimeInterface
-    {
+    public function getExpectedDate(): ?DateTimeInterface {
         return $this->expectedDate;
     }
 
-    public function setExpectedDate(?DateTimeInterface $expectedDate): self
-    {
+    public function setExpectedDate(?DateTimeInterface $expectedDate): self {
         $this->expectedDate = $expectedDate;
 
         return $this;
     }
 
-    public function getOrderNumber(): ?string
-    {
+    public function getOrderNumber(): ?string {
         return $this->orderNumber;
     }
 
-    public function setOrderNumber(?string $orderNumber): self
-    {
+    public function setOrderNumber(?string $orderNumber): self {
         $this->orderNumber = $orderNumber;
 
         return $this;
@@ -198,4 +163,5 @@ class PurchaseRequestLine
         }
         return $this;
     }
+
 }

@@ -9,117 +9,92 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass=SensorRepository::class)
- */
-class Sensor
-{
+#[ORM\Entity(repositoryClass: SensorRepository::class)]
+class Sensor {
+
     const TEMPERATURE = 'Température';
     const GPS = 'GPS';
     const ACTION = 'Action';
-
     const SENSOR_ICONS = [
         self::TEMPERATURE => 'iot-temperature',
         self::GPS => 'iot-tracking',
     ];
-
     const LOCATION = 'location';
     const LOCATION_GROUP = 'location-group';
     const PACK = 'pack';
     const ARTICLE = 'article';
+    const VEHICLE = 'vehicle';
     const PREPARATION = 'preparation';
     const DELIVERY_REQUEST = 'delivery-request';
     const COLLECT_REQUEST = 'collect-request';
     const COLLECT_ORDER = 'collect-order';
-
     const PAIRING_CATEGORIES = [
         'Emplacement' => self::LOCATION,
         'Colis' => self::PACK,
         'Article' => self::ARTICLE,
+        'Véhicule' => self::VEHICLE,
         'Préparation' => self::PREPARATION,
         'Ordre de collecte' => self::COLLECT_REQUEST,
     ];
 
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    /**
-     * @ORM\Column(type="string", length=255, unique=true)
-     */
+    #[ORM\Column(type: 'string', length: 255, unique: true)]
     private ?string $code = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="sensors")
-     * @ORM\JoinColumn(nullable=false)
-     */
+    #[ORM\ManyToOne(targetEntity: Type::class, inversedBy: 'sensors')]
+    #[ORM\JoinColumn(nullable: false)]
     private ?Type $type = null;
 
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
+    #[ORM\Column(type: 'string', length: 255)]
     private ?string $frequency = null;
 
-    /**
-     * @ORM\Column(type="integer", nullable=true)
-     */
+    #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $battery = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=SensorProfile::class, inversedBy="sensors")
-     */
+    #[ORM\ManyToOne(targetEntity: SensorProfile::class, inversedBy: 'sensors')]
     private ?SensorProfile $profile = null;
 
     /**
      * @var null|SensorMessage
-     * @ORM\OneToOne(targetEntity=SensorMessage::class, inversedBy="linkedSensorLastMessage")
-     * @ORM\JoinColumn(nullable=true)
      */
+    #[ORM\OneToOne(targetEntity: SensorMessage::class, inversedBy: 'linkedSensorLastMessage')]
+    #[ORM\JoinColumn(nullable: true)]
     private ?SensorMessage $lastMessage = null;
 
-    /**
-     * @ORM\OneToMany(targetEntity=SensorMessage::class, mappedBy="sensor")
-     */
+    #[ORM\OneToMany(targetEntity: SensorMessage::class, mappedBy: 'sensor')]
     private Collection $sensorMessages;
 
-    /**
-     * @ORM\OneToMany(targetEntity=SensorWrapper::class, mappedBy="sensor")
-     */
+    #[ORM\OneToMany(targetEntity: SensorWrapper::class, mappedBy: 'sensor')]
     private Collection $sensorWrappers;
 
-    public function __construct()
-    {
+    public function __construct() {
         $this->sensorMessages = new ArrayCollection();
         $this->sensorWrappers = new ArrayCollection();
     }
 
-    public function getId(): ?int
-    {
+    public function getId(): ?int {
         return $this->id;
     }
 
-    public function getCode(): ?string
-    {
+    public function getCode(): ?string {
         return $this->code;
     }
 
-    public function setCode(string $code): self
-    {
+    public function setCode(string $code): self {
         $this->code = $code;
 
         return $this;
     }
 
-    public function getFrequency(): ?string
-    {
+    public function getFrequency(): ?string {
         return $this->frequency;
     }
 
-    public function setFrequency(string $frequency): self
-    {
+    public function setFrequency(string $frequency): self {
         $this->frequency = $frequency;
 
         return $this;
@@ -146,7 +121,7 @@ class Sensor
     }
 
     public function addSensorMessage(SensorMessage $sensorMessage): self {
-        if (!$this->sensorMessages->contains($sensorMessage)) {
+        if(!$this->sensorMessages->contains($sensorMessage)) {
             $this->sensorMessages[] = $sensorMessage;
             $sensorMessage->setSensor($this);
         }
@@ -155,8 +130,8 @@ class Sensor
     }
 
     public function removeSensorMessage(SensorMessage $sensorMessage): self {
-        if ($this->sensorMessages->removeElement($sensorMessage)) {
-            if ($sensorMessage->getSensor() === $this) {
+        if($this->sensorMessages->removeElement($sensorMessage)) {
+            if($sensorMessage->getSensor() === $this) {
                 $sensorMessage->setSensor(null);
             }
         }
@@ -182,7 +157,7 @@ class Sensor
     }
 
     public function addSensorWrapper(SensorWrapper $sensorWrapper): self {
-        if (!$this->sensorWrappers->contains($sensorWrapper)) {
+        if(!$this->sensorWrappers->contains($sensorWrapper)) {
             $this->sensorWrappers[] = $sensorWrapper;
             $sensorWrapper->setSensor($this);
         }
@@ -191,8 +166,8 @@ class Sensor
     }
 
     public function removeSensorWrapper(SensorWrapper $sensorWrapper): self {
-        if ($this->sensorWrappers->removeElement($sensorWrapper)) {
-            if ($sensorWrapper->getSensor() === $this) {
+        if($this->sensorWrappers->removeElement($sensorWrapper)) {
+            if($sensorWrapper->getSensor() === $this) {
                 $sensorWrapper->setSensor(null);
             }
         }
@@ -213,24 +188,20 @@ class Sensor
         return $this;
     }
 
-    public function getBattery(): ?int
-    {
+    public function getBattery(): ?int {
         return $this->battery;
     }
 
-    public function setBattery($battery): self
-    {
+    public function setBattery($battery): self {
         $this->battery = $battery;
         return $this;
     }
 
-    public function getLastMessage(): ?SensorMessage
-    {
+    public function getLastMessage(): ?SensorMessage {
         return $this->lastMessage;
     }
 
-    public function setLastMessage(?SensorMessage $lastMessage): self
-    {
+    public function setLastMessage(?SensorMessage $lastMessage): self {
         if($this->lastMessage && $this->lastMessage->getLinkedSensorLastMessage() !== $this) {
             $oldLastMessage = $this->lastMessage;
             $this->lastMessage = null;
@@ -258,13 +229,11 @@ class Sensor
         return $availableWrappers->first() ?: null;
     }
 
-    public function getType(): ?Type
-    {
+    public function getType(): ?Type {
         return $this->type;
     }
 
-    public function setType(?Type $type): self
-    {
+    public function setType(?Type $type): self {
         if($this->type && $this->type !== $type) {
             $this->type->removeSensor($this);
         }
@@ -274,4 +243,5 @@ class Sensor
         }
         return $this;
     }
+
 }

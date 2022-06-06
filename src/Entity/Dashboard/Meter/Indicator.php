@@ -3,97 +3,75 @@
 namespace App\Entity\Dashboard\Meter;
 
 use App\Entity\Dashboard;
-use Doctrine\ORM\Mapping as ORM;
 use App\Repository\Dashboard as DashboardRepository;
+use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass=DashboardRepository\IndicatorMeterRepository::class)
- * @ORM\Table(name="dashboard_meter_indicator")
- */
-class Indicator
-{
+#[ORM\Entity(repositoryClass: DashboardRepository\IndicatorMeterRepository::class)]
+#[ORM\Table(name: 'dashboard_meter_indicator')]
+class Indicator {
 
-    /**
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private $id;
 
-    /**
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Column(type: 'integer')]
     private $count;
 
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private $subtitle;
 
-    /**
-     * @ORM\Column(type="bigint", nullable=true)
-     */
+    #[ORM\Column(type: 'bigint', nullable: true)]
     private ?int $delay;
 
-    /**
-     * @ORM\Column(type="json", nullable=false)
-     */
+    #[ORM\Column(type: 'json', nullable: false)]
     private array $subCounts = [];
 
     /**
      * @var Dashboard\Component
-     * @ORM\OneToOne(targetEntity=Dashboard\Component::class, inversedBy="indicatorMeter")
      */
+    #[ORM\OneToOne(targetEntity: Dashboard\Component::class, inversedBy: 'indicatorMeter')]
     private $component;
 
-    public function getId(): ?int
-    {
+    public function getId(): ?int {
         return $this->id;
     }
 
-    public function getCount(): ?int
-    {
+    public function getCount(): ?int {
         return $this->count;
     }
 
-    public function setCount(int $count): self
-    {
+    public function setCount(int $count): self {
         $this->count = $count;
 
         return $this;
     }
 
-    public function getSubtitle(): ?string
-    {
+    public function getSubtitle(): ?string {
         return $this->subtitle;
     }
 
-    public function setSubtitle(?string $subtitle): self
-    {
+    public function setSubtitle(?string $subtitle): self {
         $this->subtitle = $subtitle;
 
         return $this;
     }
 
-    public function getDelay(): ?int
-    {
+    public function getDelay(): ?int {
         return $this->delay;
     }
 
-    public function setDelay(?int $delay): self
-    {
+    public function setDelay(?int $delay): self {
         $this->delay = $delay;
 
         return $this;
     }
 
-    public function getSubCounts(): array
-    {
+    public function getSubCounts(): array {
         return $this->subCounts;
     }
 
-    public function setSubCounts(array $subCounts): self
-    {
+    public function setSubCounts(array $subCounts): self {
         $this->subCounts = $subCounts;
 
         return $this;
@@ -112,16 +90,17 @@ class Indicator
      */
     public function setComponent(?Dashboard\Component $component): self {
 
-        if ($this->component) {
+        if($this->component) {
             $this->component->setMeter(null);
         }
 
         $this->component = $component;
 
-        if ($this->component) {
+        if($this->component) {
             $this->component->setMeter($this);
         }
 
         return $this;
     }
+
 }

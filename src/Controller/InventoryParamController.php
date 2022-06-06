@@ -48,9 +48,9 @@ class InventoryParamController extends AbstractController
     /**
      * @Route("/api", name="invParam_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
-    public function api(): Response
+    public function api(EntityManagerInterface $manager): Response
     {
-        $inventoryCategoryRepository = $this->getDoctrine()->getRepository(InventoryCategory::class);
+        $inventoryCategoryRepository = $manager->getRepository(InventoryCategory::class);
         /** @var $category InventoryCategory */
         $categories = $inventoryCategoryRepository->findAll();
         $rows = [];
@@ -200,10 +200,9 @@ class InventoryParamController extends AbstractController
      * @Route("/supprimer", name="category_delete", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::PARAM, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
-    public function delete(Request $request): Response
+    public function delete(Request $request, EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
-            $entityManager = $this->getDoctrine()->getManager();
             $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
 
             $category = $inventoryCategoryRepository->find($data['category']);
@@ -382,9 +381,8 @@ class InventoryParamController extends AbstractController
     /**
      * @Route("/import-categories", name="update_category", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
-    public function updateCategory(Request $request): Response
+    public function updateCategory(Request $request, EntityManagerInterface $entityManager): Response
     {
-        $entityManager = $this->getDoctrine()->getManager();
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
 

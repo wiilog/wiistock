@@ -1,0 +1,41 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Demande | Transport{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('transport-request-index') }}
+{% endblock %}
+
+{% block page_filter %}
+    {% include 'filters/filtersTransportRequests.html.twig' with {
+        page: 'PAGE_TRANSPORT_REQUESTS',
+        tableSelector: '#tableTransportRequests',
+        marginClass: 'm-0 m-md-4',
+    } %}
+{% endblock %}
+
+{% set hasRightToExport = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EXPORT')) %}
+
+{% block page_content %}
+    <input id="CLB_API_KEY" type="hidden" value="{{ CLB_API_KEY }}"/>
+
+    <div class="m-0 m-md-4 wii-page-card transport-table">
+        <table id="tableTransportRequests" class="table w-100"></table>
+    </div>
+
+    {% include 'transport/request/delete.html.twig' %}
+    {% include 'transport/request/packing.html.twig' %}
+    {% include 'transport/request/form.html.twig' with {
+        request: newRequest,
+        types: types,
+        requestLines: requestLines,
+        temperatures: temperatures,
+    } %}
+{% endblock %}
+
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('transport-request-index') }}
+{% endblock %}

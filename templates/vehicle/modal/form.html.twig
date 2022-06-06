@@ -1,0 +1,26 @@
+<div class="row">
+    <div class="form-group col-12">
+        <label>Immatriculation*</label>
+        <input type="text" class="form-control data needed" name="registrationNumber" value="{{ vehicle.registrationNumber }}">
+    </div>
+
+    <div class="form-group col-12">
+        <label>Livreur</label>
+        <select class="form-control data w-100" data-s2="user" name="deliverer"
+                data-other-params
+                data-other-params-deliverer-only="1">
+            {% if vehicle.deliverer %}
+                <option value="{{ vehicle.deliverer.id }}">{{ vehicle.deliverer.username }}</option>
+            {% endif %}
+        </select>
+    </div>
+
+    <div class="form-group col-12">
+        <label>Emplacements associés</label>
+        <select class="form-control data w-100" data-s2="location" name="locations" multiple>
+            {% for location in (vehicle.locations ?? []) %}
+                <option value="{{ location.id }}" selected>{{ location.label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+</div>

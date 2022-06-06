@@ -6,6 +6,7 @@ use App\Entity\FiltreSup;
 use App\Service\FilterSupService;
 use App\Service\DisputeService;
 use Doctrine\ORM\EntityManagerInterface;
+use App\Entity\Utilisateur;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -30,6 +31,9 @@ class FiltreSupController extends AbstractController
     {
         if ($data = json_decode($request->getContent(), true)) {
             $page = $data['page'];
+            /**
+             * @var Utilisateur $user
+             */
             $user = $this->getUser();
             $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
             $filterLabels = [
@@ -49,8 +53,17 @@ class FiltreSupController extends AbstractController
                 'alert' => FiltreSup::FIELD_ALERT,
                 'subject' => FiltreSup::FIELD_SUBJECT,
                 'destination' => FiltreSup::FIELD_DESTINATION,
+                'fileNumber' => FiltreSup::FIELD_FILE_NUMBER,
+                'roundNumber' => FiltreSup::FIELD_ROUND_NUMBER,
+                'category' => FiltreSup::FIELD_CATEGORY,
+                'contact' => FiltreSup::FIELD_CONTACT,
             ];
-
+            foreach ($user->getFiltresSup() as $filtreSup) {
+                if ($filtreSup->getPage() === $page) {
+                    $entityManager->remove($filtreSup);
+                }
+            }
+            $entityManager->flush();
             foreach ($filterLabels as $filterLabel => $filterName) {
                 if (array_key_exists($filterLabel, $data)) {
                     if (!is_array($data[$filterLabel]) && (strpos($data[$filterLabel], ',') || strpos($data[$filterLabel], ':'))) {
@@ -98,6 +111,7 @@ class FiltreSupController extends AbstractController
                 'dispatchNumber' => FiltreSup::FIELD_DISPATCH_NUMBER,
                 'emergencyMultiple' => FiltreSup::FIELD_EMERGENCY_MULTIPLE,
                 'businessUnit' => FiltreSup::FIELD_BUSINESS_UNIT,
+                'deliverers' => FiltreSup::FIELD_DELIVERERS,
             ];
 
             foreach ($filterLabelsSelect2 as $filterLabel => $filterName) {

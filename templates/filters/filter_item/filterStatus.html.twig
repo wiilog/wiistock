@@ -8,10 +8,17 @@
                     data-placeholder="{{ placeholder ?? 'Statuts' }}"
                     data-no-empty-option
                     {{ disabled }}>
-                {% for statut in statuts|sort((a, b) => a.nom <=> b.nom) %}
-                    {% set selected = (filterStatus is defined and statut.nom == filterStatus) ? 'selected' %}
-                    <option class="d-none" value="{{ statut.id }}" {{ selected }}>{{ statut.nom }}</option>
-                {% endfor %}
+                {% if names is defined and names %}
+                    {% for status in statuts %}
+                        {% set selected = (filterStatus is defined and status == filterStatus) ? 'selected' %}
+                        <option class="d-none" value="{{ status }}" {{ selected }}>{{ status }}</option>
+                    {% endfor %}
+                {% else %}
+                    {% for status in statuts | sort((a, b) => a.nom <=> b.nom) %}
+                        {% set selected = (filterStatus is defined and status.nom == filterStatus) ? 'selected' %}
+                        <option class="d-none" value="{{ status.id }}" {{ selected }}>{{ status.nom }}</option>
+                    {% endfor %}
+                {% endif %}
             </select>
         </div>
         <input hidden id="filterStatus" value="{{ filterStatus is defined ? filterStatus : '' }}">

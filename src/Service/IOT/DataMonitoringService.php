@@ -13,6 +13,7 @@ use App\Entity\LocationGroup;
 use App\Entity\OrdreCollecte;
 use App\Entity\Pack;
 use App\Entity\PreparationOrder\Preparation;
+use App\Entity\Transport\Vehicle;
 use App\Helper\FormatHelper;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -243,6 +244,21 @@ class DataMonitoringService
         ];
     }
 
+    private function fillVehicleConfig(array &$config, Vehicle $article, bool $header)
+    {
+        $config["left_pane"][] = [
+            "type" => "entity",
+            "icon" => "iot-vehicle",
+            "title" => $article->__toString(),
+            "header" => $header,
+            "hideActions" => $header,
+            "entity_info" => [
+                "id" => $article->getId(),
+                "type" => IOTService::getEntityCodeFromEntity($article),
+            ],
+        ];
+    }
+
     private function fillTimelineConfig(array &$config, PairedEntity $pairedEntity)
     {
         $entityCode = $this->IOTService->getEntityCodeFromEntity($pairedEntity);
@@ -287,6 +303,8 @@ class DataMonitoringService
             $this->fillCollectRequestConfig($config, $entity, $isHistoric);
         } else if ($entity instanceof Article) {
             $this->fillArticleConfig($config, $entity, $isHistoric);
+        } else if ($entity instanceof Vehicle) {
+            $this->fillVehicleConfig($config, $entity, $isHistoric);
         } else {
             throw new RuntimeException("Unsupported class " . get_class($entity));
         }
@@ -294,26 +312,6 @@ class DataMonitoringService
         if ($isHistoric) {
             $this->fillTimelineConfig($config, $entity);
         }
-    }
-
-    public function vincentyGreatCircleDistance(float $latitudeFrom,
-                                                float $longitudeFrom,
-                                                float $latitudeTo,
-                                                float $longitudeTo,
-                                                int $earthRadius = 6371000) {
-        // convert from degrees to radians
-        $latFrom = deg2rad($latitudeFrom);
-        $lonFrom = deg2rad($longitudeFrom);
-        $latTo = deg2rad($latitudeTo);
-        $lonTo = deg2rad($longitudeTo);
-
-        $lonDelta = $lonTo - $lonFrom;
-        $a = pow(cos($latTo) * sin($lonDelta), 2) +
-            pow(cos($latFrom) * sin($latTo) - sin($latFrom) * cos($latTo) * cos($lonDelta), 2);
-        $b = sin($latFrom) * sin($latTo) + cos($latFrom) * cos($latTo) * cos($lonDelta);
-
-        $angle = atan2(sqrt($a), $b);
-        return $angle * $earthRadius;
     }
 
     public function getTimelineData(EntityManagerInterface $entityManager,

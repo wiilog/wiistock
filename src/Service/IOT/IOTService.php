@@ -28,19 +28,26 @@ use App\Entity\OrdreCollecteReference;
 use App\Entity\Pack;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\Statut;
+use App\Entity\Transport\Vehicle;
 use App\Entity\Type;
 use App\Helper\FormatHelper;
 use App\Repository\ArticleRepository;
 use App\Repository\PackRepository;
 use App\Repository\StatutRepository;
 use App\Service\DemandeLivraisonService;
+use App\Service\HttpService;
 use App\Service\MailerService;
 use App\Service\NotificationService;
 use App\Service\UniqueNumberService;
 use DateTimeZone;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use GuzzleHttp\Client;
+use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\Psr7\Response;
+use Symfony\Component\HttpClient\HttpClient;
 use Twig\Environment as Twig_Environment;
+use WiiCommon\Helper\Stream;
 
 class IOTService
 {
@@ -52,6 +59,8 @@ class IOTService
     const INEO_SENS_GPS = 'trk-tracer-gps-new';
     const SYMES_ACTION_SINGLE = 'symes-action-single';
     const SYMES_ACTION_MULTI = 'symes-action-multi';
+    const KOOVEA_TAG = 'Tag température Koovea';
+    const KOOVEA_HUB = 'Hub GPS Koovea';
 
     const PROFILE_TO_MAX_TRIGGERS = [
         self::INEO_SENS_ACS_TEMP => 1,
@@ -59,10 +68,14 @@ class IOTService
         self::INEO_SENS_ACS_BTN => 1,
         self::SYMES_ACTION_MULTI => 4,
         self::SYMES_ACTION_SINGLE => 1,
+        self::KOOVEA_TAG => 1,
+        self::KOOVEA_HUB => 1,
     ];
 
     const PROFILE_TO_TYPE = [
         self::INEO_SENS_ACS_TEMP => Sensor::TEMPERATURE,
+        self::KOOVEA_TAG => Sensor::TEMPERATURE,
+        self::KOOVEA_HUB => Sensor::GPS,
         self::INEO_SENS_GPS => Sensor::GPS,
         self::INEO_SENS_ACS_BTN => Sensor::ACTION,
         self::SYMES_ACTION_MULTI => Sensor::ACTION,
@@ -72,6 +85,8 @@ class IOTService
     const PROFILE_TO_FREQUENCY = [
         self::INEO_SENS_ACS_TEMP => 'x minutes',
         self::INEO_SENS_GPS => 'x minutes',
+        self::KOOVEA_TAG => 'x minutes',
+        self::KOOVEA_HUB => 'x minutes',
         self::INEO_SENS_ACS_BTN => 'à l\'action',
         self::SYMES_ACTION_SINGLE => 'à l\'action',
         self::SYMES_ACTION_MULTI => 'à l\'action',
@@ -95,9 +110,12 @@ class IOTService
     /** @Required */
     public Twig_Environment $templating;
 
-    public function onMessageReceived(array $frame, EntityManagerInterface $entityManager) {
+    /** @Required */
+    public HttpService $client;
+
+    public function onMessageReceived(array $frame, EntityManagerInterface $entityManager, bool $local = false) {
         if (isset(self::PROFILE_TO_TYPE[$frame['profile']])) {
-            $message = $this->parseAndCreateMessage($frame, $entityManager);
+            $message = $this->parseAndCreateMessage($frame, $entityManager, $local);
             $this->linkWithSubEntities($message,
                 $entityManager->getRepository(Pack::class),
                 $entityManager->getRepository(Article::class),
@@ -176,7 +194,7 @@ class IOTService
 
             $this->uniqueNumberService->createWithRetry(
                 $entityManager,
-                Demande::PREFIX_NUMBER,
+                Demande::NUMBER_PREFIX,
                 Demande::class,
                 UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT,
                 function (string $number) use ($request, $entityManager) {
@@ -207,7 +225,7 @@ class IOTService
 
             $this->uniqueNumberService->createWithRetry(
                 $entityManager,
-                Handling::PREFIX_NUMBER,
+                Handling::NUMBER_PREFIX,
                 Handling::class,
                 UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT,
                 function (string $number) use ($request, $entityManager) {
@@ -357,7 +375,7 @@ class IOTService
         $this->alertService->trigger($template, $message, $entityManager);
     }
 
-    private function parseAndCreateMessage(array $message, EntityManagerInterface $entityManager): SensorMessage
+    private function parseAndCreateMessage(array $message, EntityManagerInterface $entityManager, bool $local): SensorMessage
     {
         $profileRepository = $entityManager->getRepository(SensorProfile::class);
         $deviceRepository = $entityManager->getRepository(Sensor::class);
@@ -414,8 +432,10 @@ class IOTService
         }
         $entityManager->flush();
 
-        $messageDate = new DateTime($message['timestamp'], new DateTimeZone("UTC"));
-        $messageDate->setTimezone(new DateTimeZone('Europe/Paris'));
+        $messageDate = new DateTime($message['timestamp'], $local ? null : new DateTimeZone("UTC"));
+        if (!$local) {
+            $messageDate->setTimezone(new DateTimeZone('Europe/Paris'));
+        }
 
         $received = new SensorMessage();
         $received
@@ -455,9 +475,21 @@ class IOTService
                         $this->treatAddMessageOrdrePrepa($entity, $sensorMessage);
                     } else if ($entity instanceof OrdreCollecte) {
                         $this->treatAddMessageOrdreCollecte($entity, $sensorMessage);
+                    } else if ($entity instanceof Vehicle) {
+                        $this->treatAddMessageForVehicle($entity, $sensorMessage, $articleRepository, $packRepository);
                     }
                 }
             }
+        }
+    }
+
+    private function treatAddMessageForVehicle(Vehicle $vehicle,
+                                               SensorMessage $sensorMessage,
+                                               ArticleRepository $articleRepository,
+                                               PackRepository $packRepository) {
+        $vehicle->addSensorMessage($sensorMessage);
+        foreach ($vehicle->getLocations() as $location) {
+            $this->treatAddMessageLocation($location, $sensorMessage, $articleRepository, $packRepository);
         }
     }
 
@@ -529,6 +561,9 @@ class IOTService
 
     public function extractMainDataFromConfig(array $config) {
         switch ($config['profile']) {
+            case IOTService::KOOVEA_TAG:
+            case IOTService::KOOVEA_HUB:
+                return $config['value'];
             case IOTService::INEO_SENS_ACS_BTN:
                 return $this->extractEventTypeFromMessage($config);
             case IOTService::SYMES_ACTION_MULTI:
@@ -561,6 +596,9 @@ class IOTService
 
     public function extractEventTypeFromMessage(array $config) {
         switch ($config['profile']) {
+            case IOTService::KOOVEA_TAG:
+            case IOTService::KOOVEA_HUB:
+                return $config['event'];
             case IOTService::INEO_SENS_ACS_BTN:
             case IOTService::INEO_SENS_ACS_TEMP:
                 if (isset($config['payload'])) {
@@ -592,6 +630,9 @@ class IOTService
 
     public function extractBatteryLevelFromMessage(array $config) {
         switch ($config['profile']) {
+            case IOTService::KOOVEA_TAG:
+            case IOTService::KOOVEA_HUB:
+                return -1;
             case IOTService::INEO_SENS_ACS_BTN:
             case IOTService::INEO_SENS_ACS_TEMP:
                 if (isset($config['payload'])) {
@@ -627,6 +668,8 @@ class IOTService
             $code = Sensor::ARTICLE;
         } else if($pairedEntity instanceof Pack) {
             $code = Sensor::PACK;
+        } else if($pairedEntity instanceof Vehicle) {
+            $code = Sensor::VEHICLE;
         } else if($pairedEntity instanceof Preparation) {
             $code = Sensor::PREPARATION;
         } else if($pairedEntity instanceof OrdreCollecte) {
@@ -653,4 +696,125 @@ class IOTService
         return $association[$code] ?? null;
     }
 
+    public function runKooveaJOB(EntityManagerInterface $entityManager, string $type) {
+        $auth = $this->getAuthenticationTokens();
+
+        if ($type === self::KOOVEA_TAG) {
+            $this->getTagsTemperatures($entityManager, $auth);
+        } else if ($type === self::KOOVEA_HUB) {
+            $this->getHubsPositions($entityManager, $auth);
+        }
+
+    }
+
+    private function getAuthenticationTokens() {
+        return $this->client->requestUsingGuzzle('https://api.koovea.fr/api/login', 'POST', [
+            "email" => "gestionwiilog@gmail.com",
+            "hashed" => false,
+            "password" => $_SERVER['KOOVEA_PASS'],
+        ]);
+    }
+
+    private function getTagsTemperatures(EntityManagerInterface $entityManager, array $auth)
+    {
+        $sensorProfiles = $entityManager->getRepository(SensorProfile::class);
+        $sensors = $entityManager->getRepository(Sensor::class);
+
+        $kooveaTagProfile = $sensorProfiles->findOneBy(['name' => IOTService::KOOVEA_TAG]);
+        $tags = $sensors->findBy([
+            'profile' => $kooveaTagProfile
+        ]);
+
+        $tags = Stream::from($tags)
+            ->map(fn(Sensor $tag) => $tag->getCode())
+            ->toArray();
+
+        if ($auth) {
+            $token = $auth['data']['authToken'];
+            $userID = $auth['data']['userId'];
+            $receivedStartDate = new DateTime('5 minutes ago');
+            $receivedEndDate = new DateTime('now');
+
+            $temperatures = $this->client->requestUsingGuzzle('https://api.koovea.fr/api/v2/getTagTemperatures', 'POST', [
+                "authToken" => $token,
+                "receivedStartDate" => $receivedStartDate->format('Y/m/d H:i:s'),
+                "receivedEndDate" => $receivedEndDate->format('Y/m/d H:i:s'),
+                "tagIds" => $tags,
+                "userId" => $userID,
+            ]);
+
+            if ($temperatures && $temperatures['apiCode'] === 200) {
+                $tagsMetrics = $temperatures["tags"];
+
+                foreach ($tagsMetrics as $tagMetric) {
+                    foreach ($tagMetric as $code => $tagInfos) {
+                        foreach ($tagInfos['temperatures'] ?? [] as $temperature) {
+                            $dateReceived = $temperature['date'];
+                            $value = $temperature['value'];
+
+                            $fakeFrame = [
+                                'profile' => IOTService::KOOVEA_TAG,
+                                'device_id' => $code,
+                                'timestamp' => $dateReceived,
+                                'value' => $value,
+                                'event' => IOTService::ACS_PRESENCE
+                            ];
+
+                            $this->onMessageReceived($fakeFrame, $entityManager, true);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private function getHubsPositions(EntityManagerInterface $entityManager, array $auth)
+    {
+        $sensorProfiles = $entityManager->getRepository(SensorProfile::class);
+        $sensors = $entityManager->getRepository(Sensor::class);
+
+        $kooveaHubProfile = $sensorProfiles->findOneBy(['name' => IOTService::KOOVEA_HUB]);
+        $hubs = $sensors->findBy([
+            'profile' => $kooveaHubProfile
+        ]);
+
+        $hubs = Stream::from($hubs)
+            ->map(fn(Sensor $hub) => $hub->getCode())
+            ->toArray();
+
+        if ($auth) {
+            $token = $auth['data']['authToken'];
+            $userID = $auth['data']['userId'];
+            $receivedStartDate = new DateTime('1 minute ago');
+            $receivedEndDate = new DateTime('now');
+
+            $positions = $this->client->requestUsingGuzzle('https://api.koovea.fr/api/v2/getHubLocalizations', 'POST', [
+                "authToken" => $token,
+                "receivedStartDate" => $receivedStartDate->format('Y/m/d H:i:s'),
+                "receivedEndDate" => $receivedEndDate->format('Y/m/d H:i:s'),
+                "imeis" => $hubs,
+                "userId" => $userID,
+            ]);
+            if ($positions && $positions['apiCode'] === 200) {
+                $hubPositions = $positions["hubs"];
+
+                foreach ($hubPositions as $code => $positions) {
+                    foreach ($positions['localizations'] ?? [] as $localization) {
+                        $dateReceived = $localization['date'];
+                        $value = $localization['latitude'] . ',' . $localization['longitude'];
+
+                        $fakeFrame = [
+                            'profile' => IOTService::KOOVEA_HUB,
+                            'device_id' => $code,
+                            'timestamp' => $dateReceived,
+                            'value' => $value,
+                            'event' => IOTService::ACS_PRESENCE
+                        ];
+
+                        $this->onMessageReceived($fakeFrame, $entityManager, true);
+                    }
+                }
+            }
+        }
+    }
 }

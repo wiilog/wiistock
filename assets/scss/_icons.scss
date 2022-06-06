@@ -49,7 +49,7 @@ $icons: (
     "refresh": "../../public/svg/refresh.svg",
     "traca": "../../public/svg/traca.svg",
     "trash": "../../public/svg/trash.svg",
-    "delivery": "../../public/svg/delivery.svg",
+    "menu-delivery": "../../public/svg/menu-delivery.svg",
     "import": "../../public/svg/import.svg",
     "handling": "../../public/svg/handling.svg",
     "add": "../../public/svg/add.svg",
@@ -61,6 +61,7 @@ $icons: (
     'iot-location': "../../public/svg/iot/location.svg",
     'iot-location-group': "../../public/svg/iot/location-group.svg",
     'iot-pack': "../../public/svg/iot/pack.svg",
+    'pack': "../../public/svg/pack.svg",
     'iot-article': "../../public/svg/iot/article.svg",
     'iot-delivery-request': "../../public/svg/iot/delivery-request.svg",
     'iot-preparation': "../../public/svg/iot/preparation.svg",
@@ -68,6 +69,7 @@ $icons: (
     'iot-tracking': "../../public/svg/iot/tracking.svg",
     'iot-temperature': "../../public/svg/iot/temperature.svg",
     'iot-historic': "../../public/svg/iot/historic.svg",
+    'iot-vehicle': "../../public/svg/iot/vehicle.svg",
     'pairing':"../../public/svg/pairing.svg",
     'pin':"../../public/svg/pin.svg",
     'cart-delivery': "../../public/svg/cart-delivery.svg",
@@ -83,6 +85,11 @@ $icons: (
     'menu-notification': "../../public/svg/menu-notification.svg",
     'user': "../../public/svg/user.svg",
     'menu-donnees': "../../public/svg/menu-donnees.svg",
+    "menu-track": "../../public/svg/menu-track.svg",
+    'transport': "../../public/svg/transport.svg",
+    'calendar': "../../public/svg/calendar.svg",
+    'info': "../../public/svg/information.svg",
+    'printer-white': "../../public/svg/printer-white.svg",
 );
 
 @each $iconName, $iconPath in $icons {
@@ -92,11 +99,24 @@ $icons: (
     }
 }
 
+$wiiIconSizes: 10, 15, 20, 25, 30, 35, 40, 45, 50;
+$wiiIconColors: (
+    primary: #3353D7
+);
 
+@each $size in $wiiIconSizes {
+    .wii-icon-#{$size}px {
+        display: inline-block;
+        width: #{$size}px;
+        height: #{$size}px;
+    }
 
-.wii-icon-20px {
-    background-color: $primary;
-    width: 15px;
-    height: 15px;
-    display: inline-block;
+    @each $key, $val in $wiiIconColors {
+        .wii-icon-#{$size}px-#{$key} {
+            display: inline-block;
+            width: #{$size}px;
+            height: #{$size}px;
+            background: $val;
+        }
+    }
 }

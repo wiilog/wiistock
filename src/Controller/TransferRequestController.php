@@ -18,7 +18,6 @@ use WiiCommon\Helper\Stream;
 use App\Service\TransferRequestService;
 use DateTime;
 use App\Service\CSVExportService;
-use App\Service\UserService;
 
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -221,14 +220,12 @@ class TransferRequestController extends AbstractController {
      * @Route("/ajouter-article/{transfer}", name="transfer_request_add_article", options={"expose"=true}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function addArticle(Request $request,
+    public function addArticle(Request $request, EntityManagerInterface $manager,
                                TransferRequest $transfer): Response {
 
         if(!$content = json_decode($request->getContent())) {
             throw new BadRequestHttpException();
         }
-
-        $manager = $this->getDoctrine()->getManager();
 
         $reference = $content->reference;
         $reference = $manager->getRepository(ReferenceArticle::class)->find($reference);
@@ -241,7 +238,7 @@ class TransferRequestController extends AbstractController {
 
         if(isset($content->fetchOnly) && $reference->getTypeQuantite() == ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
             $locationLabel = $transfer->getOrigin()->getLabel();
-            $articles = $this->getDoctrine()
+            $articles = $manager
                 ->getRepository(Article::class)
                 ->findActiveOrDisputeForReference($reference, $transfer->getOrigin());
 

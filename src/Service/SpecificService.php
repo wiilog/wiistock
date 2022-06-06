@@ -19,6 +19,7 @@ class SpecificService
     const CLIENT_WIILOG = 'wiilog';
     const CLIENT_INEO_LAV = 'ineos-lav';
     const CLIENT_BOITE_ROSE_TAVERNY = 'boite-rose-taverny';
+    const CLIENT_CLB = 'clb';
 
 	const CLIENTS = [
         self::CLIENT_COLLINS_VERNON => 'Collins Vernon',
@@ -34,6 +35,7 @@ class SpecificService
         self::CLIENT_WIILOG => 'Wiilog',
         self::CLIENT_INEO_LAV => 'Ineos Lavera',
         self::CLIENT_BOITE_ROSE_TAVERNY => 'Boîte rose Taverny',
+        self::CLIENT_CLB => 'CLB',
         self::CLIENT_SAFRAN_MC => 'Safran MC',
     ];
 

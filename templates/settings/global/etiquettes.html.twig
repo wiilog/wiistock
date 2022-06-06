@@ -13,17 +13,15 @@
             {{ form.switch(setting('BARCODE_TYPE_IS_128'), 'Type d\'étiquette', false, [
                 {label: ean['label'], value: ean['value'] ? 1 : 0, checked: setting_value('BARCODE_TYPE_IS_128') == ean['value'] },
                 {label: qr['label'], value: qr['value'] ? 1 : 0, checked: setting_value('BARCODE_TYPE_IS_128') == qr['value'] },
-            ], {labelClass: "wii-field-name"}) }}
+            ]) }}
         </div>
 
         <div class="col-md-6 col-12 d-flex mt-3">
             {{ form.number(setting('LABEL_HEIGHT'), 'Hauteur (mm)', false, setting_value('LABEL_HEIGHT'), {
-                labelClass: 'wii-field-name mr-2',
                 buttons: false,
             }) }}
-
+            <span class="mr-2"></span>
             {{ form.number(setting('LABEL_WIDTH'), 'Largeur (mm)', false, setting_value('LABEL_WIDTH'), {
-                labelClass: 'wii-field-name',
                 buttons: false,
             }) }}
         </div>
@@ -32,7 +30,6 @@
 
         <div class="form-group d-flex flex-column col-auto mt-3">
             {{ form.image(setting('LABEL_LOGO'), 'Logo sur étiquette', false, setting_value('LABEL_LOGO'), {
-                labelClass: 'w-100 wii-field-name',
                 formats: 'image/png, image/jpeg, image/jpg',
                 tooltip: 'Logo visible sur les étiquettes de colis d’arrivages, des articles, et sur le bon d’acheminement',
             }) }}

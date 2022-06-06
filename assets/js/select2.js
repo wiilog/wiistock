@@ -8,7 +8,9 @@ const ROUTES = {
     dispatchType: `ajax_select_dispatch_type`,
     status: `ajax_select_status`,
     location: `ajax_select_locations`,
+    roundsDelivererPending: `ajax_select_rounds_deliverer_pending`,
     pack: `ajax_select_packs`,
+    nature: `ajax_select_natures`,
     sensor: `ajax_select_sensors`,
     sensorWrapper: `ajax_select_sensor_wrappers`,
     sensorWrapperForPairings: `ajax_select_sensor_wrappers_for_pairings`,
@@ -31,6 +33,7 @@ const ROUTES = {
     businessUnit: `ajax_select_business_unit`,
     carrier: 'ajax_select_carrier',
     types: 'ajax_select_types',
+    vehicles: 'ajax_select_vehicles',
 }
 
 const INSTANT_SELECT_TYPES = {
@@ -44,6 +47,7 @@ const INSTANT_SELECT_TYPES = {
     triggerSensorWithoutPairing: true,
     triggerSensorCodeWithoutPairing: true,
     businessUnit: true,
+    roundsDelivererPending: true,
 }
 
 export default class Select2 {
@@ -108,10 +112,11 @@ export default class Select2 {
                     }
                 }
                 const allowClear = !($element.is(`[multiple]`) || $element.is(`[data-no-empty-option]`));
+                const editable = $element.is('[data-editable]');
 
                 $element.select2({
                     placeholder: $element.data(`placeholder`) || '',
-                    tags: $element.is('[data-editable]'),
+                    tags: editable,
                     allowClear,
                     dropdownParent,
                     language: {
@@ -146,6 +151,18 @@ export default class Select2 {
                     $highlighted.addClass("select2-results__option--highlighted");
                 })
 
+                if(editable) {
+                    $element.on(`select2:unselecting`, event => {
+                        const $option = $(event.params.args.data.element);
+                        if ($option.hasClass('no-deletable')) {
+                            event.preventDefault();
+                            Flash.add(`danger`, `Cet élément est utilisé, vous ne pouvez pas le supprimer.`);
+                        } else {
+                            $option.remove();
+                        }
+                    });
+                }
+
                 $element.on('select2:open', function (e) {
                     const evt = "scroll.select2";
                     $(e.target).parents().off(evt);
@@ -178,7 +195,17 @@ export default class Select2 {
                     if ($element.is(`[data-no-search]`)) {
                         $element.siblings('.select2-container')
                             .find('.select2-dropdown .select2-search')
-                            .addClass('d-none') ;
+                            .addClass('d-none');
+                    }
+
+                    if ($element.is('[data-hidden-dropdown]')) {
+                        $element.siblings('.select2-container')
+                            .addClass('hidden-dropdown') ;
+                    }
+
+                    if ($element.is('[data-disabled-dropdown-options]')) {
+                        $element.siblings('.select2-container')
+                            .addClass('disabled-dropdown-options') ;
                     }
                 });
 

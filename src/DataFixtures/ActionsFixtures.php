@@ -18,41 +18,27 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
 
     private ConsoleOutput $output;
 
-    private const SUB_MENU_GENERAL = 'général';
-    private const SUB_MENU_TRACKING = 'traçabilité';
-    private const SUB_MENU_COLLECTS = 'collectes';
-    private const SUB_MENU_DELIVERIES = 'livraisons';
-    private const SUB_MENU_HANDLINGS = 'services';
-    private const SUB_MENU_DISPATCHES = 'acheminements';
-    private const SUB_MENU_TRANSFERS = 'transferts';
-    private const SUB_MENU_PURCHASE_REQUESTS = 'achats';
-    private const SUB_MENU_PREPARATIONS = 'préparations';
-    private const SUB_MENU_RECEPTIONS = 'réceptions';
-    private const SUB_MENU_REFERENCES = 'références';
-    private const SUB_MENU_ARTICLES = 'articles';
-    private const SUB_MENU_SUPPLIER_ARTICLES = 'articles fournisseur';
-    private const SUB_MENU_STOCK_MOVEMENTS = 'mouvements de stock';
-    private const SUB_MENU_ALERTS = 'alertes';
-    private const SUB_MENU_INVENTORY = 'inventaire';
-
-    public const SUB_MENUS = [
-        self::SUB_MENU_GENERAL,
-        self::SUB_MENU_COLLECTS,
-        self::SUB_MENU_DELIVERIES,
-        self::SUB_MENU_HANDLINGS,
-        self::SUB_MENU_DISPATCHES,
-        self::SUB_MENU_TRANSFERS,
-        self::SUB_MENU_PURCHASE_REQUESTS,
-        self::SUB_MENU_TRACKING,
-        self::SUB_MENU_PREPARATIONS,
-        self::SUB_MENU_RECEPTIONS,
-        self::SUB_MENU_REFERENCES,
-        self::SUB_MENU_ARTICLES,
-        self::SUB_MENU_SUPPLIER_ARTICLES,
-        self::SUB_MENU_STOCK_MOVEMENTS,
-        self::SUB_MENU_ALERTS,
-        self::SUB_MENU_INVENTORY,
-    ];
+    const SUB_MENU_GENERAL = 'général';
+    const SUB_MENU_PAGE = 'page';
+    const SUB_MENU_TRACKING = 'traçabilité';
+    const SUB_MENU_COLLECTS = 'collectes';
+    const SUB_MENU_DELIVERIES = 'livraisons';
+    const SUB_MENU_HANDLINGS = 'services';
+    const SUB_MENU_DISPATCHES = 'acheminements';
+    const SUB_MENU_TRANSFERS = 'transferts';
+    const SUB_MENU_PURCHASE_REQUESTS = 'achats';
+    const SUB_MENU_TRANSPORT = 'transport';
+    const SUB_MENU_TRANSPORT_PLANNING = 'planning';
+    const SUB_MENU_TRANSPORT_ROUND = 'tournée';
+    const SUB_MENU_TRANSPORT_SUBCONTRACT = 'sous-traitance';
+    const SUB_MENU_PREPARATIONS = 'préparations';
+    const SUB_MENU_RECEPTIONS = 'réceptions';
+    const SUB_MENU_REFERENCES = 'références';
+    const SUB_MENU_ARTICLES = 'articles';
+    const SUB_MENU_SUPPLIER_ARTICLES = 'articles fournisseur';
+    const SUB_MENU_STOCK_MOVEMENTS = 'mouvements de stock';
+    const SUB_MENU_ALERTS = 'alertes';
+    const SUB_MENU_INVENTORY = 'inventaire';
 
     public const MENUS = [
         Menu::TRACA => [
@@ -132,6 +118,12 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::DELETE_ONGOING_PURCHASE_REQUESTS,
                 Action::DELETE_TREATED_PURCHASE_REQUESTS,
             ],
+            self::SUB_MENU_TRANSPORT => [
+                Action::DISPLAY_TRANSPORT,
+                Action::CREATE_TRANSPORT,
+                Action::EDIT_TRANSPORT,
+                Action::DELETE_TRANSPORT,
+            ],
         ],
         Menu::ORDRE => [
             self::SUB_MENU_GENERAL => [
@@ -159,6 +151,22 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
             self::SUB_MENU_RECEPTIONS => [
                 Action::DISPLAY_RECE,
                 Action::CREATE_REF_FROM_RECEP,
+            ],
+            self::SUB_MENU_TRANSPORT => [
+                Action::DISPLAY_TRANSPORT,
+                Action::EDIT_TRANSPORT,
+            ],
+            self::SUB_MENU_TRANSPORT_PLANNING => [
+                Action::DISPLAY_TRANSPORT_PLANNING,
+                Action::SCHEDULE_TRANSPORT_ROUND,
+            ],
+            self::SUB_MENU_TRANSPORT_ROUND => [
+                Action::DISPLAY_TRANSPORT_ROUND,
+                Action::EDIT_TRANSPORT_ROUND,
+            ],
+            self::SUB_MENU_TRANSPORT_SUBCONTRACT => [
+                Action::DISPLAY_TRANSPORT_SUBCONTRACT,
+                Action::EDIT_TRANSPORT_SUBCONTRACT,
             ],
         ],
         Menu::STOCK => [
@@ -193,14 +201,20 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
             ],
         ],
         Menu::REFERENTIEL => [
-            Action::DISPLAY_FOUR,
-            Action::DISPLAY_EMPL,
-            Action::DISPLAY_CHAU,
-            Action::DISPLAY_TRAN,
-            Action::CREATE,
-            Action::EDIT,
-            Action::DELETE,
-            Action::EXPORT
+            self::SUB_MENU_GENERAL => [
+                Action::CREATE,
+                Action::EDIT,
+                Action::DELETE,
+                Action::EXPORT,
+            ],
+            self::SUB_MENU_PAGE => [
+                Action::DISPLAY_FOUR,
+                Action::DISPLAY_EMPL,
+                Action::DISPLAY_CHAU,
+                Action::DISPLAY_TRAN,
+                Action::DISPLAY_VEHICLE,
+                Action::DISPLAY_PACK_NATURE,
+            ],
         ],
         Menu::IOT => [
             Action::DISPLAY_SENSOR,
@@ -213,6 +227,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
         Menu::PARAM => [
             Action::SETTINGS_GLOBAL,
             Action::SETTINGS_STOCK,
+            Action::SETTINGS_TRACING,
             Action::SETTINGS_TRACKING,
             Action::SETTINGS_MOBILE,
             Action::SETTINGS_DASHBOARDS,
@@ -229,6 +244,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::MODULE_ACCESS_TRACA,
                 Action::MODULE_ACCESS_HAND,
                 Action::MODULE_NOTIFICATIONS,
+                Action::MODULE_TRACK,
                 Action::DEMO_MODE,
             ],
             self::SUB_MENU_TRACKING => [

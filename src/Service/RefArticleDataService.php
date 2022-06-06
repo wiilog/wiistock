@@ -6,7 +6,6 @@ use App\Entity\Action;
 use App\Entity\Alert;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
-use App\Entity\Attachment;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
@@ -37,7 +36,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\InputBag;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -141,7 +139,7 @@ class RefArticleDataService {
         $currentUserSearches = $currentUser->getSearches();
         $currentUserIndexes = $currentUser->getPageIndexes();
         if ($params->has('search')) {
-            $currentUserSearches['reference'] = $params->get('search');
+            $currentUserSearches['reference'] = $params->all('search');
             $currentUser->setSearches($currentUserSearches);
             $this->entityManager->flush();
         } else {

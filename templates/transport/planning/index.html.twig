@@ -1,0 +1,88 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Ordre | Planning{% endblock %}
+{% block titleLink path('transport_planning_index') %}
+
+
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('transport-order-planning') }}
+{% endblock %}
+
+{% block page_content %}
+    <div class="m-0 m-md-4 p-4 wii-page-card">
+        <div class="d-flex">
+            <div>
+                <button class="btn btn-outline-primary today-date mr-0 h-100" tabindex="0"
+                        disabled
+                        data-loader-color="black">
+                    Aujourd'hui
+                </button>
+            </div>
+            <div class="mx-3">
+                <button class="btn btn-outline-primary decrement-date mr-0 h-100" tabindex="0"
+                        disabled
+                        data-loader-color="black">
+                    <i class="icon disabled"></i>
+                </button>
+                <button class="btn btn-outline-primary increment-date h-100" tabindex="0"
+                        data-loader-color="black">
+                    <i class="icon"></i>
+                </button>
+            </div>
+            <div class="planning-switch mx-4">
+                <div class="to-assign"
+                     data-loader-color="black">
+                    <input type="checkbox" name="status" value="to-assign" id="to-assign" checked/>
+                    <label for="to-assign" class="h-100">
+                        <span class="d-inline-flex align-items-center">
+                            &Agrave; affecter
+                        </span>
+                    </label>
+                </div>
+                <div class="assigned"
+                     data-loader-color="black">
+                    <input type="checkbox" name="status" value="assigned" id="assigned" checked/>
+                    <label for="assigned" class="h-100">
+                        <span class="d-inline-flex align-items-center">
+                            Affecté
+                        </span>
+                    </label>
+                </div>
+                <div class="ongoing"
+                     data-loader-color="black">
+                    <input type="checkbox" name="status" value="ongoing" id="ongoing" checked/>
+                    <label for="ongoing" class="h-100">
+                        <span class="d-inline-flex align-items-center">
+                            En cours
+                        </span>
+                    </label>
+                </div>
+            </div>
+            <div class="d-flex align-items-center">
+                <i class="wii-icon wii-icon-info mr-1"></i>
+                <span class="wii-body-text">
+                    N'oubliez pas de valider les dates de collecte avec le patient.
+                </span>
+            </div>
+            {% set planRound = hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::SCHEDULE_TRANSPORT_ROUND')) %}
+            {% if planRound %}
+                <button class="btn btn-primary ml-auto plan-round-button" tabindex="0">
+                    <span class="d-inline-flex align-items-center">
+                        <img src="{{ asset('svg/delivery-white.svg') }}" alt="" width="15px" class="mr-2">
+                        <span>Planifier une tournée</span>
+                    </span>
+                </button>
+            {% endif %}
+        </div>
+        <div class="row d-flex planning-container">
+
+        </div>
+    </div>
+    {% include 'transport/round/first_step_modal.html.twig' %}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('transport-order-planning') }}
+{% endblock %}

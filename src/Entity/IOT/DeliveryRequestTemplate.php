@@ -9,28 +9,19 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass=DeliveryRequestTemplateRepository::class)
- */
+#[ORM\Entity(repositoryClass: DeliveryRequestTemplateRepository::class)]
 class DeliveryRequestTemplate extends RequestTemplate {
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Emplacement::class, inversedBy="deliveryRequestTemplates")
-     */
+    #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'deliveryRequestTemplates')]
     private ?Emplacement $destination = null;
 
-    /**
-     * @ORM\Column(type="text", nullable=true)
-     */
+    #[ORM\Column(type: 'text', nullable: true)]
     private ?string $comment = null;
 
-    /**
-     * @ORM\OneToMany(targetEntity=RequestTemplateLine::class, mappedBy="deliveryRequestTemplate", cascade={"remove"})
-     */
+    #[ORM\OneToMany(targetEntity: RequestTemplateLine::class, mappedBy: 'deliveryRequestTemplate', cascade: ["remove"])]
     private Collection $lines;
 
-    public function __construct()
-    {
+    public function __construct() {
         parent::__construct();
         $this->lines = new ArrayCollection();
     }
@@ -40,11 +31,11 @@ class DeliveryRequestTemplate extends RequestTemplate {
     }
 
     public function setDestination(?Emplacement $destination): self {
-        if ($this->destination && $this->destination !== $destination) {
+        if($this->destination && $this->destination !== $destination) {
             $this->destination->removeDeliveryRequestTemplate($this);
         }
         $this->destination = $destination;
-        if ($destination) {
+        if($destination) {
             $destination->addDeliveryRequestTemplate($this);
         }
 
@@ -64,22 +55,19 @@ class DeliveryRequestTemplate extends RequestTemplate {
     /**
      * @return Collection|RequestTemplateLine[]
      */
-    public function getLines(): Collection
-    {
+    public function getLines(): Collection {
         return $this->lines;
     }
 
-    public function addLine(ReferenceArticle $ref): self
-    {
-        if (!$this->lines->contains($ref)) {
+    public function addLine(ReferenceArticle $ref): self {
+        if(!$this->lines->contains($ref)) {
             $this->lines[] = $ref;
         }
 
         return $this;
     }
 
-    public function removeLine(ReferenceArticle $ref): self
-    {
+    public function removeLine(ReferenceArticle $ref): self {
         $this->lines->removeElement($ref);
 
         return $this;

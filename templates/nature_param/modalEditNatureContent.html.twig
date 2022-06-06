@@ -1,55 +1,113 @@
 <div class="row">
-    <div class="col-12 form-group required d-none">
+    <div class="form-group col-md-6 col-12 required d-none">
         <input type="text" class="form-control data needed" name="nature" required="" value="{{ nature.id }}">
     </div>
 
-    <div class="form-group col-12">
-        <label>Label*</label>
+    <div class="form-group col-md-6 col-12">
+        <label class="wii-field-name">Label*</label>
         <input type="text" class="data form-control needed" name="label" value="{{ nature.label }}">
     </div>
-    <div class="form-group col-12">
-        <label>Code*</label>
+    <div class="form-group col-md-6 col-12">
+        <label class="wii-field-name">Code*</label>
         <input type="text" class="data form-control needed" name="code" value="{{ nature.code }}">
     </div>
-    <div class="form-group col-12">
-        <label>Description</label>
+    <div class="form-group col-md-6 col-12">
+        <label class="wii-field-name">Description</label>
         <input type="text" class="data form-control" name="description" value="{{ nature.description }}">
     </div>
-    <div class="form-group col-12">
-        <label>Quantité par défaut*</label>
+    <div class="form-group col-md-6 col-12">
+        <label class="wii-field-name">Quantité par défaut*</label>
         <input type="number" class="data form-control needed" name="quantity"
                value="{{ nature.defaultQuantity is defined ? nature.defaultQuantity : '' }}" min="0">
     </div>
-    <div class="form-group col-12">
-        <label>Couleur*</label>
+    <div class="form-group col-md-6 col-12">
+        <label class="wii-field-name">Couleur*</label>
         <input type="color" class="data form-control needed" name="color" value="{{ nature.color ? nature.color : '' }}">
     </div>
-    <div class="form-group col-12">
-        <label for="code">Préfixe</label>
+    <div class="form-group col-md-6 col-12">
+        <label class="wii-field-name">Préfixe</label>
         <input type="text" class="data form-control" name="prefix" value="{{ nature.prefix ? nature.prefix : '' }}">
     </div>
-    <div class="form-group col-12">
-        <label>Synchronisation nomade ?</label>
-        {% set checkedSync = nature.needsMobileSync ? 'checked' %}
-        <label class="switch ml-3">
-            <input class="checkbox data" type="checkbox" name="mobileSync" {{ checkedSync }}>
-            <span class="slider round"></span>
-        </label>
+    <div class="form-group col-md-6 col-12">
+        <label class="wii-field-name">Températures</label>
+        <sup><img src="{{ asset('svg/information.svg') }}"
+                  alt="Icône information"
+                  width="10px"
+                  class="has-tooltip"
+                  title="Valable uniquement sur les demandes de transport">
+        </sup>
+        <select name="allowedTemperatures" class="form-control data w-100" data-s2 multiple>
+            {% for temperature in temperatures %}
+                {% set selected = (temperature in nature.temperatureRanges ? 'selected') %}
+                <option value="{{ temperature.id }}" {{ selected }}>{{ temperature.value }}</option>
+            {% endfor %}
+        </select>
     </div>
     <div class="form-group col-12">
-        <label>Affiché en création d'arrivage</label>
-        {% set checkedDisplayed = nature.displayed ? 'checked' %}
-        <label class="switch ml-3">
-            <input class="checkbox data" type="checkbox" name="displayed" {{ checkedDisplayed }}>
-            <span class="slider round"></span>
-        </label>
+        <div class="wii-checkbox pl-0 pointer">
+            {% set checked = nature.needsMobileSync ? 'checked' %}
+            <label class="pointer d-flex align-items-center">
+                <input class="checkbox data ml-2" type="checkbox" name="mobileSync" {{ checked }}>
+                Synchronisation nomade ?
+            </label>
+        </div>
     </div>
-    <div class="form-group col-12 mb-0">
-        <label>Nature par défaut (acheminements)</label>
-        {% set checkedDefaultForDispatch = nature.defaultForDispatch ? 'checked' %}
-        <label class="switch ml-3">
-            <input class="checkbox data" type="checkbox" name="defaultForDispatch" {{ checkedDefaultForDispatch }}>
-            <span class="slider round"></span>
-        </label>
+
+    <div class="form-group col-12">
+        <div class="wii-checkbox pl-0 pointer">
+            {% set checked = nature.defaultForDispatch ? 'checked' %}
+            <label class="pointer d-flex align-items-center">
+                <input class="checkbox data ml-2" type="checkbox" name="defaultForDispatch" {{ checked }}>
+                Nature par défaut (acheminements)
+            </label>
+        </div>
+    </div>
+
+    <div class="form-group col-12 d-flex align-items-center">
+        <div class="wii-checkbox pl-0 pointer">
+            {% set checked = nature.displayedOnForms ? 'checked' %}
+            <label class="pointer d-flex align-items-center">
+                <input class="checkbox data ml-2" type="checkbox" name="displayedOnForms" {{ checked }} onchange="toggleEntitiesContainer($(this))">
+                Affichage sur les formulaires ?
+            </label>
+        </div>
+    </div>
+
+    {% set hide = not nature.displayedOnForms ? 'd-none' %}
+    <div class="col entities-container ml-3 {{ hide }}">
+        {% for index, entity in constant('App\\Entity\\Nature::ENTITIES') %}
+            {% set checked = index in nature.allowedForms|keys %}
+            <div class="d-flex mb-1 entity-item">
+                <div class="form-group col-4 d-flex align-items-center mb-2">
+                    <label class="font-size-mini pointer">
+                        <input class="checkbox data-array mr-2" {{ checked ? 'checked' }}
+                               type="checkbox" name="{{ index }}" data-identifier="{{ entity }}" onclick="toggleTypes($(this));">
+                        {{ entity }}
+                    </label>
+                </div>
+                {% if index != constant('App\\Entity\\Nature::ARRIVAL_CODE') %}
+                    <div class="input-group row no-gutters">
+                        <div class="col-6 types-container">
+                            <select name="{{ index }}Types"
+                                    class="data form-control w-100 {{ checked ? 'needed' }}"
+                                    title="Types de {{ entity }}"
+                                    data-s2
+                                    {{ not checked ? 'disabled' }}
+                                    multiple>
+                                {% for type in (types[index] ?? []) %}
+                                    {% set selected = type['id'] in nature.allowedForms[index] ?? [] ? 'selected' %}
+                                    <option value="{{ type['id'] }}" {{ selected }}>{{ type['label'] }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="input-group-append col-4">
+                            <button class="btn btn-primary select-all-types w-100"
+                                    type="button" onclick="selectAllTypes($(this))" {{ not checked ? 'disabled' }}>Tous les types
+                            </button>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
     </div>
 </div>

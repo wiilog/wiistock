@@ -215,6 +215,10 @@ a {
     width: 120px;
 }
 
+.w-40px {
+    width: 40px;
+}
+
 .w-300px, .w-300px + .select2.select2-container {
     width: 300px !important;
 }
@@ -229,6 +233,10 @@ a {
 
 .w-fit-content {
     width: fit-content;
+}
+
+.w-min-content {
+    width: min-content;
 }
 
 .w-100 {
@@ -670,6 +678,10 @@ label.required:after {
     }
 }
 
+.wii-box-container {
+    margin-top: 30px;
+}
+
 .wii-box {
     background: white;
     border-radius: 5px;
@@ -681,8 +693,13 @@ label.required:after {
     }
 
     .header {
-        padding: 16px #{$grid-gutter-width};
+        padding: 16px;
         border-bottom: 1px solid $grey;
+
+        &.optioned {
+            padding-top: 11px;
+            padding-bottom: 11px;
+        }
     }
 
     .content {
@@ -790,13 +807,18 @@ label.required:after {
 
 .wii-small-text {
     color: #666666;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: normal;
 }
 
 .wii-medium-text {
     color: #666666;
     font-size: 14px;
+}
+
+.wii-big-text {
+    color: #666666;
+    font-size: 16px;
 }
 
 .nowrap {
@@ -842,6 +864,12 @@ label.required:after {
         margin-left: -$modal-inner-padding;
         margin-right: -$modal-inner-padding;
     }
+
+    .wii-icon {
+        display: inline-block;
+        height: 12px;
+        width: 12px;
+    }
 }
 
 .text-regular {
@@ -869,4 +897,8 @@ label.required:after {
 
 .d-grid {
     display: grid !important;
+}
+
+.vertical-align-middle {
+    vertical-align: middle !important;
 }

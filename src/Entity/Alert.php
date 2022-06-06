@@ -6,9 +6,7 @@ use App\Helper\FormatHelper;
 use App\Repository\AlertRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass=AlertRepository::class)
- */
+#[ORM\Entity(repositoryClass: AlertRepository::class)]
 class Alert {
 
     const TYPE_LABELS = [
@@ -16,42 +14,30 @@ class Alert {
         self::WARNING => "Seuil d'alerte",
         self::EXPIRY => "Péremption",
     ];
-
     const TYPE_LABELS_IDS = [
         'expiration' => self::EXPIRY,
         'alert' => self::WARNING,
         'security' => self::SECURITY,
     ];
-
     const SECURITY = 1;
     const WARNING = 2;
     const EXPIRY = 3;
 
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private $id;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=ReferenceArticle::class, inversedBy="alerts")
-     */
+    #[ORM\ManyToOne(targetEntity: ReferenceArticle::class, inversedBy: 'alerts')]
     private $reference;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Article::class, inversedBy="alerts")
-     */
+    #[ORM\ManyToOne(targetEntity: Article::class, inversedBy: 'alerts')]
     private $article;
 
-    /**
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Column(type: 'integer')]
     private $type;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private $date;
 
     public function getId(): ?int {
@@ -113,7 +99,7 @@ class Alert {
                 ? $this->getReference()->getQuantiteDisponible()
                 : ($this->getArticle()
                     ? $this->getArticle()->getQuantite()
-                    : '' )),
+                    : '')),
             'typeQuantity' => $reference->getTypeQuantite() ?: '',
             'limitWarning' => $reference->getLimitWarning(),
             'limitSecurity' => $reference->getLimitSecurity(),
@@ -121,31 +107,29 @@ class Alert {
                 ? FormatHelper::date($article->getExpiryDate())
                 : '',
             'managers' => FormatHelper::users($reference->getManagers()),
-            'visibilityGroups' => FormatHelper::visibilityGroup($reference->getVisibilityGroup())
+            'visibilityGroups' => FormatHelper::visibilityGroup($reference->getVisibilityGroup()),
         ];
     }
 
-
     public function getLinkedArticles(): array {
-        if ($this->getReference()) {
+        if($this->getReference()) {
             $referenceArticle = $this->getReference();
             $article = null;
-        }
-        else if ($this->getArticle()) {
+        } else if($this->getArticle()) {
             $article = $this->getArticle();
             $articleFournisseur = $article->getArticleFournisseur();
             $referenceArticle = $articleFournisseur
                 ? $articleFournisseur->getReferenceArticle()
                 : null;
-        }
-        else {
+        } else {
             $referenceArticle = null;
             $article = null;
         }
 
         return [
             $referenceArticle,
-            $article
+            $article,
         ];
     }
+
 }
