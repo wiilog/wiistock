@@ -402,13 +402,19 @@ class PreparationRepository extends EntityRepository
      * @param string[] $statusCodes
      * @return Preparation[]
      */
-    public function findByStatusCode(array $statusCodes): array {
+    public function findByStatusCodesAndExpectedAt(array $statusCodes, DateTime $start, DateTime $end): array {
+        $startStr = $start->format('Y-m-d');
+        $endStr = $end->format('Y-m-d');
+
         return empty($statusCodes)
             ? []
             : $this->createQueryBuilder('preparation')
                 ->join('preparation.statut', 'status')
                 ->andWhere('status.code IN (:statusCodes)')
+                ->andWhere('preparation.expectedAt BETWEEN :start AND :end')
                 ->setParameter('statusCodes', $statusCodes)
+                ->setParameter('start', $startStr)
+                ->setParameter('end', $endStr)
                 ->getQuery()
                 ->getResult();
     }
