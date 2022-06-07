@@ -213,8 +213,7 @@ class HistoryController extends AbstractController
                     'state' => $currentLine?->getId() === $line->getId()
                         ? 'current'
                         : ($order?->getTreatedAt() ? 'past' : 'future'),
-//                    TODO
-                    'real' => ''
+                    'real' => $line->getFulfilledAt()?->format(' H:i'),
                 ];
             })
             ->toArray();
