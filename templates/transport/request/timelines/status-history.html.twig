@@ -85,7 +85,7 @@
                                 class="transport-value">{{ roundLine ? roundLine.fulfilledAt | date('H:i') : '-' }}</span>
                         {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_NOT_DELIVERED') %}
                             Non livrée le : <span
-                                class="transport-value">{{ roundLine ? roundLine.rejectedAt | format_helper('longDate', {short: true, year: false}) : '-' }}</span>
+                                class="transport-value">{{ order.treatedAt ? order.treatedAt | format_helper('longDate', {short: true, year: false}) : '-' }}</span>
                         {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_CANCELLED') %}
                             Annulée le : <span
                                 class="transport-value">{{ roundLine ? roundLine.cancelledAt | format_helper('longDate', {short: true, year: false}) : '' }}</span>
@@ -99,13 +99,14 @@
                             Estimée à : <span
                                 class="transport-value">{{ roundLine ? roundLine.estimatedAt | date('H:i') : '-' }}</span>
                         {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_FINISHED') %}
-                            Faite à : <span
-                                class="transport-value">{{ roundLine ? roundLine.fulfilledAt | date('H:i') : '-' }}</span>
+                            Faite à :
+                            <span class="transport-value">{{ roundLine ? roundLine.fulfilledAt | date('H:i') : '-' }}</span>
                         {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_NOT_COLLECTED') %}
-                            Non collectée le : {{ roundLine ? (roundLine.rejectedAt | format_helper('longDate', {short: true, year: false})) : '-' }}
+                            Non collectée le :
+                            <span class="transport-value">{{ order.treatedAt ? (order.treatedAt | format_helper('longDate', {short: true, year: false})) : '-' }}</span>
                         {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_CANCELLED') %}
-                            Annulée le : <span
-                            class="transport-value">{{ roundLine ? (roundLine.cancelledAt | format_helper('longDate', {short: true, year: false})) : '-' }}</span>
+                            Annulée le :
+                            <span class="transport-value">{{ roundLine ? (roundLine.cancelledAt | format_helper('longDate', {short: true, year: false})) : '-' }}</span>
                         {% endif %}
                     {% endif %}
                         </span>

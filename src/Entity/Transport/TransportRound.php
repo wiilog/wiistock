@@ -94,6 +94,9 @@ class TransportRound extends StatusHistoryContainer
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $estimatedTime = null;
 
+    #[ORM\Column(type: 'integer', options: ['default' => 0])]
+    private int $rejectedOrderCount = 0;
+
     #[ORM\OneToMany(mappedBy: 'transportRound', targetEntity: TransportRoundLine::class)]
     private Collection $transportRoundLines;
 
@@ -382,36 +385,40 @@ class TransportRound extends StatusHistoryContainer
         })->sum();
     }
 
-    public function countRejectedOrders(): int {
-        return Stream::from( $this->getTransportRoundLines() )->filter(function(TransportRoundLine $line) {
-            return $line->getOrder()->isRejected();
-        })->count();
+    public function getRejectedOrderCount(): int {
+        return $this->rejectedOrderCount;
+    }
+
+    public function setRejectedOrderCount(int $rejectedOrderCount): self {
+        $this->rejectedOrderCount = $rejectedOrderCount;
+        return $this;
     }
 
     public function getPairings(): array {
-        $roundVehicle = $this->getDeliverer()->getVehicle();
+        $roundVehicle = $this->getDeliverer()?->getVehicle();
         $roundsPairings = [];
 
-        foreach ($roundVehicle->getPairings() as $pairing) {
-            $roundsPairings[] = $pairing;
-        }
-
-        foreach($roundVehicle->getLocations() as $location){
-            foreach($location->getPairings() as $pairing){
+        if ($roundVehicle) {
+            foreach ($roundVehicle->getPairings() as $pairing) {
                 $roundsPairings[] = $pairing;
             }
-        }
 
-        foreach($this->getTransportRoundLines() as $line){
-            $order = $line->getOrder();
-            if(!$order->isRejected()) {
-                foreach($order->getPacks() as $orderPack){
-                    foreach ($orderPack->getPack()->getPairings() as $pairing) {
-                        $roundsPairings[] = $pairing;
-                    }
+            foreach ($roundVehicle->getLocations() as $location) {
+                foreach ($location->getPairings() as $pairing) {
+                    $roundsPairings[] = $pairing;
                 }
             }
         }
+
+        foreach ($this->getTransportRoundLines() as $line) {
+            $order = $line->getOrder();
+            foreach ($order->getPacks() as $orderPack) {
+                foreach ($orderPack->getPack()->getPairings() as $pairing) {
+                    $roundsPairings[] = $pairing;
+                }
+            }
+        }
+
         return $roundsPairings;
     }
 }

@@ -17,7 +17,7 @@ function initializeInput($increaseDecreaseContainer) {
 
     $increaseDecreaseInput
         .on('change keyup', function () {
-            resetIncreaseDecreaseButtons($increaseDecreaseInput);
+            resetIncreaseDecreaseButtons($(this));
         });
 
     $increaseDecreaseContainer
@@ -28,11 +28,11 @@ function initializeInput($increaseDecreaseContainer) {
 }
 
 function resetIncreaseDecreaseButtons($input) {
-    const maxInt = parseInt($input.attr(`max`));
-    const max = !isNaN(maxInt) ? maxInt : null;
-
     const minInt = parseInt($input.attr(`min`));
     const min = !isNaN(minInt) ? minInt : null;
+
+    const maxInt = parseInt($input.attr(`max`));
+    const max = !isNaN(maxInt) ? maxInt : null;
 
     const value = parseInt($input.val()) || 0;
 

@@ -124,11 +124,11 @@ class RequestController extends AbstractController {
 
         $order = $transport->getOrder();
 
-
-        $packsCount = $order?->getPacks()?->count() ?? 0;
+        $orderPacks = $order?->getPacks();
+        $packsCount = $orderPacks?->count() ?: 0;
 
         $hasRejectedPacks =  $order
-            && Stream::from($transport->getOrder()?->getPacks() ?: [])
+            && Stream::from($orderPacks ?: [])
                 ->some(fn(TransportDeliveryOrderPack $orderPack) => $orderPack->getState() === TransportDeliveryOrderPack::REJECTED_STATE);
 
         $contactPosition = [$transport->getContact()->getAddressLatitude(), $transport->getContact()->getAddressLongitude()];

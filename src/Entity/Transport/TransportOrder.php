@@ -111,6 +111,9 @@ class TransportOrder extends StatusHistoryContainer {
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $returnedAt = null;
 
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?DateTime $rejectedAt = null;
+
     #[ORM\Column(type: 'string', nullable: true)]
     private ?string $returnReason = null;
 
@@ -272,8 +275,7 @@ class TransportOrder extends StatusHistoryContainer {
     }
 
     public function isRejected(): bool {
-        return !$this->getPacks()->isEmpty() && Stream::from($this->getPacks())
-            ->every(fn(TransportDeliveryOrderPack $orderPack) => $orderPack->getState() === TransportDeliveryOrderPack::REJECTED_STATE);
+        return (bool) $this->getRejectedAt();
     }
 
     public function hasRejectedPacks(): bool {
@@ -397,17 +399,26 @@ class TransportOrder extends StatusHistoryContainer {
         return $this;
     }
 
-    public function getLastStatusHistory(array $statusCode) : array|null
+    public function getLastStatusHistory(array $statusCodes) : array|null
     {
         return Stream::from($this->getStatusHistory())
-            ->filter(fn(StatusHistory $history) => in_array($history->getStatus()->getCode(),$statusCode))
+            ->filter(fn(StatusHistory $history) => in_array($history->getStatus()->getCode(), $statusCodes))
             ->sort(fn(StatusHistory $s1, StatusHistory $s2) => $s2->getId() <=> $s1->getId())
             ->keymap(fn(StatusHistory $history) => [$history->getStatus()->getCode(), $history->getDate()])
             ->toArray();
     }
 
     public function isFinished(): bool {
-        return $this->getStatus()->getCode() === TransportOrder::STATUS_FINISHED;
+        return $this->getStatus()?->getCode() === TransportOrder::STATUS_FINISHED;
+    }
+
+    public function getRejectedAt(): ?DateTime {
+        return $this->rejectedAt;
+    }
+
+    public function setRejectedAt(?DateTime $rejectedAt): self {
+        $this->rejectedAt = $rejectedAt;
+        return $this;
     }
 
 }

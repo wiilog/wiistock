@@ -90,7 +90,6 @@
                         </div>
 
                         {% set nbRejectedPacks = transportRound.countRejectedPacks %}
-                        {% set nbRejectedOrders = transportRound.countRejectedOrders %}
                         {% if nbRejectedPacks or nbRejectedOrders %}
                             <div class="header">
                                 <img src="{{ asset('svg/urgence.svg') }}" alt="Icône urgence" width="15px">
@@ -103,10 +102,10 @@
                                         <span class="wii-field-text">{{ nbRejectedPacks }}</span>
                                     </div>
                                 {% endif %}
-                                {% if nbRejectedOrders %}
+                                {% if transportRound.rejectedOrderCount %}
                                     <div class="col-6 d-flex flex-column">
                                         <span class="wii-field-name">Commandes rejetées</span>
-                                        <span class="wii-field-text">{{ nbRejectedOrders }}</span>
+                                        <span class="wii-field-text">{{ transportRound.rejectedOrderCount }}</span>
                                     </div>
                                 {% endif %}
                             </div>
