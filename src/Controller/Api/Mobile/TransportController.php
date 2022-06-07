@@ -598,7 +598,7 @@ class TransportController extends AbstractFOSRestController {
                 $order->setSignature($signatureAttachment);
             }
 
-            if($signatureAttachment) {
+            if($photoAttachment) {
                 $order->addAttachment($photoAttachment);
             }
 
