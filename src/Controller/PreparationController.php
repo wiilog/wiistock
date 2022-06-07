@@ -670,7 +670,6 @@ class PreparationController extends AbstractController
      * @Route("/associer", name="preparation_sensor_pairing_new",options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::ORDRE, Action::PAIR_SENSOR}, mode=HasPermission::IN_JSON)
      */
-
     function newPreparationPairingSensor(PreparationsManagerService $preparationsService,
                                          EntityManagerInterface $entityManager,
                                          Request $request): Response{
@@ -706,5 +705,38 @@ class PreparationController extends AbstractController
         }
 
         throw new BadRequestHttpException();
+    }
+
+    #[Route('/planning', name: 'preparation_planning_index', methods: 'GET')]
+    #[HasPermission([Menu::ORDRE, Action::DISPLAY_PREPA_PLANNING], mode: HasPermission::IN_JSON)]
+    public function planning(): Response {
+        return $this->render('preparation/planning.html.twig');
+    }
+
+    #[Route('/planning/api', name: 'preparation_planning_api', options: ['expose' => true], methods: 'GET')]
+    #[HasPermission([Menu::ORDRE, Action::DISPLAY_PREPA_PLANNING], mode: HasPermission::IN_JSON)]
+    public function planningApi(EntityManagerInterface $entityManager): Response {
+        $now = new DateTime();
+        $nbDaysOnPlanning = 6;
+        $dates = Stream::fill(0, $nbDaysOnPlanning, null)
+            ->map(function ($_, int $index) use ($now) {
+                $day = (clone $now)->modify("+{$index} days");
+                return [
+                    'label' => FormatHelper::longDate($day, ['year' => false]),
+                    'styleContainer' => $index > 1 ? 'flex: 1;' : 'flex: 2;',
+                    'columnHeader' => '8 préparations',
+                ];
+            })
+            ->toArray();
+
+        $preparationRepository = $entityManager->getRepository(Preparation::class);
+//        $preparationRepository->findby
+
+        return $this->json([
+            'success' => true,
+            'template' => $this->renderView('preparation/planning_content.html.twig', [
+                'planningDates' => $dates
+            ])
+        ]);
     }
 }

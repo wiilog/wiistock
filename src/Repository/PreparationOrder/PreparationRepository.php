@@ -398,4 +398,19 @@ class PreparationRepository extends EntityRepository
         ";
     }
 
+    /**
+     * @param string[] $statusCodes
+     * @return Preparation[]
+     */
+    public function findByStatusCode(array $statusCodes): array {
+        return empty($statusCodes)
+            ? []
+            : $this->createQueryBuilder('preparation')
+                ->join('preparation.statut', 'status')
+                ->andWhere('status.code IN (:statusCodes)')
+                ->setParameter('statusCodes', $statusCodes)
+                ->getQuery()
+                ->getResult();
+    }
+
 }

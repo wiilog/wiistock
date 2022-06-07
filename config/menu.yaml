@@ -112,6 +112,8 @@ parameters:
                     rights:
                         menu: App\Entity\Menu::ORDRE
                         action: App\Entity\Action::DISPLAY_PREPA
+                -   label: 'Préparation - Planning'
+                    path: 'preparation_planning_index'
                 -   label: 'Transfert'
                     path: 'transfer_order_index'
                     rights:

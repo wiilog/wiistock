@@ -1,0 +1,39 @@
+<div class="row">
+    {% for date in planningDates %}
+        {% set label = date.label ?? null %}
+        {% set styleContainer = date.styleContainer ?? null %}
+        {% set columnHeader = date.columnHeader ?? null %}
+        {% set cards = date.cards ?? [] %}
+        <div class="col-12 h-100"
+             style="{{ styleContainer }}">
+            <div class="wii-box border border-bottom-0">
+                <div class="header">
+    {#                <input type="hidden" value="{{ dateForContainer }}" class="date-container">#}
+                    <span class="wii-title">{{ label }}</span>
+                </div>
+                <div class="row">
+                    {% if columnHeader %}
+                        <div class="col-12">
+                            <div class="column-header-container">
+                                {{ columnHeader|raw }}
+                            </div>
+                        </div>
+                    {% endif %}
+                    <div class="col-12">
+                        <div class="planning-card-container border-right border-bottom">
+                            <div class="card-container">
+{#                                    {% for transportOrder in transportOrders[dateForContainer | date_modify("+#{i}days") | date('Y-m-d') ] %}#}
+{#                                        {% if transportOrder is not empty and transportOrder.request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}#}
+{#                                            {% include 'transport/planning/planning_card.html.twig' with {#}
+{#                                                'order': transportOrder#}
+{#                                            } %}#}
+{#                                        {% endif %}#}
+{#                                    {% endfor %}#}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>

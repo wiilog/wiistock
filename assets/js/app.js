@@ -39,12 +39,12 @@ export const $document = $(document);
 
 ///////////////// Main
 
+importRouting();
 importWiistock();
 importForm();
 importJquery();
 importMoment();
 importQuill();
-importRouting();
 importChart();
 importLeaflet();
 importIntlTelInput();

@@ -1,4 +1,5 @@
 import IncreaseDecreaseField from "@app/increase-decrease-field";
+import Planning from "@app/planning";
 
 export default class Wiistock {
     static download(url) {
@@ -13,7 +14,8 @@ export default class Wiistock {
 
     static initialize() {
         IncreaseDecreaseField.initialize();
-        Wiistock.registerNumberInputProtection()
+        Wiistock.registerNumberInputProtection();
+        Planning.initialize();
     }
 
     static registerNumberInputProtection() {

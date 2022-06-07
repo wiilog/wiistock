@@ -1,0 +1,16 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Ordre | Préparation - Planning{% endblock %}
+
+{% block page_filter %}
+{% endblock %}
+
+{% block page_content %}
+    <div class="m-4 wii-page-card">
+        <div data-wii-planning="preparation_planning_api"></div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+{% endblock %}
