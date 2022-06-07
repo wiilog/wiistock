@@ -192,7 +192,7 @@ class RoundController extends AbstractController {
                         "type" => IOTService::getEntityCodeFromEntity($location),
                         "id" => $location->getId(),
                         'start' => $transportRound->getCreatedAt()->format('Y-m-d\TH:i'),
-                        'end' => $transportRound->getEndedAt()->format('Y-m-d\TH:i') ?? $now->format('Y-m-d\TH:i'),
+                        'end' => $transportRound->getEndedAt()?->format('Y-m-d\TH:i') ?? $now->format('Y-m-d\TH:i'),
                     ], UrlGeneratorInterface::ABSOLUTE_URL),
                     "minTemp" => $minThreshold,
                     "maxTemp" => $maxThreshold,
