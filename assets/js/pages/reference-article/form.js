@@ -1,10 +1,19 @@
 import '../../../scss/pages/reference-article.scss';
+import AJAX from "@app/ajax";
 
 window.onTypeQuantityChange = onTypeQuantityChange;
 window.toggleEmergency = toggleEmergency;
 window.changeNewReferenceStatus = changeNewReferenceStatus;
 
 $(document).ready(() => {
+    const $periodSwitch = $('input[name="period"]');
+
+    $periodSwitch.on('click', function() {
+        buildQuantityPredictions($(this).val());
+    })
+
+    buildQuantityPredictions();
+
     $(`.add-supplier-article`).click(function() {
         $(this).siblings(`.supplier-articles`).append($(`#supplier-article-template`).html());
     });
@@ -76,6 +85,36 @@ $(document).ready(() => {
         $(this).closest('.supplier-container').remove();
     });
 });
+
+function buildQuantityPredictions(period = 1) {
+    const $id = $('input[name="reference-id"]')
+    if ($id.length > 0) {
+        AJAX.route('GET', 'reference_article_quantity_variations', {id: $id.val(), period})
+            .json()
+            .then(({data}) => {
+                const chartValues = Object.values(data).map(({quantity}) => quantity);
+                const tooltips = buildTooltipsForQuantityPredictions(data);
+                const $element = $('#quantityPrevisions');
+                initSteppedLineChart($element, Object.keys(data), chartValues, tooltips, 'Quantité en stock');
+            })
+    }
+}
+
+function buildTooltipsForQuantityPredictions(data) {
+    const tooltips = {};
+    Object.keys(data).forEach((key) => {
+        let {preparations, receptions} = data[key];
+        let tooltip = '';
+        if (preparations > 0) {
+            tooltip = preparations + ' préparation(s)';
+        }
+        if (receptions > 0) {
+            tooltip += "\n" + receptions + ' réception(s)';
+        }
+        tooltips[key] = tooltip.split("\n").filter((element) => element !== '');
+    })
+    return tooltips;
+}
 
 function updateArticleReferenceImage($div, $image) {
     const reader = new FileReader();

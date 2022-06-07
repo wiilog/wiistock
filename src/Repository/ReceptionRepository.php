@@ -2,7 +2,9 @@
 
 namespace App\Repository;
 
+use App\Entity\PreparationOrder\Preparation;
 use App\Entity\Reception;
+use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
 use App\Service\VisibleColumnService;
@@ -57,6 +59,32 @@ class ReceptionRepository extends EntityRepository
 
 		return $query->getSingleScalarResult();
 	}
+
+    /**
+     * @param ReferenceArticle $referenceArticle
+     * @param DateTime $start
+     * @param DateTime $end
+     * @return Reception[]
+     */
+    public function getAwaitingWithReference(ReferenceArticle $referenceArticle, DateTime $start, DateTime $end) {
+        $start->setTime(0, 0, 0);
+        $end->setTime(23, 59, 59);
+        return $this->createQueryBuilder('reception')
+            ->join('reception.statut', 'statut')
+            ->join('reception.receptionReferenceArticles', 'referenceLines')
+            ->where('referenceLines.referenceArticle = :reference')
+            ->andWhere('reception.dateAttendue BETWEEN :start and :end')
+            ->andWhere('statut.code = :validated')
+            ->setParameters([
+                'start' => $start,
+                'end' => $end,
+                'validated' => Reception::STATUT_EN_ATTENTE,
+                'reference' => $referenceArticle
+            ])
+            ->orderBy('reception.dateAttendue', 'ASC')
+            ->getQuery()
+            ->execute();
+    }
 
     public function getByDates(DateTime $dateMin, DateTime $dateMax): array {
         $queryBuilder = $this->createQueryBuilder('reception')
