@@ -80,7 +80,6 @@ abstract class TransportRequest extends StatusHistoryContainer {
         TransportRequest::STATUS_TO_PREPARE,
         TransportRequest::STATUS_TO_DELIVER,
         TransportRequest::STATUS_ONGOING,
-        TransportRequest::STATUS_SUBCONTRACTED,
         TransportRequest::STATUS_AWAITING_VALIDATION,
     ];
 
