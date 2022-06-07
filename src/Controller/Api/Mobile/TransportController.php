@@ -242,6 +242,11 @@ class TransportController extends AbstractFOSRestController {
             $naturesToCollect = null;
         }
 
+        $expectedAt = $isCollect && $request->getTimeSlot()
+            ? FormatHelper::date($request->getExpectedAt()) . " " . $request->getTimeSlot()?->getName()
+            : ($isCollect
+                ? FormatHelper::datetime($request->getDelivery()?->getExpectedAt())
+                : FormatHelper::datetime($request->getExpectedAt()));
         return [
             'id' => $request->getId(),
             'number' => $request->getNumber(),
@@ -270,9 +275,7 @@ class TransportController extends AbstractFOSRestController {
                         'returned' => $orderPack->getState() === TransportDeliveryOrderPack::RETURNED_STATE,
                     ];
                 }),
-            'expected_at' => $isCollect
-                ? ($request->getTimeSlot()?->getName() ?? FormatHelper::datetime($request->getDelivery()?->getExpectedAt()))
-                : FormatHelper::datetime($request->getExpectedAt()),
+            'expected_at' => $expectedAt,
             'estimated_time' => $line->getEstimatedAt()?->format('H:i'),
             'expected_time' => $request->getExpectedAt()?->format('H:i'),
             'time_slot' => $isCollect ? $request->getTimeSlot()?->getName() : null,
