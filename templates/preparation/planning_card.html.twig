@@ -7,9 +7,13 @@
             <div class="col-12">
                 <div class="font-weight-bold">{{ preparation.numero }}</div>
             </div>
-            <div class="col-12">
-                <div class="preparation-status">{{ preparation.numero }}</div>
-            </div>
+            {% if preparation.statut %}
+                <div class="col-12">
+                    <div class="preparation-status">
+                        {{ preparation.statut.nom }}
+                    </div>
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>

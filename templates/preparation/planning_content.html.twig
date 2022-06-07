@@ -10,6 +10,7 @@
         {% set columnClass = loop.first ? 'pl-3' : (loop.last ? 'pr-3' : '') %}
 
         <div class="col-12 d-flex h-100 px-1 {{ columnClass }}"
+             data-date="{{ cardSelector }}"
              style="{{ styleContainer }}">
             <div class="wii-box border flex-fill">
                 <div class="header">
