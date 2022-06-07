@@ -9,7 +9,7 @@
                 <div class="col-12 d-flex px-0">
                     <div class="col-6 px-0 pr-1">
                         <div class="planning-card-container border-right border-bottom">
-                            <div class="type-header">
+                            <div class="column-hint-container">
                                 <img src="{{ asset('svg/delivery.svg') }}" alt="Icône livraison" width="15px">
                                 <span class="wii-field-name ml-2">
                                     {% set deliveries = deliveryAndCollectCount[dateForContainer | date_modify("+#{i}days") | date('Y-m-d')]['delivery'] ?? 0 %}

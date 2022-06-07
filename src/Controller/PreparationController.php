@@ -716,26 +716,58 @@ class PreparationController extends AbstractController
     #[Route('/planning/api', name: 'preparation_planning_api', options: ['expose' => true], methods: 'GET')]
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_PREPA_PLANNING], mode: HasPermission::IN_JSON)]
     public function planningApi(EntityManagerInterface $entityManager): Response {
-        $now = new DateTime();
-        $nbDaysOnPlanning = 6;
+        $preparationRepository = $entityManager->getRepository(Preparation::class);
+
+        $nbDaysOnPlanning = 5;
+        $planningStart = new DateTime();
+        $planningEnd = (clone $planningStart)->modify("+{$nbDaysOnPlanning} days");
+
+        $preparationStatuses = [
+            Preparation::STATUT_VALIDATED,
+            Preparation::STATUT_LAUNCHED,
+            Preparation::STATUT_EN_COURS_DE_PREPARATION,
+            Preparation::STATUT_INCOMPLETE,
+            Preparation::STATUT_A_TRAITER,
+        ];
+
+        $preparations = $preparationRepository->findByStatusCodesAndExpectedAt($preparationStatuses, $planningStart, $planningEnd);
+        $cards = Stream::from($preparations)
+            ->filter(fn(Preparation $preparation) => $preparation->getExpectedAt())
+            ->keymap(fn(Preparation $preparation) => [
+                $preparation->getExpectedAt()->format('Y-m-d'),
+                $this->renderView('preparation/planning_card.html.twig', [
+                    'preparation' => $preparation,
+                    'color' => match ($preparation->getStatut()?->getCode()) {
+                        Preparation::STATUT_VALIDATED => 'orange',
+                        Preparation::STATUT_LAUNCHED => 'green',
+                        Preparation::STATUT_EN_COURS_DE_PREPARATION => 'blue',
+                        // Preparation::STATUT_INCOMPLETE, Preparation::STATUT_A_TRAITER => 'grey',
+                        default => 'grey',
+                    }
+                ])
+            ], true)
+            ->toArray();
+
         $dates = Stream::fill(0, $nbDaysOnPlanning, null)
-            ->map(function ($_, int $index) use ($now) {
-                $day = (clone $now)->modify("+{$index} days");
+            ->map(function ($_, int $index) use ($planningStart, $preparations, $cards) {
+                $day = (clone $planningStart)->modify("+{$index} days");
+                $dayStr = $day->format('Y-m-d');
+                $count = count($cards[$dayStr] ?? []);
+                $sPreparation = $count > 1 ? 's' : '';
                 return [
-                    'label' => FormatHelper::longDate($day, ['year' => false]),
-                    'styleContainer' => $index > 1 ? 'flex: 1;' : 'flex: 2;',
-                    'columnHeader' => '8 préparations',
+                    "label" => FormatHelper::longDate($day, ["year" => false]),
+                    "cardSelector" => $dayStr,
+                    "styleContainer" => $index > 1 ? "flex: 1;" : "flex: 2;",
+                    "columnHint" => "<span class='font-weight-bold'>{$count} préparation{$sPreparation}</span>",
                 ];
             })
             ->toArray();
 
-        $preparationRepository = $entityManager->getRepository(Preparation::class);
-//        $preparationRepository->findby
-
         return $this->json([
             'success' => true,
             'template' => $this->renderView('preparation/planning_content.html.twig', [
-                'planningDates' => $dates
+                'planningDates' => $dates,
+                'cards' => $cards,
             ])
         ]);
     }

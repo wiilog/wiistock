@@ -1,34 +1,35 @@
-<div class="row">
+<div class="row planning-container">
+    {% set allCards = cards ?? [] %}
     {% for date in planningDates %}
         {% set label = date.label ?? null %}
         {% set styleContainer = date.styleContainer ?? null %}
-        {% set columnHeader = date.columnHeader ?? null %}
-        {% set cards = date.cards ?? [] %}
-        <div class="col-12 h-100"
+        {% set columnHint = date.columnHint ?? null %}
+        {% set cardSelector = date.cardSelector ?? null %}
+        {% set cards = allCards[cardSelector] ?? [] %}
+
+        {% set columnClass = loop.first ? 'pl-3' : (loop.last ? 'pr-3' : '') %}
+
+        <div class="col-12 d-flex h-100 px-1 {{ columnClass }}"
              style="{{ styleContainer }}">
-            <div class="wii-box border border-bottom-0">
+            <div class="wii-box border flex-fill">
                 <div class="header">
     {#                <input type="hidden" value="{{ dateForContainer }}" class="date-container">#}
                     <span class="wii-title">{{ label }}</span>
                 </div>
                 <div class="row">
-                    {% if columnHeader %}
+                    {% if columnHint %}
                         <div class="col-12">
-                            <div class="column-header-container">
-                                {{ columnHeader|raw }}
+                            <div class="column-hint-container">
+                                {{ columnHint|raw }}
                             </div>
                         </div>
                     {% endif %}
                     <div class="col-12">
-                        <div class="planning-card-container border-right border-bottom">
+                        <div class="planning-card-container">
                             <div class="card-container">
-{#                                    {% for transportOrder in transportOrders[dateForContainer | date_modify("+#{i}days") | date('Y-m-d') ] %}#}
-{#                                        {% if transportOrder is not empty and transportOrder.request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}#}
-{#                                            {% include 'transport/planning/planning_card.html.twig' with {#}
-{#                                                'order': transportOrder#}
-{#                                            } %}#}
-{#                                        {% endif %}#}
-{#                                    {% endfor %}#}
+                                {% for card in cards %}
+                                    {{ card|raw }}
+                                {% endfor %}
                             </div>
                         </div>
                     </div>

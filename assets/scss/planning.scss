@@ -1,10 +1,57 @@
 @import "variables";
 
 [data-wii-planning] {
-    .column-header-container {
-        padding-left: 6px;
-        padding-right: 6px;
-        background-color: #f2f3f7;
-        font-weight: bold;
+    display: flex;
+    height: 100%;
+
+    & > .planning-container {
+        flex: 1;
+    }
+
+    .column-hint-container {
+        display: flex;
+        align-items: center;
+        background-color: #F2F3F7;
+        padding: 5px 15px;
+        border: none !important;
+        box-sizing: border-box;
+        width: 100%;
+    }
+}
+
+// used outside planning
+.planning-card {
+    padding: .25rem;
+
+    &[data-color=orange] .planning-card-wrapper {
+        border-left-color: rgb(215, 100, 51);
+        background-color: rgba(215, 100, 51, 0.15);
+    }
+
+    &[data-color=orange] .planning-card-wrapper {
+        border-left-color: rgb(215, 100, 51);
+        background-color: rgba(215, 100, 51, 0.15);
+    }
+
+    &[data-color=blue] .planning-card-wrapper {
+        border-left-color: rgb(100, 51, 215);
+        background-color: rgba(100, 51, 215, 0.15);
+    }
+
+    &[data-color=green] .planning-card-wrapper {
+        border-left-color: rgb(165, 215, 51);
+        background-color: rgba(165, 215, 51, 0.15);
+    }
+
+    .planning-card-wrapper {
+        font-size: 14px;
+        width: 100%;
+        border-radius: 5px;
+        padding: 0 5px 5px 5px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        border-left-width: 5px;
+        border-left-style: solid;
     }
 }

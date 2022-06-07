@@ -60,7 +60,7 @@ function getOrders() {
         })
         .json()
         .then(({template})=>{
-            $('.planning-container').html(template);
+            $('[data-wii-planning]').html(template);
         });
 }
 
