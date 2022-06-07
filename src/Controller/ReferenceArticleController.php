@@ -622,13 +622,25 @@ class ReferenceArticleController extends AbstractController
     }
 
     /**
+     * @Route("/quantites/{id}/{period}", name="reference_article_quantity_variations", options={"expose"=true}, methods="GET")
+     */
+    public function quantities(ReferenceArticle $referenceArticle,
+                               int $period,
+                               RefArticleDataService $refArticleDataService,
+                               EntityManagerInterface $manager): Response {
+        return $this->json([
+            'data' => $refArticleDataService->getQuantityPredictions($manager, $referenceArticle, $period)
+        ]);
+
+    }
+
+    /**
      * @Route("/voir/{id}", name="reference_article_show_page", options={"expose"=true})
      * @HasPermission({Menu::STOCK, Action::DISPLAY_REFE})
      */
-    public function showPage(ReferenceArticle $referenceArticle, EntityManagerInterface $manager): Response {
+    public function showPage(ReferenceArticle $referenceArticle, RefArticleDataService $refArticleDataService, EntityManagerInterface $manager): Response {
         $type = $referenceArticle->getType();
         $freeFields = $manager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
-
         $providerArticles = Stream::from($referenceArticle->getArticlesFournisseur())
             ->reduce(function(array $carry, ArticleFournisseur $providerArticle) use ($referenceArticle) {
                 $articles = $referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE

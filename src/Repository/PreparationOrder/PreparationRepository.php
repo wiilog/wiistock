@@ -7,6 +7,7 @@ use App\Entity\FiltreSup;
 use App\Entity\IOT\Sensor;
 use App\Entity\LocationGroup;
 use App\Entity\PreparationOrder\Preparation;
+use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
@@ -18,6 +19,7 @@ use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Exception;
 use Generator;
+use Google\Service\AdMob\Date;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\StringHelper;
 
@@ -78,6 +80,33 @@ class PreparationRepository extends EntityRepository
         }
 
         return $queryBuilder
+            ->getQuery()
+            ->execute();
+    }
+
+
+    /**
+     * @param ReferenceArticle $referenceArticle
+     * @param DateTime $start
+     * @param DateTime $end
+     * @return Preparation[]
+     */
+    public function getValidatedWithReference(ReferenceArticle $referenceArticle, DateTime $start, DateTime $end) {
+        $start->setTime(0, 0, 0);
+        $end->setTime(23, 59, 59);
+        return $this->createQueryBuilder('preparation')
+            ->join('preparation.statut', 'statut')
+            ->join('preparation.referenceLines', 'referenceLines')
+            ->where('referenceLines.reference = :reference')
+            ->andWhere('preparation.expectedAt BETWEEN :start and :end')
+            ->andWhere('statut.code = :validated')
+            ->setParameters([
+                'start' => $start,
+                'end' => $end,
+                'validated' => Preparation::STATUT_VALIDATED,
+                'reference' => $referenceArticle
+            ])
+            ->orderBy('preparation.expectedAt', 'ASC')
             ->getQuery()
             ->execute();
     }
