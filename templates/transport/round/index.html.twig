@@ -16,9 +16,15 @@
 {% endblock %}
 
 {% block page_content %}
-    <div class="m-0 m-md-4 wii-page-card transport-table">
-        <table id="tableRounds" class="table w-100"></table>
+    <div class="m-0 m-md-4 wii-page-card transport-table row ">
+        <div class="col-8">
+            <table id="tableRounds" class="table w-100"></table>
+        </div>
+        <div class="show-round-map-container col-4 ">
+            <div id="map"></div>
+        </div>
     </div>
+    <input type="hidden" name="deliverersPositions" value="{{ deliverersPositions | json_encode }}">
 {% endblock %}
 
 {% block javascripts %}
