@@ -1,6 +1,11 @@
 {% set boxStyle = boxStyle ?? true %}
 {% set box_classes = box_classes is defined ? box_classes : 'mt-4' %}
 
+<div class="data-loader d-flex align-items-center justify-content-center">
+    <div class="spinner-border text-primary" role="status"></div>
+    <span class="ml-3">Récupération des données en cours...</span>
+</div>
+
 {% if boxStyle %}
     <div class="wii-page-card {{ alwaysVisible ?? false ? 'always-visible' }} {{ box_classes }}">
 {% endif %}
@@ -10,7 +15,7 @@
                 data-minTemp="{{ minTemp is defined ? minTemp }}" width="400" height="400"></canvas>
     </div>
 {% elseif type == 'map' %}
-    <div data-map data-fetch-url="{{ fetch_url }}" style="height:500px;width:100%"></div>
+    <div data-map data-fetch-url="{{ fetch_url }}" style="height: 500px; width:100%;"></div>
 {% endif %}
 {% if boxStyle %}
     </div>
