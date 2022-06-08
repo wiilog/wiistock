@@ -8,3 +8,26 @@
     overflow-y: auto;
     overflow-x: hidden;
 }
+
+.preparation-card {
+    .wii-icon {
+        width: 20px;
+        height: 20px;
+        display: block;
+    }
+    .date {
+        font-weight: 600;
+    }
+    .expected-date {
+        color: $black;
+        .wii-icon {
+            background-color: $black;
+        }
+    }
+    .creation-date {
+        color: #666;
+        .wii-icon {
+            background-color: #666;
+        }
+    }
+}

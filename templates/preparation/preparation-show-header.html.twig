@@ -43,7 +43,7 @@
             </button>
             {% if
                 hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT_PREPARATION_DATE'))
-                and preparation.preparationDate
+                and preparation.expectedAt
                 and preparation.demande.expectedAt
                 and preparation.statut.code == constant('App\\Entity\\PreparationOrder\\Preparation::STATUT_VALIDATED') %}
                 <a class="dropdown-item" href=""

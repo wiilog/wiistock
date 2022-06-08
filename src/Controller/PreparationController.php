@@ -770,7 +770,7 @@ class PreparationController extends AbstractController
                 $count = count($cards[$dayStr] ?? []);
                 $sPreparation = $count > 1 ? 's' : '';
                 return [
-                    "label" => FormatHelper::longDate($day, ["year" => false]),
+                    "label" => FormatHelper::longDate($day, ["short" => true, "year" => false]),
                     "cardSelector" => $dayStr,
                     "styleContainer" => $index > 1 ? "flex: 1;" : "flex: 2;",
                     "columnHint" => "<span class='font-weight-bold'>{$count} préparation{$sPreparation}</span>",
@@ -786,6 +786,17 @@ class PreparationController extends AbstractController
             ])
         ]);
     }
+
+    #[Route('/modifier-date-preparation/{preparation}/{date}', name: 'preparation_edit_preparation_date', options: ['expose' => true], methods: 'PUT')]
+    public function editPreparationDate(Preparation $preparation,
+                               string $date,
+                               EntityManagerInterface $manager): Response {
+        $preparation->setExpectedAt(new DateTime($date));
+        $manager->flush();
+        return $this->json([]);
+
+    }
+
 
     #[Route('/preparations/planning/check-preparation-stock', name: 'preparation_check_stock', options: ['expose' => true], methods: 'GET')]
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_PREPA_PLANNING], mode: HasPermission::IN_JSON)]

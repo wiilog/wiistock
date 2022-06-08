@@ -4,7 +4,7 @@
 
 {% block stylesheets %}
     {{ parent() }}
-    {{ encore_entry_link_tags('preparation-order-planning') }}
+    {{ encore_entry_link_tags('preparation-planning') }}
 {% endblock %}
 
 {% block page_filter %}
@@ -21,12 +21,13 @@
                 </span>
             </button>
         </div>
-        <div data-wii-planning="preparation_planning_api"></div>
+        <div data-wii-planning="preparation_planning_api" class="preparation-planning"></div>
     </div>
     {% include 'preparation/modalLaunchPreparation.html.twig' %}
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
+    {{ encore_entry_script_tags('preparation-planning') }}
     {{ encore_entry_script_tags('preparation-order-planning') }}
 {% endblock %}
