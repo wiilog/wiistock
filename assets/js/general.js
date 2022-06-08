@@ -15,7 +15,6 @@ export default class Wiistock {
     static initialize() {
         IncreaseDecreaseField.initialize();
         Wiistock.registerNumberInputProtection();
-        Planning.initialize();
     }
 
     static registerNumberInputProtection() {

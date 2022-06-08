@@ -6,31 +6,20 @@ const PLANNING_SELECTOR = 'wii-planning'
 export default class Planning {
     $container;
 
-    static initialize() {
-        initializePlanning(this, $(`[data-${PLANNING_SELECTOR}]`));
+    constructor() {
+        this.$container = $(`[data-${PLANNING_SELECTOR}]`);
+        this.$container.data(`${PLANNING_SELECTOR}-instance`, this);
 
-        $(document).arrive(`[data-${PLANNING_SELECTOR}]`, function () {
-            initializePlanning(this, $(this));
-        });
+        this.fetch();
     }
 
-    reload(filters) {
-        // TODO use filter
-        initializePlanning(this, this.$container);
-    }
-}
-
-function initializePlanning(planning, $container) {
-    if ($container.length > 0) {
-        planning.$container = $container;
-        $container.data(`${PLANNING_SELECTOR}-instance`, planning);
-
-        const route = $container.data(PLANNING_SELECTOR);
+    fetch() {
+        const route = this.$container.data(PLANNING_SELECTOR);
         AJAX.route(GET, route)
             .json()
             .then(({template}) => {
-                $container.html(template);
-                $container.trigger('planning-loaded');
+                this.$container.html(template);
+                this.$container.trigger('planning-loaded');
             });
     }
 }
