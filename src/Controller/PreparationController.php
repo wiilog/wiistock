@@ -713,6 +713,21 @@ class PreparationController extends AbstractController
         return $this->render('preparation/planning.html.twig');
     }
 
+    #[Route('/lancement-preparation/recuperer-prepa', name: 'planning_preparation_launching_filter', options: ['expose' => true], methods: 'POST')]
+    #[HasPermission([Menu::ORDRE, Action::DISPLAY_PREPA_PLANNING], mode: HasPermission::IN_JSON)]
+    public function getPrepasForModal(EntityManagerInterface $manager, Request $request) {
+        $preparationRepository = $manager->getRepository(Preparation::class);
+        $from = DateTime::createFromFormat("Y-m-d", $request->query->get("from"));
+        $to = DateTime::createFromFormat("Y-m-d", $request->query->get("to"));
+
+        return $this->json([
+            "success" => true,
+            "template" => $this->renderView('preparation/preparationsContainerContent.html.twig', [
+                "preparations" => $preparationRepository->findByStatusCodesAndExpectedAt([Preparation::STATUT_VALIDATED], $from, $to),
+            ]),
+        ]);
+    }
+
     #[Route('/planning/api', name: 'preparation_planning_api', options: ['expose' => true], methods: 'GET')]
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_PREPA_PLANNING], mode: HasPermission::IN_JSON)]
     public function planningApi(EntityManagerInterface $entityManager): Response {
@@ -771,4 +786,110 @@ class PreparationController extends AbstractController
             ])
         ]);
     }
+
+    #[Route('/preparations/planning/check-preparation-stock', name: 'preparation_check_stock', options: ['expose' => true], methods: 'GET')]
+    #[HasPermission([Menu::ORDRE, Action::DISPLAY_PREPA_PLANNING], mode: HasPermission::IN_JSON)]
+    public function checkStock(Request $request, EntityManagerInterface $manager) {
+        $clientRepository = $manager->getRepository(Client::class);
+        $clientOrderRepository = $manager->getRepository(ClientOrder::class);
+        $boxTypeRepository = $manager->getRepository(BoxType::class);
+        $depositoryRepository = $manager->getRepository(Depository::class);
+
+        $ordersToStart = $request->query->get('assignedForStart');
+        $depository = $depositoryRepository->find($request->query->get('depository'));
+
+        if(!isset($defaultCrateTypeId)) {
+            return $this->json([
+                "success" => false,
+                "message" => "Vous devez renseigner une caisse par défaut dans le paramétrage global",
+            ]);
+        }
+
+        $boxeaty = $clientRepository->findOneBy(["name" => Client::BOXEATY]);
+        $defaultCrateType = !empty($defaultCrateTypeId) ? $boxTypeRepository->find($defaultCrateTypeId) : null;
+
+        // add all the ordered boxes (and crates) to the array
+        // with the total quantity
+        $orderedBoxTypes = [];
+        foreach($ordersToStart as $orderToStart) {
+            $order = $clientOrderRepository->find($orderToStart);
+            $closed = $order->getClient()->getClientOrderInformation()->isClosedParkOrder();
+            $owner = $closed ? $order->getClient()->getId() : $boxeaty->getId();
+
+            if(!isset($orderedBoxTypes[$defaultCrateType->getId()][$owner])) {
+                $orderedBoxTypes[$defaultCrateType->getId()][$owner] = [
+                    'quantity' => 0,
+                    'orders' => [],
+                    'name' => $defaultCrateType->getName(),
+                    'client' => $closed ? $order->getClient()->getName() : "BoxEaty",
+                    'clientId' => $order->getClient()->getId(),
+                    'clientClosed' => $closed,
+                ];
+            }
+
+            $orderedBoxTypes[$defaultCrateType->getId()][$owner]['quantity'] += $order->getCratesAmount();
+
+            $lines = $order->getLines();
+            foreach($lines as $line) {
+                $boxType = $line->getBoxType();
+                if($boxType->getName() === BoxType::STARTER_KIT) {
+                    continue;
+                }
+
+                $boxTypeId = $boxType->getId();
+                $quantity = $line->getQuantity();
+                if(!isset($orderedBoxTypes[$boxTypeId][$owner])) {
+                    $orderedBoxTypes[$boxTypeId][$owner] = [
+                        'quantity' => 0,
+                        'orders' => [],
+                        'name' => $boxType->getName(),
+                        'client' => $closed ? $order->getClient()->getName() : "BoxEaty",
+                        'clientId' => $order->getClient()->getId(),
+                        'clientClosed' => $closed,
+                    ];
+                }
+
+                $orderedBoxTypes[$boxTypeId][$owner]['quantity'] += $quantity;
+
+                if(!in_array($order->getId(), $orderedBoxTypes[$boxTypeId][$owner]['orders'])) {
+                    $orderedBoxTypes[$boxTypeId][$owner]['orders'][] = $order->getId();
+                }
+            }
+        }
+
+        $availableInDepository = $boxTypeRepository->countAvailableInDepository($depository, $defaultCrateTypeId, array_keys($orderedBoxTypes));
+
+        $unavailableOrders = [];
+        $availableBoxTypes = [];
+        foreach($orderedBoxTypes as $boxTypeId => $clients) {
+            foreach($clients as $client => $ordered) {
+                $orderedQuantity = $ordered['quantity'];
+                $orders = $ordered['orders'];
+                $name = $ordered['name'];
+
+                $availableQuantity = $availableInDepository[$boxTypeId][$client] ?? 0;
+                if($orderedQuantity > $availableQuantity) {
+                    foreach($orders as $order) {
+                        if(!in_array($order, $unavailableOrders)) {
+                            $unavailableOrders[] = $order;
+                        }
+                    }
+                }
+
+                $availableBoxTypes[] = [
+                    "name" => $name,
+                    "orderedQuantity" => $orderedQuantity,
+                    "availableQuantity" => $availableQuantity,
+                    "client" => $ordered["client"],
+                ];
+            }
+        }
+
+        return $this->json([
+            "success" => true,
+            "availableBoxTypeData" => $availableBoxTypes,
+            "unavailableOrders" => $unavailableOrders,
+        ]);
+    }
+
 }
