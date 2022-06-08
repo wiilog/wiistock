@@ -10,8 +10,8 @@ $(function() {
         serverSide: true,
         ordering: false,
         searching: false,
-        pageLength: 10,
-        lengthMenu: [10, 25, 50, 100],
+        pageLength: 6,
+        lengthMenu: [6],
         ajax: {
             url: Routing.generate(`transport_round_api`),
             type: "POST",

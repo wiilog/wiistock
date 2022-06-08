@@ -58,8 +58,8 @@ class RoundController extends AbstractController {
         $roundCategorie = $em->getRepository(CategorieStatut::class)->findOneBy(['nom' => CategorieStatut::TRANSPORT_ROUND])->getId();
         $ongoingStatus = $statusRepository->findOneBy(['code' => TransportRound::STATUS_ONGOING , 'categorie' => $roundCategorie ])?->getId();
         $deliverersPositions = Stream::from($roundRepository->findBy(['status' => $ongoingStatus]))
-            ->map( fn(TransportRound $round) => $round->getDeliverer()->getVehicle()->getLastPosition( $round->getBeganAt()))
-            ->filter( fn($position) => $position != null)
+            ->map(fn(TransportRound $round) => $round?->getDeliverer()?->getVehicle()?->getLastPosition($round->getBeganAt()))
+            ->filter(fn($position) => $position != null)
             ->toArray();
 
         return $this->render('transport/round/index.html.twig', [
