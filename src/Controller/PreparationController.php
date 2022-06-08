@@ -771,4 +771,15 @@ class PreparationController extends AbstractController
             ])
         ]);
     }
+
+    #[Route('/modifier-date-preparation/{preparation}/{date}', name: 'preparation_edit_preparation_date', options: ['expose' => true], methods: 'PUT')]
+    public function editPreparationDate(Preparation $preparation,
+                               string $date,
+                               EntityManagerInterface $manager): Response {
+        $preparation->setExpectedAt(new DateTime($date));
+        $manager->flush();
+        return $this->json([]);
+
+    }
+
 }

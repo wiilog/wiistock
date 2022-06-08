@@ -8,10 +8,11 @@
 {% block pageContainerClass 'd-flex flex-fill' %}
 {% block page_content %}
     <div class="m-4 wii-page-card flex-fill">
-        <div data-wii-planning="preparation_planning_api"></div>
+        <div data-wii-planning="preparation_planning_api" class="preparation-planning"></div>
     </div>
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
+    {{ encore_entry_script_tags('preparation-planning') }}
 {% endblock %}

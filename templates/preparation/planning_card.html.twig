@@ -1,19 +1,23 @@
-<div class="planning-card preparation-card"
-     data-preparation="{{ preparation.id }}"
-     data-status="{{ preparation.statut ? preparation.statut.code }}"
-     data-color="{{ color }}">
-    <div class="planning-card-wrapper">
-        <div class="row">
-            <div class="col-12">
-                <div class="font-weight-bold">{{ preparation.numero }}</div>
-            </div>
-            {% if preparation.statut %}
+{% set validated = preparation.statut and preparation.statut.code == constant('App\\Entity\\PreparationOrder\\Preparation::STATUT_VALIDATED') %}
+<div class="{{ validated ? 'can-drag' }}">
+    <div class="planning-card preparation-card {{ validated ? 'pointer' }}"
+         data-preparation="{{ preparation.id }}"
+         data-status="{{ preparation.statut ? preparation.statut.code }}"
+         data-color="{{ color }}">
+        <div class="planning-card-wrapper">
+            <div class="row">
                 <div class="col-12">
-                    <div class="preparation-status">
-                        {{ preparation.statut.nom }}
-                    </div>
+                    <div class="font-weight-bold">{{ preparation.numero }}</div>
                 </div>
-            {% endif %}
+                {% if preparation.statut %}
+                    <div class="col-12">
+                        <div class="preparation-status">
+                            {{ preparation.statut.nom }}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
         </div>
     </div>
 </div>
+

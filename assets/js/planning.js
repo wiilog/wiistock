@@ -19,6 +19,7 @@ function initializePlanning($container) {
             .json()
             .then(({template}) => {
                 $container.html(template);
+                $container.trigger('planning-loaded');
             });
     }
 }

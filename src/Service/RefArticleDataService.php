@@ -986,7 +986,7 @@ class RefArticleDataService {
         return $quantityByDatesWithEvents;
     }
 
-    private function formatExtractedIncomingData(array $quantityByDatesWithEvents): array {
+    private function formatExtractedIncomingData(array $quantityByDatesWithEvents, DateTime $end): array {
         $formattedQuantityPredictions = [];
         $lastQuantity = 0;
 
@@ -1025,6 +1025,14 @@ class RefArticleDataService {
             fn(string $date1, string $date2) => strtotime(str_replace('/', '-', $date1)) - strtotime(str_replace('/', '-', $date2))
         );
 
+        if (!isset($formattedQuantityPredictions[$end->format('d/m/Y')])) {
+            $formattedQuantityPredictions[$end->format('d/m/Y')] = [
+                "quantity" => $formattedQuantityPredictions[array_key_last($formattedQuantityPredictions)]['quantity'],
+                "preparations" => 0,
+                "receptions" => 0,
+            ];
+        }
+
         return $formattedQuantityPredictions;
     }
 
@@ -1046,7 +1054,8 @@ class RefArticleDataService {
 
         $quantityByDatesWithEvents = $this->extractIncomingPreparationsData($quantityByDatesWithEvents, $preparations, $referenceArticle);
         $quantityByDatesWithEvents = $this->extractIncomingReceptionsData($quantityByDatesWithEvents, $receptions, $referenceArticle);
-        return $this->formatExtractedIncomingData($quantityByDatesWithEvents);
+
+        return $this->formatExtractedIncomingData($quantityByDatesWithEvents, $end);
     }
 
     public function getDraftDefaultReference(EntityManagerInterface $entityManager): string {
