@@ -859,7 +859,7 @@ class TransportController extends AbstractFOSRestController {
                 $emitted = new Notification();
                 $emitted
                     ->setContent($notificationContent)
-                    ->setSource($round->getDeliverer())
+                    ->setSource($request->getNumber())
                     ->setTriggered(new DateTime());
 
                 $users = $manager->getRepository(Utilisateur::class)->findBy(['status' => true]);
