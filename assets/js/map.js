@@ -54,7 +54,7 @@ export class Map {
             if (!options.deletion) {
                 let currentMarkerPopupContent = existing.marker.getPopup().getContent();
                 let $currentMarkerPopupContent = $(`<div>${currentMarkerPopupContent}</div>`);
-                let $estimated = $currentMarkerPopupContent.find('.estimated');
+                let $estimated = $currentMarkerPopupContent.find('.estimated-time');
                 if ($estimated.length) {
                     estimated = $estimated.prop('outerHTML')
                 }
