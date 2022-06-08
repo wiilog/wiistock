@@ -237,7 +237,7 @@ class TransportService {
 
         $transportOrder = $transportRequest->getOrder();
         if (!$transportOrder) {
-                $transportOrder = $this->persistTransportOrder($entityManager, $transportRequest, $loggedUser);
+            $transportOrder = $this->persistTransportOrder($entityManager, $transportRequest, $loggedUser);
         }
         else {
             $this->updateOrderInitialStatus($entityManager, $transportRequest, $transportOrder, $loggedUser);

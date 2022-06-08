@@ -309,7 +309,11 @@ class RequestController extends AbstractController {
             isset($order)
             && $order->getPacks()->isEmpty()
             && $transportRequest instanceof TransportDeliveryRequest
-            && in_array($transportRequest->getStatus()?->getCode(), TransportRequest::STATUS_PRINT_PACKING)
+            && in_array($transportRequest->getStatus()?->getCode(), [
+                TransportRequest::STATUS_TO_PREPARE,
+                TransportRequest::STATUS_SUBCONTRACTED,
+                TransportRequest::STATUS_AWAITING_VALIDATION
+            ])
         );
 
         if (!$canPacking) {
