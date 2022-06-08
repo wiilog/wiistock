@@ -444,6 +444,13 @@ class TransportController extends AbstractFOSRestController {
 
         $hasRejected = false;
 
+        $statusHistoryRound = $statusHistoryService->updateStatus($manager, $round, $deliveryOrderOngoing);
+
+        $historyService->persistTransportHistory($manager, $round, TransportHistoryService::TYPE_ONGOING, [
+            "user" => $this->getUser(),
+            "history" => $statusHistoryRound
+        ]);
+
         foreach($round->getTransportRoundLines() as $line) {
             $order = $line->getOrder();
             $request = $order->getRequest();
