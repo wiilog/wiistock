@@ -4,16 +4,28 @@ import '@styles/planning.scss';
 const PLANNING_SELECTOR = 'wii-planning'
 
 export default class Planning {
+    $container;
+
     static initialize() {
-        initializePlanning($(`[data-${PLANNING_SELECTOR}]`));
-        $(document).arrive(`[data-${PLANNING_SELECTOR}]`, function() {
-            initializePlanning($(this));
+        initializePlanning(this, $(`[data-${PLANNING_SELECTOR}]`));
+
+        $(document).arrive(`[data-${PLANNING_SELECTOR}]`, function () {
+            initializePlanning(this, $(this));
         });
+    }
+
+    reload(filters) {
+        // TODO use filter
+        initializePlanning(this, this.$container);
     }
 }
 
-function initializePlanning($container) {
+function initializePlanning(planning, $container) {
     if ($container.length > 0) {
+        if (!planning.$container) {
+            planning.$container = $container;
+        }
+
         const route = $container.data(PLANNING_SELECTOR);
         AJAX.route(GET, route)
             .json()

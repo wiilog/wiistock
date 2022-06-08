@@ -1,5 +1,6 @@
-import Sortable from "@app/sortable";
 import '@styles/pages/preparation/planning.scss';
+import Sortable from "@app/sortable";
+import AJAX from "@app/ajax";
 
 $(function () {
     $('[data-wii-planning]').on('planning-loaded', function() {
@@ -7,40 +8,25 @@ $(function () {
 
         toggleLoaderState($cardColumns);
 
-        Sortable.create(`.can-drag`, {
+        Sortable.create('.card-container', {
             placeholderClass: 'placeholder',
-            acceptFrom: false,
+            acceptFrom: '.card-container',
+            items: '.can-drag'
         });
 
-        Sortable.create(`.preparation-card-column`, {
-            placeholderClass: 'placeholder',
-            acceptFrom: '.can-drag',
-        });
-
-        $cardColumns.on('sortupdate', function (e) {
-            const $destination = $(e.detail.destination.container).find('.card-container');
+        $('.card-container').on('sortupdate', function (e) {
+            const $destination = $(this);
             const $origin = $(e.detail.origin.container);
-            const $currentElement = $(e.detail.item)[0].outerHTML;
-            const $element = $(`<div class="can-drag">${$currentElement}</div>`);
             const preparation = $(e.detail.item).data('preparation');
-            const date = $destination.parents('.preparation-card-column').data('date');
-
-            $(e.detail.item).remove();
-            toggleLoaderState($destination.parents('.preparation-card-column'));
+            const $column = $destination.closest('.preparation-card-column');
+            const date = $column.data('date');
+            toggleLoaderState($column);
             AJAX.route('PUT', 'preparation_edit_preparation_date', {date, preparation})
                 .json()
-                .then((_) => {
-                    $element.appendTo($destination);
-
-                    Sortable.create(`.can-drag`, {
-                        placeholderClass: 'placeholder',
-                        acceptFrom: false,
-                    });
-
-                    toggleLoaderState($destination.parents('.preparation-card-column'));
-                    refreshColumnHint($destination.parents('.preparation-card-column'));
-                    refreshColumnHint($origin.parents('.preparation-card-column'));
-                    $origin.remove();
+                .then(() => {
+                    toggleLoaderState($column);
+                    refreshColumnHint($column);
+                    refreshColumnHint($origin.closest('.preparation-card-column'));
                 });
         })
     });

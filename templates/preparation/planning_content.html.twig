@@ -2,16 +2,15 @@
     {% set allCards = cards ?? [] %}
     {% for date in planningDates %}
         {% set label = date.label ?? null %}
-        {% set styleContainer = date.styleContainer ?? null %}
+        {% set columnClass = date.columnClass ?? null %}
         {% set columnHint = date.columnHint ?? null %}
         {% set cardSelector = date.cardSelector ?? null %}
         {% set cards = allCards[cardSelector] ?? [] %}
 
-        {% set columnClass = loop.first ? 'pl-3' : (loop.last ? 'pr-3' : '') %}
+        {% set columnPaddingClass = loop.first ? 'pl-3' : (loop.last ? 'pr-3' : '') %}
 
-        <div class="col-12 d-flex h-100 px-1 {{ columnClass }} preparation-card-column"
-             data-date="{{ cardSelector }}"
-             style="{{ styleContainer }}">
+        <div class="col-12 d-flex h-100 px-1 {{ columnClass }} {{ columnPaddingClass }} preparation-card-column"
+             data-date="{{ cardSelector }}">
             <div class="wii-box border flex-fill">
                 <div class="header">
                     {#                <input type="hidden" value="{{ dateForContainer }}" class="date-container"> #}

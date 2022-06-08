@@ -17,6 +17,23 @@
         box-sizing: border-box;
         width: 100%;
     }
+
+    .planning-col-2 {
+        flex: 2;
+
+        .planning-card {
+            width: 50%;
+        }
+    }
+
+    .planning-col-1 {
+        flex: 1;
+    }
+
+    .card-container {
+        display: flex;
+        min-height: 150px;
+    }
 }
 
 // used outside planning
@@ -41,6 +58,11 @@
     &[data-color=green] .planning-card-wrapper {
         border-left-color: rgb(165, 215, 51);
         background-color: rgba(165, 215, 51, 0.15);
+    }
+
+    &[data-color=grey] .planning-card-wrapper {
+        border-left-color: rgb(102, 102, 102);
+        background-color: rgba(102, 102, 102, 0.15);
     }
 
     .planning-card-wrapper {

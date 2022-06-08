@@ -757,7 +757,7 @@ class PreparationController extends AbstractController
                 return [
                     "label" => FormatHelper::longDate($day, ["short" => true, "year" => false]),
                     "cardSelector" => $dayStr,
-                    "styleContainer" => $index > 1 ? "flex: 1;" : "flex: 2;",
+                    "columnClass" => $index > 1 ? "planning-col-1" : "planning-col-2",
                     "columnHint" => "<span class='font-weight-bold'>{$count} préparation{$sPreparation}</span>",
                 ];
             })
