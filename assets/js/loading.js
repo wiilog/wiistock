@@ -11,7 +11,7 @@ jQuery.fn.pushLoader = function(color, size = 'small') {
     const $element = $(this[0]) // This is the element
 
     if ($element.find(`.${SPINNER_WRAPPER_CLASS}`).length === 0) {
-        const sizeClass = size === 'small' ? 'spinner-border-sm' : ''
+        const sizeClass = size === 'small' ? 'spinner-border-sm' : '';
         const $loaderWrapper = $('<div/>', {
             class: SPINNER_WRAPPER_CLASS,
             html: $('<div/>', {
@@ -59,8 +59,9 @@ export function wrapLoadingOnActionButton($button, action = null, endLoading = t
             ($button.hasClass('btn-light') || $button.hasClass('btn-link')) ? 'black'
             : 'white'
         );
+        const loadingSize = $button.data('loader-size') || 'small';
 
-        $button.pushLoader(loadingColor);
+        $button.pushLoader(loadingColor, loadingSize);
 
         if (action) {
             action()

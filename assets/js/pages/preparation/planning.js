@@ -4,53 +4,41 @@ import AJAX from "@app/ajax";
 import Planning from "@app/planning";
 
 $(function () {
-    const planning = new Planning();
-    $('[data-wii-planning]').on('planning-loaded', function() {
-        const $cardColumns = $('.preparation-card-column')
-
-        toggleLoaderState($cardColumns);
-
-        $('.planning-filter').on('click', function() {
-            const $checkbox = $(this).find('.filter-checkbox');
-            console.log($checkbox);
-            $checkbox.prop('checked', !$checkbox.is(':checked'));
-        });
-
-        Sortable.create('.card-container', {
+    const planning = new Planning($('.preparation-planning'), 'preparation_planning_api');
+    planning.onPlanningLoad(() => {
+        Sortable.create('.planning-card-container', {
             placeholderClass: 'placeholder',
-            acceptFrom: '.card-container',
-            items: '.can-drag'
+            forcePlaceholderSize: true,
+            acceptFrom: '.planning-card-container',
+            items: '.can-drag',
         });
 
-        $('.card-container').on('sortupdate', function (e) {
-            const $destination = $(this);
-            const $origin = $(e.detail.origin.container);
-            const preparation = $(e.detail.item).data('preparation');
-            const $column = $destination.closest('.preparation-card-column');
-            const date = $column.data('date');
-            toggleLoaderState($column);
-            AJAX.route('PUT', 'preparation_edit_preparation_date', {date, preparation})
-                .json()
-                .then(() => {
-                    toggleLoaderState($column);
-                    refreshColumnHint($column);
-                    refreshColumnHint($origin.closest('.preparation-card-column'));
-                });
-        })
+        const $cardContainers = planning.$container.find('.planning-card-container');
+
+        $cardContainers
+            .on('sortupdate', function (e) {
+                const $destination = $(this);
+                const $origin = $(e.detail.origin.container);
+                const preparation = $(e.detail.item).data('preparation');
+                const $column = $destination.closest('.preparation-card-column');
+                const date = $column.data('date');
+                wrapLoadingOnActionButton($destination, () => (
+                    AJAX.route('PUT', 'preparation_edit_preparation_date', {date, preparation})
+                        .json()
+                        .then(() => {
+                            refreshColumnHint($column);
+                            refreshColumnHint($origin.closest('.preparation-card-column'));
+                        })
+                ));
+
+            })
+    });
+    $('.planning-filter').on('click', function() {
+        const $checkbox = $(this).find('.filter-checkbox');
+        console.log($checkbox);
+        $checkbox.prop('checked', !$checkbox.is(':checked'));
     });
 });
-
-
-function toggleLoaderState($elements) {
-    const $loaderContainers = $elements.find('.loader-container');
-    const $cardContainers = $elements.find('.card-container');
-    $loaderContainers.each(function() {
-        $(this).toggleClass('d-none');
-    });
-    $cardContainers.each(function() {
-        $(this).toggleClass('d-none');
-    });
-}
 
 function refreshColumnHint($column) {
     const preparationCount = $column.find('.preparation-card').length;
