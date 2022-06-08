@@ -22,9 +22,8 @@ export default class Planning {
 
 function initializePlanning(planning, $container) {
     if ($container.length > 0) {
-        if (!planning.$container) {
-            planning.$container = $container;
-        }
+        planning.$container = $container;
+        $container.data(`${PLANNING_SELECTOR}-instance`, planning);
 
         const route = $container.data(PLANNING_SELECTOR);
         AJAX.route(GET, route)
