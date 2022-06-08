@@ -353,7 +353,11 @@ class SettingsService {
             foreach ($tables["workingHours"] as $workingHour) {
                 $hours = $workingHour["hours"] ?? null;
                 if ($hours && !preg_match("/^\d{2}:\d{2}-\d{2}:\d{2}(;\d{2}:\d{2}-\d{2}:\d{2})?$/", $hours)) {
-                    throw new RuntimeException("Le champ horaires doit être au format HH:MM-HH:MM;HH:MM-HH:MM");
+                    throw new RuntimeException("Le champ horaires doit être au format HH:MM-HH:MM;HH:MM-HH:MM ou HH:MM-HH:MM");
+                } else if ($hours
+                    && !preg_match("/^(0\d|1\d|2[0-3]):(0\d|[1-5]\d)-(0\d|1\d|2[0-3]):(0\d|[1-5]\d)(;(0\d|1\d|2[0-3]):(0\d|[1-5]\d)-(0\d|1\d|2[0-3]):(0\d|[1-5]\d))?$/",
+                        $hours)) {
+                    throw new RuntimeException("Les heures doivent être comprises entre 00:00 et 23:59");
                 }
                 if (!empty($workingHour['id'])) {
                     $day = $days[$workingHour["id"]]
@@ -375,6 +379,10 @@ class SettingsService {
                 $hours = $edition["hours"] ?? null;
                 if ($hours && !preg_match("/^\d{2}:\d{2}-\d{2}:\d{2}$/", $hours)) {
                     throw new RuntimeException("Le champ horaires doit être au format HH:MM-HH:MM");
+                } else if ($hours
+                    && !preg_match("/^(0\d|1\d|2[0-3]):(0\d|[1-5]\d)-(0\d|1\d|2[0-3]):(0\d|[1-5]\d)?$/",
+                        $hours)) {
+                    throw new RuntimeException("Les heures doivent être comprises entre 00:00 et 23:59");
                 }
 
                 $hours = explode('-', $hours);
