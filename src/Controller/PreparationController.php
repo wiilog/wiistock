@@ -778,7 +778,9 @@ class PreparationController extends AbstractController
                                EntityManagerInterface $manager): Response {
         $preparation->setExpectedAt(new DateTime($date));
         $manager->flush();
-        return $this->json([]);
+        return $this->json([
+            'success' => true
+        ]);
 
     }
 

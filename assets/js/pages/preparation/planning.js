@@ -18,24 +18,28 @@ $(function () {
 
         $cardColumns.on('sortupdate', function (e) {
             const $destination = $(e.detail.destination.container).find('.card-container');
+            const $origin = $(e.detail.origin.container);
             const $currentElement = $(e.detail.item)[0].outerHTML;
             const $element = $(`<div class="can-drag">${$currentElement}</div>`);
-
             const preparation = $(e.detail.item).data('preparation');
             const date = $destination.parents('.preparation-card-column').data('date');
+
             $(e.detail.item).remove();
             toggleLoaderState($destination.parents('.preparation-card-column'));
             AJAX.route('PUT', 'preparation_edit_preparation_date', {date, preparation})
                 .json()
-                .then((response) => {
-                    console.log(response);
+                .then((_) => {
                     $element.appendTo($destination);
 
                     Sortable.create(`.can-drag`, {
                         placeholderClass: 'placeholder',
                         acceptFrom: false,
                     });
+
                     toggleLoaderState($destination.parents('.preparation-card-column'));
+                    refreshColumnHint($destination.parents('.preparation-card-column'));
+                    refreshColumnHint($origin.parents('.preparation-card-column'));
+                    $origin.remove();
                 });
         })
     });
@@ -51,4 +55,11 @@ function toggleLoaderState($elements) {
     $cardContainers.each(function() {
         $(this).toggleClass('d-none');
     });
+}
+
+function refreshColumnHint($column) {
+    const preparationCount = $column.find('.preparation-card').length;
+    const preparationHint = preparationCount + ' préparation' + (preparationCount > 1 ? 's' : '');
+    $column.find('.column-hint-container').html(`<span class='font-weight-bold'>${preparationHint}</span>`);
+
 }
