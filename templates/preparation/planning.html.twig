@@ -5,6 +5,12 @@
 {% block page_filter %}
 {% endblock %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('preparation-planning') }}
+{% endblock %}
+
+
 {% block pageContainerClass 'd-flex flex-fill' %}
 {% block page_content %}
     <div class="m-4 wii-page-card flex-fill">

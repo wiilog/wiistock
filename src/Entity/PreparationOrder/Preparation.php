@@ -12,6 +12,7 @@ use App\Entity\Livraison;
 use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
+use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Repository\PreparationOrder\PreparationRepository;
 use DateTime;
@@ -320,6 +321,10 @@ class Preparation implements PairedEntity {
             'user' => $this->getUtilisateur() ? $this->getUtilisateur()->getUsername() : '',
             'type' => $type ? $type->getLabel() : '',
         ];
+    }
+
+    public function getType(): ?Type {
+        return $this->getDemande()?->getType();
     }
 
     /**

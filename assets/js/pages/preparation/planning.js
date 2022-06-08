@@ -1,4 +1,5 @@
 import Sortable from "@app/sortable";
+import '@styles/pages/preparation/planning.scss';
 
 $(function () {
     $('[data-wii-planning]').on('planning-loaded', function() {
