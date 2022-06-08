@@ -10,6 +10,12 @@ $(function () {
 
         toggleLoaderState($cardColumns);
 
+        $('.planning-filter').on('click', function() {
+            const $checkbox = $(this).find('.filter-checkbox');
+            console.log($checkbox);
+            $checkbox.prop('checked', !$checkbox.is(':checked'));
+        });
+
         Sortable.create('.card-container', {
             placeholderClass: 'placeholder',
             acceptFrom: '.card-container',

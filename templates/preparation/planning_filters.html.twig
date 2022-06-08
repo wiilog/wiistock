@@ -1,0 +1,63 @@
+{% extends 'filters/filters.html.twig' %}
+
+{% block filters %}
+
+    {% include 'filters/filter_item/filterBasicString.html.twig' with {
+        name: 'requestNumber',
+        placeholder: 'Numéro de demande',
+    }%}
+    {% include 'filters/filter_item/filterUser.html.twig' with {
+        name: 'operators',
+        placeholder: 'Opérateurs'
+    } %}
+    {% include 'filters/filter_item/filterType.html.twig' %}
+    <div class="d-flex">
+        <div class="planning-switch mx-4">
+            <div class="red-filter planning-filter"
+                 data-loader-color="black">
+                <input type="checkbox" name="planning-status-validated" value="validated" class="filter-checkbox" checked/>
+                <label for="to-assign" class="h-100">
+                        <span class="d-inline-flex align-items-center">
+                            Validé
+                        </span>
+                </label>
+            </div>
+            <div class="green-filter planning-filter"
+                 data-loader-color="black">
+                <input type="checkbox" name="planning-status-launched" value="launched" class="filter-checkbox" checked/>
+                <label for="assigned" class="h-100">
+                        <span class="d-inline-flex align-items-center">
+                            Lancé
+                        </span>
+                </label>
+            </div>
+            <div class="purple-filter planning-filter"
+                 data-loader-color="black">
+                <input type="checkbox" name="planning-status-ongoing" value="ongoing" class="filter-checkbox" checked/>
+                <label for="ongoing" class="h-100">
+                        <span class="d-inline-flex align-items-center">
+                            En cours de préparation
+                        </span>
+                </label>
+            </div>
+            <div class="grey-filter planning-filter"
+                 data-loader-color="black">
+                <input type="checkbox" name="planning-status-partial" value="partial" class="filter-checkbox" checked/>
+                <label for="ongoing" class="h-100">
+                        <span class="d-inline-flex align-items-center">
+                            Partiellement préparé
+                        </span>
+                </label>
+            </div>
+            <div class="grey-filter planning-filter"
+                 data-loader-color="black">
+                <input type="checkbox" name="planning-status-done" value="done" class="filter-checkbox" checked/>
+                <label for="ongoing" class="h-100">
+                        <span class="d-inline-flex align-items-center">
+                            Traité
+                        </span>
+                </label>
+            </div>
+        </div>
+    </div>
+{% endblock %}

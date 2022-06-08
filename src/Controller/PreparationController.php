@@ -709,8 +709,11 @@ class PreparationController extends AbstractController
 
     #[Route('/planning', name: 'preparation_planning_index', methods: 'GET')]
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_PREPA_PLANNING], mode: HasPermission::IN_JSON)]
-    public function planning(): Response {
-        return $this->render('preparation/planning.html.twig');
+    public function planning(EntityManagerInterface $entityManager): Response {
+        $typeRepository = $entityManager->getRepository(Type::class);
+        return $this->render('preparation/planning.html.twig', [
+            'types' => $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]),
+        ]);
     }
 
     #[Route('/planning/api', name: 'preparation_planning_api', options: ['expose' => true], methods: 'GET')]

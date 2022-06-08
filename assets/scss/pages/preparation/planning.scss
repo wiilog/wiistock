@@ -26,7 +26,7 @@
 
 $wii-switch-height: $input-height;
 .planning-switch {
-    [value=to-assign] {
+    .red-filter input[type=checkbox] {
         &:not(:disabled), &:not(:disabled) + label {
             &:hover:not(:checked) {
                 color: lighten(#000000, 5%);
@@ -51,7 +51,7 @@ $wii-switch-height: $input-height;
         }
     }
 
-    [value=assigned] {
+    .green-filter input[type=checkbox] {
         &:not(:disabled), &:not(:disabled) + label {
             &:hover:not(:checked) {
                 color: lighten(#000000, 5%);
@@ -77,7 +77,7 @@ $wii-switch-height: $input-height;
         }
     }
 
-    [value=ongoing] {
+    .purple-filter input[type=checkbox] {
         &:not(:disabled), &:not(:disabled) + label {
             &:hover:not(:checked) {
                 color: lighten(#000000, 5%);
@@ -98,6 +98,32 @@ $wii-switch-height: $input-height;
 
         &, & + label {
             border: 1px solid #6433D7;
+            background: white;
+            color: #000000;
+        }
+    }
+
+    .grey-filter input[type=checkbox] {
+        &:not(:disabled), &:not(:disabled) + label {
+            &:hover:not(:checked) {
+                color: lighten(#000000, 5%);
+                border-color: lighten(#666, 5%);
+            }
+        }
+
+        &:checked, &:checked + label {
+            background: rgba(227, 227, 227, 0.7);
+            color: #000000;
+            border-color: #666;
+            &:hover {
+                background: lighten(#F2F3F7, 5%) !important;
+                color: lighten(#000000, 5%) !important;
+                border-color: lighten(#666, 5%) !important;
+            }
+        }
+
+        &, & + label {
+            border: 1px solid #666;
             background: white;
             color: #000000;
         }
