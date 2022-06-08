@@ -8,6 +8,7 @@ use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Emplacement;
+use App\Entity\FiltreSup;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\Setting;
@@ -33,6 +34,7 @@ use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Bundle\MakerBundle\Str;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -725,15 +727,40 @@ class PreparationController extends AbstractController
         $planningStart = new DateTime();
         $planningEnd = (clone $planningStart)->modify("+{$nbDaysOnPlanning} days");
 
-        $preparationStatuses = [
-            Preparation::STATUT_VALIDATED,
-            Preparation::STATUT_LAUNCHED,
-            Preparation::STATUT_EN_COURS_DE_PREPARATION,
-            Preparation::STATUT_INCOMPLETE,
-            Preparation::STATUT_A_TRAITER,
+        $filters = $entityManager->getRepository(FiltreSup::class)->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PREPARATION_PLANNING, $this->getUser());
+        $preparationStatusesForFilters = [
+            "planning-status-validated" => Preparation::STATUT_VALIDATED,
+            "planning-status-launched" => Preparation::STATUT_A_TRAITER,
+            "planning-status-ongoing" => Preparation::STATUT_EN_COURS_DE_PREPARATION,
+            "planning-status-partial" => Preparation::STATUT_INCOMPLETE,
+            "planning-status-done" => Preparation::STATUT_PREPARE,
         ];
 
-        $preparations = $preparationRepository->findByStatusCodesAndExpectedAt($preparationStatuses, $planningStart, $planningEnd);
+        $filterStatuses = [];
+
+        foreach ($filters as $filter) {
+            $key = $filter['field'];
+
+            if (str_starts_with($key, 'planning-status-')) {
+                $filterStatuses[] = $preparationStatusesForFilters[$key];
+            }
+        }
+
+        $filtersNumber = Stream::from($filters)
+            ->filter(fn(array $filter) => $filter['field'] === FiltreSup::FIELD_REQUEST_NUMBER)
+            ->toArray();
+
+        $filtersType = Stream::from($filters)
+            ->filter(fn(array $filter) => $filter['field'] === FiltreSup::FIELD_TYPE)
+            ->concat($filtersNumber)
+            ->toArray();
+
+        $filtersOperators = Stream::from($filters)
+            ->filter(fn(array $filter) => $filter['field'] === FiltreSup::FIELD_OPERATORS)
+            ->concat($filtersType)
+            ->toArray();
+
+        $preparations = $preparationRepository->findByStatusCodesAndExpectedAt($filtersOperators, $filterStatuses, $planningStart, $planningEnd);
         $cards = Stream::from($preparations)
             ->filter(fn(Preparation $preparation) => $preparation->getExpectedAt())
             ->keymap(fn(Preparation $preparation) => [
@@ -742,7 +769,7 @@ class PreparationController extends AbstractController
                     'preparation' => $preparation,
                     'color' => match ($preparation->getStatut()?->getCode()) {
                         Preparation::STATUT_VALIDATED => 'orange',
-                        Preparation::STATUT_LAUNCHED => 'green',
+                        Preparation::STATUT_A_TRAITER => 'green',
                         Preparation::STATUT_EN_COURS_DE_PREPARATION => 'blue',
                         // Preparation::STATUT_INCOMPLETE, Preparation::STATUT_A_TRAITER => 'grey',
                         default => 'grey',

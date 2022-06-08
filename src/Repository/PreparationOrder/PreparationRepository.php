@@ -31,13 +31,13 @@ use WiiCommon\Helper\StringHelper;
  */
 class PreparationRepository extends EntityRepository
 {
-	const DtToDbLabels = [
-		'Numéro' => 'numero',
-		'Statut' => 'status',
-		'Date' => 'date',
-		'Opérateur' => 'user',
-		'Type' => 'type'
-	];
+    const DtToDbLabels = [
+        'Numéro' => 'numero',
+        'Statut' => 'status',
+        'Date' => 'date',
+        'Opérateur' => 'user',
+        'Type' => 'type'
+    ];
 
     /**
      * @param Utilisateur $user
@@ -45,8 +45,8 @@ class PreparationRepository extends EntityRepository
      * @return array
      */
     public function getMobilePreparations(Utilisateur $user,
-                                          array $preparationIdsFilter = [],
-                                          ?int $maxResult = 100)
+                                          array       $preparationIdsFilter = [],
+                                          ?int        $maxResult = 100)
     {
         $queryBuilder = $this->createQueryBuilder('p');
         $queryBuilder
@@ -91,7 +91,8 @@ class PreparationRepository extends EntityRepository
      * @param DateTime $end
      * @return Preparation[]
      */
-    public function getValidatedWithReference(ReferenceArticle $referenceArticle, DateTime $start, DateTime $end) {
+    public function getValidatedWithReference(ReferenceArticle $referenceArticle, DateTime $start, DateTime $end)
+    {
         $start->setTime(0, 0, 0);
         $end->setTime(23, 59, 59);
         return $this->createQueryBuilder('preparation')
@@ -111,130 +112,129 @@ class PreparationRepository extends EntityRepository
             ->execute();
     }
 
-	/**
-	 * @param array|null $params
-	 * @param array|null $filters
-	 * @return array
-	 * @throws Exception
-	 */
-	public function findByParamsAndFilters(InputBag $params, $filters)
-	{
-		$qb = $this->createQueryBuilder("p");
+    /**
+     * @param array|null $params
+     * @param array|null $filters
+     * @return array
+     * @throws Exception
+     */
+    public function findByParamsAndFilters(InputBag $params, $filters)
+    {
+        $qb = $this->createQueryBuilder("p");
 
-		$countTotal = QueryCounter::count($qb, 'p');
+        $countTotal = QueryCounter::count($qb, 'p');
 
-		// filtres sup
-		foreach ($filters as $filter) {
-			switch($filter['field']) {
-				case FiltreSup::FIELD_TYPE:
-					$qb
-						->leftJoin('p.demande', 'd')
-						->leftJoin('d.type', 't')
-						->andWhere('t.label = :type')
-						->setParameter('type', $filter['value']);
-					break;
-				case FiltreSup::FIELD_STATUT:
-					$value = explode(',', $filter['value']);
-					$qb
-						->join('p.statut', 's')
-						->andWhere('s.id in (:statut)')
-						->setParameter('statut', $value);
-					break;
-				case FiltreSup::FIELD_USERS:
-					$value = explode(',', $filter['value']);
-					$qb
-						->join('p.utilisateur', 'u')
-						->andWhere("u.id in (:userId)")
-						->setParameter('userId', $value);
-					break;
-				case FiltreSup::FIELD_DATE_MIN:
-					$qb
-						->andWhere('p.date >= :dateMin')
-						->setParameter('dateMin', $filter['value']. " 00:00:00");
-					break;
-				case FiltreSup::FIELD_DATE_MAX:
-					$qb
-						->andWhere('p.date <= :dateMax')
-						->setParameter('dateMax', $filter['value'] . " 23:59:59");
-					break;
+        // filtres sup
+        foreach ($filters as $filter) {
+            switch ($filter['field']) {
+                case FiltreSup::FIELD_TYPE:
+                    $qb
+                        ->leftJoin('p.demande', 'd')
+                        ->leftJoin('d.type', 't')
+                        ->andWhere('t.label = :type')
+                        ->setParameter('type', $filter['value']);
+                    break;
+                case FiltreSup::FIELD_STATUT:
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->join('p.statut', 's')
+                        ->andWhere('s.id in (:statut)')
+                        ->setParameter('statut', $value);
+                    break;
+                case FiltreSup::FIELD_USERS:
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->join('p.utilisateur', 'u')
+                        ->andWhere("u.id in (:userId)")
+                        ->setParameter('userId', $value);
+                    break;
+                case FiltreSup::FIELD_DATE_MIN:
+                    $qb
+                        ->andWhere('p.date >= :dateMin')
+                        ->setParameter('dateMin', $filter['value'] . " 00:00:00");
+                    break;
+                case FiltreSup::FIELD_DATE_MAX:
+                    $qb
+                        ->andWhere('p.date <= :dateMax')
+                        ->setParameter('dateMax', $filter['value'] . " 23:59:59");
+                    break;
                 case FiltreSup::FIELD_DEMANDE:
                     $qb
                         ->join('p.demande', 'demande')
                         ->andWhere('demande.id = :id')
                         ->setParameter('id', $filter['value']);
                     break;
-			}
-		}
+            }
+        }
 
-		//Filter search
-		if (!empty($params)) {
-			if (!empty($params->all('search'))) {
-				$search = $params->all('search')['value'];
-				if (!empty($search)) {
-					$qb
-						->leftJoin('p.demande', 'd2')
-						->leftJoin('d2.type', 't2')
-						->leftJoin('p.utilisateur', 'p2')
-						->leftJoin('p.statut', 's2')
-						->andWhere('
+        //Filter search
+        if (!empty($params)) {
+            if (!empty($params->all('search'))) {
+                $search = $params->all('search')['value'];
+                if (!empty($search)) {
+                    $qb
+                        ->leftJoin('p.demande', 'd2')
+                        ->leftJoin('d2.type', 't2')
+                        ->leftJoin('p.utilisateur', 'p2')
+                        ->leftJoin('p.statut', 's2')
+                        ->andWhere('
 						p.numero LIKE :value OR
 						t2.label LIKE :value OR
 						p2.username LIKE :value OR
 						s2.nom LIKE :value
 						')
-						->setParameter('value', '%' . $search . '%');
-				}
-			}
+                        ->setParameter('value', '%' . $search . '%');
+                }
+            }
 
-			if (!empty($params->all('order')))
-			{
-				$order = $params->all('order')[0]['dir'];
-				if (!empty($order))
-				{
-					$column = self::DtToDbLabels[$params->all('columns')[$params->all('order')[0]['column']]['data']];
+            if (!empty($params->all('order'))) {
+                $order = $params->all('order')[0]['dir'];
+                if (!empty($order)) {
+                    $column = self::DtToDbLabels[$params->all('columns')[$params->all('order')[0]['column']]['data']];
 
-					if ($column === 'status') {
-						$qb
-							->leftJoin('p.statut', 's3')
-							->orderBy('s3.nom', $order);
-					} else if ($column === 'type') {
-						$qb
-							->leftJoin('p.demande', 'd3')
-							->leftJoin('d3.type', 't3')
-							->orderBy('t3.label', $order);
-					} else if ($column === 'user') {
-						$qb
-							->leftJoin('p.utilisateur', 'u3')
-							->orderBy('u3.username', $order);
-					} else {
-						$qb
-							->orderBy('p.' . $column, $order);
-					}
-				}
-			}
-		}
+                    if ($column === 'status') {
+                        $qb
+                            ->leftJoin('p.statut', 's3')
+                            ->orderBy('s3.nom', $order);
+                    } else if ($column === 'type') {
+                        $qb
+                            ->leftJoin('p.demande', 'd3')
+                            ->leftJoin('d3.type', 't3')
+                            ->orderBy('t3.label', $order);
+                    } else if ($column === 'user') {
+                        $qb
+                            ->leftJoin('p.utilisateur', 'u3')
+                            ->orderBy('u3.username', $order);
+                    } else {
+                        $qb
+                            ->orderBy('p.' . $column, $order);
+                    }
+                }
+            }
+        }
 
-		// compte éléments filtrés
-		$countFiltered = QueryCounter::count($qb, 'p');
+        // compte éléments filtrés
+        $countFiltered = QueryCounter::count($qb, 'p');
 
         if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
         if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
 
-		return [
-			'data' => $qb->getQuery()->getResult(),
-			'count' => $countFiltered,
-			'total' => $countTotal
-		];
-	}
+        return [
+            'data' => $qb->getQuery()->getResult(),
+            'count' => $countFiltered,
+            'total' => $countTotal
+        ];
+    }
 
     /**
      * @param DateTime $dateMin
      * @param DateTime $dateMax
      * @return Generator
      */
-	public function iterateByDates($dateMin, $dateMax): Generator {
-		$dateMax = $dateMax->format('Y-m-d H:i:s');
-		$dateMin = $dateMin->format('Y-m-d H:i:s');
+    public function iterateByDates($dateMin, $dateMax): Generator
+    {
+        $dateMax = $dateMax->format('Y-m-d H:i:s');
+        $dateMin = $dateMin->format('Y-m-d H:i:s');
 
         $iterator = $this->createQueryBuilder('preparation')
             ->where('preparation.date BETWEEN :dateMin AND :dateMax')
@@ -245,13 +245,13 @@ class PreparationRepository extends EntityRepository
             ->getQuery()
             ->iterate();
 
-        foreach($iterator as $item) {
+        foreach ($iterator as $item) {
             // $item [index => preparation]
             yield array_pop($item);
         }
-	}
+    }
 
-    public function getFirstDatePreparationGroupByDemande (array $demandes)
+    public function getFirstDatePreparationGroupByDemande(array $demandes)
     {
         $queryBuilder = $this->createQueryBuilder('preparation')
             ->select('demande.id AS demandeId')
@@ -262,7 +262,7 @@ class PreparationRepository extends EntityRepository
             ->setParameter('demandes', $demandes);
 
         $lastDatePreparationDemande = $queryBuilder->getQuery()->execute();;
-        return array_reduce($lastDatePreparationDemande, function(array $carry, $current) {
+        return array_reduce($lastDatePreparationDemande, function (array $carry, $current) {
             $demandeId = $current['demandeId'];
             $firstDate = $current['firstDate'];
 
@@ -271,7 +271,7 @@ class PreparationRepository extends EntityRepository
         }, []);
     }
 
-    public function getNumeroPrepaGroupByDemande (array $demandes)
+    public function getNumeroPrepaGroupByDemande(array $demandes)
     {
         $queryBuilder = $this->createQueryBuilder('preparation')
             ->select('demande.id AS demandeId')
@@ -292,18 +292,20 @@ class PreparationRepository extends EntityRepository
             return $carry;
         }, []);
     }
-	public function countByNumero(string $numero) {
-	    $queryBuilder = $this
+
+    public function countByNumero(string $numero)
+    {
+        $queryBuilder = $this
             ->createQueryBuilder('preparation')
             ->select('COUNT(preparation.id) AS counter')
             ->where('preparation.numero = :numero')
             ->setParameter('numero', $numero . '%');
 
-	    $result = $queryBuilder
+        $result = $queryBuilder
             ->getQuery()
             ->getResult();
 
-	    return !empty($result) ? ($result[0]['counter'] ?? 0) : 0;
+        return !empty($result) ? ($result[0]['counter'] ?? 0) : 0;
     }
 
     /**
@@ -313,7 +315,8 @@ class PreparationRepository extends EntityRepository
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    public function countByTypesAndStatuses(?array $types, ?array $statuses): ?int {
+    public function countByTypesAndStatuses(?array $types, ?array $statuses): ?int
+    {
         if (!empty($types) && !empty($statuses)) {
             $qb = $this->createQueryBuilder('preparationOrder')
                 ->select('COUNT(preparationOrder)')
@@ -328,8 +331,7 @@ class PreparationRepository extends EntityRepository
             return $qb
                 ->getQuery()
                 ->getSingleScalarResult();
-        }
-        else {
+        } else {
             return [];
         }
     }
@@ -341,7 +343,8 @@ class PreparationRepository extends EntityRepository
      * @throws NonUniqueResultException
      */
     public function getOlderDateToTreat(array $types = [],
-                                        array $statuses = []): ?DateTime {
+                                        array $statuses = []): ?DateTime
+    {
         if (!empty($statuses)) {
             $res = $this
                 ->createQueryBuilder('preparation')
@@ -361,8 +364,7 @@ class PreparationRepository extends EntityRepository
                 ->getOneOrNullResult();
 
             return $res['date'] ?? null;
-        }
-        else {
+        } else {
             return null;
         }
     }
@@ -371,7 +373,8 @@ class PreparationRepository extends EntityRepository
      * @param LocationGroup $locationGroup
      * @return string
      */
-    public function createArticleSensorPairingDataQueryUnion(Article $article): string {
+    public function createArticleSensorPairingDataQueryUnion(Article $article): string
+    {
         $entityManager = $this->getEntityManager();
         $createQueryBuilder = function () use ($entityManager) {
             return $entityManager->createQueryBuilder()
@@ -431,11 +434,12 @@ class PreparationRepository extends EntityRepository
      * @param string[] $statusCodes
      * @return Preparation[]
      */
-    public function findByStatusCodesAndExpectedAt(array $statusCodes, DateTime $start, DateTime $end): array {
+    public function findByStatusCodesAndExpectedAt(array $filters, array $statusCodes, DateTime $start, DateTime $end): array
+    {
         $startStr = $start->format('Y-m-d');
         $endStr = $end->format('Y-m-d');
 
-        return empty($statusCodes)
+        $queryBuilder = empty($statusCodes)
             ? []
             : $this->createQueryBuilder('preparation')
                 ->join('preparation.statut', 'status')
@@ -443,7 +447,33 @@ class PreparationRepository extends EntityRepository
                 ->andWhere('preparation.expectedAt BETWEEN :start AND :end')
                 ->setParameter('statusCodes', $statusCodes)
                 ->setParameter('start', $startStr)
-                ->setParameter('end', $endStr)
+                ->setParameter('end', $endStr);
+
+        foreach ($filters as $filter) {
+            if ($queryBuilder !== []) {
+                if ($filter['field'] === FiltreSup::FIELD_OPERATORS) {
+                    $value = explode(',', $filter['value']);
+                    $queryBuilder
+                        ->join('preparation.utilisateur', 'filter_user')
+                        ->andWhere('filter_user.id in (:users)')
+                        ->setParameter('users', $value);
+            } else if ($filter['field'] === FiltreSup::FIELD_TYPE) {
+                    $queryBuilder
+                        ->join('preparation.demande', 'filter_request')
+                        ->join('filter_request.type', 'filter_type')
+                        ->andWhere('filter_type.label = :type')
+                        ->setParameter('type', $filter['value']);
+                } else if ($filter['field'] === FiltreSup::FIELD_REQUEST_NUMBER) {
+                    $queryBuilder
+                        ->andWhere('preparation.numero = :numero')
+                        ->setParameter('numero', $filter['value']);
+                }
+            }
+        }
+
+        return $queryBuilder === []
+            ? $queryBuilder
+            : $queryBuilder
                 ->getQuery()
                 ->getResult();
     }

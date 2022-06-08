@@ -11,6 +11,7 @@
     {% include 'preparation/planning_filters.html.twig' with {
         page: 'PAGE_PREPARATION_PLANNING',
         marginClass: 'm-0 m-md-4',
+        callback: 'callbackSaveFilter',
     } %}
 {% endblock %}
 

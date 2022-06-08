@@ -3,8 +3,25 @@ import Sortable from "@app/sortable";
 import AJAX from "@app/ajax";
 import Planning from "@app/planning";
 
+global.callbackSaveFilter = callbackSaveFilter;
+let planning = null;
+
 $(function () {
-    const planning = new Planning($('.preparation-planning'), 'preparation_planning_api');
+    planning = new Planning($('.preparation-planning'), 'preparation_planning_api');
+    let path = Routing.generate(`filter_get_by_page`);
+    let params = JSON.stringify(PAGE_PREPARATION_PLANNING);
+    $.post(path, params, function (data) {
+        displayFiltersSup(data);
+        const planningFilters = data
+            .filter((filter) => filter.field.startsWith('planning-status-'));
+
+        if (planningFilters.length > 0) {
+            planningFilters.forEach((filter) => $(`input[name=${filter.field}]`).prop('checked', true));
+        } else {
+            $(`.filter-checkbox`).prop('checked', true)
+        }
+    }, 'json');
+
     planning.onPlanningLoad(() => {
         Sortable.create('.planning-card-container', {
             placeholderClass: 'placeholder',
@@ -33,12 +50,19 @@ $(function () {
 
             })
     });
+
     $('.planning-filter').on('click', function() {
+        console.log('ey');
         const $checkbox = $(this).find('.filter-checkbox');
-        console.log($checkbox);
         $checkbox.prop('checked', !$checkbox.is(':checked'));
     });
 });
+
+function callbackSaveFilter() {
+    if (planning) {
+        planning.fetch();
+    }
+}
 
 function refreshColumnHint($column) {
     const preparationCount = $column.find('.preparation-card').length;

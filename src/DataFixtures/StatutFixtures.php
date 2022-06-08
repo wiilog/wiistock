@@ -92,7 +92,6 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
 				Preparation::STATUT_PREPARE => Statut::TREATED,
                 Preparation::STATUT_INCOMPLETE => Statut::TREATED,
                 Preparation::STATUT_VALIDATED => Statut::NOT_TREATED,
-                Preparation::STATUT_LAUNCHED => Statut::NOT_TREATED,
 			],
 			CategorieStatut::RECEPTION => [
 				Reception::STATUT_EN_ATTENTE => Statut::NOT_TREATED,
