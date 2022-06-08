@@ -11,8 +11,9 @@
 
     <a href="{{ path(route, {transport: entity.id}) }}" class="transport-request-card">
         {% set isDeliveryTransportRequest = request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
+        {% set isCollectTransportRequest = request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') %}
 
-        {% if displayDropdown and (isDeliveryTransportRequest or request.canBeCancelled or request.canBeDeleted) %}
+        {% if displayDropdown and (request.canBeCancelled or request.canBeDeleted) %}
             <div class="dropdown dropright">
                 <div class="d-flex" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     <img alt="Actions" src="{{ asset('svg/dotsblack.svg') }}" height="20px" width="8px">
