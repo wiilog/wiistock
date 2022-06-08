@@ -14,6 +14,37 @@
 {% block pageContainerClass 'd-flex flex-fill' %}
 {% block page_content %}
     <div class="m-4 wii-page-card flex-fill">
+        <div class="d-flex">
+            <div class="planning-switch mx-4">
+                <div class="to-assign"
+                     data-loader-color="black">
+                    <input type="checkbox" name="status" value="to-assign" id="to-assign" checked/>
+                    <label for="to-assign" class="h-100">
+                        <span class="d-inline-flex align-items-center">
+                            &Agrave; affecter
+                        </span>
+                    </label>
+                </div>
+                <div class="assigned"
+                     data-loader-color="black">
+                    <input type="checkbox" name="status" value="assigned" id="assigned" checked/>
+                    <label for="assigned" class="h-100">
+                        <span class="d-inline-flex align-items-center">
+                            Affecté
+                        </span>
+                    </label>
+                </div>
+                <div class="ongoing"
+                     data-loader-color="black">
+                    <input type="checkbox" name="status" value="ongoing" id="ongoing" checked/>
+                    <label for="ongoing" class="h-100">
+                        <span class="d-inline-flex align-items-center">
+                            En cours
+                        </span>
+                    </label>
+                </div>
+            </div>
+        </div>
         <div data-wii-planning="preparation_planning_api" class="preparation-planning"></div>
     </div>
 {% endblock %}

@@ -1,8 +1,10 @@
 import '@styles/pages/preparation/planning.scss';
 import Sortable from "@app/sortable";
 import AJAX from "@app/ajax";
+import Planning from "@app/planning";
 
 $(function () {
+    const planning = new Planning();
     $('[data-wii-planning]').on('planning-loaded', function() {
         const $cardColumns = $('.preparation-card-column')
 
