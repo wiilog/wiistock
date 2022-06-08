@@ -42,8 +42,7 @@ $(function () {
 
     Sortable.create(`#affected-container`, {
         placeholderClass: 'placeholder',
-        acceptFrom: '#to-affect-container',
-        items: '.to-assign',
+        acceptFrom: '#to-affect-container ,#affected-container',
     });
 
     $('.sortable-container').on('sortupdate', function (){
