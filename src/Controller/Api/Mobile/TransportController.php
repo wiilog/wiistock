@@ -800,8 +800,7 @@ class TransportController extends AbstractFOSRestController {
             $isCollectFromDelivery = $request instanceof TransportCollectRequest && $request->getDelivery();
             if (!$isCollectFromDelivery) {
                 $lastLine = $order->getTransportRoundLines()->last();
-                $lastLine->setFulfilledAt($now)
-                    ->setRejectedAt($now);
+                $lastLine->setFulfilledAt($now);
             }
 
             foreach ([$request, $order] as $entity) {

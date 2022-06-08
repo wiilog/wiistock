@@ -592,12 +592,17 @@ class RequestController extends AbstractController {
                     'history' => $statusHistoryOrder,
                     'user' => $loggedUser
                 ]);
+
+                if(!$transportOrder->getTransportRoundLines()->isEmpty()) {
+                    $line = $transportOrder->getTransportRoundLines()->last();
+                    $line->setCancelledAt(new DateTime());
+                }
             }
 
             $entityManager->flush();
         }
         else {
-            $msg = 'Le statut de cette demande rends impossible son annulation.';
+            $msg = 'Le statut de cette demande rend impossible son annulation.';
         }
 
         return $this->json([
