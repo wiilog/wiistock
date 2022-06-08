@@ -129,12 +129,11 @@
                                         <div class="dropdown-item pointer edit-button">
                                             <a href="{{ path('transport_round_plan', {'transportRound': transportRound.id}) }}">
                                                 <img src="{{ asset('svg/plus-black.svg') }}" alt="" width="17px" class="pr-1">
-                                                {% if  transportRound.status.code == onGoingStatusesName %}
-                                                    Ajouter une tournée
+                                                {% if transportRound.status.code == onGoingStatusesName %}
+                                                    Ajouter une collecte
                                                 {% else %}
                                                     Ajouter un transport
                                                 {% endif %}
-
                                             </a>
                                         </div>
                                     {% endif %}
