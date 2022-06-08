@@ -755,7 +755,7 @@ class PreparationController extends AbstractController
                 $count = count($cards[$dayStr] ?? []);
                 $sPreparation = $count > 1 ? 's' : '';
                 return [
-                    "label" => FormatHelper::longDate($day, ["year" => false]),
+                    "label" => FormatHelper::longDate($day, ["short" => true, "year" => false]),
                     "cardSelector" => $dayStr,
                     "styleContainer" => $index > 1 ? "flex: 1;" : "flex: 2;",
                     "columnHint" => "<span class='font-weight-bold'>{$count} préparation{$sPreparation}</span>",

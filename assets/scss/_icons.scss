@@ -90,6 +90,8 @@ $icons: (
     'calendar': "../../public/svg/calendar.svg",
     'info': "../../public/svg/information.svg",
     'printer-white': "../../public/svg/printer-white.svg",
+    'calendar-creation-grey': "../../public/svg/calendar-creation-grey.svg",
+    'calendar-due-black': "../../public/svg/calendar-due-black.svg",
 );
 
 @each $iconName, $iconPath in $icons {
