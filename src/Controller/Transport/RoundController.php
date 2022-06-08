@@ -558,8 +558,10 @@ class RoundController extends AbstractController {
 
         $entityManager->flush();
 
-        $userChannel = $userService->getUserFCMChannel($loggedUser);
-        $notificationService->send($userChannel, "Une nouvelle tournée attribuée aujourd'hui");
+        if ( $transportRoundRepository->findBy(['deliverer' => $deliverer->getId() , 'expectedAt' => $transportRound->getExpectedAt()])) {
+            $userChannel = $userService->getUserFCMChannel($deliverer);
+            $notificationService->send($userChannel, "Une nouvelle tournée attribuée aujourd'hui");
+        }
 
         return $this->json([
             'success' => true,

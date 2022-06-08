@@ -65,14 +65,14 @@ $(function () {
         const $inputTime = $('input[name="expectedAtTime"]');
         const $delivererPicker = $(this);
         if($delivererPicker.val()){
-            $btnCalculateTime.removeClass('btn-disabled');
+            $btnCalculateTime.removeAttr('disabled');
             $inputTime.prop('disabled', false);
             const [deliverer] = $delivererPicker.select2('data');
             if(deliverer){
                 $inputTime.val(deliverer.startingHour);
             }
         }else{
-            $btnCalculateTime.addClass('btn-disabled');
+            $btnCalculateTime.addAttr('disabled');
             $inputTime
                 .prop('disabled', true)
                 .val(null);
