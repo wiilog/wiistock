@@ -73,8 +73,10 @@ export class Map {
         this.map.addLayer(marker);
 
         if (options.popUp) {
+            const $popup = $('<div>' + options.popUp + '</div>');
+            $(estimated).appendTo($popup.find('.leaflet-popup-content-inner'));
             marker
-                .bindPopup(`${options.popUp}${estimated}`, {
+                .bindPopup(`${$popup.html()}`, {
                     closeButton: false,
                     autoClose: false,
                     closeOnClick: false,
