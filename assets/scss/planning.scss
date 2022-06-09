@@ -68,27 +68,27 @@
 .planning-card {
     padding: .25rem;
 
-    &.orange .planning-card-wrapper {
+    &.orange-card .planning-card-wrapper {
         border-left-color: rgb(215, 100, 51);
         background-color: rgba(215, 100, 51, 0.15);
     }
 
-    &.red .planning-card-wrapper {
+    &.red-card .planning-card-wrapper {
         border-left-color: rgb(215, 51, 83);
         background-color: rgba(215, 51, 83, 0.15);
     }
 
-    &.blue .planning-card-wrapper {
+    &.blue-card .planning-card-wrapper {
         border-left-color: rgb(100, 51, 215);
         background-color: rgba(100, 51, 215, 0.15);
     }
 
-    &.green .planning-card-wrapper {
+    &.green-card .planning-card-wrapper {
         border-left-color: rgb(165, 215, 51);
         background-color: rgba(165, 215, 51, 0.15);
     }
 
-    &.grey .planning-card-wrapper {
+    &.grey-card .planning-card-wrapper {
         border-left-color: rgb(102, 102, 102);
         background-color: rgba(102, 102, 102, 0.15);
     }

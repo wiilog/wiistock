@@ -179,6 +179,7 @@ function getOrUpdatePreparationCard(modal){
 
             modal.find('.check-stock-button').on('click', function (){
                 const $preparationCards = modal.find('.assigned-preparations .preparation-card');
+                const $submitButton = modal.find('.check-stock-button');
                 const data = [];
                 $preparationCards.each(function() {
                     data.push($(this).data('preparation'));
@@ -188,23 +189,29 @@ function getOrUpdatePreparationCard(modal){
                     return new Promise((resolve) => {
                         wrapLoadingOnActionButton(modal.find('.check-stock-button'), () => {
                             return AJAX
-                                .route(`POST`, `planning_preparation_launch_check_stock`)
+                                .route(`POST`, `planning_preparation_launch_check_stock`, {launchPreparations: $submitButton.data('launch-preparations')})
                                 .json(data)
                                 .then((res) => {
                                     if(res.success) {
                                         if(res.unavailablePreparationsId.length > 0){
                                             showBSAlert("Votre stock est insuffisant pour démarrer cette préparation", "danger");
                                             res.unavailablePreparationsId.forEach((id) => {
-                                                modal.find(`[data-preparation="${id}"]`).addClass('red');
-                                                modal.find(`[data-preparation="${id}"]`).removeClass('orange');
+                                                modal.find(`[data-preparation="${id}"]`).addClass('red-card');
+                                                modal.find(`[data-preparation="${id}"]`).removeClass('orange-card');
                                             });
                                             modal.find('.assigned-preparations').addClass('border border-danger');
-                                            modal.find('.check-stock-button').text("Vérifier le stock");
+                                            $submitButton.text("Vérifier le stock");
+                                            $submitButton.data('launch-preparations', "0");
                                             modal.find('.quantities-information-container').removeClass('d-none');
                                             modal.find('.quantities-information').empty();
                                             modal.find('.quantities-information').append(res.template);
+                                        } else if($submitButton.data('launch-preparations') === "1"){
+                                            modal.modal('hide');
+                                            callbackSaveFilter();
                                         } else {
-                                            modal.find('.check-stock-button').text("Lancer les préparations");
+                                            showBSAlert("Le stock demandé est disponible", "success");
+                                            $submitButton.text("Lancer les préparations");
+                                            $submitButton.data('launch-preparations', "1");
                                             modal.find('.assigned-preparations').addClass('border border-success');
                                         }
                                         resolve();
@@ -228,8 +235,9 @@ function onOrdersDragAndDropDone(modal){
 
     modal.find('.quantities-information-container').addClass('d-none');
     modal.find('.assigned-preparations').removeClass('border border-danger border-success');
-    $preparationsAvailable.addClass('orange');
-    $preparationsAvailable.removeClass('red');
+    $preparationsAvailable.addClass('orange-card');
+    $preparationsAvailable.removeClass('red-card');
+    $submitButton.data('launch-preparations', "0");
     $submitButton.attr(`disabled`, !$preparationsToStart.exists());
     $preparationsAvailableContainer.empty().append($availableCounter);
     $preparationsToStartContainer.empty().append($assignedCounter);

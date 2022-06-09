@@ -460,7 +460,7 @@ class DemandeLivraisonService
                 ->setReference($referenceArticle)
                 ->setPreparation($preparation);
             $entityManager->persist($lignesArticlePreparation);
-            if ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
+            if ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE && $needsQuantitiesCheck) {
                 $referenceArticle->setQuantiteReservee(($referenceArticle->getQuantiteReservee() ?? 0) + $ligneArticle->getQuantityToPick());
             } else {
                 $refArticleToUpdateQuantities[] = $referenceArticle;
@@ -500,7 +500,9 @@ class DemandeLivraisonService
                 $demande->getUtilisateur()
             );
         }
-        if ($flush) $entityManager->flush();
+        if ($flush) {
+            $entityManager->flush();
+        }
         if (!$simpleValidation && !$fromNomade) {
             $response['entete'] = $this->templating->render('demande/demande-show-header.html.twig', [
                 'demande' => $demande,

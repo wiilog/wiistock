@@ -5,15 +5,15 @@
             <div class="col-4 px-0 preparation-card-container">
                 {% include 'preparation/planning_card.html.twig' with {
                     preparation: preparation,
-                    color: 'orange'
+                    color: 'orange-card'
                 }%}
             </div>
         {% endfor %}
     </div>
 </div>
 <div class="col-2 d-flex flex-column mt-4">
-    <button class="btn btn-primary ml-auto add-all h-50 w-100">>> <br> Lancer tout</button>
-    <button class="btn btn-outline-primary ml-auto remove-all h-50 w-100 mt-2"><< <br> Remettre tout</button>
+    <button class="btn btn-primary ml-auto add-all h-50 w-100"><i class="wii-icon wii-icon-double-arrow-right wii-icon-25px"></i><br> Lancer tout</button>
+    <button class="btn btn-outline-primary ml-auto remove-all h-50 w-100 mt-2"><i class="wii-icon wii-icon-double-arrow-left wii-icon-25px"></i><br> Remettre tout</button>
 </div>
 <div class="col-md-5 col-12">
     <label class="bold">Préparation(s) à lancer : <span class="assigned-preparations-counter">0</span></label>
