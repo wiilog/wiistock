@@ -55,7 +55,7 @@ class TransportRoundService
             TransportRound::STATUS_FINISHED
         ]);
 
-        $vehicle = $round->getDeliverer()?->getVehicle();
+        $vehicle = $round->getVehicle() ?? $round->getDeliverer()?->getVehicle();
 
         $transportRoundLines = $round->getTransportRoundLines();
 
@@ -106,7 +106,7 @@ class TransportRoundService
 
     public function calculateRoundRealDistance(TransportRound $transportRound, GeoService $geoService): float
     {
-        $vehicle = $transportRound->getDeliverer()?->getVehicle();
+        $vehicle = $transportRound->getVehicle() ?? $transportRound->getDeliverer()?->getVehicle();
         return $geoService->getDistanceBetween(
             Stream::from($vehicle->getSensorMessagesBetween($transportRound->getBeganAt(), $transportRound->getEndedAt(), Sensor::GPS))
                 ->map(function (SensorMessage $message) {
@@ -131,7 +131,7 @@ class TransportRoundService
     public function putLineRoundAndRequest($output,
                                            TransportRound $round,
                                            callable $filter = null): void {
-        $vehicle = $round->getDeliverer()?->getVehicle();
+        $vehicle = $round->getVehicle() ?? $round->getDeliverer()?->getVehicle();
         $lines = $round->getTransportRoundLines();
 
         $roundExportable = (

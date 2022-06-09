@@ -58,7 +58,7 @@ class RoundController extends AbstractController {
         $roundCategorie = $em->getRepository(CategorieStatut::class)->findOneBy(['nom' => CategorieStatut::TRANSPORT_ROUND])->getId();
         $ongoingStatus = $statusRepository->findOneBy(['code' => TransportRound::STATUS_ONGOING , 'categorie' => $roundCategorie ])?->getId();
         $deliverersPositions = Stream::from($roundRepository->findBy(['status' => $ongoingStatus]))
-            ->map(fn(TransportRound $round) => $round?->getDeliverer()?->getVehicle()?->getLastPosition($round->getBeganAt()))
+            ->map(fn(TransportRound $round) => $round->getVehicle()?->getLastPosition($round->getBeganAt()))
             ->filter(fn($position) => $position != null)
             ->toArray();
 
@@ -176,36 +176,44 @@ class RoundController extends AbstractController {
             ->toArray();
 
         $delivererPosition = $transportRound->getBeganAt()
-            ? $transportRound?->getDeliverer()?->getVehicle()?->getLastPosition($transportRound->getBeganAt(), $transportRound->getEndedAt())
+            ? $transportRound->getVehicle()->getLastPosition($transportRound->getBeganAt(), $transportRound->getEndedAt())
             : null;
 
         $urls = [];
         $transportDateBeganAt = $transportRound->getBeganAt();
-        $locations = $transportRound->getDeliverer()?->getVehicle()?->getLocations() ?: [];
+        $locations = $transportRound->getLocations();
 
         foreach ($locations as $location) {
-            if ($location->getActivePairing()) {
-                $triggerActions = $location->getActivePairing()->getSensorWrapper()->getTriggerActions();
+            $hasSensorMessageBetween = $location->getSensorMessagesBetween($transportRound->getBeganAt(), $transportRound->getEndedAt());
+            if(!$hasSensorMessageBetween) {
+                continue;
+            }
+
+            $triggerActions = $location->getActivePairing()?->getSensorWrapper()?->getTriggerActions();
+            if($triggerActions) {
                 $minTriggerActionThreshold = Stream::from($triggerActions)
                     ->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'lower')
                     ->last();
+
                 $maxTriggerActionThreshold = Stream::from($triggerActions)
                     ->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'higher')
                     ->last();
+
                 $minThreshold = $minTriggerActionThreshold?->getConfig()['temperature'];
                 $maxThreshold = $maxTriggerActionThreshold?->getConfig()['temperature'];
-                $now = new DateTime();
-                $urls[] = [
-                    "fetch_url" => $router->generate("chart_data_history", [
-                        "type" => IOTService::getEntityCodeFromEntity($location),
-                        "id" => $location->getId(),
-                        'start' => $transportRound->getCreatedAt()->format('Y-m-d\TH:i'),
-                        'end' => $transportRound->getEndedAt()?->format('Y-m-d\TH:i') ?? $now->format('Y-m-d\TH:i'),
-                    ], UrlGeneratorInterface::ABSOLUTE_URL),
-                    "minTemp" => $minThreshold,
-                    "maxTemp" => $maxThreshold,
-                ];
             }
+
+            $now = new DateTime();
+            $urls[] = [
+                "fetch_url" => $router->generate("chart_data_history", [
+                    "type" => IOTService::getEntityCodeFromEntity($location),
+                    "id" => $location->getId(),
+                    'start' => $transportRound->getCreatedAt()->format('Y-m-d\TH:i'),
+                    'end' => $transportRound->getEndedAt()?->format('Y-m-d\TH:i') ?? $now->format('Y-m-d\TH:i'),
+                ], UrlGeneratorInterface::ABSOLUTE_URL),
+                "minTemp" => $minThreshold ?? 0,
+                "maxTemp" => $maxThreshold ?? 0,
+            ];
         }
 
         $hasSomeDelivery = Stream::from($transportRound->getTransportRoundLines())
@@ -485,6 +493,7 @@ class RoundController extends AbstractController {
         $transportRound
             ->setExpectedAt($expectedAt)
             ->setDeliverer($deliverer)
+            ->setVehicle($deliverer->getVehicle())
             ->setStartPoint($startPoint)
             ->setEstimatedDistance(floatval($request->request->get('estimatedTotalDistance')) ?: null)
             ->setEstimatedTime($request->request->get('estimatedTotalTime'))

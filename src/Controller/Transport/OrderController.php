@@ -139,38 +139,46 @@ class OrderController extends AbstractController {
         $contactPosition = [$transportRequest->getContact()->getAddressLatitude(), $transportRequest->getContact()->getAddressLongitude()];
 
         $delivererPosition =  $round?->getBeganAt()
-            ? $round?->getDeliverer()?->getVehicle()?->getLastPosition($round->getBeganAt(), $round->getEndedAt())
+            ? $round->getVehicle()?->getLastPosition($round->getBeganAt(), $round->getEndedAt())
             : null;
-        $addedLocations = [];
 
         if ($round) {
             $now = new DateTime();
             $urls = [];
-            $locations = [];
             $transportRound = $transport->getTransportRoundLines()->last()
                 ? $transport->getTransportRoundLines()->last()->getTransportRound()
                 : null;
-            $vehicle = $transportRound?->getDeliverer()?->getVehicle();
-            foreach ($vehicle->getLocations() as $location) {
-                $activePairing  = $location?->getActivePairing();
-                if ($activePairing && !in_array($location->getId(), $locations)) {
-                    $triggerActions = $location->getActivePairing()->getSensorWrapper()->getTriggerActions();
-                    $minTriggerActionThreshold = Stream::from($triggerActions)->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'lower')->last();
-                    $maxTriggerActionThreshold = Stream::from($triggerActions)->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'higher')->last();
+
+            foreach ($transportRound?->getLocations() ?? [] as $location) {
+                $hasSensorMessageBetween = $location->getSensorMessagesBetween($round->getBeganAt(), $round->getEndedAt());
+                if(!$hasSensorMessageBetween) {
+                    continue;
+                }
+
+                $triggerActions = $location->getActivePairing()?->getSensorWrapper()?->getTriggerActions();
+                if($triggerActions) {
+                    $minTriggerActionThreshold = Stream::from($triggerActions)
+                        ->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'lower')
+                        ->last();
+
+                    $maxTriggerActionThreshold = Stream::from($triggerActions)
+                        ->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'higher')
+                        ->last();
+
                     $minThreshold = $minTriggerActionThreshold?->getConfig()['temperature'];
                     $maxThreshold = $maxTriggerActionThreshold?->getConfig()['temperature'];
-                    $locations[] = $location->getId();
-                    $urls[] = [
-                        "fetch_url" => $router->generate("chart_data_history", [
-                            "type" => IOTService::getEntityCodeFromEntity($location),
-                            "id" => $location->getId(),
-                            'start' => $round->getBeganAt()->format('Y-m-d\TH:i'),
-                            'end' => $round->getEndedAt()?->format('Y-m-d\TH:i') ?? $now->format('Y-m-d\TH:i'),
-                        ], UrlGeneratorInterface::ABSOLUTE_URL),
-                        "minTemp" => $minThreshold,
-                        "maxTemp" => $maxThreshold
-                    ];
                 }
+
+                $urls[] = [
+                    "fetch_url" => $router->generate("chart_data_history", [
+                        "type" => IOTService::getEntityCodeFromEntity($location),
+                        "id" => $location->getId(),
+                        'start' => $round->getBeganAt()->format('Y-m-d\TH:i'),
+                        'end' => $round->getEndedAt()?->format('Y-m-d\TH:i') ?? $now->format('Y-m-d\TH:i'),
+                    ], UrlGeneratorInterface::ABSOLUTE_URL),
+                    "minTemp" => $minThreshold ?? 0,
+                    "maxTemp" => $maxThreshold ?? 0,
+                ];
             }
             if (empty($urls)) {
                 $urls[] = [

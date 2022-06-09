@@ -449,9 +449,22 @@ class TransportController extends AbstractFOSRestController {
         $deliveryOrderOngoing = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_DELIVERY, TransportOrder::STATUS_ONGOING);
         $collectOrderOngoing = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_COLLECT, TransportOrder::STATUS_ONGOING);
 
+        if(!$round->getDeliverer()?->getVehicle()) {
+            return $this->json([
+                "success" => false,
+                "msg" => "Vous n'avez pas de véhicule assigné, la tournée ne peut pas commencer",
+            ]);
+        }
+
         $round
             ->setStatus($roundOngoing)
             ->setBeganAt(new DateTime());
+
+        //freeze the locations in case the deliverer's vehicle changes in the future
+        $round->setLocations($round->getDeliverer()->getVehicle()->getLocations()->toArray());
+
+        //freeze the vehicle in case it changes in the future
+        $round->setVehicle($round->getDeliverer()->getVehicle());
 
         $hasRejected = false;
 
