@@ -75,7 +75,7 @@
                             Commencée le  :<br><span class="bold">{{ order.startedAt ? order.startedAt | format_helper('longDate', {short: true, time: true}) : "-" }}</span>
                         </span>
                         <span class="d-none d-xl-block">
-                            Commencée le :<span class="bold">{{ order.startedAt ? order.startedAt | format_helper('longDate', {short: true, time: true}) : "-" }}</span>
+                            Commencée le :<span class="bold"><br>{{ order.startedAt ? order.startedAt | format_helper('longDate', {short: true, time: true}) : "-" }}</span>
                         </span>
                     </div>
                     <div>
@@ -83,7 +83,7 @@
                             Livrée le :<br> <span style="font-weight: bold"> {{ order.treatedAt ? order.treatedAt | format_helper('longDate', {short: true, time: true}) : "-" }}</span>
                         </span>
                         <span class="d-none d-xl-block">
-                            Livrée le : <span style="font-weight: bold"> {{ order.treatedAt ? order.treatedAt | format_helper('longDate', {short: true, time: true}) : "-" }}</span>
+                            Livrée le :<br><span style="font-weight: bold"> {{ order.treatedAt ? order.treatedAt | format_helper('longDate', {short: true, time: true}) : "-" }}</span>
                         </span>
                     </div>
                 </td>
