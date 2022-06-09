@@ -248,6 +248,7 @@ class TransportRoundService
         $entityManager->remove($line);
 
         $order->setRejectedAt(new DateTime());
+
         $round->setRejectedOrderCount($round->getRejectedOrderCount() + 1);
     }
 

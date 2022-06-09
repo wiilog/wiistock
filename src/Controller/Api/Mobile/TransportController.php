@@ -468,11 +468,15 @@ class TransportController extends AbstractFOSRestController {
 
             if($request instanceof TransportDeliveryRequest) {
                 $hasPacks = !$order->getPacks()->isEmpty();
-                if ($hasPacks) {
+                $allRejected = $order->getPacks()
+                    ->filter(fn(TransportDeliveryOrderPack $pack) => !$pack->getRejectedBy())
+                    ->isEmpty();
+
+                if ($hasPacks && !$allRejected) {
                     $requestStatus = $deliveryRequestOngoing;
                     $orderStatus = $deliveryOrderOngoing;
                 }
-                else {
+                else if($allRejected) {
                     $hasRejected = true;
                     $transportRoundService->rejectTransportRoundDeliveryLine($manager, $line, $this->getUser());
                 }
@@ -481,7 +485,7 @@ class TransportController extends AbstractFOSRestController {
                 $orderStatus = $collectOrderOngoing;
             }
 
-            if (isset($requestStatus) && isset($orderStatus)) {
+            if (isset($requestStatus) && isset($orderStatus) && !$line->getOrder()->getRejectedAt()) {
                 $statusHistoryRequest = $statusHistoryService->updateStatus($manager, $request, $deliveryRequestOngoing);
                 $statusHistoryOrder = $statusHistoryService->updateStatus($manager, $order, $deliveryOrderOngoing);
 

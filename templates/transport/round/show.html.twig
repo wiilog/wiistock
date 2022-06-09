@@ -97,18 +97,14 @@
                                 <span class="wii-field-name ml-2">&Eacute;lément rejetées</span>
                             </div>
                             <div class="row content">
-                                {% if nbRejectedPacks %}
-                                    <div class="col-6 d-flex flex-column">
-                                        <span class="wii-field-name">Colis rejetés</span>
-                                        <span class="wii-field-text">{{ nbRejectedPacks }}</span>
-                                    </div>
-                                {% endif %}
-                                {% if nbRejectedOrders %}
-                                    <div class="col-6 d-flex flex-column">
-                                        <span class="wii-field-name">Commandes rejetées</span>
-                                        <span class="wii-field-text">{{ nbRejectedOrders }}</span>
-                                    </div>
-                                {% endif %}
+                                <div class="col-6 d-flex flex-column">
+                                    <span class="wii-field-name">Colis rejetés</span>
+                                    <span class="wii-field-text">{{ nbRejectedPacks ?? 0}}</span>
+                                </div>
+                                <div class="col-6 d-flex flex-column">
+                                    <span class="wii-field-name">Livraisons rejetées</span>
+                                    <span class="wii-field-text">{{ nbRejectedOrders ?? 0 }}</span>
+                                </div>
                             </div>
                         {% endif %}
                     </div>

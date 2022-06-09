@@ -521,7 +521,6 @@ class RoundController extends AbstractController {
                 $line = $transportRound->getTransportRoundLine($order);
                 if (!isset($line)) {
                     $line = new TransportRoundLine();
-                    // TODO            $line->setEstimatedAt() ??
                     $line->setOrder($order);
                     $order->setRejectedAt(null);
 
