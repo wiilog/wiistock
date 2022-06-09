@@ -146,16 +146,20 @@ class RequestController extends AbstractController {
         if ($round) {
             $now = new DateTime();
             $urls = [];
-            foreach ($order->getPacks() as $transportDeliveryPack) {
-                $pack = $transportDeliveryPack->getPack();
-                $location = $pack->getLastTracking()?->getEmplacement();
-                if ($location and $location->getActivePairing() && !in_array($location->getId(), $addedLocations)) {
+            $locations = [];
+            $transportRound = $transport->getOrder()->getTransportRoundLines()->last()
+                ? $transport->getOrder()->getTransportRoundLines()->last()->getTransportRound()
+                : null;
+            $vehicle = $transportRound?->getDeliverer()?->getVehicle();
+            foreach ($vehicle->getLocations() as $location) {
+                $activePairing  = $location?->getActivePairing();
+                if ($activePairing && !in_array($location->getId(), $locations)) {
                     $triggerActions = $location->getActivePairing()->getSensorWrapper()->getTriggerActions();
                     $minTriggerActionThreshold = Stream::from($triggerActions)->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'lower')->last();
                     $maxTriggerActionThreshold = Stream::from($triggerActions)->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'higher')->last();
                     $minThreshold = $minTriggerActionThreshold?->getConfig()['temperature'];
                     $maxThreshold = $maxTriggerActionThreshold?->getConfig()['temperature'];
-                    $addedLocations[] = $location->getId();
+                    $locations[] = $location->getId();
                     $urls[] = [
                         "fetch_url" => $router->generate("chart_data_history", [
                             "type" => IOTService::getEntityCodeFromEntity($location),

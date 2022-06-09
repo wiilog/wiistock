@@ -146,15 +146,20 @@ class OrderController extends AbstractController {
         if ($round) {
             $now = new DateTime();
             $urls = [];
-            foreach ($transport->getPacks() as $transportDeliveryPack) {
-                $pack = $transportDeliveryPack->getPack();
-                $location = $pack->getLastTracking()?->getEmplacement();
-                if ($location && $location->getActivePairing() && !in_array($location->getId(), $addedLocations)) {
+            $locations = [];
+            $transportRound = $transport->getTransportRoundLines()->last()
+                ? $transport->getTransportRoundLines()->last()->getTransportRound()
+                : null;
+            $vehicle = $transportRound?->getDeliverer()?->getVehicle();
+            foreach ($vehicle->getLocations() as $location) {
+                $activePairing  = $location?->getActivePairing();
+                if ($activePairing && !in_array($location->getId(), $locations)) {
                     $triggerActions = $location->getActivePairing()->getSensorWrapper()->getTriggerActions();
                     $minTriggerActionThreshold = Stream::from($triggerActions)->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'lower')->last();
                     $maxTriggerActionThreshold = Stream::from($triggerActions)->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'higher')->last();
                     $minThreshold = $minTriggerActionThreshold?->getConfig()['temperature'];
                     $maxThreshold = $maxTriggerActionThreshold?->getConfig()['temperature'];
+                    $locations[] = $location->getId();
                     $urls[] = [
                         "fetch_url" => $router->generate("chart_data_history", [
                             "type" => IOTService::getEntityCodeFromEntity($location),
@@ -181,7 +186,6 @@ class OrderController extends AbstractController {
             }
         }
 
-        //TODO WIIS-7229 appliquer les nouvelles bornes
         return $this->render('transport/order/show.html.twig', [
             'order' => $transport,
             'freeFields' => $freeFields,
