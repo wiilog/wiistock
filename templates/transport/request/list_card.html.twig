@@ -11,31 +11,30 @@
 
     <a href="{{ path(route, {transport: entity.id}) }}" class="transport-request-card col-12">
         {% set isDeliveryTransportRequest = request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
-
+        {% set canPrint = isDeliveryTransportRequest and request.status.code in constant('App\\Entity\\Transport\\TransportRequest::STATUS_PRINT_PACKING') %}
+        {% set canGenerate = isDeliveryTransportRequest and request.status.code in constant('App\\Entity\\Transport\\TransportRequest::STATUS_WORKFLOW_DELIVERY_CLASSIC')|slice(1) and request.order.packs is not empty %}
         <table class="transport-content" style="height: 100%">
             <tr>
                 <td rowspan="2">
                     <div class="d-flex flex-column justify-content-center h-100" style="margin-right: 15px">
-                        {% if displayDropdown and (isDeliveryTransportRequest or request.canBeCancelled or request.canBeDeleted) %}
+                        {% if displayDropdown and (canPrint or canGenerate or request.canBeCancelled or request.canBeDeleted) %}
                             <div class="dropdown dropright">
-                                <div class="" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <div class="d-flex" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     <img alt="Actions" src="{{ asset('svg/dotsblack.svg') }}" height="20px" width="8px">
                                 </div>
 
                                 <div class="dropdown-menu dropdown-follow-gt pointer">
-                                    {% if isDeliveryTransportRequest %}
-                                        {% if request.status.code in constant('App\\Entity\\Transport\\TransportRequest::STATUS_PRINT_PACKING') %}
-                                            <div class="dropdown-item pointer print-request-button" data-request-id="{{ request.id }}">
-                                                <i class="fas fa-print mr-2"></i> Imprimer les étiquettes
-                                            </div>
-                                        {% endif %}
+                                    {% if canPrint %}
+                                        <div class="dropdown-item pointer print-request-button" data-request-id="{{ request.id }}">
+                                            <i class="fas fa-print mr-2"></i> Imprimer les étiquettes
+                                        </div>
+                                    {% endif %}
 
-                                        {% if request.status.code in constant('App\\Entity\\Transport\\TransportRequest::STATUS_WORKFLOW_DELIVERY_CLASSIC')|slice(1) and request.order.packs is not empty %}
-                                            <div class="dropdown-item pointer print-transport-button"
-                                                 data-request-id="{{ request.id }}">
-                                                <i class="fas fa-file mr-2"></i> Générer bon de transport
-                                            </div>
-                                        {% endif %}
+                                    {% if canGenerate %}
+                                        <div class="dropdown-item pointer print-transport-button"
+                                             data-request-id="{{ request.id }}">
+                                            <i class="fas fa-file mr-2"></i> Générer bon de transport
+                                        </div>
                                     {% endif %}
 
                                     {% if request.canBeCancelled %}
