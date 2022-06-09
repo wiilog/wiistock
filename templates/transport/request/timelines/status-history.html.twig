@@ -16,10 +16,13 @@
 {% set headerClass = statusName in constant('App\\Entity\\Transport\\TransportRequest::CANCELED_STATUSES') ? 'bg-red-light' : 'bg-green-light' %}
 {% set requestType = transport is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest')
     ? 'Livraison'
-    : transport is instanceof('App\\Entity\\Transport\\TransportRound')
-        ? 'Tournée'
-        : 'Demande'
+    : transport is instanceof('App\\Entity\\Transport\\TransportCollectRequest')
+        ? 'Collecte'
+        : transport is instanceof('App\\Entity\\Transport\\TransportRound')
+            ? 'Tournée'
+            : 'Demande'
 %}
+{% set finishedStatusesName = [constant('App\\Entity\\Transport\\TransportOrder::STATUS_FINISHED'), constant('App\\Entity\\Transport\\TransportRequest::STATUS_FINISHED') ] %}
 
 <div class="header timeline d-flex justify-content-center {{ headerClass }}">
     <img src="{{ asset('svg/timeline-status.svg') }}" alt="Icône statut timeline" width="15px" class="mr-2">
@@ -45,12 +48,16 @@
             {{ state }}">
             <div class="title-right {{ state }} {{ not history['date'] ? 'bg-transparent' }}">
                 <span class="ml-2">{{ history['date'] }}</span>
+                {% if entity is instanceof('App\\Entity\\Transport\\TransportOrder') and entityStatusName in finishedStatusesName and history['status'] in finishedStatusesName%}
+                    {% set roundLine = order ? (order.transportRoundLines | last) ?: null : null %}
+                    {%  set estimatedAt = roundLine ? (roundLine.estimatedAt | date('H:i')) : (timeSlot ? timeSlot.name : transport.expectedAt | date('H:i')) %}
+                    <span class="ml-2">Estimée à : {{ estimatedAt ?? "/" }}</span>
+                {% endif %}
             </div>
         </div>
     </div>
 {% endfor %}
 {% for followingStatus in followingStatuses %}
-    {% set finishedStatusesName = [constant('App\\Entity\\Transport\\TransportOrder::STATUS_FINISHED'), constant('App\\Entity\\Transport\\TransportRequest::STATUS_FINISHED') ] %}
     {% set roundLine = order ? (order.transportRoundLines | last) ?: null : null %}
     {% set estimatedAt = round ? round.estimatedAt|format_helper('longDate', {short: true, time: true}, '') :
         (transport.timeSlot is defined and transport.timeSlot ? transport.timeSlot.name : null) %}

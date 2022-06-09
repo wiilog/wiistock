@@ -40,7 +40,6 @@ $(function () {
         wrapLoadingOnActionButton($(this), () => getOrders());
     });
 
-
     $('.increment-date').on('click', function () {
         changeCurrentDay('up');
         wrapLoadingOnActionButton($(this), () => getOrders());

@@ -43,7 +43,7 @@
                                     {% set packState = transportDeliveryOrderPack.state %}
                                     {% if packState  == constant('App\\Entity\\Transport\\TransportDeliveryOrderPack::REJECTED_STATE')%}
                                         Oui
-                                    {% elseif packState  == constant('App\\Entity\\Transport\\TransportDeliveryOrderPack::LOADED_STATE') %}
+                                    {% elseif packState != null and packState != constant('App\\Entity\\Transport\\TransportDeliveryOrderPack::REJECTED_STATE') %}
                                         Non
                                     {% else %}
                                         -
@@ -53,7 +53,7 @@
                                     {% set packRejectedReason = transportDeliveryOrderPack.rejectReason %}
                                     {% if  packRejectedReason %}
                                         {{  packRejectedReason }}
-                                    {% elseif not  packRejectedReason and packState  == constant('App\\Entity\\Transport\\TransportDeliveryOrderPack::LOADED_STATE') %}
+                                    {% elseif packState != null and packState != constant('App\\Entity\\Transport\\TransportDeliveryOrderPack::REJECTED_STATE') %}
                                         /
                                     {% else %}
                                         -

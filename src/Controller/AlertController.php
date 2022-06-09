@@ -94,7 +94,7 @@ class AlertController extends AbstractController
         $user = $this->getUser();
         $user->clearNotifications();
         $entityManager->flush();
-        $data = $notificationService->getNotificationDataByParams($request->request, $this->getUser());
+        $data = $notificationService->getNotificationDataByParams($entityManager, $request->request, $this->getUser());
         return new JsonResponse($data);
     }
 

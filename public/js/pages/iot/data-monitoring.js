@@ -109,6 +109,7 @@ function initMap(element, callback) {
     $errorContainer.addClass('d-none');
 
     $.get($element.data(`fetch-url`), getFiltersValue(), function (response) {
+        $(`.data-loader`).remove();
         if (previousMap) {
             previousMap.off();
             previousMap.remove();
@@ -226,6 +227,7 @@ function initLineChart(element, callback) {
     $errorContainer.addClass('d-none');
 
     $.get($element.data(`fetch-url`), getFiltersValue(), function (response) {
+        $(`.data-loader`).remove();
         let data = {
             datasets: [],
             labels: []

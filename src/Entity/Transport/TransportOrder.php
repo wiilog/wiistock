@@ -26,14 +26,14 @@ class TransportOrder extends StatusHistoryContainer {
 
     public const STATUS_TO_CONTACT = 'Patient à contacter';
     public const STATUS_TO_ASSIGN = 'À affecter';
-    public const STATUS_ASSIGNED = 'Affecté';
+    public const STATUS_ASSIGNED = 'Affectée';
     public const STATUS_ONGOING = 'En cours';
-    public const STATUS_FINISHED = 'Terminé';
+    public const STATUS_FINISHED = 'Terminée';
     public const STATUS_DEPOSITED = 'Objets déposés';
-    public const STATUS_CANCELLED = 'Annulé';
-    public const STATUS_NOT_DELIVERED = 'Non livré';
-    public const STATUS_NOT_COLLECTED = 'Non collecté';
-    public const STATUS_SUBCONTRACTED = 'Sous-traité';
+    public const STATUS_CANCELLED = 'Annulée';
+    public const STATUS_NOT_DELIVERED = 'Non livrée';
+    public const STATUS_NOT_COLLECTED = 'Non collectée';
+    public const STATUS_SUBCONTRACTED = 'Sous-traitée';
     public const STATUS_AWAITING_VALIDATION = 'En attente de validation';
 
     public const STATUS_WORKFLOW_COLLECT = [

@@ -278,4 +278,12 @@ class FormatHelper {
         );
     }
 
+    public static function phone(?string $stringWithPhone): ?string {
+        return $stringWithPhone ? preg_replace(
+            "/(?:(?:\+|00)33[\s.-]{0,3}(?:\(0\)[\s.-]{0,3})?|0)[1-9](?:(?:[\s.-]?\d{2}){4}|\d{2}(?:[\s.-]?\d{3}){2})/",
+            "<a href=\"tel:$0\">$0</a>",
+            $stringWithPhone
+        ) : null;
+    }
+
 }

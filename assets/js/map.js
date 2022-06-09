@@ -54,7 +54,7 @@ export class Map {
             if (!options.deletion) {
                 let currentMarkerPopupContent = existing.marker.getPopup().getContent();
                 let $currentMarkerPopupContent = $(`<div>${currentMarkerPopupContent}</div>`);
-                let $estimated = $currentMarkerPopupContent.find('.estimated');
+                let $estimated = $currentMarkerPopupContent.find('.estimated-time');
                 if ($estimated.length) {
                     estimated = $estimated.prop('outerHTML')
                 }
@@ -73,8 +73,10 @@ export class Map {
         this.map.addLayer(marker);
 
         if (options.popUp) {
+            const $popup = $('<div>' + options.popUp + '</div>');
+            $(estimated).appendTo($popup.find('.leaflet-popup-content-inner'));
             marker
-                .bindPopup(`${options.popUp}${estimated}`, {
+                .bindPopup(`${$popup.html()}`, {
                     closeButton: false,
                     autoClose: false,
                     closeOnClick: false,
