@@ -1,9 +1,8 @@
 {% set validated = preparation.statut and preparation.statut.code == constant('App\\Entity\\PreparationOrder\\Preparation::STATUT_VALIDATED') %}
 <div class="{{ validated ? 'can-drag' }}">
-    <div class="planning-card preparation-card {{ validated ? 'pointer' }}"
+    <div class="planning-card preparation-card {{ validated ? 'pointer' }} {{ color }}"
          data-preparation="{{ preparation.id }}"
-         data-status="{{ preparation.statut ? preparation.statut.code }}"
-         data-color="{{ color }}">
+         data-status="{{ preparation.statut ? preparation.statut.code }}">
         <div class="planning-card-wrapper">
             <div class="row">
                 <div class="col-12">

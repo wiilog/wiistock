@@ -39,7 +39,6 @@ $(function () {
             AJAX.route('PUT', 'preparation_edit_preparation_date', {date, preparation})
                 .json()
                 .then((response) => {
-                    console.log(response);
                     $element.appendTo($destination);
 
                     Sortable.create(`.can-drag`, {
@@ -102,6 +101,38 @@ function getOrUpdatePreparationCard(modal){
                     .detach()
                     .appendTo($targetContainer);
                 onOrdersDragAndDropDone(modal);
+                modal.find('.quantities-information-container').addClass('d-none');
+            });
+
+            modal.find('.check-stock-button').on('click', function (){
+                const $preparationCards = modal.find('.assigned-preparations .preparation-card');
+                const data = [];
+                $preparationCards.each(function() {
+                    data.push($(this).data('preparation'));
+                });
+                modal.find('.quantities-information-container').addClass('d-none');
+                AJAX
+                    .route(`POST`, `planning_preparation_launch_check_stock`)
+                    .json(data)
+                    .then((res) => {
+                        if(res.success) {
+                            if(res.unavailablePreparationsId.length > 0){
+                                showBSAlert("Votre stock est insuffisant pour démarrer cette préparation", "danger");
+                                res.unavailablePreparationsId.forEach((id) => {
+                                    modal.find(`[data-preparation="${id}"]`).addClass('red');
+                                    modal.find(`[data-preparation="${id}"]`).removeClass('orange');
+                                });
+                                modal.find('.assigned-preparations').addClass('border border-danger');
+                                modal.find('.check-stock-button').text("Vérifier le stock");
+                                modal.find('.quantities-information-container').removeClass('d-none');
+                                modal.find('.quantities-information').empty();
+                                modal.find('.quantities-information').append(res.template);
+                            } else {
+                                modal.find('.check-stock-button').text("Lancer les préparations");
+                                modal.find('.assigned-preparations').addClass('border border-success');
+                            }
+                        }
+                    });
             });
 
         });
@@ -113,59 +144,22 @@ function onOrdersDragAndDropDone(modal){
     const $preparationsToStart = modal.find('.assigned-preparations .preparation-card');
     const $preparationsAvailableContainer = modal.find('.available-preparations-counter');
     const $preparationsToStartContainer = modal.find('.assigned-preparations-counter');
-    const $submitButton = modal.find('.submit-button');
+    const $submitButton = modal.find('.check-stock-button');
     const $availableCounter = $preparationsAvailable.length;
     const $assignedCounter = $preparationsToStart.length;
 
+    modal.find('.quantities-information-container').addClass('d-none');
+    modal.find('.assigned-preparations').removeClass('border border-danger border-success');
+    $preparationsAvailable.addClass('orange');
+    $preparationsAvailable.removeClass('red');
     $submitButton.attr(`disabled`, !$preparationsToStart.exists());
     $preparationsAvailableContainer.empty().append($availableCounter);
     $preparationsToStartContainer.empty().append($assignedCounter);
-    //if($preparationsToStart.exists() && isStockValid(modal)) {
-    if($preparationsToStart.exists()) {
+    if(!$preparationsToStart.exists()) {
         $submitButton.text("Lancer les préparations");
     } else {
         $submitButton.text("Vérifier le stock");
     }
 }
 
-/*AJAX
-.route(`POST`, `planning_preparation_launch_check_stock`, data)
-.json()
-.then((res) => {
-    if(res.success) {
-        const $quantitiesInformationContainer = modal.element.find('.quantities-information-container');
-        const $quantitiesInformation = $quantitiesInformationContainer.find('.quantities-information');
-        const $orderToStartContainer = modal.element.find('.assigned-preparations');
-        const $allOrdersContainer = modal.element.find('.available-preparations, .assigned-preparations');
 
-        $allOrdersContainer.find('.order')
-            .removeClass('available')
-            .removeClass('unavailable');
-
-        for(const unavailableOrder of res.unavailableOrders) {
-            $orderToStartContainer.find(`.order[data-id="${unavailableOrder}"]`).addClass('unavailable');
-        }
-        $orderToStartContainer.find('.order:not(.unavailable)').addClass('available');
-        $quantitiesInformation.empty();
-
-        const quantityErrors = res.availableBoxTypeData.filter((boxTypeData) => (
-            boxTypeData.orderedQuantity > boxTypeData.availableQuantity
-        ));
-
-        if(quantityErrors.length > 0) {
-            $quantitiesInformationContainer.removeClass('d-none');
-        } else {
-            $quantitiesInformationContainer.addClass('d-none');
-        }
-
-        for(const boxTypeData of quantityErrors) {
-            $quantitiesInformation.append(`
-                <label class="ml-2">
-                    <strong>${boxTypeData.name}</strong> : Quantité commandée <strong>${boxTypeData.orderedQuantity}</strong> - disponible en stock <strong>${boxTypeData.availableQuantity}</strong> en propriété <strong>${boxTypeData.client}</strong>
-                </label>
-            `);
-        }
-
-        onOrdersDragAndDropDone(modal);
-    }
-});*/

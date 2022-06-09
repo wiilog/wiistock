@@ -23,7 +23,7 @@
                             </div>
                             <div class="d-flex flex-row h-100">
                                 <span class="input-group-text w-50px d-flex justify-content-center">Au</span>
-                                {{ form.input('dateTo', null, true, "now" | date_modify('+6 day') | date('Y-m-d'), {
+                                {{ form.input('dateTo', null, true, "now" | date_modify('+4 day') | date('Y-m-d'), {
                                     type: 'date',
                                     labelClass: "data"
                                 }) }}
@@ -34,14 +34,14 @@
                 <div class="row preparations-container mt-2">
 
                 </div>
-                <div class="row quantities-information-container d-none">
-                    <label><i class="fas fa-exclamation-circle"></i><span class="ps-2">Problèmes de stock sur les types suivants : </span></label>
+                <div class="quantities-information-container d-none">
+                    <span class="ps-2 bold">Manque quantité sur : </span>
                     <div class="quantities-information"></div>
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
-                <button type="submit" class="btn btn-success submit-button" disabled>
+                <button type="submit" class="btn btn-success check-stock-button" disabled>
                     <span class="d-inline-flex align-items-center">
                         <img src="{{ asset('svg/tick-blanc.svg') }}" alt="" width="15px" class="mr-2">
                         <span>Vérifier le stock</span>

@@ -23,22 +23,22 @@
 .planning-card {
     padding: .25rem;
 
-    &[data-color=orange] .planning-card-wrapper {
+    &.orange .planning-card-wrapper {
         border-left-color: rgb(215, 100, 51);
         background-color: rgba(215, 100, 51, 0.15);
     }
 
-    &[data-color=orange] .planning-card-wrapper {
-        border-left-color: rgb(215, 100, 51);
-        background-color: rgba(215, 100, 51, 0.15);
+    &.red .planning-card-wrapper {
+        border-left-color: rgb(215, 51, 83);
+        background-color: rgba(215, 51, 83, 0.15);
     }
 
-    &[data-color=blue] .planning-card-wrapper {
+    &.blue .planning-card-wrapper {
         border-left-color: rgb(100, 51, 215);
         background-color: rgba(100, 51, 215, 0.15);
     }
 
-    &[data-color=green] .planning-card-wrapper {
+    &.green .planning-card-wrapper {
         border-left-color: rgb(165, 215, 51);
         background-color: rgba(165, 215, 51, 0.15);
     }
@@ -54,4 +54,18 @@
         border-left-width: 5px;
         border-left-style: solid;
     }
+}
+
+.wii-icon-pack {
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    background-color: $primary;
+}
+
+.wii-icon-reference-stock, .wii-icon-ask-quantity {
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    background-color: $primary;
 }

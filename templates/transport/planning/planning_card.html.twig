@@ -5,8 +5,7 @@
 {% set isCollect = request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') %}
 {% set roundLine = order ? (order.transportRoundLines | last) ?: null : null %}
 
-<div class="planning-card"
-     data-color="{{ cardColor }}">
+<div class="planning-card {{ cardColor }}">
     <div class="planning-card-wrapper">
         <div class="transport-type">
             <label for="type-filter-{{ request.type.id }}" class="d-inline-flex align-items-center">
