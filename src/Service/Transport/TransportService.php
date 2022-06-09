@@ -522,6 +522,7 @@ class TransportService {
 
     public function putLineRequest($output, CSVExportService $csvService, TransportRequest $request, $freeFieldsConfig): void {
         $statusCodeExportCSV = [
+            TransportRequest::STATUS_AWAITING_VALIDATION,
             TransportRequest::STATUS_TO_PREPARE,
             TransportRequest::STATUS_TO_DELIVER,
             TransportRequest::STATUS_ONGOING,
@@ -541,7 +542,7 @@ class TransportService {
             $freeFields[] = FormatHelper::freeField($freeFieldValues[$freeFieldId] ?? '', $freeField);
         }
         $dataTransportRequest = [
-            $request->getNumber(),
+            TransportRequest::NUMBER_PREFIX . $request->getNumber(),
             $request instanceof TransportDeliveryRequest ? ($request->getCollect() ? "Livraison-Collecte" : "Livraison") : "Collecte",
             FormatHelper::type($request->getType()),
             FormatHelper::status($request->getStatus()),
@@ -589,8 +590,8 @@ class TransportService {
         else if($request instanceof TransportCollectRequest) {
             $dataTransportCollectRequest = array_merge($dataTransportRequest, [
                 FormatHelper::datetime($request->getValidatedDate()),
-                FormatHelper::datetime($request->getCreatedAt()),
-                isset($statusRequest[TransportRequest::STATUS_AWAITING_PLANNING]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_AWAITING_PLANNING]) : '',
+                isset($statusRequest[TransportRequest::STATUS_AWAITING_VALIDATION]) ? FormatHelper::datetime($request->getCreatedAt()): '',
+                isset($statusRequest[TransportRequest::STATUS_AWAITING_PLANNING]) && isset($statusRequest[TransportRequest::STATUS_AWAITING_VALIDATION]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_AWAITING_PLANNING]) : '',
                 isset($statusRequest[TransportRequest::STATUS_TO_COLLECT]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_TO_COLLECT]) : '',
                 isset($statusRequest[TransportRequest::STATUS_ONGOING]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_ONGOING]) : '',
                 isset($statusRequest[TransportRequest::STATUS_FINISHED]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_FINISHED]) : (isset($statusRequest[TransportRequest::STATUS_CANCELLED]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_CANCELLED]) : '' ),
