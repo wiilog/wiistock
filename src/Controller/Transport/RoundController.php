@@ -489,27 +489,44 @@ class RoundController extends AbstractController {
         }
 
         $deliverer = $userRepository->find($deliverer);
+        $roundIsOngoing = $transportRound?->getStatus()?->getCode() === TransportRound::STATUS_ONGOING;
+
+        if(!$roundIsOngoing) {
+            $transportRound
+                ->setExpectedAt($expectedAt)
+                ->setDeliverer($deliverer)
+                ->setVehicle($deliverer->getVehicle())
+                ->setStartPoint($startPoint)
+                ->setStartPointScheduleCalculation($startPointScheduleCalculation)
+                ->setEndPoint($endPoint);
+        }
 
         $transportRound
-            ->setExpectedAt($expectedAt)
-            ->setDeliverer($deliverer)
-            ->setVehicle($deliverer->getVehicle())
-            ->setStartPoint($startPoint)
             ->setEstimatedDistance(floatval($request->request->get('estimatedTotalDistance')) ?: null)
             ->setEstimatedTime($request->request->get('estimatedTotalTime'))
-            ->setStartPointScheduleCalculation($startPointScheduleCalculation)
-            ->setEndPoint($endPoint)
             ->setCoordinates($coordinates);
 
         if (empty($ordersAndTimes)) {
             throw new FormException("Il n'y a aucun ordre dans la tournée, veuillez réessayer");
         }
 
-        $collectOrderAssignStatus = $statusRepository
-            ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_COLLECT, TransportOrder::STATUS_ASSIGNED);
+        if($roundIsOngoing) {
+            $collectOrderStatus = $statusRepository
+                ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_COLLECT,
+                    TransportOrder::STATUS_ONGOING);
 
-        $deliveryOrderAssignStatus = $statusRepository
-            ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_DELIVERY, TransportOrder::STATUS_ASSIGNED);
+            $deliveryOrderStatus = $statusRepository
+                ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_DELIVERY,
+                    TransportOrder::STATUS_ONGOING);
+        } else {
+            $collectOrderStatus = $statusRepository
+                ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_COLLECT,
+                    TransportOrder::STATUS_ASSIGNED);
+
+            $deliveryOrderStatus = $statusRepository
+                ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_DELIVERY,
+                    TransportOrder::STATUS_ASSIGNED);
+        }
 
         /** @var TransportOrder $order */
         foreach ($ordersAndTimes as $index => $ordersAndTime) {
@@ -537,7 +554,7 @@ class RoundController extends AbstractController {
                     $transportRound->addTransportRoundLine($line);
 
                     // set order status + add status history + add transport history
-                    $status = $order->getRequest() instanceof TransportDeliveryRequest ? $deliveryOrderAssignStatus : $collectOrderAssignStatus;
+                    $status = $order->getRequest() instanceof TransportDeliveryRequest ? $deliveryOrderStatus : $collectOrderStatus;
 
                     $statusHistory = $statusHistoryService->updateStatus($entityManager, $order, $status);
 
@@ -547,10 +564,18 @@ class RoundController extends AbstractController {
                         'round' => $transportRound,
                         'history' => $statusHistory,
                     ]);
+
+                    if($roundIsOngoing) {
+                        $transportHistoryService->persistTransportHistory($entityManager, [$order->getRequest(), $order], TransportHistoryService::TYPE_ONGOING, [
+                            "user" => $this->getUser(),
+                            "history" => $statusHistory,
+                        ]);
+                    }
                 }
+
                 $estimated = new DateTime();
-                $estimated
-                    ->setTime(intval(substr($ordersAndTime['time'], 0, 2)), intval(substr($ordersAndTime['time'], 3, 2)));
+                $estimated->setTime(intval(substr($ordersAndTime['time'], 0, 2)), intval(substr($ordersAndTime['time'], 3, 2)));
+
                 $line
                     ->setEstimatedAt($estimated)
                     ->setPriority($priority);
