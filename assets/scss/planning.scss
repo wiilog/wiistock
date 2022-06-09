@@ -2,7 +2,7 @@
 
 .wii-planning {
     display: flex;
-    height: 100%;
+    flex: 1;
 
     & > .planning-container {
         flex: 1;
@@ -18,16 +18,36 @@
         width: 100%;
     }
 
-    .planning-col-2 {
-        flex: 2;
+    .placeholder-container {
+        padding: .25rem;
+        display: flex;
+        .placeholder {
+            flex: 1;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+    }
 
+    .planning-col-2 {
+        flex: 0 0 calc((100% / 7) * 2);
+
+        .placeholder-container,
         .planning-card {
-            width: 50%;
+            width: 50% !important;
+            min-width: 50% !important;
+            max-width: 50% !important;
         }
     }
 
     .planning-col-1 {
-        flex: 1;
+        flex: 0 0 calc(100% / 7);
+
+        .placeholder-container,
+        .planning-card {
+            width: 100% !important;
+            min-width: 100% !important;
+            max-width: 100% !important;
+        }
     }
 
     .card-container {
@@ -37,29 +57,16 @@
     }
 
     .planning-card-container {
-        display: flex !important;
-        align-items: flex-start;
+        display: flex;
+        align-content: flex-start;
         flex: 1;
+        flex-wrap: wrap;
     }
-}
-
-
-.placeholder {
-    min-height: 50px;
-    border-radius: 5px;
-    border: 1px solid #ccc;;
-    margin: 5px 10px;
-    width: available;
 }
 
 // used outside planning
 .planning-card {
     padding: .25rem;
-
-    &[data-color=orange] .planning-card-wrapper {
-        border-left-color: rgb(215, 100, 51);
-        background-color: rgba(215, 100, 51, 0.15);
-    }
 
     &[data-color=orange] .planning-card-wrapper {
         border-left-color: rgb(215, 100, 51);

@@ -720,11 +720,12 @@ class PreparationController extends AbstractController
 
     #[Route('/planning/api', name: 'preparation_planning_api', options: ['expose' => true], methods: 'GET')]
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_PREPA_PLANNING], mode: HasPermission::IN_JSON)]
-    public function planningApi(EntityManagerInterface $entityManager): Response {
+    public function planningApi(EntityManagerInterface $entityManager,
+                                Request $request): Response {
         $preparationRepository = $entityManager->getRepository(Preparation::class);
 
         $nbDaysOnPlanning = 5;
-        $planningStart = new DateTime();
+        $planningStart = FormatHelper::parseDatetime($request->query->get('date'));
         $planningEnd = (clone $planningStart)->modify("+{$nbDaysOnPlanning} days");
 
         $filters = $entityManager->getRepository(FiltreSup::class)->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PREPARATION_PLANNING, $this->getUser());
@@ -736,31 +737,24 @@ class PreparationController extends AbstractController
             "planning-status-done" => Preparation::STATUT_PREPARE,
         ];
 
-        $filterStatuses = [];
+        $filterStatuses = Stream::from($filters)
+            ->filterMap(fn(array $filter) => (
+                str_starts_with($filter['field'], 'planning-status-')
+                    ? $preparationStatusesForFilters[$filter['field']]
+                    : null
+            ))
+            ->toArray();
+        $filterStatuses = $filterStatuses ?: array_values($preparationStatusesForFilters);
 
-        foreach ($filters as $filter) {
-            $key = $filter['field'];
-
-            if (str_starts_with($key, 'planning-status-')) {
-                $filterStatuses[] = $preparationStatusesForFilters[$key];
-            }
-        }
-
-        $filtersNumber = Stream::from($filters)
-            ->filter(fn(array $filter) => $filter['field'] === FiltreSup::FIELD_REQUEST_NUMBER)
+        $filters = Stream::from($filters)
+            ->filter(fn(array $filter) => (
+                $filter['field'] === FiltreSup::FIELD_REQUEST_NUMBER
+                || $filter['field'] === FiltreSup::FIELD_TYPE
+                || $filter['field'] === FiltreSup::FIELD_OPERATORS
+            ))
             ->toArray();
 
-        $filtersType = Stream::from($filters)
-            ->filter(fn(array $filter) => $filter['field'] === FiltreSup::FIELD_TYPE)
-            ->concat($filtersNumber)
-            ->toArray();
-
-        $filtersOperators = Stream::from($filters)
-            ->filter(fn(array $filter) => $filter['field'] === FiltreSup::FIELD_OPERATORS)
-            ->concat($filtersType)
-            ->toArray();
-
-        $preparations = $preparationRepository->findByStatusCodesAndExpectedAt($filtersOperators, $filterStatuses, $planningStart, $planningEnd);
+        $preparations = $preparationRepository->findByStatusCodesAndExpectedAt($filters, $filterStatuses, $planningStart, $planningEnd);
         $cards = Stream::from($preparations)
             ->filter(fn(Preparation $preparation) => $preparation->getExpectedAt())
             ->keymap(fn(Preparation $preparation) => [
@@ -803,15 +797,14 @@ class PreparationController extends AbstractController
     }
 
     #[Route('/modifier-date-preparation/{preparation}/{date}', name: 'preparation_edit_preparation_date', options: ['expose' => true], methods: 'PUT')]
-    public function editPreparationDate(Preparation $preparation,
-                               string $date,
-                               EntityManagerInterface $manager): Response {
+    public function editPreparationDate(Preparation            $preparation,
+                                        string                 $date,
+                                        EntityManagerInterface $manager): Response {
         $preparation->setExpectedAt(new DateTime($date));
         $manager->flush();
         return $this->json([
-            'success' => true
+            'success' => true,
         ]);
-
     }
 
 }

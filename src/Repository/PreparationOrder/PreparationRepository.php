@@ -439,9 +439,8 @@ class PreparationRepository extends EntityRepository
         $startStr = $start->format('Y-m-d');
         $endStr = $end->format('Y-m-d');
 
-        $queryBuilder = empty($statusCodes)
-            ? []
-            : $this->createQueryBuilder('preparation')
+        if (!empty($statusCodes)) {
+            $queryBuilder = $this->createQueryBuilder('preparation')
                 ->join('preparation.statut', 'status')
                 ->andWhere('status.code IN (:statusCodes)')
                 ->andWhere('preparation.expectedAt BETWEEN :start AND :end')
@@ -449,33 +448,37 @@ class PreparationRepository extends EntityRepository
                 ->setParameter('start', $startStr)
                 ->setParameter('end', $endStr);
 
-        foreach ($filters as $filter) {
-            if ($queryBuilder !== []) {
-                if ($filter['field'] === FiltreSup::FIELD_OPERATORS) {
-                    $value = explode(',', $filter['value']);
-                    $queryBuilder
-                        ->join('preparation.utilisateur', 'filter_user')
-                        ->andWhere('filter_user.id in (:users)')
-                        ->setParameter('users', $value);
-            } else if ($filter['field'] === FiltreSup::FIELD_TYPE) {
-                    $queryBuilder
-                        ->join('preparation.demande', 'filter_request')
-                        ->join('filter_request.type', 'filter_type')
-                        ->andWhere('filter_type.label = :type')
-                        ->setParameter('type', $filter['value']);
-                } else if ($filter['field'] === FiltreSup::FIELD_REQUEST_NUMBER) {
-                    $queryBuilder
-                        ->andWhere('preparation.numero = :numero')
-                        ->setParameter('numero', $filter['value']);
+            foreach ($filters as $filter) {
+                if ($queryBuilder !== []) {
+                    if ($filter['field'] === FiltreSup::FIELD_OPERATORS) {
+                        $value = explode(',', $filter['value']);
+                        $queryBuilder
+                            ->join('preparation.utilisateur', 'filter_user')
+                            ->andWhere('filter_user.id in (:users)')
+                            ->setParameter('users', $value);
+                    }
+                    else if ($filter['field'] === FiltreSup::FIELD_TYPE) {
+                        $queryBuilder
+                            ->join('preparation.demande', 'filter_request')
+                            ->join('filter_request.type', 'filter_type')
+                            ->andWhere('filter_type.label = :type')
+                            ->setParameter('type', $filter['value']);
+                    }
+                    else if ($filter['field'] === FiltreSup::FIELD_REQUEST_NUMBER) {
+                        $queryBuilder
+                            ->andWhere('preparation.numero = :numero')
+                            ->setParameter('numero', $filter['value']);
+                    }
                 }
             }
-        }
 
-        return $queryBuilder === []
-            ? $queryBuilder
-            : $queryBuilder
+            return $queryBuilder
                 ->getQuery()
                 ->getResult();
+        }
+        else {
+            return [];
+        }
     }
 
 }
