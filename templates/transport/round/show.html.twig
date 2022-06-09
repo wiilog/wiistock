@@ -126,24 +126,20 @@
                                     {% set finishedStatusesName = constant('App\\Entity\\Transport\\TransportRound::STATUS_FINISHED') %}
                                     {% set onGoingStatusesName = constant('App\\Entity\\Transport\\TransportRound::STATUS_ONGOING') %}
                                     {% if transportRound.status.code != finishedStatusesName %}
-                                        <div class="dropdown-item pointer edit-button">
-                                            <a href="{{ path('transport_round_plan', {'transportRound': transportRound.id}) }}">
-                                                <img src="{{ asset('svg/plus-black.svg') }}" alt="" width="17px" class="pr-1">
-                                                {% if transportRound.status.code == onGoingStatusesName %}
-                                                    Ajouter une collecte
-                                                {% else %}
-                                                    Ajouter un transport
-                                                {% endif %}
-                                            </a>
-                                        </div>
+                                        <a href="{{ path('transport_round_plan', {'transportRound': transportRound.id}) }}"
+                                           class="dropdown-item pointer edit-button d-flex align-items-center">
+                                            <i class="wii-icon wii-icon-plus-black mr-2"></i>
+                                            {% if transportRound.status.code == onGoingStatusesName %}
+                                                Ajouter une collecte
+                                            {% else %}
+                                                Ajouter un transport
+                                            {% endif %}
+                                        </a>
                                     {% endif %}
                                     {% if hasSomeDelivery %}
-                                        <div class="dropdown-item pointer print-round-button"
+                                        <div class="dropdown-item pointer print-round-button d-flex align-items-center"
                                              data-round-id="{{ transportRound.id }}">
-                                            <img src="{{ asset('svg/printer-black.svg') }}"
-                                                 alt=""
-                                                 width="17px"
-                                                 class="pr-1">
+                                            <i class="wii-icon wii-icon-printer-black mr-2"></i>
                                             Générer un bon de transport
                                         </div>
                                     {% endif %}
@@ -189,6 +185,7 @@
                             minTemp: url.minTemp,
                             maxTemp: url.maxTemp,
                             alwaysVisible: true,
+                            box_classes: 'box-shadow-none mt-0'
                         } %}
                     {% endfor %}
                 </div>

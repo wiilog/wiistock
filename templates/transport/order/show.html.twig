@@ -107,7 +107,7 @@
                             <div class="box-item my-2">
                                 {% set isCollect = request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') %}
                                 <span class="wii-field-name">Date{{ not isCollect ? ' et heure' }} attendue</span>
-                                <span class="wii-body-text">
+                                <span class="wii-field-text">
                                     {{ request.expectedAt|format_helper('longDate', {short: true, time: not isCollect}) }}
                                 </span>
                             </div>
@@ -117,7 +117,7 @@
                             <div class="col-6 d-flex flex-column">
                                 <div class="box-item my-2">
                                     <span class="wii-field-name">Date validée avec le patient</span>
-                                    <span class="wii-body-text">
+                                    <span class="wii-field-text">
                                         {% if request_collect.validatedDate is not null %}
                                             <span class="">{{ request_collect.validatedDate | format_helper('longDate') }}</span>
                                         {% else %}
@@ -127,7 +127,7 @@
                                 </div>
                                 <div class="box-item my-2">
                                     <span class="wii-field-name">Créneau passage</span>
-                                    <span class="wii-body-text">
+                                    <span class="wii-field-text">
                                         {% if request_collect.timeSlot and request_collect.timeSlot.Name is not null %}
                                             <span>{{ request_collect.timeSlot.Name }}</span>
                                         {% else %}

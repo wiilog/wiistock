@@ -14,6 +14,9 @@ class TransportCollectRequestLine extends TransportRequestLine {
     #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $collectedQuantity = null;
 
+    #[ORM\Column(type: 'integer', nullable: true)]
+    private ?int $depositedQuantity = null;
+
     public function getQuantityToCollect(): ?int {
         return $this->quantityToCollect;
     }
@@ -33,4 +36,15 @@ class TransportCollectRequestLine extends TransportRequestLine {
 
         return $this;
     }
+
+    public function getDepositedQuantity(): ?int {
+        return $this->depositedQuantity;
+    }
+
+    public function setDepositedQuantity(?int $depositedQuantity): self {
+        $this->depositedQuantity = $depositedQuantity;
+
+        return $this;
+    }
+
 }
