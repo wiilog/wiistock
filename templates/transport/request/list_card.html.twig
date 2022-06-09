@@ -17,9 +17,9 @@
             <tr>
                 <td rowspan="2">
                     <div class="d-flex flex-column justify-content-center h-100" style="margin-right: 15px">
-                        {% if displayDropdown and (canPrint or canGenerate or request.canBeCancelled or request.canBeDeleted) %}
+                        {% if displayDropdown %}
                             <div class="dropdown dropright">
-                                <div class="d-flex" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <div class="d-flex {{ not (canPrint or canGenerate or request.canBeCancelled or request.canBeDeleted) ? 'invisible' }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     <img alt="Actions" src="{{ asset('svg/dotsblack.svg') }}" height="20px" width="8px">
                                 </div>
 

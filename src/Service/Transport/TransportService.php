@@ -342,10 +342,7 @@ class TransportService {
         }
 
         $status = $statusRepository->findOneByCategorieNameAndStatutCode($categoryStatusName, $statusCode);
-        $canChangeStatus = (
-            $transportOrder->getStatus()?->getId() !== $status->getId()
-        );
-        if($canChangeStatus) {
+        if($transportOrder->getStatus()?->getId() !== $status->getId()) {
             $statusHistory = $this->statusHistoryService->updateStatus($entityManager, $transportOrder, $status);
             $this->transportHistoryService->persistTransportHistory($entityManager, $transportOrder, $transportHistoryType, [
                 'history' => $statusHistory,
