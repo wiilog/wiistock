@@ -728,7 +728,7 @@ class PreparationController extends AbstractController
         return $this->json([
             "success" => true,
             "template" => $this->renderView('preparation/preparationsContainerContent.html.twig', [
-                "preparations" => $preparationRepository->findByStatusCodesAndExpectedAt([Preparation::STATUT_VALIDATED], $from, $to),
+                "preparations" => $preparationRepository->findByStatusCodesAndExpectedAt([], [Preparation::STATUT_VALIDATED], $from, $to),
             ]),
         ]);
     }

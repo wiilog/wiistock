@@ -200,7 +200,7 @@ $wii-switch-height: $input-height;
         width: 15px;
         height: 15px;
         display: block;
-        -webkit-mask: url("../../../../public/svg/arrow.svg") no-repeat center;
+        //-webkit-mask: url("../../../../public/svg/arrow.svg") no-repeat center;
 
         &.disabled {
             background-color: #CBCBCB !important;

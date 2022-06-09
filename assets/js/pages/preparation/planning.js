@@ -184,33 +184,38 @@ function getOrUpdatePreparationCard(modal){
                     data.push($(this).data('preparation'));
                 });
                 modal.find('.quantities-information-container').addClass('d-none');
-                AJAX
-                    .route(`POST`, `planning_preparation_launch_check_stock`)
-                    .json(data)
-                    .then((res) => {
-                        if(res.success) {
-                            if(res.unavailablePreparationsId.length > 0){
-                                showBSAlert("Votre stock est insuffisant pour démarrer cette préparation", "danger");
-                                res.unavailablePreparationsId.forEach((id) => {
-                                    modal.find(`[data-preparation="${id}"]`).addClass('red');
-                                    modal.find(`[data-preparation="${id}"]`).removeClass('orange');
+                wrapLoadingOnActionButton(modal.find('.assigned-preparations'), () => {
+                    return new Promise((resolve) => {
+                        wrapLoadingOnActionButton(modal.find('.check-stock-button'), () => {
+                            return AJAX
+                                .route(`POST`, `planning_preparation_launch_check_stock`)
+                                .json(data)
+                                .then((res) => {
+                                    if(res.success) {
+                                        if(res.unavailablePreparationsId.length > 0){
+                                            showBSAlert("Votre stock est insuffisant pour démarrer cette préparation", "danger");
+                                            res.unavailablePreparationsId.forEach((id) => {
+                                                modal.find(`[data-preparation="${id}"]`).addClass('red');
+                                                modal.find(`[data-preparation="${id}"]`).removeClass('orange');
+                                            });
+                                            modal.find('.assigned-preparations').addClass('border border-danger');
+                                            modal.find('.check-stock-button').text("Vérifier le stock");
+                                            modal.find('.quantities-information-container').removeClass('d-none');
+                                            modal.find('.quantities-information').empty();
+                                            modal.find('.quantities-information').append(res.template);
+                                        } else {
+                                            modal.find('.check-stock-button').text("Lancer les préparations");
+                                            modal.find('.assigned-preparations').addClass('border border-success');
+                                        }
+                                        resolve();
+                                    }
                                 });
-                                modal.find('.assigned-preparations').addClass('border border-danger');
-                                modal.find('.check-stock-button').text("Vérifier le stock");
-                                modal.find('.quantities-information-container').removeClass('d-none');
-                                modal.find('.quantities-information').empty();
-                                modal.find('.quantities-information').append(res.template);
-                            } else {
-                                modal.find('.check-stock-button').text("Lancer les préparations");
-                                modal.find('.assigned-preparations').addClass('border border-success');
-                            }
-                        }
+                        });
                     });
+                })
             });
-
         });
 }
-
 
 function onOrdersDragAndDropDone(modal){
     const $preparationsAvailable = modal.find('.available-preparations .preparation-card');
