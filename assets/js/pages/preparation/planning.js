@@ -69,22 +69,20 @@ function onPlanningLoaded(planning){
 
     $cardContainers
         .on('sortupdate', function (e) {
-            // if drag and drop is ok
-            if (e.detail.destination.index > -1) {
-                const $destination = $(this);
-                const $origin = $(e.detail.origin.container);
-                const preparation = $(e.detail.item).data('preparation');
-                const $column = $destination.closest('.preparation-card-column');
-                const date = $column.data('date');
-                wrapLoadingOnActionButton($destination, () => (
-                    AJAX.route(PUT, 'preparation_edit_preparation_date', {date, preparation})
-                        .json()
-                        .then(() => {
-                            refreshColumnHint($column);
-                            refreshColumnHint($origin.closest('.preparation-card-column'));
-                        })
-                ));
-            }
+            const $origin = $(e.detail.origin.container);
+            const $card = $(e.detail.item);
+            const preparation = $card.data('preparation');
+            const $destination = $card.closest('.planning-card-container');
+            const $column = $destination.closest('.preparation-card-column');
+            const date = $column.data('date');
+            wrapLoadingOnActionButton($destination, () => (
+                AJAX.route(PUT, 'preparation_edit_preparation_date', {date, preparation})
+                    .json()
+                    .then(() => {
+                        refreshColumnHint($column);
+                        refreshColumnHint($origin.closest('.preparation-card-column'));
+                    })
+            ));
         });
 }
 
