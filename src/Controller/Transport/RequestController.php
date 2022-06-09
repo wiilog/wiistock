@@ -161,7 +161,7 @@ class RequestController extends AbstractController {
                             "type" => IOTService::getEntityCodeFromEntity($location),
                             "id" => $location->getId(),
                             'start' => $round->getBeganAt()->format('Y-m-d\TH:i'),
-                            'end' => $round->getEndedAt()->format('Y-m-d\TH:i') ?? $now->format('Y-m-d\TH:i'),
+                            'end' => $round->getEndedAt()?->format('Y-m-d\TH:i') ?? $now->format('Y-m-d\TH:i'),
                         ], UrlGeneratorInterface::ABSOLUTE_URL),
                         "minTemp" => $minThreshold,
                         "maxTemp" => $maxThreshold
@@ -312,7 +312,11 @@ class RequestController extends AbstractController {
             isset($order)
             && $order->getPacks()->isEmpty()
             && $transportRequest instanceof TransportDeliveryRequest
-            && in_array($transportRequest->getStatus()?->getCode(), [TransportRequest::STATUS_TO_PREPARE, TransportRequest::STATUS_SUBCONTRACTED])
+            && in_array($transportRequest->getStatus()?->getCode(), [
+                TransportRequest::STATUS_TO_PREPARE,
+                TransportRequest::STATUS_SUBCONTRACTED,
+                TransportRequest::STATUS_AWAITING_VALIDATION
+            ])
         );
 
         if (!$canPacking) {
@@ -592,12 +596,17 @@ class RequestController extends AbstractController {
                     'history' => $statusHistoryOrder,
                     'user' => $loggedUser
                 ]);
+
+                if(!$transportOrder->getTransportRoundLines()->isEmpty()) {
+                    $line = $transportOrder->getTransportRoundLines()->last();
+                    $line->setCancelledAt(new DateTime());
+                }
             }
 
             $entityManager->flush();
         }
         else {
-            $msg = 'Le statut de cette demande rends impossible son annulation.';
+            $msg = 'Le statut de cette demande rend impossible son annulation.';
         }
 
         return $this->json([

@@ -39,8 +39,6 @@ $(function () {
         changeCurrentDay('down');
         wrapLoadingOnActionButton($(this), () => getOrders());
     });
-    initializeRoundPlan()
-
 
     $('.increment-date').on('click', function () {
         changeCurrentDay('up');

@@ -11,6 +11,7 @@ use App\Entity\NotificationTemplate;
 use App\Entity\OrdreCollecte;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\TransferOrder;
+use App\Entity\Transport\TransportRequest;
 use Doctrine\ORM\EntityManagerInterface;
 use Google_Client;
 use Symfony\Component\HttpKernel\KernelInterface;
@@ -100,7 +101,7 @@ class NotificationService {
         );
     }
 
-    public function getNotificationDataByParams($params, $user) {
+    public function getNotificationDataByParams(EntityManagerInterface $manager, $params, $user) {
         $filtreSupRepository = $this->manager->getRepository(FiltreSup::class);
         $notificationsRepository = $this->manager->getRepository(Notification::class);
 
@@ -111,7 +112,7 @@ class NotificationService {
 
         $rows = [];
         foreach ($notifications as $notification) {
-            $rows[] = $this->dataRowNotification($notification);
+            $rows[] = $this->dataRowNotification($notification , $manager);
         }
 
         return [
@@ -121,15 +122,25 @@ class NotificationService {
         ];
     }
 
-    private function dataRowNotification(Notification $notification) {
+    private function dataRowNotification(Notification $notification , EntityManagerInterface $manager) {
         $config = $notification->getTemplate() ? $notification->getTemplate()->getConfig() : [];
         $src = null;
+        $transportRequest = $manager->getRepository(TransportRequest::class)->findOneBy([
+            'number' => $notification->getSource()
+        ]);
+        if ($transportRequest) {
+            $source = TransportRequest::NUMBER_PREFIX . $transportRequest->getNumber();
+        }
+        else {
+            $source = $notification->getSource();
+        }
         if (isset($config['image']) && !empty($config['image'])) {
             $src = $_SERVER['APP_URL'] . '/uploads/attachements/' . $config['image'];
         }
         return [
             'content' => $this->templating->render('notifications/datatableNotificationRow.html.twig', [
-                'source' => $notification->getSource(),
+                'source' => $source,
+                'transportRequest' => $transportRequest,
                 'triggered' => $notification->getTriggered(),
                 'content' => $notification->getContent(),
                 'image' => $src,

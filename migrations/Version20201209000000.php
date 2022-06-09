@@ -11,9 +11,10 @@ use Doctrine\Migrations\AbstractMigration;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Output\ConsoleOutput;
 
-/**
- * Auto-generated Migration: Please modify to your needs!
- */
+//TODO: renommer le fichier en "MigrationCleaner"
+//      la prochaine fois que cette migration est
+//      exécutée pour qu'on puisse la différentier
+//      des autres
 final class Version20201209000000 extends AbstractMigration {
 
 
