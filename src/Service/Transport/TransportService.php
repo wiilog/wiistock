@@ -342,11 +342,16 @@ class TransportService {
         }
 
         $status = $statusRepository->findOneByCategorieNameAndStatutCode($categoryStatusName, $statusCode);
-        $statusHistory = $this->statusHistoryService->updateStatus($entityManager, $transportOrder, $status);
-        $this->transportHistoryService->persistTransportHistory($entityManager, $transportOrder, $transportHistoryType, [
-            'history' => $statusHistory,
-            'user' => $user
-        ]);
+        $canChangeStatus = (
+            $transportOrder->getStatus()?->getId() !== $status->getId()
+        );
+        if($canChangeStatus) {
+            $statusHistory = $this->statusHistoryService->updateStatus($entityManager, $transportOrder, $status);
+            $this->transportHistoryService->persistTransportHistory($entityManager, $transportOrder, $transportHistoryType, [
+                'history' => $statusHistory,
+                'user' => $user
+            ]);
+        }
 
         $transportOrder
             ->setSubcontracted($transportRequest->getStatus()?->getCode() === TransportRequest::STATUS_SUBCONTRACTED);
