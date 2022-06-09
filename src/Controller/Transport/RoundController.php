@@ -53,9 +53,17 @@ class RoundController extends AbstractController {
     #[Route("/liste", name: "transport_round_index", methods: "GET")]
     public function index(EntityManagerInterface $em): Response {
         $statusRepository = $em->getRepository(Statut::class);
+        $roundRepository = $em->getRepository(TransportRound::class);
         $statuses = $statusRepository->findByCategorieName(CategorieStatut::TRANSPORT_ROUND);
+        $roundCategorie = $em->getRepository(CategorieStatut::class)->findOneBy(['nom' => CategorieStatut::TRANSPORT_ROUND])->getId();
+        $ongoingStatus = $statusRepository->findOneBy(['code' => TransportRound::STATUS_ONGOING , 'categorie' => $roundCategorie ])?->getId();
+        $deliverersPositions = Stream::from($roundRepository->findBy(['status' => $ongoingStatus]))
+            ->map(fn(TransportRound $round) => $round?->getDeliverer()?->getVehicle()?->getLastPosition($round->getBeganAt()))
+            ->filter(fn($position) => $position != null)
+            ->toArray();
 
         return $this->render('transport/round/index.html.twig', [
+            'deliverersPositions' => $deliverersPositions,
             'statuts' => $statuses,
         ]);
     }
@@ -192,7 +200,7 @@ class RoundController extends AbstractController {
                         "type" => IOTService::getEntityCodeFromEntity($location),
                         "id" => $location->getId(),
                         'start' => $transportRound->getCreatedAt()->format('Y-m-d\TH:i'),
-                        'end' => $transportRound->getEndedAt()->format('Y-m-d\TH:i') ?? $now->format('Y-m-d\TH:i'),
+                        'end' => $transportRound->getEndedAt()?->format('Y-m-d\TH:i') ?? $now->format('Y-m-d\TH:i'),
                     ], UrlGeneratorInterface::ABSOLUTE_URL),
                     "minTemp" => $minThreshold,
                     "maxTemp" => $maxThreshold,
@@ -550,8 +558,10 @@ class RoundController extends AbstractController {
 
         $entityManager->flush();
 
-        $userChannel = $userService->getUserFCMChannel($loggedUser);
-        $notificationService->send($userChannel, "Une nouvelle tournée attribuée aujourd'hui");
+        if ( $transportRoundRepository->findBy(['deliverer' => $deliverer->getId() , 'expectedAt' => $transportRound->getExpectedAt()])) {
+            $userChannel = $userService->getUserFCMChannel($deliverer);
+            $notificationService->send($userChannel, "Une nouvelle tournée attribuée aujourd'hui");
+        }
 
         return $this->json([
             'success' => true,

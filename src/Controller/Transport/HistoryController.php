@@ -56,7 +56,7 @@ class HistoryController extends AbstractController
             $request = $entity->getRequest();
             if ($request instanceof TransportDeliveryRequest
                 && $entity->isFinished()
-                && !$request->getCollect()?->isNotCollected()) {
+                && $request->getCollect()?->isNotCollected()) {
                 array_pop($statusWorkflowDeliveryCollect);
             }
             $statusWorkflow =  $isDeliveryCollect
@@ -66,7 +66,7 @@ class HistoryController extends AbstractController
                     : TransportOrder::STATUS_WORKFLOW_COLLECT);
         } else if ($entity instanceof TransportDeliveryRequest) {
             $statusWorkflowDeliveryCollect = TransportRequest::STATUS_WORKFLOW_DELIVERY_COLLECT;
-            if($entity->isFinished() && !$entity->getCollect()?->isNotCollected()) {
+            if($entity->isFinished() && $entity->getCollect()?->isNotCollected()) {
                 array_pop($statusWorkflowDeliveryCollect);
             }
             $statusWorkflow = $entity->isSubcontracted()
@@ -213,8 +213,7 @@ class HistoryController extends AbstractController
                     'state' => $currentLine?->getId() === $line->getId()
                         ? 'current'
                         : ($order?->getTreatedAt() ? 'past' : 'future'),
-//                    TODO
-                    'real' => ''
+                    'real' => $line->getFulfilledAt()?->format(' H:i'),
                 ];
             })
             ->toArray();

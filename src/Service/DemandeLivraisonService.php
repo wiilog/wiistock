@@ -273,7 +273,7 @@ class DemandeLivraisonService
             UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT
         );
 
-        $expectedAt = FormatHelper::parseDatetime($data['expectedAt']);
+        $expectedAt = FormatHelper::parseDatetime($data['expectedAt'] ?? '');
 
         $demande = new Demande();
         $demande

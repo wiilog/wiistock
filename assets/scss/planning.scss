@@ -1,8 +1,8 @@
 @import "variables";
 
-[data-wii-planning] {
+.wii-planning {
     display: flex;
-    height: 100%;
+    flex: 1;
 
     & > .planning-container {
         flex: 1;
@@ -16,6 +16,51 @@
         border: none !important;
         box-sizing: border-box;
         width: 100%;
+    }
+
+    .placeholder-container {
+        padding: .25rem;
+        display: flex;
+        .placeholder {
+            flex: 1;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+    }
+
+    .planning-col-2 {
+        flex: 0 0 calc((100% / 7) * 2);
+
+        .placeholder-container,
+        .planning-card {
+            width: 50% !important;
+            min-width: 50% !important;
+            max-width: 50% !important;
+        }
+    }
+
+    .planning-col-1 {
+        flex: 0 0 calc(100% / 7);
+
+        .placeholder-container,
+        .planning-card {
+            width: 100% !important;
+            min-width: 100% !important;
+            max-width: 100% !important;
+        }
+    }
+
+    .card-container {
+        display: flex;
+        flex-wrap: wrap;
+        min-height: 150px;
+    }
+
+    .planning-card-container {
+        display: flex;
+        align-content: flex-start;
+        flex: 1;
+        flex-wrap: wrap;
     }
 }
 
@@ -41,6 +86,11 @@
     &.green .planning-card-wrapper {
         border-left-color: rgb(165, 215, 51);
         background-color: rgba(165, 215, 51, 0.15);
+    }
+
+    &.grey .planning-card-wrapper {
+        border-left-color: rgb(102, 102, 102);
+        background-color: rgba(102, 102, 102, 0.15);
     }
 
     .planning-card-wrapper {

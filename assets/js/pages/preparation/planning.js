@@ -1,66 +1,139 @@
-import Sortable from "@app/sortable";
+import '@styles/planning.scss';
 import '@styles/pages/preparation/planning.scss';
+import Sortable from "@app/sortable";
+import AJAX, {PUT} from "@app/ajax";
+import Planning from "@app/planning";
+import moment from "moment";
+
+global.callbackSaveFilter = callbackSaveFilter;
+let planning = null;
 
 $(function () {
-    $('[data-wii-planning]').on('planning-loaded', function() {
-        const $modalLaunchPreparation = $(`#modalLaunchPreparation`);
+    planning = new Planning($('.preparation-planning'), {route: 'preparation_planning_api', step: 5});
+    planning.onPlanningLoad((event) => {
+        onPlanningLoaded(planning);
+    });
 
-        $('.launch-preparation-button').on('click', function (){
-            getOrUpdatePreparationCard($modalLaunchPreparation);
-        });
+    initializeFilters();
+    initializePlanningNavigation();
 
-        $('input[name=dateFrom], input[name=dateTo]').on('change', function (){
-            getOrUpdatePreparationCard($modalLaunchPreparation);
-        });
+    const $modalLaunchPreparation = $(`#modalLaunchPreparation`);
 
-        const $cardColumns = $('.preparation-card-column');
+    $('.launch-preparation-button').on('click', function (){
+        getOrUpdatePreparationCard($modalLaunchPreparation);
+    });
 
-        toggleLoaderState($cardColumns);
-
-        Sortable.create(`.can-drag`, {
-            placeholderClass: 'placeholder',
-            acceptFrom: false,
-        });
-
-        Sortable.create(`.preparation-card-column`, {
-            placeholderClass: 'placeholder',
-            acceptFrom: '.can-drag',
-        });
-
-        $cardColumns.on('sortupdate', function (e) {
-            const $destination = $(e.detail.destination.container).find('.card-container');
-            const $currentElement = $(e.detail.item)[0].outerHTML;
-            const $element = $(`<div class="can-drag">${$currentElement}</div>`);
-
-            const preparation = $(e.detail.item).data('preparation');
-            const date = $destination.parents('.preparation-card-column').data('date');
-            $(e.detail.item).remove();
-            toggleLoaderState($destination.parents('.preparation-card-column'));
-            AJAX.route('PUT', 'preparation_edit_preparation_date', {date, preparation})
-                .json()
-                .then((response) => {
-                    $element.appendTo($destination);
-
-                    Sortable.create(`.can-drag`, {
-                        placeholderClass: 'placeholder',
-                        acceptFrom: false,
-                    });
-                    toggleLoaderState($destination.parents('.preparation-card-column'));
-                });
-        })
+    $('input[name=dateFrom], input[name=dateTo]').on('change', function (){
+        getOrUpdatePreparationCard($modalLaunchPreparation);
     });
 });
 
+function callbackSaveFilter() {
+    if (planning) {
+        planning.fetch();
+    }
+}
 
-function toggleLoaderState($elements) {
-    const $loaderContainers = $elements.find('.loader-container');
-    const $cardContainers = $elements.find('.card-container');
-    $loaderContainers.each(function() {
-        $(this).toggleClass('d-none');
+function refreshColumnHint($column) {
+    const preparationCount = $column.find('.preparation-card').length;
+    const preparationHint = preparationCount + ' préparation' + (preparationCount > 1 ? 's' : '');
+    $column.find('.column-hint-container').html(`<span class='font-weight-bold'>${preparationHint}</span>`);
+}
+
+function initializeFilters() {
+    let path = Routing.generate(`filter_get_by_page`);
+    let params = JSON.stringify(PAGE_PREPARATION_PLANNING);
+
+    $.post(path, params, function (data) {
+        displayFiltersSup(data);
+        const planningFilters = data
+            .filter((filter) => filter.field.startsWith('planning-status-'));
+
+        if (planningFilters.length > 0) {
+            planningFilters.forEach((filter) => $(`input[name=${filter.field}]`).prop('checked', true));
+        } else {
+            $(`.filter-checkbox`).prop('checked', true)
+        }
+    }, 'json');
+
+    $('.planning-filter').on('click', function() {
+        const $checkbox = $(this).find('.filter-checkbox');
+        $checkbox.prop('checked', !$checkbox.is(':checked'));
     });
-    $cardContainers.each(function() {
-        $(this).toggleClass('d-none');
+}
+
+function onPlanningLoaded(planning){
+    Sortable.create('.planning-card-container', {
+        placeholderClass: 'placeholder-container',
+        forcePlaceholderSize: true,
+        placeholder: `
+            <div class="placeholder-container">
+                <div class="placeholder"></div>
+            </div>
+        `,
+        acceptFrom: '.planning-card-container',
+        items: '.can-drag',
     });
+
+    const $cardContainers = planning.$container.find('.planning-card-container');
+
+    $cardContainers
+        .on('sortupdate', function (e) {
+            // if drag and drop is ok
+            if (e.detail.destination.index > -1) {
+                const $destination = $(this);
+                const $origin = $(e.detail.origin.container);
+                const preparation = $(e.detail.item).data('preparation');
+                const $column = $destination.closest('.preparation-card-column');
+                const date = $column.data('date');
+                wrapLoadingOnActionButton($destination, () => (
+                    AJAX.route(PUT, 'preparation_edit_preparation_date', {date, preparation})
+                        .json()
+                        .then(() => {
+                            refreshColumnHint($column);
+                            refreshColumnHint($origin.closest('.preparation-card-column'));
+                        })
+                ));
+            }
+        });
+}
+
+function initializePlanningNavigation() {
+    $('.today-date').on('click', function () {
+        wrapLoadingOnActionButton($(this), () => (
+            planning
+                .resetBaseDate()
+                .then(() => {
+                    changeNavigationButtonStates();
+                })
+        ));
+    });
+
+    $('.decrement-date').on('click', function () {
+        wrapLoadingOnActionButton($(this), () => (
+            planning.previousDate()
+                .then(() => {
+                    changeNavigationButtonStates();
+                })
+        ));
+    });
+
+    $('.increment-date').on('click', function () {
+        wrapLoadingOnActionButton($(this), () => (
+            planning.nextDate()
+                .then(() => {
+                    changeNavigationButtonStates();
+                })
+        ));
+    });
+}
+
+function changeNavigationButtonStates() {
+    const $decrementDate = $('.decrement-date');
+    const $todayDate = $('.today-date');
+
+    $todayDate.prop('disabled', moment().isSame(planning.baseDate, 'day'));
+    $decrementDate.prop('disabled', moment().isSame(planning.baseDate, 'day'));
 }
 
 function getOrUpdatePreparationCard(modal){

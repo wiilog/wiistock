@@ -15,8 +15,8 @@ use Doctrine\ORM\Mapping as ORM;
 use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: TransportRoundRepository::class)]
-class TransportRound extends StatusHistoryContainer
-{
+class TransportRound extends StatusHistoryContainer {
+
     public const NUMBER_PREFIX = 'T';
 
     public const STATUS_AWAITING_DELIVERER = 'En attente livreur';
@@ -38,7 +38,6 @@ class TransportRound extends StatusHistoryContainer
     public const NAME_START_POINT = 'Départ tournée';
     public const NAME_START_POINT_SCHEDULE_CALCULATION = 'Départ calcul Horaire';
     public const NAME_END_POINT = 'Arrivée tournée';
-
 
 
     #[ORM\Id]
@@ -94,37 +93,38 @@ class TransportRound extends StatusHistoryContainer
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $estimatedTime = null;
 
+    #[ORM\Column(type: 'boolean')]
+    private ?bool $depositedDeliveryPacks = false;
+
+    #[ORM\Column(type: 'boolean')]
+    private ?bool $depositedCollectPacks = false;
+
     #[ORM\Column(type: 'integer', options: ['default' => 0])]
     private int $rejectedOrderCount = 0;
 
     #[ORM\OneToMany(mappedBy: 'transportRound', targetEntity: TransportRoundLine::class)]
     private Collection $transportRoundLines;
 
-    public function __construct()
-    {
+    public function __construct() {
         $this->transportRoundLines = new ArrayCollection();
         $this->statusHistory = new ArrayCollection();
     }
 
-    public function getId(): ?int
-    {
+    public function getId(): ?int {
         return $this->id;
     }
 
-    public function getNumber(): ?string
-    {
+    public function getNumber(): ?string {
         return $this->number;
     }
 
-    public function setNumber(string $number): self
-    {
+    public function setNumber(string $number): self {
         $this->number = $number;
 
         return $this;
     }
 
-    public function getStatus(): ?Statut
-    {
+    public function getStatus(): ?Statut {
         return $this->status;
     }
 
@@ -134,49 +134,42 @@ class TransportRound extends StatusHistoryContainer
         return $this;
     }
 
-    public function getCreatedAt(): ?DateTime
-    {
+    public function getCreatedAt(): ?DateTime {
         return $this->createdAt;
     }
 
-    public function setCreatedAt(DateTime $createdAt): self
-    {
+    public function setCreatedAt(DateTime $createdAt): self {
         $this->createdAt = $createdAt;
 
         return $this;
     }
 
-    public function getExpectedAt(): ?DateTime
-    {
+    public function getExpectedAt(): ?DateTime {
         return $this->expectedAt;
     }
 
-    public function setExpectedAt(DateTime $expectedAt): self
-    {
+    public function setExpectedAt(DateTime $expectedAt): self {
         $this->expectedAt = $expectedAt;
 
         return $this;
     }
 
-    public function getEndedAt(): ?DateTime
-    {
+    public function getEndedAt(): ?DateTime {
         return $this->endedAt;
     }
 
-    public function setEndedAt(?DateTime $endedAt): self
-    {
+    public function setEndedAt(?DateTime $endedAt): self {
         $this->endedAt = $endedAt;
 
         return $this;
     }
 
-    public function getDeliverer(): ?Utilisateur
-    {
+    public function getDeliverer(): ?Utilisateur {
         return $this->deliverer;
     }
 
     public function setDeliverer(?Utilisateur $deliverer): self {
-        if($this->deliverer && $this->deliverer !== $deliverer) {
+        if ($this->deliverer && $this->deliverer !== $deliverer) {
             $this->deliverer->removeTransportRound($this);
         }
         $this->deliverer = $deliverer;
@@ -185,98 +178,100 @@ class TransportRound extends StatusHistoryContainer
         return $this;
     }
 
-    public function getCreatedBy(): ?Utilisateur
-    {
+    public function getCreatedBy(): ?Utilisateur {
         return $this->createdBy;
     }
 
 
-    public function setCreatedBy(Utilisateur $createdBy): self
-    {
+    public function setCreatedBy(Utilisateur $createdBy): self {
         $this->createdBy = $createdBy;
 
         return $this;
     }
 
-    public function getBeganAt(): ?DateTime
-    {
+    public function getBeganAt(): ?DateTime {
         return $this->beganAt;
     }
 
-    public function setBeganAt(?DateTime $beganAt): self
-    {
+    public function setBeganAt(?DateTime $beganAt): self {
         $this->beganAt = $beganAt;
 
         return $this;
     }
 
-    public function getStartPoint(): ?string
-    {
+    public function getStartPoint(): ?string {
         return $this->startPoint;
     }
 
-    public function setStartPoint(?string $startPoint): self
-    {
+    public function setStartPoint(?string $startPoint): self {
         $this->startPoint = $startPoint;
 
         return $this;
     }
 
-    public function getEndPoint(): ?string
-    {
+    public function getEndPoint(): ?string {
         return $this->endPoint;
     }
 
-    public function setEndPoint(?string $endPoint): self
-    {
+    public function setEndPoint(?string $endPoint): self {
         $this->endPoint = $endPoint;
 
         return $this;
     }
 
-    public function getStartPointScheduleCalculation(): ?string
-    {
+    public function getStartPointScheduleCalculation(): ?string {
         return $this->startPointScheduleCalculation;
     }
 
-    public function setStartPointScheduleCalculation(?string $startPointScheduleCalculation): self
-    {
+    public function setStartPointScheduleCalculation(?string $startPointScheduleCalculation): self {
         $this->startPointScheduleCalculation = $startPointScheduleCalculation;
 
         return $this;
     }
 
-    public function getEstimatedDistance(): ?float
-    {
+    public function getEstimatedDistance(): ?float {
         return $this->estimatedDistance;
     }
 
-    public function setEstimatedDistance(?float $estimatedDistance): self
-    {
+    public function setEstimatedDistance(?float $estimatedDistance): self {
         $this->estimatedDistance = $estimatedDistance;
 
         return $this;
     }
 
-    public function getRealDistance(): ?float
-    {
+    public function getDepositedDeliveryPacks(): ?bool {
+        return $this->depositedDeliveryPacks;
+    }
+
+    public function setDepositedDeliveryPacks(?bool $depositedDeliveryPacks): self {
+        $this->depositedDeliveryPacks = $depositedDeliveryPacks;
+        return $this;
+    }
+
+    public function getDepositedCollectPacks(): ?bool {
+        return $this->depositedCollectPacks;
+    }
+
+    public function setDepositedCollectPacks(?bool $depositedCollectPacks): self {
+        $this->depositedCollectPacks = $depositedCollectPacks;
+        return $this;
+    }
+
+    public function getRealDistance(): ?float {
         return $this->realDistance;
     }
 
-    public function setRealDistance(?float $realDistance): self
-    {
+    public function setRealDistance(?float $realDistance): self {
         $this->realDistance = $realDistance;
 
         return $this;
     }
 
-    public function getEstimatedTime(): ?string
-    {
+    public function getEstimatedTime(): ?string {
         return $this->estimatedTime;
     }
 
-    public function setEstimatedTime(?string $estimatedTime): self
-    {
+    public function setEstimatedTime(?string $estimatedTime): self {
         $this->estimatedTime = $estimatedTime;
 
         return $this;
@@ -297,26 +292,25 @@ class TransportRound extends StatusHistoryContainer
             ->matching(
                 $criteria
                     ->orderBy([
-                        $sortCriteria => Criteria::ASC
+                        $sortCriteria => Criteria::ASC,
                     ])
             );
     }
 
     public function setTransportRoundLines(?array $lines): self {
-        foreach($this->getTransportRoundLines()->toArray() as $line) {
+        foreach ($this->getTransportRoundLines()->toArray() as $line) {
             $this->removeTransportRoundLine($line);
         }
 
         $this->transportRoundLines = new ArrayCollection();
-        foreach($lines as $line) {
+        foreach ($lines as $line) {
             $this->addTransportRoundLine($line);
         }
 
         return $this;
     }
 
-    public function addTransportRoundLine(TransportRoundLine $transportRoundLine): self
-    {
+    public function addTransportRoundLine(TransportRoundLine $transportRoundLine): self {
         if (!$this->transportRoundLines->contains($transportRoundLine)) {
             $this->transportRoundLines[] = $transportRoundLine;
             $transportRoundLine->setTransportRound($this);
@@ -325,8 +319,7 @@ class TransportRound extends StatusHistoryContainer
         return $this;
     }
 
-    public function removeTransportRoundLine(TransportRoundLine $transportRoundLine): self
-    {
+    public function removeTransportRoundLine(TransportRoundLine $transportRoundLine): self {
         if ($this->transportRoundLines->removeElement($transportRoundLine)) {
             // set the owning side to null (unless already changed)
             if ($transportRoundLine->getTransportRound() === $this) {
@@ -354,7 +347,7 @@ class TransportRound extends StatusHistoryContainer
             ->matching(Criteria::create()
                 ->orderBy([
                     'date' => $order,
-                    'id' => $order
+                    'id' => $order,
                 ])
             );
     }
@@ -380,7 +373,7 @@ class TransportRound extends StatusHistoryContainer
     }
 
     public function countRejectedPacks(): int {
-        return Stream::from( $this->getTransportRoundLines() )->map(function(TransportRoundLine $line) {
+        return Stream::from($this->getTransportRoundLines())->map(function(TransportRoundLine $line) {
             return $line->getOrder()->countRejectedPacks();
         })->sum();
     }
@@ -392,6 +385,11 @@ class TransportRound extends StatusHistoryContainer
     public function setRejectedOrderCount(int $rejectedOrderCount): self {
         $this->rejectedOrderCount = $rejectedOrderCount;
         return $this;
+    }
+    public function countRejectedOrders(): int {
+        return Stream::from($this->getTransportRoundLines())->filter(function(TransportRoundLine $line) {
+            return $line->getOrder()->isRejected();
+        })->count();
     }
 
     public function getPairings(): array {
@@ -412,13 +410,16 @@ class TransportRound extends StatusHistoryContainer
 
         foreach ($this->getTransportRoundLines() as $line) {
             $order = $line->getOrder();
-            foreach ($order->getPacks() as $orderPack) {
-                foreach ($orderPack->getPack()->getPairings() as $pairing) {
-                    $roundsPairings[] = $pairing;
+            if (!$order->isRejected()) {
+                foreach ($order->getPacks() as $orderPack) {
+                    foreach ($orderPack->getPack()->getPairings() as $pairing) {
+                        $roundsPairings[] = $pairing;
+                    }
                 }
             }
         }
 
         return $roundsPairings;
     }
+
 }

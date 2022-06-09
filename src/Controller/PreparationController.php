@@ -8,6 +8,7 @@ use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Emplacement;
+use App\Entity\FiltreSup;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\Setting;
@@ -33,6 +34,7 @@ use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Bundle\MakerBundle\Str;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -709,8 +711,11 @@ class PreparationController extends AbstractController
 
     #[Route('/planning', name: 'preparation_planning_index', methods: 'GET')]
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_PREPA_PLANNING], mode: HasPermission::IN_JSON)]
-    public function planning(): Response {
-        return $this->render('preparation/planning.html.twig');
+    public function planning(EntityManagerInterface $entityManager): Response {
+        $typeRepository = $entityManager->getRepository(Type::class);
+        return $this->render('preparation/planning.html.twig', [
+            'types' => $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]),
+        ]);
     }
 
     #[Route('/lancement-preparation/recuperer-prepa', name: 'planning_preparation_launching_filter', options: ['expose' => true], methods: 'POST')]
@@ -730,22 +735,41 @@ class PreparationController extends AbstractController
 
     #[Route('/planning/api', name: 'preparation_planning_api', options: ['expose' => true], methods: 'GET')]
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_PREPA_PLANNING], mode: HasPermission::IN_JSON)]
-    public function planningApi(EntityManagerInterface $entityManager): Response {
+    public function planningApi(EntityManagerInterface $entityManager,
+                                Request $request): Response {
         $preparationRepository = $entityManager->getRepository(Preparation::class);
 
         $nbDaysOnPlanning = 5;
-        $planningStart = new DateTime();
+        $planningStart = FormatHelper::parseDatetime($request->query->get('date'));
         $planningEnd = (clone $planningStart)->modify("+{$nbDaysOnPlanning} days");
 
-        $preparationStatuses = [
-            Preparation::STATUT_VALIDATED,
-            Preparation::STATUT_LAUNCHED,
-            Preparation::STATUT_EN_COURS_DE_PREPARATION,
-            Preparation::STATUT_INCOMPLETE,
-            Preparation::STATUT_A_TRAITER,
+        $filters = $entityManager->getRepository(FiltreSup::class)->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PREPARATION_PLANNING, $this->getUser());
+        $preparationStatusesForFilters = [
+            "planning-status-validated" => Preparation::STATUT_VALIDATED,
+            "planning-status-launched" => Preparation::STATUT_A_TRAITER,
+            "planning-status-ongoing" => Preparation::STATUT_EN_COURS_DE_PREPARATION,
+            "planning-status-partial" => Preparation::STATUT_INCOMPLETE,
+            "planning-status-done" => Preparation::STATUT_PREPARE,
         ];
 
-        $preparations = $preparationRepository->findByStatusCodesAndExpectedAt($preparationStatuses, $planningStart, $planningEnd);
+        $filterStatuses = Stream::from($filters)
+            ->filterMap(fn(array $filter) => (
+                str_starts_with($filter['field'], 'planning-status-')
+                    ? $preparationStatusesForFilters[$filter['field']]
+                    : null
+            ))
+            ->toArray();
+        $filterStatuses = $filterStatuses ?: array_values($preparationStatusesForFilters);
+
+        $filters = Stream::from($filters)
+            ->filter(fn(array $filter) => (
+                $filter['field'] === FiltreSup::FIELD_REQUEST_NUMBER
+                || $filter['field'] === FiltreSup::FIELD_TYPE
+                || $filter['field'] === FiltreSup::FIELD_OPERATORS
+            ))
+            ->toArray();
+
+        $preparations = $preparationRepository->findByStatusCodesAndExpectedAt($filters, $filterStatuses, $planningStart, $planningEnd);
         $cards = Stream::from($preparations)
             ->filter(fn(Preparation $preparation) => $preparation->getExpectedAt())
             ->keymap(fn(Preparation $preparation) => [
@@ -754,7 +778,7 @@ class PreparationController extends AbstractController
                     'preparation' => $preparation,
                     'color' => match ($preparation->getStatut()?->getCode()) {
                         Preparation::STATUT_VALIDATED => 'orange',
-                        Preparation::STATUT_LAUNCHED => 'green',
+                        Preparation::STATUT_A_TRAITER => 'green',
                         Preparation::STATUT_EN_COURS_DE_PREPARATION => 'blue',
                         // Preparation::STATUT_INCOMPLETE, Preparation::STATUT_A_TRAITER => 'grey',
                         default => 'grey',
@@ -772,7 +796,7 @@ class PreparationController extends AbstractController
                 return [
                     "label" => FormatHelper::longDate($day, ["short" => true, "year" => false]),
                     "cardSelector" => $dayStr,
-                    "styleContainer" => $index > 1 ? "flex: 1;" : "flex: 2;",
+                    "columnClass" => $index > 1 ? "planning-col-1" : "planning-col-2",
                     "columnHint" => "<span class='font-weight-bold'>{$count} préparation{$sPreparation}</span>",
                 ];
             })
@@ -788,13 +812,14 @@ class PreparationController extends AbstractController
     }
 
     #[Route('/modifier-date-preparation/{preparation}/{date}', name: 'preparation_edit_preparation_date', options: ['expose' => true], methods: 'PUT')]
-    public function editPreparationDate(Preparation $preparation,
-                               string $date,
-                               EntityManagerInterface $manager): Response {
+    public function editPreparationDate(Preparation            $preparation,
+                                        string                 $date,
+                                        EntityManagerInterface $manager): Response {
         $preparation->setExpectedAt(new DateTime($date));
         $manager->flush();
-        return $this->json([]);
-
+        return $this->json([
+            'success' => true,
+        ]);
     }
 
 

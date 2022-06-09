@@ -8,7 +8,7 @@ use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
 use App\Entity\FreeField;
-use App\Entity\IOT\AlertTemplate;
+use App\Entity\Nature;
 use App\Entity\Notification;
 use App\Entity\Pack;
 use App\Entity\Setting;
@@ -21,6 +21,7 @@ use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\Transport\TransportDeliveryRequestLine;
 use App\Entity\Transport\TransportOrder;
 use App\Entity\Transport\TransportRequest;
+use App\Entity\Transport\TransportRequestLine;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\TransportRoundLine;
 use App\Entity\Utilisateur;
@@ -28,6 +29,7 @@ use App\Helper\FormatHelper;
 use App\Service\AttachmentService;
 use App\Service\GeoService;
 use App\Service\NotificationService;
+use App\Service\PackService;
 use App\Service\StatusHistoryService;
 use App\Service\TrackingMovementService;
 use App\Service\Transport\TransportHistoryService;
@@ -147,17 +149,23 @@ class TransportController extends AbstractFOSRestController {
 
         $collectedOrders = Stream::from($lines)
             ->filter(fn(TransportRoundLine $line) =>
-                $line->getOrder()->getRequest() instanceof TransportCollectRequest &&
+                ($line->getOrder()->getRequest() instanceof TransportCollectRequest
+                || $line->getOrder()->getRequest()->getCollect()) &&
                 $line->getOrder()->getStatus()->getCode() === TransportOrder::STATUS_FINISHED);
 
         $depositedPacks = Stream::from($collectedOrders)
-            ->flatMap(fn(TransportRoundLine $line) => $line->getOrder()->getPacks())
-            ->filter(fn(TransportDeliveryOrderPack $pack) => $pack->getState() === TransportDeliveryOrderPack::RETURNED_STATE)
-            ->count();
+            ->flatMap(fn(TransportRoundLine $line) => $line->getOrder()->getRequest() instanceof TransportCollectRequest
+                ? $line->getOrder()->getRequest()->getLines()
+                : $line->getOrder()->getRequest()->getCollect()->getLines())
+            ->map(fn(TransportRequestLine $line) => $line->getDepositedQuantity())
+            ->sum();
 
         $toDeposit = Stream::from($collectedOrders)
-            ->flatMap(fn(TransportRoundLine $line) => $line->getOrder()->getPacks())
-            ->count();
+            ->flatMap(fn(TransportRoundLine $line) => $line->getOrder()->getRequest() instanceof TransportCollectRequest
+                ? $line->getOrder()->getRequest()->getLines()
+                : $line->getOrder()->getRequest()->getCollect()->getLines())
+            ->map(fn(TransportRequestLine $line) => $line->getCollectedQuantity())
+            ->sum();
 
         return [
             'id' => $round->getId(),
@@ -190,14 +198,16 @@ class TransportController extends AbstractFOSRestController {
             "done_collects" => $collectedOrders->count(),
             "deposited_packs" => $depositedPacks,
             "packs_to_deposit" => $toDeposit,
-            'lines' => Stream::from($lines)
+            "deposited_delivery_packs" => $round->getDepositedDeliveryPacks(),
+            "deposited_collect_packs" => $round->getDepositedCollectPacks(),
+            "lines" => Stream::from($lines)
                 ->filter(fn(TransportRoundLine $line) =>
                     !$line->getCancelledAt()
                     || ($line->getTransportRound()->getBeganAt() && $line->getCancelledAt() > $line->getTransportRound()->getBeganAt()))
                 ->sort(fn(TransportRoundLine $a, TransportRoundLine $b) => (($a->getFulfilledAt() !== null) <=> ($b->getFulfilledAt() !== null)))
                 ->map(fn(TransportRoundLine $line) => $this->serializeTransport($manager, $line)),
             "to_finish" => Stream::from($lines)
-                ->map(fn(TransportRoundLine $line) => $line->getFulfilledAt() || $line->getCancelledAt() || $line->getRejectedAt())
+                ->map(fn(TransportRoundLine $line) => $line->getFulfilledAt() || $line->getCancelledAt())
                 ->every(),
         ];
     }
@@ -236,12 +246,18 @@ class TransportController extends AbstractFOSRestController {
                     "color" => $line->getNature()->getColor(),
                     "quantity_to_collect" => $line->getQuantityToCollect(),
                     "collected_quantity" => $line->getCollectedQuantity(),
+                    "deposited_quantity" => $line->getDepositedQuantity(),
                 ])
                 ->toArray();
         } else {
             $naturesToCollect = null;
         }
 
+        $expectedAt = $isCollect && $request->getTimeSlot()
+            ? FormatHelper::date($request->getExpectedAt()) . " " . $request->getTimeSlot()?->getName()
+            : ($isCollect
+                ? FormatHelper::datetime($request->getDelivery()?->getExpectedAt())
+                : FormatHelper::datetime($request->getExpectedAt()));
         return [
             'id' => $request->getId(),
             'number' => $request->getNumber(),
@@ -270,19 +286,17 @@ class TransportController extends AbstractFOSRestController {
                         'returned' => $orderPack->getState() === TransportDeliveryOrderPack::RETURNED_STATE,
                     ];
                 }),
-            'expected_at' => $isCollect
-                ? ($request->getTimeSlot()?->getName() ?? FormatHelper::datetime($request->getDelivery()?->getExpectedAt()))
-                : FormatHelper::datetime($request->getExpectedAt()),
+            'expected_at' => $expectedAt,
             'estimated_time' => $line->getEstimatedAt()?->format('H:i'),
             'expected_time' => $request->getExpectedAt()?->format('H:i'),
             'time_slot' => $isCollect ? $request->getTimeSlot()?->getName() : null,
             'contact' => [
                 'file_number' => $contact->getFileNumber(),
                 'name' => $contact->getName(),
-                'address' => str_replace("\n", "<br>", $contact->getAddress()),
-                'contact' => $contact->getContact(),
-                'person_to_contact' => $contact->getPersonToContact(),
-                'observation' => $contact->getObservation(),
+                'address' => FormatHelper::phone(str_replace("\n", "<br>", $contact->getAddress())),
+                'contact' => FormatHelper::phone($contact->getContact()),
+                'person_to_contact' => FormatHelper::phone($contact->getPersonToContact()),
+                'observation' => FormatHelper::phone($contact->getObservation()),
                 'latitude' => $contact->getAddressLatitude(),
                 'longitude' => $contact->getAddressLongitude(),
             ],
@@ -441,6 +455,13 @@ class TransportController extends AbstractFOSRestController {
 
         $hasRejected = false;
 
+        $statusHistoryRound = $statusHistoryService->updateStatus($manager, $round, $deliveryOrderOngoing);
+
+        $historyService->persistTransportHistory($manager, $round, TransportHistoryService::TYPE_ONGOING, [
+            "user" => $this->getUser(),
+            "history" => $statusHistoryRound
+        ]);
+
         foreach($round->getTransportRoundLines() as $line) {
             $order = $line->getOrder();
             $request = $order->getRequest();
@@ -575,18 +596,10 @@ class TransportController extends AbstractFOSRestController {
         }
 
         $comment = $data->get('comment');
-        $previousComment = $order->getComment();
-        $order->setComment($comment);
 
-        if($signatureAttachment) {
-            $order->setSignature($signatureAttachment);
-        }
+        if ($comment && $comment != $order->getComment()) {
+            $order->setComment($comment);
 
-        if($signatureAttachment) {
-            $order->addAttachment($photoAttachment);
-        }
-
-        if ($comment && $comment != $previousComment) {
             $historyService->persistTransportHistory($manager, $request, TransportHistoryService::TYPE_ADD_COMMENT, [
                 "user" => $this->getUser(),
                 "comment" => $comment,
@@ -599,6 +612,14 @@ class TransportController extends AbstractFOSRestController {
         }
 
         if ($signatureAttachment || $photoAttachment) {
+            if($signatureAttachment) {
+                $order->setSignature($signatureAttachment);
+            }
+
+            if($photoAttachment) {
+                $order->addAttachment($photoAttachment);
+            }
+
             $historyService->persistTransportHistory($manager, $request, TransportHistoryService::TYPE_ADD_ATTACHMENT, [
                 "user" => $this->getUser(),
                 "attachments" => [
@@ -647,7 +668,9 @@ class TransportController extends AbstractFOSRestController {
                     ->toArray();
 
                 foreach ($order->getRequest()->getLines() as $line) {
-                    $line->setCollectedQuantity($collectedPacks[$line->getNature()->getId()]);
+                    if(isset($collectedPacks[$line->getNature()->getId()])) {
+                        $line->setCollectedQuantity($collectedPacks[$line->getNature()->getId()]);
+                    }
                 }
             }
 
@@ -735,23 +758,9 @@ class TransportController extends AbstractFOSRestController {
             $request->getStatus()->getCode() !== TransportRequest::STATUS_TO_COLLECT &&
             $request->getStatus()->getCode() !== TransportRequest::STATUS_AWAITING_PLANNING;
 
-        $signature = $files->get('signature');
-        $photo = $files->get('photo');
+        if ($comment && $order->getComment() != $comment) {
+            $order->setComment($comment);
 
-        $signatureAttachment = $signature ? $attachmentService->createAttachements([$signature])[0] : null;
-        $photoAttachment = $photo ? $attachmentService->createAttachements([$photo])[0] : null;
-
-        $order->setComment($comment);
-
-        if($signatureAttachment) {
-            $order->setSignature($signatureAttachment);
-        }
-
-        if($signatureAttachment) {
-            $order->addAttachment($photoAttachment);
-        }
-
-        if ($comment) {
             $historyService->persistTransportHistory($manager, $request, TransportHistoryService::TYPE_ADD_COMMENT, [
                 "user" => $this->getUser(),
                 "comment" => $comment,
@@ -761,6 +770,20 @@ class TransportController extends AbstractFOSRestController {
                 "user" => $this->getUser(),
                 "comment" => $comment,
             ]);
+        }
+
+        $signature = $files->get('signature');
+        $photo = $files->get('photo');
+
+        $signatureAttachment = $signature ? $attachmentService->createAttachements([$signature])[0] : null;
+        $photoAttachment = $photo ? $attachmentService->createAttachements([$photo])[0] : null;
+
+        if($signatureAttachment) {
+            $order->setSignature($signatureAttachment);
+        }
+
+        if($signatureAttachment) {
+            $order->addAttachment($photoAttachment);
         }
 
         if ($signatureAttachment || $photoAttachment) {
@@ -783,6 +806,16 @@ class TransportController extends AbstractFOSRestController {
 
         if(!$isEdit) {
             $order->setTreatedAt($now);
+
+            $historyService->persistTransportHistory($manager, $request, TransportHistoryService::TYPE_ADD_COMMENT, [
+                "user" => $this->getUser(),
+                "comment" => $motive,
+            ]);
+
+            $historyService->persistTransportHistory($manager, $order, TransportHistoryService::TYPE_ADD_COMMENT, [
+                "user" => $this->getUser(),
+                "comment" => $motive,
+            ]);
 
             $isCollectFromDelivery = $request instanceof TransportCollectRequest && $request->getDelivery();
             if (!$isCollectFromDelivery) {
@@ -846,7 +879,7 @@ class TransportController extends AbstractFOSRestController {
                 $emitted = new Notification();
                 $emitted
                     ->setContent($notificationContent)
-                    ->setSource($round->getDeliverer())
+                    ->setSource($request->getNumber())
                     ->setTriggered(new DateTime());
 
                 $users = $manager->getRepository(Utilisateur::class)->findBy(['status' => true]);
@@ -878,6 +911,171 @@ class TransportController extends AbstractFOSRestController {
                         ->findOneByCategorieNameAndStatutCode($categoryStatus, $statusCode);
                     $entity->setStatus($notCollectedStatus);
                 }
+            }
+
+            if($request instanceof TransportCollectRequest && !$request->getDelivery()) {
+                $settingsRepository = $manager->getRepository(Setting::class);
+                $statusRepository = $manager->getRepository(Statut::class);
+
+                $workflowEndMotives = $settingsRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_COLLECT_WORKFLOW_ENDING_MOTIVE);
+                $workflowEndMotives = explode(",", $workflowEndMotives);
+
+                if(!in_array($motive, $workflowEndMotives)) {
+                    $requestStatus = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_REQUEST_COLLECT, TransportRequest::STATUS_AWAITING_PLANNING);
+                    $orderStatus = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_COLLECT, TransportOrder::STATUS_TO_CONTACT);
+
+                    $request->setStatus($requestStatus)
+                        ->setTimeSlot(null);
+
+                    $order->setStatus($orderStatus);
+                }
+            }
+        }
+
+        $manager->flush();
+
+        return $this->json([
+            "success" => true,
+        ]);
+    }
+
+    /**
+     * @Rest\Post("/api/deposit-transport-packs", name="api_deposit_transport_packs", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function depositPacks(Request $request, EntityManagerInterface $manager,
+                                 TransportHistoryService $transportHistoryService,
+                                 TrackingMovementService $trackingMovementService, PackService $packService): Response {
+        $data = $request->request;
+        $packRepository = $manager->getRepository(Pack::class);
+        $round = $manager->find(TransportRound::class, $data->get("round"));
+        $depositedDeliveryPacks = json_decode($data->get("depositedDeliveryPacks"), true);
+        $depositedCollectPacks = json_decode($data->get("depositedCollectPacks"), true);
+        $location = $manager->find(Emplacement::class, $data->get("location"));
+
+        if($depositedDeliveryPacks) {
+            $depositedTransports = [];
+            $transportById = [];
+
+            foreach($depositedDeliveryPacks as $pack) {
+                $pack = $packRepository->findOneBy(["code" => $pack["code"]]);
+
+                $pack->getTransportDeliveryOrderPack()->setState(TransportDeliveryOrderPack::RETURNED_STATE);
+
+                $trackingMovement = $trackingMovementService->createTrackingMovement(
+                    $pack,
+                    $location,
+                    $this->getUser(),
+                    new DateTime(),
+                    true,
+                    true,
+                    TrackingMovement::TYPE_DEPOSE
+                );
+
+                $transport = $pack->getTransportDeliveryOrderPack()->getOrder();
+                $transportById[$transport->getId()] = $transport;
+                $depositedTransports[$transport->getId()][] = $pack;
+
+                $manager->persist($trackingMovement);
+            }
+
+            foreach($depositedTransports as $transport => $packs) {
+                $transport = $transportById[$transport];
+
+                $transportHistoryService->persistTransportHistory(
+                    $manager,
+                    [$transport, $transport->getRequest()],
+                    TransportHistoryService::TYPE_PACKS_FAILED,
+                    [
+                        "user" => $this->getUser(),
+                        "message" => Stream::from($packs)
+                            ->map(fn(Pack $pack) => $pack->getCode())
+                            ->join(", "),
+                        "location" => $location,
+                    ]
+                );
+            }
+
+            $isDoneReturning = Stream::from($round->getTransportRoundLines())
+                ->filter(fn(TransportRoundLine $line) => in_array($line->getOrder()->getStatus()->getCode(), [TransportOrder::STATUS_CANCELLED, TransportOrder::STATUS_NOT_DELIVERED]))
+                ->flatMap(fn(TransportRoundLine $line) => $line->getOrder()->getPacks())
+                ->filter(fn(TransportDeliveryOrderPack $pack) => $pack->getState() !== TransportDeliveryOrderPack::RETURNED_STATE)
+                ->isEmpty();
+
+            if($isDoneReturning) {
+                $round->setDepositedDeliveryPacks(true);
+            }
+        } else if($depositedCollectPacks) {
+            foreach ($depositedCollectPacks as $pack) {
+                /** @var Nature $nature */
+                $nature = $manager->find(Nature::class, $pack["nature_id"]);
+
+                for ($i = 0; $i < $pack["quantity"]; $i++) {
+                    $createdPack = $packService->createPackWithCode(TransportRound::NUMBER_PREFIX . "{$round->getNumber()}-{$nature->getLabel()}-$i");
+
+                    $trackingMovement = $trackingMovementService->createTrackingMovement(
+                        $createdPack,
+                        $location,
+                        $this->getUser(),
+                        new DateTime(),
+                        true,
+                        true,
+                        TrackingMovement::TYPE_DEPOSE
+                    );
+
+                    $manager->persist($createdPack);
+                    $manager->persist($trackingMovement);
+                }
+
+                if ($pack["quantity"]) {
+                    foreach ($round->getTransportRoundLines() as $transport) {
+                        $request = $transport->getOrder()->getRequest();
+                        if ($request instanceof TransportDeliveryRequest && $request->getCollect()) {
+                            $request = $request->getCollect();
+                        }
+
+                        if (!($request instanceof TransportCollectRequest)) {
+                            continue;
+                        }
+
+                        foreach ($request->getLines() as $line) {
+                            if (!$line->getCollectedQuantity()) {
+                                continue;
+                            }
+
+                            if ($pack["quantity"] > $line->getCollectedQuantity()) {
+                                $line->setDepositedQuantity($line->getCollectedQuantity());
+                                $pack["quantity"] -= $line->getCollectedQuantity();
+                            }
+                            else {
+                                $line->setDepositedQuantity($pack["quantity"]);
+                                $pack["quantity"] = 0;
+                            }
+
+                            if ($pack["quantity"] == 0) {
+                                break 2;
+                            }
+                        }
+                    }
+                }
+
+                $requestsAndOrders = Stream::from($round->getTransportRoundLines())
+                    ->filter(fn(TransportRoundLine $line) => $line->getOrder()->getRequest() instanceof TransportCollectRequest || $line->getOrder()->getRequest()->getCollect())
+                    ->flatMap(fn(TransportRoundLine $line) => [$line->getOrder(), $line->getOrder()->getRequest()])
+                    ->toArray();
+
+                $transportHistoryService->persistTransportHistory(
+                    $manager,
+                    $requestsAndOrders,
+                    TransportHistoryService::TYPE_PACKS_DEPOSITED,
+                    [
+                        "user" => $this->getUser(),
+                        "location" => $location,
+                    ]
+                );
+
+                $round->setDepositedCollectPacks(true);
             }
         }
 

@@ -13,6 +13,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use WiiCommon\Helper\Stream;
 
 /**
  * Class FiltreSupController
@@ -31,6 +32,7 @@ class FiltreSupController extends AbstractController
     {
         if ($data = json_decode($request->getContent(), true)) {
             $page = $data['page'];
+
             /**
              * @var Utilisateur $user
              */
@@ -55,6 +57,7 @@ class FiltreSupController extends AbstractController
                 'destination' => FiltreSup::FIELD_DESTINATION,
                 'fileNumber' => FiltreSup::FIELD_FILE_NUMBER,
                 'roundNumber' => FiltreSup::FIELD_ROUND_NUMBER,
+                'requestNumber' => FiltreSup::FIELD_REQUEST_NUMBER,
                 'category' => FiltreSup::FIELD_CATEGORY,
                 'contact' => FiltreSup::FIELD_CONTACT,
             ];
@@ -137,6 +140,37 @@ class FiltreSupController extends AbstractController
                         } else {
                             $value = $data[$filterLabel];
                         }
+                        $filter->setValue($value);
+                    } else {
+                        $filter = $filtreSupRepository->findOnebyFieldAndPageAndUser($filterName, $page, $user);
+                        if ($filter) {
+                            $entityManager->remove($filter);
+                        }
+                    }
+                }
+            }
+
+            $filterList = [
+                'planning-status-'
+            ];
+            foreach ($filterList as $filterItem) {
+                $matches = Stream::from($data)
+                    ->filter(fn($element, $key) => str_starts_with($key, $filterItem))
+                    ->toArray();
+                foreach ($matches as $key => $match) {
+                    $filterName = $key;
+                    if (!is_array($match) && (strpos($match, ',') || strpos($match, ':'))) {
+                        return new JsonResponse(false);
+                    }
+                    $value = is_array($match) ? implode(',', $match) : $match;
+
+                    if (!empty($value)) {
+                        $filter = $filtreSupRepository->findOnebyFieldAndPageAndUser($filterName, $page, $user);
+                        if (!$filter) {
+                            $filter = $filterSupService->createFiltreSup($page, $filterName, null, $user);
+                            $entityManager->persist($filter);
+                        }
+
                         $filter->setValue($value);
                     } else {
                         $filter = $filtreSupRepository->findOnebyFieldAndPageAndUser($filterName, $page, $user);

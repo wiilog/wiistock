@@ -2,44 +2,32 @@
     {% set allCards = cards ?? [] %}
     {% for date in planningDates %}
         {% set label = date.label ?? null %}
-        {% set styleContainer = date.styleContainer ?? null %}
+        {% set columnClass = date.columnClass ?? null %}
         {% set columnHint = date.columnHint ?? null %}
         {% set cardSelector = date.cardSelector ?? null %}
         {% set cards = allCards[cardSelector] ?? [] %}
 
-        {% set columnClass = loop.first ? 'pl-3' : (loop.last ? 'pr-3' : '') %}
+        {% set columnPaddingClass = loop.first ? 'pl-3' : (loop.last ? 'pr-3' : '') %}
 
-        <div class="col-12 d-flex h-100 px-1 {{ columnClass }} preparation-card-column"
-             data-date="{{ cardSelector }}"
-             style="{{ styleContainer }}">
-            <div class="wii-box border flex-fill">
+        <div class="col-12 d-flex h-100 px-1 {{ columnClass }} {{ columnPaddingClass }} preparation-card-column"
+             data-date="{{ cardSelector }}">
+            <div class="wii-box border flex-fill d-flex flex-column">
                 <div class="header">
                     {#                <input type="hidden" value="{{ dateForContainer }}" class="date-container"> #}
                     <span class="wii-title">{{ label }}</span>
                 </div>
-                <div class="row">
+                <div class="d-flex flex-fill flex-column">
                     {% if columnHint %}
-                        <div class="col-12">
-                            <div class="column-hint-container">
-                                {{ columnHint|raw }}
-                            </div>
+                        <div class="column-hint-container">
+                            {{ columnHint|raw }}
                         </div>
                     {% endif %}
-                    <div class="col-12">
-                        <div class="planning-card-container">
-                            <div class="card-container d-none">
-                                {% for card in cards %}
-                                    {{ card|raw }}
-                                {% endfor %}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="row align-items-center text-center mt-5 loader-container">
-                    <div class="col ml-auto">
-                        <div class="spinner-border sizeLoader" role="status">
-                            <span class="sr-only">Loading...</span>
-                        </div>
+                    <div class="planning-card-container"
+                         data-loader-color="black"
+                         data-loader-size="normal">
+                        {% for card in cards %}
+                            {{ card|raw }}
+                        {% endfor %}
                     </div>
                 </div>
             </div>

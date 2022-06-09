@@ -1,48 +1,46 @@
 {% set validated = preparation.statut and preparation.statut.code == constant('App\\Entity\\PreparationOrder\\Preparation::STATUT_VALIDATED') %}
-<div class="{{ validated ? 'can-drag' }}">
-    <div class="planning-card preparation-card {{ validated ? 'pointer' }} {{ color }}"
-         data-preparation="{{ preparation.id }}"
-         data-status="{{ preparation.statut ? preparation.statut.code }}">
-        <div class="planning-card-wrapper">
-            <div class="row">
-                <div class="col-12">
-                    <div class="font-weight-bold">{{ preparation.numero }}</div>
-                </div>
-                {% if preparation.statut %}
-                    <div class="col-12 mt-1">
-                        <div class="preparation-status rounded px-2 py-1 d-inline-block bg-white">
-                            {{ preparation.statut.nom }}
-                        </div>
-                    </div>
-                {% endif %}
-                {% if preparation.type %}
-                    <div class="col-12 mt-1">
-                        Type&nbsp;: <span class="font-weight-bold">{{ preparation.type.label }}</span>
-                    </div>
-                {% endif %}
-                {% if preparation.type %}
-                    <div class="col-12 mt-1">
-                        <div class="d-flex creation-date mt-1">
-                            <div class="align-self-center">
-                                <i class="wii-icon wii-icon-calendar-creation-grey"></i>
-                            </div>
-                            <div class="d-flex flex-fill flex-column">
-                                <div class="d-block">Date de création</div>
-                                <div class="d-block date">{{ preparation.date | format_helper('longDate', {short: true}) }}</div>
-                            </div>
-                        </div>
-                        <div class="d-flex expected-date mt-1">
-                            <div class="align-self-center">
-                                <i class="wii-icon wii-icon-calendar-due-black"></i>
-                            </div>
-                            <div class="d-flex flex-fill flex-column">
-                                <div class="d-block">Date attendu</div>
-                                <div class="d-block date">{{ preparation.demande.expectedAt | format_helper('longDate', {short: true}) }}</div>
-                            </div>
-                        </div>
-                    </div>
-                {% endif %}
+<div class="planning-card preparation-card {{ validated ? 'pointer can-drag' : 'user-select-none' }}  {{ color }}"
+     data-preparation="{{ preparation.id }}"
+     data-status="{{ preparation.statut ? preparation.statut.code }}">
+    <div class="planning-card-wrapper">
+        <div class="row">
+            <div class="col-12">
+                <div class="font-weight-bold">{{ preparation.numero }}</div>
             </div>
+            {% if preparation.statut %}
+                <div class="col-12 mt-1">
+                    <div class="preparation-status rounded px-2 py-1 d-inline-block bg-white">
+                        {{ preparation.statut.nom }}
+                    </div>
+                </div>
+            {% endif %}
+            {% if preparation.type %}
+                <div class="col-12 mt-1">
+                    Type&nbsp;: <span class="font-weight-bold">{{ preparation.type.label }}</span>
+                </div>
+            {% endif %}
+            {% if preparation.type %}
+                <div class="col-12 mt-1">
+                    <div class="d-flex creation-date mt-1">
+                        <div class="align-self-center">
+                            <i class="wii-icon wii-icon-calendar-creation-grey"></i>
+                        </div>
+                        <div class="d-flex flex-fill flex-column">
+                            <div class="d-block">Date de création</div>
+                            <div class="d-block date">{{ preparation.date | format_helper('longDate', {short: true}) }}</div>
+                        </div>
+                    </div>
+                    <div class="d-flex expected-date mt-1">
+                        <div class="align-self-center">
+                            <i class="wii-icon wii-icon-calendar-due-black"></i>
+                        </div>
+                        <div class="d-flex flex-fill flex-column">
+                            <div class="d-block">Date attendu</div>
+                            <div class="d-block date">{{ preparation.demande.expectedAt | format_helper('longDate', {short: true}) }}</div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>

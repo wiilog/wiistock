@@ -59,7 +59,7 @@ class TransportHistory {
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $message = null;
 
-    #[ORM\OneToOne(targetEntity: Emplacement::class)]
+    #[ORM\ManyToOne(targetEntity: Emplacement::class)]
     private ?Emplacement $location = null;
 
     #[ORM\ManyToOne(targetEntity: StatusHistory::class, cascade: ['persist'], inversedBy: 'transportHistory')]
