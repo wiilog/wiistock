@@ -92,6 +92,8 @@ $icons: (
     'printer-white': "../../public/svg/printer-white.svg",
     'calendar-creation-grey': "../../public/svg/calendar-creation-grey.svg",
     'calendar-due-black': "../../public/svg/calendar-due-black.svg",
+    'plus-black': "../../public/svg/plus-black.svg",
+    'printer-black': "../../public/svg/printer-black.svg",
 );
 
 @each $iconName, $iconPath in $icons {

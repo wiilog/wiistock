@@ -1,5 +1,6 @@
 import '@styles/pages/transport/common.scss';
-import {initializeFilters} from "@app/pages/transport/common";
+import {initializeFilters, placeDeliverer} from "@app/pages/transport/common";
+import {Map} from "@app/map";
 
 $(function() {
     initializeFilters(PAGE_TRANSPORT_ROUNDS);
@@ -9,8 +10,8 @@ $(function() {
         serverSide: true,
         ordering: false,
         searching: false,
-        pageLength: 10,
-        lengthMenu: [10, 25, 50, 100],
+        pageLength: 6,
+        lengthMenu: [6],
         ajax: {
             url: Routing.generate(`transport_round_api`),
             type: "POST",
@@ -31,5 +32,13 @@ $(function() {
             {data: 'content', name: 'content', orderable: false},
         ],
     });
-});
 
+    const deliverersPositions= JSON.parse(($(`input[name=deliverersPositions]`).val()));
+
+    const map = Map.create(`map`);
+    deliverersPositions.forEach((position, index) => {
+        placeDeliverer(map, position, index );
+    });
+    map.fitBounds()
+
+});

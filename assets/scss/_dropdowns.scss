@@ -7,6 +7,10 @@
             background-color: $primary;
             color: white !important;
 
+            .wii-icon {
+                background: $white;
+            }
+
             input[type=checkbox] {
                 &:checked {
                     background-color: $white;
