@@ -94,10 +94,10 @@ class TransportRound extends StatusHistoryContainer {
     private ?string $estimatedTime = null;
 
     #[ORM\Column(type: 'boolean')]
-    private ?bool $depositedDeliveryPacks = false;
+    private ?bool $noDeliveryToReturn = false;
 
     #[ORM\Column(type: 'boolean')]
-    private ?bool $depositedCollectPacks = false;
+    private ?bool $noCollectToReturn = false;
 
     #[ORM\Column(type: 'integer', options: ['default' => 0])]
     private int $rejectedOrderCount = 0;
@@ -239,21 +239,21 @@ class TransportRound extends StatusHistoryContainer {
         return $this;
     }
 
-    public function getDepositedDeliveryPacks(): ?bool {
-        return $this->depositedDeliveryPacks;
+    public function hasNoDeliveryToReturn(): ?bool {
+        return $this->noDeliveryToReturn;
     }
 
-    public function setDepositedDeliveryPacks(?bool $depositedDeliveryPacks): self {
-        $this->depositedDeliveryPacks = $depositedDeliveryPacks;
+    public function setNoDeliveryToReturn(?bool $noDeliveryToReturn): self {
+        $this->noDeliveryToReturn = $noDeliveryToReturn;
         return $this;
     }
 
-    public function getDepositedCollectPacks(): ?bool {
-        return $this->depositedCollectPacks;
+    public function hasNoCollectToReturn(): ?bool {
+        return $this->noCollectToReturn;
     }
 
-    public function setDepositedCollectPacks(?bool $depositedCollectPacks): self {
-        $this->depositedCollectPacks = $depositedCollectPacks;
+    public function setNoCollectToReturn(?bool $noCollectToReturn): self {
+        $this->noCollectToReturn = $noCollectToReturn;
         return $this;
     }
 

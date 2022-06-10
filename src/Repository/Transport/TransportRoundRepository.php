@@ -96,12 +96,14 @@ class TransportRoundRepository extends EntityRepository {
         return $this->createQueryBuilder('transport_round')
             ->andWhere('transport_round.deliverer = :user')
             ->andWhere('status.code IN (:availableStatuses)')
+            ->andWhere('transport_round.noDeliveryToReturn = 0 OR transport_round.noCollectToReturn = 0')
             ->join('transport_round.status', 'status')
             ->orderBy('transport_round.expectedAt', 'ASC')
             ->setParameter('user', $user)
             ->setParameter('availableStatuses', [
                 TransportRound::STATUS_AWAITING_DELIVERER,
-                TransportRound::STATUS_ONGOING
+                TransportRound::STATUS_ONGOING,
+                TransportRound::STATUS_FINISHED
             ])
             ->getQuery()
             ->getResult();

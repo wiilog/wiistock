@@ -198,8 +198,8 @@ class TransportController extends AbstractFOSRestController {
             "done_collects" => $collectedOrders->count(),
             "deposited_packs" => $depositedPacks,
             "packs_to_deposit" => $toDeposit,
-            "deposited_delivery_packs" => $round->getDepositedDeliveryPacks(),
-            "deposited_collect_packs" => $round->getDepositedCollectPacks(),
+            "deposited_delivery_packs" => $round->hasNoDeliveryToReturn(),
+            "deposited_collect_packs" => $round->hasNoCollectToReturn(),
             "lines" => Stream::from($lines)
                 ->filter(fn(TransportRoundLine $line) =>
                     !$line->getCancelledAt()
@@ -336,7 +336,7 @@ class TransportController extends AbstractFOSRestController {
         $deliveryRejectMotives = $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_DELIVERY_REJECT_MOTIVES);
         $collectRejectMotives = $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_COLLECT_REJECT_MOTIVES);
 
-        $packRejectMotives = explode(",", $packRejectMotives);
+        $packRejectMotives = $packRejectMotives ? explode(",", $packRejectMotives) : [];
         $deliveryRejectMotives = explode(",", $deliveryRejectMotives);
         $collectRejectMotives = explode(",", $collectRejectMotives);
 
@@ -415,17 +415,80 @@ class TransportController extends AbstractFOSRestController {
      * @Wii\RestVersionChecked()
      */
     public function finishRound(Request                 $request,
-                               EntityManagerInterface  $manager,
-                               GeoService $geoService,
-                               TransportRoundService   $transportRoundService): Response {
+                                EntityManagerInterface  $manager,
+                                GeoService              $geoService,
+                                TransportRoundService   $transportRoundService,
+                                TrackingMovementService $trackingMovementService,
+                                StatusHistoryService    $statusHistoryService): Response {
         $data = $request->request;
+        $locationRepository = $manager->getRepository(Emplacement::class);
         $round = $manager->find(TransportRound::class, $data->get('round'));
+        $location = $locationRepository->find($data->get('location'));
+        $packs = $data->all()['packs'] ?? [];
+        $now = new DateTime();
 
-        $round->setRealDistance($transportRoundService->calculateRoundRealDistance($round, $geoService));
+        if(!empty($packs)) {
+            $packsDropLocation = $locationRepository->find($data->get('packsDropLocation'));
+
+            foreach ($packs as $pack) {
+                $trackingMovement = $trackingMovementService->createTrackingMovement(
+                    $pack,
+                    $packsDropLocation,
+                    $this->getUser(),
+                    $now,
+                    true,
+                    true,
+                    TrackingMovement::TYPE_DEPOSE
+                );
+
+                $manager->persist($trackingMovement);
+            }
+
+        }
+
+        $emptyRoundPack = $manager->getRepository(Pack::class)->findOneBy(['code' => Pack::EMPTY_ROUND_PACK]);
+        $trackingMovement = $trackingMovementService->createTrackingMovement(
+            $emptyRoundPack,
+            $location,
+            $this->getUser(),
+            $now,
+            true,
+            true,
+            TrackingMovement::TYPE_EMPTY_ROUND
+        );
+        $manager->persist($trackingMovement);
+
+        $round
+            ->setRealDistance($transportRoundService->calculateRoundRealDistance($round, $geoService))
+            ->setEndedAt($now);
+
+        $allCollectsReturned = Stream::from($round->getTransportRoundLines())
+            ->filterMap(fn(TransportRoundLine $line) => $line->getOrder()->getRequest() instanceof TransportCollectRequest
+                ? $line->getOrder()->getRequest()
+                : $line->getOrder()->getRequest()->getCollect())
+            ->flatMap(fn(TransportCollectRequest $collect) => $collect->getLines())
+            ->filter(fn(TransportCollectRequestLine $line) => $line->getQuantityToCollect() != 0)
+            ->isEmpty();
+        if($allCollectsReturned) {
+            $round->setNoCollectToReturn(true);
+        }
+
+        $allDeliveriesReturned = Stream::from($round->getTransportRoundLines())
+            ->filter(fn(TransportRoundLine $line) => Stream::from($line->getOrder()->getPacks())
+                ->some(fn(TransportDeliveryOrderPack $pack) => $pack->getState() === TransportDeliveryOrderPack::LOADED_STATE))
+            ->count();
+        if($allDeliveriesReturned === 0) {
+            $round->setNoDeliveryToReturn(true);
+        }
+
+        $finishedStatus = $manager->getRepository(Statut::class)
+            ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ROUND, TransportRound::STATUS_FINISHED);
+        $statusHistoryService->updateStatus($manager, $round, $finishedStatus);
+
         $manager->flush();
 
         return $this->json([
-            "success" => true,
+            "success" => true
         ]);
     }
 
@@ -455,12 +518,7 @@ class TransportController extends AbstractFOSRestController {
 
         $hasRejected = false;
 
-        $statusHistoryRound = $statusHistoryService->updateStatus($manager, $round, $deliveryOrderOngoing);
-
-        $historyService->persistTransportHistory($manager, $round, TransportHistoryService::TYPE_ONGOING, [
-            "user" => $this->getUser(),
-            "history" => $statusHistoryRound
-        ]);
+        $statusHistoryService->updateStatus($manager, $round, $deliveryOrderOngoing);
 
         foreach($round->getTransportRoundLines() as $line) {
             $order = $line->getOrder();
@@ -1004,7 +1062,7 @@ class TransportController extends AbstractFOSRestController {
                 ->isEmpty();
 
             if($isDoneReturning) {
-                $round->setDepositedDeliveryPacks(true);
+                $round->setNoDeliveryToReturn(true);
             }
         } else if($depositedCollectPacks) {
             foreach ($depositedCollectPacks as $pack) {
@@ -1075,7 +1133,7 @@ class TransportController extends AbstractFOSRestController {
                     ]
                 );
 
-                $round->setDepositedCollectPacks(true);
+                $round->setNoCollectToReturn(true);
             }
         }
 
@@ -1086,4 +1144,37 @@ class TransportController extends AbstractFOSRestController {
         ]);
     }
 
+    /**
+     * @Rest\Get("/api/end-round-locations", name="api_end_round_locations", methods={"GET"}, condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function endRoundLocations(EntityManagerInterface $manager): Response {
+        $settingRepository = $manager->getRepository(Setting::class);
+        $endRoundLocations = $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_END_ROUND_LOCATIONS);
+
+        $endRoundLocations = $endRoundLocations ? explode(",", $endRoundLocations) : [];
+        $endRoundLocations = Stream::from($endRoundLocations)->map(fn(string $location) => (int) $location)->toArray();
+
+        return $this->json([
+           'endRoundLocations' => $endRoundLocations
+        ]);
+    }
+
+    /**
+     * @Rest\Get("/api/undelivered-packs-locations", name="api_undelivered_packs_locations", methods={"GET"}, condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function undeliveredPacksLocations(EntityManagerInterface $manager): Response {
+        $settingRepository = $manager->getRepository(Setting::class);
+        $undeliveredPacksLocations = $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_REJECTED_PACKS_LOCATIONS);
+
+        $undeliveredPacksLocations = $undeliveredPacksLocations ? explode(",", $undeliveredPacksLocations) : [];
+        $undeliveredPacksLocations = Stream::from($undeliveredPacksLocations)->map(fn(string $location) => (int) $location)->toArray();
+
+        return $this->json([
+            'undeliveredPacksLocations' => $undeliveredPacksLocations
+        ]);
+    }
 }
