@@ -31,6 +31,7 @@ use App\Service\StatusHistoryService;
 use App\Service\UniqueNumberService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use DoctrineExtensions\Query\Mysql\CountIf;
 use JetBrains\PhpStorm\ArrayShape;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -171,22 +172,61 @@ class TransportService {
 
         ['status' => $status, 'subcontracted' => $subcontracted] = $this->getStatusRequest($entityManager, $transportRequest, $expectedAt);
         if ($creation) { // transport creation
-            if ($subcontracted) {
-                $settingRepository = $entityManager->getRepository(Setting::class);
-                $this->transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_NO_MONITORING, [
-                    'message' => $settingRepository->getOneParamByLabel(Setting::NON_BUSINESS_HOURS_MESSAGE) ?: ''
-                ]);
-            }
-
             $statusHistory = $this->statusHistoryService->updateStatus($entityManager, $transportRequest, $status);
             $this->transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_REQUEST_CREATION, [
                 'history' => $statusHistory,
                 'user' => $loggedUser,
             ]);
+
+            if ($subcontracted) {
+                $settingRepository = $entityManager->getRepository(Setting::class);
+                $this->transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_SUBCONTRACTED, [
+                    'user' => $loggedUser,
+                ]);
+                $this->transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_NO_MONITORING, [
+                    'message' => $settingRepository->getOneParamByLabel(Setting::NON_BUSINESS_HOURS_MESSAGE) ?: ''
+                ]);
+            }
+            elseif ($status == TransportRequest::STATUS_AWAITING_VALIDATION) {
+                $settingRepository = $entityManager->getRepository(Setting::class);
+                $this->transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_NO_MONITORING, [
+                    'message' => $settingRepository->getOneParamByLabel(Setting::NON_BUSINESS_HOURS_MESSAGE) ?: ''
+                ]);
+                $this->transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_AWAITING_VALIDATION, [
+                    'user' => $loggedUser,
+                ]);
+            }
+
         }
         else {
             if (!$transportRequest->canBeUpdated()) {
                 throw new FormException("La modification de cette demande de transport n'est pas autorisée");
+            }
+
+            $this->transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_REQUEST_EDITED, [
+                'user' => $loggedUser,
+            ]);
+
+            if ($subcontracted){
+                if($transportRequest->getStatus()->getCode() !== TransportRequest::STATUS_SUBCONTRACTED){
+                    $settingRepository = $entityManager->getRepository(Setting::class);
+                    $this->transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_NO_MONITORING, [
+                        'message' => $settingRepository->getOneParamByLabel(Setting::NON_BUSINESS_HOURS_MESSAGE) ?: ''
+                    ]);
+
+                    $this->transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_SUBCONTRACTED, [
+                        'user' => $loggedUser,
+                    ]);
+                }
+            }
+            elseif ( $transportRequest->getStatus()->getCode() !== TransportRequest::STATUS_AWAITING_VALIDATION  && $status == TransportRequest::STATUS_AWAITING_VALIDATION) {
+                $settingRepository = $entityManager->getRepository(Setting::class);
+                $this->transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_NO_MONITORING, [
+                    'message' => $settingRepository->getOneParamByLabel(Setting::NON_BUSINESS_HOURS_MESSAGE) ?: ''
+                ]);
+                $this->transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_AWAITING_VALIDATION, [
+                    'user' => $loggedUser,
+                ]);
             }
 
             $canChangeStatus = (
@@ -196,11 +236,6 @@ class TransportService {
             if ($canChangeStatus){
                 $statusHistory = $this->statusHistoryService->updateStatus($entityManager, $transportRequest, $status);
             }
-
-            $this->transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_REQUEST_EDITED, [
-                'history' => $statusHistory ?? null,
-                'user' => $loggedUser,
-            ]);
         }
 
         $transportRequest
