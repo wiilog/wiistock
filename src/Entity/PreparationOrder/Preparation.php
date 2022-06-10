@@ -45,6 +45,9 @@ class Preparation implements PairedEntity {
     #[ORM\Column(type: 'string', length: 255, nullable: false, unique: true)]
     private $numero;
 
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private ?bool $planned = false;
+
     #[ORM\Column(type: 'date', nullable: true)]
     private ?DateTime $expectedAt = null;
 
@@ -367,6 +370,16 @@ class Preparation implements PairedEntity {
 
     public function __toString() {
         return $this->numero;
+    }
+
+    public function isPlanned(): ?bool {
+        return $this->planned;
+    }
+
+    public function setPlanned(?bool $planned): self {
+        $this->planned = $planned;
+
+        return $this;
     }
 
 }

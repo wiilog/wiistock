@@ -10,7 +10,7 @@
             {% if preparation.statut %}
                 <div class="col-12 mt-1">
                     <div class="preparation-status rounded px-2 py-1 d-inline-block bg-white">
-                        {{ preparation.statut.nom }}
+                        {{ preparation.planned ? constant('App\\Entity\\PreparationOrder\\Preparation::STATUT_LAUNCHED') : preparation.statut.nom }}
                     </div>
                 </div>
             {% endif %}

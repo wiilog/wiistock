@@ -115,7 +115,6 @@ class PreparationController extends AbstractController
                 );
             }
         }
-
         $entityManager->flush();
         if ($livraison->getDemande()->getType()->isNotificationsEnabled()) {
             $this->notificationService->toTreat($livraison);
@@ -272,7 +271,10 @@ class PreparationController extends AbstractController
             'isPrepaEditable' => $preparationStatus === Preparation::STATUT_A_TRAITER || ($preparationStatus == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparation->getUtilisateur() == $this->getUser()),
             'headerConfig' => [
                 ['label' => 'Numéro', 'value' => $preparation->getNumero()],
-                ['label' => 'Statut', 'value' => $preparation->getStatut() ? ucfirst($preparation->getStatut()->getNom()) : ''],
+                ['label' => 'Statut', 'value' => $preparation->isPlanned() && $preparation->getStatut()->getCode() === Preparation::STATUT_A_TRAITER
+                    ? ucfirst(Preparation::STATUT_LAUNCHED)
+                    : ($preparation->getStatut()->getCode() ? ucfirst($preparation->getStatut()->getNom()) : '')
+                ],
                 ['label' => 'Point de livraison', 'value' => $destination ? $destination->getLabel() : ''],
                 ['label' => 'Opérateur', 'value' => $operator ? $operator->getUsername() : ''],
                 ['label' => 'Demandeur', 'value' => FormatHelper::deliveryRequester($demande)],
@@ -887,7 +889,6 @@ class PreparationController extends AbstractController
         if (empty($quantityErrorPreparationId) && $launchPreparation === "1") {
             foreach ($preparationsToLaunch as $preparation) {
                 $preparation->setStatut($toTreatStatut);
-
                 $demande = $preparation->getDemande();
                 $refLines = $preparation->getReferenceLines();
                 if ($demande->getType()->isNotificationsEnabled()) {

@@ -433,6 +433,10 @@ class DemandeLivraisonService
         $statutD = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
         $demande->setStatut($statutD);
 
+        if (!$needsQuantitiesCheck) {
+            $preparation->setPlanned(true);
+        }
+
         // modification du statut articles => en transit
         $articles = $demande->getArticleLines();
         $statutArticleIntransit = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT);

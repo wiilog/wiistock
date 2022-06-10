@@ -100,11 +100,11 @@ class PreparationRepository extends EntityRepository
             ->join('preparation.referenceLines', 'referenceLines')
             ->where('referenceLines.reference = :reference')
             ->andWhere('preparation.expectedAt BETWEEN :start and :end')
-            ->andWhere('statut.code = :validated')
+            ->andWhere('statut.code IN (:statuses)')
             ->setParameters([
                 'start' => $start,
                 'end' => $end,
-                'validated' => Preparation::STATUT_VALIDATED,
+                'statuses' => [Preparation::STATUT_VALIDATED, Preparation::STATUT_A_TRAITER],
                 'reference' => $referenceArticle
             ])
             ->orderBy('preparation.expectedAt', 'ASC')
@@ -123,7 +123,8 @@ class PreparationRepository extends EntityRepository
         $qb = $this->createQueryBuilder("p");
 
         $countTotal = QueryCounter::count($qb, 'p');
-
+        $qb
+            ->where('p.planned IS NULL OR p.planned = 0');
         // filtres sup
         foreach ($filters as $filter) {
             switch ($filter['field']) {
