@@ -596,31 +596,28 @@ class RequestController extends AbstractController {
         }
 
         $statusRequest = $statusRepository->findOneByCategorieNameAndStatutCode($categoryRequest, TransportRequest::STATUS_CANCELLED);
-
+dump($success);
         if ($success) {
-            $msg = 'Demande annulée.';
+            $msg = "Demande annulée";
             $transportOrder = $transportRequest->getOrder();
 
-            $round= Stream::from($transportOrder->getTransportRoundLines())
-                ->sort(function (TransportRoundLine $a, TransportRoundLine $b) {
-                    return $a->getTransportRound()->getExpectedAt() <=> $b->getTransportRound()->getExpectedAt();
-                })
-                ->first()
-                ->getTransportRound();
+            $line = $transportOrder->getTransportRoundLines()->last();
+            $round = $line->getTransportRound();
 
-            $nextRoundLine = $round->getTransportRoundLines()
-                ->filter(fn(TransportRoundLine $line) => !$line->getOrder()?->getTreatedAt() && $line->getOrder()->getRequest()->getStatus()->getCode() !== TransportRequest::STATUS_CANCELLED)
-                ?->first();
+            $lineBefore = null;
+            foreach($round->getTransportRoundLines() as $currentLine) {
+                if($currentLine->getPriority() + 1 === $line->getPriority()) {
+                    $lineBefore = $currentLine;
+                    break;
+                }
+            }
 
-            if ($nextRoundLine) {
-                $nextDeliveryRequest = $nextRoundLine->getOrder()->getRequest();
-                //if ( $transportRequest == $nextDeliveryRequest && $round->getStatus()->getCode() == TransportRound::STATUS_ONGOING) {
-                    $userChannel = $userService->getUserFCMChannel($round->getDeliverer());
-                    $notificationService->send($userChannel, "Votre Prochain point de passage a été annulé", null, [
-                        'title' => 'Votre Prochain point de passage a été annulé',
-                        'roundId' => $round->getId(),
-                    ]);
-                //}
+            if(!$lineBefore || $lineBefore->getOrder()->getStatus()->getCode() !== TransportOrder::STATUS_ONGOING && $line->getOrder()->getStatus()->getCode() === TransportOrder::STATUS_ONGOING) {
+                $userChannel = $userService->getUserFCMChannel($round->getDeliverer());
+                $notificationService->send($userChannel, "Votre prochain point de passage a été annulé", null, [
+                    "roundId" => $round->getId(),
+                    "transportId" => $transportRequest->getId(),
+                ]);
             }
 
             $statusHistoryRequest = $statusHistoryService->updateStatus($entityManager, $transportRequest, $statusRequest);
@@ -629,24 +626,19 @@ class RequestController extends AbstractController {
                 'user' => $loggedUser
             ]);
 
-            if ($transportOrder) {
-                $statusOrder = $statusRepository->findOneByCategorieNameAndStatutCode($categoryOrder, TransportOrder::STATUS_CANCELLED);
-                $statusHistoryOrder = $statusHistoryService->updateStatus($entityManager, $transportOrder, $statusOrder);
-                $transportHistoryService->persistTransportHistory($entityManager, $transportOrder, TransportHistoryService::TYPE_CANCELLED, [
-                    'history' => $statusHistoryOrder,
-                    'user' => $loggedUser
-                ]);
+            $statusOrder = $statusRepository->findOneByCategorieNameAndStatutCode($categoryOrder, TransportOrder::STATUS_CANCELLED);
+            $statusHistoryOrder = $statusHistoryService->updateStatus($entityManager, $transportOrder, $statusOrder);
+            $transportHistoryService->persistTransportHistory($entityManager, $transportOrder, TransportHistoryService::TYPE_CANCELLED, [
+                'history' => $statusHistoryOrder,
+                'user' => $loggedUser
+            ]);
 
-                if(!$transportOrder->getTransportRoundLines()->isEmpty()) {
-                    $line = $transportOrder->getTransportRoundLines()->last();
-                    $line->setCancelledAt(new DateTime());
-                }
-            }
+            $line->setCancelledAt(new DateTime());
 
             $entityManager->flush();
         }
         else {
-            $msg = 'Le statut de cette demande rend impossible son annulation.';
+            $msg = "Ce transport ne peut pas être annulé car il n'est pas en cours";
         }
 
         return $this->json([
