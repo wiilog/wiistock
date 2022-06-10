@@ -173,7 +173,10 @@ class PreparationController extends AbstractController
     {
         $demande = $preparation->getDemande();
         $preparationStatut = $preparation->getStatut() ? $preparation->getStatut()->getNom() : null;
-        $isPrepaEditable = $preparationStatut === Preparation::STATUT_A_TRAITER || ($preparationStatut == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparation->getUtilisateur() == $this->getUser());
+        $isPrepaEditable =
+            $preparationStatut === Preparation::STATUT_A_TRAITER
+            || $preparationStatut === Preparation::STATUT_VALIDATED
+            || ($preparationStatut == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparation->getUtilisateur() == $this->getUser());
 
         if (isset($demande)) {
             $rows = [];
@@ -280,7 +283,9 @@ class PreparationController extends AbstractController
             'showTargetLocationPicking' => $entityManager->getRepository(Setting::class)->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION),
             'livraison' => $preparation->getLivraison(),
             'preparation' => $preparation,
-            'isPrepaEditable' => $preparationStatus === Preparation::STATUT_A_TRAITER || ($preparationStatus == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparation->getUtilisateur() == $this->getUser()),
+            'isPrepaEditable' => $preparationStatus === Preparation::STATUT_A_TRAITER
+                || $preparationStatus === Preparation::STATUT_VALIDATED
+                || ($preparationStatus == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparation->getUtilisateur() == $this->getUser()),
             'headerConfig' => [
                 ['label' => 'Numéro', 'value' => $preparation->getNumero()],
                 ['label' => 'Statut', 'value' => ucfirst($status)],
@@ -319,13 +324,15 @@ class PreparationController extends AbstractController
         // il faut que la preparation soit supprimée avant une maj des articles
         $entityManager->flush();
 
-        foreach ($refToUpdate as $reference) {
-            $refArticleDataService->updateRefArticleQuantities($entityManager, $reference);
+        if (!$preparation->isPlanned()) {
+            foreach ($refToUpdate as $reference) {
+                $refArticleDataService->updateRefArticleQuantities($entityManager, $reference);
+            }
         }
 
         $entityManager->flush();
 
-        return $this->$this->redirectToRoute('preparation_index');
+        return $this->redirectToRoute('preparation_index');
     }
 
     #[Route('/modifier', name: "preparation_edit", options: ['expose' => true], methods: 'POST')]

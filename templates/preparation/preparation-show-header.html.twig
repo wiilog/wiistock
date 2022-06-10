@@ -8,7 +8,7 @@
         {% set hasRightPairingOrder = hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::PAIR_SENSOR')) %}
         {% set hasRightFinish = hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
 
-        {% if isPrepaEditable and hasRightFinish %}
+        {% if isPrepaEditable and hasRightFinish and preparation.statut.code != constant('App\\Entity\\PreparationOrder\\Preparation::STATUT_VALIDATED') %}
             <button type="button"
                     class="btn btn-primary split-button"
                     onclick="finishPrepa($(this))">
