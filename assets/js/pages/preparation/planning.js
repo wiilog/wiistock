@@ -128,8 +128,8 @@ function initializePlanningNavigation() {
 }
 
 function changeNavigationButtonStates() {
-    const $decrementDate = $('.decrement-date');
-    $decrementDate.prop('disabled', moment().isSame(planning.baseDate, 'day'));
+    const $todayDate = $('.today-date');
+    $todayDate.prop('disabled', moment().isSame(planning.baseDate, 'day'));
 }
 
 function getOrUpdatePreparationCard(modal){
