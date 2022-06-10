@@ -82,7 +82,7 @@
                                 <span class="wii-field-name">Kilomètres réels</span>
                                 {% set roundRealDistance = transportRound.realDistance %}
                                 {% if roundRealDistance %}
-                                    <span class="wii-field-text">{{ roundRealDistance }}Km</span>
+                                    <span class="wii-field-text">{{ roundRealDistance/1000 }}Km</span>
                                 {% else %}
                                     <span class="wii-field-text">-</span>
                                 {% endif %}
@@ -90,25 +90,35 @@
                         </div>
 
                         {% set nbRejectedPacks = transportRound.countRejectedPacks %}
-                        {% set nbRejectedOrders = transportRound.countRejectedOrders %}
+                        {% set nbRejectedOrders = transportRound.rejectedOrderCount %}
                         {% if nbRejectedPacks or nbRejectedOrders %}
                             <div class="header">
                                 <img src="{{ asset('svg/urgence.svg') }}" alt="Icône urgence" width="15px">
                                 <span class="wii-field-name ml-2">&Eacute;lément rejetées</span>
                             </div>
                             <div class="row content">
-                                {% if nbRejectedPacks %}
-                                    <div class="col-6 d-flex flex-column">
-                                        <span class="wii-field-name">Colis rejetés</span>
-                                        <span class="wii-field-text">{{ nbRejectedPacks }}</span>
-                                    </div>
-                                {% endif %}
-                                {% if nbRejectedOrders %}
-                                    <div class="col-6 d-flex flex-column">
-                                        <span class="wii-field-name">Commandes rejetées</span>
-                                        <span class="wii-field-text">{{ nbRejectedOrders }}</span>
-                                    </div>
-                                {% endif %}
+                                <div class="col-6 d-flex flex-column">
+                                    {% set s = (nbRejectedPacks ?? 0) != 1 ? 's' %}
+                                    <span class="wii-field-name d-inline-flex">
+                                        <img src="{{ asset('svg/rejected-pack.svg') }}"
+                                             class="transport-status-icon mr-1"
+                                             alt="Colis écarté"
+                                             width="15"
+                                             title="Colis écarté"/>
+                                            {{ nbRejectedPacks ?? 0}} coli{{ s }} écarté{{ s }}
+                                    </span>
+                                </div>
+                                <div class="col-6 d-flex flex-column">
+                                    {% set s = (nbRejectedOrders ?? 0) != 1 ? 's' %}
+                                    <span class="wii-field-name d-inline-flex">
+                                        <img src="{{ asset('svg/rejected-delivery.svg') }}"
+                                             class="transport-status-icon mr-1"
+                                             width="15"
+                                             alt="Livraison rejetée"
+                                             title="Livraison rejetée"/>
+                                        {{ nbRejectedOrders ?? 0 }} livraison{{ s }} rejetée{{ s }}
+                                    </span>
+                                </div>
                             </div>
                         {% endif %}
                     </div>
@@ -126,21 +136,20 @@
                                     {% set finishedStatusesName = constant('App\\Entity\\Transport\\TransportRound::STATUS_FINISHED') %}
                                     {% set onGoingStatusesName = constant('App\\Entity\\Transport\\TransportRound::STATUS_ONGOING') %}
                                     {% if transportRound.status.code != finishedStatusesName %}
-                                        <div class="dropdown-item pointer edit-button">
-                                            <a href="{{ path('transport_round_plan', {'transportRound': transportRound.id}) }}">
-                                                <img src="{{ asset('svg/plus-black.svg') }}" alt="" width="17px"
-                                                     class="pr-1">
+                                        <a href="{{ path('transport_round_plan', {'transportRound': transportRound.id}) }}"
+                                           class="dropdown-item pointer edit-button d-flex align-items-center">
+                                            <i class="wii-icon wii-icon-plus-black mr-2"></i>
+                                            {% if transportRound.status.code == onGoingStatusesName %}
+                                                Ajouter une collecte
+                                            {% else %}
                                                 Ajouter un transport
-                                            </a>
-                                        </div>
+                                            {% endif %}
+                                        </a>
                                     {% endif %}
                                     {% if hasSomeDelivery %}
-                                        <div class="dropdown-item pointer print-round-button"
+                                        <div class="dropdown-item pointer print-round-button d-flex align-items-center"
                                              data-round-id="{{ transportRound.id }}">
-                                            <img src="{{ asset('svg/printer-black.svg') }}"
-                                                 alt=""
-                                                 width="17px"
-                                                 class="pr-1">
+                                            <i class="wii-icon wii-icon-printer-black mr-2"></i>
                                             Générer un bon de transport
                                         </div>
                                     {% endif %}
@@ -186,6 +195,7 @@
                             minTemp: url.minTemp,
                             maxTemp: url.maxTemp,
                             alwaysVisible: true,
+                            box_classes: 'box-shadow-none mt-0'
                         } %}
                     {% endfor %}
                 </div>

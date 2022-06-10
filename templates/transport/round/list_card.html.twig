@@ -1,15 +1,23 @@
-<div class="transport-request-container col-12 col-xl-7 p-1">
+<div class="transport-request-container w-100 p-1">
     <a href="{{ path('transport_round_show', {transportRound: round.id}) }}" class="transport-request-card">
         <table class="transport-content w-100">
             <tr style="border-bottom: 5px solid transparent;">
-                <div class="h-100 d-flex flex-column" style="padding-top: 10px; padding-left: 10px; padding-right: 0;">
-                    {% if hasRejectedDeliveries %}
-                        <img src="{{ asset('svg/rejected-delivery.svg') }}" width="18px"
-                             height="18px" class="has-tooltip" title="Une ou plusieurs livraisons ont été rejetées">
+                <div class="h-100 d-flex flex-column" style="padding-top: 5px; padding-left: 5px; padding-right: 5px;">
+                    {% if round.rejectedOrderCount > 0 %}
+                        <img src="{{ asset('svg/rejected-delivery.svg') }}"
+                             width="18px"
+                             height="18px"
+                             class="has-tooltip"
+                             title="Une ou plusieurs livraisons ont été rejetées">
                     {% else %}
                         {% if hasRejectedPacks %}
                             <img src="{{ asset('svg/rejected-pack.svg') }}" width="18px" height="18px"
                                  class="has-tooltip" title="Un ou plusieurs colis ont été rejetés">
+                        {% else %}
+                            <img src="{{ asset('svg/rejected-delivery.svg') }}"
+                                 width="18px"
+                                 height="18px"
+                                 class="invisible">
                         {% endif %}
 
                         {# TODO Gérer l'affichage de l'icône en fonction du lastMassage du sensor. Faire la WIIS-7229 avant #}
@@ -65,7 +73,7 @@
                 </td>
                 <td class="transport-details-container">
                     Km réels : <span class="text-nowrap">
-                        <span class="transport-value">{{ round.realDistance ? round.realDistance ~ 'km' : '-' }}</span>
+                        <span class="transport-value">{{ round.realDistance ? round.realDistance/1000 ~ 'km' : '-' }}</span>
                     </span>
                 </td>
                 <td class="transport-details-container">

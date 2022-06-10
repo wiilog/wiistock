@@ -1,5 +1,15 @@
 <div class="row allow-expand">
-    <div class="col-4">Source <span class="bold">{{ source }}</span></div>
+    <div class="col-4">
+        Source
+        {% if transportRequest %}
+            <a href="{{ path('transport_request_show' , {transport: transportRequest.id}) }}">
+                {{ source }}
+            </a>
+        {% else %}
+            <span class="bold"></span>
+        {% endif %}
+
+    </div>
     <div class="col-4">Date et heure <span class="bold">{{ triggered | date('d/m/Y H:i:s') }}</span></div>
 </div>
 <div class="row allow-expand">

@@ -3,6 +3,7 @@
 namespace App\Service\Transport;
 
 use App\Entity\Attachment;
+use App\Entity\Emplacement;
 use App\Entity\Pack;
 use App\Entity\Statut;
 use App\Entity\Transport\TransportCollectRequest;
@@ -67,7 +68,7 @@ class TransportHistoryService {
         self::TYPE_ADD_COMMENT => "{user} a laissé un commentaire",
         self::TYPE_ADD_ATTACHMENT => "{user} a ajouté des pièces jointes",
         self::TYPE_FAILED => "{user} n'a pas pu effectuer la {category}",
-        self::TYPE_PACKS_FAILED => "{user} a déposé les colis {packs} sur {location}",
+        self::TYPE_PACKS_FAILED => "{user} a déposé les colis {message} sur {location}",
         self::TYPE_PACKS_DEPOSITED => "{user} a déposé les objets sur {location}",
         self::TYPE_NO_MONITORING => "Le suivi en temps réel n'est pas disponible car la livraison est un horaire non ouvré. {message}",
         self::TYPE_SUBCONTRACT_UPDATE => "{user} a indiqué que la livraison était {status} le {statusDate}",
@@ -87,7 +88,7 @@ class TransportHistoryService {
     public KernelInterface $kernel;
 
     public function persistTransportHistory(EntityManagerInterface                $entityManager,
-                                            array|TransportRequest|TransportOrder $transports,
+                                            array|TransportRequest|TransportOrder|TransportRound $transports,
                                             string                                $type,
                                             array                                 $params = []): TransportHistory {
         $transports = is_array($transports) ? $transports : [$transports];
@@ -99,6 +100,9 @@ class TransportHistoryService {
             }
             else if ($transport instanceof TransportOrder) {
                 $history->setOrder($transport);
+            }
+            else if ($transport instanceof TransportRound) {
+                $history->setRound($transport);
             }
             else {
                 throw new RuntimeException('Unavailable transport type');
@@ -135,6 +139,9 @@ class TransportHistoryService {
                 }
                 else if($entity instanceof Pack) {
                     return $entity->getCode();
+                }
+                else if($entity instanceof Emplacement) {
+                    return $entity->getLabel();
                 }
                 else if($entity instanceof TransportRound) {
                     $numberPrefix = TransportRound::NUMBER_PREFIX;
@@ -205,6 +212,7 @@ class TransportHistoryService {
             "{message}" => $this->formatEntity($history->getMessage()),
             "{deliverer}" => $this->formatEntity($history->getDeliverer(), false),
             "{reason}" => $this->formatEntity($history->getReason()),
+            "{location}" => $this->formatEntity($history->getLocation()),
             "{status}" => $this->formatEntity($history->getStatusHistory()?->getStatus()),
             "{statusDate}" => $history->getStatusDate()
                 ? $this->formatEntity($history->getStatusDate())

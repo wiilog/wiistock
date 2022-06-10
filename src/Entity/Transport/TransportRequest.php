@@ -80,7 +80,7 @@ abstract class TransportRequest extends StatusHistoryContainer {
         TransportRequest::STATUS_TO_PREPARE,
         TransportRequest::STATUS_TO_DELIVER,
         TransportRequest::STATUS_ONGOING,
-        TransportRequest::STATUS_SUBCONTRACTED,
+        TransportRequest::STATUS_AWAITING_VALIDATION,
     ];
 
     public const STATUS_WORKFLOW_DELIVERY_COLLECT = [
@@ -106,9 +106,12 @@ abstract class TransportRequest extends StatusHistoryContainer {
     ];
 
     public const CANCELED_STATUSES = [
-        self::STATUS_CANCELLED,
-        self::STATUS_NOT_DELIVERED,
-        self::STATUS_NOT_COLLECTED
+        TransportRequest::STATUS_CANCELLED,
+        TransportRequest::STATUS_NOT_DELIVERED,
+        TransportRequest::STATUS_NOT_COLLECTED,
+        TransportOrder::STATUS_CANCELLED,
+        TransportOrder::STATUS_NOT_DELIVERED,
+        TransportOrder::STATUS_NOT_COLLECTED,
     ];
 
     #[ORM\Id]

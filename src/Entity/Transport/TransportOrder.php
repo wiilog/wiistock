@@ -26,14 +26,14 @@ class TransportOrder extends StatusHistoryContainer {
 
     public const STATUS_TO_CONTACT = 'Patient à contacter';
     public const STATUS_TO_ASSIGN = 'À affecter';
-    public const STATUS_ASSIGNED = 'Affecté';
+    public const STATUS_ASSIGNED = 'Affectée';
     public const STATUS_ONGOING = 'En cours';
-    public const STATUS_FINISHED = 'Terminé';
+    public const STATUS_FINISHED = 'Terminée';
     public const STATUS_DEPOSITED = 'Objets déposés';
-    public const STATUS_CANCELLED = 'Annulé';
-    public const STATUS_NOT_DELIVERED = 'Non livré';
-    public const STATUS_NOT_COLLECTED = 'Non collecté';
-    public const STATUS_SUBCONTRACTED = 'Sous-traité';
+    public const STATUS_CANCELLED = 'Annulée';
+    public const STATUS_NOT_DELIVERED = 'Non livrée';
+    public const STATUS_NOT_COLLECTED = 'Non collectée';
+    public const STATUS_SUBCONTRACTED = 'Sous-traitée';
     public const STATUS_AWAITING_VALIDATION = 'En attente de validation';
 
     public const STATUS_WORKFLOW_COLLECT = [
@@ -110,6 +110,9 @@ class TransportOrder extends StatusHistoryContainer {
 
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $returnedAt = null;
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?DateTime $rejectedAt = null;
 
     #[ORM\Column(type: 'string', nullable: true)]
     private ?string $returnReason = null;
@@ -272,8 +275,7 @@ class TransportOrder extends StatusHistoryContainer {
     }
 
     public function isRejected(): bool {
-        return !$this->getPacks()->isEmpty() && Stream::from($this->getPacks())
-            ->every(fn(TransportDeliveryOrderPack $orderPack) => $orderPack->getState() === TransportDeliveryOrderPack::REJECTED_STATE);
+        return (bool) $this->getRejectedAt();
     }
 
     public function hasRejectedPacks(): bool {
@@ -397,17 +399,26 @@ class TransportOrder extends StatusHistoryContainer {
         return $this;
     }
 
-    public function getLastStatusHistory(array $statusCode) : array|null
+    public function getLastStatusHistory(array $statusCodes) : array|null
     {
         return Stream::from($this->getStatusHistory())
-            ->filter(fn(StatusHistory $history) => in_array($history->getStatus()->getCode(),$statusCode))
+            ->filter(fn(StatusHistory $history) => in_array($history->getStatus()->getCode(), $statusCodes))
             ->sort(fn(StatusHistory $s1, StatusHistory $s2) => $s2->getId() <=> $s1->getId())
             ->keymap(fn(StatusHistory $history) => [$history->getStatus()->getCode(), $history->getDate()])
             ->toArray();
     }
 
     public function isFinished(): bool {
-        return $this->getStatus()->getCode() === TransportOrder::STATUS_FINISHED;
+        return $this->getStatus()?->getCode() === TransportOrder::STATUS_FINISHED;
+    }
+
+    public function getRejectedAt(): ?DateTime {
+        return $this->rejectedAt;
+    }
+
+    public function setRejectedAt(?DateTime $rejectedAt): self {
+        $this->rejectedAt = $rejectedAt;
+        return $this;
     }
 
 }

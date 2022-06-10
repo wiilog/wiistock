@@ -88,9 +88,6 @@ function deletePhoneNumber($button) {
 function initTelInput($input, edit) {
     const iti = intlTelInput($input[0], {
         utilsScript: '/build/vendor/intl-tel-input/utils.js',
-        preferredCountries: ['fr'],
-        initialCountry: 'fr',
-        allowDropdown: edit
     });
     return $input.data('iti', iti);
 }
@@ -105,6 +102,7 @@ function onTemplateTypeChange($select) {
         $templateContainer.append(data);
         $modal.find('.error-msg').empty();
         $modal.find('.is-invalid').removeClass('is-invalid');
+        $modal.find('.alert-title').removeClass('d-none');
 
         if(type === 'mail' || type === 'push') {
             $('#upload-mail-image').on('change', () => updateImagePreview('#preview-mail-image', '#upload-mail-image'));

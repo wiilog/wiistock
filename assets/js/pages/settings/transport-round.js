@@ -1,5 +1,4 @@
 import EditableDatatable, {MODE_CLICK_EDIT_AND_ADD, MODE_NO_EDIT, SAVE_MANUALLY} from "../../editatable";
-import AJAX, {GET} from "@app/ajax";
 
 const $managementButtons = $(`.save-settings, .discard-settings`);
 
@@ -43,13 +42,4 @@ export function initializeTransportRound($container, canEdit) {
             $target.append(newOption).trigger('change');
         })
     });
-
-    $('.button-launch-import')
-        .off('click')
-        .on('click', function () {
-            wrapLoadingOnActionButton($(this), () => (
-                AJAX.route(GET, 'transport_rounds_launch_ftp_export')
-                    .json()
-            ));
-        });
 }

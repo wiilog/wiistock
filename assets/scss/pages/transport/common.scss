@@ -58,7 +58,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    height: 110px;
+    height: 100%;
     border: 1px solid $grey;
     border-radius: 4px;
     padding: 10px 5px;
@@ -74,7 +74,6 @@
     }
     .transport-content {
         flex: 1 1 auto;
-        margin-left: 15px;
     }
 
     .transport-category-container {
@@ -88,7 +87,6 @@
     }
 
     .transport-details-container, .transport-creation-contact, .transport-creator {
-        width: 25%;
         font-size: 1rem;
 
         .wii-small-text {
@@ -209,4 +207,23 @@
             width: 16px;
         }
     }
+}
+
+.show-round-map-container{
+    display: flex;
+    width: 100%;
+
+    #map {
+        height: 100%;
+        width: 100%;
+        border-radius: 5px;
+        z-index: 1;
+    }
+}
+
+.wii-icon-plus-black, .wii-icon-printer-black {
+    display: inline-block;
+    background: $black;
+    width: 17px;
+    height: 17px;
 }

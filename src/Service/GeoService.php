@@ -18,6 +18,7 @@ class GeoService
     #[Required]
     public HttpService $httpService;
 
+
     public function fetchCoordinates(string $address): array
     {
         $url = "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates";
@@ -140,4 +141,40 @@ class GeoService
         return $stopsData;
     }
 
+    // retourne en mètre la distance entre un tableau de point
+    public function getDistanceBetween(array $coordinates): float {
+        $length = count($coordinates);
+        return Stream::from($coordinates)
+            ->map(function(array $current, $index) use ($length, $coordinates) {
+                if ($index < $length - 1) {
+                    $next = $coordinates[$index + 1];
+                    return $this->vincentyGreatCircleDistance($current['latitude'], $current['longitude'], $next['latitude'], $next['longitude']);
+                }
+                return null;
+            })
+            ->filter()
+            ->sum();
+    }
+
+
+    // retourne en mètres
+    public function vincentyGreatCircleDistance(float $latitudeFrom,
+                                                float $longitudeFrom,
+                                                float $latitudeTo,
+                                                float $longitudeTo,
+                                                int $earthRadius = 6371000) {
+        // tout plein de trucs de maths compliqués, pas super interessant
+        $latFrom = deg2rad($latitudeFrom);
+        $lonFrom = deg2rad($longitudeFrom);
+        $latTo = deg2rad($latitudeTo);
+        $lonTo = deg2rad($longitudeTo);
+
+        $lonDelta = $lonTo - $lonFrom;
+        $a = pow(cos($latTo) * sin($lonDelta), 2) +
+            pow(cos($latFrom) * sin($latTo) - sin($latFrom) * cos($latTo) * cos($lonDelta), 2);
+        $b = sin($latFrom) * sin($latTo) + cos($latFrom) * cos($latTo) * cos($lonDelta);
+
+        $angle = atan2(sqrt($a), $b);
+        return $angle * $earthRadius;
+    }
 }

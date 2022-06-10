@@ -15,6 +15,7 @@ use App\Entity\Menu;
 use App\Entity\OrdreCollecte;
 use App\Entity\Pack;
 use App\Entity\PreparationOrder\Preparation;
+use App\Service\GeoService;
 use App\Service\IOT\DataMonitoringService;
 use App\Service\IOT\PairingService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -96,6 +97,7 @@ class DataHistoryController extends AbstractController {
      */
     public function getMapDataHistory(Request $request,
                                       EntityManagerInterface $entityManager,
+                                      GeoService $geoService,
                                       DataMonitoringService $dataMonitoringService): JsonResponse
     {
         $filters = $request->query->all();
@@ -129,7 +131,7 @@ class DataHistoryController extends AbstractController {
                 ->toArray();
             if ($coordinates[0] !== -1.0 || $coordinates[1] !== -1.0) {
                 if ($lastCoordinates) {
-                    $distanceBetweenLastPoint = $dataMonitoringService->vincentyGreatCircleDistance($lastCoordinates[0], $lastCoordinates[1], $coordinates[0], $coordinates[1]);
+                    $distanceBetweenLastPoint = $geoService->vincentyGreatCircleDistance($lastCoordinates[0], $lastCoordinates[1], $coordinates[0], $coordinates[1]);
                     $interval = $lastDate->diff($message->getDate());
                     if ($distanceBetweenLastPoint > 200.0 || (($interval->days * 24) + $interval->h) > 23) {
                         $data[$sensorCode][$dateStr] = $coordinates;

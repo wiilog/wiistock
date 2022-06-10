@@ -9,6 +9,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\FreeField;
 use App\Entity\IOT\SensorMessage;
+use App\Entity\IOT\TriggerAction;
 use App\Entity\Setting;
 use App\Entity\StatusHistory;
 use App\Entity\Transport\TransportCollectRequestLine;
@@ -127,39 +128,62 @@ class RequestController extends AbstractController {
 
         $order = $transport->getOrder();
 
-        $packsCount = $order->getPacks()->count() ?: 0;
+        $orderPacks = $order?->getPacks();
+        $packsCount = $orderPacks?->count() ?: 0;
 
         $hasRejectedPacks =  $order
-            && Stream::from($transport->getOrder()?->getPacks() ?: [])
+            && Stream::from($orderPacks ?: [])
                 ->some(fn(TransportDeliveryOrderPack $orderPack) => $orderPack->getState() === TransportDeliveryOrderPack::REJECTED_STATE);
 
         $contactPosition = [$transport->getContact()->getAddressLatitude(), $transport->getContact()->getAddressLongitude()];
 
-        $round = ! $order->getTransportRoundLines()->isEmpty()
-            ?  $order->getTransportRoundLines()->last()->getTransportRound()
-            : null;
+        if($order && $order->getTransportRoundLines()->count()) {
+            $round = $order->getTransportRoundLines()->last()->getTransportRound();
+        } else {
+            $round = null;
+        }
 
         $delivererPosition =  $round?->getBeganAt()
-            ? $round?->getDeliverer()?->getVehicle()?->getLastPosition($round->getBeganAt(), $round->getEndedAt())
+            ? $round->getVehicle()?->getLastPosition($round->getBeganAt(), $round->getEndedAt())
             : null;
 
         if ($round) {
             $now = new DateTime();
             $urls = [];
-            foreach ( $order->getPacks() as $transportDeliveryPack) {
-                $pack = $transportDeliveryPack->getPack();
-                $location = $pack->getLastTracking()?->getEmplacement();
-                if ($location and $location->getActivePairing()) {
-                    $urls[] = [
-                        "fetch_url" => $router->generate("chart_data_history", [
-                            "type" => IOTService::getEntityCodeFromEntity($location),
-                            "id" => $location->getId(),
-                            'start' => $round->getBeganAt()->format('Y-m-d\TH:i'),
-                            'end' => $round->getEndedAt() ?? $now->format('Y-m-d\TH:i'),
-                        ], UrlGeneratorInterface::ABSOLUTE_URL)
-                    ];
+            $transportRound = $transport->getOrder()->getTransportRoundLines()->last()
+                ? $transport->getOrder()->getTransportRoundLines()->last()->getTransportRound()
+                : null;
+
+            foreach ($transportRound?->getLocations() ?? [] as $location) {
+                $hasSensorMessageBetween = $location->getSensorMessagesBetween($round->getBeganAt(), $round->getEndedAt());
+                if(!$hasSensorMessageBetween) {
+                    continue;
                 }
+
+                $triggerActions = $location->getActivePairing()?->getSensorWrapper()?->getTriggerActions();
+                if($triggerActions) {
+                    $minTriggerActionThreshold = Stream::from($triggerActions)
+                        ->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'lower')
+                        ->last();
+                    $maxTriggerActionThreshold = Stream::from($triggerActions)
+                        ->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'higher')
+                        ->last();
+                    $minThreshold = $minTriggerActionThreshold?->getConfig()['temperature'];
+                    $maxThreshold = $maxTriggerActionThreshold?->getConfig()['temperature'];
+                }
+
+                $urls[] = [
+                    "fetch_url" => $router->generate("chart_data_history", [
+                        "type" => IOTService::getEntityCodeFromEntity($location),
+                        "id" => $location->getId(),
+                        'start' => $round->getBeganAt()->format('Y-m-d\TH:i'),
+                        'end' => $round->getEndedAt()?->format('Y-m-d\TH:i') ?? $now->format('Y-m-d\TH:i'),
+                    ], UrlGeneratorInterface::ABSOLUTE_URL),
+                    "minTemp" => $minThreshold ?? 0,
+                    "maxTemp" => $maxThreshold ?? 0,
+                ];
             }
+
             if (empty($urls)) {
                 $urls[] = [
                     "fetch_url" => $router->generate("chart_data_history", [
@@ -167,12 +191,13 @@ class RequestController extends AbstractController {
                         "id" => null,
                         'start' => new DateTime('now'),
                         'end' => new DateTime('tomorrow'),
-                    ], UrlGeneratorInterface::ABSOLUTE_URL)
+                    ], UrlGeneratorInterface::ABSOLUTE_URL),
+                    "minTemp" => 0,
+                    "maxTemp" => 0,
                 ];
             }
         }
 
-        //TODO WIIS-7229 appliquer les nouvelles bornes
         return $this->render('transport/request/show.html.twig', [
             'request' => $transport,
             'freeFields' => $freeFields,
@@ -181,8 +206,6 @@ class RequestController extends AbstractController {
             "contactPosition" => $contactPosition,
             "delivererPosition" => $delivererPosition,
             'urls' => $urls ?? null,
-            "minTemp" => SensorMessage::LOW_TEMPERATURE_THRESHOLD,
-            "maxTemp" => SensorMessage::HIGH_TEMPERATURE_THRESHOLD,
         ]);
     }
 
@@ -305,7 +328,11 @@ class RequestController extends AbstractController {
             isset($order)
             && $order->getPacks()->isEmpty()
             && $transportRequest instanceof TransportDeliveryRequest
-            && in_array($transportRequest->getStatus()?->getCode(), [TransportRequest::STATUS_TO_PREPARE, TransportRequest::STATUS_SUBCONTRACTED])
+            && in_array($transportRequest->getStatus()?->getCode(), [
+                TransportRequest::STATUS_TO_PREPARE,
+                TransportRequest::STATUS_SUBCONTRACTED,
+                TransportRequest::STATUS_AWAITING_VALIDATION
+            ])
         );
 
         if (!$canPacking) {
@@ -609,12 +636,17 @@ class RequestController extends AbstractController {
                     'history' => $statusHistoryOrder,
                     'user' => $loggedUser
                 ]);
+
+                if(!$transportOrder->getTransportRoundLines()->isEmpty()) {
+                    $line = $transportOrder->getTransportRoundLines()->last();
+                    $line->setCancelledAt(new DateTime());
+                }
             }
 
             $entityManager->flush();
         }
         else {
-            $msg = 'Le statut de cette demande rends impossible son annulation.';
+            $msg = 'Le statut de cette demande rend impossible son annulation.';
         }
 
         return $this->json([

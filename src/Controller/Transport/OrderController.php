@@ -10,6 +10,7 @@ use App\Entity\CategoryType;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField;
 use App\Entity\IOT\SensorMessage;
+use App\Entity\IOT\TriggerAction;
 use App\Entity\Menu;
 use App\Entity\Statut;
 use App\Entity\Transport\CollectTimeSlot;
@@ -138,39 +139,61 @@ class OrderController extends AbstractController {
         $contactPosition = [$transportRequest->getContact()->getAddressLatitude(), $transportRequest->getContact()->getAddressLongitude()];
 
         $delivererPosition =  $round?->getBeganAt()
-            ? $round?->getDeliverer()?->getVehicle()?->getLastPosition($round->getBeganAt(), $round->getEndedAt())
+            ? $round->getVehicle()?->getLastPosition($round->getBeganAt(), $round->getEndedAt())
             : null;
 
         if ($round) {
             $now = new DateTime();
             $urls = [];
-            foreach ($transport->getPacks() as $transportDeliveryPack) {
-                $pack = $transportDeliveryPack->getPack();
-                $location = $pack->getLastTracking()?->getEmplacement();
-                if ($location and $location->getActivePairing()) {
-                    $urls[] = [
-                        "fetch_url" => $router->generate("chart_data_history", [
-                            "type" => IOTService::getEntityCodeFromEntity($location),
-                            "id" => $location->getId(),
-                            'start' => $round->getBeganAt()->format('Y-m-d\TH:i'),
-                            'end' => $round->getEndedAt() ?? $now->format('Y-m-d\TH:i'),
-                        ], UrlGeneratorInterface::ABSOLUTE_URL)
-                    ];
+            $transportRound = $transport->getTransportRoundLines()->last()
+                ? $transport->getTransportRoundLines()->last()->getTransportRound()
+                : null;
+
+            foreach ($transportRound?->getLocations() ?? [] as $location) {
+                $hasSensorMessageBetween = $location->getSensorMessagesBetween($round->getBeganAt(), $round->getEndedAt());
+                if(!$hasSensorMessageBetween) {
+                    continue;
                 }
+
+                $triggerActions = $location->getActivePairing()?->getSensorWrapper()?->getTriggerActions();
+                if($triggerActions) {
+                    $minTriggerActionThreshold = Stream::from($triggerActions)
+                        ->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'lower')
+                        ->last();
+
+                    $maxTriggerActionThreshold = Stream::from($triggerActions)
+                        ->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'higher')
+                        ->last();
+
+                    $minThreshold = $minTriggerActionThreshold?->getConfig()['temperature'];
+                    $maxThreshold = $maxTriggerActionThreshold?->getConfig()['temperature'];
+                }
+
+                $urls[] = [
+                    "fetch_url" => $router->generate("chart_data_history", [
+                        "type" => IOTService::getEntityCodeFromEntity($location),
+                        "id" => $location->getId(),
+                        'start' => $round->getBeganAt()->format('Y-m-d\TH:i'),
+                        'end' => $round->getEndedAt()?->format('Y-m-d\TH:i') ?? $now->format('Y-m-d\TH:i'),
+                    ], UrlGeneratorInterface::ABSOLUTE_URL),
+                    "minTemp" => $minThreshold ?? 0,
+                    "maxTemp" => $maxThreshold ?? 0,
+                ];
             }
             if (empty($urls)) {
                 $urls[] = [
                     "fetch_url" => $router->generate("chart_data_history", [
-                        "type" => IOTService::getEntityCodeFromEntity($location),
+                        "type" => null,
                         "id" => null,
                         'start' => new DateTime('now'),
                         'end' => new DateTime('tomorrow'),
-                    ], UrlGeneratorInterface::ABSOLUTE_URL)
+                    ], UrlGeneratorInterface::ABSOLUTE_URL),
+                    "minTemp" => 0,
+                    "maxTemp" => 0,
                 ];
             }
         }
 
-        //TODO WIIS-7229 appliquer les nouvelles bornes
         return $this->render('transport/order/show.html.twig', [
             'order' => $transport,
             'freeFields' => $freeFields,
@@ -181,8 +204,6 @@ class OrderController extends AbstractController {
             'contactPosition' => $contactPosition,
             'delivererPosition' => $delivererPosition,
             'urls' => $urls ?? null,
-            "minTemp" => SensorMessage::LOW_TEMPERATURE_THRESHOLD,
-            "maxTemp" => SensorMessage::HIGH_TEMPERATURE_THRESHOLD,
         ]);
     }
 

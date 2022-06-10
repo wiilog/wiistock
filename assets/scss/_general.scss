@@ -215,6 +215,10 @@ a {
     width: 120px;
 }
 
+.w-40px {
+    width: 40px;
+}
+
 .w-300px, .w-300px + .select2.select2-container {
     width: 300px !important;
 }
@@ -528,7 +532,7 @@ label.required:after {
     }
 }
 
-.wii-icon-iot-article, .wii-icon-iot-location, .wii-icon-iot-pack {
+.wii-icon-iot-article, .wii-icon-iot-location, .wii-icon-iot-pack, .wii-icon-iot-vehicle {
     background-color: white;
     width: 15px;
     height: 15px;
@@ -897,4 +901,8 @@ label.required:after {
 
 .vertical-align-middle {
     vertical-align: middle !important;
+}
+
+.box-shadow-none {
+    box-shadow: none !important;
 }

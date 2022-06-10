@@ -6,6 +6,7 @@ use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\FiltreSup;
+use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorMessage;
 use App\Entity\IOT\TriggerAction;
 use App\Entity\Menu;
@@ -52,9 +53,17 @@ class RoundController extends AbstractController {
     #[Route("/liste", name: "transport_round_index", methods: "GET")]
     public function index(EntityManagerInterface $em): Response {
         $statusRepository = $em->getRepository(Statut::class);
+        $roundRepository = $em->getRepository(TransportRound::class);
         $statuses = $statusRepository->findByCategorieName(CategorieStatut::TRANSPORT_ROUND);
+        $roundCategorie = $em->getRepository(CategorieStatut::class)->findOneBy(['nom' => CategorieStatut::TRANSPORT_ROUND])->getId();
+        $ongoingStatus = $statusRepository->findOneBy(['code' => TransportRound::STATUS_ONGOING , 'categorie' => $roundCategorie ])?->getId();
+        $deliverersPositions = Stream::from($roundRepository->findBy(['status' => $ongoingStatus]))
+            ->map(fn(TransportRound $round) => $round->getVehicle()?->getLastPosition($round->getBeganAt()))
+            ->filter(fn($position) => $position != null)
+            ->toArray();
 
         return $this->render('transport/round/index.html.twig', [
+            'deliverersPositions' => $deliverersPositions,
             'statuts' => $statuses,
         ]);
     }
@@ -112,12 +121,8 @@ class RoundController extends AbstractController {
                 $hasRejectedPacks = Stream::from($transportRound->getTransportRoundLines())
                     ->some(fn(TransportRoundLine $line) => $line->getOrder()->hasRejectedPacks());
 
-                $hasRejectedDeliveries = Stream::from($transportRound->getTransportRoundLines())
-                    ->some(fn(TransportRoundLine $line) => $line->getOrder()->isRejected());
-
                 $currentRow[] = $this->renderView("transport/round/list_card.html.twig", [
                     "hasRejectedPacks" => $hasRejectedPacks,
-                    "hasRejectedDeliveries" => $hasRejectedDeliveries,
                     "prefix" => TransportRound::NUMBER_PREFIX,
                     "round" => $transportRound,
                     "realTime" => isset($hours) && isset($minutes)
@@ -151,7 +156,7 @@ class RoundController extends AbstractController {
             $realTimeDif = $transportRound->getEndedAt()->diff($transportRound->getBeganAt());
             $realTimeJ = $realTimeDif->format("%a");
             $realTime = ($realTimeDif->format("%h") + ($realTimeJ * 24)) . "h" . $realTimeDif->format(" %i") . "min";
-        };
+        }
 
         $calculationsPoints = $transportRound->getCoordinates();
         $calculationsPoints['startPoint']['name'] = TransportRound::NAME_START_POINT;
@@ -160,52 +165,55 @@ class RoundController extends AbstractController {
 
         $transportPoints = Stream::from($transportRound->getTransportRoundLines())
             ->filterMap(function (TransportRoundLine $line) {
-                if (!$line->getOrder()->isRejected()) {
-                    $contact = $line->getOrder()->getRequest()->getContact();
-                    return [
-                        'priority' => $line->getPriority(),
-                        'longitude' => $contact->getAddressLongitude(),
-                        'latitude' => $contact->getAddressLatitude(),
-                        'name' => $contact->getName(),
-                    ];
-                }
-                else {
-                    return null;
-                }
+                $contact = $line->getOrder()->getRequest()->getContact();
+                return [
+                    'priority' => $line->getPriority(),
+                    'longitude' => $contact->getAddressLongitude(),
+                    'latitude' => $contact->getAddressLatitude(),
+                    'name' => $contact->getName(),
+                ];
             })
             ->toArray();
 
         $delivererPosition = $transportRound->getBeganAt()
-            ? $transportRound?->getDeliverer()?->getVehicle()?->getLastPosition($transportRound->getBeganAt(), $transportRound->getEndedAt())
+            ? $transportRound->getVehicle()?->getLastPosition($transportRound->getBeganAt(), $transportRound->getEndedAt())
             : null;
 
         $urls = [];
         $transportDateBeganAt = $transportRound->getBeganAt();
-        $locations = $transportRound->getDeliverer()?->getVehicle()?->getLocations() ?: [];
+        $locations = $transportRound->getLocations();
 
         foreach ($locations as $location) {
-            if ($location->getActivePairing()) {
-                $triggerActions = $location->getActivePairing()->getSensorWrapper()->getTriggerActions();
+            $hasSensorMessageBetween = $location->getSensorMessagesBetween($transportRound->getBeganAt(), $transportRound->getEndedAt());
+            if(!$hasSensorMessageBetween) {
+                continue;
+            }
+
+            $triggerActions = $location->getActivePairing()?->getSensorWrapper()?->getTriggerActions();
+            if($triggerActions) {
                 $minTriggerActionThreshold = Stream::from($triggerActions)
                     ->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'lower')
                     ->last();
+
                 $maxTriggerActionThreshold = Stream::from($triggerActions)
                     ->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'higher')
                     ->last();
+
                 $minThreshold = $minTriggerActionThreshold?->getConfig()['temperature'];
                 $maxThreshold = $maxTriggerActionThreshold?->getConfig()['temperature'];
-                $now = new DateTime();
-                $urls[] = [
-                    "fetch_url" => $router->generate("chart_data_history", [
-                        "type" => IOTService::getEntityCodeFromEntity($location),
-                        "id" => $location->getId(),
-                        'start' => $transportRound->getCreatedAt()->format('Y-m-d\TH:i'),
-                        'end' => $transportRound->getEndedAt() ?? $now->format('Y-m-d\TH:i'),
-                    ], UrlGeneratorInterface::ABSOLUTE_URL),
-                    "minTemp" => $minThreshold,
-                    "maxTemp" => $maxThreshold,
-                ];
             }
+
+            $now = new DateTime();
+            $urls[] = [
+                "fetch_url" => $router->generate("chart_data_history", [
+                    "type" => IOTService::getEntityCodeFromEntity($location),
+                    "id" => $location->getId(),
+                    'start' => $transportRound->getCreatedAt()->format('Y-m-d\TH:i'),
+                    'end' => $transportRound->getEndedAt()?->format('Y-m-d\TH:i') ?? $now->format('Y-m-d\TH:i'),
+                ], UrlGeneratorInterface::ABSOLUTE_URL),
+                "minTemp" => $minThreshold ?? 0,
+                "maxTemp" => $maxThreshold ?? 0,
+            ];
         }
 
         $hasSomeDelivery = Stream::from($transportRound->getTransportRoundLines())
@@ -223,7 +231,6 @@ class RoundController extends AbstractController {
                 "maxTemp" => 0,
             ];
         }
-
         return $this->render('transport/round/show.html.twig', [
             "transportRound" => $transportRound,
             "realTime" => $realTime,
@@ -482,26 +489,44 @@ class RoundController extends AbstractController {
         }
 
         $deliverer = $userRepository->find($deliverer);
+        $roundIsOngoing = $transportRound?->getStatus()?->getCode() === TransportRound::STATUS_ONGOING;
+
+        if(!$roundIsOngoing) {
+            $transportRound
+                ->setExpectedAt($expectedAt)
+                ->setDeliverer($deliverer)
+                ->setVehicle($deliverer->getVehicle())
+                ->setStartPoint($startPoint)
+                ->setStartPointScheduleCalculation($startPointScheduleCalculation)
+                ->setEndPoint($endPoint);
+        }
 
         $transportRound
-            ->setExpectedAt($expectedAt)
-            ->setDeliverer($deliverer)
-            ->setStartPoint($startPoint)
             ->setEstimatedDistance(floatval($request->request->get('estimatedTotalDistance')) ?: null)
             ->setEstimatedTime($request->request->get('estimatedTotalTime'))
-            ->setStartPointScheduleCalculation($startPointScheduleCalculation)
-            ->setEndPoint($endPoint)
             ->setCoordinates($coordinates);
 
         if (empty($ordersAndTimes)) {
             throw new FormException("Il n'y a aucun ordre dans la tournée, veuillez réessayer");
         }
 
-        $collectOrderAssignStatus = $statusRepository
-            ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_COLLECT, TransportOrder::STATUS_ASSIGNED);
+        if($roundIsOngoing) {
+            $collectOrderStatus = $statusRepository
+                ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_COLLECT,
+                    TransportOrder::STATUS_ONGOING);
 
-        $deliveryOrderAssignStatus = $statusRepository
-            ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_DELIVERY, TransportOrder::STATUS_ASSIGNED);
+            $deliveryOrderStatus = $statusRepository
+                ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_DELIVERY,
+                    TransportOrder::STATUS_ONGOING);
+        } else {
+            $collectOrderStatus = $statusRepository
+                ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_COLLECT,
+                    TransportOrder::STATUS_ASSIGNED);
+
+            $deliveryOrderStatus = $statusRepository
+                ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_DELIVERY,
+                    TransportOrder::STATUS_ASSIGNED);
+        }
 
         /** @var TransportOrder $order */
         foreach ($ordersAndTimes as $index => $ordersAndTime) {
@@ -522,13 +547,14 @@ class RoundController extends AbstractController {
                 $line = $transportRound->getTransportRoundLine($order);
                 if (!isset($line)) {
                     $line = new TransportRoundLine();
-                    // TODO            $line->setEstimatedAt() ??
                     $line->setOrder($order);
+                    $order->setRejectedAt(null);
+
                     $entityManager->persist($line);
                     $transportRound->addTransportRoundLine($line);
 
                     // set order status + add status history + add transport history
-                    $status = $order->getRequest() instanceof TransportDeliveryRequest ? $deliveryOrderAssignStatus : $collectOrderAssignStatus;
+                    $status = $order->getRequest() instanceof TransportDeliveryRequest ? $deliveryOrderStatus : $collectOrderStatus;
 
                     $statusHistory = $statusHistoryService->updateStatus($entityManager, $order, $status);
 
@@ -538,10 +564,18 @@ class RoundController extends AbstractController {
                         'round' => $transportRound,
                         'history' => $statusHistory,
                     ]);
+
+                    if($roundIsOngoing) {
+                        $transportHistoryService->persistTransportHistory($entityManager, [$order->getRequest(), $order], TransportHistoryService::TYPE_ONGOING, [
+                            "user" => $this->getUser(),
+                            "history" => $statusHistory,
+                        ]);
+                    }
                 }
+
                 $estimated = new DateTime();
-                $estimated
-                    ->setTime(intval(substr($ordersAndTime['time'], 0, 2)), intval(substr($ordersAndTime['time'], 3, 2)));
+                $estimated->setTime(intval(substr($ordersAndTime['time'], 0, 2)), intval(substr($ordersAndTime['time'], 3, 2)));
+
                 $line
                     ->setEstimatedAt($estimated)
                     ->setPriority($priority);
@@ -557,8 +591,10 @@ class RoundController extends AbstractController {
 
         $entityManager->flush();
 
-        $userChannel = $userService->getUserFCMChannel($loggedUser);
-        $notificationService->send($userChannel, "Une nouvelle tournée attribuée aujourd'hui");
+        if ( $transportRoundRepository->findBy(['deliverer' => $deliverer->getId() , 'expectedAt' => $transportRound->getExpectedAt()])) {
+            $userChannel = $userService->getUserFCMChannel($deliverer);
+            $notificationService->send($userChannel, "Une nouvelle tournée attribuée aujourd'hui");
+        }
 
         return $this->json([
             'success' => true,
