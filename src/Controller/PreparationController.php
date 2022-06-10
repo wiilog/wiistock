@@ -262,6 +262,18 @@ class PreparationController extends AbstractController
         $operator = $preparation?->getUtilisateur();
         $comment = $preparation->getCommentaire();
 
+        $status = $preparation->isPlanned()
+            ? (
+                $preparation->getStatut()->getCode() === Preparation::STATUT_A_TRAITER
+                    ? Preparation::STATUT_LAUNCHED
+                    : (
+                        $preparation->getStatut()->getCode() === Preparation::STATUT_PREPARE
+                            ? 'traité'
+                            : $preparation->getStatut()->getCode()
+                    )
+            )
+            : $preparation->getStatut()->getCode();
+
         return $this->render('preparation/show.html.twig', [
             "sensorWrappers" => $sensorWrappers,
             'demande' => $demande,
@@ -271,10 +283,7 @@ class PreparationController extends AbstractController
             'isPrepaEditable' => $preparationStatus === Preparation::STATUT_A_TRAITER || ($preparationStatus == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparation->getUtilisateur() == $this->getUser()),
             'headerConfig' => [
                 ['label' => 'Numéro', 'value' => $preparation->getNumero()],
-                ['label' => 'Statut', 'value' => $preparation->isPlanned() && $preparation->getStatut()->getCode() === Preparation::STATUT_A_TRAITER
-                    ? ucfirst(Preparation::STATUT_LAUNCHED)
-                    : ($preparation->getStatut()->getCode() ? ucfirst($preparation->getStatut()->getNom()) : '')
-                ],
+                ['label' => 'Statut', 'value' => ucfirst($status)],
                 ['label' => 'Point de livraison', 'value' => $destination ? $destination->getLabel() : ''],
                 ['label' => 'Opérateur', 'value' => $operator ? $operator->getUsername() : ''],
                 ['label' => 'Demandeur', 'value' => FormatHelper::deliveryRequester($demande)],
