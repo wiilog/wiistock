@@ -186,30 +186,3 @@ $wii-switch-height: $input-height;
         margin-top: 0 !important;
     }
 }
-
-.wii-icon-info {
-    display: block;
-    width: 15px;
-    height: 15px;
-    background-color: black;
-}
-
-.decrement-date, .increment-date {
-    .icon {
-        background-color: $primary;
-        width: 15px;
-        height: 15px;
-        display: block;
-        -webkit-mask: url("../../../../public/svg/arrow.svg") no-repeat center;
-
-        &.disabled {
-            background-color: #CBCBCB !important;
-        }
-    }
-
-    &.decrement-date {
-        .icon {
-            transform: rotate(180deg);
-        }
-    }
-}

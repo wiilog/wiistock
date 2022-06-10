@@ -34,6 +34,10 @@ $outlineButtonConfig: (
     color: $color !important;
     opacity: 1 !important;
 
+    .wii-icon {
+        background-color: $color !important;
+    }
+
     svg {
         color: $color !important;
     }

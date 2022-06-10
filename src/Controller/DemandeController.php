@@ -79,6 +79,7 @@ class DemandeController extends AbstractController
             $champLibreRepository = $entityManager->getRepository(FreeField::class);
             $demandeRepository = $entityManager->getRepository(Demande::class);
             $settingRepository = $entityManager->getRepository(Setting::class);
+            $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
             $demande = $demandeRepository->find($data['id']);
 
@@ -99,6 +100,7 @@ class DemandeController extends AbstractController
 
             return $this->json($this->renderView('demande/modalEditDemandeContent.html.twig', [
                 'demande' => $demande,
+                'fieldsParam' => $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DEMANDE),
                 'types' => $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]),
                 'typeChampsLibres' => $typeChampLibre,
                 'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes,
@@ -144,9 +146,11 @@ class DemandeController extends AbstractController
             if ($requiredEdit) {
                 $utilisateur = $utilisateurRepository->find(intval($data['demandeur']));
                 $emplacement = $emplacementRepository->find(intval($data['destination']));
+                $expectedAt = FormatHelper::parseDatetime($data['expectedAt']);
                 $demande
                     ->setUtilisateur($utilisateur)
                     ->setDestination($emplacement)
+                    ->setExpectedAt($expectedAt)
                     ->setType($type)
                     ->setCommentaire($data['commentaire']);
                 $entityManager->flush();

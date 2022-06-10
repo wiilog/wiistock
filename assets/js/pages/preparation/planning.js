@@ -10,7 +10,7 @@ let planning = null;
 
 $(function () {
     planning = new Planning($('.preparation-planning'), {route: 'preparation_planning_api', step: 5});
-    planning.onPlanningLoad((event) => {
+    planning.onPlanningLoad(() => {
         onPlanningLoaded(planning);
     });
 
@@ -62,7 +62,7 @@ function initializeFilters() {
     });
 }
 
-function onPlanningLoaded(planning){
+function onPlanningLoaded(planning) {
     Sortable.create('.planning-card-container', {
         placeholderClass: 'placeholder-container',
         forcePlaceholderSize: true,
@@ -73,6 +73,7 @@ function onPlanningLoaded(planning){
         `,
         acceptFrom: '.planning-card-container',
         items: '.can-drag',
+        handle: '.can-drag',
     });
 
     const $cardContainers = planning.$container.find('.planning-card-container');
@@ -128,9 +129,6 @@ function initializePlanningNavigation() {
 
 function changeNavigationButtonStates() {
     const $decrementDate = $('.decrement-date');
-    const $todayDate = $('.today-date');
-
-    $todayDate.prop('disabled', moment().isSame(planning.baseDate, 'day'));
     $decrementDate.prop('disabled', moment().isSame(planning.baseDate, 'day'));
 }
 

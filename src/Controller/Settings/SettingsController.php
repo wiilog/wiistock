@@ -142,7 +142,7 @@ class SettingsController extends AbstractController {
                         self::MENU_DELIVERY_REQUEST_TEMPLATES => ["label" => "Livraisons - Modèle de demande", "wrapped" => false],
                         self::MENU_DELIVERY_TYPES_FREE_FIELDS => ["label" => "Livraisons - Types et champs libres", "wrapped" => false],
                         self::MENU_FIXED_FIELDS => [
-                            "label" => "Demandes - Champs fixes",
+                            "label" => "Livraisons - Champs fixes",
                             "save" => true,
                         ],
                         self::MENU_COLLECTS => [

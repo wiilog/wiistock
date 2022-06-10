@@ -2,36 +2,56 @@
 
 {% set restrictedLocations = restrictedLocations is defined and restrictedLocations %}
 
-<div class="form-group">
-    <label for="utilisateur">Demandeur</label>
-    <select disabled class="form-control select2 data" name="demandeur">
-        {% if demande.utilisateur %}
-            <option selected value="{{ demande.utilisateur.id }}">{{ demande.utilisateur.username }}</option>
-        {% endif %}
-    </select>
-</div>
+<div class="row">
+    <div class="col-12 col-md-6">
+        <div class="form-group">
+            <label for="utilisateur">Demandeur</label>
+            <select disabled class="form-control select2 data" name="demandeur">
+                {% if demande.utilisateur %}
+                    <option selected value="{{ demande.utilisateur.id }}">{{ demande.utilisateur.username }}</option>
+                {% endif %}
+            </select>
+        </div>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="form-group">
+            <label for="typeEdit">Type</label>
+            <select name="type"
+                    id="typeEdit"
+                    disabled
+                    class="form-control d-block">
+                {% if demande.type is not null %}
+                    <option selected value="{{ demande.type.id }}">{{ demande.type.label }}</option>
+                {% else %}
+                    <option selected value=''></option>
+                {% endif %}
+            </select>
+        </div>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="form-group w-100">
+            <label for="destination">Destination</label>
+            <select name="destination" class="form-control data">
+                {% if demande.destination is defined and demande.destination != null %}
+                    <option value="{{ demande.destination.id }}" selected>{{ demande.destination.label }}</option>
+                {% endif %}
+            </select>
+        </div>
+    </div>
 
-<div class="form-group">
-    <label for="typeEdit">Type</label>
-    <select name="type"
-            id="typeEdit"
-            disabled
-            class="form-control d-block">
-        {% if demande.type is not null %}
-            <option selected value="{{ demande.type.id }}">{{ demande.type.label }}</option>
-        {% else %}
-            <option selected value=''></option>
-        {% endif %}
-    </select>
-</div>
-
-<div class="form-group w-100">
-    <label for="destination">Destination</label>
-    <select name="destination" class="form-control data">
-        {% if demande.destination is defined and demande.destination != null %}
-            <option value="{{ demande.destination.id }}" selected>{{ demande.destination.label }}</option>
-        {% endif %}
-    </select>
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EXPECTED_AT') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
+        {% set fieldRequired = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
+        <div class="col-12 col-md-6">
+            <div class="form-group">
+                <label class="wii-field-name">Date attendue{{ fieldRequired ? '*' }}</label>
+                <input name="expectedAt"
+                       type="date"
+                       value="{{ demande.expectedAt ? demande.expectedAt|date('Y-m-d') }}"
+                       class="form-control data {{fieldRequired ? 'needed'}}"/>
+            </div>
+        </div>
+    {% endif %}
 </div>
 
 <!-- CHAMPS LIBRES -->

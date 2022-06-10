@@ -1,7 +1,9 @@
 {% set validated = preparation.statut and preparation.statut.code == constant('App\\Entity\\PreparationOrder\\Preparation::STATUT_VALIDATED') %}
-<div class="planning-card preparation-card {{ validated ? 'pointer can-drag' : 'user-select-none' }} {{ color }}"
-     data-preparation="{{ preparation.id }}"
-     data-status="{{ preparation.statut ? preparation.statut.code }}">
+{% set canDrag = validated and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT_PREPARATION_DATE')) %}
+<a class="planning-card preparation-card pointer {{ canDrag ? 'can-drag' }} {{ color }}"
+   href="{{ path('preparation_show', {id: preparation.id}) }}"
+   data-preparation="{{ preparation.id }}"
+   data-status="{{ preparation.statut ? preparation.statut.code }}">
     <div class="planning-card-wrapper">
         <div class="row">
             <div class="col-12">
@@ -48,4 +50,4 @@
             {% endif %}
         </div>
     </div>
-</div>
+</a>
