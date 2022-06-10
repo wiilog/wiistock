@@ -824,16 +824,6 @@ class TransportController extends AbstractFOSRestController {
         if(!$isEdit) {
             $order->setTreatedAt($now);
 
-            $historyService->persistTransportHistory($manager, $request, TransportHistoryService::TYPE_ADD_COMMENT, [
-                "user" => $this->getUser(),
-                "comment" => $motive,
-            ]);
-
-            $historyService->persistTransportHistory($manager, $order, TransportHistoryService::TYPE_ADD_COMMENT, [
-                "user" => $this->getUser(),
-                "comment" => $motive,
-            ]);
-
             $isCollectFromDelivery = $request instanceof TransportCollectRequest && $request->getDelivery();
             if (!$isCollectFromDelivery) {
                 $lastLine = $order->getTransportRoundLines()->last();
@@ -857,11 +847,8 @@ class TransportController extends AbstractFOSRestController {
 
                 $collectHasDelivery = $request instanceof TransportCollectRequest && $request->getDelivery();
 
-                $statusHistory = null;
                 if (!$collectHasDelivery) {
-                    $statusHistory = $statusHistoryService->updateStatus($manager, $entity, $status, [
-                        "setStatus" => true,
-                    ]);
+                    $statusHistoryService->updateStatus($manager, $entity, $status);
                 }
                 else {
                     //pas d'historique de statut car livraison collecte
@@ -871,14 +858,8 @@ class TransportController extends AbstractFOSRestController {
                 }
 
                 $historyService->persistTransportHistory($manager, $entity, TransportHistoryService::TYPE_FAILED, [
-                    'user' => $this->getUser(),
-                    'deliverer' => $round->getDeliverer(),
-                    'round' => $round,
-                    'history' => $statusHistory,
-                    'reason' => $motive,
-                    'comment' => $comment,
-                    'date' => $now,
-                    'attachments' => $photoAttachment ? [$photoAttachment] : null
+                    "user" => $this->getUser(),
+                    "reason" => $motive,
                 ]);
             }
 
@@ -902,8 +883,7 @@ class TransportController extends AbstractFOSRestController {
                 $users = $manager->getRepository(Utilisateur::class)->findBy(['status' => true]);
                 $manager->persist($emitted);
                 foreach ($users as $user) {
-                    $user
-                        ->addUnreadNotification($emitted);
+                    $user->addUnreadNotification($emitted);
                 }
             }
 
