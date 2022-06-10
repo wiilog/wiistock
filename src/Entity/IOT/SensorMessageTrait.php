@@ -24,7 +24,7 @@ trait SensorMessageTrait {
     }
 
     /**
-     * @return Collection|SensorMessage[]
+     * @return SensorMessage[]
      */
     public function getSensorMessagesBetween($start, $end, string $type = null): array {
         $criteria = Criteria::create();

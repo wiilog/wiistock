@@ -293,10 +293,10 @@ class TransportController extends AbstractFOSRestController {
             'contact' => [
                 'file_number' => $contact->getFileNumber(),
                 'name' => $contact->getName(),
-                'address' => str_replace("\n", "<br>", $contact->getAddress()),
-                'contact' => $contact->getContact(),
-                'person_to_contact' => $contact->getPersonToContact(),
-                'observation' => $contact->getObservation(),
+                'address' => FormatHelper::phone(str_replace("\n", "<br>", $contact->getAddress())),
+                'contact' => FormatHelper::phone($contact->getContact()),
+                'person_to_contact' => FormatHelper::phone($contact->getPersonToContact()),
+                'observation' => FormatHelper::phone($contact->getObservation()),
                 'latitude' => $contact->getAddressLatitude(),
                 'longitude' => $contact->getAddressLongitude(),
             ],
@@ -512,9 +512,22 @@ class TransportController extends AbstractFOSRestController {
         $deliveryOrderOngoing = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_DELIVERY, TransportOrder::STATUS_ONGOING);
         $collectOrderOngoing = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_COLLECT, TransportOrder::STATUS_ONGOING);
 
+        if(!$round->getDeliverer()?->getVehicle()) {
+            return $this->json([
+                "success" => false,
+                "msg" => "Vous n'avez pas de véhicule assigné, la tournée ne peut pas commencer",
+            ]);
+        }
+
         $round
             ->setStatus($roundOngoing)
             ->setBeganAt(new DateTime());
+
+        //freeze the locations in case the deliverer's vehicle changes in the future
+        $round->setLocations($round->getDeliverer()->getVehicle()->getLocations()->toArray());
+
+        //freeze the vehicle in case it changes in the future
+        $round->setVehicle($round->getDeliverer()->getVehicle());
 
         $hasRejected = false;
 
@@ -526,11 +539,15 @@ class TransportController extends AbstractFOSRestController {
 
             if($request instanceof TransportDeliveryRequest) {
                 $hasPacks = !$order->getPacks()->isEmpty();
-                if ($hasPacks) {
+                $allRejected = $order->getPacks()
+                    ->filter(fn(TransportDeliveryOrderPack $pack) => !$pack->getRejectedBy())
+                    ->isEmpty();
+
+                if ($hasPacks && !$allRejected) {
                     $requestStatus = $deliveryRequestOngoing;
                     $orderStatus = $deliveryOrderOngoing;
                 }
-                else {
+                else if($allRejected) {
                     $hasRejected = true;
                     $transportRoundService->rejectTransportRoundDeliveryLine($manager, $line, $this->getUser());
                 }
@@ -539,7 +556,7 @@ class TransportController extends AbstractFOSRestController {
                 $orderStatus = $collectOrderOngoing;
             }
 
-            if (isset($requestStatus) && isset($orderStatus)) {
+            if (isset($requestStatus) && isset($orderStatus) && !$line->getOrder()->getRejectedAt()) {
                 $statusHistoryRequest = $statusHistoryService->updateStatus($manager, $request, $deliveryRequestOngoing);
                 $statusHistoryOrder = $statusHistoryService->updateStatus($manager, $order, $deliveryOrderOngoing);
 
@@ -865,16 +882,6 @@ class TransportController extends AbstractFOSRestController {
         if(!$isEdit) {
             $order->setTreatedAt($now);
 
-            $historyService->persistTransportHistory($manager, $request, TransportHistoryService::TYPE_ADD_COMMENT, [
-                "user" => $this->getUser(),
-                "comment" => $motive,
-            ]);
-
-            $historyService->persistTransportHistory($manager, $order, TransportHistoryService::TYPE_ADD_COMMENT, [
-                "user" => $this->getUser(),
-                "comment" => $motive,
-            ]);
-
             $isCollectFromDelivery = $request instanceof TransportCollectRequest && $request->getDelivery();
             if (!$isCollectFromDelivery) {
                 $lastLine = $order->getTransportRoundLines()->last();
@@ -898,11 +905,8 @@ class TransportController extends AbstractFOSRestController {
 
                 $collectHasDelivery = $request instanceof TransportCollectRequest && $request->getDelivery();
 
-                $statusHistory = null;
                 if (!$collectHasDelivery) {
-                    $statusHistory = $statusHistoryService->updateStatus($manager, $entity, $status, [
-                        "setStatus" => true,
-                    ]);
+                    $statusHistoryService->updateStatus($manager, $entity, $status);
                 }
                 else {
                     //pas d'historique de statut car livraison collecte
@@ -912,14 +916,8 @@ class TransportController extends AbstractFOSRestController {
                 }
 
                 $historyService->persistTransportHistory($manager, $entity, TransportHistoryService::TYPE_FAILED, [
-                    'user' => $this->getUser(),
-                    'deliverer' => $round->getDeliverer(),
-                    'round' => $round,
-                    'history' => $statusHistory,
-                    'reason' => $motive,
-                    'comment' => $comment,
-                    'date' => $now,
-                    'attachments' => $photoAttachment ? [$photoAttachment] : null
+                    "user" => $this->getUser(),
+                    "reason" => $motive,
                 ]);
             }
 
@@ -943,8 +941,7 @@ class TransportController extends AbstractFOSRestController {
                 $users = $manager->getRepository(Utilisateur::class)->findBy(['status' => true]);
                 $manager->persist($emitted);
                 foreach ($users as $user) {
-                    $user
-                        ->addUnreadNotification($emitted);
+                    $user->addUnreadNotification($emitted);
                 }
             }
 

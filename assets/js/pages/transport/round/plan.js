@@ -45,7 +45,7 @@ $(function () {
         acceptFrom: '#to-affect-container ,#affected-container',
     });
 
-    $('.sortable-container').on('sortupdate', function (){
+    $('.sortable-container').on('sortupdate', function () {
         updateCardsContainers(map, contactData);
     })
 
@@ -59,18 +59,18 @@ $(function () {
         placeAddressMarker($(this), map);
     });
 
-    $('.deliverer-picker').on('change',function (){
+    $('.deliverer-picker').on('change', function () {
         const $btnCalculateTime = $('.btn-calculate-time');
         const $inputTime = $('input[name="expectedAtTime"]');
         const $delivererPicker = $(this);
-        if($delivererPicker.val()){
+        if ($delivererPicker.val()) {
             $btnCalculateTime.removeAttr('disabled');
             $inputTime.prop('disabled', false);
             const [deliverer] = $delivererPicker.select2('data');
-            if(deliverer){
+            if (deliverer) {
                 $inputTime.val(deliverer.startingHour);
             }
-        }else{
+        } else {
             $btnCalculateTime.addAttr('disabled');
             $inputTime
                 .prop('disabled', true)
@@ -85,7 +85,7 @@ $(function () {
             .text(index + 1);
         $card.find('.btn-cross')
             .removeClass('d-none')
-            .on('click', function() {
+            .on('click', function () {
                 removeCard($(this), map, contactData);
             });
         let contact = contactData[$card.data('order-id')];
@@ -93,7 +93,7 @@ $(function () {
             latitude: contact.latitude,
             longitude: contact.longitude,
             icon: "blueLocation",
-            popUp: map.createPopupContent(contact, index + 1,{
+            popUp: map.createPopupContent(contact, index + 1, {
                 color: "#666"
             }),
         });
@@ -102,45 +102,51 @@ $(function () {
     $('.btn-calculate-time').on('click', function () {
         wrapLoadingOnActionButton($(this), () => {
             if (!$(this).hasClass('btn-disabled')) {
-                const $expectedAtTime = $('input[name="expectedAtTime"]');
-                const $startPoint = $('input[name="startPoint"]');
-                const $startPointScheduleCalculation = $('input[name="startPointScheduleCalculation"]');
-                const $endPoint = $('input[name="endPoint"]');
-
-                if ($expectedAtTime.val()
-                    && $startPoint.val()
-                    && $startPointScheduleCalculation.val()
-                    && $endPoint.val()
-                ) {
-                    const expectedTime = $expectedAtTime.val();
-                    let roundHours = Number(expectedTime.substring(0, 2));
-                    let roundMinutes = Number(expectedTime.substring(3, 5));
-                    let expectedTimeInMinutes = roundHours * 60 + roundMinutes;
-                    let distance = 0;
-                    let time = 0;
-
-                    const params = extractParametersFromDOM($expectedAtTime, $startPoint, $startPointScheduleCalculation, $endPoint);
-                    return $.get(Routing.generate('transport_round_calculate'), params, function(response) {
-                        const roundData = Object.keys(response.roundData).sort().reduce((obj, key) => {
-                            obj[key] = response.roundData[key];
-                            return obj;
-                        }, {});
-
-                        Object.values(roundData.data).forEach((round, index) => {
-                            [distance, time] = parseRouteIntels(round, distance, time, expectedTimeInMinutes, index, map, params, roundData);
-                        });
-
-                        saveAndDisplayEstimatedTimesInDOM(distance, time);
-                        map.setLines(response.coordinates.map((coordinate) => [coordinate['latitude'], coordinate['longitude']]), "#3353D7");
-                    });
-                } else {
-                    Flash.add(ERROR, 'Calcul impossible. Veillez bien à renseigner les points de départs, d\'arrivée, ainsi que l\'heure de départ');
-                    return new Promise((resolve) => resolve());
-                }
+                return calculateTime(map);
+            } else {
+                return new Promise((resolve) => resolve());
             }
         })
     })
 });
+
+function calculateTime(map) {
+    const $expectedAtTime = $('input[name="expectedAtTime"]');
+    const $startPoint = $('input[name="startPoint"]');
+    const $startPointScheduleCalculation = $('input[name="startPointScheduleCalculation"]');
+    const $endPoint = $('input[name="endPoint"]');
+
+    if ($expectedAtTime.val()
+        && $startPoint.val()
+        && $startPointScheduleCalculation.val()
+        && $endPoint.val()
+    ) {
+        const expectedTime = $expectedAtTime.val();
+        let roundHours = Number(expectedTime.substring(0, 2));
+        let roundMinutes = Number(expectedTime.substring(3, 5));
+        let expectedTimeInMinutes = roundHours * 60 + roundMinutes;
+        let distance = 0;
+        let time = 0;
+
+        const params = extractParametersFromDOM($expectedAtTime, $startPoint, $startPointScheduleCalculation, $endPoint);
+        return $.get(Routing.generate('transport_round_calculate'), params, function (response) {
+            const roundData = Object.keys(response.roundData).sort().reduce((obj, key) => {
+                obj[key] = response.roundData[key];
+                return obj;
+            }, {});
+
+            Object.values(roundData.data).forEach((round, index) => {
+                [distance, time] = parseRouteIntels(round, distance, time, expectedTimeInMinutes, index, map, params, roundData);
+            });
+
+            saveAndDisplayEstimatedTimesInDOM(distance, time);
+            map.setLines(response.coordinates.map((coordinate) => [coordinate['latitude'], coordinate['longitude']]), "#3353D7");
+        });
+    } else {
+        Flash.add(ERROR, 'Calcul impossible. Veillez bien à renseigner les points de départs, d\'arrivée, ainsi que l\'heure de départ');
+        return new Promise((resolve) => resolve());
+    }
+}
 
 function saveAndDisplayEstimatedTimesInDOM(distance, time) {
     const estimatedTotalTime = minutesToTime(time);
@@ -176,12 +182,12 @@ function parseRouteIntels(round, distance, time, expectedTimeInMinutes, index, m
     // name of address input or order id
     const selector = (
         index === 0 ? 'startPointScheduleCalculation' :
-        isLastIteration ? 'endPoint' :
-        params.orders.find((order) => order.index === index - 1).order
+            isLastIteration ? 'endPoint' :
+                params.orders.find((order) => order.index === index - 1).order
     );
 
     $('#affected-container')
-        .find(`.order-card.assigned[data-order-id=${selector}]`)
+        .find(`.order-card[data-order-id=${selector}]`)
         .data('order-time', arrivedTime)
         .attr('data-order-time', arrivedTime);
 
@@ -222,7 +228,7 @@ function initialiseMouseHoverEvent(map, contactData) {
         .off('mouseenter.orderCardHover')
         .off('mouseleave.orderCardHover')
 
-        .on('mouseenter.orderCardHover', function(){
+        .on('mouseenter.orderCardHover', function () {
             const $card = $(this);
             const color = ($card.parent().attr('id') == 'delivered-container') ? "#666" : "#3353d7";
             const currentIndex = $card.find('.affected-number:not(.d-none)').text();
@@ -237,11 +243,11 @@ function initialiseMouseHoverEvent(map, contactData) {
                 selector: $card.data('order-id')
             });
         })
-        .on('mouseleave.orderCardHover',function (){
+        .on('mouseleave.orderCardHover', function () {
             const $card = $(this);
             $card.removeClass('focus-border');
             const currentIndex = $card.find('.affected-number:not(.d-none)').text();
-            const color = ($card.parent().attr('id') =='delivered-container') ? "#666" : "#3353d7";
+            const color = ($card.parent().attr('id') == 'delivered-container') ? "#666" : "#3353d7";
             const contact = contactData[$card.data('order-id')];
 
             map.setMarker({
@@ -258,7 +264,7 @@ function initialiseMouseHoverEvent(map, contactData) {
                 },
                 selector: $card.data('order-id')
             });
-    });
+        });
 }
 
 function updateCardsContainers(map, contactData, deletion = false) {
@@ -292,7 +298,7 @@ function updateCardsContainers(map, contactData, deletion = false) {
             .text(cardPriority);
         $card.find('.btn-cross')
             .removeClass('d-none')
-            .on('click', function() {
+            .on('click', function () {
                 removeCard($(this), map, contactData);
             });
         let contact = contactData[$card.data('order-id')];
@@ -322,7 +328,7 @@ function removeCard($button, map, contactData) {
         .sort();
 
     const $before = toAffect.find(`.order-card[data-index=${Array.from(insertAfter).pop()}]`);
-    if(insertAfter.length === 0 || !$before.exists()) {
+    if (insertAfter.length === 0 || !$before.exists()) {
         toAffect.prepend($card);
     } else {
         $card.insertAfter(toAffect.find(`.order-card[data-index=${Array.from(insertAfter).pop()}]`));
@@ -331,7 +337,7 @@ function removeCard($button, map, contactData) {
     updateCardsContainers(map, contactData, true);
 }
 
-function placeAddressMarker($input, map){
+function placeAddressMarker($input, map) {
     const name = $input.attr('name');
     const address = $input.val();
     const $form = $input.closest('.round-form-container');
@@ -348,14 +354,12 @@ function placeAddressMarker($input, map){
                     const longitude = response.longitude;
                     const marker = addRoundPointMarker(map, $input, {latitude, longitude});
                     saveCoordinatesByAddress($form, name, response, marker);
-                }
-                else {
+                } else {
                     saveCoordinatesByAddress($form, name, null);
                     Flash.add(ERROR, "Une erreur s'est produite lors de la récupération de la position de l'adresse GPS")
                 }
             });
-    }
-    else {
+    } else {
         saveCoordinatesByAddress($form, name, null);
         return Promise.resolve();
     }
@@ -363,50 +367,52 @@ function placeAddressMarker($input, map){
 
 function initializeForm(map) {
     Form.create($('.round-form-container'))
-        .addProcessor((data, errors) => {
-            const $affectedOrders = $('#affected-container .order-card');
-            if (!$affectedOrders.exists()) {
-                errors.push({message: 'Vous devez ajouter au moins un ordre dans la tournée pour continuer'});
-            }
-            else {
-                const ordersAndTimes = $affectedOrders
-                    .map((_, orderCard) => {
-                        const $card = $(orderCard);
-                        return {
-                            id: $card.data('order-id'),
-                            time: $card.data('order-time')
-                        }
-                    })
-                    .toArray();
-                data.append('affectedOrders', JSON.stringify(ordersAndTimes));
-            }
-        })
         .onSubmit((data) => {
             wrapLoadingOnActionButton($('.round-form-container').find('button[type="submit"]'), () => {
-                return AJAX.route(POST, 'transport_round_save')
-                    .json(data)
-                    .then(({success, msg, data, redirect}) => {
-                        if (!success) {
-                            if (data.newNumber) {
-                                resetRoundNumber(data.newNumber);
+                return calculateTime(map).then(() => {
+                    data.append('affectedOrders', JSON.stringify(retriveOrderData()));
+                    AJAX.route(POST, 'transport_round_save')
+                        .json(data)
+                        .then(({success, msg, data, redirect}) => {
+                            if (!success) {
+                                if (data.newNumber) {
+                                    resetRoundNumber(data.newNumber);
+                                }
+                                Flash.add(ERROR, msg, true, true);
+                            } else {
+                                location.href = redirect;
                             }
-                            Flash.add(ERROR, msg, true, true);
-                        } else {
-                            location.href = redirect;
-                        }
-                    })
+                        })
+                })
             })
         })
 
 }
 
+function retriveOrderData() {
+    const $affectedOrders = $('#affected-container .order-card');
+    if (!$affectedOrders.exists()) {
+        Flash.add(ERROR, 'Vous devez ajouter au moins un ordre dans la tournée pour continuer');
+        return null;
+    } else {
+        return $affectedOrders
+            .map((_, orderCard) => {
+                const $card = $(orderCard);
+                return {
+                    id: $card.data('order-id'),
+                    time: $card.data('order-time')
+                }
+            })
+            .toArray();
+    }
+}
+
 function resetRoundNumber(number) {
-    $('.round-number').each(function() {
+    $('.round-number').each(function () {
         const $elem = $(this);
         if ($elem.is('input')) {
             $elem.val(number);
-        }
-        else {
+        } else {
             $elem.text(number);
         }
     });
@@ -430,7 +436,7 @@ function initializeRoundPointMarkers(map) {
     const $form = $('.round-form-container');
     const $coordinates = $form.find('[name=coordinates]')
     const coordinates = JSON.parse($coordinates.val());
-    for(const name of Object.keys(coordinates)) {
+    for (const name of Object.keys(coordinates)) {
         const pointCoordinates = coordinates[name];
         const $input = $form.find(`[name=${name}]`);
         addRoundPointMarker(map, $input, pointCoordinates);
@@ -440,7 +446,7 @@ function initializeRoundPointMarkers(map) {
 function affectCard($card, map, contactData) {
     $card.remove();
     $('#affected-container').append($card);
-    updateCardsContainers(map ,contactData);
+    updateCardsContainers(map, contactData);
 }
 
 function saveCoordinatesByAddress($form, name, pointCoordinates, marker = null) {
@@ -458,8 +464,7 @@ function saveCoordinatesByAddress($form, name, pointCoordinates, marker = null) 
         if (marker) {
             roundMarkerAlreadySaved[name] = marker;
         }
-    }
-    else {
+    } else {
         delete roundMarkerAlreadySaved[name];
         delete coordinates[name];
     }

@@ -2,6 +2,7 @@
 
 namespace App\Entity\Transport;
 
+use App\Entity\Emplacement;
 use App\Entity\Interfaces\StatusHistoryContainer;
 use App\Entity\StatusHistory;
 use App\Entity\Statut;
@@ -105,8 +106,15 @@ class TransportRound extends StatusHistoryContainer {
     #[ORM\OneToMany(mappedBy: 'transportRound', targetEntity: TransportRoundLine::class)]
     private Collection $transportRoundLines;
 
+    #[ORM\ManyToOne(targetEntity: Vehicle::class)]
+    private ?Vehicle $vehicle = null;
+
+    #[ORM\OneToMany(mappedBy: 'transportRound', targetEntity: Emplacement::class)]
+    private Collection $locations;
+
     public function __construct() {
         $this->transportRoundLines = new ArrayCollection();
+        $this->locations = new ArrayCollection();
         $this->statusHistory = new ArrayCollection();
     }
 
@@ -330,6 +338,46 @@ class TransportRound extends StatusHistoryContainer {
         return $this;
     }
 
+    /**
+     * @return Collection<int, Emplacement>
+     */
+    public function getLocations(): Collection {
+        return $this->locations;
+    }
+
+    public function setLocations(?array $lines): self {
+        foreach ($this->getLocations()->toArray() as $line) {
+            $this->removeLocation($line);
+        }
+
+        $this->locations = new ArrayCollection();
+        foreach ($lines as $line) {
+            $this->addLocation($line);
+        }
+
+        return $this;
+    }
+
+    public function addLocation(Emplacement $location): self {
+        if (!$this->locations->contains($location)) {
+            $this->locations[] = $location;
+            $location->setTransportRound($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLocation(Emplacement $location): self {
+        if ($this->locations->removeElement($location)) {
+            // set the owning side to null (unless already changed)
+            if ($location->getTransportRound() === $this) {
+                $location->setTransportRound(null);
+            }
+        }
+
+        return $this;
+    }
+
     public function getCoordinates(): array {
         return $this->coordinates ?? [];
     }
@@ -393,7 +441,7 @@ class TransportRound extends StatusHistoryContainer {
     }
 
     public function getPairings(): array {
-        $roundVehicle = $this->getDeliverer()?->getVehicle();
+        $roundVehicle = $this->getVehicle();
         $roundsPairings = [];
 
         if ($roundVehicle) {
@@ -420,6 +468,15 @@ class TransportRound extends StatusHistoryContainer {
         }
 
         return $roundsPairings;
+    }
+
+    public function getVehicle(): ?Vehicle {
+        return $this->vehicle;
+    }
+
+    public function setVehicle(?Vehicle $vehicle): TransportRound {
+        $this->vehicle = $vehicle;
+        return $this;
     }
 
 }

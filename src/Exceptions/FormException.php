@@ -2,9 +2,9 @@
 
 namespace App\Exceptions;
 
-use Exception;
+use RuntimeException;
 
-class FormException extends Exception {
+class FormException extends RuntimeException {
     private ?array $data = null;
 
     public function getData(): ?array {

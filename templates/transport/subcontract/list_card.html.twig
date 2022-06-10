@@ -35,7 +35,7 @@
                     </div>
                 </td>
             </tr>
-            <tr>
+            <tr class="subcontracted-transport-details" >
                 <td>
                     <span class="transport-badge type mt-3 subcontract-card">
                         {% if request.type.logo %}
@@ -49,12 +49,12 @@
                 <td class="transport-category-container">
                     <div class="mb-2">
                         <span class="d-xl-none">Créé le :<br> {{ request.createdAt | date('d/m/Y H:i') }}</span>
-                        <span class="d-none d-xl-block">Créé le : {{ request.createdAt | format_helper('longDate', {short: true, time: true}) }}</span>
+                        <span class="d-none d-xl-block">Créé le :<br> {{ request.createdAt | format_helper('longDate', {short: true, time: true}) }}</span>
                     </div>
                     <div>
                         <span class="bold">
-                            <span class="d-xl-none">A livrer à :<br> {{  request.expectedAt | date('d/m/Y H:i') }}</span>
-                            <span class="d-none d-xl-block">A livrer à : {{  request.expectedAt | format_helper('longDate', {short: true, time: true}) }}</span>
+                            <span class="d-xl-none">A livrer le :<br> {{  request.expectedAt | date('d/m/Y H:i') }}</span>
+                            <span class="d-none d-xl-block">A livrer le :<br> {{  request.expectedAt | format_helper('longDate', {short: true, time: true}) }}</span>
                         </span>
                     </div>
                 </td>
@@ -70,28 +70,28 @@
                     {{ request.contact.address }}
                 </td>
                 <td class="transport-subcontract-details-container">
-                    <div class="mb-2">
+                    <div class="mb-2 wii-small-text">
                         <span class="d-xl-none">
-                            Commencée le  :<br><span class="bold">{{ order.startedAt ? order.startedAt | format_helper('longDate', {short: true, time: true}) : "-" }}</span>
+                            Commencée le :<br><span class="bold">{{ order.startedAt ? order.startedAt | date('d/m/Y H:i') : "-" }}</span>
                         </span>
                         <span class="d-none d-xl-block">
-                            Commencée le :<span class="bold">{{ order.startedAt ? order.startedAt | format_helper('longDate', {short: true, time: true}) : "-" }}</span>
+                            Commencée le :<br><span class="bold">{{ order.startedAt ? order.startedAt | format_helper('longDate', {short: true, time: true}) : "-" }}</span>
                         </span>
                     </div>
-                    <div>
+                    <div class="wii-small-text">
                         <span class="d-xl-none">
-                            Livrée le :<br> <span style="font-weight: bold"> {{ order.treatedAt ? order.treatedAt | format_helper('longDate', {short: true, time: true}) : "-" }}</span>
+                            Livrée le :<br> <span style="font-weight: bold"> {{ order.treatedAt ? order.treatedAt | date('d/m/Y H:i') : "-" }}</span>
                         </span>
                         <span class="d-none d-xl-block">
-                            Livrée le : <span style="font-weight: bold"> {{ order.treatedAt ? order.treatedAt | format_helper('longDate', {short: true, time: true}) : "-" }}</span>
+                            Livrée le :<br><span style="font-weight: bold"> {{ order.treatedAt ? order.treatedAt | format_helper('longDate', {short: true, time: true}) : "-" }}</span>
                         </span>
                     </div>
                 </td>
                 <td class="transport-subcontract-details-container">
-                    <div class="mb-2">
+                    <div class="mb-2 wii-small-text">
                         Sous-traitant : <span style="font-weight: bold">{{ order.subcontractor ?? "-" }}</span>
                     </div>
-                    <div>
+                    <div class="wii-small-text">
                         Immatriculation : <span style="font-weight: bold">{{ order.registrationNumber ?? "-" }}</span>
                     </div>
                 </td>
@@ -104,7 +104,7 @@
                         </div>
                     {% endif %}
                     {% for attachment in order.attachments %}
-                        <div>
+                        <div class="wii-small-text">
                             <a href="{{ attachment.fullPath is defined and attachment.fullPath is not null ? attachment.fullPath : '/uploads/attachements/' ~ attachment.fileName }}"
                                download="{{ attachment.originalName }}" title="{{ attachment.originalName }}" class="text-primary underlined stop-propagation">{{ attachment.originalName }}</a>
                         </div>
