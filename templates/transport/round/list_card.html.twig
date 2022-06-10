@@ -2,7 +2,7 @@
     <a href="{{ path('transport_round_show', {transportRound: round.id}) }}" class="transport-request-card">
         <table class="transport-content w-100">
             <tr style="border-bottom: 5px solid transparent;">
-                <div class="h-100 d-flex flex-column" style="padding-top: 10px; padding-left: 10px; padding-right: 0;">
+                <div class="h-100 d-flex flex-column" style="padding-top: 5px; padding-left: 5px; padding-right: 5px;">
                     {% if round.rejectedOrderCount > 0 %}
                         <img src="{{ asset('svg/rejected-delivery.svg') }}"
                              width="18px"
@@ -13,6 +13,11 @@
                         {% if hasRejectedPacks %}
                             <img src="{{ asset('svg/rejected-pack.svg') }}" width="18px" height="18px"
                                  class="has-tooltip" title="Un ou plusieurs colis ont été rejetés">
+                        {% else %}
+                            <img src="{{ asset('svg/rejected-delivery.svg') }}"
+                                 width="18px"
+                                 height="18px"
+                                 class="invisible">
                         {% endif %}
 
                         {# TODO Gérer l'affichage de l'icône en fonction du lastMassage du sensor. Faire la WIIS-7229 avant #}
