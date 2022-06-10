@@ -1,0 +1,11 @@
+.wii-sortable-container {
+    .placeholder-container {
+        padding: .25rem;
+        display: flex;
+        .placeholder {
+            flex: 1;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+    }
+}

@@ -1,9 +1,10 @@
 import '@styles/planning.scss';
 import '@styles/pages/preparation/planning.scss';
 import Sortable from "@app/sortable";
-import AJAX, {PUT} from "@app/ajax";
+import AJAX, {POST, PUT} from "@app/ajax";
 import Planning from "@app/planning";
 import moment from "moment";
+import Flash, {ERROR, SUCCESS} from "@app/flash";
 
 global.callbackSaveFilter = callbackSaveFilter;
 let planning = null;
@@ -64,13 +65,6 @@ function initializeFilters() {
 
 function onPlanningLoaded(planning) {
     Sortable.create('.planning-card-container', {
-        placeholderClass: 'placeholder-container',
-        forcePlaceholderSize: true,
-        placeholder: `
-            <div class="placeholder-container">
-                <div class="placeholder"></div>
-            </div>
-        `,
         acceptFrom: '.planning-card-container',
         items: '.can-drag',
         handle: '.can-drag',
@@ -132,116 +126,130 @@ function changeNavigationButtonStates() {
     $todayDate.prop('disabled', moment().isSame(planning.baseDate, 'day'));
 }
 
-function getOrUpdatePreparationCard(modal){
-    modal.modal('show');
-    AJAX.route(`POST`, `planning_preparation_launching_filter`, {from: $('input[name=dateFrom]').val(), to: $('input[name=dateTo]').val()})
+function getOrUpdatePreparationCard($modal){
+    $modal.modal('show');
+    AJAX.route(POST, `planning_preparation_launching_filter`, {
+        from: $('input[name=dateFrom]').val(),
+        to: $('input[name=dateTo]').val()
+    })
         .json()
         .then((response) => {
-            modal.find('.preparations-container').empty();
-            modal.find('.preparations-container').addClass('d-none');
+            const $modalContent = $modal.find('.modal-content-wrapper');
+            $modalContent
+                .empty()
+                .addClass('d-none');
             if(response.success) {
-                modal.find('.preparations-container').removeClass('d-none');
-                modal.find('.preparations-container').append(response.template);
+                $modalContent.removeClass('d-none');
+                $modalContent.append(response.template);
 
-                onOrdersDragAndDropDone(modal);
+                onOrdersDragAndDropDone($modal);
                 const sortables = Sortable.create(`.available-preparations, .assigned-preparations`, {
-                    acceptFrom: `.preparations`,
+                    acceptFrom: `.preparations-container`,
                 });
 
                 $(sortables).on('sortupdate', () => {
-                    onOrdersDragAndDropDone(modal);
-                })
+                    onOrdersDragAndDropDone($modal);
+                });
             }
 
-            modal.find('.add-all').on('click', function (){
-                const $preparationCards = modal.find('.available-preparations .preparation-card-container');
-                const $targetContainer = modal.find('.assigned-preparations');
+            $modal.find('.add-all').on('click', function (){
+                const $preparationCards = $modal.find('.available-preparations .preparation-card');
+                const $targetContainer = $modal.find('.assigned-preparations');
                 $preparationCards
                     .detach()
                     .appendTo($targetContainer);
 
-                onOrdersDragAndDropDone(modal);
+                onOrdersDragAndDropDone($modal);
             });
 
-            modal.find('.remove-all').on('click', function (){
-                const $preparationCards = modal.find('.assigned-preparations .preparation-card-container');
-                const $targetContainer = modal.find('.available-preparations');
+            $modal.find('.remove-all').on('click', function (){
+                const $preparationCards = $modal.find('.assigned-preparations .preparation-card-container');
+                const $targetContainer = $modal.find('.available-preparations');
                 $preparationCards
                     .detach()
                     .appendTo($targetContainer);
-                onOrdersDragAndDropDone(modal);
-                modal.find('.quantities-information-container').addClass('d-none');
+                onOrdersDragAndDropDone($modal);
+                $modal.find('.quantities-information-container').addClass('d-none');
             });
 
-            modal.find('.check-stock-button').on('click', function (){
-                const $preparationCards = modal.find('.assigned-preparations .preparation-card');
-                const $submitButton = modal.find('.check-stock-button');
-                const data = [];
-                $preparationCards.each(function() {
-                    data.push($(this).data('preparation'));
-                });
-                modal.find('.quantities-information-container').addClass('d-none');
-                wrapLoadingOnActionButton(modal.find('.assigned-preparations'), () => {
-                    return new Promise((resolve) => {
-                        wrapLoadingOnActionButton(modal.find('.check-stock-button'), () => {
-                            return AJAX
-                                .route(`POST`, `planning_preparation_launch_check_stock`, {launchPreparations: $submitButton.data('launch-preparations')})
-                                .json(data)
-                                .then((res) => {
-                                    if(res.success) {
-                                        if(res.unavailablePreparationsId.length > 0){
-                                            showBSAlert("Votre stock est insuffisant pour démarrer cette préparation", "danger");
-                                            res.unavailablePreparationsId.forEach((id) => {
-                                                modal.find(`[data-preparation="${id}"]`).addClass('red-card');
-                                                modal.find(`[data-preparation="${id}"]`).removeClass('orange-card');
-                                            });
-                                            modal.find('.assigned-preparations').addClass('border border-danger');
-                                            $submitButton.text("Vérifier le stock");
-                                            $submitButton.data('launch-preparations', "0");
-                                            modal.find('.quantities-information-container').removeClass('d-none');
-                                            modal.find('.quantities-information').empty();
-                                            modal.find('.quantities-information').append(res.template);
-                                        } else if($submitButton.data('launch-preparations') === "1"){
-                                            modal.modal('hide');
-                                            callbackSaveFilter();
-                                        } else {
-                                            showBSAlert("Le stock demandé est disponible", "success");
-                                            $submitButton.text("Lancer les préparations");
-                                            $submitButton.data('launch-preparations', "1");
-                                            modal.find('.assigned-preparations').addClass('border border-success');
-                                        }
-                                        resolve();
-                                    }
-                                });
-                        });
-                    });
-                })
+            $modal.find('.check-stock-button').on('click', function (){
+                launchStockCheck($modal);
             });
         });
 }
 
-function onOrdersDragAndDropDone(modal){
-    const $preparationsAvailable = modal.find('.available-preparations .preparation-card');
-    const $preparationsToStart = modal.find('.assigned-preparations .preparation-card');
-    const $preparationsAvailableContainer = modal.find('.available-preparations-counter');
-    const $preparationsToStartContainer = modal.find('.assigned-preparations-counter');
-    const $submitButton = modal.find('.check-stock-button');
+function onOrdersDragAndDropDone($modal){
+    const $preparationsAvailable = $modal.find('.available-preparations .preparation-card');
+    const $preparationsToStart = $modal.find('.assigned-preparations .preparation-card');
+    const $preparationsAvailableContainer = $modal.find('.available-preparations-counter');
+    const $preparationsToStartContainer = $modal.find('.assigned-preparations-counter');
+    const $submitButton = $modal.find('.check-stock-button');
     const $availableCounter = $preparationsAvailable.length;
     const $assignedCounter = $preparationsToStart.length;
 
-    modal.find('.quantities-information-container').addClass('d-none');
-    modal.find('.assigned-preparations').removeClass('border border-danger border-success');
-    $preparationsAvailable.addClass('orange-card');
-    $preparationsAvailable.removeClass('red-card');
-    $submitButton.data('launch-preparations', "0");
-    $submitButton.attr(`disabled`, !$preparationsToStart.exists());
-    $preparationsAvailableContainer.empty().append($availableCounter);
-    $preparationsToStartContainer.empty().append($assignedCounter);
+    $modal.find('.quantities-information-container').addClass('d-none');
+    $modal.find('.assigned-preparations').removeClass('border border-danger border-success');
+    $preparationsAvailable
+        .addClass('orange-card')
+        .removeClass('red-card');
+    $submitButton
+        .data('launch-preparations', "0")
+        .attr(`disabled`, !$preparationsToStart.exists());
+    $preparationsAvailableContainer.html($availableCounter);
+    $preparationsToStartContainer.html($assignedCounter);
     if(!$preparationsToStart.exists()) {
         $submitButton.text("Lancer les préparations");
     } else {
         $submitButton.text("Vérifier le stock");
     }
 }
+
+function launchStockCheck($modal) {
+    const $assignedPreparations = $modal.find('.assigned-preparations');
+    const $preparationCards = $assignedPreparations.find('.preparation-card');
+    const $submitButton = $modal.find('.check-stock-button');
+    const data = [];
+    $preparationCards.each(function() {
+        data.push($(this).data('preparation'));
+    });
+    $modal.find('.quantities-information-container').addClass('d-none');
+    const $loadingContainers = $.merge($assignedPreparations, $modal.find('.check-stock-button'));
+    wrapLoadingOnActionButton($loadingContainers, () => (
+        AJAX
+            .route(POST, `planning_preparation_launch_check_stock`, {
+                launchPreparations: $submitButton.data('launch-preparations')
+            })
+            .json(data)
+            .then((res) => {
+                if(res.success) {
+                    if(res.unavailablePreparationsId.length > 0){
+                        Flash.add(ERROR, "Votre stock est insuffisant pour démarrer cette préparation");
+                        res.unavailablePreparationsId.forEach((id) => {
+                            $modal.find(`[data-preparation="${id}"]`)
+                                .addClass('red-card')
+                                .removeClass('orange-card');
+                        });
+                        $modal.find('.assigned-preparations').addClass('border border-danger');
+                        $submitButton
+                            .text("Vérifier le stock")
+                            .data('launch-preparations', "0");
+                        $modal.find('.quantities-information-container').removeClass('d-none');
+                        $modal.find('.quantities-information').empty();
+                        $modal.find('.quantities-information').append(res.template);
+                    } else if($submitButton.data('launch-preparations') === "1"){
+                        $modal.modal('hide');
+                        callbackSaveFilter();
+                    } else {
+                        Flash.add(SUCCESS, "Le stock demandé est disponible");
+                        $submitButton
+                            .text("Lancer les préparations")
+                            .data('launch-preparations', "1");
+                        $modal.find('.assigned-preparations').addClass('border border-success');
+                    }
+                }
+            })
+    ));
+}
+
 
 

@@ -9,7 +9,7 @@
 
         {% set columnPaddingClass = loop.first ? 'pl-3' : (loop.last ? 'pr-3' : '') %}
 
-        <div class="col-12 d-flex h-100 px-1 {{ columnClass }} {{ columnPaddingClass }} preparation-card-column"
+        <div class="col-12 d-flex h-100 px-1 planning-col {{ columnClass }} {{ columnPaddingClass }} preparation-card-column"
              data-date="{{ cardSelector }}">
             <div class="wii-box border flex-fill d-flex flex-column">
                 <div class="header">

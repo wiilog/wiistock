@@ -1,12 +1,22 @@
 @import "../../variables";
 
-.preparations {
-    background-color: #F2F3F7;
-    border-radius: 8px;
-    padding: 4px;
-    height: 565px;
-    overflow-y: auto;
-    overflow-x: hidden;
+#modalLaunchPreparation {
+    .preparations-container {
+        background-color: #F2F3F7;
+        border-radius: 8px;
+        padding: 4px;
+        height: 565px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        display: flex;
+        align-content: flex-start;
+        align-items: flex-start;
+
+        .preparation-card,
+        .placeholder-container {
+            max-width: 205px;
+        }
+    }
 }
 
 .preparation-card {

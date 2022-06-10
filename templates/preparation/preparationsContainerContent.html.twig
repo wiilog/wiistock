@@ -1,13 +1,11 @@
 <div class="col-md-5 col-12">
     <label class="bold">Préparation(s) disponible(s) au lancement : <span class="available-preparations-counter"></span></label>
-    <div class="row preparations available-preparations">
+    <div class="preparations-container available-preparations">
         {% for preparation in preparations %}
-            <div class="col-4 px-0 preparation-card-container">
-                {% include 'preparation/planning_card.html.twig' with {
-                    preparation: preparation,
-                    color: 'orange-card'
-                }%}
-            </div>
+            {% include 'preparation/planning_card.html.twig' with {
+                preparation: preparation,
+                color: 'orange-card'
+            }%}
         {% endfor %}
     </div>
 </div>
@@ -17,7 +15,9 @@
 </div>
 <div class="col-md-5 col-12">
     <label class="bold">Préparation(s) à lancer : <span class="assigned-preparations-counter">0</span></label>
-    <div class="row preparations assigned-preparations">
+    <div class="preparations-container assigned-preparations"
+         data-loader-color="black"
+         data-loader-size="normal">
 
     </div>
 </div>

@@ -18,13 +18,14 @@
         width: 100%;
     }
 
-    .placeholder-container {
-        padding: .25rem;
-        display: flex;
-        .placeholder {
-            flex: 1;
-            border-radius: 5px;
-            border: 1px solid #ccc;
+    .planning-col {
+        flex: 0 0 calc(100% / 7);
+
+        .placeholder-container,
+        .planning-card {
+            width: 100% !important;
+            min-width: 100% !important;
+            max-width: 100% !important;
         }
     }
 
@@ -36,17 +37,6 @@
             width: 50% !important;
             min-width: 50% !important;
             max-width: 50% !important;
-        }
-    }
-
-    .planning-col-1 {
-        flex: 0 0 calc(100% / 7);
-
-        .placeholder-container,
-        .planning-card {
-            width: 100% !important;
-            min-width: 100% !important;
-            max-width: 100% !important;
         }
     }
 
