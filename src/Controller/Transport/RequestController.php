@@ -24,6 +24,8 @@ use App\Entity\Transport\TransportDeliveryRequestLine;
 use App\Entity\Transport\TransportHistory;
 use App\Entity\Transport\TransportOrder;
 use App\Entity\Transport\TransportRequest;
+use App\Entity\Transport\TransportRound;
+use App\Entity\Transport\TransportRoundLine;
 use App\Entity\Type;
 use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
@@ -31,9 +33,11 @@ use App\Service\CSVExportService;
 use App\Service\FreeFieldService;
 use App\Service\IOT\IOTService;
 use App\Service\MailerService;
+use App\Service\NotificationService;
 use App\Service\PDFGeneratorService;
 use App\Service\StatusHistoryService;
 use App\Service\Transport\TransportHistoryService;
+use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Transport\TransportCollectRequest;
 use App\Entity\Utilisateur;
@@ -570,7 +574,9 @@ class RequestController extends AbstractController {
     public function cancel(TransportRequest $transportRequest,
                            TransportHistoryService $transportHistoryService,
                            StatusHistoryService $statusHistoryService,
-                           EntityManagerInterface $entityManager): Response {
+                           EntityManagerInterface $entityManager,
+                           NotificationService $notificationService,
+                           UserService $userService): Response {
 
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
@@ -590,9 +596,29 @@ class RequestController extends AbstractController {
         }
 
         $statusRequest = $statusRepository->findOneByCategorieNameAndStatutCode($categoryRequest, TransportRequest::STATUS_CANCELLED);
-
+dump($success);
         if ($success) {
-            $msg = 'Demande annulée.';
+            $msg = "Demande annulée";
+            $transportOrder = $transportRequest->getOrder();
+
+            $line = $transportOrder->getTransportRoundLines()->last();
+            $round = $line->getTransportRound();
+
+            $lineBefore = null;
+            foreach($round->getTransportRoundLines() as $currentLine) {
+                if($currentLine->getPriority() + 1 === $line->getPriority()) {
+                    $lineBefore = $currentLine;
+                    break;
+                }
+            }
+
+            if(!$lineBefore || $lineBefore->getOrder()->getStatus()->getCode() !== TransportOrder::STATUS_ONGOING && $line->getOrder()->getStatus()->getCode() === TransportOrder::STATUS_ONGOING) {
+                $userChannel = $userService->getUserFCMChannel($round->getDeliverer());
+                $notificationService->send($userChannel, "Votre prochain point de passage a été annulé", null, [
+                    "roundId" => $round->getId(),
+                    "transportId" => $transportRequest->getId(),
+                ]);
+            }
 
             $statusHistoryRequest = $statusHistoryService->updateStatus($entityManager, $transportRequest, $statusRequest);
             $transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_CANCELLED, [
@@ -600,25 +626,19 @@ class RequestController extends AbstractController {
                 'user' => $loggedUser
             ]);
 
-            $transportOrder = $transportRequest->getOrder();
-            if ($transportOrder) {
-                $statusOrder = $statusRepository->findOneByCategorieNameAndStatutCode($categoryOrder, TransportOrder::STATUS_CANCELLED);
-                $statusHistoryOrder = $statusHistoryService->updateStatus($entityManager, $transportOrder, $statusOrder);
-                $transportHistoryService->persistTransportHistory($entityManager, $transportOrder, TransportHistoryService::TYPE_CANCELLED, [
-                    'history' => $statusHistoryOrder,
-                    'user' => $loggedUser
-                ]);
+            $statusOrder = $statusRepository->findOneByCategorieNameAndStatutCode($categoryOrder, TransportOrder::STATUS_CANCELLED);
+            $statusHistoryOrder = $statusHistoryService->updateStatus($entityManager, $transportOrder, $statusOrder);
+            $transportHistoryService->persistTransportHistory($entityManager, $transportOrder, TransportHistoryService::TYPE_CANCELLED, [
+                'history' => $statusHistoryOrder,
+                'user' => $loggedUser
+            ]);
 
-                if(!$transportOrder->getTransportRoundLines()->isEmpty()) {
-                    $line = $transportOrder->getTransportRoundLines()->last();
-                    $line->setCancelledAt(new DateTime());
-                }
-            }
+            $line->setCancelledAt(new DateTime());
 
             $entityManager->flush();
         }
         else {
-            $msg = 'Le statut de cette demande rend impossible son annulation.';
+            $msg = "Ce transport ne peut pas être annulé car il n'est pas en cours";
         }
 
         return $this->json([

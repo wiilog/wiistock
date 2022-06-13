@@ -421,4 +421,11 @@ class TransportOrder extends StatusHistoryContainer {
         return $this;
     }
 
+    public function getLastTransportHistory(string $type): TransportHistory|null {
+        return Stream::from($this->getHistory())
+            ->filter(fn(TransportHistory $history) => $history->getType() === $type)
+            ->sort(fn(TransportHistory $h1, TransportHistory $h2) => $h1->getId() <=> $h2->getId())
+            ->last();
+    }
+
 }

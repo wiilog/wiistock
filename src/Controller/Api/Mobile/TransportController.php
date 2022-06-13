@@ -42,7 +42,6 @@ use FOS\RestBundle\Controller\Annotations as Rest;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use WiiCommon\Helper\Stream;
-use function GuzzleHttp\Promise\inspect;
 
 class TransportController extends AbstractFOSRestController {
 
@@ -55,7 +54,6 @@ class TransportController extends AbstractFOSRestController {
     public function setUser(Utilisateur $user) {
         $this->user = $user;
     }
-
 
     /**
      * @Rest\Get("/api/transport-rounds", name="api_transport_rounds", methods={"GET"}, condition="request.isXmlHttpRequest()")
@@ -198,8 +196,8 @@ class TransportController extends AbstractFOSRestController {
             "done_collects" => $collectedOrders->count(),
             "deposited_packs" => $depositedPacks,
             "packs_to_deposit" => $toDeposit,
-            "deposited_delivery_packs" => $round->getDepositedDeliveryPacks(),
-            "deposited_collect_packs" => $round->getDepositedCollectPacks(),
+            "deposited_delivery_packs" => $round->hasNoDeliveryToReturn(),
+            "deposited_collect_packs" => $round->hasNoCollectToReturn(),
             "lines" => Stream::from($lines)
                 ->filter(fn(TransportRoundLine $line) =>
                     !$line->getCancelledAt()
@@ -258,6 +256,7 @@ class TransportController extends AbstractFOSRestController {
             : ($isCollect
                 ? FormatHelper::datetime($request->getDelivery()?->getExpectedAt())
                 : FormatHelper::datetime($request->getExpectedAt()));
+
         return [
             'id' => $request->getId(),
             'number' => $request->getNumber(),
@@ -304,6 +303,7 @@ class TransportController extends AbstractFOSRestController {
             'photos' => Stream::from($order->getAttachments())
                 ->map(fn(Attachment $attachment) => $attachment->getFullPath()),
             'signature' => $order->getSignature()?->getFullPath(),
+            'reject_motive' => $order->getLastTransportHistory(TransportHistoryService::TYPE_FAILED)?->getReason(),
             'requester' => FormatHelper::user($request->getCreatedBy()),
             'free_fields' => Stream::from($freeFields)
                 ->map(function(FreeField $freeField) use($line, $freeFieldsValues) {
@@ -336,7 +336,7 @@ class TransportController extends AbstractFOSRestController {
         $deliveryRejectMotives = $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_DELIVERY_REJECT_MOTIVES);
         $collectRejectMotives = $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_COLLECT_REJECT_MOTIVES);
 
-        $packRejectMotives = explode(",", $packRejectMotives);
+        $packRejectMotives = $packRejectMotives ? explode(",", $packRejectMotives) : [];
         $deliveryRejectMotives = explode(",", $deliveryRejectMotives);
         $collectRejectMotives = explode(",", $collectRejectMotives);
 
@@ -344,8 +344,8 @@ class TransportController extends AbstractFOSRestController {
         $collectRejectMotives[] = 'Autre';
         return $this->json([
             'pack' => $packRejectMotives,
-            'delivery' => $deliveryRejectMotives,
-            'collect' => $collectRejectMotives
+            'delivery' => array_unique($deliveryRejectMotives),
+            'collect' => array_unique($collectRejectMotives),
         ]);
     }
 
@@ -415,17 +415,80 @@ class TransportController extends AbstractFOSRestController {
      * @Wii\RestVersionChecked()
      */
     public function finishRound(Request                 $request,
-                               EntityManagerInterface  $manager,
-                               GeoService $geoService,
-                               TransportRoundService   $transportRoundService): Response {
+                                EntityManagerInterface  $manager,
+                                GeoService              $geoService,
+                                TransportRoundService   $transportRoundService,
+                                TrackingMovementService $trackingMovementService,
+                                StatusHistoryService    $statusHistoryService): Response {
         $data = $request->request;
+        $locationRepository = $manager->getRepository(Emplacement::class);
         $round = $manager->find(TransportRound::class, $data->get('round'));
+        $location = $locationRepository->find($data->get('location'));
+        $packs = json_decode($data->get('packs'));
+        $now = new DateTime();
 
-        $round->setRealDistance($transportRoundService->calculateRoundRealDistance($round, $geoService));
+        if(!empty($packs)) {
+            $packsDropLocation = $locationRepository->find($data->get('packsDropLocation'));
+
+            foreach ($packs as $pack) {
+                $trackingMovement = $trackingMovementService->createTrackingMovement(
+                    $pack,
+                    $packsDropLocation,
+                    $this->getUser(),
+                    $now,
+                    true,
+                    true,
+                    TrackingMovement::TYPE_DEPOSE
+                );
+
+                $manager->persist($trackingMovement);
+            }
+
+        }
+
+        $emptyRoundPack = $manager->getRepository(Pack::class)->findOneBy(['code' => Pack::EMPTY_ROUND_PACK]);
+        $trackingMovement = $trackingMovementService->createTrackingMovement(
+            $emptyRoundPack,
+            $location,
+            $this->getUser(),
+            $now,
+            true,
+            true,
+            TrackingMovement::TYPE_EMPTY_ROUND
+        );
+        $manager->persist($trackingMovement);
+
+        $round
+            ->setRealDistance($transportRoundService->calculateRoundRealDistance($round, $geoService))
+            ->setEndedAt($now);
+
+        $allCollectsReturned = Stream::from($round->getTransportRoundLines())
+            ->filterMap(fn(TransportRoundLine $line) => $line->getOrder()->getRequest() instanceof TransportCollectRequest
+                ? $line->getOrder()->getRequest()
+                : $line->getOrder()->getRequest()->getCollect())
+            ->flatMap(fn(TransportCollectRequest $collect) => $collect->getLines())
+            ->filter(fn(TransportCollectRequestLine $line) => $line->getQuantityToCollect() != 0)
+            ->isEmpty();
+        if($allCollectsReturned) {
+            $round->setNoCollectToReturn(true);
+        }
+
+        $allDeliveriesReturned = Stream::from($round->getTransportRoundLines())
+            ->filter(fn(TransportRoundLine $line) => Stream::from($line->getOrder()->getPacks())
+                ->some(fn(TransportDeliveryOrderPack $pack) => $pack->getState() === TransportDeliveryOrderPack::LOADED_STATE))
+            ->count();
+        if($allDeliveriesReturned === 0) {
+            $round->setNoDeliveryToReturn(true);
+        }
+
+        $finishedStatus = $manager->getRepository(Statut::class)
+            ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ROUND, TransportRound::STATUS_FINISHED);
+        $statusHistoryService->updateStatus($manager, $round, $finishedStatus);
+
         $manager->flush();
 
         return $this->json([
-            "success" => true,
+            "success" => true
         ]);
     }
 
@@ -468,12 +531,7 @@ class TransportController extends AbstractFOSRestController {
 
         $hasRejected = false;
 
-        $statusHistoryRound = $statusHistoryService->updateStatus($manager, $round, $deliveryOrderOngoing);
-
-        $historyService->persistTransportHistory($manager, $round, TransportHistoryService::TYPE_ONGOING, [
-            "user" => $this->getUser(),
-            "history" => $statusHistoryRound
-        ]);
+        $statusHistoryService->updateStatus($manager, $round, $deliveryOrderOngoing);
 
         foreach($round->getTransportRoundLines() as $line) {
             $order = $line->getOrder();
@@ -764,7 +822,6 @@ class TransportController extends AbstractFOSRestController {
         $data = $request->request;
         $files = $request->files;
         $request = $manager->find(TransportRequest::class, $data->get('transport'));
-        $round = $manager->find(TransportRound::class, $data->get('round'));
         $motive = $data->get('motive');
         $comment = $data->get('comment');
         $order = $request->getOrder();
@@ -789,6 +846,19 @@ class TransportController extends AbstractFOSRestController {
             ]);
         }
 
+        $lastFailedOrderHistory = $order->getLastTransportHistory(TransportHistoryService::TYPE_FAILED);
+        if(!$lastFailedOrderHistory || ($lastFailedOrderHistory->getReason() !== $motive)) {
+            $historyService->persistTransportHistory($manager, $request, TransportHistoryService::TYPE_FAILED, [
+                "user" => $this->getUser(),
+                "reason" => $motive,
+            ]);
+
+            $historyService->persistTransportHistory($manager, $order, TransportHistoryService::TYPE_FAILED, [
+                "user" => $this->getUser(),
+                "reason" => $motive,
+            ]);
+        }
+
         $signature = $files->get('signature');
         $photo = $files->get('photo');
 
@@ -799,7 +869,7 @@ class TransportController extends AbstractFOSRestController {
             $order->setSignature($signatureAttachment);
         }
 
-        if($signatureAttachment) {
+        if($photoAttachment) {
             $order->addAttachment($photoAttachment);
         }
 
@@ -824,16 +894,6 @@ class TransportController extends AbstractFOSRestController {
         if(!$isEdit) {
             $order->setTreatedAt($now);
 
-            $historyService->persistTransportHistory($manager, $request, TransportHistoryService::TYPE_ADD_COMMENT, [
-                "user" => $this->getUser(),
-                "comment" => $motive,
-            ]);
-
-            $historyService->persistTransportHistory($manager, $order, TransportHistoryService::TYPE_ADD_COMMENT, [
-                "user" => $this->getUser(),
-                "comment" => $motive,
-            ]);
-
             $isCollectFromDelivery = $request instanceof TransportCollectRequest && $request->getDelivery();
             if (!$isCollectFromDelivery) {
                 $lastLine = $order->getTransportRoundLines()->last();
@@ -857,11 +917,8 @@ class TransportController extends AbstractFOSRestController {
 
                 $collectHasDelivery = $request instanceof TransportCollectRequest && $request->getDelivery();
 
-                $statusHistory = null;
                 if (!$collectHasDelivery) {
-                    $statusHistory = $statusHistoryService->updateStatus($manager, $entity, $status, [
-                        "setStatus" => true,
-                    ]);
+                    $statusHistoryService->updateStatus($manager, $entity, $status);
                 }
                 else {
                     //pas d'historique de statut car livraison collecte
@@ -869,17 +926,6 @@ class TransportController extends AbstractFOSRestController {
                         ->findOneByCategorieNameAndStatutCode($categoryStatus, $statusCode);
                     $entity->setStatus($notCollectedStatus);
                 }
-
-                $historyService->persistTransportHistory($manager, $entity, TransportHistoryService::TYPE_FAILED, [
-                    'user' => $this->getUser(),
-                    'deliverer' => $round->getDeliverer(),
-                    'round' => $round,
-                    'history' => $statusHistory,
-                    'reason' => $motive,
-                    'comment' => $comment,
-                    'date' => $now,
-                    'attachments' => $photoAttachment ? [$photoAttachment] : null
-                ]);
             }
 
             if ($request instanceof TransportDeliveryRequest) {
@@ -902,8 +948,7 @@ class TransportController extends AbstractFOSRestController {
                 $users = $manager->getRepository(Utilisateur::class)->findBy(['status' => true]);
                 $manager->persist($emitted);
                 foreach ($users as $user) {
-                    $user
-                        ->addUnreadNotification($emitted);
+                    $user->addUnreadNotification($emitted);
                 }
             }
 
@@ -1021,7 +1066,7 @@ class TransportController extends AbstractFOSRestController {
                 ->isEmpty();
 
             if($isDoneReturning) {
-                $round->setDepositedDeliveryPacks(true);
+                $round->setNoDeliveryToReturn(true);
             }
         } else if($depositedCollectPacks) {
             foreach ($depositedCollectPacks as $pack) {
@@ -1092,7 +1137,7 @@ class TransportController extends AbstractFOSRestController {
                     ]
                 );
 
-                $round->setDepositedCollectPacks(true);
+                $round->setNoCollectToReturn(true);
             }
         }
 
@@ -1103,4 +1148,37 @@ class TransportController extends AbstractFOSRestController {
         ]);
     }
 
+    /**
+     * @Rest\Get("/api/end-round-locations", name="api_end_round_locations", methods={"GET"}, condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function endRoundLocations(EntityManagerInterface $manager): Response {
+        $settingRepository = $manager->getRepository(Setting::class);
+        $endRoundLocations = $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_END_ROUND_LOCATIONS);
+
+        $endRoundLocations = $endRoundLocations ? explode(",", $endRoundLocations) : [];
+        $endRoundLocations = Stream::from($endRoundLocations)->map(fn(string $location) => (int) $location)->toArray();
+
+        return $this->json([
+           'endRoundLocations' => $endRoundLocations
+        ]);
+    }
+
+    /**
+     * @Rest\Get("/api/undelivered-packs-locations", name="api_undelivered_packs_locations", methods={"GET"}, condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function undeliveredPacksLocations(EntityManagerInterface $manager): Response {
+        $settingRepository = $manager->getRepository(Setting::class);
+        $undeliveredPacksLocations = $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_REJECTED_PACKS_LOCATIONS);
+
+        $undeliveredPacksLocations = $undeliveredPacksLocations ? explode(",", $undeliveredPacksLocations) : [];
+        $undeliveredPacksLocations = Stream::from($undeliveredPacksLocations)->map(fn(string $location) => (int) $location)->toArray();
+
+        return $this->json([
+            'undeliveredPacksLocations' => $undeliveredPacksLocations
+        ]);
+    }
 }
