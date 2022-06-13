@@ -42,7 +42,6 @@ use FOS\RestBundle\Controller\Annotations as Rest;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use WiiCommon\Helper\Stream;
-use function GuzzleHttp\Promise\inspect;
 
 class TransportController extends AbstractFOSRestController {
 
@@ -55,7 +54,6 @@ class TransportController extends AbstractFOSRestController {
     public function setUser(Utilisateur $user) {
         $this->user = $user;
     }
-
 
     /**
      * @Rest\Get("/api/transport-rounds", name="api_transport_rounds", methods={"GET"}, condition="request.isXmlHttpRequest()")
@@ -258,6 +256,7 @@ class TransportController extends AbstractFOSRestController {
             : ($isCollect
                 ? FormatHelper::datetime($request->getDelivery()?->getExpectedAt())
                 : FormatHelper::datetime($request->getExpectedAt()));
+
         return [
             'id' => $request->getId(),
             'number' => $request->getNumber(),
@@ -304,6 +303,7 @@ class TransportController extends AbstractFOSRestController {
             'photos' => Stream::from($order->getAttachments())
                 ->map(fn(Attachment $attachment) => $attachment->getFullPath()),
             'signature' => $order->getSignature()?->getFullPath(),
+            'reject_motive' => $order->getLastTransportHistory(TransportHistoryService::TYPE_FAILED)?->getReason(),
             'requester' => FormatHelper::user($request->getCreatedBy()),
             'free_fields' => Stream::from($freeFields)
                 ->map(function(FreeField $freeField) use($line, $freeFieldsValues) {
@@ -344,8 +344,8 @@ class TransportController extends AbstractFOSRestController {
         $collectRejectMotives[] = 'Autre';
         return $this->json([
             'pack' => $packRejectMotives,
-            'delivery' => $deliveryRejectMotives,
-            'collect' => $collectRejectMotives
+            'delivery' => array_unique($deliveryRejectMotives),
+            'collect' => array_unique($collectRejectMotives),
         ]);
     }
 
@@ -424,7 +424,7 @@ class TransportController extends AbstractFOSRestController {
         $locationRepository = $manager->getRepository(Emplacement::class);
         $round = $manager->find(TransportRound::class, $data->get('round'));
         $location = $locationRepository->find($data->get('location'));
-        $packs = $data->all()['packs'] ?? [];
+        $packs = json_decode($data->get('packs'));
         $now = new DateTime();
 
         if(!empty($packs)) {
@@ -822,7 +822,6 @@ class TransportController extends AbstractFOSRestController {
         $data = $request->request;
         $files = $request->files;
         $request = $manager->find(TransportRequest::class, $data->get('transport'));
-        $round = $manager->find(TransportRound::class, $data->get('round'));
         $motive = $data->get('motive');
         $comment = $data->get('comment');
         $order = $request->getOrder();
@@ -847,6 +846,19 @@ class TransportController extends AbstractFOSRestController {
             ]);
         }
 
+        $lastFailedOrderHistory = $order->getLastTransportHistory(TransportHistoryService::TYPE_FAILED);
+        if(!$lastFailedOrderHistory || ($lastFailedOrderHistory->getReason() !== $motive)) {
+            $historyService->persistTransportHistory($manager, $request, TransportHistoryService::TYPE_FAILED, [
+                "user" => $this->getUser(),
+                "reason" => $motive,
+            ]);
+
+            $historyService->persistTransportHistory($manager, $order, TransportHistoryService::TYPE_FAILED, [
+                "user" => $this->getUser(),
+                "reason" => $motive,
+            ]);
+        }
+
         $signature = $files->get('signature');
         $photo = $files->get('photo');
 
@@ -857,7 +869,7 @@ class TransportController extends AbstractFOSRestController {
             $order->setSignature($signatureAttachment);
         }
 
-        if($signatureAttachment) {
+        if($photoAttachment) {
             $order->addAttachment($photoAttachment);
         }
 
@@ -914,11 +926,6 @@ class TransportController extends AbstractFOSRestController {
                         ->findOneByCategorieNameAndStatutCode($categoryStatus, $statusCode);
                     $entity->setStatus($notCollectedStatus);
                 }
-
-                $historyService->persistTransportHistory($manager, $entity, TransportHistoryService::TYPE_FAILED, [
-                    "user" => $this->getUser(),
-                    "reason" => $motive,
-                ]);
             }
 
             if ($request instanceof TransportDeliveryRequest) {
