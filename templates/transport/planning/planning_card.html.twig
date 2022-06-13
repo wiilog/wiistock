@@ -1,6 +1,6 @@
 {% set isOrderToAssign = (order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_TO_ASSIGN')) %}
-{% set cardColor = isOrderToAssign ? 'orange' : (order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ASSIGNED') ? 'green' :
-    (order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ONGOING') ? 'blue' : '')) %}
+{% set cardColor = isOrderToAssign ? 'orange-card' : (order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ASSIGNED') ? 'green-card' :
+    (order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ONGOING') ? 'blue-card' : '')) %}
 {% set request = order.request ?? null %}
 {% set isCollect = request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') %}
 {% set roundLine = order ? (order.transportRoundLines | last) ?: null : null %}

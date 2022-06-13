@@ -34,7 +34,7 @@ class PlanningController extends AbstractController
         $data = $request->query;
         $transportOrderRepository = $manager->getRepository(TransportOrder::class);
 
-        $currentDate = DateTime::createFromFormat('Y-m-d', $data?->get('currentDate'));
+        $currentDate = DateTime::createFromFormat('Y-m-d', $data?->get('date'));
 
         if (!$currentDate) {
             throw new RuntimeException('Invalid date');
@@ -117,7 +117,7 @@ class PlanningController extends AbstractController
 
         return $this->json([
             'success' => true,
-            'template' => $this->renderView("transport/planning/planning_by_date_container.html.twig", [
+            'template' => $this->renderView("transport/planning/planning_content.html.twig", [
                 'transportOrders' => $orders,
                 'dateForContainer' => $currentDate,
                 'deliveryAndCollectCount' => $deliveryAndCollectCount,

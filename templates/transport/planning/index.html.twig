@@ -3,14 +3,14 @@
 {% block title %}Ordre | Planning{% endblock %}
 {% block titleLink path('transport_planning_index') %}
 
-
 {% block stylesheets %}
     {{ parent() }}
     {{ encore_entry_link_tags('transport-order-planning') }}
 {% endblock %}
 
+{% block pageContainerClass 'd-flex flex-fill flex-column' %}
 {% block page_content %}
-    <div class="m-0 m-md-4 p-4 wii-page-card">
+    <div class="m-0 m-md-4 wii-page-card flex-fill d-flex flex-column">
         <div class="d-flex">
             <div>
                 <button class="btn btn-outline-primary today-date mr-0 h-100" tabindex="0"
@@ -75,7 +75,7 @@
                 </button>
             {% endif %}
         </div>
-        <div class="row d-flex" data-wii-planning></div>
+        <div class="transport-planning"></div>
     </div>
     {% include 'transport/round/first_step_modal.html.twig' %}
 {% endblock %}

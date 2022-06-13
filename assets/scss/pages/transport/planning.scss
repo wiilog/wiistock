@@ -1,7 +1,7 @@
 @import "../../variables";
 
 .card-content{
-    height:content-box;
+    height: content-box;
 }
 
 .details{
@@ -186,3 +186,31 @@ $wii-switch-height: $input-height;
         margin-top: 0 !important;
     }
 }
+
+.transport-planning {
+    .sub-planning-column {
+        display: flex;
+        &:first-child {
+            padding-right: .13rem;
+        }
+        &:last-child {
+            padding-left: .13rem;
+        }
+    }
+    .planning-card {
+        .transport-type {
+            padding: 3px 7px;
+            margin-top: 7px;
+            background-color: #FFFFFF;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            width: fit-content;
+            word-break: break-all;
+            img {
+                margin-right: 3px;
+            }
+        }
+    }
+}
+

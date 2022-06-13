@@ -17,6 +17,25 @@
             max-width: 205px;
         }
     }
+
+    .launch-preparation-date-filters {
+        font-size: 14px;
+
+        .date-from-container {
+            width: auto !important;
+        }
+
+        .date-from-container .form-control {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+
+        .date-from-container .form-control,
+        .date-to-container .form-control {
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+    }
 }
 
 .preparation-card {

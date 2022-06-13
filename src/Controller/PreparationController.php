@@ -35,7 +35,6 @@ use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Bundle\MakerBundle\Str;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -52,29 +51,15 @@ use WiiCommon\Helper\Stream;
 class PreparationController extends AbstractController
 {
     /**
-     * @var PreparationsManagerService
-     */
-    private PreparationsManagerService $preparationsManagerService;
-
-    /** @Required */
-    public NotificationService $notificationService;
-
-    public function __construct(PreparationsManagerService $preparationsManagerService)
-    {
-        $this->preparationsManagerService = $preparationsManagerService;
-    }
-
-
-    /**
      * @Route("/finir/{idPrepa}", name="preparation_finish", methods={"POST"}, options={"expose"=true}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::ORDRE, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function finishPrepa($idPrepa,
                                 Request $request,
+                                NotificationService $notificationService,
                                 EntityManagerInterface $entityManager,
                                 LivraisonsManagerService $livraisonsManager,
-                                PreparationsManagerService $preparationsManager)
-    {
+                                PreparationsManagerService $preparationsManager) {
 
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $preparationRepository = $entityManager->getRepository(Preparation::class);
@@ -117,7 +102,7 @@ class PreparationController extends AbstractController
         }
         $entityManager->flush();
         if ($livraison->getDemande()->getType()->isNotificationsEnabled()) {
-            $this->notificationService->toTreat($livraison);
+            $notificationService->toTreat($livraison);
         }
         $preparationsManager->updateRefArticlesQuantities($preparation);
 
@@ -156,10 +141,11 @@ class PreparationController extends AbstractController
      * @Route("/api", name="preparation_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::ORDRE, Action::DISPLAY_PREPA}, mode=HasPermission::IN_JSON)
      */
-    public function api(Request $request): Response
+    public function api(Request $request,
+                        PreparationsManagerService $preparationsManagerService): Response
     {
         $filterDemand = $request->request->get('filterDemand');
-        $data = $this->preparationsManagerService->getDataForDatatable($request->request, $filterDemand);
+        $data = $preparationsManagerService->getDataForDatatable($request->request, $filterDemand);
 
         return new JsonResponse($data);
     }
@@ -252,11 +238,10 @@ class PreparationController extends AbstractController
     {
         $sensorWrappers = $entityManager->getRepository(SensorWrapper::class)->findWithNoActiveAssociation();
         $sensorWrappers = Stream::from($sensorWrappers)
-            ->filter(function (SensorWrapper $wrapper) {
-                return $wrapper->getPairings()->filter(function (Pairing $pairing) {
-                    return $pairing->isActive();
-                })->isEmpty();
-            });
+            ->filter(fn (SensorWrapper $wrapper) => (
+                Stream::from($wrapper->getPairings())
+                    ->every(fn (Pairing $pairing) => !$pairing->isActive())
+            ));
 
         $preparationStatus = $preparation->getStatut() ? $preparation->getStatut()->getNom() : null;
 
@@ -405,8 +390,9 @@ class PreparationController extends AbstractController
     /**
      * @Route("/finir-scission", name="submit_splitting", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
-    public function submitSplitting(Request                $request,
-                                    EntityManagerInterface $entityManager): Response
+    public function submitSplitting(Request                    $request,
+                                    PreparationsManagerService $preparationsManagerService,
+                                    EntityManagerInterface     $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
             $articleRepository = $entityManager->getRepository(Article::class);
@@ -453,7 +439,7 @@ class PreparationController extends AbstractController
                         $referenceArticle = $articleFournisseur->getReferenceArticle();
                         if ($referenceArticle && $referenceArticle->getId() === $ligneArticle->getReference()->getId()) {
                             $pickedQuantity = $data['articles'][$idArticle];
-                            $this->preparationsManagerService->treatArticleSplitting(
+                            $preparationsManagerService->treatArticleSplitting(
                                 $entityManager,
                                 $article,
                                 $pickedQuantity,
@@ -463,7 +449,7 @@ class PreparationController extends AbstractController
                         }
                     }
                 }
-                $this->preparationsManagerService->deleteLigneRefOrNot($ligneArticle, $preparation, $entityManager);
+                $preparationsManagerService->deleteLigneRefOrNot($ligneArticle, $preparation, $entityManager);
                 $entityManager->flush();
                 $resp = ['success' => true];
             } else {
@@ -778,9 +764,9 @@ class PreparationController extends AbstractController
 
         $filterStatuses = Stream::from($filters)
             ->filterMap(fn(array $filter) => (
-            str_starts_with($filter['field'], 'planning-status-')
-                ? $preparationStatusesForFilters[$filter['field']]
-                : null
+                str_starts_with($filter['field'], 'planning-status-')
+                    ? $preparationStatusesForFilters[$filter['field']]
+                    : null
             ))
             ->toArray();
         $filterStatuses = $filterStatuses ?: array_values($preparationStatusesForFilters);
@@ -803,7 +789,7 @@ class PreparationController extends AbstractController
                     'color' => match ($preparation->getStatut()?->getCode()) {
                         Preparation::STATUT_VALIDATED => 'orange-card',
                         Preparation::STATUT_A_TRAITER => 'green-card',
-                        Preparation::STATUT_EN_COURS_DE_PREPARATION => 'blue_card',
+                        Preparation::STATUT_EN_COURS_DE_PREPARATION => 'blue-card',
                         // Preparation::STATUT_INCOMPLETE, Preparation::STATUT_A_TRAITER => 'grey-card',
                         default => 'grey-card',
                     }
@@ -850,11 +836,11 @@ class PreparationController extends AbstractController
 
     #[Route('/lancement-preparations/check-preparation-stock', name: 'planning_preparation_launch_check_stock', options: ['expose' => true], methods: 'POST')]
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_PREPA_PLANNING], mode: HasPermission::IN_JSON)]
-    public function checkStock(Request $request, EntityManagerInterface $manager,
-                               MailerService $mailerService,
-                               RefArticleDataService $refArticleDataService,
-                               NotificationService $notificationService)
-    {
+    public function checkStock(Request                $request,
+                               EntityManagerInterface $manager,
+                               MailerService          $mailerService,
+                               RefArticleDataService  $refArticleDataService,
+                               NotificationService    $notificationService): JsonResponse {
         $data = json_decode($request->getContent());
 
         $preparationRepository = $manager->getRepository(Preparation::class);
@@ -940,7 +926,9 @@ class PreparationController extends AbstractController
 
         return $this->json([
             "success" => true,
-            "unavailablePreparationsId" => Stream::from($quantityErrorPreparationId)->map(fn(Preparation $preparation) => $preparation->getId())->toArray(),
+            "unavailablePreparationsId" => Stream::from($quantityErrorPreparationId)
+                ->map(fn(Preparation $preparation) => $preparation->getId())
+                ->toArray(),
             "template" => $this->renderView('preparation/quantityErrorTemplate.html.twig', [
                 "preparations" => $unavailableRefForTemplate
             ]),

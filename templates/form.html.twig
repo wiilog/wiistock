@@ -211,7 +211,7 @@
 {% macro input(name, label, required, value = '', options = {}) %}
     {% set inline = options.inline ?? false %}
 
-    <label class="{{ options.actualWidth is not defined or not options.actualWidth ?? 'w-100' }} {{ options.labelClass ?? '' }} {{ inline ? 'labelled-field' }}">
+    <label class="w-100 {{ options.labelClass ?? '' }} {{ inline ? 'labelled-field' }}">
         {{ _self.label(label, required, inline, options.labelOptions ?? {}) }}
         {{ _self.tooltip(options.tooltip ?? null, inline) }}
         <input type="{{ options.type ?? 'text' }}"

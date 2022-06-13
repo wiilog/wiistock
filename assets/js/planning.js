@@ -10,18 +10,21 @@ export default class Planning {
     route;
     baseDate;
     step;
+    params;
 
     /**
      * @param {jQuery} $container
      * @param {string} route
      * @param {moment.Moment} baseDate
      * @param {number} step
+     * @param {function} params
      */
-    constructor($container, {route, baseDate = moment(), step = 1}) {
+    constructor($container, {route, params, baseDate = moment(), step = 1}) {
         this.$container = $container;
         this.route = route;
         this.baseDate = baseDate;
         this.step = step;
+        this.params = params;
 
         this.$container
             .addClass(PLANNING_DATA)
@@ -31,9 +34,11 @@ export default class Planning {
     }
 
     fetch() {
+        const params = this.params || (() => ({}));
         return AJAX
             .route(GET, this.route, {
-                date: this.baseDate.format('YYYY-MM-DD')
+                date: this.baseDate.format('YYYY-MM-DD'),
+                ...(params()),
             })
             .json()
             .then(({template}) => {

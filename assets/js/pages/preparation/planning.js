@@ -21,11 +21,11 @@ $(function () {
     const $modalLaunchPreparation = $(`#modalLaunchPreparation`);
 
     $('.launch-preparation-button').on('click', function (){
-        getOrUpdatePreparationCard($modalLaunchPreparation);
+        getPreparationLaunchForm($modalLaunchPreparation);
     });
 
     $('input[name=dateFrom], input[name=dateTo]').on('change', function (){
-        getOrUpdatePreparationCard($modalLaunchPreparation);
+        getPreparationLaunchForm($modalLaunchPreparation);
     });
 });
 
@@ -126,56 +126,60 @@ function changeNavigationButtonStates() {
     $todayDate.prop('disabled', moment().isSame(planning.baseDate, 'day'));
 }
 
-function getOrUpdatePreparationCard($modal){
+function getPreparationLaunchForm($modal){
     $modal.modal('show');
-    AJAX.route(POST, `planning_preparation_launching_filter`, {
-        from: $('input[name=dateFrom]').val(),
-        to: $('input[name=dateTo]').val()
-    })
-        .json()
-        .then((response) => {
-            const $modalContent = $modal.find('.modal-content-wrapper');
-            $modalContent
-                .empty()
-                .addClass('d-none');
-            if(response.success) {
-                $modalContent.removeClass('d-none');
-                $modalContent.append(response.template);
+    const dateFrom = $('input[name=dateFrom]').val();
+    const dateTo = $('input[name=dateTo]').val();
+    if (dateFrom && dateTo) {
+        AJAX.route(POST, `planning_preparation_launching_filter`, {
+            from: dateFrom,
+            to: dateTo
+        })
+            .json()
+            .then((response) => {
+                const $modalContent = $modal.find('.modal-content-wrapper');
+                $modalContent
+                    .empty()
+                    .addClass('d-none');
+                if (response.success) {
+                    $modalContent.removeClass('d-none');
+                    $modalContent.append(response.template);
 
-                onOrdersDragAndDropDone($modal);
-                const sortables = Sortable.create(`.available-preparations, .assigned-preparations`, {
-                    acceptFrom: `.preparations-container`,
-                });
+                    onOrdersDragAndDropDone($modal);
+                    const sortables = Sortable.create(`.available-preparations, .assigned-preparations`, {
+                        acceptFrom: `.preparations-container`,
+                    });
 
-                $(sortables).on('sortupdate', () => {
+                    $(sortables).on('sortupdate', () => {
+                        onOrdersDragAndDropDone($modal);
+                    });
+                }
+
+                $modal.find('.add-all').on('click', function () {
+                    const $preparationCards = $modal.find('.available-preparations .preparation-card');
+                    const $targetContainer = $modal.find('.assigned-preparations');
+                    $preparationCards
+                        .detach()
+                        .appendTo($targetContainer);
+
                     onOrdersDragAndDropDone($modal);
                 });
-            }
 
-            $modal.find('.add-all').on('click', function (){
-                const $preparationCards = $modal.find('.available-preparations .preparation-card');
-                const $targetContainer = $modal.find('.assigned-preparations');
-                $preparationCards
-                    .detach()
-                    .appendTo($targetContainer);
+                $modal.find('.remove-all').on('click', function () {
+                    const $preparationCards = $modal.find('.assigned-preparations .preparation-card-container');
+                    const $targetContainer = $modal.find('.available-preparations');
+                    $preparationCards
+                        .detach()
+                        .appendTo($targetContainer);
+                    onOrdersDragAndDropDone($modal);
+                    $modal.find('.quantities-information-container').addClass('d-none');
+                });
 
-                onOrdersDragAndDropDone($modal);
+                $modal.find('.check-stock-button').on('click', function () {
+                    launchStockCheck($modal);
+                });
             });
-
-            $modal.find('.remove-all').on('click', function (){
-                const $preparationCards = $modal.find('.assigned-preparations .preparation-card-container');
-                const $targetContainer = $modal.find('.available-preparations');
-                $preparationCards
-                    .detach()
-                    .appendTo($targetContainer);
-                onOrdersDragAndDropDone($modal);
-                $modal.find('.quantities-information-container').addClass('d-none');
-            });
-
-            $modal.find('.check-stock-button').on('click', function (){
-                launchStockCheck($modal);
-            });
-        });
+    }
 }
 
 function onOrdersDragAndDropDone($modal){

@@ -3,7 +3,7 @@
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Lancement des préparations</h5>
+                <h5 class="modal-title wii-title">Lancement des préparations</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -11,29 +11,25 @@
             <div class="modal-body modal-input container-fluid">
                 <div class="row">
                     <div class="col-12">
-                        <span>Période de lancement</span>
+                        <span class="wii-field-name">Période de lancement</span>
                     </div>
-                    <div class="col-12 m-1 pr-0">
-                        <div class="h-100">
-                            <div class="input-group">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text w-50px d-flex justify-content-center">Du</span>
-                                </div>
-                                {{ form.input('dateFrom', null, true, "now"|date('Y-m-d'), {
-                                    type: 'date',
-                                    min: "now"|date('Y-m-d'),
-                                    labelClass: "data",
-                                    actualWidth: true
-                                }) }}
-                                <div class="input-group-prepend input-group-append">
-                                    <span class="input-group-text w-50px d-flex justify-content-center">Au</span>
-                                </div>
-                                {{ form.input('dateTo', null, true, "now" | date_modify('+4 day') | date('Y-m-d'), {
-                                    type: 'date',
-                                    labelClass: "data",
-                                    actualWidth: true
-                                }) }}
+                    <div class="col-12 my-1">
+                        <div class="input-group launch-preparation-date-filters">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text w-50px d-flex justify-content-center">Du</span>
                             </div>
+                            {{ form.input('dateFrom', null, true, "now"|date('Y-m-d'), {
+                                type: 'date',
+                                min: "now"|date('Y-m-d'),
+                                labelClass: "date-from-container",
+                            }) }}
+                            <div class="input-group-prepend input-group-append">
+                                <span class="input-group-text w-50px d-flex justify-content-center">Au</span>
+                            </div>
+                            {{ form.input('dateTo', null, true, "now" | date_modify('+4 day') | date('Y-m-d'), {
+                                type: 'date',
+                                labelClass: "date-to-container",
+                            }) }}
                         </div>
                     </div>
                 </div>
