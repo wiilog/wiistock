@@ -17,6 +17,7 @@ use Google_Client;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Twig\Environment as Twig_Environment;
+use WiiCommon\Helper\Stream;
 
 class NotificationService {
 
@@ -185,7 +186,9 @@ class NotificationService {
                             "click_action" => self::FCM_PLUGIN_ACTIVITY,
                         ],
                     ],
-                    'data' => $data ?? null,
+                    'data' => $data ? Stream::from($data)
+                        ->keymap(fn(mixed $value, string $key) => [$key, strval($value)])
+                        ->toArray() : null,
                 ],
                 'validate_only' => false,
             ];
@@ -197,11 +200,15 @@ class NotificationService {
                 ];
             }
 
+            dump($json);
+
             $response = $httpClient->request("POST", "https://fcm.googleapis.com/v1/projects/follow-gt/messages:send", [
                 'json' => $json,
             ]);
-        } catch (\Throwable $ignored) {
 
+            dump($response->getStatusCode(), $response->getBody()->getContents());
+        } catch (\Throwable $ignored) {
+            dump($ignored);
         }
     }
 
