@@ -280,8 +280,9 @@ class SubcontractController extends AbstractController
             ->setStartedAt($startedAt)
             ->setTreatedAt($treatedAt);
 
-        if (strip_tags($data->get('commentaire'))) {
-            $transportOrder->setComment($data->get('commentaire'));
+        $comment = $data->get('commentaire');
+        if (strip_tags($comment)) {
+            $transportOrder->setComment($comment);
         }
 
         $addedAttachments = $attachmentService->manageAttachments($entityManager, $transportOrder, $request->files);
