@@ -1,0 +1,227 @@
+@import "../../variables";
+
+#modalLaunchPreparation {
+    .preparations-container {
+        background-color: #F2F3F7;
+        border-radius: 8px;
+        padding: 4px;
+        height: 565px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        display: flex;
+        align-content: flex-start;
+        align-items: flex-start;
+
+        .preparation-card,
+        .placeholder-container {
+            max-width: 205px;
+        }
+    }
+
+    .launch-preparation-date-filters {
+        font-size: 14px;
+
+        .date-from-container {
+            width: auto !important;
+        }
+
+        .date-from-container .form-control {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+
+        .date-from-container .form-control,
+        .date-to-container .form-control {
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+    }
+}
+
+.preparation-card {
+    .wii-icon {
+        width: 20px;
+        height: 20px;
+        display: block;
+    }
+    .date {
+        font-weight: 600;
+    }
+    .expected-date {
+        color: $black;
+        .wii-icon {
+            background-color: $black;
+        }
+    }
+    .creation-date {
+        color: #666;
+        .wii-icon {
+            background-color: #666;
+        }
+    }
+}
+
+$wii-switch-height: $input-height;
+.planning-switch {
+    .red-filter input[type=checkbox] {
+        &:not(:disabled), &:not(:disabled) + label {
+            &:hover:not(:checked) {
+                color: lighten(#000000, 5%);
+                border-color: lighten(#D76433, 5%);
+            }
+        }
+
+        &:checked, &:checked + label {
+            background: rgba(215, 100, 51, 0.15);
+            border-color: #D76433;
+            &:hover {
+                background: lighten(#F2F3F7, 5%) !important;
+                color: lighten(#000000, 5%) !important;
+                border-color: lighten(#D76433, 5%) !important;
+            }
+        }
+
+        &, & + label {
+            border: 1px solid #D76433;
+            background: white;
+            color: #000000;
+        }
+    }
+
+    .green-filter input[type=checkbox] {
+        &:not(:disabled), &:not(:disabled) + label {
+            &:hover:not(:checked) {
+                color: lighten(#000000, 5%);
+                border-color: lighten(#A5D733, 5%);
+            }
+        }
+
+        &:checked, &:checked + label {
+            background: rgba(165, 215, 51, 0.15);
+            color: #000000;
+            border-color: #A5D733;
+            &:hover {
+                background: lighten(#F2F3F7, 5%) !important;
+                color: lighten(#000000, 5%) !important;
+                border-color: lighten(#A5D733, 5%) !important;
+            }
+        }
+
+        &, & + label {
+            border: 1px solid #A5D733;
+            background: white;
+            color: #000000;
+        }
+    }
+
+    .purple-filter input[type=checkbox] {
+        &:not(:disabled), &:not(:disabled) + label {
+            &:hover:not(:checked) {
+                color: lighten(#000000, 5%);
+                border-color: lighten(#6433D7, 5%);
+            }
+        }
+
+        &:checked, &:checked + label {
+            background: rgba(100, 51, 215, 0.15);
+            color: #000000;
+            border-color: #6433D7;
+            &:hover {
+                background: lighten(#F2F3F7, 5%) !important;
+                color: lighten(#000000, 5%) !important;
+                border-color: lighten(#6433D7, 5%) !important;
+            }
+        }
+
+        &, & + label {
+            border: 1px solid #6433D7;
+            background: white;
+            color: #000000;
+        }
+    }
+
+    .grey-filter input[type=checkbox] {
+        &:not(:disabled), &:not(:disabled) + label {
+            &:hover:not(:checked) {
+                color: lighten(#000000, 5%);
+                border-color: lighten(#666, 5%);
+            }
+        }
+
+        &:checked, &:checked + label {
+            background: rgba(227, 227, 227, 0.7);
+            color: #000000;
+            border-color: #666;
+            &:hover {
+                background: lighten(#F2F3F7, 5%) !important;
+                color: lighten(#000000, 5%) !important;
+                border-color: lighten(#666, 5%) !important;
+            }
+        }
+
+        &, & + label {
+            border: 1px solid #666;
+            background: white;
+            color: #000000;
+        }
+    }
+
+    input:not(:disabled), input:not(:disabled) + label {
+        cursor: pointer;
+    }
+
+    input, input + label {
+        appearance: none;
+        -moz-appearance: none;
+        outline: 0;
+        padding: 0 15px;
+        border-radius: 4px;
+        height: $wii-switch-height;
+        line-height: $wii-switch-height;
+        font-weight: normal;
+        transition: all 200ms linear;
+        font-size: 1rem;
+        margin: 0px 1px 0px 1px !important;
+    }
+
+    input:not(:disabled), input:not(:disabled) + label {
+        cursor: pointer;
+
+        &:hover:not(:checked) {
+            color: lighten(#666666, 5%);
+            border-color: lighten(#ffffff, 5%);
+        }
+
+    }
+
+    display: inline-flex;
+    flex-wrap: wrap;
+    padding: 0;
+
+    div{
+        padding: 0px 5px 0px 5px;
+    }
+
+    input + label {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: map-get($spacers, 1);
+    }
+
+    input:not([content]) {
+        display: none;
+    }
+
+    input:before, input + label:before {
+        content: attr(content);
+        height: $wii-switch-height;
+        line-height: $wii-switch-height;
+        text-align: center;
+        padding: 0;
+    }
+
+    &:first-child {
+        margin-top: 0 !important;
+    }
+}

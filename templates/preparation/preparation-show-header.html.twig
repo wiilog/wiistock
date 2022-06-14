@@ -8,7 +8,7 @@
         {% set hasRightPairingOrder = hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::PAIR_SENSOR')) %}
         {% set hasRightFinish = hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
 
-        {% if isPrepaEditable and hasRightFinish %}
+        {% if isPrepaEditable and hasRightFinish and preparation.statut.code != constant('App\\Entity\\PreparationOrder\\Preparation::STATUT_VALIDATED') %}
             <button type="button"
                     class="btn btn-primary split-button"
                     onclick="finishPrepa($(this))">
@@ -41,6 +41,17 @@
             <button onclick="printPrepaBarCodes()" class="dropdown-item pointer">
                 <i class='fas fa-print print-button mr-2'></i> Imprimer les étiquettes
             </button>
+            {% if
+                hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT_PREPARATION_DATE'))
+                and preparation.expectedAt
+                and preparation.demande.expectedAt
+                and preparation.statut.code == constant('App\\Entity\\PreparationOrder\\Preparation::STATUT_VALIDATED') %}
+                <a class="dropdown-item" href=""
+                   data-target='#modalEditPreparation'
+                   data-toggle='modal'>
+                    <i class="fa fa-edit mr-2"></i>Modifier
+                </a>
+            {% endif %}
             {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_LIVR')) %}
                 {% if demande %}
                     <a href="{{ path('demande_show', {'id': demande.id}) }}"

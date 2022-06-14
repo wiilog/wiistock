@@ -2,9 +2,13 @@
     display: inline-block;
     cursor: pointer;
     transition: all 0.25s ease-out;
+    color: #666666;
+    font-weight: 600;
+    font-size: 14px;
 
     &::before {
         content: '⯈ ';
+        color: black;
         display: inline-block;
         vertical-align: middle;
         margin-right: 3px;

@@ -170,6 +170,14 @@ a {
     height: 90%;
 }
 
+.h-50 {
+    height: 50%;
+}
+
+.h-25 {
+    height: 25%;
+}
+
 .mh-60px {
     min-height: 60px;
 }
@@ -768,7 +776,11 @@ label.required:after {
 .wii-field-name {
     color: $black !important;
     font-size: 14px;
-    font-weight: bold;
+    font-weight: 600;
+
+    &.wii-field-name-sub {
+        color: #666666 !important;
+    }
 }
 
 .wii-field-text {

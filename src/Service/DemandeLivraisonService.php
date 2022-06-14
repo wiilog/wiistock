@@ -9,6 +9,7 @@ use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
+use App\Entity\FieldsParam;
 use App\Entity\FreeField;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
@@ -18,6 +19,7 @@ use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
+use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -58,6 +60,9 @@ class DemandeLivraisonService
 
     /** @Required */
     public FreeFieldService $freeFieldService;
+
+    /** @Required */
+    public FieldsParamService $fieldsParamService;
 
     /** @Required */
     public NotificationService $notificationService;
@@ -268,11 +273,14 @@ class DemandeLivraisonService
             UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT
         );
 
+        $expectedAt = FormatHelper::parseDatetime($data['expectedAt'] ?? '');
+
         $demande = new Demande();
         $demande
             ->setStatut($statut)
             ->setUtilisateur($utilisateur)
             ->setCreatedAt($date)
+            ->setExpectedAt($expectedAt)
             ->setType($type)
             ->setDestination($destination)
             ->setNumero($number)
@@ -300,6 +308,9 @@ class DemandeLivraisonService
     {
         $demandeRepository = $entityManager->getRepository(Demande::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $settings = $entityManager->getRepository(Setting::class);
+        $needsQuantitiesCheck = !$settings->getOneParamByLabel(Setting::MANAGE_PREPARATIONS_WITH_PLANNING);
+
         if ($fromNomade) {
             $demande = $this->newDemande($demandeArray, $entityManager, $champLibreService, $fromNomade);
             if ($demande instanceof Demande) {
@@ -370,9 +381,9 @@ class DemandeLivraisonService
                     $response['msg'] = "La quantité demandée d'un des articles excède la quantité disponible (" . $articleRef->getQuantiteDisponible() . ").";
                 }
             }
-            if ($response['success']) {
+            if ($response['success'] || (!$needsQuantitiesCheck && !$fromNomade)) {
                 $entityManager->persist($demande);
-                $response = $this->validateDLAfterCheck($entityManager, $demande, $fromNomade);
+                $response = $this->validateDLAfterCheck($entityManager, $demande, $fromNomade, false, true, $needsQuantitiesCheck);
             }
         } else {
             $response['entete'] = $this->templating->render('demande/demande-show-header.html.twig', [
@@ -390,7 +401,8 @@ class DemandeLivraisonService
                                          Demande $demande,
                                          bool $fromNomade = false,
                                          bool $simpleValidation = false,
-                                         bool $flush = true): array
+                                         bool $flush = true,
+                                         bool $needsQuantitiesCheck = true): array
     {
         $response = [];
         $response['success'] = true;
@@ -404,6 +416,7 @@ class DemandeLivraisonService
         $preparationNumber = $this->preparationsManager->generateNumber($date, $entityManager);
 
         $preparation
+            ->setExpectedAt($demande->getExpectedAt())
             ->setNumero($preparationNumber)
             ->setDate($date);
 
@@ -411,12 +424,18 @@ class DemandeLivraisonService
             $demande->setValidatedAt($date);
         }
 
-        $statutP = $statutRepository->findOneByCategorieNameAndStatutCode(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
+        $statutP = $needsQuantitiesCheck
+            ? $statutRepository->findOneByCategorieNameAndStatutCode(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER)
+            : $statutRepository->findOneByCategorieNameAndStatutCode(Preparation::CATEGORIE, Preparation::STATUT_VALIDATED);
         $preparation->setStatut($statutP);
         $entityManager->persist($preparation);
         $demande->addPreparation($preparation);
         $statutD = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
         $demande->setStatut($statutD);
+
+        if (!$needsQuantitiesCheck) {
+            $preparation->setPlanned(true);
+        }
 
         // modification du statut articles => en transit
         $articles = $demande->getArticleLines();
@@ -445,7 +464,7 @@ class DemandeLivraisonService
                 ->setReference($referenceArticle)
                 ->setPreparation($preparation);
             $entityManager->persist($lignesArticlePreparation);
-            if ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
+            if ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE && $needsQuantitiesCheck) {
                 $referenceArticle->setQuantiteReservee(($referenceArticle->getQuantiteReservee() ?? 0) + $ligneArticle->getQuantityToPick());
             } else {
                 $refArticleToUpdateQuantities[] = $referenceArticle;
@@ -464,9 +483,10 @@ class DemandeLivraisonService
             $response['msg'] = 'Une autre préparation est en cours de création, veuillez réessayer.';
             return $response;
         }
-
-        foreach ($refArticleToUpdateQuantities as $refArticle) {
-            $this->refArticleDataService->updateRefArticleQuantities($entityManager, $refArticle);
+        if ($needsQuantitiesCheck) {
+            foreach ($refArticleToUpdateQuantities as $refArticle) {
+                $this->refArticleDataService->updateRefArticleQuantities($entityManager, $refArticle);
+            }
         }
 
         if (!$simpleValidation && $demande->getType()->getSendMail()) {
@@ -484,7 +504,9 @@ class DemandeLivraisonService
                 $demande->getUtilisateur()
             );
         }
-        if ($flush) $entityManager->flush();
+        if ($flush) {
+            $entityManager->flush();
+        }
         if (!$simpleValidation && !$fromNomade) {
             $response['entete'] = $this->templating->render('demande/demande-show-header.html.twig', [
                 'demande' => $demande,
@@ -505,15 +527,23 @@ class DemandeLivraisonService
             ['type' => $demande->getType()],
         );
 
-        return array_merge(
+        $config = [
+            ['label' => 'Statut', 'value' => $this->stringService->mbUcfirst(FormatHelper::status($demande->getStatut()))],
+            ['label' => 'Demandeur', 'value' => FormatHelper::deliveryRequester($demande)],
+            ['label' => 'Destination', 'value' => FormatHelper::location($demande->getDestination())],
+            ['label' => 'Date de la demande', 'value' => FormatHelper::datetime($demande->getCreatedAt())],
+            ['label' => 'Date de validation', 'value' => FormatHelper::datetime($demande->getValidatedAt())],
+            ['label' => 'Type', 'value' => FormatHelper::type($demande->getType())],
             [
-                ['label' => 'Statut', 'value' => $this->stringService->mbUcfirst(FormatHelper::status($demande->getStatut()))],
-                ['label' => 'Demandeur', 'value' => FormatHelper::deliveryRequester($demande)],
-                ['label' => 'Destination', 'value' => FormatHelper::location($demande->getDestination())],
-                ['label' => 'Date de la demande', 'value' => FormatHelper::datetime($demande->getCreatedAt())],
-                ['label' => 'Date de validation', 'value' => FormatHelper::datetime($demande->getValidatedAt())],
-                ['label' => 'Type', 'value' => FormatHelper::type($demande->getType())]
+                'label' => 'Date attendue',
+                'value' => FormatHelper::date($demande->getExpectedAt()),
+                'show' => ['fieldName' => FieldsParam::FIELD_CODE_EXPECTED_AT]
             ],
+        ];
+
+        $configFiltered = $this->fieldsParamService->filterHeaderConfig($config, FieldsParam::ENTITY_CODE_DEMANDE);
+        return array_merge(
+            $configFiltered,
             $freeFieldArray,
             [
                 [

@@ -1,3 +1,5 @@
+import Flash, {INFO} from "@app/flash";
+
 const SPINNER_WRAPPER_CLASS = 'spinner-border-wrapper';
 export const LOADING_CLASS = 'wii-loading';
 
@@ -11,7 +13,7 @@ jQuery.fn.pushLoader = function(color, size = 'small') {
     const $element = $(this[0]) // This is the element
 
     if ($element.find(`.${SPINNER_WRAPPER_CLASS}`).length === 0) {
-        const sizeClass = size === 'small' ? 'spinner-border-sm' : ''
+        const sizeClass = size === 'small' ? 'spinner-border-sm' : '';
         const $loaderWrapper = $('<div/>', {
             class: SPINNER_WRAPPER_CLASS,
             html: $('<div/>', {
@@ -48,32 +50,45 @@ jQuery.fn.popLoader = function() {
 
 /**
  * Set status of button to 'loading' and prevent other click until first finished.
- * @param {*} $button jQuery button element
+ * @param {jQuery|Array<jQuery>} $loaderContainers jQuery button element
  * @param {function} action Function retuning a promise
  * @param {boolean} endLoading default to true
  */
-export function wrapLoadingOnActionButton($button, action = null, endLoading = true) {
-    if (!$button.hasClass(LOADING_CLASS)) {
-        const loadingColor = (
-            $button.data('loader-color') ? $button.data('loader-color') :
-            ($button.hasClass('btn-light') || $button.hasClass('btn-link')) ? 'black'
-            : 'white'
-        );
+export function wrapLoadingOnActionButton($loaderContainers, action = null, endLoading = true) {
+    $.each($loaderContainers, function() {
+        const $loaderContainer = $(this);
+        if (!$loaderContainer.hasClass(LOADING_CLASS)) {
+            const loadingColor = (
+                $loaderContainer.data('loader-color') ? $loaderContainer.data('loader-color') :
+                ($loaderContainer.hasClass('btn-light') || $loaderContainer.hasClass('btn-link')) ? 'black' :
+                'white'
+            );
+            const loadingSize = $loaderContainer.data('loader-size') || 'small';
 
-        $button.pushLoader(loadingColor);
-
-        if (action) {
-            action()
-                .then((success) => {
-                    if (endLoading || !success) {
-                        $button.popLoader();
-                    }
-                })
-                .catch(() => {
-                    $button.popLoader();
-                });
+            $loaderContainer.pushLoader(loadingColor, loadingSize);
         }
-    } else {
-        showBSAlert('L\'opération est en cours de traitement', 'info');
+        else {
+            Flash.add(INFO, 'L\'opération est en cours de traitement');
+            throw new Error('Operation in progress...');
+        }
+    })
+
+    if (action) {
+        action()
+            .then((success) => {
+                if (endLoading || !success) {
+                    popLoaderForMultipleContainer($loaderContainers);
+                }
+            })
+            .catch(() => {
+                popLoaderForMultipleContainer($loaderContainers);
+            });
     }
+}
+
+function popLoaderForMultipleContainer($containers) {
+    $.each($containers, function() {
+        const $loaderContainer = $(this);
+        $loaderContainer.popLoader();
+    });
 }

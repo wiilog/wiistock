@@ -1,0 +1,133 @@
+@import "variables";
+
+.wii-planning {
+    display: flex;
+    flex: 1;
+
+    & > .planning-container {
+        flex: 1;
+        margin-right: -0.25rem;
+        margin-left: -0.25rem;
+
+        &.planning-container-7 {
+            .planning-col {
+                flex: 0 0 calc(100% / 7);
+            }
+            .planning-col-2 {
+                flex: 0 0 calc((100% / 7) * 2);
+            }
+
+            .planning-col {
+                .placeholder-container,
+                .planning-card {
+                    width: 100% !important;
+                    min-width: 100% !important;
+                    max-width: 100% !important;
+                }
+            }
+
+            .planning-col-2 {
+                .placeholder-container,
+                .planning-card {
+                    width: 50% !important;
+                    min-width: 50% !important;
+                    max-width: 50% !important;
+                }
+            }
+        }
+        &.planning-container-2 {
+            .planning-col {
+                flex: 0 0 calc(100% / 2);
+            }
+            .planning-col-2 {
+                flex: 0 0 100%;
+            }
+        }
+
+        .planning-col {
+            display: flex;
+            height: 100%;
+            padding-right: .25rem;
+            padding-left: .25rem;
+        }
+    }
+
+    .column-hint-container {
+        display: flex;
+        align-items: center;
+        background-color: #F2F3F7;
+        padding: 5px 15px;
+        border: none !important;
+        box-sizing: border-box;
+        width: 100%;
+    }
+
+    .card-container {
+        display: flex;
+        flex-wrap: wrap;
+        min-height: 150px;
+    }
+
+    .planning-card-container {
+        display: flex;
+        align-content: flex-start;
+        flex: 1;
+        flex-wrap: wrap;
+    }
+}
+
+// used outside planning
+.planning-card {
+    padding: .25rem;
+
+    &.orange-card .planning-card-wrapper {
+        border-left-color: rgb(215, 100, 51);
+        background-color: rgba(215, 100, 51, 0.15);
+    }
+
+    &.red-card .planning-card-wrapper {
+        border-left-color: rgb(215, 51, 83);
+        background-color: rgba(215, 51, 83, 0.15);
+    }
+
+    &.blue-card .planning-card-wrapper {
+        border-left-color: rgb(100, 51, 215);
+        background-color: rgba(100, 51, 215, 0.15);
+    }
+
+    &.green-card .planning-card-wrapper {
+        border-left-color: rgb(165, 215, 51);
+        background-color: rgba(165, 215, 51, 0.15);
+    }
+
+    &.grey-card .planning-card-wrapper {
+        border-left-color: rgb(102, 102, 102);
+        background-color: rgba(102, 102, 102, 0.15);
+    }
+
+    .planning-card-wrapper {
+        font-size: 14px;
+        width: 100%;
+        border-radius: 5px;
+        padding: 5px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        border-left-width: 5px;
+        border-left-style: solid;
+    }
+}
+
+.wii-icon-pack {
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    background-color: $primary;
+}
+
+.wii-icon-reference-stock, .wii-icon-ask-quantity {
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    background-color: $primary;
+}

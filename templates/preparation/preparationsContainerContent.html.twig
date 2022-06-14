@@ -1,0 +1,31 @@
+<div class="col-md col-12">
+    <label class="bold">Préparation(s) disponible(s) au lancement : <span class="available-preparations-counter"></span></label>
+    <div class="preparations-container available-preparations">
+        {% for preparation in preparations %}
+            {% include 'preparation/planning_card.html.twig' with {
+                preparation: preparation,
+                color: 'orange-card'
+            }%}
+        {% endfor %}
+    </div>
+</div>
+<div class="col-auto d-flex flex-column mt-4 p-0">
+    <button class="btn btn-primary ml-auto add-all h-50 w-100">
+        <i class="wii-icon wii-icon-double-arrow-right wii-icon-25px"></i>
+        <br>
+        Lancer tout
+    </button>
+    <button class="btn btn-outline-primary ml-auto remove-all h-50 w-100 mt-2">
+        <i class="wii-icon wii-icon-double-arrow-left wii-icon-25px"></i>
+        <br>
+        Remettre tout
+    </button>
+</div>
+<div class="col-md col-12">
+    <label class="bold">Préparation(s) à lancer : <span class="assigned-preparations-counter">0</span></label>
+    <div class="preparations-container assigned-preparations"
+         data-loader-color="black"
+         data-loader-size="normal">
+
+    </div>
+</div>

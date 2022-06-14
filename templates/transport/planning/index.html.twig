@@ -3,14 +3,14 @@
 {% block title %}Ordre | Planning{% endblock %}
 {% block titleLink path('transport_planning_index') %}
 
-
 {% block stylesheets %}
     {{ parent() }}
     {{ encore_entry_link_tags('transport-order-planning') }}
 {% endblock %}
 
+{% block pageContainerClass 'd-flex flex-fill flex-column' %}
 {% block page_content %}
-    <div class="m-0 m-md-4 p-4 wii-page-card">
+    <div class="m-0 m-md-4 wii-page-card flex-fill d-flex flex-column">
         <div class="d-flex">
             <div>
                 <button class="btn btn-outline-primary today-date mr-0 h-100" tabindex="0"
@@ -23,11 +23,11 @@
                 <button class="btn btn-outline-primary decrement-date mr-0 h-100" tabindex="0"
                         disabled
                         data-loader-color="black">
-                    <i class="icon disabled"></i>
+                    <i class="wii-icon wii-icon-arrow-left wii-icon-15px"></i>
                 </button>
                 <button class="btn btn-outline-primary increment-date h-100" tabindex="0"
                         data-loader-color="black">
-                    <i class="icon"></i>
+                    <i class="wii-icon wii-icon-arrow-right wii-icon-15px"></i>
                 </button>
             </div>
             <div class="planning-switch mx-4">
@@ -60,7 +60,7 @@
                 </div>
             </div>
             <div class="d-flex align-items-center">
-                <i class="wii-icon wii-icon-info mr-1"></i>
+                <i class="wii-icon wii-icon-info wii-icon-15px bg-black mr-1"></i>
                 <span class="wii-body-text">
                     N'oubliez pas de valider les dates de collecte avec le patient.
                 </span>
@@ -75,9 +75,7 @@
                 </button>
             {% endif %}
         </div>
-        <div class="row d-flex planning-container">
-
-        </div>
+        <div class="transport-planning"></div>
     </div>
     {% include 'transport/round/first_step_modal.html.twig' %}
 {% endblock %}

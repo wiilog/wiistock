@@ -9,6 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 class FieldsParam {
 
     const ENTITY_CODE_RECEPTION = 'réception';
+
     const FIELD_CODE_FOURNISSEUR = 'fournisseur';
     const FIELD_CODE_NUM_COMMANDE = 'numCommande';
     const FIELD_CODE_DATE_ATTENDUE = 'dateAttendue';
@@ -33,6 +34,7 @@ class FieldsParam {
     const FIELD_LABEL_ANOMALIE = 'anomalie';
     const FIELD_LABEL_STORAGE_LOCATION = 'emplacement de stockage';
     const FIELD_LABEL_EMERGENCY_REC = 'urgence';
+
     const ENTITY_CODE_ARRIVAGE = 'arrivage';
     const FIELD_CODE_PROVIDER_ARRIVAGE = 'fournisseur';
     const FIELD_CODE_CARRIER_ARRIVAGE = 'transporteur';
@@ -64,6 +66,7 @@ class FieldsParam {
     const FIELD_LABEL_PROJECT_NUMBER = 'numéro projet';
     const FIELD_LABEL_BUSINESS_UNIT = 'business unit';
     const FIELD_LABEL_DROP_LOCATION_ARRIVAGE = 'emplacement de dépose';
+
     const ENTITY_CODE_DISPATCH = 'acheminements';
     const FIELD_CODE_CARRIER_DISPATCH = 'carrier';
     const FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH = 'carrierTrackingNumber';
@@ -87,6 +90,7 @@ class FieldsParam {
     const FIELD_LABEL_LOCATION_PICK = 'emplacement de prise';
     const FIELD_LABEL_LOCATION_DROP = 'emplacement de dépose';
     const FIELD_LABEL_DESTINATION = 'destination';
+
     const ENTITY_CODE_HANDLING = 'services';
     const FIELD_CODE_LOADING_ZONE = 'loadingZone';
     const FIELD_CODE_UNLOADING_ZONE = 'unloadingZone';
@@ -96,6 +100,13 @@ class FieldsParam {
     const FIELD_LABEL_UNLOADING_ZONE = 'déchargement';
     const FIELD_LABEL_CARRIED_OUT_OPERATION_COUNT = 'nombre d\'opération(s) réalisée(s)';
     const FIELD_LABEL_RECEIVERS_HANDLING = 'destinataires';
+
+
+    const ENTITY_CODE_DEMANDE = 'demande';
+    const FIELD_LABEL_EXPECTED_AT = 'expectedAt';
+    const FIELD_CODE_EXPECTED_AT = 'date attendue';
+
+
     public const FILTERED_FIELDS = [
         // Arrivages
         FieldsParam::FIELD_CODE_CUSTOMS_ARRIVAGE,

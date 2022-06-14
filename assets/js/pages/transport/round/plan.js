@@ -36,12 +36,10 @@ $(function () {
     initialiseMouseHoverEvent(map, contactData);
 
     Sortable.create(`#to-affect-container`, {
-        placeholderClass: 'placeholder',
         acceptFrom: false,
     });
 
     Sortable.create(`#affected-container`, {
-        placeholderClass: 'placeholder',
         acceptFrom: '#to-affect-container ,#affected-container',
     });
 

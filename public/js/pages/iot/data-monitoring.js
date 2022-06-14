@@ -255,14 +255,14 @@ function initLineChart(element, callback) {
                 dataset.data.push(value);
                 datasets[sensor] = dataset;
             });
-            if($element.data('needsline')) {
+            if ($element.data('needsline')) {
                 if ($element.data('mintemp') && $element.data('maxtemp')) {
                     lineDataMax.push($element.data('maxtemp'));
                     lineDataMin.push($element.data('mintemp'));
                 }
             }
         });
-        if($element.data('needsline')) {
+        if ($element.data('needsline')) {
             datasets['lineDataMax'] = {
                 data: lineDataMax,
                 pointRadius: 0,
@@ -286,7 +286,7 @@ function initLineChart(element, callback) {
             options: {
                 legend: {
                     labels: {
-                        filter: function(item, chart) {
+                        filter: function (item, chart) {
                             return item.datasetIndex < data.datasets.length - 2;
                         }
                     }
@@ -315,6 +315,87 @@ function initLineChart(element, callback) {
             callback();
         }
     });
+}
+
+function initSteppedLineChart($element, labels, values, tooltips, label) {
+    const zeroAxis = Array(values.length);
+    zeroAxis.fill(0, 0, values.length);
+
+    const config = {
+        type: 'line',
+        data: {
+            labels,
+            datasets: [
+                {
+                    label,
+                    data: values,
+                    borderColor: '#98A8EB',
+                    fill: false,
+                    steppedLine: true,
+                    pointRadius: 4,
+                    pointBackgroundColor: "#fff",
+                    pointBorderColor: '#000',
+                    borderWidth: 1.5
+                },
+                {
+                    data: zeroAxis,
+                    pointRadius: 0,
+                    pointHitRadius: 0,
+                    borderColor: '#666666',
+                    fill: false,
+                    borderWidth: 2,
+                }
+            ]
+        },
+        options: {
+            maintainAspectRatio: false,
+            legend: {
+                position: 'bottom',
+                labels: {
+                    filter: function (item) {
+                        return item.datasetIndex < 1;
+                    }
+                }
+            },
+            tooltips: {
+                backgroundColor: '#666666',
+                titleAlign: 'center',
+                bodyAlign: 'center',
+                displayColors: false,
+                enabled: true,
+                mode: 'single',
+                callbacks: {
+                    label: function(tooltipItems) {
+                        if (tooltips[tooltipItems.label]) {
+                            return Array.isArray(tooltips[tooltipItems.label])
+                                ? tooltips[tooltipItems.label].concat([label + ' : ' + tooltipItems.value])
+                                : [tooltips[tooltipItems.label]].concat([label + ' : ' + tooltipItems.value])
+                        } else {
+                            return label + ' : ' + tooltipItems.value;
+                        }
+                    }
+                }
+            },
+            scales: {
+                yAxes: [{
+                    display: true,
+                    ticks: {
+                        suggestedMin: Math.min(...values) - 5,
+                    }
+                }]
+            },
+            responsive: true,
+            interaction: {
+                intersect: false,
+                axis: 'x'
+            },
+        }
+    };
+    const existing = Object.values(Chart.instances).filter((c) => c.canvas.id === $element.attr('id')).pop();
+    if (existing) {
+        existing.destroy();
+    }
+    return new Chart($element, config);
 }
 
 function initTimeline($timelineContainer, showMore = false) {

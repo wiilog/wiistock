@@ -1,0 +1,18 @@
+<div class="error-container">
+    {% for preparation, references in preparations %}
+        <div class="wii-section-title">Préparation : <span class="wii-title">{{ preparation }}</span></div>
+        <div class="d-flex">
+            {% for reference in references %}
+                <div class="error-card-container shadow m-3 p-2 rounded">
+                    <div>
+                        <i class="wii-icon wii-icon-pack bg-primary mr-1"></i>
+                        <span class="wii-title">{{ reference['reference'].reference }}</span>
+                    </div>
+                    <span class="wii-small-text">{{ reference['reference'].libelle }}</span>
+                    <div><i class="wii-icon wii-icon-reference-stock"></i><span class="bold"> Quantité disponible :</span> {{ reference['availableQuantity'] }}</div>
+                    <div><i class="wii-icon wii-icon-ask-quantity"></i><span class="bold"> Quantité demandé :</span> {{ reference['quantityToPick'] }}</div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endfor %}
+</div>

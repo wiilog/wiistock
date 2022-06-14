@@ -12,6 +12,7 @@ use App\Entity\Livraison;
 use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
+use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Repository\PreparationOrder\PreparationRepository;
 use DateTime;
@@ -30,6 +31,8 @@ class Preparation implements PairedEntity {
     const STATUT_EN_COURS_DE_PREPARATION = 'en cours de préparation';
     const STATUT_PREPARE = 'préparé';
     const STATUT_INCOMPLETE = 'partiellement préparé';
+    const STATUT_VALIDATED = 'validé';
+    const STATUT_LAUNCHED = 'lancé';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -42,7 +45,13 @@ class Preparation implements PairedEntity {
     #[ORM\Column(type: 'string', length: 255, nullable: false, unique: true)]
     private $numero;
 
-    #[ORM\ManyToOne(targetEntity: 'App\Entity\DeliveryRequest\Demande', inversedBy: 'preparations')]
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private ?bool $planned = false;
+
+    #[ORM\Column(type: 'date', nullable: true)]
+    private ?DateTime $expectedAt = null;
+
+    #[ORM\ManyToOne(targetEntity: Demande::class, inversedBy: 'preparations')]
     private $demande;
 
     #[ORM\ManyToOne(targetEntity: Statut::class, inversedBy: 'preparations')]
@@ -90,6 +99,16 @@ class Preparation implements PairedEntity {
 
     public function setDate(?DateTime $date): self {
         $this->date = $date;
+
+        return $this;
+    }
+
+    public function getExpectedAt(): ?DateTime {
+        return $this->expectedAt;
+    }
+
+    public function setExpectedAt(?DateTime $expectedAt): self {
+        $this->expectedAt = $expectedAt;
 
         return $this;
     }
@@ -307,6 +326,10 @@ class Preparation implements PairedEntity {
         ];
     }
 
+    public function getType(): ?Type {
+        return $this->getDemande()?->getType();
+    }
+
     /**
      * @return Collection|Pairing[]
      */
@@ -347,6 +370,16 @@ class Preparation implements PairedEntity {
 
     public function __toString() {
         return $this->numero;
+    }
+
+    public function isPlanned(): ?bool {
+        return $this->planned;
+    }
+
+    public function setPlanned(?bool $planned): self {
+        $this->planned = $planned;
+
+        return $this;
     }
 
 }

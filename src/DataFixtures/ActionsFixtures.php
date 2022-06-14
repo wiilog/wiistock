@@ -142,6 +142,8 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
             ],
             self::SUB_MENU_PREPARATIONS => [
                 Action::DISPLAY_PREPA,
+                Action::DISPLAY_PREPA_PLANNING,
+                Action::EDIT_PREPARATION_DATE,
             ],
             self::SUB_MENU_TRANSFERS => [
                 Action::DISPLAY_ORDRE_TRANS,

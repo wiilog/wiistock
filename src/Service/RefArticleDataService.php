@@ -22,6 +22,7 @@ use App\Entity\Livraison;
 use App\Entity\Menu;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\Reception;
+use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
@@ -32,6 +33,7 @@ use App\Repository\PurchaseRequestLineRepository;
 use App\Repository\ReceptionReferenceArticleRepository;
 
 use DateTime;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use RuntimeException;
@@ -936,6 +938,124 @@ class RefArticleDataService {
             ),
             $to
         );
+    }
+
+    private function extractIncomingPreparationsData(array $quantityByDatesWithEvents, array $preparations, ReferenceArticle $referenceArticle): array {
+        foreach ($preparations as $preparation) {
+            $reservedQuantity = Stream::from($preparation->getReferenceLines())
+                ->filterMap(function(PreparationOrderReferenceLine $line) use ($referenceArticle) {
+                    return $line->getReference()->getId() === $referenceArticle->getId()
+                        ? $line->getQuantityToPick()
+                        : null;
+                })->sum();
+
+            $date = $preparation->getExpectedAt()->format('d/m/Y');
+            $number = $preparation->getNumero();
+
+            if (!isset($quantityByDatesWithEvents[$date])) {
+                $quantityByDatesWithEvents[$date] = [];
+            }
+            $quantityByDatesWithEvents[$date][$number] = [
+                'quantity' => $reservedQuantity,
+                'variation' => 'minus'
+            ];
+        }
+        return $quantityByDatesWithEvents;
+    }
+
+    private function extractIncomingReceptionsData(array $quantityByDatesWithEvents, array $receptions, ReferenceArticle $referenceArticle): array {
+        foreach ($receptions as $reception) {
+            $reservedQuantity = Stream::from($reception->getReceptionReferenceArticles())
+                ->filterMap(function(ReceptionReferenceArticle $line) use ($referenceArticle) {
+                    return $line->getReferenceArticle()->getId() === $referenceArticle->getId()
+                        ? $line->getQuantiteAR() - $line->getQuantite()
+                        : null;
+                })->sum();
+
+            $date = $reception->getDateAttendue()->format('d/m/Y');
+            $number = $reception->getNumber();
+
+            if (!isset($quantityByDatesWithEvents[$date])) {
+                $quantityByDatesWithEvents[$date] = [];
+            }
+            $quantityByDatesWithEvents[$date][$number] = [
+                'quantity' => $reservedQuantity,
+                'variation' => 'plus'
+            ];
+        }
+        return $quantityByDatesWithEvents;
+    }
+
+    private function formatExtractedIncomingData(array $quantityByDatesWithEvents, DateTime $end): array {
+        $formattedQuantityPredictions = [];
+        $lastQuantity = 0;
+
+        uksort(
+            $quantityByDatesWithEvents,
+            fn(string $date1, string $date2) => strtotime(str_replace('/', '-', $date1)) - strtotime(str_replace('/', '-', $date2))
+        );
+
+        foreach ($quantityByDatesWithEvents as $date => $quantityByDatesWithEvent) {
+            $formattedQuantityPredictions[$date] = [
+                'quantity' => 0,
+                'preparations' => 0,
+                'receptions' => 0,
+            ];
+            foreach ($quantityByDatesWithEvent as $key => $item) {
+                if ($key === 'initial') {
+                    $lastQuantity = $item;
+                } else {
+                    $event = $item['variation'];
+                    $quantity = $item['quantity'];
+
+                    if ($event === 'plus') {
+                        $lastQuantity += $quantity;
+                        $formattedQuantityPredictions[$date]['receptions'] += 1;
+                    } else {
+                        $lastQuantity -= $quantity;
+                        $formattedQuantityPredictions[$date]['preparations'] += 1;
+                    }
+
+                }
+                $formattedQuantityPredictions[$date]['quantity'] = $lastQuantity;
+            }
+        }
+        uksort(
+            $formattedQuantityPredictions,
+            fn(string $date1, string $date2) => strtotime(str_replace('/', '-', $date1)) - strtotime(str_replace('/', '-', $date2))
+        );
+
+        if (!isset($formattedQuantityPredictions[$end->format('d/m/Y')])) {
+            $formattedQuantityPredictions[$end->format('d/m/Y')] = [
+                "quantity" => $formattedQuantityPredictions[array_key_last($formattedQuantityPredictions)]['quantity'],
+                "preparations" => 0,
+                "receptions" => 0,
+            ];
+        }
+
+        return $formattedQuantityPredictions;
+    }
+
+    public function getQuantityPredictions(EntityManagerInterface $entityManager, ReferenceArticle $referenceArticle, int $period) {
+        $preparationRepository = $entityManager->getRepository(Preparation::class);
+        $receptionRepository = $entityManager->getRepository(Reception::class);
+
+        $start = new DateTime();
+        $end = new DateTime("+$period month");
+        $currentQuantity = $referenceArticle->getQuantiteStock();
+        $quantityByDatesWithEvents = [
+            $start->format('d/m/Y') => [
+                'initial' => $currentQuantity
+            ]
+        ];
+
+        $preparations = $preparationRepository->getValidatedWithReference($referenceArticle, $start, $end);
+        $receptions = $receptionRepository->getAwaitingWithReference($referenceArticle, $start, $end);
+
+        $quantityByDatesWithEvents = $this->extractIncomingPreparationsData($quantityByDatesWithEvents, $preparations, $referenceArticle);
+        $quantityByDatesWithEvents = $this->extractIncomingReceptionsData($quantityByDatesWithEvents, $receptions, $referenceArticle);
+
+        return $this->formatExtractedIncomingData($quantityByDatesWithEvents, $end);
     }
 
     public function getDraftDefaultReference(EntityManagerInterface $entityManager): string {

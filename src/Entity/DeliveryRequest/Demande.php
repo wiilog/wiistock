@@ -56,7 +56,7 @@ class Demande implements PairedEntity {
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $createdAt = null;
 
-    #[ORM\OneToMany(targetEntity: 'App\Entity\PreparationOrder\Preparation', mappedBy: 'demande')]
+    #[ORM\OneToMany(mappedBy: 'demande', targetEntity: Preparation::class)]
     private Collection $preparations;
 
     #[ORM\ManyToOne(targetEntity: Statut::class, inversedBy: 'demandes')]
@@ -82,6 +82,9 @@ class Demande implements PairedEntity {
 
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $validatedAt = null;
+
+    #[ORM\Column(type: 'date', nullable: true)]
+    private ?DateTime $expectedAt = null;
 
     public function __construct() {
         $this->preparations = new ArrayCollection();
@@ -344,6 +347,16 @@ class Demande implements PairedEntity {
 
     public function setValidatedAt(?DateTime $validatedAt): self {
         $this->validatedAt = $validatedAt;
+
+        return $this;
+    }
+
+    public function getExpectedAt(): ?DateTime {
+        return $this->expectedAt;
+    }
+
+    public function setExpectedAt(?DateTime $expectedAt): self {
+        $this->expectedAt = $expectedAt;
 
         return $this;
     }

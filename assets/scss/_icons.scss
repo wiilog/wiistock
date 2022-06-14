@@ -13,6 +13,7 @@
 // icons Wiilog SCSS does not want \n !!
 $icons: (
     "accueil": "../../public/svg/accueil.svg",
+    "ask-quantity": "../../public/svg/ask-quantity.svg",
     "addlist": "../../public/svg/addlist.svg",
     "addref": "../../public/svg/addref.svg",
     "association": "../../public/svg/association.svg",
@@ -42,6 +43,7 @@ $icons: (
     "referentiel": "../../public/svg/referentiel.svg",
     "search": "../../public/svg/search.svg",
     "stock": "../../public/svg/stock.svg",
+    "reference-stock": "../../public/svg/reference_article/stock.svg",
     "menu-global": "../../public/svg/settings.svg",
     "menu-stock": "../../public/svg/menu-stock.svg",
     "menu-trace": "../../public/svg/menu-trace.svg",
@@ -90,6 +92,12 @@ $icons: (
     'calendar': "../../public/svg/calendar.svg",
     'info': "../../public/svg/information.svg",
     'printer-white': "../../public/svg/printer-white.svg",
+    'calendar-creation-grey': "../../public/svg/calendar-creation-grey.svg",
+    'calendar-due-black': "../../public/svg/calendar-due-black.svg",
+    'arrow-left': "../../public/svg/arrow-left.svg",
+    'arrow-right': "../../public/svg/arrow-right.svg",
+    'double-arrow-left': "../../public/svg/double-arrow-left.svg",
+    'double-arrow-right': "../../public/svg/double-arrow-right.svg",
     'plus-black': "../../public/svg/plus-black.svg",
     'printer-black': "../../public/svg/printer-black.svg",
 );

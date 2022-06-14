@@ -179,7 +179,7 @@ class TransportRoundService
                         $this->CSVExportService->putLine($output, $ordersInformation);
                     }
                 }
-            } else {
+            } else if (!$filter) {
                 $this->CSVExportService->putLine($output, $dataRounds);
             }
         }

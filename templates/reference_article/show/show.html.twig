@@ -1,3 +1,4 @@
+{% import 'form.html.twig' as form %}
 {% extends 'layout.html.twig' %}
 
 {% block title %}Stock | {{ 'reference.références'|trans }} | Article de référence{% endblock %}
@@ -26,8 +27,8 @@
     } %}
     {% set hasRightEdit =
         hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) or
-        hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT_PARTIALLY'))%}
-
+        hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT_PARTIALLY')) %}
+    <input type="hidden" name="reference-id" value="{{ referenceArticle.id }}">
     <div class="ra-container d-flex justify-content-center align-content-center">
         <div class="row wii-column">
             <div class="col-12 col-md-6">
@@ -255,6 +256,22 @@
                         </ul>
                     </div>
                 </div>
+                <div class="wii-box">
+                    <div class="header wii-title">Prévision stock</div>
+                    <div class="content">
+                        <div class="mb-3">
+                            {{ form.switch('period', '', false, [
+                                {label: '1 mois', value: '1', checked: true},
+                                {label: '3 mois', value: '3'},
+                                {label: '6 mois', value: '6'},
+                            ]) }}
+                        </div>
+                        <span class="wii-field-text">Quantité</span>
+                        <div class="max-h-px-300 w-100 mt-3">
+                            <canvas width="400" height="400" id="quantityPrevisions"></canvas>
+                        </div>
+                    </div>
+                </div>
                 <div class="wii-box mt-3">
                     <div class="header wii-title">Inventaires</div>
                     <div class="content">
@@ -303,5 +320,6 @@
 
 {% block javascripts %}
     {{ parent() }}
+    <script src="{{ asset('js/pages/iot/data-monitoring.js') }}?v={{ web_version }}"></script>
     {{ encore_entry_script_tags('reference-article-form') }}
 {% endblock %}

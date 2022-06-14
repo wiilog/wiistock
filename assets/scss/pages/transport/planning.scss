@@ -1,17 +1,7 @@
 @import "../../variables";
 
-.type-header{
-    display: flex;
-    align-items: center;
-    background-color: #F2F3F7;
-    padding: 5px 15px;
-    border: none !important;
-    box-sizing: border-box;
-    width: 100%;
-}
-
 .card-content{
-    height:content-box;
+    height: content-box;
 }
 
 .details{
@@ -21,52 +11,11 @@
     justify-content: space-between;
 }
 
-.order-card {
-    font-size: 14px;
-    width: 100%;
-    border-radius: 5px;
-    padding: 0 5px 5px 5px;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-
-    &.to-assign {
-        border-left: 5px solid rgb(215, 100, 51);
-        background-color: rgba(215, 100, 51, 0.15);
-    }
-
-    &.assigned {
-        border-left: 5px solid rgb(165, 215, 51);
-        background-color: rgba(165, 215, 51, 0.15);
-    }
-
-    &.ongoing {
-        border-left: 5px solid rgb(100, 51, 215);
-        background-color: rgba(100, 51, 215, 0.15);
-    }
-
-    .transport-type {
-        padding: 3px 7px;
-        margin-top: 7px;
-        background-color: $white;
-        border-radius: 4px;
-        display: flex;
-        align-items: center;
-        width: fit-content;
-        word-break: break-all;
-        img {
-            margin-right: 3px;
-        }
-    }
-}
-
-
 .wii-box{
     box-shadow: none;
 }
 
 .planning-card-container {
-    width: 100%;
     border-bottom-left-radius: 5px;
     border-bottom-right-radius: 5px;
 }
@@ -82,13 +31,13 @@
     flex-wrap: wrap;
 }
 
-.planning-card-content{
+.orderCardHover{
     width: 100%;
     height:100%;
 }
 
 @media screen and (min-width: 992px) {
-    .planning-card{
+    .planning-card {
         width: 50%;
     }
 }
@@ -238,29 +187,30 @@ $wii-switch-height: $input-height;
     }
 }
 
-.wii-icon-info {
-    display: block;
-    width: 15px;
-    height: 15px;
-    background-color: $black;
-}
-
-.decrement-date, .increment-date {
-    .icon {
-        background-color: $primary;
-        width: 15px;
-        height: 15px;
-        display: block;
-        -webkit-mask: url("../../../../public/svg/arrow.svg") no-repeat center;
-
-        &.disabled {
-            background-color: $grey !important;
+.transport-planning {
+    .sub-planning-column {
+        display: flex;
+        &:first-child {
+            padding-right: .13rem;
+        }
+        &:last-child {
+            padding-left: .13rem;
         }
     }
-
-    &.decrement-date {
-        .icon {
-            transform: rotate(180deg);
+    .planning-card {
+        .transport-type {
+            padding: 3px 7px;
+            margin-top: 7px;
+            background-color: #FFFFFF;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            width: fit-content;
+            word-break: break-all;
+            img {
+                margin-right: 3px;
+            }
         }
     }
 }
+

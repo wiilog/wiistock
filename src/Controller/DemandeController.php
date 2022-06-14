@@ -7,6 +7,7 @@ use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
+use App\Entity\FieldsParam;
 use App\Entity\FreeField;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
@@ -78,6 +79,7 @@ class DemandeController extends AbstractController
             $champLibreRepository = $entityManager->getRepository(FreeField::class);
             $demandeRepository = $entityManager->getRepository(Demande::class);
             $settingRepository = $entityManager->getRepository(Setting::class);
+            $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
             $demande = $demandeRepository->find($data['id']);
 
@@ -98,6 +100,7 @@ class DemandeController extends AbstractController
 
             return $this->json($this->renderView('demande/modalEditDemandeContent.html.twig', [
                 'demande' => $demande,
+                'fieldsParam' => $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DEMANDE),
                 'types' => $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]),
                 'typeChampsLibres' => $typeChampLibre,
                 'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes,
@@ -143,9 +146,11 @@ class DemandeController extends AbstractController
             if ($requiredEdit) {
                 $utilisateur = $utilisateurRepository->find(intval($data['demandeur']));
                 $emplacement = $emplacementRepository->find(intval($data['destination']));
+                $expectedAt = FormatHelper::parseDatetime($data['expectedAt']);
                 $demande
                     ->setUtilisateur($utilisateur)
                     ->setDestination($emplacement)
+                    ->setExpectedAt($expectedAt)
                     ->setType($type)
                     ->setCommentaire($data['commentaire']);
                 $entityManager->flush();
@@ -220,6 +225,7 @@ class DemandeController extends AbstractController
         $statutRepository = $entityManager->getRepository(Statut::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
         $fields = $deliveryRequestService->getVisibleColumnsConfig($entityManager, $this->getUser());
@@ -238,6 +244,7 @@ class DemandeController extends AbstractController
         return $this->render('demande/index.html.twig', [
             'statuts' => $statutRepository->findByCategorieName(Demande::CATEGORIE),
             'typeChampsLibres' => $typeChampLibre,
+            'fieldsParam' => $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DEMANDE),
             'types' => $types,
             'fields' => $fields,
             'filterStatus' => $filter,
@@ -322,8 +329,10 @@ class DemandeController extends AbstractController
      * @Route("/api/{id}", name="demande_article_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::DISPLAY_DEM_LIVR}, mode=HasPermission::IN_JSON)
      */
-    public function articleApi(Demande $demande): Response
+    public function articleApi(Demande $demande, EntityManagerInterface $entityManager): Response
     {
+        $settings = $entityManager->getRepository(Setting::class);
+        $needsQuantitiesCheck = !$settings->getOneParamByLabel(Setting::MANAGE_PREPARATIONS_WITH_PLANNING);
         $referenceLines = $demande->getReferenceLines();
         $rowsRC = [];
         foreach ($referenceLines as $line) {
@@ -334,7 +343,7 @@ class DemandeController extends AbstractController
                 "targetLocationPicking" => FormatHelper::location($line->getTargetLocationPicking()),
                 "quantityToPick" => $line->getQuantityToPick() ?? '',
                 "barcode" => $line->getReference() ? $line->getReference()->getBarCode() : '',
-                "error" => $line->getReference()->getQuantiteDisponible() < $line->getQuantityToPick()
+                "error" => $needsQuantitiesCheck && $line->getReference()->getQuantiteDisponible() < $line->getQuantityToPick()
                     && $demande->getStatut()->getCode() === Demande::STATUT_BROUILLON,
                 "Actions" => $this->renderView(
                     'demande/datatableLigneArticleRow.html.twig',
@@ -361,7 +370,7 @@ class DemandeController extends AbstractController
                 "targetLocationPicking" => FormatHelper::location($line->getTargetLocationPicking()),
                 "quantityToPick" => $line->getQuantityToPick() ?: '',
                 "barcode" => $article->getBarCode() ?? '',
-                "error" => $article->getQuantite() < $line->getQuantityToPick() && $demande->getStatut()->getCode() === Demande::STATUT_BROUILLON,
+                "error" => $needsQuantitiesCheck && $article->getQuantite() < $line->getQuantityToPick() && $demande->getStatut()->getCode() === Demande::STATUT_BROUILLON,
                 "Actions" => $this->renderView(
                     'demande/datatableLigneArticleRow.html.twig',
                     [

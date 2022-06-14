@@ -32,6 +32,10 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => FieldsParam::FIELD_CODE_ATTACHMENTS, 'label' => FieldsParam::FIELD_LABEL_ATTACHMENTS, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
             ],
 
+            FieldsParam::ENTITY_CODE_DEMANDE => [
+                ['code' => FieldsParam::FIELD_CODE_EXPECTED_AT, 'label' => FieldsParam::FIELD_LABEL_EXPECTED_AT, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
+            ],
+
             FieldsParam::ENTITY_CODE_ARRIVAGE => [
                 ['code' => FieldsParam::FIELD_CODE_BUYERS_ARRIVAGE, 'label' => FieldsParam::FIELD_LABEL_BUYERS_ARRIVAGE, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => true],
                 ['code' => FieldsParam::FIELD_CODE_CHAUFFEUR_ARRIVAGE, 'label' => FieldsParam::FIELD_LABEL_CHAUFFEUR_ARRIVAGE, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],

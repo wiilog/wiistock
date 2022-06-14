@@ -1,0 +1,58 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Ordre | Préparation - Planning{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('preparation-planning') }}
+{% endblock %}
+
+{% block page_filter %}
+    {% include 'preparation/planning_filters.html.twig' with {
+        page: 'PAGE_PREPARATION_PLANNING',
+        marginClass: 'm-0 m-md-4',
+        callback: 'callbackSaveFilter',
+    } %}
+{% endblock %}
+
+{% block pageContainerClass 'd-flex flex-fill flex-column' %}
+{% block page_content %}
+    <div class="mx-4 wii-page-card flex-fill d-flex flex-column" style="margin-top: -15px">
+        <div class="row">
+            <div class="col-auto">
+                <button class="btn btn-outline-primary today-date mr-0 h-100"
+                        disabled
+                        data-loader-color="black">
+                    Aujourd'hui
+                </button>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-outline-primary decrement-date mr-0 h-100 d-flex align-items-center"
+                        data-loader-color="black">
+                    <i class="wii-icon wii-icon-arrow-left wii-icon-15px"></i>
+                </button>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-outline-primary increment-date h-100 d-flex align-items-center"
+                        data-loader-color="black">
+                    <i class="wii-icon wii-icon-arrow-right wii-icon-15px"></i>
+                </button>
+            </div>
+            <div class="col-auto ml-auto">
+                <button class="btn btn-primary ml-auto launch-preparation-button" tabindex="0">
+                    <span class="d-inline-flex align-items-center">
+                        <img src="{{ asset('svg/tick-blanc.svg') }}" alt="" width="15px" class="mr-2">
+                        <span>Lancer les préparations</span>
+                    </span>
+                </button>
+            </div>
+        </div>
+        <div class="preparation-planning"></div>
+    </div>
+    {% include 'preparation/modalLaunchPreparation.html.twig' %}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('preparation-planning') }}
+{% endblock %}

@@ -23,7 +23,25 @@ $(function () {
             window.location.reload();
         }
     });
+
+    initializeEdit();
 });
+
+
+function initializeEdit() {
+    const $modalEditPreparation = $('#modalEditPreparation');
+    const $submit = $modalEditPreparation.find('[type=submit]');
+    Form
+        .create($modalEditPreparation)
+        .onSubmit(function (data) {
+            wrapLoadingOnActionButton($submit, () => {
+                return AJAX
+                    .route('POST', 'preparation_edit')
+                    .json(data)
+                    .then(() => window.location.reload());
+            });
+        })
+}
 
 let tableArticleConfig = {
     ajax: pathArticle,
