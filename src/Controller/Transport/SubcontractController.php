@@ -278,8 +278,11 @@ class SubcontractController extends AbstractController
             ->setSubcontractor($data->get('subcontractor'))
             ->setRegistrationNumber($data->get('registrationNumber'))
             ->setStartedAt($startedAt)
-            ->setTreatedAt($treatedAt)
-            ->setComment($data->get('commentaire'));
+            ->setTreatedAt($treatedAt);
+
+        if (strip_tags($data->get('commentaire'))) {
+            $transportOrder->setComment($data->get('commentaire'));
+        }
 
         $addedAttachments = $attachmentService->manageAttachments($entityManager, $transportOrder, $request->files);
 
@@ -291,18 +294,19 @@ class SubcontractController extends AbstractController
         $ongoingStatusOrder = $statutRepository->findOneByCategorieNameAndStatutCode($statusOrder->getCategorie()->getNom(), TransportOrder::STATUS_ONGOING);
 
         if ($oldRequestStatus?->getId() !== $statusRequest->getId()) {
-            $transportService->updateSubcontractedRequestStatus($entityManager, $loggedUser, $transportRequest, $statusRequest, $date, true);
-            $transportService->updateSubcontractedRequestStatus($entityManager, $loggedUser, $transportOrder, $statusOrder, $date, true);
-
             // if we jump ongoing status and we set directly a end status
             // we create ongoing status history
-            // call after current status for sort in the timeline
+            // call before current status for sort in the timeline
             if ($oldRequestStatus?->getCode() !== TransportRequest::STATUS_ONGOING
                 && in_array($statusRequest->getCode(), [TransportRequest::STATUS_FINISHED, TransportRequest::STATUS_NOT_DELIVERED])) {
 
                 $transportService->updateSubcontractedRequestStatus($entityManager, $loggedUser, $transportRequest, $ongoingStatusRequest, $startedAt, false);
                 $transportService->updateSubcontractedRequestStatus($entityManager, $loggedUser, $transportOrder, $ongoingStatusOrder, $startedAt, false);
             }
+
+            $transportService->updateSubcontractedRequestStatus($entityManager, $loggedUser, $transportRequest, $statusRequest, $date, true);
+            $transportService->updateSubcontractedRequestStatus($entityManager, $loggedUser, $transportOrder, $statusOrder, $date, true);
+
         }
 
         // if we change treatedAt without changing status
