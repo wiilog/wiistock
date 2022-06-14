@@ -117,15 +117,15 @@ $select-height: 36px;
 
 .select2-results__option--highlighted .new-item-container {
     i, svg, span {
-        background: white !important;
+        background: $white !important;
     }
 }
 
 .select2-results__option {
-    color: black !important;
+    color: $black !important;
 
     &.select2-results__option--highlighted {
-        color: white !important;
+        color: $white !important;
     }
 }
 
@@ -143,7 +143,7 @@ $select-height: 36px;
 
 .select2-results__option[aria-disabled=true] {
     display: inline-block !important;
-    background: white !important;
+    background: $white !important;
 }
 
 .select2-container--disabled {

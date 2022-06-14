@@ -1,3 +1,5 @@
+@import "variables";
+
 .accueil-back {
     width: 100%;
     height: 100%;
@@ -16,7 +18,7 @@
         top: -35px;
         right: 0;
         cursor: default;
-        color: white;
+        color: $white;
     }
 }
 
@@ -97,7 +99,7 @@
         @extend .bg-primary-followgt;
 
         border-radius: 5px;
-        color: white;
+        color: $white;
         cursor: pointer !important;
     }
 }

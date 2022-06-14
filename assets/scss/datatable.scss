@@ -81,7 +81,7 @@ table.wii-table {
 .wii-page-card {
     border-radius: 10px;
     padding: $spacer;
-    background-color: white;
+    background-color: $white;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
 }
 
@@ -114,7 +114,7 @@ table.wii-table {
         border: none;
 
         a {
-            color: white !important;
+            color: $white !important;
         }
     }
 }
@@ -180,7 +180,7 @@ table.dataTable.no-footer {
     transition: box-shadow 150ms ease-in-out;
 
     &.focus-within, &:focus-within {
-        box-shadow: 0 1px 20px lighten(#000000, 80%);
+        box-shadow: 0 1px 20px lighten($black, 80%);
         z-index: 500;
     }
 }

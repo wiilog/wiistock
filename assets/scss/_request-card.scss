@@ -1,8 +1,10 @@
+@import "variables";
+
 .wii-card {
     display: flex;
     flex-direction: column;
     border-radius: 10px;
-    border: 0 solid black;
+    border: 0 solid $black;
     transition: transform .35s;
 
     &.request-card {

@@ -20,7 +20,7 @@
             cursor: initial !important;
 
             &:hover {
-                background: white !important;
+                background: $white !important;
             }
         }
     }
@@ -38,7 +38,7 @@
 
         .transport-counts {
             display: inline-block;
-            color: black;
+            color: $black;
             font-weight: normal;
             margin-left: 20px;
 
@@ -107,7 +107,7 @@
         align-items: center;
         padding: 5px 12px;
         border-radius: 4px;
-        color: black;
+        color: $black;
         margin-bottom: 8px;
         font-size: 0.9rem;
         height: 30px;

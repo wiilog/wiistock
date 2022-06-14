@@ -29,7 +29,7 @@ html {
 }
 
 h1, h2 {
-    color: #000;
+    color: $black;
     line-height: initial;
     margin: 20px 0;
 }
@@ -69,7 +69,7 @@ em {
 }
 
 input:-webkit-autofill {
-    box-shadow: 0 0 0 30px white inset !important;
+    box-shadow: 0 0 0 30px $white inset !important;
 }
 
 //// FONTS ////
@@ -121,7 +121,7 @@ a {
     color: unset;
 
     &:hover {
-        color: white;
+        color: $white;
     }
 }
 
@@ -300,7 +300,7 @@ select.is-invalid {
 }
 
 .no-disabled {
-    background-color: white;
+    background-color: $white;
     border: none;
 }
 
@@ -421,7 +421,7 @@ label.required:after {
 .stripped-background {
     background-color: #F2F3F7;
     opacity: 0.8;
-    background-image:  repeating-linear-gradient(45deg, #CBCBCB 25%, transparent 25%, transparent 75%, #CBCBCB 75%, #CBCBCB), repeating-linear-gradient(45deg, #CBCBCB 25%, #F2F3F7 25%, #F2F3F7 75%, #CBCBCB 75%, #CBCBCB);
+    background-image:  repeating-linear-gradient(45deg, $grey 25%, transparent 25%, transparent 75%, $grey 75%, $grey), repeating-linear-gradient(45deg, $grey 25%, #F2F3F7 25%, #F2F3F7 75%, $grey 75%, $grey);
     background-position: 0 0, 10px 10px;
     background-size: 20px 20px;
 }
@@ -443,7 +443,7 @@ label.required:after {
         width: 20px;
         height: 20px;
         display: inline-block;
-        background-color: white;
+        background-color: $white;
         margin: auto 0;
     }
 }
@@ -476,7 +476,7 @@ label.required:after {
             }
 
             .wii-icon {
-                background-color: black;
+                background-color: $black;
                 width: 30px;
                 height: 30px;
                 display: inline-block;
@@ -519,11 +519,11 @@ label.required:after {
             font-family: Myriad, sans-serif;
             font-weight: 600;
             font-size: 18px;
-            color: #3353D7;
+            color: $primary;
             padding: 30px;
 
             .wii-icon {
-                background-color: #3353D7;
+                background-color: $primary;
                 width: 25px;
                 height: 25px;
                 display: inline-block;
@@ -533,7 +533,7 @@ label.required:after {
 }
 
 .wii-icon-iot-article, .wii-icon-iot-location, .wii-icon-iot-pack, .wii-icon-iot-vehicle {
-    background-color: white;
+    background-color: $white;
     width: 15px;
     height: 15px;
     display: inline-block;
@@ -574,7 +574,7 @@ label.required:after {
         overflow: hidden;
         font-size: 10px;
         line-height: 12px;
-        color: black;
+        color: $black;
     }
 }
 
@@ -612,7 +612,7 @@ label.required:after {
     label {
         vertical-align: middle;
         font-size: 14px;
-        color: black;
+        color: $black;
         font-weight: bold;
 
         &:not(:first-child) {
@@ -683,7 +683,7 @@ label.required:after {
 }
 
 .wii-box {
-    background: white;
+    background: $white;
     border-radius: 5px;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
     margin-top: $grid-gutter-width / 2;
@@ -712,7 +712,7 @@ label.required:after {
         .section {
             margin: 10px -16px 0;
             background: #F2F3F7;
-            color: black;
+            color: $black;
             font-weight: bold;
             font-size: 0.9rem;
             padding: 3px 20px;
@@ -722,7 +722,7 @@ label.required:after {
             margin: 10px -16px 0;
             padding: 10px 15px;
             background-color: #E8E8E8;
-            color: black;
+            color: $black;
             font-size: 0.9rem;
 
             .comment-title {
@@ -752,6 +752,7 @@ label.required:after {
     }
 }
 
+/** Main classes for text, labels & inputs **/
 .wii-title {
     color: $primary;
     font-size: 18px;
@@ -760,42 +761,48 @@ label.required:after {
 
 .wii-subtitle {
     color: #666666 !important;
-    font-size: 14px !important;
+    font-size: 16px !important;
     font-weight: bold !important;
 }
 
-.wii-describe {
-    color: #777777 !important;
-    font-size: 14px !important;
-    font-weight: normal !important;
-}
-
-.wii-label {
-    color: #000000;
-    font-size: 18px;
-    font-weight: bold;
-}
-
 .wii-field-name {
-    color: #000000 !important;
+    color: $black !important;
     font-size: 14px;
     font-weight: bold;
 }
 
 .wii-field-text {
-    color: #000000 !important;
+    color: $black !important;
     font-size: 16px;
     font-weight: normal;
 }
 
 .wii-body-text {
-    color: #000000;
-    font-size: 13px;
+    color: $black;
+    font-size: 14px;
     font-weight: normal;
 }
 
+.wii-label {
+    color: $black;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.wii-small-text {
+    color: #666666;
+    font-size: 14px;
+    font-weight: normal;
+}
+
+.wii-big-text {
+    color: #666666;
+    font-size: 16px;
+}
+/** End classes **/
+
 .wii-type {
-    color: #FFFFFF;
+    color: $white;
     font-size: 16px;
     text-transform: uppercase;
     font-weight: bold;
@@ -803,22 +810,6 @@ label.required:after {
     text-align: center;
     border-top-left-radius: 4px;
     border-top-right-radius: 4px;
-}
-
-.wii-small-text {
-    color: #666666;
-    font-size: 13px;
-    font-weight: normal;
-}
-
-.wii-medium-text {
-    color: #666666;
-    font-size: 14px;
-}
-
-.wii-big-text {
-    color: #666666;
-    font-size: 16px;
 }
 
 .nowrap {
@@ -853,7 +844,7 @@ label.required:after {
 }
 
 .wii-section-title {
-    color: black;
+    color: $black;
     background-color: #F2F3F7;
     padding: 5px #{$grid-gutter-width};
     font-weight: 600;

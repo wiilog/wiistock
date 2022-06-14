@@ -10,10 +10,10 @@
                     <span class="ml-2">{{ formatHistory(record)|raw }}</span>
                 </div>
                 {% if record.comment %}
-                    <div class="comment wii-describe" style="min-height: initial !important;">{{ record.comment | raw }}</div>
+                    <div class="comment wii-small-text" style="min-height: initial !important;">{{ record.comment | raw }}</div>
                 {% endif %}
                 {% if record.reason %}
-                    <div class="comment wii-describe" style="min-height: initial !important;">{{ record.reason | raw }}</div>
+                    <div class="comment wii-small-text" style="min-height: initial !important;">{{ record.reason | raw }}</div>
                 {% endif %}
                 {% if record.attachments is not empty %}
                     <div class="attachments">

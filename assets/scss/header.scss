@@ -26,7 +26,7 @@
     }
 
     .web-version {
-        color: white;
+        color: $white;
         font-size: 0.8rem;
         margin-top: -4px;
     }
@@ -231,7 +231,7 @@
             background: red;
         }
         background: rgb(46, 194, 171);
-        color: white;
+        color: $white;
         text-align: center;
         min-width: 20px;
         height: 20px;
@@ -284,11 +284,11 @@
 
         &:hover {
             background: #2EC2AB;
-            color: white;
+            color: $white;
             cursor: pointer !important;
 
             & > span:first-of-type {
-                background-color: white;
+                background-color: $white;
             }
         }
     }
@@ -299,7 +299,7 @@
     background-color: rgba(255, 255, 255, 0.1);
     height: 40px;
     border-radius: 30px;
-    color: white;
+    color: $white;
     line-height: 40px;
     padding-left: 1px;
     padding-right: 15px;
@@ -308,7 +308,7 @@
         background-color: rgba(255, 255, 255, 0.2);
 
         :not(.profile-picture) {
-            color: white !important;
+            color: $white !important;
         }
     }
 }
@@ -319,7 +319,7 @@
     width:30px;
     height: 30px;
     border-radius: 50%;
-    background: white;
+    background: $white;
     font-size: 15px;
     font-weight: bold;
     color: $darkGrey;

@@ -70,7 +70,7 @@
                                 <div class="d-flex flex-column">
                                     <span class="wii-title" title="Acheminement">Transport</span>
                                     <span
-                                        class="wii-medium-text">{{ constant('App\\Entity\\Transport\\TransportRequest::NUMBER_PREFIX') ~ request.number }}</span>
+                                        class="wii-small-text">{{ constant('App\\Entity\\Transport\\TransportRequest::NUMBER_PREFIX') ~ request.number }}</span>
                                 </div>
                                 {% if order and order.rejected %}
                                     <img src="{{ asset('svg/rejected-delivery.svg') }}" class="ml-3"
@@ -106,7 +106,7 @@
                                                  class="mr-2"
                                                  width="20px">
                                         {% endif %}
-                                        <span class="wii-describe">{{ request_delivery.type|format_helper('type') }}</span>
+                                        <span class="wii-small-text">{{ request_delivery.type|format_helper('type') }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -127,7 +127,7 @@
                                                  class="mr-2"
                                                  width="20px">
                                         {% endif %}
-                                        <span class="wii-describe">{{ request_collect.type|format_helper('type') }}</span>
+                                        <span class="wii-small-text">{{ request_collect.type|format_helper('type') }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -230,7 +230,7 @@
                         <div class="d-flex align-items-center">
                             <span class="wii-title">Colis</span>
                             <div>
-                                <span class="wii-describe packing-label-counter ml-3"></span>
+                                <span class="wii-small-text packing-label-counter ml-3"></span>
                             </div>
                             {% if hasRejectedPacks %}
                                 <div>
@@ -273,7 +273,7 @@
                         {% endfor %}
                         <div>
                             <span class="wii-field-name">Dernière position connue</span>
-                            <span class="wii-medium-text">
+                            <span class="wii-small-text">
                                 {%  if order is not null and order.subcontracted %}
                                     Le suivi n'est pas disponible car la demande est sur un horaire non ouvré
                                 {% elseif not roundHasStarted %}
@@ -287,7 +287,7 @@
                         {% if request_delivery %}
                             <div class="pt-3">
                                 <span class="wii-field-name">Courbe de températures</span>
-                                <span class="wii-medium-text">
+                                <span class="wii-small-text">
                                      {% if order is not null and order.subcontracted %}
                                          Le suivi de température n'est pas disponible car la demande est sur un horaire non ouvré
                                      {% elseif not roundHasStarted %}

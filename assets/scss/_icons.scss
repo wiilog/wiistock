@@ -103,7 +103,7 @@ $icons: (
 
 $wiiIconSizes: 10, 15, 20, 25, 30, 35, 40, 45, 50;
 $wiiIconColors: (
-    primary: #3353D7
+    primary: $primary
 );
 
 @each $size in $wiiIconSizes {

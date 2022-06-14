@@ -7,7 +7,7 @@
             <div class="row">
                 {% set description = block('description') ?? '' %}
                 {% if description is not empty %}
-                    <div class="col-12 wii-describe mb-3">
+                    <div class="col-12 wii-small-text mb-3">
                         {{ description | raw }}
                     </div>
                 {% endif %}
