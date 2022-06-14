@@ -58,7 +58,7 @@ class NatureController extends AbstractController
 
     /**
      * @Route("/creer", name="nature_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
+     * @HasPermission({MENU::REFERENTIEL, Action::CREATE}, mode=HasPermission::IN_JSON)
      */
     public function new(Request $request, TranslatorInterface $translator, EntityManagerInterface $entityManager): Response {
         if ($data = json_decode($request->getContent(), true)) {
@@ -142,7 +142,7 @@ class NatureController extends AbstractController
 
     /**
      * @Route("/api-modifier", name="nature_api_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
+     * @HasPermission({MENU::REFERENTIEL, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function apiEdit(Request $request,
                             EntityManagerInterface $manager): Response
@@ -171,7 +171,7 @@ class NatureController extends AbstractController
 
     /**
      * @Route("/modifier", name="nature_edit",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
+     * @HasPermission({MENU::REFERENTIEL, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function edit(Request $request,
                          EntityManagerInterface $entityManager): Response
@@ -261,7 +261,7 @@ class NatureController extends AbstractController
 
     /**
      * @Route("/verification", name="nature_check_delete", options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DELETE}, mode=HasPermission::IN_JSON)
+     * @HasPermission({MENU::REFERENTIEL, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
     public function checkNatureCanBeDeleted(Request $request,
                                             EntityManagerInterface $entityManager): Response
@@ -288,7 +288,7 @@ class NatureController extends AbstractController
 
     /**
      * @Route("/supprimer", name="nature_delete", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DELETE}, mode=HasPermission::IN_JSON)
+     * @HasPermission({MENU::REFERENTIEL, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
     public function delete(Request $request,
                            EntityManagerInterface $entityManager): Response
