@@ -9,20 +9,20 @@
             </div>
             <div class="modal-body modal-input">
                 {% if statuses is not empty %}
-                <div class="row">
-                    <div class="form-group col-12">
-                        <label>Statut*</label>
-                        <div class="w-100">
-                            <select name="status"
-                                    class="form-control data needed select2"
-                                    title="Statut">
-                                {% for status in statuses %}
-                                    <option value="{{ status.id }}">{{ status.nom }}</option>
-                                {% endfor %}
-                            </select>
+                    <div class="row">
+                        <div class="form-group col-12">
+                            <label>Statut*</label>
+                            <div class="w-100">
+                                <select name="status"
+                                        class="form-control data needed select2"
+                                        title="Statut">
+                                    {% for status in statuses %}
+                                        <option value="{{ status.id }}">{{ status.nom }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
                         </div>
                     </div>
-                </div>
                 {% else %}
                     {% include 'utils/warningSelectEmpty.html.twig' with {
                         array: [],
@@ -32,21 +32,28 @@
                             'menu': constant('App\\Controller\\Settings\\SettingsController::MENU_REQUESTS'),
                             'submenu': constant('App\\Controller\\Settings\\SettingsController::MENU_PURCHASE_STATUSES'),
                         }),
-                        redirectLabel: 'Aller vers la création des statuts'
+                        redirectLabel: 'Aller vers la création des statuts',
+                        block: true,
+                        rights: {
+                            menu: constant('App\\Entity\\Menu::PARAM'),
+                            action: constant('App\\Entity\\Action::CREATE')
+                        }
                     } %}
                 {% endif %}
             </div>
 
             <div class="error-msg"></div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
-                <button id="submitValidatePurchaseRequest"
-                        type="button"
-                        name="id"
-                        class="btn btn-success data">
-                    Enregistrer
-                </button>
-            </div>
+            {% if statuses is not empty %}
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
+                    <button id="submitValidatePurchaseRequest"
+                            type="button"
+                            name="id"
+                            class="btn btn-success data">
+                        Enregistrer
+                    </button>
+                </div>
+            {% endif %}
         </div>
     </div>
 </form>

@@ -43,20 +43,24 @@
                         array: natures,
                         warningLabel: 'Attention ! Aucune nature de colis n\'a été créée',
                         redirectPath: path('nature_param_index'),
-                        redirectLabel: 'Aller vers la création des natures'
+                        redirectLabel: 'Aller vers la création des natures',
+                        block: true,
+                        rights: {
+                            menu: constant('App\\Entity\\Menu::REFERENTIEL'),
+                            action: constant('App\\Entity\\Action::CREATE')
+                        }
                     } %}
                 {% endif %}
-
-
             </div>
 
             <input hidden value="{{ arrivage.id }}" name="arrivageId" class="data">
-
             <div class="error-msg"></div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
-                <button id="submitAddColis" type="button" class="btn btn-success">Valider</button>
-            </div>
+            {% if natures is not empty %}
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
+                    <button id="submitAddColis" type="button" class="btn btn-success">Valider</button>
+                </div>
+            {% endif %}
         </div>
     </div>
 </form>

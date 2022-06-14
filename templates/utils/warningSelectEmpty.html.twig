@@ -1,16 +1,19 @@
-{% set block = block is defined and block  %}
+{% set block = block is defined and block %}
+{% set rights = rights is defined and rights is not empty ? rights : [] %}
 {% if array is empty %}
     <div class="{{ not block ? 'd-flex align-items-center justify-content-center mb-3' }}">
-        <div class="{{ not block ? 'col-auto' }}">
+        <div class="{{ not block ? 'col-auto' : 'text-center' }}">
             <span title="{{ title is defined ? title }}">
                 <i class="fas fa-exclamation-triangle"></i>
                 {{ warningLabel }}
             </span>
         </div>
-        <div class="{{ not block ? 'col-auto' : 'text-center' }}">
-            <a href="{{ redirectPath }}" class="btn btn-sm btn-primary" target="_blank">
-                <i class='fa fa-directions mr-2'></i> {{ redirectLabel }}
-            </a>
-        </div>
+        {% if rights is not empty and hasRight(rights['menu'], rights['action']) %}
+            <div class="{{ not block ? 'col-auto' : 'text-center' }}">
+                <a href="{{ redirectPath }}" class="btn btn-sm btn-primary" target="_blank">
+                    <i class='fa fa-directions mr-2'></i> {{ redirectLabel }}
+                </a>
+            </div>
+        {% endif %}
     </div>
 {% endif %}

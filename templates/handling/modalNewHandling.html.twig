@@ -49,7 +49,12 @@
                                     'menu': constant('App\\Controller\\Settings\\SettingsController::MENU_HANDLINGS'),
                                     'submenu': constant('App\\Controller\\Settings\\SettingsController::MENU_STATUSES'),
                                 }),
-                                redirectLabel: 'Aller vers la création des statuts'
+                                redirectLabel: 'Aller vers la création des statuts',
+                                block: true,
+                                rights: {
+                                    menu: constant('App\\Entity\\Menu::PARAM'),
+                                    action: constant('App\\Entity\\Action::CREATE')
+                                }
                             } %}
                         </div>
                     </div>

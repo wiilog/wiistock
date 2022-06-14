@@ -32,16 +32,23 @@
                             'menu': constant('App\\Controller\\Settings\\SettingsController::MENU_DISPATCHES'),
                             'submenu': constant('App\\Controller\\Settings\\SettingsController::MENU_STATUSES'),
                         }),
-                        redirectLabel: 'Aller vers la création des statuts'
+                        redirectLabel: 'Aller vers la création des statuts',
+                        block: true,
+                        rights: {
+                            menu: constant('App\\Entity\\Menu::PARAM'),
+                            action: constant('App\\Entity\\Action::CREATE')
+                        }
                     } %}
                 {% endif %}
             </div>
 
             <div class="error-msg"></div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
-                <button type="button" class="btn btn-success submit-button">Enregistrer</button>
-            </div>
+            {% if untreatedStatus is not empty %}
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-success submit-button">Enregistrer</button>
+                </div>
+            {% endif %}
         </div>
     </div>
 </form>

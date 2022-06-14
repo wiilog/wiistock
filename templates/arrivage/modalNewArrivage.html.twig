@@ -233,7 +233,12 @@
                                     'menu': constant('App\\Controller\\Settings\\SettingsController::MENU_ARRIVALS'),
                                     'submenu': constant('App\\Controller\\Settings\\SettingsController::MENU_STATUSES'),
                                 }),
-                                redirectLabel: 'Créer un statut'
+                                redirectLabel: 'Créer un statut',
+                                block: true,
+                                rights: {
+                                    menu: constant('App\\Entity\\Menu::PARAM'),
+                                    action: constant('App\\Entity\\Action::CREATE')
+                                }
                             } %}
                         </div>
                     </div>
@@ -349,7 +354,11 @@
                                 warningLabel: 'Attention ! Aucune nature ' ~ ('arrivage.de colis'|trans) ~ ' n\'a été créée',
                                 redirectPath: path('nature_param_index'),
                                 redirectLabel: 'Aller vers la création des natures',
-                                title: 'de colis'
+                                title: 'de colis',
+                                rights: {
+                                    menu: constant('App\\Entity\\Menu::REFERENTIEL'),
+                                    action: constant('App\\Entity\\Action::CREATE')
+                                }
                             } %}
                         </div>
                     {% endif %}

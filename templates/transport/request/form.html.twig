@@ -217,7 +217,11 @@
                                         warningLabel: 'Attention ! Aucune nature de colis n\'a été paramétrée',
                                         redirectPath: path('nature_param_index'),
                                         redirectLabel: 'Aller vers la création des natures',
-                                        block: true
+                                        block: true,
+                                        rights: {
+                                            menu: constant('App\\Entity\\Menu::REFERENTIEL'),
+                                            action: constant('App\\Entity\\Action::CREATE')
+                                        }
                                     } %}
                                 </div>
                                 {% for lineIndex, line in requestLines %}

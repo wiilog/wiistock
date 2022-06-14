@@ -21,7 +21,12 @@
                                 'menu': constant('App\\Controller\\Settings\\SettingsController::MENU_RECEPTIONS'),
                                 'submenu': constant('App\\Controller\\Settings\\SettingsController::MENU_DISPUTE_TYPES'),
                             }),
-                            redirectLabel: 'Aller vers la page de types'
+                            redirectLabel: 'Aller vers la page de types',
+                            block: true,
+                            rights: {
+                                menu: constant('App\\Entity\\Menu::PARAM'),
+                                action: constant('App\\Entity\\Action::CREATE')
+                            }
                         } %}
                         <select class="form-control data needed" name="disputeType" title="Type" placeholder="">
                             <option disabled value="" selected></option>
@@ -40,7 +45,11 @@
                                 'menu': constant('App\\Controller\\Settings\\SettingsController::MENU_RECEPTIONS'),
                                 'submenu': constant('App\\Controller\\Settings\\SettingsController::MENU_DISPUTE_STATUSES'),
                             }),
-                            redirectLabel: 'Aller vers la page des statuts'
+                            redirectLabel: 'Aller vers la page des statuts',
+                            rights: {
+                                menu: constant('App\\Entity\\Menu::PARAM'),
+                                action: constant('App\\Entity\\Action::CREATE')
+                            }
                         } %}
 
                         <select class="form-control data needed" name="disputeStatus" title="Statut" placeholder="">
