@@ -256,7 +256,7 @@ export default class Form {
         $field = $field.is(`.select2-selection`)
             ? $field.closest(`.select2-container`).siblings(`select`)
             : $field;
-        console.log($field);
+
         if($field.is(`[data-global-error]`)) {
             let label = $field.data(`global-error`) || $parent.find(`.field-label`).text();
             label = label

@@ -596,7 +596,7 @@ class RequestController extends AbstractController {
         }
 
         $statusRequest = $statusRepository->findOneByCategorieNameAndStatutCode($categoryRequest, TransportRequest::STATUS_CANCELLED);
-dump($success);
+
         if ($success) {
             $msg = "Demande annulée";
             $transportOrder = $transportRequest->getOrder();

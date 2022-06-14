@@ -200,15 +200,10 @@ class NotificationService {
                 ];
             }
 
-            dump($json);
-
             $response = $httpClient->request("POST", "https://fcm.googleapis.com/v1/projects/follow-gt/messages:send", [
                 'json' => $json,
             ]);
-
-            dump($response->getStatusCode(), $response->getBody()->getContents());
         } catch (\Throwable $ignored) {
-            dump($ignored);
         }
     }
 
