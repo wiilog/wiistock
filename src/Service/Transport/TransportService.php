@@ -147,6 +147,12 @@ class TransportService {
         $expectedAtStr = $data?->get('expectedAt');
         $creation = !$transportRequest->getId();
 
+        $transportOrder = $transportRequest->getOrder();
+        $orderInRound = (
+            $transportOrder
+            && $transportOrder->getStatus()?->getCode() === TransportOrder::STATUS_ASSIGNED
+        );
+
         if ($transportRequest->getId() && !$transportRequest->canBeUpdated()) {
             throw new FormException("Votre demande de transport n'est pas modifiable");
         }
@@ -192,6 +198,7 @@ class TransportService {
             $canChangeStatus = (
                 $transportRequest->getExpectedAt() != $expectedAt
                 && $transportRequest->getStatus()?->getId() !== $status->getId()
+                && !$orderInRound
             );
             if ($canChangeStatus){
                 $statusHistory = $this->statusHistoryService->updateStatus($entityManager, $transportRequest, $status);
@@ -234,11 +241,10 @@ class TransportService {
             }
         }
 
-        $transportOrder = $transportRequest->getOrder();
         if (!$transportOrder) {
             $transportOrder = $this->persistTransportOrder($entityManager, $transportRequest, $loggedUser);
         }
-        else {
+        else if (!$orderInRound) {
             $this->updateOrderInitialStatus($entityManager, $transportRequest, $transportOrder, $loggedUser);
         }
 
