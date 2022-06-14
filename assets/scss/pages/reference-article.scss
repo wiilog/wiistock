@@ -1,7 +1,5 @@
 @import "assets/scss/variables";
 
-$blue: #3353D7;
-
 body {
     background-color: #F5F7F7;
 
@@ -23,7 +21,7 @@ body {
     margin-top: 15px;
 
     .header-wrapper {
-        background-color: #FFFFFF;
+        background-color: $white;
         border-bottom-left-radius: 5px;
         border-bottom-right-radius: 5px;
     }
@@ -49,7 +47,7 @@ body {
 }
 
 .ra-dropdown {
-    background-color: #FFFFFF;
+    background-color: $white;
     border-top: 1px solid $grey;
     border-bottom-left-radius: 5px;
     border-bottom-right-radius: 5px;
@@ -63,7 +61,7 @@ body {
             float: right;
             right: 10%;
             content: "+";
-            color: $blue;
+            color: $primary;
             font-size: 20px;
         }
 
@@ -117,7 +115,7 @@ span.icon {
 .delete-supplier-article {
     display: block;
     width: 100%;
-    color: $blue;
+    color: $primary;
     font-weight: bold;
     text-align: right;
     cursor: pointer;
@@ -128,7 +126,7 @@ span.icon {
     margin-bottom: 5px;
 
     .delete-button-container {
-        border: $blue 1px solid;
+        border: $primary 1px solid;
         padding: 15px 5px;
         border-radius: 5px;
     }
@@ -158,12 +156,12 @@ span.icon {
 .tooltip {
 
     .tooltip-inner {
-        background: $blue !important;
+        background: $primary !important;
     }
 
     .arrow:before {
-        border-bottom-color: $blue !important;
-        border-top-color: $blue !important;
+        border-bottom-color: $primary !important;
+        border-top-color: $primary !important;
     }
 }
 

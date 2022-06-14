@@ -17,7 +17,7 @@
                         <div class="d-flex w-100 justify-content-between">
                             <div class="d-flex flex-column">
                                 <span class="wii-title" title="Acheminement">Tournée</span>
-                                <span class="wii-medium-text">{{ constant('App\\Entity\\Transport\\TransportRound::NUMBER_PREFIX') ~ transportRound.number }}</span>
+                                <span class="wii-small-text">{{ constant('App\\Entity\\Transport\\TransportRound::NUMBER_PREFIX') ~ transportRound.number }}</span>
                             </div>
                             <div class="d-flex align-items-center justify-content-end">
                                 <span class="wii-field-name">{{ transportRound.createdBy }}</span>
@@ -182,7 +182,7 @@
                     <div class="d-flex justify-content-between p-3">
                         <span class="wii-field-name">Courbe{{ urls | length != 1 ? 's' }} de température</span>
                         {% if not roundDateBegan %}
-                            <span class="wii-medium-text">
+                            <span class="wii-small-text">
                                 La tournée n'a pas commencé
                             </span>
                         {% endif %}

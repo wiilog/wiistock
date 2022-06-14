@@ -1,6 +1,5 @@
 @import "../variables";
 
-
 .empty-cart {
     & > .wii-box {
         height: calc(100% - #{$grid-gutter-width / 2});
@@ -38,7 +37,7 @@
         border-radius: 5px;
 
         .cart-reference-type {
-            color: white;
+            color: $white;
             background: var(--reference-color);
             font-weight: bold;
             font-size: 0.8rem;

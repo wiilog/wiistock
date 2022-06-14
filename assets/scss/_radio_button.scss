@@ -1,6 +1,8 @@
+@import "variables";
+
 .radio-btn {
     .btn {
-        color: white;
+        color: $white;
         background-color: $blueGT;
         border-radius: 0;
         margin: 0;
@@ -8,7 +10,7 @@
 
         &.disabled:hover {
             background-color: $blueGT;
-            color: white;
+            color: $white;
             border: 1px solid $blueGT;
         }
 
@@ -24,25 +26,20 @@
 
         &:hover:not(.disabled) {
             background-color: $blueGT;
-            color: white;
+            color: $white;
         }
     }
 
     .not-active {
         color: $blueGT;
-        background-color: white;
+        background-color: $white;
 
         &.disabled:hover {
             color: $blueGT;
             border: 1px solid $blueGT;
-            background-color: white;
+            background-color: $white;
         }
     }
-
-    //.active
-    //  &:hover
-    //    background-color: white
-    //    color: $blueGT
 }
 
 .radio-btn {
@@ -51,23 +48,23 @@
         border: 1px solid $redDanger;
 
         &.active {
-            color: white;
+            color: $white;
             background-color: $redDanger;
             margin: 0;
 
             &:hover {
-                background-color: white !important;
+                background-color: $white !important;
                 color: $redDanger !important;
             }
         }
 
         &.not-active {
             color: $redDanger !important;
-            background-color: white;
+            background-color: $white;
 
             &:hover {
                 background-color: $redDanger !important;
-                color: white !important;
+                color: $white !important;
             }
         }
     }

@@ -50,7 +50,7 @@ option {
 }
 
 #new-ref-inner-body {
-    border: 1px solid black;
+    border: 1px solid $black;
 }
 
 .frame {
@@ -68,7 +68,7 @@ option {
 
 .button-container {
     width: 120px;
-    border: #000000 1px solid;
+    border: $black 1px solid;
     padding: 10px;
 
     button {

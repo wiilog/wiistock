@@ -46,7 +46,7 @@
     }
 
     .increase, .decrease {
-        background: white;
+        background: $white;
         border: 1px solid $primary;
         border-radius: 4px;
         color: $primary;
@@ -146,7 +146,7 @@ $wii-switch-height: $input-height;
         cursor: pointer;
 
         &:hover:not(:checked) {
-            color: white;
+            color: $white;
             background-color: $primary;
 
             .wii-icon {
@@ -209,13 +209,13 @@ $wii-switch-height: $input-height;
         outline: 0;
         padding: 0 15px;
         border-radius: 4px;
-        border: 1px solid #CBCBCB;
+        border: 1px solid $grey;
         height: $wii-switch-height;
         line-height: $wii-switch-height;
         font-weight: normal;
         transition: all 200ms linear;
         font-size: 1rem;
-        background: white;
+        background: $white;
         color: #666666;
     }
 
@@ -235,19 +235,19 @@ $wii-switch-height: $input-height;
 
         &:hover:not(:checked) {
             color: lighten(#666666, 5%);
-            border-color: lighten(#CBCBCB, 5%);
+            border-color: lighten($grey, 5%);
         }
     }
 
     input:checked, input:checked + label {
         background: #F2F3F7;
-        color: #3353D7;
-        border-color: #3353D7;
+        color: $primary;
+        border-color: $primary;
 
         &:hover {
             background: lighten(#F2F3F7, 5%) !important;
-            color: lighten(#3353D7, 5%) !important;
-            border-color: lighten(#3353D7, 5%) !important;
+            color: lighten($primary, 5%) !important;
+            border-color: lighten($primary, 5%) !important;
         }
     }
 
@@ -279,7 +279,7 @@ $wii-switch-height: $input-height;
 }
 
 .select2-selection__rendered {
-    color: black !important;
+    color: $black !important;
     opacity: 1; /* Firefox */
 }
 
@@ -454,7 +454,7 @@ input.no-overflow {
     margin: 10px 5px 0;
     height: 40px;
     padding-left: 12px;
-    color: black;
+    color: $black;
     font-size: 1rem;
 
     input {
@@ -516,7 +516,7 @@ input[type=checkbox] {
         height: 100%;
         -webkit-mask: url('../../public/svg/check.svg') no-repeat center;
         mask: url('../../public/svg/check.svg') no-repeat center;
-        background-color: white;
+        background-color: $white;
     }
 
     &:disabled {

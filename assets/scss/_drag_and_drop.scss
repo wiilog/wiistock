@@ -1,6 +1,5 @@
 @import "variables";
 
-
 .dropFrame {
     display: flex;
     justify-content: center;
@@ -24,8 +23,8 @@
     }
 
     .click-here {
-        background: #3353D7;
-        color: white;
+        background: $primary;
+        color: $white;
         margin-left: 10px;
         display: inline-block;
         font-weight: 400;

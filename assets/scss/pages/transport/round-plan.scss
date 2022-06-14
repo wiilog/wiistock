@@ -1,9 +1,8 @@
 @import "../../variables";
 @import "../../pages/transport/show";
 
-
 .transport-type {
-    background-color: #FFFFFF;
+    background-color: $white;
     padding: 3px 5px;
 
     border-radius: 4px;
@@ -38,7 +37,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        color: #FFFFFF;
+        color: $white;
         min-width: 23px;
         border-bottom-left-radius: inherit;
         border-top-left-radius: inherit;
@@ -172,7 +171,7 @@
             .index {
                 border-radius: 5px 0 0 5px;
                 padding: 5px;
-                color: #FFFFFF;
+                color: $white;
                 display: inline-flex;
                 align-items: center;
             }
@@ -208,9 +207,6 @@
         }
     }
 }
-
-
-// show
 
 .details {
     .content {
