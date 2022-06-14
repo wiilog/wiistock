@@ -6,7 +6,12 @@
         'menu': constant('App\\Controller\\Settings\\SettingsController::MENU_ARRIVALS'),
         'submenu': constant('App\\Controller\\Settings\\SettingsController::MENU_DISPUTE_TYPES'),
     }),
-    redirectLabel: 'Aller vers la page de types'
+    redirectLabel: 'Aller vers la page de types',
+    block: true,
+    rights: {
+        menu: constant('App\\Entity\\Menu::PARAM'),
+        action: constant('App\\Entity\\Action::CREATE')
+    }
 } %}
 
 {% include 'utils/warningSelectEmpty.html.twig' with {
@@ -17,7 +22,12 @@
         'menu': constant('App\\Controller\\Settings\\SettingsController::MENU_ARRIVALS'),
         'submenu': constant('App\\Controller\\Settings\\SettingsController::MENU_DISPUTE_STATUSES'),
     }),
-    redirectLabel: 'Aller vers la page des statuts'
+    redirectLabel: 'Aller vers la page des statuts',
+    block: true,
+    rights: {
+        menu: constant('App\\Entity\\Menu::PARAM'),
+        action: constant('App\\Entity\\Action::CREATE')
+    }
 } %}
 
 <input type="text" name="disputeBuyersValues" value="{{ buyers }}" hidden/>
@@ -104,7 +114,11 @@
                 'menu': constant('App\\Controller\\Settings\\SettingsController::MENU_ARRIVALS'),
                 'submenu': constant('App\\Controller\\Settings\\SettingsController::MENU_DISPUTE_STATUSES'),
             }),
-            redirectLabel: 'Aller vers la page des statuts'
+            redirectLabel: 'Aller vers la page des statuts',
+            rights: {
+                menu: constant('App\\Entity\\Menu::PARAM'),
+                action: constant('App\\Entity\\Action::CREATE')
+            }
         } %}
 
         <select class="form-control data needed" name="disputeStatus" title="Statut">
