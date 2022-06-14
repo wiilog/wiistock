@@ -87,9 +87,10 @@ class SubcontractController extends AbstractController
         );
 
         $transportRequests = [];
-        foreach ($awaitingValidationResult as $requestUp) {
-            $transportRequests["A valider"][] = $requestUp;
+        if (!empty($awaitingValidationResult)) {
+            $transportRequests["A valider"] = $awaitingValidationResult;
         }
+
         foreach ($subcontractOrderResult["data"] as $requestDown) {
             $transportRequests[$requestDown->getExpectedAt()->format("dmY")][] = $requestDown;
         }

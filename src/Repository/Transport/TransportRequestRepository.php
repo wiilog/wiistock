@@ -121,9 +121,13 @@ class TransportRequestRepository extends EntityRepository {
     }
 
     public function findAwaitingValidation() {
-        return $this->createQueryBuilder("request")
-            ->join("request.status", "status")
-            ->where("status.nom = :awaiting_validation")
+        return $this->createQueryBuilder("transport_request")
+            ->leftJoin(TransportDeliveryRequest::class, "delivery", Join::WITH, "transport_request.id = delivery.id")
+            ->leftJoin(TransportCollectRequest::class, "collect", Join::WITH, "transport_request.id = collect.id")
+            ->leftJoin("collect.delivery", "collect_delivery")
+            ->join("transport_request.status", "status")
+            ->andWhere("status.nom = :awaiting_validation")
+            ->andWhere("delivery IS NOT NULL OR collect_delivery IS NULL")
             ->setParameter("awaiting_validation", TransportRequest::STATUS_AWAITING_VALIDATION)
             ->getQuery()
             ->getResult();
