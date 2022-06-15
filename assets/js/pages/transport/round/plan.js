@@ -7,6 +7,7 @@ import Form from "@app/form";
 import Flash, {ERROR} from "@app/flash";
 
 const roundMarkerAlreadySaved = {};
+let mapLines = null;
 
 $(function () {
     const map = Map.create(`map`);
@@ -138,7 +139,8 @@ function calculateTime(map) {
             });
 
             saveAndDisplayEstimatedTimesInDOM(distance, time);
-            map.setLines(response.coordinates.map((coordinate) => [coordinate['latitude'], coordinate['longitude']]), "#3353D7");
+            map.remove(mapLines);
+            mapLines = map.setLines(response.coordinates.map((coordinate) => [coordinate['latitude'], coordinate['longitude']]), "#3353D7");
         });
     } else {
         Flash.add(ERROR, 'Calcul impossible. Veillez bien à renseigner les points de départs, d\'arrivée, ainsi que l\'heure de départ');

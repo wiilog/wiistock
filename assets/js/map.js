@@ -42,6 +42,13 @@ export class Map {
     setLines(coordinates, color = "black") {
         const lines = Leaflet.polyline(coordinates, {color: color});
         this.map.addLayer(lines);
+        return lines;
+    }
+
+    remove(layer){
+        if (layer) {
+            this.map.removeLayer(layer);
+        }
     }
 
     setMarker(options) {
