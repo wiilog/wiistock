@@ -15,6 +15,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Helper\FormatHelper;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use WiiCommon\Helper\Stream;
 use DateTime;
@@ -164,6 +165,8 @@ class CartService {
             $statutRepository = $manager->getRepository(Statut::class);
             $destination = $manager->find(Emplacement::class, $data['location']);
             $type = $manager->find(Type::class, $data['deliveryType']);
+            $expectedAt = FormatHelper::parseDatetime($data['expectedAt']);
+
             $draft = $statutRepository->findOneByCategorieNameAndStatutCode(
                 CategorieStatut::DEM_LIVRAISON,
                 Demande::STATUT_BROUILLON
@@ -180,6 +183,7 @@ class CartService {
                 ->setNumero($number)
                 ->setUtilisateur($user)
                 ->setType($type)
+                ->setExpectedAt($expectedAt)
                 ->setCreatedAt(new DateTime('now'))
                 ->setDestination($destination)
                 ->setStatut($draft);

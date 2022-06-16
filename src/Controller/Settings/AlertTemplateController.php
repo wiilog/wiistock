@@ -53,7 +53,7 @@ class AlertTemplateController extends AbstractController
                 $data[] = [
                     "class" => "col-md-8",
                     "label" => "Type d'alerte",
-                    "value" => AlertTemplate::TEMPLATE_TYPES[$template->getType()]." <input type='hidden' name='type' class='data form-control' value='{$template->getType()}' >",
+                    "value" => AlertTemplate::TEMPLATE_TYPES[$template->getType()]." <input type='hidden' name='type' class='data form-control' value='{$template->getType()}'>",
                 ];
             }
             else {

@@ -130,6 +130,16 @@
                                         disabled: true,
                                     }) }}
                                 </div>
+
+                                {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EXPECTED_AT') %}
+                                {% if deliveryFieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                                    <div class="col-md-6 col-12">
+                                        {% set fieldRequired = deliveryFieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
+                                        {{ form.input('expectedAt', 'Date attendue', fieldRequired, null, {
+                                            type: 'date',
+                                        }) }}
+                                    </div>
+                                {% endif %}
                                 <div class="col-12">
                                     <span class="toggle-collapsible wii-subtitle mt-3 expanded">Champs libres</span>
                                     <div class="collapsible expanded free-fields-container mb-2">
