@@ -219,6 +219,7 @@ $(function() {
                 }
 
                 $saveButton.popLoader();
+                window.location.reload();
             })
             .catch(() => {
                 $saveButton.popLoader();
