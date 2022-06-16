@@ -7,21 +7,26 @@
 
             width: {{ width }}mm;
             height: {{ height }}mm;
-            padding-top: 2%;
             position: relative;
         }
 
         .landscape {
-            width: 50%;
+            width: 35%;
             float: left;
-        }
+            margin-top:20px;
+         }
 
+        .landscape:last-of-type {
+            width:65%;
+        }
         .landscape.barcode {
             height: 75% !important;
+            margin-top:15px;
         }
 
         .landscape.labels {
             height: 75% !important;
+            font-size: 1.2px !important;
         }
 
         .barcode {
@@ -238,7 +243,8 @@
                     <text y="{{ loop.index * heightFontScale }}"
                           x="50%"
                           text-anchor="middle"
-                          font-size="1">
+                          font-size="{{ landscape and loop.index == 1 ? '1.4px' }}"
+                          font-weight="{{ landscape and loop.index == 1 ? '700' }}">
                         {{ label | trim }}
                     </text>
                 {% endfor %}
