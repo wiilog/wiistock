@@ -12,9 +12,9 @@
                             <div class="column-hint-container">
                                 <img src="{{ asset('svg/delivery.svg') }}" alt="" width="15px">
                                 <span class="wii-field-name ml-2">
-                                        {% set deliveries = deliveryAndCollectCount[dateForContainer | date_modify("+#{i}days") | date('Y-m-d')]['delivery'] ?? 0 %}
+                                    {% set deliveries = deliveryAndCollectCount[dateForContainer | date_modify("+#{i}days") | date('Y-m-d')]['delivery'] ?? 0 %}
                                     {{ deliveries }} livraison{{ deliveries > 1 ? 's' }}
-                                    </span>
+                                </span>
                                 <div class="mx-2 d-flex">
                                     {% if typesCount[dateForContainer | date_modify("+#{i}days") | date('Y-m-d')]['delivery'] is defined %}
                                         {% for typeId, counter in typesCount[dateForContainer | date_modify("+#{i}days") | date('Y-m-d')]['delivery'] %}
@@ -44,9 +44,9 @@
                             <div class="column-hint-container">
                                 <img src="{{ asset('svg/collect.svg') }}" alt="" width="15px">
                                 <span class="wii-field-name ml-2">
-                                        {% set collects = deliveryAndCollectCount[dateForContainer | date_modify("+#{i}days") | date('Y-m-d')]['collect'] %}
+                                    {% set collects = deliveryAndCollectCount[dateForContainer | date_modify("+#{i}days") | date('Y-m-d')]['collect'] %}
                                     {{ collects }} collecte{{ collects > 1 ? 's' }}
-                                    </span>
+                                </span>
                                 <div class="mx-2 d-flex">
                                     {% if typesCount[dateForContainer | date_modify("+#{i}days") | date('Y-m-d')]['collect'] is defined %}
                                         {% for typeId, counter in typesCount[dateForContainer | date_modify("+#{i}days") | date('Y-m-d')]['collect'] %}
