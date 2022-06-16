@@ -111,6 +111,7 @@ function SubmitAction($modal,
  * @param {undefined|boolean} keepModal true if we do not close form
  * @param {undefined|boolean} keepForm true if we do not clear form
  * @param {function} success called on success
+ * @param {function} error called on error
  * @param {function} waitForUserAction wait for user modal action
  * @param {function} headerCallback header callback
  * @param {function|undefined} keepLoading Keep loader on submit button after receiving ajax response
@@ -122,7 +123,7 @@ function SubmitAction($modal,
 function processSubmitAction($modal,
                              $submit,
                              path,
-                             {tables, keepModal, keepForm, validator, success, headerCallback, keepLoading, waitDatatable, waitForUserAction} = {}) {
+                             {tables, keepModal, keepForm, validator, success, error, headerCallback, keepLoading, waitDatatable, waitForUserAction} = {}) {
     const isAttachmentForm = $modal.find('input[name="isAttachmentForm"]').val() === '1';
     const {success: formValidation, errorMessages, $isInvalidElements, data} = ProcessForm($modal, isAttachmentForm, validator);
     if (formValidation) {
@@ -135,14 +136,14 @@ function processSubmitAction($modal,
             return waitForUserAction()
                 .then((doSubmit) => {
                     if (doSubmit) {
-                        return postForm(path, smartData, $submit, $modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable, success, keepLoading);
+                        return postForm(path, smartData, $submit, $modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable, success, error, keepLoading);
                     } else {
                         $submit.popLoader();
                     }
                 })
                 .catch(() => {});
         } else {
-            return postForm(path, smartData, $submit, $modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable, success, keepLoading);
+            return postForm(path, smartData, $submit, $modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable, success, error, keepLoading);
         }
     }
     else {
@@ -157,7 +158,7 @@ function processSubmitAction($modal,
     }
 }
 
-function postForm(path, smartData, $submit, $modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable, success, keepLoading) {
+function postForm(path, smartData, $submit, $modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable, success, error, keepLoading) {
     return $
         .ajax({
             url: path,
@@ -179,6 +180,9 @@ function postForm(path, smartData, $submit, $modal, data, tables, keepModal, kee
                     $isInvalidElements: data.invalidFieldsSelector ? [$(data.invalidFieldsSelector)] : undefined,
                     errorMessages: errorMessage ? [errorMessage] : undefined
                 });
+                if (error) {
+                    error(data);
+                }
             }
             else {
                 const res = treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable);

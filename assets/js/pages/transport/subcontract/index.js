@@ -68,7 +68,17 @@ $(function () {
     let modalModifySubcontractedRequest = $('#modalEditSubcontractedRequest');
     let submitModifySubcontractedRequest = $('#submitEditSubcontractedRequest');
     let urlModifySubcontractedRequest = Routing.generate('subcontract_request_edit', true);
-    InitModal(modalModifySubcontractedRequest, submitModifySubcontractedRequest, urlModifySubcontractedRequest, {tables: [table]});
+    InitModal(modalModifySubcontractedRequest, submitModifySubcontractedRequest, urlModifySubcontractedRequest, {tables: [table], error : (data) => {
+        if( data.success === false ) {
+            for (const [attr , error] of Object.entries(data.errors)) {
+                const $input = $(`[name=${attr}]`)
+                $input.addClass('is-invalid');
+                if ( ! $input.parent().find('.invalid-feedback').text() ) {
+                    $input.parent().append(`<span class="invalid-feedback">${error}</span>`)
+                }
+            }
+        }
+    }});
 });
 
 function editStatusChange($select){
