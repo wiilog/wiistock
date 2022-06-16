@@ -252,9 +252,7 @@ class OrderController extends AbstractController {
         $queryResult = $transportRepository->findByParamAndFilters($request->request, $filters);
 
         $transportOrders = Stream::from($queryResult["data"])
-            ->filter(fn(TransportOrder $order) => $order->getStatus()->getCode() !== TransportOrder::STATUS_AWAITING_VALIDATION)
             ->keymap(function (TransportOrder $order) {
-
                 $request = $order->getRequest();
                 $date = $request->getValidatedDate() ?? $request->getExpectedAt();
                 $key = $date->format("dmY");
