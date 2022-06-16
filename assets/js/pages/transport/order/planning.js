@@ -107,13 +107,20 @@ function initializeRoundPlan() {
 function submitRoundModal(data) {
     const roundInfo = data.get('roundInfo');
     const params = {};
-    if(roundInfo === 'newRound') {
+    if (roundInfo === 'newRound') {
         params.dateRound = data.get('date');
+        AJAX.route(GET, 'is-order-for-date', {'date' : params.dateRound }).json().then((result) => {
+            if (result) {
+                window.location.href = Routing.generate('transport_round_plan', params);
+            } else {
+                Flash.add('danger', 'Aucun ordre n’est à faire pour cette date');
+            }
+        })
     }
     else if (roundInfo === 'editRound') {
         params.transportRound = data.get('round');
+        window.location.href = Routing.generate('transport_round_plan', params);
     }
-    window.location.href = Routing.generate('transport_round_plan', params);
     return Promise.resolve();
 }
 
