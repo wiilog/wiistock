@@ -93,12 +93,12 @@
                         {% set nbRejectedOrders = transportRound.rejectedOrderCount %}
                         {% if nbRejectedPacks or nbRejectedOrders %}
                             <div class="header">
-                                <img src="{{ asset('svg/urgence.svg') }}" alt="Icône urgence" width="15px">
+                                <img src="{{ asset('svg/urgence.svg') }}" alt="" width="15px">
                                 <span class="wii-field-name ml-2">Éléments rejetées</span>
                             </div>
                             <div class="row content">
                                 <div class="col-6 d-flex flex-column">
-                                    {% set s = (nbRejectedPacks ?? 0) != 1 ? 's' %}
+                                    {% set s = (nbRejectedPacks ?? 0) > 1 ? 's' %}
                                     <span class="wii-field-name d-inline-flex">
                                         <img src="{{ asset('svg/rejected-pack.svg') }}"
                                              class="transport-status-icon mr-1"
