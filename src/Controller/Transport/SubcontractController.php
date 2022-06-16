@@ -262,6 +262,16 @@ class SubcontractController extends AbstractController
         $treatedAt = FormatHelper::parseDatetime($data->get('delivery-end-date'));
         $statusRequest = $statutRepository->find($data->get('status'));
 
+        if ( ($statusRequest == TransportRequest::STATUS_FINISHED || $transportRequest == TransportRequest::STATUS_CANCELLED) && $treatedAt && $startedAt && $startedAt > $treatedAt) {
+            return $this->json([
+                "success" => false,
+                "errors" => [
+                    "delivery-start-date" => "La date de début de livraison ne peut être supérieure à la date de fin de livraison",
+                    "delivery-end-date" => "La date de fin de livraison ne peut être inférieure à la date de début de livraison",
+                ]
+            ]);
+        }
+
         $statusOrder = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_DELIVERY, match($statusRequest->getCode()) {
             TransportRequest::STATUS_ONGOING => TransportOrder::STATUS_ONGOING,
             TransportRequest::STATUS_SUBCONTRACTED => TransportOrder::STATUS_SUBCONTRACTED,

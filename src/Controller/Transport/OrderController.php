@@ -32,6 +32,7 @@ use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -436,4 +437,11 @@ class OrderController extends AbstractController {
         }, $nameFile, $csvHeader);
     }
 
+    #[Route("/api/is-order-for-date", name: "is-order-for-date", options: ['expose' => true], methods: "GET")]
+    public function calculate(Request $request,
+                              EntityManagerInterface $entityManager): Response {
+        return $entityManager->getRepository(TransportOrder::class)->findToAssignByDate(DateTime::createFromFormat( 'Y-m-d', $request->query->get('date')))
+            ? $this->json(true)
+            : $this->json(false);
+    }
 }
