@@ -39,6 +39,12 @@ class AlertTemplateController extends AbstractController
 
             if ($template) {
                 $data[] = [
+                    "type" => "hidden",
+                    "class" => "data",
+                    "name" => "entity",
+                    "value" => $template->getId(),
+                ];
+                $data[] = [
                     "class" => "col-md-4",
                     "label" => "Nom du modèle*",
                     "value" => "<input name='name' class='data form-control' value='$name' required>",
@@ -63,8 +69,6 @@ class AlertTemplateController extends AbstractController
             if ($category === AlertTemplate::PUSH) {
                 $content = $template?->getConfig()['content'] ?? '';
                 $image = $template?->getConfig()['image'] ?? '';
-
-
 
                 $data[] = [
                     "class" => "col-md-4",
