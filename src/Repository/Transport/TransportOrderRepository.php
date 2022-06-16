@@ -28,8 +28,11 @@ class TransportOrderRepository extends EntityRepository {
             ->leftJoin(TransportDeliveryRequest::class, "delivery", Join::WITH, "transport_request.id = delivery.id")
             ->leftJoin(TransportCollectRequest::class, "collect", Join::WITH, "transport_request.id = collect.id")
             ->leftJoin("collect.delivery", "collect_delivery")
+            ->leftJoin("transport_order.status", "status")
             ->andWhere("collect_delivery IS NULL")
-            ->andWhere("transport_order.subcontracted = false");
+            ->andWhere("transport_order.subcontracted = false")
+            ->andWhere("status.code != :status_code")
+            ->setParameter("status_code", TransportOrder::STATUS_AWAITING_VALIDATION);
 
         $total = QueryCounter::count($qb, "transport_order");
 
