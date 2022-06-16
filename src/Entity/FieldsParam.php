@@ -103,8 +103,8 @@ class FieldsParam {
 
 
     const ENTITY_CODE_DEMANDE = 'demande';
-    const FIELD_LABEL_EXPECTED_AT = 'expectedAt';
-    const FIELD_CODE_EXPECTED_AT = 'date attendue';
+    const FIELD_CODE_EXPECTED_AT = 'expectedAt';
+    const FIELD_LABEL_EXPECTED_AT = 'date attendue';
 
 
     public const FILTERED_FIELDS = [
