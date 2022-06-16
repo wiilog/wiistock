@@ -292,7 +292,7 @@ class PreparationController extends AbstractController
     }
 
     /**
-     * @Route("/supprimer/{id}", name="preparation_delete", methods="GET|POST")
+     * @Route("/supprimer/{preparation}", name="preparation_delete", methods="GET|POST")
      * @HasPermission({Menu::ORDRE, Action::DELETE})
      */
     public function delete(Preparation                $preparation,
