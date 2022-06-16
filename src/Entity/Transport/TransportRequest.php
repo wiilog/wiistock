@@ -81,6 +81,7 @@ abstract class TransportRequest extends StatusHistoryContainer {
         TransportRequest::STATUS_TO_DELIVER,
         TransportRequest::STATUS_ONGOING,
         TransportRequest::STATUS_AWAITING_VALIDATION,
+        TransportRequest::STATUS_SUBCONTRACTED
     ];
 
     public const STATUS_WORKFLOW_DELIVERY_COLLECT = [
