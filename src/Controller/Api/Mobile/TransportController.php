@@ -781,9 +781,7 @@ class TransportController extends AbstractFOSRestController {
                 $order->getRequest()->setStatus($requestStatus);
                 $order->setStatus($requestStatus);
 
-                $statusHistoryRequest = $statusHistoryService->updateStatus($manager,
-                    $order->getRequest(),
-                    $requestStatus);
+                $statusHistoryRequest = $statusHistoryService->updateStatus($manager, $order->getRequest(), $requestStatus);
                 $statusHistoryOrder = $statusHistoryService->updateStatus($manager, $order, $orderStatus);
 
                 $historyService->persistTransportHistory($manager,

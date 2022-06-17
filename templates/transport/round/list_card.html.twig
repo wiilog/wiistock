@@ -73,7 +73,7 @@
                 </td>
                 <td class="transport-details-container">
                     Km réels : <span class="text-nowrap">
-                        <span class="transport-value">{{ round.realDistance ? round.realDistance/1000 ~ 'km' : '-' }}</span>
+                        <span class="transport-value">{{ round.realDistance is not null ? round.realDistance/1000 ~ 'km' : '-' }}</span>
                     </span>
                 </td>
                 <td class="transport-details-container">
