@@ -154,12 +154,17 @@ function loadItems($container, config, type, edit = false) {
                         const $managementBody = $container.find('.management-body');
                         const $managementHeader = $container.find('.management-header');
 
-                        $editButton.on('click', function(){
+                        $editButton.on('click', function () {
                             $pageHeader.addClass('d-none');
                             $managementBody.css('margin-top', '0');
                             $managementBody.css('border-top-left-radius', '0').css('border-top-right-radius', '0');
                             $managementHeader.css('border-bottom-left-radius', '0').css('border-bottom-right-radius', '0');
                         });
+
+                        if (!Boolean(edit)) {
+                            $managementBody.css('margin-top', 15);
+                            $pageHeader.removeClass('d-none');
+                        }
 
                         $addButton.on('click', function(){
                             $deleteButton.parent().addClass('d-none');
@@ -369,6 +374,7 @@ export function createManagementHeaderPage($container, config) {
 
         if (!$itemContainer.hasClass('main-entity-content-form')) {
             loadItems($container, config, selectedEntity, true).then(() => {
+                console.log ('SAVE !!')
                 toggleCreationForm($pageHeader, $itemContainer, $itemContainer.hasClass('creation-mode'));
             });
         }
