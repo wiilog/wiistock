@@ -420,7 +420,8 @@ class TransportController extends AbstractFOSRestController {
                                 GeoService              $geoService,
                                 TransportRoundService   $transportRoundService,
                                 TrackingMovementService $trackingMovementService,
-                                StatusHistoryService    $statusHistoryService): Response {
+                                StatusHistoryService    $statusHistoryService,
+                                TransportHistoryService $transportHistoryService): Response {
         $data = $request->request;
         $locationRepository = $manager->getRepository(Emplacement::class);
         $packRepository = $manager->getRepository(Pack::class);
@@ -428,15 +429,19 @@ class TransportController extends AbstractFOSRestController {
         $location = $locationRepository->find($data->get('location'));
         $packs = json_decode($data->get('packs'));
         $now = new DateTime();
+        $user = $this->getUser();
 
         if(!empty($packs)) {
             $packsDropLocation = $locationRepository->find($data->get('packsDropLocation'));
             $packs = $packRepository->findBy(['code' => $packs]);
+
+            $depositedTransports = [];
+            $transportById = [];
             foreach ($packs as $pack) {
                 $trackingMovement = $trackingMovementService->createTrackingMovement(
                     $pack,
                     $packsDropLocation,
-                    $this->getUser(),
+                    $user,
                     $now,
                     true,
                     true,
@@ -449,6 +454,27 @@ class TransportController extends AbstractFOSRestController {
                 $transportDeliveryOrderPack
                     ->setReturnedAt($now)
                     ->setState(TransportDeliveryOrderPack::RETURNED_STATE);
+
+                $transport = $transportDeliveryOrderPack->getOrder();
+                $transportById[$transport->getId()] = $transport;
+                $depositedTransports[$transport->getId()][] = $pack;
+            }
+
+            foreach($depositedTransports as $transport => $packs) {
+                $transport = $transportById[$transport];
+
+                $transportHistoryService->persistTransportHistory(
+                    $manager,
+                    [$transport, $transport->getRequest()],
+                    TransportHistoryService::TYPE_PACKS_FAILED,
+                    [
+                        "user" => $user,
+                        "message" => Stream::from($packs)
+                            ->map(fn(Pack $pack) => $pack->getCode())
+                            ->join(", "),
+                        "location" => $packsDropLocation,
+                    ]
+                );
             }
         }
 
