@@ -249,7 +249,10 @@ export function initializeIotFreeFields($container, canEdit) {
 
 function updateCheckedType($container) {
     const $radio = $container.find(`[type=radio]:checked + label`);
-    const $radioWrapper = $('<span class="d-inline-flex align-items-center"/>');
+    const $radioWrapper = $('<span />', {
+        text: $container.find(`[name="label"]`).val(),
+        class: 'd-inline-flex align-items-center'
+    });
     $radio.html($radioWrapper);
 
     $radioWrapper.text($container.find(`[name="label"]`).val());
