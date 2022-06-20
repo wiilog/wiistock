@@ -88,6 +88,8 @@ function deletePhoneNumber($button) {
 function initTelInput($input, edit) {
     const iti = intlTelInput($input[0], {
         utilsScript: '/build/vendor/intl-tel-input/utils.js',
+        initialCountry: "fr",
+        autoPlaceholder: "aggressive",
     });
     return $input.data('iti', iti);
 }
