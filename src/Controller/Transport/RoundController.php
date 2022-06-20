@@ -182,37 +182,39 @@ class RoundController extends AbstractController {
         $transportDateBeganAt = $transportRound->getBeganAt();
         $locations = $transportRound->getLocations();
 
-        foreach ($locations as $location) {
-            $hasSensorMessageBetween = $location->getSensorMessagesBetween($transportRound->getBeganAt(), $transportRound->getEndedAt());
-            if(!$hasSensorMessageBetween) {
-                continue;
+        if ($transportDateBeganAt ) {
+            foreach ($locations as $location) {
+                $hasSensorMessageBetween = $location->getSensorMessagesBetween($transportRound->getBeganAt(), $transportRound->getEndedAt());
+                if (!$hasSensorMessageBetween) {
+                    continue;
+                }
+
+                $triggerActions = $location->getActivePairing()?->getSensorWrapper()?->getTriggerActions();
+                if ($triggerActions) {
+                    $minTriggerActionThreshold = Stream::from($triggerActions)
+                        ->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'lower')
+                        ->last();
+
+                    $maxTriggerActionThreshold = Stream::from($triggerActions)
+                        ->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'higher')
+                        ->last();
+
+                    $minThreshold = $minTriggerActionThreshold?->getConfig()['temperature'];
+                    $maxThreshold = $maxTriggerActionThreshold?->getConfig()['temperature'];
+                }
+
+                $now = new DateTime();
+                $urls[] = [
+                    "fetch_url" => $router->generate("chart_data_history", [
+                        "type" => IOTService::getEntityCodeFromEntity($location),
+                        "id" => $location->getId(),
+                        'start' => $transportRound->getBeganAt()->format('Y-m-d\TH:i'),
+                        'end' => $transportRound->getEndedAt()?->format('Y-m-d\TH:i') ?? $now->format('Y-m-d\TH:i'),
+                    ], UrlGeneratorInterface::ABSOLUTE_URL),
+                    "minTemp" => $minThreshold ?? 0,
+                    "maxTemp" => $maxThreshold ?? 0,
+                ];
             }
-
-            $triggerActions = $location->getActivePairing()?->getSensorWrapper()?->getTriggerActions();
-            if($triggerActions) {
-                $minTriggerActionThreshold = Stream::from($triggerActions)
-                    ->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'lower')
-                    ->last();
-
-                $maxTriggerActionThreshold = Stream::from($triggerActions)
-                    ->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'higher')
-                    ->last();
-
-                $minThreshold = $minTriggerActionThreshold?->getConfig()['temperature'];
-                $maxThreshold = $maxTriggerActionThreshold?->getConfig()['temperature'];
-            }
-
-            $now = new DateTime();
-            $urls[] = [
-                "fetch_url" => $router->generate("chart_data_history", [
-                    "type" => IOTService::getEntityCodeFromEntity($location),
-                    "id" => $location->getId(),
-                    'start' => $transportRound->getCreatedAt()->format('Y-m-d\TH:i'),
-                    'end' => $transportRound->getEndedAt()?->format('Y-m-d\TH:i') ?? $now->format('Y-m-d\TH:i'),
-                ], UrlGeneratorInterface::ABSOLUTE_URL),
-                "minTemp" => $minThreshold ?? 0,
-                "maxTemp" => $maxThreshold ?? 0,
-            ];
         }
 
         $hasSomeDelivery = Stream::from($transportRound->getTransportRoundLines())
