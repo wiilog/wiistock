@@ -70,7 +70,7 @@
                     {{ request.contact.address }}
                 </td>
                 <td class="transport-subcontract-details-container">
-                    <div class="mb-2 wii-small-text">
+                    <div class="mb-2 wii-body-text">
                         <span class="d-xl-none">
                             Commencée le :<br><span class="bold">{{ order.startedAt ? order.startedAt | date('d/m/Y H:i') : "-" }}</span>
                         </span>
@@ -78,7 +78,7 @@
                             Commencée le :<br><span class="bold">{{ order.startedAt ? order.startedAt | format_helper('longDate', {short: true, time: true}) : "-" }}</span>
                         </span>
                     </div>
-                    <div class="wii-small-text">
+                    <div class="wii-body-text">
                         <span class="d-xl-none">
                             Livrée le :<br> <span style="font-weight: bold"> {{ order.treatedAt ? order.treatedAt | date('d/m/Y H:i') : "-" }}</span>
                         </span>
@@ -88,10 +88,10 @@
                     </div>
                 </td>
                 <td class="transport-subcontract-details-container">
-                    <div class="mb-2 wii-small-text">
+                    <div class="mb-2 wii-body-text">
                         Sous-traitant : <span style="font-weight: bold">{{ order.subcontractor ?? "-" }}</span>
                     </div>
-                    <div class="wii-small-text">
+                    <div class="wii-body-text">
                         Immatriculation : <span style="font-weight: bold">{{ order.registrationNumber ?? "-" }}</span>
                     </div>
                 </td>
