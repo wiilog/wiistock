@@ -267,7 +267,7 @@ function initLineChart(element, callback) {
                 data: lineDataMax,
                 pointRadius: 0,
                 pointHitRadius: 0,
-                borderColor: '#F00',
+                borderColor: '#00F',
                 fill: false,
             };
 
@@ -275,7 +275,7 @@ function initLineChart(element, callback) {
                 data: lineDataMin,
                 pointRadius: 0,
                 pointHitRadius: 0,
-                borderColor: '#00F',
+                borderColor: '#F00',
                 fill: false,
             };
         }
