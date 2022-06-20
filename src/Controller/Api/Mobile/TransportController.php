@@ -317,7 +317,7 @@ class TransportController extends AbstractFOSRestController {
             'cancelled' => !!$line->getCancelledAt(),
             'success' => $request->getStatus()->getCode() === TransportRequest::STATUS_FINISHED ||
                 $request instanceof TransportDeliveryRequest && $request->getCollect() && $line->getFulfilledAt(),
-            'failure' => in_array($request->getStatus()->getCode(), [
+            'failure' => $request->getOrder()->getRejectedAt() || in_array($request->getStatus()->getCode(), [
                 TransportRequest::STATUS_NOT_DELIVERED,
                 TransportRequest::STATUS_NOT_COLLECTED,
                 TransportRequest::STATUS_CANCELLED,
