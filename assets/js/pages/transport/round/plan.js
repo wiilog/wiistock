@@ -143,6 +143,7 @@ function calculateTime(map) {
             mapLines = map.setLines(response.coordinates.map((coordinate) => [coordinate['latitude'], coordinate['longitude']]), "#3353D7");
         });
     } else {
+        $expectedAtTime.addClass('is-invalid');
         Flash.add(ERROR, 'Calcul impossible. Veillez bien à renseigner les points de départs, d\'arrivée, ainsi que l\'heure de départ');
         return new Promise((resolve) => resolve());
     }
