@@ -878,11 +878,11 @@ class TransportService {
             ->map(fn(TransportDeliveryOrderPack $pack, int $position) => [
                 'code' => $pack->getPack()->getCode(),
                 'labels' => [
-                    ...strlen($contactName > 25)
+                    ...(strlen($contactName) > 25
                         ? [$contactName, $contactFileNumber]
-                        : "$contactName - $contactFileNumber",
+                        : ["$contactName - $contactFileNumber"]),
                     ...$cleanedContactAddress,
-                    ($temperatureRanges[$pack->getPack()->getNature()->getLabel()] ?? ''),
+                    ($temperatureRanges[$pack->getPack()?->getNature()?->getLabel()] ?? ''),
                     "$position/$total"
                 ],
                 'logo' => $logo
