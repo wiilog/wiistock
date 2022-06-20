@@ -146,8 +146,9 @@ class OrderController extends AbstractController {
         if ($round) {
             $now = new DateTime();
             $urls = [];
-            $transportRound = $transport->getTransportRoundLines()->last()
-                ? $transport->getTransportRoundLines()->last()->getTransportRound()
+            $roundLine = $transport->getTransportRoundLines()->last();
+            $transportRound = $roundLine
+                ? $roundLine->getTransportRound()
                 : null;
 
             foreach ($transportRound?->getLocations() ?? [] as $location) {

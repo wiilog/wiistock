@@ -134,15 +134,21 @@ class VehicleController extends AbstractController
     public function checkVehicleCanBeDeleted(Request $request, EntityManagerInterface $manager): Response
     {
         $id = json_decode($request->getContent(), true);
-        $vehicle = $manager->find(Vehicle::class, $id);
+        $vehicleRepository = $manager->getRepository(Vehicle::class);
+        $vehicle = $vehicleRepository->find($id);
+        $roundCount = $vehicleRepository->countRound($vehicle);
 
-        $isPaired = !$vehicle->getPairings()->isEmpty();
+        $state = !$vehicle->getPairings()->isEmpty()
+            ? 'paired'
+            : ($roundCount > 0 ? 'inRound' : null);
 
         return $this->json([
-            'delete' => !$isPaired,
-            'html' => !$isPaired
-                ? '<span>Voulez-vous réellement supprimer ce véhicule ?</span>'
-                : '<span>Ce véhicule est lié à une ou plusieurs associations IoT, vous ne pouvez pas le supprimer</span>'
+            'delete' => !$state,
+            'html' => match($state) {
+                'paired' => '<span>Ce véhicule est lié à une ou plusieurs associations IoT, vous ne pouvez pas le supprimer</span>',
+                'inRound' => '<span>Ce véhicule a déjà été sur une tournée, vous ne pouvez pas le supprimer</span>',
+                default => '<span>Voulez-vous réellement supprimer ce véhicule ?</span>'
+            }
         ]);
     }
 

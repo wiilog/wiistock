@@ -150,8 +150,9 @@ class RequestController extends AbstractController {
         if ($round) {
             $now = new DateTime();
             $urls = [];
-            $transportRound = $transport->getOrder()->getTransportRoundLines()->last()
-                ? $transport->getOrder()->getTransportRoundLines()->last()->getTransportRound()
+            $roundLine = $transport->getOrder()?->getTransportRoundLines()?->last();
+            $transportRound = $roundLine
+                ? $roundLine->getTransportRound()
                 : null;
 
             foreach ($transportRound?->getLocations() ?? [] as $location) {

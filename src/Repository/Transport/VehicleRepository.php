@@ -2,6 +2,7 @@
 
 namespace App\Repository\Transport;
 
+use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\Vehicle;
 use App\Helper\QueryCounter;
 use Doctrine\ORM\EntityRepository;
@@ -84,5 +85,16 @@ class VehicleRepository extends EntityRepository
             ->setParameter("term", "%$term%")
             ->getQuery()
             ->getArrayResult();
+    }
+
+    public function countRound(Vehicle $vehicle): int {
+        return $this->getEntityManager()
+            ->createQueryBuilder()
+            ->from(TransportRound::class, 'round')
+            ->select('COUNT(round)')
+            ->andWhere('round.vehicle = :vehicle')
+            ->setParameter('vehicle', $vehicle)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 }

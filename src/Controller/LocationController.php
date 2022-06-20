@@ -262,6 +262,7 @@ class LocationController extends AbstractController {
         $demandeRepository = $entityManager->getRepository(Demande::class);
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $transferRequestRepository = $entityManager->getRepository(TransferRequest::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
 
         $usedBy = [];
 
@@ -292,6 +293,9 @@ class LocationController extends AbstractController {
         //can't delete request if there's order so there is no need to count orders
         $transferRequests = $transferRequestRepository->countByLocation($emplacementId);
         if ($transferRequests > 0) $usedBy[] = 'demandes de transfert';
+
+        $round = $locationRepository->countRound($emplacementId);
+        if ($round > 0) $usedBy[] = 'tournées';
 
         return $usedBy;
     }
