@@ -269,6 +269,7 @@ class TransportController extends AbstractFOSRestController {
             ]) : null,
             'natures_to_collect' => $naturesToCollect,
             'packs' => Stream::from($order->getPacks())
+                ->filter(fn(TransportDeliveryOrderPack $orderPack) => $orderPack->getState() !== TransportDeliveryOrderPack::RETURNED_STATE)
                 ->map(function(TransportDeliveryOrderPack $orderPack) use ($temperatureRanges) {
                     $pack = $orderPack->getPack();
                     $nature = $pack->getNature();
@@ -422,6 +423,7 @@ class TransportController extends AbstractFOSRestController {
                                 StatusHistoryService    $statusHistoryService): Response {
         $data = $request->request;
         $locationRepository = $manager->getRepository(Emplacement::class);
+        $packRepository = $manager->getRepository(Pack::class);
         $round = $manager->find(TransportRound::class, $data->get('round'));
         $location = $locationRepository->find($data->get('location'));
         $packs = json_decode($data->get('packs'));
@@ -429,7 +431,7 @@ class TransportController extends AbstractFOSRestController {
 
         if(!empty($packs)) {
             $packsDropLocation = $locationRepository->find($data->get('packsDropLocation'));
-
+            $packs = $packRepository->findBy(['code' => $packs]);
             foreach ($packs as $pack) {
                 $trackingMovement = $trackingMovementService->createTrackingMovement(
                     $pack,
@@ -442,8 +444,12 @@ class TransportController extends AbstractFOSRestController {
                 );
 
                 $manager->persist($trackingMovement);
-            }
 
+                $transportDeliveryOrderPack = $pack->getTransportDeliveryOrderPack();
+                $transportDeliveryOrderPack
+                    ->setReturnedAt($now)
+                    ->setState(TransportDeliveryOrderPack::RETURNED_STATE);
+            }
         }
 
         $emptyRoundPack = $manager->getRepository(Pack::class)->findOneBy(['code' => Pack::EMPTY_ROUND_PACK]);
