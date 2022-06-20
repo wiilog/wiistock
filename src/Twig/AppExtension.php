@@ -66,6 +66,7 @@ class AppExtension extends AbstractExtension {
             new TwigFunction('interleave', [$this, 'interleave']),
             new TwigFunction('formatHistory', [$this, 'formatHistory']),
             new TwigFunction('isImage', [$this, 'isImage']),
+            new TwigFunction('merge', "array_merge"),
         ];
     }
 
