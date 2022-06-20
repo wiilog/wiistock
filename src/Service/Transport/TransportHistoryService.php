@@ -234,6 +234,7 @@ class TransportHistoryService {
             self::TYPE_AWAITING_VALIDATION,
             self::TYPE_SUBCONTRACTED,
             self::TYPE_ACCEPTED,
+            self::TYPE_AWAITING_PLANNING,
             self::TYPE_PACKS_DEPOSITED => self::CATEGORY_TIMELINE,
 
             self::TYPE_AFFECTED_ROUND,
@@ -250,6 +251,7 @@ class TransportHistoryService {
             self::TYPE_ADD_COMMENT => self::CATEGORY_COMMENT,
 
             self::TYPE_ADD_ATTACHMENT => self::CATEGORY_ATTACHMENT,
+
             default => throw new RuntimeException("Unknown type")
         };
     }

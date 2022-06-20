@@ -569,6 +569,10 @@ class TransportController extends AbstractFOSRestController {
             $order = $line->getOrder();
             $request = $order->getRequest();
 
+            if($request->getStatus()->getCode() === TransportRequest::STATUS_CANCELLED) {
+                continue;
+            }
+
             if($request instanceof TransportDeliveryRequest) {
                 $hasPacks = !$order->getPacks()->isEmpty();
                 $allRejected = $order->getPacks()
