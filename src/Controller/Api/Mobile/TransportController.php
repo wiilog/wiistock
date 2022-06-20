@@ -778,9 +778,6 @@ class TransportController extends AbstractFOSRestController {
                 $orderStatus = $statusRepository->findOneByCategorieNameAndStatutCode($orderCategory,
                     TransportOrder::STATUS_FINISHED);
 
-                $order->getRequest()->setStatus($requestStatus);
-                $order->setStatus($requestStatus);
-
                 $statusHistoryRequest = $statusHistoryService->updateStatus($manager,
                     $order->getRequest(),
                     $requestStatus);
@@ -1166,19 +1163,24 @@ class TransportController extends AbstractFOSRestController {
     }
 
     /**
-     * @Rest\Get("/api/undelivered-packs-locations", name="api_undelivered_packs_locations", methods={"GET"}, condition="request.isXmlHttpRequest()")
+     * @Rest\Get("/api/packs-return-locations", name="api_packs_return_locations", methods={"GET"}, condition="request.isXmlHttpRequest()")
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
      */
-    public function undeliveredPacksLocations(EntityManagerInterface $manager): Response {
+    public function packsReturnLocations(EntityManagerInterface $manager): Response {
         $settingRepository = $manager->getRepository(Setting::class);
         $undeliveredPacksLocations = $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_REJECTED_PACKS_LOCATIONS);
+        $collectedPacksLocations = $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_COLLECTED_PACKS_LOCATIONS);
 
         $undeliveredPacksLocations = $undeliveredPacksLocations ? explode(",", $undeliveredPacksLocations) : [];
         $undeliveredPacksLocations = Stream::from($undeliveredPacksLocations)->map(fn(string $location) => (int) $location)->toArray();
 
+        $collectedPacksLocations = $collectedPacksLocations ? explode(",", $collectedPacksLocations) : [];
+        $collectedPacksLocations = Stream::from($collectedPacksLocations)->map(fn(string $location) => (int) $location)->toArray();
+
         return $this->json([
-            'undeliveredPacksLocations' => $undeliveredPacksLocations
+            'undeliveredPacksLocations' => $undeliveredPacksLocations,
+            'collectedPacksLocations' => $collectedPacksLocations
         ]);
     }
 }
