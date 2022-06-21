@@ -125,7 +125,7 @@ class RoundController extends AbstractController {
                 $currentRow[] = $this->renderView("transport/round/list_card.html.twig", [
                     "hasRejectedPacks" => $hasRejectedPacks,
                     "prefix" => TransportRound::NUMBER_PREFIX,
-                    "hasExceededThreshold" => $vehicle?->getActivePairing() ? FormatHelper::bool($vehicle->getActivePairing()->hasExceededThreshold()) : false,
+                    "hasExceededThreshold" => $vehicle?->getActivePairing() && FormatHelper::bool($vehicle->getActivePairing()->hasExceededThreshold()),
                     "round" => $transportRound,
                     "realTime" => isset($hours) && isset($minutes)
                         ? ($hours . "h" . $minutes . "min")
