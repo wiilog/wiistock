@@ -479,4 +479,5 @@ class TransportRound extends StatusHistoryContainer {
             ->filter(fn(TransportRoundLine $line) => $line->getOrder()->getStatus()->getCode() === TransportOrder::STATUS_ONGOING)
             ->first();
     }
+
 }
