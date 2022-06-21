@@ -4,6 +4,7 @@
     {% set hint = line['hint'] %}
     {% set emergency = line['emergency'] %}
     {% set estimated = line['estimated'] %}
+    {% set cancelled = line['cancelled'] %}
     {% set real = line['real'] %}
     {% set state = line['state'] %}
     <div class="history-line">
@@ -11,6 +12,9 @@
             <div class="title-left {{ state }}">
                 {% if emergency %}
                     <img alt="" src="{{ asset('svg/rejected-pack.svg') }}" height="20px" />
+                {% endif %}
+                {% if cancelled %}
+                    <img alt="" src="{{ asset('svg/rejected-delivery.svg') }}" height="20px" />
                 {% endif %}
                 {{ index + 1 }}. <a href="{{ link }}">{{ name }}</a>
             </div>

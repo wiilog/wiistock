@@ -412,6 +412,10 @@ class TransportOrder extends StatusHistoryContainer {
         return $this->getStatus()?->getCode() === TransportOrder::STATUS_FINISHED;
     }
 
+    public function isCancelled(): bool {
+        return $this->getStatus()?->getCode() === TransportOrder::STATUS_CANCELLED;
+    }
+
     public function getRejectedAt(): ?DateTime {
         return $this->rejectedAt;
     }
