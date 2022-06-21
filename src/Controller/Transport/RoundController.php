@@ -125,7 +125,7 @@ class RoundController extends AbstractController {
                     "prefix" => TransportRound::NUMBER_PREFIX,
                     "round" => $transportRound,
                     "realTime" => isset($hours) && isset($minutes)
-                        ? ($hours . "h" . $minutes . "min")
+                        ? (($hours < 10 ? "0$hours" : $hours) . "h" . ($minutes < 10 ? "0$minutes" : $minutes) . "min")
                         : '-',
                 ]);
             }
