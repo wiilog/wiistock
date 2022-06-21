@@ -81,7 +81,9 @@ export class Map {
 
         if (options.popUp) {
             const $popup = $('<div>' + options.popUp + '</div>');
-            $(estimated).appendTo($popup.find('.leaflet-popup-content-inner'));
+            if(!$popup.find('.estimated-time').exists()) {
+                $(estimated).appendTo($popup.find('.leaflet-popup-content-inner'));
+            }
             marker
                 .bindPopup(`${$popup.html()}`, {
                     closeButton: false,
@@ -112,9 +114,9 @@ export class Map {
             let $currentMarkerPopupContent = $(`<div>${currentMarkerPopupContent}</div>`);
             let $estimated = $currentMarkerPopupContent.find('.estimated-time');
             if ($estimated.length) {
-                $estimated.text(options.estimation);
+                $estimated.text(`Estimé : ${options.estimation}`);
             } else {
-                $estimated = $(`<span class="estimated-time">Estimé : ${options.estimation.replaceAll(`:`, `h`)}</span>`)
+                $estimated = $(`<span class="estimated-time">Estimé : ${options.estimation}</span>`)
                 $currentMarkerPopupContent
                     .find('.leaflet-popup-content-inner')
                     .append($estimated);
