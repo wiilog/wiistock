@@ -73,7 +73,7 @@
                                 <span class="wii-field-name">Kilomètres estimés</span>
                                 {% set RoundEstimatedDistance = transportRound.estimatedDistance %}
                                 {% if RoundEstimatedDistance %}
-                                    <span class="wii-field-text">{{ RoundEstimatedDistance }}km </span>
+                                    <span class="wii-field-text">{{ RoundEstimatedDistance }} km</span>
                                 {% else %}
                                     <span class="wii-field-text">-</span>
                                 {% endif %}
@@ -82,7 +82,7 @@
                                 <span class="wii-field-name">Kilomètres réels</span>
                                 {% set roundRealDistance = transportRound.realDistance %}
                                 {% if roundRealDistance %}
-                                    <span class="wii-field-text">{{ roundRealDistance/1000 }}Km</span>
+                                    <span class="wii-field-text">{{ roundRealDistance/1000 }} km</span>
                                 {% else %}
                                     <span class="wii-field-text">-</span>
                                 {% endif %}
@@ -94,7 +94,7 @@
                         {% if nbRejectedPacks or nbRejectedOrders %}
                             <div class="header">
                                 <img src="{{ asset('svg/urgence.svg') }}" alt="" width="15px">
-                                <span class="wii-field-name ml-2">Éléments rejetées</span>
+                                <span class="wii-field-name ml-2">Éléments rejetés</span>
                             </div>
                             <div class="row content">
                                 <div class="col-6 d-flex flex-column">

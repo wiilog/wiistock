@@ -114,7 +114,7 @@ export class Map {
             if ($estimated.length) {
                 $estimated.text(options.estimation);
             } else {
-                $estimated = $(`<span class="estimated-time">Estimé : ${options.estimation}</span>`)
+                $estimated = $(`<span class="estimated-time">Estimé : ${options.estimation.replaceAll(`:`, `h`)}</span>`)
                 $currentMarkerPopupContent
                     .find('.leaflet-popup-content-inner')
                     .append($estimated);
