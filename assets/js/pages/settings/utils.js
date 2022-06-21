@@ -374,7 +374,6 @@ export function createManagementHeaderPage($container, config) {
 
         if (!$itemContainer.hasClass('main-entity-content-form')) {
             loadItems($container, config, selectedEntity, true).then(() => {
-                console.log ('SAVE !!')
                 toggleCreationForm($pageHeader, $itemContainer, $itemContainer.hasClass('creation-mode'));
             });
         }

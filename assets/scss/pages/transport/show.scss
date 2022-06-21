@@ -64,6 +64,12 @@
                     background-color: $primary;
                 }
 
+                &.last {
+                    &.current {
+                        margin-bottom: 25px;
+                    }
+                }
+
                 &.current {
                     background-color: $success;
                     font-weight: 600;
@@ -190,6 +196,15 @@
             &.last-status-history:after {
                 width: 20px;
                 height: 20px;
+            }
+
+            &.last-status-history {
+                &.last {
+                    &.current {
+                        margin-bottom: 15px;
+                        padding-top: 0;
+                    }
+                }
             }
 
             &:before {
