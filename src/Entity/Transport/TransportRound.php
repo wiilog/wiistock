@@ -110,7 +110,7 @@ class TransportRound extends StatusHistoryContainer {
     #[ORM\ManyToOne(targetEntity: Vehicle::class)]
     private ?Vehicle $vehicle = null;
 
-    #[ORM\OneToMany(mappedBy: 'transportRound', targetEntity: Emplacement::class)]
+    #[ORM\ManyToMany(targetEntity: Emplacement::class)]
     private Collection $locations;
 
     public function __construct() {
@@ -362,19 +362,13 @@ class TransportRound extends StatusHistoryContainer {
     public function addLocation(Emplacement $location): self {
         if (!$this->locations->contains($location)) {
             $this->locations[] = $location;
-            $location->setTransportRound($this);
         }
 
         return $this;
     }
 
     public function removeLocation(Emplacement $location): self {
-        if ($this->locations->removeElement($location)) {
-            // set the owning side to null (unless already changed)
-            if ($location->getTransportRound() === $this) {
-                $location->setTransportRound(null);
-            }
-        }
+        $this->locations->removeElement($location);
 
         return $this;
     }

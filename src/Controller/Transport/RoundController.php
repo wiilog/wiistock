@@ -58,8 +58,7 @@ class RoundController extends AbstractController {
         $roundCategorie = $em->getRepository(CategorieStatut::class)->findOneBy(['nom' => CategorieStatut::TRANSPORT_ROUND])->getId();
         $ongoingStatus = $statusRepository->findOneBy(['code' => TransportRound::STATUS_ONGOING , 'categorie' => $roundCategorie ])?->getId();
         $deliverersPositions = Stream::from($roundRepository->findBy(['status' => $ongoingStatus]))
-            ->map(fn(TransportRound $round) => $round->getVehicle()?->getLastPosition($round->getBeganAt()))
-            ->filter(fn($position) => $position != null)
+            ->filterMap(fn(TransportRound $round) => $round->getVehicle()?->getLastPosition($round->getBeganAt()))
             ->toArray();
 
         return $this->render('transport/round/index.html.twig', [
@@ -126,7 +125,7 @@ class RoundController extends AbstractController {
                     "prefix" => TransportRound::NUMBER_PREFIX,
                     "round" => $transportRound,
                     "realTime" => isset($hours) && isset($minutes)
-                        ? ($hours . "h" . $minutes . "min")
+                        ? (($hours < 10 ? "0$hours" : $hours) . "h" . ($minutes < 10 ? "0$minutes" : $minutes) . "min")
                         : '-',
                 ]);
             }
@@ -495,7 +494,6 @@ class RoundController extends AbstractController {
             $transportRound
                 ->setExpectedAt($expectedAt)
                 ->setDeliverer($deliverer)
-                ->setVehicle($deliverer->getVehicle())
                 ->setStartPoint($startPoint)
                 ->setStartPointScheduleCalculation($startPointScheduleCalculation)
                 ->setEndPoint($endPoint);

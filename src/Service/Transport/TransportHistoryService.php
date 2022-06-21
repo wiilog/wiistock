@@ -62,7 +62,7 @@ class TransportHistoryService {
         self::TYPE_CONTACT_VALIDATED => "{user} a validé la date de collecte avec le patient",
         self::TYPE_LABELS_PRINTING => "{user} a préparé la livraison",
         self::TYPE_ONGOING => "{user} a débuté la {category}",
-        self::TYPE_DROP_REJECTED_PACK => "{user} a écarté le colis {pack} ({reason})",
+        self::TYPE_DROP_REJECTED_PACK => "{user} a écarté le colis {pack}",
         self::TYPE_FINISHED => "{user} a terminé la {category}",
         self::TYPE_FINISHED_BOTH => "{user} a terminé la livraison et une collecte",
         self::TYPE_ADD_COMMENT => "{user} a laissé un commentaire",
@@ -234,6 +234,7 @@ class TransportHistoryService {
             self::TYPE_AWAITING_VALIDATION,
             self::TYPE_SUBCONTRACTED,
             self::TYPE_ACCEPTED,
+            self::TYPE_AWAITING_PLANNING,
             self::TYPE_PACKS_DEPOSITED => self::CATEGORY_TIMELINE,
 
             self::TYPE_AFFECTED_ROUND,
@@ -250,6 +251,7 @@ class TransportHistoryService {
             self::TYPE_ADD_COMMENT => self::CATEGORY_COMMENT,
 
             self::TYPE_ADD_ATTACHMENT => self::CATEGORY_ATTACHMENT,
+
             default => throw new RuntimeException("Unknown type")
         };
     }

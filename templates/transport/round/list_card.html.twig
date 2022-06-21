@@ -51,19 +51,19 @@
                 </td>
                 <td class="transport-details-container">
                     Km estimés : <span class="text-nowrap">
-                        <span class="transport-value">{{ round.estimatedDistance ? round.estimatedDistance ~ 'km' : '-' }}</span>
+                        <span class="transport-value">{{ round.estimatedDistance ? round.estimatedDistance ~ ' km' : '-' }}</span>
                     </span>
                 </td>
                 <td class="transport-details-container">
                     Temps estimé : <span class="text-nowrap">
-                        <span class="transport-value">{{ round.estimatedTime ? round.estimatedTime ~ 'min' : '-' }}</span>
+                        <span class="transport-value">{{ round.estimatedTime ? round.estimatedTime | replace({':': 'h'}) ~ 'min' : '-' }}</span>
                     </span>
                 </td>
             </tr>
             <tr>
                 <td class="transport-details-container">
                     Transports effectués : <span class="text-nowrap">
-                        <span class="transport-value">{{ round.transportRoundLines|filter(line => line.fulfilledAt)|length ~ ' / ' ~ round.transportRoundLines|length }}</span>
+                        <span class="transport-value">{{ round.transportRoundLines|filter(line => line.fulfilledAt)|length ~ '/' ~ round.transportRoundLines|length }}</span>
                     </span>
                 </td>
                 <td class="transport-details-container" style="width: 30%;">
@@ -73,7 +73,7 @@
                 </td>
                 <td class="transport-details-container">
                     Km réels : <span class="text-nowrap">
-                        <span class="transport-value">{{ round.realDistance ? round.realDistance/1000 ~ 'km' : '-' }}</span>
+                        <span class="transport-value">{{ round.realDistance is not null ? round.realDistance/1000 ~ ' km' : '-' }}</span>
                     </span>
                 </td>
                 <td class="transport-details-container">

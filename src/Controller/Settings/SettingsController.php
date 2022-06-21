@@ -596,7 +596,7 @@ class SettingsController extends AbstractController {
                     "current_client" => $this->specificService->getAppClient(),
                 ],
                 self::MENU_MAIL_SERVER => fn() => [
-                    "mailer_server" => $mailerServerRepository->findOneBy([]),
+                    "mailer_server" => $mailerServerRepository->findOneBy([]) ?? new MailerServer(),
                 ],
             ],
             self::CATEGORY_STOCK => [

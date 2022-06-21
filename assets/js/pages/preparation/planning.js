@@ -166,7 +166,7 @@ function getPreparationLaunchForm($modal){
                 });
 
                 $modal.find('.remove-all').on('click', function () {
-                    const $preparationCards = $modal.find('.assigned-preparations .preparation-card-container');
+                    const $preparationCards = $modal.find('.assigned-preparations .preparation-card');
                     const $targetContainer = $modal.find('.available-preparations');
                     $preparationCards
                         .detach()

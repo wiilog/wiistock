@@ -18,7 +18,7 @@
         </div>
         <div class="history-status {{ state }}">
             <div class="title-right">
-                <span class="ml-2">Estimé : {{ estimated | format_helper('time', true, true) }}</span>
+                <span class="ml-2">Estimé : {{ estimated | format_helper('time', true, true) | replace({ ':': "h" }) }}</span>
                 <span class="ml-2">Réel : <span class="bold">{{ real }}</span></span>
             </div>
         </div>

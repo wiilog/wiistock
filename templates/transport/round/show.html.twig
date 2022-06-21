@@ -73,7 +73,7 @@
                                 <span class="wii-field-name">Kilomètres estimés</span>
                                 {% set RoundEstimatedDistance = transportRound.estimatedDistance %}
                                 {% if RoundEstimatedDistance %}
-                                    <span class="wii-field-text">{{ RoundEstimatedDistance }}km </span>
+                                    <span class="wii-field-text">{{ RoundEstimatedDistance }} km</span>
                                 {% else %}
                                     <span class="wii-field-text">-</span>
                                 {% endif %}
@@ -82,7 +82,7 @@
                                 <span class="wii-field-name">Kilomètres réels</span>
                                 {% set roundRealDistance = transportRound.realDistance %}
                                 {% if roundRealDistance %}
-                                    <span class="wii-field-text">{{ roundRealDistance/1000 }}Km</span>
+                                    <span class="wii-field-text">{{ roundRealDistance/1000 }} km</span>
                                 {% else %}
                                     <span class="wii-field-text">-</span>
                                 {% endif %}
@@ -93,23 +93,23 @@
                         {% set nbRejectedOrders = transportRound.rejectedOrderCount %}
                         {% if nbRejectedPacks or nbRejectedOrders %}
                             <div class="header">
-                                <img src="{{ asset('svg/urgence.svg') }}" alt="Icône urgence" width="15px">
-                                <span class="wii-field-name ml-2">&Eacute;lément rejetées</span>
+                                <img src="{{ asset('svg/urgence.svg') }}" alt="" width="15px">
+                                <span class="wii-field-name ml-2">Éléments rejetés</span>
                             </div>
                             <div class="row content">
                                 <div class="col-6 d-flex flex-column">
-                                    {% set s = (nbRejectedPacks ?? 0) != 1 ? 's' %}
+                                    {% set s = (nbRejectedPacks ?? 0) > 1 ? 's' %}
                                     <span class="wii-field-name d-inline-flex">
                                         <img src="{{ asset('svg/rejected-pack.svg') }}"
                                              class="transport-status-icon mr-1"
                                              alt="Colis écarté"
                                              width="15"
                                              title="Colis écarté"/>
-                                            {{ nbRejectedPacks ?? 0}} coli{{ s }} écarté{{ s }}
+                                            {{ nbRejectedPacks ?? 0}} colis écarté{{ s }}
                                     </span>
                                 </div>
                                 <div class="col-6 d-flex flex-column">
-                                    {% set s = (nbRejectedOrders ?? 0) != 1 ? 's' %}
+                                    {% set s = (nbRejectedOrders ?? 0) > 1 ? 's' %}
                                     <span class="wii-field-name d-inline-flex">
                                         <img src="{{ asset('svg/rejected-delivery.svg') }}"
                                              class="transport-status-icon mr-1"

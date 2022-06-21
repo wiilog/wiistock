@@ -7,6 +7,7 @@ use App\Entity\Emplacement;
 use App\Entity\IOT\Sensor;
 use App\Entity\LocationGroup;
 use App\Entity\Pack;
+use App\Entity\Transport\TransportRound;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\StringHelper;
@@ -447,5 +448,16 @@ class EmplacementRepository extends EntityRepository
             UNION
             ($endSQL)
         ";
+    }
+
+    public function countRound(Emplacement|int $location): int {
+        return $this->getEntityManager()
+            ->createQueryBuilder()
+            ->from(TransportRound::class, 'round')
+            ->select('COUNT(round)')
+            ->andWhere(':location MEMBER OF round.locations')
+            ->setParameter('location', $location)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 }

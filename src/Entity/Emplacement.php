@@ -13,7 +13,6 @@ use App\Entity\IOT\SensorMessageTrait;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Transport\TemperatureRange;
-use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\Vehicle;
 use App\Repository\EmplacementRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -133,9 +132,6 @@ class Emplacement implements PairedEntity {
     #[ORM\ManyToOne(targetEntity: Vehicle::class, inversedBy: 'locations')]
     #[ORM\JoinColumn(onDelete: 'SET NULL')]
     private ?Vehicle $vehicle = null;
-
-    #[ORM\ManyToOne(targetEntity: TransportRound::class, inversedBy: 'locations')]
-    private ?TransportRound $transportRound = null;
 
     public function __construct() {
         $this->clusters = new ArrayCollection();
@@ -967,20 +963,6 @@ class Emplacement implements PairedEntity {
         }
         $this->vehicle = $vehicle;
         $vehicle?->addLocation($this);
-
-        return $this;
-    }
-
-    public function getTransportRound(): ?TransportRound {
-        return $this->transportRound;
-    }
-
-    public function setTransportRound(?TransportRound $transportRound): self {
-        if ($this->transportRound && $this->transportRound !== $transportRound) {
-            $this->transportRound->removeLocation($this);
-        }
-        $this->transportRound = $transportRound;
-        $transportRound?->addLocation($this);
 
         return $this;
     }

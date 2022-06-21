@@ -321,6 +321,19 @@ class TransportOrder extends StatusHistoryContainer {
         return $this;
     }
 
+    public function setPacks(?array $packs): self {
+        foreach($this->getPacks()->toArray() as $pack) {
+            $this->removePack($pack);
+        }
+
+        $this->packs = new ArrayCollection();
+        foreach($packs as $pack) {
+            $this->addPack($pack);
+        }
+
+        return $this;
+    }
+
     /**
      * @return Collection<int, TransportRoundLine>
      */

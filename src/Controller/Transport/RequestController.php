@@ -150,8 +150,9 @@ class RequestController extends AbstractController {
         if ($round) {
             $now = new DateTime();
             $urls = [];
-            $transportRound = $transport->getOrder()->getTransportRoundLines()->last()
-                ? $transport->getOrder()->getTransportRoundLines()->last()->getTransportRound()
+            $roundLine = $transport->getOrder()?->getTransportRoundLines()?->last();
+            $transportRound = $roundLine
+                ? $roundLine->getTransportRound()
                 : null;
 
             foreach ($transportRound?->getLocations() ?? [] as $location) {
@@ -339,6 +340,14 @@ class RequestController extends AbstractController {
             throw new FormException("Impossible d'effectuer un colisage pour cette demande");
         }
 
+        //remove previous packs that could come from rejected deliveries
+        foreach($order->getPacks() as $pack) {
+            $pack->setPack(null);
+            $entityManager->remove($pack);
+        }
+
+        $order->setPacks([]);
+
         foreach($data as $natureId => $quantity){
             $nature = $natureRepository->find($natureId);
             if ($quantity > 0 && $nature) {
@@ -372,7 +381,7 @@ class RequestController extends AbstractController {
     #[HasPermission([Menu::DEM, Action::EDIT_TRANSPORT], mode: HasPermission::IN_JSON)]
     public function packingCheck(TransportRequest $transportRequest): JsonResponse {
         $order = $transportRequest->getOrder();
-        if($order->getPacks()->isEmpty()) {
+        if($order->getPacks()->isEmpty() || $order->getRejectedAt()) {
             return $this->json([
                 "success" => true,
                 "message" => "Colisage possible",
