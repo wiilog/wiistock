@@ -375,6 +375,7 @@
                 margin-right: 3px;
                 width: auto;
                 padding: 5px 15px;
+                text-align: right;
 
                 a {
                     text-decoration: underline !important;
@@ -460,6 +461,10 @@
                 &:after {
                     border: 3px solid #2EC2AB;
                     outline: 3px solid $white;
+                    width: 20px;
+                    height: 20px;
+                    left: -9px;
+                    top: calc(50% - 10px);
                 }
 
                 &:before {
@@ -488,19 +493,18 @@
             }
 
             &:before {
-                left: -1px;
-                top: 30px;
+                top: 50%;
                 width: 2px;
                 height: 100%;
             }
 
             &:after {
                 z-index: 1;
-                width: 15px;
-                height: 15px;
+                width: 14px;
+                height: 14px;
                 border-radius: 50%;
-                left: -7px;
-                top: 20px;
+                left: -6px;
+                top: calc(50% - 10px);
             }
         }
     }
