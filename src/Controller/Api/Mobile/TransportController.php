@@ -288,6 +288,7 @@ class TransportController extends AbstractFOSRestController {
                 }),
             'expected_at' => $expectedAt,
             'estimated_time' => $line->getEstimatedAt()?->format('H:i'),
+            'fulfilled_time' => $line->getFulfilledAt()?->format('H:i'),
             'expected_time' => $request->getExpectedAt()?->format('H:i'),
             'time_slot' => $isCollect ? $request->getTimeSlot()?->getName() : null,
             'contact' => [
