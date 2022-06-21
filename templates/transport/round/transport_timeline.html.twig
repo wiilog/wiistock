@@ -9,10 +9,11 @@
     {% set state = line['state'] %}
     <div class="history-line">
         <div class="history-date">
-            <div class="title-left {{ state }} d-flex align-items-center">
+            <div class="title-left {{ state }}">
                 {% if cancelled %}
                     <img alt="" src="{{ asset('svg/cancel.svg') }}" height="20px" class="mr-1" title="Transport annulé"/>
-                {% elseif emergency %}
+                {% endif %}
+                {% if emergency %}
                     <img alt="" src="{{ asset('svg/rejected-pack.svg') }}" height="20px" class="mr-1" title="Un ou plusieurs colis ont été rejetés"/>
                 {% endif %}
                 {{ index + 1 }}. <a class="ml-1" href="{{ link }}">{{ name }}</a>

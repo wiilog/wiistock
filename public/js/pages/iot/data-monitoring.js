@@ -264,7 +264,7 @@ function initLineChart(element, callback) {
         });
         if ($element.data('needsline')) {
             datasets['lineDataMax'] = {
-                data: lineDataMax,
+                data: lineDataMax[0] > lineDataMin[0] ?  lineDataMax : lineDataMin,
                 pointRadius: 0,
                 pointHitRadius: 0,
                 borderColor: '#F00',
@@ -272,7 +272,7 @@ function initLineChart(element, callback) {
             };
 
             datasets['lineDataMin'] = {
-                data: lineDataMin,
+                data: lineDataMax[0] < lineDataMin[0] ?  lineDataMax : lineDataMin,
                 pointRadius: 0,
                 pointHitRadius: 0,
                 borderColor: '#00F',
@@ -304,7 +304,15 @@ function initLineChart(element, callback) {
                                 }
                             }
                         }
-                    }]
+                    }],
+                    ...($element.data('needsline') ? {
+                        yAxes: [{
+                            ticks: {
+                                min: Math.min(lineDataMax[0], lineDataMin[0])-5,
+                                max: Math.max(lineDataMax[0], lineDataMin[0])+5,
+                            }
+                        }]
+                    } : {})
                 }
             }
         }
