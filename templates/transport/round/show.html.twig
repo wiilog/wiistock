@@ -80,9 +80,8 @@
                             </div>
                             <div class="col-6 d-flex flex-column">
                                 <span class="wii-field-name">Kilomètres réels</span>
-                                {% set roundRealDistance = transportRound.realDistance %}
-                                {% if roundRealDistance %}
-                                    <span class="wii-field-text">{{ roundRealDistance/1000 }} km</span>
+                                {% if transportRound.realDistance is not null %}
+                                    <span class="wii-field-text">{{ transportRound.realDistance / 1000 }} km</span>
                                 {% else %}
                                     <span class="wii-field-text">-</span>
                                 {% endif %}
