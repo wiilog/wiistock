@@ -120,9 +120,12 @@ class RoundController extends AbstractController {
                 $hasRejectedPacks = Stream::from($transportRound->getTransportRoundLines())
                     ->some(fn(TransportRoundLine $line) => $line->getOrder()->hasRejectedPacks());
 
+                $vehicle = $transportRound->getVehicle() ?? $transportRound->getDeliverer()?->getVehicle();
+
                 $currentRow[] = $this->renderView("transport/round/list_card.html.twig", [
                     "hasRejectedPacks" => $hasRejectedPacks,
                     "prefix" => TransportRound::NUMBER_PREFIX,
+                    "hasExceededThreshold" => $vehicle?->getActivePairing() ? FormatHelper::bool($vehicle->getActivePairing()->hasExceededThreshold()) : false,
                     "round" => $transportRound,
                     "realTime" => isset($hours) && isset($minutes)
                         ? ($hours . "h" . $minutes . "min")
@@ -232,6 +235,9 @@ class RoundController extends AbstractController {
                 "maxTemp" => 0,
             ];
         }
+
+        $vehicle = $transportRound->getVehicle() ?? $transportRound->getDeliverer()?->getVehicle();
+
         return $this->render('transport/round/show.html.twig', [
             "transportRound" => $transportRound,
             "realTime" => $realTime,
@@ -241,6 +247,8 @@ class RoundController extends AbstractController {
             "urls" => $urls,
             "roundDateBegan" => $transportDateBeganAt,
             "hasSomeDelivery" => $hasSomeDelivery,
+            "hasExceededThresholdUnder" => $vehicle->getActivePairing() ? $vehicle?->getActivePairing()->hasExceededThresholdUnder() : false,
+            "hasExceededThresholdOver" => $vehicle->getActivePairing() ? $vehicle?->getActivePairing()->hasExceededThresholdOver() : false
         ]);
     }
 

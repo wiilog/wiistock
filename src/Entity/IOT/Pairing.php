@@ -283,4 +283,20 @@ class Pairing {
                 || (int) $message->getContent() > $maxThreshold
             );
     }
+
+    public function hasExceededThresholdUnder(): ?bool {
+        $triggerActions = $this->getSensorWrapper()->getTriggerActions();
+        $minTriggerActionThreshold = Stream::from($triggerActions)->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'lower')->last();
+        $minThreshold = $minTriggerActionThreshold?->getConfig()['temperature'];
+        return Stream::from($this->getSensorMessages())
+            ->some(fn(SensorMessage $message) => (int) $message->getContent() < $minThreshold);
+    }
+
+    public function hasExceededThresholdOver(): ?bool {
+        $triggerActions = $this->getSensorWrapper()->getTriggerActions();
+        $maxTriggerActionThreshold = Stream::from($triggerActions)->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'higher')->last();
+        $maxThreshold = $maxTriggerActionThreshold?->getConfig()['temperature'];
+        return Stream::from($this->getSensorMessages())
+            ->some(fn(SensorMessage $message) => (int) $message->getContent() > $maxThreshold);
+    }
 }
