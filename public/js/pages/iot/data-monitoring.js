@@ -308,8 +308,8 @@ function initLineChart(element, callback) {
                     ...($element.data('needsline') ? {
                         yAxes: [{
                             ticks: {
-                                min: (lineDataMax[0] < lineDataMin[0] ?  lineDataMax[0] : lineDataMin[0])-5,
-                                max: (lineDataMax[0] > lineDataMin[0] ?  lineDataMax[0] : lineDataMin[0])+5,
+                                min: Math.min(lineDataMax[0], lineDataMin[0])-5,
+                                max: Math.max(lineDataMax[0], lineDataMin[0])+5,
                             }
                         }]
                     } : {})
