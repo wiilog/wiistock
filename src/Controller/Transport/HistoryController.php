@@ -209,6 +209,7 @@ class HistoryController extends AbstractController
                         : null,
                     'hint' => $request instanceof TransportCollectRequest ? 'Collecte' : 'Livraison',
                     'emergency' => $order?->hasRejectedPacks() || $order?->isRejected(),
+                    'cancelled' => $order->getStatus()->getCode() === TransportOrder::STATUS_CANCELLED,
                     'estimated' => $line->getEstimatedAt(),
                     'state' => $currentLine?->getId() === $line->getId()
                         ? 'current'

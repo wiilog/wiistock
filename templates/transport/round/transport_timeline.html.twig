@@ -2,17 +2,20 @@
     {% set name = line['name'] %}
     {% set link = line['link'] %}
     {% set hint = line['hint'] %}
+    {% set cancelled = line['cancelled'] %}
     {% set emergency = line['emergency'] %}
     {% set estimated = line['estimated'] %}
     {% set real = line['real'] %}
     {% set state = line['state'] %}
     <div class="history-line">
         <div class="history-date">
-            <div class="title-left {{ state }}">
-                {% if emergency %}
-                    <img alt="" src="{{ asset('svg/rejected-pack.svg') }}" height="20px" />
+            <div class="title-left {{ state }} d-flex align-items-center">
+                {% if cancelled %}
+                    <img alt="" src="{{ asset('svg/cancel.svg') }}" height="20px" class="mr-1" title="Transport annulé"/>
+                {% elseif emergency %}
+                    <img alt="" src="{{ asset('svg/rejected-pack.svg') }}" height="20px" class="mr-1" title="Un ou plusieurs colis ont été rejetés"/>
                 {% endif %}
-                {{ index + 1 }}. <a href="{{ link }}">{{ name }}</a>
+                {{ index + 1 }}. <a class="ml-1" href="{{ link }}">{{ name }}</a>
             </div>
             <div class="wii-small-text transport-list-type">{{ hint }}</div>
         </div>

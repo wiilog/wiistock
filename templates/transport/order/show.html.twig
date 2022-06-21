@@ -12,12 +12,29 @@
     {% set request = order.request %}
     {% set request_delivery = request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') ? request : null %}
     {% set request_collect = request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') ? request : request_delivery.collect %}
+    {% set hasRightToDisplayTransports = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_TRANSPORT')) %}
     <div class="wii-box-container mb-4 ml-3 mr-3">
         <div class="row">
             <div class="col-lg-4 col-md-6 col-12">
                 <div class="wii-box transport-details order-transport">
                     <div class="d-flex align-items-center mr-3">
-                        <div class="d-flex mx-3 py-2 w-100 justify-content-between">
+                        {% if hasRightToDisplayTransports %}
+                            <div class="mx-2">
+                                <div class="dropdown dropright">
+                                    <div class="d-flex pointer" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <img alt="Actions" src="{{ asset('svg/dotsblack.svg') }}" height="20px" width="8px">
+                                    </div>
+                                    <div class="dropdown-menu dropdown-follow-gt pointer">
+                                        <a href="{{ path('transport_request_show', {'transport': request.id }) }}"
+                                           class="dropdown-item">
+                                            <i class="fas fa-external-link-alt mr-2"></i>
+                                            Aller vers la demande de transport
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                        <div class="d-flex {{ hasRightToDisplayTransports ? 'mr-3' : 'mx-3' }} py-2 w-100 justify-content-between">
                             <div class="d-flex align-items-center">
                                 <div class="d-flex flex-column">
                                     <span class="wii-title" title="Acheminement">Transport</span>

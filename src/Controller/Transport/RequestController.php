@@ -612,15 +612,10 @@ class RequestController extends AbstractController {
 
             $line = $transportOrder->getTransportRoundLines()->last();
             $round = $line->getTransportRound();
-            $currentOnGoingLine = $round->getCurrentOnGoingLine();
-            $nextLine = $round->getNextLine($currentOnGoingLine);
-
-            sleep(2);
-            die();
 
             $lineBefore = null;
             foreach($round->getTransportRoundLines() as $currentLine) {
-                if($round->getCurrentOnGoingLine()->getPriority() + 1 === $line->getPriority()) {
+                if($round->getCurrentOnGoingLine() && $round->getCurrentOnGoingLine()->getPriority() + 1 === $line->getPriority()) {
                     $lineBefore = $currentLine;
                     break;
                 }
