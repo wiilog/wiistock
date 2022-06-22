@@ -282,10 +282,12 @@ class SettingsController extends AbstractController {
                     "menus" => [
                         self::MENU_CONFIGURATIONS => ["label" => "Configurations", "save" => true],
                         self::MENU_DELIVERY_TYPES_FREE_FIELDS => [
-                            "label" => "Livraisons - Types & champs libres", "wrapped" => false,
+                            "label" => "Livraisons - Types & champs libres",
+                            "wrapped" => false,
                         ],
                         self::MENU_COLLECT_TYPES_FREE_FIELDS => [
-                            "label" => "Collectes - Types & champs libres", "wrapped" => false,
+                            "label" => "Collectes - Types & champs libres",
+                            "wrapped" => false,
                         ],
                     ],
                 ],
