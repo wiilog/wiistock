@@ -110,15 +110,5 @@ services:
     App\EventListener\FormExceptionListener:
         tags:
             - { name: 'kernel.event_listener', event: 'kernel.exception', priority: 2 }
-
     saml_user_factory:
-        class: Nbgrp\OneloginSamlBundle\Security\User\SamlUserFactory
-        arguments:
-            ##  User class
-            - App\Entity\Utilisateur
-            ##  Attribute mapping
-            -   password: 'notused'
-                email: $mail
-                username: $mail
-                roles: [ 'ROLE_USER' ]
-                groups: $groups[]
+        class: App\Security\SAMLUserFactory
