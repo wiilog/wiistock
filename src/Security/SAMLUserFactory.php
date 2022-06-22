@@ -17,14 +17,19 @@ class SAMLUserFactory implements SamlUserFactoryInterface
     public function createUser(string $identifier, array $attributes): UserInterface
     {
         $roleRepository = $this->entityManager->getRepository(Role::class);
-        $user = new Utilisateur();
-        $user
-            ->setStatus(true)
-            ->setPassword('notused')
-            ->setEmail($attributes['Adresse de messagerie'])
-            ->setUsername($attributes['Nom'] . ' ' . $attributes['Prénom'])
-            ->setRole($roleRepository->findOneBy(['label' => Role::NO_ACCESS_USER]))
-            ->setMobileLoginKey('');
+        $userRepository = $this->entityManager->getRepository(Utilisateur::class);
+
+        $user = $userRepository->findOneBy(['email' => $attributes['Adresse de messagerie']]);
+        if (!$user) {
+            $user = new Utilisateur();
+            $user
+                ->setStatus(true)
+                ->setPassword('notused')
+                ->setEmail($attributes['Adresse de messagerie'])
+                ->setUsername($attributes['Nom'] . ' ' . $attributes['Prénom'])
+                ->setRole($roleRepository->findOneBy(['label' => Role::NO_ACCESS_USER]))
+                ->setMobileLoginKey('');
+        }
         return $user;
     }
 }
