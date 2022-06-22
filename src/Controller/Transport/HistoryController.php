@@ -12,9 +12,11 @@ use App\Entity\Transport\TransportDeliveryRequestLine;
 use App\Entity\Transport\TransportHistory;
 use App\Entity\Transport\TransportOrder;
 use App\Entity\Transport\TransportRequest;
+use App\Entity\Transport\TransportRequestLine;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\TransportRoundLine;
 use App\Helper\FormatHelper;
+use App\Service\StringService;
 use App\Service\Transport\TransportHistoryService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -146,14 +148,16 @@ class HistoryController extends AbstractController
         $transportCollect = $transportRequest instanceof TransportCollectRequest ? $transportRequest : $transportDelivery->getCollect();
 
         $transportDeliveryRequestLines = $transportDelivery
-            ? $transportDelivery->getLines()
-                ->filter(fn($line) => $line instanceof TransportDeliveryRequestLine)
+            ? Stream::from($transportDelivery->getLines())
+                ->filter(fn(TransportRequestLine $line) => $line instanceof TransportDeliveryRequestLine)
+                ->sort(fn(TransportDeliveryRequestLine $a, TransportDeliveryRequestLine $b) => StringService::mbstrcmp($a->getNature()->getLabel(), $b->getNature()->getLabel()))
                 ->toArray()
             : [];
 
         $transportCollectRequestLines = $transportCollect
-            ? $transportCollect->getLines()
-                ->filter(fn($line) => $line instanceof TransportCollectRequestLine)
+            ? Stream::from($transportCollect->getLines())
+                ->filter(fn(TransportRequestLine$line) => $line instanceof TransportCollectRequestLine)
+                ->sort(fn(TransportCollectRequestLine $a, TransportCollectRequestLine $b) => StringService::mbstrcmp($a->getNature()->getLabel(), $b->getNature()->getLabel()))
                 ->toArray()
             : [];
 
