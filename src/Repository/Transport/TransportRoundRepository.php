@@ -176,4 +176,19 @@ class TransportRoundRepository extends EntityRepository {
             ->getQuery()
             ->toIterable();
     }
+
+    public function findTodayRounds($deliverer) {
+        $now = new DateTime();
+
+        return $this->createQueryBuilder("round")
+            ->join("round.status", "status")
+            ->andWhere("round.deliverer = :deliverer")
+            ->andWhere("round.expectedAt = :now")
+            ->andWhere("status.code != :finished")
+            ->setParameter("deliverer", $deliverer)
+            ->setParameter("now", $now)
+            ->setParameter("finished", TransportRound::STATUS_FINISHED)
+            ->getQuery()
+            ->getResult();
+    }
 }

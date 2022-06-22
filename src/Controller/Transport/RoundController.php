@@ -460,6 +460,8 @@ class RoundController extends AbstractController {
             throw new FormException('Format de la date attendue invalide');
         }
 
+        $isNew = $transportRoundId;
+
         if ($transportRoundId) {
             $transportRound = $transportRoundRepository->find($transportRoundId);
 
@@ -619,9 +621,15 @@ class RoundController extends AbstractController {
 
         $entityManager->flush();
 
-        if ( $transportRoundRepository->findBy(['deliverer' => $deliverer->getId() , 'expectedAt' => $transportRound->getExpectedAt()])) {
-            $userChannel = $userService->getUserFCMChannel($deliverer);
-            $notificationService->send($userChannel, "Une nouvelle tournée attribuée aujourd'hui");
+        if($isNew) {
+            $todaysRounds = $transportRoundRepository->findTodayRounds($deliverer);
+
+            if ($todaysRounds) {
+                $userChannel = $userService->getUserFCMChannel($deliverer);
+                $notificationService->send($userChannel, "Une nouvelle tournée attribuée aujourd'hui", null, [
+                    "roundId" => $transportRound->getId(),
+                ]);
+            }
         }
 
         return $this->json([
