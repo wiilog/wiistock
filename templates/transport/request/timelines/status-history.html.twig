@@ -1,4 +1,4 @@
-{% set cancelledStatusesName = constant('App\\Entity\\Transport\\TransportRequest::CANCELED_STATUSES') %}
+{% set redStatusesName = constant('App\\Entity\\Transport\\TransportRequest::RED_STATUSES') %}
 {% set entityStatusName = entity.status.nom %}
 {% set transport = entity is instanceof('App\\Entity\\Transport\\TransportRequest') or entity is instanceof('App\\Entity\\Transport\\TransportRound')
     ? entity
@@ -13,7 +13,7 @@
 {% set followingStatuses = followingStatusIndex is not null ? statusWorkflow|slice(followingStatusIndex + 1) : [] %}
 
 {% set statusName = transport.status|format_helper('status') %}
-{% set headerClass = statusName in constant('App\\Entity\\Transport\\TransportRequest::CANCELED_STATUSES') ? 'bg-red-light' : 'bg-green-light' %}
+{% set headerClass = statusName in constant('App\\Entity\\Transport\\TransportRequest::RED_STATUSES') ? 'bg-red-light' : 'bg-green-light' %}
 {% set requestType = transport is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest')
     ? 'Livraison'
     : transport is instanceof('App\\Entity\\Transport\\TransportCollectRequest')
@@ -30,13 +30,11 @@
     <span>{{ requestType }} <strong>{{ entityStatusName }}</strong></span>
 </div>
 {% for history in statusesHistory %}
-    {% set state = (entityStatusName == history.status and entityStatusName in cancelledStatusesName)
+    {% set state = history.status in redStatusesName
         ? 'cancelled'
-        : (history.status in cancelledStatusesName
-            ? 'cancelled'
-            : (entityStatusName == history.status and loop.last
-                ? 'current'
-                : 'past'))
+        : (entityStatusName == history.status and loop.last
+            ? 'current'
+            : 'past')
     %}
 
     <div class="history-line">

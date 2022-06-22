@@ -1,4 +1,4 @@
-{% set isCanceledStatus = request.status.nom in constant('App\\Entity\\Transport\\TransportRequest::CANCELED_STATUSES') %}
+{% set isCancelledStatus = request.status.nom in constant('App\\Entity\\Transport\\TransportRequest::RED_STATUSES') %}
 {% set path = app.request is not null ? app.request.getSchemeAndHttpHost() : app_url %}
 {% set request_delivery = request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') ? request : null %}
 {% set request_collect = request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') ? request : request_delivery.collect %}
@@ -34,7 +34,7 @@
                             <th class="wii-field-name">Code étiquette</th>
                             <th class="wii-field-name">Ecarté</th>
                             <th class="wii-field-name">Motif écartement</th>
-                            {% if isCanceledStatus %}<th class="wii-field-name">Retourné le</th>{% endif %}
+                            {% if isCancelledStatus %}<th class="wii-field-name">Retourné le</th>{% endif %}
                         </tr>
                         {% for transportDeliveryOrderPack in associatedNaturesAndPacks[line.nature.id] ?? [] %}
                             <tr>
@@ -59,7 +59,7 @@
                                         -
                                     {% endif %}
                                 </td>
-                                {% if isCanceledStatus %}
+                                {% if isCancelledStatus %}
                                     <td class="wii-field-text">
                                         {{
                                             transportDeliveryOrderPack.returnedAt
@@ -96,7 +96,11 @@
                         <strong class="wii-field-name">{{ line.nature.label }}</strong>
                     </div>
                     <div class="col-md-4 col-12"><strong class="wii-field-name">Quantité à collecter</strong>&nbsp;: {{ line.quantityToCollect is not null ? line.quantityToCollect : '/' }}</div>
-                    <div class="col-md-4 col-12"><strong class="wii-field-name">Quantité collectée</strong>&nbsp;: {{ line.collectedQuantity is not null ? line.collectedQuantity : '-' }}</div>
+                    {% if request_collect and request_collect.status.code != constant('App\\Entity\\Transport\\TransportOrder::STATUS_NOT_COLLECTED') %}
+                        <div class="col-md-4 col-12"><strong class="wii-field-name">Quantité collectée</strong>&nbsp;: {{ line.collectedQuantity is not null ? line.collectedQuantity : '-' }}</div>
+                    {% else %}
+                        <div class="col-md-4 col-12"><strong class="wii-field-name">Quantité collectée</strong>&nbsp;: 0</div>
+                    {% endif %}
                 </div>
             </div>
         </div>
