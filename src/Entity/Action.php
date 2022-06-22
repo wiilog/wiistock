@@ -120,7 +120,7 @@ class Action {
     const SETTINGS_MOBILE = 'afficher terminal mobile';
     const SETTINGS_DASHBOARDS = 'afficher dashboards';
     const SETTINGS_IOT = 'afficher iot';
-    const SETTINGS_NOTIFICATIONS = 'afficher notifications';
+    const SETTINGS_NOTIFICATIONS = 'afficher modèles de notifications';
     const SETTINGS_USERS = 'afficher utilisateurs';
     const SETTINGS_DATA = 'afficher données';
     // menu nomade
