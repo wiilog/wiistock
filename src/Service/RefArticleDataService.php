@@ -75,6 +75,7 @@ class RefArticleDataService {
         ["title" => "Dernière modification par", "name" => "editedBy", "type" => "text"],
         ["title" => "Dernière entrée le", "name" => "lastStockEntry", "type" => "date"],
         ["title" => "Dernière sortie le", "name" => "lastStockExit", "type" => "date"],
+        ["title" => "Inventaire à jour", "name" => "upToDateInventory", "type" => "booleen"],
         ["title" => FiltreRef::FIXED_FIELD_VISIBILITY_GROUP, "name" => "visibilityGroups", "type" => "list multiple", "orderable" => true],
     ];
 
@@ -547,6 +548,7 @@ class RefArticleDataService {
             "editedAt" => FormatHelper::datetime($refArticle->getEditedAt()),
             "editedBy" => FormatHelper::user($refArticle->getEditedBy()),
             "lastStockExit" => FormatHelper::datetime($refArticle->getLastStockExit()),
+            "upToDateInventory" => $refArticle->hasUpToDateInventory() ? 'Oui' : 'Non',
             "actions" => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
                 "attachmentsLength" => $refArticle->getAttachments()->count(),
                 "reference_id" => $refArticle->getId(),

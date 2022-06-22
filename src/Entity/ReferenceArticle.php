@@ -56,21 +56,21 @@ class ReferenceArticle {
     private ?string $barCode = null;
 
     #[ORM\Column(type: 'integer', nullable: true)]
-    private ?int $quantiteDisponible = null;
+    private ?int $quantiteDisponible;
 
     #[ORM\Column(type: 'integer', nullable: true)]
-    private ?int $quantiteReservee = null;
+    private ?int $quantiteReservee;
 
     #[ORM\Column(type: 'integer', nullable: true)]
-    private ?int $quantiteStock = null;
+    private ?int $quantiteStock;
 
-    #[ORM\OneToMany(targetEntity: DeliveryRequestReferenceLine::class, mappedBy: 'reference')]
+    #[ORM\OneToMany(mappedBy: 'reference', targetEntity: DeliveryRequestReferenceLine::class)]
     private Collection $deliveryRequestLines;
 
     #[ORM\ManyToOne(targetEntity: Type::class, inversedBy: 'referenceArticles')]
     private ?Type $type = null;
 
-    #[ORM\OneToMany(targetEntity: ArticleFournisseur::class, mappedBy: 'referenceArticle')]
+    #[ORM\OneToMany(mappedBy: 'referenceArticle', targetEntity: ArticleFournisseur::class)]
     private Collection $articlesFournisseur;
 
     #[ORM\Column(type: 'string', length: 16, nullable: true)]
@@ -79,31 +79,31 @@ class ReferenceArticle {
     #[ORM\ManyToOne(targetEntity: Statut::class, inversedBy: 'referenceArticles')]
     private ?Statut $statut = null;
 
-    #[ORM\OneToMany(targetEntity: CollecteReference::class, mappedBy: 'referenceArticle')]
+    #[ORM\OneToMany(mappedBy: 'referenceArticle', targetEntity: CollecteReference::class)]
     private Collection $collecteReferences;
 
-    #[ORM\OneToMany(targetEntity: OrdreCollecteReference::class, mappedBy: 'referenceArticle')]
+    #[ORM\OneToMany(mappedBy: 'referenceArticle', targetEntity: OrdreCollecteReference::class)]
     private Collection $ordreCollecteReferences;
 
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $commentaire = null;
 
-    #[ORM\OneToMany(targetEntity: ReceptionReferenceArticle::class, mappedBy: 'referenceArticle')]
+    #[ORM\OneToMany(mappedBy: 'referenceArticle', targetEntity: ReceptionReferenceArticle::class)]
     private Collection $receptionReferenceArticles;
 
     #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'referenceArticles')]
     private ?Emplacement $emplacement = null;
 
-    #[ORM\OneToMany(targetEntity: MouvementStock::class, mappedBy: 'refArticle')]
+    #[ORM\OneToMany(mappedBy: 'refArticle', targetEntity: MouvementStock::class)]
     private Collection $mouvements;
 
     #[ORM\ManyToOne(targetEntity: InventoryCategory::class)]
     private ?InventoryCategory $category = null;
 
-    #[ORM\OneToMany(targetEntity: InventoryEntry::class, mappedBy: 'refArticle')]
+    #[ORM\OneToMany(mappedBy: 'refArticle', targetEntity: InventoryEntry::class)]
     private Collection $inventoryEntries;
 
-    #[ORM\OneToMany(targetEntity: InventoryCategoryHistory::class, mappedBy: 'refArticle')]
+    #[ORM\OneToMany(mappedBy: 'refArticle', targetEntity: InventoryCategoryHistory::class)]
     private Collection $inventoryCategoryHistory;
 
     #[ORM\ManyToMany(targetEntity: InventoryMission::class, mappedBy: 'refArticles')]
@@ -124,7 +124,7 @@ class ReferenceArticle {
     #[ORM\Column(type: 'boolean', nullable: true)]
     private ?bool $isUrgent = false;
 
-    #[ORM\OneToMany(targetEntity: PreparationOrderReferenceLine::class, mappedBy: 'reference')]
+    #[ORM\OneToMany(mappedBy: 'reference', targetEntity: PreparationOrderReferenceLine::class)]
     private Collection $preparationOrderReferenceLines;
 
     #[ORM\Column(type: 'text', nullable: true)]
@@ -133,10 +133,7 @@ class ReferenceArticle {
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'referencesEmergenciesTriggered')]
     private ?Utilisateur $userThatTriggeredEmergency = null;
 
-    /**
-     * @var Pack|null
-     */
-    #[ORM\OneToOne(targetEntity: Pack::class, mappedBy: 'referenceArticle')]
+    #[ORM\OneToOne(mappedBy: 'referenceArticle', targetEntity: Pack::class)]
     private ?Pack $trackingPack = null;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
@@ -151,7 +148,7 @@ class ReferenceArticle {
     #[ORM\ManyToMany(targetEntity: Utilisateur::class, inversedBy: 'referencesArticle')]
     private Collection $managers;
 
-    #[ORM\OneToMany(targetEntity: Alert::class, mappedBy: 'reference', cascade: ['remove'])]
+    #[ORM\OneToMany(mappedBy: 'reference', targetEntity: Alert::class, cascade: ['remove'])]
     private Collection $alerts;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'referencesBuyer')]
@@ -163,16 +160,16 @@ class ReferenceArticle {
     #[ORM\Column(type: 'string', nullable: true)]
     private ?string $orderState = null;
 
-    #[ORM\OneToMany(targetEntity: PurchaseRequestLine::class, mappedBy: 'reference')]
-    private ?Collection $purchaseRequestLines;
+    #[ORM\OneToMany(mappedBy: 'reference', targetEntity: PurchaseRequestLine::class)]
+    private Collection $purchaseRequestLines;
 
-    #[ORM\OneToMany(targetEntity: RequestTemplateLine::class, mappedBy: 'reference', orphanRemoval: true)]
+    #[ORM\OneToMany(mappedBy: 'reference', targetEntity: RequestTemplateLine::class, orphanRemoval: true)]
     private Collection $requestTemplateLines;
 
     #[ORM\ManyToOne(targetEntity: VisibilityGroup::class, inversedBy: 'articleReferences')]
     private ?VisibilityGroup $visibilityGroup = null;
 
-    #[ORM\OneToOne(targetEntity: Attachment::class, inversedBy: 'referenceArticle', cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(inversedBy: 'referenceArticle', targetEntity: Attachment::class, cascade: ['persist', 'remove'])]
     private ?Attachment $image = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'createdByReferenceArticles')]
@@ -192,6 +189,9 @@ class ReferenceArticle {
 
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $lastStockExit = null;
+
+    #[ORM\Column(type: 'boolean', nullable: true)]
+    private ?bool $upToDateInventory;
 
     public function __construct() {
         $this->deliveryRequestLines = new ArrayCollection();
@@ -215,9 +215,10 @@ class ReferenceArticle {
         $this->quantiteStock = 0;
         $this->quantiteReservee = 0;
         $this->quantiteDisponible = 0;
+        $this->upToDateInventory = false;
     }
 
-    public function getId() {
+    public function getId(): ?int {
         return $this->id;
     }
 
@@ -1074,6 +1075,16 @@ class ReferenceArticle {
 
     public function setLastStockExit(?DateTime $lastStockExit): self {
         $this->lastStockExit = $lastStockExit;
+
+        return $this;
+    }
+
+    public function hasUpToDateInventory(): ?bool {
+        return $this->upToDateInventory;
+    }
+
+    public function setUpToDateInventory(?bool $upToDateInventory): self {
+        $this->upToDateInventory = $upToDateInventory;
 
         return $this;
     }

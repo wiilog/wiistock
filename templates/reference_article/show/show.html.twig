@@ -283,12 +283,23 @@
                                     <span class="wii-field-text">{{ referenceArticle.category ? referenceArticle.category.label : '-' }}</span>
                                 </div>
                             </div>
-                            <div class="col-6 row">
+
+                            <div class="col-6 d-flex">
                                 <img src="{{ asset('svg/calendar.svg') }}" alt="Icône calendrier" width="20px">
                                 <div class="box-item ml-3">
                                     <span class="wii-field-name">Date de dernier inventaire</span>
                                     <span class="wii-field-text">
                                         {{ referenceArticle.dateLastInventory ? (referenceArticle.dateLastInventory | format_helper('datetime', '', true)) : '-' }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="col-6 d-flex mt-3">
+                                <img src="{{ asset('svg/calendar-due-blue.svg') }}" alt="Icône calendrier" width="20px">
+                                <div class="box-item ml-3">
+                                    <span class="wii-field-name">Inventaire à jour</span>
+                                    <span class="wii-field-text">
+                                        {{ referenceArticle.upToDateInventory ? 'Oui' : 'Non' }}
                                     </span>
                                 </div>
                             </div>

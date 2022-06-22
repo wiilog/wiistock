@@ -87,6 +87,7 @@ class InvMissionService {
                     'modal' => '#modalDeleteMission',
                     'route' => 'mission_check_delete',
                     'submit' => '#submitDeleteMission',
+                    'color' => 'black'
                 ]) : [],
             'actions' => $this->templating->render('inventaire/datatableMissionsRow.html.twig', [
                 'id' => $mission->getId(),
