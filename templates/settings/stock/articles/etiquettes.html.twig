@@ -44,6 +44,11 @@
                     containerClass: 'mt-2',
                 }) }}
             </div>
+            <div class="mt-1">
+                {{ form.checkbox(setting('INCLUDE_STOCK_ENTRY_DATE_IN_ARTICLE_LABEL'), "Afficher la date d'entrée en stock", false, setting_value('INCLUDE_STOCK_ENTRY_DATE_IN_ARTICLE_LABEL'), {
+                    containerClass: 'mt-2',
+                }) }}
+            </div>
         </div>
         <div class="col-md-6 col-12 my-1">
             {{ form.checkbox(setting('INCLUDE_RECIPIENT_IN_ARTICLE_LABEL'), 'Afficher le destinataire', false, setting_value('INCLUDE_RECIPIENT_IN_ARTICLE_LABEL')) }}

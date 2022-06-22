@@ -101,6 +101,9 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::INCLUDE_EXPIRATION_DATE_IN_ARTICLE_LABEL => [
                 'default' => false,
             ],
+            Setting::INCLUDE_STOCK_ENTRY_DATE_IN_ARTICLE_LABEL => [
+                'default' => false,
+            ],
             Setting::DISPATCH_WAYBILL_CONTACT_PHONE_OR_MAIL => [
                 'default' => null,
             ],
