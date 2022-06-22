@@ -46,6 +46,7 @@
                         <div class="form-group d-flex flex-column flex-md-row-reverse justify-content-between">
                             <button type="submit" class="btn btn-primary float-left">Connexion</button>
                             <a class="btn btn-outline-secondary mt-3 mt-md-0" href="{{ url('register') }}">Créer un compte</a>
+                            <a class="btn btn-outline-secondary mt-3 mt-md-0" href="{{ path('saml_login') }}">SAML Login</a>
                         </div>
                         <a class="col-12 col-md-auto btn btn-outline-secondary" href="{{ path('forgotten') }}">Mot de passe oublié ?</a>
                         <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">

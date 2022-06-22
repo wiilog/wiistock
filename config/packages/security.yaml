@@ -10,6 +10,11 @@ security:
             entity:
                 class: App\Entity\Utilisateur
                 property: email
+        saml_provider:
+            ##  Basic provider instantiates a user with identifier and default roles
+            saml:
+                user_class: 'App\Entity\Utilisateur'
+                default_roles: [ 'ROLE_USER' ]
 
     firewalls:
         dev:
@@ -28,6 +33,12 @@ security:
             lazy: true
             provider: db_provider
             pattern: ^/
+
+            saml:
+                identifier_attribute: uid
+                use_attribute_friendly_name: true
+                check_path: saml_acs
+                login_path: saml_login
 
             form_login:
                 login_path: login
@@ -63,6 +74,7 @@ security:
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control: # /!\ il faut bien faire attention à l'ordre dans lequel on écrit les règles d'accès /!\
+        - { path: ^/saml/(metadata|login|acs), role: PUBLIC_ACCESS }
         - { path: ^/api, role: PUBLIC_ACCESS }
         - { path: ^/login, role: PUBLIC_ACCESS }
         - { path: ^/register, role: PUBLIC_ACCESS }
