@@ -362,11 +362,14 @@ class RequestController extends AbstractController {
 
         if($transportRequest->getStatus()->getCode() == TransportRequest::STATUS_TO_PREPARE) {
             $status = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_REQUEST_DELIVERY, TransportRequest::STATUS_TO_DELIVER);
-            $statusHistory = $statusHistoryService->updateStatus($entityManager, $transportRequest, $status);
+            $statusHistoryService->updateStatus($entityManager, $transportRequest, $status);
         }
 
         $transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_LABELS_PRINTING, [
-            'history' => $statusHistory ?? null,
+            'user' => $this->getUser()
+        ]);
+
+        $transportHistoryService->persistTransportHistory($entityManager, $order, TransportHistoryService::TYPE_LABELS_PRINTING, [
             'user' => $this->getUser()
         ]);
 
