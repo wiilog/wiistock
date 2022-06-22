@@ -1,12 +1,12 @@
 {% set template = template is defined and template ? template : '' %}
 {% set config = config is defined and config is not empty ? config : [] %}
-<div class="col-12">
+<div class="col-12 form-group">
     <div class="col-md-4 col-12 pl-0">
         <label class="wii-field-name">Nom du modèle*</label>
         <input type="text" class="form-control data needed required" name="name"/>
     </div>
 </div>
-<div class="col-md-4 col-12 form-group mt-1">
+<div class="col-md-4 col-12 form-group">
     <label class=" wii-field-name mb-2">Texte notification*</label>
     <textarea name="content"
               style="resize: none"
@@ -24,7 +24,7 @@
         <button class="btn btn-primary" onclick="$('#upload-mail-image').click();">
             <i class='fas fa-pencil-alt'></i>
         </button>
-        <button class="btn btn-danger ml-2" onclick="$('#preview-mail-image').display(true); $('#upload-mail-image').val(null);">
+        <button class="btn btn-danger ml-2 delete-button d-none" onclick="$('#preview-mail-image').display(true); $(this).addClass('d-none');">
             <i class='fas fa-trash'></i>
         </button>
     </div>

@@ -1,11 +1,11 @@
 {% set template = template is defined and template ? template : '' %}
 {% set config = config is defined and config is not empty ? config : [] %}
 
-<div class="col-4">
+<div class="col-4 form-group pr-0">
     <label class="wii-field-name">Nom du modèle*</label>
     <input type="text" class="form-control data needed required" name="name"/>
 </div>
-<div class="col-12 d-flex mt-3">
+<div class="col-12 d-flex form-group">
     <div class="col-4 form-group p-0">
         <label class="wii-field-name">Destinataires*</label>
         <select class="form-control data w-100 needed" data-s2 data-editable multiple name="receivers">
@@ -42,7 +42,7 @@
     <div class="editor-container data" name='content' data-wysiwyg>{{ config ? config['content']|raw }}</div>
 </div>
 
-<div class="col-4">
+<div class="col-4 mt-3">
     {% include 'variables_dictionary.html.twig' with {dictionary: 'ALERT_DICTIONARY'} %}
 </div>
 

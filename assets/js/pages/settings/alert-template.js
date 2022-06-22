@@ -88,6 +88,8 @@ function deletePhoneNumber($button) {
 function initTelInput($input, edit) {
     const iti = intlTelInput($input[0], {
         utilsScript: '/build/vendor/intl-tel-input/utils.js',
+        initialCountry: "fr",
+        autoPlaceholder: "aggressive",
     });
     return $input.data('iti', iti);
 }
@@ -105,7 +107,7 @@ function onTemplateTypeChange($select) {
         $modal.find('.alert-title').removeClass('d-none');
 
         if(type === 'mail' || type === 'push') {
-            $('#upload-mail-image').on('change', () => updateImagePreview('#preview-mail-image', '#upload-mail-image'));
+            $('#upload-mail-image').on('change', () => updateImagePreview('#preview-mail-image', '#upload-mail-image', null, $(`.delete-button`)));
         } else if(type === 'sms') {
             const $input = $('input[name=receivers]');
             initTelInput($input, true);
