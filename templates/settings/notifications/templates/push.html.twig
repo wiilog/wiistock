@@ -21,10 +21,10 @@
          id="preview-mail-image" alt="Logo choisi" height="50px" class="{{ image ? '' : 'd-none' }} mr-2"/>
 
     <div>
-        <button class="btn btn-primary" onclick="$('#upload-mail-image').click(); $('.delete-notification-image').removeClass('d-none');">
+        <button class="btn btn-primary" onclick="$('#upload-mail-image').click();">
             <i class='fas fa-pencil-alt'></i>
         </button>
-        <button class="btn btn-danger ml-2 delete-notification-image d-none" onclick="$('#preview-mail-image').display(true); $(this).addClass('d-none');">
+        <button class="btn btn-danger ml-2 delete-button d-none" onclick="$('#preview-mail-image').display(true); $(this).addClass('d-none');">
             <i class='fas fa-trash'></i>
         </button>
     </div>
