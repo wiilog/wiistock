@@ -8,13 +8,9 @@ use App\Entity\Inventory\InventoryMission;
 use App\Entity\ReferenceArticle;
 use App\Helper\QueryCounter;
 use DateTime;
-use DateTimeInterface;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
-use Exception;
 use Symfony\Component\HttpFoundation\InputBag;
 
 /**
@@ -23,24 +19,20 @@ use Symfony\Component\HttpFoundation\InputBag;
  * @method InventoryMission[]    findAll()
  * @method InventoryMission[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class InventoryMissionRepository extends EntityRepository
-{
-	const DtToDbLabels = [
-		'StartDate' => 'startPrevDate',
-		'EndDate' => 'endPrevDate',
-	];
+class InventoryMissionRepository extends EntityRepository {
 
-    /**
-     * @return int|mixed|string
-     * @throws Exception
-     */
-    public function getCurrentMissionRefNotTreated()
-	{
-		$now = new DateTime('now');
-		$queryBuilder = $this->createQueryBuilder('inventoryMission');
-		$exprBuilder = $queryBuilder->expr();
+    const DtToDbLabels = [
+        'start' => 'startPrevDate',
+        'end' => 'endPrevDate',
+        'name' => 'name'
+    ];
 
-		$queryBuilder
+    public function getCurrentMissionRefNotTreated(): mixed {
+        $now = new DateTime('now');
+        $queryBuilder = $this->createQueryBuilder('inventoryMission');
+        $exprBuilder = $queryBuilder->expr();
+
+        $queryBuilder
             ->select('inventoryMission.id AS id_mission')
             ->addSelect('refArticle.reference AS reference')
             ->addSelect('emplacement.label AS location')
@@ -57,18 +49,13 @@ class InventoryMissionRepository extends EntityRepository
             ))
             ->setParameter('now', $now->format('Y-m-d'));
 
-		return $queryBuilder
+        return $queryBuilder
             ->getQuery()
             ->execute();
-	}
+    }
 
-    /**
-     * @return int|mixed|string
-     * @throws Exception
-     */
-	public function getCurrentMissionArticlesNotTreated()
-	{
-		$now = new DateTime('now');
+    public function getCurrentMissionArticlesNotTreated(): mixed {
+        $now = new DateTime('now');
 
         $queryBuilder = $this->createQueryBuilder('inventoryMission');
         $exprBuilder = $queryBuilder->expr();
@@ -92,10 +79,10 @@ class InventoryMissionRepository extends EntityRepository
             ))
             ->setParameter('now', $now->format('Y-m-d'));
 
-		return $queryBuilder
+        return $queryBuilder
             ->getQuery()
             ->execute();
-	}
+    }
 
 	public function countAnomaliesByMission($mission)
     {
@@ -128,67 +115,42 @@ class InventoryMissionRepository extends EntityRepository
         return $query->getSingleScalarResult();
     }
 
-	/**
-	 * @param InventoryMission $mission
-	 * @return int
-	 * @throws NoResultException
-	 * @throws NonUniqueResultException
-	 */
-    public function countRefArtByMission($mission)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT COUNT(ra)
-            FROM App\Entity\ReferenceArticle ra
-            JOIN ra.inventoryMissions m
-            WHERE m.id = :mission"
-        )->setParameter('mission', $mission);
-
-        return $query->getSingleScalarResult();
-    }
-
-	/**
-	 * @param InventoryMission $mission
-	 * @param array|null $params
-	 * @param array $filters
-	 * @return array
-	 */
-    public function findRefByMissionAndParamsAndFilters($mission, InputBag $params = null, $filters = [])
-    {
+    public function findRefByMissionAndParamsAndFilters(InventoryMission $mission, InputBag $params = null, array $filters = []): array {
         $em = $this->getEntityManager();
         $qb = $em->createQueryBuilder();
         $qb
             ->select('ra')
             ->from('App\Entity\ReferenceArticle', 'ra')
             ->join('ra.inventoryMissions', 'm')
-			->leftJoin('ra.inventoryEntries', 'ie', Join::WITH, 'ie.mission = m')
+            ->leftJoin('ra.inventoryEntries', 'ie', Join::WITH, 'ie.mission = m')
             ->where('m = :mission')
             ->setParameter('mission', $mission);
 
         $countQuery = $countTotal = QueryCounter::count($qb, 'ra');
 
-		// filtres sup
-		foreach ($filters as $filter) {
-			switch($filter['field']) {
-				case 'anomaly':
-					if ($filter['value'] == 'true') {
-						$qb->andWhere('ie.anomaly = 1');
-					} else if ($filter['value'] == 'false') {
-						$qb->andWhere('ie.anomaly = 0');
-					}
-					break;
-				case 'dateMin':
-					$qb
-						->andWhere('ie.date >= :dateMin')
-						->setParameter('dateMin', $filter['value']. " 00:00:00");
-					break;
-				case 'dateMax':
-					$qb
-						->andWhere('ie.date <= :dateMax')
-						->setParameter('dateMax', $filter['value'] . " 23:59:59");
-					break;
-			}
-		}
+        // filtres sup
+        foreach ($filters as $filter) {
+            switch ($filter['field']) {
+                case 'anomaly':
+                    if ($filter['value'] == 'true') {
+                        $qb->andWhere('ie.anomaly = 1');
+                    }
+                    else if ($filter['value'] == 'false') {
+                        $qb->andWhere('ie.anomaly = 0');
+                    }
+                    break;
+                case 'dateMin':
+                    $qb
+                        ->andWhere('ie.date >= :dateMin')
+                        ->setParameter('dateMin', $filter['value'] . " 00:00:00");
+                    break;
+                case 'dateMax':
+                    $qb
+                        ->andWhere('ie.date <= :dateMax')
+                        ->setParameter('dateMax', $filter['value'] . " 23:59:59");
+                    break;
+            }
+        }
 
         // filtre recherche
         if (!empty($params)) {
@@ -202,27 +164,24 @@ class InventoryMissionRepository extends EntityRepository
                 $countQuery = QueryCounter::count($qb, 'ra');
             }
 
-            if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
-            if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
+            if ($params->getInt('start')) {
+                $qb->setFirstResult($params->getInt('start'));
+            }
+            if ($params->getInt('length')) {
+                $qb->setMaxResults($params->getInt('length'));
+            }
         }
 
         $query = $qb->getQuery();
 
         return [
-        	'data' => $query ? $query->getResult() : null,
+            'data' => $query?->getResult(),
             'count' => $countQuery,
-            'total' => $countTotal
+            'total' => $countTotal,
         ];
     }
 
-	/**
-	 * @param InventoryMission $mission
-	 * @param array|null $params
-	 * @param array $filters
-	 * @return array
-	 */
-    public function findArtByMissionAndParamsAndFilters($mission, InputBag $params = null, $filters = [])
-    {
+    public function findArtByMissionAndParamsAndFilters(InventoryMission $mission, InputBag $params = null, array $filters = []): array {
         $em = $this->getEntityManager();
         $qb = $em->createQueryBuilder();
 
@@ -236,30 +195,31 @@ class InventoryMissionRepository extends EntityRepository
 
         $countQuery = $countTotal = QueryCounter::count($qb, 'a');
 
-		// filtres sup
-		foreach ($filters as $filter) {
-			switch($filter['field']) {
-				case 'anomaly':
-					if ($filter['value'] == 'true') {
-						$qb->andWhere('ie.anomaly = 1');
-					} else if ($filter['value'] == 'false') {
-						$qb->andWhere('ie.anomaly = 0');
-					}
-					break;
-				case 'dateMin':
-					$qb
-						->andWhere('ie.date >= :dateMin')
-						->setParameter('dateMin', $filter['value']. " 00:00:00");
-					break;
-				case 'dateMax':
-					$qb
-						->andWhere('ie.date <= :dateMax')
-						->setParameter('dateMax', $filter['value'] . " 23:59:59");
-					break;
-			}
-		}
+        // filtres sup
+        foreach ($filters as $filter) {
+            switch ($filter['field']) {
+                case 'anomaly':
+                    if ($filter['value'] == 'true') {
+                        $qb->andWhere('ie.anomaly = 1');
+                    }
+                    else if ($filter['value'] == 'false') {
+                        $qb->andWhere('ie.anomaly = 0');
+                    }
+                    break;
+                case 'dateMin':
+                    $qb
+                        ->andWhere('ie.date >= :dateMin')
+                        ->setParameter('dateMin', $filter['value'] . " 00:00:00");
+                    break;
+                case 'dateMax':
+                    $qb
+                        ->andWhere('ie.date <= :dateMax')
+                        ->setParameter('dateMax', $filter['value'] . " 23:59:59");
+                    break;
+            }
+        }
 
-		// filtre recherche
+        // filtre recherche
         if (!empty($params)) {
             if (!empty($params->all('search'))) {
                 $search = $params->all('search')['value'];
@@ -271,36 +231,32 @@ class InventoryMissionRepository extends EntityRepository
                 $countQuery = QueryCounter::count($qb, 'a');
             }
 
-            if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
-            if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
+            if ($params->getInt('start')) {
+                $qb->setFirstResult($params->getInt('start'));
+            }
+            if ($params->getInt('length')) {
+                $qb->setMaxResults($params->getInt('length'));
+            }
         }
 
         $query = $qb->getQuery();
 
         return [
-        	'data' => $query ? $query->getResult() : null ,
+            'data' => $query?->getResult(),
             'count' => $countQuery,
-			'total' => $countTotal
-		];
+            'total' => $countTotal,
+        ];
     }
 
-    /**
-     * @param array $params
-     * @param array $filters
-     * @return array
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     */
-    public function findMissionsByParamsAndFilters(InputBag $params, $filters)
-	{
-		$qb = $this->createQueryBuilder("im");
+    public function findMissionsByParamsAndFilters(InputBag $params, array $filters): array {
+        $qb = $this->createQueryBuilder("im");
 
-		$countTotal = QueryCounter::count($qb, 'im');
+        $countTotal = QueryCounter::count($qb, 'im');
 
-		// filtres sup
-		foreach ($filters as $filter) {
-			switch($filter['field']) {
-				case 'anomaly':
+        // filtres sup
+        foreach ($filters as $filter) {
+            switch ($filter['field']) {
+                case 'anomaly':
                     $anomalyDQL = $this->getEntityManager()
                         ->createQueryBuilder()
                         ->select('COUNT(entry)')
@@ -308,51 +264,54 @@ class InventoryMissionRepository extends EntityRepository
                         ->andWhere('ie.mission = im AND ie.anomaly = 1')
                         ->getQuery()
                         ->getDQL();
-					if ($filter['value'] == 'true') {
-						$qb->andWhere("($anomalyDQL) > 0");
-					} else if ($filter['value'] == 'false') {
-						$qb->andWhere("($anomalyDQL) = 0");
-					}
-					break;
-				case 'dateMin':
-					$qb
-						->andWhere('im.endPrevDate >= :dateMin')
-						->setParameter('dateMin', $filter['value']. " 00:00:00");
-					break;
-				case 'dateMax':
-					$qb
-						->andWhere('im.startPrevDate <= :dateMax')
-						->setParameter('dateMax', $filter['value'] . " 23:59:59");
-					break;
-			}
-		}
+                    if ($filter['value'] == 'true') {
+                        $qb->andWhere("($anomalyDQL) > 0");
+                    }
+                    else if ($filter['value'] == 'false') {
+                        $qb->andWhere("($anomalyDQL) = 0");
+                    }
+                    break;
+                case 'dateMin':
+                    $qb
+                        ->andWhere('im.endPrevDate >= :dateMin')
+                        ->setParameter('dateMin', $filter['value'] . " 00:00:00");
+                    break;
+                case 'dateMax':
+                    $qb
+                        ->andWhere('im.startPrevDate <= :dateMax')
+                        ->setParameter('dateMax', $filter['value'] . " 23:59:59");
+                    break;
+            }
+        }
 
-		if (!empty($params)) {
-			if (!empty($params->all('order')))
-			{
-				$order = $params->all('order')[0]['dir'];
-				if (!empty($order))
-				{
-					$column = self::DtToDbLabels[$params->all('columns')[$params->all('order')[0]['column']]['data']];
-					$qb->orderBy('im.' . $column, $order);
-				}
-			}
-		}
+        if (!empty($params)) {
+            if (!empty($params->all('order'))) {
+                $order = $params->all('order')[0]['dir'];
+                if (!empty($order)) {
+                    $column = self::DtToDbLabels[$params->all('columns')[$params->all('order')[0]['column']]['data']];
+                    $qb->orderBy('im.' . $column, $order);
+                }
+            }
+        }
 
-		// compte éléments filtrés
-		$countFiltered = QueryCounter::count($qb, 'im');
+        // compte éléments filtrés
+        $countFiltered = QueryCounter::count($qb, 'im');
 
-        if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
-        if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
+        if ($params->getInt('start')) {
+            $qb->setFirstResult($params->getInt('start'));
+        }
+        if ($params->getInt('length')) {
+            $qb->setMaxResults($params->getInt('length'));
+        }
 
-		$query = $qb->getQuery();
+        $query = $qb->getQuery();
 
-		return [
-			'data' => $query ? $query->getResult() : null ,
-			'count' => $countFiltered,
-			'total' => $countTotal
-		];
-	}
+        return [
+            'data' => $query?->getResult(),
+            'count' => $countFiltered,
+            'total' => $countTotal,
+        ];
+    }
 
 	/**
 	 * @param string $date
@@ -369,15 +328,7 @@ class InventoryMissionRepository extends EntityRepository
         return $result ? $result[0] : null;
     }
 
-    /**
-     * @param ReferenceArticle $ref
-     * @param DateTimeInterface $startDate
-     * @param DateTimeInterface $endDate
-     * @return int
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     */
-    public function countByRefAndDates($ref, $startDate, $endDate): int {
+    public function countByRefAndDates(ReferenceArticle $ref, DateTime $startDate, DateTime $endDate): int {
         return $this->createQueryBuilderMissionInBracket($startDate, $endDate)
             ->join('mission.refArticles', 'refArticle')
             ->andWhere('refArticle = :refArt')
@@ -385,27 +336,19 @@ class InventoryMissionRepository extends EntityRepository
             ->select('COUNT(mission)')
             ->getQuery()
             ->getSingleScalarResult();
-	}
+    }
 
-    /**
-     * @param Article $art
-     * @param DateTime $startDate
-     * @param DateTime $endDate
-     * @return int
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     */
-    public function countByArtAndDates($art, $startDate, $endDate): int {
-		return $this->createQueryBuilderMissionInBracket($startDate, $endDate)
+    public function countByArtAndDates(Article $art, DateTime $startDate, DateTime $endDate): int {
+        return $this->createQueryBuilderMissionInBracket($startDate, $endDate)
             ->join('mission.articles', 'article')
             ->andWhere('article = :art')
             ->setParameter('art', $art)
             ->select('COUNT(mission)')
             ->getQuery()
             ->getSingleScalarResult();
-	}
+    }
 
-	private function createQueryBuilderMissionInBracket(DateTime $startDate, DateTime $endDate): QueryBuilder {
+    private function createQueryBuilderMissionInBracket(DateTime $startDate, DateTime $endDate): QueryBuilder {
         $queryBuilder = $this->createQueryBuilder('mission');
         $exprBuilder = $queryBuilder->expr();
 
@@ -420,4 +363,5 @@ class InventoryMissionRepository extends EntityRepository
             ->setParameter('startDate', $startDate)
             ->setParameter('endDate', $endDate);
     }
+
 }

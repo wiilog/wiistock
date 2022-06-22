@@ -106,7 +106,7 @@ abstract class TransportRequest extends StatusHistoryContainer {
         TransportRequest::STATUS_DEPOSITED,
     ];
 
-    public const CANCELED_STATUSES = [
+    public const RED_STATUSES = [
         TransportRequest::STATUS_CANCELLED,
         TransportRequest::STATUS_NOT_DELIVERED,
         TransportRequest::STATUS_NOT_COLLECTED,

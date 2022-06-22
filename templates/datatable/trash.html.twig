@@ -1,0 +1,12 @@
+{% set color = color is defined ? color : 'primary' %}
+<button class="btn btn-silent delete-row"
+        {% if route is defined %}
+            onclick="checkAndDeleteRow($(this), '{{ modal }}', '{{ route }}', '{{ submit }}')"
+        {% else %}
+            onclick="deleteRow($(this), '{{ modal }}', '{{ submit }}')"
+        {% endif %}
+        data-id="{{ id }}"
+        data-target="{{ modal }}"
+        data-toggle="modal">
+    <i class="wii-icon wii-icon-trash text-{{ color }}"></i>
+</button>

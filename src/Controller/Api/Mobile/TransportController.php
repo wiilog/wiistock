@@ -1020,8 +1020,12 @@ class TransportController extends AbstractFOSRestController {
                     $requestStatus = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_REQUEST_COLLECT, TransportRequest::STATUS_AWAITING_PLANNING);
                     $orderStatus = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_COLLECT, TransportOrder::STATUS_TO_CONTACT);
 
+                    $statusHistoryService->updateStatus($manager, $request, $requestStatus);
+                    $statusHistoryService->updateStatus($manager, $order, $orderStatus);
+
                     $request->setStatus($requestStatus)
-                        ->setTimeSlot(null);
+                        ->setTimeSlot(null)
+                        ->setValidatedDate(null);
 
                     $order->setStatus($orderStatus);
                 }
