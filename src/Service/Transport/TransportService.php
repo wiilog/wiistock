@@ -602,7 +602,7 @@ class TransportService {
 
         if($request instanceof TransportDeliveryRequest) {
             $dataTransportDeliveryRequest = array_merge($dataTransportRequest, [
-                FormatHelper::datetime($request->getValidatedDate()),
+                isset($statusRequest[TransportRequest::STATUS_AWAITING_VALIDATION]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_AWAITING_VALIDATION]) : '',
                 isset($statusRequest[TransportRequest::STATUS_TO_PREPARE]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_TO_PREPARE]) : '',
                 isset($statusRequest[TransportRequest::STATUS_TO_DELIVER]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_TO_DELIVER]) : '',
                 isset($statusRequest[TransportRequest::STATUS_SUBCONTRACTED]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_SUBCONTRACTED]) : '',
