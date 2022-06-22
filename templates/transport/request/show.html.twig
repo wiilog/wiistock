@@ -19,7 +19,11 @@
                 <div class="wii-box transport-details">
                     <div class="d-flex align-items-center mr-3">
                         <div class="mx-2">
-                            {% if request_delivery or request.canBeDeleted or request.canBeCancelled or request.canBeUpdated %}
+                            {% if request.canBeUpdated
+                                or (request_delivery and request.status.code in constant('App\\Entity\\Transport\\TransportRequest::STATUS_WORKFLOW_DELIVERY_CLASSIC')|slice(1) and request.order.packs is not empty)
+                                or request.canBeCancelled
+                                or request.canBeDeleted
+                                or (request.order and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_TRANSPORT'))) %}
                                 <div class="dropdown dropright">
                                     <div class="d-flex pointer" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                         <img alt="Actions" src="{{ asset('svg/dotsblack.svg') }}" height="20px" width="8px">
@@ -60,6 +64,14 @@
                                                  data-request-id="{{ request.id }}">
                                                 <i class="fas fa-trash mr-2"></i> Supprimer
                                             </div>
+                                        {% endif %}
+
+                                        {% if request.order and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_TRANSPORT')) %}
+                                            <a href="{{ path('transport_order_show', {'transport': request.order.id }) }}"
+                                               class="dropdown-item">
+                                                <i class="fas fa-external-link-alt mr-2"></i>
+                                                Aller vers l'ordre de transport
+                                            </a>
                                         {% endif %}
                                     </div>
                                 </div>

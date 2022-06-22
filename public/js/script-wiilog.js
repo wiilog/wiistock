@@ -470,7 +470,7 @@ function saveFilters(page, tableSelector, callback) {
                 const $elem = $(this);
                 values[$elem.attr('name')] = valFunction[key]($elem);
             });
-            console.log(values);
+
             return ({
                 ...acc,
                 ...values

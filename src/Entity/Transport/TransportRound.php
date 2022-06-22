@@ -13,6 +13,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bundle\MakerBundle\Str;
 use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: TransportRoundRepository::class)]
@@ -471,6 +472,12 @@ class TransportRound extends StatusHistoryContainer {
     public function setVehicle(?Vehicle $vehicle): TransportRound {
         $this->vehicle = $vehicle;
         return $this;
+    }
+
+    public function getCurrentOnGoingLine(): ?TransportRoundLine {
+        return Stream::from($this->getTransportRoundLines())
+            ->filter(fn(TransportRoundLine $line) => $line->getOrder()->getStatus()->getCode() === TransportOrder::STATUS_ONGOING)
+            ->first();
     }
 
 }

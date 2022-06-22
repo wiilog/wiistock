@@ -69,7 +69,7 @@ class PairingService
             $sensorCode = ($wrapper ? $wrapper->getName() . ' : ' : '') . $label;
             if(!isset($data['colors'][$sensorCode])) {
                 srand($sensor->getId());
-                $data['colors'][$sensorCode] = sprintf('#%06X', mt_rand(0, 0xFFFFFF));
+                $data['colors'][$sensorCode] = "#000000";
             }
 
             $dateStr = $date->format('d/m/Y H:i:s');

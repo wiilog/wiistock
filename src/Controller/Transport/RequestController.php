@@ -615,13 +615,14 @@ class RequestController extends AbstractController {
 
             $lineBefore = null;
             foreach($round->getTransportRoundLines() as $currentLine) {
-                if($currentLine->getPriority() + 1 === $line->getPriority()) {
+                if($round->getCurrentOnGoingLine() && $round->getCurrentOnGoingLine()->getPriority() + 1 === $line->getPriority()) {
                     $lineBefore = $currentLine;
                     break;
                 }
             }
 
-            if(!$lineBefore || $lineBefore->getOrder()->getStatus()->getCode() !== TransportOrder::STATUS_ONGOING && $line->getOrder()->getStatus()->getCode() === TransportOrder::STATUS_ONGOING) {
+            if($lineBefore === $round->getCurrentOnGoingLine()
+                && $line->getOrder()->getStatus()->getCode() === TransportOrder::STATUS_ONGOING) {
                 $userChannel = $userService->getUserFCMChannel($round->getDeliverer());
                 $notificationService->send($userChannel, "Votre prochain point de passage a été annulé", null, [
                     "roundId" => $round->getId(),

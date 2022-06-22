@@ -194,9 +194,7 @@ class HistoryController extends AbstractController
 
     #[Route("/{round}/round-transport-history-api", name: "round_transport_history_api", options: ['expose' => true], methods: "GET")]
     public function roundTransportListApi(TransportRound $round): JsonResponse {
-        $currentLine = $round->getTransportRoundLines()
-            ->filter(fn(TransportRoundLine $line) => !$line->getOrder()?->getTreatedAt())
-            ->first() ?: null;;
+        $currentLine = $round->getCurrentOnGoingLine();
 
         $timelineConfig = $round->getTransportRoundLines()
             ->map(function(TransportRoundLine $line) use ($currentLine) {
@@ -209,6 +207,7 @@ class HistoryController extends AbstractController
                         : null,
                     'hint' => $request instanceof TransportCollectRequest ? 'Collecte' : 'Livraison',
                     'emergency' => $order?->hasRejectedPacks() || $order?->isRejected(),
+                    'cancelled' => $order?->isCancelled(),
                     'estimated' => $line->getEstimatedAt(),
                     'state' => $currentLine?->getId() === $line->getId()
                         ? 'current'

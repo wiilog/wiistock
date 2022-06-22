@@ -6,8 +6,6 @@ use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\FiltreSup;
-use App\Entity\IOT\Sensor;
-use App\Entity\IOT\SensorMessage;
 use App\Entity\IOT\TriggerAction;
 use App\Entity\Menu;
 use App\Entity\Setting;
@@ -15,6 +13,7 @@ use App\Entity\Statut;
 use App\Entity\Transport\TransportCollectRequest;
 use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\Transport\TransportOrder;
+use App\Entity\Transport\TransportRequest;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\TransportRoundLine;
 use App\Entity\Utilisateur;
@@ -120,9 +119,12 @@ class RoundController extends AbstractController {
                 $hasRejectedPacks = Stream::from($transportRound->getTransportRoundLines())
                     ->some(fn(TransportRoundLine $line) => $line->getOrder()->hasRejectedPacks());
 
+                $vehicle = $transportRound->getVehicle() ?? $transportRound->getDeliverer()?->getVehicle();
+
                 $currentRow[] = $this->renderView("transport/round/list_card.html.twig", [
                     "hasRejectedPacks" => $hasRejectedPacks,
                     "prefix" => TransportRound::NUMBER_PREFIX,
+                    "hasExceededThreshold" => $vehicle?->getActivePairing() && FormatHelper::bool($vehicle->getActivePairing()->hasExceededThreshold()),
                     "round" => $transportRound,
                     "realTime" => isset($hours) && isset($minutes)
                         ? (($hours < 10 ? "0$hours" : $hours) . "h" . ($minutes < 10 ? "0$minutes" : $minutes) . "min")
@@ -182,37 +184,39 @@ class RoundController extends AbstractController {
         $transportDateBeganAt = $transportRound->getBeganAt();
         $locations = $transportRound->getLocations();
 
-        foreach ($locations as $location) {
-            $hasSensorMessageBetween = $location->getSensorMessagesBetween($transportRound->getBeganAt(), $transportRound->getEndedAt());
-            if(!$hasSensorMessageBetween) {
-                continue;
+        if ($transportDateBeganAt ) {
+            foreach ($locations as $location) {
+                $hasSensorMessageBetween = $location->getSensorMessagesBetween($transportRound->getBeganAt(), $transportRound->getEndedAt());
+                if (!$hasSensorMessageBetween) {
+                    continue;
+                }
+
+                $triggerActions = $location->getActivePairing()?->getSensorWrapper()?->getTriggerActions();
+                if ($triggerActions) {
+                    $minTriggerActionThreshold = Stream::from($triggerActions)
+                        ->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'lower')
+                        ->last();
+
+                    $maxTriggerActionThreshold = Stream::from($triggerActions)
+                        ->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'higher')
+                        ->last();
+
+                    $minThreshold = $minTriggerActionThreshold?->getConfig()['temperature'];
+                    $maxThreshold = $maxTriggerActionThreshold?->getConfig()['temperature'];
+                }
+
+                $now = new DateTime();
+                $urls[] = [
+                    "fetch_url" => $router->generate("chart_data_history", [
+                        "type" => IOTService::getEntityCodeFromEntity($location),
+                        "id" => $location->getId(),
+                        'start' => $transportRound->getBeganAt()->format('Y-m-d\TH:i'),
+                        'end' => $transportRound->getEndedAt()?->format('Y-m-d\TH:i') ?? $now->format('Y-m-d\TH:i'),
+                    ], UrlGeneratorInterface::ABSOLUTE_URL),
+                    "minTemp" => $minThreshold ?? 0,
+                    "maxTemp" => $maxThreshold ?? 0,
+                ];
             }
-
-            $triggerActions = $location->getActivePairing()?->getSensorWrapper()?->getTriggerActions();
-            if($triggerActions) {
-                $minTriggerActionThreshold = Stream::from($triggerActions)
-                    ->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'lower')
-                    ->last();
-
-                $maxTriggerActionThreshold = Stream::from($triggerActions)
-                    ->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'higher')
-                    ->last();
-
-                $minThreshold = $minTriggerActionThreshold?->getConfig()['temperature'];
-                $maxThreshold = $maxTriggerActionThreshold?->getConfig()['temperature'];
-            }
-
-            $now = new DateTime();
-            $urls[] = [
-                "fetch_url" => $router->generate("chart_data_history", [
-                    "type" => IOTService::getEntityCodeFromEntity($location),
-                    "id" => $location->getId(),
-                    'start' => $transportRound->getCreatedAt()->format('Y-m-d\TH:i'),
-                    'end' => $transportRound->getEndedAt()?->format('Y-m-d\TH:i') ?? $now->format('Y-m-d\TH:i'),
-                ], UrlGeneratorInterface::ABSOLUTE_URL),
-                "minTemp" => $minThreshold ?? 0,
-                "maxTemp" => $maxThreshold ?? 0,
-            ];
         }
 
         $hasSomeDelivery = Stream::from($transportRound->getTransportRoundLines())
@@ -230,6 +234,9 @@ class RoundController extends AbstractController {
                 "maxTemp" => 0,
             ];
         }
+
+        $vehicle = $transportRound->getVehicle() ?? $transportRound->getDeliverer()?->getVehicle();
+
         return $this->render('transport/round/show.html.twig', [
             "transportRound" => $transportRound,
             "realTime" => $realTime,
@@ -239,6 +246,8 @@ class RoundController extends AbstractController {
             "urls" => $urls,
             "roundDateBegan" => $transportDateBeganAt,
             "hasSomeDelivery" => $hasSomeDelivery,
+            "hasExceededThresholdUnder" => $vehicle->getActivePairing() ? $vehicle?->getActivePairing()->hasExceededThresholdUnder() : false,
+            "hasExceededThresholdOver" => $vehicle->getActivePairing() ? $vehicle?->getActivePairing()->hasExceededThresholdOver() : false
         ]);
     }
 
@@ -454,7 +463,7 @@ class RoundController extends AbstractController {
         if ($transportRoundId) {
             $transportRound = $transportRoundRepository->find($transportRoundId);
 
-            if ($transportRound->getStatus()?->getCode() == TransportRound::STATUS_FINISHED) {
+            if ($transportRound->getStatus()?->getCode() === TransportRound::STATUS_FINISHED) {
                 throw new FormException('Impossible de planifier cette tournée');
             }
         }
@@ -488,7 +497,7 @@ class RoundController extends AbstractController {
         }
 
         $deliverer = $userRepository->find($deliverer);
-        $roundIsOngoing = $transportRound?->getStatus()?->getCode() === TransportRound::STATUS_ONGOING;
+        $roundIsOngoing = $transportRound->getStatus()?->getCode() === TransportRound::STATUS_ONGOING;
 
         if(!$roundIsOngoing) {
             $transportRound
@@ -508,32 +517,45 @@ class RoundController extends AbstractController {
             throw new FormException("Il n'y a aucun ordre dans la tournée, veuillez réessayer");
         }
 
+        $collectOrderAssignedStatus = $statusRepository
+            ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_COLLECT,
+                TransportOrder::STATUS_ASSIGNED);
+
+        $deliveryOrderAssignedStatus = $statusRepository
+            ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_DELIVERY,
+                TransportOrder::STATUS_ASSIGNED);
+
         if($roundIsOngoing) {
-            $collectOrderStatus = $statusRepository
+            $collectOrderOngoingStatus = $statusRepository
                 ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_COLLECT,
                     TransportOrder::STATUS_ONGOING);
 
-            $deliveryOrderStatus = $statusRepository
+            $deliveryOrderOngoingStatus = $statusRepository
                 ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_DELIVERY,
                     TransportOrder::STATUS_ONGOING);
+
+            $collectRequestOngoingStatus = $statusRepository
+                ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_REQUEST_COLLECT,
+                    TransportRequest::STATUS_ONGOING);
+
+            $deliveryRequestOngoingStatus = $statusRepository
+                ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_REQUEST_DELIVERY,
+                    TransportRequest::STATUS_ONGOING);
         } else {
-            $collectOrderStatus = $statusRepository
-                ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_COLLECT,
-                    TransportOrder::STATUS_ASSIGNED);
-
-            $deliveryOrderStatus = $statusRepository
-                ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_DELIVERY,
-                    TransportOrder::STATUS_ASSIGNED);
+            $deliveryRequestOngoingStatus = null;
+            $collectRequestOngoingStatus = null;
+            $collectOrderOngoingStatus = null;
+            $deliveryOrderOngoingStatus = null;
         }
 
-        /** @var TransportOrder $order */
         foreach ($ordersAndTimes as $index => $ordersAndTime) {
             $orderId = $ordersAndTime['id'];
-            $order = $transportOrderRepository->find($orderId);
-            if ($order) {
+            /** @var TransportOrder $transportOrder */
+            $transportOrder = $transportOrderRepository->find($orderId);
+            if ($transportOrder) {
                 $affectationAllowed = (
-                    $order->getTransportRoundLines()->isEmpty()
-                    || Stream::from ($order->getTransportRoundLines())
+                    $transportOrder->getTransportRoundLines()->isEmpty()
+                    || Stream::from ($transportOrder->getTransportRoundLines())
                         ->map(fn(TransportRoundLine $line) => $line->getTransportRound())
                         ->every(fn(TransportRound $round) => $round->getStatus()?->getCode() === TransportRound::STATUS_FINISHED || $round->getId() === $transportRound->getId())
                 );
@@ -542,31 +564,39 @@ class RoundController extends AbstractController {
                     throw new FormException("L'ordre n°{$priority} est déjà affecté à une tournée non terminée");
                 }
 
-                $line = $transportRound->getTransportRoundLine($order);
+                $line = $transportRound->getTransportRoundLine($transportOrder);
                 if (!isset($line)) {
+                    $transportRequest = $transportOrder->getRequest();
                     $line = new TransportRoundLine();
-                    $line->setOrder($order);
-                    $order->setRejectedAt(null);
+                    $line->setOrder($transportOrder);
+                    $transportOrder->setRejectedAt(null);
 
                     $entityManager->persist($line);
                     $transportRound->addTransportRoundLine($line);
 
-                    // set order status + add status history + add transport history
-                    $status = $order->getRequest() instanceof TransportDeliveryRequest ? $deliveryOrderStatus : $collectOrderStatus;
+                    // set transportOrder status + add status history + add transport history
+                    $orderAssignedStatus = $transportRequest instanceof TransportDeliveryRequest ? $deliveryOrderAssignedStatus : $collectOrderAssignedStatus;
+                    $orderOngoingStatus = $transportRequest instanceof TransportDeliveryRequest ? $deliveryOrderOngoingStatus : $collectOrderOngoingStatus;
+                    $requestOngoingStatus = $transportRequest instanceof TransportDeliveryRequest ? $deliveryRequestOngoingStatus : $collectRequestOngoingStatus;
 
-                    $statusHistory = $statusHistoryService->updateStatus($entityManager, $order, $status);
+                    $orderStatusHistory = $statusHistoryService->updateStatus($entityManager, $transportOrder, $orderAssignedStatus);
 
-                    $transportHistoryService->persistTransportHistory($entityManager, [$order->getRequest(), $order], TransportHistoryService::TYPE_AFFECTED_ROUND, [
+                    if ($roundIsOngoing) {
+                        $statusHistoryService->updateStatus($entityManager, $transportRequest, $requestOngoingStatus);
+                        $orderStatusHistory = $statusHistoryService->updateStatus($entityManager, $transportOrder, $orderOngoingStatus);
+                    }
+
+                    $transportHistoryService->persistTransportHistory($entityManager, [$transportRequest, $transportOrder], TransportHistoryService::TYPE_AFFECTED_ROUND, [
                         'user' => $this->getUser(),
                         'deliverer' => $transportRound->getDeliverer(),
                         'round' => $transportRound,
-                        'history' => $statusHistory,
+                        'history' => $orderStatusHistory,
                     ]);
 
                     if($roundIsOngoing) {
-                        $transportHistoryService->persistTransportHistory($entityManager, [$order->getRequest(), $order], TransportHistoryService::TYPE_ONGOING, [
+                        $transportHistoryService->persistTransportHistory($entityManager, [$transportRequest, $transportOrder], TransportHistoryService::TYPE_ONGOING, [
                             "user" => $this->getUser(),
-                            "history" => $statusHistory,
+                            "history" => $orderStatusHistory,
                         ]);
                     }
                 }
