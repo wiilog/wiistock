@@ -45,7 +45,7 @@
             {{ loop.last ? 'last-status-history' }}
             {{ loop.last and followingStatuses is empty ? 'last' }}
             {{ state }}">
-            <div class="title-right {{ state }} {{ not history['date'] ? 'bg-transparent' }}">
+            <div class="title-right {{ state }} {{ not history['date'] ? 'bg-transparent' }} text-left">
                 <span class="ml-2">{{ history['date'] }}</span>
                 {% if entity is instanceof('App\\Entity\\Transport\\TransportOrder') and entityStatusName in merge(finishedStatusesName, cancelledStatusesName) and history['status'] in merge(finishedStatusesName, cancelledStatusesName) %}
                     {% set roundLine = order ? (order.transportRoundLines | last) ?: null : null %}
