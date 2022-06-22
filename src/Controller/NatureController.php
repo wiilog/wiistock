@@ -70,6 +70,14 @@ class NatureController extends AbstractController
             }
 
             $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
+            $natureRepository = $entityManager->getRepository(Nature::class);
+
+            if($natureRepository->findOneBy(["label" => $data["label"]])) {
+                return $this->json([
+                    "success" => false,
+                    "msg" => "Une nature existe déjà avec ce libellé",
+                ]);
+            }
 
             $nature = new Nature();
             $nature
@@ -186,6 +194,17 @@ class NatureController extends AbstractController
                 return $this->json([
                     "success" => false,
                     "msg" => "Le label d'une nature ne peut pas contenir ; ou ,",
+                ]);
+            }
+
+            $existingNatures = Stream::from($natureRepository->findBy(["label" => $data["label"]]))
+                ->filter(fn(Nature $nature) => $nature->getId() != $currentNature->getId())
+                ->count();
+
+            if($existingNatures > 0) {
+                return $this->json([
+                    "success" => false,
+                    "msg" => "Une nature existe déjà avec ce libellé",
                 ]);
             }
 
