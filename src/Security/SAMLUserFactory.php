@@ -19,14 +19,16 @@ class SAMLUserFactory implements SamlUserFactoryInterface
         $roleRepository = $this->entityManager->getRepository(Role::class);
         $userRepository = $this->entityManager->getRepository(Utilisateur::class);
 
-        $user = $userRepository->findOneBy(['email' => $identifier]);
+        $email = $attributes['E-Mail-Addressid'];
+
+        $user = $userRepository->findOneBy(['email' => $email]);
         if (!$user) {
             $user = new Utilisateur();
             $user
                 ->setStatus(true)
                 ->setPassword('notused')
-                ->setEmail($identifier)
-                ->setUsername($identifier)
+                ->setEmail($email)
+                ->setUsername($attributes['Given-Name'] . ' ' . $attributes['Name'])
                 ->setRole($roleRepository->findOneBy(['label' => Role::NO_ACCESS_USER]))
                 ->setMobileLoginKey('');
             $this->entityManager->persist($user);
