@@ -461,12 +461,13 @@ class RequestController extends AbstractController {
             ];
 
             foreach ($requests as $transportRequest) {
+                $roundLine = $transportRequest->getOrder()?->getTransportRoundLines()->last();
                 $currentRow[] = $this->renderView("transport/request/list_card.html.twig", [
                     "prefix" => TransportRequest::NUMBER_PREFIX,
                     "request" => $transportRequest,
-                    "timeSlot" => $transportService->getTimeSlot($entityManager, $transportRequest->getExpectedAt()),
+                    "timeSlot" => $roundLine ? $transportService->hourToTimeSlot($entityManager, $roundLine->getEstimatedAt()->format("H:i")) : null,
                     "path" => "transport_request_show",
-                    "displayDropdown" => true
+                    "displayDropdown" => true,
                 ]);
             }
 
