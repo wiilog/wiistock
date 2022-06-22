@@ -12,13 +12,14 @@ use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
 use App\Entity\FreeField;
 use App\Entity\Import;
-use App\Entity\InventoryCategory;
-use App\Entity\InventoryFrequency;
+use App\Entity\Inventory\InventoryCategory;
+use App\Entity\Inventory\InventoryFrequency;
 use App\Entity\IOT\AlertTemplate;
 use App\Entity\IOT\RequestTemplate;
 use App\Entity\MailerServer;
 use App\Entity\Menu;
 use App\Entity\Nature;
+use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Translation;
@@ -1835,8 +1836,14 @@ class SettingsController extends AbstractController {
      * @Route("/categories/supprimer/{entity}", name="settings_delete_category", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK}, mode=HasPermission::IN_JSON)
      */
-    public function deleteCategory(EntityManagerInterface $entityManager, InventoryCategory $entity): Response {
-        if (!$entity->getRefArticle()->isEmpty()) {
+    public function deleteCategory(EntityManagerInterface $entityManager,
+                                   InventoryCategory $entity): Response {
+
+        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $linkedReference = $referenceArticleRepository->countByCategory($entity);
+
+
+        if ($linkedReference > 0) {
             return $this->json([
                 "success" => false,
                 "msg" => "La catégorie est liée à des références articles",

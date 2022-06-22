@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\Inventory;
 
-use App\Entity\InventoryCategoryHistory;
+use App\Entity\Inventory\InventoryCategoryHistory;
 use Doctrine\ORM\EntityRepository;
 
 /**

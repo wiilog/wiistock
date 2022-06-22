@@ -4,10 +4,11 @@ namespace App\Repository;
 
 use App\Entity\Article;
 use App\Entity\DeliveryRequest\Demande;
-use App\Entity\FreeField;
 use App\Entity\FiltreRef;
-use App\Entity\InventoryFrequency;
-use App\Entity\InventoryMission;
+use App\Entity\FreeField;
+use App\Entity\Inventory\InventoryCategory;
+use App\Entity\Inventory\InventoryFrequency;
+use App\Entity\Inventory\InventoryMission;
 use App\Entity\Livraison;
 use App\Entity\OrdreCollecte;
 use App\Entity\PreparationOrder\Preparation;
@@ -16,13 +17,14 @@ use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Helper\QueryCounter;
-use Symfony\Component\HttpFoundation\InputBag;
-use WiiCommon\Helper\Stream;
 use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
+use Symfony\Component\HttpFoundation\InputBag;
+use WiiCommon\Helper\Stream;
 
 /**
  * @method ReferenceArticle|null find($id, $lockMode = null, $lockVersion = null)
@@ -858,46 +860,15 @@ class ReferenceArticleRepository extends EntityRepository {
         return $query->getSingleScalarResult();
     }
 
-    public function countByCategory($category)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT COUNT(ra)
-            FROM App\Entity\ReferenceArticle ra
-            WHERE ra.category = :category"
-        )->setParameter('category', $category);
-
-        return $query->getSingleScalarResult();
-    }
-
-    public function getEntryByMission(InventoryMission $mission, $refId)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT e.date, e.quantity
-            FROM App\Entity\InventoryEntry e
-            WHERE e.mission = :mission AND e.refArticle = :ref"
-        )->setParameters([
-            'mission' => $mission,
-            'ref' => $refId
-        ]);
-        return $query->getOneOrNullResult();
-    }
-
     public function countByMission($mission)
     {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT COUNT(ra)
-            FROM App\Entity\InventoryMission im
-            LEFT JOIN im.refArticles ra
-            WHERE im.id = :missionId"
-        )->setParameter('missionId', $mission->getId());
-
-        return $query->getSingleScalarResult();
+        return $this->createQueryBuilder('reference_article')
+            ->select('COUNT(reference_article)')
+            ->join('reference_article.inventoryMissions', 'mission')
+            ->andWhere('mission = :mission')
+            ->setParameter('mission', $mission)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     /**
@@ -1086,21 +1057,6 @@ class ReferenceArticleRepository extends EntityRepository {
             $reservedQuantity = $referenceArticle->getQuantiteReservee();
         }
         return $reservedQuantity;
-    }
-
-    public function countInventoryAnomaliesByRef(ReferenceArticle $ref): int
-    {
-        $em = $this->getEntityManager();
-
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT COUNT(ie)
-			FROM App\Entity\InventoryEntry ie
-			JOIN ie.refArticle ra
-			WHERE ie.anomaly = 1 AND ra.id = :refId
-			")->setParameter('refId', $ref->getId());
-
-        return $query->getSingleScalarResult();
     }
 
     public function getOneReferenceByBarCodeAndLocation(string $barCode, string $location)
@@ -1296,5 +1252,15 @@ class ReferenceArticleRepository extends EntityRepository {
         return Stream::from($references)
             ->keymap(fn(ReferenceArticle $reference) => [$reference->getId(), $reference])
             ->toArray();
+    }
+
+    public function countByCategory(InventoryCategory $category): int {
+        return $this->createQueryBuilder('reference_article')
+            ->select('COUNT(reference_article)')
+            ->join(InventoryCategory::class, "category", Join::WITH, "reference_article.category = category.id")
+            ->andWhere('category = :category')
+            ->setParameter('category', $category)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 }

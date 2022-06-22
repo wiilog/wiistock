@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Entity\DeliveryRequest\Demande;
+use App\Entity\Inventory\InventoryCategoryHistory;
+use App\Entity\Inventory\InventoryEntry;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\Transport\TransportDeliveryOrderPack;

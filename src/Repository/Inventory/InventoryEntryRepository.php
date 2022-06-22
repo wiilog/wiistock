@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\Inventory;
 
 use App\Entity\Article;
-use App\Entity\InventoryEntry;
+use App\Entity\Inventory\InventoryEntry;
 use App\Entity\Livraison;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
@@ -30,19 +30,6 @@ class InventoryEntryRepository extends EntityRepository
 		'Quantity' => 'quantity',
 		'barCode' => 'barCode',
 	];
-
-    public function countByMission($mission)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT COUNT(ie)
-            FROM App\Entity\InventoryEntry ie
-            WHERE ie.mission = :mission"
-        )->setParameter('mission', $mission);
-
-        return $query->getSingleScalarResult();
-    }
 
     public function getAnomaliesOnRef(bool $forceValidLocation = false, $anomaliesIds = []) {
 		$queryBuilder = $this->createQueryBuilder('ie')
@@ -318,19 +305,68 @@ class InventoryEntryRepository extends EntityRepository
 		$dateMax = $dateMax->format('Y-m-d H:i:s');
 		$dateMin = $dateMin->format('Y-m-d H:i:s');
 
-		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-			/** @lang DQL */
-			'SELECT ie
-            FROM App\Entity\InventoryEntry ie
-            WHERE ie.date BETWEEN :dateMin AND :dateMax'
-		)->setParameters([
-			'dateMin' => $dateMin,
-			'dateMax' => $dateMax
-		]);
 		// TODO iterate
-		return $query->execute();
+        return $this->createQueryBuilder('entry')
+            ->andWhere('entry.date BETWEEN :dateMin AND :dateMax')
+            ->setParameters([
+                'dateMin' => $dateMin,
+                'dateMax' => $dateMax
+            ])
+            ->getQuery()
+            ->getResult();
 	}
+
+    public function getEntryByMissionAndArticle($mission, $artId)
+    {
+        return $this->createQueryBuilder('entry')
+            ->select('entry.date')
+            ->addSelect('entry.quantity')
+            ->andWhere('entry.mission = :mission')
+            ->andWhere('entry.article = :art')
+            ->setParameters([
+                'mission' => $mission,
+                'art' => $artId
+            ])
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    public function getEntryByMissionAndRefArticle($mission, $refId)
+    {
+        return $this->createQueryBuilder('entry')
+            ->select('entry.date')
+            ->addSelect('entry.quantity')
+            ->andWhere('entry.mission = :mission')
+            ->andWhere('entry.refArticle = :ref')
+            ->setParameters([
+                'mission' => $mission,
+                'ref' => $refId
+            ])
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    public function countInventoryAnomaliesByArt($article)
+    {
+        return $this->createQueryBuilder('entry')
+            ->select('COUNT(entry)')
+            ->join('entry.article', 'article')
+            ->andWhere('entry.anomaly = 1 AND article.id = :artId')
+            ->setParameter('artId', $article->getId())
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    public function countInventoryAnomaliesByRef(ReferenceArticle $ref): int
+    {
+        return $this->createQueryBuilder('entry')
+            ->select('COUNT(entry)')
+            ->join('entry.refArticle', 'refArticle')
+            ->andWhere('entry.anomaly = 1 AND refArticle = :refArticle')
+            ->setParameter('refArticle', $ref)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 
 
 }

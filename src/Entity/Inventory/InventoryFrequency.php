@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Inventory;
 
-use App\Repository\InventoryFrequencyRepository;
+use App\Repository\Inventory\InventoryFrequencyRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -13,16 +13,16 @@ class InventoryFrequency {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    private $id;
+    private ?int $id = null;
 
     #[ORM\Column(type: 'string', length: 255)]
-    private $label;
+    private ?string $label = null;
 
     #[ORM\Column(type: 'integer')]
-    private $nbMonths;
+    private ?int $nbMonths = null;
 
-    #[ORM\OneToMany(targetEntity: InventoryCategory::class, mappedBy: 'frequency')]
-    private $categories;
+    #[ORM\OneToMany(mappedBy: 'frequency', targetEntity: InventoryCategory::class)]
+    private Collection $categories;
 
     public function __construct() {
         $this->categories = new ArrayCollection();
@@ -53,7 +53,7 @@ class InventoryFrequency {
     }
 
     /**
-     * @return Collection|InventoryCategory[]
+     * @return Collection<int, InventoryCategory>
      */
     public function getCategories(): Collection {
         return $this->categories;

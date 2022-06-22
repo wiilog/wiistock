@@ -1,10 +1,16 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Inventory;
 
+use App\Entity\Article;
+use App\Entity\Emplacement;
+use App\Entity\ReferenceArticle;
+use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
-use App\Repository\InventoryEntryRepository;
+use App\Repository\Inventory\InventoryEntryRepository;
+use DateTime;
 use Doctrine\ORM\Mapping as ORM;
+use JetBrains\PhpStorm\ArrayShape;
 
 #[ORM\Entity(repositoryClass: InventoryEntryRepository::class)]
 class InventoryEntry {
@@ -12,43 +18,43 @@ class InventoryEntry {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    private $id;
+    private ?int $id = null;
 
     #[ORM\Column(type: 'date')]
-    private $date;
+    private ?DateTime $date = null;
 
     #[ORM\ManyToOne(targetEntity: ReferenceArticle::class, inversedBy: 'inventoryEntries')]
-    private $refArticle;
+    private ?ReferenceArticle $refArticle = null;
 
     #[ORM\ManyToOne(targetEntity: Article::class, inversedBy: 'inventoryEntries')]
-    private $article;
+    private ?Article $article = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'inventoryEntries')]
     #[ORM\JoinColumn(nullable: false)]
-    private $operator;
+    private ?Utilisateur $operator = null;
 
     #[ORM\Column(type: 'integer')]
-    private $quantity;
+    private ?int $quantity = null;
 
     #[ORM\ManyToOne(targetEntity: Emplacement::class)]
     #[ORM\JoinColumn(nullable: false)]
-    private $location;
+    private ?Emplacement $location = null;
 
     #[ORM\ManyToOne(targetEntity: InventoryMission::class, inversedBy: 'entries')]
-    private $mission;
+    private ?InventoryMission $mission = null;
 
     #[ORM\Column(type: 'boolean')]
-    private $anomaly = false;
+    private ?bool $anomaly = false;
 
     public function getId(): ?int {
         return $this->id;
     }
 
-    public function getDate(): ?\DateTimeInterface {
+    public function getDate(): ?DateTime {
         return $this->date;
     }
 
-    public function setDate(\DateTimeInterface $date): self {
+    public function setDate(DateTime $date): self {
         $this->date = $date;
 
         return $this;
@@ -124,7 +130,13 @@ class InventoryEntry {
         return $this;
     }
 
-    public function serialize() {
+    #[ArrayShape([
+        'operator' => "null|string",
+        'location' => "null|string",
+        'date' => "null|string",
+        'quantity' => "null|int"
+    ])]
+    public function serialize(): array {
         return [
             'operator' => FormatHelper::user($this->getOperator()),
             'location' => FormatHelper::location($this->getLocation()),

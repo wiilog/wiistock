@@ -5,12 +5,12 @@ namespace App\Service;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\FiltreSup;
-use App\Entity\InventoryEntry;
+use App\Entity\Inventory\InventoryEntry;
 use App\Entity\ReferenceArticle;
 use App\Helper\FormatHelper;
-use Symfony\Component\Security\Core\Security;
-use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Routing\RouterInterface;
+use Symfony\Component\Security\Core\Security;
 use Twig\Environment as Twig_Environment;
 
 

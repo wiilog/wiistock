@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
+use App\Entity\Inventory\InventoryEntry;
+use App\Entity\Inventory\InventoryMission;
 use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorMessageTrait;

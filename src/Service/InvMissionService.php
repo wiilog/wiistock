@@ -6,21 +6,18 @@ namespace App\Service;
 use App\Entity\Article;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
-use App\Entity\InventoryEntry;
-use App\Entity\InventoryMission;
+use App\Entity\Inventory\InventoryEntry;
+use App\Entity\Inventory\InventoryMission;
 use App\Entity\ReferenceArticle;
-
 use DateTimeInterface;
 use Doctrine\ORM\EntityManagerInterface;
-
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
-
+use Twig\Environment as Twig_Environment;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
-use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
 class InvMissionService
@@ -87,7 +84,7 @@ class InvMissionService
 
 		$nbArtInMission = $articleRepository->countByMission($mission);
 		$nbRefInMission = $referenceArticleRepository->countByMission($mission);
-		$nbEntriesInMission = $inventoryEntryRepository->countByMission($mission);
+		$nbEntriesInMission = $inventoryEntryRepository->count(['mission' => $mission]);
 
 		$rateBar = (($nbArtInMission + $nbRefInMission) != 0)
             ? ($nbEntriesInMission * 100 / ($nbArtInMission + $nbRefInMission))
@@ -145,9 +142,9 @@ class InvMissionService
 
     public function dataRowRefMission(ReferenceArticle $ref, InventoryMission $mission): array
     {
-        $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
-        $inventoryEntry = $this->entityManager->getRepository(InventoryEntry::class)->findOneBy(['refArticle' => $ref, 'mission' => $mission]);
-        $refDateAndQuantity = $referenceArticleRepository->getEntryByMission($mission, $ref);
+        $inventoryEntryRepository = $this->entityManager->getRepository(InventoryEntry::class);
+        $inventoryEntry = $inventoryEntryRepository->findOneBy(['refArticle' => $ref, 'mission' => $mission]);
+        $refDateAndQuantity = $inventoryEntryRepository->getEntryByMissionAndRefArticle($mission, $ref);
 
         $row = $this->dataRowMissionArtRef(
             $ref->getEmplacement(),
@@ -155,7 +152,7 @@ class InvMissionService
             $ref->getBarCode(),
             $ref->getLibelle(),
             (!empty($refDateAndQuantity) && isset($refDateAndQuantity['date'])) ? $refDateAndQuantity['date'] : null,
-            $referenceArticleRepository->countInventoryAnomaliesByRef($ref) > 0 ? 'oui' : ($refDateAndQuantity ? 'non' : '-'),
+            $inventoryEntryRepository->countInventoryAnomaliesByRef($ref) > 0 ? 'oui' : ($refDateAndQuantity ? 'non' : '-'),
             $ref->getQuantiteStock(),
             (!empty($refDateAndQuantity) && isset($refDateAndQuantity['quantity'])) ? $refDateAndQuantity['quantity'] : null,
         );
@@ -184,16 +181,16 @@ class InvMissionService
 	 * @return array
      */
     public function dataRowArtMission($art, $mission) {
-        $articleRepository = $this->entityManager->getRepository(Article::class);
+        $inventoryEntryRepository = $this->entityManager->getRepository(InventoryEntry::class);
 
-        $artDateAndQuantity = $articleRepository->getEntryByMission($mission, $art);
+        $artDateAndQuantity = $inventoryEntryRepository->getEntryByMissionAndArticle($mission, $art);
         return $this->dataRowMissionArtRef(
             $art->getEmplacement(),
             $art->getArticleFournisseur()->getReferenceArticle(),
             $art->getBarCode(),
             $art->getlabel(),
             !empty($artDateAndQuantity) ? $artDateAndQuantity['date'] : null,
-            $articleRepository->countInventoryAnomaliesByArt($art) > 0 ? 'oui' : ($artDateAndQuantity ? 'non' : '-'),
+            $inventoryEntryRepository->countInventoryAnomaliesByArt($art) > 0 ? 'oui' : ($artDateAndQuantity ? 'non' : '-'),
             $art->getQuantite(),
             (!empty($artDateAndQuantity) && isset($artDateAndQuantity['quantity'])) ? $artDateAndQuantity['quantity'] : null
         );

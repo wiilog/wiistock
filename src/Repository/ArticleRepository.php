@@ -5,25 +5,23 @@ namespace App\Repository;
 use App\Entity\Article;
 use App\Entity\Emplacement;
 use App\Entity\FreeField;
-use App\Entity\InventoryFrequency;
-use App\Entity\InventoryMission;
+use App\Entity\Inventory\InventoryFrequency;
+use App\Entity\Inventory\InventoryMission;
 use App\Entity\IOT\Sensor;
 use App\Entity\OrdreCollecte;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
-
 use App\Entity\VisibilityGroup;
 use App\Helper\QueryCounter;
-use Doctrine\Common\Collections\Criteria;
-use Symfony\Component\HttpFoundation\InputBag;
-use WiiCommon\Helper\Stream;
 use App\Service\VisibleColumnService;
 use DateTime;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
-
 use Doctrine\ORM\QueryBuilder;
+use Symfony\Component\HttpFoundation\InputBag;
+use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
 
 /**
@@ -685,33 +683,15 @@ class ArticleRepository extends EntityRepository {
         return $query->getSingleScalarResult();
     }
 
-    public function getEntryByMission($mission, $artId)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT e.date, e.quantity
-            FROM App\Entity\InventoryEntry e
-            WHERE e.mission = :mission AND e.article = :art"
-        )->setParameters([
-            'mission' => $mission,
-            'art' => $artId
-        ]);
-        return $query->getOneOrNullResult();
-    }
-
     public function countByMission($mission)
     {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT COUNT(article)
-            FROM App\Entity\InventoryMission inventoryMission
-            LEFT JOIN inventoryMission.articles article
-            WHERE inventoryMission = :mission"
-        )->setParameter('mission', $mission);
-
-        return $query->getSingleScalarResult();
+        return $this->createQueryBuilder('article')
+            ->select('COUNT(article)')
+            ->join('article.inventoryMissions', 'mission')
+            ->andWhere('mission = :mission')
+            ->setParameter('mission', $mission)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     public function findActiveByFrequencyWithoutDateInventoryOrderedByEmplacementLimited($frequency, $limit)
@@ -765,21 +745,6 @@ class ArticleRepository extends EntityRepository {
 
         $result = $query->execute();
         return $result ? $result[0]['barCode'] : null;
-    }
-
-    public function countInventoryAnomaliesByArt($article)
-    {
-        $em = $this->getEntityManager();
-
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT COUNT(inventoryEntry)
-			FROM App\Entity\InventoryEntry inventoryEntry
-			JOIN inventoryEntry.article article
-			WHERE inventoryEntry.anomaly = 1 AND article.id = :artId
-			")->setParameter('artId', $article->getId());
-
-        return $query->getSingleScalarResult();
     }
 
 	public function findOneByBarCodeAndLocation(string $barCode, string $location): ?Article {

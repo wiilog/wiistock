@@ -5,16 +5,16 @@
 namespace App\Command;
 
 use App\Entity\Article;
-use App\Entity\InventoryFrequency;
-use App\Entity\InventoryMission;
+use App\Entity\Inventory\InventoryFrequency;
+use App\Entity\Inventory\InventoryMission;
 use App\Entity\ReferenceArticle;
 use App\Service\InventoryService;
+use DateTime;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use DateTime;
 
 class MissionCommand extends Command
 {

@@ -3,20 +3,18 @@
 namespace App\Service;
 
 use App\Entity\Article;
-use App\Entity\InventoryEntry;
-use App\Entity\InventoryMission;
+use App\Entity\Inventory\InventoryEntry;
+use App\Entity\Inventory\InventoryMission;
 use App\Entity\MouvementStock;
-
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;
-
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Symfony\Component\Security\Core\Security;
-use DateTime;
 
 class InventoryService
 {

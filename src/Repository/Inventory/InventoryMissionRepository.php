@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\Inventory;
 
 use App\Entity\Article;
-use App\Entity\InventoryMission;
+use App\Entity\Inventory\InventoryEntry;
+use App\Entity\Inventory\InventoryMission;
 use App\Entity\ReferenceArticle;
 use App\Helper\QueryCounter;
 use DateTime;
@@ -98,16 +99,14 @@ class InventoryMissionRepository extends EntityRepository
 
 	public function countAnomaliesByMission($mission)
     {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT COUNT(e)
-            FROM App\Entity\InventoryMission m
-            JOIN m.entries e
-            WHERE m = :mission AND e.anomaly = 1"
-        )->setParameter('mission', $mission);
-
-        return $query->getSingleScalarResult();
+        return $this->createQueryBuilder('mission')
+            ->select('COUNT(entry)')
+            ->join('mission.entries', 'entry')
+            ->andWhere('mission = :mission')
+            ->andWhere('entry.anomaly = true')
+            ->setParameter('mission', $mission)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
 	/**
@@ -302,20 +301,17 @@ class InventoryMissionRepository extends EntityRepository
 		foreach ($filters as $filter) {
 			switch($filter['field']) {
 				case 'anomaly':
+                    $anomalyDQL = $this->getEntityManager()
+                        ->createQueryBuilder()
+                        ->select('COUNT(entry)')
+                        ->from(InventoryEntry::class, 'entry')
+                        ->andWhere('ie.mission = im AND ie.anomaly = 1')
+                        ->getQuery()
+                        ->getDQL();
 					if ($filter['value'] == 'true') {
-						$qb
-							->andWhere('
-							(SELECT COUNT(ie.id)
-							FROM App\Entity\InventoryEntry ie
-							WHERE ie.mission = im AND ie.anomaly = 1)
-							 > 0');
+						$qb->andWhere("($anomalyDQL) > 0");
 					} else if ($filter['value'] == 'false') {
-						$qb
-							->andWhere('
-							(SELECT COUNT(ie.id)
-							FROM App\Entity\InventoryEntry ie
-							WHERE ie.mission = im AND ie.anomaly = 1)
-							 = 0');
+						$qb->andWhere("($anomalyDQL) = 0");
 					}
 					break;
 				case 'dateMin':
@@ -364,14 +360,12 @@ class InventoryMissionRepository extends EntityRepository
 	 */
     public function findFirstByStartDate($date)
     {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT m
-            FROM App\Entity\InventoryMission m
-            WHERE m.startPrevDate = :date"
-        )->setParameter('date', $date);
+        $result = $this->createQueryBuilder('mission')
+            ->andWhere('mission.startPrevDate = :date')
+            ->setParameter('date', $date)
+            ->getQuery()
+            ->getResult();
 
-        $result = $query->execute();
         return $result ? $result[0] : null;
     }
 

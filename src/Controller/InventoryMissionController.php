@@ -6,27 +6,24 @@ namespace App\Controller;
 use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Article;
-use App\Entity\InventoryEntry;
+use App\Entity\Inventory\InventoryEntry;
+use App\Entity\Inventory\InventoryMission;
 use App\Entity\Menu;
-use App\Entity\InventoryMission;
-
 use App\Entity\ReferenceArticle;
-use WiiCommon\Helper\Stream;
 use App\Service\CSVExportService;
 use App\Service\InventoryEntryService;
 use App\Service\InventoryService;
 use App\Service\InvMissionService;
+use App\Service\UserService;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-
-use App\Service\UserService;
-
-use DateTime;
+use Symfony\Component\Routing\Annotation\Route;
+use WiiCommon\Helper\Stream;
 
 
 /**
@@ -118,11 +115,12 @@ class InventoryMissionController extends AbstractController
             $inventoryEntryRepository = $entityManager->getRepository(InventoryEntry::class);
             $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
 
+            $mission = $inventoryMissionRepository->find($missionId);
             $missionArt = $inventoryMissionRepository->countArtByMission($missionId);
             $missionRef = $inventoryMissionRepository->countRefArtByMission($missionId);
-            $missionEntries = $inventoryEntryRepository->countByMission($missionId);
+            $missionEntries = $inventoryEntryRepository->count(['mission' => $mission]);
 
-            $missionIsUsed = (intval($missionArt) + intval($missionRef) + intval($missionEntries) > 0);
+            $missionIsUsed = (intval($missionArt) + intval($missionRef) + $missionEntries > 0);
 
             if ($missionIsUsed) {
                 $delete = false;

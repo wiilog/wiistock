@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\Inventory;
 
-use App\Entity\InventoryFrequency;
+use App\Entity\Inventory\InventoryFrequency;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -50,23 +50,6 @@ class InventoryFrequencyRepository extends EntityRepository
 		);
 
 		return $query->execute();
-	}
-
-	public function countByLabelDiff($label, $frequencyLabel)
-	{
-		$em = $this->getEntityManager();
-
-		$query = $em->createQuery(
-		/** @lang DQL */
-			"SELECT count(if)
-            FROM App\Entity\InventoryFrequency if
-            WHERE if.label = :label AND if.label != :frequencyLabel"
-		)->setParameters([
-			'label' => $label,
-			'frequencyLabel' => $frequencyLabel
-		]);
-
-		return $query->getSingleScalarResult();
 	}
 
 	public function getLabelBySearch($search) {

@@ -3,6 +3,10 @@
 namespace App\Entity;
 
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
+use App\Entity\Inventory\InventoryCategory;
+use App\Entity\Inventory\InventoryCategoryHistory;
+use App\Entity\Inventory\InventoryEntry;
+use App\Entity\Inventory\InventoryMission;
 use App\Entity\IOT\RequestTemplateLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Traits\AttachmentTrait;
@@ -93,7 +97,7 @@ class ReferenceArticle {
     #[ORM\OneToMany(targetEntity: MouvementStock::class, mappedBy: 'refArticle')]
     private Collection $mouvements;
 
-    #[ORM\ManyToOne(targetEntity: InventoryCategory::class, inversedBy: 'refArticle')]
+    #[ORM\ManyToOne(targetEntity: InventoryCategory::class)]
     private ?InventoryCategory $category = null;
 
     #[ORM\OneToMany(targetEntity: InventoryEntry::class, mappedBy: 'refArticle')]

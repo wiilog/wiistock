@@ -1,8 +1,10 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Inventory;
 
-use App\Repository\InventoryCategoryHistoryRepository;
+use App\Entity\ReferenceArticle;
+use App\Entity\Utilisateur;
+use App\Repository\Inventory\InventoryCategoryHistoryRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -13,7 +15,7 @@ class InventoryCategoryHistory {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    private $id;
+    private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: InventoryCategory::class)]
     #[ORM\JoinColumn(nullable: false)]

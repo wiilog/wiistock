@@ -1,10 +1,8 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Inventory;
 
-use App\Repository\InventoryCategoryRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
+use App\Repository\Inventory\InventoryCategoryRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: InventoryCategoryRepository::class)]
@@ -21,13 +19,6 @@ class InventoryCategory {
     #[ORM\ManyToOne(targetEntity: InventoryFrequency::class, inversedBy: 'categories')]
     private ?InventoryFrequency $frequency = null;
 
-    #[ORM\OneToMany(targetEntity: ReferenceArticle::class, mappedBy: 'category')]
-    private Collection $refArticle;
-
-    public function __construct() {
-        $this->refArticle = new ArrayCollection();
-    }
-
     public function getId(): ?int {
         return $this->id;
     }
@@ -42,15 +33,16 @@ class InventoryCategory {
         return $this;
     }
 
-    /**
-     * @return InventoryFrequency
-     */
     public function getFrequency(): ?InventoryFrequency {
         return $this->frequency;
     }
 
     public function setFrequency(?InventoryFrequency $frequency): self {
+        if($this->frequency && $this->frequency !== $frequency) {
+            $this->frequency->removeCategory($this);
+        }
         $this->frequency = $frequency;
+        $frequency?->addCategory($this);
 
         return $this;
     }
