@@ -153,7 +153,7 @@
                                     </span>
                                 </div>
                                 {# only when the order has not been assigned to a round #}
-                                {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT_TRANSPORT')) and (round is null or not request_collect.validatedDate or request_collect.status.code === constant('App\\Entity\\Transport\\TransportRequest::STATUS_NOT_COLLECTED')) %}
+                                {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT_TRANSPORT')) and (round is null or not request_collect.validatedDate or request_collect.status.code == constant('App\\Entity\\Transport\\TransportRequest::STATUS_NOT_COLLECTED')) %}
                                     <button class="btn btn-primary minw-105px submit-button"
                                             data-target="#modalCollectTimeSlot"
                                             data-toggle='modal'>
