@@ -10,13 +10,11 @@ use App\Entity\Inventory\InventoryEntry;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
-use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 use App\Service\CSVExportService;
 use App\Service\InventoryEntryService;
 use App\Service\InventoryService;
 use App\Service\InvMissionService;
-use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -25,7 +23,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-use WiiCommon\Helper\Stream;
 
 
 /**
@@ -33,14 +30,6 @@ use WiiCommon\Helper\Stream;
  */
 class InventoryMissionController extends AbstractController
 {
-    #[Required]
-    public UserService $userService;
-
-    #[Required]
-    public InvMissionService $invMissionService;
-
-    #[Required]
-    public InventoryService $inventoryService;
 
     /**
      * @Route("/", name="inventory_mission_index")
@@ -102,10 +91,12 @@ class InventoryMissionController extends AbstractController
         if ($missionId = json_decode($request->getContent(), true)) {
             $inventoryEntryRepository = $entityManager->getRepository(InventoryEntry::class);
             $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
+            $articleRepository = $entityManager->getRepository(Article::class);
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
             $mission = $inventoryMissionRepository->find($missionId);
-            $missionArt = $inventoryMissionRepository->countArtByMission($missionId);
-            $missionRef = $inventoryMissionRepository->countRefArtByMission($missionId);
+            $missionArt = $articleRepository->countByMission($missionId);
+            $missionRef = $referenceArticleRepository->countByMission($missionId);
             $missionEntries = $inventoryEntryRepository->count(['mission' => $mission]);
 
             $missionIsUsed = (intval($missionArt) + intval($missionRef) + $missionEntries > 0);
@@ -155,9 +146,10 @@ class InventoryMissionController extends AbstractController
      * @HasPermission({Menu::STOCK, Action::DISPLAY_INVE}, mode=HasPermission::IN_JSON)
      */
     public function entryApiArticle(InventoryMission $mission,
+                                    InvMissionService $invMissionService,
                                     Request $request): Response
     {
-        $data = $this->invMissionService->getDataForOneMissionDatatable($mission, $request->request, true);
+        $data = $invMissionService->getDataForOneMissionDatatable($mission, $request->request, true);
         return new JsonResponse($data);
     }
 
@@ -166,9 +158,10 @@ class InventoryMissionController extends AbstractController
      * @HasPermission({Menu::STOCK, Action::DISPLAY_INVE}, mode=HasPermission::IN_JSON)
      */
     public function entryApiReferenceArticle(InventoryMission $mission,
+                                             InvMissionService $invMissionService,
                                              Request $request): Response
     {
-        $data = $this->invMissionService->getDataForOneMissionDatatable($mission, $request->request, false);
+        $data = $invMissionService->getDataForOneMissionDatatable($mission, $request->request, false);
         return new JsonResponse($data);
     }
 
@@ -176,8 +169,9 @@ class InventoryMissionController extends AbstractController
      * @Route("/ajouter", name="add_to_mission", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::STOCK, Action::DISPLAY_INVE}, mode=HasPermission::IN_JSON)
      */
-    public function addToMission(Request $request, EntityManagerInterface $entityManager): Response
-    {
+    public function addToMission(Request $request,
+                                 InventoryService $inventoryService,
+                                 EntityManagerInterface $entityManager): Response {
         if ($data = json_decode($request->getContent(), true)) {
             $refArtRepository = $entityManager->getRepository(ReferenceArticle::class);
             $articleRepository = $entityManager->getRepository(Article::class);
@@ -186,21 +180,21 @@ class InventoryMissionController extends AbstractController
             $mission = $inventoryMissionRepository->find($data['missionId']);
             $barcodeErrors = [];
             Stream::explode([",", " ", ";", "\t"], $data['articles'])
-                ->filterMap(function($barcode) use ($articleRepository, $refArtRepository, $mission) {
+                ->filterMap(function($barcode) use ($articleRepository, $refArtRepository, $mission, $inventoryService) {
                     $barcode = trim($barcode);
 
                     if($article = $articleRepository->findOneBy(["barCode" => $barcode])) {
 
                         $checkForArt = $article instanceof Article
                             && $article->getArticleFournisseur()->getReferenceArticle()->getStatut()->getNom() === ReferenceArticle::STATUT_ACTIF
-                            && !$this->inventoryService->isInMissionInSamePeriod($article, $mission, false);
+                            && !$inventoryService->isInMissionInSamePeriod($article, $mission, false);
 
                         return $checkForArt ? $article : $article->getBarCode();
                     } else if($reference = $refArtRepository->findOneBy(["barCode" => $barcode])) {
 
                         $checkForRef = $reference instanceof ReferenceArticle
                             && $reference->getStatut()->getNom() === ReferenceArticle::STATUT_ACTIF
-                            && !$this->inventoryService->isInMissionInSamePeriod($reference, $mission, true);
+                            && !$inventoryService->isInMissionInSamePeriod($reference, $mission, true);
 
                         return $checkForRef ? $reference : $reference->getBarCode();
                     } else {

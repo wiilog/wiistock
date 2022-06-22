@@ -96,25 +96,6 @@ class InventoryMissionRepository extends EntityRepository {
             ->getSingleScalarResult();
     }
 
-	/**
-	 * @param InventoryMission $mission
-	 * @return int
-	 * @throws NoResultException
-	 * @throws NonUniqueResultException
-	 */
-	public function countArtByMission($mission)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT COUNT(a)
-            FROM App\Entity\Article a
-            JOIN a.inventoryMissions m
-            WHERE m.id = :mission"
-        )->setParameter('mission', $mission);
-
-        return $query->getSingleScalarResult();
-    }
-
     public function findRefByMissionAndParamsAndFilters(InventoryMission $mission, InputBag $params = null, array $filters = []): array {
         $em = $this->getEntityManager();
         $qb = $em->createQueryBuilder();
