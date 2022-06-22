@@ -11,10 +11,9 @@ security:
                 class: App\Entity\Utilisateur
                 property: email
         saml_provider:
-            ##  Basic provider instantiates a user with identifier and default roles
-            saml:
-                user_class: 'App\Entity\Utilisateur'
-                default_roles: [ 'ROLE_USER' ]
+            entity:
+                class: App\Entity\Utilisateur
+                property: email
 
     firewalls:
         dev:
@@ -39,6 +38,7 @@ security:
                 use_attribute_friendly_name: true
                 check_path: saml_acs
                 login_path: saml_login
+                persist_user: true
 
             form_login:
                 login_path: login
