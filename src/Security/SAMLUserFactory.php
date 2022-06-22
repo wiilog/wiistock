@@ -19,7 +19,7 @@ class SAMLUserFactory implements SamlUserFactoryInterface
         $roleRepository = $this->entityManager->getRepository(Role::class);
         $userRepository = $this->entityManager->getRepository(Utilisateur::class);
 
-        $email = $attributes['E-Mail-Addressid'];
+        $email = $attributes['emailaddress'];
 
         $user = $userRepository->findOneBy(['email' => $email]);
         if (!$user) {
@@ -28,7 +28,7 @@ class SAMLUserFactory implements SamlUserFactoryInterface
                 ->setStatus(true)
                 ->setPassword('notused')
                 ->setEmail($email)
-                ->setUsername($attributes['Given-Name'] . ' ' . $attributes['Name'])
+                ->setUsername($attributes['givenname'] . ' ' . $attributes['surname'])
                 ->setRole($roleRepository->findOneBy(['label' => Role::NO_ACCESS_USER]))
                 ->setMobileLoginKey('');
             $this->entityManager->persist($user);
