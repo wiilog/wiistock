@@ -34,7 +34,7 @@ security:
             pattern: ^/
 
             saml:
-                identifier_attribute: uid
+                identifier_attribute: Adresse de messagerie
                 use_attribute_friendly_name: true
                 check_path: saml_acs
                 login_path: saml_login
