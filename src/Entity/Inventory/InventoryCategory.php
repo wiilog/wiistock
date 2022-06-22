@@ -46,33 +46,4 @@ class InventoryCategory {
 
         return $this;
     }
-
-    /**
-     * @return Collection|ReferenceArticle[]
-     */
-    public function getRefArticle(): Collection {
-        return $this->refArticle;
-    }
-
-    public function addRefArticle(ReferenceArticle $refArticle): self {
-        if(!$this->refArticle->contains($refArticle)) {
-            $this->refArticle[] = $refArticle;
-            $refArticle->setCategory($this);
-        }
-
-        return $this;
-    }
-
-    public function removeRefArticle(ReferenceArticle $refArticle): self {
-        if($this->refArticle->contains($refArticle)) {
-            $this->refArticle->removeElement($refArticle);
-            // set the owning side to null (unless already changed)
-            if($refArticle->getCategory() === $this) {
-                $refArticle->setCategory(null);
-            }
-        }
-
-        return $this;
-    }
-
 }

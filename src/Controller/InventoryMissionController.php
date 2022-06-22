@@ -120,15 +120,17 @@ class InventoryMissionController extends AbstractController
     public function delete(Request $request,
                            EntityManagerInterface $entityManager): Response
     {
-        if ($data = json_decode($request->getContent(), true)) {
-            $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
-            $mission = $inventoryMissionRepository->find(intval($data['missionId']));
+        $data = json_decode($request->getContent(), true);
+        $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
+        $mission = $inventoryMissionRepository->find($data['missionId']);
 
-            $entityManager->remove($mission);
-            $entityManager->flush();
-            return new JsonResponse();
-        }
-        throw new BadRequestHttpException();
+        $entityManager->remove($mission);
+        $entityManager->flush();
+
+        return $this->json([
+            'success' => true,
+            'msg' => "La mission d'inventaire a bien été supprimée."
+        ]);
     }
 
     /**
@@ -149,7 +151,7 @@ class InventoryMissionController extends AbstractController
                                     InvMissionService $invMissionService,
                                     Request $request): Response
     {
-        $data = $invMissionService->getDataForOneMissionDatatable($mission, $request->request, true);
+        $data = $invMissionService->getDataForOneMissionDatatable($mission, $request->request);
         return new JsonResponse($data);
     }
 

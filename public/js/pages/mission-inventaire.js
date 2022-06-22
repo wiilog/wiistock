@@ -25,7 +25,7 @@ let tableMisionsConfig = {
         needsRowClickAction: true,
     },
     columns: [
-        {data: `actions`, title: ``, className: `noVis`, orderable: false},
+        {data: `actions`, title: ``, className: `d-none`, orderable: false},
         {data: `delete`, title: ``, className: `noVis`, orderable: false},
         {data: `name`, title: `Libellé`},
         {data: `start`, title: `Date de début`},
