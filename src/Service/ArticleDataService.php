@@ -436,21 +436,22 @@ class ArticleDataService
                     'label' => $this->clWantedOnLabel
                 ]);
 
-                $this->typeCLOnLabel = isset($champLibre) ? $champLibre->getTypage() : null;
-                $this->clIdWantedOnLabel = isset($champLibre) ? $champLibre->getId() : null;
+                $this->typeCLOnLabel = $champLibre?->getTypage();
+                $this->clIdWantedOnLabel = $champLibre?->getId();
             }
         }
 
         $articleFournisseur = $article->getArticleFournisseur();
-        $refArticle = isset($articleFournisseur) ? $articleFournisseur->getReferenceArticle() : null;
-        $refRefArticle = isset($refArticle) ? $refArticle->getReference() : null;
-        $labelRefArticle = isset($refArticle) ? $refArticle->getLibelle() : null;
+        $refArticle = $articleFournisseur?->getReferenceArticle();
+        $refRefArticle = $refArticle?->getReference();
+        $labelRefArticle = $refArticle?->getLibelle();
 
         $quantityArticle = $article->getQuantite();
         $labelArticle = $article->getLabel();
         $champLibreValue = $this->clIdWantedOnLabel ? $article->getFreeFieldValue($this->clIdWantedOnLabel) : '';
         $batchArticle = $article->getBatch() ?? '';
-        $expirationDateArticle = $article->getExpiryDate() ? $article->getExpiryDate()->format('d/m/Y') : '';
+        $expirationDateArticle = FormatHelper::date($article->getExpiryDate());
+        $stockEntryDateArticle = FormatHelper::date($article->getStockEntryDate());
 
         $wantsRecipient = $settingRepository->getOneParamByLabel(Setting::INCLUDE_RECIPIENT_IN_ARTICLE_LABEL);
         $wantsRecipientDropzone = $settingRepository->getOneParamByLabel(Setting::INCLUDE_RECIPIENT_DROPZONE_LOCATION_IN_ARTICLE_LABEL);
@@ -499,27 +500,32 @@ class ArticleDataService
         $separator = ($location && $username) ? ' / ' : '';
 
         $labels = [
-            $username . $separator . $location,
-            !empty($labelRefArticle) ? ('L/R : ' . $labelRefArticle) : '',
-            !empty($refRefArticle) ? ('C/R : ' . $refRefArticle) : '',
-            !empty($labelArticle) ? ('L/A : ' . $labelArticle) : '',
-            (!empty($this->typeCLOnLabel) && !empty($champLibreValue)) ? ($champLibreValue) : '',
+            "$username $separator $location",
+            "L/R : $labelRefArticle",
+            "C/R : $refRefArticle",
+            "L/A : $labelArticle",
+            !empty($this->typeCLOnLabel) && !empty($champLibreValue) ? $champLibreValue : '',
         ];
 
-        $wantsQTT = $settingRepository->getOneParamByLabel(Setting::INCLUDE_QTT_IN_LABEL);
-        $wantsBatchArticle = $settingRepository->getOneParamByLabel(Setting::INCLUDE_BATCH_NUMBER_IN_ARTICLE_LABEL);
-        $wantsExpirationDateArticle = $settingRepository->getOneParamByLabel(Setting::INCLUDE_EXPIRATION_DATE_IN_ARTICLE_LABEL);
+        $includeQuantity = $settingRepository->getOneParamByLabel(Setting::INCLUDE_QTT_IN_LABEL);
+        $includeBatch = $settingRepository->getOneParamByLabel(Setting::INCLUDE_BATCH_NUMBER_IN_ARTICLE_LABEL);
+        $includeExpirationDate = $settingRepository->getOneParamByLabel(Setting::INCLUDE_EXPIRATION_DATE_IN_ARTICLE_LABEL);
+        $includeStockEntryDate = $settingRepository->getOneParamByLabel(Setting::INCLUDE_STOCK_ENTRY_DATE_IN_ARTICLE_LABEL);
 
-        if ($wantsBatchArticle) {
-            $labels[] = !empty($batchArticle) ? ('N° lot : '. $batchArticle) : '';
+        if ($includeBatch && $batchArticle) {
+            $labels[] = "N° lot : $batchArticle";
         }
 
-        if ($wantsExpirationDateArticle) {
-            $labels[] = !empty($expirationDateArticle) ? ('Date péremption : '. $expirationDateArticle) : '';
+        if ($includeExpirationDate && $expirationDateArticle) {
+            $labels[] = "Date péremption : $expirationDateArticle";
         }
 
-        if ($wantsQTT) {
-            $labels[] = !empty($quantityArticle) ? ('Qte : '. $quantityArticle) : '';
+        if ($includeStockEntryDate && $stockEntryDateArticle) {
+            $labels[] = "Date d'entrée en stock : $stockEntryDateArticle";
+        }
+
+        if ($includeQuantity) {
+            $labels[] = "Qte : $quantityArticle";
         }
 
         return [

@@ -85,14 +85,14 @@
     </div>
     <div class="form-group col-3">
         <label>Date dernier inventaire</label>
-        <input name="categorie" class="form-control" disabled value="{{ article.dateLastInventory | date('d/m/Y') }}">
+        <input name="categorie" class="form-control" disabled value="{{ article.dateLastInventory | format_helper('date') }}">
     </div>
 </div>
 <div class="row">
     <div class="form-group col-6 w-100">
         {% if article.stockEntryDate %}
-        <label>Date d'entrée en stock</label>
-        <input type="text" class="form-control" value="{{ article.stockEntryDate ? article.stockEntryDate | date('d/m/Y H:i') }}" disabled/>
+            <label>Date d'entrée en stock</label>
+            <input type="text" class="form-control" value="{{ article.stockEntryDate | format_helper('datetime') }}" disabled/>
         {% endif %}
     </div>
     <div class="form-group col-6 w-100">
