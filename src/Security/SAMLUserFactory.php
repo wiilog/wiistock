@@ -29,6 +29,8 @@ class SAMLUserFactory implements SamlUserFactoryInterface
                 ->setUsername($attributes['Nom'] . ' ' . $attributes['Prénom'])
                 ->setRole($roleRepository->findOneBy(['label' => Role::NO_ACCESS_USER]))
                 ->setMobileLoginKey('');
+            $this->entityManager->persist($user);
+            $this->entityManager->flush();
         }
         return $user;
     }
