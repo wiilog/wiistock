@@ -27,12 +27,14 @@ class SAMLUserFactory implements SamlUserFactoryInterface
                 ->setPassword('notused')
                 ->setEmail($identifier)
                 ->setUsername($identifier)
-                ->setSavedDispatchWaybillData($attributes)
                 ->setRole($roleRepository->findOneBy(['label' => Role::NO_ACCESS_USER]))
                 ->setMobileLoginKey('');
             $this->entityManager->persist($user);
             $this->entityManager->flush();
         }
+        $user
+            ->setSavedDispatchWaybillData($attributes);
+
         return $user;
     }
 }
