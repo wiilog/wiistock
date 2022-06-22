@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\InventoryMissionRepository;
+use DateTime;
+use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -13,22 +15,25 @@ class InventoryMission {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    private $id;
+    private ?int $id = null;
+
+    #[ORM\Column(type: 'string')]
+    private ?string $name = null;
 
     #[ORM\Column(type: 'date')]
-    private $startPrevDate;
+    private ?DateTime $startPrevDate = null;
 
     #[ORM\Column(type: 'date')]
-    private $endPrevDate;
+    private ?DateTime $endPrevDate = null;
 
     #[ORM\ManyToMany(targetEntity: ReferenceArticle::class, inversedBy: 'inventoryMissions')]
-    private $refArticles;
+    private Collection $refArticles;
 
-    #[ORM\OneToMany(targetEntity: InventoryEntry::class, mappedBy: 'mission')]
-    private $entries;
+    #[ORM\OneToMany(mappedBy: 'mission', targetEntity: InventoryEntry::class)]
+    private Collection $entries;
 
     #[ORM\ManyToMany(targetEntity: Article::class, mappedBy: 'inventoryMissions')]
-    private $articles;
+    private Collection $articles;
 
     public function __construct() {
         $this->refArticles = new ArrayCollection();
@@ -40,21 +45,21 @@ class InventoryMission {
         return $this->id;
     }
 
-    public function getStartPrevDate(): ?\DateTimeInterface {
+    public function getStartPrevDate(): ?DateTime {
         return $this->startPrevDate;
     }
 
-    public function setStartPrevDate(\DateTimeInterface $startPrevDate): self {
+    public function setStartPrevDate(DateTime $startPrevDate): self {
         $this->startPrevDate = $startPrevDate;
 
         return $this;
     }
 
-    public function getEndPrevDate(): ?\DateTimeInterface {
+    public function getEndPrevDate(): ?DateTime {
         return $this->endPrevDate;
     }
 
-    public function setEndPrevDate(\DateTimeInterface $endPrevDate): self {
+    public function setEndPrevDate(DateTime $endPrevDate): self {
         $this->endPrevDate = $endPrevDate;
 
         return $this;
@@ -132,6 +137,16 @@ class InventoryMission {
             $this->articles->removeElement($article);
             $article->removeInventoryMission($this);
         }
+
+        return $this;
+    }
+
+    public function getName(): ?string {
+        return $this->name;
+    }
+
+    public function setName(string $name): self {
+        $this->name = $name;
 
         return $this;
     }

@@ -11,6 +11,7 @@ use App\Entity\Menu;
 use App\Entity\InventoryMission;
 
 use App\Entity\ReferenceArticle;
+use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 use App\Service\CSVExportService;
 use App\Service\InventoryEntryService;
@@ -34,34 +35,20 @@ use DateTime;
  */
 class InventoryMissionController extends AbstractController
 {
-    /**
-     * @var UserService
-     */
-    private $userService;
+    #[Required]
+    public UserService $userService;
 
-    /**
-     * @var InvMissionService
-     */
-    private $invMissionService;
+    #[Required]
+    public InvMissionService $invMissionService;
 
-    /**
-     * @var InventoryService
-     */
-    private $inventoryService;
-
-    public function __construct(UserService $userService,
-                                InvMissionService $invMissionService,
-                                InventoryService $inventoryService) {
-        $this->userService = $userService;
-        $this->invMissionService = $invMissionService;
-        $this->inventoryService = $inventoryService;
-    }
+    #[Required]
+    public InventoryService $inventoryService;
 
     /**
      * @Route("/", name="inventory_mission_index")
      * @HasPermission({Menu::STOCK, Action::DISPLAY_INVE})
      */
-    public function index()
+    public function index(): Response
     {
         return $this->render('inventaire/index.html.twig');
     }
@@ -94,7 +81,8 @@ class InventoryMissionController extends AbstractController
             $mission = new InventoryMission();
             $mission
                 ->setStartPrevDate(DateTime::createFromFormat('Y-m-d', $data['startDate']))
-                ->setEndPrevDate(DateTime::createFromFormat('Y-m-d', $data['endDate']));
+                ->setEndPrevDate(DateTime::createFromFormat('Y-m-d', $data['endDate']))
+                ->setName($data['name']);
 
             $em->persist($mission);
             $em->flush();
@@ -116,10 +104,11 @@ class InventoryMissionController extends AbstractController
     {
         if ($missionId = json_decode($request->getContent(), true)) {
             $inventoryEntryRepository = $entityManager->getRepository(InventoryEntry::class);
-            $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+            $articleRepository = $entityManager->getRepository(Article::class);
 
-            $missionArt = $inventoryMissionRepository->countArtByMission($missionId);
-            $missionRef = $inventoryMissionRepository->countRefArtByMission($missionId);
+            $missionArt = $articleRepository->countArtByMission($missionId);
+            $missionRef = $referenceArticleRepository->countRefArtByMission($missionId);
             $missionEntries = $inventoryEntryRepository->countByMission($missionId);
 
             $missionIsUsed = (intval($missionArt) + intval($missionRef) + intval($missionEntries) > 0);
@@ -158,7 +147,7 @@ class InventoryMissionController extends AbstractController
      * @Route("/voir/{id}", name="inventory_mission_show", options={"expose"=true}, methods="GET|POST")
      * @HasPermission({Menu::STOCK, Action::DISPLAY_INVE})
      */
-    public function show(InventoryMission $mission)
+    public function show(InventoryMission $mission): Response
     {
         return $this->render('inventaire/show.html.twig', [
             'missionId' => $mission->getId(),
@@ -254,10 +243,6 @@ class InventoryMissionController extends AbstractController
 
     /**
      * @Route("/{mission}/csv", name="get_inventory_mission_csv", options={"expose"=true}, methods={"GET"})
-     * @param InventoryEntryService $inventoryEntryService
-     * @param CSVExportService $CSVExportService
-     * @param InventoryMission $mission
-     * @return Response
      */
     public function getInventoryMissionCSV(InventoryEntryService $inventoryEntryService,
                                            CSVExportService $CSVExportService,

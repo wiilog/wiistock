@@ -1103,4 +1103,13 @@ class ArticleRepository extends EntityRepository {
             ->toIterable();
     }
 
+    public function countArtByMission(int $mission): int {
+        return $this->createQueryBuilder('article')
+            ->select('COUNT(article)')
+            ->join('article.inventoryMissions', 'inventory_missions')
+            ->where('inventory_missions.id = :mission')
+            ->setParameter('mission', $mission)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }

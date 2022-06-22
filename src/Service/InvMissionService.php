@@ -3,121 +3,113 @@
 
 namespace App\Service;
 
+use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\InventoryEntry;
 use App\Entity\InventoryMission;
+use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
 
+use App\Helper\FormatHelper;
 use DateTimeInterface;
 use Doctrine\ORM\EntityManagerInterface;
 
+use Google\Service\Forms\Form;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
 
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
-class InvMissionService
-{
-    private $templating;
-    private $router;
-    private $security;
+class InvMissionService {
 
-    private $entityManager;
+    #[Required]
+    public Twig_Environment $templating;
 
-    public function __construct(RouterInterface $router,
-                                EntityManagerInterface $entityManager,
-                                Twig_Environment $templating,
-								Security $security)
-    {
-        $this->templating = $templating;
-        $this->entityManager = $entityManager;
-        $this->router = $router;
-        $this->security = $security;
-    }
+    #[Required]
+    public RouterInterface $router;
 
-    /**
-     * @param array|null $params
-     * @return array
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     */
-    public function getDataForMissionsDatatable($params = null)
-	{
+    #[Required]
+    public Security $security;
+
+    #[Required]
+    public EntityManagerInterface $entityManager;
+
+    #[Required]
+    public UserService $userService;
+
+    public function getDataForMissionsDatatable($params = null): array {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $inventoryMissionRepository = $this->entityManager->getRepository(InventoryMission::class);
 
-		$filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_INV_MISSIONS, $this->security->getUser());
-		$queryResult = $inventoryMissionRepository->findMissionsByParamsAndFilters($params, $filters);
+        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_INV_MISSIONS, $this->security->getUser());
+        $queryResult = $inventoryMissionRepository->findMissionsByParamsAndFilters($params, $filters);
 
-		$missions = $queryResult['data'];
+        $missions = $queryResult['data'];
 
-		$rows = [];
-		foreach ($missions as $mission) {
-			$rows[] = $this->dataRowMission($mission);
-		}
+        $rows = [];
+        foreach ($missions as $mission) {
+            $rows[] = $this->dataRowMission($mission);
+        }
 
-		return [
-			'data' => $rows,
-			'recordsFiltered' => $queryResult['count'],
-			'recordsTotal' => $queryResult['total'],
-		];
-	}
+        return [
+            'data' => $rows,
+            'recordsFiltered' => $queryResult['count'],
+            'recordsTotal' => $queryResult['total'],
+        ];
+    }
 
-	/**
-	 * @param InventoryMission $mission
-	 * @return array
-	 * @throws LoaderError
-	 * @throws RuntimeError
-	 * @throws SyntaxError
-	 */
-	public function dataRowMission($mission)
-	{
+    public function dataRowMission($mission): array {
         $inventoryMissionRepository = $this->entityManager->getRepository(InventoryMission::class);
         $inventoryEntryRepository = $this->entityManager->getRepository(InventoryEntry::class);
         $articleRepository = $this->entityManager->getRepository(Article::class);
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
 
-		$nbArtInMission = $articleRepository->countByMission($mission);
-		$nbRefInMission = $referenceArticleRepository->countByMission($mission);
-		$nbEntriesInMission = $inventoryEntryRepository->countByMission($mission);
+        $nbArtInMission = $articleRepository->countByMission($mission);
+        $nbRefInMission = $referenceArticleRepository->countByMission($mission);
+        $nbEntriesInMission = $inventoryEntryRepository->countByMission($mission);
 
-		$rateBar = (($nbArtInMission + $nbRefInMission) != 0)
+        $rateBar = (($nbArtInMission + $nbRefInMission) != 0)
             ? ($nbEntriesInMission * 100 / ($nbArtInMission + $nbRefInMission))
             : 0;
 
-		$row =
-			[
-				'StartDate' => $mission->getStartPrevDate() ? $mission->getStartPrevDate()->format('d/m/Y') : '',
-				'EndDate' => $mission->getEndPrevDate() ? $mission->getEndPrevDate()->format('d/m/Y') : '',
-				'Anomaly' => $inventoryMissionRepository->countAnomaliesByMission($mission) > 0,
-				'Rate' => $this->templating->render('inventaire/datatableMissionsBar.html.twig', [
-					'rateBar' => $rateBar
-				]),
-				'Actions' => $this->templating->render('inventaire/datatableMissionsRow.html.twig', [
-					'missionId' => $mission->getId(),
-				]),
-			];
-		return $row;
-	}
+        return [
+            'name' => $mission->getName() ?? '',
+            'start' => FormatHelper::date($mission->getStartPrevDate()),
+            'end' => FormatHelper::date($mission->getEndPrevDate()),
+            'anomaly' => $inventoryMissionRepository->countAnomaliesByMission($mission) > 0,
+            'rate' => $this->templating->render('inventaire/datatableMissionsBar.html.twig', [
+                'rateBar' => $rateBar,
+            ]),
+            'delete' => $this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)
+                ? $this->templating->render('datatable/trash.html.twig', [
+                    'id' => $mission->getId(),
+                    'modal' => '#modalDeleteMission',
+                    'route' => 'mission_check_delete',
+                    'submit' => '#submitDeleteMission',
+                ]) : [],
+            'actions' => $this->templating->render('inventaire/datatableMissionsRow.html.twig', [
+                'id' => $mission->getId(),
+            ]),
+        ];
+    }
 
     public function getDataForOneMissionDatatable(InventoryMission $mission,
-                                                  ParameterBag $params = null,
-                                                  $isArticle = true)
-    {
+                                                  ParameterBag     $params = null,
+                                                                   $isArticle = true): array {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $inventoryMissionRepository = $this->entityManager->getRepository(InventoryMission::class);
 
-		$filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_INV_SHOW_MISSION, $this->security->getUser());
+        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_INV_SHOW_MISSION, $this->security->getUser());
 
-		$queryResult = $isArticle
+        $queryResult = $isArticle
             ? $inventoryMissionRepository->findArtByMissionAndParamsAndFilters($mission, $params, $filters)
             : $inventoryMissionRepository->findRefByMissionAndParamsAndFilters($mission, $params, $filters);
 
@@ -132,10 +124,11 @@ class InvMissionService
 
         $index = intval($params->all('order')[0]['column']);
         if ($rows) {
-        	$columnName = array_keys($rows[0])[$index];
-        	$column = array_column($rows, $columnName);
-        	array_multisort($column, $params->all('order')[0]['dir'] === "asc" ? SORT_ASC : SORT_DESC, $rows);
-		}
+            $columnName = array_keys($rows[0])[$index];
+            $column = array_column($rows, $columnName);
+            array_multisort($column, $params->all('order')[0]['dir'] === "asc" ? SORT_ASC : SORT_DESC, $rows);
+        }
+
         return [
             'data' => $rows,
             'recordsTotal' => $queryResult['total'],
@@ -143,8 +136,7 @@ class InvMissionService
         ];
     }
 
-    public function dataRowRefMission(ReferenceArticle $ref, InventoryMission $mission): array
-    {
+    public function dataRowRefMission(ReferenceArticle $ref, InventoryMission $mission): array {
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
         $inventoryEntry = $this->entityManager->getRepository(InventoryEntry::class)->findOneBy(['refArticle' => $ref, 'mission' => $mission]);
         $refDateAndQuantity = $referenceArticleRepository->getEntryByMission($mission, $ref);
@@ -162,7 +154,7 @@ class InvMissionService
 
         $actionData = [
             "referenceId" => $ref->getId(),
-            "missionId" => $mission->getId()
+            "missionId" => $mission->getId(),
         ];
 
         if ($inventoryEntry) {
@@ -172,18 +164,13 @@ class InvMissionService
         $row['Actions'] = $this->templating->render('saisie_inventaire/inventoryEntryRefArticleRow.html.twig', [
             'inventoryData' => Stream::from($actionData)
                 ->map(fn(string $value, string $key) => "${key}: ${value}")
-                ->join(';')
+                ->join(';'),
         ]);
 
         return $row;
     }
 
-	/**
-	 * @param Article $art
-	 * @param InventoryMission $mission
-	 * @return array
-     */
-    public function dataRowArtMission($art, $mission) {
+    public function dataRowArtMission($art, $mission): array {
         $articleRepository = $this->entityManager->getRepository(Article::class);
 
         $artDateAndQuantity = $articleRepository->getEntryByMission($mission, $art);
@@ -199,30 +186,19 @@ class InvMissionService
         );
     }
 
-    /**
-     * @param Emplacement|null $emplacement
-     * @param string|null $reference
-     * @param string|null $codeBarre
-     * @param string|null $label
-     * @param DateTimeInterface|null $date
-     * @param string|null $anomaly
-     * @param string|null $quantiteStock
-     * @param string|null $quantiteComptee
-     * @return array
-     */
-    private function dataRowMissionArtRef(?Emplacement $emplacement,
-                                          ?string $reference,
-                                          ?string $codeBarre,
-                                          ?string $label,
+    private function dataRowMissionArtRef(?Emplacement       $emplacement,
+                                          ?string            $reference,
+                                          ?string            $codeBarre,
+                                          ?string            $label,
                                           ?DateTimeInterface $date,
-                                          ?string $anomaly,
-                                          ?string $quantiteStock,
-                                          ?string $quantiteComptee
-                                          ): array {
+                                          ?string            $anomaly,
+                                          ?string            $quantiteStock,
+                                          ?string            $quantiteComptee): array {
         if ($emplacement) {
             $location = $emplacement->getLabel();
             $emptyLocation = false;
-        } else {
+        }
+        else {
             $location = '<i class="fas fa-exclamation-triangle red" title="Aucun emplacement défini : n\'apparaîtra sur le nomade."></i>';
             $emptyLocation = true;
         }
@@ -236,7 +212,7 @@ class InvMissionService
             'Anomaly' => $anomaly,
             'QuantiteStock' => $quantiteStock,
             'QuantiteComptee' => $quantiteComptee,
-            'EmptyLocation' => $emptyLocation
+            'EmptyLocation' => $emptyLocation,
         ];
     }
 }

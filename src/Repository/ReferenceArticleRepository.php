@@ -1297,4 +1297,14 @@ class ReferenceArticleRepository extends EntityRepository {
             ->keymap(fn(ReferenceArticle $reference) => [$reference->getId(), $reference])
             ->toArray();
     }
+
+    public function countRefArtByMission(int $mission): int {
+        return $this->createQueryBuilder('reference_article')
+            ->select('COUNT(reference_article)')
+            ->join('reference_article.inventoryMissions', 'inventory_missions')
+            ->where('inventory_missions.id = :mission')
+            ->setParameter('mission', $mission)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }
