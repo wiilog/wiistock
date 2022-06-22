@@ -586,10 +586,14 @@ class RoundController extends AbstractController {
                         $orderStatusHistory = $statusHistoryService->updateStatus($entityManager, $transportOrder, $orderOngoingStatus);
                     }
 
-                    $transportHistoryService->persistTransportHistory($entityManager, [$transportRequest, $transportOrder], TransportHistoryService::TYPE_AFFECTED_ROUND, [
+                    $transportHistoryService->persistTransportHistory($entityManager, $transportOrder, TransportHistoryService::TYPE_AFFECTED_ROUND, [
                         'user' => $this->getUser(),
                         'deliverer' => $transportRound->getDeliverer(),
                         'round' => $transportRound,
+                        'history' => $orderStatusHistory,
+                    ]);
+
+                    $transportHistoryService->persistTransportHistory($entityManager, $transportRequest,  TransportHistoryService::TYPE_REQUEST_AFFECTED_ROUND, [
                         'history' => $orderStatusHistory,
                     ]);
 

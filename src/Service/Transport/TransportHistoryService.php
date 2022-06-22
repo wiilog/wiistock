@@ -34,6 +34,7 @@ class TransportHistoryService {
     public const TYPE_REQUEST_CREATION = "CREATED";
     public const TYPE_BOTH_REQUEST_CREATION = "CREATED_BOTH";
     public const TYPE_AFFECTED_ROUND = "AFFECTED_ROUND";
+    public const TYPE_REQUEST_AFFECTED_ROUND = "REQUEST_AFFECTED_ROUND";
     public const TYPE_CONTACT_VALIDATED = "CONTACT_VALIDATED";
     public const TYPE_LABELS_PRINTING = "PREPARED_DELIVERY";
     public const TYPE_ONGOING = "ONGOING";
@@ -59,6 +60,7 @@ class TransportHistoryService {
         self::TYPE_REQUEST_CREATION => "{user} a créé la {category}",
         self::TYPE_BOTH_REQUEST_CREATION => "{user} a créé la livraison et une collecte",
         self::TYPE_AFFECTED_ROUND => "{user} a affecté la {category} à la tournée {round} et au livreur {deliverer}",
+        self::TYPE_REQUEST_AFFECTED_ROUND => "La {category} a été affectée sur une tournée",
         self::TYPE_CONTACT_VALIDATED => "{user} a validé la date de collecte avec le patient",
         self::TYPE_LABELS_PRINTING => "{user} a préparé la livraison",
         self::TYPE_ONGOING => "{user} a débuté la {category}",
@@ -224,7 +226,6 @@ class TransportHistoryService {
 
     private function getCategoryFromType(string $type): string {
         return match($type) {
-            self::TYPE_REQUEST_CREATION,
             self::TYPE_BOTH_REQUEST_CREATION,
             self::TYPE_LABELS_PRINTING,
             self::TYPE_ONGOING,
@@ -235,9 +236,11 @@ class TransportHistoryService {
             self::TYPE_SUBCONTRACTED,
             self::TYPE_ACCEPTED,
             self::TYPE_AWAITING_PLANNING,
+            self::TYPE_AFFECTED_ROUND,
+            self::TYPE_REQUEST_AFFECTED_ROUND,
             self::TYPE_PACKS_DEPOSITED => self::CATEGORY_TIMELINE,
 
-            self::TYPE_AFFECTED_ROUND,
+            self::TYPE_REQUEST_CREATION,
             self::TYPE_REQUEST_EDITED,
             self::TYPE_PACKS_FAILED,
             self::TYPE_CONTACT_VALIDATED => self::CATEGORY_INFORMATION,

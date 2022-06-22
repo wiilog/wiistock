@@ -889,4 +889,14 @@ class TransportService {
             ])
             ->values();
     }
+
+    /**
+     * @param string $hour format H:i
+     */
+    public function hourToTimeSlot( EntityManagerInterface $entityManager, string $hour) : ?CollectTimeSlot{
+        $timeSlotRepository = $entityManager->getRepository(CollectTimeSlot::class);
+        $timeSlots = $timeSlotRepository->findAll();
+        return Stream::from($timeSlots)->find(fn(CollectTimeSlot $timeSlot) => strtotime($timeSlot->getStart()) < strtotime($hour) && strtotime($timeSlot->getEnd()) > strtotime($hour));
+    }
+
 }

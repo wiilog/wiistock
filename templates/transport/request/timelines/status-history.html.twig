@@ -77,7 +77,11 @@
                             Estimée à : <span class="wii-big-text">Non disponible</span>
                         {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ASSIGNED') %}
                             {% if transport is instanceof('App\\Entity\\Transport\\TransportRequest') %}
-                                Estimée à : <span class="transport-value">{{ roundLine ? (roundLine.estimatedAt | date('H:i')) : (timeSlot ? timeSlot.name : transport.expectedAt | date('H:i')) }}</span>
+                                {% if entity is instanceof('App\\Entity\\Transport\\TransportRequest') %}
+                                    Estimée à : <span class="transport-value">{{ estimatedTimeSlot.name ?? "-"}}</span>
+                                {% else %}
+                                    Estimée à : <span class="transport-value">{{ roundLine ? (roundLine.estimatedAt | date('H:i')) : (timeSlot ? timeSlot.name : transport.expectedAt | date('H:i')) }}</span>
+                                {% endif %}
                             {% else %}
                                 Estimée à : <span class="transport-value">{{ transport.expectedAt | date('H:i') }}</span>
                             {% endif %}
@@ -96,7 +100,11 @@
                         {% if not order or order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_TO_ASSIGN') or order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_TO_CONTACT') %}
                             Estimée à : <span class="transport-value">-</span>
                         {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ASSIGNED') %}
-                            Estimée à : <span class="transport-value">{{ transport.timeSlot.name }}</span>
+                            {% if entity is instanceof('App\\Entity\\Transport\\TransportRequest') %}
+                                Estimée à : <span class="transport-value">{{ estimatedTimeSlot.name ?? "-" }}</span>
+                            {% else %}
+                                Estimée à : <span class="transport-value">{{  roundLine ? (roundLine.estimatedAt | date('H:i')) : (timeSlot ? timeSlot.name : transport.expectedAt | date('H:i'))  }}</span>
+                            {% endif %}
                         {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ONGOING') %}
                             Estimée à : <span class="transport-value">{{ roundLine ? roundLine.estimatedAt | date('H:i') : '-' }}</span>
                         {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_FINISHED') %}
