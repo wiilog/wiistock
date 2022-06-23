@@ -67,6 +67,7 @@
             <div class="title-right text-left {{ followingStatus in finishedStatusesName and transport is instanceof('App\\Entity\\Transport\\TransportRequest')? 'future' : 'bg-transparent' }}">
                 {% if followingStatus in finishedStatusesName %}
                     <span class="ml-2  ">
+                        Estimé à : <span class="wii-big-text">TUTUTE</span>
                     {% if transport is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
                         {% if not order or order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_TO_ASSIGN') %}
                             Estimée à : <span class="transport-value">-</span>
