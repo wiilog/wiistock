@@ -205,7 +205,7 @@ class TransportController extends AbstractFOSRestController {
                 ->sort(fn(TransportRoundLine $a, TransportRoundLine $b) => (($a->getFulfilledAt() !== null) <=> ($b->getFulfilledAt() !== null)))
                 ->map(fn(TransportRoundLine $line) => $this->serializeTransport($manager, $line)),
             "to_finish" => Stream::from($lines)
-                ->map(fn(TransportRoundLine $line) => $line->getFulfilledAt() || $line->getCancelledAt())
+                ->map(fn(TransportRoundLine $line) => $line->getFulfilledAt() || $line->getCancelledAt() || $line->getOrder()->getFailedAt() || $line->getOrder()->getRejectedAt())
                 ->every(),
         ];
     }
@@ -498,22 +498,23 @@ class TransportController extends AbstractFOSRestController {
             ->setRealDistance($transportRoundService->calculateRoundRealDistance($round, $geoService))
             ->setEndedAt($now);
 
-        $allCollectsReturned = Stream::from($round->getTransportRoundLines())
+        $collectsToReturn = Stream::from($round->getTransportRoundLines())
             ->filterMap(fn(TransportRoundLine $line) => $line->getOrder()->getRequest() instanceof TransportCollectRequest
                 ? $line->getOrder()->getRequest()
                 : $line->getOrder()->getRequest()->getCollect())
             ->flatMap(fn(TransportCollectRequest $collect) => $collect->getLines())
-            ->filter(fn(TransportCollectRequestLine $line) => $line->getQuantityToCollect() != 0)
-            ->isEmpty();
-        if($allCollectsReturned) {
+            ->filter(fn(TransportCollectRequestLine $line) => $line->getCollectedQuantity() != 0)
+            ->count();
+
+        if($collectsToReturn === 0) {
             $round->setNoCollectToReturn(true);
         }
 
-        $allDeliveriesReturned = Stream::from($round->getTransportRoundLines())
+        $deliveriesWithPacksToReturn = Stream::from($round->getTransportRoundLines())
             ->filter(fn(TransportRoundLine $line) => Stream::from($line->getOrder()->getPacks())
                 ->some(fn(TransportDeliveryOrderPack $pack) => $pack->getState() === TransportDeliveryOrderPack::LOADED_STATE))
             ->count();
-        if($allDeliveriesReturned === 0) {
+        if($deliveriesWithPacksToReturn === 0) {
             $round->setNoDeliveryToReturn(true);
         }
 
@@ -755,11 +756,8 @@ class TransportController extends AbstractFOSRestController {
         if(!$isEdit) {
             $order->setTreatedAt($now);
 
-            $isCollectFromDelivery = $request instanceof TransportCollectRequest && $request->getDelivery();
-            if (!$isCollectFromDelivery) {
-                $lastLine = $order->getTransportRoundLines()->last();
-                $lastLine->setFulfilledAt($now);
-            }
+            $lastLine = $order->getTransportRoundLines()->last();
+            $lastLine->setFulfilledAt($now);
 
             if ($request instanceof TransportDeliveryRequest) {
                 foreach ($order->getPacks() as $line) {
@@ -932,11 +930,8 @@ class TransportController extends AbstractFOSRestController {
             $order->setTreatedAt($now);
             $order->setFailedAt($now);
 
-            $isCollectFromDelivery = $request instanceof TransportCollectRequest && $request->getDelivery();
-            if (!$isCollectFromDelivery) {
-                $lastLine = $order->getTransportRoundLines()->last();
-                $lastLine->setFulfilledAt($now);
-            }
+            $lastLine = $order->getTransportRoundLines()->last();
+            $lastLine->setFulfilledAt($now);
 
             foreach ([$request, $order] as $entity) {
                 if ($entity instanceof TransportOrder) {

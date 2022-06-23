@@ -194,7 +194,6 @@ class TransportService {
                 ]);
             }
             elseif ($status == TransportRequest::STATUS_AWAITING_VALIDATION) {
-                $settingRepository = $entityManager->getRepository(Setting::class);
                 $this->transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_AWAITING_VALIDATION, [
                     'user' => $loggedUser,
                 ]);
@@ -219,6 +218,15 @@ class TransportService {
                 'user' => $loggedUser,
                 'history' => $statusHistory ?? null
             ]);
+
+            if ($transportOrder) {
+                $this->transportHistoryService->persistTransportHistory(
+                    $entityManager,
+                    $transportOrder,
+                    TransportHistoryService::TYPE_REQUEST_EDITED,
+                    [ 'user' => $loggedUser,]
+                );
+            }
 
             if ($canChangeStatus) {
                 if ($subcontracted) {
@@ -283,16 +291,6 @@ class TransportService {
         else if (!$orderInRound) {
             $this->updateOrderInitialStatus($entityManager, $transportRequest, $transportOrder, $loggedUser);
         }
-
-        if (!$creation && $transportOrder) {
-            $this->transportHistoryService->persistTransportHistory(
-                $entityManager,
-                $transportOrder,
-                TransportHistoryService::TYPE_REQUEST_EDITED,
-                [ 'user' => $loggedUser,]
-            );
-        }
-
 
         $linesResult = $this->updateTransportRequestLines($entityManager, $transportRequest, $data);
 
