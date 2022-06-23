@@ -83,6 +83,9 @@ class TransportOrder extends StatusHistoryContainer {
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $treatedAt = null;
 
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?DateTime $failedAt = null;
+
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $comment = null;
 
@@ -205,6 +208,16 @@ class TransportOrder extends StatusHistoryContainer {
 
     public function setTreatedAt(?DateTime $treatedAt): self {
         $this->treatedAt = $treatedAt;
+
+        return $this;
+    }
+
+    public function getFailedAt(): ?DateTime {
+        return $this->failedAt;
+    }
+
+    public function setFailedAt(?DateTime $failedAt): self {
+        $this->failedAt = $failedAt;
 
         return $this;
     }

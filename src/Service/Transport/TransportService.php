@@ -194,7 +194,6 @@ class TransportService {
                 ]);
             }
             elseif ($status == TransportRequest::STATUS_AWAITING_VALIDATION) {
-                $settingRepository = $entityManager->getRepository(Setting::class);
                 $this->transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_AWAITING_VALIDATION, [
                     'user' => $loggedUser,
                 ]);
@@ -220,6 +219,15 @@ class TransportService {
                 'history' => $statusHistory ?? null
             ]);
 
+            if ($transportOrder) {
+                $this->transportHistoryService->persistTransportHistory(
+                    $entityManager,
+                    $transportOrder,
+                    TransportHistoryService::TYPE_REQUEST_EDITED,
+                    [ 'user' => $loggedUser,]
+                );
+            }
+
             if ($canChangeStatus) {
                 if ($subcontracted) {
                     if ($oldStatus->getCode() !== TransportRequest::STATUS_SUBCONTRACTED) {
@@ -236,9 +244,6 @@ class TransportService {
                 else if ($oldStatus->getCode() !== TransportRequest::STATUS_AWAITING_VALIDATION
                     && $status->getCode() === TransportRequest::STATUS_AWAITING_VALIDATION) {
                     $settingRepository = $entityManager->getRepository(Setting::class);
-                    $this->transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_NO_MONITORING, [
-                        'message' => $settingRepository->getOneParamByLabel(Setting::NON_BUSINESS_HOURS_MESSAGE) ?: ''
-                    ]);
                     $this->transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_AWAITING_VALIDATION, [
                         'user' => $loggedUser,
                     ]);
@@ -283,16 +288,6 @@ class TransportService {
         else if (!$orderInRound) {
             $this->updateOrderInitialStatus($entityManager, $transportRequest, $transportOrder, $loggedUser);
         }
-
-        if (!$creation && $transportOrder) {
-            $this->transportHistoryService->persistTransportHistory(
-                $entityManager,
-                $transportOrder,
-                TransportHistoryService::TYPE_REQUEST_EDITED,
-                [ 'user' => $loggedUser,]
-            );
-        }
-
 
         $linesResult = $this->updateTransportRequestLines($entityManager, $transportRequest, $data);
 
@@ -851,18 +846,22 @@ class TransportService {
         return $packs
             ->keymap(fn(TransportDeliveryOrderPack $pack, int $index) => [(string) ($index + 1), $pack])
             ->filter(fn(TransportDeliveryOrderPack $pack) => ($filteredPacksEmpty || in_array($pack->getId(), $deliveryPackIds)))
-            ->map(fn(TransportDeliveryOrderPack $pack, int $position) => [
-                'code' => $pack->getPack()->getCode(),
-                'labels' => [
-                    ...(strlen($contactName) > 25
-                        ? [$contactName, $contactFileNumber]
-                        : ["$contactName - $contactFileNumber"]),
-                    ...$cleanedContactAddress,
-                    ($temperatureRanges[$pack->getPack()?->getNature()?->getLabel()] ?? ''),
-                    "$position/$total"
-                ],
-                'logo' => $logo
-            ])
+            ->map(function(TransportDeliveryOrderPack $pack, int $position) use ($logo, $contactName, $contactFileNumber, $cleanedContactAddress, $total, $temperatureRanges) {
+                $temperatureRange = $temperatureRanges[$pack->getPack()?->getNature()?->getLabel()] ?? null;
+
+                return [
+                    'code' => $pack->getPack()->getCode(),
+                    'labels' => [
+                        ...(strlen($contactName) > 25
+                            ? [$contactName, $contactFileNumber]
+                            : ["$contactName - $contactFileNumber"]),
+                        ...$cleanedContactAddress,
+                        ...($temperatureRange ? [$temperatureRange] : []),
+                        "$position/$total"
+                    ],
+                    'logo' => $logo
+                ];
+            })
             ->values();
     }
 

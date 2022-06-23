@@ -153,7 +153,9 @@
                                     </span>
                                 </div>
                                 {# only when the order has not been assigned to a round #}
-                                {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT_TRANSPORT')) and (round is null or not request_collect.validatedDate or request_collect.status.code == constant('App\\Entity\\Transport\\TransportRequest::STATUS_NOT_COLLECTED')) %}
+                                {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT_TRANSPORT'))
+                                    and ( request_collect.order.status.code == constant('App\\Entity\\Transport\\TransportOrder::STATUS_TO_CONTACT' )
+                                        or request_collect.order.status.code == constant('App\\Entity\\Transport\\TransportOrder::STATUS_TO_ASSIGN' )) %}
                                     <button class="btn btn-primary minw-105px submit-button"
                                             data-target="#modalCollectTimeSlot"
                                             data-toggle='modal'>
@@ -339,7 +341,11 @@
         </div>
     </div>
 
-    {% if request_collect and not request_delivery %}
+    {% if ( request_collect and not request_delivery )
+        and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT_TRANSPORT'))
+        and ( request_collect.order.status.code == constant('App\\Entity\\Transport\\TransportOrder::STATUS_TO_CONTACT' )
+            or request_collect.order.status.code == constant('App\\Entity\\Transport\\TransportOrder::STATUS_TO_ASSIGN' )) %}
+
         {% include 'transport/order/modal_collect_time_slot.html.twig' with {
             timeSlots: timeSlots ,
             order: order,
