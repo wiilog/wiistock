@@ -237,6 +237,15 @@ class RoundController extends AbstractController {
 
         $vehicle = $transportRound->getVehicle() ?? $transportRound->getDeliverer()?->getVehicle();
 
+        $containsOnlyCollect = true;
+
+        foreach ($transportRound->getTransportRoundLines() as $line){
+            if($line->getOrder()->getRequest() instanceof TransportDeliveryRequest){
+                $containsOnlyCollect = false;
+            }
+            break;
+        }
+
         return $this->render('transport/round/show.html.twig', [
             "transportRound" => $transportRound,
             "realTime" => $realTime,
@@ -247,7 +256,8 @@ class RoundController extends AbstractController {
             "roundDateBegan" => $transportDateBeganAt,
             "hasSomeDelivery" => $hasSomeDelivery,
             "hasExceededThresholdUnder" => $vehicle->getActivePairing() ? $vehicle?->getActivePairing()->hasExceededThresholdUnder() : false,
-            "hasExceededThresholdOver" => $vehicle->getActivePairing() ? $vehicle?->getActivePairing()->hasExceededThresholdOver() : false
+            "hasExceededThresholdOver" => $vehicle->getActivePairing() ? $vehicle?->getActivePairing()->hasExceededThresholdOver() : false,
+            "containsOnlyCollect" => $containsOnlyCollect
         ]);
     }
 

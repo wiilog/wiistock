@@ -16,14 +16,16 @@
                     <div class="header">
                         <div class="d-flex w-100 justify-content-between">
                             <div class="d-flex align-items-center">
-                                {% if hasExceededThresholdUnder is defined and hasExceededThresholdUnder %}
-                                    <img src="{{ asset('svg/temperature-bleu.svg') }}" width="20px" height="20px"
-                                         class="has-tooltip"
-                                         title="Une température relevée est en dessous du seuil.">
-                                {% elseif hasExceededThresholdOver is defined and hasExceededThresholdOver %}
-                                    <img src="{{ asset('svg/temperature-rouge.svg') }}" width="20px" height="20px"
-                                         class="has-tooltip"
-                                         title="Une température relevée est au dessus du seuil.">
+                                {% if containsOnlyCollect is defined and containsOnlyCollect %}
+                                    {% if hasExceededThresholdUnder is defined and hasExceededThresholdUnder %}
+                                        <img src="{{ asset('svg/temperature-bleu.svg') }}" width="20px" height="20px"
+                                             class="has-tooltip"
+                                             title="Une température relevée est en dessous du seuil.">
+                                    {% elseif hasExceededThresholdOver is defined and hasExceededThresholdOver %}
+                                        <img src="{{ asset('svg/temperature-rouge.svg') }}" width="20px" height="20px"
+                                             class="has-tooltip"
+                                             title="Une température relevée est au dessus du seuil.">
+                                    {% endif %}
                                 {% endif %}
                                 <div class="d-flex flex-column">
                                     <span class="wii-title" title="Acheminement">Tournée</span>
