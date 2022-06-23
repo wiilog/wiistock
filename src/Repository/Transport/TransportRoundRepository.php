@@ -183,7 +183,7 @@ class TransportRoundRepository extends EntityRepository {
         return $this->createQueryBuilder("round")
             ->join("round.status", "status")
             ->andWhere("round.deliverer = :deliverer")
-            ->andWhere("round.expectedAt = :now")
+            ->andWhere("DATE_FORMAT(round.expectedAt, '%Y-%m-%d') = DATE_FORMAT(:now, '%Y-%m-%d')")
             ->andWhere("status.code != :finished")
             ->setParameter("deliverer", $deliverer)
             ->setParameter("now", $now)
