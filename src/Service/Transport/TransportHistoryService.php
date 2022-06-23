@@ -235,12 +235,12 @@ class TransportHistoryService {
             self::TYPE_SUBCONTRACTED,
             self::TYPE_ACCEPTED,
             self::TYPE_AWAITING_PLANNING,
-            self::TYPE_PACKS_DEPOSITED => self::CATEGORY_TIMELINE,
+            self::TYPE_PACKS_DEPOSITED,
+            self::TYPE_CONTACT_VALIDATED => self::CATEGORY_TIMELINE,
 
             self::TYPE_AFFECTED_ROUND,
             self::TYPE_REQUEST_EDITED,
-            self::TYPE_PACKS_FAILED,
-            self::TYPE_CONTACT_VALIDATED => self::CATEGORY_INFORMATION,
+            self::TYPE_PACKS_FAILED => self::CATEGORY_INFORMATION,
 
             self::TYPE_DROP_REJECTED_PACK,
             self::TYPE_FAILED,
