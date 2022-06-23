@@ -227,7 +227,6 @@ class TransportHistoryService {
     private function getCategoryFromType(string $type): string {
         return match($type) {
             self::TYPE_BOTH_REQUEST_CREATION,
-            self::TYPE_LABELS_PRINTING,
             self::TYPE_ONGOING,
             self::TYPE_FINISHED,
             self::TYPE_FINISHED_BOTH,
@@ -241,6 +240,7 @@ class TransportHistoryService {
             self::TYPE_CONTACT_VALIDATED => self::CATEGORY_TIMELINE,
 
             self::TYPE_REQUEST_CREATION,
+            self::TYPE_LABELS_PRINTING,
             self::TYPE_AFFECTED_ROUND,
             self::TYPE_REQUEST_EDITED,
             self::TYPE_PACKS_FAILED => self::CATEGORY_INFORMATION,
