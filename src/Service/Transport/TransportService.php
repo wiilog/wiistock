@@ -449,27 +449,6 @@ class TransportService {
         ];
     }
 
-    public function getTimeslot(EntityManagerInterface $manager, DateTime $date): ?CollectTimeSlot {
-        $timeSlotRepository = $manager->getRepository(CollectTimeSlot::class);
-        $timeSlots = $timeSlotRepository->findAll();
-
-        $hour = $date->format("H");
-        $minute = $date->format("i");
-        foreach($timeSlots as $timeSlot) {
-            [$startHour, $startMinute] = explode(":", $timeSlot->getStart());
-            [$endHour, $endMinute] = explode(":", $timeSlot->getEnd());
-
-            $isAfterStart = $hour > $startHour || ($hour == $startHour && $minute >= $startMinute);
-            $isBeforeEnd = $hour < $endHour || ($hour == $endHour && $minute <= $endMinute);
-
-            if ($isAfterStart && $isBeforeEnd) {
-                return $timeSlot;
-            }
-        }
-
-        return null;
-    }
-
     #[ArrayShape(["createdPacks" => 'array'])]
     public function updateTransportRequestLines(EntityManagerInterface $entityManager,
                                                 TransportRequest       $transportRequest,
@@ -886,4 +865,14 @@ class TransportService {
             ])
             ->values();
     }
+
+    /**
+     * @param string $hour format H:i
+     */
+    public function hourToTimeSlot( EntityManagerInterface $entityManager, string $hour) : ?CollectTimeSlot{
+        $timeSlotRepository = $entityManager->getRepository(CollectTimeSlot::class);
+        $timeSlots = $timeSlotRepository->findAll();
+        return Stream::from($timeSlots)->find(fn(CollectTimeSlot $timeSlot) => strtotime($timeSlot->getStart()) <= strtotime($hour) && strtotime($timeSlot->getEnd()) >= strtotime($hour));
+    }
+
 }
