@@ -768,8 +768,7 @@ class RoundController extends AbstractController {
     #[Route("/bon-de-transport/{transportRound}", name: "print_round_note", options: ['expose' => true], methods: "GET")]
     #[HasPermission([Menu::DEM, Action::DISPLAY_TRANSPORT])]
     public function printTransportNote(TransportRound $transportRound,
-                                       PDFGeneratorService $pdfService,
-                                       EntityManagerInterface $entityManager): Response {
+                                       PDFGeneratorService $pdfService): Response {
 
         return new PdfResponse(
             $pdfService->generatePDFTransportRound($transportRound),

@@ -9,6 +9,10 @@
             height: {{ height }}mm;
             position: relative;
         }
+        .barcode-container.landscape-container {
+            display: table-cell;
+            vertical-align: middle;
+        }
 
         .landscape {
             width: 35%;
@@ -166,7 +170,7 @@
         <div class="page-breaker"></div>
     {% endif %}
 
-    <div class="barcode-container">
+    <div class="barcode-container {{ landscape ? 'landscape-container' }}">
         {% if hasHeader %}
             <div class="header-wrapper">
                 <div class="header">
@@ -243,7 +247,7 @@
                     <text y="{{ loop.index * heightFontScale }}"
                           x="50%"
                           text-anchor="middle"
-                          font-size="{{ landscape and loop.index == 1 ? '1.4px' : 1 }}"
+                          font-size="{{ landscape and loop.index == 1 ? '1.2' : 1 }}"
                           font-weight="{{ landscape and loop.index == 1 ? '700' }}">
                         {{ label | trim }}
                     </text>
