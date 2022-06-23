@@ -697,6 +697,7 @@ class RequestController extends AbstractController {
         if ($transportRequest instanceof TransportCollectRequest) {
             $collectNatures = $natureRepository->findByAllowedForms([Nature::TRANSPORT_COLLECT_CODE]);
             $requestLines = Stream::from($collectNatures)
+                ->sort(fn(Nature $a, Nature $b) => StringService::mbstrcmp($a->getLabel(), $b->getLabel()))
                 ->map(function(Nature $nature) use ($transportRequest) {
                     /** @var TransportCollectRequestLine $line */
                     $line = $transportRequest->getLine($nature);
@@ -711,6 +712,7 @@ class RequestController extends AbstractController {
         else if ($transportRequest instanceof TransportDeliveryRequest) {
             $deliveryNatures = $natureRepository->findByAllowedForms([Nature::TRANSPORT_DELIVERY_CODE]);
             $requestLines = Stream::from($deliveryNatures)
+                ->sort(fn(Nature $a, Nature $b) => StringService::mbstrcmp($a->getLabel(), $b->getLabel()))
                 ->map(function(Nature $nature) use ($transportRequest) {
                     /** @var TransportDeliveryRequestLine $line */
                     $line = $transportRequest->getLine($nature);
