@@ -8,6 +8,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
+use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Transport\TransportCollectRequest;
 use App\Entity\Transport\TransportOrder;
@@ -151,6 +152,7 @@ class SubcontractController extends AbstractController
                                            TransportService        $transportService): Response {
         $transportRequestRepository = $entityManager->getRepository(TransportRequest::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
 
         $requestId = $request->query->getInt('requestId');
         $buttonType = $request->query->get('buttonType');
@@ -179,6 +181,10 @@ class SubcontractController extends AbstractController
                 TransportRequest::STATUS_SUBCONTRACTED
             );
             $transportHistoryType = TransportHistoryService::TYPE_SUBCONTRACTED;
+
+            $transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_NO_MONITORING, [
+                'message' => $settingRepository->getOneParamByLabel(Setting::NON_BUSINESS_HOURS_MESSAGE) ?: ''
+            ]);
         }
 
         $statusHistory = $statusHistoryService->updateStatus($entityManager, $transportRequest, $status);

@@ -293,30 +293,18 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
             ],
         ];
 
-        $selectedByDefault = [
-            Menu::QUALI => [
-                Action::TREAT_DISPUTE,
-            ],
-            Menu::NOMADE => [
-                Action::MODULE_ACCESS_STOCK,
-                Action::MODULE_ACCESS_TRACA,
-                Menu::NOMADE => Action::MODULE_ACCESS_HAND,
-            ],
-        ];
-
         $actionRepository = $manager->getRepository(Action::class);
 
         $this->deleteUnusedActionsAndMenus($actionRepository, $manager);
         $manager->flush();
-        $this->createNewActions(self::MENUS, $actionRepository, $manager, $subActions, $selectedByDefault);
+        $this->createNewActions(self::MENUS, $actionRepository, $manager, $subActions);
         $manager->flush();
     }
 
     public function createNewActions(array            $menus,
                                      ActionRepository $actionRepository,
                                      ObjectManager    $manager,
-                                     array            $subActions,
-                                     array            $selectedByDefault) {
+                                     array            $subActions) {
 
         $roles = $manager->getRepository(Role::class)->findBy([]);
         $subMenuRepository = $manager->getRepository(SubMenu::class);
@@ -350,11 +338,6 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                             ->setSubMenu($subMenu)
                             ->setDisplayOrder($counter);
 
-                        if(array_key_exists($menuCode, $selectedByDefault) && in_array($value, $selectedByDefault[$menuCode])) {
-                            foreach($roles as $role) {
-                                $action->addRole($role);
-                            }
-                        }
                         $counter++;
                     }
                     $manager->flush();
@@ -369,12 +352,6 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                             ->setLabel($actionLabel)
                             ->setMenu($this->getReference("menu-$menuCode"));
 
-                        // actions à sélectionner par défaut
-                        if(array_key_exists($menuCode, $selectedByDefault) && in_array($actionLabel, $selectedByDefault[$menuCode])) {
-                            foreach($roles as $role) {
-                                $action->addRole($role);
-                            }
-                        }
                         $manager->persist($action);
                         $this->output->writeln("création de l'action " . $menuCode . " / " . $actionLabel);
                     }

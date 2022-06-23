@@ -52,6 +52,9 @@
             color: $black;
 
             .title-left {
+                display: flex;
+                justify-content: center;
+                align-items: center;
                 font-size: 17px;
                 border-radius: 20px;
                 text-align: center;
@@ -385,6 +388,9 @@
             color: $black;
 
             .title-left {
+                display: flex;
+                justify-content: center;
+                align-items: center;
                 font-size: 17px;
                 border-radius: 20px;
                 margin-right: 3px;

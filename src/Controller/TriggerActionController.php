@@ -119,8 +119,8 @@ class TriggerActionController extends AbstractController
                 }
 
                 if (isset($data['sensorTemperatureLimitHigher']) && isset($data['sensorTemperatureLimitLower'])) {
-                    $jsonHigher = ['limit' => 'lower', 'temperature' => $data['sensorTemperatureLimitHigher']];
-                    $jsonLower = ['limit' => 'higher', 'temperature' => $data['sensorTemperatureLimitLower']];
+                    $jsonHigher = ['limit' => 'higher', 'temperature' => $data['sensorTemperatureLimitHigher']];
+                    $jsonLower = ['limit' => 'lower', 'temperature' => $data['sensorTemperatureLimitLower']];
                     $triggerActionHigher->setConfig($jsonHigher);
                     $triggerActionLower->setConfig($jsonLower);
 

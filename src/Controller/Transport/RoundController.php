@@ -124,7 +124,7 @@ class RoundController extends AbstractController {
                 $currentRow[] = $this->renderView("transport/round/list_card.html.twig", [
                     "hasRejectedPacks" => $hasRejectedPacks,
                     "prefix" => TransportRound::NUMBER_PREFIX,
-                    "hasExceededThreshold" => $vehicle?->getActivePairing() && FormatHelper::bool($vehicle->getActivePairing()->hasExceededThreshold()),
+                    "hasExceededThreshold" => $vehicle?->getActivePairing() && FormatHelper::bool($vehicle?->getActivePairing()?->hasExceededThreshold()),
                     "round" => $transportRound,
                     "realTime" => isset($hours) && isset($minutes)
                         ? (($hours < 10 ? "0$hours" : $hours) . "h" . ($minutes < 10 ? "0$minutes" : $minutes) . "min")
@@ -246,8 +246,8 @@ class RoundController extends AbstractController {
             "urls" => $urls,
             "roundDateBegan" => $transportDateBeganAt,
             "hasSomeDelivery" => $hasSomeDelivery,
-            "hasExceededThresholdUnder" => $vehicle->getActivePairing() ? $vehicle?->getActivePairing()->hasExceededThresholdUnder() : false,
-            "hasExceededThresholdOver" => $vehicle->getActivePairing() ? $vehicle?->getActivePairing()->hasExceededThresholdOver() : false
+            "hasExceededThresholdUnder" => $vehicle?->getActivePairing()?->hasExceededThresholdUnder(),
+            "hasExceededThresholdOver" => $vehicle?->getActivePairing()?->hasExceededThresholdOver(),
         ]);
     }
 
@@ -460,6 +460,8 @@ class RoundController extends AbstractController {
             throw new FormException('Format de la date attendue invalide');
         }
 
+        $isNew = !$transportRoundId;
+
         if ($transportRoundId) {
             $transportRound = $transportRoundRepository->find($transportRoundId);
 
@@ -586,10 +588,14 @@ class RoundController extends AbstractController {
                         $orderStatusHistory = $statusHistoryService->updateStatus($entityManager, $transportOrder, $orderOngoingStatus);
                     }
 
-                    $transportHistoryService->persistTransportHistory($entityManager, [$transportRequest, $transportOrder], TransportHistoryService::TYPE_AFFECTED_ROUND, [
+                    $transportHistoryService->persistTransportHistory($entityManager, $transportOrder, TransportHistoryService::TYPE_AFFECTED_ROUND, [
                         'user' => $this->getUser(),
                         'deliverer' => $transportRound->getDeliverer(),
                         'round' => $transportRound,
+                        'history' => $orderStatusHistory,
+                    ]);
+
+                    $transportHistoryService->persistTransportHistory($entityManager, $transportRequest,  TransportHistoryService::TYPE_REQUEST_AFFECTED_ROUND, [
                         'history' => $orderStatusHistory,
                     ]);
 
@@ -618,10 +624,16 @@ class RoundController extends AbstractController {
         }
 
         $entityManager->flush();
-
-        if ( $transportRoundRepository->findBy(['deliverer' => $deliverer->getId() , 'expectedAt' => $transportRound->getExpectedAt()])) {
-            $userChannel = $userService->getUserFCMChannel($deliverer);
-            $notificationService->send($userChannel, "Une nouvelle tournée attribuée aujourd'hui");
+dump($isNew);
+        if($isNew) {
+            $todaysRounds = $transportRoundRepository->findTodayRounds($deliverer);
+dump($todaysRounds);
+            if ($todaysRounds) {
+                $userChannel = $userService->getUserFCMChannel($deliverer);
+                $notificationService->send($userChannel, "Une nouvelle tournée attribuée aujourd'hui", null, [
+                    "roundId" => $transportRound->getId(),
+                ]);
+            }
         }
 
         return $this->json([

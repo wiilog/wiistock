@@ -188,7 +188,7 @@
                          data-request-type="{{ DISCR_COLLECT }}">
                         <div class="col-md-6 col-12">
                             {% set expectedAtValue = request.expectedAt ? request.expectedAt|date('Y-m-d') %}
-                            {{ form.input('expectedAt', 'Date de collecte', true, expectedAtValue, {
+                            {{ form.input('expectedAt', 'Date de collecte souhaitée', true, expectedAtValue, {
                                 type: 'date',
                                 min: 'now' | date('Y-m-d'),
                                 disabled: assignedOrder

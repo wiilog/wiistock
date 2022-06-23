@@ -362,11 +362,14 @@ class RequestController extends AbstractController {
 
         if($transportRequest->getStatus()->getCode() == TransportRequest::STATUS_TO_PREPARE) {
             $status = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_REQUEST_DELIVERY, TransportRequest::STATUS_TO_DELIVER);
-            $statusHistory = $statusHistoryService->updateStatus($entityManager, $transportRequest, $status);
+            $statusHistoryService->updateStatus($entityManager, $transportRequest, $status);
         }
 
         $transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_LABELS_PRINTING, [
-            'history' => $statusHistory ?? null,
+            'user' => $this->getUser()
+        ]);
+
+        $transportHistoryService->persistTransportHistory($entityManager, $order, TransportHistoryService::TYPE_LABELS_PRINTING, [
             'user' => $this->getUser()
         ]);
 
@@ -461,12 +464,13 @@ class RequestController extends AbstractController {
             ];
 
             foreach ($requests as $transportRequest) {
+                $roundLine = $transportRequest->getOrder()?->getTransportRoundLines()->last();
                 $currentRow[] = $this->renderView("transport/request/list_card.html.twig", [
                     "prefix" => TransportRequest::NUMBER_PREFIX,
                     "request" => $transportRequest,
-                    "timeSlot" => $transportService->getTimeSlot($entityManager, $transportRequest->getExpectedAt()),
+                    "timeSlot" => $roundLine ? $transportService->hourToTimeSlot($entityManager, $roundLine->getEstimatedAt()->format("H:i")) : null,
                     "path" => "transport_request_show",
-                    "displayDropdown" => true
+                    "displayDropdown" => true,
                 ]);
             }
 

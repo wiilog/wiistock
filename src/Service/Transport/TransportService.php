@@ -195,9 +195,6 @@ class TransportService {
             }
             elseif ($status == TransportRequest::STATUS_AWAITING_VALIDATION) {
                 $settingRepository = $entityManager->getRepository(Setting::class);
-                $this->transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_NO_MONITORING, [
-                    'message' => $settingRepository->getOneParamByLabel(Setting::NON_BUSINESS_HOURS_MESSAGE) ?: ''
-                ]);
                 $this->transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_AWAITING_VALIDATION, [
                     'user' => $loggedUser,
                 ]);
@@ -452,27 +449,6 @@ class TransportService {
         ];
     }
 
-    public function getTimeslot(EntityManagerInterface $manager, DateTime $date): ?CollectTimeSlot {
-        $timeSlotRepository = $manager->getRepository(CollectTimeSlot::class);
-        $timeSlots = $timeSlotRepository->findAll();
-
-        $hour = $date->format("H");
-        $minute = $date->format("i");
-        foreach($timeSlots as $timeSlot) {
-            [$startHour, $startMinute] = explode(":", $timeSlot->getStart());
-            [$endHour, $endMinute] = explode(":", $timeSlot->getEnd());
-
-            $isAfterStart = $hour > $startHour || ($hour == $startHour && $minute >= $startMinute);
-            $isBeforeEnd = $hour < $endHour || ($hour == $endHour && $minute <= $endMinute);
-
-            if ($isAfterStart && $isBeforeEnd) {
-                return $timeSlot;
-            }
-        }
-
-        return null;
-    }
-
     #[ArrayShape(["createdPacks" => 'array'])]
     public function updateTransportRequestLines(EntityManagerInterface $entityManager,
                                                 TransportRequest       $transportRequest,
@@ -602,7 +578,7 @@ class TransportService {
 
         if($request instanceof TransportDeliveryRequest) {
             $dataTransportDeliveryRequest = array_merge($dataTransportRequest, [
-                FormatHelper::datetime($request->getValidatedDate()),
+                isset($statusRequest[TransportRequest::STATUS_AWAITING_VALIDATION]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_AWAITING_VALIDATION]) : '',
                 isset($statusRequest[TransportRequest::STATUS_TO_PREPARE]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_TO_PREPARE]) : '',
                 isset($statusRequest[TransportRequest::STATUS_TO_DELIVER]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_TO_DELIVER]) : '',
                 isset($statusRequest[TransportRequest::STATUS_SUBCONTRACTED]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_SUBCONTRACTED]) : '',
@@ -889,4 +865,14 @@ class TransportService {
             ])
             ->values();
     }
+
+    /**
+     * @param string $hour format H:i
+     */
+    public function hourToTimeSlot( EntityManagerInterface $entityManager, string $hour) : ?CollectTimeSlot{
+        $timeSlotRepository = $entityManager->getRepository(CollectTimeSlot::class);
+        $timeSlots = $timeSlotRepository->findAll();
+        return Stream::from($timeSlots)->find(fn(CollectTimeSlot $timeSlot) => strtotime($timeSlot->getStart()) <= strtotime($hour) && strtotime($timeSlot->getEnd()) >= strtotime($hour));
+    }
+
 }
