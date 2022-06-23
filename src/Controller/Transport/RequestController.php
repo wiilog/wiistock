@@ -36,6 +36,7 @@ use App\Service\MailerService;
 use App\Service\NotificationService;
 use App\Service\PDFGeneratorService;
 use App\Service\StatusHistoryService;
+use App\Service\StringService;
 use App\Service\Transport\TransportHistoryService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -73,6 +74,7 @@ class RequestController extends AbstractController {
 
         $natures = $natureRepository->findByAllowedForms([Nature::TRANSPORT_COLLECT_CODE, Nature::TRANSPORT_DELIVERY_CODE]);
         $requestLines = Stream::from($natures)
+            ->sort(fn(Nature $a, Nature $b) => StringService::mbstrcmp($a->getLabel(), $b->getLabel()))
             ->map(fn(Nature $nature) => [
                 'nature' => $nature,
             ])
