@@ -274,14 +274,7 @@ class RoundController extends AbstractController {
                 "maxTemp" => 0,
             ];
         }
-        $containsOnlyCollect = true;
 
-        foreach ($transportRound->getTransportRoundLines() as $line){
-            if($line->getOrder()->getRequest() instanceof TransportDeliveryRequest){
-                $containsOnlyCollect = false;
-            }
-            break;
-        }
         return $this->render('transport/round/show.html.twig', [
             "transportRound" => $transportRound,
             "realTime" => $realTime,
@@ -293,7 +286,8 @@ class RoundController extends AbstractController {
             "hasSomeDelivery" => $hasSomeDelivery,
             "hasExceededThresholdUnder" => $exceedThresholdLower,
             "hasExceededThresholdOver" => $exceedThresholdHigher,
-            "containsOnlyCollect" => $containsOnlyCollect
+            "containsOnlyCollect" => Stream::from($transportRound->getTransportRoundLines())
+                ->every(fn(TransportRoundLine $line) => $line->getOrder()->getRequest() instanceof TransportCollectRequest)
         ]);
     }
 
