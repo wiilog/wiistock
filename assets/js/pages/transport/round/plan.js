@@ -401,7 +401,8 @@ function retriveOrderData() {
                 const $card = $(orderCard);
                 return {
                     id: $card.data('order-id'),
-                    time: $card.data('order-time')
+                    time: $card.data('order-time'),
+                    priority: $card.find('.affected-number').text()
                 }
             })
             .toArray();
