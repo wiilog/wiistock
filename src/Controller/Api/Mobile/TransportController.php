@@ -319,7 +319,7 @@ class TransportController extends AbstractFOSRestController {
             'cancelled' => !!$line->getCancelledAt(),
             'success' => $request->getStatus()->getCode() === TransportRequest::STATUS_FINISHED ||
                 $request instanceof TransportDeliveryRequest && $request->getCollect() && $line->getFulfilledAt(),
-            'failure' => $request->getOrder()->getRejectedAt() || in_array($request->getStatus()->getCode(), [
+            'failure' => $request->getOrder()->getRejectedAt() || $request->getOrder()->getFailedAt() || in_array($request->getStatus()->getCode(), [
                 TransportRequest::STATUS_NOT_DELIVERED,
                 TransportRequest::STATUS_NOT_COLLECTED,
                 TransportRequest::STATUS_CANCELLED,
@@ -363,11 +363,14 @@ class TransportController extends AbstractFOSRestController {
 
         $transportDeliveryOrderPack = $pack->getTransportDeliveryOrderPack();
         [$order, $request] = [$transportDeliveryOrderPack->getOrder(), $transportDeliveryOrderPack->getOrder()->getRequest()];
+        $round = $order->getTransportRoundLines()->last()->getTransportRound();
 
         $transportDeliveryOrderPack
             ->setRejectedBy($this->getUser())
             ->setRejectReason($rejectMotive)
             ->setState(TransportDeliveryOrderPack::REJECTED_STATE);
+
+        $round->setRejectedPackCount($round->getRejectedPackCount() + 1);
 
         $historyService->persistTransportHistory($manager, [$order, $request], TransportHistoryService::TYPE_DROP_REJECTED_PACK, [
             'user' => $this->getUser(),
@@ -927,6 +930,7 @@ class TransportController extends AbstractFOSRestController {
 
         if(!$isEdit) {
             $order->setTreatedAt($now);
+            $order->setFailedAt($now);
 
             $isCollectFromDelivery = $request instanceof TransportCollectRequest && $request->getDelivery();
             if (!$isCollectFromDelivery) {

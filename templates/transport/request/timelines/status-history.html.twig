@@ -23,7 +23,6 @@
             : 'Demande'
 %}
 {% set finishedStatusesName = [constant('App\\Entity\\Transport\\TransportOrder::STATUS_FINISHED'), constant('App\\Entity\\Transport\\TransportRequest::STATUS_FINISHED') ] %}
-{% set cancelledStatusesName = [constant('App\\Entity\\Transport\\TransportOrder::STATUS_CANCELLED'), constant('App\\Entity\\Transport\\TransportRequest::STATUS_CANCELLED') ] %}
 
 <div class="header timeline d-flex justify-content-center {{ headerClass }}">
     <img src="{{ asset('svg/timeline-status.svg') }}" alt="Icône statut timeline" width="15px" class="mr-2">
@@ -47,7 +46,7 @@
             {{ state }}">
             <div class="title-right {{ state }} {{ not history['date'] ? 'bg-transparent' }} text-left">
                 <span class="ml-2">{{ history['date'] }}</span>
-                {% if entity is instanceof('App\\Entity\\Transport\\TransportOrder') and entityStatusName in merge(finishedStatusesName, cancelledStatusesName) and history['status'] in merge(finishedStatusesName, cancelledStatusesName) %}
+                {% if entity is instanceof('App\\Entity\\Transport\\TransportOrder') and entityStatusName in merge(finishedStatusesName, redStatusesName) and history['status'] in merge(finishedStatusesName, redStatusesName) %}
                     {% set roundLine = order ? (order.transportRoundLines | last) ?: null : null %}
                     {%  set estimatedAt = roundLine ? (roundLine.estimatedAt | date('H:i')) : (timeSlot ? timeSlot.name : transport.expectedAt | date('H:i')) %}
                     <br><span class="ml-2">Estimée à : {{ estimatedAt ?? "/" }}</span>

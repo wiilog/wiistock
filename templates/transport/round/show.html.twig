@@ -99,7 +99,7 @@
                             </div>
                         </div>
 
-                        {% set nbRejectedPacks = transportRound.countRejectedPacks %}
+                        {% set nbRejectedPacks = transportRound.rejectedPackCount %}
                         {% set nbRejectedOrders = transportRound.rejectedOrderCount %}
                         {% if nbRejectedPacks or nbRejectedOrders %}
                             <div class="header">

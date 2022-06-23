@@ -556,8 +556,9 @@ class RoundController extends AbstractController {
             $transportOrder = $transportOrderRepository->find($orderId);
             if ($transportOrder) {
                 $affectationAllowed = (
-                    $transportOrder->getTransportRoundLines()->isEmpty()
-                    || Stream::from ($transportOrder->getTransportRoundLines())
+                    $transportOrder->getStatus()->getCode() === TransportOrder::STATUS_TO_ASSIGN ||
+                    $transportOrder->getTransportRoundLines()->isEmpty() ||
+                    Stream::from ($transportOrder->getTransportRoundLines())
                         ->map(fn(TransportRoundLine $line) => $line->getTransportRound())
                         ->every(fn(TransportRound $round) => $round->getStatus()?->getCode() === TransportRound::STATUS_FINISHED || $round->getId() === $transportRound->getId())
                 );
@@ -572,6 +573,7 @@ class RoundController extends AbstractController {
                     $line = new TransportRoundLine();
                     $line->setOrder($transportOrder);
                     $transportOrder->setRejectedAt(null);
+                    $transportOrder->setFailedAt(null);
 
                     $entityManager->persist($line);
                     $transportRound->addTransportRoundLine($line);
