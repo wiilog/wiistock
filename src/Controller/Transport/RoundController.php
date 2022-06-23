@@ -441,9 +441,6 @@ class RoundController extends AbstractController {
         $transportOrderRepository = $entityManager->getRepository(TransportOrder::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
 
-        /** @var Utilisateur $loggedUser */
-        $loggedUser = $this->getUser();
-
         $number = $request->request->get('number');
         $expectedAtDate = $request->request->get('expectedAtDate');
         $expectedAtTime = $request->request->get('expectedAtTime');
@@ -550,8 +547,9 @@ class RoundController extends AbstractController {
             $deliveryOrderOngoingStatus = null;
         }
 
-        foreach ($ordersAndTimes as $index => $ordersAndTime) {
+        foreach ($ordersAndTimes as $ordersAndTime) {
             $orderId = $ordersAndTime['id'];
+            $priority = $ordersAndTime['priority'];
             /** @var TransportOrder $transportOrder */
             $transportOrder = $transportOrderRepository->find($orderId);
             if ($transportOrder) {
@@ -562,7 +560,6 @@ class RoundController extends AbstractController {
                         ->map(fn(TransportRoundLine $line) => $line->getTransportRound())
                         ->every(fn(TransportRound $round) => $round->getStatus()?->getCode() === TransportRound::STATUS_FINISHED || $round->getId() === $transportRound->getId())
                 );
-                $priority = $index + 1;
                 if (!$affectationAllowed) {
                     throw new FormException("L'ordre n°{$priority} est déjà affecté à une tournée non terminée");
                 }
