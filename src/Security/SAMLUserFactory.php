@@ -4,15 +4,23 @@ namespace App\Security;
 
 use App\Entity\Role;
 use App\Entity\Utilisateur;
+use App\Service\MailerService;
 use Doctrine\Common\Annotations\Annotation\Required;
 use Doctrine\ORM\EntityManagerInterface;
 use Nbgrp\OneloginSamlBundle\Security\User\SamlUserFactoryInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Twig\Environment;
 
 class SAMLUserFactory implements SamlUserFactoryInterface
 {
     /** @Required  */
     public EntityManagerInterface $entityManager;
+
+    /** @Required  */
+    public MailerService $mailerService;
+
+    /** @Required  */
+    public Environment $templating;
 
     public function createUser(string $identifier, array $attributes): UserInterface
     {
@@ -29,9 +37,25 @@ class SAMLUserFactory implements SamlUserFactoryInterface
                 ->setUsername($identifier)
                 ->setRole($roleRepository->findOneBy(['label' => Role::NO_ACCESS_USER]))
                 ->setMobileLoginKey('');
+
+            $this->entityManager->persist($user);
+            $this->entityManager->flush();
+
+
+
+            $userMailByRole = $userRepository->getUserMailByIsMailSendRole();
+            if(!empty($userMailByRole)) {
+                $this->mailerService->sendMail(
+                    'FOLLOW GT // Notification de création d\'un compte utilisateur',
+                    $this->templating->render('mails/contents/mailNouvelUtilisateur.html.twig', [
+                        'user' => $user->getUsername(),
+                        'mail' => $user->getEmail(),
+                        'title' => 'Création d\'un nouvel utilisateur'
+                    ]),
+                    $userMailByRole
+                );
+            }
         }
-        $this->entityManager->persist($user);
-        $this->entityManager->flush();
         return $user;
     }
 }
