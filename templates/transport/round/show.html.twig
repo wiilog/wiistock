@@ -16,7 +16,7 @@
                     <div class="header">
                         <div class="d-flex w-100 justify-content-between">
                             <div class="d-flex align-items-center">
-                                {% if containsOnlyCollect is defined and containsOnlyCollect %}
+                                {% if containsOnlyCollect is defined and not containsOnlyCollect %}
                                     {% if hasExceededThresholdUnder is defined and hasExceededThresholdUnder %}
                                         <img src="{{ asset('svg/temperature-bleu.svg') }}" width="20px" height="20px"
                                              class="has-tooltip"
