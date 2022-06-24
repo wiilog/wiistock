@@ -1,13 +1,15 @@
 {% set template = template is defined and template ? template : '' %}
 {% set config = config is defined and config is not empty ? config : [] %}
-<div class="col-12 form-group">
-    <div class="col-md-4 col-12 pl-0">
-        <label class="wii-field-name">Nom du modèle*</label>
-        <input type="text" class="form-control data needed required" name="name"/>
+<div class="col-12">
+    <div class="row">
+        <div class="col-md-4 col-12 form-group">
+            <label class="wii-field-name mb-2">Nom du modèle*</label>
+            <input type="text" class="form-control data needed required" name="name"/>
+        </div>
     </div>
 </div>
 <div class="col-md-4 col-12 form-group">
-    <label class=" wii-field-name mb-2">Texte notification*</label>
+    <label class="wii-field-name mb-2">Texte notification*</label>
     <textarea name="content"
               style="resize: none"
               rows="6"
@@ -16,7 +18,7 @@
 
 {% set image = config and config['image'] is defined ? config['image'] : '' %}
 <div class="col-md-4 col-12 d-flex flex-column">
-    <label class="wii-field-name pl-0">Image de notification</label>
+    <label class="wii-field-name mb-2">Image de notification</label>
     <img src="{{ image ? app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ image : '' }}"
          id="preview-mail-image" alt="Logo choisi" height="50px" class="{{ image ? '' : 'd-none' }} mr-2"/>
 
