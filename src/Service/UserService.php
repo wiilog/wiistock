@@ -33,20 +33,17 @@ class UserService
      * @var Twig_Environment
      */
     private $templating;
-    /**
-     * @var Utilisateur
-     */
-    private $user;
 
 	private $entityManager;
-	private $roleService;
+    private $roleService;
+    private $security;
 
     public function __construct(Twig_Environment $templating,
                                 RoleService $roleService,
                                 EntityManagerInterface $entityManager,
                                 Security $security)
     {
-        $this->user = $security->getUser();
+        $this->security = $security;
         $this->templating = $templating;
         $this->entityManager = $entityManager;
         $this->roleService = $roleService;
@@ -63,12 +60,12 @@ class UserService
     }
 
     public function getUser(): ?Utilisateur {
-        return $this->user;
+        return $this->security->getUser();
     }
 
     public function hasRightFunction(string $menuLabel, string $actionLabel, $user = null) {
         $key = $this->roleService->getPermissionKey($menuLabel, $actionLabel);
-        return isset($this->roleService->getPermissions($user ?: $this->user)[$key]);
+        return isset($this->roleService->getPermissions($user ?: $this->getUser())[$key]);
     }
 
     public function getDataForDatatable(InputBag $params)

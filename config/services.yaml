@@ -110,3 +110,5 @@ services:
     App\EventListener\FormExceptionListener:
         tags:
             - { name: 'kernel.event_listener', event: 'kernel.exception', priority: 2 }
+    saml_user_factory:
+        class: App\Security\SAMLUserFactory
