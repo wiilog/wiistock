@@ -184,10 +184,12 @@ class TransportController extends AbstractFOSRestController {
                     $order = $line->getOrder();
                     $request = $order->getRequest();
 
-                    return $line->getFulfilledAt() && $request->getStatus()->getCode() !== TransportRequest::STATUS_ONGOING;
+                    return $line->getFulfilledAt() && !$line->getCancelledAt() && $request->getStatus()->getCode() !== TransportRequest::STATUS_ONGOING;
                  })
                 ->count(),
-            'total_transports' => count($lines),
+            'total_transports' => Stream::from($lines)
+                ->filter(fn(TransportRoundLine $line) => !$line->getCancelledAt())
+                ->count(),
             'collected_packs' => $collectedPacks,
             'to_collect_packs' => $packsToCollect,
             "not_delivered" => $notDeliveredOrders->count(),
@@ -203,7 +205,8 @@ class TransportController extends AbstractFOSRestController {
                     !$line->getCancelledAt()
                     || ($line->getTransportRound()->getBeganAt() && $line->getCancelledAt() > $line->getTransportRound()->getBeganAt()))
                 ->sort(fn(TransportRoundLine $a, TransportRoundLine $b) => (($a->getFulfilledAt() !== null) <=> ($b->getFulfilledAt() !== null)))
-                ->map(fn(TransportRoundLine $line) => $this->serializeTransport($manager, $line)),
+                ->map(fn(TransportRoundLine $line) => $this->serializeTransport($manager, $line))
+                ->values(),
             "to_finish" => Stream::from($lines)
                 ->map(fn(TransportRoundLine $line) => $line->getFulfilledAt() || $line->getCancelledAt() || $line->getOrder()->getFailedAt() || $line->getOrder()->getRejectedAt())
                 ->every(),
@@ -285,7 +288,8 @@ class TransportController extends AbstractFOSRestController {
                         'delivered' => $orderPack->getState() === TransportDeliveryOrderPack::DELIVERED_STATE,
                         'returned' => $orderPack->getState() === TransportDeliveryOrderPack::RETURNED_STATE,
                     ];
-                }),
+                })
+                ->values(),
             'expected_at' => $expectedAt,
             'estimated_time' => $line->getEstimatedAt()?->format('H:i'),
             'fulfilled_time' => $line->getFulfilledAt()?->format('H:i'),
@@ -1076,7 +1080,9 @@ class TransportController extends AbstractFOSRestController {
             foreach($depositedDeliveryPacks as $pack) {
                 $pack = $packRepository->findOneBy(["code" => $pack["code"]]);
 
-                $pack->getTransportDeliveryOrderPack()->setState(TransportDeliveryOrderPack::RETURNED_STATE);
+                $pack->getTransportDeliveryOrderPack()
+                    ->setReturnedAt(new DateTime())
+                    ->setState(TransportDeliveryOrderPack::RETURNED_STATE);
 
                 $trackingMovement = $trackingMovementService->createTrackingMovement(
                     $pack,
