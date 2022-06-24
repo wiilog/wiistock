@@ -15,7 +15,8 @@
              ondragleave="dragLeaveDiv(event, $(this))"
              ondrop="saveDroppedFiles(event, $(this))">
             {% set text = text is not defined ? 'Faites glisser vos pièces jointes' : text %}
-            <p>Faites glisser vos pièces jointes ou <span onclick="openFileExplorer($(this))" class="click-here"><i class="fa fa-folder-open"></i> Parcourir {{ not (small ?? false) ? 'vos fichiers' }}</span>
+            <p class="drop-file-hint">Faites glisser vos pièces jointes &ensp; ou&ensp;<span onclick="openFileExplorer($(this))" class="click-here"><i class="fa fa-folder-open mr-2"></i>
+                Parcourir {{ not (small ?? false) ? 'vos fichiers' }}</span>
                 <input type="file" name="files[]" {{ (unique is not defined) or (not unique) ? 'multiple' }} class="d-none fileInput"
                        onchange="saveInputFiles($(this))">
             </p>
