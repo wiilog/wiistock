@@ -1201,21 +1201,6 @@ class TransportController extends AbstractFOSRestController {
                 }
             }
 
-            $requestsAndOrders = Stream::from($round->getTransportRoundLines())
-                ->filter(fn(TransportRoundLine $line) => $line->getOrder()->getRequest() instanceof TransportCollectRequest || $line->getOrder()->getRequest()->getCollect())
-                ->flatMap(fn(TransportRoundLine $line) => [$line->getOrder(), $line->getOrder()->getRequest()])
-                ->toArray();
-
-            $transportHistoryService->persistTransportHistory(
-                $manager,
-                $requestsAndOrders,
-                TransportHistoryService::TYPE_PACKS_DEPOSITED,
-                [
-                    "user" => $this->getUser(),
-                    "location" => $location,
-                ]
-            );
-
             $round->setNoCollectToReturn(true);
 
             foreach($round->getTransportRoundLines() as $transport) {
