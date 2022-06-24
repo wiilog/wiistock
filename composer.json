@@ -22,10 +22,10 @@
         "friendsofsymfony/jsrouting-bundle": "^3.1",
         "friendsofsymfony/rest-bundle": "^3.3",
         "google/apiclient": "^2.12",
-        "knplabs/knp-snappy-bundle": "^1.9",
         "jetbrains/phpstorm-attributes": "^1.0",
+        "knplabs/knp-snappy-bundle": "^1.9",
+        "nbgrp/onelogin-saml-bundle": "^1.1",
         "nelmio/cors-bundle": "^2.2",
-        "wiilog/barcode-bundle": "dev-master",
         "ovh/ovh": "^3.0",
         "phpdocumentor/reflection-docblock": "^5.3",
         "scienta/doctrine-json-functions": "^5.0",
@@ -62,6 +62,7 @@
         "twig/extra-bundle": "^3.3",
         "twig/string-extra": "^3.3",
         "twig/twig": "^3.3",
+        "wiilog/barcode-bundle": "dev-master",
         "wiilog/common": "dev-master"
     },
     "require-dev": {

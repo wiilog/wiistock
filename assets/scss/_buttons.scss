@@ -21,7 +21,7 @@ $outlineButtonConfig: (
     )
 );
 
-@mixin setColorLoader ($color) {
+@mixin setColorLoader($color) {
     border-top-color: $color !important;
     border-bottom-color: $color !important;
     border-left-color: $color !important;
@@ -120,6 +120,17 @@ $outlineButtonConfig: (
     margin: 0 !important;
 }
 
+.third {
+    font-size: 0.9rem;
+    color: #888888;
+    vertical-align: top;
+    width: 100%;
+
+    &:hover {
+        color: $primary !important;
+    }
+}
+
 .btn-disabled {
     background-color: $greyDark;
     border-color: $greyDark;
@@ -152,10 +163,10 @@ $outlineButtonConfig: (
 @each $name, $config in $outlineButtonConfig {
     .btn-outline-#{$name} {
         @include outline-button(
-            map-get($config, 'bg-color'),
-            map-get($config, 'color'),
-            map-get($config, 'active-bg-color'),
-            map-get($config, 'disabled-color')
+                map-get($config, 'bg-color'),
+                map-get($config, 'color'),
+                map-get($config, 'active-bg-color'),
+                map-get($config, 'disabled-color')
         );
     }
 }

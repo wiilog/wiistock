@@ -124,8 +124,8 @@ class RoundController extends AbstractController {
                 $alertTemperature = false;
                 foreach($transportRound->getLocations() as $location){
                     $sensorMessageBetween = $location->getSensorMessagesBetween(
-                        $transportRound->getCreatedAt()->format('Y-m-d\TH:i'),
-                        $transportRound->getEndedAt()->format('Y-m-d\TH:i'),
+                        ($transportRound->getBeganAt() ?? new DateTime())->format('Y-m-d\TH:i'),
+                        ($transportRound->getEndedAt() ?? new DateTime())->format('Y-m-d\TH:i'),
                         Sensor::TEMPERATURE
                     );
                     if (!$sensorMessageBetween) {
@@ -218,8 +218,8 @@ class RoundController extends AbstractController {
         if ($transportDateBeganAt ) {
             foreach ($locations as $location) {
                 $sensorMessageBetween = $location->getSensorMessagesBetween(
-                    $transportRound->getCreatedAt()->format('Y-m-d\TH:i'),
-                    $transportRound->getEndedAt()->format('Y-m-d\TH:i'),
+                    ($transportRound->getBeganAt() ?? new DateTime())->format('Y-m-d\TH:i'),
+                    ($transportRound->getEndedAt() ?? new DateTime())->format('Y-m-d\TH:i'),
                     Sensor::TEMPERATURE
                 );
                 if (!$sensorMessageBetween) {
@@ -250,8 +250,8 @@ class RoundController extends AbstractController {
                     "fetch_url" => $router->generate("chart_data_history", [
                         "type" => IOTService::getEntityCodeFromEntity($location),
                         "id" => $location->getId(),
-                        'start' => $transportRound->getCreatedAt()->format('Y-m-d\TH:i'),
-                        'end' => $transportRound->getEndedAt()?->format('Y-m-d\TH:i') ?? $now->format('Y-m-d\TH:i'),
+                        'start' => ($transportRound->getBeganAt() ?? $now)->format('Y-m-d\TH:i'),
+                        'end' => ($transportRound->getEndedAt() ?? $now)->format('Y-m-d\TH:i'),
                     ], UrlGeneratorInterface::ABSOLUTE_URL),
                     "minTemp" => $minThreshold ?? 0,
                     "maxTemp" => $maxThreshold ?? 0,

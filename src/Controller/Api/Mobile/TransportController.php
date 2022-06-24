@@ -204,9 +204,19 @@ class TransportController extends AbstractFOSRestController {
                 ->filter(fn(TransportRoundLine $line) =>
                     !$line->getCancelledAt()
                     || ($line->getTransportRound()->getBeganAt() && $line->getCancelledAt() > $line->getTransportRound()->getBeganAt()))
-                ->sort(fn(TransportRoundLine $a, TransportRoundLine $b) => (($a->getFulfilledAt() !== null) <=> ($b->getFulfilledAt() !== null)))
+                ->sort(function(TransportRoundLine $a, TransportRoundLine $b){
+                    if( $a->getOrder()->getStatus()->getNom() == TransportOrder::STATUS_CANCELLED && $b->getOrder()->getStatus()->getNom() !== TransportOrder::STATUS_CANCELLED ) {
+                        return 1;
+                    }
+                    elseif( $b->getOrder()->getStatus()->getNom() == TransportOrder::STATUS_CANCELLED && $a->getOrder()->getStatus()->getNom() !== TransportOrder::STATUS_CANCELLED ) {
+                        return -1;
+                    }
+                    else {
+                        return ($a->getFulfilledAt()) <=> ($b->getFulfilledAt());
+                    }
+                })
                 ->map(fn(TransportRoundLine $line) => $this->serializeTransport($manager, $line))
-                ->values(),
+                ->values(), 
             "to_finish" => Stream::from($lines)
                 ->map(fn(TransportRoundLine $line) => $line->getFulfilledAt() || $line->getCancelledAt() || $line->getOrder()->getFailedAt() || $line->getOrder()->getRejectedAt())
                 ->every(),

@@ -25,16 +25,10 @@ class InventoryService
 	 */
 	private $entityManager;
 
-	/**
-	 * @var
-	 */
-    private $user;
-
 
     public function __construct(Security $security,
                                 EntityManagerInterface $entityManager) {
 		$this->entityManager = $entityManager;
-		$this->user = $security->getUser();
     }
 
     /**
