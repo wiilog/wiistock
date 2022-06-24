@@ -66,7 +66,9 @@ abstract class TransportRequest extends StatusHistoryContainer {
         TransportOrder::STATUS_NOT_COLLECTED => "cancelled",
         self::STATUS_SUBCONTRACTED => "subcontracted",
         TransportOrder::STATUS_SUBCONTRACTED => "subcontracted",
-        TransportOrder::STATUS_TO_CONTACT => "preparing"
+        TransportOrder::STATUS_TO_CONTACT => "preparing",
+        TransportOrder::STATUS_DEPOSITED => "finished",
+        self::STATUS_DEPOSITED => "finished",
     ];
 
     public const STATUS_WORKFLOW_DELIVERY_CLASSIC = [
