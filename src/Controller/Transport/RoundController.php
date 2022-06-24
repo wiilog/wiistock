@@ -646,11 +646,14 @@ class RoundController extends AbstractController {
                     }
                 }
 
-                $estimated = new DateTime();
-                $estimated->setTime(intval(substr($ordersAndTime['time'], 0, 2)), intval(substr($ordersAndTime['time'], 3, 2)));
+                if (isset($ordersAndTime['time'])) {
+                    $estimated = new DateTime();
+                    $estimated->setTime(intval(substr($ordersAndTime['time'], 0, 2)), intval(substr($ordersAndTime['time'], 3, 2)));
+                    $line
+                        ->setEstimatedAt($estimated);
+                }
 
                 $line
-                    ->setEstimatedAt($estimated)
                     ->setPriority($priority);
             }
             else {
