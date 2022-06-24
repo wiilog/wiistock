@@ -202,15 +202,21 @@ class TransportController extends AbstractFOSRestController {
                 ->filter(fn(TransportRoundLine $line) =>
                     !$line->getCancelledAt()
                     || ($line->getTransportRound()->getBeganAt() && $line->getCancelledAt() > $line->getTransportRound()->getBeganAt()))
-                ->sort(function(TransportRoundLine $a, TransportRoundLine $b){
-                    if( $a->getOrder()->getStatus()->getNom() == TransportOrder::STATUS_CANCELLED && $b->getOrder()->getStatus()->getNom() !== TransportOrder::STATUS_CANCELLED ) {
-                        return 1;
+                ->sort(function(TransportRoundLine $a, TransportRoundLine $b) {
+                    $aOrder = $a->getOrder();
+                    $bOrder = $b->getOrder();
+                    $aStatus = $aOrder->getStatus();
+                    $bStatus = $bOrder->getStatus();
+                    if (($aStatus?->getCode() === TransportOrder::STATUS_ONGOING && $bStatus?->getCode() === TransportOrder::STATUS_ONGOING)
+                        || ($aStatus?->getCode() !== TransportOrder::STATUS_ONGOING && $bStatus?->getCode() !== TransportOrder::STATUS_ONGOING)) {
+                        return $a->getPriority() <=> $b->getPriority();
                     }
-                    elseif( $b->getOrder()->getStatus()->getNom() == TransportOrder::STATUS_CANCELLED && $a->getOrder()->getStatus()->getNom() !== TransportOrder::STATUS_CANCELLED ) {
+                    // at least one ongoing and one cancelled or finished then the ongoing is the first
+                    else if ($aStatus?->getCode() === TransportOrder::STATUS_ONGOING) {
                         return -1;
                     }
-                    else {
-                        return ($a->getFulfilledAt()) <=> ($b->getFulfilledAt());
+                    else { // if ($bStatus?->getCode() === TransportOrder::STATUS_ONGOING) {
+                        return 1;
                     }
                 })
                 ->map(fn(TransportRoundLine $line) => $this->serializeTransport($manager, $line)),
