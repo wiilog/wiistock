@@ -262,6 +262,10 @@ function initLineChart(element, callback) {
                 }
             }
         });
+        if (lineDataMax.length === 1 && lineDataMin.length === 1){
+            lineDataMin = [lineDataMin[0], lineDataMin[0]];
+            lineDataMax = [lineDataMax[0], lineDataMax[0]];
+        }
         if ($element.data('needsline')) {
             datasets['lineDataMax'] = {
                 data: lineDataMax[0] > lineDataMin[0] ?  lineDataMax : lineDataMin,
