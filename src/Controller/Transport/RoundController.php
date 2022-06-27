@@ -354,7 +354,6 @@ class RoundController extends AbstractController {
             ->keymap(fn(array $coordinates) => [$coordinates['index'], $coordinates['coordinates']])
             ->toArray();
 
-
         $roundData = $geoService->fetchStopsData($coordinates);
 
         foreach ($roundData['data'] as $key => $roundDatum) {
