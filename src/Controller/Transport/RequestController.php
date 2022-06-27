@@ -385,7 +385,8 @@ class RequestController extends AbstractController {
     #[HasPermission([Menu::DEM, Action::EDIT_TRANSPORT], mode: HasPermission::IN_JSON)]
     public function packingCheck(TransportRequest $transportRequest): JsonResponse {
         $order = $transportRequest->getOrder();
-        if($order->getPacks()->isEmpty() || $order->getRejectedAt()) {
+        $line = $order->getTransportRoundLines()->last();
+        if($order->getPacks()->isEmpty() || !$line || $line->getRejectedAt()) {
             return $this->json([
                 "success" => true,
                 "message" => "Colisage possible",
