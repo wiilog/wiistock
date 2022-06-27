@@ -237,11 +237,11 @@ class TransportHistoryService {
             self::TYPE_AWAITING_PLANNING,
             self::TYPE_PACKS_DEPOSITED,
             self::TYPE_REQUEST_AFFECTED_ROUND,
+            self::TYPE_AFFECTED_ROUND,
             self::TYPE_CONTACT_VALIDATED => self::CATEGORY_TIMELINE,
 
             self::TYPE_REQUEST_CREATION,
             self::TYPE_LABELS_PRINTING,
-            self::TYPE_AFFECTED_ROUND,
             self::TYPE_REQUEST_EDITED,
             self::TYPE_PACKS_FAILED => self::CATEGORY_INFORMATION,
 
