@@ -70,6 +70,8 @@ class OrderController extends AbstractController {
 
             //reset existing data
             $order->setReturnReason(null)
+                ->setTreatedAt(null)
+                ->setReturnedAt(null)
                 ->setComment(null);
 
             $request
