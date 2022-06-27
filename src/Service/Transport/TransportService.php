@@ -848,17 +848,19 @@ class TransportService {
             ->filter(fn(TransportDeliveryOrderPack $pack) => ($filteredPacksEmpty || in_array($pack->getId(), $deliveryPackIds)))
             ->map(function(TransportDeliveryOrderPack $pack, int $position) use ($logo, $contactName, $contactFileNumber, $cleanedContactAddress, $total, $temperatureRanges) {
                 $temperatureRange = $temperatureRanges[$pack->getPack()?->getNature()?->getLabel()] ?? null;
+                $separated = strlen($contactName) > 25;
 
                 return [
                     'code' => $pack->getPack()->getCode(),
                     'labels' => [
-                        ...(strlen($contactName) > 25
+                        ...($separated
                             ? [$contactName, $contactFileNumber]
                             : ["$contactName - $contactFileNumber"]),
                         ...$cleanedContactAddress,
                         ...($temperatureRange ? [$temperatureRange] : []),
                         "$position/$total"
                     ],
+                    'separated' => $separated,
                     'logo' => $logo
                 ];
             })

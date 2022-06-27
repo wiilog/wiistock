@@ -325,7 +325,7 @@ class TransportController extends AbstractFOSRestController {
             'photos' => Stream::from($order->getAttachments())
                 ->map(fn(Attachment $attachment) => $attachment->getFullPath()),
             'signature' => $order->getSignature()?->getFullPath(),
-            'reject_motive' => $order->getLastTransportHistory(TransportHistoryService::TYPE_FAILED)?->getReason(),
+            'reject_motive' => $order->getReturnReason(),
             'requester' => FormatHelper::user($request->getCreatedBy()),
             'free_fields' => Stream::from($freeFields)
                 ->map(function(FreeField $freeField) use($line, $freeFieldsValues) {
@@ -906,6 +906,8 @@ class TransportController extends AbstractFOSRestController {
 
         $lastFailedOrderHistory = $order->getLastTransportHistory(TransportHistoryService::TYPE_FAILED);
         if(!$lastFailedOrderHistory || ($lastFailedOrderHistory->getReason() !== $motive)) {
+            $order->setReturnReason($motive);
+
             $historyService->persistTransportHistory($manager, $request, TransportHistoryService::TYPE_FAILED, [
                 "user" => $this->getUser(),
                 "reason" => $motive,
