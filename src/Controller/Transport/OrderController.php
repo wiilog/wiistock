@@ -68,6 +68,10 @@ class OrderController extends AbstractController {
                 ]);
             }
 
+            //reset existing data
+            $order->setReturnReason(null)
+                ->setComment(null);
+
             $request
                 ->setTimeSlot($entityManager->find(CollectTimeSlot::class, $data["timeSlot"]))
                 ->setValidatedDate($choosenDate);

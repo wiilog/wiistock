@@ -77,8 +77,11 @@ class RoundController extends AbstractController {
         $filters = $filterSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_TRANSPORT_ROUNDS, $this->getUser());
         $queryResult = $roundRepository->findByParamAndFilters($request->request, $filters);
 
+        $orderedTransportRounds = Stream::from($queryResult["data"])
+            ->sort(fn(TransportRound $r1, TransportRound $r2) => $r2->getId() <=> $r1->getId())
+            ->toArray();
         $transportRounds = [];
-        foreach ($queryResult["data"] as $transportRound) {
+        foreach ($orderedTransportRounds as $transportRound) {
             $expectedAtStr = $transportRound->getExpectedAt()?->format("dmY");
             if ($expectedAtStr) {
                 $transportRounds[$expectedAtStr][] = $transportRound;
@@ -350,7 +353,6 @@ class RoundController extends AbstractController {
             ->sort(fn(array $coordinate1, array $coordinate2) => $coordinate1['index'] <=> $coordinate2['index'])
             ->keymap(fn(array $coordinates) => [$coordinates['index'], $coordinates['coordinates']])
             ->toArray();
-
 
         $roundData = $geoService->fetchStopsData($coordinates);
 
@@ -667,8 +669,9 @@ class RoundController extends AbstractController {
 
         $entityManager->flush();
         if($isNew) {
+            $now = (new DateTime())->format("d-m-Y");
             $todaysRounds = $transportRoundRepository->findTodayRounds($deliverer);
-            if ($todaysRounds) {
+            if ($todaysRounds && $now === $transportRound->getExpectedAt()->format("d-m-Y")) {
                 $userChannel = $userService->getUserFCMChannel($deliverer);
                 $notificationService->send($userChannel, "Une nouvelle tournée attribuée aujourd'hui", null, [
                     "roundId" => $transportRound->getId(),

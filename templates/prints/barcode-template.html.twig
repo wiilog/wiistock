@@ -148,6 +148,7 @@
     {% set firstCustomIconIsDefined = (config.firstCustomIcon is defined and config.firstCustomIcon is not null) %}
     {% set secondCustomIconIsDefined = (config.secondCustomIcon is defined and config.secondCustomIcon is not null) %}
     {% set landscape = landscape is defined and landscape %}
+    {% set separated = config.separated is defined and config.separated %}
 
     {% set hasHeader = logo or firstCustomIconIsDefined or secondCustomIconIsDefined %}
 
@@ -244,11 +245,14 @@
             <svg viewBox="0 0 {{ config.barcode.longestLabel * widthFontScale }} {{ ((config.labels|length) + 1) * heightFontScale }}"
                  xmlns="http://www.w3.org/2000/svg">
                 {% for label in config.labels %}
+                    {% if loop.index == 1 %}
+                        {% set previous = label %}
+                    {% endif %}
                     <text y="{{ loop.index * heightFontScale }}"
                           x="50%"
                           text-anchor="middle"
                           font-size="{{ landscape and loop.index == 1 ? '1.2' : 1 }}"
-                          font-weight="{{ landscape and loop.index == 1 ? '700' }}">
+                          font-weight="{{ landscape and (loop.index == 1 or (loop.index == 2 and separated)) ? '700' }}">
                         {{ label | trim }}
                     </text>
                 {% endfor %}
