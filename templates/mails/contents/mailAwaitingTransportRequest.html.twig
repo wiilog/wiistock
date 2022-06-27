@@ -5,13 +5,14 @@
     <p>Bonjour,</p>
     <p>Une demande de transport est à valider avec les informations suivantes :</p>
     <ul>
-        <li> Numéro de demande : <b>{{ prefix }}{{ transportRequest.number }}</b></li>
-        <li> Date de création : <b>{{ transportRequest.createdAt | format_helper('longDate', {short: true, time: true}, '') }}</b></li>
-        <li> Date{{ not isCollect ? ' de livraison' }} : <b>{{ transportRequest.expectedAt | format_helper('longDate', {short: true, time: not isCollect}, '') }}</b></li>
-        <li> Demandeur : <b>{{ transportRequest.createdBy.username }}</b></li>
-        <li> Type : <b>{{ transportRequest.type.label }}</b></li>
-        <li> N° dossier : <b>{{ transportRequest.contact.fileNumber }}</b></li>
-        <li> Adresse : <b>{{ transportRequest.contact.address}}</b></li>
+        <li>Numéro de demande : <b>{{ prefix }}{{ transportRequest.number }}</b></li>
+        <li>Date de création : <b>{{ transportRequest.createdAt | format_helper('longDate', {short: true, time: true}, '') }}</b></li>
+        <li>Date{{ not isCollect ? ' de livraison' }} : <b>{{ transportRequest.expectedAt | format_helper('longDate', {short: true, time: not isCollect}, '') }}</b></li>
+        <li>Demandeur : <b>{{ transportRequest.createdBy.username }}</b></li>
+        <li>Type : <b>{{ transportRequest.type.label }}</b></li>
+        <li>N° dossier : <b>{{ transportRequest.contact.fileNumber }}</b></li>
+        <li>Adresse : <b>{{ transportRequest.contact.address }}</b></li>
+        <li>Remarque : <b>{{ transportRequest.contact.observation }}</b></li>
     </ul>
 
     <br>
