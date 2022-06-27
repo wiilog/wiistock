@@ -95,7 +95,7 @@ class TransportOrder extends StatusHistoryContainer {
     #[ORM\OneToOne(inversedBy: 'order', targetEntity: TransportRequest::class)]
     private ?TransportRequest $request = null;
 
-    #[ORM\OneToMany(mappedBy: 'order', targetEntity: TransportHistory::class)]
+    #[ORM\OneToMany(mappedBy: 'order', targetEntity: TransportHistory::class, cascade: ['remove'])]
     private Collection $history;
 
     #[ORM\OneToMany(mappedBy: 'order', targetEntity: TransportDeliveryOrderPack::class)]
@@ -104,7 +104,7 @@ class TransportOrder extends StatusHistoryContainer {
     #[ORM\OneToMany(mappedBy: 'order', targetEntity: TransportRoundLine::class)]
     private Collection $transportRoundLines;
 
-    #[ORM\OneToMany(mappedBy: 'transportOrder', targetEntity: StatusHistory::class)]
+    #[ORM\OneToMany(mappedBy: 'transportOrder', targetEntity: StatusHistory::class, cascade: ['remove'])]
     private Collection $statusHistory;
 
     #[ORM\OneToOne(inversedBy: 'transportOrder', targetEntity: Attachment::class)]

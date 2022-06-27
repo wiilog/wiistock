@@ -146,10 +146,10 @@ abstract class TransportRequest extends StatusHistoryContainer {
     #[ORM\OneToOne(mappedBy: 'request', targetEntity: TransportOrder::class, cascade: ['persist', 'remove'])]
     private ?TransportOrder $order = null;
 
-    #[ORM\OneToMany(mappedBy: 'request', targetEntity: TransportHistory::class)]
+    #[ORM\OneToMany(mappedBy: 'request', targetEntity: TransportHistory::class, cascade: ['remove'])]
     private Collection $history;
 
-    #[ORM\OneToMany(mappedBy: 'transportRequest', targetEntity: StatusHistory::class)]
+    #[ORM\OneToMany(mappedBy: 'transportRequest', targetEntity: StatusHistory::class, cascade: ['remove'])]
     private Collection $statusHistory;
 
     #[ORM\ManyToOne(targetEntity: TransportRequestContact::class, cascade: ['persist', 'remove'])]
