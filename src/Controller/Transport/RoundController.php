@@ -77,8 +77,11 @@ class RoundController extends AbstractController {
         $filters = $filterSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_TRANSPORT_ROUNDS, $this->getUser());
         $queryResult = $roundRepository->findByParamAndFilters($request->request, $filters);
 
+        $orderedTransportRounds = Stream::from($queryResult["data"])
+            ->sort(fn(TransportRound $r1, TransportRound $r2) => $r2->getId() <=> $r1->getId())
+            ->toArray();
         $transportRounds = [];
-        foreach ($queryResult["data"] as $transportRound) {
+        foreach ($orderedTransportRounds as $transportRound) {
             $expectedAtStr = $transportRound->getExpectedAt()?->format("dmY");
             if ($expectedAtStr) {
                 $transportRounds[$expectedAtStr][] = $transportRound;
