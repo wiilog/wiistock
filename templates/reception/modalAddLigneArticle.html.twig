@@ -19,8 +19,8 @@
             </div>
             <div class="modal-body modal-input container-fluid">
                 <input type="hidden" class="data" name="reception" value="{{ reception.id }}"/>
-                <div class="row">
-                    <div class="form-group col-11 w-100 mb-3 ml-0">
+                <div class="row no-gutters">
+                    <div class="form-group col-5 w-100 mb-3 mr-2">
                         <label for="reception-add-ligne"
                                title="référence">{{ 'reference.référence'|trans }}*</label>
                         <select class="ajax-autocomplete data form-control needed"
@@ -30,16 +30,16 @@
                         </select>
                     </div>
                     {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::CREATE_REF_FROM_RECEP')) %}
-                        <div class="form-group col-1 d-flex justify-content-end">
+                        <div class="form-group col-2 d-flex justify-content-start">
                             <span class="btn btn-primary m-0 align-self-end"
                                   onclick="addArticle()">
-                                <i class="fa fa-plus"></i>
+                                <i class="fa fa-plus mr-1"></i>
+                                <span >Créer</span>
                             </span>
                         </div>
                     {% endif %}
                     <div id='innerNewRef'
                          class="form-group w-100 col-12">
-
                     </div>
                 </div>
                 <div class="body-add-ref row">
@@ -66,16 +66,6 @@
                                name="quantiteAR"
                                min=1
                                id="quantiteAR">
-                    </div>
-                    <div class="form-group col-6">
-                        <label for="">Quantité reçue</label>
-                        <input type="number"
-                               class="form-control data"
-                               name="quantite"
-                               min=0
-                               disabled
-                               value="0"
-                               id="quantiteRecue">
                     </div>
                     <div class="form-group col-6 pt-4">
                         <label>Anomalie</label>
