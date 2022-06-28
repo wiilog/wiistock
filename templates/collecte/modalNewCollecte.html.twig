@@ -7,12 +7,10 @@
       aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title wii-title" id="exampleModalLongTitle">Demande de collecte</h5>
-                <button type="div" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
+            {% include('utils/modal/header.html.twig') with {
+                title: "Demande de collecte"
+            } %}
+
             <div class="modal-body modal-input container-fluid">
                 <div class="form-group">
                     <label for="demandeur">Demandeur</label>

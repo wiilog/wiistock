@@ -1,15 +1,10 @@
 <form method="" class="modal fade" id="modalFinishReception" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title wii-title">Valider <span title="la réception">{{ 'réception.la réception'|trans }}</span></h5>
-                <button type="button"
-                        class="close"
-                        data-dismiss="modal"
-                        aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
+            {% include('utils/modal/header.html.twig') with {
+                title: "Valider" ~ 'réception.le réception' | trans
+            } %}
+
             <div class="modal-body">
                 <span title="cette réception">{{ 'réception.cette réception'|trans }}</span> contient des <span title="articles">{{ 'réception.articles'|trans }}</span> à finir de réceptionner.<br>Êtes-vous sûr de vouloir {{ 'réception.la'|trans }} finir ?
             </div>

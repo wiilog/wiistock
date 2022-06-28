@@ -5,13 +5,10 @@
 <form method="" class="modal fade" id="modalNewArrivage" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title wii-title" title="nouvel arrivage">{{ 'arrivage.nouvel arrivage'|trans }}</h5>
+                {% include('utils/modal/header.html.twig') with {
+                    title: 'arrivage.nouvel arrivage'|trans
+                } %}
 
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
             <div class="modal-body modal-input container-fluid">
                 <div class="row fly-form">
                     {% if fieldsParam|isFieldRequired('fournisseur', 'displayedCreate') %}

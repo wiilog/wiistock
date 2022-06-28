@@ -1,12 +1,10 @@
 <form class="modal fade" id="modalNewVehicle" aria-labelledby="dataModalCenterTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Nouveau véhicule</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
+            {% include('utils/modal/header.html.twig') with {
+                title: "Nouveau véhicule"
+            } %}
+
             <div class="modal-body modal-input container-fluid">
                 {% include 'vehicle/modal/form.html.twig' with {vehicle: newVehicle} %}
             </div>

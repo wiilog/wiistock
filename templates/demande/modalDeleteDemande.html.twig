@@ -1,12 +1,10 @@
 <form method="" class="modal fade" id="modalDeleteDemande" role="dialog" aria-labelledby="dataModalCenterTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title wii-title">Supprimer la demande</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
+            {% include('utils/modal/header.html.twig') with {
+                title: "Supprimer la demande"
+            } %}
+
             <div class="modal-body">
                 Voulez-vous réellement supprimer cette demande ?
             </div>

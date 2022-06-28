@@ -154,28 +154,6 @@ class AlertTemplateController extends AbstractController
     }
 
     /**
-     * @Route("/api-modifier", name="alert_template_edit_api", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::EDIT})
-     */
-    public function editApi(Request $request, EntityManagerInterface $entityManager): Response
-    {
-        if ($data = json_decode($request->getContent(), true)) {
-            $alertTemplate = $entityManager->getRepository(AlertTemplate::class)->find($data['id']);
-
-            $html = $this->renderView('alert_template/edit_content.html.twig', [
-                'alert_template' => $alertTemplate,
-                'templateTypes' => AlertTemplate::TEMPLATE_TYPES,
-                'phoneNumbers' => $alertTemplate->getType() === AlertTemplate::SMS
-                    ? json_decode($alertTemplate->getConfig()['receivers'])
-                    : []
-            ]);
-
-            return $this->json($html);
-        }
-        throw new BadRequestHttpException();
-    }
-
-    /**
      * @Route("/modifier", name="alert_template_edit", options={"expose"=true}, methods={"GET", "POST"})
      * @HasPermission({Menu::PARAM, Action::EDIT})
      */
