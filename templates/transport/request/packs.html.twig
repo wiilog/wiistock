@@ -43,7 +43,7 @@
                                     {% set packState = transportDeliveryOrderPack.state %}
                                     {% if packState  == constant('App\\Entity\\Transport\\TransportDeliveryOrderPack::REJECTED_STATE')%}
                                         Oui
-                                    {% elseif packState != null and packState != constant('App\\Entity\\Transport\\TransportDeliveryOrderPack::REJECTED_STATE') %}
+                                    {% elseif packState != null %}
                                         Non
                                     {% else %}
                                         -

@@ -387,10 +387,10 @@ class OrderController extends AbstractController {
                 'Nombre de colis à livrer',
                 'Températures',
                 'Dépassement température',
-                'Code Colis',
+                'Code colis',
                 'Ecarté',
                 'Motif écartement',
-                'Retrounée le',
+                'Retourné le',
             ];
             $csvHeader = array_merge($transportHeader, $packsHeader, $freeFieldsConfigDelivery['freeFieldsHeader']);
         } else {

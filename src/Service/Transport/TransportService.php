@@ -591,9 +591,13 @@ class TransportService {
                         $pack->getPack()?->getQuantity() ?: '0',
                         $pack->getPack()?->getNature() ? $pack->getPackTemperature($pack->getPack()->getNature()) ?: '' : '',
                         $pack->getPack()?->getCode() ?: '',
-                        $pack->getRejectedBy() ? 'Oui' : ($pack->getRejectReason() ? 'Oui' : 'Non'),
-                        $pack->getRejectReason() ?: '',
-                        FormatHelper::datetime($pack->getReturnedAt()),
+                        $pack->getState() === TransportDeliveryOrderPack::REJECTED_STATE
+                            ? 'Oui'
+                            : ($pack->getState() !== null
+                                ? 'Non'
+                                : '-'),
+                        $pack->getRejectReason() ?: ($pack->getState() && $pack->getState() !== TransportDeliveryOrderPack::REJECTED_STATE ? '/' : '-'),
+                        $pack->getReturnedAt() ? FormatHelper::datetime($pack->getReturnedAt()) : '-',
                     ], $freeFields);
                     $csvService->putLine($output, $dataTransportDeliveryRequestPacks);
                 }
@@ -605,7 +609,7 @@ class TransportService {
         }
         else if($request instanceof TransportCollectRequest) {
             $dataTransportCollectRequest = array_merge($dataTransportRequest, [
-                FormatHelper::datetime($request->getValidatedDate()),
+                $request->getValidatedDate() ? FormatHelper::datetime($request->getValidatedDate()) : '-',
                 isset($statusRequest[TransportRequest::STATUS_AWAITING_VALIDATION]) ? FormatHelper::datetime($request->getCreatedAt()): '',
                 isset($statusRequest[TransportRequest::STATUS_AWAITING_PLANNING]) && isset($statusRequest[TransportRequest::STATUS_AWAITING_VALIDATION]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_AWAITING_PLANNING]) : '',
                 isset($statusRequest[TransportRequest::STATUS_TO_COLLECT]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_TO_COLLECT]) : '',
@@ -621,8 +625,8 @@ class TransportService {
                 foreach ($lines as $line) {
                     $dataTransportCollectRequestPacks = array_merge($dataTransportCollectRequest, [
                         $line->getNature()?->getLabel()? : '',
-                        $line->getQuantityToCollect()? : '',
-                        $line->getCollectedQuantity()? : '',
+                        $line->getQuantityToCollect() !== null ? $line->getQuantityToCollect() : '/',
+                        $line->getCollectedQuantity() !== null ? $line->getCollectedQuantity() : '-',
                     ], $freeFields);
                     $csvService->putLine($output, $dataTransportCollectRequestPacks);
                 }
@@ -667,11 +671,11 @@ class TransportService {
             $freeFields[] = FormatHelper::freeField($freeFieldValues[$freeFieldId] ?? '', $freeField);
         }
 
-        $transportRound = null;
+        $transportRoundNumber = null;
         $transportRoundDeliverer = null;
         $estimatedDate = null;
         if($round) {
-            $transportRound = $round->getTransportRound()->getNumber();
+            $transportRoundNumber = $round->getTransportRound()->getNumber();
             $transportRoundDeliverer = $round->getTransportRound()->getDeliverer();
             $estimatedDate = $round->getTransportRound()->getTransportRoundLine($order)->getEstimatedAt();
         }
@@ -697,26 +701,32 @@ class TransportService {
                 isset($statusOrder[TransportOrder::STATUS_TO_ASSIGN]) ? FormatHelper::datetime($statusOrder[TransportOrder::STATUS_TO_ASSIGN]) : '',
                 isset($statusOrder[TransportOrder::STATUS_ASSIGNED]) ? FormatHelper::datetime($statusOrder[TransportOrder::STATUS_ASSIGNED]) : '',
                 isset($statusOrder[TransportOrder::STATUS_ONGOING]) ? FormatHelper::datetime($statusOrder[TransportOrder::STATUS_ONGOING]) : '',
-                FormatHelper::date($estimatedDate),
+                $estimatedDate ? FormatHelper::date($estimatedDate) : '/',
                 isset($statusOrder[TransportOrder::STATUS_FINISHED]) ? FormatHelper::datetime($statusOrder[TransportOrder::STATUS_FINISHED]) : (isset($statusOrder[TransportOrder::STATUS_CANCELLED]) ? FormatHelper::datetime($statusOrder[TransportOrder::STATUS_CANCELLED]) : '' ),
-                $transportRound,
+                $transportRoundNumber,
                 FormatHelper::user($transportRoundDeliverer),
                 $request->getContact()->getObservation(),
             ]);
 
             $packs = $order->getPacks();
 
-            if ($packs && !$packs->isEmpty()) {
+            if (!$packs->isEmpty()) {
                 foreach ($packs as $pack) {
                     $dataTransportDeliveryRequestPacks = array_merge($dataTransportDeliveryRequest, [
                         $pack->getPack()?->getNature()?->getLabel() ?: '',
                         $pack->getPack()?->getQuantity() ?: '0',
                         $pack->getPack()?->getNature() ? $pack->getPackTemperature($pack->getPack()->getNature()) ?: '' : '',
-                        $pack->getPack()?->getActivePairing()?->hasExceededThreshold() ? FormatHelper::bool($pack->getPack()?->getActivePairing()?->hasExceededThreshold()):"non",
+                        $pack->getPack()?->getActivePairing()?->hasExceededThreshold()
+                            ? FormatHelper::bool($pack->getPack()?->getActivePairing()?->hasExceededThreshold())
+                            : "non",
                         $pack->getPack()?->getCode() ?: '',
-                        $pack->getRejectedBy() ? 'Oui' : ($pack->getRejectReason() ? 'Oui' : 'Non'),
-                        $pack->getRejectReason() ?: '',
-                        FormatHelper::datetime($pack->getReturnedAt()),
+                        $pack->getState() === TransportDeliveryOrderPack::REJECTED_STATE
+                            ? 'Oui'
+                            : ($pack->getState() !== null
+                                ? 'Non'
+                                : '-'),
+                        $pack->getRejectReason() ?: ($pack->getState() && $pack->getState() !== TransportDeliveryOrderPack::REJECTED_STATE ? '/' : '-'),
+                        $pack->getReturnedAt() ? FormatHelper::datetime($pack->getReturnedAt()) : '-',
                     ], $freeFields);
                     $csvService->putLine($output, $dataTransportDeliveryRequestPacks);
                 }
@@ -727,16 +737,17 @@ class TransportService {
             }
         }
         else if($request instanceof TransportCollectRequest) {
+            $timeSlot = $request->getTimeSlot()?->getName();
             $dataTransportCollectRequest = array_merge($dataTransportRequest, [
                 FormatHelper::datetime($request->getCreatedAt()),
-                FormatHelper::datetime($request->getValidatedDate()),
+                $request->getValidatedDate() ? FormatHelper::datetime($request->getValidatedDate()) : '-',
                 isset($statusOrder[TransportOrder::STATUS_TO_ASSIGN]) ? FormatHelper::datetime($statusOrder[TransportOrder::STATUS_TO_ASSIGN]) : '',
                 isset($statusOrder[TransportOrder::STATUS_ASSIGNED]) ? FormatHelper::datetime($statusOrder[TransportOrder::STATUS_ASSIGNED]) : '',
                 isset($statusOrder[TransportOrder::STATUS_ONGOING]) ? FormatHelper::datetime($statusOrder[TransportOrder::STATUS_ONGOING]) : '',
-                FormatHelper::date($estimatedDate),
+                $timeSlot ?? ($estimatedDate ? FormatHelper::date($estimatedDate) : '/'),
                 isset($statusOrder[TransportOrder::STATUS_FINISHED]) ? FormatHelper::datetime($statusOrder[TransportOrder::STATUS_FINISHED]) : (isset($statusOrder[TransportOrder::STATUS_CANCELLED]) ? FormatHelper::datetime($statusOrder[TransportOrder::STATUS_CANCELLED]) : '' ),
-                $order->getTreatedAt(),
-                $transportRound,
+                FormatHelper::datetime($order->getTreatedAt()),
+                $transportRoundNumber,
                 FormatHelper::user($transportRoundDeliverer),
                 $request->getContact()->getObservation(),
             ]);
@@ -747,8 +758,8 @@ class TransportService {
                 foreach ($lines as $line) {
                     $dataTransportCollectRequestPacks = array_merge($dataTransportCollectRequest, [
                         $line->getNature()?->getLabel()? : '',
-                        $line->getQuantityToCollect()? : '',
-                        $line->getCollectedQuantity()? : '',
+                        $line->getQuantityToCollect() !== null ? $line->getQuantityToCollect() : '/',
+                        $line->getCollectedQuantity() !== null ? $line->getCollectedQuantity() : '-',
                     ], $freeFields);
                     $csvService->putLine($output, $dataTransportCollectRequestPacks);
                 }

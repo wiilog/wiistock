@@ -48,7 +48,7 @@
                 <span class="ml-2">{{ history['date'] }}</span>
                 {% if entity is instanceof('App\\Entity\\Transport\\TransportOrder') and entityStatusName in merge(finishedStatusesName, redStatusesName) and history['status'] in merge(finishedStatusesName, redStatusesName) %}
                     {% set roundLine = order ? (order.transportRoundLines | last) ?: null : null %}
-                    {%  set estimatedAt = roundLine ? (roundLine.estimatedAt | date('H:i')) : (timeSlot ? timeSlot.name : transport.expectedAt | date('H:i')) %}
+                    {% set estimatedAt = roundLine ? (roundLine.estimatedAt | date('H:i')) : (timeSlot ? timeSlot.name : transport.expectedAt | date('H:i')) %}
                     <br><span class="ml-2">Estimée à : {{ estimatedAt ?? "/" }}</span>
                 {% endif %}
             </div>

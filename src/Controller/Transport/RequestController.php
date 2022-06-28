@@ -469,7 +469,7 @@ class RequestController extends AbstractController {
                 $currentRow[] = $this->renderView("transport/request/list_card.html.twig", [
                     "prefix" => TransportRequest::NUMBER_PREFIX,
                     "request" => $transportRequest,
-                    "timeSlot" => $roundLine ? $transportService->hourToTimeSlot($entityManager, $roundLine->getEstimatedAt()->format("H:i")) : null,
+                    "timeSlot" => $roundLine && $roundLine->getEstimatedAt() ? $transportService->hourToTimeSlot($entityManager, $roundLine->getEstimatedAt()->format("H:i")) : null,
                     "path" => "transport_request_show",
                     "displayDropdown" => true,
                 ]);
@@ -793,16 +793,17 @@ class RequestController extends AbstractController {
                 'Date Sous-traitées',
                 'Date En cours',
                 'Date Terminée/Non Livrée',
-                'Commentaire'];
+                'Commentaire'
+            ];
 
             $packsHeader = [
                 'Nature colis',
                 'Nombre de colis à livrer',
                 'Températures',
-                'Code Colis',
+                'Code colis',
                 'Ecarté',
                 'Motif écartement',
-                'Retrounée le',
+                'Retourné le',
             ];
             $csvHeader = array_merge($transportHeader, $packsHeader, $freeFieldsConfigDelivery['freeFieldsHeader']);
         } else {

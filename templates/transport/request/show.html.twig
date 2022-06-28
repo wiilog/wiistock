@@ -171,10 +171,10 @@
                         {% if request is instanceof('App\\Entity\\Transport\\TransportCollectRequest') %}
                             <div class="col-6 d-flex flex-column">
                                 <span class="wii-field-name">Date validée avec le patient</span>
-                                {% if request_collect.validatedDate %}
-                                    <span class="wii-field-text">
-                                        {{ request.validatedDate | format_helper('longDate',{short: true, time: false}) }}
-                                    </span>
+                                {% if request_collect.validatedDate is not null %}
+                                    <span class="wii-field-text">{{ request_collect.validatedDate | format_helper('longDate') }}</span>
+                                {% else %}
+                                    <span>-</span>
                                 {% endif %}
                             </div>
                         {% endif %}
