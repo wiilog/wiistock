@@ -1,0 +1,8 @@
+{% set title = title is defined and title ? title %}
+{% set classes = classes is defined and classes ? classes %}
+<div class="modal-header">
+    <h5 class="modal-title wii-title {{ classes }}" title="{{ title }}">{{ title }}</h5>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
