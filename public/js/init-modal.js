@@ -428,7 +428,9 @@ function processInputsForm($modal, data, isAttachmentForm) {
                 || (Array.isArray(val) && val.length === 0)
                 || ($qlEditor && $qlEditor.length > 0 && !$qlEditor.text())
             )) {
-            if (missingInputNames.indexOf(label) === -1) {
+            if($input.data(`label`)) {
+                missingInputNames.push($input.data(`label`));
+            } else if (missingInputNames.indexOf(label) === -1) {
                 missingInputNames.push(label);
             }
             $isInvalidElements.push($input, $input.next().find('.select2-selection'));

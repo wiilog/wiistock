@@ -18,6 +18,7 @@ use App\Entity\Transport\TransportRoundLine;
 use App\Helper\FormatHelper;
 use App\Service\StringService;
 use App\Service\Transport\TransportHistoryService;
+use App\Service\Transport\TransportService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -32,7 +33,10 @@ class HistoryController extends AbstractController
     public const ROUND = "round";
 
     #[Route("/{type}/{id}/status-history-api", name: "status_history_api", options: ['expose' => true], methods: "GET")]
-    public function statusHistoryApi(int $id, string $type, EntityManagerInterface $entityManager): JsonResponse {
+    public function statusHistoryApi(int $id,
+                                     string $type,
+                                     EntityManagerInterface $entityManager,
+                                     TransportService $transportService): JsonResponse {
         $entity = null;
         if($type === self::ORDER) {
             $entity = $entityManager->find(TransportOrder::class, $id);
@@ -44,6 +48,9 @@ class HistoryController extends AbstractController
             $order = $entity->getOrder();
             if($order) {
                 $round = $order->getTransportRoundLines()->last() ?: null;
+                if ($round) {
+                    $estimatedTimeSlot = $transportService->hourToTimeSlot($entityManager, $round->getEstimatedAt()->format("H:i")) ?? $round->getEstimatedAt()->format("H:i");
+                }
             }
         }
         else if ($type === self::ROUND) {
@@ -96,7 +103,8 @@ class HistoryController extends AbstractController
                     ])
                     ->toArray(),
                 "entity" => $entity,
-                "round" => $round ?? null
+                "round" => $round ?? null,
+                "estimatedTimeSlot" => $estimatedTimeSlot ?? null,
             ]),
         ]);
     }

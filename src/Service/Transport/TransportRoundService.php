@@ -93,7 +93,7 @@ class TransportRoundService
                     str_replace("\n", " ", $request?->getContact()?->getAddress() ?: ''),
                     $transportRoundLine->getPriority() ?: '',
                     $order?->getStatus()->getNom() ?: '',
-                    $vehicle?->getActivePairing() ? FormatHelper::bool($vehicle->getActivePairing()->hasExceededThreshold()) : "Non",
+                    $vehicle?->getActivePairing() ? FormatHelper::bool($vehicle?->getActivePairing()?->hasExceededThreshold()) : "Non",
                 ]);
                 $csvService->putLine($output, $ordersInformation);
             }
@@ -174,7 +174,7 @@ class TransportRoundService
                             $request instanceof TransportDeliveryRequest ? FormatHelper::datetime($request->getExpectedAt()) : FormatHelper::date($request->getExpectedAt()),
                             isset($statusRequest[TransportRequest::STATUS_FINISHED]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_FINISHED]) : '',
                             $naturesStr,
-                            $vehicle?->getActivePairing() ? FormatHelper::bool($vehicle->getActivePairing()->hasExceededThreshold()) : "Non",
+                            $vehicle?->getActivePairing() ? FormatHelper::bool($vehicle?->getActivePairing()?->hasExceededThreshold()) : "Non",
                         ]);
                         $this->CSVExportService->putLine($output, $ordersInformation);
                     }

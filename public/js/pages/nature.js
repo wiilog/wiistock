@@ -63,8 +63,9 @@ function onNewModalShow() {
 function toggleEntitiesContainer($input) {
     const $entitiesContainer = $input.closest(`.form-group`).siblings(`.entities-container`).first();
     $entitiesContainer.toggleClass(`d-none`, !$input.is(`:checked`));
-    $entitiesContainer.find(`input[type=checkbox]`).prop(`checked`, false);
-    $entitiesContainer.find(`select`).val(null).trigger(`change`);
+    const $checkboxes = $entitiesContainer.find(`input[type=checkbox]`);
+    $checkboxes.prop(`checked`, false);
+    $checkboxes.each((index, checkbox) => toggleTypes($(checkbox)));
 }
 
 function toggleTypes($checkbox) {

@@ -36,6 +36,7 @@ use App\Service\MailerService;
 use App\Service\NotificationService;
 use App\Service\PDFGeneratorService;
 use App\Service\StatusHistoryService;
+use App\Service\StringService;
 use App\Service\Transport\TransportHistoryService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -73,6 +74,7 @@ class RequestController extends AbstractController {
 
         $natures = $natureRepository->findByAllowedForms([Nature::TRANSPORT_COLLECT_CODE, Nature::TRANSPORT_DELIVERY_CODE]);
         $requestLines = Stream::from($natures)
+            ->sort(fn(Nature $a, Nature $b) => StringService::mbstrcmp($a->getLabel(), $b->getLabel()))
             ->map(fn(Nature $nature) => [
                 'nature' => $nature,
             ])
@@ -327,7 +329,6 @@ class RequestController extends AbstractController {
 
         $canPacking = (
             isset($order)
-            && $order->getPacks()->isEmpty()
             && $transportRequest instanceof TransportDeliveryRequest
             && in_array($transportRequest->getStatus()?->getCode(), [
                 TransportRequest::STATUS_TO_PREPARE,
@@ -464,12 +465,13 @@ class RequestController extends AbstractController {
             ];
 
             foreach ($requests as $transportRequest) {
+                $roundLine = $transportRequest->getOrder()?->getTransportRoundLines()->last();
                 $currentRow[] = $this->renderView("transport/request/list_card.html.twig", [
                     "prefix" => TransportRequest::NUMBER_PREFIX,
                     "request" => $transportRequest,
-                    "timeSlot" => $transportService->getTimeSlot($entityManager, $transportRequest->getExpectedAt()),
+                    "timeSlot" => $roundLine && $roundLine->getEstimatedAt() ? $transportService->hourToTimeSlot($entityManager, $roundLine->getEstimatedAt()->format("H:i")) : null,
                     "path" => "transport_request_show",
-                    "displayDropdown" => true
+                    "displayDropdown" => true,
                 ]);
             }
 
@@ -694,6 +696,7 @@ class RequestController extends AbstractController {
         if ($transportRequest instanceof TransportCollectRequest) {
             $collectNatures = $natureRepository->findByAllowedForms([Nature::TRANSPORT_COLLECT_CODE]);
             $requestLines = Stream::from($collectNatures)
+                ->sort(fn(Nature $a, Nature $b) => StringService::mbstrcmp($a->getLabel(), $b->getLabel()))
                 ->map(function(Nature $nature) use ($transportRequest) {
                     /** @var TransportCollectRequestLine $line */
                     $line = $transportRequest->getLine($nature);
@@ -708,6 +711,7 @@ class RequestController extends AbstractController {
         else if ($transportRequest instanceof TransportDeliveryRequest) {
             $deliveryNatures = $natureRepository->findByAllowedForms([Nature::TRANSPORT_DELIVERY_CODE]);
             $requestLines = Stream::from($deliveryNatures)
+                ->sort(fn(Nature $a, Nature $b) => StringService::mbstrcmp($a->getLabel(), $b->getLabel()))
                 ->map(function(Nature $nature) use ($transportRequest) {
                     /** @var TransportDeliveryRequestLine $line */
                     $line = $transportRequest->getLine($nature);
@@ -789,16 +793,17 @@ class RequestController extends AbstractController {
                 'Date Sous-traitées',
                 'Date En cours',
                 'Date Terminée/Non Livrée',
-                'Commentaire'];
+                'Commentaire'
+            ];
 
             $packsHeader = [
                 'Nature colis',
                 'Nombre de colis à livrer',
                 'Températures',
-                'Code Colis',
+                'Code colis',
                 'Ecarté',
                 'Motif écartement',
-                'Retrounée le',
+                'Retourné le',
             ];
             $csvHeader = array_merge($transportHeader, $packsHeader, $freeFieldsConfigDelivery['freeFieldsHeader']);
         } else {

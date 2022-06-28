@@ -189,6 +189,9 @@
     "myclabs/deep-copy": {
         "version": "1.10.2"
     },
+    "nbgrp/onelogin-saml-bundle": {
+        "version": "v1.1.1"
+    },
     "nelmio/cors-bundle": {
         "version": "1.5",
         "recipe": {
@@ -203,6 +206,9 @@
     },
     "nikic/php-parser": {
         "version": "v4.10.4"
+    },
+    "onelogin/php-saml": {
+        "version": "4.0.1"
     },
     "ovh/ovh": {
         "version": "v3.0.0"
@@ -289,6 +295,9 @@
     },
     "ralouphie/getallheaders": {
         "version": "3.0.3"
+    },
+    "robrichards/xmlseclibs": {
+        "version": "3.1.1"
     },
     "scienta/doctrine-json-functions": {
         "version": "4.3.0"

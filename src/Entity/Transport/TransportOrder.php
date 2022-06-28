@@ -83,6 +83,9 @@ class TransportOrder extends StatusHistoryContainer {
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $treatedAt = null;
 
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?DateTime $failedAt = null;
+
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $comment = null;
 
@@ -92,7 +95,7 @@ class TransportOrder extends StatusHistoryContainer {
     #[ORM\OneToOne(inversedBy: 'order', targetEntity: TransportRequest::class)]
     private ?TransportRequest $request = null;
 
-    #[ORM\OneToMany(mappedBy: 'order', targetEntity: TransportHistory::class)]
+    #[ORM\OneToMany(mappedBy: 'order', targetEntity: TransportHistory::class, cascade: ['remove'])]
     private Collection $history;
 
     #[ORM\OneToMany(mappedBy: 'order', targetEntity: TransportDeliveryOrderPack::class)]
@@ -101,7 +104,7 @@ class TransportOrder extends StatusHistoryContainer {
     #[ORM\OneToMany(mappedBy: 'order', targetEntity: TransportRoundLine::class)]
     private Collection $transportRoundLines;
 
-    #[ORM\OneToMany(mappedBy: 'transportOrder', targetEntity: StatusHistory::class)]
+    #[ORM\OneToMany(mappedBy: 'transportOrder', targetEntity: StatusHistory::class, cascade: ['remove'])]
     private Collection $statusHistory;
 
     #[ORM\OneToOne(inversedBy: 'transportOrder', targetEntity: Attachment::class)]
@@ -205,6 +208,16 @@ class TransportOrder extends StatusHistoryContainer {
 
     public function setTreatedAt(?DateTime $treatedAt): self {
         $this->treatedAt = $treatedAt;
+
+        return $this;
+    }
+
+    public function getFailedAt(): ?DateTime {
+        return $this->failedAt;
+    }
+
+    public function setFailedAt(?DateTime $failedAt): self {
+        $this->failedAt = $failedAt;
 
         return $this;
     }

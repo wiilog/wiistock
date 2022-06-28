@@ -46,5 +46,6 @@ yarn-error.log
 ###< phpunit/phpunit ###
 
 /config/fcm-config.json
+/certs/
 /config/packages/google_apiclient.yaml
 /rector.php
