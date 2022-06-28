@@ -1344,38 +1344,6 @@ class ReceptionController extends AbstractController {
     }
 
     /**
-     * @Route("/obtenir-modal-for-ref", name="get_modal_new_ref", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::CREATE_REF_FROM_RECEP}, mode=HasPermission::IN_JSON)
-     */
-    public function checkIfQuantityArticle(EntityManagerInterface $entityManager): Response {
-        $typeRepository = $entityManager->getRepository(Type::class);
-        $champLibreRepository = $entityManager->getRepository(FreeField::class);
-        $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
-
-        $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
-
-        $inventoryCategories = $inventoryCategoryRepository->findAll();
-        $typeChampLibre = [];
-        foreach($types as $type) {
-            $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
-            $typeChampLibre[] = [
-                'typeLabel' => $type->getLabel(),
-                'typeId' => $type->getId(),
-                'champsLibres' => $champsLibres,
-            ];
-        }
-        return new JsonResponse($this->renderView('reception/modalNewRefArticle.html.twig', [
-            'typeChampsLibres' => $typeChampLibre,
-            'types' => $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]),
-            'categories' => $inventoryCategories,
-            "stockManagement" => [
-                ReferenceArticle::STOCK_MANAGEMENT_FEFO,
-                ReferenceArticle::STOCK_MANAGEMENT_FIFO
-            ],
-        ]));
-    }
-
-    /**
      * @Route("/verif-avant-suppression", name="ligne_recep_check_delete", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      */
     public function checkBeforeLigneDelete(EntityManagerInterface $entityManager,
