@@ -1,8 +1,15 @@
 {% set title = title is defined and title ? title %}
-{% set classes = classes is defined and classes ? classes %}
-<div class="modal-header">
-    <h5 class="modal-title wii-title {{ classes }}" title="{{ title }}">{{ title }}</h5>
-    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-        <span aria-hidden="true">&times;</span>
-    </button>
+{% set headerClasses = headerClasses is defined and headerClasses ? headerClasses %}
+{% set titleClasses = titleClasses is defined and titleClasses ? titleClasses %}
+{% set titleId = titleId is defined and titleId ? titleId %}
+{% set hideTimes = hideTimes is defined and hideTimes %}
+
+<div class="modal-header {{ headerClasses }}">
+    <h5 class="modal-title wii-title {{ titleClasses }}"
+        id="{{ titleId }}" title="{{ title }}">{{ title }}</h5>
+    {% if not hideTimes %}
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    {% endif %}
 </div>

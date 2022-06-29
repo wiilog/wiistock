@@ -1,17 +1,7 @@
 <div class="modal fade modalDeleteEntity" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
-{#              where title ??? #}
-            {% include('utils/modal/header.html.twig') with {
-                title: ""
-            } %}
-
-{#            <div class="modal-header">#}
-{#                <h5 class="modal-title"></h5>#}
-{#                <button type="button" class="close" data-dismiss="modal" aria-label="Close">#}
-{#                    <span aria-hidden="true">&times;</span>#}
-{#                </button>#}
-{#            </div>#}
+            {% include('utils/modal/header.html.twig') %}
             <div class="modal-body">
                 <div class="spinner-container d-flex justify-content-center">
                     <div class="spinner-border sizeLoader mini-loader" role="status">
