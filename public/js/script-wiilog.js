@@ -119,6 +119,7 @@ function openQueryModal(query = null, event) {
     query = query || GetRequestQuery();
     const openModalNew = 'new';
     const openModalEdit = 'edit';
+
     if (query["open-modal"] === openModalNew
         || query["open-modal"] === openModalEdit) {
         if (query["open-modal"] === openModalNew) {

@@ -1,9 +1,5 @@
-<form method=""
-      class="modal fade"
-      id="modalAddLigneArticle"
-      role="dialog"
-      aria-labelledby="dataModalCenterTitle"
-     aria-hidden="true">
+<div id="modalAddLigneArticle" class="modal fade" role="dialog"
+      data-modal-type="new" aria-labelledby="dataModalCenterTitle" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered"
          role="document">
         <div class="modal-content">
@@ -31,11 +27,10 @@
                     </div>
                     {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::CREATE_REF_FROM_RECEP')) %}
                         <div class="form-group col-2 d-flex justify-content-start">
-                            <span class="btn btn-primary m-0 align-self-end"
-                                  onclick="addArticle()">
+                            <a href="{{ path('reference_article_new_page', {from: 'reception_add_line', reception: reception.id}) }}" class="btn btn-primary m-0 align-self-end">
                                 <i class="fa fa-plus mr-1"></i>
                                 <span >Créer</span>
-                            </span>
+                            </a>
                         </div>
                     {% endif %}
                     <div id='innerNewRef'
@@ -112,4 +107,4 @@
             </div>
         </div>
     </div>
-</form>
+</div>
