@@ -19,9 +19,6 @@ class InventoryService {
     #[Required]
     public EntityManagerInterface $entityManager;
 
-    #[Required]
-    public Security $security;
-
     public function doTreatAnomaly(int $idEntry, string $barCode, bool $isRef, int $newQuantity, string $comment, Utilisateur $user): array {
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $this->entityManager->getRepository(Article::class);
