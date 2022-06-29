@@ -104,6 +104,9 @@ class TransportRound extends StatusHistoryContainer {
     #[ORM\Column(type: 'integer', options: ['default' => 0])]
     private int $rejectedOrderCount = 0;
 
+    #[ORM\Column(type: 'integer', options: ['default' => 0])]
+    private int $rejectedPackCount = 0;
+
     #[ORM\OneToMany(mappedBy: 'transportRound', targetEntity: TransportRoundLine::class)]
     private Collection $transportRoundLines;
 
@@ -429,10 +432,14 @@ class TransportRound extends StatusHistoryContainer {
         $this->rejectedOrderCount = $rejectedOrderCount;
         return $this;
     }
-    public function countRejectedOrders(): int {
-        return Stream::from($this->getTransportRoundLines())->filter(function(TransportRoundLine $line) {
-            return $line->getOrder()->isRejected();
-        })->count();
+
+    public function getRejectedPackCount(): int {
+        return $this->rejectedPackCount;
+    }
+
+    public function setRejectedPackCount(int $rejectedPackCount): self {
+        $this->rejectedPackCount = $rejectedPackCount;
+        return $this;
     }
 
     public function getPairings(): array {

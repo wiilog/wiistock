@@ -5,7 +5,7 @@
     <input type="text" class="form-control data needed required" name="name"/>
 </div>
 <div class="form-group col-12 phone-number-wrapper">
-    <label class="wii-field-name">Destinataires</label>
+    <label class="wii-field-name">Destinataires*</label>
     {% if phoneNumbers is defined and phoneNumbers is not empty %}
         {% for phoneNumber in phoneNumbers %}
             <div class="phone-number-container d-flex {{ loop.index != 1 ? 'mt-2' }}">
@@ -41,6 +41,6 @@
 <template class="phone-number-template">
     <div class="phone-number-container d-flex mt-2">
         <input class="form-control data-array" name="receivers" type="text">
-        <button class="btn btn-outline-primary d-block" onclick="deletePhoneNumber($(this))"><i class="wii-icon wii-icon-trash"></i></button>
+        <button class="btn btn-outline-primary d-block ml-2" onclick="deletePhoneNumber($(this))"><i class="wii-icon wii-icon-trash"></i></button>
     </div>
 </template>

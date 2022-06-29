@@ -45,7 +45,7 @@ $(function () {
     });
 
     $('.sortable-container').on('sortupdate', function () {
-        updateCardsContainers(map, contactData);
+        updateCardsContainers(map, contactData, true);
     })
 
     $.merge(
@@ -270,11 +270,29 @@ function initialiseMouseHoverEvent(map, contactData) {
 
 function updateCardsContainers(map, contactData, deletion = false) {
     initialiseMouseHoverEvent(map, contactData);
+    map.remove(mapLines);
+
+    [$('.round-form-container [name=startPoint]'), $('.round-form-container [name=startPointScheduleCalculation]'), $('.round-form-container [name=endPoint]')]
+        .forEach(($input) => {
+            const latitude = $input.data('latitude');
+            const longitude = $input.data('longitude');
+            if (latitude && longitude) {
+                map.setMarker({
+                    latitude,
+                    longitude,
+                    icon: "blackLocation",
+                    popUp: map.createPopupContent({contact: $input.data('short-label')}),
+                    selector: $input.attr('name'),
+                    deletion
+                });
+            }
+    });
 
     $('#to-affect-container').children().each((index, card) => {
         const $card = $(card);
         $card.find('.affected-number').addClass('d-none');
         $card.find('.btn-cross').addClass('d-none');
+        $card.removeAttr('data-order-time');
 
         let contact = contactData[$card.data('order-id')];
         map.setMarker({
@@ -307,11 +325,9 @@ function updateCardsContainers(map, contactData, deletion = false) {
             latitude: contact.latitude,
             longitude: contact.longitude,
             icon: "blueLocation",
-            popUp: map.createPopupContent(contact, cardPriority, {
-                time: $card.data('order-time'),
-                timeLabel: $card.data('order-time-label'),
-            }),
+            popUp: map.createPopupContent(contact, cardPriority),
             selector: $card.data('order-id'),
+            deletion
         });
     });
 }
@@ -353,6 +369,8 @@ function placeAddressMarker($input, map) {
                     }
                     const latitude = response.latitude;
                     const longitude = response.longitude;
+                    $input.data('latitude', latitude);
+                    $input.data('longitude', longitude);
                     const marker = addRoundPointMarker(map, $input, {latitude, longitude});
                     saveCoordinatesByAddress($form, name, response, marker);
                 } else {
@@ -401,7 +419,8 @@ function retriveOrderData() {
                 const $card = $(orderCard);
                 return {
                     id: $card.data('order-id'),
-                    time: $card.data('order-time')
+                    time: $card.data('order-time'),
+                    priority: $card.find('.affected-number').text()
                 }
             })
             .toArray();
@@ -428,6 +447,7 @@ function addRoundPointMarker(map, $input, {latitude, longitude}) {
             icon: "blackLocation",
             popUp: map.createPopupContent({contact: $input.data('short-label')}),
             selector: $input.attr('name'),
+            deletion: true
         });
     }
     return undefined;
@@ -447,7 +467,7 @@ function initializeRoundPointMarkers(map) {
 function affectCard($card, map, contactData) {
     $card.remove();
     $('#affected-container').append($card);
-    updateCardsContainers(map, contactData);
+    updateCardsContainers(map, contactData,true);
 }
 
 function saveCoordinatesByAddress($form, name, pointCoordinates, marker = null) {

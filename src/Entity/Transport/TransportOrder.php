@@ -92,7 +92,7 @@ class TransportOrder extends StatusHistoryContainer {
     #[ORM\OneToOne(inversedBy: 'order', targetEntity: TransportRequest::class)]
     private ?TransportRequest $request = null;
 
-    #[ORM\OneToMany(mappedBy: 'order', targetEntity: TransportHistory::class)]
+    #[ORM\OneToMany(mappedBy: 'order', targetEntity: TransportHistory::class, cascade: ['remove'])]
     private Collection $history;
 
     #[ORM\OneToMany(mappedBy: 'order', targetEntity: TransportDeliveryOrderPack::class)]
@@ -101,7 +101,7 @@ class TransportOrder extends StatusHistoryContainer {
     #[ORM\OneToMany(mappedBy: 'order', targetEntity: TransportRoundLine::class)]
     private Collection $transportRoundLines;
 
-    #[ORM\OneToMany(mappedBy: 'transportOrder', targetEntity: StatusHistory::class)]
+    #[ORM\OneToMany(mappedBy: 'transportOrder', targetEntity: StatusHistory::class, cascade: ['remove'])]
     private Collection $statusHistory;
 
     #[ORM\OneToOne(inversedBy: 'transportOrder', targetEntity: Attachment::class)]
@@ -110,9 +110,6 @@ class TransportOrder extends StatusHistoryContainer {
 
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $returnedAt = null;
-
-    #[ORM\Column(type: 'datetime', nullable: true)]
-    private ?DateTime $rejectedAt = null;
 
     #[ORM\Column(type: 'string', nullable: true)]
     private ?string $returnReason = null;
@@ -275,7 +272,8 @@ class TransportOrder extends StatusHistoryContainer {
     }
 
     public function isRejected(): bool {
-        return (bool) $this->getRejectedAt();
+        $lastRound = $this->getTransportRoundLines()->last();
+        return $lastRound && $lastRound->getRejectedAt();
     }
 
     public function hasRejectedPacks(): bool {
@@ -427,15 +425,6 @@ class TransportOrder extends StatusHistoryContainer {
 
     public function isCancelled(): bool {
         return $this->getStatus()?->getCode() === TransportOrder::STATUS_CANCELLED;
-    }
-
-    public function getRejectedAt(): ?DateTime {
-        return $this->rejectedAt;
-    }
-
-    public function setRejectedAt(?DateTime $rejectedAt): self {
-        $this->rejectedAt = $rejectedAt;
-        return $this;
     }
 
     public function getLastTransportHistory(string $type): TransportHistory|null {

@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\Transport\TransportOrder;
 use App\Exceptions\GeoException;
+use Exception;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
@@ -128,14 +129,15 @@ class GeoService
             ]);
             $result = json_decode($request->getContent(), true);
             foreach ($result['directions'] as $direction) {
-                $routeIndex = intval(substr($direction["routeName"], 6, 1));
+                preg_match("^Route (\d+) to \d+$^", $direction["routeName"], $matches);
+                $routeIndex = intval($matches[1]);
                 $stopsData['data'][$routeIndex] = [
                     "distance" => round($direction['summary']['totalLength'] * self::MILES_TO_KM, 2),
                     "time" => $this->estimateRoundTime(intval($direction["summary"]["totalTime"])),
                     "end" => $coordinates[$routeIndex+1],
                 ];
             }
-        } catch (\Exception) {
+        } catch (Exception) {
             throw new GeoException('Erreur lors de la récupération des informations GPS');
         }
         return $stopsData;
