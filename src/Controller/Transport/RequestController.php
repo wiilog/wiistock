@@ -386,7 +386,11 @@ class RequestController extends AbstractController {
     public function packingCheck(TransportRequest $transportRequest): JsonResponse {
         $order = $transportRequest->getOrder();
         $line = $order->getTransportRoundLines()->last();
-        if($order->getPacks()->isEmpty() || !$line || $line->getRejectedAt()) {
+        $allPacksRejected = Stream::from($order->getPacks())
+            ->every(fn(TransportDeliveryOrderPack $pack) => $pack->getRejectReason());
+        if ($order->getPacks()->isEmpty()
+            || $allPacksRejected
+            || ($line && $line->getRejectedAt())) {
             return $this->json([
                 "success" => true,
                 "message" => "Colisage possible",
