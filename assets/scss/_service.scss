@@ -3,8 +3,11 @@
 .filterService {
     background-color: $white;
     border-radius: 10px;
-    margin-bottom: 30px !important;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+
+    &:not(.no-margin-bottom) {
+        margin-bottom: 30px !important;
+    }
 
     .filters-container {
         padding: 7px 1rem 7px 1rem;

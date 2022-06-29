@@ -18,29 +18,37 @@
 
 <div class="wii-section">
     <p>
-        Les <span class="do-not-click-me-several-times user-select-none">références</span> et articles exportés sont seulement ceux avec le groupe de visibilité rattaché à l'utilisateur.
+        Les <span class="do-not-click-me-several-times user-select-none">références</span> et articles exportés sont
+        seulement ceux avec le groupe de visibilité rattaché à l'utilisateur.
     </p>
 
-    <div class="d-flex">
-        <p class="mt-4 bold col-2 px-0">Références</p>
-        <div class="btn btn-primary mt-3"
+    <div class="row">
+        <p class="mt-4 bold col-1 px-0">Références</p>
+        <div class="btn btn-primary mt-3 col-2"
              onclick="saveExportFile('export_references', false)">
             <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
         </div>
     </div>
 
-    <div class="d-flex">
-        <p class="mt-4 bold col-2 px-0">Articles</p>
-        <div class="btn btn-primary mt-3"
+    <div class="row">
+        <p class="mt-4 bold col-1 px-0">Articles</p>
+        <div class="btn btn-primary mt-3 col-2"
              onclick="saveExportFile('export_articles', false)">
             <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
         </div>
     </div>
-    <div class="d-flex">
-        <p class="mt-4 bold col-2 px-0">Tournées</p>
-        <div class="btn btn-primary mt-3"
-             onclick="saveExportFile('export_round', false)">
+    <div class="row">
+        <p class="mt-4 bold col-1 px-0">Tournées</p>
+        <div class="btn btn-primary mt-3 col-2"
+             onclick="saveExportFile('export_round' ,true ,{} ,false, 'Veuillez renseigner un intervalle de dates')">
             <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
+        </div>
+        <div class="col-auto d-flex align-items-end filterService no-margin-bottom mb-1">
+            <div class="input-group align-items-baseline">
+                <div class="input-group-prepend">
+                {% include 'filters/filter_item/filterDate.html.twig' %}
+                </div>
+            </div>
         </div>
     </div>
 </div>

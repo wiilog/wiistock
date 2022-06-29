@@ -1,0 +1,3 @@
+$(function () {
+    initDateTimePicker('#dateMin, #dateMax');
+})
