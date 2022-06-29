@@ -1197,28 +1197,15 @@ class TransportController extends AbstractFOSRestController {
                 }
             }
 
-            $requestsAndOrders = Stream::from($round->getTransportRoundLines())
-                ->filter(fn(TransportRoundLine $line) => $line->getOrder()->getRequest() instanceof TransportCollectRequest || $line->getOrder()->getRequest()->getCollect())
-                ->flatMap(fn(TransportRoundLine $line) => [$line->getOrder(), $line->getOrder()->getRequest()])
-                ->toArray();
-
-            $transportHistoryService->persistTransportHistory(
-                $manager,
-                $requestsAndOrders,
-                TransportHistoryService::TYPE_PACKS_DEPOSITED,
-                [
-                    "user" => $this->getUser(),
-                    "location" => $location,
-                ]
-            );
-
             $round->setNoCollectToReturn(true);
 
             foreach($round->getTransportRoundLines() as $transport) {
                 $order = $transport->getOrder();
                 $request = $order->getRequest();
 
-                if($request instanceof TransportCollectRequest && $request->getStatus()->getCode() === TransportRequest::STATUS_FINISHED) {
+                $isCollect = $request instanceof TransportCollectRequest;
+                $isDeliveryCollect = $request instanceof TransportDeliveryRequest && $request->getCollect();
+                if(($isCollect || $isDeliveryCollect) && $request->getStatus()->getCode() === TransportRequest::STATUS_FINISHED) {
                     $requestCategory = CategorieStatut::TRANSPORT_REQUEST_COLLECT;
                     $orderCategory = CategorieStatut::TRANSPORT_ORDER_COLLECT;
 
