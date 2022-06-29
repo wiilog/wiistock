@@ -1218,7 +1218,9 @@ class TransportController extends AbstractFOSRestController {
                 $order = $transport->getOrder();
                 $request = $order->getRequest();
 
-                if($request instanceof TransportCollectRequest && $request->getStatus()->getCode() === TransportRequest::STATUS_FINISHED) {
+                $isCollect = $request instanceof TransportCollectRequest;
+                $isDeliveryCollect = $request instanceof TransportDeliveryRequest && $request->getCollect();
+                if(($isCollect || $isDeliveryCollect) && $request->getStatus()->getCode() === TransportRequest::STATUS_FINISHED) {
                     $requestCategory = CategorieStatut::TRANSPORT_REQUEST_COLLECT;
                     $orderCategory = CategorieStatut::TRANSPORT_ORDER_COLLECT;
 
