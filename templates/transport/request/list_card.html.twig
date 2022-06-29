@@ -111,7 +111,7 @@
                         </span>
                         <br>
 
-                        {% if not order or order.rejectedAt is empty %}
+                        {% if not order or roundLine and roundLine.rejectedAt is empty %}
                             {% if not order or order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_TO_ASSIGN') %}
                                 Estimée à : <span class="transport-value">-</span>
                             {% elseif order.subcontracted %}

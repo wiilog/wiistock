@@ -611,8 +611,8 @@ class RoundController extends AbstractController {
                     $transportRequest = $transportOrder->getRequest();
                     $line = new TransportRoundLine();
                     $line->setOrder($transportOrder);
-                    $transportOrder->setRejectedAt(null);
-                    $transportOrder->setFailedAt(null);
+                    $line->setRejectedAt(null);
+                    $line->setFailedAt(null);
 
                     $entityManager->persist($line);
                     $transportRound->addTransportRoundLine($line);

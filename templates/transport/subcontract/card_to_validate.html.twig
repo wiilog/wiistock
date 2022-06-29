@@ -25,11 +25,11 @@
             <tr>
                 <td class="transport-category-container" style="width: 25%;">
                     <div class="mb-3 mr-5">
-                        Créée le : {{ request.createdAt | format_helper('longDate', {short: true, time: true, year: false}) }}
+                        Créée le : <br>{{ request.createdAt | format_helper('date', {short: true, time: true, year: false}) }}
                     </div>
                     <div>
                         {% if isCollect %}
-                            A collecter le : <span style="font-weight: bold">{{ request.expectedAt | format_helper('longDate', {short: true, year: false}) }}</span>
+                            A collecter le <br>: <span style="font-weight: bold">{{ request.expectedAt | format_helper('date', {short: true, year: false}) }}</span>
                         {% else %}
                             A livrer à : <span style="font-weight: bold">{{ request.expectedAt | format_helper('time', true, true) }}</span>
                         {% endif %}

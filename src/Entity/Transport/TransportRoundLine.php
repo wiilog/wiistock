@@ -32,6 +32,12 @@ class TransportRoundLine {
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $cancelledAt = null;
 
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?DateTime $rejectedAt = null;
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?DateTime $failedAt = null;
+
     public function getId(): ?int {
         return $this->id;
     }
@@ -100,6 +106,25 @@ class TransportRoundLine {
 
     public function setCancelledAt(?DateTime $cancelledAt): void {
         $this->cancelledAt = $cancelledAt;
+    }
+
+    public function getRejectedAt(): ?DateTime {
+        return $this->rejectedAt;
+    }
+
+    public function setRejectedAt(?DateTime $rejectedAt): self {
+        $this->rejectedAt = $rejectedAt;
+        return $this;
+    }
+
+    public function getFailedAt(): ?DateTime {
+        return $this->failedAt;
+    }
+
+    public function setFailedAt(?DateTime $failedAt): self {
+        $this->failedAt = $failedAt;
+
+        return $this;
     }
 
 }
