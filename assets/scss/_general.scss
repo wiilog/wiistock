@@ -783,6 +783,12 @@ label.required:after {
     }
 }
 
+.dark-background {
+    &.wii-field-name, .wii-field-name {
+        color: $white !important;
+    }
+}
+
 .wii-field-text {
     color: $black !important;
     font-size: 16px;

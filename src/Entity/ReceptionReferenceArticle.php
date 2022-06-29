@@ -13,46 +13,46 @@ class ReceptionReferenceArticle {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    private $id;
+    private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: Reception::class, inversedBy: 'receptionReferenceArticles')]
-    private $reception;
+    private ?Reception $reception = null;
 
     #[ORM\ManyToOne(targetEntity: ReferenceArticle::class, inversedBy: 'receptionReferenceArticles')]
-    private $referenceArticle;
+    private ?ReferenceArticle $referenceArticle = null;
 
     #[ORM\Column(type: 'integer', nullable: true)]
-    private $quantite;
+    private ?int $quantite = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private $commentaire;
+    private ?string $commentaire = null;
 
     #[ORM\Column(type: 'integer', nullable: true)]
-    private $quantiteAR;
+    private ?int $quantiteAR = null;
 
     #[ORM\ManyToOne(targetEntity: Fournisseur::class, inversedBy: 'receptionReferenceArticles')]
-    private $fournisseur;
+    private ?Fournisseur $fournisseur = null;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
-    private $anomalie;
+    private ?bool $anomalie = null;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    private $commande;
+    private ?string $commande = null;
 
     #[ORM\ManyToOne(targetEntity: ArticleFournisseur::class, inversedBy: 'receptionReferenceArticles')]
-    private $articleFournisseur;
+    private ?ArticleFournisseur $articleFournisseur = null;
 
-    #[ORM\OneToMany(targetEntity: Article::class, mappedBy: 'receptionReferenceArticle')]
-    private $articles;
+    #[ORM\OneToMany(mappedBy: 'receptionReferenceArticle', targetEntity: Article::class)]
+    private Collection $articles;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
-    private $emergencyTriggered;
+    private ?bool $emergencyTriggered = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private $emergencyComment;
+    private ?string $emergencyComment = null;
 
-    #[ORM\OneToMany(targetEntity: TrackingMovement::class, mappedBy: 'receptionReferenceArticle')]
-    private $trackingMovements;
+    #[ORM\OneToMany(mappedBy: 'receptionReferenceArticle', targetEntity: TrackingMovement::class)]
+    private Collection $trackingMovements;
 
     public function __construct() {
         $this->articles = new ArrayCollection();

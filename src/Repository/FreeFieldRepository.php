@@ -8,6 +8,7 @@ use App\Entity\Type;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
+use WiiCommon\Helper\Stream;
 
 /**
  * @method FreeField|null find($id, $lockMode = null, $lockVersion = null)
@@ -107,34 +108,20 @@ class FreeFieldRepository extends EntityRepository {
         return $query->getSingleScalarResult();
     }
 
-    /**
-     * @param Type|Type[] $types
-     * @param string $categorieCLLabel
-     * @return FreeField[]
-     */
-    public function findByTypeAndCategorieCLLabel($types, $categorieCLLabel) {
-        if(!is_array($types)) {
-            $types = [$types];
-        }
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT champLibre
-            FROM App\Entity\FreeField champLibre
-            JOIN champLibre.categorieCL categorieChampLibre
-            JOIN champLibre.type type
-            WHERE type.id IN (:types)  AND categorieChampLibre.label = :categorieCLLabel
-            ORDER BY champLibre.label ASC"
-        )
-            ->setParameter(
-                'types',
-                array_map(function(Type $type) {
-                    return $type->getId();
-                }, $types),
-                Connection::PARAM_STR_ARRAY
-            )
-            ->setParameter('categorieCLLabel', $categorieCLLabel);
+    public function findByTypeAndCategorieCLLabel(Type|array $types, string $freeFieldCategoryLabel): mixed {
+        $types = is_array($types) ? $types : [$types];
+        $typeIds = Stream::from($types)->map(fn(Type $type) => $type->getId())->toArray();
 
-        return $query->execute();
+        return $this->createQueryBuilder('free_field')
+            ->join('free_field.categorieCL', 'free_field_category')
+            ->join('free_field.type', 'type')
+            ->where('type.id IN (:types)')
+            ->andWhere('free_field_category.label = :freeFieldCategoryLabel')
+            ->orderBy('free_field.label', 'ASC')
+            ->setParameter('types', $typeIds)
+            ->setParameter('freeFieldCategoryLabel', $freeFieldCategoryLabel)
+            ->getQuery()
+            ->getResult();
     }
 
     /**

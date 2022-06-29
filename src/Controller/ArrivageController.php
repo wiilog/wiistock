@@ -1216,7 +1216,7 @@ class ArrivageController extends AbstractController {
                                        EntityManagerInterface $entityManager,
                                        PDFGeneratorService $PDFGeneratorService)
     {
-        $packIdsFilter = $request->query->get('packs') ?: [];
+        $packIdsFilter = $request->query->all()['packs'] ?: [];
         return $this->printArrivageColisBarCodes($arrivage, $request, $entityManager, $PDFGeneratorService, null, $packIdsFilter);
     }
 
@@ -1229,7 +1229,7 @@ class ArrivageController extends AbstractController {
                                                    ?array $firstCustomIconConfig = null,
                                                    ?array $secondCustomIconConfig = null,
                                                    array $packIdsFilter = [],
-                                                   ?bool $businessUnitParam = false ) {
+                                                   ?bool $businessUnitParam = false ): array {
         $total = $arrivage->getPacks()->count();
         $packs = [];
 

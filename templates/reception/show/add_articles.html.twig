@@ -1,0 +1,41 @@
+<div class="row article-line mb-3">
+    <div class="col-2">
+        <div class="d-flex flex-column justify-content-center align-items-center" style="background: #3353D7; height: 100%; padding: 10px; border-radius: 5px;">
+            <label class="text-white bold">Article(s)</label>
+            <span class="text-white">{{ quantityToReceive }}</span>
+        </div>
+    </div>
+    <div class="col-3">
+        <div class="" style="border-radius: 5px; height: 100%; border: {{ reference.id ? '1px solid ' ~ reference.type.color }}">
+            <div class="wii-field-name dark-background text-center"
+                 style="background: {{ reference.type.color ?? '$primary;' }};">Standard</div>
+            <div class="d-flex ml-3 mt-2">
+                <img src="{{ asset('svg/pack.svg') }}" alt="Icône référence" width="20px">
+                <div class="d-flex flex-column ml-2">
+                    <label class="wii-field-name">Référence : {{ reference.reference }}</label>
+                    <span class="wii-field-text">{{ reference.libelle }}</span>
+                </div>
+            </div>
+            <div class="ml-3 my-2">
+                <span class="wii-small-text">Référence fournisseur : {{ supplierReference.reference }}</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-7">
+        <div class="d-flex align-items-center justify-content-between" style="background: #F2F3F7; border-radius: 5px; height: 100%;">
+            <div class="d-flex flex-column ml-3">
+                <label class="wii-field-name">Quantité</label>
+                <span class="wii-field-text">{{ quantity }}</span>
+            </div>
+            <div class="d-flex flex-column">
+                <label class="wii-field-name">Lot</label>
+                <span class="wii-field-text">{{ batch }}</span>
+            </div>
+            <div class="d-flex flex-column">
+                <label class="wii-field-name">Date de péremption</label>
+                <span class="wii-field-text">{{ expiryDate }}</span>
+            </div>
+            <span class="wii-icon wii-icon-trash remove-article-line pointer mr-3"></span>
+        </div>
+    </div>
+</div>

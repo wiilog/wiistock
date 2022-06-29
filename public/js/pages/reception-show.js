@@ -1,4 +1,3 @@
-let editorNewLivraisonAlreadyDoneForDL = false;
 let tableArticle;
 let tableLitigesReception;
 let modalNewLigneReception = "#modalNewLigneReception";
@@ -24,6 +23,50 @@ $(function () {
         $(this).parents('.modal').first().find('input[name=emergency]').prop('checked', isUrgent);
     });
 
+    $(`select[name=refArticleCommande]`).on(`change`, function () {
+        console.log($(this).select2(`data`)[0]);
+        const {reference, commande, defaultArticleFournisseur} = $(this).select2(`data`)[0];
+        AJAX.route(`GET`, `packing_template`, {
+            reference,
+            orderNumber: commande,
+            supplierReference: defaultArticleFournisseur ? defaultArticleFournisseur.text : ''
+        })
+            .json()
+            .then(({template}) => {
+                $(`.packing-container`).empty().html(template);
+            });
+    });
+
+    $(document).arrive(`.add-articles`, function () {
+        $(this).on(`click`, function (e) {
+            e.preventDefault();
+            Form.create(`.packing-container`).onSubmit(data => {
+                const params = JSON.stringify(data.asObject());
+                wrapLoadingOnActionButton($(this), () => (
+                    AJAX.route(`GET`, `add_articles`, {params})
+                        .json()
+                        .then(({template}) => {
+                            const $articlesContainer = $(`.articles-container`);
+                            const $modal = $articlesContainer.closest(`.modal`);
+                            $articlesContainer.append(template);
+                            $modal.find(`.wii-section-title, .create-request-container`).removeClass(`d-none`);
+                            $modal.find(`.modal-footer`).removeClass(`d-none`);
+                        })
+                ));
+            });
+        });
+    });
+
+    $(document).arrive(`.remove-article-line`, function () {
+        $(this).on(`click`, function () {
+            $(this).closest(`.article-line`).remove();
+            const $articlesContainer = $(`.articles-container`);
+            if($articlesContainer.find('.article-line').length === 0) {
+                $articlesContainer.closest(`.modal`).find(`.wii-section-title, .create-request-container`).addClass(`d-none`);
+            }
+            Flash.add(`success`, `Les articles générés ont bien été supprimés.`);
+        });
+    });
 });
 
 function initPageModals() {

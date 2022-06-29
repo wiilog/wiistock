@@ -2041,4 +2041,52 @@ class ReceptionController extends AbstractController {
         );
     }
 
+    #[Route("/packing-template", name: "packing_template", options: ['expose' => true], methods: "GET")]
+    public function packingTemplate(Request $request, EntityManagerInterface $manager): Response {
+        $query = $request->query;
+        $reference = $query->get('reference');
+        $orderNumber = $query->get('orderNumber');
+        $supplierReference = $query->get('supplierReference');
+
+        $freeFieldRepository = $manager->getRepository(FreeField::class);
+        $referenceArticleRepository = $manager->getRepository(ReferenceArticle::class);
+        $supplierReferenceRepository = $manager->getRepository(ArticleFournisseur::class);
+
+        $reference = $referenceArticleRepository->findOneBy(['reference' => $reference]);
+        $supplierReference = $supplierReferenceRepository->findOneBy(['reference' => $supplierReference]);
+        $type = $reference->getType();
+        $freeFields = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
+        $receptionReferenceArticle = $reference->getReceptionReferenceArticles()
+            ->filter(fn(ReceptionReferenceArticle $receptionReferenceArticle) => $receptionReferenceArticle->getCommande() === $orderNumber)
+            ->first();
+
+        return $this->json([
+            'template' => $this->renderView('reception/show/packing_content.html.twig', [
+                'freeFields' => $freeFields,
+                'receptionReferenceArticle' => $receptionReferenceArticle,
+                'supplierReference' => $supplierReference
+            ])
+        ]);
+    }
+
+    #[Route("/add-articles", name: "add_articles", options: ['expose' => true], methods: "GET")]
+    public function addArticles(Request $request, EntityManagerInterface $manager): Response {
+        $data = json_decode($request->query->get('params'), true);
+        dump($data);
+        $reference = $manager->find(ReferenceArticle::class, $data['reference']);
+        $supplierReference = $manager->getRepository(ArticleFournisseur::class)->findOneBy(['reference' => $data['supplierReference']]);
+
+        $expiryDate = DateTime::createFromFormat('Y-m-d', $data['expiry']);
+        return $this->json([
+           'template' => $this->renderView('reception/show/add_articles.html.twig', [
+               'quantityToReceive' => $data['quantityToReceive'],
+               'quantity' => $data['quantity'],
+               'batch' => $data['batch'],
+               'expiryDate' => $expiryDate ? $expiryDate->format('d/m/Y') : '-',
+               'reference' => $reference,
+               'supplierReference' => $supplierReference
+           ]),
+        ]);
+    }
+
 }

@@ -1,16 +1,42 @@
+{% import 'form.html.twig' as form %}
 {% set restrictedLocations = restrictedLocations is defined and restrictedLocations %}
 
 <form method="" class="modal fade" id="modalNewLigneReception" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" title="nouvelle réception">{{ 'réception.nouvelle réception'|trans }}</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
+            {% include('utils/modal/header.html.twig') with {
+                title: 'réception.nouvelle réception'|trans
+            } %}
             <div class="modal-body">
-                <input class="data" name="reception" type="hidden" value="{{ reception.id }}"/>
+                <div class="row">
+                    <div class="form-group col-4">
+                        <label class="wii-field-name">Référence</label>
+                        <select id="referenceConditionnement"
+                                class="form-control select2-autocomplete-ref-articles w-100"
+                                name="refArticleCommande"
+                                onchange="initConditionnementArticleFournisseurDefault()"></select>
+                    </div>
+                    <div class="form-group col-4">
+                        <label class="wii-field-name">Référence fournisseur</label>
+                        <select class="form-control data select2 w-100" name="articleFournisseurDefault"></select>
+                    </div>
+                </div>
+
+                <div class="row packing-container"></div>
+
+                <div class="wii-section-title d-none my-4">Génération d'articles</div>
+                <div class="articles-container mt-3"></div>
+
+                <div class="wii-section-title d-none my-4">Création d'une demande</div>
+                <div class="create-request-container d-none">
+                    {{ form.switch('requestType', '', false, [
+                        {label: 'Livraison', value: 'delivery', wiiIcon: 'cart-delivery'},
+                        {label: 'Transfert', wiiIcon: 'transfer', value: 'transfer'},
+                        {label: 'Aucune', value: 'none', checked: true},
+                    ]) }}
+                </div>
+
+                {# <input class="data" name="reception" type="hidden" value="{{ reception.id }}"/>
                 <!--
                 BLOCK DL
                 -->
@@ -196,14 +222,22 @@
                     <div class="articles-conditionnement-container">
 
                     </div>
-                </div>
+                </div> #}
 
             </div>
-            <div class="p-4 error-msg"></div>
-            <div class="modal-footer">
+            {#<div class="p-4 error-msg"></div>#}
+            {#<div class="modal-footer">
                 <div class="btn btn-outline-secondary" data-dismiss="modal">Fermer</div>
                 <button id="submitNewReceptionButton" type="button" class="btn btn-success">Enregistrer</button>
-            </div>
+            </div>#}
+
+            {% include('utils/modal/footer.html.twig') with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Fermer'},
+                    {id: 'submitNewReceptionButton', classes: 'btn btn-success', text: 'Enregistrer'},
+                ],
+                classes: 'd-none'
+            } %}
         </div>
     </div>
 </form>
