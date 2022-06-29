@@ -39,6 +39,16 @@ function initPageModals() {
         keepModal: true
     });
 
+    $modalAddLigneArticle.on(`show.bs.modal`, function() {
+        const query = GetRequestQuery();
+        const $select = $(this).find(`[name="referenceArticle"]`);
+
+        $select.append(new Option(query.label, query.reference, true, true));
+        $select.trigger(`change`);
+
+        setTimeout(() => SetRequestQuery({}), 1);
+    });
+
     let $modalDeleteArticle = $("#modalDeleteLigneArticle");
     let $submitDeleteArticle = $("#submitDeleteLigneArticle");
     let urlDeleteArticle = Routing.generate('reception_article_remove', true);
@@ -343,6 +353,10 @@ function openModalArticlesFromLigneArticle(ligneArticleId) {
 
 function articleChanged($select) {
     const $modal = $select.parents('.modal');
+    if(!$select.data(`select2`)) {
+        return;
+    }
+
     const selectedReferences = $select.select2('data');
     const $addArticleAndRedirectSubmit = $('#addArticleLigneSubmitAndRedirect');
     const $addArticleLigneSubmit = $('#addArticleLigneSubmit');
@@ -381,34 +395,6 @@ function articleChanged($select) {
             .addClass(classDNone)
             .removeClass(classDFlex);
     }
-}
-
-function initNewReferenceArticleEditor($modal) {
-    Select2Old.provider($modal.find('.ajax-autocomplete-fournisseur'));
-    Select2Old.provider($modal.find('.ajax-autocomplete-fournisseurLabel'), '', 'demande_label_by_fournisseur');
-    Select2Old.location($modal.find('.ajax-autocomplete-location'));
-    let modalRefArticleNew = $("#new-ref-inner-body");
-    let submitNewRefArticle = $("#submitNewRefArticleFromRecep");
-    let urlRefArticleNew = Routing.generate('reference_article_new', true);
-    InitModal(modalRefArticleNew, submitNewRefArticle, urlRefArticleNew, {
-        keepModal: true,
-        success: ({success, data}) => {
-            if (success && data) {
-                let option = new Option(data.reference, data.id, true, true);
-                $('#reception-add-ligne').append(option).trigger('change');
-            }
-        }
-    });
-}
-
-function addArticle() {
-    let path = Routing.generate('get_modal_new_ref', true);
-    $.post(path, {}, function (modalNewRef) {
-        $('#reception-add-ligne').val(null).trigger('change');
-        const $modal = $('#innerNewRef');
-        $modal.html(modalNewRef);
-        initNewReferenceArticleEditor($modal);
-    });
 }
 
 function finishReception(receptionId, confirmed, $button) {

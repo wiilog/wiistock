@@ -20,6 +20,14 @@ use Symfony\Component\Security\Core\User\UserInterface;
 class UtilisateurRepository extends EntityRepository implements UserLoaderInterface
 {
 
+    public function findOneByEmail(string $email) {
+        return $this->createQueryBuilder("user")
+            ->where("LOWER(user.email) = :email")
+            ->setParameter('email', strtolower($email))
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     public function getForSelect(?string $term, array $options = []) {
         $qb = $this->createQueryBuilder("user")
             ->select("user.id AS id")

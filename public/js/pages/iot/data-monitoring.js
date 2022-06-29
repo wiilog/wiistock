@@ -241,6 +241,8 @@ function initLineChart(element, callback) {
         noChartData = false;
         let lineDataMax = [];
         let lineDataMin = [];
+        let maxValue = Number.MIN_VALUE;
+        let minvalue = Number.MAX_VALUE;
         sensorDates.forEach((date) => {
             data.labels.push(date);
             sensors.forEach((sensor) => {
@@ -253,6 +255,12 @@ function initLineChart(element, callback) {
                     tension: 0.1
                 };
                 dataset.data.push(value);
+                if (value && value > maxValue) {
+                    maxValue = value;
+                }
+                if (value && value < minvalue) {
+                    minvalue = value;
+                }
                 datasets[sensor] = dataset;
             });
             if ($element.data('needsline')) {
@@ -262,6 +270,10 @@ function initLineChart(element, callback) {
                 }
             }
         });
+        if (lineDataMax.length === 1 && lineDataMin.length === 1){
+            lineDataMin = [lineDataMin[0], lineDataMin[0]];
+            lineDataMax = [lineDataMax[0], lineDataMax[0]];
+        }
         if ($element.data('needsline')) {
             datasets['lineDataMax'] = {
                 data: lineDataMax[0] > lineDataMin[0] ?  lineDataMax : lineDataMin,
@@ -280,6 +292,10 @@ function initLineChart(element, callback) {
             };
         }
         data.datasets = Object.values(datasets);
+
+        const max = Math.max((lineDataMax.length ? lineDataMax[0] : Number.MIN_VALUE), (lineDataMin.length ? lineDataMin[0] + 5 : Number.MIN_VALUE), maxValue, 1);
+        const min = Math.min((lineDataMin.length ? lineDataMin[0] : Number.MAX_VALUE), (lineDataMax.length ? lineDataMax[0] - 5 : Number.MAX_VALUE), minvalue, 0);
+
         const config = {
             type: 'line',
             data,
@@ -308,8 +324,8 @@ function initLineChart(element, callback) {
                     ...($element.data('needsline') ? {
                         yAxes: [{
                             ticks: {
-                                min: lineDataMin.length !== 0 && lineDataMin.length !== 0 ? Math.min(lineDataMax[0], lineDataMin[0])-5 : 0,
-                                max: lineDataMin.length !== 0 && lineDataMax.length !== 0 ? Math.max(lineDataMax[0], lineDataMin[0])+5 : 1,
+                                min,
+                                max
                             }
                         }]
                     } : {})

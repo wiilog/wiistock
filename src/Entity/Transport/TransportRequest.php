@@ -66,7 +66,9 @@ abstract class TransportRequest extends StatusHistoryContainer {
         TransportOrder::STATUS_NOT_COLLECTED => "cancelled",
         self::STATUS_SUBCONTRACTED => "subcontracted",
         TransportOrder::STATUS_SUBCONTRACTED => "subcontracted",
-        TransportOrder::STATUS_TO_CONTACT => "preparing"
+        TransportOrder::STATUS_TO_CONTACT => "preparing",
+        TransportOrder::STATUS_DEPOSITED => "finished",
+        self::STATUS_DEPOSITED => "finished",
     ];
 
     public const STATUS_WORKFLOW_DELIVERY_CLASSIC = [
@@ -144,10 +146,10 @@ abstract class TransportRequest extends StatusHistoryContainer {
     #[ORM\OneToOne(mappedBy: 'request', targetEntity: TransportOrder::class, cascade: ['persist', 'remove'])]
     private ?TransportOrder $order = null;
 
-    #[ORM\OneToMany(mappedBy: 'request', targetEntity: TransportHistory::class)]
+    #[ORM\OneToMany(mappedBy: 'request', targetEntity: TransportHistory::class, cascade: ['remove'])]
     private Collection $history;
 
-    #[ORM\OneToMany(mappedBy: 'transportRequest', targetEntity: StatusHistory::class)]
+    #[ORM\OneToMany(mappedBy: 'transportRequest', targetEntity: StatusHistory::class, cascade: ['remove'])]
     private Collection $statusHistory;
 
     #[ORM\ManyToOne(targetEntity: TransportRequestContact::class, cascade: ['persist', 'remove'])]

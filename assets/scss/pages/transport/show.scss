@@ -33,7 +33,6 @@
 }
 
 .status-history-container {
-    padding-top: 0 !important;
     overflow-x: hidden;
 
     .header {
@@ -44,14 +43,18 @@
 
     .history-line {
         display: flex;
-        align-items: center;
 
         & > * {
             flex: 1;
-            padding: 12px 0;
+            padding: 11px 0 11px 0;
             color: $black;
+            display: flex;
+            align-items: center;
 
             .title-left {
+                display: flex;
+                justify-content: center;
+                align-items: center;
                 font-size: 17px;
                 border-radius: 20px;
                 text-align: center;
@@ -62,12 +65,6 @@
 
                 &.past {
                     background-color: $primary;
-                }
-
-                &.last {
-                    &.current {
-                        margin-bottom: 25px;
-                    }
                 }
 
                 &.current {
@@ -184,8 +181,6 @@
                 &:after {
                     border: 3px solid $red;
                     outline: 2px solid $white;
-                    left: -9px;
-                    top: 17px;
                 }
             }
 
@@ -196,31 +191,24 @@
             &.last-status-history:after {
                 width: 20px;
                 height: 20px;
-            }
-
-            &.last-status-history {
-                &.last {
-                    &.current {
-                        margin-bottom: 15px;
-                        padding-top: 0;
-                    }
-                }
+                left: -10px;
+                top: calc(50% - 10px);
             }
 
             &:before {
                 left: -1px;
-                top: 30px;
+                top: 50%;
                 width: 2px;
                 height: 100%;
             }
 
             &:after {
                 z-index: 1;
-                width: 15px;
-                height: 15px;
+                width: 14px;
+                height: 14px;
                 border-radius: 50%;
                 left: -7px;
-                top: 20px;
+                top: calc(50% - 7px);
             }
         }
     }
@@ -385,6 +373,9 @@
             color: $black;
 
             .title-left {
+                display: flex;
+                justify-content: center;
+                align-items: center;
                 font-size: 17px;
                 border-radius: 20px;
                 margin-right: 3px;

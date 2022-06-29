@@ -299,8 +299,17 @@ class ReferenceArticleController extends AbstractController
                 'msg' => 'La référence ' . $refArticle->getReference() . ' a bien été créée',
                 'data' => [ // for reference created in reception-show
                     'id' => $refArticle->getId(),
-                    'reference' => $refArticle->getReference()
-                ]
+                    'reference' => $refArticle->getReference(),
+                ],
+                'redirect' => match ($request->query->get("from")) {
+                    "reception_add_line" => $this->generateUrl("reception_show", [
+                        "id" => $request->query->get("reception"),
+                        "open-modal" => "new",
+                        "reference" => $refArticle->getId(),
+                        "label" => $refArticle->getReference(),
+                    ]),
+                    default => null,
+                },
             ]);
         }
 
@@ -818,7 +827,8 @@ class ReferenceArticleController extends AbstractController
     /**
      * @Route("/nouveau-page", name="reference_article_new_page", options={"expose"=true})
      */
-    public function newTemplate(EntityManagerInterface $entityManager,
+    public function newTemplate(Request $request,
+                                EntityManagerInterface $entityManager,
                                 RefArticleDataService  $refArticleDataService,
                                 SettingsService        $settingsService) {
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -843,7 +853,10 @@ class ReferenceArticleController extends AbstractController
 
         return $this->render("reference_article/form/new.html.twig", [
             "new_reference" => new ReferenceArticle(),
-            "submit_url" => $this->generateUrl("reference_article_new"),
+            "submit_url" => $this->generateUrl("reference_article_new", [
+                "from" => $request->query->get("from"),
+                "reception" => $request->query->get("reception"),
+            ]),
             "types" => $types,
             'defaultLocation' => $settingsService->getParamLocation(Setting::DEFAULT_LOCATION_REFERENCE),
             'draftDefaultReference' => $refArticleDataService->getDraftDefaultReference($entityManager),

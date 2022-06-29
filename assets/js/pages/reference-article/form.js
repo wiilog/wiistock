@@ -35,7 +35,7 @@ $(document).ready(() => {
             clearFormErrors($form);
             processSubmitAction($form, $button, $button.data(`submit`), {
                 success: data => {
-                    window.location.href = Routing.generate('reference_article_show_page', {id: data.data.id});
+                    window.location.href = data.redirect || Routing.generate('reference_article_show_page', {id: data.data.id});
                 },
             }).then((data) => {
                 if (data && typeof data === "object" && !data.success && data.draftDefaultReference) {

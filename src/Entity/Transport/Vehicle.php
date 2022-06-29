@@ -10,6 +10,7 @@ use App\Entity\IOT\SensorMessage;
 use App\Entity\IOT\SensorMessageTrait;
 use App\Entity\Utilisateur;
 use App\Repository\Transport\VehicleRepository;
+use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
@@ -167,8 +168,8 @@ class Vehicle implements PairedEntity
         return $this->registrationNumber;
     }
 
-    public function getLastPosition(\DateTime $start, \DateTime $end = null): ?string {
-        $end = $end ?? new \DateTime();
+    public function getLastPosition(DateTime $start, ?DateTime $end = null): ?string {
+        $end = $end ?? new DateTime();
         return Stream::from($this->getSensorMessagesBetween($start, $end,Sensor::GPS ))
             ->sort(function($a, $b) {
                 return $a->getDate() < $b->getDate();
