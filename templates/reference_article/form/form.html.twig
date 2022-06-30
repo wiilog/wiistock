@@ -599,10 +599,10 @@
                     <div class="row">
                         <div class="col-12 col-md-6">
                             <label class="w-100">
-                                    <span class="icon wii-field-name">
-                                        <img src="{{ asset('svg/reference_article/warehouse.svg') }}" class="icon" alt="Image entrepôt">
-                                        Catégorie d'inventaire
-                                    </span>
+                                <span class="icon wii-field-name">
+                                    <img src="{{ asset('svg/reference_article/warehouse.svg') }}" class="icon" alt="Image entrepôt">
+                                    Catégorie d'inventaire
+                                </span>
                                 {% if editable and not partialEdit %}
                                     <select name="categorie" data-s2 class="form-control data {{ disabled }}">
                                         {% for category in categories %}
@@ -617,12 +617,12 @@
                                 {% endif %}
                             </label>
                         </div>
-                        {% if reference.id %}
+                        {% if reference.id and reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_REFERENCE') %}
                             <div class="col-12 col-md-6 d-flex flex-column justify-content-around">
                                 <span class="icon wii-field-name">
                                     <img src="{{ asset('svg/calendar.svg') }}"
                                          class="icon"
-                                         alt="Image calendrier">
+                                         alt="">
                                     Date de dernier inventaire
                                 </span>
                                 <span class="wii-field-text">
