@@ -91,7 +91,6 @@ class DataHistoryController extends AbstractController {
 
         return new JsonResponse($data);
     }
-
     /**
      * @Route("/map-data-history", name="map_data_history", options={"expose"=true})
      */
@@ -114,8 +113,6 @@ class DataHistoryController extends AbstractController {
         );
 
         $data = [];
-        $lastCoordinates = null;
-        $lastDate = null;
         foreach ($associatedMessages as $message) {
             $date = $message->getDate();
             $sensor = $message->getSensor();
@@ -130,19 +127,7 @@ class DataHistoryController extends AbstractController {
                 ->map(fn($coordinate) => floatval($coordinate))
                 ->toArray();
             if ($coordinates[0] !== -1.0 || $coordinates[1] !== -1.0) {
-                if ($lastCoordinates) {
-                    $distanceBetweenLastPoint = $geoService->vincentyGreatCircleDistance($lastCoordinates[0], $lastCoordinates[1], $coordinates[0], $coordinates[1]);
-                    $interval = $lastDate->diff($message->getDate());
-                    if ($distanceBetweenLastPoint > 200.0 || (($interval->days * 24) + $interval->h) > 23) {
-                        $data[$sensorCode][$dateStr] = $coordinates;
-                        $lastCoordinates = $coordinates;
-                        $lastDate = $message->getDate();
-                    }
-                } else {
-                    $data[$sensorCode][$dateStr] = $coordinates;
-                    $lastCoordinates = $coordinates;
-                    $lastDate = $message->getDate();
-                }
+                $data[$sensorCode][$dateStr] = $coordinates;
             }
         }
         return new JsonResponse($data);

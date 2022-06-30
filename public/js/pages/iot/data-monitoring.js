@@ -192,32 +192,30 @@ function smartDisplayCoordinates(markers, map) {
 
     let polyline = [];
     markers.forEach((marker, iteration) => {
-        setTimeout(() => {
-            marker.bounce(1);
-            markerClusterGroup.addLayer(marker);
-            polyline.push(marker.getLatLng());
-            const isLastIteration = iteration === markers.length - 1;
-            if (isLastIteration) {
-                Leaflet
-                    .polyline(polyline, {color: 'blue', snakingSpeed: 500})
-                    .addTo(map)
-                    .snakeIn()
-                    .on('snakeend', function () {
-                        let antPolyline = new Leaflet.Polyline.AntPath(polyline, {
-                            color: 'blue',
-                            delay: 400,
-                            dashArray: [
-                                100,
-                                100
-                            ]
-                        });
-                        antPolyline.addTo(map);
-                        if (isLastIteration) {
-                            map.fitBounds([marker.getLatLng()]);
-                        }
+        marker.bounce(1);
+        markerClusterGroup.addLayer(marker);
+        polyline.push(marker.getLatLng());
+        const isLastIteration = iteration === markers.length - 1;
+        if (isLastIteration) {
+            Leaflet
+                .polyline(polyline, {color: 'blue', snakingSpeed: 500})
+                .addTo(map)
+                .snakeIn()
+                .on('snakeend', function () {
+                    let antPolyline = new Leaflet.Polyline.AntPath(polyline, {
+                        color: 'blue',
+                        delay: 400,
+                        dashArray: [
+                            100,
+                            100
+                        ]
                     });
-            }
-        }, 200 * iteration);
+                    antPolyline.addTo(map);
+                    if (isLastIteration) {
+                        map.fitBounds([marker.getLatLng()]);
+                    }
+                });
+        }
     });
     map.addLayer(markerClusterGroup);
 }
@@ -262,13 +260,13 @@ function initLineChart(element, callback) {
                 }
             }
         });
-        if (lineDataMax.length === 1 && lineDataMin.length === 1){
+        if (lineDataMax.length === 1 && lineDataMin.length === 1) {
             lineDataMin = [lineDataMin[0], lineDataMin[0]];
             lineDataMax = [lineDataMax[0], lineDataMax[0]];
         }
         if ($element.data('needsline')) {
             datasets['lineDataMax'] = {
-                data: lineDataMax[0] > lineDataMin[0] ?  lineDataMax : lineDataMin,
+                data: lineDataMax[0] > lineDataMin[0] ? lineDataMax : lineDataMin,
                 pointRadius: 0,
                 pointHitRadius: 0,
                 borderColor: '#F00',
@@ -276,7 +274,7 @@ function initLineChart(element, callback) {
             };
 
             datasets['lineDataMin'] = {
-                data: lineDataMax[0] < lineDataMin[0] ?  lineDataMax : lineDataMin,
+                data: lineDataMax[0] < lineDataMin[0] ? lineDataMax : lineDataMin,
                 pointRadius: 0,
                 pointHitRadius: 0,
                 borderColor: '#00F',
@@ -377,7 +375,7 @@ function initSteppedLineChart($element, labels, values, tooltips, label) {
                 enabled: true,
                 mode: 'single',
                 callbacks: {
-                    label: function(tooltipItems) {
+                    label: function (tooltipItems) {
                         if (tooltips[tooltipItems.label]) {
                             return Array.isArray(tooltips[tooltipItems.label])
                                 ? tooltips[tooltipItems.label].concat([label + ' : ' + tooltipItems.value])
