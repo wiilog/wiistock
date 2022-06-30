@@ -23,49 +23,92 @@ $(function () {
         $(this).parents('.modal').first().find('input[name=emergency]').prop('checked', isUrgent);
     });
 
-    $(`select[name=refArticleCommande]`).on(`change`, function () {
-        console.log($(this).select2(`data`)[0]);
-        const {reference, commande, defaultArticleFournisseur} = $(this).select2(`data`)[0];
-        AJAX.route(`GET`, `packing_template`, {
-            reference,
-            orderNumber: commande,
-            supplierReference: defaultArticleFournisseur ? defaultArticleFournisseur.text : ''
-        })
-            .json()
-            .then(({template}) => {
-                $(`.packing-container`).empty().html(template);
-            });
-    });
-
-    $(document).arrive(`.add-articles`, function () {
-        $(this).on(`click`, function (e) {
-            e.preventDefault();
-            Form.create(`.packing-container`).onSubmit(data => {
-                const params = JSON.stringify(data.asObject());
-                wrapLoadingOnActionButton($(this), () => (
-                    AJAX.route(`GET`, `add_articles`, {params})
-                        .json()
-                        .then(({template}) => {
-                            const $articlesContainer = $(`.articles-container`);
-                            const $modal = $articlesContainer.closest(`.modal`);
-                            $articlesContainer.append(template);
-                            $modal.find(`.wii-section-title, .create-request-container`).removeClass(`d-none`);
-                            $modal.find(`.modal-footer`).removeClass(`d-none`);
+    $(`select[name=refArticleCommande]`)
+        .off(`change`)
+        .on(`change`, function () {
+            initConditionnementArticleFournisseurDefault();
+            if($(this).select2(`data`).length > 0) {
+                const {reference, commande} = $(this).select2(`data`)[0];
+                $(`[name=articleFournisseurDefault]`)
+                    .off(`change`)
+                    .on(`change`, function () {
+                        const supplierReference = $(this).val();
+                        AJAX.route(`GET`, `packing_template`, {
+                            reference,
+                            orderNumber: commande,
+                            supplierReference
                         })
-                ));
-            });
+                            .json()
+                            .then(({template}) => {
+                                $(`.packing-container`).empty().html(template);
+                            });
+                    });
+            } else {
+                $modal = $(this).closest(`.modal`);
+                $modal.find(`.packing-container, .articles-container`).empty();
+                $modal.find(`.wii-section-title, .create-request-container, .modal-footer`).addClass(`d-none`);
+                $modal.find(`select[name=articleFournisseurDefault]`).closest(`.form-group`).addClass(`d-none`);
+            }
         });
+
+    $(document).on(`click`, `.add-articles`, function (e) {
+        e.preventDefault();
+        const data = Form.process($(`.packing-container`));
+
+        if (data) {
+            const params = JSON.stringify(data.asObject());
+            wrapLoadingOnActionButton($(this), () => (
+                AJAX.route(`GET`, `add_articles`, {params})
+                    .json()
+                    .then(({template, values}) => {
+                        const $articlesContainer = $(`.articles-container`);
+                        const $modal = $articlesContainer.closest(`.modal`);
+                        $articlesContainer.append(template);
+                        $modal.find(`.wii-section-title, .create-request-container, .modal-footer`).removeClass(`d-none`);
+                        const packingArticlesValue = $modal.find(`input[name=packingArticles]`).val();
+
+                        const currentArticles = packingArticlesValue ? JSON.parse(packingArticlesValue) : [];
+                        const {supplierReferenceId, batch, expiry, quantity, referenceId, orderNumber} = values;
+
+                        currentArticles.push({
+                            articleFournisseur: supplierReferenceId,
+                            batch: batch,
+                            expiry: expiry,
+                            noCommande: orderNumber,
+                            quantite: quantity,
+                            refArticle: referenceId
+                        });
+                        $modal.find(`input[name=packingArticles]`).val(JSON.stringify(currentArticles));
+                    })
+            ));
+        }
     });
 
-    $(document).arrive(`.remove-article-line`, function () {
-        $(this).on(`click`, function () {
-            $(this).closest(`.article-line`).remove();
-            const $articlesContainer = $(`.articles-container`);
-            if($articlesContainer.find('.article-line').length === 0) {
-                $articlesContainer.closest(`.modal`).find(`.wii-section-title, .create-request-container`).addClass(`d-none`);
-            }
-            Flash.add(`success`, `Les articles générés ont bien été supprimés.`);
-        });
+    $(document).on(`click`, `.remove-article-line`, function () {
+        $(this).closest(`.article-line`).remove();
+        const $articlesContainer = $(`.articles-container`);
+        if($articlesContainer.find('.article-line').length === 0) {
+            $articlesContainer.closest(`.modal`)
+                .find(`.wii-section-title, .create-request-container, .modal-footer`)
+                .addClass(`d-none`);
+        }
+        Flash.add(`success`, `Les articles générés ont bien été supprimés.`);
+    });
+
+    $(`[name=requestType]`).on(`change`, function () {
+        const type = $(this).val();
+
+        switch (type) {
+            case 'transfer':
+                toggleForm($('.transfer-form'), $(this));
+                break;
+            case 'delivery':
+                toggleForm($('.demande-form'), $(this));
+                break;
+            default:
+                toggleForm($('.transfer-form, .demande-form'), null);
+                break;
+        }
     });
 });
 
@@ -513,10 +556,10 @@ function clearModalLigneReception(modal) {
         $select2.select2('destroy');
     }
     $('.packing-title').addClass('d-none');
-    clearModal(modal);
-
-    toggleForm($('.transfer-form,.demande-form'), null, true);
-    resetDefaultArticleFournisseur();
+    toggleForm($('.transfer-form, .demande-form'), null, true);
+    $modal.find(`.packing-container, .articles-container`).empty();
+    $modal.find(`.wii-section-title, .create-request-container, .modal-footer`).addClass(`d-none`);
+    $modal.find(`select[name=articleFournisseurDefault]`).closest(`.form-group`).addClass(`d-none`);
 }
 
 function validatePacking($button) {
@@ -602,7 +645,9 @@ function initNewLigneReception($button) {
     Select2Old.initValues($('select[name=demandeur]'), $( '#currentUser'));
     Select2Old.init($modalNewLigneReception.find('.select2-autocomplete-ref-articles'), '', 0, {
         route: 'get_ref_article_reception',
-        param: {reception: $('#receptionId').val()}
+        param: {
+            reception: $('#receptionId').val()
+        }
     });
 
     if ($('#locationDemandeLivraison').length > 0) {
@@ -626,26 +671,20 @@ function initNewLigneReception($button) {
 
     $submitNewReceptionButton.off('click');
     $submitNewReceptionButton.click(function () {
-        const error = getErrorModalNewLigneReception();
-        const $errorContainer = $modalNewLigneReception.find('.error-msg');
-        if (error) {
-            $errorContainer.text(error);
-        } else {
-            $errorContainer.text('');
-            wrapLoadingOnActionButton($button, () => (
-                SubmitAction($modalNewLigneReception, $submitNewReceptionButton, urlNewLigneReception, {
-                    tables: [tableArticle],
-                    success: (response) => {
-                        if (response && response.success) {
-                            const $printButton = $('#buttonPrintMultipleBarcodes');
-                            if ($printButton.length > 0) {
-                                window.location.href = $printButton.attr('href');
-                            }
+        wrapLoadingOnActionButton($button, () => (
+            SubmitAction($modalNewLigneReception, $submitNewReceptionButton, urlNewLigneReception, {
+                tables: [tableArticle],
+                success: (response) => {
+                    if (response && response.success) {
+                        const $printButton = $('#buttonPrintMultipleBarcodes');
+                        if ($printButton.length > 0) {
+                            window.location.href = $printButton.attr('href');
                         }
                     }
-                })
-            ));
-        }
+                },
+                keepForm: true
+            })
+        ));
     });
 
     const $select = $modalNewLigneReception.find('.demande-form [name="type"]');
@@ -796,7 +835,7 @@ function toggleForm($content, $input, force = false) {
             $('.demande-form').find('.data').prop('disabled', false);
         }
     } else {
-        if ($input.is(':checked')) {
+        if ($input && $input.is(':checked')) {
             $content.removeClass('d-none');
             $content.find('.data').prop('disabled', false);
 
@@ -852,7 +891,7 @@ function resetDefaultArticleFournisseur(show = false) {
         $selectArticleFournisseur.select2('destroy');
     }
 
-    $selectArticleFournisseur.val(null).trigger('change');
+    $selectArticleFournisseur.val(null).trigger(SELECT2_TRIGGER_CHANGE);
 
     if (show) {
         $selectArticleFournisseurFormGroup.removeClass('d-none');

@@ -2,15 +2,13 @@
 {% set classes = classes is defined and classes ? classes %}
 {% set hideErrorContainer = hideErrorContainer is defined and hideErrorContainer %}
 
-{% if not hideErrorContainer %}
-    <div class="p-4 error-msg"></div>
-{% endif %}
-
+<div class="p-4 error-msg {{ hideErrorContainer ? 'd-none' }}"></div>
 {% if elements is not empty %}
     <div class="modal-footer {{ classes }}">
         {% for element in elements %}
             {% if element['input'] is not defined %}
                 <button id="{{ element['id'] ?? '' }}"
+                        type="button"
                         class="{{ element['classes'] ?? '' }}"
                         name="{{ element['name'] ?? '' }}"
                         value="{{ element['value'] ?? '' }}"

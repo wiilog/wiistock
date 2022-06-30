@@ -55,7 +55,7 @@
 
 {% macro switch(name, label, required, switches, options = {}) %}
     {% set inline = options.inline ?? false %}
-    <label class="d-flex flex-column align-items-start">
+    <label class="d-flex flex-column align-items-start w-fit-content">
         {{ _self.label(label, required, inline, options.labelOptions ?? {}) }}
         {{ _self.tooltip(options.tooltip ?? null, inline) }}
         <div class="{{ options.expanded ?? false ? 'wii-expanded-switch' : 'wii-switch' }} text-truncate"

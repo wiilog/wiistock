@@ -3,29 +3,24 @@
 <div class="col-2">
     <div class="d-flex flex-column justify-content-center dark-background" style="background: #3353D7; height: 100%; padding: 10px; border-radius: 5px;">
         {{ form.input('quantityToReceive', 'Article(s)', true, receptionReferenceArticle.quantiteAR, {
-            labelClass: 'text-white'
+            type: 'number',
         }) }}
-        {#<label class="text-white">Article(s)*</label>
-        <input class="data form-control" type="number" min="0" value="{{ receptionReferenceArticle.quantiteAR }}">#}
     </div>
 </div>
 <div class="col-10">
     <div class="" style="background: #F2F3F7; border-radius: 5px; height: 100%;">
         <div class="d-flex">
             <div class="col-2 form-group mt-2">
-                {{ form.number('quantity', 'Quantité', true, '', {buttons: false}) }}
-                {#<label class="wii-field-name">Quantité*</label>#}
-                {#<input class="data form-control" type="number" name="quantite" value="1" min="1">#}
+                {{ form.number('quantity', 'Quantité', true, 1, {
+                    buttons: false,
+                    min: 1,
+                }) }}
             </div>
             <div class="col-3 form-group mt-2">
-                {{ form.input('batch', 'Lot', true) }}
-                {#<label class="wii-field-name">Lot</label>
-                <input class="data form-control" type="text" name="batch">#}
+                {{ form.input('batch', 'Lot') }}
             </div>
             <div class="col-3 form-group mt-2">
-                {{ form.input('expiry', 'Date de péremption', true, '', {type: 'date'}) }}
-                {#<label class="wii-field-name">Date de péremption</label>
-                <input class="data form-control" type="date" name="expiry">#}
+                {{ form.input('expiry', 'Date de péremption', false, '', {type: 'date'}) }}
             </div>
         </div>
         {% include 'free_field/freeFieldsEdit.html.twig' with {
@@ -40,6 +35,7 @@
 </div>
 <input type="hidden" class="data" name="reference" value="{{ receptionReferenceArticle.referenceArticle.id }}">
 <input type="hidden" class="data" name="supplierReference" value="{{ supplierReference ? supplierReference.reference }}">
+<input type="hidden" class="data" name="orderNumber" value="{{ orderNumber }}">
 <div class="col-12 d-flex justify-content-end mt-3">
     <button type="submit" class="btn btn-primary d-flex align-items-center add-articles">
         <span class='wii-icon wii-icon-plus mr-2'></span>
