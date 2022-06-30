@@ -37,17 +37,19 @@ use WiiCommon\Helper\Stream;
 /**
  * @Route("/iot/associations")
  */
-class PairingController extends AbstractController {
+class PairingController extends AbstractController
+{
 
     /**
      * @Route("/", name="pairing_index", options={"expose"=true})
      * @HasPermission({Menu::IOT, Action::DISPLAY_SENSOR})
      */
-    public function index(EntityManagerInterface $entityManager): Response {
-        $sensorWrappers= $entityManager->getRepository(SensorWrapper::class)->findWithNoActiveAssociation(false);
+    public function index(EntityManagerInterface $entityManager): Response
+    {
+        $sensorWrappers = $entityManager->getRepository(SensorWrapper::class)->findWithNoActiveAssociation(false);
         $sensorWrappers = Stream::from($sensorWrappers)
-            ->filter(function(SensorWrapper $wrapper) {
-                return $wrapper->getPairings()->filter(function(Pairing $pairing) {
+            ->filter(function (SensorWrapper $wrapper) {
+                return $wrapper->getPairings()->filter(function (Pairing $pairing) {
                     return $pairing->isActive();
                 })->isEmpty();
             });
@@ -62,9 +64,10 @@ class PairingController extends AbstractController {
      * @Route("/api", name="pairing_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::IOT, Action::DISPLAY_SENSOR}, mode=HasPermission::IN_JSON)
      */
-    public function api(Request $request,
-                        IOTService $IOTService,
-                        EntityManagerInterface $manager): Response {
+    public function api(Request                $request,
+                        IOTService             $IOTService,
+                        EntityManagerInterface $manager): Response
+    {
         $pairingRepository = $manager->getRepository(Pairing::class);
         $filters = $request->query;
 
@@ -100,7 +103,8 @@ class PairingController extends AbstractController {
      * @Route("/voir/{pairing}", name="pairing_show", options={"expose"=true})
      * @HasPermission({Menu::IOT, Action::DISPLAY_PAIRING})
      */
-    public function show(DataMonitoringService $service, TranslatorInterface $trans, Pairing $pairing): Response {
+    public function show(DataMonitoringService $service, TranslatorInterface $trans, Pairing $pairing): Response
+    {
         return $service->render([
             "breadcrumb" => [
                 'title' => $trans->trans("IoT.IoT") . " | Associations | Détails",
@@ -115,13 +119,14 @@ class PairingController extends AbstractController {
      * @Route("/dissocier/{pairing}", name="unpair", options={"expose"=true})
      * @HasPermission({Menu::IOT, Action::DISPLAY_PAIRING})
      */
-    public function unpair(EntityManagerInterface $manager, Pairing $pairing): Response {
+    public function unpair(EntityManagerInterface $manager, Pairing $pairing): Response
+    {
         $pairing->setEnd(new DateTime('now'));
         $pairing->setActive(false);
         $manager->flush();
 
         return $this->json([
-            "success" =>  true,
+            "success" => true,
             "id" => $pairing->getId(),
             "selector" => ".pairing-end-date-{$pairing->getId()}",
             "date" => FormatHelper::datetime($pairing->getEnd()),
@@ -132,12 +137,13 @@ class PairingController extends AbstractController {
      * @Route("/modifier-fin", name="pairing_edit_end", options={"expose"=true})
      * @HasPermission({Menu::IOT, Action::DISPLAY_PAIRING})
      */
-    public function modifyEnd(Request $request, EntityManagerInterface $manager): Response {
-        if($data = json_decode($request->getContent(), true)) {
+    public function modifyEnd(Request $request, EntityManagerInterface $manager): Response
+    {
+        if ($data = json_decode($request->getContent(), true)) {
             $pairing = $manager->find(Pairing::class, $data["id"]);
 
             $end = new DateTime($data["end"]);
-            if($end < new DateTime("now")) {
+            if ($end < new DateTime("now")) {
                 return $this->json([
                     "success" => false,
                     "msg" => "La date de fin doit être supérieure à la date actuelle",
@@ -162,12 +168,12 @@ class PairingController extends AbstractController {
      * @Route("/creer", name="pairing_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::IOT, Action::CREATE}, mode=HasPermission::IN_JSON)
      */
-    public function new(PairingService $pairingService,
+    public function new(PairingService         $pairingService,
                         EntityManagerInterface $entityManager,
-                        Request $request): Response
+                        Request                $request): Response
     {
-        if($data = json_decode($request->getContent(), true)) {
-            if(!$data['sensorWrapper'] && !$data['sensor']) {
+        if ($data = json_decode($request->getContent(), true)) {
+            if (!$data['sensorWrapper'] && !$data['sensor']) {
                 return $this->json([
                     'success' => false,
                     'msg' => 'Un capteur/code capteur est obligatoire pour valider l\'association'
@@ -175,20 +181,20 @@ class PairingController extends AbstractController {
             }
             $sensorWrapper = $entityManager->getRepository(SensorWrapper::class)->findOneBy(["id" => $data['sensorWrapper'], 'deleted' => false]);
 
-            if($sensorWrapper->getPairings()->filter(fn(Pairing $p) => $p->isActive())->count()) {
+            if ($sensorWrapper->getPairings()->filter(fn(Pairing $p) => $p->isActive())->count()) {
                 return $this->json([
                     'success' => false,
                     'msg' => 'Ce capteur est déjà associé'
                 ]);
             }
 
-            if(isset($data['article'])) {
+            if (isset($data['article'])) {
                 $article = $entityManager->getRepository(Article::class)->find($data['article']);
-            } else if(isset($data['pack'])) {
+            } else if (isset($data['pack'])) {
                 $pack = $entityManager->getRepository(Pack::class)->find($data['pack']);
-            } else if(isset($data['vehicle'])) {
-                $vehicle =$entityManager->getRepository(Vehicle::class)->find($data['vehicle']);
-            }else {
+            } else if (isset($data['vehicle'])) {
+                $vehicle = $entityManager->getRepository(Vehicle::class)->find($data['vehicle']);
+            } else {
                 $typeLocation = explode(':', $data['locations']);
                 if ($typeLocation[0] == 'location') {
                     $location = $entityManager->getRepository(Emplacement::class)->find($typeLocation[1]);
@@ -232,8 +238,6 @@ class PairingController extends AbstractController {
             Sensor::GPS
         );
         $data = [];
-        $lastCoordinates = null;
-        $lastDate = null;
         foreach ($associatedMessages as $message) {
             $date = $message->getDate();
             $sensor = $message->getSensor();
@@ -248,19 +252,7 @@ class PairingController extends AbstractController {
                 ->map(fn($coordinate) => floatval($coordinate))
                 ->toArray();
             if ($coordinates[0] !== -1.0 || $coordinates[1] !== -1.0) {
-                if ($lastCoordinates) {
-                    $distanceBetweenLastPoint = $geoService->vincentyGreatCircleDistance($lastCoordinates[0], $lastCoordinates[1], $coordinates[0], $coordinates[1]);
-                    $interval = $lastDate->diff($message->getDate());
-                    if ($distanceBetweenLastPoint > 200.0 || (($interval->days * 24) + $interval->h) > 23) {
-                        $data[$sensorCode][$dateStr] = $coordinates;
-                        $lastCoordinates = $coordinates;
-                        $lastDate = $message->getDate();
-                    }
-                } else {
-                    $data[$sensorCode][$dateStr] = $coordinates;
-                    $lastCoordinates = $coordinates;
-                    $lastDate = $message->getDate();
-                }
+                $data[$sensorCode][$dateStr] = $coordinates;
             }
         }
         return new JsonResponse($data);
@@ -285,7 +277,7 @@ class PairingController extends AbstractController {
             $wrapper = $sensor->getAvailableSensorWrapper();
             $sensorCode = ($wrapper ? $wrapper->getName() . ' : ' : '') . $sensor->getCode();
 
-            if(!isset($data['colors'][$sensorCode])) {
+            if (!isset($data['colors'][$sensorCode])) {
                 srand($sensor->getId());
                 $data['colors'][$sensorCode] = sprintf('#%06X', mt_rand(0, 0xFFFFFF));
             }
