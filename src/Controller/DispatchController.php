@@ -544,7 +544,7 @@ class DispatchController extends AbstractController {
 
         $freeFieldService->manageFreeFields($dispatch, $post->all(), $entityManager);
 
-        $listAttachmentIdToKeep = $post->get('files') ?? [];
+        $listAttachmentIdToKeep = $post->all('files') ?: [];
 
         $attachments = $dispatch->getAttachments()->toArray();
         foreach($attachments as $attachment) {
