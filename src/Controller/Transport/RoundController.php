@@ -667,11 +667,12 @@ class RoundController extends AbstractController {
             throw new FormException("Il n'y a aucun ordre dans la tournée, veuillez réessayer");
         }
 
+        $todaysRounds = $transportRoundRepository->findTodayRounds($deliverer);
         $entityManager->flush();
         if($isNew) {
             $now = (new DateTime())->format("d-m-Y");
-            $todaysRounds = $transportRoundRepository->findTodayRounds($deliverer);
-            if ($todaysRounds && $now === $transportRound->getExpectedAt()->format("d-m-Y")) {
+            if (!empty($todaysRounds)
+                && $now === $transportRound->getExpectedAt()->format("d-m-Y")) {
                 $userChannel = $userService->getUserFCMChannel($deliverer);
                 $notificationService->send($userChannel, "Une nouvelle tournée attribuée aujourd'hui", null, [
                     "roundId" => $transportRound->getId(),

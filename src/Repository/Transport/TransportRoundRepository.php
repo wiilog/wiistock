@@ -177,7 +177,7 @@ class TransportRoundRepository extends EntityRepository {
             ->toIterable();
     }
 
-    public function findTodayRounds($deliverer) {
+    public function findTodayRounds($deliverer): array {
         $now = new DateTime();
 
         return $this->createQueryBuilder("round")
