@@ -3,12 +3,10 @@
      aria-hidden="true" data-collecte-id="{{ collecte.id }}">
     <div class="modal-dialog  modal-xl" role="document">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Choix d'article pour la référence  <span class="reference"></span></h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
+            {% include('utils/modal/header.html.twig') with {
+                title: "Choix d'article pour la référence"
+            } %}
+
             <div class="modal-body modal-input container-fluid">
                 <form class="row">
                     {% if collecte.demandeCollecte.isStock %}

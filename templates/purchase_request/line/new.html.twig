@@ -1,12 +1,10 @@
 <div class="modal fade" id="modalAddPurchaseRequestLine" role="dialog" aria-hidden="true" >
     <div class="modal-dialog  modal-xl" role="document">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Ajouter une référence</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
+            {% include('utils/modal/header.html.twig') with {
+                title: "Ajouter une référence"
+            } %}
+
             <div class="modal-body modal-input container-fluid">
                 <form>
                     <div class="row">

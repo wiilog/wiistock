@@ -1,12 +1,10 @@
 <form method="" class="modal fade" id="modalDeleteArrivage" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title wii-title">Supprimer l'arrivage</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
+            {% include('utils/modal/header.html.twig') with {
+                title: "Supprimer l'arrivage"
+            } %}
+
             <div class="modal-body">
                 Voulez-vous réellement supprimer cet arrivage ?
                 <span class="d-none hasLitige red"><br><br>(attention, un litige a été créé sur cet arrivage :<br>il sera également supprimé)</span>

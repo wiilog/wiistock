@@ -2,12 +2,10 @@
 <div class="modal fade" id="modalRapidSearch" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title wii-title">Modifier la recherche rapide</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
+            {% include('utils/modal/header.html.twig') with {
+                title: "Modifier la recherche rapide"
+            } %}
+
             <div class="modal-body">
                 <table class="table float-left w-49">
                     <thead>

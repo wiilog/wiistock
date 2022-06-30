@@ -4,12 +4,10 @@
 <div class="modal fade" role="dialog" id="modalRoundPlan">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title wii-title">Planifier une tournée</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
+            {% include('utils/modal/header.html.twig') with {
+                title: "Planifier une tournée"
+            } %}
+
             <div class="modal-body">
                 <form>
                     <input type="hidden" name="request" value="10" class="data"/>

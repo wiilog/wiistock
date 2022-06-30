@@ -1,10 +1,9 @@
 <div class="modal fade" id="modalEasterEgg" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title wii-title">Un cookie</h5>
-                <div class="spinning-cookie small-cookie" data-dismiss="modal" aria-label="Close"></div>
-            </div>
+            {% include('utils/modal/header.html.twig') with {
+                title: "Un cookie"
+            } %}
 
             <div class="d-flex justify-content-center align-items-center" style="height: 250px;">
                 <div class="spinning-cookie"></div>

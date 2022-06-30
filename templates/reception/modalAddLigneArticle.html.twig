@@ -3,16 +3,10 @@
     <div class="modal-dialog modal-xl modal-dialog-centered"
          role="document">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title wii-title">Ajouter une ligne</h5>
-                <button type="button"
-                        class="close"
-                        data-dismiss="modal"
-                        aria-label="Close">
-                    <span aria-hidden="true"
-                          onclick="clearAddRefModal()">&times;</span>
-                </button>
-            </div>
+            {% include('utils/modal/header.html.twig') with {
+                title: "Ajouter une ligne"
+            } %}
+
             <div class="modal-body modal-input container-fluid">
                 <input type="hidden" class="data" name="reception" value="{{ reception.id }}"/>
                 <div class="row">
