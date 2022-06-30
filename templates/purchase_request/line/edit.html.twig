@@ -2,12 +2,10 @@
 <div method="" class="modal fade" id="modalEditPurchaseRequestLine" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Modifier une ligne de demande d'achat</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
+            {% include('utils/modal/header.html.twig') with {
+                title: "Modifier une ligne de demande d'achat"
+            } %}
+
             <div class="modal-body">
             </div>
             <div class="pl-2 error-msg"></div>

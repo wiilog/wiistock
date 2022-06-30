@@ -7,12 +7,10 @@
      data-backdrop="static">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title wii-title">Modifier le paramétrage d'un champ fixe</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
+            {% include('utils/modal/header.html.twig') with {
+                title: "Modifier le paramétrage d'un champ fixe"
+            } %}
+
             <div class="modal-body">
                 <input type="hidden" name="field" value="{{ field }}"/>
 

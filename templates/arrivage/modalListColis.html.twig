@@ -1,18 +1,15 @@
 <form method="" class="modal fade" id="modalListColis" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title wii-title">Liste des colis générés</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
+            {% include('utils/modal/header.html.twig') with {
+                title: "Liste des colis générés"
+            } %}
+
             <div class="modal-body container-fluid">
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Fermer</button>
             </div>
         </div>
-    </div>
     </div>
 </form>

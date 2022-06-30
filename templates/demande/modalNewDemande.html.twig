@@ -5,12 +5,10 @@
      id="modalNewDemande">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title wii-title">Créer une demande</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
+            {% include('utils/modal/header.html.twig') with {
+                title: "Créer une demande"
+            } %}
+
             <div class="modal-body modal-input container-fluid">
                 <form>
                     <input type="hidden"

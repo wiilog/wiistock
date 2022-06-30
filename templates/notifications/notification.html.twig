@@ -9,13 +9,10 @@
                     </div>
                 </div>
                 <div class="col-10 pl-0">
-                    <div class="modal-header py-0" style="border-bottom: 0 none;">
-                        <h5 class="modal-title notification-title bold"></h5>
-                        <button type="button" class="close pr-1" data-dismiss="modal" aria-label="Close"
-                                onclick="$('.notification-modal').fadeOut(200);">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
+                    {% include('utils/modal/header.html.twig') with {
+                        headerClasses: 'py-0 border-bottom-0',
+                        titleClasses: 'notification-title'
+                    } %}
                     <div class="modal-body py-0" style="border-top: 0 none;">
                         <p class="notification-content"></p>
                     </div>

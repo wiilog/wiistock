@@ -1,14 +1,10 @@
 <form method="" class="modal fade" id="modalNewMvtTraca" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
         <div class="modal-content">
+            {% include('utils/modal/header.html.twig') with {
+                title: "Nouvement mouvement"
+            } %}
 
-            <div class="modal-header">
-                <h5 class="modal-title wii-title">Nouveau mouvement</h5>
-
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
             <div class="modal-body modal-input">
                 <div class="row">
                     <div class="col-6">

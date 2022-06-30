@@ -1,12 +1,10 @@
 <div class="modal fade" id="delete-dashboard-modal" tabindex="-1" role="dialog" aria-labelledby="delete-dashboard-label" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title wii-title" id="delete-dashboard-label">Supprimer le dashboard</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Fermer">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
+            {% include('utils/modal/header.html.twig') with {
+                title: "Supprimer le dashboard"
+            } %}
+
             <div class="modal-body">
                 Êtes-vous sûr de vouloir supprimer le dashboard "<span class="delete-dashboard-name"></span>" ?
 

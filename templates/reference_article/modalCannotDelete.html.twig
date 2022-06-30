@@ -1,12 +1,10 @@
 <form method="" class="modal fade" id="modalCannotDelete" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title wii-title" id="exampleModalLongTitle">Suppression de l'article de référence</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
+            {% include('utils/modal/header.html.twig') with {
+                title: "Suppression de l'article de référence"
+            } %}
+
             <div class="modal-body">
                 Cet article est lié à une collecte, une livraison, une réception ou un article fournisseur.<br>
                 Vous ne pouvez donc pas le supprimer.
