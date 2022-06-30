@@ -757,38 +757,47 @@ class ArticleRepository extends EntityRepository {
             ->getOneOrNullResult();
     }
 
-	public function getOneArticleByBarCodeAndLocation(string $barCode, string $location) {
+	public function getOneArticleByBarCodeAndLocation(string $barCode, ?string $location) {
         $queryBuilder = $this
             ->createQueryBuilderByBarCodeAndLocation($barCode, $location)
-            ->select('article.barCode as barCode')
-            ->select('article.id as id')
+            ->addSelect('article.id as id')
+            ->addSelect('article.barCode as barCode')
+            ->addSelect('articleFournisseur_reference.libelle as label')
+            ->addSelect('articleFournisseur_reference.reference as reference')
+            ->addSelect('articleFournisseur_reference.typeQuantite as typeQuantity')
+            ->addSelect('article_location.label as location')
             ->addSelect('article.quantite as quantity')
             ->addSelect('referenceArticle_status.nom as reference_status')
             ->addSelect('0 as is_ref')
             ->join('article.articleFournisseur', 'article_articleFournisseur')
             ->join('article_articleFournisseur.referenceArticle', 'articleFournisseur_reference')
-            ->join('articleFournisseur_reference.statut', 'referenceArticle_status');
+            ->join('articleFournisseur_reference.statut', 'referenceArticle_status')
+            ->join('article.emplacement', 'article_location');
 
         $result = $queryBuilder->getQuery()->execute();
         return !empty($result) ? $result[0] : null;
     }
 
-    private function createQueryBuilderByBarCodeAndLocation(string $barCode, string $location): QueryBuilder {
+    private function createQueryBuilderByBarCodeAndLocation(string $barCode, ?string $location): QueryBuilder {
         $queryBuilder = $this->createQueryBuilder('article');
         $exprBuilder = $queryBuilder->expr();
         $queryBuilder
-            ->join('article.emplacement', 'emplacement')
             ->join('article.statut', 'status')
-            ->andWhere('emplacement.label = :location')
             ->andWhere('article.barCode = :barCode')
             ->andWhere($exprBuilder->orX(
                 'status.nom = :activeStatusName',
                 'status.nom = :statusDisputeName'
             ))
-            ->setParameter('location', $location)
             ->setParameter('barCode', $barCode)
             ->setParameter('activeStatusName', Article::STATUT_ACTIF)
             ->setParameter('statusDisputeName', Article::STATUT_EN_LITIGE);
+
+        if($location) {
+            $queryBuilder
+                ->join('article.emplacement', 'emplacement')
+                ->andWhere('emplacement.label = :location')
+                ->setParameter('location', $location);
+        }
 
         return $queryBuilder;
     }

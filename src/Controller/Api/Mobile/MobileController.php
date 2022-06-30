@@ -1876,7 +1876,7 @@ class MobileController extends AbstractFOSRestController
         $barCode = $request->query->get('barCode');
         $location = $request->query->get('location');
 
-        if (!empty($barCode) && !empty($location)) {
+        if (!empty($barCode)) {
             $statusCode = Response::HTTP_OK;
 
             $referenceArticleArray = $referenceArticleRepository->getOneReferenceByBarCodeAndLocation($barCode, $location);

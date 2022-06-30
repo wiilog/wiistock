@@ -1059,7 +1059,7 @@ class ReferenceArticleRepository extends EntityRepository {
         return $reservedQuantity;
     }
 
-    public function getOneReferenceByBarCodeAndLocation(string $barCode, string $location)
+    public function getOneReferenceByBarCodeAndLocation(string $barCode, ?string $location)
     {
         $queryBuilder = $this
             ->createQueryBuilderByBarCodeAndLocation($barCode, $location, false)
@@ -1085,17 +1085,20 @@ class ReferenceArticleRepository extends EntityRepository {
             ->getOneOrNullResult();
     }
 
-    private function createQueryBuilderByBarCodeAndLocation(string $barCode, string $location, bool $onlyActive = true): QueryBuilder
+    private function createQueryBuilderByBarCodeAndLocation(string $barCode, ?string $location, bool $onlyActive = true): QueryBuilder
     {
         $queryBuilder = $this->createQueryBuilder('referenceArticle');
         $queryBuilder
-            ->join('referenceArticle.emplacement', 'emplacement')
-            ->andWhere('emplacement.label = :location')
             ->andWhere('referenceArticle.barCode = :barCode')
             ->andWhere('referenceArticle.typeQuantite = :typeQuantite')
-            ->setParameter('location', $location)
             ->setParameter('barCode', $barCode)
             ->setParameter('typeQuantite', ReferenceArticle::QUANTITY_TYPE_REFERENCE);
+
+        if($location) {
+            $queryBuilder->join('referenceArticle.emplacement', 'emplacement')
+                ->andWhere('emplacement.label = :location')
+                ->setParameter('location', $location);
+        }
 
         if ($onlyActive) {
             $queryBuilder
