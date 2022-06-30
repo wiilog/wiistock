@@ -101,7 +101,7 @@ class VisibleColumnService {
             if(str_starts_with($column, "free_field_")) {
                 $id = str_replace("free_field_", "", $column);
                 $freeField = $freeFieldRepository->find($id);
-                if ($freeField->getTypage() === FreeField::TYPE_BOOL) {
+                if ($freeField?->getTypage() === FreeField::TYPE_BOOL) {
                     $lowerSearchValue = strtolower($search);
                     if (($lowerSearchValue === "oui") || ($lowerSearchValue === "non")) {
                         $booleanValue = $lowerSearchValue === "oui" ? '1' : '0';
