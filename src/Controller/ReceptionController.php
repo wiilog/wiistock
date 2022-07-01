@@ -67,6 +67,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Throwable;
+use WiiCommon\Helper\Stream;
 
 /**
  * @Route("/reception")
@@ -916,49 +917,6 @@ class ReceptionController extends AbstractController {
     }
 
     /**
-     * @Route("/ligne-article-conditionnement", name="get_ligne_article_conditionnement", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
-     */
-    public function getLigneArticleCondtionnement(Request $request,
-                                                  EntityManagerInterface $entityManager) {
-
-        $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
-        $champLibreRepository = $entityManager->getRepository(FreeField::class);
-        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-
-        $reference = $request->query->get('reference');
-        $commande = $request->query->get('commande');
-        $quantity = $request->query->get('quantity');
-        $defaultArticleFournisseurReference = $request->query->get('defaultArticleFournisseurReference');
-
-        // TODO verif null
-
-        /** @var ReferenceArticle $refArticle */
-        $refArticle = $referenceArticleRepository->findOneBy(['reference' => $reference]);
-
-        $typeArticle = $refArticle->getType();
-
-        $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
-        $response = new Response();
-        $response->setContent($this->renderView(
-            'reception/conditionnementArticleTemplate.html.twig',
-            [
-                'reception' => [
-                    'refArticleId' => $refArticle->getId(),
-                    'reference' => $reference,
-                    'referenceLabel' => $refArticle->getLibelle(),
-                    'commande' => $commande,
-                    'quantity' => $quantity,
-                    'defaultArticleFournisseurReference' => $defaultArticleFournisseurReference,
-                ],
-                'typeArticle' => $typeArticle ? $typeArticle->getLabel() : '',
-                'champsLibres' => $champsLibres,
-                'references' => $articleFournisseurRepository->getIdAndLibelleByRef($refArticle)
-            ]
-        ));
-        return $response;
-    }
-
-    /**
      * @Route("/modifier-litige", name="litige_edit_reception",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::QUALI, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
@@ -1696,7 +1654,7 @@ class ReceptionController extends AbstractController {
 
                 $transferRequest = null;
                 $demande = null;
-                $createDirectDelivery = (bool) $data['direct-delivery'];
+                $createDirectDelivery = (bool) $data['direct-delivery']; // TODO remplacer par le paramétrage
 
                 if ($needCreateLivraison) {
                     // optionnel : crée l'ordre de prépa
@@ -2068,6 +2026,7 @@ class ReceptionController extends AbstractController {
     #[Route("/add-articles", name: "add_articles", options: ['expose' => true], methods: "GET")]
     public function addArticles(Request $request, EntityManagerInterface $manager): Response {
         $data = json_decode($request->query->get('params'), true);
+        $freeFieldRepository = $manager->getRepository(FreeField::class);
         $reference = $manager->find(ReferenceArticle::class, $data['reference']);
         $supplierReference = isset($data['supplierReference'])
             ? $manager->getRepository(ArticleFournisseur::class)->findOneBy(['reference' => $data['supplierReference']])
@@ -2075,22 +2034,41 @@ class ReceptionController extends AbstractController {
 
         $expiryDate = isset($data['expiry']) ? DateTime::createFromFormat('Y-m-d', $data['expiry']) : '';
 
+        $freeFieldsValues = Stream::from($data)
+            ->filter(fn($val, $key) => is_int($key))
+            ->toArray();
+
+        $freeFields = Stream::from($freeFieldsValues)
+            ->keymap(function(?string $value, int $key) use ($freeFieldRepository) {
+                $value = DateTime::createFromFormat('Y-m-d', $value) ?: $value;
+                $formattedValue = $value instanceof DateTime ? $value->format('d/m/Y') : $value;
+                return [$freeFieldRepository->find($key)->getLabel(), $formattedValue];
+            })
+            ->toArray();
+
         $values = [
-            'quantityToReceive' => $data['quantityToReceive'],
             'quantity' => $data['quantity'],
             'batch' => $data['batch'] ?? '',
             'expiry' => $expiryDate ? $expiryDate->format('d/m/Y') : null,
-            'referenceName' => $reference->getReference(),
-            'referenceLabel' => $reference->getLibelle(),
             'referenceId' => $reference->getId(),
-            'referenceTypeColor' => $reference->getType()->getColor(),
-            'supplierReferenceLabel' => $supplierReference ? $supplierReference->getReference() : '',
             'supplierReferenceId' => $supplierReference ? $supplierReference->getId() : '',
             'orderNumber' => $data['orderNumber'],
+            'freeFields' => $freeFieldsValues
         ];
 
         return $this->json([
-           'template' => $this->renderView('reception/show/add_articles.html.twig', $values),
+           'template' => $this->renderView('reception/show/add_articles.html.twig', [
+               'reference' => $reference,
+               'referenceTypeColor' => $reference->getType()->getColor(),
+               'quantityToReceive' => $data['quantityToReceive'],
+               'supplierReferenceId' => $supplierReference ? $supplierReference->getId() : '',
+               'supplierReferenceLabel' => $supplierReference ? $supplierReference->getReference() : '',
+               'batch' => $data['batch'] ?? '',
+               'expiry' => $expiryDate ? $expiryDate->format('d/m/Y') : null,
+               'quantity' => $data['quantity'],
+               'referenceId' => $reference->getId(),
+               'freeFields' => $freeFields
+           ]),
            'values' => $values
         ]);
     }

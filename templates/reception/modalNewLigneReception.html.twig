@@ -1,7 +1,7 @@
 {% import 'form.html.twig' as form %}
 {% set restrictedLocations = restrictedLocations is defined and restrictedLocations %}
 
-<form method="" class="modal fade" id="modalNewLigneReception" role="dialog" aria-hidden="true">
+<form class="modal fade" id="modalNewLigneReception" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
         <div class="modal-content">
             {% include('utils/modal/header.html.twig') with {
@@ -30,24 +30,24 @@
                 <div class="create-request-container d-none">
                     {{ form.switch('requestType', '', false, [
                         {label: 'Livraison', value: 'delivery', wiiIcon: 'cart-delivery'},
-                        {label: 'Transfert', wiiIcon: 'transfer', value: 'transfer'},
+                        {label: 'Transfert', wiiIcon: 'transfer-black', value: 'transfer'},
                         {label: 'Aucune', value: 'none', checked: true},
                     ]) }}
                 </div>
 
-                <div class="transfer-form mt-4" style="background-color:#F8F8F8;padding:10px;border-radius:4px;">
+                <div class="transfer-form mt-4" style="background-color:#F2F3F7;padding:10px;border-radius:4px;">
                     <div class="row">
                         <div class="col-4 form-group">
-                            <label for="storage">Emplacement de stockage*</label>
-                            <select name="storage" class="data ajax-autocomplete-location-edit w-100 needed" id="storage">
+                            <label class="wii-field-name">Emplacement de stockage*</label>
+                            <select name="storage" class="data ajax-autocomplete-location-edit w-100 needed wii-field-text" id="storage">
                             </select>
                             <input hidden id="storageTransfer"
                                    data-id="{{ reception.storageLocation ? reception.storageLocation.id }}"
                                    data-text="{{ reception.storageLocation ? reception.storageLocation.label }}">
                         </div>
                         <div class="col-4 form-group">
-                            <label for="origin">Emplacement d'origine*</label>
-                            <select name="origin" class="data ajax-autocomplete-location-edit w-100 needed" id="origin">
+                            <label class="wii-field-name">Emplacement d'origine*</label>
+                            <select name="origin" class="data ajax-autocomplete-location-edit w-100 needed wii-field-text" id="origin">
                             </select>
                             <input hidden id="originTransfer"
                                    data-id="{{ reception.location ? reception.location.id }}"
@@ -56,31 +56,29 @@
                     </div>
                 </div>
 
-                <div class="demande-form mt-2 {{ not createDL ? 'd-none' }}" style="background-color:#F8F8F8;padding:10px;border-radius:4px;">
+                <div class="demande-form mt-4 {{ not createDL ? 'd-none' }}" style="background-color:#F2F3F7;padding:10px;border-radius:4px;">
                     <input type="hidden"
                            name="defaultDeliveryLocations"
                            data-value="{{ defaultDeliveryLocations|json_encode }}"/>
                     <div class="row">
                         <div class="col-4 form-group">
-                            <label for="demandeur">Demandeur*</label>
-                            <div class="w-100">
-                                <select class="data needed"
-                                    {{ not createDL ? 'disabled' }}
-                                        name="demandeur"
-                                        data-s2="user"
-                                        data-other-params
-                                        data-other-params-add-dropzone="1"
-                                        onchange="demandeurChanged($(this))">
-                                </select>
-                            </div>
+                            <label class="wii-field-name">Demandeur*</label>
+                            <select class="data needed wii-field-text w-100"
+                                {{ not createDL ? 'disabled' }}
+                                    name="demandeur"
+                                    data-s2="user"
+                                    data-other-params
+                                    data-other-params-add-dropzone="1"
+                                    onchange="demandeurChanged($(this))">
+                            </select>
                         </div>
                         <input type="hidden"
                                id="currentUser"
                                data-id="{{ needsCurrentUser ? app.user.id }}"
                                data-text="{{ needsCurrentUser ? app.user.username }}">
                         <div class="col-4 form-group">
-                            <label for="type">Type*</label>
-                            <select class="select2-type data w-100 needed" name="type" {{ not createDL ? 'disabled' }}
+                            <label class="wii-field-name">Type*</label>
+                            <select class="select2-type data w-100 needed wii-field-text" name="type" {{ not createDL ? 'disabled' }}
                                     onchange="onRequestTypeChange($(this))">
                                 <option>&nbsp;</option>
                                 {% for type in typeChampsLibres %}
@@ -89,9 +87,9 @@
                             </select>
                         </div>
                         <div class="col-4 form-group">
-                            <label for="destination">Destination*</label>
+                            <label class="wii-field-name">Destination*</label>
                             <div class="w-100">
-                                <select name="destination" class="data ajax-autocomplete-location needed" id="locationDemandeLivraison"
+                                <select name="destination" class="data ajax-autocomplete-location needed wii-field-text" id="locationDemandeLivraison"
                                     {{ not createDL ? 'disabled' }}>
                                     <option></option>
                                 </select>
@@ -104,17 +102,6 @@
                         </div>
                     </div>
 
-                    <div class="collapsible expanded mb-2 direct-delivery">
-                        <label>Livraison directe</label>
-                        <label class="switch">
-                            <input class="checkbox data needs-default"
-                                   name="direct-delivery"
-                                   type="checkbox"/>
-                            <span class="slider round"></span>
-                        </label>
-                    </div>
-
-                    <!-- CHAMPS LIBRES -->
                     <span class="toggle-collapsible expanded">Champs libres</span>
                     <div class="collapsible expanded free-fields-container mb-2">
                         {% for type in typeChampsLibres %}
@@ -132,211 +119,17 @@
                         {% endfor %}
                     </div>
 
-                    <label for="commentaire-dl">Commentaire</label>
-                    <input id='commentaire-dl'
-                           class="commentaire data"
+                    <label class="wii-field-name">Commentaire</label>
+                    <input class="commentaire data"
                            name="commentaire"
                            type="hidden"/>
                     <div class="editor-container" data-wysiwyg></div>
                 </div>
-
-                {# <input class="data" name="reception" type="hidden" value="{{ reception.id }}"/>
-                <!--
-                BLOCK DL
-                -->
-                <label>Demande de livraison</label>
-                <label class="switch">
-                    <input class="checkbox data needs-default"
-                           name="create-demande"
-                           onclick="toggleForm($('.demande-form'), $(this))"
-                           data-init="{{ createDL ? 1 : 0 }}"
-                           type="checkbox"/>
-                    <span class="slider round"></span>
-                </label>
-                <div class="demande-form mt-2 {{ not createDL ? 'd-none' }}" style="background-color:#F8F8F8;padding:10px;border-radius:4px;">
-                    <input type="hidden"
-                           name="defaultDeliveryLocations"
-                           data-value="{{ defaultDeliveryLocations|json_encode }}"/>
-                    <div class="row">
-                        <div class="col-4 form-group">
-                            <label for="demandeur">Demandeur*</label>
-                            <div class="w-100">
-                                <select class="data needed"
-                                        {{ not createDL ? 'disabled' }}
-                                        name="demandeur"
-                                        data-s2="user"
-                                        data-other-params
-                                        data-other-params-add-dropzone="1"
-                                        onchange="demandeurChanged($(this))">
-                                </select>
-                            </div>
-                        </div>
-                        <input type="hidden"
-                               id="currentUser"
-                               data-id="{{ needsCurrentUser ? app.user.id }}"
-                               data-text="{{ needsCurrentUser ? app.user.username }}">
-                        <div class="col-4 form-group">
-                            <label for="type">Type*</label>
-                            <select class="select2-type data w-100 needed" name="type" {{ not createDL ? 'disabled' }}
-                                    onchange="onRequestTypeChange($(this))">
-                                <option>&nbsp;</option>
-                                {% for type in typeChampsLibres %}
-                                    <option value="{{ type.typeId }}">{{ type.typeLabel }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-4 form-group">
-                            <label for="destination">Destination*</label>
-                            <div class="w-100">
-                                <select name="destination" class="data ajax-autocomplete-location needed" id="locationDemandeLivraison"
-                                    {{ not createDL ? 'disabled' }}>
-                                    <option></option>
-                                </select>
-                                {% set isLocation = app.user.dropzone and app.user.dropzone is instanceof('App\\Entity\\Emplacement') %}
-                                <input hidden id="locationDemandeLivraisonValue"
-                                       data-id="{{ isLocation and needsCurrentUser ? app.user.dropzone.id }}"
-                                       data-text="{{ isLocation and needsCurrentUser ? app.user.dropzone.label }}">
-                            </div>
-                            <input type="hidden" name="restrictedLocations" value="{{ restrictedLocations }}">
-                        </div>
-                    </div>
-
-                    <div class="collapsible expanded mb-2 direct-delivery">
-                        <label>Livraison directe</label>
-                        <label class="switch">
-                            <input class="checkbox data needs-default"
-                                   name="direct-delivery"
-                                   type="checkbox"/>
-                            <span class="slider round"></span>
-                        </label>
-                    </div>
-
-                    <!-- CHAMPS LIBRES -->
-                    <span class="toggle-collapsible expanded">Champs libres</span>
-                    <div class="collapsible expanded free-fields-container mb-2">
-                        {% for type in typeChampsLibres %}
-                            <div class="d-none"
-                                 data-type="{{ type.typeId }}">
-                                {% include 'free_field/freeFieldsEdit.html.twig' with {
-                                    freeFields: type.champsLibres,
-                                    freeFieldValues: [],
-                                    colType: 'col-md-4 col-12',
-                                    requiredType: 'requiredCreate',
-                                    actionType: 'new',
-                                    disabledNeeded: true
-                                } %}
-                            </div>
-                        {% endfor %}
-                    </div>
-
-                    <label for="commentaire-dl">Commentaire</label>
-                    <input id='commentaire-dl'
-                           class="commentaire data"
-                           name="commentaire"
-                           type="hidden"/>
-                    <div class="editor-container" data-wysiwyg></div>
-                </div>
-                <div class="mt-2">
-                    <label>Demande de transfert</label>
-                    <label class="switch">
-                        <input class="checkbox data needs-default"
-                               name="create-demande-transfert"
-                               onclick="toggleForm($('.transfer-form'), $(this))"
-                               data-init="0"
-                               type="checkbox"/>
-                        <span class="slider round"></span>
-                    </label>
-                    <div class="transfer-form mt-4" style="background-color:#F8F8F8;padding:10px;border-radius:4px;">
-                        <div class="row">
-                            <div class="col-4 form-group">
-                                <label for="storage">Emplacement de stockage*</label>
-                                <select name="storage" class="data ajax-autocomplete-location-edit w-100 needed" id="storage">
-                                </select>
-                                <input hidden id="storageTransfer"
-                                       data-id="{{ reception.storageLocation ? reception.storageLocation.id }}"
-                                       data-text="{{ reception.storageLocation ? reception.storageLocation.label }}">
-                            </div>
-                            <div class="col-4 form-group">
-                                <label for="origin">Emplacement d'origine*</label>
-                                <select name="origin" class="data ajax-autocomplete-location-edit w-100 needed" id="origin">
-                                </select>
-                                <input hidden id="originTransfer"
-                                       data-id="{{ reception.location ? reception.location.id }}"
-                                       data-text="{{ reception.location ? reception.location.label }}">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!--
-                BLOCK CONDITIONNEMENT
-                -->
-                <div class="bloc-packing mt-5">
-                    <h5 class="bold mb-3">
-                        <span title="réception">{{ 'réception.réception'|trans }}</span> <span
-                            title="d'articles">{{ "réception.d'articles"|trans }}</span>
-                    </h5>
-                    <div class="row align-items-center">
-                        <div class="col-4">
-                            <div class="form-group ">
-                                <label class="w-100">
-                                    Référence
-                                    <select id="referenceConditionnement"
-                                            class="form-control select2-autocomplete-ref-articles w-100"
-                                            name="refArticleCommande"
-                                            onchange="initConditionnementArticleFournisseurDefault()"></select>
-                                </label>
-                            </div>
-                            <div class="form-group d-none">
-                                <label class="w-100">
-                                    Référence fournisseur
-                                    <select class="form-control data select2 w-100" name="articleFournisseurDefault"></select>
-                                </label>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="row justify-content-start align-items-center">
-                                <div class="col-2">
-                                    <label for="packing-package-number" class="sr-only">Nombre de colis</label>
-                                    <input id="packing-package-number"
-                                           type="number"
-                                           min="0"
-                                           class="form-control"
-                                           name="packageNumber"/>
-                                </div>
-                                <div class="col-auto">conditionnement de quantité</div>
-                                <div class="col-2">
-                                    <label for="packing-number-in-package" class="sr-only">Nombre d'article dans le colis</label>
-                                    <input id="packing-number-in-package"
-                                           type="number"
-                                           min="0"
-                                           class="form-control"
-                                           name="numberInPackage"/>
-                                </div>
-                                <div class="col-2 text-center">
-                                    <button class="btn btn-primary"
-                                            type="button"
-                                            onclick="validatePacking($(this))">
-                                        <i class="fas fa-plus"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <h5 class="bold mt-3 mb-3 d-none packing-title">Conditionnements</h5>
-                    <div class="articles-conditionnement-container">
-
-                    </div>
-                </div> #}
-
             </div>
-            {#<div class="p-4 error-msg"></div>#}
-            {#<div class="modal-footer">
-                <div class="btn btn-outline-secondary" data-dismiss="modal">Fermer</div>
-                <button id="submitNewReceptionButton" type="button" class="btn btn-success">Enregistrer</button>
-            </div>#}
 
             <input class="data" name="reception" type="hidden" value="{{ reception.id }}"/>
             <input type="hidden" class="data" name="packingArticles" value="">
+
             {% include('utils/modal/footer.html.twig') with {
                 elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Fermer'},
