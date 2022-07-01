@@ -804,6 +804,7 @@ class TransportService {
 
         $maxLineLength = 40;
         $cleanedContactAddress = Stream::explode("\n", $contactAddress)
+            //mettre à la ligne les éléments de l'adresse pour le svg
             ->flatMap(function (string $part) use ($maxLineLength) {
                 $part = trim($part);
                 $lineLength = strlen($part);
@@ -856,7 +857,7 @@ class TransportService {
         $total = $packs->count();
         return $packs
             ->keymap(fn(TransportDeliveryOrderPack $pack, int $index) => [(string) ($index + 1), $pack])
-            ->filter(fn(TransportDeliveryOrderPack $pack) => ($filteredPacksEmpty || in_array($pack->getId(), $deliveryPackIds)))
+            ->filter(fn(TransportDeliveryOrderPack $pack) => !$pack->getRejectReason() && ($filteredPacksEmpty || in_array($pack->getId(), $deliveryPackIds)))
             ->map(function(TransportDeliveryOrderPack $pack, int $position) use ($logo, $contactName, $contactFileNumber, $cleanedContactAddress, $total, $temperatureRanges) {
                 $temperatureRange = $temperatureRanges[$pack->getPack()?->getNature()?->getLabel()] ?? null;
                 $separated = strlen($contactName) > 25;
