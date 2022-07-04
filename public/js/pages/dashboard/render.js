@@ -571,7 +571,7 @@ function createIndicatorElement(data, config, redefinedNumberingConfig = null) {
     const $emergencyIcon = needsEmergencyDisplay ? '<i class="fa fa-exclamation-triangle red"></i>' : $logoTag;
     const numberingConfig = {numbering: 0};
     const smartNumberingConfig = redefinedNumberingConfig ? redefinedNumberingConfig : numberingConfig
-
+    console.log(delay, currentDashboard);
     return $(element, Object.assign({
         class: `dashboard-box dashboard-box-indicator text-center dashboard-stats-container ${customContainerClass}`,
         style: `${backgroundColor ? 'background-color:' + backgroundColor : ''}`,

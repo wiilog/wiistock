@@ -60,7 +60,7 @@ function loadDashboards(m, refreshRate) {
     $(`.save-dashboards`).on('click', function () {
         wrapLoadingOnActionButton($(this), onDashboardSaved);
     });
-
+    registerComponentOnChange();
     $(document).keydown(onArrowNavigation);
     $addRowButton.on('click', onRowAdded);
     $dashboard.on(`click`, `.delete-row`, onRowDeleted);
@@ -91,6 +91,12 @@ function loadDashboards(m, refreshRate) {
         .arrive(".segments-list .segment-hour", function () {
             onSegmentInputChange($(this), true);
         });
+}
+
+function registerComponentOnChange() {
+    $('[name="highlight-components"]').on('change', function() {
+        $('.highlight-components-count-container').toggleClass('d-none');
+    })
 }
 
 function onArrowNavigation(e) {
@@ -146,14 +152,29 @@ $pagination.on(`click`, `[data-target="#rename-dashboard-modal"]`, function () {
     const dashboard = $(this).data(`dashboard-index`);
     const $indexInput = $(`input[name="rename-dashboard-index"]`);
     const $nameInput = $(`input[name="rename-dashboard-name"]`);
+    const $highlightComponents = $('input[name="highlight-components"]');
 
+    if (dashboards[dashboard].componentCount) {
+        $highlightComponents.prop('checked', true);
+        const $highlightComponentsCount = $(`input[name="highlight-components-count"][value=${dashboards[dashboard].componentCount}]`);
+        $highlightComponentsCount.prop('checked', true);
+        $('.highlight-components-count-container').removeClass('d-none');
+    }
     $indexInput.val(dashboard);
     $nameInput.val(dashboards[dashboard].name);
 });
 
-$(`.rename-dashboard-modal-submit`).click(function () {
+$(`.dashboard-modal-submit-param`).click(function () {
     const dashboard = $(`input[name="rename-dashboard-index"]`).val();
     const $dashboardNameInput = $('input[name="rename-dashboard-name"]');
+    const $highlightComponents = $('input[name="highlight-components"]');
+    const $highlightComponentsCount = $('input[name="highlight-components-count"]:checked');
+    let componentCount = null;
+    if ($highlightComponents.is(':checked')) {
+        componentCount = $highlightComponentsCount.val();
+    }
+    dashboards[dashboard].componentCount = componentCount;
+
     const name = $dashboardNameInput.val();
     const $modal = $dashboardNameInput.closest('.modal');
     if (name) {
@@ -161,13 +182,13 @@ $(`.rename-dashboard-modal-submit`).click(function () {
 
         if (dashboards[dashboard].name !== name) {
             dashboards[dashboard].name = name;
-            dashboards[dashboard].updated = true;
         }
         renderDashboardPagination();
         $modal.modal('hide');
     } else {
         showBSAlert("Veuillez renseigner un nom de dashboard.", "danger");
     }
+    dashboards[dashboard].updated = true;
 });
 
 
@@ -459,7 +480,7 @@ function createDashboardSelectorItem(dashboard) {
                 <div class="dropdown-menu dropdown-follow-gt pointer">
                     <a class="dropdown-item rename-dashboard" role="button" data-dashboard-index="${dashboard.dashboardIndex}"
                          data-toggle="modal" data-target="#rename-dashboard-modal">
-                        <i class="fas fa-edit mr-2"></i>Renommer
+                        <i class="fas fa-edit mr-2"></i>Paramétrage
                     </a>
                     <a class="dropdown-item delete-dashboard" role="button" data-dashboard-index="${dashboard.dashboardIndex}">
                         <i class="fas fa-trash mr-2"></i>Supprimer

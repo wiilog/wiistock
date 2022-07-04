@@ -36,6 +36,11 @@ class Page
      */
     private $action;
 
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $componentsCount;
+
     public function __construct()
     {
         $this->rows = new ArrayCollection();
@@ -106,4 +111,23 @@ class Page
 
         return $this;
     }
+
+    /**
+     * @return mixed
+     */
+    public function getComponentsCount(): ?int
+    {
+        return $this->componentsCount;
+    }
+
+    /**
+     * @param mixed $componentsCount
+     */
+    public function setComponentsCount(?int $componentsCount): self
+    {
+        $this->componentsCount = $componentsCount;
+        return $this;
+    }
+
+
 }
