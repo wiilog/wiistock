@@ -243,6 +243,11 @@ class TransportRoundService
             "history" => $statusHistoryOrder,
         ]);
 
+        if($request instanceof TransportDeliveryRequest && $request->getCollect()) {
+            $collect = $request->getCollect();
+            $collect->setStatus($deliveryRequestToPrepare);
+        }
+
         $round = $line->getTransportRound();
         $round->removeTransportRoundLine($line);
         $entityManager->remove($line);

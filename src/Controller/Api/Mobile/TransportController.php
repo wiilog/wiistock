@@ -338,7 +338,8 @@ class TransportController extends AbstractFOSRestController {
                 }),
             'priority' => $line->getPriority(),
             'cancelled' => !!$line->getCancelledAt(),
-            'success' => $line->getFulfilledAt() && !$line->getFailedAt() && !$line->getRejectedAt(),
+            'success' => $request->getStatus()->getCode() === TransportRequest::STATUS_FINISHED &&
+                $line->getFulfilledAt() && !$line->getFailedAt() && !$line->getRejectedAt(),
             'failure' => $line->getRejectedAt() || $line->getFailedAt(),
         ];
     }
