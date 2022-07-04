@@ -242,7 +242,7 @@ class TransportRound extends StatusHistoryContainer {
     }
 
     public function getEstimatedDistance(bool $convertToKm = true): ?float {
-        return $this->estimatedDistance / $convertToKm ? 1000 : 1;
+        return $this->estimatedDistance / ($convertToKm ? 1000 : 1);
     }
 
     public function setEstimatedDistance(?float $estimatedDistance): self {
@@ -270,7 +270,7 @@ class TransportRound extends StatusHistoryContainer {
     }
 
     public function getRealDistance(bool $convertToKm = true): ?float {
-        return $this->realDistance / $convertToKm ? 1000 : 1 ;
+        return $this->realDistance / ($convertToKm ? 1000 : 1);
     }
 
     public function setRealDistance(?float $realDistance): self {

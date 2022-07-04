@@ -55,7 +55,7 @@
                 </td>
                 <td class="transport-details-container">
                     Km estimés : <span class="text-nowrap">
-                        <span class="transport-value">{{ round.estimatedDistance ? round.estimatedDistance | round(2, 'common') ~ ' km' : '-' }}</span>
+                        <span class="transport-value">{{ round.estimatedDistance ? round.estimatedDistance ~ ' km' : '-' }}</span>
                     </span>
                 </td>
                 <td class="transport-details-container">
@@ -77,7 +77,7 @@
                 </td>
                 <td class="transport-details-container">
                     Km réels : <span class="text-nowrap">
-                        <span class="transport-value">{{ round.realDistance is not null ? round.realDistance | round(2, 'common') ~ ' km' : '-' }}</span>
+                        <span class="transport-value">{{ round.realDistance is not null ? round.realDistance ~ ' km' : '-' }}</span>
                     </span>
                 </td>
                 <td class="transport-details-container">
