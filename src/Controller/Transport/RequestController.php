@@ -341,14 +341,6 @@ class RequestController extends AbstractController {
             throw new FormException("Impossible d'effectuer un colisage pour cette demande");
         }
 
-        //remove previous packs that could come from rejected deliveries
-        foreach($order->getPacks() as $pack) {
-            $pack->setPack(null);
-            $entityManager->remove($pack);
-        }
-
-        $order->setPacks([]);
-
         foreach($data as $natureId => $quantity){
             $nature = $natureRepository->find($natureId);
             if ($quantity > 0 && $nature) {
@@ -385,7 +377,12 @@ class RequestController extends AbstractController {
     #[HasPermission([Menu::DEM, Action::EDIT_TRANSPORT], mode: HasPermission::IN_JSON)]
     public function packingCheck(TransportRequest $transportRequest): JsonResponse {
         $order = $transportRequest->getOrder();
-        if($order->getPacks()->isEmpty() || $order->getRejectedAt()) {
+        $line = $order->getTransportRoundLines()->last();
+        $allPacksRejected = Stream::from($order->getPacks())
+            ->every(fn(TransportDeliveryOrderPack $pack) => $pack->getRejectReason());
+        if ($order->getPacks()->isEmpty()
+            || $allPacksRejected
+            || ($line && $line->getRejectedAt())) {
             return $this->json([
                 "success" => true,
                 "message" => "Colisage possible",
@@ -469,7 +466,7 @@ class RequestController extends AbstractController {
                 $currentRow[] = $this->renderView("transport/request/list_card.html.twig", [
                     "prefix" => TransportRequest::NUMBER_PREFIX,
                     "request" => $transportRequest,
-                    "timeSlot" => $roundLine ? $transportService->hourToTimeSlot($entityManager, $roundLine->getEstimatedAt()->format("H:i")) : null,
+                    "timeSlot" => $roundLine && $roundLine->getEstimatedAt() ? $transportService->hourToTimeSlot($entityManager, $roundLine->getEstimatedAt()->format("H:i")) : null,
                     "path" => "transport_request_show",
                     "displayDropdown" => true,
                 ]);
@@ -618,16 +615,8 @@ class RequestController extends AbstractController {
             $line = $transportOrder->getTransportRoundLines()->last();
             $round = $line->getTransportRound();
 
-            $lineBefore = null;
-            foreach($round->getTransportRoundLines() as $currentLine) {
-                if($round->getCurrentOnGoingLine() && $round->getCurrentOnGoingLine()->getPriority() + 1 === $line->getPriority()) {
-                    $lineBefore = $currentLine;
-                    break;
-                }
-            }
-
-            if($lineBefore === $round->getCurrentOnGoingLine()
-                && $line->getOrder()->getStatus()->getCode() === TransportOrder::STATUS_ONGOING) {
+            $current = $round->getCurrentOnGoingLine();
+            if($current && $line->getId() === $current->getId()) {
                 $userChannel = $userService->getUserFCMChannel($round->getDeliverer());
                 $notificationService->send($userChannel, "Votre prochain point de passage a été annulé", null, [
                     "roundId" => $round->getId(),
@@ -793,16 +782,17 @@ class RequestController extends AbstractController {
                 'Date Sous-traitées',
                 'Date En cours',
                 'Date Terminée/Non Livrée',
-                'Commentaire'];
+                'Commentaire'
+            ];
 
             $packsHeader = [
                 'Nature colis',
                 'Nombre de colis à livrer',
                 'Températures',
-                'Code Colis',
+                'Code colis',
                 'Ecarté',
                 'Motif écartement',
-                'Retrounée le',
+                'Retourné le',
             ];
             $csvHeader = array_merge($transportHeader, $packsHeader, $freeFieldsConfigDelivery['freeFieldsHeader']);
         } else {

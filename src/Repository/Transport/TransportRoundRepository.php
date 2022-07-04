@@ -95,16 +95,11 @@ class TransportRoundRepository extends EntityRepository {
     public function findMobileTransportRoundsByUser(Utilisateur $user): array {
         return $this->createQueryBuilder('transport_round')
             ->andWhere('transport_round.deliverer = :user')
-            ->andWhere('status.code IN (:availableStatuses)')
-            ->andWhere('transport_round.noDeliveryToReturn = 0 OR transport_round.noCollectToReturn = 0')
+            ->andWhere('status.code != :finished OR transport_round.noDeliveryToReturn = 0 OR transport_round.noCollectToReturn = 0')
             ->join('transport_round.status', 'status')
             ->orderBy('transport_round.expectedAt', 'ASC')
             ->setParameter('user', $user)
-            ->setParameter('availableStatuses', [
-                TransportRound::STATUS_AWAITING_DELIVERER,
-                TransportRound::STATUS_ONGOING,
-                TransportRound::STATUS_FINISHED
-            ])
+            ->setParameter('finished', TransportRound::STATUS_FINISHED)
             ->getQuery()
             ->getResult();
     }
@@ -177,7 +172,7 @@ class TransportRoundRepository extends EntityRepository {
             ->toIterable();
     }
 
-    public function findTodayRounds($deliverer) {
+    public function findTodayRounds($deliverer): array {
         $now = new DateTime();
 
         return $this->createQueryBuilder("round")

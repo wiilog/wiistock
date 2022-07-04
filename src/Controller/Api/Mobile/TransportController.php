@@ -114,6 +114,7 @@ class TransportController extends AbstractFOSRestController {
             ->filter(fn(TransportRoundLine $line) => (
                 $line->getOrder()->getRequest() instanceof TransportDeliveryRequest
                 && !$line->getOrder()->getPacks()->isEmpty()
+                && !Stream::from($line->getOrder()->getPacks())->every(fn(TransportDeliveryOrderPack $pack) => $pack->getRejectReason())
             ))
             ->count();
 
@@ -224,7 +225,7 @@ class TransportController extends AbstractFOSRestController {
                 ->map(fn(TransportRoundLine $line) => $this->serializeTransport($manager, $line))
                 ->values(), 
             "to_finish" => Stream::from($lines)
-                ->map(fn(TransportRoundLine $line) => $line->getFulfilledAt() || $line->getCancelledAt() || $line->getOrder()->getFailedAt() || $line->getOrder()->getRejectedAt())
+                ->map(fn(TransportRoundLine $line) => $line->getFulfilledAt() || $line->getCancelledAt() || $line->getFailedAt() || $line->getRejectedAt())
                 ->every(),
         ];
     }
@@ -337,13 +338,9 @@ class TransportController extends AbstractFOSRestController {
                 }),
             'priority' => $line->getPriority(),
             'cancelled' => !!$line->getCancelledAt(),
-            'success' => $request->getStatus()->getCode() === TransportRequest::STATUS_FINISHED ||
-                $request instanceof TransportDeliveryRequest && $request->getCollect() && $line->getFulfilledAt() && !$request->getOrder()->getFailedAt(),
-            'failure' => $request->getOrder()->getRejectedAt() || $request->getOrder()->getFailedAt() || in_array($request->getStatus()->getCode(), [
-                TransportRequest::STATUS_NOT_DELIVERED,
-                TransportRequest::STATUS_NOT_COLLECTED,
-                TransportRequest::STATUS_CANCELLED,
-            ]),
+            'success' => $request->getStatus()->getCode() === TransportRequest::STATUS_FINISHED &&
+                $line->getFulfilledAt() && !$line->getFailedAt() && !$line->getRejectedAt(),
+            'failure' => $line->getRejectedAt() || $line->getFailedAt(),
         ];
     }
 
@@ -617,7 +614,7 @@ class TransportController extends AbstractFOSRestController {
                 $orderStatus = $collectOrderOngoing;
             }
 
-            if (isset($requestStatus) && isset($orderStatus) && !$line->getOrder()->getRejectedAt()) {
+            if (isset($requestStatus) && isset($orderStatus) && !$line->getRejectedAt()) {
                 $statusHistoryRequest = $statusHistoryService->updateStatus($manager, $request, $deliveryRequestOngoing);
                 $statusHistoryOrder = $statusHistoryService->updateStatus($manager, $order, $deliveryOrderOngoing);
 
@@ -958,9 +955,7 @@ class TransportController extends AbstractFOSRestController {
 
         if(!$isEdit) {
             $order->setTreatedAt($now);
-            $order->setFailedAt($now);
 
-            $lastLine = $order->getTransportRoundLines()->last();
             if($request instanceof TransportCollectRequest && $request->getDelivery()) {
                 $lastLine = $request->getDelivery()->getOrder()->getTransportRoundLines()->last();
             } else {
@@ -968,7 +963,8 @@ class TransportController extends AbstractFOSRestController {
             }
 
             if($lastLine) {
-                $lastLine->setFulfilledAt($now);
+                $lastLine->setFulfilledAt($now)
+                    ->setFailedAt($now);
             }
 
             foreach ([$request, $order] as $entity) {
@@ -1209,7 +1205,9 @@ class TransportController extends AbstractFOSRestController {
                 $order = $transport->getOrder();
                 $request = $order->getRequest();
 
-                if($request instanceof TransportCollectRequest && $request->getStatus()->getCode() === TransportRequest::STATUS_FINISHED) {
+                $isCollect = $request instanceof TransportCollectRequest;
+                $isDeliveryCollect = $request instanceof TransportDeliveryRequest && $request->getCollect();
+                if(($isCollect || $isDeliveryCollect) && $request->getStatus()->getCode() === TransportRequest::STATUS_FINISHED) {
                     $requestCategory = CategorieStatut::TRANSPORT_REQUEST_COLLECT;
                     $orderCategory = CategorieStatut::TRANSPORT_ORDER_COLLECT;
 

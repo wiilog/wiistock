@@ -78,7 +78,7 @@ class TransportRoundService
             $round->getEstimatedTime() ?: '',
             $realTime ?:'',
             $round->getEstimatedDistance() ?: '',
-            $round->getRealDistance() ?: '',
+            $round->getRealDistance() ? $round->getRealDistance() : '',
             FormatHelper::user($round->getDeliverer()),
             $vehicle?->getRegistrationNumber() ?: '',
         ];
@@ -162,7 +162,7 @@ class TransportRoundService
                             $request instanceof TransportDeliveryRequest ? ($request->getCollect() ? "Livraison - Collecte" : "Livraison") : "Collecte",
                             FormatHelper::user($round->getDeliverer()),
                             $vehicle?->getRegistrationNumber() ?: '',
-                            $round->getRealDistance() ?: '',
+                            $round->getRealDistance() ? $round->getRealDistance() : '',
                             $request->getContact()?->getFileNumber() ?: '',
                             TransportRequest::NUMBER_PREFIX . $request->getNumber(),
                             str_replace("\n", " ", $line->getOrder()?->getRequest()?->getContact()?->getAddress() ?: ''),
@@ -243,11 +243,16 @@ class TransportRoundService
             "history" => $statusHistoryOrder,
         ]);
 
+        if($request instanceof TransportDeliveryRequest && $request->getCollect()) {
+            $collect = $request->getCollect();
+            $collect->setStatus($deliveryRequestToPrepare);
+        }
+
         $round = $line->getTransportRound();
         $round->removeTransportRoundLine($line);
         $entityManager->remove($line);
 
-        $order->setRejectedAt(new DateTime());
+        $line->setRejectedAt(new DateTime());
 
         $round->setRejectedOrderCount($round->getRejectedOrderCount() + 1);
     }

@@ -64,7 +64,7 @@ class PDFGeneratorService {
 
         $barcodeConfigsToTwig = array_map(function($config) use ($isCode128, $width) {
             $code = $config['code'];
-            $separated = $config['separated'];
+            $separated = $config['separated'] ?? false;
             $labels = array_filter($config['labels'] ?? [], function($label) {
                 return !empty($label);
             });

@@ -548,9 +548,14 @@ class RoundController extends AbstractController {
                 ->setStartPointScheduleCalculation($startPointScheduleCalculation)
                 ->setEndPoint($endPoint);
         }
+        $estimatedDistance = floatval($request->request->get('estimatedTotalDistance')) ?: null;
+
+        if($estimatedDistance) {
+            $estimatedDistance  *= 1000;
+        }
 
         $transportRound
-            ->setEstimatedDistance(floatval($request->request->get('estimatedTotalDistance')) ?: null)
+            ->setEstimatedDistance($estimatedDistance)
             ->setEstimatedTime($request->request->get('estimatedTotalTime'))
             ->setCoordinates($coordinates);
 
@@ -611,8 +616,8 @@ class RoundController extends AbstractController {
                     $transportRequest = $transportOrder->getRequest();
                     $line = new TransportRoundLine();
                     $line->setOrder($transportOrder);
-                    $transportOrder->setRejectedAt(null);
-                    $transportOrder->setFailedAt(null);
+                    $line->setRejectedAt(null);
+                    $line->setFailedAt(null);
 
                     $entityManager->persist($line);
                     $transportRound->addTransportRoundLine($line);
@@ -667,11 +672,12 @@ class RoundController extends AbstractController {
             throw new FormException("Il n'y a aucun ordre dans la tournée, veuillez réessayer");
         }
 
+        $todaysRounds = $transportRoundRepository->findTodayRounds($deliverer);
         $entityManager->flush();
         if($isNew) {
             $now = (new DateTime())->format("d-m-Y");
-            $todaysRounds = $transportRoundRepository->findTodayRounds($deliverer);
-            if ($todaysRounds && $now === $transportRound->getExpectedAt()->format("d-m-Y")) {
+            if (!empty($todaysRounds)
+                && $now === $transportRound->getExpectedAt()->format("d-m-Y")) {
                 $userChannel = $userService->getUserFCMChannel($deliverer);
                 $notificationService->send($userChannel, "Une nouvelle tournée attribuée aujourd'hui", null, [
                     "roundId" => $transportRound->getId(),
