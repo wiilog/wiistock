@@ -213,6 +213,7 @@ function renderRefreshDate(date) {
 }
 
 function renderCurrentDashboard() {
+    DELAYS = [];
     $dashboard.empty();
     if (currentDashboard) {
         updateCurrentDashboardSize();
@@ -233,6 +234,7 @@ function renderCurrentDashboard() {
             $(`.header-title`).html(`Dashboard | <span class="bold">${currentDashboard.name}</span>`);
             document.title = document.title.split('|')[0] + ` | ${currentDashboard.name}`;
         }
+
     }
 }
 
