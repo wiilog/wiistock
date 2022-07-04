@@ -78,7 +78,7 @@ class TransportRoundService
             $round->getEstimatedTime() ?: '',
             $realTime ?:'',
             $round->getEstimatedDistance() ?: '',
-            $round->getRealDistance() ?: '',
+            $round->getRealDistance() ? round($round->getRealDistance(), 2) : '',
             FormatHelper::user($round->getDeliverer()),
             $vehicle?->getRegistrationNumber() ?: '',
         ];
@@ -162,7 +162,7 @@ class TransportRoundService
                             $request instanceof TransportDeliveryRequest ? ($request->getCollect() ? "Livraison - Collecte" : "Livraison") : "Collecte",
                             FormatHelper::user($round->getDeliverer()),
                             $vehicle?->getRegistrationNumber() ?: '',
-                            $round->getRealDistance() ?: '',
+                            $round->getRealDistance() ? round($round->getRealDistance(), 2) : '',
                             $request->getContact()?->getFileNumber() ?: '',
                             TransportRequest::NUMBER_PREFIX . $request->getNumber(),
                             str_replace("\n", " ", $line->getOrder()?->getRequest()?->getContact()?->getAddress() ?: ''),
