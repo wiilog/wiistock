@@ -341,14 +341,6 @@ class RequestController extends AbstractController {
             throw new FormException("Impossible d'effectuer un colisage pour cette demande");
         }
 
-        //remove previous packs that could come from rejected deliveries
-        foreach($order->getPacks() as $pack) {
-            $pack->setPack(null);
-            $entityManager->remove($pack);
-        }
-
-        $order->setPacks([]);
-
         foreach($data as $natureId => $quantity){
             $nature = $natureRepository->find($natureId);
             if ($quantity > 0 && $nature) {

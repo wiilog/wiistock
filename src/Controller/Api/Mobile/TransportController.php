@@ -114,6 +114,7 @@ class TransportController extends AbstractFOSRestController {
             ->filter(fn(TransportRoundLine $line) => (
                 $line->getOrder()->getRequest() instanceof TransportDeliveryRequest
                 && !$line->getOrder()->getPacks()->isEmpty()
+                && !Stream::from($line->getOrder()->getPacks())->every(fn(TransportDeliveryOrderPack $pack) => $pack->getRejectReason())
             ))
             ->count();
 
@@ -337,7 +338,8 @@ class TransportController extends AbstractFOSRestController {
                 }),
             'priority' => $line->getPriority(),
             'cancelled' => !!$line->getCancelledAt(),
-            'success' => $line->getFulfilledAt() && !$line->getFailedAt() && !$line->getRejectedAt(),
+            'success' => $request->getStatus()->getCode() === TransportRequest::STATUS_FINISHED &&
+                $line->getFulfilledAt() && !$line->getFailedAt() && !$line->getRejectedAt(),
             'failure' => $line->getRejectedAt() || $line->getFailedAt(),
         ];
     }

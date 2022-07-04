@@ -165,7 +165,7 @@ class CartService {
             $statutRepository = $manager->getRepository(Statut::class);
             $destination = $manager->find(Emplacement::class, $data['location']);
             $type = $manager->find(Type::class, $data['deliveryType']);
-            $expectedAt = FormatHelper::parseDatetime($data['expectedAt']);
+            $expectedAt = FormatHelper::parseDatetime($data['expectedAt'] ?? null);
 
             $draft = $statutRepository->findOneByCategorieNameAndStatutCode(
                 CategorieStatut::DEM_LIVRAISON,
