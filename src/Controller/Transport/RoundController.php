@@ -548,9 +548,14 @@ class RoundController extends AbstractController {
                 ->setStartPointScheduleCalculation($startPointScheduleCalculation)
                 ->setEndPoint($endPoint);
         }
+        $estimatedDistance = floatval($request->request->get('estimatedTotalDistance')) ?: null;
+
+        if($estimatedDistance) {
+            $estimatedDistance  *= 1000;
+        }
 
         $transportRound
-            ->setEstimatedDistance(floatval($request->request->get('estimatedTotalDistance')) ?: null)
+            ->setEstimatedDistance($estimatedDistance ?: null)
             ->setEstimatedTime($request->request->get('estimatedTotalTime'))
             ->setCoordinates($coordinates);
 
