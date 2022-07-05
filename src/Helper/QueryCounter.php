@@ -12,12 +12,14 @@ class QueryCounter
     {
         $countQuery = clone $query;
 
-        return $countQuery
+        $result = $countQuery
             ->resetDQLPart('orderBy')
             ->resetDQLPart('groupBy')
             ->select("COUNT(DISTINCT $alias) AS __query_count")
             ->getQuery()
-            ->getSingleResult()["__query_count"];
+            ->getSingleResult();
+
+        return $result["__query_count"] ?? 0;
     }
 
     public static function countByStatusesAndTypes(EntityManagerInterface $entityManager,
