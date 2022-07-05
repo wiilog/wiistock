@@ -3,7 +3,7 @@ import EditableDatatable, {MODE_ADD_ONLY, MODE_CLICK_EDIT, MODE_NO_EDIT, SAVE_MA
 import Flash, {INFO} from '../../flash';
 import {LOADING_CLASS} from "../../loading";
 import {initUserPage} from "./users/users";
-import {initializeImports} from "./data/imports.js";
+import {initializeExports, initializeImports} from "./data/imports.js";
 import {initializeRolesPage} from "./users/roles";
 import {initializeRequestTemplates} from "./request-template";
 import {initializeTransportRound} from "./transport-round";
@@ -62,6 +62,7 @@ const initializers = {
     notifications_notifications_push: initializeNotifications,
     iot_types_champs_libres: initializeIotFreeFields,
     donnees_imports: initializeImports,
+    donnees_exports_csv: initializeExports,
     stock_receptions_champs_fixes: initializeReceptionFixedFields,
     stock_demandes_champs_fixes: initializeDemandesFixedFields,
     trace_acheminements_champs_fixes: initializeDispatchFixedFields,

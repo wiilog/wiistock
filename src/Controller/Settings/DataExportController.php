@@ -18,6 +18,7 @@ use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Routing\Annotation\Route;
@@ -131,7 +132,14 @@ class DataExportController extends AbstractController {
     #[Route('/rounds/csv', name: 'export_round', options: ['expose' => true], methods: 'GET')]
     public function exportRounds(CSVExportService       $CSVExportService,
                                  TransportRoundService  $transportRoundService,
-                                 EntityManagerInterface $entityManager): Response {
+                                 EntityManagerInterface $entityManager,
+                                 Request $request): Response {
+
+        $dateMin = $request->query->get('dateMin');
+        $dateMax = $request->query->get('dateMax');
+
+        $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
+        $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
 
         $transportRoundRepository = $entityManager->getRepository(TransportRound::class);
         $today = new DateTime();
@@ -139,7 +147,7 @@ class DataExportController extends AbstractController {
         $nameFile = "export-tournees-$today.csv";
         $csvHeader = $transportRoundService->getHeaderRoundAndRequestExport();
 
-        $transportRoundsIterator = $transportRoundRepository->iterateFinishedTransportRounds();
+        $transportRoundsIterator = $transportRoundRepository->iterateFinishedTransportRounds($dateTimeMin, $dateTimeMax);
         return $CSVExportService->streamResponse(function ($output) use ($transportRoundService, $transportRoundsIterator) {
             /** @var TransportRound $round */
             foreach ($transportRoundsIterator as $round) {

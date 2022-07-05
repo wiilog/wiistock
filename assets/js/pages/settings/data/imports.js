@@ -53,6 +53,11 @@ export function initializeImports() {
     tableImport = initDataTable('tableImport', tableImportConfig);
 }
 
+export function initializeExports() {
+    console.log('huh');
+    initDateTimePicker('#dateMin, #dateMax');
+}
+
 function displayFirstModal(importId = null) {
     let $inputImportId = $modalNewImport.find('[name="importId"]');
 
