@@ -935,7 +935,7 @@ function saveExportFile(routeName,
     const path = Routing.generate(routeName, routeParam, true);
 
     const data = {};
-    $('.filterService input').each(function () {
+    $('.filterService input, .dateFilters input').each(function () {
         const $input = $(this);
         const name = $input.attr('name');
         const val = $input.val();
@@ -954,7 +954,7 @@ function saveExportFile(routeName,
     const joinedData = dataKeys
         .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(data[key])}`)
         .join('&');
-
+console.log(data);
     if ((data.dateMin && data.dateMax) || !needsDateFilters) {
         if(needsAdditionalFilters) {
             if (!buttonTypeTransport.is(':empty')) {
