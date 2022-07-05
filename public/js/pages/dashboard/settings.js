@@ -270,7 +270,7 @@ function colorComponentsBasedOnDelay(renderedComponents) {
     });
 
     if (firstMin) {
-        $('#' + firstMin.id).addClass('primary-danger ');
+        $('#' + firstMin.id).addClass('primary-danger');
     }
     if (secondMin && currentDashboard.componentCount > 1) {
         $('#' + secondMin.id).addClass('secondary-danger');
