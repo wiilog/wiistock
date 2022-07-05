@@ -107,6 +107,7 @@ class StatusController extends AbstractController
                 $needsMobileSync = (!in_array($status->getState(), [Statut::DRAFT, Statut::TREATED]) && $status->getNeedsMobileSync()) ? 'checked' : "";
                 $commentNeeded = $status->getCommentNeeded() ? 'checked' : "";
                 $automaticReceptionCreation = $status->getAutomaticReceptionCreation() ? 'checked' : "";
+                $showAutomaticReceptionCreation = $status->getState() === Statut::TREATED ? "" : "d-none";
 
                 $data[] = [
                     "actions" => $actionColumn,
@@ -120,7 +121,7 @@ class StatusController extends AbstractController
                     "sendMailDest" => "<div class='checkbox-container'><input type='checkbox' name='sendMailDest' class='form-control data' {$sendMailDest}/></div>",
                     "needsMobileSync" => "<div class='checkbox-container'><input type='checkbox' name='needsMobileSync' class='form-control data' {$disabledMobileSync} {$needsMobileSync}/></div>",
                     "commentNeeded" => "<div class='checkbox-container'><input type='checkbox' name='commentNeeded' class='form-control data' {$commentNeeded}/></div>",
-                    "automaticReceptionCreation" => "<div class='checkbox-container'><input type='checkbox' name='automaticReceptionCreation' class='form-control data' {$automaticReceptionCreation}/></div>",
+                    "automaticReceptionCreation" => "<div class='checkbox-container'><input type='checkbox' name='automaticReceptionCreation' class='form-control data $showAutomaticReceptionCreation' {$automaticReceptionCreation}/></div>",
                     "order" => "<input type='number' name='order' min='1' value='{$status->getDisplayOrder()}' class='form-control data needed px-2 text-center' data-no-arrow/>",
                 ];
             } else {

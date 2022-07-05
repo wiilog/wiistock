@@ -160,7 +160,7 @@ function getFormColumn(mode, statusStateOptions, categoryType){
         sendMailRequesters: `<div class='checkbox-container'><input type='checkbox' name='sendMailRequesters' class='form-control data'/></div>`,
         needsMobileSync: `<div class='checkbox-container'><input type='checkbox' name='needsMobileSync' class='form-control data'/></div>`,
         commentNeeded: `<div class='checkbox-container'><input type='checkbox' name='commentNeeded' class='form-control data'/></div>`,
-        sendMailDest: `<div class='checkbox-container'><input type='checkbox' name='sendMailDest' class='form-control data'/></div>`,
+        sendMailDest: `<div class='checkbox-container d-none'><input type='checkbox' name='sendMailDest' class='form-control data'/></div>`,
         automaticReceptionCreation: `<div class='checkbox-container'><input type='checkbox' name='automaticReceptionCreation' class='form-control data'/></div>`,
         order: `<input type='number' name='order' min='1' class='form-control data needed px-2 text-center' data-global-error="Ordre" data-no-arrow/>`,
     };
@@ -206,9 +206,7 @@ function onStatusStateChange($select) {
     if (disabledNeedMobileSync) {
         $needMobileSync.prop('checked', false);
     }
-
-    $automaticReceptionCreation.prop(`disabled`, Boolean(disabledAutomaticReceptionCreation));
-    if (disabledAutomaticReceptionCreation) {
-        $automaticReceptionCreation.prop('checked', false);
-    }
+console.log($select
+    .find(`option[value=${$select.val()}]`)[0].outerHTML, $select.val(), disabledAutomaticReceptionCreation);
+    $automaticReceptionCreation.toggleClass(`d-none`, Boolean(disabledAutomaticReceptionCreation));
 }
