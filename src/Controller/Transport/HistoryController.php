@@ -44,12 +44,15 @@ class HistoryController extends AbstractController
         else if ($type === self::REQUEST) {
             $entity = $entityManager->find(TransportRequest::class, $id);
 
-            $round = null;
+            $line = null;
             $order = $entity->getOrder();
             if($order) {
-                $round = $order->getTransportRoundLines()->last() ?: null;
-                if ($round) {
-                    $estimatedTimeSlot = $transportService->hourToTimeSlot($entityManager, $round->getEstimatedAt()->format("H:i")) ?? $round->getEstimatedAt()->format("H:i");
+                $line = $order->getTransportRoundLines()->last() ?: null;
+                if ($line) {
+                    $estimatedAt = $line->getEstimatedAt();
+                    $estimatedAtTime = $estimatedAt?->format("H:i");
+                    $estimatedTimeSlot = $transportService->hourToTimeSlot($entityManager, $estimatedAtTime)
+                        ?? $estimatedAtTime;
                 }
             }
         }
@@ -103,7 +106,7 @@ class HistoryController extends AbstractController
                     ])
                     ->toArray(),
                 "entity" => $entity,
-                "round" => $round ?? null,
+                "round" => $line ?? null,
                 "estimatedTimeSlot" => $estimatedTimeSlot ?? null,
             ]),
         ]);

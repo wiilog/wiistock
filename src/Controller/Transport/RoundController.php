@@ -654,10 +654,18 @@ class RoundController extends AbstractController {
                 }
 
                 if (isset($ordersAndTime['time'])) {
-                    $estimated = new DateTime();
-                    $estimated->setTime(intval(substr($ordersAndTime['time'], 0, 2)), intval(substr($ordersAndTime['time'], 3, 2)));
+                    $roundExpectedAt = $transportRound->getExpectedAt() ?? new DateTime();
+                    $estimated = clone $roundExpectedAt;
+                    $estimated
+                        ->setTime(
+                            intval(substr($ordersAndTime['time'], 0, 2)),
+                            intval(substr($ordersAndTime['time'], 3, 2))
+                        );
                     $line
                         ->setEstimatedAt($estimated);
+                }
+                else {
+                    throw new FormException("L'estimation de passage de l'ordre n°{$priority} n'est pas calculable, veuillez vérifier l'adresse saisie");
                 }
 
                 $line

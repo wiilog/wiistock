@@ -223,7 +223,7 @@ class TransportController extends AbstractFOSRestController {
                     }
                 })
                 ->map(fn(TransportRoundLine $line) => $this->serializeTransport($manager, $line))
-                ->values(), 
+                ->values(),
             "to_finish" => Stream::from($lines)
                 ->map(fn(TransportRoundLine $line) => $line->getFulfilledAt() || $line->getCancelledAt() || $line->getFailedAt() || $line->getRejectedAt())
                 ->every(),
@@ -338,8 +338,18 @@ class TransportController extends AbstractFOSRestController {
                 }),
             'priority' => $line->getPriority(),
             'cancelled' => !!$line->getCancelledAt(),
-            'success' => $request->getStatus()->getCode() === TransportRequest::STATUS_FINISHED &&
-                $line->getFulfilledAt() && !$line->getFailedAt() && !$line->getRejectedAt(),
+            'success' => (
+                (
+                    $request->getStatus()->getCode() === TransportRequest::STATUS_FINISHED
+                    || (
+                        // si c'est une collecte d'une livraison collecte => false
+                        !($request instanceof TransportCollectRequest && $request->getDelivery())
+                        && $line->getFulfilledAt()
+                    )
+                )
+                && !$line->getFailedAt()
+                && !$line->getRejectedAt()
+            ),
             'failure' => $line->getRejectedAt() || $line->getFailedAt(),
         ];
     }
