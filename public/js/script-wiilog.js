@@ -954,7 +954,7 @@ function saveExportFile(routeName,
     const joinedData = dataKeys
         .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(data[key])}`)
         .join('&');
-console.log(data);
+
     if ((data.dateMin && data.dateMax) || !needsDateFilters) {
         if(needsAdditionalFilters) {
             if (!buttonTypeTransport.is(':empty')) {
