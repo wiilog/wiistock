@@ -141,7 +141,7 @@
             {% set id = random(100000, 10000000) %}
 
             <div class="wii-radio mt-1">
-                <input type="radio" id="radio-{{ id }}" class="data" value="{{ item.value ?? '' }}"
+                <input type="radio" id="radio-{{ id }}" class="data mr-2" value="{{ item.value ?? '' }}"
                     {{ required ? 'required' }}
                     {{ _self.common_attributes(name, options) }}
                     {{ _self.multiple_key(options) }}
@@ -149,7 +149,7 @@
                 <label class="{{ options.labelClass ?? '' }} pointer d-inline-flex align-items-center" for="radio-{{ id }}">
                     {{ item.label }}
                 </label>
-                {{ _self.tooltip(options.tooltip ?? null, options.inline ?? false) }}
+                {{ _self.tooltip(item.tooltip ?? null) }}
             </div>
         {% endfor %}
     </div>

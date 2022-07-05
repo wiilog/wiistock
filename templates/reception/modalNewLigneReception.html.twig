@@ -29,7 +29,7 @@
                 <div class="wii-section-title d-none my-4">Création d'une demande</div>
                 <div class="create-request-container d-none">
                     {{ form.switch('requestType', '', false, [
-                        {label: 'Livraison', value: 'delivery', wiiIcon: 'cart-delivery'},
+                        {label: deliverySwitchLabel, value: 'delivery', wiiIcon: 'cart-delivery'},
                         {label: 'Transfert', wiiIcon: 'transfer-black', value: 'transfer'},
                         {label: 'Aucune', value: 'none', checked: true},
                     ]) }}

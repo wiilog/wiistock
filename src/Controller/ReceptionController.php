@@ -839,6 +839,16 @@ class ReceptionController extends AbstractController {
         $restrictedLocations = $settingRepository->getOneParamByLabel(Setting::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST);
 
         $defaultDisputeStatus = $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::LITIGE_RECEPT);
+        $deliveryRequestBehaviorSettingLabel = $settingRepository->findOneBy([
+            'label' => [Setting::DIRECT_DELIVERY, Setting::CREATE_PREPA_AFTER_DL, Setting::CREATE_DELIVERY_ONLY],
+            'value' => 1
+        ])?->getLabel();
+
+        $deliverySwitchLabel = match ($deliveryRequestBehaviorSettingLabel) {
+            Setting::CREATE_DELIVERY_ONLY => 'Demande de livraison seule',
+            Setting::DIRECT_DELIVERY => 'Livraison seule',
+            default => 'Livraison',
+        };
         return $this->render("reception/show.html.twig", [
             'reception' => $reception,
             'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
@@ -847,6 +857,7 @@ class ReceptionController extends AbstractController {
             'typeChampsLibres' => $typeChampLibreDL,
             'createDL' => $createDL ? $createDL->getValue() : false,
             'defaultDeliveryLocations' => $settingsService->getDefaultDeliveryLocationsByTypeId($entityManager),
+            'deliverySwitchLabel' => $deliverySwitchLabel,
             'defaultDisputeStatusId' => $defaultDisputeStatus[0] ?? null,
             'needsCurrentUser' => $needsCurrentUser,
             'detailsHeader' => $receptionService->createHeaderDetailsConfig($reception),
@@ -1654,7 +1665,7 @@ class ReceptionController extends AbstractController {
 
                 $transferRequest = null;
                 $demande = null;
-                $createDirectDelivery = (bool) $data['direct-delivery']; // TODO remplacer par le paramétrage
+                $createDirectDelivery = $entityManager->getRepository(Setting::class)->getOneParamByLabel(Setting::DIRECT_DELIVERY);
 
                 if ($needCreateLivraison) {
                     // optionnel : crée l'ordre de prépa
@@ -2039,6 +2050,7 @@ class ReceptionController extends AbstractController {
             ->toArray();
 
         $freeFields = Stream::from($freeFieldsValues)
+            ->filter(fn($freeField) => $freeField)
             ->keymap(function(?string $value, int $key) use ($freeFieldRepository) {
                 $value = DateTime::createFromFormat('Y-m-d', $value) ?: $value;
                 $formattedValue = $value instanceof DateTime ? $value->format('d/m/Y') : $value;
@@ -2070,6 +2082,30 @@ class ReceptionController extends AbstractController {
                'freeFields' => $freeFields
            ]),
            'values' => $values
+        ]);
+    }
+
+    #[Route("/can-be-packed", name: "can_be_packed", options: ['expose' => true], methods: "GET")]
+    public function canBePacked(Request $request, EntityManagerInterface $manager): Response {
+        $data = $request->query->all();
+        $orderNumber = $data['orderNumber'];
+
+        $reception = $manager->find(Reception::class, $data['reception']);
+        $reference = $manager->getRepository(ReferenceArticle::class)->findOneBy([
+            'reference' => $data['reference']
+        ]);
+        $receptionLine = $manager->getRepository(ReceptionReferenceArticle::class)->findOneBy([
+            'reception' => $reception,
+            'commande' => $orderNumber,
+            'referenceArticle' => $reference
+        ]);
+
+        $success = $data['cumulatedQuantities'] <= ($receptionLine->getQuantiteAR() - $receptionLine->getQuantite());
+        return $this->json([
+            'success' => $success,
+            'reference' => $reference->getReference(),
+            'orderNumber' => $orderNumber,
+            'expectedQuantity' => $receptionLine->getQuantiteAR()
         ]);
     }
 

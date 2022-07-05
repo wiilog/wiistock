@@ -1,7 +1,5 @@
-<form method=""
-      class="modal fade"
+<form class="modal fade"
       id="modalAddLigneArticle"
-      role="dialog"
       aria-labelledby="dataModalCenterTitle"
      aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered"
@@ -13,17 +11,16 @@
                         class="close"
                         data-dismiss="modal"
                         aria-label="Close">
-                    <span aria-hidden="true"
-                          onclick="clearAddRefModal()">&times;</span>
+                    <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body modal-input container-fluid">
                 <input type="hidden" class="data" name="reception" value="{{ reception.id }}"/>
                 <div class="row no-gutters">
                     <div class="form-group col-5 w-100 mb-3 mr-2">
-                        <label for="reception-add-ligne"
+                        <label class="wii-field-name"
                                title="référence">{{ 'reference.référence'|trans }}*</label>
-                        <select class="ajax-autocomplete data form-control needed"
+                        <select class="ajax-autocomplete data form-control needed wii-field-text"
                                 onchange="articleChanged($(this))"
                                 id="reception-add-ligne"
                                 name="referenceArticle">
@@ -53,22 +50,22 @@
                     </div>
 
                     <div class="form-group col-6">
-                        <label for="label">Numéro de commande d'achat*</label>
-                        <input class="form-control data needed"
+                        <label class="wii-field-name">Numéro de commande d'achat*</label>
+                        <input class="form-control data needed wii-field-text"
                                type="text"
                                name="commande"
                                id="numCommandeAchat">
                     </div>
                     <div class="form-group col-6">
-                        <label for="">Quantité à recevoir*</label>
+                        <label class="wii-field-name">Quantité à recevoir*</label>
                         <input type="number"
-                               class="form-control data needed"
+                               class="form-control data needed wii-field-text"
                                name="quantiteAR"
                                min=1
                                id="quantiteAR">
                     </div>
-                    <div class="form-group col-6 pt-4">
-                        <label>Anomalie</label>
+                    <div class="form-group col-6">
+                        <label class="wii-field-name">Anomalie</label>
                         <label class="switch">
                             <input class="checkbox"
                                    type="checkbox"
@@ -77,7 +74,7 @@
                         </label>
                     </div>
                     <div class="form-group col-12">
-                        <label>Commentaire</label>
+                        <label class="wii-field-name">Commentaire</label>
                         <div>
                             <input id='commentaire'
                                    class="form-control data"

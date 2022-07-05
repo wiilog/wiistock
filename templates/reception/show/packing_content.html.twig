@@ -4,6 +4,7 @@
     <div class="d-flex flex-column justify-content-center dark-background" style="background: #3353D7; height: 100%; padding: 10px; border-radius: 5px;">
         {{ form.input('quantityToReceive', 'Article(s)', true, receptionReferenceArticle.quantiteAR, {
             type: 'number',
+            min: 1
         }) }}
     </div>
 </div>
