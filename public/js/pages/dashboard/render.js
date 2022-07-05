@@ -575,7 +575,7 @@ function createIndicatorElement(data, config, redefinedNumberingConfig = null) {
     const randomId = guidGenerator();
 
     const $element = $(element, Object.assign({
-        class: `dashboard-box dashboard-box-indicator text-center dashboard-stats-container ${customContainerClass} ${randomId}`,
+        class: `dashboard-box dashboard-box-indicator text-center dashboard-stats-container ${customContainerClass}`,
         style: `${backgroundColor ? 'background-color:' + backgroundColor : ''}`,
         html: [
             createTooltip(tooltip),
@@ -655,7 +655,8 @@ function createIndicatorElement(data, config, redefinedNumberingConfig = null) {
     }, customAttributes));
 
     if (Number.isInteger(delay)) {
-        DELAYS[randomId] = delay;
+        $element.data('delay', delay);
+        $element.attr('id', randomId);
     }
 
     return $element;

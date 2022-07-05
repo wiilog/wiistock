@@ -213,11 +213,10 @@ function renderRefreshDate(date) {
 }
 
 function renderCurrentDashboard() {
-    DELAYS = [];
     $dashboard.empty();
     if (currentDashboard) {
         updateCurrentDashboardSize();
-
+        const componentsToBeRenderedCount = currentDashboard.rows.reduce((carry, current) => carry + current.components.length, 0);
         Object.keys(currentDashboard.rows)
             .map((key) => currentDashboard.rows[key])
             .map(renderRow)
@@ -234,8 +233,59 @@ function renderCurrentDashboard() {
             $(`.header-title`).html(`Dashboard | <span class="bold">${currentDashboard.name}</span>`);
             document.title = document.title.split('|')[0] + ` | ${currentDashboard.name}`;
         }
-
+        if (currentDashboard.componentCount) {
+            renderIsDone(componentsToBeRenderedCount, (renderedComponents) => {
+                colorComponentsBasedOnDelay(renderedComponents);
+            });
+        }
     }
+}
+
+function colorComponentsBasedOnDelay(renderedComponents) {
+    let firstMin, secondMin = null;
+    renderedComponents.each(function () {
+        const value = $(this).data('delay');
+        const id = $(this).attr('id');
+        if (value) {
+            if (!firstMin || value < firstMin.value) {
+                firstMin = {
+                    id,
+                    value
+                };
+            }
+        }
+    });
+
+    renderedComponents.each(function () {
+        const value = $(this).data('delay');
+        const id = $(this).attr('id');
+        if (value) {
+            if ((!secondMin || value < secondMin.value) && (!firstMin || id !== firstMin.id)) {
+                secondMin = {
+                    id,
+                    value
+                };
+            }
+        }
+    });
+    if (firstMin) {
+        $('#' + firstMin.id).addClass('primary-danger ');
+    }
+    if (secondMin && currentDashboard.componentCount > 1) {
+        $('#' + secondMin.id).addClass('secondary-danger');
+    }
+}
+
+function renderIsDone(componentsToBeRenderedCount, callback) {
+    const renderedComponents = $('.dashboard-box');
+    if (renderedComponents.length === componentsToBeRenderedCount) {
+        callback(renderedComponents);
+    } else {
+        setTimeout(() => {
+            renderIsDone(componentsToBeRenderedCount, callback);
+        }, 10);
+    }
+
 }
 
 function updateCurrentDashboardSize() {
