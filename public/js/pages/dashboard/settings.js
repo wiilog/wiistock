@@ -234,7 +234,7 @@ function renderCurrentDashboard() {
             document.title = document.title.split('|')[0] + ` | ${currentDashboard.name}`;
         }
         if (currentDashboard.componentCount) {
-            renderIsDone(componentsToBeRenderedCount, (renderedComponents) => {
+            whenRenderIsDone(componentsToBeRenderedCount, (renderedComponents) => {
                 colorComponentsBasedOnDelay(renderedComponents);
             });
         }
@@ -243,6 +243,7 @@ function renderCurrentDashboard() {
 
 function colorComponentsBasedOnDelay(renderedComponents) {
     let firstMin, secondMin = null;
+
     renderedComponents.each(function () {
         const value = $(this).data('delay');
         const id = $(this).attr('id');
@@ -255,7 +256,6 @@ function colorComponentsBasedOnDelay(renderedComponents) {
             }
         }
     });
-
     renderedComponents.each(function () {
         const value = $(this).data('delay');
         const id = $(this).attr('id');
@@ -268,6 +268,7 @@ function colorComponentsBasedOnDelay(renderedComponents) {
             }
         }
     });
+
     if (firstMin) {
         $('#' + firstMin.id).addClass('primary-danger ');
     }
@@ -276,13 +277,13 @@ function colorComponentsBasedOnDelay(renderedComponents) {
     }
 }
 
-function renderIsDone(componentsToBeRenderedCount, callback) {
+function whenRenderIsDone(componentsToBeRenderedCount, callback) {
     const renderedComponents = $('.dashboard-box');
     if (renderedComponents.length === componentsToBeRenderedCount) {
         callback(renderedComponents);
     } else {
         setTimeout(() => {
-            renderIsDone(componentsToBeRenderedCount, callback);
+            whenRenderIsDone(componentsToBeRenderedCount, callback);
         }, 10);
     }
 
