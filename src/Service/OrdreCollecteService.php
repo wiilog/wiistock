@@ -57,6 +57,7 @@ class OrdreCollecteService
 	private $trackingMovementService;
 	private $mouvementStockService;
 	private $stringService;
+	private $tokenStorage;
 
 	/** @Required */
 	public NotificationService $notificationService;
@@ -78,7 +79,7 @@ class OrdreCollecteService
 		$this->entityManager = $entityManager;
 		$this->mailerService = $mailerService;
 		$this->trackingMovementService = $trackingMovementService;
-		$this->user = $tokenStorage->getToken()->getUser();
+		$this->tokenStorage = $tokenStorage;
 		$this->router = $router;
 		$this->mouvementStockService = $mouvementStockService;
 	}
@@ -311,7 +312,7 @@ class OrdreCollecteService
 				'value' => $demandeCollecteIdFilter]
 			];
 		} else {
-			$filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ORDRE_COLLECTE, $this->user);
+			$filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ORDRE_COLLECTE, $this->tokenStorage->getToken()->getUser());
 		}
 		$queryResult = $ordreCollecteRepository->findByParamsAndFilters($params, $filters);
 

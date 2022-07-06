@@ -13,36 +13,33 @@ use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 
-class PurchaseRequestService
-{
-    /** @Required */
+class PurchaseRequestService {
+
+    #[Required]
     public Twig_Environment $templating;
 
-    /** @Required */
+    #[Required]
     public RouterInterface $router;
 
-    /** @Required */
+    #[Required]
     public EntityManagerInterface $em;
 
-    /** @Required */
+    #[Required]
     public UniqueNumberService $uniqueNumberService;
 
+    #[Required]
     public MailerService $mailerService;
 
-    private $user;
-
-    public function __construct(TokenStorageInterface $tokenStorage,
-                                MailerService $mailerService) {
-        $this->user = $tokenStorage->getToken()->getUser();
-        $this->mailerService = $mailerService;
-    }
+    #[Required]
+    public TokenStorageInterface $tokenStorage;
 
     public function getDataForDatatable($params = null)
     {
         $filters = $this->em->getRepository(FiltreSup::class)
-            ->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PURCHASE_REQUEST, $this->user);
+            ->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PURCHASE_REQUEST, $this->tokenStorage->getToken()->getUser());
 
         $queryResult = $this->em->getRepository(PurchaseRequest::class)
             ->findByParamsAndFilters($params, $filters);

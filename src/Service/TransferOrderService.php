@@ -29,6 +29,7 @@ class TransferOrderService {
     private $user;
     private $em;
     private $userService;
+    private $tokenStorage;
     private $mouvementTracaService;
     private $mouvementStockService;
     private $uniqueNumberService;
@@ -48,7 +49,7 @@ class TransferOrderService {
         $this->uniqueNumberService = $uniqueNumberService;
         $this->em = $entityManager;
         $this->router = $router;
-        $this->user = $tokenStorage->getToken()->getUser();
+        $this->tokenStorage = $tokenStorage;
         $this->userService = $userService;
         $this->mouvementTracaService = $mouvementTracaService;
         $this->mouvementStockService = $mouvementStockService;
@@ -57,7 +58,7 @@ class TransferOrderService {
     public function getDataForDatatable($params, $filterReception)
     {
         $filters = $this->em->getRepository(FiltreSup::class)
-            ->getFieldAndValueByPageAndUser(FiltreSup::PAGE_TRANSFER_ORDER, $this->user);
+            ->getFieldAndValueByPageAndUser(FiltreSup::PAGE_TRANSFER_ORDER, $this->tokenStorage->getToken()->getUser());
         $queryResult = $this->em->getRepository(TransferOrder::class)
             ->findByParamsAndFilters($params, $filters, $filterReception);
 

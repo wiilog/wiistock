@@ -29,18 +29,7 @@ use Throwable;
 /**
  * @Route("/alerte")
  */
-class AlertController extends AbstractController
-{
-
-    /**
-     * @var object|string
-     */
-    private $user;
-
-    public function __construct(TokenStorageInterface $tokenStorage)
-    {
-        $this->user = $tokenStorage->getToken()->getUser();
-    }
+class AlertController extends AbstractController {
 
     /**
      * @Route("/liste", name="alerte_index", methods="GET|POST", options={"expose"=true})

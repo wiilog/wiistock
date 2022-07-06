@@ -48,6 +48,7 @@ class DemandeCollecteService
     private $freeFieldService;
     private $articleFournisseurService;
     private $articleDataService;
+    private $tokenStorage;
 
     public function __construct(TokenStorageInterface $tokenStorage,
                                 RouterInterface $router,
@@ -65,7 +66,7 @@ class DemandeCollecteService
         $this->articleFournisseurService = $articleFournisseurService;
         $this->articleDataService = $articleDataService;
         $this->router = $router;
-        $this->user = $tokenStorage->getToken()->getUser();
+        $this->tokenStorage = $tokenStorage;
     }
 
     /**
@@ -87,7 +88,7 @@ class DemandeCollecteService
 			];
 		} else {
             $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
-    		$filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DEM_COLLECTE, $this->user);
+    		$filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DEM_COLLECTE, $this->tokenStorage->getToken()->getUser());
 		}
 
         $collecteRepository = $this->entityManager->getRepository(Collecte::class);
