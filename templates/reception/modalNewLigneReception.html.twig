@@ -29,13 +29,13 @@
                 <div class="wii-section-title d-none my-4">Création d'une demande</div>
                 <div class="create-request-container d-none">
                     {{ form.switch('requestType', '', false, [
-                        {label: deliverySwitchLabel, value: 'delivery', wiiIcon: 'cart-delivery'},
+                        {label: deliverySwitchLabel, value: 'delivery', wiiIcon: 'cart-delivery', checked: precheckedDelivery},
                         {label: 'Transfert', wiiIcon: 'transfer-black', value: 'transfer'},
-                        {label: 'Aucune', value: 'none', checked: true},
+                        {label: 'Aucune', value: 'none', checked: not precheckedDelivery},
                     ]) }}
                 </div>
 
-                <div class="transfer-form mt-4" style="background-color:#F2F3F7;padding:10px;border-radius:4px;">
+                <div class="transfer-form mt-4">
                     <div class="row">
                         <div class="col-4 form-group">
                             <label class="wii-field-name">Emplacement de stockage*</label>
@@ -56,7 +56,7 @@
                     </div>
                 </div>
 
-                <div class="demande-form mt-4 {{ not createDL ? 'd-none' }}" style="background-color:#F2F3F7;padding:10px;border-radius:4px;">
+                <div class="demande-form mt-4 d-none">
                     <input type="hidden"
                            name="defaultDeliveryLocations"
                            data-value="{{ defaultDeliveryLocations|json_encode }}"/>
@@ -64,12 +64,12 @@
                         <div class="col-4 form-group">
                             <label class="wii-field-name">Demandeur*</label>
                             <select class="data needed wii-field-text w-100"
-                                {{ not createDL ? 'disabled' }}
                                     name="demandeur"
                                     data-s2="user"
                                     data-other-params
                                     data-other-params-add-dropzone="1"
-                                    onchange="demandeurChanged($(this))">
+                                    onchange="demandeurChanged($(this))"
+                                    disabled>
                             </select>
                         </div>
                         <input type="hidden"
@@ -78,8 +78,8 @@
                                data-text="{{ needsCurrentUser ? app.user.username }}">
                         <div class="col-4 form-group">
                             <label class="wii-field-name">Type*</label>
-                            <select class="select2-type data w-100 needed wii-field-text" name="type" {{ not createDL ? 'disabled' }}
-                                    onchange="onRequestTypeChange($(this))">
+                            <select class="select2-type data w-100 needed wii-field-text" name="type"
+                                    onchange="onRequestTypeChange($(this))" disabled>
                                 <option>&nbsp;</option>
                                 {% for type in typeChampsLibres %}
                                     <option value="{{ type.typeId }}">{{ type.typeLabel }}</option>
@@ -90,7 +90,7 @@
                             <label class="wii-field-name">Destination*</label>
                             <div class="w-100">
                                 <select name="destination" class="data ajax-autocomplete-location needed wii-field-text" id="locationDemandeLivraison"
-                                    {{ not createDL ? 'disabled' }}>
+                                    disabled>
                                     <option></option>
                                 </select>
                                 {% set isLocation = app.user.dropzone and app.user.dropzone is instanceof('App\\Entity\\Emplacement') %}
@@ -128,6 +128,7 @@
             </div>
 
             <input class="data" name="reception" type="hidden" value="{{ reception.id }}"/>
+            <input class="data" name="precheckedDelivery" type="hidden" value="{{ precheckedDelivery }}"/>
             <input type="hidden" class="data" name="packingArticles" value="">
 
             {% include('utils/modal/footer.html.twig') with {

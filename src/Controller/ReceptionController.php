@@ -834,7 +834,7 @@ class ReceptionController extends AbstractController {
             ];
         }
 
-        $createDL = $settingRepository->findOneBy(['label' => Setting::CREATE_DL_AFTER_RECEPTION]);
+        $precheckedDelivery = $settingRepository->getOneParamByLabel(Setting::CREATE_DL_AFTER_RECEPTION);
         $needsCurrentUser = $settingRepository->getOneParamByLabel(Setting::REQUESTER_IN_DELIVERY);
         $restrictedLocations = $settingRepository->getOneParamByLabel(Setting::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST);
 
@@ -849,13 +849,14 @@ class ReceptionController extends AbstractController {
             Setting::DIRECT_DELIVERY => 'Livraison seule',
             default => 'Livraison',
         };
+
         return $this->render("reception/show.html.twig", [
             'reception' => $reception,
             'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
             'disputeStatuses' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, 'displayOrder'),
             'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
             'typeChampsLibres' => $typeChampLibreDL,
-            'createDL' => $createDL ? $createDL->getValue() : false,
+            'precheckedDelivery' => $precheckedDelivery,
             'defaultDeliveryLocations' => $settingsService->getDefaultDeliveryLocationsByTypeId($entityManager),
             'deliverySwitchLabel' => $deliverySwitchLabel,
             'defaultDisputeStatusId' => $defaultDisputeStatus[0] ?? null,

@@ -1,7 +1,7 @@
 {% import 'form.html.twig' as form %}
 
 <div class="col-2">
-    <div class="d-flex flex-column justify-content-center dark-background" style="background: #3353D7; height: 100%; padding: 10px; border-radius: 5px;">
+    <div class="d-flex flex-column justify-content-center dark-background quantity-to-receive">
         {{ form.input('quantityToReceive', 'Article(s)', true, receptionReferenceArticle.quantiteAR, {
             type: 'number',
             min: 1
@@ -9,7 +9,7 @@
     </div>
 </div>
 <div class="col-10">
-    <div class="" style="background: #F2F3F7; border-radius: 5px; height: 100%;">
+    <div class="values">
         <div class="d-flex">
             <div class="col-2 form-group mt-2">
                 {{ form.number('quantity', 'Quantité', true, 1, {

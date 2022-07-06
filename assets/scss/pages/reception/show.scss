@@ -1,0 +1,42 @@
+@import "../../variables";
+
+.packing-container {
+    .quantity-to-receive {
+        background: $primary;
+        height: 100%;
+        padding: 10px;
+        border-radius: 5px;
+    }
+
+    .values {
+        background: #F2F3F7;
+        border-radius: 5px;
+        height: 100%;
+    }
+}
+
+.article-line {
+    .quantity-to-receive {
+        background: $primary;
+        height: 100%;
+        padding: 10px;
+        border-radius: 5px;
+    }
+
+    .details {
+        border-radius: 5px;
+        height: 100%;
+    }
+
+    .values {
+        background: #F2F3F7;
+        border-radius: 5px;
+        height: 100%;
+    }
+}
+
+.transfer-form, .demande-form {
+    background-color: #F2F3F7;
+    padding: 10px;
+    border-radius: 4px;
+}

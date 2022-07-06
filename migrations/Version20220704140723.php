@@ -30,14 +30,15 @@ final class Version20220704140723 extends AbstractMigration
 
         if($_SERVER["APP_CLIENT"] !== SpecificService::CLIENT_ARCELOR) {
             $createPreparationAfterDeliverySetting = $this->connection
-                ->executeQuery("SELECT * FROM setting WHERE label = '$createPreparationAfterDelivery' AND value = 0")
+                ->executeQuery("SELECT * FROM setting WHERE label = '$createPreparationAfterDelivery' AND value = 1")
                 ->fetchFirstColumn();
 
-            if(!empty($createPreparationAfterDeliverySetting)) {
+            if(empty($createPreparationAfterDeliverySetting)) {
                 $this->addSql("UPDATE setting SET value = 1 WHERE label = '$createDeliveryOnly'");
             }
         } else {
             $this->addSql("UPDATE setting SET value = 0 WHERE label = '$createPreparationAfterDelivery'");
+            $this->addSql("UPDATE setting SET value = 1 WHERE label = '$directDelivery'");
         }
     }
 

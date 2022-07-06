@@ -1,9 +1,26 @@
+import '@styles/pages/reception/show.scss';
+import AJAX, {GET} from "@app/ajax";
+import Select2 from "@app/select2";
+
 let tableArticle;
 let tableLitigesReception;
 let modalNewLigneReception = "#modalNewLigneReception";
 let $modalNewLigneReception = $(modalNewLigneReception);
 let modalArticleAlreadyInit = false;
 let tableArticleLitige;
+
+window.initNewArticleEditor = initNewArticleEditor;
+window.openModalLigneReception = openModalLigneReception;
+window.finishReception = finishReception;
+window.onRequestTypeChange = onRequestTypeChange;
+window.demandeurChanged = demandeurChanged;
+window.addArticle = addArticle;
+window.articleChanged = articleChanged;
+window.openModalArticlesFromLigneArticle = openModalArticlesFromLigneArticle;
+window.openTableHisto = openTableHisto;
+window.getCommentAndAddHisto = getCommentAndAddHisto;
+window.editRowLitigeReception = editRowLitigeReception;
+window.initEditReception = initEditReception;
 
 $(function () {
     $('.select2').select2();
@@ -39,7 +56,7 @@ $(function () {
             if (data.length > 0 && $(this).select2(`data`).length > 0) {
                 const {reference, commande} = data[0];
                 const supplierReference = $(this).val();
-                AJAX.route(`GET`, `packing_template`, {
+                AJAX.route(GET, `packing_template`, {
                     reference,
                     orderNumber: commande,
                     supplierReference
@@ -60,13 +77,18 @@ $(function () {
         if (data) {
             const params = JSON.stringify(data.asObject());
             wrapLoadingOnActionButton($(this), () => (
-                AJAX.route(`GET`, `add_articles`, {params})
+                AJAX.route(GET, `add_articles`, {params})
                     .json()
                     .then(({template, values}) => {
                         const $articlesContainer = $(`.articles-container`);
                         const $modal = $articlesContainer.closest(`.modal`);
                         $articlesContainer.append(template);
                         $modal.find(`.wii-section-title, .create-request-container, .modal-footer`).removeClass(`d-none`);
+
+                        if(Number($modal.find(`[name=precheckedDelivery]`).val())) {
+                            $(`.create-request-container`).find(`input[value=delivery]`).trigger(`change`);
+                        }
+
                         const packingArticlesValue = $modal.find(`input[name=packingArticles]`).val();
                         const quantityToReceive = $modal.find(`input[name=quantityToReceive]`).val();
 
@@ -423,9 +445,10 @@ function initModalCondit(tableFromArticle) {
 function initNewArticleEditor(modal) {
     const $modal = $(modal);
     let $select2refs = $modal.find('[name="referenceArticle"]');
+
+    Select2.destroy($select2refs);
     Select2Old.articleReference($select2refs);
 
-    clearAddRefModal();
     clearModal(modal);
 
     const $commandField = $(modal).find('[name="commande"]');
@@ -453,44 +476,37 @@ function openModalArticlesFromLigneArticle(ligneArticleId) {
 }
 
 function articleChanged($select) {
-    const $modal = $select.parents('.modal');
-    const selectedReferences = $select.select2('data');
-    const $addArticleAndRedirectSubmit = $('#addArticleLigneSubmitAndRedirect');
-    const $addArticleLigneSubmit = $('#addArticleLigneSubmit');
-    const classDNone = 'd-none';
-    const classDFlex = 'd-flex';
+    const $modal = $select.closest(`.modal`);
+    const selectedReference = $select.select2(`data`);
+    const $addArticleAndRedirectSubmit = $(`#addArticleLigneSubmitAndRedirect`);
+    const $addArticleLigneSubmit = $(`#addArticleLigneSubmit`);
 
-    if (selectedReferences.length > 0) {
-        const selectedReference = selectedReferences[0];
-        const typeQuantity = selectedReference.typeQuantity;
+    if (selectedReference.length > 0) {
+        const {typeQuantity, urgent, emergencyComment} = selectedReference[0];
 
-        $addArticleLigneSubmit.prop('disabled', false);
-        if (typeQuantity === 'article') {
-            $addArticleAndRedirectSubmit.removeClass(classDNone);
+        $addArticleLigneSubmit.prop(`disabled`, false);
+        $addArticleAndRedirectSubmit.toggleClass(`d-none`, typeQuantity !== `article`)
+
+        const $emergencyContainer = $(`.emergency`);
+        const $emergencyCommentContainer =  $(`.emergency-comment`);
+        if (urgent) {
+            $emergencyContainer.removeClass(`d-none`);
+            $emergencyCommentContainer.text(emergencyComment);
         } else {
-            $addArticleAndRedirectSubmit.addClass(classDNone);
+            $emergencyContainer.addClass(`d-none`);
+            $emergencyCommentContainer.text(``);
         }
-
-        const $emergencyContainer = $('.emergency');
-        const $emergencyCommentContainer =  $('.emergency-comment');
-        if (selectedReference.urgent) {
-            $emergencyContainer.removeClass(classDNone);
-            $emergencyCommentContainer.text(selectedReference.emergencyComment);
-        } else {
-            $emergencyContainer.addClass(classDNone);
-            $emergencyCommentContainer.text('');
-        }
-        $modal.find('.body-add-ref')
-            .removeClass(classDNone)
-            .addClass(classDFlex);
-        $('#innerNewRef').html('');
+        $modal.find(`.body-add-ref`)
+            .removeClass(`d-none`)
+            .addClass(`d-flex`);
+        $('#innerNewRef').html(``);
     }
     else {
-        $addArticleAndRedirectSubmit.addClass(classDNone);
-        $addArticleLigneSubmit.prop('disabled', true);
-        $modal.find('.body-add-ref')
-            .addClass(classDNone)
-            .removeClass(classDFlex);
+        $addArticleAndRedirectSubmit.addClass(`d-none`);
+        $addArticleLigneSubmit.prop(`disabled`, true);
+        $modal.find(`.body-add-ref`)
+            .addClass(`d-none`)
+            .removeClass(`d-flex`);
     }
 }
 
@@ -652,7 +668,7 @@ function initNewLigneReception($button) {
         };
 
         wrapLoadingOnActionButton($submitNewReceptionButton, () => (
-            AJAX.route(`GET`, `can_be_packed`, params)
+            AJAX.route(GET, `can_be_packed`, params)
                 .json()
                 .then(({success, reference, orderNumber, expectedQuantity}) => {
                     if(success) {
@@ -718,21 +734,21 @@ function createHandlerAddLigneArticleResponseAndRedirect($modal) {
                     commande
                 })
             })
-            .then(({results}) => {
-                if (results && results.length > 0) {
-                    const [selected] = results;
-                    if (selected) {
-                        const $pickingSelect = $('#modalNewLigneReception').find('#referenceConditionnement');
-                        let newOption = new Option(selected.text, selected.id, true, true);
-                        $pickingSelect
-                            .append(newOption)
-                            .val(selected.id);
-                        const [selectedPicking] = $pickingSelect.select2('data');
-                        Object.assign(selectedPicking, selected);
-                        $pickingSelect.trigger(`change`);
+                .then(({results}) => {
+                    if (results && results.length > 0) {
+                        const [selected] = results;
+                        if (selected) {
+                            const $pickingSelect = $('#modalNewLigneReception').find('#referenceConditionnement');
+                            let newOption = new Option(selected.text, selected.id, true, true);
+                            $pickingSelect
+                                .append(newOption)
+                                .val(selected.id);
+                            const [selectedPicking] = $pickingSelect.select2('data');
+                            Object.assign(selectedPicking, selected);
+                            $pickingSelect.trigger(`change`);
+                        }
                     }
-                }
-            });
+                });
         }
     }
 }
@@ -804,11 +820,8 @@ function initConditionnementArticleFournisseurDefault() {
 function resetDefaultArticleFournisseur(show = false) {
     const $selectArticleFournisseur = $('#modalNewLigneReception select[name="articleFournisseurDefault"]');
     const $selectArticleFournisseurFormGroup = $selectArticleFournisseur.parents('.form-group');
-    if ($selectArticleFournisseur.hasClass("select2-hidden-accessible")) {
-        $selectArticleFournisseur.select2('destroy');
-    }
 
-    $selectArticleFournisseur.val(null).trigger(SELECT2_TRIGGER_CHANGE);
+    $selectArticleFournisseur.trigger(`change`);
 
     if (show) {
         $selectArticleFournisseurFormGroup.removeClass('d-none');
@@ -828,7 +841,7 @@ function initRequiredChampsFixes(button) {
 
 function clearPackingContent($element, hideSupplierReferenceSelect = true, hidePackingContainer = true) {
     const $modal = $element.is(`.modal`) ? $element : $element.closest(`.modal`);
-    $modal.find(`.articles-container`).empty();
+    $modal.find(`.articles-container, .error-msg`).empty();
     $modal.find(`.wii-section-title, .create-request-container, .modal-footer, .demande-form, .transfer-form`).addClass(`d-none`);
     if(hideSupplierReferenceSelect) {
         $modal.find(`select[name=articleFournisseurDefault]`).closest(`.form-group`).addClass(`d-none`);

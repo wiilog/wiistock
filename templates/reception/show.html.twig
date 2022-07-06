@@ -115,8 +115,9 @@
     {% include 'reception/modalNewLitige.html.twig' %}
     {% include 'reception/modalEditLitige.html.twig' %}
     {% include 'reception/modalNewLigneReception.html.twig' with {
-        createDL: createDL,
-        restrictedLocations: restrictedLocations
+        precheckedDelivery,
+        deliverySwitchLabel,
+        restrictedLocations
     } %}
     {% include 'reception/modalDeleteLitige.html.twig' %}
     {% include 'reception/modalFinishReception.html.twig' %}
@@ -126,9 +127,9 @@
 
 {% block javascripts %}
     {{ parent() }}
-
     <script src="{{ asset('js/pages/form-litiges.js') }}?v={{ web_version }}"></script>
     <script src="{{ asset('js/pages/delivery/request/common.js') }}?v={{ web_version }}"></script>
     <script src="{{ asset('js/pages/form-reference-article.js') }}?v={{ web_version }}"></script>
-    <script src="{{ asset('js/pages/reception-show.js') }}?v={{ web_version }}"></script>
+    {{ encore_entry_script_tags('reception-show') }}
+    {{ encore_entry_link_tags('reception-show') }}
 {% endblock %}
