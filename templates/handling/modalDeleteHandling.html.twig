@@ -2,8 +2,8 @@
     aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
-            {% include('utils/modal/header.html.twig') with {
-                title: 'services.Supprimer la demande de service' | trans
+            {% include 'utils/modal/header.html.twig' with {
+                title: '<span title="Supprimer la demande de service">' ~ ('services.Supprimer la demande de service' | trans) ~ '</span>'
             } %}
 
             <div class="modal-body">

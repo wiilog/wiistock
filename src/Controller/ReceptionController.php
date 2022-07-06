@@ -67,6 +67,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Throwable;
+use WiiCommon\Helper\Stream;
 
 /**
  * @Route("/reception")
@@ -833,19 +834,31 @@ class ReceptionController extends AbstractController {
             ];
         }
 
-        $createDL = $settingRepository->findOneBy(['label' => Setting::CREATE_DL_AFTER_RECEPTION]);
+        $precheckedDelivery = $settingRepository->getOneParamByLabel(Setting::CREATE_DL_AFTER_RECEPTION);
         $needsCurrentUser = $settingRepository->getOneParamByLabel(Setting::REQUESTER_IN_DELIVERY);
         $restrictedLocations = $settingRepository->getOneParamByLabel(Setting::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST);
 
         $defaultDisputeStatus = $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::LITIGE_RECEPT);
+        $deliveryRequestBehaviorSettingLabel = $settingRepository->findOneBy([
+            'label' => [Setting::DIRECT_DELIVERY, Setting::CREATE_PREPA_AFTER_DL, Setting::CREATE_DELIVERY_ONLY],
+            'value' => 1
+        ])?->getLabel();
+
+        $deliverySwitchLabel = match ($deliveryRequestBehaviorSettingLabel) {
+            Setting::CREATE_DELIVERY_ONLY => 'Demande de livraison seule',
+            Setting::DIRECT_DELIVERY => 'Livraison seule',
+            default => 'Livraison',
+        };
+
         return $this->render("reception/show.html.twig", [
             'reception' => $reception,
             'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
             'disputeStatuses' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, 'displayOrder'),
             'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
             'typeChampsLibres' => $typeChampLibreDL,
-            'createDL' => $createDL ? $createDL->getValue() : false,
+            'precheckedDelivery' => $precheckedDelivery,
             'defaultDeliveryLocations' => $settingsService->getDefaultDeliveryLocationsByTypeId($entityManager),
+            'deliverySwitchLabel' => $deliverySwitchLabel,
             'defaultDisputeStatusId' => $defaultDisputeStatus[0] ?? null,
             'needsCurrentUser' => $needsCurrentUser,
             'detailsHeader' => $receptionService->createHeaderDetailsConfig($reception),
@@ -913,49 +926,6 @@ class ReceptionController extends AbstractController {
         );
 
         return new JsonResponse(['results' => $ref]);
-    }
-
-    /**
-     * @Route("/ligne-article-conditionnement", name="get_ligne_article_conditionnement", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
-     */
-    public function getLigneArticleCondtionnement(Request $request,
-                                                  EntityManagerInterface $entityManager) {
-
-        $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
-        $champLibreRepository = $entityManager->getRepository(FreeField::class);
-        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-
-        $reference = $request->query->get('reference');
-        $commande = $request->query->get('commande');
-        $quantity = $request->query->get('quantity');
-        $defaultArticleFournisseurReference = $request->query->get('defaultArticleFournisseurReference');
-
-        // TODO verif null
-
-        /** @var ReferenceArticle $refArticle */
-        $refArticle = $referenceArticleRepository->findOneBy(['reference' => $reference]);
-
-        $typeArticle = $refArticle->getType();
-
-        $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
-        $response = new Response();
-        $response->setContent($this->renderView(
-            'reception/conditionnementArticleTemplate.html.twig',
-            [
-                'reception' => [
-                    'refArticleId' => $refArticle->getId(),
-                    'reference' => $reference,
-                    'referenceLabel' => $refArticle->getLibelle(),
-                    'commande' => $commande,
-                    'quantity' => $quantity,
-                    'defaultArticleFournisseurReference' => $defaultArticleFournisseurReference,
-                ],
-                'typeArticle' => $typeArticle ? $typeArticle->getLabel() : '',
-                'champsLibres' => $champsLibres,
-                'references' => $articleFournisseurRepository->getIdAndLibelleByRef($refArticle)
-            ]
-        ));
-        return $response;
     }
 
     /**
@@ -1595,7 +1565,7 @@ class ReceptionController extends AbstractController {
     /**
      * @Route("/avec-conditionnement/{reception}", name="reception_new_with_packing", options={"expose"=true}, condition="request.isXmlHttpRequest()")
      */
-    public function newWithPacking(Request                 $transferRequest,
+    public function newWithPacking(Request                 $request,
                                    MailerService           $mailerService,
                                    TransferRequestService  $transferRequestService,
                                    TransferOrderService    $transferOrderService,
@@ -1614,8 +1584,8 @@ class ReceptionController extends AbstractController {
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
 
-        if($data = json_decode($transferRequest->getContent(), true)) {
-            $articles = $data['conditionnement'];
+        if($data = json_decode($request->getContent(), true)) {
+            $articles = json_decode($data['packingArticles'], true);
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
@@ -1657,129 +1627,124 @@ class ReceptionController extends AbstractController {
                 $receptionReferenceArticle->setQuantite($totalQuantity);
             }
 
-            // optionnel : crée la demande de livraison
-            $needCreateLivraison = (bool)$data['create-demande'];
-            $needCreateTransfer = (bool)$data['create-demande-transfert'];
-            if ($needCreateLivraison && $needCreateTransfer) {
-                return $this->json([
-                    'success' => false,
-                    'msg' => 'Vous ne pouvez pas créer une demande de livraison et une demande de transfert en même temps.'
-                ]);
-            }
-            $transferRequest = null;
-            $demande = null;
-            $createDirectDelivery = (bool)$data['direct-delivery'];
+            if(isset($data['requestType'])) {
+                // optionnel : crée la demande de livraison
+                $needCreateLivraison = $data['requestType'] === 'delivery';
+                $needCreateTransfer = $data['requestType'] === 'transfer';
 
-            if($needCreateLivraison) {
-                // optionnel : crée l'ordre de prépa
-                $paramCreatePrepa = $paramGlobalRepository->findOneBy(['label' => Setting::CREATE_PREPA_AFTER_DL]);
-                $needCreatePrepa = $paramCreatePrepa ? $paramCreatePrepa->getValue() : false;
-                $data['needPrepa'] = $needCreatePrepa && !$createDirectDelivery;
+                $transferRequest = null;
+                $demande = null;
+                $createDirectDelivery = $entityManager->getRepository(Setting::class)->getOneParamByLabel(Setting::DIRECT_DELIVERY);
 
-                $demande = $demandeLivraisonService->newDemande($data, $entityManager, $champLibreService);
-                if ($demande instanceof Demande) {
-                    $entityManager->persist($demande);
+                if ($needCreateLivraison) {
+                    // optionnel : crée l'ordre de prépa
+                    $paramCreatePrepa = $paramGlobalRepository->findOneBy(['label' => Setting::CREATE_PREPA_AFTER_DL]);
+                    $needCreatePrepa = $paramCreatePrepa && $paramCreatePrepa->getValue();
+                    $data['needPrepa'] = $needCreatePrepa && !$createDirectDelivery;
 
-                    if ($createDirectDelivery) {
-                        $validateResponse = $demandeLivraisonService->validateDLAfterCheck($entityManager, $demande, false, true);
-                        if ($validateResponse['success']) {
-                            $preparation = $demande->getPreparations()->first();
+                    $demande = $demandeLivraisonService->newDemande($data, $entityManager, $champLibreService);
+                    if ($demande instanceof Demande) {
+                        $entityManager->persist($demande);
 
-                            /** @var Utilisateur $currentUser */
-                            $currentUser = $this->getUser();
-                            $articlesNotPicked = $preparationsManagerService->createMouvementsPrepaAndSplit($preparation, $currentUser, $entityManager);
+                        if ($createDirectDelivery) {
+                            $validateResponse = $demandeLivraisonService->validateDLAfterCheck($entityManager, $demande, false, true);
+                            if ($validateResponse['success']) {
+                                $preparation = $demande->getPreparations()->first();
 
-                            $dateEnd = new DateTime('now');
-                            $delivery = $livraisonsManagerService->createLivraison($dateEnd, $preparation, $entityManager);
+                                /** @var Utilisateur $currentUser */
+                                $currentUser = $this->getUser();
+                                $articlesNotPicked = $preparationsManagerService->createMouvementsPrepaAndSplit($preparation, $currentUser, $entityManager);
 
-                            $locationEndPreparation = $demande->getDestination();
+                                $dateEnd = new DateTime('now');
+                                $delivery = $livraisonsManagerService->createLivraison($dateEnd, $preparation, $entityManager);
 
-                            $preparationsManagerService->treatPreparation($preparation, $this->getUser(), $locationEndPreparation, $articlesNotPicked);
-                            $preparationsManagerService->closePreparationMouvement($preparation, $dateEnd, $locationEndPreparation);
+                                $locationEndPreparation = $demande->getDestination();
 
-                            $mouvementRepository = $entityManager->getRepository(MouvementStock::class);
-                            $mouvements = $mouvementRepository->findByPreparation($preparation);
+                                $preparationsManagerService->treatPreparation($preparation, $this->getUser(), $locationEndPreparation, $articlesNotPicked);
+                                $preparationsManagerService->closePreparationMouvement($preparation, $dateEnd, $locationEndPreparation);
 
-                            try {
-                                $entityManager->flush();
-                                if($delivery->getDemande()->getType()->isNotificationsEnabled()) {
-                                    $this->notificationService->toTreat($delivery);
+                                $mouvementRepository = $entityManager->getRepository(MouvementStock::class);
+                                $mouvements = $mouvementRepository->findByPreparation($preparation);
+
+                                try {
+                                    $entityManager->flush();
+                                    if ($delivery->getDemande()->getType()->isNotificationsEnabled()) {
+                                        $this->notificationService->toTreat($delivery);
+                                    }
+                                } /** @noinspection PhpRedundantCatchClauseInspection */
+                                catch (UniqueConstraintViolationException $e) {
+                                    return new JsonResponse([
+                                        'success' => false,
+                                        'msg' => 'Une autre demande de livraison est en cours de création, veuillez réessayer.'
+                                    ]);
                                 }
-                            }
-                            /** @noinspection PhpRedundantCatchClauseInspection */
-                            catch (UniqueConstraintViolationException $e) {
-                                return new JsonResponse([
-                                    'success' => false,
-                                    'msg' => 'Une autre demande de livraison est en cours de création, veuillez réessayer.'
-                                ]);
-                            }
-                            foreach ($mouvements as $mouvement) {
-                                $preparationsManagerService->createMouvementLivraison(
-                                    $mouvement->getQuantity(),
-                                    $currentUser,
-                                    $delivery,
-                                    !empty($mouvement->getRefArticle()),
-                                    $mouvement->getRefArticle() ?? $mouvement->getArticle(),
-                                    $preparation,
-                                    false,
-                                    $locationEndPreparation
-                                );
+                                foreach ($mouvements as $mouvement) {
+                                    $preparationsManagerService->createMouvementLivraison(
+                                        $mouvement->getQuantity(),
+                                        $currentUser,
+                                        $delivery,
+                                        !empty($mouvement->getRefArticle()),
+                                        $mouvement->getRefArticle() ?? $mouvement->getArticle(),
+                                        $preparation,
+                                        false,
+                                        $locationEndPreparation
+                                    );
+                                }
                             }
                         }
                     }
-                }
 
-                if (!isset($demande)
-                    || !($demande instanceof Demande)) {
-                    if (isset($demande)
-                        && is_array($demande)) {
-                        $demande = $demande['demande'];
+                    if (!isset($demande)
+                        || !($demande instanceof Demande)) {
+                        if (isset($demande)
+                            && is_array($demande)) {
+                            $demande = $demande['demande'];
+                        }
+                        else {
+                            return new JsonResponse([
+                                'success' => false,
+                                'msg' => 'Erreur lors de la création de la demande de livraison.'
+                            ]);
+                        }
                     }
-                    else {
+                }
+                else if ($needCreateTransfer) {
+                    $toTreatRequest = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_REQUEST, TransferRequest::TO_TREAT);
+                    $toTreatOrder = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_ORDER, TransferOrder::TO_TREAT);
+                    $origin = $emplacementRepository->find($data['origin']);
+                    $destination = $emplacementRepository->find($data['storage']);
+
+                    /** @var Utilisateur $requester */
+                    $requester = $this->getUser();
+                    $transferRequest = $transferRequestService->createTransferRequest($entityManager, $toTreatRequest, $origin, $destination, $requester);
+
+                    $transferRequest
+                        ->setReception($reception)
+                        ->setValidationDate($now);
+
+                    $order = $transferOrderService->createTransferOrder($entityManager, $toTreatOrder, $transferRequest);;
+
+                    $entityManager->persist($transferRequest);
+                    $entityManager->persist($order);
+
+                    try {
+                        $entityManager->flush();
+                        if ($transferRequest->getType()->isNotificationsEnabled()) {
+                            $this->notificationService->toTreat($order);
+                        }
+                    } /** @noinspection PhpRedundantCatchClauseInspection */
+                    catch (UniqueConstraintViolationException $e) {
                         return new JsonResponse([
                             'success' => false,
-                            'msg' => 'Erreur lors de la création de la demande de livraison.'
+                            'msg' => 'Une autre demande de transfert est en cours de création, veuillez réessayer.'
                         ]);
                     }
-                }
-            }
-            else if ($needCreateTransfer) {
-                $toTreatRequest = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_REQUEST, TransferRequest::TO_TREAT);
-                $toTreatOrder = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_ORDER, TransferOrder::TO_TREAT);
-                $origin = $emplacementRepository->find($data['origin']);
-                $destination = $emplacementRepository->find($data['storage']);
-
-                /** @var Utilisateur $requester */
-                $requester = $this->getUser();
-                $transferRequest = $transferRequestService->createTransferRequest($entityManager, $toTreatRequest, $origin, $destination, $requester);
-
-                $transferRequest
-                    ->setReception($reception)
-                    ->setValidationDate($now);
-
-                $order = $transferOrderService->createTransferOrder($entityManager, $toTreatOrder, $transferRequest);;
-
-                $entityManager->persist($transferRequest);
-                $entityManager->persist($order);
-
-                try {
-                    $entityManager->flush();
-                    if ($transferRequest->getType()->isNotificationsEnabled()) {
-                        $this->notificationService->toTreat($order);
-                    }
-                }
-                /** @noinspection PhpRedundantCatchClauseInspection */
-                catch (UniqueConstraintViolationException $e) {
-                    return new JsonResponse([
-                        'success' => false,
-                        'msg' => 'Une autre demande de transfert est en cours de création, veuillez réessayer.'
-                    ]);
                 }
             }
 
             $receptionLocation = $reception->getLocation();
             // crée les articles et les ajoute à la demande, à la réception, crée les urgences
-            $receptionLocationId = isset($receptionLocation) ? $receptionLocation->getId() : null;
+            $receptionLocationId = $receptionLocation?->getId();
             $emergencies = [];
 
             foreach($articles as $article) {
@@ -1787,7 +1752,7 @@ class ReceptionController extends AbstractController {
                     $article['emplacement'] = $receptionLocationId;
                 }
 
-                $noCommande = isset($article['noCommande']) ? $article['noCommande'] : null;
+                $noCommande = $article['noCommande'] ?? null;
                 if ($transferRequest) {
                     $article['statut'] = Article::STATUT_EN_TRANSIT;
                 }
@@ -2007,6 +1972,110 @@ class ReceptionController extends AbstractController {
             $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs),
             $fileName
         );
+    }
+
+    #[Route("/packing-template", name: "packing_template", options: ['expose' => true], methods: "GET")]
+    public function packingTemplate(Request $request, EntityManagerInterface $manager): Response {
+        $query = $request->query;
+        $reference = $query->get('reference');
+        $orderNumber = $query->get('orderNumber');
+        $supplierReference = $query->get('supplierReference');
+
+        $freeFieldRepository = $manager->getRepository(FreeField::class);
+        $referenceArticleRepository = $manager->getRepository(ReferenceArticle::class);
+        $supplierReferenceRepository = $manager->getRepository(ArticleFournisseur::class);
+
+        $reference = $referenceArticleRepository->findOneBy(['reference' => $reference]);
+        $supplierReference = $supplierReferenceRepository->find($supplierReference);
+        $type = $reference->getType();
+        $freeFields = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
+        $receptionReferenceArticle = $reference->getReceptionReferenceArticles()
+            ->filter(fn(ReceptionReferenceArticle $receptionReferenceArticle) => $receptionReferenceArticle->getCommande() === $orderNumber)
+            ->first();
+
+        return $this->json([
+            'template' => $this->renderView('reception/show/packing_content.html.twig', [
+                'freeFields' => $freeFields,
+                'receptionReferenceArticle' => $receptionReferenceArticle,
+                'supplierReference' => $supplierReference,
+                'orderNumber' => $orderNumber
+            ])
+        ]);
+    }
+
+    #[Route("/add-articles", name: "add_articles", options: ['expose' => true], methods: "GET")]
+    public function addArticles(Request $request, EntityManagerInterface $manager): Response {
+        $data = json_decode($request->query->get('params'), true);
+        $freeFieldRepository = $manager->getRepository(FreeField::class);
+        $reference = $manager->find(ReferenceArticle::class, $data['reference']);
+        $supplierReference = isset($data['supplierReference'])
+            ? $manager->getRepository(ArticleFournisseur::class)->findOneBy(['reference' => $data['supplierReference']])
+            : '';
+
+        $expiryDate = isset($data['expiry']) ? DateTime::createFromFormat('Y-m-d', $data['expiry']) : '';
+
+        $freeFieldsValues = Stream::from($data)
+            ->filter(fn($val, $key) => is_int($key))
+            ->toArray();
+
+        $freeFields = Stream::from($freeFieldsValues)
+            ->filter(fn($freeField) => $freeField)
+            ->keymap(function(?string $value, int $key) use ($freeFieldRepository) {
+                $value = DateTime::createFromFormat('Y-m-d', $value) ?: $value;
+                $formattedValue = $value instanceof DateTime ? $value->format('d/m/Y') : $value;
+                return [$freeFieldRepository->find($key)->getLabel(), $formattedValue];
+            })
+            ->toArray();
+
+        $values = [
+            'quantity' => $data['quantity'],
+            'batch' => $data['batch'] ?? '',
+            'expiry' => $expiryDate ? $expiryDate->format('d/m/Y') : null,
+            'referenceId' => $reference->getId(),
+            'supplierReferenceId' => $supplierReference ? $supplierReference->getId() : '',
+            'orderNumber' => $data['orderNumber'],
+            'freeFields' => $freeFieldsValues
+        ];
+
+        return $this->json([
+           'template' => $this->renderView('reception/show/add_articles.html.twig', [
+               'reference' => $reference,
+               'referenceTypeColor' => $reference->getType()->getColor(),
+               'quantityToReceive' => $data['quantityToReceive'],
+               'supplierReferenceId' => $supplierReference ? $supplierReference->getId() : '',
+               'supplierReferenceLabel' => $supplierReference ? $supplierReference->getReference() : '',
+               'batch' => $data['batch'] ?? '',
+               'expiry' => $expiryDate ? $expiryDate->format('d/m/Y') : null,
+               'quantity' => $data['quantity'],
+               'referenceId' => $reference->getId(),
+               'freeFields' => $freeFields
+           ]),
+           'values' => $values
+        ]);
+    }
+
+    #[Route("/can-be-packed", name: "can_be_packed", options: ['expose' => true], methods: "GET")]
+    public function canBePacked(Request $request, EntityManagerInterface $manager): Response {
+        $data = $request->query->all();
+        $orderNumber = $data['orderNumber'];
+
+        $reception = $manager->find(Reception::class, $data['reception']);
+        $reference = $manager->getRepository(ReferenceArticle::class)->findOneBy([
+            'reference' => $data['reference']
+        ]);
+        $receptionLine = $manager->getRepository(ReceptionReferenceArticle::class)->findOneBy([
+            'reception' => $reception,
+            'commande' => $orderNumber,
+            'referenceArticle' => $reference
+        ]);
+
+        $success = $data['cumulatedQuantities'] <= ($receptionLine->getQuantiteAR() - $receptionLine->getQuantite());
+        return $this->json([
+            'success' => $success,
+            'reference' => $reference->getReference(),
+            'orderNumber' => $orderNumber,
+            'expectedQuantity' => $receptionLine->getQuantiteAR()
+        ]);
     }
 
 }

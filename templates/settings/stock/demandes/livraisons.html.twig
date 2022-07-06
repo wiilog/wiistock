@@ -1,17 +1,7 @@
 {% import 'form.html.twig' as form %}
 
 <div class="wii-section-title">Création livraison</div>
-
 <div class="row wii-section">
-    <div class="col-md-6 col-12 my-1">
-        {{ form.checkbox(setting('CREATE_DL_AFTER_RECEPTION'), 'Créer une demande de livraison après réception', false, setting_value('CREATE_DL_AFTER_RECEPTION')) }}
-    </div>
-    <div class="col-md-6 col-12 my-1">
-        {{ form.checkbox(setting('CREATE_PREPA_AFTER_DL'), 'Créer une préparation après demande de livraison', false, setting_value('CREATE_PREPA_AFTER_DL')) }}
-    </div>
-    <div class="col-md-6 col-12 my-1">
-        {{ form.checkbox(setting('REQUESTER_IN_DELIVERY'), "Le demandeur est l'utilisateur de la session en cours", false, setting_value('REQUESTER_IN_DELIVERY')) }}
-    </div>
     <div class="col-md-6 col-12 my-1">
         {{ form.checkbox(setting('MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST'), 'Gérer le champ "Destination" en liste déroulante', false, setting_value('MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST')) }}
     </div>
@@ -22,6 +12,31 @@
             false,
             setting_value('MANAGE_PREPARATIONS_WITH_PLANNING')
         ) }}
+    </div>
+</div>
+
+<div class="wii-section-title">Création livraison après réception</div>
+<div class="row wii-section">
+    <div class="col-md-6 col-12 my-1">
+        {{ form.checkbox(setting('CREATE_DL_AFTER_RECEPTION'), '"Demande de livraison" coché par défaut sur réception', false, setting_value('CREATE_DL_AFTER_RECEPTION')) }}
+    </div>
+    <div class="col-md-6 col-12 my-1">
+        {{ form.checkbox(setting('REQUESTER_IN_DELIVERY'), "Le demandeur est l'utilisateur de la session en cours", false, setting_value('REQUESTER_IN_DELIVERY')) }}
+    </div>
+
+    <div class="col-md-6 col-12 mt-2 mb-1">
+        <span class="wii-field-name">Comportement de la demande de livraison :</span>
+        {{ form.radio('deliveryRequestBehavior', null, true, [
+            {label: 'Création seulement de la demande de livraison en "A traiter"', value: setting('CREATE_DELIVERY_ONLY'), tooltip: {
+                text: "Pas de création d'ordre de préparation"
+            }, checked: deliveryRequestBehavior == setting('CREATE_DELIVERY_ONLY')},
+            {label: 'Création de la demande de livraison avec sa préparation', value: setting('CREATE_PREPA_AFTER_DL'), tooltip: {
+                text: 'Demande de livraison en "A traiter" et ordre de préparation en "A traiter"'
+            }, checked: deliveryRequestBehavior == setting('CREATE_PREPA_AFTER_DL')},
+            {label: "Livraison directe : passage direct à l'ordre de livraison", value: setting('DIRECT_DELIVERY'), tooltip: {
+                text: 'Demande de livraison en "A traiter", ordre de préparation en "Préparé" et ordre de livraison en "A traiter'
+            }, checked: deliveryRequestBehavior == setting('DIRECT_DELIVERY')},
+        ]) }}
     </div>
 </div>
 

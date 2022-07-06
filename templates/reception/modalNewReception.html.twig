@@ -3,7 +3,7 @@
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             {% include('utils/modal/header.html.twig') with {
-                title: 'réception.nouvelle réception' | trans
+                title: '<span title="nouvelle réception">' ~ ('réception.nouvelle réception' | trans) ~ '</span>'
             } %}
 
             <div class="modal-body modal-input container-fluid">

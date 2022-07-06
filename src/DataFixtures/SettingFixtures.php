@@ -33,18 +33,23 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
                 SpecificService::CLIENT_COLLINS_VERNON => true
             ],
             Setting::CREATE_PREPA_AFTER_DL => [
-                'default' => false,
-                SpecificService::CLIENT_COLLINS_SOA => true,
-                SpecificService::CLIENT_COLLINS_VERNON => true
+                'default' => true,
             ],
-            Setting::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST =>[
+            Setting::CREATE_DELIVERY_ONLY => [
+                'default' => false,
+            ],
+            Setting::DIRECT_DELIVERY => [
+                'default' => false,
+                SpecificService::CLIENT_ARCELOR => true
+            ],
+            Setting::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST => [
                 'default' => false,
                 SpecificService::CLIENT_SAFRAN_ED => true,
             ],
-            Setting::MANAGE_PREPARATIONS_WITH_PLANNING =>[
+            Setting::MANAGE_PREPARATIONS_WITH_PLANNING => [
                 'default' => false,
             ],
-            Setting::MANAGE_LOCATION_COLLECTE_DROPDOWN_LIST =>[
+            Setting::MANAGE_LOCATION_COLLECTE_DROPDOWN_LIST => [
                 'default' => false,
                 SpecificService::CLIENT_SAFRAN_ED => true,
             ],

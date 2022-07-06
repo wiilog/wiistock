@@ -1,13 +1,13 @@
 <form method="" class="modal fade" id="modalNewUrgence" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content">
-            {% include('utils/modal/header.html.twig') with {
-                title: "urgences.nouvelle urgence" | trans
+            {% include 'utils/modal/header.html.twig' with {
+                title: '<span title="nouvelle urgence">' ~ ("urgences.nouvelle urgence" | trans) ~ '</span>'
             } %}
 
             <div class="modal-body modal-input container-fluid">
                 <div class="row">
-                    <div class="col-6">
+                    <diKv class="col-6">
                         <div class="form-group">
                             <label for="dateStart" title="date de début">{{ 'urgences.date de début'|trans }}*</label>
                             <input type="datetime-local" class="form-control cursor-default data needed date first-date"
@@ -16,7 +16,7 @@
                                    placeholder="jj/mm/aaaa"
                                    id="dateStart" name="dateStart">
                         </div>
-                    </div>
+                    </diKv>
 
                     <div class="col-6">
                         <div class="form-group">

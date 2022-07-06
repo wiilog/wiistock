@@ -1,8 +1,11 @@
+{% import 'form.html.twig' as form %}
+
 {% set disabledNeeded = disabledNeeded is defined ? disabledNeeded : false %}
 {% set fieldNameClass = fieldNameClass is defined and fieldNameClass ? fieldNameClass : '' %}
+{% set containerClasses = containerClasses is defined and containerClasses ? containerClasses : 'row' %}
 
 {% if freeFields|length > 0 %}
-    <div class="row">
+    <div class="{{ containerClasses }}">
         {% for freeField in freeFields %}
             {% set needed = not disabledNeeded and attribute(freeField, requiredType) %}
             {% set entityValue = freeFieldValues[freeField.id] is defined
@@ -13,84 +16,71 @@
             {% if (actionType == 'new' and freeField.displayedCreate) or actionType == 'edit' %}
                 <div class="{{ colType is defined ? colType }} {% if showLabels ?? true %}my-2{% endif %}">
                     <div class="row form-group free-field mb-0">
-                        {% if showLabels ?? true %}
-                            <div class="col-12">
-                                <label class="wii-field-name {{ fieldNameClass }}">
-                                    {{ freeField.label }}
-                                    <span class="is-required-label {{ not needed ? 'd-none' }}">*</span>
-                                </label>
-                            </div>
-                        {% endif %}
                         <div class="col-12 d-flex">
+                            {% set label = (showLabels ?? true) ? freeField.label : '' %}
                             {% if freeField.typage == constant('App\\Entity\\FreeField::TYPE_BOOL') %}
-                                <div class="wii-switch {{ needed ? 'needed' }}" data-title="{{ freeField.label }}">
-                                    {% if freeFieldValues[freeField.id] is defined %}
-                                        {% set entityValue = freeFieldValues[freeField.id] %}
-                                    {% elseif freeField.defaultValue is defined %}
-                                        {% set entityValue = freeField.defaultValue %}
-                                    {% else %}
-                                        {% set entityValue = 0 %}
-                                    {% endif %}
-
-                                    <input type="radio"
-                                           name="{{ freeField.id }}"
-                                           value="1"
-                                           content="Oui"
-                                           class="data no-clear"
-                                           {{ entityValue == 1 ? 'data-init="checked" checked' }}>
-                                    <input type="radio"
-                                           name="{{ freeField.id }}"
-                                           value="0"
-                                           content="Non"
-                                           class="data no-clear"
-                                           {{ entityValue is not same as (null) and entityValue == 0 ? 'data-init="checked" checked' }}>
-                                </div>
-                            {% elseif  freeField.typage == constant('App\\Entity\\FreeField::TYPE_NUMBER') %}
-                                <input type="number"
-                                       class="form-control data needs-default {{ needed ? 'needed' }}"
-                                       data-init="{{ entityValue }}"
-                                       value="{{ entityValue }}"
-                                       name="{{ freeField.id }}">
-
-                            {% elseif  freeField.typage == constant('App\\Entity\\FreeField::TYPE_LIST') %}
-                                <select class="form-control data needs-default {{ needed ? 'needed' : '' }} w-100"
-                                        name="{{ freeField.id }}" data-init="{{ freeField.defaultValue }}">
-                                    <option value="">aucune selection...</option>
-                                    {% for elem in freeField.elements %}
-                                        {% set entityValue = freeFieldValues[freeField.id] is defined ? freeFieldValues[freeField.id] : '' %}
-                                        {% set selected = elem == entityValue ? 'selected' %}
-                                        <option value="{{ elem }}" {{ selected }}>{{ elem }}</option>
-                                    {% endfor %}
-                                </select>
-
+                                {% if freeFieldValues[freeField.id] is defined %}
+                                    {% set entityValue = freeFieldValues[freeField.id] %}
+                                {% elseif freeField.defaultValue is defined %}
+                                    {% set entityValue = freeField.defaultValue %}
+                                {% else %}
+                                    {% set entityValue = 0 %}
+                                {% endif %}
+                                {{ form.switch(freeField.id, label, needed, [
+                                    {label: 'Oui', value: '1'},
+                                    {label: 'Non', value: '0'}
+                                ], {
+                                    additionalAttributes: [{
+                                        name: 'data-title',
+                                        value: freeField.label
+                                    }]
+                                }) }}
+                            {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_NUMBER') %}
+                                {{ form.input(freeField.id, label, needed, entityValue, {
+                                    type: 'number',
+                                    additionalAttributes: [{
+                                        name: 'data-init',
+                                        value: entityValue
+                                    }]
+                                }) }}
+                            {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_LIST') %}
+                                {{ form.select(freeField.id, label, needed, {
+                                    items: freeField.elements,
+                                    additionalAttributes: [{
+                                        name: 'data-init',
+                                        value: freeField.defaultValue,
+                                        emptyOption: {
+                                            text: "Aucune selection...",
+                                            value: "",
+                                        }
+                                    }]
+                                }) }}
                             {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_LIST_MULTIPLE') %}
-                                <select class="form-control data list-multiple {{ needed ? 'needed' : '' }} w-100"
-                                        data-s2
-                                        data-simple
-                                        name="{{ freeField.id }}" multiple="multiple">
-                                    {% set entityValuesArray = freeFieldValues[freeField.id] is defined ? freeFieldValues[freeField.id]|split(';') : [] %}
-                                    {% for elem in freeField.elements %}
-                                        {% set selected = (elem in entityValuesArray ? 'selected' : '') %}
-                                        <option value="{{ elem }}" {{ selected }}>{{ elem }}</option>
-                                    {% endfor %}
-                                </select>
+                                {% set entityValuesArray = freeFieldValues[freeField.id] is defined ? freeFieldValues[freeField.id]|split(';') : [] %}
+                                {{ form.select(freeField.id, label, needed, {
+                                    items: freeField.elements,
+                                    multiple: true,
+                                    type: null,
+                                    additionalAttributes: [{
+                                        name: 'data-simple'
+                                    }]
+                                }) }}
                             {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_TEXT') %}
-                                <input type="text"
-                                       class="form-control needs-default data {{ needed ? 'needed' : '' }}"
-                                       value="{{ entityValue }}"
-                                       data-init="{{ entityValue }}"
-                                       name="{{ freeField.id }}">
-
+                                {{ form.input(freeField.id, label, needed, entityValue, {
+                                    additionalAttributes: [{
+                                        name: 'data-init',
+                                        value: entityValue
+                                    }]
+                                }) }}
                             {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_DATETIME') %}
-                                <input type="datetime-local"
-                                       name="{{ freeField.id }}"
-                                       class="form-control needs-default data {{ needed ? 'needed' : '' }}"
-                                       data-init="{{ entityValue }}"
-                                       value="{{ entityValue ? ((entityValue | replace({'/': '-'}) ) | date('Y-m-d\\TH:i')) : '' }}">
-                                <button class="btn btn-light" type="button" title="Vider le champ {{ freeField.label }}"
-                                        onclick="$(this).siblings('[name={{ freeField.id }}]').val('')">
-                                    <i class="fas fa-times"></i>
-                                </button>
+                                {% set value = entityValue ? ((entityValue | replace({'/': '-'}) ) | date('Y-m-d\\TH:i')) : '' %}
+                                {{ form.input(freeField.id, label, needed, value, {
+                                    type: 'datetime-local',
+                                    additionalAttributes: [{
+                                        name: 'data-init',
+                                        value: value
+                                    }]
+                                }) }}
                             {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_DATE') %}
                                 {% if entityValue is defined and entityValue matches '{^\\d{2}/\\d{2}/\\d{4}$}' %}
                                     {% set entityValue = entityValue[6:4] ~ '-' ~ entityValue[3:2] ~ '-' ~ entityValue[:2] %}
@@ -100,15 +90,13 @@
                                 {% else %}
                                     {% set entityValue = '' %}
                                 {% endif %}
-                                <input type="date"
-                                       class="form-control data needs-default {{ needed ? 'needed' : '' }}"
-                                       name="{{ freeField.id }}"
-                                       data-init="{{ entityValue }}"
-                                       value="{{ entityValue }}">
-                                <button class="btn btn-light" type="button" title="Vider le champ {{ freeField.label }}"
-                                        onclick="$(this).siblings('[name={{ freeField.id }}]').val('')">
-                                    <i class="fas fa-times"></i>
-                                </button>
+                                {{ form.input(freeField.id, label, needed, entityValue, {
+                                    type: 'date',
+                                    additionalAttributes: [{
+                                        name: 'data-init',
+                                        value: entityValue
+                                    }]
+                                }) }}
                             {% endif %}
                         </div>
                     </div>

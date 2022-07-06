@@ -3,7 +3,7 @@
     <div class="modal-dialog modal-xl modal-dialog-centered"
          role="document">
         <div class="modal-content">
-            {% include('utils/modal/header.html.twig') with {
+            {% include 'utils/modal/header.html.twig' with {
                 title: "Ajouter une ligne"
             } %}
 
@@ -14,8 +14,8 @@
                         <div class="row no-gutters align-items-end">
                             <div class="col">
                                 <label for="reception-add-ligne"
-                                       title="référence">{{ 'reference.référence'|trans }}*</label>
-                                <select class="ajax-autocomplete w-100 data form-control needed"
+                                       title="référence" class="wii-field-name">{{ 'reference.référence'|trans }}*</label>
+                                <select class="ajax-autocomplete w-100 data form-control needed wii-field-text"
                                         onchange="articleChanged($(this))"
                                         id="reception-add-ligne"
                                         name="referenceArticle">
@@ -48,22 +48,22 @@
                     </div>
 
                     <div class="form-group col-6">
-                        <label for="label">Numéro de commande d'achat*</label>
-                        <input class="form-control data needed"
+                        <label class="wii-field-name">Numéro de commande d'achat*</label>
+                        <input class="form-control data needed wii-field-text"
                                type="text"
                                name="commande"
                                id="numCommandeAchat">
                     </div>
                     <div class="form-group col-6">
-                        <label for="">Quantité à recevoir*</label>
+                        <label class="wii-field-name">Quantité à recevoir*</label>
                         <input type="number"
-                               class="form-control data needed"
+                               class="form-control data needed wii-field-text"
                                name="quantiteAR"
                                min=1
                                id="quantiteAR">
                     </div>
-                    <div class="form-group col-6 pt-4">
-                        <label>Anomalie</label>
+                    <div class="form-group col-6">
+                        <label class="wii-field-name">Anomalie</label>
                         <label class="switch">
                             <input class="checkbox"
                                    type="checkbox"
@@ -72,7 +72,7 @@
                         </label>
                     </div>
                     <div class="form-group col-12">
-                        <label>Commentaire</label>
+                        <label class="wii-field-name">Commentaire</label>
                         <div>
                             <input id='commentaire'
                                    class="form-control data"
