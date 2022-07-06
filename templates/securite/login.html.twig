@@ -50,7 +50,7 @@
                         <div class="form-group d-flex flex-column flex-md-row justify-content-between mt-3 mb-0">
                             <a class="btn btn-outline-secondary" href="{{ url('register') }}">Créer un compte</a>
                             {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CLB')) %}
-                                <a class="btn btn-outline-secondary d-none" href="{{ path('saml_login') }}">Connexion SSO</a>
+                                <a class="btn btn-outline-secondary" href="{{ path('saml_login') }}">Connexion SSO</a>
                             {% endif %}
                             <button type="submit" class="btn btn-primary">Connexion</button>
                         </div>
