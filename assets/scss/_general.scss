@@ -778,6 +778,12 @@ label.required:after {
     }
 }
 
+.dark-background {
+    &.wii-field-name, .wii-field-name {
+        color: $white !important;
+    }
+}
+
 .wii-field-text {
     color: $black !important;
     font-size: 16px;
@@ -792,7 +798,7 @@ label.required:after {
 
 .wii-label {
     color: $black;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: bold;
 }
 
@@ -840,6 +846,21 @@ label.required:after {
     width: 18px;
     height: 18px;
 }
+
+.wii-icon-trash-black {
+    display: block;
+    background-color: $black;
+    width: 18px;
+    height: 18px;
+}
+
+.wii-icon-new-article {
+    display: block;
+    background-color: $white;
+    width: 18px;
+    height: 18px;
+}
+
 .p-sticky {
     position: sticky !important;
     top: 0;

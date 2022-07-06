@@ -1229,7 +1229,7 @@ class ArrivageController extends AbstractController {
                                                    ?array $firstCustomIconConfig = null,
                                                    ?array $secondCustomIconConfig = null,
                                                    array $packIdsFilter = [],
-                                                   ?bool $businessUnitParam = false ) {
+                                                   ?bool $businessUnitParam = false ): array {
         $total = $arrivage->getPacks()->count();
         $packs = [];
 

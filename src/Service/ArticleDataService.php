@@ -294,7 +294,7 @@ class ArticleDataService
         }
 
         if (isset($data['expiry'])) {
-            $toInsert->setExpiryDate($data['expiry'] ? DateTime::createFromFormat("Y-m-d", $data['expiry']) : null);
+            $toInsert->setExpiryDate($data['expiry'] ? FormatHelper::parseDatetime($data['expiry'], ['Y-m-d', 'd/m/Y']) : null);
         }
         $entityManager->persist($toInsert);
         $this->freeFieldService->manageFreeFields($toInsert, $data, $entityManager);

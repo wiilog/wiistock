@@ -55,11 +55,14 @@
 
 {% macro switch(name, label, required, switches, options = {}) %}
     {% set inline = options.inline ?? false %}
-    <label class="d-flex flex-column align-items-start">
+    <label class="d-flex flex-column align-items-start w-fit-content">
         {{ _self.label(label, required, inline, options.labelOptions ?? {}) }}
         {{ _self.tooltip(options.tooltip ?? null, inline) }}
         <div class="{{ options.expanded ?? false ? 'wii-expanded-switch' : 'wii-switch' }} text-truncate"
              {{ (options.error ?? 'local') == 'global' ? 'data-global-error' }}
+             {% for attribute in options.additionalAttributes ?? [] %}
+                 {{ attribute.name }}="{{ attribute.value ?? '' }}"
+             {% endfor %}
              data-name="{{ name }}"
              data-title="{{ label | striptags }}{{ required ? '*' }}">
             {% for switch in switches %}
@@ -138,7 +141,7 @@
             {% set id = random(100000, 10000000) %}
 
             <div class="wii-radio mt-1">
-                <input type="radio" id="radio-{{ id }}" class="data" value="{{ item.value ?? '' }}"
+                <input type="radio" id="radio-{{ id }}" class="data mr-2" value="{{ item.value ?? '' }}"
                     {{ required ? 'required' }}
                     {{ _self.common_attributes(name, options) }}
                     {{ _self.multiple_key(options) }}
@@ -146,7 +149,7 @@
                 <label class="{{ options.labelClass ?? '' }} pointer d-inline-flex align-items-center" for="radio-{{ id }}">
                     {{ item.label }}
                 </label>
-                {{ _self.tooltip(options.tooltip ?? null, options.inline ?? false) }}
+                {{ _self.tooltip(item.tooltip ?? null) }}
             </div>
         {% endfor %}
     </div>
@@ -177,6 +180,9 @@
                 {% if options.includeParams is defined %}data-include-params="{{ options.includeParams }}"{% endif %}
                 {% if options.minLength is defined %}data-min-length="{{ options.minLength }}"{% endif %}
             {% endif %}
+            {% for attribute in options.additionalAttributes ?? [] %}
+                {{ attribute.name }}="{{ attribute.value ?? '' }}"
+            {% endfor %}
             {{ _self.common_attributes(name, options) }}
             {{ _self.multiple_key(options) }}>
             {% if options.emptyOption is defined and options.emptyOption is not empty %}
@@ -218,6 +224,9 @@
                class="form-control w-100 data {{ options.noClear is defined and options.noClear ? 'no-clear' }} {{ required ? 'needed' }}"
                value="{{ value }}"
                placeholder="{{ options.placeholder ?? '' }}"
+               {% for attribute in options.additionalAttributes ?? [] %}
+                   {{ attribute.name }}="{{ attribute.value ?? '' }}"
+               {% endfor %}
                {{ _self.common_attributes(name, options) }}
                {{ _self.multiple_key(options) }}>
     </label>

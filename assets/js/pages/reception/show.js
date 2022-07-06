@@ -1,10 +1,26 @@
-let editorNewLivraisonAlreadyDoneForDL = false;
+import '@styles/pages/reception/show.scss';
+import AJAX, {GET} from "@app/ajax";
+import Select2 from "@app/select2";
+
 let tableArticle;
 let tableLitigesReception;
 let modalNewLigneReception = "#modalNewLigneReception";
 let $modalNewLigneReception = $(modalNewLigneReception);
 let modalArticleAlreadyInit = false;
 let tableArticleLitige;
+
+window.initNewArticleEditor = initNewArticleEditor;
+window.openModalLigneReception = openModalLigneReception;
+window.finishReception = finishReception;
+window.onRequestTypeChange = onRequestTypeChange;
+window.demandeurChanged = demandeurChanged;
+window.addArticle = addArticle;
+window.articleChanged = articleChanged;
+window.openModalArticlesFromLigneArticle = openModalArticlesFromLigneArticle;
+window.openTableHisto = openTableHisto;
+window.getCommentAndAddHisto = getCommentAndAddHisto;
+window.editRowLitigeReception = editRowLitigeReception;
+window.initEditReception = initEditReception;
 
 $(function () {
     $('.select2').select2();
@@ -24,6 +40,123 @@ $(function () {
         $(this).parents('.modal').first().find('input[name=emergency]').prop('checked', isUrgent);
     });
 
+    const $modalNewLigneReception = $(`#modalNewLigneReception`);
+
+    const $refArticleCommande = $modalNewLigneReception.find(`select[name=refArticleCommande]`);
+    $refArticleCommande.on(`change`, function () {
+        initConditionnementArticleFournisseurDefault();
+        if ($(this).select2(`data`).length === 0) {
+            clearPackingContent($(this));
+        }
+    });
+
+    $modalNewLigneReception.find(`select[name=articleFournisseurDefault]`)
+        .on(`change`, function () {
+            const data = $refArticleCommande.select2(`data`);
+            if (data.length > 0 && $(this).select2(`data`).length > 0) {
+                const {reference, commande} = data[0];
+                const supplierReference = $(this).val();
+                AJAX.route(GET, `packing_template`, {
+                    reference,
+                    orderNumber: commande,
+                    supplierReference
+                })
+                    .json()
+                    .then(({template}) => {
+                        $(`.packing-container`).empty().html(template);
+                    });
+            } else {
+                clearPackingContent($(this), false);
+            }
+        });
+
+    $(document).on(`click`, `.add-articles`, function (e) {
+        e.preventDefault();
+        const data = Form.process($(`.packing-container`));
+
+        if (data) {
+            const params = JSON.stringify(data.asObject());
+            wrapLoadingOnActionButton($(this), () => (
+                AJAX.route(GET, `add_articles`, {params})
+                    .json()
+                    .then(({template, values}) => {
+                        const $articlesContainer = $(`.articles-container`);
+                        const $modal = $articlesContainer.closest(`.modal`);
+                        $articlesContainer.append(template);
+                        $modal.find(`.wii-section-title, .create-request-container, .modal-footer`).removeClass(`d-none`);
+
+                        if(Number($modal.find(`[name=precheckedDelivery]`).val())) {
+                            $(`.create-request-container`).find(`input[value=delivery]`).trigger(`change`);
+                        }
+
+                        const packingArticlesValue = $modal.find(`input[name=packingArticles]`).val();
+                        const quantityToReceive = $modal.find(`input[name=quantityToReceive]`).val();
+
+                        const currentArticles = packingArticlesValue ? JSON.parse(packingArticlesValue) : [];
+                        const {
+                            supplierReferenceId,
+                            batch,
+                            expiry,
+                            quantity,
+                            referenceId,
+                            orderNumber,
+                            freeFields
+                        } = values;
+
+                        currentArticles.push({
+                            articleFournisseur: supplierReferenceId,
+                            batch: batch,
+                            expiry: expiry,
+                            noCommande: orderNumber,
+                            quantite: quantityToReceive * quantity,
+                            refArticle: referenceId,
+                            ...freeFields
+                        });
+                        $modal.find(`input[name=packingArticles]`).val(JSON.stringify(currentArticles));
+                    })
+            ));
+        }
+    });
+
+    $(document).on(`click`, `.remove-article-line`, function () {
+        const $currentArticleLine = $(this).closest(`.article-line`);
+        const $articlesContainer = $(`.articles-container`);
+        const $modal = $articlesContainer.closest(`.modal`);
+
+        const $packingArticles = $modal.find(`input[name=packingArticles]`);
+        const packingArticlesValues = JSON.parse($packingArticles.val());
+        const articleLineIndex = $articlesContainer.find(`.article-line`).index($currentArticleLine);
+
+        packingArticlesValues.splice(articleLineIndex, 1);
+        $packingArticles.val(JSON.stringify(packingArticlesValues))
+
+        $currentArticleLine.remove();
+        if($articlesContainer.find(`.article-line`).length === 0) {
+            clearPackingContent($modal, false, false);
+        }
+
+        Flash.add(`success`, `La ligne de conditionnement a bien été supprimée.`);
+    });
+
+    $(`[name=requestType]`).on(`change`, function () {
+        const type = $(this).val();
+
+        switch (type) {
+            case 'transfer':
+                toggleForm($('.transfer-form'), $(this));
+                break;
+            case 'delivery':
+                toggleForm($('.demande-form'), $(this));
+                break;
+            default:
+                toggleForm($('.transfer-form, .demande-form'), null);
+                break;
+        }
+    });
+
+    $(`modalAddLigneArticle`).on(`hidden.bs.modal`, () => {
+        clearAddRefModal();
+    });
 });
 
 function initPageModals() {
@@ -94,10 +227,10 @@ function InitPageDataTable() {
     let pathAddArticle = Routing.generate('reception_article_api', {'id': $('input[type="hidden"]#receptionId').val()}, true);
     let pathLitigesReception = Routing.generate('litige_reception_api', {reception: $('#receptionId').val()}, true);
     let tableArticleConfig = {
-        "lengthMenu": [5, 10, 25],
+        lengthMenu: [5, 10, 25],
         ajax: {
-            "url": pathAddArticle,
-            "type": "POST",
+            url: pathAddArticle,
+            type: "POST",
             dataSrc: ({data, hasBarCodeToPrint}) => {
                 const $printButton = $('#buttonPrintMultipleBarcodes');
                 const dNoneClass = 'd-none';
@@ -116,13 +249,13 @@ function InitPageDataTable() {
         },
         order: [['Urgence', "desc"], ['Référence', "desc"]],
         columns: [
-            {"data": 'Actions', 'title': '', className: 'noVis', orderable: false},
-            {"data": 'Référence', 'title': 'Référence'},
-            {"data": 'Commande', 'title': 'Commande'},
-            {"data": 'A recevoir', 'title': 'A recevoir'},
-            {"data": 'Reçu', 'title': 'Reçu'},
-            {"data": 'Urgence', 'title': 'Urgence', visible: false},
-            {"data": 'Comment', 'title': 'Comment', visible: false},
+            {data: 'Actions', title: '', className: 'noVis', orderable: false},
+            {data: 'Référence', title: 'Référence'},
+            {data: 'Commande', title: 'Commande'},
+            {data: 'A recevoir', title: 'A recevoir'},
+            {data: 'Reçu', title: 'Reçu'},
+            {data: 'Urgence', title: 'Urgence', visible: false},
+            {data: 'Comment', title: 'Comment', visible: false},
         ],
         rowConfig: {
             needsRowClickAction: true,
@@ -139,18 +272,18 @@ function InitPageDataTable() {
         },
     };
     let tableLitigeConfig = {
-        "lengthMenu": [5, 10, 25],
+        lengthMenu: [5, 10, 25],
         ajax: {
-            "url": pathLitigesReception,
-            "type": "POST",
+            url: pathLitigesReception,
+            type: "POST",
         },
         columns: [
-            {"data": 'actions', 'name': 'Actions', 'title': '', className: 'noVis', orderable: false},
-            {"data": 'type', 'name': 'type', 'title': 'Type'},
-            {"data": 'status', 'name': 'status', 'title': 'Statut'},
-            {"data": 'lastHistoryRecord', 'name': 'lastHistoryRecord', 'title': 'Dernier historique'},
-            {"data": 'date', 'name': 'date', 'title': 'Date', visible: false},
-            {"data": 'urgence', 'name': 'urgence', 'title': 'urgence', visible: false},
+            {data: 'actions', name: 'Actions', title: '', className: 'noVis', orderable: false},
+            {data: 'type', name: 'type', title: 'Type'},
+            {data: 'status', name: 'status', title: 'Statut'},
+            {data: 'lastHistoryRecord', name: 'lastHistoryRecord', title: 'Dernier historique'},
+            {data: 'date', name: 'date', title: 'Date', visible: false},
+            {data: 'urgence', name: 'urgence', title: 'urgence', visible: false},
         ],
         order: [
             ['urgence', 'desc'],
@@ -239,13 +372,13 @@ function openTableHisto() {
     let pathHistoLitige = Routing.generate('histo_dispute_api', {dispute: $('#disputeId').val()}, true);
     let tableHistoLitigeConfig = {
         ajax: {
-            "url": pathHistoLitige,
-            "type": "POST"
+            url: pathHistoLitige,
+            type: "POST"
         },
         columns: [
-            {"data": 'user', 'name': 'Utilisateur', 'title': 'Utilisateur'},
-            {"data": 'date', 'name': 'date', 'title': 'Date'},
-            {"data": 'commentaire', 'name': 'commentaire', 'title': 'Commentaire'},
+            {data: 'user', name: 'Utilisateur', title: 'Utilisateur'},
+            {data: 'date', name: 'date', title: 'Date'},
+            {data: 'commentaire', name: 'commentaire', title: 'Commentaire'},
             {data: 'status', name: 'status', title: 'Statut'},
             {data: 'type', name: 'type', title: 'Type'},
         ],
@@ -269,9 +402,9 @@ function initDatatableConditionnement() {
         destroy: true,
         processing: true,
         ajax: {
-            "url": pathArticle,
-            "type": "POST",
-            "data": function () {
+            url: pathArticle,
+            type: "POST",
+            data: function () {
                 return {
                     'ligne': $('#ligneSelected').val()
                 }
@@ -282,17 +415,17 @@ function initDatatableConditionnement() {
         },
         order: [['barCode', 'asc']],
         columns: [
-            {"data": 'actions', 'name': 'actions', 'title': '', className: 'noVis', orderable: false},
-            {"data": 'barCode', 'name': 'barCode', 'title': 'Code article'},
-            {"data": "status", 'name': 'status', 'title': 'Statut'},
-            {"data": 'label', 'name': 'label', 'title': 'Libellé'},
-            {"data": 'articleReference', 'name': 'articleReference', 'title': 'Référence article'},
-            {"data": 'quantity', 'name': 'quantity', 'title': 'Quantité'},
+            {data: 'actions', name: 'actions', title: '', className: 'noVis', orderable: false},
+            {data: 'barCode', name: 'barCode', title: 'Code article'},
+            {data: "status", name: 'status', title: 'Statut'},
+            {data: 'label', name: 'label', title: 'Libellé'},
+            {data: 'articleReference', name: 'articleReference', title: 'Référence article'},
+            {data: 'quantity', name: 'quantity', title: 'Quantité'},
         ],
         aoColumnDefs: [{
-            'sType': 'natural',
-            'bSortable': true,
-            'aTargets': [1]
+            sType: 'natural',
+            bSortable: true,
+            aTargets: [1]
         }]
     };
     let tableFromArticle = initDataTable('tableArticleInner_id', tableFromArticleConfig);
@@ -322,9 +455,10 @@ function initModalCondit(tableFromArticle) {
 function initNewArticleEditor(modal) {
     const $modal = $(modal);
     let $select2refs = $modal.find('[name="referenceArticle"]');
+
+    Select2.destroy($select2refs);
     Select2Old.articleReference($select2refs);
 
-    clearAddRefModal();
     clearModal(modal);
 
     const $commandField = $(modal).find('[name="commande"]');
@@ -352,48 +486,41 @@ function openModalArticlesFromLigneArticle(ligneArticleId) {
 }
 
 function articleChanged($select) {
-    const $modal = $select.parents('.modal');
+    const $modal = $select.closest(`.modal`);
     if(!$select.data(`select2`)) {
         return;
     }
 
-    const selectedReferences = $select.select2('data');
-    const $addArticleAndRedirectSubmit = $('#addArticleLigneSubmitAndRedirect');
-    const $addArticleLigneSubmit = $('#addArticleLigneSubmit');
-    const classDNone = 'd-none';
-    const classDFlex = 'd-flex';
+    const selectedReference = $select.select2(`data`);
+    const $addArticleAndRedirectSubmit = $(`#addArticleLigneSubmitAndRedirect`);
+    const $addArticleLigneSubmit = $(`#addArticleLigneSubmit`);
 
-    if (selectedReferences.length > 0) {
-        const selectedReference = selectedReferences[0];
-        const typeQuantity = selectedReference.typeQuantity;
+    if (selectedReference.length > 0) {
+        const {typeQuantity, urgent, emergencyComment} = selectedReference[0];
 
-        $addArticleLigneSubmit.prop('disabled', false);
-        if (typeQuantity === 'article') {
-            $addArticleAndRedirectSubmit.removeClass(classDNone);
+        $addArticleLigneSubmit.prop(`disabled`, false);
+        $addArticleAndRedirectSubmit.toggleClass(`d-none`, typeQuantity !== `article`)
+
+        const $emergencyContainer = $(`.emergency`);
+        const $emergencyCommentContainer =  $(`.emergency-comment`);
+        if (urgent) {
+            $emergencyContainer.removeClass(`d-none`);
+            $emergencyCommentContainer.text(emergencyComment);
         } else {
-            $addArticleAndRedirectSubmit.addClass(classDNone);
+            $emergencyContainer.addClass(`d-none`);
+            $emergencyCommentContainer.text(``);
         }
-
-        const $emergencyContainer = $('.emergency');
-        const $emergencyCommentContainer =  $('.emergency-comment');
-        if (selectedReference.urgent) {
-            $emergencyContainer.removeClass(classDNone);
-            $emergencyCommentContainer.text(selectedReference.emergencyComment);
-        } else {
-            $emergencyContainer.addClass(classDNone);
-            $emergencyCommentContainer.text('');
-        }
-        $modal.find('.body-add-ref')
-            .removeClass(classDNone)
-            .addClass(classDFlex);
-        $('#innerNewRef').html('');
+        $modal.find(`.body-add-ref`)
+            .removeClass(`d-none`)
+            .addClass(`d-flex`);
+        $('#innerNewRef').html(``);
     }
     else {
-        $addArticleAndRedirectSubmit.addClass(classDNone);
-        $addArticleLigneSubmit.prop('disabled', true);
-        $modal.find('.body-add-ref')
-            .addClass(classDNone)
-            .removeClass(classDFlex);
+        $addArticleAndRedirectSubmit.addClass(`d-none`);
+        $addArticleLigneSubmit.prop(`disabled`, true);
+        $modal.find(`.body-add-ref`)
+            .addClass(`d-none`)
+            .removeClass(`d-flex`);
     }
 }
 
@@ -456,65 +583,8 @@ function clearModalLigneReception(modal) {
         $select2.select2('destroy');
     }
     $('.packing-title').addClass('d-none');
-    clearModal(modal);
-
-    toggleForm($('.transfer-form,.demande-form'), null, true);
-    resetDefaultArticleFournisseur();
-}
-
-function validatePacking($button) {
-    const $packingContainer = $button.closest('.bloc-packing');
-    const $selectRefArticle = $packingContainer.find('[name="refArticleCommande"]');
-    const $selectArticleFournisseur = $packingContainer.find('[name="articleFournisseurDefault"]');
-    const packageNumber = Number($packingContainer
-        .find('[name="packageNumber"]')
-        .val());
-    const numberInPackage = Number($packingContainer
-        .find('[name="numberInPackage"]')
-        .val());
-    const selectedOptionArray = $selectRefArticle.select2('data');
-    const [defaultArticleFournisseur] = $selectArticleFournisseur.select2('data');
-
-    if ((selectedOptionArray && selectedOptionArray.length > 0) &&
-        (packageNumber && packageNumber > 0) &&
-        (numberInPackage && numberInPackage > 0)) {
-        const selectedOption = selectedOptionArray[0];
-
-        $.get(
-            Routing.generate('get_ligne_article_conditionnement', true),
-            {
-                quantity: numberInPackage,
-                reference: selectedOption.reference,
-                commande: selectedOption.commande,
-                defaultArticleFournisseurReference: defaultArticleFournisseur && defaultArticleFournisseur.text
-            },
-            'text/html'
-        ).done(function (html) {
-            const $html = $(html);
-            const $lastContainerArticle = $packingContainer.find('.articles-conditionnement-container .conditionnement-article:last-child');
-            const lastIndex = $lastContainerArticle.length > 0 ? $lastContainerArticle.data('multiple-object-index') : -1;
-            const initIndex = lastIndex + 1;
-            for (let index = initIndex; index < (initIndex + packageNumber); index++) {
-                const $clonedHtml = $html.clone();
-
-                const $containerArticle = $('<div/>', {
-                    class: 'conditionnement-article',
-                    'data-multiple-key': 'conditionnement',
-                    'data-multiple-object-index': index,
-                    html: $clonedHtml
-                });
-
-                $packingContainer
-                    .find('.articles-conditionnement-container')
-                    .append($containerArticle);
-
-                $packingContainer.find('.packing-title').removeClass('d-none');
-            }
-
-            let $listMultiple = $packingContainer.find('.list-multiple');
-            $listMultiple.select2();
-        })
-    }
+    toggleForm($('.transfer-form, .demande-form'), null, true);
+    clearPackingContent($modal);
 }
 
 function demandeurChanged($select) {
@@ -545,7 +615,9 @@ function initNewLigneReception($button) {
     Select2Old.initValues($('select[name=demandeur]'), $( '#currentUser'));
     Select2Old.init($modalNewLigneReception.find('.select2-autocomplete-ref-articles'), '', 0, {
         route: 'get_ref_article_reception',
-        param: {reception: $('#receptionId').val()}
+        param: {
+            reception: $('#receptionId').val()
+        }
     });
 
     if ($('#locationDemandeLivraison').length > 0) {
@@ -569,26 +641,43 @@ function initNewLigneReception($button) {
 
     $submitNewReceptionButton.off('click');
     $submitNewReceptionButton.click(function () {
-        const error = getErrorModalNewLigneReception();
-        const $errorContainer = $modalNewLigneReception.find('.error-msg');
-        if (error) {
-            $errorContainer.text(error);
-        } else {
-            $errorContainer.text('');
-            wrapLoadingOnActionButton($button, () => (
-                SubmitAction($modalNewLigneReception, $submitNewReceptionButton, urlNewLigneReception, {
-                    tables: [tableArticle],
-                    success: (response) => {
-                        if (response && response.success) {
-                            const $printButton = $('#buttonPrintMultipleBarcodes');
-                            if ($printButton.length > 0) {
-                                window.location.href = $printButton.attr('href');
-                            }
-                        }
+        const receptionId = $modalNewLigneReception.find('input[type="hidden"][name="reception"]').val();
+        const {reference, commande} = $modalNewLigneReception.find(`[name=refArticleCommande]`).select2('data')[0];
+
+        const packingArticlesValues = JSON.parse($modalNewLigneReception.find(`[name=packingArticles]`).val());
+        const cumulatedQuantities = packingArticlesValues.reduce((acc, {quantite}) => (acc + Number(quantite)), 0);
+        const params = {
+            reception: receptionId,
+            reference,
+            orderNumber: commande,
+            cumulatedQuantities
+        };
+
+        wrapLoadingOnActionButton($submitNewReceptionButton, () => (
+            AJAX.route(GET, `can_be_packed`, params)
+                .json()
+                .then(({success, reference, orderNumber, expectedQuantity}) => {
+                    if(success) {
+                        wrapLoadingOnActionButton($button, () => (
+                            SubmitAction($modalNewLigneReception, $submitNewReceptionButton, urlNewLigneReception, {
+                                tables: [tableArticle],
+                                success: (response) => {
+                                    if (response && response.success) {
+                                        const $printButton = $('#buttonPrintMultipleBarcodes');
+                                        if ($printButton.length > 0) {
+                                            window.location.href = $printButton.attr('href');
+                                        }
+                                    }
+                                },
+                                keepForm: true
+                            })
+                        ))
+                    } else {
+                        const plural = expectedQuantity > 1 ? 's' : '';
+                        Flash.add(`danger`, `Vous ne pouvez pas conditionner plus de <strong>${expectedQuantity}</strong> article${plural} pour la référence <strong>${reference} - ${orderNumber}</strong>`)
                     }
                 })
-            ));
-        }
+        ));
     });
 
     const $select = $modalNewLigneReception.find('.demande-form [name="type"]');
@@ -601,81 +690,6 @@ function onRequestTypeChange($select) {
     toggleRequiredChampsLibres($select, 'create', $freeFieldContainer);
     typeChoice($select, $freeFieldContainer);
     toggleLocationSelect($select, $select.closest('.demande-form'));
-}
-
-
-function getErrorModalNewLigneReception() {
-    // on vérifie qu'au moins un conditionnement a été fait
-    const articlesConditionnement = $modalNewLigneReception
-        .find('.articles-conditionnement-container')
-        .children();
-
-    // on vérifie que les quantités sont correctes
-    const quantityError = getQuantityErrorModalNewLigneReception();
-
-    let msg = undefined;
-    if (articlesConditionnement.length === 0) {
-        msg = 'Veuillez effectuer un conditionnement.';
-    } else if (quantityError) {
-        let s = quantityError.quantity > 1 ? 's' : '';
-        msg = `Vous ne pouvez pas conditionner plus de ${quantityError.quantity} article${s} pour cette référence ${quantityError.reference} – ${quantityError.commande}.`;
-    }
-
-    return msg;
-}
-
-function getQuantityErrorModalNewLigneReception() {
-    const $conditionnementArticleArray = $modalNewLigneReception.find('.articles-conditionnement-container .conditionnement-article');
-    const quantityByConditionnementArray = [];
-
-    $conditionnementArticleArray.each(function () {
-        const $conditionnement = $(this);
-
-        const referenceConditionnement = $conditionnement.find('input[name="refRefArticle"]').val();
-        const noCommandeConditionnement = $conditionnement.find('input[name="noCommande"]').val();
-        const quantityConditionnement = Number($conditionnement.find('input[name="quantite"]').val());
-        const quantityByConditionnement = quantityByConditionnementArray.find(({reference, noCommande}) => (
-            (reference === referenceConditionnement) &&
-            (noCommande === noCommandeConditionnement)
-        ));
-        if (!quantityByConditionnement) {
-            quantityByConditionnementArray.push({
-                reference: referenceConditionnement,
-                noCommande: noCommandeConditionnement,
-                quantity: quantityConditionnement
-            })
-        } else {
-            quantityByConditionnement.quantity += quantityConditionnement;
-        }
-    });
-
-    const dataDatatable = tableArticle.rows().data();
-    let indexDatatable = 0;
-    let quantityError;
-    while ((indexDatatable < dataDatatable.length) && !quantityError) {
-        const currentLineReference = dataDatatable[indexDatatable]['Référence'];
-        const currentLineCommande = dataDatatable[indexDatatable]['Commande'];
-        const currentLineQuantity = dataDatatable[indexDatatable]['A recevoir'] - Number(dataDatatable[indexDatatable]['Reçu'] || 0);
-        const quantityByConditionnement = quantityByConditionnementArray.find(({reference, noCommande}) => (
-            (reference === currentLineReference) &&
-            (noCommande === currentLineCommande)
-        ));
-
-        if (quantityByConditionnement && quantityByConditionnement.quantity > currentLineQuantity) {
-            quantityError = {
-                reference: currentLineReference,
-                commande: currentLineCommande,
-                quantity: Number(currentLineQuantity)
-            };
-        } else {
-            indexDatatable++;
-        }
-    }
-    return quantityError;
-}
-
-function removePackingItem($button) {
-    $button.closest('.conditionnement-article').remove();
 }
 
 function createHandlerAddLigneArticleResponse($modal) {
@@ -706,21 +720,21 @@ function createHandlerAddLigneArticleResponseAndRedirect($modal) {
                     commande
                 })
             })
-            .then(({results}) => {
-                if (results && results.length > 0) {
-                    const [selected] = results;
-                    if (selected) {
-                        const $pickingSelect = $('#modalNewLigneReception').find('#referenceConditionnement');
-                        let newOption = new Option(selected.text, selected.id, true, true);
-                        $pickingSelect
-                            .append(newOption)
-                            .val(selected.id);
-                        const [selectedPicking] = $pickingSelect.select2('data');
-                        Object.assign(selectedPicking, selected);
-                        initConditionnementArticleFournisseurDefault();
+                .then(({results}) => {
+                    if (results && results.length > 0) {
+                        const [selected] = results;
+                        if (selected) {
+                            const $pickingSelect = $('#modalNewLigneReception').find('#referenceConditionnement');
+                            let newOption = new Option(selected.text, selected.id, true, true);
+                            $pickingSelect
+                                .append(newOption)
+                                .val(selected.id);
+                            const [selectedPicking] = $pickingSelect.select2('data');
+                            Object.assign(selectedPicking, selected);
+                            $pickingSelect.trigger(`change`);
+                        }
                     }
-                }
-            });
+                });
         }
     }
 }
@@ -739,7 +753,7 @@ function toggleForm($content, $input, force = false) {
             $('.demande-form').find('.data').prop('disabled', false);
         }
     } else {
-        if ($input.is(':checked')) {
+        if ($input && $input.is(':checked')) {
             $content.removeClass('d-none');
             $content.find('.data').prop('disabled', false);
 
@@ -768,6 +782,7 @@ function initConditionnementArticleFournisseurDefault() {
     const $selectArticleFournisseur = $('#modalNewLigneReception select[name="articleFournisseurDefault"]');
 
     if (referenceArticle) {
+        const {reference, defaultArticleFournisseur} = referenceArticle;
         resetDefaultArticleFournisseur(true);
         Select2Old.init(
             $selectArticleFournisseur,
@@ -776,11 +791,11 @@ function initConditionnementArticleFournisseurDefault() {
             {
                 route: 'get_article_fournisseur_autocomplete',
                 param: {
-                    referenceArticle: referenceArticle.reference
+                    referenceArticle: reference
                 }
             },
             {},
-            referenceArticle.defaultArticleFournisseur || {}
+            defaultArticleFournisseur || {}
         );
     }
     else {
@@ -791,11 +806,8 @@ function initConditionnementArticleFournisseurDefault() {
 function resetDefaultArticleFournisseur(show = false) {
     const $selectArticleFournisseur = $('#modalNewLigneReception select[name="articleFournisseurDefault"]');
     const $selectArticleFournisseurFormGroup = $selectArticleFournisseur.parents('.form-group');
-    if ($selectArticleFournisseur.hasClass("select2-hidden-accessible")) {
-        $selectArticleFournisseur.select2('destroy');
-    }
 
-    $selectArticleFournisseur.val(null).trigger('change');
+    $selectArticleFournisseur.trigger(`change`);
 
     if (show) {
         $selectArticleFournisseurFormGroup.removeClass('d-none');
@@ -811,4 +823,18 @@ function initRequiredChampsFixes(button) {
     $.post(path, JSON.stringify(params), function (data) {
         displayRequiredChampsFixesByTypeQuantiteReferenceArticle(data, button)
     }, 'json');
+}
+
+function clearPackingContent($element, hideSupplierReferenceSelect = true, hidePackingContainer = true) {
+    const $modal = $element.is(`.modal`) ? $element : $element.closest(`.modal`);
+    $modal.find(`.articles-container, .error-msg`).empty();
+    $modal.find(`.wii-section-title, .create-request-container, .modal-footer, .demande-form, .transfer-form`).addClass(`d-none`);
+    if(hideSupplierReferenceSelect) {
+        $modal.find(`select[name=articleFournisseurDefault]`).closest(`.form-group`).addClass(`d-none`);
+    }
+
+    if(hidePackingContainer) {
+        $modal.find(`.packing-container`).empty();
+    }
+    $modal.find(`input[name=packingArticles]`).val(null);
 }

@@ -1,9 +1,13 @@
+@import "variables";
+
 .ql-toolbar {
     border-radius: 4px 4px 0 0;
+    background: $white;
 }
 
 .ql-container {
     border-radius: 0 0 4px 4px;
+    background: $white;
 
     &.ql-snow {
         height: 90px;

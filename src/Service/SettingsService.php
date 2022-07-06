@@ -210,6 +210,21 @@ class SettingsService {
             ]);
         }
 
+        if ($request->request->has("deliveryRequestBehavior")) {
+            $settingRepository = $this->manager->getRepository(Setting::class);
+            $deliveryRequestBehavior = $request->request->get("deliveryRequestBehavior");
+
+            $previousDeliveryRequestBehaviorSetting = $settingRepository->findOneBy([
+                'label' => [Setting::DIRECT_DELIVERY, Setting::CREATE_PREPA_AFTER_DL, Setting::CREATE_DELIVERY_ONLY],
+                'value' => 1
+            ]);
+            $previousDeliveryRequestBehaviorSetting?->setValue(0);
+
+            $currentDeliveryRequestBehaviorSetting = $settingRepository->findOneBy(["label" => $deliveryRequestBehavior]);
+            $currentDeliveryRequestBehaviorSetting->setValue(1);
+            $updated[] = $deliveryRequestBehavior;
+        }
+
         if ($request->request->getBoolean("alertTemplate")) {
             $alertTemplateRepository = $this->manager->getRepository(AlertTemplate::class);
             if (!$request->request->get("entity")) {

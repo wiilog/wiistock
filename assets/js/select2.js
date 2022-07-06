@@ -274,6 +274,14 @@ export default class Select2 {
 
         return params;
     }
+
+    static destroy($element) {
+        if($element.is(`.select2-hidden-accessible`)) {
+            $element.val(null).html(``);
+            $element.select2(`data`, null);
+            $element.select2(`destroy`);
+        }
+    }
 }
 
 $(document).ready(() => $(`[data-s2]`).each((id, elem) => {

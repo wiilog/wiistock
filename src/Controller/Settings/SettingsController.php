@@ -638,6 +638,10 @@ class SettingsController extends AbstractController {
                     self::MENU_DELIVERIES => fn() => [
                         "deliveryTypesCount" => $typeRepository->countAvailableForSelect(CategoryType::DEMANDE_LIVRAISON, []),
                         "deliveryTypeSettings" => json_encode($this->settingsService->getDefaultDeliveryLocationsByType($this->manager)),
+                        "deliveryRequestBehavior" => $settingRepository->findOneBy([
+                            'label' => [Setting::DIRECT_DELIVERY, Setting::CREATE_PREPA_AFTER_DL, Setting::CREATE_DELIVERY_ONLY],
+                            'value' => 1
+                        ])?->getLabel()
                     ],
                     self::MENU_DELIVERY_REQUEST_TEMPLATES => function() use ($requestTemplateRepository, $typeRepository) {
                         return $this->getRequestTemplates($typeRepository, $requestTemplateRepository, Type::LABEL_DELIVERY);
