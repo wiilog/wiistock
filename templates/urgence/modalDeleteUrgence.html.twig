@@ -1,8 +1,8 @@
 <form method="" class="modal fade" id="modalDeleteUrgence" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
-            {% include('utils/modal/header.html.twig') with {
-                title: "Supprimer"~"urgences.l'urgence" | trans
+            {% include 'utils/modal/header.html.twig' with {
+                title: 'Supprimer <span title="l\'urgence">' ~ ("urgences.l'urgence" | trans) ~ '</span>'
             } %}
 
             <div class="modal-body">

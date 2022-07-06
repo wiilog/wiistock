@@ -1,8 +1,8 @@
 <form method="" class="modal fade" id="modalEditHandling" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content">
-            {% include('utils/modal/header.html.twig') with {
-                title: 'services.Modifier une demande de service' | trans
+            {% include 'utils/modal/header.html.twig' with {
+                title: '<span title="Modifier une demande de service">' ~ ('services.Modifier une demande de service' | trans) ~ '</span>'
             } %}
 
             <div class="modal-body modal-input container-fluid"></div>
