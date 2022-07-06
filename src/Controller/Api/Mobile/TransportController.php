@@ -389,7 +389,9 @@ class TransportController extends AbstractFOSRestController {
         $rejectMotive = $data->get('rejectMotive');
 
         $transportDeliveryOrderPack = $pack->getTransportDeliveryOrderPack();
-        [$order, $request] = [$transportDeliveryOrderPack->getOrder(), $transportDeliveryOrderPack->getOrder()->getRequest()];
+        $order = $transportDeliveryOrderPack->getOrder();
+
+        $request = $order->getRequest();
         $round = $order->getTransportRoundLines()->last()->getTransportRound();
 
         $transportDeliveryOrderPack
