@@ -914,6 +914,22 @@ class ReferenceArticleRepository extends EntityRepository {
             ->toIterable();
     }
 
+    public function findNeedingInventoryDateUpdate() {
+        $query = $this->createQueryBuilder('referenceArticle');
+
+        $query
+            ->andWhere('status.nom = :status')
+            ->andWhere('referenceArticle.typeQuantite = :quantityType_reference')
+            ->setParameters([
+                'status' => ReferenceArticle::STATUT_ACTIF,
+                'quantityType_reference' => ReferenceArticle::QUANTITY_TYPE_REFERENCE,
+            ]);
+
+        return $queryBuilder
+            ->getQuery()
+            ->toIterable();
+    }
+
     public function countActiveByFrequencyWithoutDateInventory(InventoryFrequency $frequency)
     {
         $em = $this->getEntityManager();
