@@ -34,16 +34,12 @@ class HandlingService
      */
     private $router;
 
-    /**
-     * @var Utilisateur
-     */
-    private $user;
-
     private $userService;
     private $entityManager;
     private $mailerService;
     private $translator;
     private $dateService;
+    private $tokenStorage;
 
     public function __construct(TokenStorageInterface $tokenStorage,
                                 UserService $userService,
@@ -55,11 +51,11 @@ class HandlingService
                                 TranslatorInterface $translator)
     {
         $this->templating = $templating;
-        $this->entityManager = $entityManager;
+        $this->entityManager  = $entityManager;
         $this->userService = $userService;
         $this->mailerService = $mailerService;
         $this->router = $router;
-        $this->user = $tokenStorage->getToken()->getUser();
+        $this->tokenStorage = $tokenStorage;
         $this->translator = $translator;
         $this->dateService = $dateService;
     }
@@ -80,7 +76,7 @@ class HandlingService
                 ]
             ];
         } else {
-            $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_HAND, $this->user);
+            $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_HAND, $this->tokenStorage->getToken()->getUser());
         }
 
         $queryResult = $handlingRepository->findByParamAndFilters($params, $filters);

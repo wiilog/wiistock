@@ -21,7 +21,7 @@ class TransferRequestService {
 
     private $templating;
     private $router;
-    private $user;
+    private $tokenStorage;
     private $em;
     private $userService;
     private $uniqueNumberService;
@@ -36,14 +36,14 @@ class TransferRequestService {
         $this->uniqueNumberService = $uniqueNumberService;
         $this->em = $entityManager;
         $this->router = $router;
-        $this->user = $tokenStorage->getToken()->getUser();
+        $this->tokenStorage = $tokenStorage;
         $this->userService = $userService;
     }
 
     public function getDataForDatatable($params = null)
     {
         $filters = $this->em->getRepository(FiltreSup::class)
-            ->getFieldAndValueByPageAndUser(FiltreSup::PAGE_TRANSFER_REQUEST, $this->user);
+            ->getFieldAndValueByPageAndUser(FiltreSup::PAGE_TRANSFER_REQUEST, $this->tokenStorage->getToken()->getUser());
         $queryResult = $this->em->getRepository(TransferRequest::class)
             ->findByParamsAndFilters($params, $filters);
 
