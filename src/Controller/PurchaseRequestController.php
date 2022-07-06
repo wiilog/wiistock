@@ -583,7 +583,7 @@ class PurchaseRequestController extends AbstractController
                 return $this->json([
                     'success' => false,
                     'msg' => count($unfilledLines) > 1
-                        ? 'Des informations sont manquantes sur les lignes d\'achat  <strong>' . Stream::join($unfilledLines, ', ') . '</strong>.<br> Impossible de créer la réception liée ni de terminer la demande d\'achat.'
+                        ? 'Des informations sont manquantes sur les lignes d\'achat  <strong>' . join(', ', $unfilledLines) . '</strong>.<br> Impossible de créer la réception liée ni de terminer la demande d\'achat.'
                         : 'Des informations sont manquantes sur la ligne d\'achat  <strong>' . $unfilledLines[0] . '</strong>.<br> Impossible de créer la réception liée ni de terminer la demande d\'achat.'
                 ]);
             }
