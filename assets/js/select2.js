@@ -34,6 +34,7 @@ const ROUTES = {
     carrier: 'ajax_select_carrier',
     types: 'ajax_select_types',
     vehicles: 'ajax_select_vehicles',
+    inventoryCategories: 'ajax_select_inventory_categories',
 }
 
 const INSTANT_SELECT_TYPES = {
@@ -48,6 +49,7 @@ const INSTANT_SELECT_TYPES = {
     triggerSensorCodeWithoutPairing: true,
     businessUnit: true,
     roundsDelivererPending: true,
+    inventoryCategories: true,
 }
 
 export default class Select2 {
