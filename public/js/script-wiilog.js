@@ -705,8 +705,8 @@ function initDateTimePicker(dateInput = '#dateMin, #dateMax, #expectedDate', for
 }
 
 
-function warningEmptyDatesForCsv() {
-    showBSAlert('Veuillez saisir des dates dans le filtre en haut de page.', 'danger');
+function warningEmptyDatesForCsv(errorMsg) {
+    showBSAlert(errorMsg, 'danger');
     $('#dateMin, #dateMax').addClass('is-invalid');
     $('.is-invalid').on('click', function () {
         $(this).parent().find('.is-invalid').removeClass('is-invalid');
@@ -922,7 +922,11 @@ function initOnTheFlyCopies($elems) {
     });
 }
 
-function saveExportFile(routeName, needsDateFilters = true, routeParam = {}, needsAdditionalFilters = false) {
+function saveExportFile(routeName,
+                        needsDateFilters = true,
+                        routeParam = {},
+                        needsAdditionalFilters = false,
+                        errorMsgDates = 'Veuillez saisir des dates dans le filtre en haut de page.') {
 
     const buttonTypeTransport = $("input[name='category']:checked")
 
@@ -932,7 +936,7 @@ function saveExportFile(routeName, needsDateFilters = true, routeParam = {}, nee
     const path = Routing.generate(routeName, routeParam, true);
 
     const data = {};
-    $('.filterService input').each(function () {
+    $('.filterService input, .dateFilters input').each(function () {
         const $input = $(this);
         const name = $input.attr('name');
         const val = $input.val();
@@ -966,7 +970,7 @@ function saveExportFile(routeName, needsDateFilters = true, routeParam = {}, nee
         }
     }
     else {
-        warningEmptyDatesForCsv();
+        warningEmptyDatesForCsv(errorMsgDates);
     }
     hideSpinner($spinner);
 }

@@ -178,6 +178,7 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
                 TransportOrder::STATUS_CANCELLED,
                 TransportOrder::STATUS_NOT_COLLECTED,
                 TransportOrder::STATUS_AWAITING_VALIDATION,
+                TransportOrder::STATUS_DEPOSITED,
             ],
             CategorieStatut::TRANSPORT_ROUND => [
                 TransportRound::STATUS_AWAITING_DELIVERER,

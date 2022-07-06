@@ -317,7 +317,7 @@
                                      {% if order is not null and order.subcontracted %}
                                          Le suivi de température n'est pas disponible car la demande est sur un horaire non ouvré
                                      {% elseif not roundHasStarted %}
-                                         La tournée n'a pas commencé
+                                         La demande ne nécessite pas de suivi de température
                                      {% elseif not requiresTemperatureTracking %}
                                          La demande ne nécessite pas de suivi de température
                                      {% else %}
