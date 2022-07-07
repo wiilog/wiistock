@@ -39,26 +39,10 @@ class SAMLUserFactory implements SamlUserFactoryInterface
                 ->setEmail($email)
                 ->setUsername($email)
                 ->setRole($roleRepository->findOneBy(['label' => Role::NO_ACCESS_USER]))
-                ->setMobileLoginKey('');
+                ->setMobileLoginKey($email);
 
             $this->entityManager->persist($user);
-
-            try {
-                $this->entityManager->flush();
-            } catch (Exception $e) {
-                $userMailByRole = $userRepository->getUserMailByIsMailSendRole();
-                if(!empty($userMailByRole)) {
-                    $this->mailerService->sendMail(
-                        'FOLLOW GT // Notification de création d\'un compte utilisateur',
-                        $this->templating->render('mails/contents/mailNouvelUtilisateur.html.twig', [
-                            'user' => $e->getMessage(),
-                            'mail' => $e->getMessage(),
-                            'title' => 'Création d\'un nouvel utilisateur'
-                        ]),
-                        'cedric.roux@wiilog.fr'
-                    );
-                }
-            }
+            $this->entityManager->flush();
 
             $userMailByRole = $userRepository->getUserMailByIsMailSendRole();
             if(!empty($userMailByRole)) {
