@@ -1,8 +1,8 @@
 <div class="modal fade" id="modalEditPack" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
-            {% include('utils/modal/header.html.twig') with {
-                title: 'colis.Modifier un colis' | trans
+            {% include 'utils/modal/header.html.twig' with {
+                title: '<span title="Modifier un colis">' ~ ('colis.Modifier un colis' | trans) ~ '</span>'
             } %}
 
             <div class="modal-body modal-input"></div>

@@ -1,8 +1,8 @@
 <form method="" class="modal show" id="modalAddColis" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
-            {% include('utils/modal/header.html.twig') with {
-                title: 'colis.Ajouter un colis'|trans
+            {% include 'utils/modal/header.html.twig' with {
+                title: '<span title="Ajouter un colis">' ~ ('colis.Ajouter un colis'|trans) ~ '</span>'
             } %}
 
             <div class="modal-body modal-input container-fluid">

@@ -5,8 +5,8 @@
 <form method="" class="modal fade" id="modalNewArrivage" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
         <div class="modal-content">
-                {% include('utils/modal/header.html.twig') with {
-                    title: 'arrivage.nouvel arrivage'|trans
+                {% include 'utils/modal/header.html.twig' with {
+                    title: '<span title="nouvel arrivage">' ~ ('arrivage.nouvel arrivage'|trans) ~ '</span>'
                 } %}
 
             <div class="modal-body modal-input container-fluid">

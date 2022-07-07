@@ -6,7 +6,10 @@
 
 <div class="modal-header {{ headerClasses }}">
     <h5 class="modal-title wii-title {{ titleClasses }}"
-        id="{{ titleId }}" title="{{ title }}">{{ title }}</h5>
+        id="{{ titleId }}"
+        title="{{ title }}">
+        {{ title | raw }}
+    </h5>
     {% if not hideTimes %}
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
