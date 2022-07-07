@@ -40,6 +40,9 @@ class SAMLUserFactory implements SamlUserFactoryInterface
                 ->setRole($roleRepository->findOneBy(['label' => Role::NO_ACCESS_USER]))
                 ->setMobileLoginKey('');
 
+            $this->entityManager->persist($user);
+            $this->entityManager->flush();
+
             $userMailByRole = $userRepository->getUserMailByIsMailSendRole();
             if(!empty($userMailByRole)) {
                 $this->mailerService->sendMail(
@@ -52,11 +55,7 @@ class SAMLUserFactory implements SamlUserFactoryInterface
                     $userMailByRole
                 );
             }
-            $this->entityManager->persist($user);
         }
-
-        $this->entityManager->flush();
-
         return $user;
     }
 }
