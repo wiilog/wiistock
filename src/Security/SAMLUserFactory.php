@@ -52,11 +52,9 @@ class SAMLUserFactory implements SamlUserFactoryInterface
                     $userMailByRole
                 );
             }
+            $this->entityManager->persist($user);
         }
-        $user
-            ->setSamlAttributes($attributes);
 
-        $this->entityManager->persist($user);
         $this->entityManager->flush();
 
         return $user;
