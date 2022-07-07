@@ -7,6 +7,7 @@ use App\Entity\Utilisateur;
 use App\Service\MailerService;
 use Doctrine\Common\Annotations\Annotation\Required;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Nbgrp\OneloginSamlBundle\Security\User\SamlUserFactoryInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Twig\Environment;
@@ -41,7 +42,23 @@ class SAMLUserFactory implements SamlUserFactoryInterface
                 ->setMobileLoginKey('');
 
             $this->entityManager->persist($user);
-            $this->entityManager->flush();
+
+            try {
+                $this->entityManager->flush();
+            } catch (Exception $e) {
+                $userMailByRole = $userRepository->getUserMailByIsMailSendRole();
+                if(!empty($userMailByRole)) {
+                    $this->mailerService->sendMail(
+                        'FOLLOW GT // Notification de création d\'un compte utilisateur',
+                        $this->templating->render('mails/contents/mailNouvelUtilisateur.html.twig', [
+                            'user' => $e->getMessage(),
+                            'mail' => $e->getMessage(),
+                            'title' => 'Création d\'un nouvel utilisateur'
+                        ]),
+                        'cedric.roux@wiilog.fr'
+                    );
+                }
+            }
 
             $userMailByRole = $userRepository->getUserMailByIsMailSendRole();
             if(!empty($userMailByRole)) {
