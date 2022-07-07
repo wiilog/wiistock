@@ -5,6 +5,7 @@ namespace App\Security;
 use App\Entity\Role;
 use App\Entity\Utilisateur;
 use App\Service\MailerService;
+use App\Service\UserService;
 use Doctrine\Common\Annotations\Annotation\Required;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -23,6 +24,9 @@ class SAMLUserFactory implements SamlUserFactoryInterface
     /** @Required  */
     public Environment $templating;
 
+    /** @Required  */
+    public UserService $userService;
+
     public function createUser(string $identifier, array $attributes): UserInterface
     {
         $roleRepository = $this->entityManager->getRepository(Role::class);
@@ -39,7 +43,7 @@ class SAMLUserFactory implements SamlUserFactoryInterface
                 ->setEmail($email)
                 ->setUsername($email)
                 ->setRole($roleRepository->findOneBy(['label' => Role::NO_ACCESS_USER]))
-                ->setMobileLoginKey($email);
+                ->setMobileLoginKey($this->userService->createUniqueMobileLoginKey($this->entityManager));
 
             $this->entityManager->persist($user);
             $this->entityManager->flush();
