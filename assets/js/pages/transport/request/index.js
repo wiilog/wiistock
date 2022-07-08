@@ -228,9 +228,9 @@ function prefillForm($modal) {
             $contactName.val(`${formContent['Prenom'] || ''}${formContent['Prenom'] ? ' ' :''}${formContent['Nom'] || ''}`)
         }
 
-        if (formContent['Nodos']) {
+        if (formContent['nodos']) {
             const $contactFileNumber = $modal.find('[name=contactFileNumber]');
-            $contactFileNumber.val(formContent['Nodos']);
+            $contactFileNumber.val(formContent['nodos']);
         }
 
         if (formContent['Contact']) {
