@@ -25,9 +25,6 @@ class InventoryStatusUpdateCommand extends Command
     #[Required]
     public EntityManagerInterface $entityManager;
 
-    #[Required]
-    public RefArticleDataService $refArticleDataService;
-
     protected function configure()
     {
 		$this->setDescription('This commands updates the inventory dates on the refs');
@@ -36,11 +33,7 @@ class InventoryStatusUpdateCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
-        $refsToUpdate = $referenceArticleRepository->findNeedingInventoryDateUpdate();
-
-        foreach ($refsToUpdate as $ref) {
-            $this->refArticleDataService->updateInventoryStatus($this->entityManager, $ref);
-        }
-        $this->entityManager->flush();
+        $referenceArticleRepository->updateInventoryStatusQuery();
+        return 1;
     }
 }

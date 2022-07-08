@@ -22,6 +22,7 @@ use DateTime;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
+use Doctrine\ORM\Query\ResultSetMapping;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
@@ -914,22 +915,6 @@ class ReferenceArticleRepository extends EntityRepository {
             ->toIterable();
     }
 
-    public function findNeedingInventoryDateUpdate() {
-        $query = $this->createQueryBuilder('referenceArticle');
-
-        $query
-            ->andWhere('status.nom = :status')
-            ->andWhere('referenceArticle.typeQuantite = :quantityType_reference')
-            ->setParameters([
-                'status' => ReferenceArticle::STATUT_ACTIF,
-                'quantityType_reference' => ReferenceArticle::QUANTITY_TYPE_REFERENCE,
-            ]);
-
-        return $queryBuilder
-            ->getQuery()
-            ->toIterable();
-    }
-
     public function countActiveByFrequencyWithoutDateInventory(InventoryFrequency $frequency)
     {
         $em = $this->getEntityManager();
@@ -1281,5 +1266,17 @@ class ReferenceArticleRepository extends EntityRepository {
             ->setParameter('category', $category)
             ->getQuery()
             ->getSingleScalarResult();
+    }
+
+    public function updateInventoryStatusQuery() {
+        $queryRaw = file_get_contents('assets/sql/update-inventory-status.sql');
+
+        $rsm = new ResultSetMapping();
+        $query = $this->getEntityManager()->createNativeQuery($queryRaw, $rsm);
+
+        $query->setParameter('referenceQuantityManagement', ReferenceArticle::QUANTITY_TYPE_REFERENCE);
+        $query->setParameter('articleStatuses', [Article::STATUT_ACTIF, Article::STATUT_EN_TRANSIT], Connection::PARAM_STR_ARRAY);
+
+        return $query->execute();
     }
 }
