@@ -515,7 +515,7 @@ function openModalArticlesFromLigneArticle(ligneArticleId) {
     initDatatableConditionnement();
 }
 
-function articleChanged($select) { // TODO ICI TA MERE LA PUTE
+function articleChanged($select) {
     const $modal = $select.closest(`.modal`);
     if(!$select.data(`select2`)) {
         return;
