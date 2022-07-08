@@ -243,6 +243,16 @@ function prefillForm($modal) {
             $contactAddress.val(formContent['Adresse']);
         }
 
+        if (formContent['CP']) {
+            const $contactAddress = $modal.find('[name=contactAddress]');
+            $contactAddress.val($contactAddress.val() + ' ' + formContent['CP']);
+        }
+
+        if (formContent['Ville']) {
+            const $contactAddress = $modal.find('[name=contactAddress]');
+            $contactAddress.val($contactAddress.val() + ' ' + formContent['Ville']);
+        }
+
         if (formContent['PersonnesAPrevenir']) {
             const $contactPersonToContact = $modal.find('[name=contactPersonToContact]');
             $contactPersonToContact.val(formContent['PersonnesAPrevenir']);
