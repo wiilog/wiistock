@@ -81,8 +81,9 @@
                             <select class="select2-type data w-100 needed wii-field-text" name="type"
                                     onchange="onRequestTypeChange($(this))" disabled>
                                 <option>&nbsp;</option>
+                                {% set uniqueType = typeChampsLibres | length == 1  %}
                                 {% for type in typeChampsLibres %}
-                                    <option value="{{ type.typeId }}">{{ type.typeLabel }}</option>
+                                    <option value="{{ type.typeId }}" {{ uniqueType ? "selected" }} >{{ type.typeLabel }} </option>
                                 {% endfor %}
                             </select>
                         </div>
