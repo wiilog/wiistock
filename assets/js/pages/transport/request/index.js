@@ -248,11 +248,6 @@ function prefillForm($modal) {
             $contactAddress.val($contactAddress.val() + ' ' + formContent['CP']);
         }
 
-        if (formContent['Tel']) {
-            const $contactPersonToContact = $modal.find('[name=contactPersonToContact]');
-            $contactPersonToContact.val($contactPersonToContact.val() + ' ' + formContent['Tel']);
-        }
-
         if (formContent['Ville']) {
             const $contactAddress = $modal.find('[name=contactAddress]');
             $contactAddress.val($contactAddress.val() + ' ' + formContent['Ville']);
@@ -261,6 +256,11 @@ function prefillForm($modal) {
         if (formContent['PersonnesAPrevenir']) {
             const $contactPersonToContact = $modal.find('[name=contactPersonToContact]');
             $contactPersonToContact.val(formContent['PersonnesAPrevenir']);
+        }
+
+        if (formContent['Tel']) {
+            const $contactPersonToContact = $modal.find('[name=contactPersonToContact]');
+            $contactPersonToContact.val($contactPersonToContact.val() + ' ' + formContent['Tel']);
         }
 
         if (formContent['Remarques']) {
