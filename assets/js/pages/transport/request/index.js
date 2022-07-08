@@ -222,7 +222,7 @@ function prefillForm($modal) {
     if (isPrefillInformationGiven()) {
         const {content} = GetRequestQuery() || {};
         const formContent = JSON.parse(content || '');
-
+        console.log(formContent);
         if (formContent['Prenom'] || formContent['Nom']) {
             const $contactName = $modal.find('[name=contactName]');
             $contactName.val(`${formContent['Prenom'] || ''}${formContent['Prenom'] ? ' ' :''}${formContent['Nom'] || ''}`)
@@ -236,6 +236,11 @@ function prefillForm($modal) {
         if (formContent['Contact']) {
             const $contactContact = $modal.find('[name=contactContact]');
             $contactContact.val(formContent['Contact']);
+        }
+
+        if (formContent['Tel']) {
+            const $contactContact = $modal.find('[name=contactContact]');
+            $contactContact.val($contactContact.val() + ' ' + formContent['Tel']);
         }
 
         if (formContent['Adresse']) {
@@ -256,11 +261,6 @@ function prefillForm($modal) {
         if (formContent['PersonnesAPrevenir']) {
             const $contactPersonToContact = $modal.find('[name=contactPersonToContact]');
             $contactPersonToContact.val(formContent['PersonnesAPrevenir']);
-        }
-
-        if (formContent['Tel']) {
-            const $contactPersonToContact = $modal.find('[name=contactPersonToContact]');
-            $contactPersonToContact.val($contactPersonToContact.val() + ' ' + formContent['Tel']);
         }
 
         if (formContent['Remarques']) {
