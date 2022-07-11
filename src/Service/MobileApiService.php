@@ -100,6 +100,7 @@ class MobileApiService {
             "skipValidationsPreparations" => $globalsParameters->getOneParamByLabel(Setting::PREPARATION_SKIP_VALIDATIONS),
             "skipQuantitiesPreparations" => $globalsParameters->getOneParamByLabel(Setting::PREPARATION_SKIP_QUANTITIES),
             "preparationDisplayArticleWithoutManual" => $globalsParameters->getOneParamByLabel(Setting::PREPARATION_DISPLAY_ARTICLES_WITHOUT_MANUAL),
+            "manualDeliveryDisableValidations" => $globalsParameters->getOneParamByLabel(Setting::MANUAL_DELIVERY_DISABLE_VALIDATIONS),
         ])
             ->keymap(fn($value, string $key) => [$key, $value == 1])
             ->toArray();

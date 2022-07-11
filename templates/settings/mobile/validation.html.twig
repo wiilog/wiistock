@@ -31,5 +31,8 @@
         <div class="col-12 my-1">
             {{ form.checkbox(setting('LIVRAISON_SKIP_QUANTITIES'), '<span class="bold">Livraison :</span>&nbsp;désactiver les confirmations de quantité</span>', false, setting_value('LIVRAISON_SKIP_QUANTITIES')) }}
         </div>
+        <div class="col-12 my-1">
+            {{ form.checkbox(setting('MANUAL_DELIVERY_DISABLE_VALIDATIONS'), '<span class="bold">Livraison manuelle :</span>&nbsp;désactiver les validations</span>', false, setting_value('MANUAL_DELIVERY_DISABLE_VALIDATIONS')) }}
+        </div>
     </div>
 </div>
