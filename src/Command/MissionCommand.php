@@ -1,5 +1,5 @@
 <?php
-// At 23:00 on Sunday
+// At 23:00 everyday
 // 0 23 * * 0
 
 namespace App\Command;
@@ -36,12 +36,6 @@ class MissionCommand extends Command
         parent::__construct();
         $this->entityManager = $entityManager;
         $this->inventoryService = $inventoryService;
-    }
-
-    protected function configure()
-    {
-		$this->setDescription('This commands generates inventory missions.');
-        $this->setHelp('This command is supposed to be executed at every end of week, via a cron on the server.');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
