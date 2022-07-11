@@ -17,6 +17,7 @@ use App\Entity\Setting;
 use App\Entity\Attachment;
 
 use App\Entity\Statut;
+use App\Entity\Type;
 use App\Entity\Utilisateur;
 
 use App\Service\AttachmentService;
@@ -361,14 +362,21 @@ class TrackingMovementController extends AbstractController
     public function edit(EntityManagerInterface $entityManager,
                          FreeFieldService $freeFieldService,
                          AttachmentService $attachmentService,
+                         TrackingMovementService $trackingMovementService,
+                         UserService $userService,
                          Request $request): Response {
 
         $post = $request->request;
 
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
+        $statutRepository = $entityManager->getRepository(Statut::class);
 
         $operator = $utilisateurRepository->find($post->get('operator'));
+        $location = $locationRepository->find($post->get('location'));
+        $action = $statutRepository->find($post->get('type'));
+
         $quantity = $post->getInt('quantity') ?: 1;
 
         if ($quantity < 1) {
@@ -377,18 +385,38 @@ class TrackingMovementController extends AbstractController
                 'msg' => 'La quantité doit être supérieure à 0.'
             ]);
         }
+        $mvt = $trackingMovementRepository->find($post->get('id'));
+        if ($userService->hasRightFunction(Menu::TRACA, Action::FULLY_EDIT_TRACKING_MOVEMENTS)) {
+            /** @var TrackingMovement $new */
+            $new = $trackingMovementService->persistTrackingMovement(
+                $entityManager,
+                $post->get('pack'),
+                $location,
+                $operator,
+                new DateTime($post->get('date')),
+                true,
+                $action,
+                false,
+            )['movement'];
+            $entityManager->persist($mvt);
+            foreach ($mvt->getAttachments() as $attachment) {
+                $new->addAttachment($attachment);
+            }
+
+            $entityManager->remove($mvt);
+            $entityManager->flush();
+
+            $mvt = $new;
+        }
 
         /** @var TrackingMovement $mvt */
-        $mvt = $trackingMovementRepository->find($post->get('id'));
         $mvt
             ->setOperateur($operator)
             ->setQuantity($quantity)
             ->setCommentaire($post->get('commentaire'));
 
         $entityManager->flush();
-
-        $listAttachmentIdToKeep = $post->get('files');
-
+        $listAttachmentIdToKeep = $post->all('files');
         $attachments = $mvt->getAttachments()->toArray();
         foreach ($attachments as $attachment) {
             /** @var Attachment $attachment */
@@ -396,7 +424,6 @@ class TrackingMovementController extends AbstractController
                 $attachmentService->removeAndDeleteAttachment($attachment, $mvt);
             }
         }
-
         $this->persistAttachments($mvt, $attachmentService, $request->files, $entityManager);
         $freeFieldService->manageFreeFields($mvt, $post->all(), $entityManager);
 
