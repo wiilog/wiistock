@@ -39,29 +39,50 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
     const SUB_MENU_STOCK_MOVEMENTS = 'mouvements de stock';
     const SUB_MENU_ALERTS = 'alertes';
     const SUB_MENU_INVENTORY = 'inventaire';
+    const SUB_MENU_ARRIVALS = 'Arrivages';
+    const SUB_MENU_MOVEMENTS = 'Mouvements';
+    const SUB_MENU_PACKS = 'Colis';
+    const SUB_MENU_ASSOCIATION_BR = 'Association BR';
+    const SUB_MENU_ENCO = 'Encours';
+    const SUB_MENU_EMERGENCYS = 'Urgences';
 
     public const MENUS = [
         Menu::TRACA => [
-            Action::DISPLAY_ARRI,
-            Action::CREATE_ARRIVAL,
-            Action::DISPLAY_MOUV,
-            Action::CREATE_TRACKING_MOVEMENT,
-            Action::DISPLAY_ASSO,
-            Action::DISPLAY_ENCO,
-            Action::DISPLAY_URGE,
-            Action::CREATE_EMERGENCY,
-            Action::DISPLAY_PACK,
-            Action::CREATE,
-            Action::EDIT,
-            Action::DELETE,
-            Action::EXPORT,
-            Action::LIST_ALL,
-            Action::ADD_PACK,
-            Action::EDIT_PACK,
-            Action::DELETE_PACK,
-            Action::EDIT_ARRI,
-            Action::DELETE_ARRI,
-            Action::EMPTY_ROUND,
+            self::SUB_MENU_GENERAL => [
+                Action::CREATE,
+                Action::EDIT,
+                Action::DELETE,
+                Action::EXPORT,
+            ],
+            self::SUB_MENU_ARRIVALS => [
+                Action::DISPLAY_ARRI,
+                Action::LIST_ALL,
+                Action::CREATE_ARRIVAL,
+                Action::EDIT_ARRI,
+                Action::DELETE_ARRI,
+                Action::ADD_PACK,
+                Action::EDIT_PACK,
+                Action::DELETE_PACK,
+            ],
+            self::SUB_MENU_MOVEMENTS => [
+                Action::DISPLAY_MOUV,
+                Action::CREATE_TRACKING_MOVEMENT,
+                Action::EDIT_ALL_MOVEMENT_DATA,
+                Action::EMPTY_ROUND,
+            ],
+            self::SUB_MENU_PACKS => [
+                Action::DISPLAY_PACK,
+            ],
+            self::SUB_MENU_ASSOCIATION_BR => [
+                Action::DISPLAY_ASSO,
+            ],
+            self::SUB_MENU_ENCO => [
+                Action::DISPLAY_ENCO,
+            ],
+            self::SUB_MENU_EMERGENCYS => [
+                Action::DISPLAY_URGE,
+                Action::CREATE_EMERGENCY,
+            ],
         ],
         Menu::QUALI => [
             Action::DISPLAY_LITI,
