@@ -13,8 +13,19 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20220711124619 extends AbstractMigration
-{
+final class Version20220711124619 extends AbstractMigration {
+
+    const SETTINGS_GLOBAL = 'afficher paramétrage global';
+    const SETTINGS_STOCK = 'afficher stock';
+    const SETTINGS_TRACING = 'afficher trace';
+    const SETTINGS_TRACKING = 'afficher track';
+    const SETTINGS_MOBILE = 'afficher terminal mobile';
+    const SETTINGS_DASHBOARDS = 'afficher dashboards';
+    const SETTINGS_IOT = 'afficher iot';
+    const SETTINGS_NOTIFICATIONS = 'afficher modèles de notifications';
+    const SETTINGS_USERS = 'afficher utilisateurs';
+    const SETTINGS_DATA = 'afficher données';
+
     public function getDescription(): string
     {
         return '';
@@ -22,9 +33,22 @@ final class Version20220711124619 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
+        $previousActionsForSubmenus = [
+            ActionsFixtures::SUB_MENU_GENERAL => null,
+            ActionsFixtures::SUB_MENU_GLOBAL => self::SETTINGS_GLOBAL,
+            ActionsFixtures::SUB_MENU_STOCK => self::SETTINGS_STOCK,
+            ActionsFixtures::SUB_MENU_TRACING => self::SETTINGS_TRACING,
+            ActionsFixtures::SUB_MENU_TRACKING => self::SETTINGS_TRACKING,
+            ActionsFixtures::SUB_MENU_TERMINAL_MOBILE => self::SETTINGS_MOBILE,
+            ActionsFixtures::SUB_MENU_DASHBOARD => self::SETTINGS_DASHBOARDS,
+            ActionsFixtures::SUB_MENU_IOT => self::SETTINGS_IOT,
+            ActionsFixtures::SUB_MENU_NOTIFICATIONS => self::SETTINGS_NOTIFICATIONS,
+            ActionsFixtures::SUB_MENU_USERS => self::SETTINGS_USERS,
+            ActionsFixtures::SUB_MENU_DATA => self::SETTINGS_DATA,
+        ];
+
         $newActionsWithSubMenus = [
             ActionsFixtures::SUB_MENU_GENERAL => [
-
                 Action::EDIT,
                 Action::DELETE,
             ],
@@ -89,38 +113,65 @@ final class Version20220711124619 extends AbstractMigration
         $roles = $this->connection->executeQuery("SELECT id FROM role")->fetchAllAssociative();
 
         foreach ($newActionsWithSubMenus as $subMenu => $newActions) {
+            $this->addSql("INSERT INTO sub_menu (menu_id, label) VALUE (
+                    (SELECT id FROM menu WHERE menu.label = :menu),
+                    :sub_menu
+                )", [
+                'menu' => Menu::PARAM,
+                'sub_menu' => $subMenu
+            ]);
+
             foreach ($newActions as $action){
                 $this->addSql("INSERT INTO action (menu_id, label, sub_menu_id) VALUE (
                     (SELECT id FROM menu WHERE menu.label = :menu),
                     :action,
-                    (SELECT id FROM sub_menu WHERE sub_menu.label = :sub_menu LIMIT 1)
+                    (SELECT sub_menu.id FROM sub_menu INNER JOIN menu ON sub_menu.menu_id = menu.id WHERE menu.label = :menu AND sub_menu.label = :sub_menu)
                 )", [
-                    'menu' => Menu::PARAM,
-                    'action' => $action,
-                    'sub_menu' => $subMenu
+                    "menu" => Menu::PARAM,
+                    "action" => $action,
+                    "sub_menu" => $subMenu
                 ]);
 
                 foreach ($roles as $role) {
                     $roleId = $role['id'];
-                    $this->addSql("
-                        INSERT INTO action_role (action_id, role_id) VALUE (
-                            (
-                                SELECT action.id AS id
-                                FROM action
-                                    INNER JOIN menu on action.menu_id = menu.id
-                                    INNER JOIN sub_menu on action.sub_menu_id = sub_menu.id
-                                WHERE action.label = :action
-                                  AND menu.label = :menu
-                                  AND sub_menu.label = :sub_menu
-                            ),
-                            :role_id
-                        )
-                    ", [
-                        "action" => $action,
-                        'menu' => Menu::PARAM,
-                        'sub_menu' => $subMenu,
-                        'role_id' => $roleId,
-                    ]);
+
+                    $hasPermission = $this->connection->executeQuery(
+                        "SELECT * 
+                        FROM action_role
+                            INNER JOIN action ON action_role.action_id = action.id
+                            INNER JOIN menu ON action.menu_id = menu.id
+                        WHERE menu.label = :menu
+                            AND action.label = :action
+                            AND action_role.role_id = :role",
+                        [
+                        "menu" => Menu::PARAM,
+                        // "?? $action" => pour les droits modifier et supprimer qui ne deviennent pas des submenus
+                        "action" => $previousActionsForSubmenus[$subMenu] ?? $action,
+                        "role" => $roleId,
+                        ]
+                    )->rowCount() > 0;
+
+                    if($hasPermission) {
+                        $this->addSql("
+                            INSERT INTO action_role (action_id, role_id) VALUE (
+                                (
+                                    SELECT action.id
+                                    FROM action
+                                        INNER JOIN menu on action.menu_id = menu.id
+                                        INNER JOIN sub_menu on action.sub_menu_id = sub_menu.id
+                                    WHERE action.label = :action
+                                      AND menu.label = :menu
+                                      AND sub_menu.label = :sub_menu
+                                ),
+                                :role_id
+                            )
+                        ", [
+                            "menu" => Menu::PARAM,
+                            "sub_menu" => $subMenu,
+                            "action" => $action,
+                            "role_id" => $roleId,
+                        ]);
+                    }
                 }
             }
         }

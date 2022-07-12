@@ -1910,7 +1910,7 @@ class SettingsController extends AbstractController {
 
     /**
      * @Route("/mission-rules-api", name="settings_mission_rules_api", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK}, mode=HasPermission::IN_JSON)
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES}, mode=HasPermission::IN_JSON)
      */
     public function missionRulesApi(Request $request, EntityManagerInterface $manager): Response {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
@@ -1990,7 +1990,7 @@ class SettingsController extends AbstractController {
 
     /**
      * @Route("/mission-rules/supprimer/{entity}", name="settings_delete_mission_rule", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK}, mode=HasPermission::IN_JSON)
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES}, mode=HasPermission::IN_JSON)
      */
     public function deleteMissionRules(EntityManagerInterface $entityManager, InventoryMissionRule $entity): Response {
         $entityManager->remove($entity);
