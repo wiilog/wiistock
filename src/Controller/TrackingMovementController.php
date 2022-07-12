@@ -387,7 +387,7 @@ class TrackingMovementController extends AbstractController
         }
         $mvt = $trackingMovementRepository->find($post->get('id'));
         $pack = $mvt->getPack();
-        if ($userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_MOUV)) {
+        if ($userService->hasRightFunction(Menu::TRACA, Action::FULLY_EDIT_TRACKING_MOVEMENTS)) {
             $pack->setCode($post->get('pack'));
             $entityManager->flush();
             /** @var TrackingMovement $new */

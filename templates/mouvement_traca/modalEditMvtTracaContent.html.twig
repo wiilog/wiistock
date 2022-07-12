@@ -1,5 +1,5 @@
 <div class="row">
-    {% set canEditFully = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::DISPLAY_MOUV')) %}
+    {% set canEditFully = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::FULLY_EDIT_TRACKING_MOVEMENTS')) %}
     <div class="form-group col-md-6 col-12">
         <label for="datetime">Date*</label>
         <input type="datetime-local"
