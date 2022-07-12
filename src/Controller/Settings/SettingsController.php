@@ -14,6 +14,7 @@ use App\Entity\FreeField;
 use App\Entity\Import;
 use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Inventory\InventoryFrequency;
+use App\Entity\Inventory\InventoryMissionRule;
 use App\Entity\IOT\AlertTemplate;
 use App\Entity\IOT\RequestTemplate;
 use App\Entity\MailerServer;
@@ -181,6 +182,7 @@ class SettingsController extends AbstractController {
                     "menus" => [
                         self::MENU_FREQUENCIES => ["label" => "Fréquences"],
                         self::MENU_CATEGORIES => ["label" => "Catégories"],
+                        self::MENU_MISSIONS_GENERATION => ["label" => "Gestion des missions"],
                     ],
                 ],
                 self::MENU_RECEPTIONS => [
@@ -438,77 +440,78 @@ class SettingsController extends AbstractController {
         ],
     ];
 
-    private const CATEGORY_GLOBAL = "global";
+    public const CATEGORY_GLOBAL = "global";
     public const CATEGORY_STOCK = "stock";
     public const CATEGORY_TRACING = "trace";
     public const CATEGORY_TRACKING = "track";
-    private const CATEGORY_MOBILE = "mobile";
-    private const CATEGORY_DASHBOARDS = "dashboards";
-    private const CATEGORY_IOT = "iot";
-    private const CATEGORY_NOTIFICATIONS = "notifications";
+    public const CATEGORY_MOBILE = "mobile";
+    public const CATEGORY_DASHBOARDS = "dashboards";
+    public const CATEGORY_IOT = "iot";
+    public const CATEGORY_NOTIFICATIONS = "notifications";
     public const CATEGORY_USERS = "utilisateurs";
     public const CATEGORY_DATA = "donnees";
 
-    private const MENU_SITE_APPEARANCE = "apparence_site";
-    private const MENU_WORKING_HOURS = "heures_travaillees";
-    private const MENU_CLIENT = "client";
-    private const MENU_OFF_DAYS = "jours_non_travailles";
-    private const MENU_LABELS = "etiquettes";
-    private const MENU_MAIL_SERVER = "serveur_email";
+    public const MENU_SITE_APPEARANCE = "apparence_site";
+    public const MENU_WORKING_HOURS = "heures_travaillees";
+    public const MENU_CLIENT = "client";
+    public const MENU_OFF_DAYS = "jours_non_travailles";
+    public const MENU_LABELS = "etiquettes";
+    public const MENU_MAIL_SERVER = "serveur_email";
 
-    private const MENU_CONFIGURATIONS = "configurations";
-    private const MENU_VISIBILITY_GROUPS = "groupes_visibilite";
-    private const MENU_ALERTS = "alertes";
-    private const MENU_INVENTORIES = "inventaires";
-    private const MENU_FREQUENCIES = "frequences";
-    private const MENU_CATEGORIES = "categories";
-    private const MENU_ARTICLES = "articles";
+    public const MENU_CONFIGURATIONS = "configurations";
+    public const MENU_VISIBILITY_GROUPS = "groupes_visibilite";
+    public const MENU_ALERTS = "alertes";
+    public const MENU_INVENTORIES = "inventaires";
+    public const MENU_FREQUENCIES = "frequences";
+    public const MENU_CATEGORIES = "categories";
+    public const MENU_MISSIONS_GENERATION = "missions";
+    public const MENU_ARTICLES = "articles";
     public const MENU_RECEPTIONS = "receptions";
-    private const MENU_RECEPTIONS_STATUSES = "statuts_receptions";
+    public const MENU_RECEPTIONS_STATUSES = "statuts_receptions";
     public const MENU_DISPUTE_STATUSES = "statuts_litiges";
     public const MENU_DISPUTE_TYPES = "types_litiges";
     public const MENU_REQUESTS = "demandes";
 
     public const MENU_DISPATCHES = "acheminements";
     public const MENU_STATUSES = "statuts";
-    private const MENU_FIXED_FIELDS = "champs_fixes";
-    private const MENU_WAYBILL = "lettre_voiture";
-    private const MENU_OVERCONSUMPTION_BILL = "bon_surconsommation";
+    public const MENU_FIXED_FIELDS = "champs_fixes";
+    public const MENU_WAYBILL = "lettre_voiture";
+    public const MENU_OVERCONSUMPTION_BILL = "bon_surconsommation";
     public const MENU_ARRIVALS = "arrivages";
-    private const MENU_MOVEMENTS = "mouvements";
-    private const MENU_FREE_FIELDS = "champs_libres";
+    public const MENU_MOVEMENTS = "mouvements";
+    public const MENU_FREE_FIELDS = "champs_libres";
     public const MENU_HANDLINGS = "services";
-    private const MENU_REQUEST_TEMPLATES = "modeles_demande";
+    public const MENU_REQUEST_TEMPLATES = "modeles_demande";
 
     public const MENU_TRANSPORT_REQUESTS = "demande_transport";
-    private const MENU_ROUNDS = "tournees";
-    private const MENU_TEMPERATURES = "temperatures";
+    public const MENU_ROUNDS = "tournees";
+    public const MENU_TEMPERATURES = "temperatures";
 
-    private const MENU_DELIVERIES = "livraisons";
-    private const MENU_DELIVERY_REQUEST_TEMPLATES = "modeles_demande_livraisons";
+    public const MENU_DELIVERIES = "livraisons";
+    public const MENU_DELIVERY_REQUEST_TEMPLATES = "modeles_demande_livraisons";
     public const MENU_DELIVERY_TYPES_FREE_FIELDS = "types_champs_libres_livraisons";
-    private const MENU_COLLECTS = "collectes";
-    private const MENU_COLLECT_REQUEST_TEMPLATES = "modeles_demande_collectes";
+    public const MENU_COLLECTS = "collectes";
+    public const MENU_COLLECT_REQUEST_TEMPLATES = "modeles_demande_collectes";
     public const MENU_COLLECT_TYPES_FREE_FIELDS = "types_champs_libres_collectes";
     public const MENU_PURCHASE_STATUSES = "statuts_achats";
 
-    private const MENU_PREPARATIONS = "preparations";
-    private const MENU_VALIDATION = "validation";
-    private const MENU_TRANSFERS = "transferts";
+    public const MENU_PREPARATIONS = "preparations";
+    public const MENU_VALIDATION = "validation";
+    public const MENU_TRANSFERS = "transferts";
 
-    private const MENU_FULL_SETTINGS = "parametrage_complet";
+    public const MENU_FULL_SETTINGS = "parametrage_complet";
 
-    private const MENU_TYPES_FREE_FIELDS = "types_champs_libres";
+    public const MENU_TYPES_FREE_FIELDS = "types_champs_libres";
 
-    private const MENU_PUSH_NOTIFICATIONS = "notifications_push";
+    public const MENU_PUSH_NOTIFICATIONS = "notifications_push";
 
-    private const MENU_LANGUAGES = "langues";
+    public const MENU_LANGUAGES = "langues";
     public const MENU_ROLES = "roles";
     public const MENU_USERS = "utilisateurs";
 
-    private const MENU_CSV_EXPORTS = "exports_csv";
+    public const MENU_CSV_EXPORTS = "exports_csv";
     public const MENU_IMPORTS = "imports";
-    private const MENU_INVENTORIES_IMPORTS = "imports_inventaires";
+    public const MENU_INVENTORIES_IMPORTS = "imports_inventaires";
 
     /**
      * @Required
@@ -603,7 +606,7 @@ class SettingsController extends AbstractController {
             ->map(fn(Type $type) => [
                 "label" => $type->getLabel(),
                 "value" => $type->getId(),
-                "iconUrl" => $type->getLogo()?->getFullPath()
+                "iconUrl" => $type->getLogo()?->getFullPath(),
             ])
             ->toArray();
 
@@ -678,8 +681,8 @@ class SettingsController extends AbstractController {
                         "deliveryTypeSettings" => json_encode($this->settingsService->getDefaultDeliveryLocationsByType($this->manager)),
                         "deliveryRequestBehavior" => $settingRepository->findOneBy([
                             'label' => [Setting::DIRECT_DELIVERY, Setting::CREATE_PREPA_AFTER_DL, Setting::CREATE_DELIVERY_ONLY],
-                            'value' => 1
-                        ])?->getLabel()
+                            'value' => 1,
+                        ])?->getLabel(),
                     ],
                     self::MENU_DELIVERY_REQUEST_TEMPLATES => function() use ($requestTemplateRepository, $typeRepository) {
                         return $this->getRequestTemplates($typeRepository, $requestTemplateRepository, Type::LABEL_DELIVERY);
@@ -953,9 +956,9 @@ class SettingsController extends AbstractController {
                                 ->map(fn(Utilisateur $user) => [
                                     "value" => $user->getId(),
                                     "label" => $user->getUsername(),
-                                    "selected" => true
+                                    "selected" => true,
                                 ])
-                                ->toArray()
+                                ->toArray(),
                     ],
                     self::MENU_DELIVERY_TYPES_FREE_FIELDS => fn() => [
                         "types" => $this->typeGenerator(CategoryType::DELIVERY_TRANSPORT),
@@ -1770,7 +1773,6 @@ class SettingsController extends AbstractController {
         }
 
         $data[] = [
-            "className" => "toto",
             "actions" => "<span class='d-flex justify-content-start align-items-center add-row'><span class='wii-icon wii-icon-plus'></span></span>",
             "label" => "",
             "nb_months" => "",
@@ -1845,8 +1847,8 @@ class SettingsController extends AbstractController {
                     ",
                     "label" => "<input type='text' name='label' class='{$class} needed' value='{$category->getLabel()}' data-global-error='Libellé'/>",
                     "frequency" => "<select name='frequency' class='{$class} needed' data-global-error='Fréquences'>
-                                    {$frequencySelectContent}
-                                </select>",
+                        {$frequencySelectContent}
+                    </select>",
                 ];
             } else {
                 $data[] = [
@@ -1897,6 +1899,100 @@ class SettingsController extends AbstractController {
             $entity->setFrequency(null);
         }
 
+        $entityManager->remove($entity);
+        $entityManager->flush();
+
+        return $this->json([
+            "success" => true,
+            "msg" => "La ligne a bien été supprimée",
+        ]);
+    }
+
+    /**
+     * @Route("/mission-rules-api", name="settings_mission_rules_api", options={"expose"=true})
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK}, mode=HasPermission::IN_JSON)
+     */
+    public function missionRulesApi(Request $request, EntityManagerInterface $manager): Response {
+        $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
+        $data = [];
+        $missionRuleRepository = $manager->getRepository(InventoryMissionRule::class);
+
+        /** @var InventoryMissionRule $mission */
+        foreach ($missionRuleRepository->findAll() as $mission) {
+            if ($edit) {
+                $categories = Stream::from($mission->getCategories())
+                    ->map(fn(InventoryCategory $category) => "<option value='{$category->getId()}' selected>{$category->getLabel()}</option>")
+                    ->join("");
+
+                $periodicityWeeksSelected = $mission->getPeriodicityUnit() === InventoryMissionRule::WEEKS ? "selected" : "";
+                $periodicityMonthsSelected = $mission->getPeriodicityUnit() === InventoryMissionRule::MONTHS ? "selected" : "";
+                $durationWeeksSelected = $mission->getDurationUnit() === InventoryMissionRule::WEEKS ? "selected" : "";
+                $durationMonthsSelected = $mission->getDurationUnit() === InventoryMissionRule::MONTHS ? "selected" : "";
+
+                $data[] = [
+                    "actions" => "
+                        <button class='btn btn-silent delete-row w-50' data-id='{$mission->getId()}'>
+                            <i class='wii-icon wii-icon-trash text-primary'></i>
+                        </button>
+                        <input type='hidden' name='id' class='data' value='{$mission->getId()}'/>",
+                    "label" => "<input type='text' name='label' class='form-control data needed' value='{$mission->getLabel()}' data-global-error='Libellé'/>",
+                    "categories" => "<select name='categories' class='form-control data needed' data-s2='inventoryCategories' multiple data-parent='body' data-global-error='Catégorie(s)'>$categories</select>",
+                    "periodicity" => "
+                        <div class='d-flex'>
+                            <input type='text' name='periodicity' class='form-control data needed mr-1 w-50px' value='{$mission->getPeriodicity()}' data-global-error='Périodicité'/>
+                            <select name='periodicityUnit' class='form-control data needed maxw-150px' data-global-error='Unité de periodicité'>
+                                <option value='weeks' $periodicityWeeksSelected>semaine(s)</option>
+                                <option value='months' $periodicityMonthsSelected>mois(s)</option>
+                            </select>
+                        </div>
+                    ",
+                    "duration" => "
+                        <div class='d-flex'>
+                            <input type='text' name='duration' class='form-control data needed mr-1 w-50px' value='{$mission->getDuration()}' data-global-error='Durée'/>
+                            <select name='durationUnit' class='form-control data needed maxw-150px' data-global-error='Unité de durée'>
+                                <option value='weeks' $durationWeeksSelected>semaine(s)</option>
+                                <option value='months' $durationMonthsSelected>mois(s)</option>
+                            </select>
+                        </div>
+                    ",
+                ];
+            } else {
+                $data[] = [
+                    "actions" => "
+                        <button class='btn btn-silent delete-row' data-id='{$mission->getId()}'>
+                            <i class='wii-icon wii-icon-trash text-primary'></i>
+                        </button>
+                    ",
+                    "label" => $mission->getLabel(),
+                    "categories" => Stream::from($mission->getCategories())
+                        ->map(fn(InventoryCategory $category) => $category->getLabel())
+                        ->join(", "),
+                    "periodicity" => $mission->getPeriodicityUnit() === InventoryMissionRule::WEEKS ? "Toutes les {$mission->getPeriodicity()} semaines" : "Tous les {$mission->getPeriodicity()} mois",
+                    "duration" => $mission->getDurationUnit() === InventoryMissionRule::WEEKS ? "{$mission->getDuration()} semaine(s)" : "{$mission->getDuration()} mois",
+                ];
+            }
+        }
+
+        $data[] = [
+            "actions" => "<span class='d-flex justify-content-start align-items-center add-row'><span class='wii-icon wii-icon-plus'></span></span>",
+            "label" => "",
+            "categories" => "",
+            "periodicity" => "",
+            "duration" => "",
+        ];
+
+        return $this->json([
+            "data" => $data,
+            "recordsTotal" => count($data),
+            "recordsFiltered" => count($data),
+        ]);
+    }
+
+    /**
+     * @Route("/mission-rules/supprimer/{entity}", name="settings_delete_mission_rule", options={"expose"=true})
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK}, mode=HasPermission::IN_JSON)
+     */
+    public function deleteMissionRules(EntityManagerInterface $entityManager, InventoryMissionRule $entity): Response {
         $entityManager->remove($entity);
         $entityManager->flush();
 

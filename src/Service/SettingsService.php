@@ -12,6 +12,7 @@ use App\Entity\FieldsParam;
 use App\Entity\FreeField;
 use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Inventory\InventoryFrequency;
+use App\Entity\Inventory\InventoryMissionRule;
 use App\Entity\IOT\AlertTemplate;
 use App\Entity\IOT\CollectRequestTemplate;
 use App\Entity\IOT\DeliveryRequestTemplate;
@@ -456,7 +457,6 @@ class SettingsService {
             }
         }
 
-
         if (isset($tables["startingHours"])) {
             $userRepository = $this->manager->getRepository(Utilisateur::class);
             $editShift = function(TransportRoundStartingHour $shift, array $edition) use ($userRepository) {
@@ -527,9 +527,10 @@ class SettingsService {
         }
 
         if (isset($tables["categoriesTable"])) {
+            $frequenceRepository = $this->manager->getRepository(InventoryFrequency::class);
+            $categoryRepository = $this->manager->getRepository(InventoryCategory::class);
+
             foreach (array_filter($tables["categoriesTable"]) as $categoryData) {
-                $frequenceRepository = $this->manager->getRepository(InventoryFrequency::class);
-                $categoryRepository = $this->manager->getRepository(InventoryCategory::class);
                 $frequence = $frequenceRepository->find($categoryData['frequency']);
                 $category = isset($categoryData['categoryId'])
                     ? $categoryRepository->find($categoryData['categoryId'])
@@ -538,6 +539,34 @@ class SettingsService {
                 $category->setFrequency($frequence);
 
                 $this->manager->persist($category);
+            }
+        }
+
+        if (isset($tables["missionRulesTable"])) {
+            $missionRuleRepository = $this->manager->getRepository(InventoryMissionRule::class);
+            $categoryRepository = $this->manager->getRepository(InventoryCategory::class);
+
+            $missions = Stream::from($tables["missionRulesTable"])
+                ->filter()
+                ->map(fn($data) => [isset($data["id"]) ? $missionRuleRepository->find($data["id"]) : new InventoryMissionRule(), $data])
+                ->toArray();
+
+            $existingLabels = [];
+            foreach ($missions as [$rule, $ruleData]) {
+                if(in_array($ruleData["label"], $existingLabels)) {
+                    throw new RuntimeException("Le libellé de mission \"{$ruleData["label"]}\" est en doublon");
+                } else {
+                    $existingLabels[] = $ruleData["label"];
+                }
+
+                $rule->setLabel($ruleData["label"])
+                    ->setCategories($categoryRepository->findBy(["id" => explode(",", $ruleData["categories"])]))
+                    ->setPeriodicity($ruleData["periodicity"])
+                    ->setPeriodicityUnit($ruleData["periodicityUnit"])
+                    ->setDuration($ruleData["duration"])
+                    ->setDurationUnit($ruleData["durationUnit"]);
+
+                $this->manager->persist($rule);
             }
         }
 

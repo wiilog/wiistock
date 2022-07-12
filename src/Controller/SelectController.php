@@ -7,6 +7,7 @@ use App\Entity\CategoryType;
 use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
 use App\Entity\Fournisseur;
+use App\Entity\Inventory\InventoryCategory;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorWrapper;
@@ -545,8 +546,20 @@ class SelectController extends AbstractController {
      * @Route("/select/vehicles", name="ajax_select_vehicles", options={"expose": true})
      */
     public function vehicles(Request $request, EntityManagerInterface $entityManager): Response {
-        $search = $request->query->get('term');
+        $search = $request->query->get("term");
         $vehicles = $entityManager->getRepository(Vehicle::class)->getForSelect($search);
+
+        return $this->json([
+            "results" => $vehicles
+        ]);
+    }
+
+    /**
+     * @Route("/select/categories-inventaire", name="ajax_select_inventory_categories", options={"expose": true})
+     */
+    public function inventoryCategories(Request $request, EntityManagerInterface $entityManager): Response {
+        $search = $request->query->get("term");
+        $vehicles = $entityManager->getRepository(InventoryCategory::class)->getForSelect($search);
 
         return $this->json([
             "results" => $vehicles
