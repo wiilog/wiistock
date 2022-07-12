@@ -768,6 +768,29 @@ class RefArticleDataService {
         $referenceArticle->setQuantiteDisponible($referenceArticle->getQuantiteStock() - $referenceArticle->getQuantiteReservee());
     }
 
+    public function updateInventoryStatus(EntityManagerInterface $entityManager, ReferenceArticle $referenceArticle) {
+        $category = $referenceArticle->getCategory();
+        if ($category) {
+            $frequency = $category->getFrequency();
+            $articlesRepository = $entityManager->getRepository(Article::class);
+            $articles = $articlesRepository->findActiveArticles($referenceArticle);
+            $now = new DateTime();
+            $oldestInventoryDate = null;
+
+            foreach ($articles as $article) {
+                $inventoryDate = $article->getDateLastInventory();
+                $oldestInventoryDate = !$oldestInventoryDate
+                    ? $inventoryDate
+                    : ($inventoryDate < $oldestInventoryDate
+                        ? $inventoryDate
+                        : $oldestInventoryDate
+                    );
+            }
+            $diff = $oldestInventoryDate->diff($now);
+            $referenceArticle->setUpToDateInventory($diff->m < $frequency->getNbMonths());
+        }
+    }
+
     private function updateStockQuantity(EntityManagerInterface $entityManager, ReferenceArticle $referenceArticle): void {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
