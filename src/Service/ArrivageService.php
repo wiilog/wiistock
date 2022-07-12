@@ -305,7 +305,7 @@ class ArrivageService {
             $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED)
             || $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_NS);
 
-        $isUrgentArrival = false;
+        $allEmergencyMatching = [];
 
         if (!empty($numeroCommandeList)) {
             foreach ($numeroCommandeList as $numeroCommande) {
@@ -319,8 +319,7 @@ class ArrivageService {
                 if (!empty($urgencesMatching)) {
                     if (!$isSEDCurrentClient) {
                         $this->setArrivalUrgent($arrival, $urgencesMatching);
-                        $isUrgentArrival = true;
-                        break;
+                        $allMatchingEmergencies = array_merge($allEmergencyMatching, $urgencesMatching);
                     } else {
                         $currentAlertConfig = array_map(function (Urgence $urgence) use ($arrival, $isSEDCurrentClient) {
                             return $this->createArrivalAlertConfig(
@@ -335,11 +334,13 @@ class ArrivageService {
             }
         }
 
-        if ($isUrgentArrival && !empty($urgencesMatching)) {
+        if (!$isSEDCurrentClient
+            && $arrival->getIsUrgent()
+            && !empty($allMatchingEmergencies)) {
             $alertConfigs[] = $this->createArrivalAlertConfig(
                 $arrival,
                 false,
-                $urgencesMatching
+                $allMatchingEmergencies
             );
         }
 
