@@ -386,11 +386,14 @@ class TrackingMovementController extends AbstractController
             ]);
         }
         $mvt = $trackingMovementRepository->find($post->get('id'));
-        if ($userService->hasRightFunction(Menu::TRACA, Action::FULLY_EDIT_TRACKING_MOVEMENTS)) {
+        $pack = $mvt->getPack();
+        if ($userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_MOUV)) {
+            $pack->setCode($post->get('pack'));
+            $entityManager->flush();
             /** @var TrackingMovement $new */
             $new = $trackingMovementService->persistTrackingMovement(
                 $entityManager,
-                $post->get('pack'),
+                $pack,
                 $location,
                 $operator,
                 new DateTime($post->get('date')),
@@ -398,11 +401,10 @@ class TrackingMovementController extends AbstractController
                 $action,
                 false,
             )['movement'];
-            $entityManager->persist($mvt);
-            foreach ($mvt->getAttachments() as $attachment) {
-                $new->addAttachment($attachment);
-            }
 
+            $trackingMovementService->manageLinksForClonedMovement($mvt, $new);
+
+            $entityManager->persist($new);
             $entityManager->remove($mvt);
             $entityManager->flush();
 

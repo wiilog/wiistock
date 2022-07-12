@@ -22,6 +22,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
+use Google\Service\AndroidPublisher\Track;
 use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use WiiCommon\Helper\Stream;
@@ -846,6 +847,21 @@ class TrackingMovementService
                 }
             }
         }
+    }
+
+    public function manageLinksForClonedMovement(TrackingMovement $from, TrackingMovement $to) {
+        $to
+            ->setArrivage($from->getArrivage())
+            ->setDispatch($from->getDispatch())
+            ->setReception($from->getReception())
+            ->setReceptionReferenceArticle($from->getReceptionReferenceArticle())
+            ->setMouvementStock($from->getMouvementStock());
+
+        foreach ($from->getAttachments() as $attachment) {
+            $to->addAttachment($attachment);
+        }
+        return $to;
+
     }
 
     public function persistTrackingMovement(EntityManagerInterface $entityManager,
