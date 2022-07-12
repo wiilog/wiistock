@@ -3,8 +3,10 @@
 namespace App\Service;
 
 use App\Entity\Article;
+use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Inventory\InventoryEntry;
 use App\Entity\Inventory\InventoryMission;
+use App\Entity\Inventory\InventoryMissionRule;
 use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
@@ -14,13 +16,19 @@ use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Service\Attribute\Required;
+use WiiCommon\Helper\Stream;
 
 class InventoryService {
 
     #[Required]
     public EntityManagerInterface $entityManager;
 
-    public function doTreatAnomaly(int $idEntry, string $barCode, bool $isRef, int $newQuantity, string $comment, Utilisateur $user): array {
+    public function doTreatAnomaly(int         $idEntry,
+                                   string      $barCode,
+                                   bool        $isRef,
+                                   int         $newQuantity,
+                                   string      $comment,
+                                   Utilisateur $user): array {
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $this->entityManager->getRepository(Article::class);
         $inventoryEntryRepository = $this->entityManager->getRepository(InventoryEntry::class);
@@ -41,7 +49,11 @@ class InventoryService {
         $diff = ($newQuantity - $quantity);
 
         if ($diff != 0) {
-            $statusRequired = $isRef ? [ReferenceArticle::STATUT_ACTIF] : [Article::STATUT_ACTIF, Article::STATUT_EN_LITIGE];
+            $statusRequired = $isRef
+                ? [ReferenceArticle::STATUT_ACTIF]
+                : [
+                    Article::STATUT_ACTIF, Article::STATUT_EN_LITIGE,
+                ];
             if (!in_array($refOrArt->getStatut()->getCode(), $statusRequired)) {
                 throw new ArticleNotAvailableException();
             }
@@ -86,7 +98,7 @@ class InventoryService {
         $allEntriesToTreat = $inventoryEntryRepository->findBy([
             'refArticle' => $entry->getRefArticle(),
             'article' => $entry->getArticle(),
-            'anomaly' => true
+            'anomaly' => true,
         ]);
 
         $treatedEntries = [];
@@ -107,7 +119,9 @@ class InventoryService {
         ];
     }
 
-    public function isInMissionInSamePeriod(ReferenceArticle|Article $refOrArticle, InventoryMission $mission, bool $isRef): bool {
+    public function isInMissionInSamePeriod(ReferenceArticle|Article $refOrArticle,
+                                            InventoryMission         $mission,
+                                            bool                     $isRef): bool {
         $inventoryMissionRepository = $this->entityManager->getRepository(InventoryMission::class);
         $beginDate = clone ($mission->getStartPrevDate())->setTime(0, 0, 0);
         $endDate = clone ($mission->getEndPrevDate())->setTime(23, 59, 59);
@@ -119,6 +133,113 @@ class InventoryService {
         }
 
         return $nbMissions > 0;
+    }
+
+    public function generateMissions() {
+        $rules = $this->entityManager->getRepository(InventoryMissionRule::class)->findAll();
+
+        $now = new DateTime();
+        $now->setTime(0, 0);
+
+        $firstSundayThisMonth = new DateTime("first sunday of {$now->format("Y")}-{$now->format("m")}");
+        $firstSundayThisMonth->setTime(0, 0);
+
+        $isFirstSunday = $firstSundayThisMonth == $now;
+        foreach ($rules as $rule) {
+            $nextRun = null;
+            if($rule->getLastRun()) {
+                $nextRun = clone $rule->getLastRun();
+                $nextRun->modify("+{$rule->getPeriodicity()} {$rule->getPeriodicityUnit()}");
+                $nextRun->setTime(0, 0);
+            }
+
+            if($rule->getPeriodicityUnit() === InventoryMissionRule::MONTHS && !$isFirstSunday
+                || $nextRun && $nextRun > $now) {
+                continue;
+            }
+
+            $rule->setLastRun($now);
+
+            $this->createMission($rule);
+        }
+    }
+
+    public function createMission(InventoryMissionRule $rule) {
+        $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
+        $articleRepository = $this->entityManager->getRepository(Article::class);
+
+        $mission = new InventoryMission();
+        $mission->setName($rule->getLabel());
+        $mission->setStartPrevDate(new DateTime("tomorrow"));
+        $mission->setEndPrevDate(new DateTime("tomorrow +{$rule->getDuration()} {$rule->getDurationUnit()}"));
+        $mission->setCreator($rule);
+
+        $frequencies = Stream::from($rule->getCategories())
+            ->map(fn(InventoryCategory $category) => $category->getFrequency())
+            ->toArray();
+
+        $this->entityManager->persist($mission);
+
+        foreach ($frequencies as $frequency) {
+            // récupération des réf et articles à inventorier (fonction date dernier inventaire)
+            $referencesToInventory = $referenceArticleRepository->iterateReferencesToInventory($frequency,
+                $mission);
+            $articlesToInventory = $articleRepository->iterateArticlesToInventory($frequency, $mission);
+
+            $treated = 0;
+
+            foreach ($referencesToInventory as $reference) {
+                $reference->addInventoryMission($mission);
+                $treated++;
+                if ($treated >= 500) {
+                    $treated = 0;
+                    $this->entityManager->flush();
+                }
+            }
+
+            $treated = 0;
+            $this->entityManager->flush();
+
+            /** @var Article $article */
+            foreach ($articlesToInventory as $article) {
+                $article->addInventoryMission($mission);
+                $treated++;
+                if ($treated >= 500) {
+                    $treated = 0;
+                    $this->entityManager->flush();
+                }
+            }
+
+            $this->entityManager->flush();
+
+            // lissage des réf et articles jamais inventoriés
+            $nbRefAndArtToInv = $referenceArticleRepository->countActiveByFrequencyWithoutDateInventory($frequency);
+            $nbToInv = $nbRefAndArtToInv['nbRa'] + $nbRefAndArtToInv['nbA'];
+
+            $limit = (int) ($nbToInv / ($frequency->getNbMonths() * 4));
+
+            $listRefNextMission = $referenceArticleRepository->findActiveByFrequencyWithoutDateInventoryOrderedByEmplacementLimited($frequency,
+                $limit / 2);
+            $listArtNextMission = $articleRepository->findActiveByFrequencyWithoutDateInventoryOrderedByEmplacementLimited($frequency,
+                $limit / 2);
+
+            /** @var ReferenceArticle $ref */
+            foreach ($listRefNextMission as $ref) {
+                $alreadyInMission = $this->isInMissionInSamePeriod($ref, $mission, true);
+                if (!$alreadyInMission) {
+                    $ref->addInventoryMission($mission);
+                }
+            }
+            /** @var Article $art */
+            foreach ($listArtNextMission as $art) {
+                $alreadyInMission = $this->isInMissionInSamePeriod($art, $mission, false);
+                if (!$alreadyInMission) {
+                    $art->addInventoryMission($mission);
+                }
+            }
+
+            $this->entityManager->flush();
+        }
     }
 
 }

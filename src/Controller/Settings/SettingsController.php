@@ -37,6 +37,7 @@ use App\Repository\IOT\RequestTemplateRepository;
 use App\Repository\SettingRepository;
 use App\Repository\TypeRepository;
 use App\Service\CacheService;
+use App\Service\InventoryService;
 use App\Service\PackService;
 use App\Service\SettingsService;
 use App\Service\SpecificService;
@@ -1867,6 +1868,22 @@ class SettingsController extends AbstractController {
         return $this->json([
             "success" => true,
             "msg" => "La ligne a bien été supprimée",
+        ]);
+    }
+
+    /**
+     * @Route("/mission-rules-force", name="settings_mission_rules_force", options={"expose"=true})
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK}, mode=HasPermission::IN_JSON)
+     */
+    public function missionRulesForce(EntityManagerInterface $manager, InventoryService $inventoryService): Response {
+        $rules = $manager->getRepository(InventoryMissionRule::class)->findAll();
+
+        foreach($rules as $rule) {
+            $inventoryService->createMission($rule);
+        }
+
+        return $this->json([
+            "success" => true,
         ]);
     }
 

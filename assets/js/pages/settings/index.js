@@ -767,7 +767,13 @@ function initializeInventoryCategoriesTable(){
     });
 }
 
-function initializeInventoryMissionsTable(){
+function initializeInventoryMissionsTable($container){
+    $container.on(`click`, `.force-missions`, function() {
+        AJAX.route(`POST`, `settings_mission_rules_force`)
+            .json()
+            .then(() => Flash.add(`success`, `Les missions d'inventaire ont été générées`));
+    });
+
     const table = EditableDatatable.create(`#missionRulesTable`, {
         route: Routing.generate('settings_mission_rules_api', true),
         deleteRoute: `settings_delete_mission_rule`,

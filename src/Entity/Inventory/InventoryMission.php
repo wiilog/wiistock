@@ -36,6 +36,9 @@ class InventoryMission {
     #[ORM\ManyToMany(targetEntity: Article::class, mappedBy: 'inventoryMissions')]
     private Collection $articles;
 
+    #[ORM\ManyToOne(targetEntity: InventoryMissionRule::class, inversedBy: 'createdMissions')]
+    private InventoryMissionRule $creator;
+
     public function __construct() {
         $this->refArticles = new ArrayCollection();
         $this->entries = new ArrayCollection();
@@ -148,6 +151,18 @@ class InventoryMission {
 
     public function setName(string $name): self {
         $this->name = $name;
+
+        return $this;
+    }
+
+    public function getCreator(): ?InventoryMissionRule
+    {
+        return $this->creator;
+    }
+
+    public function setCreator(?InventoryMissionRule $creator): self
+    {
+        $this->creator = $creator;
 
         return $this;
     }

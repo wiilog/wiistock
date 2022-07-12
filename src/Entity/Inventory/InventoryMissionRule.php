@@ -3,6 +3,7 @@
 namespace App\Entity\Inventory;
 
 use App\Repository\Inventory\InventoryMissionRuleRepository;
+use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -36,8 +37,15 @@ class InventoryMissionRule {
     #[ORM\Column(type: 'string', length: 255)]
     private ?string $durationUnit = null;
 
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?DateTime $lastRun = null;
+
+    #[ORM\OneToMany(mappedBy: 'creator', targetEntity: InventoryMission::class)]
+    private Collection $createdMissions;
+
     public function __construct() {
         $this->categories = new ArrayCollection();
+        $this->createdMissions = new ArrayCollection();
     }
 
     public function __toString(): string {
@@ -127,6 +135,45 @@ class InventoryMissionRule {
 
     public function setDurationUnit(string $durationUnit): self {
         $this->durationUnit = $durationUnit;
+
+        return $this;
+    }
+
+    public function getLastRun(): ?DateTime {
+        return $this->lastRun;
+    }
+
+    public function setLastRun(?DateTime $lastRun): self {
+        $this->lastRun = $lastRun;
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, InventoryMission>
+     */
+    public function getCreatedMissions(): Collection
+    {
+        return $this->createdMissions;
+    }
+
+    public function addCreatedMission(InventoryMission $createdMission): self
+    {
+        if (!$this->createdMissions->contains($createdMission)) {
+            $this->createdMissions[] = $createdMission;
+            $createdMission->setCreator($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCreatedMission(InventoryMission $createdMission): self
+    {
+        if ($this->createdMissions->removeElement($createdMission)) {
+            // set the owning side to null (unless already changed)
+            if ($createdMission->getCreator() === $this) {
+                $createdMission->setCreator(null);
+            }
+        }
 
         return $this;
     }
