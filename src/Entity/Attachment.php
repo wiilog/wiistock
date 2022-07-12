@@ -4,6 +4,8 @@ namespace App\Entity;
 
 use App\Entity\Transport\TransportOrder;
 use App\Repository\AttachmentRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: AttachmentRepository::class)]
@@ -33,10 +35,6 @@ class Attachment {
     #[ORM\JoinColumn(name: 'dispute_id', referencedColumnName: 'id', onDelete: 'CASCADE', nullable: true)]
     private ?Dispute $dispute = null;
 
-    #[ORM\ManyToOne(targetEntity: TrackingMovement::class, inversedBy: 'attachements')]
-    #[ORM\JoinColumn(name: 'mvt_traca_id', referencedColumnName: 'id', onDelete: 'CASCADE', nullable: true)]
-    private ?TrackingMovement $trackingMovement = null;
-
     #[ORM\OneToOne(targetEntity: Import::class, mappedBy: 'csvFile')]
     private ?Import $importCsv = null;
 
@@ -56,6 +54,14 @@ class Attachment {
 
     #[ORM\OneToOne(mappedBy: 'signature', targetEntity: TransportOrder::class)]
     private ?TransportOrder $transportOrder = null;
+
+    #[ORM\ManyToMany(targetEntity: TrackingMovement::class, inversedBy: 'attachments')]
+    private Collection $trackingMovements;
+
+    public function __construct()
+    {
+        $this->trackingMovements = new ArrayCollection();
+    }
 
     public function getId(): ?int {
         return $this->id;
@@ -131,16 +137,6 @@ class Attachment {
         return $this;
     }
 
-    public function getTrackingMovement(): ?TrackingMovement {
-        return $this->trackingMovement;
-    }
-
-    public function setTrackingMovement(?TrackingMovement $trackingMovement): self {
-        $this->trackingMovement = $trackingMovement;
-
-        return $this;
-    }
-
     public function getImportLog(): ?Import {
         return $this->importLog;
     }
@@ -177,6 +173,30 @@ class Attachment {
 
     public function setTransportOrder(?TransportOrder $transportOrder): self {
         $this->transportOrder = $transportOrder;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, TrackingMovement>
+     */
+    public function getTrackingMovements(): Collection
+    {
+        return $this->trackingMovements;
+    }
+
+    public function addTrackingMovement(TrackingMovement $trackingMovement): self
+    {
+        if (!$this->trackingMovements->contains($trackingMovement)) {
+            $this->trackingMovements[] = $trackingMovement;
+        }
+
+        return $this;
+    }
+
+    public function removeTrackingMovement(TrackingMovement $trackingMovement): self
+    {
+        $this->trackingMovements->removeElement($trackingMovement);
 
         return $this;
     }

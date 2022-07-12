@@ -64,9 +64,6 @@ class TrackingMovement {
     #[ORM\Column(type: 'text', nullable: true)]
     private $commentaire;
 
-    #[ORM\OneToMany(targetEntity: Attachment::class, mappedBy: 'trackingMovement')]
-    private $attachements;
-
     #[ORM\Column(type: 'boolean', nullable: true)]
     private $finished;
 
@@ -115,11 +112,14 @@ class TrackingMovement {
     #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: 'childTrackingMovements')]
     private ?Pack $packParent = null;
 
+    #[ORM\ManyToMany(targetEntity: Attachment::class, mappedBy: 'trackingMovements')]
+    private Collection $attachments;
+
     public function __construct() {
         $this->quantity = 1;
-        $this->attachements = new ArrayCollection();
         $this->firstDropRecords = new ArrayCollection();
         $this->lastTrackingRecords = new ArrayCollection();
+        $this->attachments = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -152,34 +152,6 @@ class TrackingMovement {
 
     public function setEmplacement(?Emplacement $emplacement): self {
         $this->emplacement = $emplacement;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|Attachment[]
-     */
-    public function getAttachments(): Collection {
-        return $this->attachements;
-    }
-
-    public function addAttachment(Attachment $attachment): self {
-        if(!$this->attachements->contains($attachment)) {
-            $this->attachements[] = $attachment;
-            $attachment->setTrackingMovement($this);
-        }
-
-        return $this;
-    }
-
-    public function removeAttachment(Attachment $attachement): self {
-        if($this->attachements->contains($attachement)) {
-            $this->attachements->removeElement($attachement);
-            // set the owning side to null (unless already changed)
-            if($attachement->getTrackingMovement() === $this) {
-                $attachement->setTrackingMovement(null);
-            }
-        }
 
         return $this;
     }
@@ -461,6 +433,33 @@ class TrackingMovement {
 
         if($packParent) {
             $packParent->addChildTrackingMovement($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Attachment>
+     */
+    public function getAttachments(): Collection
+    {
+        return $this->attachments;
+    }
+
+    public function addAttachment(Attachment $attachment): self
+    {
+        if (!$this->attachments->contains($attachment)) {
+            $this->attachments[] = $attachment;
+            $attachment->addTrackingMovement($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAttachment(Attachment $attachment): self
+    {
+        if ($this->attachments->removeElement($attachment)) {
+            $attachment->removeTrackingMovement($this);
         }
 
         return $this;

@@ -308,6 +308,7 @@ class TrackingMovementService
         $uniqueIdForMobile = $options['uniqueIdForMobile'] ?? null;
         $natureId = $options['natureId'] ?? null;
         $disableUngrouping = $options['disableUngrouping'] ?? false;
+        $attachments = $options['attachments'] ?? null;
 
         /** @var Pack|null $parent */
         $parent = $options['parent'] ?? null;
@@ -326,6 +327,12 @@ class TrackingMovementService
             ->setType($type)
             ->setMouvementStock($mouvementStock)
             ->setCommentaire(!empty($commentaire) ? $commentaire : null);
+
+        if ($attachments) {
+            ForEach($attachments as $attachment) {
+                $tracking->addAttachment($attachment);
+            };
+        }
 
         $pack->addTrackingMovement($tracking);
 
