@@ -33,7 +33,7 @@ class UserController extends AbstractController {
 
     /**
      * @Route("/api-modifier", name="user_api_edit", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_USERS}, mode=HasPermission::IN_JSON)
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_USERS}, mode=HasPermission::IN_JSON)
      */
     public function editApi(Request $request,
                             EntityManagerInterface $entityManager): Response
@@ -57,7 +57,7 @@ class UserController extends AbstractController {
 
     /**
      * @Route("/api", name="user_api",  options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_USERS}, mode=HasPermission::IN_JSON)
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_USERS}, mode=HasPermission::IN_JSON)
      */
     public function api(Request $request,
                         UserService $userService): Response
@@ -69,7 +69,7 @@ class UserController extends AbstractController {
 
     /**
      * @Route("/verification", name="user_check_delete", options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_USERS}, mode=HasPermission::IN_JSON)
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_USERS}, mode=HasPermission::IN_JSON)
      */
     public function checkUserCanBeDeleted(Request $request,
                                           UserService $userService,
@@ -109,7 +109,7 @@ class UserController extends AbstractController {
 
     /**
      * @Route("/supprimer", name="user_delete", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_USERS}, mode=HasPermission::IN_JSON)
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_USERS}, mode=HasPermission::IN_JSON)
      */
     public function delete(Request $request,
                            UserService $userService,
@@ -381,7 +381,7 @@ class UserController extends AbstractController {
 
     /**
      * @Route("/creer", name="user_new",  options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_USERS}, mode=HasPermission::IN_JSON)
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_USERS}, mode=HasPermission::IN_JSON)
      */
     public function new(Request $request,
                         UserPasswordHasherInterface $encoder,

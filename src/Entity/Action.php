@@ -113,16 +113,55 @@ class Action {
     const DISPLAY_TRIGGER = 'afficher actionneurs';
     const DISPLAY_PAIRING = 'afficher associations';
     // menu paramétrage
-    const SETTINGS_GLOBAL = 'afficher paramétrage global';
-    const SETTINGS_STOCK = 'afficher stock';
-    const SETTINGS_TRACING = 'afficher trace';
-    const SETTINGS_TRACKING = 'afficher track';
-    const SETTINGS_MOBILE = 'afficher terminal mobile';
-    const SETTINGS_DASHBOARDS = 'afficher dashboards';
-    const SETTINGS_IOT = 'afficher iot';
-    const SETTINGS_NOTIFICATIONS = 'afficher modèles de notifications';
-    const SETTINGS_USERS = 'afficher utilisateurs';
-    const SETTINGS_DATA = 'afficher données';
+
+
+    const SETTINGS_DISPLAY_WEBSITE_APPEARANCE = 'afficher apparence du site';
+    const SETTINGS_DISPLAY_APPLICATION_CLIENT = 'afficher client application';
+    const SETTINGS_DISPLAY_BILL = 'afficher étiquettes';
+    const SETTINGS_DISPLAY_WORKING_HOURS = 'afficher heures travaillées';
+    const SETTINGS_DISPLAY_NOT_WORKING_DAYS = 'afficher jours non travaillés';
+    const SETTINGS_DISPLAY_MAIL_SERVER = 'afficher serveur mail';
+
+    const SETTINGS_DISPLAY_CONFIGURATIONS = 'afficher configurations';
+    const SETTINGS_DISPLAY_STOCK_ALERTS = 'afficher alertes';
+    const SETTINGS_DISPLAY_ARTICLES = 'afficher articles';
+    const SETTINGS_DISPLAY_TACTILE_TERMINAL = 'afficher borne tactile';
+    const SETTINGS_DISPLAY_REQUESTS = 'afficher demandes';
+    const SETTINGS_DISPLAY_VISIBILITY_GROUPS = 'afficher groupes de visibilité';
+    const SETTINGS_DISPLAY_INVENTORIES = 'afficher inventaires';
+    const SETTINGS_DISPLAY_RECEP = 'afficher réceptions';
+
+    const SETTINGS_DISPLAY_TRACING_DISPATCH = 'afficher acheminements';
+    const SETTINGS_DISPLAY_ARRI = 'afficher arrivages';
+    const SETTINGS_DISPLAY_MOVEMENT = 'afficher mouvements';
+    const SETTINGS_DISPLAY_TRACING_HAND = 'afficher services';
+
+    const SETTINGS_DISPLAY_TRACK_REQUESTS = 'afficher demandes';
+    const SETTINGS_DISPLAY_ROUND = 'afficher tournées';
+    const SETTINGS_DISPLAY_TEMPERATURES = 'afficher températures';
+
+
+    const SETTINGS_DISPLAY_MOBILE_DISPATCH = 'afficher acheminements';
+    const SETTINGS_DISPLAY_MOBILE_HAND = 'afficher services';
+    const SETTINGS_DISPLAY_TRANSFER_TO_TREAT = 'afficher transferts à traiter';
+    const SETTINGS_DISPLAY_PREPA = 'afficher préparations';
+    const SETTINGS_DISPLAY_MANAGE_VALIDATIONS = 'afficher gestion des validations';
+
+    const SETTINGS_DISPLAY_DASHBOARD = 'afficher Dashboard';
+
+    const SETTINGS_DISPLAY_IOT = 'afficher iot';
+
+    const SETTINGS_DISPLAY_NOTIFICATIONS_ALERTS = 'afficher alertes';
+    const SETTINGS_DISPLAY_NOTIFICATIONS_PUSH = 'afficher Notifications push';
+
+    const SETTINGS_DISPLAY_LABELS_PERSO = 'afficher personnalisation des libellés';
+    const SETTINGS_DISPLAY_ROLES = 'afficher rôles';
+    const SETTINGS_DISPLAY_USERS = 'afficher utilisateurs';
+
+    const SETTINGS_DISPLAY_EXPORT = 'afficher export CSV';
+    const SETTINGS_DISPLAY_IMPORTS_MAJS = 'afficher imports & mises à jour';
+    const SETTINGS_DISPLAY_INVENTORIES_IMPORT = "afficher imports d'inventaires";
+
     // menu nomade
     const MODULE_ACCESS_STOCK = 'Accès Stock';
     const MODULE_ACCESS_TRACA = 'Accès Traçabilité';

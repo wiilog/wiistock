@@ -188,7 +188,7 @@
                     and app.user is defined
                     and app.user
                     and app.user.username is defined %}
-                    {% if hasRight(constant('App\\Entity\\Menu::PARAM'), constant('App\\Entity\\Action::SETTINGS_USERS')) %}
+                    {% if hasRight(constant('App\\Entity\\Menu::PARAM'), constant('App\\Entity\\Action::SETTINGS_DISPLAY_USERS')) %}
                         <a class="col col-lg-auto user d-flex align-items-center"
                            href="{{ path('settings_item', {
                                'category': constant('App\\Controller\\Settings\\SettingsController::CATEGORY_USERS'),

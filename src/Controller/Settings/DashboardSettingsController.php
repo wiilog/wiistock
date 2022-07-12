@@ -34,7 +34,7 @@ class DashboardSettingsController extends AbstractController {
 
     /**
      * @Route("/", name="dashboard_settings", methods={"GET"})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_DASHBOARDS})
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_DASHBOARD})
      */
     public function settings(DashboardSettingsService $dashboardSettingsService,
                              EntityManagerInterface $entityManager): Response {
@@ -75,7 +75,7 @@ class DashboardSettingsController extends AbstractController {
 
     /**
      * @Route("/save", name="save_dashboard_settings", options={"expose"=true}, methods={"POST"})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_DASHBOARDS}, mode=HasPermission::IN_JSON)
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_DASHBOARD}, mode=HasPermission::IN_JSON)
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @param DashboardSettingsService $dashboardSettingsService
@@ -123,7 +123,7 @@ class DashboardSettingsController extends AbstractController {
 
     /**
      * @Route("/api-component-type/{componentType}", name="dashboard_component_type_form", methods={"POST"}, options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_DASHBOARDS}, mode=HasPermission::IN_JSON)
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_DASHBOARD}, mode=HasPermission::IN_JSON)
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @param Dashboard\ComponentType $componentType
@@ -333,7 +333,7 @@ class DashboardSettingsController extends AbstractController {
 
     /**
      * @Route("/api-component-type/{componentType}/example-values", name="dashboard_component_type_example_values", methods={"POST"}, options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_DASHBOARDS}, mode=HasPermission::IN_JSON)
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_DASHBOARD}, mode=HasPermission::IN_JSON)
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @param DashboardSettingsService $dashboardSettingsService

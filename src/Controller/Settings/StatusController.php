@@ -35,7 +35,6 @@ class StatusController extends AbstractController
 
     /**
      * @Route("/statuses-api", name="settings_statuses_api", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK})
      */
     public function statusesApi(Request                $request,
                                 UserService            $userService,
@@ -59,8 +58,11 @@ class StatusController extends AbstractController
         }
 
         $hasAccess = match($mode) {
-            self::MODE_ARRIVAL_DISPUTE, self::MODE_ARRIVAL, self::MODE_DISPATCH, self::MODE_HANDLING => $userService->hasRightFunction(Menu::PARAM, Action::SETTINGS_TRACING),
-            self::MODE_RECEPTION_DISPUTE, self::MODE_PURCHASE_REQUEST => $userService->hasRightFunction(Menu::PARAM, Action::SETTINGS_STOCK)
+            self::MODE_ARRIVAL_DISPUTE, self::MODE_ARRIVAL => $userService->hasRightFunction(Menu::PARAM, Action::SETTINGS_DISPLAY_ARRI),
+            self::MODE_DISPATCH => $userService->hasRightFunction(Menu::PARAM, Action::SETTINGS_DISPLAY_TRACING_DISPATCH),
+            self::MODE_HANDLING => $userService->hasRightFunction(Menu::PARAM, Action::SETTINGS_DISPLAY_TRACING_HAND),
+            self::MODE_RECEPTION_DISPUTE => $userService->hasRightFunction(Menu::PARAM, Action::SETTINGS_DISPLAY_RECEP),
+            self::MODE_PURCHASE_REQUEST => $userService->hasRightFunction(Menu::PARAM, Action::SETTINGS_DISPLAY_REQUESTS)
         };
 
         if (!$hasAccess) {
