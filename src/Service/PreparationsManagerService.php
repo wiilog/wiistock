@@ -18,6 +18,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Exceptions\NegativeQuantityException;
+use App\Repository\MouvementStockRepository;
 use App\Repository\PreparationOrder\PreparationOrderArticleLineRepository;
 use App\Repository\StatutRepository;
 use DateTime;
@@ -98,6 +99,24 @@ class PreparationsManagerService
                 if (isset($emplacement)) {
                     $mouvement->setEmplacementTo($emplacement);
                 }
+            }
+        }
+    }
+
+    public function handlePreparationTreatMovements(MouvementStockRepository $mouvementStockRepository, Preparation $preparation, Livraison $livraison, ?Emplacement $locationEndPrepa) {
+        $mouvements = $mouvementStockRepository->findByPreparation($preparation);
+        foreach ($mouvements as $mouvement) {
+            if ($mouvement->getType() === MouvementStock::TYPE_TRANSFER) {
+                $this->createMouvementLivraison(
+                    $mouvement->getQuantity(),
+                    $this->getUser(),
+                    $livraison,
+                    !empty($mouvement->getRefArticle()),
+                    $mouvement->getRefArticle() ?? $mouvement->getArticle(),
+                    $preparation,
+                    false,
+                    $locationEndPrepa
+                );
             }
         }
     }
@@ -299,6 +318,7 @@ class PreparationsManagerService
                     ->setQuantity($mouvementQuantity);
             }
         }
+        return $mouvement;
     }
 
     public function deleteLigneRefOrNot(?PreparationOrderReferenceLine $ligne, Preparation $preparation, EntityManagerInterface $entityManager)

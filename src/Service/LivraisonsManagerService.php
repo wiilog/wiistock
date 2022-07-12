@@ -90,6 +90,7 @@ class LivraisonsManagerService
         return $this;
     }
 
+
     public function finishLivraison(Utilisateur $user,
                                     Livraison $livraison,
                                     DateTime $dateEnd,
