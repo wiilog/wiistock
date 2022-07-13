@@ -206,7 +206,6 @@ function onStatusStateChange($select) {
     if (disabledNeedMobileSync) {
         $needMobileSync.prop('checked', false);
     }
-console.log($select
-    .find(`option[value=${$select.val()}]`)[0].outerHTML, $select.val(), disabledAutomaticReceptionCreation);
+
     $automaticReceptionCreation.toggleClass(`d-none`, Boolean(disabledAutomaticReceptionCreation));
 }

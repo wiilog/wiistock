@@ -527,7 +527,6 @@ function articleChanged($select) {
     const $addArticleAndRedirectSubmit = $(`#addArticleLigneSubmitAndRedirect`);
     const $addArticleLigneSubmit = $(`#addArticleLigneSubmit`);
 
-    console.log(selectedReference);
     if (selectedReference.length > 0) {
         const {typeQuantity, urgent, emergencyComment} = selectedReference[0];
 
