@@ -208,6 +208,8 @@ function initPageModals() {
             $select.append(new Option(label, reference, true, true));
             $select.trigger(`change`);
 
+            $modalAddLigneArticle.find(`#addArticleLigneSubmitAndRedirect`).removeClass(`d-none`);
+
             setTimeout(() => SetRequestQuery({}), 1);
         }
     });
