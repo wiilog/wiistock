@@ -113,13 +113,13 @@ class Entity {
         return $this;
     }
 
-    public function setExamples(?array $examples): self {
+    public function setExamples(?iterable $examples): self {
         foreach($this->getExamples()->toArray() as $example) {
             $this->removeExample($example);
         }
 
         $this->examples = new ArrayCollection();
-        foreach($examples as $example) {
+        foreach($examples ?? [] as $example) {
             $this->addExample($example);
         }
         
@@ -160,13 +160,13 @@ class Entity {
         return $this;
     }
 
-    public function setExamples(?array $examples): self {
+    public function setExamples(?iterable $examples): self {
         foreach($this->getExamples()->toArray() as $example) {
             $this->removeExample($example);
         }
 
         $this->examples = new ArrayCollection();
-        foreach($examples as $example) {
+        foreach($examples ?? [] as $example) {
             $this->addExample($example);
         }
         

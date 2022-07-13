@@ -14,16 +14,18 @@
         <aside class="col-xl-3 col-4 d-flex">
             <div class="wii-box flex-fill">
                 {% for key, item in parent.menus %}
-                    {% if item.environment is not defined or app.environment in item.environment %}
-                        {% if item.route is defined or item.menus is defined %}
-                            <a href="{{ path(item.route is defined ? item.route : 'settings_item', item.route is not defined ? {category, menu: key} : []) }}"
-                               class="settings-item">
-                                {{ item.label }}
-                            </a>
-                        {% else %}
-                            <div class="settings-item {{ key == selected ? 'selected' }}" data-menu="{{ key }}">
-                                {{ item.label }}
-                            </div>
+                    {% if item.right is not defined or hasRight(constant('App\\Entity\\Menu::PARAM'), item.right)  %}
+                        {% if item.environment is not defined or app.environment in item.environment %}
+                            {% if item.route is defined or item.menus is defined %}
+                                <a href="{{ path(item.route is defined ? item.route : 'settings_item', item.route is not defined ? {category, menu: key} : []) }}"
+                                   class="settings-item">
+                                    {{ item.label }}
+                                </a>
+                            {% else %}
+                                <div class="settings-item {{ key == selected ? 'selected' }}" data-menu="{{ key }}">
+                                    {{ item.label }}
+                                </div>
+                            {% endif %}
                         {% endif %}
                     {% endif %}
                 {% endfor %}

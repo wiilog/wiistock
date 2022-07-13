@@ -14,6 +14,7 @@ use App\Entity\FreeField;
 use App\Entity\Import;
 use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Inventory\InventoryFrequency;
+use App\Entity\Inventory\InventoryMissionRule;
 use App\Entity\IOT\AlertTemplate;
 use App\Entity\IOT\RequestTemplate;
 use App\Entity\MailerServer;
@@ -84,25 +85,34 @@ class SettingsController extends AbstractController {
         self::CATEGORY_GLOBAL => [
             "label" => "Global",
             "icon" => "menu-global",
-            "right" => Action::SETTINGS_GLOBAL,
             "menus" => [
                 self::MENU_SITE_APPEARANCE => [
                     "label" => "Apparence du site",
+                    "right" => Action::SETTINGS_DISPLAY_WEBSITE_APPEARANCE,
                     "save" => true,
                 ],
                 self::MENU_CLIENT => [
                     "label" => "Client application",
+                    "right" => Action::SETTINGS_DISPLAY_APPLICATION_CLIENT,
                     "save" => true,
                     "environment" => ["dev", "preprod"],
                 ],
                 self::MENU_LABELS => [
                     "label" => "Étiquettes",
+                    "right" => Action::SETTINGS_DISPLAY_BILL,
                     "save" => true,
                 ],
-                self::MENU_WORKING_HOURS => ["label" => "Heures travaillées"],
-                self::MENU_OFF_DAYS => ["label" => "Jours non travaillés"],
+                self::MENU_WORKING_HOURS => [
+                    "label" => "Heures travaillées",
+                    "right" => Action::SETTINGS_DISPLAY_WORKING_HOURS,
+                ],
+                self::MENU_OFF_DAYS => [
+                    "label" => "Jours non travaillés",
+                    "right" => Action::SETTINGS_DISPLAY_NOT_WORKING_DAYS,
+                ],
                 self::MENU_MAIL_SERVER => [
                     "label" => "Serveur email",
+                    "right" => Action::SETTINGS_DISPLAY_MAIL_SERVER,
                     "save" => true,
                 ],
             ],
@@ -110,18 +120,20 @@ class SettingsController extends AbstractController {
         self::CATEGORY_STOCK => [
             "label" => "Stock",
             "icon" => "menu-stock",
-            "right" => Action::SETTINGS_STOCK,
             "menus" => [
                 self::MENU_CONFIGURATIONS => [
                     "label" => "Configurations",
+                    "right" => Action::SETTINGS_DISPLAY_CONFIGURATIONS,
                     "save" => true,
                 ],
                 self::MENU_ALERTS => [
                     "label" => "Alertes",
+                    "right" => Action::SETTINGS_DISPLAY_STOCK_ALERTS,
                     "save" => true,
                 ],
                 self::MENU_ARTICLES => [
                     "label" => "Articles",
+                    "right" => Action::SETTINGS_DISPLAY_ARTICLES,
                     "menus" => [
                         self::MENU_LABELS => [
                             "label" => "Étiquettes",
@@ -135,6 +147,7 @@ class SettingsController extends AbstractController {
                 ],
                 self::MENU_REQUESTS => [
                     "label" => "Demandes",
+                    "right" => Action::SETTINGS_DISPLAY_REQUESTS,
                     "menus" => [
                         self::MENU_DELIVERIES => [
                             "label" => "Livraisons",
@@ -159,16 +172,22 @@ class SettingsController extends AbstractController {
                         self::MENU_PURCHASE_STATUSES => ["label" => "Achats - Statuts"],
                     ],
                 ],
-                self::MENU_VISIBILITY_GROUPS => ["label" => "Groupes de visibilité"],
+                self::MENU_VISIBILITY_GROUPS => [
+                    "label" => "Groupes de visibilité",
+                    "right" => Action::SETTINGS_DISPLAY_VISIBILITY_GROUPS,
+                ],
                 self::MENU_INVENTORIES => [
                     "label" => "Inventaires",
+                    "right" => Action::SETTINGS_DISPLAY_INVENTORIES,
                     "menus" => [
                         self::MENU_FREQUENCIES => ["label" => "Fréquences"],
                         self::MENU_CATEGORIES => ["label" => "Catégories"],
+                        self::MENU_MISSIONS_GENERATION => ["label" => "Gestion des missions"],
                     ],
                 ],
                 self::MENU_RECEPTIONS => [
                     "label" => "Réceptions",
+                    "right" => Action::SETTINGS_DISPLAY_RECEP,
                     "menus" => [
                         self::MENU_RECEPTIONS_STATUSES => [
                             "label" => "Réceptions - Statuts",
@@ -191,10 +210,10 @@ class SettingsController extends AbstractController {
         self::CATEGORY_TRACING => [
             "label" => "Trace",
             "icon" => "menu-trace",
-            "right" => Action::SETTINGS_TRACING,
             "menus" => [
                 self::MENU_DISPATCHES => [
                     "label" => "Acheminements",
+                    "right" => Action::SETTINGS_DISPLAY_TRACING_DISPATCH,
                     "menus" => [
                         self::MENU_CONFIGURATIONS => [
                             "label" => "Configurations",
@@ -220,6 +239,7 @@ class SettingsController extends AbstractController {
                 ],
                 self::MENU_ARRIVALS => [
                     "label" => "Arrivages",
+                    "right" => Action::SETTINGS_DISPLAY_ARRI,
                     "menus" => [
                         self::MENU_CONFIGURATIONS => [
                             "label" => "Configurations",
@@ -246,6 +266,7 @@ class SettingsController extends AbstractController {
                 ],
                 self::MENU_MOVEMENTS => [
                     "label" => "Mouvements",
+                    "right" => Action::SETTINGS_DISPLAY_MOVEMENT,
                     "menus" => [
                         self::MENU_CONFIGURATIONS => [
                             "label" => "Configurations",
@@ -256,6 +277,7 @@ class SettingsController extends AbstractController {
                 ],
                 self::MENU_HANDLINGS => [
                     "label" => "Services",
+                    "right" => Action::SETTINGS_DISPLAY_TRACING_HAND,
                     "menus" => [
                         self::MENU_CONFIGURATIONS => [
                             "label" => "Configurations",
@@ -276,10 +298,10 @@ class SettingsController extends AbstractController {
         self::CATEGORY_TRACKING => [
             "label" => "Track",
             "icon" => "menu-track",
-            "right" => Action::SETTINGS_TRACKING,
             "menus" => [
                 self::MENU_TRANSPORT_REQUESTS => [
                     "label" => "Demandes",
+                    "right" => Action::SETTINGS_DISPLAY_TRACK_REQUESTS,
                     "menus" => [
                         self::MENU_CONFIGURATIONS => ["label" => "Configurations", "save" => true],
                         self::MENU_DELIVERY_TYPES_FREE_FIELDS => [
@@ -294,11 +316,13 @@ class SettingsController extends AbstractController {
                 ],
                 self::MENU_ROUNDS => [
                     "label" => "Tournées",
+                    "right" => Action::SETTINGS_DISPLAY_ROUND,
                     "save" => true,
                     "discard" => true,
                 ],
                 self::MENU_TEMPERATURES => [
                     "label" => "Températures",
+                    "right" => Action::SETTINGS_DISPLAY_TEMPERATURES,
                     "save" => true,
                 ],
             ],
@@ -306,26 +330,30 @@ class SettingsController extends AbstractController {
         self::CATEGORY_MOBILE => [
             "label" => "Terminal mobile",
             "icon" => "menu-terminal-mobile",
-            "right" => Action::SETTINGS_MOBILE,
             "menus" => [
                 self::MENU_DISPATCHES => [
                     "label" => "Acheminements",
+                    "right" => Action::SETTINGS_DISPLAY_MOBILE_DISPATCH,
                     "save" => true,
                 ],
                 self::MENU_HANDLINGS => [
                     "label" => "Services",
+                    "right" => Action::SETTINGS_DISPLAY_MOBILE_HAND,
                     "save" => true,
                 ],
                 self::MENU_TRANSFERS => [
                     "label" => "Transferts à traiter",
+                    "right" => Action::SETTINGS_DISPLAY_TRANSFER_TO_TREAT,
                     "save" => true,
                 ],
                 self::MENU_PREPARATIONS => [
                     "label" => "Préparations",
+                    "right" => Action::SETTINGS_DISPLAY_PREPA,
                     "save" => true,
                 ],
                 self::MENU_VALIDATION => [
                     "label" => "Gestion des validations",
+                    "right" => Action::SETTINGS_DISPLAY_MANAGE_VALIDATIONS,
                     "save" => true,
                 ],
             ],
@@ -333,10 +361,10 @@ class SettingsController extends AbstractController {
         self::CATEGORY_DASHBOARDS => [
             "label" => "Dashboards",
             "icon" => "menu-dashboard",
-            "right" => Action::SETTINGS_DASHBOARDS,
             "menus" => [
                 self::MENU_FULL_SETTINGS => [
                     "label" => "Paramétrage complet",
+                    "right" => Action::SETTINGS_DISPLAY_DASHBOARD,
                     "route" => "dashboard_settings",
                 ],
             ],
@@ -344,35 +372,45 @@ class SettingsController extends AbstractController {
         self::CATEGORY_IOT => [
             "label" => "IoT",
             "icon" => "menu-iot",
-            "right" => Action::SETTINGS_IOT,
             "menus" => [
-                self::MENU_TYPES_FREE_FIELDS => ["label" => "Types et champs libres"],
+                self::MENU_TYPES_FREE_FIELDS => [
+                    "right" => Action::SETTINGS_DISPLAY_IOT,
+                    "label" => "Types et champs libres"
+                ],
             ],
         ],
         self::CATEGORY_NOTIFICATIONS => [
             "label" => "Modèles de notifications",
             "icon" => "menu-notification",
-            "right" => Action::SETTINGS_NOTIFICATIONS,
             "menus" => [
-                self::MENU_ALERTS => ["label" => "Alertes", "wrapped" => false],
-                self::MENU_PUSH_NOTIFICATIONS => ["label" => "Notifications push"],
+                self::MENU_ALERTS => [
+                    "label" => "Alertes",
+                    "right" => Action::SETTINGS_DISPLAY_NOTIFICATIONS_ALERTS,
+                    "wrapped" => false
+                ],
+                self::MENU_PUSH_NOTIFICATIONS => [
+                    "label" => "Notifications push",
+                    "right" => Action::SETTINGS_DISPLAY_NOTIFICATIONS_PUSH,
+                ],
             ],
         ],
         self::CATEGORY_USERS => [
             "label" => "Utilisateurs",
             "icon" => "user",
-            "right" => Action::SETTINGS_USERS,
             "menus" => [
                 self::MENU_LANGUAGES => [
                     "label" => "Personnalisation des libellés",
+                    "right" => Action::SETTINGS_DISPLAY_LABELS_PERSO,
                     "save" => false,
                 ],
                 self::MENU_ROLES => [
                     "label" => "Rôles",
+                    "right" => Action::SETTINGS_DISPLAY_ROLES,
                     "save" => false,
                 ],
                 self::MENU_USERS => [
                     "label" => "Utilisateurs",
+                    "right" => Action::SETTINGS_DISPLAY_USERS,
                     "save" => false,
                 ],
             ],
@@ -380,97 +418,100 @@ class SettingsController extends AbstractController {
         self::CATEGORY_DATA => [
             "label" => "Données",
             "icon" => "menu-donnees",
-            "right" => Action::SETTINGS_DATA,
             "menus" => [
                 self::MENU_CSV_EXPORTS => [
                     "label" => "Exports CSV",
+                    "right" => Action::SETTINGS_DISPLAY_EXPORT,
                     "save" => true,
                     "discard" => true,
                 ],
                 self::MENU_IMPORTS => [
                     "label" => "Imports & mises à jour",
+                    "right" => Action::SETTINGS_DISPLAY_IMPORTS_MAJS,
                     "save" => false,
                     "wrapped" => false,
                 ],
                 self::MENU_INVENTORIES_IMPORTS => [
                     "label" => "Imports d'inventaires",
+                    "right" => Action::SETTINGS_DISPLAY_INVENTORIES_IMPORT,
                     "save" => false,
                 ],
             ],
         ],
     ];
 
-    private const CATEGORY_GLOBAL = "global";
+    public const CATEGORY_GLOBAL = "global";
     public const CATEGORY_STOCK = "stock";
     public const CATEGORY_TRACING = "trace";
     public const CATEGORY_TRACKING = "track";
-    private const CATEGORY_MOBILE = "mobile";
-    private const CATEGORY_DASHBOARDS = "dashboards";
-    private const CATEGORY_IOT = "iot";
-    private const CATEGORY_NOTIFICATIONS = "notifications";
+    public const CATEGORY_MOBILE = "mobile";
+    public const CATEGORY_DASHBOARDS = "dashboards";
+    public const CATEGORY_IOT = "iot";
+    public const CATEGORY_NOTIFICATIONS = "notifications";
     public const CATEGORY_USERS = "utilisateurs";
     public const CATEGORY_DATA = "donnees";
 
-    private const MENU_SITE_APPEARANCE = "apparence_site";
-    private const MENU_WORKING_HOURS = "heures_travaillees";
-    private const MENU_CLIENT = "client";
-    private const MENU_OFF_DAYS = "jours_non_travailles";
-    private const MENU_LABELS = "etiquettes";
-    private const MENU_MAIL_SERVER = "serveur_email";
+    public const MENU_SITE_APPEARANCE = "apparence_site";
+    public const MENU_WORKING_HOURS = "heures_travaillees";
+    public const MENU_CLIENT = "client";
+    public const MENU_OFF_DAYS = "jours_non_travailles";
+    public const MENU_LABELS = "etiquettes";
+    public const MENU_MAIL_SERVER = "serveur_email";
 
-    private const MENU_CONFIGURATIONS = "configurations";
-    private const MENU_VISIBILITY_GROUPS = "groupes_visibilite";
-    private const MENU_ALERTS = "alertes";
-    private const MENU_INVENTORIES = "inventaires";
-    private const MENU_FREQUENCIES = "frequences";
-    private const MENU_CATEGORIES = "categories";
-    private const MENU_ARTICLES = "articles";
+    public const MENU_CONFIGURATIONS = "configurations";
+    public const MENU_VISIBILITY_GROUPS = "groupes_visibilite";
+    public const MENU_ALERTS = "alertes";
+    public const MENU_INVENTORIES = "inventaires";
+    public const MENU_FREQUENCIES = "frequences";
+    public const MENU_CATEGORIES = "categories";
+    public const MENU_MISSIONS_GENERATION = "missions";
+    public const MENU_ARTICLES = "articles";
     public const MENU_RECEPTIONS = "receptions";
-    private const MENU_RECEPTIONS_STATUSES = "statuts_receptions";
+    public const MENU_RECEPTIONS_STATUSES = "statuts_receptions";
     public const MENU_DISPUTE_STATUSES = "statuts_litiges";
     public const MENU_DISPUTE_TYPES = "types_litiges";
     public const MENU_REQUESTS = "demandes";
 
     public const MENU_DISPATCHES = "acheminements";
     public const MENU_STATUSES = "statuts";
-    private const MENU_FIXED_FIELDS = "champs_fixes";
-    private const MENU_WAYBILL = "lettre_voiture";
-    private const MENU_OVERCONSUMPTION_BILL = "bon_surconsommation";
+    public const MENU_FIXED_FIELDS = "champs_fixes";
+    public const MENU_WAYBILL = "lettre_voiture";
+    public const MENU_OVERCONSUMPTION_BILL = "bon_surconsommation";
     public const MENU_ARRIVALS = "arrivages";
-    private const MENU_MOVEMENTS = "mouvements";
-    private const MENU_FREE_FIELDS = "champs_libres";
+    public const MENU_MOVEMENTS = "mouvements";
+    public const MENU_FREE_FIELDS = "champs_libres";
     public const MENU_HANDLINGS = "services";
-    private const MENU_REQUEST_TEMPLATES = "modeles_demande";
+    public const MENU_REQUEST_TEMPLATES = "modeles_demande";
 
     public const MENU_TRANSPORT_REQUESTS = "demande_transport";
-    private const MENU_ROUNDS = "tournees";
-    private const MENU_TEMPERATURES = "temperatures";
+    public const MENU_ROUNDS = "tournees";
+    public const MENU_TEMPERATURES = "temperatures";
 
-    private const MENU_DELIVERIES = "livraisons";
-    private const MENU_DELIVERY_REQUEST_TEMPLATES = "modeles_demande_livraisons";
+    public const MENU_DELIVERIES = "livraisons";
+    public const MENU_DELIVERY_REQUEST_TEMPLATES = "modeles_demande_livraisons";
     public const MENU_DELIVERY_TYPES_FREE_FIELDS = "types_champs_libres_livraisons";
-    private const MENU_COLLECTS = "collectes";
-    private const MENU_COLLECT_REQUEST_TEMPLATES = "modeles_demande_collectes";
+    public const MENU_COLLECTS = "collectes";
+    public const MENU_COLLECT_REQUEST_TEMPLATES = "modeles_demande_collectes";
     public const MENU_COLLECT_TYPES_FREE_FIELDS = "types_champs_libres_collectes";
     public const MENU_PURCHASE_STATUSES = "statuts_achats";
 
-    private const MENU_PREPARATIONS = "preparations";
-    private const MENU_VALIDATION = "validation";
-    private const MENU_TRANSFERS = "transferts";
+    public const MENU_PREPARATIONS = "preparations";
+    public const MENU_VALIDATION = "validation";
+    public const MENU_TRANSFERS = "transferts";
 
-    private const MENU_FULL_SETTINGS = "parametrage_complet";
+    public const MENU_FULL_SETTINGS = "parametrage_complet";
 
-    private const MENU_TYPES_FREE_FIELDS = "types_champs_libres";
+    public const MENU_TYPES_FREE_FIELDS = "types_champs_libres";
 
-    private const MENU_PUSH_NOTIFICATIONS = "notifications_push";
+    public const MENU_PUSH_NOTIFICATIONS = "notifications_push";
 
-    private const MENU_LANGUAGES = "langues";
+    public const MENU_LANGUAGES = "langues";
     public const MENU_ROLES = "roles";
     public const MENU_USERS = "utilisateurs";
 
-    private const MENU_CSV_EXPORTS = "exports_csv";
+    public const MENU_CSV_EXPORTS = "exports_csv";
     public const MENU_IMPORTS = "imports";
-    private const MENU_INVENTORIES_IMPORTS = "imports_inventaires";
+    public const MENU_INVENTORIES_IMPORTS = "imports_inventaires";
 
     /**
      * @Required
@@ -493,7 +534,7 @@ class SettingsController extends AbstractController {
 
     /**
      * @Route("/utilisateurs/langues", name="settings_language")
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_USERS})
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_LABELS_PERSO})
      */
     public function language(EntityManagerInterface $manager): Response {
         $translationRepository = $manager->getRepository(Translation::class);
@@ -565,7 +606,7 @@ class SettingsController extends AbstractController {
             ->map(fn(Type $type) => [
                 "label" => $type->getLabel(),
                 "value" => $type->getId(),
-                "iconUrl" => $type->getLogo()?->getFullPath()
+                "iconUrl" => $type->getLogo()?->getFullPath(),
             ])
             ->toArray();
 
@@ -640,8 +681,8 @@ class SettingsController extends AbstractController {
                         "deliveryTypeSettings" => json_encode($this->settingsService->getDefaultDeliveryLocationsByType($this->manager)),
                         "deliveryRequestBehavior" => $settingRepository->findOneBy([
                             'label' => [Setting::DIRECT_DELIVERY, Setting::CREATE_PREPA_AFTER_DL, Setting::CREATE_DELIVERY_ONLY],
-                            'value' => 1
-                        ])?->getLabel()
+                            'value' => 1,
+                        ])?->getLabel(),
                     ],
                     self::MENU_DELIVERY_REQUEST_TEMPLATES => function() use ($requestTemplateRepository, $typeRepository) {
                         return $this->getRequestTemplates($typeRepository, $requestTemplateRepository, Type::LABEL_DELIVERY);
@@ -915,9 +956,9 @@ class SettingsController extends AbstractController {
                                 ->map(fn(Utilisateur $user) => [
                                     "value" => $user->getId(),
                                     "label" => $user->getUsername(),
-                                    "selected" => true
+                                    "selected" => true,
                                 ])
-                                ->toArray()
+                                ->toArray(),
                     ],
                     self::MENU_DELIVERY_TYPES_FREE_FIELDS => fn() => [
                         "types" => $this->typeGenerator(CategoryType::DELIVERY_TRANSPORT),
@@ -1012,7 +1053,7 @@ class SettingsController extends AbstractController {
 
     /**
      * @Route("/heures-travaillees-api", name="settings_working_hours_api", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_GLOBAL})
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_WORKING_HOURS})
      */
     public function workingHoursApi(Request $request, EntityManagerInterface $manager) {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
@@ -1047,7 +1088,7 @@ class SettingsController extends AbstractController {
 
     /**
      * @Route("/creneaux-horaires-api", name="settings_hour_shift_api", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_GLOBAL})
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_WORKING_HOURS})
      */
     public function timeSlotsApi(Request $request, EntityManagerInterface $manager) {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
@@ -1100,7 +1141,7 @@ class SettingsController extends AbstractController {
 
     /**
      * @Route("/heures-depart-api", name="settings_starting_hours_api", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_GLOBAL})
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_ROUND})
      */
     public function startingHoursApi(Request $request, EntityManagerInterface $manager) {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
@@ -1162,7 +1203,7 @@ class SettingsController extends AbstractController {
 
     /**
      * @Route("/jours-non-travailles-api", name="settings_off_days_api", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_GLOBAL})
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_NOT_WORKING_DAYS})
      */
     public function offDaysApi(Request $request, EntityManagerInterface $manager) {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
@@ -1700,7 +1741,7 @@ class SettingsController extends AbstractController {
 
     /**
      * @Route("/frequences-api", name="settings_frequencies_api", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK}, mode=HasPermission::IN_JSON)
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES}, mode=HasPermission::IN_JSON)
      */
     public function frequenciesApi(Request $request, EntityManagerInterface $manager) {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
@@ -1732,7 +1773,6 @@ class SettingsController extends AbstractController {
         }
 
         $data[] = [
-            "className" => "toto",
             "actions" => "<span class='d-flex justify-content-start align-items-center add-row'><span class='wii-icon wii-icon-plus'></span></span>",
             "label" => "",
             "nb_months" => "",
@@ -1747,7 +1787,7 @@ class SettingsController extends AbstractController {
 
     /**
      * @Route("/frequences/supprimer/{entity}", name="settings_delete_frequency", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK}, mode=HasPermission::IN_JSON)
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES}, mode=HasPermission::IN_JSON)
      */
     public function deleteFrequency(EntityManagerInterface $entityManager, InventoryFrequency $entity): Response {
         if ($entity->getCategories()->isEmpty()) {
@@ -1768,7 +1808,7 @@ class SettingsController extends AbstractController {
 
     /**
      * @Route("/categories-api", name="settings_categories_api", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK}, mode=HasPermission::IN_JSON)
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES}, mode=HasPermission::IN_JSON)
      */
     public function categoriesApi(Request $request, EntityManagerInterface $manager) {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
@@ -1807,8 +1847,8 @@ class SettingsController extends AbstractController {
                     ",
                     "label" => "<input type='text' name='label' class='{$class} needed' value='{$category->getLabel()}' data-global-error='Libellé'/>",
                     "frequency" => "<select name='frequency' class='{$class} needed' data-global-error='Fréquences'>
-                                    {$frequencySelectContent}
-                                </select>",
+                        {$frequencySelectContent}
+                    </select>",
                 ];
             } else {
                 $data[] = [
@@ -1838,7 +1878,7 @@ class SettingsController extends AbstractController {
 
     /**
      * @Route("/categories/supprimer/{entity}", name="settings_delete_category", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK}, mode=HasPermission::IN_JSON)
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES}, mode=HasPermission::IN_JSON)
      */
     public function deleteCategory(EntityManagerInterface $entityManager,
                                    InventoryCategory $entity): Response {
@@ -1869,8 +1909,102 @@ class SettingsController extends AbstractController {
     }
 
     /**
+     * @Route("/mission-rules-api", name="settings_mission_rules_api", options={"expose"=true})
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES}, mode=HasPermission::IN_JSON)
+     */
+    public function missionRulesApi(Request $request, EntityManagerInterface $manager): Response {
+        $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
+        $data = [];
+        $missionRuleRepository = $manager->getRepository(InventoryMissionRule::class);
+
+        /** @var InventoryMissionRule $mission */
+        foreach ($missionRuleRepository->findAll() as $mission) {
+            if ($edit) {
+                $categories = Stream::from($mission->getCategories())
+                    ->map(fn(InventoryCategory $category) => "<option value='{$category->getId()}' selected>{$category->getLabel()}</option>")
+                    ->join("");
+
+                $periodicityWeeksSelected = $mission->getPeriodicityUnit() === InventoryMissionRule::WEEKS ? "selected" : "";
+                $periodicityMonthsSelected = $mission->getPeriodicityUnit() === InventoryMissionRule::MONTHS ? "selected" : "";
+                $durationWeeksSelected = $mission->getDurationUnit() === InventoryMissionRule::WEEKS ? "selected" : "";
+                $durationMonthsSelected = $mission->getDurationUnit() === InventoryMissionRule::MONTHS ? "selected" : "";
+
+                $data[] = [
+                    "actions" => "
+                        <button class='btn btn-silent delete-row w-50' data-id='{$mission->getId()}'>
+                            <i class='wii-icon wii-icon-trash text-primary'></i>
+                        </button>
+                        <input type='hidden' name='id' class='data' value='{$mission->getId()}'/>",
+                    "label" => "<input type='text' name='label' class='form-control data needed' value='{$mission->getLabel()}' data-global-error='Libellé'/>",
+                    "categories" => "<select name='categories' class='form-control data needed' data-s2='inventoryCategories' multiple data-parent='body' data-global-error='Catégorie(s)'>$categories</select>",
+                    "periodicity" => "
+                        <div class='d-flex'>
+                            <input type='text' name='periodicity' class='form-control data needed mr-1 w-50px' value='{$mission->getPeriodicity()}' data-global-error='Périodicité'/>
+                            <select name='periodicityUnit' class='form-control data needed maxw-150px' data-global-error='Unité de periodicité'>
+                                <option value='weeks' $periodicityWeeksSelected>semaine(s)</option>
+                                <option value='months' $periodicityMonthsSelected>mois(s)</option>
+                            </select>
+                        </div>
+                    ",
+                    "duration" => "
+                        <div class='d-flex'>
+                            <input type='text' name='duration' class='form-control data needed mr-1 w-50px' value='{$mission->getDuration()}' data-global-error='Durée'/>
+                            <select name='durationUnit' class='form-control data needed maxw-150px' data-global-error='Unité de durée'>
+                                <option value='weeks' $durationWeeksSelected>semaine(s)</option>
+                                <option value='months' $durationMonthsSelected>mois(s)</option>
+                            </select>
+                        </div>
+                    ",
+                ];
+            } else {
+                $data[] = [
+                    "actions" => "
+                        <button class='btn btn-silent delete-row' data-id='{$mission->getId()}'>
+                            <i class='wii-icon wii-icon-trash text-primary'></i>
+                        </button>
+                    ",
+                    "label" => $mission->getLabel(),
+                    "categories" => Stream::from($mission->getCategories())
+                        ->map(fn(InventoryCategory $category) => $category->getLabel())
+                        ->join(", "),
+                    "periodicity" => $mission->getPeriodicityUnit() === InventoryMissionRule::WEEKS ? "Toutes les {$mission->getPeriodicity()} semaines" : "Tous les {$mission->getPeriodicity()} mois",
+                    "duration" => $mission->getDurationUnit() === InventoryMissionRule::WEEKS ? "{$mission->getDuration()} semaine(s)" : "{$mission->getDuration()} mois",
+                ];
+            }
+        }
+
+        $data[] = [
+            "actions" => "<span class='d-flex justify-content-start align-items-center add-row'><span class='wii-icon wii-icon-plus'></span></span>",
+            "label" => "",
+            "categories" => "",
+            "periodicity" => "",
+            "duration" => "",
+        ];
+
+        return $this->json([
+            "data" => $data,
+            "recordsTotal" => count($data),
+            "recordsFiltered" => count($data),
+        ]);
+    }
+
+    /**
+     * @Route("/mission-rules/supprimer/{entity}", name="settings_delete_mission_rule", options={"expose"=true})
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES}, mode=HasPermission::IN_JSON)
+     */
+    public function deleteMissionRules(EntityManagerInterface $entityManager, InventoryMissionRule $entity): Response {
+        $entityManager->remove($entity);
+        $entityManager->flush();
+
+        return $this->json([
+            "success" => true,
+            "msg" => "La ligne a bien été supprimée",
+        ]);
+    }
+
+    /**
      * @Route("/types-litige-api", name="types_litige_api", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK}, mode=HasPermission::IN_JSON)
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_RECEP}, mode=HasPermission::IN_JSON)
      */
     public function typesLitigeApi(Request $request, EntityManagerInterface $manager) {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
@@ -1916,7 +2050,7 @@ class SettingsController extends AbstractController {
 
     /**
      * @Route("/types_litiges/supprimer/{entity}", name="settings_delete_type_litige", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK}, mode=HasPermission::IN_JSON)
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_RECEP}, mode=HasPermission::IN_JSON)
      */
     public function deleteTypeLitige(EntityManagerInterface $entityManager, Type $entity): Response {
         if ($entity->getDisputes()->isEmpty()) {
@@ -1965,7 +2099,7 @@ class SettingsController extends AbstractController {
 
     /**
      * @Route("/groupes_visibilite-api", name="settings_visibility_group_api", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK})
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_VISIBILITY_GROUPS})
      */
     public function visibiliteGroupApi(Request $request, EntityManagerInterface $manager) {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);

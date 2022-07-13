@@ -13,7 +13,7 @@ use Doctrine\ORM\EntityRepository;
  */
 class SubMenuRepository extends EntityRepository {
 
-    public function findByLabel(string $menu, string $label): ?SubMenu {
+    public function findOneByLabel(string $menu, string $label): ?SubMenu {
         return $this->createQueryBuilder("submenu")
             ->join("submenu.menu", "menu")
             ->andWhere("menu.label LIKE :menu")

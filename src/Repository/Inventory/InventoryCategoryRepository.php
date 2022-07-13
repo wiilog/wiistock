@@ -4,8 +4,6 @@ namespace App\Repository\Inventory;
 
 use App\Entity\Inventory\InventoryCategory;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 
 /**
  * @method InventoryCategory|null find($id, $lockMode = null, $lockVersion = null)
@@ -13,21 +11,24 @@ use Doctrine\ORM\NoResultException;
  * @method InventoryCategory[]    findAll()
  * @method InventoryCategory[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class InventoryCategoryRepository extends EntityRepository
-{
-    /**
-     * @param string $label
-     * @return mixed
-     * @throws NonUniqueResultException
-     * @throws NoResultException
-     */
-    public function countByLabel($label)
-    {
-        return $this->createQueryBuilder('category')
-            ->select('COUNT(category)')
-            ->andWhere('category.label = :label')
-            ->setParameter('label', $label)
+class InventoryCategoryRepository extends EntityRepository {
+
+    public function countByLabel(?string $label): int {
+        return $this->createQueryBuilder("category")
+            ->select("COUNT(category)")
+            ->andWhere("category.label = :label")
+            ->setParameter("label", $label)
             ->getQuery()
             ->getSingleScalarResult();
     }
+
+    public function getForSelect(?string $term) {
+        return $this->createQueryBuilder("category")
+            ->select("category.id AS id, category.label AS text")
+            ->where("category.label LIKE :term")
+            ->setParameter("term", "%$term%")
+            ->getQuery()
+            ->getArrayResult();
+    }
+
 }

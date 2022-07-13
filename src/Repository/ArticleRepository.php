@@ -204,6 +204,13 @@ class ArticleRepository extends EntityRepository {
             ->execute();
 	}
 
+    /**
+     * @param ReferenceArticle $referenceArticle
+     * @param Emplacement|null $targetLocationPicking
+     * @param string|null $fieldToOrder
+     * @param string|null $order
+     * @return Article[] array
+     */
 	public function findActiveArticles(ReferenceArticle $referenceArticle,
                                        ?Emplacement     $targetLocationPicking = null,
                                        ?string          $fieldToOrder = null,
