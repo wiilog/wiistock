@@ -192,12 +192,12 @@ class HandlingController extends AbstractController
 
         $entityManager->persist($handling);
         try {
+            $entityManager->flush();
             if (($handling->getStatus()->getState() == Statut::NOT_TREATED)
                 && $handling->getType()
                 && ($handling->getType()->isNotificationsEnabled() || $handling->getType()->isNotificationsEmergency($handling->getEmergency()))) {
                 $notificationService->toTreat($handling);
             }
-            $entityManager->flush();
         }
         /** @noinspection PhpRedundantCatchClauseInspection */
         catch (UniqueConstraintViolationException | ConnectException $e) {
