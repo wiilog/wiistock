@@ -13,6 +13,9 @@ use Doctrine\Migrations\AbstractMigration;
  */
 final class Version20220622083541 extends AbstractMigration
 {
+
+    const SETTINGS_NOTIFICATIONS = 'afficher modèles de notifications';
+
     public function getDescription(): string
     {
         return '';
@@ -22,7 +25,7 @@ final class Version20220622083541 extends AbstractMigration
     {
         // this up() migration is auto-generated, please modify it to your needs
         $this->addSql("UPDATE action SET label = :newLabel WHERE label = :oldLabel", [
-            "newLabel" => Action::SETTINGS_NOTIFICATIONS,
+            "newLabel" => self::SETTINGS_NOTIFICATIONS,
             "oldLabel" => "afficher notifications"
         ]);
     }
