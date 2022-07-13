@@ -34,7 +34,7 @@ class Action {
     const CREATE_ARRIVAL = 'créer arrivage';
     const CREATE_EMERGENCY = 'créer urgence';
     const CREATE_TRACKING_MOVEMENT = 'créer mouvements';
-    const EDIT_ALL_MOVEMENT_DATA = 'Modier l’ensemble de la modale mouvement';
+    const EDIT_ALL_MOVEMENT_DATA = 'modifier l’ensemble de la modale mouvement';
     // menu qualité
     const DISPLAY_LITI = 'afficher litiges';
     const TREAT_DISPUTE = 'traiter les litiges';

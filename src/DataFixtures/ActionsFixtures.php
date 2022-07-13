@@ -39,12 +39,12 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
     const SUB_MENU_STOCK_MOVEMENTS = 'mouvements de stock';
     const SUB_MENU_ALERTS = 'alertes';
     const SUB_MENU_INVENTORY = 'inventaire';
-    const SUB_MENU_ARRIVALS = 'Arrivages';
-    const SUB_MENU_MOVEMENTS = 'Mouvements';
-    const SUB_MENU_PACKS = 'Colis';
-    const SUB_MENU_ASSOCIATION_BR = 'Association BR';
-    const SUB_MENU_ENCO = 'Encours';
-    const SUB_MENU_EMERGENCYS = 'Urgences';
+    const SUB_MENU_ARRIVALS = 'arrivages';
+    const SUB_MENU_MOVEMENTS = 'mouvements';
+    const SUB_MENU_PACKS = 'colis';
+    const SUB_MENU_ASSOCIATION_BR = 'association BR';
+    const SUB_MENU_ENCO = 'encours';
+    const SUB_MENU_EMERGENCYS = 'urgences';
 
     public const MENUS = [
         Menu::TRACA => [
@@ -342,9 +342,10 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                             ->setMenu($this->getReference("menu-$menuCode"));
                         $manager->persist($subMenu);
                     }
+                    $manager->flush();
 
                     foreach($actionLabel as $value) {
-                        $action = $actionRepository->findOneByParams($menuCode, $value);
+                        $action = $actionRepository->findOneByParams($menuCode, $value, $subMenu);
 
                         if(empty($action)) {
                             $action = new Action();
@@ -412,7 +413,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
             ->keymap(fn(array $rights, string $menu) => [
                 mb_strtolower($menu),
                 Stream::from($rights)
-                    ->keymap(fn($rightOrSubmenu, ?string $menu) => [$menu, is_array($rightOrSubmenu)
+                    ->keymap(fn($rightOrSubmenu, ?string $menu) => [mb_strtolower($menu), is_array($rightOrSubmenu)
                         ? Stream::from($rightOrSubmenu)
                             ->map(fn(string $right) => mb_strtolower($right))
                             ->values()
