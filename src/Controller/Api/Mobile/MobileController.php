@@ -1326,7 +1326,7 @@ class MobileController extends AbstractFOSRestController
             'demandeur' => $nomadUser,
             'destination' => $location['id'],
             'expectedAt' => $now->format('Y-m-d H:i:s'),
-            'commentaire' => $delivery['comment']
+            'commentaire' => $delivery['comment'] ?? null,
         ], $entityManager, $freeFieldService, true);
 
         $entityManager->persist($request);
