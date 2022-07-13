@@ -97,7 +97,7 @@ trait SensorMessageTrait {
                 $criteria->orderBy([
                     'date' => Criteria::DESC,
                     'id' => Criteria::DESC,
-                ])
+                ])->setMaxResults(1)
             );
         return $orderedSensorMessages->first() ?: null;
     }
