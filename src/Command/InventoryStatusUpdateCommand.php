@@ -8,6 +8,7 @@ use App\Entity\Article;
 use App\Entity\Inventory\InventoryFrequency;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\ReferenceArticle;
+use App\Kernel;
 use App\Service\InventoryService;
 use App\Service\RefArticleDataService;
 use DateTime;
@@ -25,6 +26,9 @@ class InventoryStatusUpdateCommand extends Command
     #[Required]
     public EntityManagerInterface $entityManager;
 
+    #[Required]
+    public Kernel $kernel;
+
     protected function configure()
     {
 		$this->setDescription('This commands updates the inventory dates on the refs');
@@ -33,7 +37,7 @@ class InventoryStatusUpdateCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
-        $referenceArticleRepository->updateInventoryStatusQuery();
+        $referenceArticleRepository->updateInventoryStatusQuery($this->kernel->getProjectDir() . '/assets/update-inventory-status.sql');
         return 1;
     }
 }

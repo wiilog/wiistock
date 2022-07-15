@@ -1268,8 +1268,8 @@ class ReferenceArticleRepository extends EntityRepository {
             ->getSingleScalarResult();
     }
 
-    public function updateInventoryStatusQuery() {
-        $queryRaw = file_get_contents('assets/sql/update-inventory-status.sql');
+    public function updateInventoryStatusQuery(string $filePath) {
+        $queryRaw = file_get_contents($filePath);
 
         $rsm = new ResultSetMapping();
         $query = $this->getEntityManager()->createNativeQuery($queryRaw, $rsm);

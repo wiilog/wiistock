@@ -12,8 +12,10 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;
+use App\Kernel;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Asset\Packages;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
@@ -22,6 +24,9 @@ class InventoryService {
 
     #[Required]
     public EntityManagerInterface $entityManager;
+
+    #[Required]
+    public Kernel $kernel;
 
     public function doTreatAnomaly(int         $idEntry,
                                    string      $barCode,
@@ -167,6 +172,7 @@ class InventoryService {
     public function createMission(InventoryMissionRule $rule) {
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $this->entityManager->getRepository(Article::class);
+        $inventoryMissionRepository = $this->entityManager->getRepository(InventoryMission::class);
 
         $mission = new InventoryMission();
         $mission->setName($rule->getLabel());
@@ -180,25 +186,18 @@ class InventoryService {
 
         $this->entityManager->persist($mission);
 
+        $this->entityManager->flush();
+
         foreach ($frequencies as $frequency) {
+            $inventoryMissionRepository->insertReferenceInMission(
+                $mission,
+                $frequency,
+                $this->kernel->getProjectDir() . '/assets/sql/add-reference-in-missions.sql'
+            );
             // récupération des réf et articles à inventorier (fonction date dernier inventaire)
-            $referencesToInventory = $referenceArticleRepository->iterateReferencesToInventory($frequency,
-                $mission);
             $articlesToInventory = $articleRepository->iterateArticlesToInventory($frequency, $mission);
 
             $treated = 0;
-
-            foreach ($referencesToInventory as $reference) {
-                $reference->addInventoryMission($mission);
-                $treated++;
-                if ($treated >= 500) {
-                    $treated = 0;
-                    $this->entityManager->flush();
-                }
-            }
-
-            $treated = 0;
-            $this->entityManager->flush();
 
             /** @var Article $article */
             foreach ($articlesToInventory as $article) {

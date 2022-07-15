@@ -4,12 +4,15 @@ namespace App\Repository\Inventory;
 
 use App\Entity\Article;
 use App\Entity\Inventory\InventoryEntry;
+use App\Entity\Inventory\InventoryFrequency;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\ReferenceArticle;
 use App\Helper\QueryCounter;
 use DateTime;
+use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
+use Doctrine\ORM\Query\ResultSetMapping;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\HttpFoundation\InputBag;
 
@@ -345,4 +348,21 @@ class InventoryMissionRepository extends EntityRepository {
             ->setParameter('endDate', $endDate);
     }
 
+
+    public function insertReferenceInMission(InventoryMission $mission, InventoryFrequency $frequency, string $filePath)
+    {
+        $queryRaw = file_get_contents($filePath);
+
+        $rsm = new ResultSetMapping();
+        $query = $this->getEntityManager()->createNativeQuery($queryRaw, $rsm);
+
+        $query->setParameter('referenceQuantityManagement', ReferenceArticle::QUANTITY_TYPE_REFERENCE);
+        $query->setParameter('mission', $mission->getId());
+        $query->setParameter('activeStatus', ReferenceArticle::STATUT_ACTIF);
+        $query->setParameter('start', $mission->getStartPrevDate());
+        $query->setParameter('end', $mission->getEndPrevDate());
+        $query->setParameter('frequency', $frequency->getId());
+
+        return $query->execute();
+    }
 }
