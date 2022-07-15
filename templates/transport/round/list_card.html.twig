@@ -77,7 +77,7 @@
                 </td>
                 <td class="transport-details-container">
                     Km réels : <span class="text-nowrap">
-                        <span class="transport-value">{{ round.realDistance is not null ? round.realDistance ~ ' km' : '-' }}</span>
+                        <span class="transport-value">{{ round.realDistance is not null and round.status.code == constant('App\\Entity\\Transport\\TransportRound::STATUS_FINISHED') ? round.realDistance ~ ' km' : '-' }}</span>
                     </span>
                 </td>
                 <td class="transport-details-container">

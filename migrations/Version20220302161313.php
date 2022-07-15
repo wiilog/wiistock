@@ -14,6 +14,19 @@ use Doctrine\Migrations\AbstractMigration;
  */
 final class Version20220302161313 extends AbstractMigration
 {
+
+    const SETTINGS_GLOBAL = 'afficher paramétrage global';
+    const SETTINGS_STOCK = 'afficher stock';
+    const SETTINGS_TRACING = 'afficher trace';
+    const SETTINGS_TRACKING = 'afficher track';
+    const SETTINGS_MOBILE = 'afficher terminal mobile';
+    const SETTINGS_DASHBOARDS = 'afficher dashboards';
+    const SETTINGS_IOT = 'afficher iot';
+    const SETTINGS_NOTIFICATIONS = 'afficher modèles de notifications';
+    const SETTINGS_USERS = 'afficher utilisateurs';
+    const SETTINGS_DATA = 'afficher données';
+
+
     public function getDescription(): string
     {
         return '';
@@ -30,22 +43,22 @@ final class Version20220302161313 extends AbstractMigration
                 WHERE action.label LIKE :action
                   AND menu.label LIKE :menu
             ", [
-                "action" => Action::SETTINGS_GLOBAL,
+                "action" => self::SETTINGS_GLOBAL,
                 'menu' => Menu::PARAM
             ])
             ->fetchAllAssociative();
 
         $newActions = [
-            Action::SETTINGS_STOCK,
-            Action::SETTINGS_TRACING,
-            Action::SETTINGS_TRACKING,
-            Action::SETTINGS_MOBILE,
-            Action::SETTINGS_DASHBOARDS,
-            Action::SETTINGS_IOT,
-            Action::SETTINGS_NOTIFICATIONS,
-            Action::SETTINGS_USERS,
-            Action::SETTINGS_DASHBOARDS,
-            Action::SETTINGS_DATA
+            self::SETTINGS_STOCK,
+            self::SETTINGS_TRACING,
+            self::SETTINGS_TRACKING,
+            self::SETTINGS_MOBILE,
+            self::SETTINGS_DASHBOARDS,
+            self::SETTINGS_IOT,
+            self::SETTINGS_NOTIFICATIONS,
+            self::SETTINGS_USERS,
+            self::SETTINGS_DASHBOARDS,
+            self::SETTINGS_DATA
         ];
 
         foreach ($newActions as $action) {

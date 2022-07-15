@@ -304,7 +304,9 @@ class DemandeLivraisonService
     public function checkDLStockAndValidate(EntityManagerInterface $entityManager,
                                             array                  $demandeArray,
                                             bool                   $fromNomade = false,
-                                            FreeFieldService       $champLibreService): array
+                                            FreeFieldService       $champLibreService,
+                                            bool $flush = true,
+                                            bool $simple = false): array
     {
         $demandeRepository = $entityManager->getRepository(Demande::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
@@ -383,7 +385,7 @@ class DemandeLivraisonService
             }
             if ($response['success'] || (!$needsQuantitiesCheck && !$fromNomade)) {
                 $entityManager->persist($demande);
-                $response = $this->validateDLAfterCheck($entityManager, $demande, $fromNomade, false, true, $needsQuantitiesCheck);
+                $response = $this->validateDLAfterCheck($entityManager, $demande, $fromNomade, $simple, $flush, $needsQuantitiesCheck);
             }
         } else {
             $response['entete'] = $this->templating->render('demande/demande-show-header.html.twig', [

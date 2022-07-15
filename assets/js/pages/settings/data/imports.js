@@ -54,7 +54,6 @@ export function initializeImports() {
 }
 
 export function initializeExports() {
-    console.log('huh');
     initDateTimePicker('#dateMin, #dateMax');
 }
 

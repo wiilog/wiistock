@@ -246,27 +246,6 @@ parameters:
         -   label: 'Paramétrage'
             icon: 'parametre'
             path: 'settings_index'
-            rightsOR:
-                -   menu: App\Entity\Menu::PARAM
-                    action: App\Entity\Action::SETTINGS_GLOBAL
-                -   menu: App\Entity\Menu::PARAM
-                    action: App\Entity\Action::SETTINGS_STOCK
-                -   menu: App\Entity\Menu::PARAM
-                    action: App\Entity\Action::SETTINGS_TRACING
-                -   menu: App\Entity\Menu::PARAM
-                    action: App\Entity\Action::SETTINGS_TRACKING
-                -   menu: App\Entity\Menu::PARAM
-                    action: App\Entity\Action::SETTINGS_MOBILE
-                -   menu: App\Entity\Menu::PARAM
-                    action: App\Entity\Action::SETTINGS_DASHBOARDS
-                -   menu: App\Entity\Menu::PARAM
-                    action: App\Entity\Action::SETTINGS_IOT
-                -   menu: App\Entity\Menu::PARAM
-                    action: App\Entity\Action::SETTINGS_NOTIFICATIONS
-                -   menu: App\Entity\Menu::PARAM
-                    action: App\Entity\Action::SETTINGS_USERS
-                -   menu: App\Entity\Menu::PARAM
-                    action: App\Entity\Action::SETTINGS_DATA
 
         -   label: 'Déconnexion'
             icon: 'deco'

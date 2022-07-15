@@ -83,28 +83,15 @@ class PreparationController extends AbstractController
         $preparationsManager->closePreparationMouvement($preparation, $dateEnd, $locationEndPrepa);
 
         $mouvementRepository = $entityManager->getRepository(MouvementStock::class);
-        $mouvements = $mouvementRepository->findByPreparation($preparation);
-        $entityManager->flush();
 
-        foreach ($mouvements as $mouvement) {
-            if ($mouvement->getType() === MouvementStock::TYPE_TRANSFER) {
-                $preparationsManager->createMouvementLivraison(
-                    $mouvement->getQuantity(),
-                    $this->getUser(),
-                    $livraison,
-                    !empty($mouvement->getRefArticle()),
-                    $mouvement->getRefArticle() ?? $mouvement->getArticle(),
-                    $preparation,
-                    false,
-                    $locationEndPrepa
-                );
-            }
-        }
+        $entityManager->flush();
+        $preparationsManager->handlePreparationTreatMovements($mouvementRepository, $preparation, $livraison, $locationEndPrepa);
+        $preparationsManager->updateRefArticlesQuantities($preparation);
+
         $entityManager->flush();
         if ($livraison->getDemande()->getType()->isNotificationsEnabled()) {
             $notificationService->toTreat($livraison);
         }
-        $preparationsManager->updateRefArticlesQuantities($preparation);
 
         return new JsonResponse([
             'success' => true,

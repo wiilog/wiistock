@@ -1301,6 +1301,88 @@ class MobileController extends AbstractFOSRestController
     }
 
     /**
+     * @Rest\Post("/api/valider-manual-dl", name="api_validate_manual_dl", condition="request.isXmlHttpRequest()")
+     * @Rest\View()
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function validateManualDL(Request                    $request,
+                                     EntityManagerInterface     $entityManager,
+                                     DemandeLivraisonService    $demandeLivraisonService,
+                                     LivraisonsManagerService   $livraisonsManagerService,
+                                     MouvementStockService      $mouvementStockService,
+                                     FreeFieldService           $freeFieldService,
+                                     PreparationsManagerService $preparationsManagerService): Response
+    {
+        $articleRepository = $entityManager->getRepository(Article::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+
+        $nomadUser = $this->getUser();
+        $location = json_decode($request->request->get('location'), true);
+        $delivery = json_decode($request->request->get('delivery'), true);
+        $now = new DateTime();
+        $request = $demandeLivraisonService->newDemande([
+            'type' => $delivery['type'],
+            'demandeur' => $nomadUser,
+            'destination' => $location['id'],
+            'expectedAt' => $now->format('Y-m-d H:i:s'),
+            'commentaire' => $delivery['comment'] ?? null,
+        ], $entityManager, $freeFieldService, true);
+
+        $entityManager->persist($request);
+        foreach ($delivery['articles'] as $article) {
+            $article = $articleRepository->findOneBy([
+                'barCode' => $article['barCode']
+            ]);
+
+            $line = $demandeLivraisonService->createArticleLine($article, $request, $article->getQuantite(), $article->getQuantite());
+            $entityManager->persist($line);
+        }
+        $entityManager->flush();
+        $response = $demandeLivraisonService->checkDLStockAndValidate(
+            $entityManager,
+            ['demande' => $request],
+            false,
+            $freeFieldService,
+            false,
+            true
+        );
+
+        if (!$response['success']) {
+            $entityManager->remove($request);
+            $entityManager->flush();
+            return new JsonResponse($response);
+        }
+        $preparation = $request->getPreparations()->first();
+        $order = $livraisonsManagerService->createLivraison($now, $preparation, $entityManager);
+
+        $preparationsManagerService->treatPreparation($preparation, $nomadUser, $request->getDestination(), [], $entityManager);
+
+        foreach ($request->getArticleLines() as $articleLine) {
+            $article = $articleLine->getArticle();
+            $outMovement = $preparationsManagerService->createMouvementLivraison(
+                $article->getQuantite(),
+                $nomadUser, $order,
+                false, $article,
+                $preparation,
+                true,
+                $article->getEmplacement()
+            );
+            $entityManager->persist($outMovement);
+            $mouvementStockService->finishMouvementStock($outMovement, $now, $request->getDestination());
+        }
+
+        $preparationsManagerService->updateRefArticlesQuantities($preparation, $entityManager);
+
+        $livraisonsManagerService->finishLivraison($nomadUser, $order, $now, $request->getDestination());
+        $entityManager->flush();
+
+        return new JsonResponse([
+            'success' => true,
+        ]);
+    }
+
+    /**
      * @Rest\Post("/api/valider-dl", name="api_validate_dl", condition="request.isXmlHttpRequest()")
      * @Rest\View()
      * @Wii\RestAuthenticated()

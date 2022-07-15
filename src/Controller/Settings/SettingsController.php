@@ -86,25 +86,34 @@ class SettingsController extends AbstractController {
         self::CATEGORY_GLOBAL => [
             "label" => "Global",
             "icon" => "menu-global",
-            "right" => Action::SETTINGS_GLOBAL,
             "menus" => [
                 self::MENU_SITE_APPEARANCE => [
                     "label" => "Apparence du site",
+                    "right" => Action::SETTINGS_DISPLAY_WEBSITE_APPEARANCE,
                     "save" => true,
                 ],
                 self::MENU_CLIENT => [
                     "label" => "Client application",
+                    "right" => Action::SETTINGS_DISPLAY_APPLICATION_CLIENT,
                     "save" => true,
                     "environment" => ["dev", "preprod"],
                 ],
                 self::MENU_LABELS => [
                     "label" => "Étiquettes",
+                    "right" => Action::SETTINGS_DISPLAY_BILL,
                     "save" => true,
                 ],
-                self::MENU_WORKING_HOURS => ["label" => "Heures travaillées"],
-                self::MENU_OFF_DAYS => ["label" => "Jours non travaillés"],
+                self::MENU_WORKING_HOURS => [
+                    "label" => "Heures travaillées",
+                    "right" => Action::SETTINGS_DISPLAY_WORKING_HOURS,
+                ],
+                self::MENU_OFF_DAYS => [
+                    "label" => "Jours non travaillés",
+                    "right" => Action::SETTINGS_DISPLAY_NOT_WORKING_DAYS,
+                ],
                 self::MENU_MAIL_SERVER => [
                     "label" => "Serveur email",
+                    "right" => Action::SETTINGS_DISPLAY_MAIL_SERVER,
                     "save" => true,
                 ],
             ],
@@ -112,18 +121,20 @@ class SettingsController extends AbstractController {
         self::CATEGORY_STOCK => [
             "label" => "Stock",
             "icon" => "menu-stock",
-            "right" => Action::SETTINGS_STOCK,
             "menus" => [
                 self::MENU_CONFIGURATIONS => [
                     "label" => "Configurations",
+                    "right" => Action::SETTINGS_DISPLAY_CONFIGURATIONS,
                     "save" => true,
                 ],
                 self::MENU_ALERTS => [
                     "label" => "Alertes",
+                    "right" => Action::SETTINGS_DISPLAY_STOCK_ALERTS,
                     "save" => true,
                 ],
                 self::MENU_ARTICLES => [
                     "label" => "Articles",
+                    "right" => Action::SETTINGS_DISPLAY_ARTICLES,
                     "menus" => [
                         self::MENU_LABELS => [
                             "label" => "Étiquettes",
@@ -137,6 +148,7 @@ class SettingsController extends AbstractController {
                 ],
                 self::MENU_REQUESTS => [
                     "label" => "Demandes",
+                    "right" => Action::SETTINGS_DISPLAY_REQUESTS,
                     "menus" => [
                         self::MENU_DELIVERIES => [
                             "label" => "Livraisons",
@@ -161,9 +173,13 @@ class SettingsController extends AbstractController {
                         self::MENU_PURCHASE_STATUSES => ["label" => "Achats - Statuts"],
                     ],
                 ],
-                self::MENU_VISIBILITY_GROUPS => ["label" => "Groupes de visibilité"],
+                self::MENU_VISIBILITY_GROUPS => [
+                    "label" => "Groupes de visibilité",
+                    "right" => Action::SETTINGS_DISPLAY_VISIBILITY_GROUPS,
+                ],
                 self::MENU_INVENTORIES => [
                     "label" => "Inventaires",
+                    "right" => Action::SETTINGS_DISPLAY_INVENTORIES,
                     "menus" => [
                         self::MENU_FREQUENCIES => ["label" => "Fréquences"],
                         self::MENU_CATEGORIES => ["label" => "Catégories"],
@@ -172,6 +188,7 @@ class SettingsController extends AbstractController {
                 ],
                 self::MENU_RECEPTIONS => [
                     "label" => "Réceptions",
+                    "right" => Action::SETTINGS_DISPLAY_RECEP,
                     "menus" => [
                         self::MENU_RECEPTIONS_STATUSES => [
                             "label" => "Réceptions - Statuts",
@@ -194,10 +211,10 @@ class SettingsController extends AbstractController {
         self::CATEGORY_TRACING => [
             "label" => "Trace",
             "icon" => "menu-trace",
-            "right" => Action::SETTINGS_TRACING,
             "menus" => [
                 self::MENU_DISPATCHES => [
                     "label" => "Acheminements",
+                    "right" => Action::SETTINGS_DISPLAY_TRACING_DISPATCH,
                     "menus" => [
                         self::MENU_CONFIGURATIONS => [
                             "label" => "Configurations",
@@ -223,6 +240,7 @@ class SettingsController extends AbstractController {
                 ],
                 self::MENU_ARRIVALS => [
                     "label" => "Arrivages",
+                    "right" => Action::SETTINGS_DISPLAY_ARRI,
                     "menus" => [
                         self::MENU_CONFIGURATIONS => [
                             "label" => "Configurations",
@@ -249,6 +267,7 @@ class SettingsController extends AbstractController {
                 ],
                 self::MENU_MOVEMENTS => [
                     "label" => "Mouvements",
+                    "right" => Action::SETTINGS_DISPLAY_MOVEMENT,
                     "menus" => [
                         self::MENU_CONFIGURATIONS => [
                             "label" => "Configurations",
@@ -259,6 +278,7 @@ class SettingsController extends AbstractController {
                 ],
                 self::MENU_HANDLINGS => [
                     "label" => "Services",
+                    "right" => Action::SETTINGS_DISPLAY_TRACING_HAND,
                     "menus" => [
                         self::MENU_CONFIGURATIONS => [
                             "label" => "Configurations",
@@ -279,10 +299,10 @@ class SettingsController extends AbstractController {
         self::CATEGORY_TRACKING => [
             "label" => "Track",
             "icon" => "menu-track",
-            "right" => Action::SETTINGS_TRACKING,
             "menus" => [
                 self::MENU_TRANSPORT_REQUESTS => [
                     "label" => "Demandes",
+                    "right" => Action::SETTINGS_DISPLAY_TRACK_REQUESTS,
                     "menus" => [
                         self::MENU_CONFIGURATIONS => ["label" => "Configurations", "save" => true],
                         self::MENU_DELIVERY_TYPES_FREE_FIELDS => [
@@ -297,11 +317,13 @@ class SettingsController extends AbstractController {
                 ],
                 self::MENU_ROUNDS => [
                     "label" => "Tournées",
+                    "right" => Action::SETTINGS_DISPLAY_ROUND,
                     "save" => true,
                     "discard" => true,
                 ],
                 self::MENU_TEMPERATURES => [
                     "label" => "Températures",
+                    "right" => Action::SETTINGS_DISPLAY_TEMPERATURES,
                     "save" => true,
                 ],
             ],
@@ -309,26 +331,30 @@ class SettingsController extends AbstractController {
         self::CATEGORY_MOBILE => [
             "label" => "Terminal mobile",
             "icon" => "menu-terminal-mobile",
-            "right" => Action::SETTINGS_MOBILE,
             "menus" => [
                 self::MENU_DISPATCHES => [
                     "label" => "Acheminements",
+                    "right" => Action::SETTINGS_DISPLAY_MOBILE_DISPATCH,
                     "save" => true,
                 ],
                 self::MENU_HANDLINGS => [
                     "label" => "Services",
+                    "right" => Action::SETTINGS_DISPLAY_MOBILE_HAND,
                     "save" => true,
                 ],
                 self::MENU_TRANSFERS => [
                     "label" => "Transferts à traiter",
+                    "right" => Action::SETTINGS_DISPLAY_TRANSFER_TO_TREAT,
                     "save" => true,
                 ],
                 self::MENU_PREPARATIONS => [
                     "label" => "Préparations",
+                    "right" => Action::SETTINGS_DISPLAY_PREPA,
                     "save" => true,
                 ],
                 self::MENU_VALIDATION => [
                     "label" => "Gestion des validations",
+                    "right" => Action::SETTINGS_DISPLAY_MANAGE_VALIDATIONS,
                     "save" => true,
                 ],
             ],
@@ -336,10 +362,10 @@ class SettingsController extends AbstractController {
         self::CATEGORY_DASHBOARDS => [
             "label" => "Dashboards",
             "icon" => "menu-dashboard",
-            "right" => Action::SETTINGS_DASHBOARDS,
             "menus" => [
                 self::MENU_FULL_SETTINGS => [
                     "label" => "Paramétrage complet",
+                    "right" => Action::SETTINGS_DISPLAY_DASHBOARD,
                     "route" => "dashboard_settings",
                 ],
             ],
@@ -347,35 +373,45 @@ class SettingsController extends AbstractController {
         self::CATEGORY_IOT => [
             "label" => "IoT",
             "icon" => "menu-iot",
-            "right" => Action::SETTINGS_IOT,
             "menus" => [
-                self::MENU_TYPES_FREE_FIELDS => ["label" => "Types et champs libres"],
+                self::MENU_TYPES_FREE_FIELDS => [
+                    "right" => Action::SETTINGS_DISPLAY_IOT,
+                    "label" => "Types et champs libres"
+                ],
             ],
         ],
         self::CATEGORY_NOTIFICATIONS => [
             "label" => "Modèles de notifications",
             "icon" => "menu-notification",
-            "right" => Action::SETTINGS_NOTIFICATIONS,
             "menus" => [
-                self::MENU_ALERTS => ["label" => "Alertes", "wrapped" => false],
-                self::MENU_PUSH_NOTIFICATIONS => ["label" => "Notifications push"],
+                self::MENU_ALERTS => [
+                    "label" => "Alertes",
+                    "right" => Action::SETTINGS_DISPLAY_NOTIFICATIONS_ALERTS,
+                    "wrapped" => false
+                ],
+                self::MENU_PUSH_NOTIFICATIONS => [
+                    "label" => "Notifications push",
+                    "right" => Action::SETTINGS_DISPLAY_NOTIFICATIONS_PUSH,
+                ],
             ],
         ],
         self::CATEGORY_USERS => [
             "label" => "Utilisateurs",
             "icon" => "user",
-            "right" => Action::SETTINGS_USERS,
             "menus" => [
                 self::MENU_LANGUAGES => [
                     "label" => "Personnalisation des libellés",
+                    "right" => Action::SETTINGS_DISPLAY_LABELS_PERSO,
                     "save" => false,
                 ],
                 self::MENU_ROLES => [
                     "label" => "Rôles",
+                    "right" => Action::SETTINGS_DISPLAY_ROLES,
                     "save" => false,
                 ],
                 self::MENU_USERS => [
                     "label" => "Utilisateurs",
+                    "right" => Action::SETTINGS_DISPLAY_USERS,
                     "save" => false,
                 ],
             ],
@@ -383,20 +419,22 @@ class SettingsController extends AbstractController {
         self::CATEGORY_DATA => [
             "label" => "Données",
             "icon" => "menu-donnees",
-            "right" => Action::SETTINGS_DATA,
             "menus" => [
                 self::MENU_CSV_EXPORTS => [
                     "label" => "Exports CSV",
+                    "right" => Action::SETTINGS_DISPLAY_EXPORT,
                     "save" => true,
                     "discard" => true,
                 ],
                 self::MENU_IMPORTS => [
                     "label" => "Imports & mises à jour",
+                    "right" => Action::SETTINGS_DISPLAY_IMPORTS_MAJS,
                     "save" => false,
                     "wrapped" => false,
                 ],
                 self::MENU_INVENTORIES_IMPORTS => [
                     "label" => "Imports d'inventaires",
+                    "right" => Action::SETTINGS_DISPLAY_INVENTORIES_IMPORT,
                     "save" => false,
                 ],
             ],
@@ -497,7 +535,7 @@ class SettingsController extends AbstractController {
 
     /**
      * @Route("/utilisateurs/langues", name="settings_language")
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_USERS})
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_LABELS_PERSO})
      */
     public function language(EntityManagerInterface $manager): Response {
         $translationRepository = $manager->getRepository(Translation::class);
@@ -1016,7 +1054,7 @@ class SettingsController extends AbstractController {
 
     /**
      * @Route("/heures-travaillees-api", name="settings_working_hours_api", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_GLOBAL})
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_WORKING_HOURS})
      */
     public function workingHoursApi(Request $request, EntityManagerInterface $manager) {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
@@ -1051,7 +1089,7 @@ class SettingsController extends AbstractController {
 
     /**
      * @Route("/creneaux-horaires-api", name="settings_hour_shift_api", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_GLOBAL})
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_WORKING_HOURS})
      */
     public function timeSlotsApi(Request $request, EntityManagerInterface $manager) {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
@@ -1104,7 +1142,7 @@ class SettingsController extends AbstractController {
 
     /**
      * @Route("/heures-depart-api", name="settings_starting_hours_api", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_GLOBAL})
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_ROUND})
      */
     public function startingHoursApi(Request $request, EntityManagerInterface $manager) {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
@@ -1166,7 +1204,7 @@ class SettingsController extends AbstractController {
 
     /**
      * @Route("/jours-non-travailles-api", name="settings_off_days_api", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_GLOBAL})
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_NOT_WORKING_DAYS})
      */
     public function offDaysApi(Request $request, EntityManagerInterface $manager) {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
@@ -1704,7 +1742,7 @@ class SettingsController extends AbstractController {
 
     /**
      * @Route("/frequences-api", name="settings_frequencies_api", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK}, mode=HasPermission::IN_JSON)
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES}, mode=HasPermission::IN_JSON)
      */
     public function frequenciesApi(Request $request, EntityManagerInterface $manager) {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
@@ -1750,7 +1788,7 @@ class SettingsController extends AbstractController {
 
     /**
      * @Route("/frequences/supprimer/{entity}", name="settings_delete_frequency", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK}, mode=HasPermission::IN_JSON)
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES}, mode=HasPermission::IN_JSON)
      */
     public function deleteFrequency(EntityManagerInterface $entityManager, InventoryFrequency $entity): Response {
         if ($entity->getCategories()->isEmpty()) {
@@ -1771,7 +1809,7 @@ class SettingsController extends AbstractController {
 
     /**
      * @Route("/categories-api", name="settings_categories_api", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK}, mode=HasPermission::IN_JSON)
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES}, mode=HasPermission::IN_JSON)
      */
     public function categoriesApi(Request $request, EntityManagerInterface $manager) {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
@@ -1841,7 +1879,7 @@ class SettingsController extends AbstractController {
 
     /**
      * @Route("/categories/supprimer/{entity}", name="settings_delete_category", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK}, mode=HasPermission::IN_JSON)
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES}, mode=HasPermission::IN_JSON)
      */
     public function deleteCategory(EntityManagerInterface $entityManager,
                                    InventoryCategory $entity): Response {
@@ -1889,7 +1927,7 @@ class SettingsController extends AbstractController {
 
     /**
      * @Route("/mission-rules-api", name="settings_mission_rules_api", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK}, mode=HasPermission::IN_JSON)
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES}, mode=HasPermission::IN_JSON)
      */
     public function missionRulesApi(Request $request, EntityManagerInterface $manager): Response {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
@@ -1969,7 +2007,7 @@ class SettingsController extends AbstractController {
 
     /**
      * @Route("/mission-rules/supprimer/{entity}", name="settings_delete_mission_rule", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK}, mode=HasPermission::IN_JSON)
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES}, mode=HasPermission::IN_JSON)
      */
     public function deleteMissionRules(EntityManagerInterface $entityManager, InventoryMissionRule $entity): Response {
         $entityManager->remove($entity);
@@ -1983,7 +2021,7 @@ class SettingsController extends AbstractController {
 
     /**
      * @Route("/types-litige-api", name="types_litige_api", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK}, mode=HasPermission::IN_JSON)
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_RECEP}, mode=HasPermission::IN_JSON)
      */
     public function typesLitigeApi(Request $request, EntityManagerInterface $manager) {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
@@ -2029,7 +2067,7 @@ class SettingsController extends AbstractController {
 
     /**
      * @Route("/types_litiges/supprimer/{entity}", name="settings_delete_type_litige", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK}, mode=HasPermission::IN_JSON)
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_RECEP}, mode=HasPermission::IN_JSON)
      */
     public function deleteTypeLitige(EntityManagerInterface $entityManager, Type $entity): Response {
         if ($entity->getDisputes()->isEmpty()) {
@@ -2078,7 +2116,7 @@ class SettingsController extends AbstractController {
 
     /**
      * @Route("/groupes_visibilite-api", name="settings_visibility_group_api", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK})
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_VISIBILITY_GROUPS})
      */
     public function visibiliteGroupApi(Request $request, EntityManagerInterface $manager) {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);

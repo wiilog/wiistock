@@ -208,6 +208,8 @@ function initPageModals() {
             $select.append(new Option(label, reference, true, true));
             $select.trigger(`change`);
 
+            $modalAddLigneArticle.find(`#addArticleLigneSubmitAndRedirect`).removeClass(`d-none`);
+
             setTimeout(() => SetRequestQuery({}), 1);
         }
     });
@@ -525,7 +527,6 @@ function articleChanged($select) {
     const $addArticleAndRedirectSubmit = $(`#addArticleLigneSubmitAndRedirect`);
     const $addArticleLigneSubmit = $(`#addArticleLigneSubmit`);
 
-    console.log(selectedReference);
     if (selectedReference.length > 0) {
         const {typeQuantity, urgent, emergencyComment} = selectedReference[0];
 

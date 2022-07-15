@@ -19,8 +19,17 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
     private ConsoleOutput $output;
 
     const SUB_MENU_GENERAL = 'général';
+    const SUB_MENU_GLOBAL = 'global';
+    const SUB_MENU_STOCK = 'stock';
+    const SUB_MENU_TERMINAL_MOBILE = 'terminal mobile';
+    const SUB_MENU_DASHBOARD = 'dashboard';
+    const SUB_MENU_IOT = 'iot';
+    const SUB_MENU_NOTIFICATIONS = 'modèles de notifications';
+    const SUB_MENU_USERS = 'utilisateurs';
+    const SUB_MENU_DATA = 'données';
     const SUB_MENU_PAGE = 'page';
     const SUB_MENU_TRACKING = 'traçabilité';
+    const SUB_MENU_TRACING = 'trace';
     const SUB_MENU_COLLECTS = 'collectes';
     const SUB_MENU_DELIVERIES = 'livraisons';
     const SUB_MENU_HANDLINGS = 'services';
@@ -225,18 +234,66 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
             Action::DELETE,
         ],
         Menu::PARAM => [
-            Action::SETTINGS_GLOBAL,
-            Action::SETTINGS_STOCK,
-            Action::SETTINGS_TRACING,
-            Action::SETTINGS_TRACKING,
-            Action::SETTINGS_MOBILE,
-            Action::SETTINGS_DASHBOARDS,
-            Action::SETTINGS_IOT,
-            Action::SETTINGS_NOTIFICATIONS,
-            Action::SETTINGS_USERS,
-            Action::SETTINGS_DATA,
-            Action::EDIT,
-            Action::DELETE,
+            self::SUB_MENU_GENERAL => [
+                Action::EDIT,
+                Action::DELETE,
+            ],
+            self::SUB_MENU_GLOBAL => [
+                Action::SETTINGS_DISPLAY_WEBSITE_APPEARANCE,
+                Action::SETTINGS_DISPLAY_APPLICATION_CLIENT,
+                Action::SETTINGS_DISPLAY_BILL,
+                Action::SETTINGS_DISPLAY_WORKING_HOURS,
+                Action::SETTINGS_DISPLAY_NOT_WORKING_DAYS,
+                Action::SETTINGS_DISPLAY_MAIL_SERVER,
+            ],
+            self::SUB_MENU_STOCK => [
+                Action::SETTINGS_DISPLAY_CONFIGURATIONS,
+                Action::SETTINGS_DISPLAY_STOCK_ALERTS,
+                Action::SETTINGS_DISPLAY_ARTICLES,
+                //Action::SETTINGS_DISPLAY_TACTILE_TERMINAL,
+                Action::SETTINGS_DISPLAY_REQUESTS,
+                Action::SETTINGS_DISPLAY_VISIBILITY_GROUPS,
+                Action::SETTINGS_DISPLAY_INVENTORIES,
+                Action::SETTINGS_DISPLAY_RECEP
+            ],
+            self::SUB_MENU_TRACING => [
+                Action::SETTINGS_DISPLAY_TRACING_DISPATCH,
+                Action::SETTINGS_DISPLAY_ARRI,
+                Action::SETTINGS_DISPLAY_MOVEMENT,
+                Action::SETTINGS_DISPLAY_TRACING_HAND
+            ],
+            self::SUB_MENU_TRACKING => [
+                Action::SETTINGS_DISPLAY_TRACK_REQUESTS,
+                Action::SETTINGS_DISPLAY_ROUND,
+                Action::SETTINGS_DISPLAY_TEMPERATURES,
+            ],
+            self::SUB_MENU_TERMINAL_MOBILE => [
+                Action::SETTINGS_DISPLAY_MOBILE_DISPATCH,
+                Action::SETTINGS_DISPLAY_MOBILE_HAND,
+                Action::SETTINGS_DISPLAY_TRANSFER_TO_TREAT,
+                Action::SETTINGS_DISPLAY_PREPA,
+                Action::SETTINGS_DISPLAY_MANAGE_VALIDATIONS
+            ],
+            self::SUB_MENU_DASHBOARD => [
+                Action::SETTINGS_DISPLAY_DASHBOARD
+            ],
+            self::SUB_MENU_IOT => [
+                Action::SETTINGS_DISPLAY_IOT
+            ],
+            self::SUB_MENU_NOTIFICATIONS => [
+                Action::SETTINGS_DISPLAY_NOTIFICATIONS_ALERTS,
+                Action::SETTINGS_DISPLAY_NOTIFICATIONS_PUSH
+            ],
+            self::SUB_MENU_USERS => [
+                Action::SETTINGS_DISPLAY_LABELS_PERSO,
+                Action::SETTINGS_DISPLAY_ROLES,
+                Action::SETTINGS_DISPLAY_USERS
+            ],
+            self::SUB_MENU_DATA => [
+                Action::SETTINGS_DISPLAY_EXPORT,
+                Action::SETTINGS_DISPLAY_IMPORTS_MAJS,
+                Action::SETTINGS_DISPLAY_INVENTORIES_IMPORT
+            ],
         ],
         Menu::NOMADE => [
             self::SUB_MENU_GENERAL => [
@@ -313,7 +370,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
             $counter = 0;
             foreach($actionLabels as $index => $actionLabel) {
                 if(is_array($actionLabel)) { // has sub menu
-                    $subMenu = $subMenuRepository->findByLabel($menuCode, $index);
+                    $subMenu = $subMenuRepository->findOneByLabel($menuCode, $index);
                     if (empty($subMenu)) {
                         $subMenu = new SubMenu();
                         $subMenu
@@ -321,9 +378,10 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                             ->setMenu($this->getReference("menu-$menuCode"));
                         $manager->persist($subMenu);
                     }
+                    $manager->flush();
 
                     foreach($actionLabel as $value) {
-                        $action = $actionRepository->findOneByParams($menuCode, $value);
+                        $action = $actionRepository->findOneByParams($menuCode, $value, $subMenu);
 
                         if(empty($action)) {
                             $action = new Action();
