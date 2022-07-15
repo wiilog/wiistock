@@ -2,9 +2,11 @@
 
 namespace App\Repository\Transport;
 
+use App\Entity\IOT\SensorMessage;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\Vehicle;
 use App\Helper\QueryCounter;
+use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;
 
@@ -96,5 +98,25 @@ class VehicleRepository extends EntityRepository
             ->setParameter('vehicle', $vehicle)
             ->getQuery()
             ->getSingleScalarResult();
+    }
+
+    public function findOneByDadeLastMessageBetween( Vehicle $vehicle, DateTime $start, ?DateTime $end, string $type): ?array
+    {
+        return $this->createQueryBuilder("vehicle")
+            ->select("sensor_message.content")
+            ->join("vehicle.sensorMessages", "sensor_message")
+            ->join('sensor_message.sensor' , 'sensor')
+            ->join('sensor.type', 'type')
+            ->where('sensor_message.date BETWEEN :start AND :end')
+            ->andWhere('vehicle.id = :vehicle')
+            ->andWhere('type.label = :type')
+            ->orderBy('sensor_message.date', 'DESC')
+            ->setMaxResults(1)
+            ->setParameter('vehicle', $vehicle)
+            ->setParameter('type', $type)
+            ->setParameter('start', $start)
+            ->setParameter('end', $end ?? new DateTime("now"))
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 }
