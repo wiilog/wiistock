@@ -387,7 +387,7 @@ class TrackingMovementController extends AbstractController
 
         $entityManager->flush();
 
-        $listAttachmentIdToKeep = $post->get('files');
+        $listAttachmentIdToKeep = $post->all('files');
 
         $attachments = $mvt->getAttachments()->toArray();
         foreach ($attachments as $attachment) {
@@ -397,7 +397,7 @@ class TrackingMovementController extends AbstractController
             }
         }
 
-        $this->persistAttachments($mvt, $attachmentService, $request->files, $entityManager);
+        $this->persistAttachments($mvt, $attachmentService, $request->files, $entityManager, ['addToDispatch' => true]);
         $freeFieldService->manageFreeFields($mvt, $post->all(), $entityManager);
 
         $entityManager->flush();
@@ -565,12 +565,16 @@ class TrackingMovementController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    private function persistAttachments(TrackingMovement $trackingMovement, AttachmentService $attachmentService, $files, EntityManagerInterface $entityManager)
+    private function persistAttachments(TrackingMovement $trackingMovement, AttachmentService $attachmentService, $files, EntityManagerInterface $entityManager ,  array $options = [])
     {
+        $isAddToDispatch = $options['addToDispatch'] ?? false;
         $attachments = $attachmentService->createAttachements($files);
         foreach ($attachments as $attachment) {
             $entityManager->persist($attachment);
             $trackingMovement->addAttachment($attachment);
+            if ($isAddToDispatch) {
+                $trackingMovement->getDispatch()->addAttachment($attachment);
+            }
         }
     }
 
