@@ -148,7 +148,7 @@ class RequestController extends AbstractController {
         }
 
         $delivererPosition =  $round?->getBeganAt()
-            ? $entityManager->getRepository(Vehicle::class)->findOneByDadeLastMessageBetween(
+            ? $entityManager->getRepository(Vehicle::class)->findOneByDateLastMessageBetween(
                 $round->getVehicle(),
                 $round->getBeganAt(),
                 $round->getEndedAt(),

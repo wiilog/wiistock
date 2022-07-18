@@ -60,7 +60,7 @@ class RoundController extends AbstractController {
         $roundCategorie = $em->getRepository(CategorieStatut::class)->findOneBy(['nom' => CategorieStatut::TRANSPORT_ROUND])->getId();
         $ongoingStatus = $statusRepository->findOneBy(['code' => TransportRound::STATUS_ONGOING , 'categorie' => $roundCategorie ])?->getId();
         $deliverersPositions = Stream::from($roundRepository->findBy(['status' => $ongoingStatus]))
-            ->filterMap(fn(TransportRound $round) => $em->getRepository(Vehicle::class)->findOneByDadeLastMessageBetween(
+            ->filterMap(fn(TransportRound $round) => $em->getRepository(Vehicle::class)->findOneByDateLastMessageBetween(
                 $round->getVehicle(),
                 $round->getBeganAt(),
                 new DateTime('now'),
@@ -217,7 +217,7 @@ class RoundController extends AbstractController {
             ->toArray();
 
         $delivererPosition = $transportRound->getBeganAt()
-            ? $em->getRepository(Vehicle::class)->findOneByDadeLastMessageBetween(
+            ? $em->getRepository(Vehicle::class)->findOneByDateLastMessageBetween(
                 $transportRound->getVehicle(),
                 $transportRound->getBeganAt(),
                 $transportRound->getEndedAt(),

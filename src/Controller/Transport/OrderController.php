@@ -148,7 +148,7 @@ class OrderController extends AbstractController {
         $contactPosition = [$transportRequest->getContact()->getAddressLatitude(), $transportRequest->getContact()->getAddressLongitude()];
 
         $delivererPosition =  $round?->getBeganAt()
-            ? $entityManager->getRepository(Vehicle::class)->findOneByDadeLastMessageBetween(
+            ? $entityManager->getRepository(Vehicle::class)->findOneByDateLastMessageBetween(
                 $round->getVehicle(),
                 $round->getBeganAt(),
                 $round->getEndedAt(),

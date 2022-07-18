@@ -100,7 +100,7 @@ class VehicleRepository extends EntityRepository
             ->getSingleScalarResult();
     }
 
-    public function findOneByDadeLastMessageBetween( Vehicle $vehicle, DateTime $start, ?DateTime $end, string $type): ?array
+    public function findOneByDateLastMessageBetween(Vehicle $vehicle, DateTime $start, ?DateTime $end, string $type): ?array
     {
         return $this->createQueryBuilder("vehicle")
             ->select("sensor_message.content")
