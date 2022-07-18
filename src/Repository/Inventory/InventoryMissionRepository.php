@@ -34,6 +34,9 @@ class InventoryMissionRepository extends EntityRepository {
 
         $queryBuilder
             ->select('inventoryMission.id AS id_mission')
+            ->addSelect('inventoryMission.startPrevDate AS start_mission')
+            ->addSelect('inventoryMission.endPrevDate AS end_mission')
+            ->addSelect('inventoryMission.name AS name_mission')
             ->addSelect('refArticle.reference AS reference')
             ->addSelect('emplacement.label AS location')
             ->addSelect('1 AS is_ref')
@@ -62,6 +65,9 @@ class InventoryMissionRepository extends EntityRepository {
 
         $queryBuilder
             ->select('inventoryMission.id AS id_mission')
+            ->addSelect('inventoryMission.startPrevDate AS start_mission')
+            ->addSelect('inventoryMission.endPrevDate AS end_mission')
+            ->addSelect('inventoryMission.name AS name_mission')
             ->addSelect('referenceArticle.reference AS reference')
             ->addSelect('article.barCode AS barCode')
             ->addSelect('emplacement.label AS location')
