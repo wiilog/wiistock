@@ -8,6 +8,7 @@ use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\FreeField;
+use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorMessage;
 use App\Entity\IOT\TriggerAction;
 use App\Entity\Setting;
@@ -26,6 +27,7 @@ use App\Entity\Transport\TransportOrder;
 use App\Entity\Transport\TransportRequest;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\TransportRoundLine;
+use App\Entity\Transport\Vehicle;
 use App\Entity\Type;
 use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
@@ -146,8 +148,13 @@ class RequestController extends AbstractController {
         }
 
         $delivererPosition =  $round?->getBeganAt()
-            ? $round->getVehicle()?->getLastPosition($round->getBeganAt(), $round->getEndedAt())
+            ? $entityManager->getRepository(Vehicle::class)->findOneByDateLastMessageBetween(
+                $round->getVehicle(),
+                $round->getBeganAt(),
+                $round->getEndedAt(),
+                Sensor::GPS)
             : null;
+        $delivererPosition = $delivererPosition ? $delivererPosition["content"] : null;
 
         if ($round) {
             $now = new DateTime();

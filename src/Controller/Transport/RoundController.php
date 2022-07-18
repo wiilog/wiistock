@@ -18,6 +18,7 @@ use App\Entity\Transport\TransportOrder;
 use App\Entity\Transport\TransportRequest;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\TransportRoundLine;
+use App\Entity\Transport\Vehicle;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Exceptions\GeoException;
@@ -59,7 +60,13 @@ class RoundController extends AbstractController {
         $roundCategorie = $em->getRepository(CategorieStatut::class)->findOneBy(['nom' => CategorieStatut::TRANSPORT_ROUND])->getId();
         $ongoingStatus = $statusRepository->findOneBy(['code' => TransportRound::STATUS_ONGOING , 'categorie' => $roundCategorie ])?->getId();
         $deliverersPositions = Stream::from($roundRepository->findBy(['status' => $ongoingStatus]))
-            ->filterMap(fn(TransportRound $round) => $round->getVehicle()?->getLastPosition($round->getBeganAt()))
+            ->filterMap(fn(TransportRound $round) => $em->getRepository(Vehicle::class)->findOneByDateLastMessageBetween(
+                $round->getVehicle(),
+                $round->getBeganAt(),
+                new DateTime('now'),
+                Sensor::GPS))
+            ->map(fn(Array $position) => $position['content'])
+            ->flatten()
             ->toArray();
 
         return $this->render('transport/round/index.html.twig', [
@@ -183,7 +190,8 @@ class RoundController extends AbstractController {
 
     #[Route("/voir/{transportRound}", name: "transport_round_show", methods: "GET")]
     public function show(TransportRound         $transportRound,
-                         RouterInterface        $router): Response {
+                         RouterInterface        $router,
+                         EntityManagerInterface $em): Response {
         $realTime = null;
         if ($transportRound->getBeganAt() != null && $transportRound->getEndedAt() != null) {
             $realTimeDif = $transportRound->getEndedAt()->diff($transportRound->getBeganAt());
@@ -209,8 +217,13 @@ class RoundController extends AbstractController {
             ->toArray();
 
         $delivererPosition = $transportRound->getBeganAt()
-            ? $transportRound->getVehicle()?->getLastPosition($transportRound->getBeganAt(), $transportRound->getEndedAt())
+            ? $em->getRepository(Vehicle::class)->findOneByDateLastMessageBetween(
+                $transportRound->getVehicle(),
+                $transportRound->getBeganAt(),
+                $transportRound->getEndedAt(),
+                Sensor::GPS)
             : null;
+        $delivererPosition = $delivererPosition ? $delivererPosition["content"] : null;
 
         $urls = [];
         $transportDateBeganAt = $transportRound->getBeganAt();
