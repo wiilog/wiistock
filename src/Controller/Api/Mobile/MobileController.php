@@ -1444,7 +1444,7 @@ class MobileController extends AbstractFOSRestController
         $newAnomalies = [];
 
         foreach ($entries as $entry) {
-            $mission = $inventoryMissionRepository->find($entry['id_mission']);
+            $mission = $inventoryMissionRepository->find($entry['mission_id']);
             $location = $emplacementRepository->findOneBy(['label' => $entry['location']]);
 
             $articleToInventory = $entry['is_ref']
