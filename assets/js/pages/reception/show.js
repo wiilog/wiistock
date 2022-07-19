@@ -201,17 +201,20 @@ function initPageModals() {
     });
 
     $modalAddLigneArticle.on(`show.bs.modal`, function() {
-        const {label, reference} = GetRequestQuery();
+        const {label, reference, is_article} = GetRequestQuery();
         const $select = $(this).find(`[name="referenceArticle"]`);
 
         if(label && reference) {
             $select.append(new Option(label, reference, true, true));
             $select.trigger(`change`);
 
-            $modalAddLigneArticle.find(`#addArticleLigneSubmitAndRedirect`).removeClass(`d-none`);
+            if(is_article === '1'){
+                $modalAddLigneArticle.find(`#addArticleLigneSubmitAndRedirect`).removeClass(`d-none`);
+            }
 
             setTimeout(() => SetRequestQuery({}), 1);
         }
+        Select2Old.articleReference($select);
     });
 
     let $modalDeleteArticle = $("#modalDeleteLigneArticle");

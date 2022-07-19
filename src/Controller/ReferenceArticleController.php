@@ -307,6 +307,7 @@ class ReferenceArticleController extends AbstractController
                         "open-modal" => "new",
                         "reference" => $refArticle->getId(),
                         "label" => $refArticle->getReference(),
+                        "is_article" => $refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE,
                     ]),
                     default => null,
                 },
