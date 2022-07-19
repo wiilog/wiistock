@@ -265,9 +265,17 @@ class TransportService {
             if (!$data?->get('contactName') && !$contact->getName()) {
                 throw new FormException('Vous devez saisir le nom du patient');
             }
-
             if (!$data?->get('contactFileNumber') && !$contact->getFileNumber()) {
-                throw new FormException('Vous devez saisir le N° dossier');
+                throw new FormException('Vous devez saisir le n° du dossier');
+            }
+            if (!$data?->get('contactContact') && !$contact->getContact()) {
+                throw new FormException('Vous devez saisir le nom du contact');
+            }
+            if (!$data?->get('contactAddress') && !$contact->getAddress()) {
+                throw new FormException("Vous devez saisir l'adresse du contact");
+            }
+            if (!$data?->get('contactPersonToContact') && !$contact->getPersonToContact()) {
+                throw new FormException('Vous devez saisir la personne à contacter');
             }
 
             if(isset($data)){
