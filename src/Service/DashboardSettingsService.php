@@ -75,6 +75,7 @@ class DashboardSettingsService {
             return [
                 "id" => $page->getId(),
                 "name" => $page->getName(),
+                "componentCount" => $page->getComponentsCount(),
                 "dashboardIndex" => $pageIndex++,
                 "rows" => $page->getRows()
                     ->map(function(Dashboard\PageRow $row) use (&$rowIndex, $entityManager, $mode, $user) {
@@ -908,11 +909,13 @@ class DashboardSettingsService {
         $pagesToDelete = $this->byId($pageRepository->findAll());
         $pageRowsToDelete = $this->byId($pageRowRepository->findAll());
         $componentsToDelete = $this->byId($componentRepository->findAll());
+        dump($jsonDashboard);
         foreach ($jsonDashboard as $jsonPage) {
             [$updatePage, $page] = $this->getEntity($entityManager, Dashboard\Page::class, $jsonPage);
             if ($page) {
                 if ($updatePage) {
                     $page->setName($jsonPage["name"]);
+                    $page->setComponentsCount(isset($jsonPage["componentCount"]) ? intval($jsonPage["componentCount"]) : null);
 
                     foreach ($jsonPage["rows"] as $jsonRow) {
                         [$updateRow, $row] = $this->getEntity($entityManager, Dashboard\PageRow::class, $jsonRow);

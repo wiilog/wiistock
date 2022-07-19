@@ -51,6 +51,14 @@ $rowNumberToDatatableHeight: (
     }
 }
 
+.primary-danger {
+    background-color: #F29664 !important;
+}
+
+.secondary-danger {
+    background-color: #F5DA64 !important;
+}
+
 .dashboard-container {
     flex: 1;
     display: flex;

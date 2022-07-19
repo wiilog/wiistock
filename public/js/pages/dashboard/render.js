@@ -36,6 +36,7 @@ const ACTIVE_REFERENCE_ALERTS = 'active_reference_alerts';
 const REFERENCE_RELIABILITY = 'reference_reliability';
 const DAILY_DISPATCHES = 'daily_dispatches';
 const EXTERNAL_IMAGE = 'external_image';
+let DELAYS = {};
 
 $(function() {
     Chart.defaults.global.defaultFontFamily = 'Myriad';
@@ -570,9 +571,10 @@ function createIndicatorElement(data, config, redefinedNumberingConfig = null) {
     const $logoTag = data.logoURL ? `<img src="${data.logoURL}" class="w-px-30 h-px-30" style="object-fit: contain"/>` : '';
     const $emergencyIcon = needsEmergencyDisplay ? '<i class="fa fa-exclamation-triangle red"></i>' : $logoTag;
     const numberingConfig = {numbering: 0};
-    const smartNumberingConfig = redefinedNumberingConfig ? redefinedNumberingConfig : numberingConfig
+    const smartNumberingConfig = redefinedNumberingConfig ? redefinedNumberingConfig : numberingConfig;
+    const randomId = guidGenerator();
 
-    return $(element, Object.assign({
+    const $element = $(element, Object.assign({
         class: `dashboard-box dashboard-box-indicator text-center dashboard-stats-container ${customContainerClass}`,
         style: `${backgroundColor ? 'background-color:' + backgroundColor : ''}`,
         html: [
@@ -651,6 +653,13 @@ function createIndicatorElement(data, config, redefinedNumberingConfig = null) {
                 )))
         ].filter(Boolean)
     }, customAttributes));
+
+    if (Number.isInteger(delay)) {
+        $element.data('delay', delay);
+        $element.attr('id', randomId);
+    }
+
+    return $element;
 }
 
 function createExternalImage(data, config) {
@@ -1231,3 +1240,10 @@ Chart.Tooltip.positioners.middle = elements => {
         y: (model.base + model.y) / 2
     };
 };
+
+function guidGenerator() {
+    let S4 = function() {
+        return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
+    };
+    return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
+}

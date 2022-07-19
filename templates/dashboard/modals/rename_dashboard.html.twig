@@ -1,21 +1,38 @@
+{% import 'form.html.twig' as form %}
 <div class="modal fade" id="rename-dashboard-modal" tabindex="-1" role="dialog" aria-labelledby="rename-dashboard-label" aria-hidden="true">
-    <div class="modal-dialog" role="document">
+    <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
-            {% include 'utils/modal/header.html.twig' with {
-                title: "Renommer le dashboard"
-            } %}
-
+            <div class="modal-header">
+                <h5 class="modal-title wii-title" id="rename-dashboard-label">Paramétrage</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Fermer">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
             <div class="modal-body">
                 <div class="form-group">
-                    <label for="rename-dashboard-name" class="form-control-label">Nom du dashboard*</label>
+                    <label for="rename-dashboard-name" class="form-control-label wii-field-name">Nom du dashboard*</label>
                     <input type="text" id="rename-dashboard-name" name="rename-dashboard-name" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="highlight-components" class="form-control-label wii-field-name mb-2">Pour les composants «Quantité encours sur n
+                        emplacement(s)»</label>
+                    {{ form.checkbox('highlight-components', 'Mettre en valeur 1 ou 2 composant(s) avec le délai le plus court</span>', false, false, {
+                        labelClass: "wii-field-text",
+                    }) }}
+                    <div class="ml-4 mt-2 highlight-components-count-container d-none">
+                        {{ form.radio('highlight-components-count', null, true, [
+                            {label: '1 composant', value: '1'},
+                            {label: '2 composants', value: '2'},
+                        ], {labelClass: 'wii-field-text'}) }}
+                    </div>
                 </div>
 
                 <input type="hidden" name="rename-dashboard-index" class="form-control">
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Fermer</button>
-                <button type="button" class="btn btn-success rename-dashboard-modal-submit">Renommer</button>
+                <button type="button" class="btn btn-success dashboard-modal-submit-param">Enregistrer</button>
             </div>
         </div>
     </div>

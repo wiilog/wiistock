@@ -26,6 +26,9 @@ class Page {
     #[ORM\OneToOne(targetEntity: Action::class, cascade: ['persist', 'remove'], inversedBy: 'dashboard')]
     private $action;
 
+    #[ORM\Column(type: 'integer', nullable: true)]
+    private ?int $componentsCount = null;
+
     public function __construct() {
         $this->rows = new ArrayCollection();
     }
@@ -90,4 +93,12 @@ class Page {
         return $this;
     }
 
+    public function getComponentsCount(): ?int {
+        return $this->componentsCount;
+    }
+
+    public function setComponentsCount(?int $componentsCount): self {
+        $this->componentsCount = $componentsCount;
+        return $this;
+    }
 }
