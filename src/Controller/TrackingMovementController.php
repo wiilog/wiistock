@@ -17,6 +17,7 @@ use App\Entity\Setting;
 use App\Entity\Attachment;
 
 use App\Entity\Statut;
+use App\Entity\Type;
 use App\Entity\Utilisateur;
 
 use App\Service\AttachmentService;
@@ -361,14 +362,21 @@ class TrackingMovementController extends AbstractController
     public function edit(EntityManagerInterface $entityManager,
                          FreeFieldService $freeFieldService,
                          AttachmentService $attachmentService,
+                         TrackingMovementService $trackingMovementService,
+                         UserService $userService,
                          Request $request): Response {
 
         $post = $request->request;
 
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
+        $statutRepository = $entityManager->getRepository(Statut::class);
 
         $operator = $utilisateurRepository->find($post->get('operator'));
+        $location = $locationRepository->find($post->get('location'));
+        $action = $statutRepository->find($post->get('type'));
+
         $quantity = $post->getInt('quantity') ?: 1;
 
         if ($quantity < 1) {
@@ -377,9 +385,33 @@ class TrackingMovementController extends AbstractController
                 'msg' => 'La quantité doit être supérieure à 0.'
             ]);
         }
+        $mvt = $trackingMovementRepository->find($post->get('id'));
+        $pack = $mvt->getPack();
+        if ($userService->hasRightFunction(Menu::TRACA, Action::FULLY_EDIT_TRACKING_MOVEMENTS)) {
+            $pack->setCode($post->get('pack'));
+            $entityManager->flush();
+            /** @var TrackingMovement $new */
+            $new = $trackingMovementService->persistTrackingMovement(
+                $entityManager,
+                $pack,
+                $location,
+                $operator,
+                new DateTime($post->get('date')),
+                true,
+                $action,
+                false,
+            )['movement'];
+
+            $trackingMovementService->manageLinksForClonedMovement($mvt, $new);
+
+            $entityManager->persist($new);
+            $entityManager->remove($mvt);
+            $entityManager->flush();
+
+            $mvt = $new;
+        }
 
         /** @var TrackingMovement $mvt */
-        $mvt = $trackingMovementRepository->find($post->get('id'));
         $mvt
             ->setOperateur($operator)
             ->setQuantity($quantity)
