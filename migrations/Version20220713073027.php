@@ -43,7 +43,7 @@ final class Version20220713073027 extends AbstractMigration
             ActionsFixtures::SUB_MENU_MOVEMENTS => [
                 Action::DISPLAY_MOUV,
                 Action::CREATE_TRACKING_MOVEMENT,
-                Action::EDIT_ALL_MOVEMENT_DATA,
+                Action::FULLY_EDIT_TRACKING_MOVEMENTS,
                 Action::EMPTY_ROUND,
             ],
             ActionsFixtures::SUB_MENU_PACKS => [
