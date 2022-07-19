@@ -39,7 +39,7 @@
         <select class="form-control data needed w-100"
                 id="type"
                 name="type"
-            {{ not canEditFully ? 'disabled' }}
+                {{ not canEditFully ? 'disabled' }}
                 onchange="switchMvtCreationType($(this))">
             <option disabled selected></option>
             {% for statut in statuts %}
@@ -47,8 +47,10 @@
                     and statut.nom != constant('App\\Entity\\TrackingMovement::TYPE_PRISE_DEPOSE')
                     and statut.nom != constant('App\\Entity\\TrackingMovement::TYPE_GROUP')
                     and statut.nom != constant('App\\Entity\\TrackingMovement::TYPE_EMPTY_ROUND') %}
-                    <option class="{{ statut.nom == constant('App\\Entity\\TrackingMovement::TYPE_EMPTY_ROUND')
-                    and not hasEmptyRoundRight ? 'd-none' }}" value="{{ statut.id }}" {{ mvt.type.id == statut.id ? 'selected' }}>{{ statut.nom }}
+                    <option class="{{ statut.nom == constant('App\\Entity\\TrackingMovement::TYPE_EMPTY_ROUND') and not hasEmptyRoundRight ? 'd-none' }}"
+                            value="{{ statut.id }}"
+                            {{ mvt.type.id == statut.id ? 'selected' }}>
+                        {{ statut.nom }}
                     </option>
                 {% endif %}
             {% endfor %}
