@@ -63,6 +63,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
 use FOS\RestBundle\Controller\Annotations as Rest;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -1853,9 +1854,11 @@ class MobileController extends AbstractFOSRestController
     /**
      * @Rest\Get("/api/nomade-versions")
      */
-    public function getAvailableVersionsAction()
-    {
-        return $this->json($this->getParameter('nomade_versions') ?? '*');
+    public function checkNomadeVersion(Request $request, ParameterBagInterface $parameterBag){
+        return $this->json([
+            "success" => true,
+            "validVersion" => $this->mobileApiService->checkmobileVersion($request->get('nomadeVersion'), $parameterBag->get('nomade_versions')),
+        ]);
     }
 
     /**

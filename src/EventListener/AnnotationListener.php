@@ -6,6 +6,7 @@ use App\Annotation\HasPermission;
 use App\Annotation\RestAuthenticated;
 use App\Annotation\RestVersionChecked;
 use App\Entity\Utilisateur;
+use App\Service\MobileApiService;
 use App\Service\UserService;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\ORM\EntityManagerInterface;
@@ -26,15 +27,18 @@ class AnnotationListener {
     private $userService;
     private $templating;
     private $mobileVersion;
+    private $mobileApiService;
 
     public function __construct(EntityManagerInterface $entityManager,
                                 UserService $userService,
                                 Environment $templating,
-                                string $mobileVersion) {
+                                string $mobileVersion,
+                                MobileApiService $mobileApiService) {
         $this->entityManager = $entityManager;
         $this->userService = $userService;
         $this->templating = $templating;
         $this->mobileVersion = $mobileVersion;
+        $this->mobileApiService = $mobileApiService;
     }
 
     public function onRequest(ControllerArgumentsEvent $event) {
@@ -91,8 +95,7 @@ class AnnotationListener {
     private function handleRestVersionChecked(ControllerArgumentsEvent $event) {
         $request = $event->getRequest();
         $clientVersion = $request->headers->get("x-app-version", "");
-
-        if (!$clientVersion || !Semver::satisfies($clientVersion, $this->mobileVersion)) {
+        if (!$clientVersion || !$this->mobileApiService->checkMobileVersion($clientVersion, $this->mobileVersion)) {
             throw new UnauthorizedHttpException("no challenge");
         }
     }
