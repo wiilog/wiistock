@@ -222,15 +222,15 @@ function prefillForm($modal) {
     if (isPrefillInformationGiven()) {
         const {content} = GetRequestQuery() || {};
         const formContent = JSON.parse(content || '');
-
+        console.log(formContent);
         if (formContent['Prenom'] || formContent['Nom']) {
             const $contactName = $modal.find('[name=contactName]');
             $contactName.val(`${formContent['Prenom'] || ''}${formContent['Prenom'] ? ' ' :''}${formContent['Nom'] || ''}`)
         }
 
-        if (formContent['Nodos']) {
+        if (formContent['nodos']) {
             const $contactFileNumber = $modal.find('[name=contactFileNumber]');
-            $contactFileNumber.val(formContent['Nodos']);
+            $contactFileNumber.val(formContent['nodos']);
         }
 
         if (formContent['Contact']) {
@@ -238,9 +238,24 @@ function prefillForm($modal) {
             $contactContact.val(formContent['Contact']);
         }
 
+        if (formContent['Tel']) {
+            const $contactContact = $modal.find('[name=contactContact]');
+            $contactContact.val($contactContact.val() + ' ' + formContent['Tel']);
+        }
+
         if (formContent['Adresse']) {
             const $contactAddress = $modal.find('[name=contactAddress]');
             $contactAddress.val(formContent['Adresse']);
+        }
+
+        if (formContent['CP']) {
+            const $contactAddress = $modal.find('[name=contactAddress]');
+            $contactAddress.val($contactAddress.val() + ' ' + formContent['CP']);
+        }
+
+        if (formContent['Ville']) {
+            const $contactAddress = $modal.find('[name=contactAddress]');
+            $contactAddress.val($contactAddress.val() + ' ' + formContent['Ville']);
         }
 
         if (formContent['PersonnesAPrevenir']) {

@@ -27,7 +27,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[UniqueEntity(fields: "email", message: "Cette adresse email est déjà utilisée.")]
 #[UniqueEntity(fields: "username", message: "Ce nom d'utilisateur est déjà utilisé.")]
 #[ORM\Entity(repositoryClass: UtilisateurRepository::class)]
-class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenticatedUserInterface, SamlUserInterface {
+class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenticatedUserInterface {
 
     const DEFAULT_ARTICLE_VISIBLE_COLUMNS = ["actions", "label", "reference", "articleReference", "type", "quantity", "location"];
     const DEFAULT_REFERENCE_VISIBLE_COLUMNS = ["actions", "label", "reference", "type", "quantity", "location"];
@@ -244,9 +244,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
 
     #[ORM\Column(type: 'array', nullable: true)]
     private ?array $pageIndexes = [];
-
-    #[ORM\Column(type: 'array', nullable: true)]
-    private ?array $samlAttributes = [];
 
     #[ORM\Column(type: 'json', nullable: true)]
     private ?array $visibleColumns;
@@ -1704,14 +1701,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         $this->pageIndexes = $pagesIndexes;
 
         return $this;
-    }
-
-    public function getSAMLAttributes(): ?array {
-        return $this->samlAttributes;
-    }
-
-    public function setSamlAttributes(?array $attributes): void {
-        $this->samlAttributes = $attributes;
     }
 
     public function getVisibleColumns(): ?array {
