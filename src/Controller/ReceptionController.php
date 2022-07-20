@@ -701,7 +701,7 @@ class ReceptionController extends AbstractController {
 
             $receptionReferenceArticle = $receptionReferenceArticleRepository->find($data['article']);
             $reception = $receptionReferenceArticle->getReception();
-            $quantite = $data['quantite'];
+            $quantite = $data['quantiteAR'];
             $receivedQuantity = $receptionReferenceArticle->getQuantite();
 
             if(empty($receivedQuantity)) {
@@ -1747,84 +1747,89 @@ class ReceptionController extends AbstractController {
             $receptionLocationId = $receptionLocation?->getId();
             $emergencies = [];
 
-            foreach($articles as $article) {
+            foreach($articles as $articleArray) {
+                $quantity = $articleArray['quantite'];
                 if(isset($receptionLocationId)) {
-                    $article['emplacement'] = $receptionLocationId;
+                    $articleArray['emplacement'] = $receptionLocationId;
                 }
 
-                $noCommande = $article['noCommande'] ?? null;
+                $noCommande = $articleArray['noCommande'] ?? null;
                 if ($transferRequest) {
-                    $article['statut'] = Article::STATUT_EN_TRANSIT;
+                    $articleArray['statut'] = Article::STATUT_EN_TRANSIT;
                 }
 
-                $article = $articleDataService->newArticle($article, $entityManager);
+                $articleArray['quantite'] = intval($articleArray['articleQuantity']);
+                for($i = 0; $i < $quantity; $i++){
+                    dump($articleArray['quantite']);
+                    $article = $articleDataService->newArticle($articleArray, $entityManager);
 
-                if ($demande) {
-                    $deliveryArticleLine = $demandeLivraisonService->createArticleLine($article, $demande, $article->getQuantite());
-                    $entityManager->persist($deliveryArticleLine);
+                    if ($demande) {
+                        $deliveryArticleLine = $demandeLivraisonService->createArticleLine($article, $demande, $article->getQuantite());
+                        $entityManager->persist($deliveryArticleLine);
 
-                    /** @var Preparation $preparation */
-                    $preparation = $demande->getPreparations()->first();
-                    if ($preparation) {
-                        $preparationArticleLine = $preparationsManagerService->createArticleLine(
-                            $article,
-                            $preparation,
-                            $article->getQuantite(),
-                            $preparation->getStatut()->getCode() === Preparation::STATUT_PREPARE ? $article->getQuantite() : 0
-                        );
-                        $entityManager->persist($preparationArticleLine);
+                        /** @var Preparation $preparation */
+                        $preparation = $demande->getPreparations()->first();
+                        if ($preparation) {
+                            $preparationArticleLine = $preparationsManagerService->createArticleLine(
+                                $article,
+                                $preparation,
+                                $article->getQuantite(),
+                                $preparation->getStatut()->getCode() === Preparation::STATUT_PREPARE ? $article->getQuantite() : 0
+                            );
+                            $entityManager->persist($preparationArticleLine);
 
-                        $article->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
+                            $article->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
+                        }
                     }
+
+                    if ($transferRequest) {
+                        $transferRequest->addArticle($article);
+                    }
+
+                    $ref = $article->getArticleFournisseur()->getReferenceArticle();
+                    $receptionReferenceArticles = $receptionReferenceArticleRepository->findByReceptionAndCommandeAndRefArticleId($reception, $noCommande, $ref->getId());
+                    $receptionReferenceArticle = $receptionReferenceArticles[0] ?? null;
+                    $article->setReceptionReferenceArticle($receptionReferenceArticle);
+                    $ref = $receptionReferenceArticle->getReferenceArticle();
+                    if($ref->getIsUrgent()) {
+                        $emergencies[] = $article;
+                    }
+
+                    $mouvementStock = $mouvementStockService->createMouvementStock(
+                        $currentUser,
+                        null,
+                        $article->getQuantite(),
+                        $article,
+                        MouvementStock::TYPE_ENTREE
+                    );
+                    $mouvementStock->setReceptionOrder($reception);
+
+                    $mouvementStockService->finishMouvementStock(
+                        $mouvementStock,
+                        $now,
+                        $receptionLocation
+                    );
+
+                    $entityManager->persist($mouvementStock);
+
+                    $createdMvt = $trackingMovementService->createTrackingMovement(
+                        $article->getBarCode(),
+                        $receptionLocation,
+                        $currentUser,
+                        $now,
+                        false,
+                        true,
+                        TrackingMovement::TYPE_DEPOSE,
+                        [
+                            'mouvementStock' => $mouvementStock,
+                            'quantity' => $mouvementStock->getQuantity(),
+                            'from' => $reception
+                        ]
+                    );
+
+                    $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
+                    $entityManager->persist($createdMvt);
                 }
-
-                if ($transferRequest) {
-                    $transferRequest->addArticle($article);
-                }
-
-                $ref = $article->getArticleFournisseur()->getReferenceArticle();
-                $receptionReferenceArticles = $receptionReferenceArticleRepository->findByReceptionAndCommandeAndRefArticleId($reception, $noCommande, $ref->getId());
-                $receptionReferenceArticle = $receptionReferenceArticles[0] ?? null;
-                $article->setReceptionReferenceArticle($receptionReferenceArticle);
-                $ref = $receptionReferenceArticle->getReferenceArticle();
-                if($ref->getIsUrgent()) {
-                    $emergencies[] = $article;
-                }
-
-                $mouvementStock = $mouvementStockService->createMouvementStock(
-                    $currentUser,
-                    null,
-                    $article->getQuantite(),
-                    $article,
-                    MouvementStock::TYPE_ENTREE
-                );
-                $mouvementStock->setReceptionOrder($reception);
-
-                $mouvementStockService->finishMouvementStock(
-                    $mouvementStock,
-                    $now,
-                    $receptionLocation
-                );
-
-                $entityManager->persist($mouvementStock);
-
-                $createdMvt = $trackingMovementService->createTrackingMovement(
-                    $article->getBarCode(),
-                    $receptionLocation,
-                    $currentUser,
-                    $now,
-                    false,
-                    true,
-                    TrackingMovement::TYPE_DEPOSE,
-                    [
-                        'mouvementStock' => $mouvementStock,
-                        'quantity' => $mouvementStock->getQuantity(),
-                        'from' => $reception
-                    ]
-                );
-
-                $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
-                $entityManager->persist($createdMvt);
                 $entityManager->flush();
             }
 
