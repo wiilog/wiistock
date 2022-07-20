@@ -533,7 +533,7 @@ function createDashboardSelectorItem(dashboard) {
                 <div class="dropdown-menu dropdown-follow-gt pointer">
                     <a class="dropdown-item rename-dashboard" role="button" data-dashboard-index="${dashboard.dashboardIndex}"
                          data-toggle="modal" data-target="#rename-dashboard-modal">
-                        <i class="fas fa-edit mr-2"></i>Paramétrage
+                        <i class="fas fa-cog mr-2"></i>Paramétrage
                     </a>
                     <a class="dropdown-item delete-dashboard" role="button" data-dashboard-index="${dashboard.dashboardIndex}">
                         <i class="fas fa-trash mr-2"></i>Supprimer
