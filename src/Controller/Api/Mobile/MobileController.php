@@ -1356,8 +1356,6 @@ class MobileController extends AbstractFOSRestController
         $preparation = $request->getPreparations()->first();
         $order = $livraisonsManagerService->createLivraison($now, $preparation, $entityManager);
 
-        $preparationsManagerService->treatPreparation($preparation, $nomadUser, $request->getDestination(), [], $entityManager);
-
         foreach ($request->getArticleLines() as $articleLine) {
             $article = $articleLine->getArticle();
             $outMovement = $preparationsManagerService->createMouvementLivraison(
@@ -1371,7 +1369,7 @@ class MobileController extends AbstractFOSRestController
             $entityManager->persist($outMovement);
             $mouvementStockService->finishMouvementStock($outMovement, $now, $request->getDestination());
         }
-
+        $preparationsManagerService->treatPreparation($preparation, $nomadUser, $request->getDestination(), [], $entityManager);
         $preparationsManagerService->updateRefArticlesQuantities($preparation, $entityManager);
 
         $livraisonsManagerService->finishLivraison($nomadUser, $order, $now, $request->getDestination());
