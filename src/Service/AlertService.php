@@ -29,7 +29,7 @@ class AlertService {
 
         $expiry = $parametrage->getOneParamByLabel(Setting::STOCK_EXPIRATION_DELAY);
 
-        $expired = $manager->getRepository(Article::class)->findExpiredToGenerate($expiry);
+        $expired = $expiry ? $manager->getRepository(Article::class)->findExpiredToGenerate($expiry) : [];
         $noLongerExpired = $manager->getRepository(Alert::class)->findNoLongerExpired();
 
         foreach($noLongerExpired as $alert) {
