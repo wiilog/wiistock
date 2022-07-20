@@ -634,7 +634,7 @@ class ArticleController extends AbstractController
                                           PDFGeneratorService $PDFGeneratorService,
                                           ArticleDataService $articleDataService): Response {
         $articleRepository = $entityManager->getRepository(Article::class);
-        $listArticles = $request->query->get('listArticles') ?: [];
+        $listArticles = $request->query->all('listArticles') ?: [];
         $barcodeConfigs = array_map(
             function (Article $article) use ($articleDataService) {
                 return $articleDataService->getBarcodeConfig($article);
