@@ -5,6 +5,7 @@ namespace App\Controller\Transport;
 use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
+use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorMessage;
@@ -80,6 +81,7 @@ class RoundController extends AbstractController {
     public function api(Request $request, EntityManagerInterface $manager): Response {
         $filterSupRepository = $manager->getRepository(FiltreSup::class);
         $roundRepository = $manager->getRepository(TransportRound::class);
+        $locationRepository = $manager->getRepository(Emplacement::class);
 
         $filters = $filterSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_TRANSPORT_ROUNDS, $this->getUser());
         $queryResult = $roundRepository->findByParamAndFilters($request->request, $filters);
@@ -132,16 +134,9 @@ class RoundController extends AbstractController {
                     ->some(fn(TransportRoundLine $line) => $line->getOrder()->hasRejectedPacks());
 
                 $alertTemperature = false;
-                foreach($transportRound->getLocations() as $location){
-                    $sensorMessageBetween = $location->getSensorMessagesBetween(
-                        ($transportRound->getBeganAt() ?? new DateTime())->format('Y-m-d\TH:i'),
-                        ($transportRound->getEndedAt() ?? new DateTime())->format('Y-m-d\TH:i'),
-                        Sensor::TEMPERATURE
-                    );
-                    if (!$sensorMessageBetween) {
-                        continue;
-                    }
+                foreach($transportRound->getLocations() as $location) {
                     $triggerActions = $location->getActivePairing()?->getSensorWrapper()?->getTriggerActions();
+
                     if ($triggerActions) {
                         $minTriggerActionThreshold = Stream::from($triggerActions)
                             ->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'lower')
@@ -154,9 +149,18 @@ class RoundController extends AbstractController {
                         $minThreshold = $minTriggerActionThreshold?->getConfig()['temperature'];
                         $maxThreshold = $maxTriggerActionThreshold?->getConfig()['temperature'];
 
-                        $alertTemperature = !$alertTemperature && Stream::from($sensorMessageBetween)
-                            ->some(fn(SensorMessage $message) => (int) $message->getContent() < min($minThreshold, $maxThreshold)
-                                || (int) $message->getContent() > max($maxThreshold, $minThreshold));
+                        $alertTemperature = $locationRepository->countTemperatureAlerts(
+                            $location,
+                            $transportRound->getBeganAt(),
+                            $transportRound->getEndedAt(),
+                            Sensor::TEMPERATURE,
+                            min($minThreshold, $maxThreshold),
+                            max($maxThreshold, $minThreshold),
+                        );
+
+                        if ($alertTemperature) {
+                            break;
+                        }
                     }
                 }
 

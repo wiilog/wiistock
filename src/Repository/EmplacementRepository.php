@@ -8,6 +8,7 @@ use App\Entity\IOT\Sensor;
 use App\Entity\LocationGroup;
 use App\Entity\Pack;
 use App\Entity\Transport\TransportRound;
+use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\StringHelper;
@@ -457,6 +458,47 @@ class EmplacementRepository extends EntityRepository
             ->select('COUNT(round)')
             ->andWhere(':location MEMBER OF round.locations')
             ->setParameter('location', $location)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    public function countTemperatureAlerts(Emplacement $location,
+                                           DateTime $start,
+                                           ?DateTime $end,
+                                           string $type,
+                                           ?int $min,
+                                           ?int $max): int
+    {
+        $queryBuilder = $this->createQueryBuilder("location");
+        $exprBuilder = $queryBuilder->expr();
+
+        if (!isset($min) && !isset($max)) {
+            return 0;
+        }
+
+        $orX = $exprBuilder->orX();
+        if ($min) {
+            $orX->add('sensor_message.content < :min');
+            $queryBuilder->setParameter('min', $min);
+        }
+        if ($max) {
+            $orX->add('sensor_message.content > :max');
+            $queryBuilder->setParameter('max', $max);
+        }
+
+        return $queryBuilder
+            ->select("COUNT(sensor_message.id)")
+            ->join("location.sensorMessages", "sensor_message")
+            ->join('sensor_message.sensor' , 'sensor')
+            ->join('sensor.type', 'type')
+            ->where('sensor_message.date BETWEEN :start AND :end')
+            ->andWhere('location.id = :location')
+            ->andWhere('type.label = :type')
+            ->andWhere($orX)
+            ->setParameter('location', $location)
+            ->setParameter('type', $type)
+            ->setParameter('start', $start)
+            ->setParameter('end', $end ?? new DateTime("now"))
             ->getQuery()
             ->getSingleScalarResult();
     }
