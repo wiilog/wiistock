@@ -1,6 +1,6 @@
 <div class="row">
     <div class="form-group col-md-6 col-12">
-        <label>Type*</label>
+        <label class="wii-field-name">Type*</label>
         <select name="type"
                 class="form-control d-block type needed"
                 disabled
@@ -11,7 +11,7 @@
 
     {% set statusDisabled = handling.status is not null and handling.status.treated %}
     <div class="form-group col-md-6 col-12">
-        <label>Statut*</label>
+        <label class="wii-field-name">Statut*</label>
         <select name="status"
             {{ statusDisabled ? 'disabled' }}
             class="form-control data d-block needed"
@@ -37,12 +37,12 @@
     </div>
 
     <div class="form-group needed col-md-6 col-12">
-        <label for="subject">{{ 'services.Objet'|trans }}*</label>
+        <label class="wii-field-name" for="subject">{{ 'services.Objet'|trans }}*</label>
         <input class="form-control data needed" name="subject" value="{{ handling.subject }}">
     </div>
 
     <div class="form-group needed col-md-6 col-12">
-        <label for="requester">Demandeur</label>
+        <label class="wii-field-name" for="requester">Demandeur</label>
         <select class="demandeur form-control data needed input" name="requester" disabled>
             {% if handling.requester %}
                 <option value="{{ handling.requester.id }}">{{ handling.requester.username }}</option>
@@ -55,7 +55,7 @@
     {% set removeHourInDatetime = removeHourInDatetime is defined and removeHourInDatetime %}
     {% set desiredDateFormat = removeHourInDatetime ? 'Y-m-d' : 'Y-m-d\\TH:i' %}
     <div class="form-group col-md-6 col-12">
-        <label for="desired-date">Date attendue*</label>
+        <label class="wii-field-name" for="desired-date">Date attendue*</label>
         <input class="form-control data needed"
                type="{{ removeHourInDatetime ? 'date' : 'datetime-local' }}"
                value="{{ handling.desiredDate | date(desiredDateFormat) }}"
@@ -67,7 +67,7 @@
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
         <div class="form-group col-md-6 col-12">
-            <label>Urgence{{ required ? '*' }}</label>
+            <label class="wii-field-name">Urgence{{ required ? '*' }}</label>
             <div class="w-100">
                 <select
                     class="form-control input-sm data {{ required ? 'needed' : '' }}"
@@ -88,7 +88,7 @@
 
     {% set validationDate = handling.validationDate ? handling.validationDate|date('Y-m-d\\TH:i') : '' %}
     <div class="form-group col-md-6 col-12">
-        <label for="desired-date">Date de réalisation</label>
+        <label class="wii-field-name" for="desired-date">Date de réalisation</label>
         <input class="form-control needed"
                type="datetime-local"
                value="{{ validationDate }}"
@@ -98,7 +98,7 @@
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_LOADING_ZONE') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         <div class="form-group col-md-6 col-12">
-            <label for="source">Chargement{{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? '*' : '' }}</label>
+            <label class="wii-field-name" for="source">Chargement{{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? '*' : '' }}</label>
             <input class="form-control data {{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? 'needed' : '' }} input"
                    value="{{ handling.source }}"
                    name="source">
@@ -108,7 +108,7 @@
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_UNLOADING_ZONE') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         <div class="form-group col-md-6 col-12">
-            <label for="destination">Déchargement{{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? '*' : '' }}</label>
+            <label class="wii-field-name" for="destination">Déchargement{{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? '*' : '' }}</label>
             <input class="form-control data {{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? 'needed' : '' }} input"
                    value="{{ handling.destination }}"
                    name="destination">
@@ -119,7 +119,7 @@
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         {% set carriedOutOperationCount = handling.carriedOutOperationCount is null ? '' : handling.carriedOutOperationCount %}
         <div class="form-group col-md-6 col-12">
-            <label for="carriedOutOperationCount">{{ 'services.Nombre d\'opération(s) réalisée(s)'|trans }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? '*' }}</label>
+            <label class="wii-field-name" for="carriedOutOperationCount">{{ 'services.Nombre d\'opération(s) réalisée(s)'|trans }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? '*' }}</label>
             <input type="number"
                    min="0"
                    class="form-control data {{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? 'needed' }} input"
@@ -131,7 +131,7 @@
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_RECEIVERS_HANDLING') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         <div class="form-group col-4">
-            <label>Destinataires{{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? '*' }}</label>
+            <label class="wii-field-name">Destinataires{{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? '*' }}</label>
             <select name="receivers"
                     class="form-control data ajax-autocomplete-user-edit w-100 {{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? 'needed'}}"
                     multiple>

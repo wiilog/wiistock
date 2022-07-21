@@ -9,7 +9,7 @@
             <div class="modal-body modal-input container-fluid">
                 <div class="row">
                     <div class="form-group col-md-6 col-12">
-                        <label for="type">Type*</label>
+                        <label class="wii-field-name" for="type">Type*</label>
                         <select name="type" class="form-control data d-block type needed"
                                 onchange="onTypeChange($(this))">
                             <option value="">Type à choisir...</option>
@@ -21,7 +21,7 @@
                     </div>
 
                     <div class="form-group col-md-6 col-12">
-                        <label for="type">Statut*</label>
+                        <label class="wii-field-name" for="type">Statut*</label>
                         <select name="status" class="form-control data w-100 needed">
                             <option value="">Choisir un statut...</option>
                             {% for status in handlingStatus %}
@@ -55,12 +55,12 @@
                     </div>
 
                     <div class="form-group needed col-md-6 col-12">
-                        <label for="subject">{{ 'services.Objet'|trans }}*</label>
+                        <label class="wii-field-name" for="subject">{{ 'services.Objet'|trans }}*</label>
                         <input class="form-control data needed" name="subject">
                     </div>
 
                     <div class="form-group col-md-6 col-12">
-                        <label for="requester">Demandeur</label>
+                        <label class="wii-field-name" for="requester">Demandeur</label>
                         <select class="demandeur form-control data needed" name="requester" disabled>
                             <option value="{{ app.user.id }}">{{ app.user.username }}</option>
                         </select>
@@ -68,7 +68,7 @@
 
                     {% set removeHourInDatetime = removeHourInDatetime is defined and removeHourInDatetime %}
                     <div class="form-group col-12">
-                        <label for="desired-date">Date attendue*</label>
+                        <label class="wii-field-name" for="desired-date">Date attendue*</label>
                         <input type="{{ removeHourInDatetime ? 'date' : 'datetime-local' }}"
                                class="form-control data needed"
                                name="desired-date"
@@ -81,7 +81,7 @@
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
                         <div class="form-group col-12">
-                            <label>Urgence{{ required ? '*' }}</label>
+                            <label class="wii-field-name">Urgence{{ required ? '*' }}</label>
                             <div class="w-100">
                                 <select
                                     class="form-control input-sm data {{ required ? 'needed' : '' }}"
@@ -98,7 +98,7 @@
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_LOADING_ZONE') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         <div class="form-group col-md-6 col-12">
-                            <label for="source">Chargement{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' : '' }}</label>
+                            <label class="wii-field-name" for="source">Chargement{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' : '' }}</label>
                             <input class="form-control data {{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? 'needed' : '' }}" name="source">
                         </div>
                     {% endif %}
@@ -106,7 +106,7 @@
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_UNLOADING_ZONE') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         <div class="form-group col-md-6 col-12">
-                            <label for="destination">Déchargement{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' : '' }}</label>
+                            <label class="wii-field-name" for="destination">Déchargement{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' : '' }}</label>
                             <input class="form-control data {{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? 'needed' : '' }}" name="destination">
                         </div>
                     {% endif %}
@@ -124,7 +124,7 @@
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_RECEIVERS_HANDLING') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         <div class="form-group col-md-6 col-12">
-                            <label>Destinataires{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' }}</label>
+                            <label class="wii-field-name">Destinataires{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' }}</label>
                             <select name="receivers"
                                     class="form-control data ajax-autocomplete-user receivers w-100 {{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? 'needed' }}"
                                     multiple>
