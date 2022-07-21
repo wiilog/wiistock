@@ -1880,7 +1880,7 @@ class MobileController extends AbstractFOSRestController
                     $anomaly['reference'],
                     $anomaly['is_ref'],
                     $anomaly['quantity'],
-                    $anomaly['comment'],
+                    $anomaly['comment'] ?? null,
                     $nomadUser
                 );
 
