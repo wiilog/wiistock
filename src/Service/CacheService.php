@@ -32,9 +32,9 @@ class CacheService {
         }
 
         $cache = $this->getCacheDirectory();
-        if (!file_exists("$cache/$namespace$key")) {
+//        if (!file_exists("$cache/$namespace$key")) {
             $this->set($namespace, $originalKey, $callback());
-        }
+//        }
 
         return unserialize(file_get_contents("$cache/$namespace$key"));
     }

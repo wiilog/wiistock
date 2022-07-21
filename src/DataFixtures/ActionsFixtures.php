@@ -28,7 +28,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
     const SUB_MENU_USERS = 'utilisateurs';
     const SUB_MENU_DATA = 'données';
     const SUB_MENU_PAGE = 'page';
-    const SUB_MENU_TRACKING = 'traçabilité';
+    const SUB_MENU_TRACKING = 'track';
     const SUB_MENU_TRACING = 'trace';
     const SUB_MENU_COLLECTS = 'collectes';
     const SUB_MENU_DELIVERIES = 'livraisons';

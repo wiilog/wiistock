@@ -27,18 +27,19 @@ class RoleService
     public function getPermissions(Utilisateur $user, $bool = false): array {
         $role = $user->getRole();
         $permissionsPrefix = self::PERMISSIONS_CACHE_PREFIX;
-        return $this->cacheService->get(CacheService::PERMISSIONS, "{$permissionsPrefix}.{$role->getId()}", function() use ($role, $bool) {
-            return Stream::from($role->getActions())
-                ->keymap(function(Action $action) use ($bool) {
-                    $key = $this->getPermissionKey($action->getMenu()->getLabel(), $action->getLabel());
-                    return [$key, true];
-                })
-                ->toArray();
+        $actions = Stream::from($role->getActions())
+            ->keymap(function(Action $action) use ($bool) {
+                $key = $this->getPermissionKey($action->getMenu()->getLabel(), $action->getLabel(), $bool ? $action->getSubMenu()?->getLabel() : null);
+                return [$key, true];
+            })
+            ->toArray();
+        return $this->cacheService->get(CacheService::PERMISSIONS, "{$permissionsPrefix}.{$role->getId()}", function() use ($actions, $role, $bool) {
+            return $actions;
         });
     }
 
-    public function getPermissionKey(string $menuLabel, string $actionLabel): string {
-        return StringHelper::slugify($menuLabel . '_' . $actionLabel);
+    public function getPermissionKey(string $menuLabel, string $actionLabel, $subMenuLabel = null): string {
+        return StringHelper::slugify($menuLabel . '_' . $actionLabel.($subMenuLabel ? '_'.$subMenuLabel : ""));
     }
 
     public function onRoleUpdate(int $roleId): void {

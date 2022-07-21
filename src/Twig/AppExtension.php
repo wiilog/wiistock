@@ -89,8 +89,8 @@ class AppExtension extends AbstractExtension {
         ];
     }
 
-    public function hasRightFunction(string $menuCode, string $actionLabel) {
-        return $this->userService->hasRightFunction($menuCode, $actionLabel);
+    public function hasRightFunction(string $menuCode, string $actionLabel, $subMenuLabel = null) {
+        return $this->userService->hasRightFunction($menuCode, $actionLabel,null, $subMenuLabel);
     }
 
     /**
