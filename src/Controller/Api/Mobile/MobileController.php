@@ -2295,6 +2295,7 @@ class MobileController extends AbstractFOSRestController
      * @Wii\RestVersionChecked()
      */
     public function patchDispatches(Request $request,
+                                    AttachmentService $attachmentService,
                                     DispatchService $dispatchService,
                                     EntityManagerInterface $entityManager): JsonResponse
     {
@@ -2318,6 +2319,8 @@ class MobileController extends AbstractFOSRestController
                 $natureId = $current['natureId'];
                 $quantity = $current['quantity'];
                 $dispatchId = (int)$current['dispatchId'];
+                $photo1 = $current['photo1'] ?? null;
+                $photo2 = $current['photo2'] ?? null;
                 if (!isset($acc[$dispatchId])) {
                     $acc[$dispatchId] = [];
                 }
@@ -2325,6 +2328,8 @@ class MobileController extends AbstractFOSRestController
                     'id' => $id,
                     'natureId' => $natureId,
                     'quantity' => $quantity,
+                    'photo1' => $photo1,
+                    'photo2' => $photo2,
                 ];
                 return $acc;
             }, [])
@@ -2344,11 +2349,11 @@ class MobileController extends AbstractFOSRestController
                         foreach ($dispatchPacksByDispatch[$dispatch->getId()] as $packArray) {
                             $treatedPacks[] = $packArray['id'];
                             $packDispatch = $dispatchPackRepository->find($packArray['id']);
+                            $pack = $packDispatch->getPack();
                             if (!empty($packDispatch)) {
                                 if (!empty($packArray['natureId'])) {
                                     $nature = $natureRepository->find($packArray['natureId']);
                                     if ($nature) {
-                                        $pack = $packDispatch->getPack();
                                         $pack->setNature($nature);
                                     }
                                 }
@@ -2356,6 +2361,19 @@ class MobileController extends AbstractFOSRestController
                                 $quantity = (int)$packArray['quantity'];
                                 if ($quantity > 0) {
                                     $packDispatch->setQuantity($quantity);
+                                }
+
+                                $code = $pack->getCode();
+                                foreach (['photo1', 'photo2'] as $photoName) {
+                                    $photoFile = $request->files->get("{$code}_{$photoName}");
+                                    if ($photoFile) {
+                                        $fileName = $attachmentService->saveFile($photoFile);
+                                        $attachments = $attachmentService->createAttachements($fileName);
+                                        foreach ($attachments as $attachment) {
+                                            $entityManager->persist($attachment);
+                                            $dispatch->addAttachment($attachment);
+                                        }
+                                    }
                                 }
                             }
                         }

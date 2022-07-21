@@ -475,10 +475,12 @@ class DispatchService {
                     $fromNomade,
                     true,
                     TrackingMovement::TYPE_PRISE,
-                    [   'quantity' => $dispatchPack->getQuantity(),
+                    [
+                        'quantity' => $dispatchPack->getQuantity(),
                         'from' => $dispatch,
                         'removeFromGroup' => true,
-                        'attachments' => $dispatch->getAttachments() ]
+                        'attachments' => $dispatch->getAttachments(),
+                    ]
                 );
 
                 $trackingDrop = $this->trackingMovementService->createTrackingMovement(
@@ -489,9 +491,11 @@ class DispatchService {
                     $fromNomade,
                     true,
                     TrackingMovement::TYPE_DEPOSE,
-                    [   'quantity' => $dispatchPack->getQuantity(),
+                    [
+                        'quantity' => $dispatchPack->getQuantity(),
                         'from' => $dispatch,
-                        'attachments' => $dispatch->getAttachments(),]
+                        'attachments' => $dispatch->getAttachments(),
+                    ]
                 );
 
                 $entityManager->persist($trackingTaking);
