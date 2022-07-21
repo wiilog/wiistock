@@ -10,7 +10,7 @@
                 <div class='row'>
                     {% if fieldsParam|isFieldRequired('dateCommande', 'displayedCreate') %}
                         <div class="form-group col-6">
-                            <label for="dateCommande">Date commande{{ fieldsParam|isFieldRequired('dateCommande', 'requiredCreate') ? '*' : '' }}</label>
+                            <label class="wii-field-name" for="dateCommande">Date commande{{ fieldsParam|isFieldRequired('dateCommande', 'requiredCreate') ? '*' : '' }}</label>
                             <input type="text"
                                    class="form-control cursor-default data {{ fieldsParam|isFieldRequired('dateCommande', 'requiredCreate') ? 'needed' : '' }}"
                                    name="dateCommande"
@@ -23,7 +23,7 @@
 
                     {% if fieldsParam|isFieldRequired('dateAttendue', 'displayedCreate') %}
                         <div class="form-group col-6">
-                            <label for="dateAttendue">Date attendue{{ fieldsParam|isFieldRequired('dateAttendue', 'requiredCreate') ? '*' : '' }}</label>
+                            <label class="wii-field-name" for="dateAttendue">Date attendue{{ fieldsParam|isFieldRequired('dateAttendue', 'requiredCreate') ? '*' : '' }}</label>
                             <input type="text"
                                    class="form-control cursor-default data {{ fieldsParam|isFieldRequired('dateAttendue', 'requiredCreate') ? 'needed' : '' }}"
                                    name="dateAttendue"
@@ -38,7 +38,7 @@
                 <div class="row">
                     {% if fieldsParam|isFieldRequired('numCommande', 'displayedCreate') %}
                         <div class="form-group col-6">
-                            <label>Numéro de commande{{ fieldsParam|isFieldRequired('numCommande', 'requiredCreate') ? '*' : '' }}</label>
+                            <label class="wii-field-name">Numéro de commande{{ fieldsParam|isFieldRequired('numCommande', 'requiredCreate') ? '*' : '' }}</label>
                             <input type="text"
                                    class="form-control data {{ fieldsParam|isFieldRequired('numCommande', 'requiredCreate') ? 'needed' : '' }}"
                                    name="orderNumber">
@@ -47,7 +47,7 @@
 
                     {% if fieldsParam|isFieldRequired('emplacement', 'displayedCreate') %}
                         <div class="form-group col-6 w-100">
-                            <label>Emplacement{{ fieldsParam|isFieldRequired('emplacement', 'requiredCreate') ? '*' : '' }}</label>
+                            <label class="wii-field-name">Emplacement{{ fieldsParam|isFieldRequired('emplacement', 'requiredCreate') ? '*' : '' }}</label>
                             <select class="ajax-autocomplete-location data form-control {{ fieldsParam|isFieldRequired('emplacement', 'requiredCreate') ? 'needed' : '' }}" name="location"
                                     id="receptionLocation">
                             </select>
@@ -61,7 +61,7 @@
                         <div class="col-md-6 col-12">
                             <div class="row">
                                 <div class="form-group w-100 col">
-                                    <label
+                                    <label class="wii-field-name"
                                         for="fournisseurs">Fournisseur{{ fieldsParam|isFieldRequired('fournisseur', 'requiredCreate') ? '*' : '' }}</label>
                                     <select
                                         class="form-control ajax-autocomplete-fournisseur data {{ fieldsParam|isFieldRequired('fournisseur', 'requiredCreate') ? 'needed' : '' }}"
@@ -83,7 +83,7 @@
                         <div class="col-md-6 col-12">
                             <div class="row">
                                 <div class="form-group w-100 col">
-                                    <label
+                                    <label class="wii-field-name"
                                         for="transporteur">Transporteur{{ fieldsParam|isFieldRequired('transporteur', 'requiredCreate') ? '*' : '' }}</label>
                                     <select
                                         class="form-control data ajax-autocomplete-transporteur {{ fieldsParam|isFieldRequired('transporteur', 'requiredCreate') ? 'needed' : '' }}"
@@ -107,10 +107,10 @@
                         <div class="col-md-6 col-12 fly-form">
                             <div class="row">
                                 <div class="form-group col invisible" id="fournisseurDisplay">
-                                    <label for="newFournisseur">Nom*</label>
+                                    <label class="wii-field-name" for="newFournisseur">Nom*</label>
                                     <input type="text" id="newFournisseur" class="form-control valeur newFormulaire neededNew copyOnTheFly"
                                            name="name" maxlength="64">
-                                    <label for="newFournisseurCode" class="mt-2">Code*</label>
+                                    <label for="newFournisseurCode" class="wii-field-name mt-2">Code*</label>
                                     <input type="text" id="newFournisseurCode" class="form-control newFormulaire neededNew copiedOnTheFly"
                                            name="code" maxlength="64">
                                 </div>
@@ -125,10 +125,10 @@
                         <div class="col-md-6 col-12 fly-form">
                             <div class="row">
                                 <div class="form-group col invisible" id="transporteurDisplay">
-                                    <label for="newTransporteur">Nom*</label>
+                                    <label class="wii-field-name" for="newTransporteur">Nom*</label>
                                     <input type="text" id="newTransporteur" class="form-control newFormulaire neededNew copyOnTheFly"
                                            name="label" maxlength="64">
-                                    <label for="newTransporteurCode" class="mt-2">Code*</label>
+                                    <label for="newTransporteurCode" class="wii-field-name mt-2">Code*</label>
                                     <input type="text" id="newTransporteurCode" class="form-control newFormulaire neededNew copiedOnTheFly"
                                            name="code" maxlength="64">
                                 </div>
@@ -146,7 +146,7 @@
                 <div class="row">
                     {% if fieldsParam|isFieldRequired('storageLocation', 'displayedCreate') %}
                         <div class="form-group col-6 w-100">
-                            <label>Emplacement de stockage{{ fieldsParam|isFieldRequired('storageLocation', 'requiredCreate') ? '*' : '' }}</label>
+                            <label class="wii-field-name">Emplacement de stockage{{ fieldsParam|isFieldRequired('storageLocation', 'requiredCreate') ? '*' : '' }}</label>
                             <select class="ajax-autocomplete-location data form-control {{ fieldsParam|isFieldRequired('emplacement', 'requiredCreate') ? 'needed' : '' }}"
                                     name="storageLocation">
                             </select>
@@ -154,7 +154,7 @@
                     {% endif %}
                     {% if fieldsParam|isFieldRequired('anomalie', 'displayedCreate') %}
                         <div class="form-group col-3 pt-4">
-                            <label>Anomalie</label>
+                            <label class="wii-field-name">Anomalie</label>
                             <label class="switch">
                                 <input class="checkbox" type="checkbox" name="anomalie">
                                 <span class="slider round"></span>
@@ -163,7 +163,7 @@
                     {% endif %}
                     {% if fieldsParam|isFieldRequired('manualUrgent', 'displayedCreate') %}
                         <div class="form-group col-3 mt-4">
-                            <label>Urgence ?{{ fieldsParam|isFieldRequired('manualUrgent', 'requiredCreate') ? '*' : '' }}</label>
+                            <label class="wii-field-name">Urgence ?{{ fieldsParam|isFieldRequired('manualUrgent', 'requiredCreate') ? '*' : '' }}</label>
                             <label class="switch">
                                 <input class="checkbox {{ fieldsParam|isFieldRequired('manualUrgent', 'requiredCreate') ? 'needed' : '' }}"
                                        type="checkbox"
@@ -177,7 +177,7 @@
                 <div class="row">
                     {% if fieldsParam|isFieldRequired('commentaire', 'displayedCreate') %}
                         <div class="form-group col-8">
-                            <label>Commentaire{{ fieldsParam|isFieldRequired('commentaire', 'requiredCreate') ? '*' : '' }}</label>
+                            <label class="wii-field-name">Commentaire{{ fieldsParam|isFieldRequired('commentaire', 'requiredCreate') ? '*' : '' }}</label>
                             <input id='commentaire'
                                    class="form-control data {{ fieldsParam|isFieldRequired('commentaire', 'requiredCreate') ? 'needed' : '' }}"
                                    name="commentaire" type="hidden">

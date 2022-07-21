@@ -2,7 +2,7 @@
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PROVIDER_ARRIVAGE') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
             <div class="form-group col-4">
-                <label for="fournisseur">Fournisseur{{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? '*' : '' }}</label>
+                <label class="wii-field-name" for="fournisseur">Fournisseur{{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? '*' : '' }}</label>
                 <select class="form-control data select2 {{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? 'needed' : '' }}"
                         id="fournisseur"
                         name="fournisseur">
@@ -21,7 +21,7 @@
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIER_ARRIVAGE') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         <div class="form-group col-4">
-            <label for="transporteur">Transporteur{{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? '*' : '' }}</label>
+            <label class="wii-field-name" for="transporteur">Transporteur{{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? '*' : '' }}</label>
             <select class="form-control data select2 {{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? 'needed' : '' }}" id="transporteur" name="transporteur">
                 <option {{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? 'disabled' }} selected></option>
                 {% for transporteur in transporteurs %}
@@ -34,7 +34,7 @@
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CHAUFFEUR_ARRIVAGE') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         <div class="form-group col-4">
-            <label for="chauffeur">Chauffeur{{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? '*' : '' }}</label>
+            <label class="wii-field-name" for="chauffeur">Chauffeur{{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? '*' : '' }}</label>
             <select class="form-control data select2 {{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? 'needed' : '' }}" id="chauffeur" name="chauffeur">
                 <option {{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? 'disabled' }} selected></option>
                 {% for chauffeur in chauffeurs %}
@@ -51,7 +51,7 @@
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         <div class="form-group col-4">
-            <label for="noTracking">N° tracking transporteur{{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? '*' : ''}}</label>
+            <label class="wii-field-name" for="noTracking">N° tracking transporteur{{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? '*' : ''}}</label>
             <input type="text" id="noTracking" class="form-control data {{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? 'needed' : ''}}" name="noTracking" maxlength="64"
                    value="{{ arrivage.noTracking }}">
         </div>
@@ -59,7 +59,7 @@
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_NUM_COMMANDE_ARRIVAGE') %}
     {% if fieldsParam|isFieldRequired('numeroCommandeList', 'displayedEdit') %}
         <div class="form-group col-4">
-            <label for="numeroCommandeList" title="Numéro de commande">{{ 'arrivage.Numéro de commande'|trans }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? '*' : ''}}</label>
+            <label class="wii-field-name" for="numeroCommandeList" title="Numéro de commande">{{ 'arrivage.Numéro de commande'|trans }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? '*' : ''}}</label>
             <select id="numeroCommandeList"
                     class="form-control input-sm data select2-free w-100 {{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? 'needed' : '' }}"
                     name="numeroCommandeList" multiple="multiple">
@@ -70,7 +70,7 @@
         </div>
     {% endif %}
     <div class="form-group col-4">
-        <label for="type">Type*</label>
+        <label class="wii-field-name" for="type">Type*</label>
         <select class="needs-default form-control input-sm data needed"
                 id="type"
                 name="type"
@@ -79,7 +79,7 @@
         </select>
     </div>
     <div class="form-group col-4">
-        <label for="statut">Statut*</label>
+        <label class="wii-field-name" for="statut">Statut*</label>
         <select class="form-control data needed select2"
                 id="statut"
                 name="statut">
@@ -96,7 +96,7 @@
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         <div class="form-group w-100 col-4">
-            <label for="destination">Emplacement de dépose{{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? '*' : '' }}</label>
+            <label class="wii-field-name" for="destination">Emplacement de dépose{{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? '*' : '' }}</label>
             <select name="dropLocation" disabled
                     class="form-control data ajax-autocomplete-location d-block select2 {{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? 'needed' : '' }}">
                 {% if arrivage.dropLocation is defined and arrivage.dropLocation != null %}
@@ -111,7 +111,7 @@
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_TARGET_ARRIVAGE') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         <div class="form-group col-4">
-            <label for="destinataire" title="destinataire">{{ 'arrivage.destinataire'|trans }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? '*' : '' }}</label>
+            <label class="wii-field-name" for="destinataire" title="destinataire">{{ 'arrivage.destinataire'|trans }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? '*' : '' }}</label>
             <select class="form-control data ajax-autocomplete-user {{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? 'needed' : '' }}" id="destinataire" name="destinataire">
                 <option disabled selected></option>
                 {% for utilisateur in utilisateurs %}
@@ -124,7 +124,7 @@
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_BUYERS_ARRIVAGE') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         <div class="form-group w-100 col-4">
-            <label for="acheteursEdit" title="acheteurs">{{ 'arrivage.acheteurs'|trans }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? '*' : '' }}</label>
+            <label class="wii-field-name" for="acheteursEdit" title="acheteurs">{{ 'arrivage.acheteurs'|trans }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? '*' : '' }}</label>
             <select class="form-control data select2 {{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? 'needed' : '' }}" name="acheteurs" multiple="multiple"
                     id="acheteursEdit">
                 {% for utilisateur in utilisateurs %}
@@ -141,7 +141,7 @@
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PROJECT_NUMBER') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         <div class="form-group col-4">
-            <label for="noProject">Numéro de projet{{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? '*' : '' }}</label>
+            <label class="wii-field-name" for="noProject">Numéro de projet{{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? '*' : '' }}</label>
             <input type="text"
                    class="form-control input-sm data {{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? 'needed' : '' }}"
                    name="noProject" maxlength="64" value="{{ arrivage.projectNumber }}">
@@ -151,7 +151,7 @@
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_BUSINESS_UNIT') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         <div class="form-group col-4">
-            <label>{{ 'acheminement.Business unit'|trans }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? '*' : '' }}</label>
+            <label class="wii-field-name">{{ 'acheminement.Business unit'|trans }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? '*' : '' }}</label>
             <select class="needs-default form-control input-sm data select2 {{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? 'needed' : '' }}"
                     name="businessUnit">
                 <option value=""></option>
@@ -171,7 +171,7 @@
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CUSTOMS_ARRIVAGE') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         <div class="form-group col-2">
-            <label title="douane">{{ 'arrivage.douane'|trans }}</label>
+            <label class="wii-field-name" title="douane">{{ 'arrivage.douane'|trans }}</label>
             <label class="switch d-block-switch mt-2">
                 {% set checked =  arrivage.customs ? 'checked' : '' %}
                 <input class="checkbox no-clear" type="checkbox" name="customs" {{ checked }}>
@@ -183,7 +183,7 @@
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_FROZEN_ARRIVAGE') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         <div class="form-group col-2">
-            <label>{{ 'arrivage.congelé'|trans }}</label>
+            <label class="wii-field-name">{{ 'arrivage.congelé'|trans }}</label>
             <label class="switch d-block-switch mt-2">
                 {% set checked =  arrivage.frozen ? 'checked' : '' %}
                 <input class="checkbox no-clear" type="checkbox" name="frozen" {{ checked }}>
@@ -208,7 +208,7 @@
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         {% set commentNeeded = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
         <div class="form-group col-8 h-fit-content">
-            <label for="commentaire">Commentaire{{ commentNeeded ? '*' }}</label>
+            <label class="wii-field-name" for="commentaire">Commentaire{{ commentNeeded ? '*' }}</label>
             <input id="commentaire"
                    class="commentaire form-control data {{ commentNeeded ? 'needed' }}"
                    name="commentaire"

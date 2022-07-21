@@ -13,7 +13,7 @@
                 <div class="row fly-form">
                     {% if fieldsParam|isFieldRequired('fournisseur', 'displayedCreate') %}
                         <div class="form-group col w-100">
-                            <label
+                            <label class="wii-field-name"
                                 for="fournisseur">Fournisseur{{ fieldsParam|isFieldRequired('fournisseur', 'requiredCreate') ? '*' : '' }}</label>
                             <select class="no-clear form-control input-sm data select2 ajax-autocomplete-fournisseur {{ fieldsParam|isFieldRequired('fournisseur', 'requiredCreate') ? 'needed' : '' }}"
                                     name="fournisseur"
@@ -38,7 +38,7 @@
                     {% endif %}
                     {% if fieldsParam|isFieldRequired('transporteur', 'displayedCreate') %}
                         <div class="form-group col w-100">
-                            <label
+                            <label class="wii-field-name"
                                 for="transporteur">Transporteur{{ fieldsParam|isFieldRequired('transporteur', 'requiredCreate') ? '*' : '' }}</label>
                             <select
                                 class="no-clear form-control input-sm data select2 ajax-autocomplete-transporteur {{ fieldsParam|isFieldRequired('transporteur', 'requiredCreate') ? 'needed' : '' }}"
@@ -60,7 +60,7 @@
                     {% endif %}
                     {% if fieldsParam|isFieldRequired('chauffeur', 'displayedCreate') %}
                         <div class="form-group col w-100">
-                            <label
+                            <label class="wii-field-name"
                                 for="chauffeur">Chauffeur{{ fieldsParam|isFieldRequired('chauffeur', 'requiredCreate') ? '*' : '' }}</label>
                             <select
                                 class="form-control input-sm data select2 ajax-autocomplete-chauffeur {{ fieldsParam|isFieldRequired('chauffeur', 'requiredCreate') ? 'needed' : '' }}"
@@ -89,11 +89,11 @@
                             <div class="col fly-form">
                                 <div class="row">
                                     <div class="form-group col invisible" id="fournisseurDisplay">
-                                        <label for="newFournisseur">Nom*</label>
+                                        <label class="wii-field-name" for="newFournisseur">Nom*</label>
                                         <input type="text" id="newFournisseur"
                                                class="form-control input-sm valeur newFormulaire neededNew copyOnTheFly"
                                                name="name" maxlength="64">
-                                        <label for="newFournisseurCode" class="mt-2">Code*</label>
+                                        <label for="newFournisseurCode" class="wii-field-name mt-2">Code*</label>
                                         <input type="text" id="newFournisseurCode"
                                                class="form-control input-sm newFormulaire neededNew copiedOnTheFly"
                                                name="code" maxlength="64">
@@ -111,11 +111,11 @@
                             <div class="col fly-form">
                                 <div class="row">
                                     <div class="form-group col invisible" id="transporteurDisplay">
-                                        <label for="newTransporteur">Nom*</label>
+                                        <label class="wii-field-name" for="newTransporteur">Nom*</label>
                                         <input type="text" id="newTransporteur"
                                                class="form-control input-sm newFormulaire neededNew copyOnTheFly"
                                                name="label" maxlength="64">
-                                        <label for="newTransporteurCode" class="mt-2">Code*</label>
+                                        <label for="newTransporteurCode" class="wii-field-name mt-2">Code*</label>
                                         <input type="text" id="newTransporteurCode"
                                                class="form-control input-sm newFormulaire neededNew copiedOnTheFly"
                                                name="code" maxlength="64">
@@ -135,15 +135,15 @@
                             <div class="col fly-form">
                                 <div class="row">
                                     <div class="form-group col-10 invisible" id="chauffeurDisplay">
-                                        <label for="newChauffeurName">Nom*</label>
+                                        <label class="wii-field-name" for="newChauffeurName">Nom*</label>
                                         <input type="text" id="newChauffeurName"
                                                class="form-control input-sm newFormulaire neededNew"
                                                name="nom" maxlength="64">
-                                        <label for="newChauffeurFirstName" class="mt-2">Prénom</label>
+                                        <label for="newChauffeurFirstName" class="wii-field-name mt-2">Prénom</label>
                                         <input type="text" id="newChauffeurFirstName"
                                                class="form-control input-sm newFormulaire"
                                                name="prenom" maxlength="64">
-                                        <label for="newChauffeurNumero" class="mt-2">N°doc ID</label>
+                                        <label for="newChauffeurNumero" class="wii-field-name mt-2">N°doc ID</label>
                                         <input type="text" id="newChauffeurNumero"
                                                class="form-control input-sm newFormulaire"
                                                name="documentID" maxlength="64">
@@ -163,7 +163,7 @@
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         <div class="form-group col-4">
-                            <label for="noTracking">N° tracking
+                            <label class="wii-field-name" for="noTracking">N° tracking
                                 transporteur{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' : '' }}</label>
                             <input type="text" id="noTracking"
                                    class="form-control input-sm data {{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? 'needed' : '' }}"
@@ -173,7 +173,7 @@
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_NUM_COMMANDE_ARRIVAGE') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         <div class="form-group col-4">
-                            <label for="numeroCommandeList" title="Numéro de commande">
+                            <label class="wii-field-name" for="numeroCommandeList" title="Numéro de commande">
                                 {{ 'arrivage.Numéro de commande'|trans }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' : '' }}
                             </label>
                             <select id="numeroCommandeList"
@@ -183,7 +183,7 @@
                         </div>
                     {% endif %}
                     <div class="form-group col-4">
-                        <label for="type">Type*</label>
+                        <label class="wii-field-name" for="type">Type*</label>
                         {% set uniqueType = typesArrival|length == 1 %}
                         <select class="form-control input-sm data needed {{ uniqueType ? 'needs-default' }}"
                                 id="type"
@@ -203,7 +203,7 @@
                     </div>
 
                     <div class="form-group col-4">
-                        <label>Statut*</label>
+                        <label class="wii-field-name">Statut*</label>
                         {% set hasDefaultStatus = uniqueType and defaultStatuses|length > 0 %}
                         <select class="form-control input-sm data needed {{ hasDefaultStatus ? 'needs-default' }}"
                                 name="status"
@@ -242,7 +242,7 @@
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         <div class="form-group w-100 col-4">
-                            <label for="destination">
+                            <label class="wii-field-name" for="destination">
                                 Emplacement de dépose{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' : '' }}
                             </label>
                             <select name="dropLocation"
@@ -262,7 +262,7 @@
                             <div class="row">
                                 {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                                     <div class="form-group col-12 w-100">
-                                        <label title="destinatire" for="destinataire">
+                                        <label class="wii-field-name" title="destinatire" for="destinataire">
                                             {{ 'arrivage.destinataire'|trans }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' : '' }}
                                         </label>
                                         <select
@@ -283,7 +283,7 @@
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_BUYERS_ARRIVAGE') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         <div class="form-group w-100 col-4">
-                            <label title="acheteurs" for="acheteurs">
+                            <label class="wii-field-name" title="acheteurs" for="acheteurs">
                                 {{ 'arrivage.acheteurs'|trans }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' : '' }}
                             </label>
                             <select name="acheteurs" id="acheteurs" multiple="multiple"
@@ -300,7 +300,7 @@
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PRINT_ARRIVAGE') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         <div class="form-group col-2">
-                            <label title="arrivage">Imprimer {{ 'arrivage.arrivage'|trans }}</label>
+                            <label class="wii-field-name" title="arrivage">Imprimer {{ 'arrivage.arrivage'|trans }}</label>
                             <label class="switch d-block-switch mt-2">
                                 <input class="checkbox no-clear" type="checkbox" name="printArrivage" {{ checked }}>
                                 <span class="slider round"></span>
@@ -310,7 +310,7 @@
 
                     {% if natures != null %}
                         <div class="form-group col-2">
-                            <label title="colis">Imprimer {{ 'arrivage.colis'|trans }}</label>
+                            <label class="wii-field-name" title="colis">Imprimer {{ 'arrivage.colis'|trans }}</label>
                             <label class="switch d-block-switch mt-2">
                                 <input class="checkbox no-clear" type="checkbox" name="printColis"
                                        id="printColis" {{ checked }}>
@@ -329,7 +329,7 @@
                             <div class="mt-2 row">
                                 {% for nature in natures %}
                                     <div class="form-group col-2 d-flex flex-column">
-                                        <label class="ellipsis">
+                                        <label class="wii-field-name ellipsis">
                                             {{ nature.label | capitalize }}
                                         </label>
                                         <input type="number"
@@ -364,7 +364,7 @@
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PROJECT_NUMBER') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         <div class="form-group col-4">
-                            <label for="noProject">Numéro de projet{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' : '' }}</label>
+                            <label class="wii-field-name" for="noProject">Numéro de projet{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' : '' }}</label>
                             <input type="text"
                                    class="form-control input-sm data {{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? 'needed' : '' }}"
                                    name="noProject" maxlength="64">
@@ -374,7 +374,7 @@
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_BUSINESS_UNIT') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         <div class="form-group col-4">
-                            <label>{{ 'acheminement.Business unit'|trans }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' : '' }}</label>
+                            <label class="wii-field-name">{{ 'acheminement.Business unit'|trans }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' : '' }}</label>
                             <select
                                 class="needs-default form-control input-sm data {{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? 'needed' : '' }}"
                                 name="businessUnit">
@@ -390,7 +390,7 @@
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CUSTOMS_ARRIVAGE') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         <div class="form-group col-2">
-                            <label>{{ 'arrivage.douane'|trans }}</label>
+                            <label class="wii-field-name">{{ 'arrivage.douane'|trans }}</label>
                             <label class="switch d-block-switch mt-2">
                                 <input class="checkbox {{ not isClientSafranED ? 'no-clear' }}" type="checkbox" name="customs">
                                 <span class="slider round"></span>
@@ -400,7 +400,7 @@
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_FROZEN_ARRIVAGE') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         <div class="form-group col-2">
-                            <label>{{ 'arrivage.congelé'|trans }}</label>
+                            <label class="wii-field-name">{{ 'arrivage.congelé'|trans }}</label>
                             <label class="switch d-block-switch mt-2">
                                 <input class="checkbox no-clear" type="checkbox" name="frozen">
                                 <span class="slider round"></span>
@@ -432,7 +432,7 @@
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         {% set commentNeeded = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
                         <div class="form-group col-8 h-fit-content">
-                            <label for="commentaire">Commentaire{{ commentNeeded ? '*' }}</label>
+                            <label class="wii-field-name" for="commentaire">Commentaire{{ commentNeeded ? '*' }}</label>
                             <input id="commentaire"
                                    class="commentaire form-control input-sm data {{ commentNeeded ? 'needed' }}"
                                    name="commentaire" type="hidden">
