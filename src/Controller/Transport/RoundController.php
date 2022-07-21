@@ -195,13 +195,15 @@ class RoundController extends AbstractController {
     #[Route("/voir/{transportRound}", name: "transport_round_show", methods: "GET")]
     public function show(TransportRound         $transportRound,
                          RouterInterface        $router,
-                         EntityManagerInterface $em): Response {
+                         EntityManagerInterface $entityManager): Response {
         $realTime = null;
         if ($transportRound->getBeganAt() != null && $transportRound->getEndedAt() != null) {
             $realTimeDif = $transportRound->getEndedAt()->diff($transportRound->getBeganAt());
             $realTimeJ = $realTimeDif->format("%a");
             $realTime = ($realTimeDif->format("%h") + ($realTimeJ * 24)) . "h" . $realTimeDif->format(" %i") . "min";
         }
+
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
 
         $calculationsPoints = $transportRound->getCoordinates();
         $calculationsPoints['startPoint']['name'] = TransportRound::NAME_START_POINT;
@@ -221,7 +223,7 @@ class RoundController extends AbstractController {
             ->toArray();
 
         $delivererPosition = $transportRound->getBeganAt()
-            ? $em->getRepository(Vehicle::class)->findOneByDateLastMessageBetween(
+            ? $entityManager->getRepository(Vehicle::class)->findOneByDateLastMessageBetween(
                 $transportRound->getVehicle(),
                 $transportRound->getBeganAt(),
                 $transportRound->getEndedAt(),
@@ -237,14 +239,6 @@ class RoundController extends AbstractController {
 
         if ($transportDateBeganAt ) {
             foreach ($locations as $location) {
-                $sensorMessageBetween = $location->getSensorMessagesBetween(
-                    ($transportRound->getBeganAt() ?? new DateTime())->format('Y-m-d\TH:i'),
-                    ($transportRound->getEndedAt() ?? new DateTime())->format('Y-m-d\TH:i'),
-                    Sensor::TEMPERATURE
-                );
-                if (!$sensorMessageBetween) {
-                    continue;
-                }
                 $triggerActions = $location->getActivePairing()?->getSensorWrapper()?->getTriggerActions();
                 if ($triggerActions) {
                     $minTriggerActionThreshold = Stream::from($triggerActions)
@@ -258,11 +252,26 @@ class RoundController extends AbstractController {
                     $minThreshold = $minTriggerActionThreshold?->getConfig()['temperature'];
                     $maxThreshold = $maxTriggerActionThreshold?->getConfig()['temperature'];
 
-                    $exceedThresholdLower = !$exceedThresholdLower && Stream::from($sensorMessageBetween)
-                        ->some(fn(SensorMessage $message) => (int) $message->getContent() < min($minThreshold, $maxThreshold));
+                    if (!$exceedThresholdLower) {
+                        $exceedThresholdLower = $locationRepository->countTemperatureAlerts(
+                            $location,
+                            $transportRound->getBeganAt(),
+                            $transportRound->getEndedAt(),
+                            Sensor::TEMPERATURE,
+                            min($minThreshold, $maxThreshold),
+                        ) > 0;
+                    }
 
-                    $exceedThresholdHigher = !$exceedThresholdHigher && Stream::from($sensorMessageBetween)
-                        ->some(fn(SensorMessage $message) => (int) $message->getContent() > max($maxThreshold, $minThreshold));
+                    if (!$exceedThresholdHigher) {
+                        $exceedThresholdHigher = $locationRepository->countTemperatureAlerts(
+                            $location,
+                            $transportRound->getBeganAt(),
+                            $transportRound->getEndedAt(),
+                            Sensor::TEMPERATURE,
+                            null,
+                            max($maxThreshold, $minThreshold)
+                        ) > 0;
+                    }
                 }
 
                 $now = new DateTime();
@@ -304,8 +313,8 @@ class RoundController extends AbstractController {
             "urls" => $urls,
             "roundDateBegan" => $transportDateBeganAt,
             "hasSomeDelivery" => $hasSomeDelivery,
-            "hasExceededThresholdUnder" => $exceedThresholdLower,
-            "hasExceededThresholdOver" => $exceedThresholdHigher,
+            "hasExceededThresholdUnder" => $exceedThresholdLower ?? false,
+            "hasExceededThresholdOver" => $exceedThresholdHigher ?? false,
             "containsOnlyCollect" => Stream::from($transportRound->getTransportRoundLines())
                 ->every(fn(TransportRoundLine $line) => $line->getOrder()->getRequest() instanceof TransportCollectRequest)
         ]);
