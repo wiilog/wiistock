@@ -59,7 +59,7 @@
 
     <div class="form-group col-md-6 col-12">
         <label class="my-auto mr-2">Emplacement*</label>
-        <select name='location' data-s2='location' class='data form-control' required>
+        <select name='location' data-s2='location' class='data form-control w-100' required>
             {% if mvt.emplacement is not null %}
                 <option value="{{ mvt.emplacement.id }}" selected>{{ mvt.emplacement.label }}</option>
             {% endif %}
