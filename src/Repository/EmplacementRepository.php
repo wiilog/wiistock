@@ -466,8 +466,8 @@ class EmplacementRepository extends EntityRepository
                                            DateTime $start,
                                            ?DateTime $end,
                                            string $type,
-                                           ?int $min,
-                                           ?int $max): int
+                                           ?int $min = null,
+                                           ?int $max = null): int
     {
         $queryBuilder = $this->createQueryBuilder("location");
         $exprBuilder = $queryBuilder->expr();
