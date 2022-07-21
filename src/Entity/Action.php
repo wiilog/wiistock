@@ -114,8 +114,6 @@ class Action {
     const DISPLAY_TRIGGER = 'afficher actionneurs';
     const DISPLAY_PAIRING = 'afficher associations';
     // menu paramétrage
-
-
     const SETTINGS_DISPLAY_WEBSITE_APPEARANCE = 'afficher apparence du site';
     const SETTINGS_DISPLAY_APPLICATION_CLIENT = 'afficher client application';
     const SETTINGS_DISPLAY_BILL = 'afficher étiquettes';
@@ -124,26 +122,26 @@ class Action {
     const SETTINGS_DISPLAY_MAIL_SERVER = 'afficher serveur mail';
 
     const SETTINGS_DISPLAY_CONFIGURATIONS = 'afficher configurations';
-    const SETTINGS_DISPLAY_STOCK_ALERTS = 'afficher alertes';
+    const SETTINGS_DISPLAY_STOCK_ALERTS = 'afficher alertes stock';
     const SETTINGS_DISPLAY_ARTICLES = 'afficher articles';
     const SETTINGS_DISPLAY_TACTILE_TERMINAL = 'afficher borne tactile';
-    const SETTINGS_DISPLAY_REQUESTS = 'afficher demandes';
+    const SETTINGS_DISPLAY_REQUESTS = 'afficher demandes stocks';
     const SETTINGS_DISPLAY_VISIBILITY_GROUPS = 'afficher groupes de visibilité';
     const SETTINGS_DISPLAY_INVENTORIES = 'afficher inventaires';
     const SETTINGS_DISPLAY_RECEP = 'afficher réceptions';
 
-    const SETTINGS_DISPLAY_TRACING_DISPATCH = 'afficher acheminements';
+    const SETTINGS_DISPLAY_TRACING_DISPATCH = 'afficher acheminements trace';
     const SETTINGS_DISPLAY_ARRI = 'afficher arrivages';
     const SETTINGS_DISPLAY_MOVEMENT = 'afficher mouvements';
-    const SETTINGS_DISPLAY_TRACING_HAND = 'afficher services';
+    const SETTINGS_DISPLAY_TRACING_HAND = 'afficher services trace';
 
-    const SETTINGS_DISPLAY_TRACK_REQUESTS = 'afficher demandes';
+    const SETTINGS_DISPLAY_TRACK_REQUESTS = 'afficher demandes track';
     const SETTINGS_DISPLAY_ROUND = 'afficher tournées';
     const SETTINGS_DISPLAY_TEMPERATURES = 'afficher températures';
 
 
-    const SETTINGS_DISPLAY_MOBILE_DISPATCH = 'afficher acheminements';
-    const SETTINGS_DISPLAY_MOBILE_HAND = 'afficher services';
+    const SETTINGS_DISPLAY_MOBILE_DISPATCH = 'afficher acheminements mobile';
+    const SETTINGS_DISPLAY_MOBILE_HAND = 'afficher services mobile';
     const SETTINGS_DISPLAY_TRANSFER_TO_TREAT = 'afficher transferts à traiter';
     const SETTINGS_DISPLAY_PREPA = 'afficher préparations';
     const SETTINGS_DISPLAY_MANAGE_VALIDATIONS = 'afficher gestion des validations';
@@ -152,7 +150,7 @@ class Action {
 
     const SETTINGS_DISPLAY_IOT = 'afficher iot';
 
-    const SETTINGS_DISPLAY_NOTIFICATIONS_ALERTS = 'afficher alertes';
+    const SETTINGS_DISPLAY_NOTIFICATIONS_ALERTS = 'afficher alertes notifications';
     const SETTINGS_DISPLAY_NOTIFICATIONS_PUSH = 'afficher Notifications push';
 
     const SETTINGS_DISPLAY_LABELS_PERSO = 'afficher personnalisation des libellés';
