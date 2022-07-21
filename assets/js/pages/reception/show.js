@@ -109,6 +109,7 @@ $(function () {
                             expiry: expiry,
                             noCommande: orderNumber,
                             quantite: quantityToReceive * quantity,
+                            articleQuantity: quantity,
                             refArticle: referenceId,
                             ...freeFields
                         });
