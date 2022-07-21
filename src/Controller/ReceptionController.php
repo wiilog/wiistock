@@ -846,7 +846,7 @@ class ReceptionController extends AbstractController {
 
         $deliverySwitchLabel = match ($deliveryRequestBehaviorSettingLabel) {
             Setting::CREATE_DELIVERY_ONLY => 'Demande de livraison seule',
-            Setting::DIRECT_DELIVERY => 'Livraison seule',
+            Setting::DIRECT_DELIVERY => 'Ordre de livraison',
             default => 'Livraison',
         };
 
