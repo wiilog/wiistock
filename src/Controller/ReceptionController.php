@@ -1760,6 +1760,7 @@ class ReceptionController extends AbstractController {
 
                 $articleArray['quantite'] = intval($articleArray['articleQuantity']);
                 for($i = 0; $i < $quantity; $i++){
+                    dump($articleArray['quantite']);
                     $article = $articleDataService->newArticle($articleArray, $entityManager);
 
                     if ($demande) {
