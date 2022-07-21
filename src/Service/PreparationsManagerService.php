@@ -103,13 +103,17 @@ class PreparationsManagerService
         }
     }
 
-    public function handlePreparationTreatMovements(MouvementStockRepository $mouvementStockRepository, Preparation $preparation, Livraison $livraison, ?Emplacement $locationEndPrepa) {
+    public function handlePreparationTreatMovements(MouvementStockRepository $mouvementStockRepository,
+                                                    Preparation $preparation,
+                                                    Livraison $livraison,
+                                                    ?Emplacement $locationEndPrepa,
+                                                    Utilisateur $user) {
         $mouvements = $mouvementStockRepository->findByPreparation($preparation);
         foreach ($mouvements as $mouvement) {
             if ($mouvement->getType() === MouvementStock::TYPE_TRANSFER) {
                 $this->createMouvementLivraison(
                     $mouvement->getQuantity(),
-                    $this->getUser(),
+                    $user,
                     $livraison,
                     !empty($mouvement->getRefArticle()),
                     $mouvement->getRefArticle() ?? $mouvement->getArticle(),

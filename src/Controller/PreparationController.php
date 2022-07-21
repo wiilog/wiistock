@@ -67,6 +67,8 @@ class PreparationController extends AbstractController
         $preparation = $preparationRepository->find($idPrepa);
         $locationEndPrepa = $emplacementRepository->find($request->request->get('emplacement'));
 
+        $user = $this->getUser();
+
         try {
             $articlesNotPicked = $preparationsManager->createMouvementsPrepaAndSplit($preparation, $this->getUser(), $entityManager);
         } catch (NegativeQuantityException $exception) {
@@ -85,7 +87,7 @@ class PreparationController extends AbstractController
         $mouvementRepository = $entityManager->getRepository(MouvementStock::class);
 
         $entityManager->flush();
-        $preparationsManager->handlePreparationTreatMovements($mouvementRepository, $preparation, $livraison, $locationEndPrepa);
+        $preparationsManager->handlePreparationTreatMovements($mouvementRepository, $preparation, $livraison, $locationEndPrepa, $user);
         $preparationsManager->updateRefArticlesQuantities($preparation);
 
         $entityManager->flush();
