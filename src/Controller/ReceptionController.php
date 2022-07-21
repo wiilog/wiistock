@@ -1993,7 +1993,7 @@ class ReceptionController extends AbstractController {
         $reference = $referenceArticleRepository->findOneBy(['reference' => $reference]);
         $supplierReference = $supplierReferenceRepository->find($supplierReference);
         $type = $reference->getType();
-        $freeFields = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
+        $freeFields = $freeFieldRepository->findByTypeAndCategorieCLLabel($type,  CategorieCL::ARTICLE);
         $receptionReferenceArticle = $reference->getReceptionReferenceArticles()
             ->filter(fn(ReceptionReferenceArticle $receptionReferenceArticle) => $receptionReferenceArticle->getCommande() === $orderNumber)
             ->first();
