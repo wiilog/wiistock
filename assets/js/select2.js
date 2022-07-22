@@ -1,5 +1,5 @@
 import 'select2';
-import {GROUP_WHEN_NEEDED} from "./app";
+import {GROUP_EVERYTHING, GROUP_WHEN_NEEDED} from "./app";
 
 const ROUTES = {
     handlingType: `ajax_select_handling_type`,
@@ -259,6 +259,7 @@ export default class Select2 {
 
         if($element.is(`[data-include-params]`)) {
             const selector = $element.data(`include-params`);
+            const needGroup = $element.is(`[data-include-params-group]`);
             const closest = $element.data(`include-params-parent`) || `.modal, .wii-form`;
             const $fields = $element
                 .closest(closest)
@@ -266,7 +267,7 @@ export default class Select2 {
 
             const values = $fields
                 .filter((_, elem) => elem.name && elem.value)
-                .keymap((elem) => [elem.name, elem.value], GROUP_WHEN_NEEDED);
+                .keymap((elem) => [elem.name, elem.value], needGroup ? GROUP_EVERYTHING : GROUP_WHEN_NEEDED);
 
             params = {
                 ...params,

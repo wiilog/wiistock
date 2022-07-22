@@ -222,7 +222,6 @@ function prefillForm($modal) {
     if (isPrefillInformationGiven()) {
         const {content} = GetRequestQuery() || {};
         const formContent = JSON.parse(content || '');
-        console.log(formContent);
         if (formContent['Prenom'] || formContent['Nom']) {
             const $contactName = $modal.find('[name=contactName]');
             $contactName.val(`${formContent['Prenom'] || ''}${formContent['Prenom'] ? ' ' :''}${formContent['Nom'] || ''}`)

@@ -688,6 +688,7 @@ class DispatchService {
                                data-parent='body'
                                data-include-params-parent='.wii-box'
                                data-include-params='[name=pack]'
+                               data-include-params-group
                                class='w-300px'
                                $searchPrefix
                                $autofocus></select>",
