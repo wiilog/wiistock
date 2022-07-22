@@ -1759,7 +1759,7 @@ class ReceptionController extends AbstractController {
                 }
 
                 $articleArray['quantite'] = intval($articleArray['articleQuantity']);
-                for($i = 0; $i < $quantity; $i++){
+                for($i = 0; $i < $quantity; $i++) {
                     $article = $articleDataService->newArticle($articleArray, $entityManager);
 
                     if ($demande) {
@@ -1828,8 +1828,8 @@ class ReceptionController extends AbstractController {
 
                     $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
                     $entityManager->persist($createdMvt);
+                    $entityManager->flush();
                 }
-                $entityManager->flush();
             }
 
             foreach($emergencies as $article) {
