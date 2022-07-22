@@ -72,7 +72,7 @@
                 </td>
                 <td class="transport-details-container" style="width: 30%;">
                     Terminée le : <span class="text-nowrap">
-                        <span class="transport-value">{{ round.endedAt ? round.endedAt|format_helper('longDate', {short: true, time: true}, '') : '-' }}</span>
+                        <span class="transport-value">{{ round.endedAt ? round.endedAt|format_helper('longDate', {short: true, time: true, year: false}, '') : '-' }}</span>
                     </span>
                 </td>
                 <td class="transport-details-container">
