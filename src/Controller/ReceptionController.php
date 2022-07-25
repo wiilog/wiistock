@@ -1611,7 +1611,7 @@ class ReceptionController extends AbstractController {
                 if(!isset($totalQuantities[$receptionReferenceArticle->getId()])) {
                     $totalQuantities[$receptionReferenceArticle->getId()] = ($receptionReferenceArticle->getQuantite() ?? 0);
                 }
-                $totalQuantities[$receptionReferenceArticle->getId()] += $article['quantite'];
+                $totalQuantities[$receptionReferenceArticle->getId()] += max($article['quantite'] * $article['articleQuantity'], 0);
             }
 
             foreach($totalQuantities as $rraId => $totalQuantity) {
@@ -2044,7 +2044,6 @@ class ReceptionController extends AbstractController {
         return $this->json([
            'template' => $this->renderView('reception/show/add_articles.html.twig', [
                'reference' => $reference,
-               'referenceTypeColor' => $reference->getType()->getColor(),
                'quantityToReceive' => $data['quantityToReceive'],
                'supplierReferenceId' => $supplierReference ? $supplierReference->getId() : '',
                'supplierReferenceLabel' => $supplierReference ? $supplierReference->getReference() : '',

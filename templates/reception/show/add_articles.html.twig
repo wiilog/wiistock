@@ -6,9 +6,10 @@
         </div>
     </div>
     <div class="col-3">
-        <div class="details" style="border: {{ '1px solid ' ~ referenceTypeColor }}">
+        {% set typeColor = reference.type.color ?? '#3353D7' %}
+        <div class="details" style="border: {{ '1px solid ' ~ typeColor }}">
             <div class="wii-field-name dark-background text-center"
-                 style="background: {{ referenceTypeColor ?? '#3353D7' }};">Standard
+                 style="background: {{ typeColor }};">{{ reference.type.label }}
             </div>
             <div class="d-flex ml-3 mt-2">
                 <img src="{{ asset('svg/pack.svg') }}" alt="Icône référence" width="20px">
