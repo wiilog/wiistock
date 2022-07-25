@@ -74,11 +74,11 @@ class MenuExtension extends AbstractExtension
     public function displaySettings(){
         $permissions = $this->roleService->getPermissions($this->userService->getUser(), true);
         $displaySettings = false;
-        foreach ($permissions as $key => $value){
-            if(str_contains($key, 'parametrage') && !$displaySettings){
+        Stream::from(array_keys($permissions))->some(function(string $setting) use ($displaySettings) {
+            if(str_contains($setting, 'parametrage') && !$displaySettings){
                 $displaySettings = true;
             }
-        }
+        });
         return $displaySettings;
     }
 
