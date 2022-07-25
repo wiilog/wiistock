@@ -35,7 +35,8 @@ class MenuExtension extends AbstractExtension
     public function getFunctions()
     {
         return [
-            new TwigFunction('getMenuConfig', [$this, 'getMenuConfigFunction'])
+            new TwigFunction('getMenuConfig', [$this, 'getMenuConfigFunction']),
+            new TwigFunction('displaySettings', [$this, 'displaySettings']),
         ];
     }
 
@@ -68,6 +69,17 @@ class MenuExtension extends AbstractExtension
 
             return $menuWithRight;
         });
+    }
+
+    public function displaySettings(){
+        $permissions = $this->roleService->getPermissions($this->userService->getUser(), true);
+        $displaySettings = false;
+        foreach ($permissions as $key => $value){
+            if(str_contains($key, 'parametrage') && !$displaySettings){
+                $displaySettings = true;
+            }
+        }
+        return $displaySettings;
     }
 
     private function hasRight(array $permissions, array $item) {

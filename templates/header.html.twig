@@ -247,16 +247,18 @@
                                         </div>
                                     </div>
                                 {% else %}
-                                    {% include 'menu/menu-item.html.twig' with {
-                                        label: itemMenu.label,
-                                        icon: itemMenu.icon is defined ? itemMenu.icon,
-                                        isTranslation: itemMenu.isTranslation is defined and itemMenu.isTranslation,
-                                        url: itemMenu.url is defined ? itemMenu.url : (itemMenu.path is defined ? path(itemMenu.path) : '#'),
-                                        title: itemMenu.title is defined ? itemMenu.title,
-                                        isExtern: itemMenu.url is defined,
-                                        arrowPlaceholder: true,
-                                        iconPlaceholder: true
-                                    } %}
+                                    {% if itemMenu.label != 'Paramétrage' or (itemMenu.label == 'Paramétrage' and displaySettings())%}
+                                        {% include 'menu/menu-item.html.twig' with {
+                                            label: itemMenu.label,
+                                            icon: itemMenu.icon is defined ? itemMenu.icon,
+                                            isTranslation: itemMenu.isTranslation is defined and itemMenu.isTranslation,
+                                            url: itemMenu.url is defined ? itemMenu.url : (itemMenu.path is defined ? path(itemMenu.path) : '#'),
+                                            title: itemMenu.title is defined ? itemMenu.title,
+                                            isExtern: itemMenu.url is defined,
+                                            arrowPlaceholder: true,
+                                            iconPlaceholder: true
+                                        } %}
+                                    {% endif %}
                                 {% endif %}
                             {% endfor %}
                         </div>
