@@ -1322,6 +1322,7 @@ class MobileController extends AbstractFOSRestController
         $delivery = json_decode($request->request->get('delivery'), true);
         $now = new DateTime();
         $request = $demandeLivraisonService->newDemande([
+            'isManual' => true,
             'type' => $delivery['type'],
             'demandeur' => $nomadUser,
             'destination' => $location['id'],

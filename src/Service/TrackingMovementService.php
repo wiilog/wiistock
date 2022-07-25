@@ -111,7 +111,12 @@ class TrackingMovementService
             'from' => '-',
         ];
         if (isset($movement)) {
-            if ($movement->getArrivage()) {
+            if ($movement->getDispatch()) {
+                $data ['entityPath'] = 'dispatch_show';
+                $data ['fromLabel'] = 'acheminement.Acheminement';
+                $data ['entityId'] = $movement->getDispatch()->getId();
+                $data ['from'] = $movement->getDispatch()->getNumber();
+            } else if ($movement->getArrivage()) {
                 $data ['entityPath'] = 'arrivage_show';
                 $data ['fromLabel'] = 'arrivage.arrivage';
                 $data ['entityId'] = $movement->getArrivage()->getId();
@@ -121,11 +126,6 @@ class TrackingMovementService
                 $data ['fromLabel'] = 'réception.réception';
                 $data ['entityId'] = $movement->getReception()->getId();
                 $data ['from'] = $movement->getReception()->getNumber();
-            } else if ($movement->getDispatch()) {
-                $data ['entityPath'] = 'dispatch_show';
-                $data ['fromLabel'] = 'acheminement.Acheminement';
-                $data ['entityId'] = $movement->getDispatch()->getId();
-                $data ['from'] = $movement->getDispatch()->getNumber();
             } else if ($movement->getMouvementStock() && $movement->getMouvementStock()->getTransferOrder()) {
                 $data ['entityPath'] = 'transfer_order_show';
                 $data ['fromLabel'] = 'Transfert de stock';
@@ -868,7 +868,6 @@ class TrackingMovementService
             $to->addAttachment($attachment);
         }
         return $to;
-
     }
 
     public function persistTrackingMovement(EntityManagerInterface $entityManager,

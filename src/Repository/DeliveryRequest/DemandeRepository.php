@@ -47,6 +47,7 @@ class DemandeRepository extends EntityRepository
             ->innerJoin('demande.statut', 'status')
             ->leftJoin(AverageRequestTime::class, 'art', Join::WITH, 'art.type = demande.type')
             ->andWhere($queryBuilderExpr->in('status.nom', ':statusNames'))
+            ->andWhere('demande.manual = false')
             ->setParameter('statusNames', $statuses)
             ->addOrderBy(sprintf("FIELD(status.nom, '%s', '%s', '%s', '%s', '%s')", ...$statuses), 'DESC')
             ->addOrderBy("DATE_ADD(demande.createdAt, art.average, 'second')", 'ASC')
@@ -73,6 +74,7 @@ class DemandeRepository extends EntityRepository
                            INNER JOIN preparation ON demande.id = preparation.demande_id
                            INNER JOIN livraison ON preparation.id = livraison.preparation_id
                   WHERE statut.nom LIKE '$status'
+                    AND demande.manual = 0
                   GROUP BY demande.id
                   HAVING MIN(preparation.date) >= '$threeMonthsAgo'
                  ) AS times
@@ -102,6 +104,7 @@ class DemandeRepository extends EntityRepository
 		$dateMin = $dateMin->format('Y-m-d H:i:s');
         return $this->createQueryBuilder('request')
             ->andWhere('request.createdAt BETWEEN :dateMin AND :dateMax')
+            ->andWhere('request.manual = false')
             ->setParameters([
                 'dateMin' => $dateMin,
                 'dateMax' => $dateMax
@@ -109,22 +112,6 @@ class DemandeRepository extends EntityRepository
             ->getQuery()
             ->execute();
     }
-
-    public function getLastNumeroByPrefixeAndDate($prefixe, $date)
-	{
-
-        $queryBuilder = $this->createQueryBuilder('request')
-            ->select('request.numero')
-            ->andWhere('request.numero LIKE :value')
-            ->orderBy('request.numero', Criteria::DESC)
-            ->setParameter('value', $prefixe . $date . '%');
-
-        $result = $queryBuilder
-            ->getQuery()
-            ->execute();
-
-		return $result ? $result[0]['numero'] : null;
-	}
 
 	public function countByUser($user): int
 	{
@@ -139,7 +126,8 @@ class DemandeRepository extends EntityRepository
 
 	public function findByParamsAndFilters(InputBag $params, $filters, $receptionFilter, Utilisateur $user, VisibleColumnService $visibleColumnService): array
     {
-        $qb = $this->createQueryBuilder("delivery_request");
+        $qb = $this->createQueryBuilder("delivery_request")
+            ->andWhere('delivery_request.manual = false');
 
         $countTotal = QueryCounter::count($qb, 'delivery_request');
 
@@ -405,6 +393,7 @@ class DemandeRepository extends EntityRepository
             ->join('request.articleLines', 'articleLines')
             ->join('articleLines.article', 'article')
             ->andWhere('article = :article')
+            ->andWhere('request.manual = false')
             ->setParameter('article', $article);
         if ($reception) {
             $queryBuilder

@@ -102,4 +102,5 @@ FROM (
                   INNER JOIN delivery_request_reference_line
                              ON demande.id = delivery_request_reference_line.request_id
                   LEFT JOIN reference_article ON delivery_request_reference_line.reference_id = reference_article.id
+         WHERE demande.manual = 0
      ) AS requests
