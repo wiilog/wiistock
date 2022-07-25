@@ -364,7 +364,7 @@ class Demande implements PairedEntity {
         return $this;
     }
 
-    public function getManual(): bool {
+    public function isManual(): bool {
         return $this->manual;
     }
 

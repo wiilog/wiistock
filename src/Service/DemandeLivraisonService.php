@@ -482,7 +482,8 @@ class DemandeLivraisonService
 
         try {
             if ($flush) $entityManager->flush();
-            if ($demande->getType()->isNotificationsEnabled()) {
+            if ($demande->getType()->isNotificationsEnabled()
+                && !$demande->isManual()) {
                 $this->notificationService->toTreat($preparation);
             }
         } /** @noinspection PhpRedundantCatchClauseInspection */
