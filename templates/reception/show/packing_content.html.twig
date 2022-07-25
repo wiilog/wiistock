@@ -2,7 +2,7 @@
 
 <div class="col-2">
     <div class="d-flex flex-column justify-content-center dark-background quantity-to-receive">
-        {{ form.input('quantityToReceive', 'Article(s)', true, receptionReferenceArticle.quantiteAR, {
+        {{ form.input('quantityToReceive', 'Article(s)', true, 1, {
             type: 'number',
             min: 1
         }) }}
@@ -12,7 +12,7 @@
     <div class="values">
         <div class="d-flex">
             <div class="col-2 form-group mt-2">
-                {{ form.number('quantity', 'Quantité', true, 1, {
+                {{ form.number('quantity', 'Quantité', true, receptionReferenceArticle.quantiteAR, {
                     buttons: false,
                     min: 1,
                 }) }}
