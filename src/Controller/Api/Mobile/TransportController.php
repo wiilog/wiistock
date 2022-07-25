@@ -43,15 +43,18 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use WiiCommon\Helper\Stream;
 
-class TransportController extends AbstractFOSRestController {
+class TransportController extends AbstractFOSRestController
+{
 
     private Utilisateur|null $user;
 
-    public function getUser(): ?Utilisateur {
+    public function getUser(): ?Utilisateur
+    {
         return $this->user;
     }
 
-    public function setUser(Utilisateur $user) {
+    public function setUser(Utilisateur $user)
+    {
         $this->user = $user;
     }
 
@@ -60,7 +63,8 @@ class TransportController extends AbstractFOSRestController {
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
      */
-    public function transportRounds(EntityManagerInterface $manager): Response {
+    public function transportRounds(EntityManagerInterface $manager): Response
+    {
         $transportRoundRepository = $manager->getRepository(TransportRound::class);
         $user = $this->getUser();
 
@@ -77,7 +81,8 @@ class TransportController extends AbstractFOSRestController {
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
      */
-    public function fetchSingleTransport(Request $request, EntityManagerInterface $manager): Response {
+    public function fetchSingleTransport(Request $request, EntityManagerInterface $manager): Response
+    {
         $transportRequest = $manager->find(TransportRequest::class, $request->query->get("request"));
 
         return $this->json($this->serializeTransport($manager, $transportRequest));
@@ -88,13 +93,15 @@ class TransportController extends AbstractFOSRestController {
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
      */
-    public function fetchSingleRound(Request $request, EntityManagerInterface $manager): Response {
+    public function fetchSingleRound(Request $request, EntityManagerInterface $manager): Response
+    {
         $round = $manager->find(TransportRound::class, $request->query->get("round"));
 
         return $this->json($this->serializeRound($manager, $round));
     }
 
-    private function serializeRound(EntityManagerInterface $manager, TransportRound $round) {
+    private function serializeRound(EntityManagerInterface $manager, TransportRound $round)
+    {
         $lines = $round->getTransportRoundLines();
 
         $totalLoaded = Stream::from($lines)
@@ -183,7 +190,7 @@ class TransportController extends AbstractFOSRestController {
             'loaded_packs' => $loadedPacks,
             'total_loaded' => $totalLoaded,
             'done_transports' => Stream::from($lines)
-                ->filter(function(TransportRoundLine $line) {
+                ->filter(function (TransportRoundLine $line) {
                     $order = $line->getOrder();
                     $request = $order->getRequest();
 
@@ -210,7 +217,7 @@ class TransportController extends AbstractFOSRestController {
                     || ($line->getTransportRound()->getBeganAt()
                         && $line->getCancelledAt() > $line->getTransportRound()
                             ->getBeganAt()))
-                ->sort(function(TransportRoundLine $a, TransportRoundLine $b) {
+                ->sort(function (TransportRoundLine $a, TransportRoundLine $b) {
                     $aOrder = $a->getOrder();
                     $bOrder = $b->getOrder();
                     $aStatus = $aOrder->getStatus();
@@ -218,12 +225,10 @@ class TransportController extends AbstractFOSRestController {
                     if (($aStatus?->getCode() === TransportOrder::STATUS_ONGOING && $bStatus?->getCode() === TransportOrder::STATUS_ONGOING)
                         || ($aStatus?->getCode() !== TransportOrder::STATUS_ONGOING && $bStatus?->getCode() !== TransportOrder::STATUS_ONGOING)) {
                         return $a->getPriority() <=> $b->getPriority();
-                    }
-                    // at least one ongoing and one cancelled or finished then the ongoing is the first
+                    } // at least one ongoing and one cancelled or finished then the ongoing is the first
                     else if ($aStatus?->getCode() === TransportOrder::STATUS_ONGOING) {
                         return -1;
-                    }
-                    else { // if ($bStatus?->getCode() === TransportOrder::STATUS_ONGOING) {
+                    } else { // if ($bStatus?->getCode() === TransportOrder::STATUS_ONGOING) {
                         return 1;
                     }
                 })
@@ -237,13 +242,13 @@ class TransportController extends AbstractFOSRestController {
 
     private function serializeTransport(EntityManagerInterface              $manager,
                                         TransportRoundLine|TransportRequest $request,
-                                        TransportRoundLine                  $line = null): array {
+                                        TransportRoundLine                  $line = null): array
+    {
         if ($request instanceof TransportRoundLine) {
             $line = $request;
             $order = $line->getOrder();
             $request = $order->getRequest();
-        }
-        else {
+        } else {
             $order = $request->getOrder();
             $line = $line ?? $order->getTransportRoundLines()->last();
         }
@@ -275,8 +280,7 @@ class TransportController extends AbstractFOSRestController {
                     "deposited_quantity" => $line->getDepositedQuantity(),
                 ])
                 ->toArray();
-        }
-        else {
+        } else {
             $naturesToCollect = null;
         }
 
@@ -301,7 +305,7 @@ class TransportController extends AbstractFOSRestController {
             'natures_to_collect' => $naturesToCollect,
             'packs' => Stream::from($order->getPacks())
                 ->filter(fn(TransportDeliveryOrderPack $orderPack) => $orderPack->getState() !== TransportDeliveryOrderPack::RETURNED_STATE)
-                ->map(function(TransportDeliveryOrderPack $orderPack) use ($temperatureRanges) {
+                ->map(function (TransportDeliveryOrderPack $orderPack) use ($temperatureRanges) {
                     $pack = $orderPack->getPack();
                     $nature = $pack->getNature();
 
@@ -340,7 +344,7 @@ class TransportController extends AbstractFOSRestController {
             'reject_motive' => $order->getReturnReason(),
             'requester' => FormatHelper::user($request->getCreatedBy()),
             'free_fields' => Stream::from($freeFields)
-                ->map(function(FreeField $freeField) use ($line, $freeFieldsValues) {
+                ->map(function (FreeField $freeField) use ($line, $freeFieldsValues) {
                     return [
                         'id' => $freeField->getId(),
                         'label' => $freeField->getLabel(),
@@ -370,7 +374,8 @@ class TransportController extends AbstractFOSRestController {
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
      */
-    public function rejectMotives(EntityManagerInterface $manager): Response {
+    public function rejectMotives(EntityManagerInterface $manager): Response
+    {
         $settingRepository = $manager->getRepository(Setting::class);
         $packRejectMotives = $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_PACK_REJECT_MOTIVES);
         $deliveryRejectMotives = $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_DELIVERY_REJECT_MOTIVES);
@@ -396,7 +401,9 @@ class TransportController extends AbstractFOSRestController {
      */
     public function rejectPack(Request                 $request,
                                EntityManagerInterface  $manager,
-                               TransportHistoryService $historyService): Response {
+                               TransportRoundService   $transportRoundService,
+                               TransportHistoryService $historyService): Response
+    {
         $data = $request->request;
         $pack = $manager->getRepository(Pack::class)->findOneBy(['code' => $data->get('pack')]);
         $rejectMotive = $data->get('rejectMotive');
@@ -423,7 +430,16 @@ class TransportController extends AbstractFOSRestController {
                 'reason' => $rejectMotive,
             ]);
 
+        $allPacksRejected = $order->getPacks()
+            ->filter(fn(TransportDeliveryOrderPack $pack) => !$pack->getRejectedBy())
+            ->isEmpty();
+
+        if ($allPacksRejected) {
+            $transportRoundService->reprepareTransportRoundDeliveryLine($manager, $order->getTransportRoundLines()->last());
+        }
+
         $manager->flush();
+
         return $this->json([
             'success' => true,
         ]);
@@ -436,7 +452,8 @@ class TransportController extends AbstractFOSRestController {
      */
     public function loadPacks(Request                 $request,
                               EntityManagerInterface  $manager,
-                              TrackingMovementService $trackingMovementService): Response {
+                              TrackingMovementService $trackingMovementService): Response
+    {
         $data = $request->request;
         $packs = $manager->getRepository(Pack::class)->findBy(['code' => json_decode($data->get('packs'))]);
         $location = $manager->find(Emplacement::class, $data->get('location'));
@@ -470,7 +487,8 @@ class TransportController extends AbstractFOSRestController {
                                 TransportRoundService   $transportRoundService,
                                 TrackingMovementService $trackingMovementService,
                                 StatusHistoryService    $statusHistoryService,
-                                TransportHistoryService $transportHistoryService): Response {
+                                TransportHistoryService $transportHistoryService): Response
+    {
         $data = $request->request;
         $locationRepository = $manager->getRepository(Emplacement::class);
         $packRepository = $manager->getRepository(Pack::class);
@@ -584,7 +602,8 @@ class TransportController extends AbstractFOSRestController {
                                EntityManagerInterface  $manager,
                                StatusHistoryService    $statusHistoryService,
                                TransportRoundService   $transportRoundService,
-                               TransportHistoryService $historyService): Response {
+                               TransportHistoryService $historyService): Response
+    {
         $data = $request->request;
         $round = $manager->find(TransportRound::class, $data->get('round'));
 
@@ -638,13 +657,11 @@ class TransportController extends AbstractFOSRestController {
                 if ($hasPacks && !$allRejected) {
                     $requestStatus = $deliveryRequestOngoing;
                     $orderStatus = $deliveryOrderOngoing;
-                }
-                else if ($allRejected) {
+                } else if ($allRejected) {
                     $hasRejected = true;
                     $transportRoundService->rejectTransportRoundDeliveryLine($manager, $line, $this->getUser());
                 }
-            }
-            else {
+            } else {
                 $requestStatus = $collectRequestOngoing;
                 $orderStatus = $collectOrderOngoing;
             }
@@ -674,8 +691,7 @@ class TransportController extends AbstractFOSRestController {
                     "success" => false,
                     "msg" => "La tournée ne peut pas être débutée car aucune livraison de la tournée n'est valide",
                 ]);
-            }
-            else {
+            } else {
                 return $this->json([
                     "success" => false,
                     "msg" => "La tournée ne contient aucune ligne et ne peut être débutée",
@@ -698,7 +714,8 @@ class TransportController extends AbstractFOSRestController {
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
      */
-    public function hasNewPacks(Request $request, EntityManagerInterface $manager): Response {
+    public function hasNewPacks(Request $request, EntityManagerInterface $manager): Response
+    {
         $data = $request->query;
         $round = $manager->find(TransportRound::class, $data->get('round'));
         $currentPacks = json_decode($data->get('packs'));
@@ -708,7 +725,7 @@ class TransportController extends AbstractFOSRestController {
             ->map(fn(TransportRoundLine $line) => $line->getOrder()->getPacks());
 
         $updatedPackCodes = Stream::from($updatedPacks)
-            ->reduce(function(array $acc, Collection $packs) {
+            ->reduce(function (array $acc, Collection $packs) {
                 $acc[] = Stream::from($packs)
                     ->map(fn(TransportDeliveryOrderPack $orderPack) => $orderPack->getPack()->getCode())
                     ->toArray();
@@ -736,7 +753,8 @@ class TransportController extends AbstractFOSRestController {
                                     TransportHistoryService $historyService,
                                     StatusHistoryService    $statusHistoryService,
                                     TrackingMovementService $trackingMovementService,
-                                    AttachmentService       $attachmentService): Response {
+                                    AttachmentService       $attachmentService): Response
+    {
         $data = $request->request;
         $files = $request->files;
         $request = $manager->find(TransportRequest::class, $data->get('id'));
@@ -795,8 +813,7 @@ class TransportController extends AbstractFOSRestController {
 
             if ($request instanceof TransportCollectRequest && $request->getDelivery()) {
                 $lastLine = $request->getDelivery()->getOrder()->getTransportRoundLines()->last();
-            }
-            else {
+            } else {
                 $lastLine = $order->getTransportRoundLines()->last();
             }
 
@@ -819,8 +836,7 @@ class TransportController extends AbstractFOSRestController {
                         $manager->persist($trackingMovement);
                     }
                 }
-            }
-            else {
+            } else {
                 $collectedPacks = Stream::from(json_decode($data->get('collectedPacks'), true))
                     ->keymap(fn(array $nature) => [$nature["nature_id"], $nature["collected_quantity"]])
                     ->toArray();
@@ -898,7 +914,8 @@ class TransportController extends AbstractFOSRestController {
                                      StatusHistoryService    $statusHistoryService,
                                      TransportHistoryService $historyService,
                                      AttachmentService       $attachmentService,
-                                     NotificationService     $notificationService): Response {
+                                     NotificationService     $notificationService): Response
+    {
         $data = $request->request;
         $files = $request->files;
         $request = $manager->find(TransportRequest::class, $data->get('transport'));
@@ -960,8 +977,7 @@ class TransportController extends AbstractFOSRestController {
 
             if ($request instanceof TransportCollectRequest && $request->getDelivery()) {
                 $lastLine = $request->getDelivery()->getOrder()->getTransportRoundLines()->last();
-            }
-            else {
+            } else {
                 $lastLine = $order->getTransportRoundLines()->last();
             }
 
@@ -975,8 +991,7 @@ class TransportController extends AbstractFOSRestController {
                     [$categoryStatus, $statusCode] = $entity->getRequest() instanceof TransportCollectRequest
                         ? [CategorieStatut::TRANSPORT_ORDER_COLLECT, TransportOrder::STATUS_NOT_COLLECTED]
                         : [CategorieStatut::TRANSPORT_ORDER_DELIVERY, TransportOrder::STATUS_NOT_DELIVERED];
-                }
-                else {
+                } else {
                     [$categoryStatus, $statusCode] = $entity instanceof TransportCollectRequest
                         ? [CategorieStatut::TRANSPORT_REQUEST_COLLECT, TransportRequest::STATUS_NOT_COLLECTED]
                         : [CategorieStatut::TRANSPORT_REQUEST_DELIVERY, TransportRequest::STATUS_NOT_DELIVERED];
@@ -989,8 +1004,7 @@ class TransportController extends AbstractFOSRestController {
 
                 if (!$collectHasDelivery) {
                     $statusHistoryService->updateStatus($manager, $entity, $status);
-                }
-                else {
+                } else {
                     //pas d'historique de statut car livraison collecte
                     $notCollectedStatus = $manager->getRepository(Statut::class)
                         ->findOneByCategorieNameAndStatutCode($categoryStatus, $statusCode);
@@ -1031,8 +1045,7 @@ class TransportController extends AbstractFOSRestController {
                         [$categoryStatus, $statusCode] = [
                             CategorieStatut::TRANSPORT_ORDER_COLLECT, TransportOrder::STATUS_NOT_COLLECTED,
                         ];
-                    }
-                    else {
+                    } else {
                         [$categoryStatus, $statusCode] = [
                             CategorieStatut::TRANSPORT_REQUEST_COLLECT, TransportRequest::STATUS_NOT_COLLECTED,
                         ];
@@ -1087,7 +1100,8 @@ class TransportController extends AbstractFOSRestController {
                                  TransportHistoryService $transportHistoryService,
                                  StatusHistoryService    $statusHistoryService,
                                  TrackingMovementService $trackingMovementService,
-                                 PackService             $packService): Response {
+                                 PackService             $packService): Response
+    {
         $data = $request->request;
         $packRepository = $manager->getRepository(Pack::class);
         $round = $manager->find(TransportRound::class, $data->get("round"));
@@ -1150,8 +1164,7 @@ class TransportController extends AbstractFOSRestController {
             if ($isDoneReturning) {
                 $round->setNoDeliveryToReturn(true);
             }
-        }
-        else if ($depositedCollectPacks) {
+        } else if ($depositedCollectPacks) {
             $statusRepository = $manager->getRepository(Statut::class);
 
             foreach ($depositedCollectPacks as $pack) {
@@ -1194,8 +1207,7 @@ class TransportController extends AbstractFOSRestController {
                             if ($pack["quantity"] > $line->getCollectedQuantity()) {
                                 $line->setDepositedQuantity($line->getCollectedQuantity());
                                 $pack["quantity"] -= $line->getCollectedQuantity();
-                            }
-                            else {
+                            } else {
                                 $line->setDepositedQuantity($pack["quantity"]);
                                 $pack["quantity"] = 0;
                             }
@@ -1261,12 +1273,13 @@ class TransportController extends AbstractFOSRestController {
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
      */
-    public function endRoundLocations(EntityManagerInterface $manager): Response {
+    public function endRoundLocations(EntityManagerInterface $manager): Response
+    {
         $settingRepository = $manager->getRepository(Setting::class);
         $endRoundLocations = $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_END_ROUND_LOCATIONS);
 
         $endRoundLocations = $endRoundLocations ? explode(",", $endRoundLocations) : [];
-        $endRoundLocations = Stream::from($endRoundLocations)->map(fn(string $location) => (int) $location)->toArray();
+        $endRoundLocations = Stream::from($endRoundLocations)->map(fn(string $location) => (int)$location)->toArray();
 
         return $this->json([
             'endRoundLocations' => $endRoundLocations,
@@ -1278,19 +1291,20 @@ class TransportController extends AbstractFOSRestController {
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
      */
-    public function packsReturnLocations(EntityManagerInterface $manager): Response {
+    public function packsReturnLocations(EntityManagerInterface $manager): Response
+    {
         $settingRepository = $manager->getRepository(Setting::class);
         $undeliveredPacksLocations = $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_REJECTED_PACKS_LOCATIONS);
         $collectedPacksLocations = $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_COLLECTED_PACKS_LOCATIONS);
 
         $undeliveredPacksLocations = $undeliveredPacksLocations ? explode(",", $undeliveredPacksLocations) : [];
         $undeliveredPacksLocations = Stream::from($undeliveredPacksLocations)
-            ->map(fn(string $location) => (int) $location)
+            ->map(fn(string $location) => (int)$location)
             ->toArray();
 
         $collectedPacksLocations = $collectedPacksLocations ? explode(",", $collectedPacksLocations) : [];
         $collectedPacksLocations = Stream::from($collectedPacksLocations)
-            ->map(fn(string $location) => (int) $location)
+            ->map(fn(string $location) => (int)$location)
             ->toArray();
 
         return $this->json([
@@ -1302,7 +1316,8 @@ class TransportController extends AbstractFOSRestController {
     public function updateTransportComment(EntityManagerInterface                           $manager,
                                            TransportHistoryService                          $historyService,
                                            TransportDeliveryRequest|TransportCollectRequest $request,
-                                           ?string                                          $comment): void {
+                                           ?string                                          $comment): void
+    {
         $order = $request->getOrder();
 
         $order->setComment($comment);
@@ -1332,7 +1347,8 @@ class TransportController extends AbstractFOSRestController {
                                               TransportHistoryService                          $historyService,
                                               TransportDeliveryRequest|TransportCollectRequest $request,
                                               mixed                                            $signatureAttachment,
-                                              mixed                                            $photoAttachment): void {
+                                              mixed                                            $photoAttachment): void
+    {
         $order = $request->getOrder();
 
         $historyService->persistTransportHistory($manager, $request, TransportHistoryService::TYPE_ADD_ATTACHMENT, [

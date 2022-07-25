@@ -219,6 +219,35 @@ class TransportRoundService
             return;
         }
 
+        if($request->getStatus()->getCode() !== TransportRequest::STATUS_TO_PREPARE) {
+            $this->reprepareTransportRoundDeliveryLine($entityManager, $line);
+        }
+
+        $this->transportHistoryService->persistTransportHistory($entityManager, $request, TransportHistoryService::TYPE_REJECTED_DELIVERY, [
+            "user" => $user,
+        ]);
+
+        $this->transportHistoryService->persistTransportHistory($entityManager, $order, TransportHistoryService::TYPE_REJECTED_DELIVERY, [
+            "user" => $user,
+        ]);
+
+        $round = $line->getTransportRound();
+        $round->removeTransportRoundLine($line);
+        $entityManager->remove($line);
+
+        $line->setRejectedAt(new DateTime());
+
+        $round->setRejectedOrderCount($round->getRejectedOrderCount() + 1);
+    }
+
+    public function reprepareTransportRoundDeliveryLine(EntityManagerInterface $entityManager, TransportRoundLine $line): void {
+        $order = $line->getOrder();
+        $request = $order->getRequest();
+
+        if ($request instanceof TransportCollectRequest) {
+            return;
+        }
+
         $statusRepository = $entityManager->getRepository(Statut::class);
 
         $deliveryRequestToPrepare = $this->cacheStatuses['deliveryRequestToPrepare']
@@ -230,33 +259,15 @@ class TransportRoundService
         $this->cacheStatuses['deliveryRequestToPrepare'] = $deliveryRequestToPrepare;
         $this->cacheStatuses['deliveryOrderToAssign'] = $deliveryOrderToAssign;
 
-        $statusHistoryRequest = $this->statusHistoryService->updateStatus($entityManager, $request, $deliveryRequestToPrepare, [
+        $this->statusHistoryService->updateStatus($entityManager, $request, $deliveryRequestToPrepare, [
             'forceCreation' => false,
         ]);
-        $statusHistoryOrder = $this->statusHistoryService->updateStatus($entityManager, $order, $deliveryOrderToAssign);
-
-        $this->transportHistoryService->persistTransportHistory($entityManager, $request, TransportHistoryService::TYPE_REJECTED_DELIVERY, [
-            "user" => $user,
-            "history" => $statusHistoryRequest,
-        ]);
-
-        $this->transportHistoryService->persistTransportHistory($entityManager, $order, TransportHistoryService::TYPE_REJECTED_DELIVERY, [
-            "user" => $user,
-            "history" => $statusHistoryOrder,
-        ]);
+        $this->statusHistoryService->updateStatus($entityManager, $order, $deliveryOrderToAssign);
 
         if($request instanceof TransportDeliveryRequest && $request->getCollect()) {
             $collect = $request->getCollect();
             $collect->setStatus($deliveryRequestToPrepare);
         }
-
-        $round = $line->getTransportRound();
-        $round->removeTransportRoundLine($line);
-        $entityManager->remove($line);
-
-        $line->setRejectedAt(new DateTime());
-
-        $round->setRejectedOrderCount($round->getRejectedOrderCount() + 1);
     }
 
     public function updateTransportRoundLinePriority(TransportRound $round): void {
