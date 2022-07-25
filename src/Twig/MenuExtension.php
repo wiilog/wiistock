@@ -2,6 +2,7 @@
 
 namespace App\Twig;
 
+use App\Entity\Menu;
 use App\Service\CacheService;
 use App\Service\RoleService;
 use App\Service\SpecificService;
@@ -9,6 +10,7 @@ use App\Service\UserService;
 use Twig\TwigFunction;
 use Twig\Extension\AbstractExtension;
 use WiiCommon\Helper\Stream;
+use WiiCommon\Helper\StringHelper;
 
 class MenuExtension extends AbstractExtension
 {
@@ -35,7 +37,8 @@ class MenuExtension extends AbstractExtension
     public function getFunctions()
     {
         return [
-            new TwigFunction('getMenuConfig', [$this, 'getMenuConfigFunction'])
+            new TwigFunction('getMenuConfig', [$this, 'getMenuConfigFunction']),
+            new TwigFunction('displaySettings', [$this, 'displaySettings']),
         ];
     }
 
@@ -68,6 +71,12 @@ class MenuExtension extends AbstractExtension
 
             return $menuWithRight;
         });
+    }
+
+    public function displaySettings(): bool{
+        $permissions = $this->roleService->getPermissions($this->userService->getUser(), true);
+        return Stream::from(array_keys($permissions))->some(fn(string $setting) =>
+            str_contains($setting, StringHelper::stripAccents(Menu::PARAM)));
     }
 
     private function hasRight(array $permissions, array $item) {
