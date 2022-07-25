@@ -28,6 +28,7 @@ use App\Entity\OrdreCollecteReference;
 use App\Entity\Pack;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\Statut;
+use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\Vehicle;
 use App\Entity\Type;
 use App\Helper\FormatHelper;
@@ -42,10 +43,6 @@ use App\Service\UniqueNumberService;
 use DateTimeZone;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use GuzzleHttp\Client;
-use GuzzleHttp\Psr7\Request;
-use GuzzleHttp\Psr7\Response;
-use Symfony\Component\HttpClient\HttpClient;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
@@ -147,18 +144,22 @@ class IOTService
         $entityManager->flush();
     }
 
-    private function treatTemperatureTrigger(TriggerAction $triggerAction, SensorMessage $sensorMessage, EntityManagerInterface $entityManager, SensorWrapper $wrapper) {
+    private function treatTemperatureTrigger(TriggerAction $triggerAction,
+                                             SensorMessage $sensorMessage,
+                                             EntityManagerInterface $entityManager,
+                                             SensorWrapper $wrapper): void {
+
         $config = $triggerAction->getConfig();
 
 
-        $temperatureTreshold = floatval($config['temperature']);
+        $temperatureThreshold = floatval($config['temperature']);
         $messageTemperature = floatval($sensorMessage->getContent());
 
-        $temperatureTresholdType = $config['limit'];
+        $temperatureThresholdType = $config['limit'];
 
-        $needsTrigger = $temperatureTresholdType === 'lower' ?
-            $temperatureTreshold >= $messageTemperature
-            : $temperatureTreshold <= $messageTemperature;
+        $needsTrigger = $temperatureThresholdType === TriggerAction::LOWER
+            ? $temperatureThreshold >= $messageTemperature
+            : $temperatureThreshold <= $messageTemperature;
         $triggerAction->setLastTrigger(new DateTime('now'));
         if ($needsTrigger) {
             if ($triggerAction->getRequestTemplate()) {
@@ -166,6 +167,7 @@ class IOTService
             } else if ($triggerAction->getAlertTemplate()) {
                 $this->treatAlertTemplateTriggerType($triggerAction->getAlertTemplate(), $sensorMessage, $entityManager);
             }
+            $this->treatTrackLinksOnTrigger($entityManager, $wrapper, $temperatureThresholdType);
         }
     }
 
@@ -383,7 +385,7 @@ class IOTService
         $profileName = $message['profile'];
 
         $profile = $profileRepository->findOneBy([
-            'name' => $profileName
+            'name' => $profileName,
         ]);
 
         if (!isset($profile)) {
@@ -397,7 +399,7 @@ class IOTService
         $deviceCode = $message['device_id'];
 
         $device = $deviceRepository->findOneBy([
-            'code' => $deviceCode
+            'code' => $deviceCode,
         ]);
 
         if (!isset($device)) {
@@ -512,7 +514,7 @@ class IOTService
             [$location->getId()],
             [
                 'isCount' => false,
-                'field' => 'colis'
+                'field' => 'colis',
             ]
         );
 
@@ -691,7 +693,7 @@ class IOTService
             Sensor::DELIVERY_REQUEST => Demande::class,
             Sensor::COLLECT_ORDER => OrdreCollecte::class,
             Sensor::COLLECT_REQUEST => Collecte::class,
-            Sensor::PREPARATION => Preparation::class
+            Sensor::PREPARATION => Preparation::class,
         ];
         return $association[$code] ?? null;
     }
@@ -722,7 +724,7 @@ class IOTService
 
         $kooveaTagProfile = $sensorProfiles->findOneBy(['name' => IOTService::KOOVEA_TAG]);
         $tags = $sensors->findBy([
-            'profile' => $kooveaTagProfile
+            'profile' => $kooveaTagProfile,
         ]);
 
         $tags = Stream::from($tags)
@@ -757,7 +759,7 @@ class IOTService
                                 'device_id' => $code,
                                 'timestamp' => $dateReceived,
                                 'value' => $value,
-                                'event' => IOTService::ACS_PRESENCE
+                                'event' => IOTService::ACS_PRESENCE,
                             ];
 
                             $this->onMessageReceived($fakeFrame, $entityManager, true);
@@ -775,7 +777,7 @@ class IOTService
 
         $kooveaHubProfile = $sensorProfiles->findOneBy(['name' => IOTService::KOOVEA_HUB]);
         $hubs = $sensors->findBy([
-            'profile' => $kooveaHubProfile
+            'profile' => $kooveaHubProfile,
         ]);
 
         $hubs = Stream::from($hubs)
@@ -808,11 +810,53 @@ class IOTService
                             'device_id' => $code,
                             'timestamp' => $dateReceived,
                             'value' => $value,
-                            'event' => IOTService::ACS_PRESENCE
+                            'event' => IOTService::ACS_PRESENCE,
                         ];
 
                         $this->onMessageReceived($fakeFrame, $entityManager, true);
                     }
+                }
+            }
+        }
+    }
+
+    public function treatTrackLinksOnTrigger(EntityManagerInterface $entityManager,
+                                             SensorWrapper          $wrapper,
+                                             string                 $temperatureThresholdType): void {
+
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $vehicleRepository = $entityManager->getRepository(Vehicle::class);
+
+        $activePairing = $wrapper->getActivePairing();
+        $order = $activePairing->getPack()
+            ->getTransportDeliveryOrderPack()
+            ->getOrder();
+
+        if ($order) {
+            if ($temperatureThresholdType === TriggerAction::LOWER) {
+                $order->setUnderThresholdExceeded(true);
+            }
+            else if ($temperatureThresholdType === TriggerAction::HIGHER) {
+                $order->setUpperThresholdExceeded(true);
+            }
+        }
+        else {
+            $location = $activePairing->getLocation();
+            if ($location) {
+                $rounds = $locationRepository->findOngoingRounds($location);
+            }
+            else {
+                $vehicle = $activePairing->getVehicle();
+                $rounds = $vehicleRepository->findOngoingRounds($vehicle);
+            }
+
+            /** @var TransportRound $round */
+            foreach($rounds as $round) {
+                if ($temperatureThresholdType === TriggerAction::LOWER) {
+                    $round->setRoundUnderThresholdExceeded(true);
+                }
+                else if ($temperatureThresholdType === TriggerAction::HIGHER) {
+                    $round->setRoundUpperThresholdExceeded(true);
                 }
             }
         }

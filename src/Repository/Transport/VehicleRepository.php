@@ -100,6 +100,27 @@ class VehicleRepository extends EntityRepository
             ->getSingleScalarResult();
     }
 
+    /**
+     * @return TransportRound[]
+     */
+    public function findOngoingRounds(Vehicle $vehicle): array {
+        $queryBuilder = $this->getEntityManager()->createQueryBuilder();
+        $exprBuilder = $queryBuilder->expr();
+        return $queryBuilder
+            ->from(TransportRound::class, 'round')
+            ->select('round')
+            ->andWhere('round.vehicle = :vehicle')
+            ->andWhere('round.beganAt < :now')
+            ->andWhere($exprBuilder->orX(
+                'round.endedAt IS NULL',
+                'round.endedAt > :now'
+            ))
+            ->setParameter('vehicle', $vehicle)
+            ->setParameter('now', new DateTime())
+            ->getQuery()
+            ->getResult();
+    }
+
     public function findOneByDateLastMessageBetween(Vehicle $vehicle, DateTime $start, ?DateTime $end, string $type): ?array
     {
         return $this->createQueryBuilder("vehicle")
