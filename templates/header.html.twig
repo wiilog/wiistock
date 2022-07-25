@@ -247,7 +247,7 @@
                                         </div>
                                     </div>
                                 {% else %}
-                                    {% if itemMenu.label != 'Paramétrage' or (itemMenu.label == 'Paramétrage' and displaySettings())%}
+                                    {% if itemMenu.label != constant('App\\Entity\\Menu::PARAM') | capitalize or (itemMenu.label == constant('App\\Entity\\Menu::PARAM') | capitalize and displaySettings())%}
                                         {% include 'menu/menu-item.html.twig' with {
                                             label: itemMenu.label,
                                             icon: itemMenu.icon is defined ? itemMenu.icon,
