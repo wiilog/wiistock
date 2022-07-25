@@ -73,15 +73,10 @@ class MenuExtension extends AbstractExtension
         });
     }
 
-    public function displaySettings(){
+    public function displaySettings(): bool{
         $permissions = $this->roleService->getPermissions($this->userService->getUser(), true);
-        $displaySettings = false;
-        Stream::from(array_keys($permissions))->some(function(string $setting) use ($displaySettings) {
-            if(str_contains($setting, StringHelper::stripAccents(Menu::PARAM)) && !$displaySettings){
-                $displaySettings = true;
-            }
-        });
-        return $displaySettings;
+        return Stream::from(array_keys($permissions))->some(fn(string $setting) =>
+            str_contains($setting, StringHelper::stripAccents(Menu::PARAM)));
     }
 
     private function hasRight(array $permissions, array $item) {
