@@ -45,22 +45,22 @@
                                 }) }}
                             {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_LIST') %}
                                 {{ form.select(freeField.id, label, needed, {
-                                    items: freeField.elements,
+                                    items: freeField.elements|map((elem) => {value: elem, label: elem}),
+                                    value: entityValue,
+                                    inputClass: 'needs-default w-100',
                                     additionalAttributes: [{
                                         name: 'data-init',
-                                        value: freeField.defaultValue,
-                                        emptyOption: {
-                                            text: "Aucune selection...",
-                                            value: "",
-                                        }
-                                    }]
+                                        value: entityValue
+                                    }],
                                 }) }}
                             {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_LIST_MULTIPLE') %}
                                 {% set entityValuesArray = freeFieldValues[freeField.id] is defined ? freeFieldValues[freeField.id]|split(';') : [] %}
                                 {{ form.select(freeField.id, label, needed, {
-                                    items: freeField.elements,
+                                    items: freeField.elements|map((elem) => {value: elem, label: elem}),
                                     multiple: true,
+                                    value: entityValuesArray,
                                     type: null,
+                                    inputClass: 'list-multiple w-100',
                                     additionalAttributes: [{
                                         name: 'data-simple'
                                     }]

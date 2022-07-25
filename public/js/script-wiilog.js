@@ -295,7 +295,7 @@ function toggleRequiredChampsLibres(type, require, $freeFieldContainer = null) {
             $bloc
                 .find('.data')
                 .addClass('free-field-data')
-                .removeClass('data')
+                .removeClass('data');
 
             $bloc
                 .children(`[data-type="${typeId}"]`)
@@ -380,7 +380,7 @@ function clearModal(modal) {
     // on vide tous les select2
     let selects = $modal
         .find('.modal-body')
-        .find('.ajax-autocomplete, .ajax-autocomplete-location, .ajax-autocomplete-fournisseur, .ajax-autocomplete-transporteur, .select2, .select2-free, .ajax-autocomplete-user, [data-s2-initialized]');
+        .find('.ajax-autocomplete, .ajax-autocomplete-location, .ajax-autocomplete-fournisseur, .ajax-autocomplete-transporteur, .select2, .select2-free, .ajax-autocomplete-user, [data-s2-initialized], .list-multiple');
     selects.each(function () {
         const $this = $(this);
 

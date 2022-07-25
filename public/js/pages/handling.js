@@ -35,7 +35,6 @@ $(function() {
 });
 
 
-//initialisation editeur de texte une seule fois
 function initNewHandlingEditor(modal) {
     Select2Old.location($('.ajax-autocomplete-location'));
     onTypeChange($(modal).find('select[name="type"]'));
