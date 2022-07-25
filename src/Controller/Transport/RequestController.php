@@ -626,8 +626,8 @@ class RequestController extends AbstractController {
             if($current && $line->getId() === $current->getId()) {
                 $userChannel = $userService->getUserFCMChannel($round->getDeliverer());
                 $notificationService->send($userChannel, "Votre prochain point de passage a été annulé", null, [
-                    "roundId" => $round->getId(),
-                    "transportId" => $transportRequest->getId(),
+                    "type" => "transport",
+                    "id" => $transportRequest->getId(),
                 ]);
             }
 

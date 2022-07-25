@@ -93,9 +93,9 @@ class TransportController extends AbstractFOSRestController
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
      */
-    public function fetchSingleRound(Request $request, EntityManagerInterface $manager): Response
-    {
-        $round = $manager->find(TransportRound::class, $request->query->get("round"));
+    public function fetchSingleRound(Request $request, EntityManagerInterface $manager): Response {
+        $round = $request->query->get("round") ? $manager->find(TransportRound::class, $request->query->get("round"))
+            : $manager->find(TransportRequest::class, $request->query->get("request"))->getOrder()->getTransportRoundLines()->last()->getTransportRound();
 
         return $this->json($this->serializeRound($manager, $round));
     }

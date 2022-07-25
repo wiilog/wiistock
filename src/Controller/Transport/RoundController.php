@@ -659,7 +659,7 @@ class RoundController extends AbstractController {
                 && $now === $transportRound->getExpectedAt()->format("d-m-Y")) {
                 $userChannel = $userService->getUserFCMChannel($deliverer);
                 $notificationService->send($userChannel, "Une nouvelle tournée attribuée aujourd'hui", null, [
-                    "roundId" => $transportRound->getId(),
+                    'type' => 'round',
                 ]);
             }
         }
