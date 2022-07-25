@@ -114,6 +114,12 @@ class TransportOrder extends StatusHistoryContainer {
     #[ORM\Column(type: 'string', nullable: true)]
     private ?string $returnReason = null;
 
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $underThresholdExceeded = false;
+
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $upperThresholdExceeded = false;
+
     public function __construct() {
         $this->history = new ArrayCollection();
         $this->packs = new ArrayCollection();
@@ -432,6 +438,28 @@ class TransportOrder extends StatusHistoryContainer {
             ->filter(fn(TransportHistory $history) => $history->getType() === $type)
             ->sort(fn(TransportHistory $h1, TransportHistory $h2) => $h1->getId() <=> $h2->getId())
             ->last();
+    }
+
+    public function isThresholdExceeded(): bool {
+        return $this->isUnderThresholdExceeded() || $this->isUpperThresholdExceeded();
+    }
+
+    public function isUnderThresholdExceeded(): bool {
+        return $this->underThresholdExceeded;
+    }
+
+    public function setUnderThresholdExceeded(bool $underThresholdExceeded): self {
+        $this->underThresholdExceeded = $underThresholdExceeded;
+        return $this;
+    }
+
+    public function isUpperThresholdExceeded(): bool {
+        return $this->upperThresholdExceeded;
+    }
+
+    public function setUpperThresholdExceeded(bool $upperThresholdExceeded): self {
+        $this->upperThresholdExceeded = $upperThresholdExceeded;
+        return $this;
     }
 
 }

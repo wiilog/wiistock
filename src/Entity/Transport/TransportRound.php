@@ -101,6 +101,12 @@ class TransportRound extends StatusHistoryContainer {
     #[ORM\Column(type: 'boolean')]
     private ?bool $noCollectToReturn = false;
 
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $roundUnderThresholdExceeded = false;
+
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $roundUpperThresholdExceeded = false;
+
     #[ORM\Column(type: 'integer', options: ['default' => 0])]
     private int $rejectedOrderCount = 0;
 
@@ -485,6 +491,62 @@ class TransportRound extends StatusHistoryContainer {
         return Stream::from($this->getTransportRoundLines())
             ->filter(fn(TransportRoundLine $line) => $line->getOrder()->getStatus()->getCode() === TransportOrder::STATUS_ONGOING)
             ->first();
+    }
+
+    /**
+     * Is true if temperature ActionTrigger fired on round or on an order of this round
+     */
+    public function isThresholdExceeded(): bool {
+        return $this->isRoundThresholdExceeded()
+            || $this->isLineThresholdExceeded();
+    }
+
+    public function isUnderThresholdExceeded(): bool {
+        return $this->isRoundUnderThresholdExceeded()
+            || $this->isLineUnderThresholdExceeded();
+    }
+
+    public function isUpperThresholdExceeded(): bool {
+        return $this->isRoundUpperThresholdExceeded()
+            || $this->isLineUpperThresholdExceeded();
+    }
+
+    public function isLineThresholdExceeded(): bool {
+        return Stream::from($this->getTransportRoundLines())
+            ->some(fn(TransportRoundLine $line) => $line->getOrder()->isThresholdExceeded());
+    }
+
+    public function isLineUnderThresholdExceeded(): bool {
+        return Stream::from($this->getTransportRoundLines())
+            ->some(fn(TransportRoundLine $line) => $line->getOrder()->isUnderThresholdExceeded());
+    }
+
+    public function isLineUpperThresholdExceeded(): bool {
+        return Stream::from($this->getTransportRoundLines())
+            ->some(fn(TransportRoundLine $line) => $line->getOrder()->isUpperThresholdExceeded());
+    }
+
+    public function isRoundThresholdExceeded(): bool {
+        return $this->isRoundUnderThresholdExceeded()
+            || $this->isRoundUpperThresholdExceeded();
+    }
+
+    public function isRoundUnderThresholdExceeded(): bool {
+        return $this->roundUnderThresholdExceeded;
+    }
+
+    public function setRoundUnderThresholdExceeded(bool $roundUnderThresholdExceeded): self {
+        $this->roundUnderThresholdExceeded = $roundUnderThresholdExceeded;
+        return $this;
+    }
+
+    public function isRoundUpperThresholdExceeded(): bool {
+        return $this->roundUpperThresholdExceeded;
+    }
+
+    public function setRoundUpperThresholdExceeded(bool $roundUpperThresholdExceeded): self {
+        $this->roundUpperThresholdExceeded = $roundUpperThresholdExceeded;
+        return $this;
     }
 
 }

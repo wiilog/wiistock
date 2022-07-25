@@ -81,7 +81,6 @@ class RoundController extends AbstractController {
     public function api(Request $request, EntityManagerInterface $manager): Response {
         $filterSupRepository = $manager->getRepository(FiltreSup::class);
         $roundRepository = $manager->getRepository(TransportRound::class);
-        $locationRepository = $manager->getRepository(Emplacement::class);
 
         $filters = $filterSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_TRANSPORT_ROUNDS, $this->getUser());
         $queryResult = $roundRepository->findByParamAndFilters($request->request, $filters);
@@ -133,41 +132,10 @@ class RoundController extends AbstractController {
                 $hasRejectedPacks = Stream::from($transportRound->getTransportRoundLines())
                     ->some(fn(TransportRoundLine $line) => $line->getOrder()->hasRejectedPacks());
 
-                $alertTemperature = false;
-                foreach($transportRound->getLocations() as $location) {
-                    $triggerActions = $location->getActivePairing()?->getSensorWrapper()?->getTriggerActions();
-
-                    if ($triggerActions) {
-                        $minTriggerActionThreshold = Stream::from($triggerActions)
-                            ->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'lower')
-                            ->last();
-
-                        $maxTriggerActionThreshold = Stream::from($triggerActions)
-                            ->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'higher')
-                            ->last();
-
-                        $minThreshold = $minTriggerActionThreshold?->getConfig()['temperature'];
-                        $maxThreshold = $maxTriggerActionThreshold?->getConfig()['temperature'];
-
-                        $alertTemperature = $locationRepository->countTemperatureAlerts(
-                            $location,
-                            $transportRound->getBeganAt(),
-                            $transportRound->getEndedAt(),
-                            Sensor::TEMPERATURE,
-                            min($minThreshold, $maxThreshold),
-                            max($maxThreshold, $minThreshold),
-                        );
-
-                        if ($alertTemperature) {
-                            break;
-                        }
-                    }
-                }
-
                 $currentRow[] = $this->renderView("transport/round/list_card.html.twig", [
                     "hasRejectedPacks" => $hasRejectedPacks,
                     "prefix" => TransportRound::NUMBER_PREFIX,
-                    "hasExceededThreshold" => $alertTemperature,
+                    "hasExceededThreshold" => $transportRound->isThresholdExceeded(),
                     "round" => $transportRound,
                     "realTime" => isset($hours) && isset($minutes)
                         ? (($hours < 10 ? "0$hours" : $hours) . "h" . ($minutes < 10 ? "0$minutes" : $minutes) . "min")
@@ -234,44 +202,21 @@ class RoundController extends AbstractController {
         $urls = [];
         $transportDateBeganAt = $transportRound->getBeganAt();
         $locations = $transportRound->getLocations();
-        $exceedThresholdHigher = false;
-        $exceedThresholdLower = false;
 
-        if ($transportDateBeganAt ) {
+        if ($transportDateBeganAt) {
             foreach ($locations as $location) {
                 $triggerActions = $location->getActivePairing()?->getSensorWrapper()?->getTriggerActions();
                 if ($triggerActions) {
                     $minTriggerActionThreshold = Stream::from($triggerActions)
-                        ->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'lower')
+                        ->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === TriggerAction::LOWER)
                         ->last();
 
                     $maxTriggerActionThreshold = Stream::from($triggerActions)
-                        ->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'higher')
+                        ->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === TriggerAction::HIGHER)
                         ->last();
 
                     $minThreshold = $minTriggerActionThreshold?->getConfig()['temperature'];
                     $maxThreshold = $maxTriggerActionThreshold?->getConfig()['temperature'];
-
-                    if (!$exceedThresholdLower) {
-                        $exceedThresholdLower = $locationRepository->countTemperatureAlerts(
-                            $location,
-                            $transportRound->getBeganAt(),
-                            $transportRound->getEndedAt(),
-                            Sensor::TEMPERATURE,
-                            min($minThreshold, $maxThreshold),
-                        ) > 0;
-                    }
-
-                    if (!$exceedThresholdHigher) {
-                        $exceedThresholdHigher = $locationRepository->countTemperatureAlerts(
-                            $location,
-                            $transportRound->getBeganAt(),
-                            $transportRound->getEndedAt(),
-                            Sensor::TEMPERATURE,
-                            null,
-                            max($maxThreshold, $minThreshold)
-                        ) > 0;
-                    }
                 }
 
                 $now = new DateTime();
@@ -313,8 +258,8 @@ class RoundController extends AbstractController {
             "urls" => $urls,
             "roundDateBegan" => $transportDateBeganAt,
             "hasSomeDelivery" => $hasSomeDelivery,
-            "hasExceededThresholdUnder" => $exceedThresholdLower ?? false,
-            "hasExceededThresholdOver" => $exceedThresholdHigher ?? false,
+            "hasExceededThresholdUnder" => $transportRound->isUnderThresholdExceeded(),
+            "hasExceededThresholdOver" => $transportRound->isUpperThresholdExceeded(),
             "containsOnlyCollect" => Stream::from($transportRound->getTransportRoundLines())
                 ->every(fn(TransportRoundLine $line) => $line->getOrder()->getRequest() instanceof TransportCollectRequest)
         ]);

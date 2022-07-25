@@ -52,7 +52,7 @@ class TransportRoundService
         $roundStatuses = $round->getLastStatusHistory([
             TransportRound::STATUS_AWAITING_DELIVERER,
             TransportRound::STATUS_ONGOING,
-            TransportRound::STATUS_FINISHED
+            TransportRound::STATUS_FINISHED,
         ]);
 
         $vehicle = $round->getVehicle() ?? $round->getDeliverer()?->getVehicle();
@@ -84,6 +84,7 @@ class TransportRoundService
         ];
 
         if(!$transportRoundLines->isEmpty()) {
+            /** @var TransportRoundLine $transportRoundLine */
             foreach ($transportRoundLines as $transportRoundLine) {
                 $order = $transportRoundLine->getOrder();
                 $request = $order?->getRequest();
@@ -93,7 +94,7 @@ class TransportRoundService
                     str_replace("\n", " ", $request?->getContact()?->getAddress() ?: ''),
                     $transportRoundLine->getPriority() ?: '',
                     $order?->getStatus()->getNom() ?: '',
-                    $vehicle?->getActivePairing() ? FormatHelper::bool($vehicle?->getActivePairing()?->hasExceededThreshold()) : "Non",
+                    FormatHelper::bool($order?->isThresholdExceeded(), 'non'),
                 ]);
                 $csvService->putLine($output, $ordersInformation);
             }
@@ -146,6 +147,7 @@ class TransportRoundService
             ];
 
             if (!$lines->isEmpty()) {
+                /** @var TransportRoundLine $line */
                 foreach ($lines as $line) {
                     $order = $line->getOrder() ?: null;
 
@@ -174,7 +176,7 @@ class TransportRoundService
                             $request instanceof TransportDeliveryRequest ? FormatHelper::datetime($request->getExpectedAt()) : FormatHelper::date($request->getExpectedAt()),
                             isset($statusRequest[TransportRequest::STATUS_FINISHED]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_FINISHED]) : '',
                             $naturesStr,
-                            $vehicle?->getActivePairing() ? FormatHelper::bool($vehicle?->getActivePairing()?->hasExceededThreshold()) : "Non",
+                            FormatHelper::bool($order->isThresholdExceeded(), 'non'),
                         ]);
                         $this->CSVExportService->putLine($output, $ordersInformation);
                     }
@@ -229,7 +231,7 @@ class TransportRoundService
         $this->cacheStatuses['deliveryOrderToAssign'] = $deliveryOrderToAssign;
 
         $statusHistoryRequest = $this->statusHistoryService->updateStatus($entityManager, $request, $deliveryRequestToPrepare, [
-            'forceCreation' => false
+            'forceCreation' => false,
         ]);
         $statusHistoryOrder = $this->statusHistoryService->updateStatus($entityManager, $order, $deliveryOrderToAssign);
 
