@@ -697,8 +697,10 @@ function initNewLigneReception($button) {
                                     if (response && response.success) {
                                         const $printButton = $('#buttonPrintMultipleBarcodes');
                                         if ($printButton.length > 0) {
-                                            console.log(params);
-                                            window.location.href = $printButton.attr('href')+"?reference="+reference;
+                                            window.location.href = Routing.generate('reception_bar_codes_print', {
+                                                reception: receptionId,
+                                                articleIds: response.articleIds
+                                            }, true);
                                         }
                                     }
                                 },
