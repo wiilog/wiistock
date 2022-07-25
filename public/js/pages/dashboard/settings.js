@@ -153,12 +153,26 @@ $pagination.on(`click`, `[data-target="#rename-dashboard-modal"]`, function () {
     const $indexInput = $(`input[name="rename-dashboard-index"]`);
     const $nameInput = $(`input[name="rename-dashboard-name"]`);
     const $highlightComponents = $('input[name="highlight-components"]');
-
-    if (dashboards[dashboard].componentCount) {
-        $highlightComponents.prop('checked', true);
-        const $highlightComponentsCount = $(`input[name="highlight-components-count"][value=${dashboards[dashboard].componentCount}]`);
-        $highlightComponentsCount.prop('checked', true);
-        $('.highlight-components-count-container').removeClass('d-none');
+    const disabled = !dashboards[dashboard].rows.some((row) => {
+        return row.components.some((component) => {
+            return component.template === ONGOING_PACK;
+        });
+    });
+    if (disabled) {
+        $highlightComponents.prop('checked', false);
+        $('.highlight-components-count-container').addClass('d-none');
+        $highlightComponents.prop('disabled', true);
+    } else {
+        $highlightComponents.prop('disabled', false);
+        if (dashboards[dashboard].componentCount) {
+            $highlightComponents.prop('checked', true);
+            const $highlightComponentsCount = $(`input[name="highlight-components-count"][value=${dashboards[dashboard].componentCount}]`);
+            $highlightComponentsCount.prop('checked', true);
+            $('.highlight-components-count-container').removeClass('d-none');
+        } else {
+            $highlightComponents.prop('checked', false);
+            $('.highlight-components-count-container').addClass('d-none');
+        }
     }
     $indexInput.val(dashboard);
     $nameInput.val(dashboards[dashboard].name);
