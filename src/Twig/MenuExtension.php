@@ -2,6 +2,7 @@
 
 namespace App\Twig;
 
+use App\Entity\Menu;
 use App\Service\CacheService;
 use App\Service\RoleService;
 use App\Service\SpecificService;
@@ -9,6 +10,7 @@ use App\Service\UserService;
 use Twig\TwigFunction;
 use Twig\Extension\AbstractExtension;
 use WiiCommon\Helper\Stream;
+use WiiCommon\Helper\StringHelper;
 
 class MenuExtension extends AbstractExtension
 {
@@ -75,7 +77,7 @@ class MenuExtension extends AbstractExtension
         $permissions = $this->roleService->getPermissions($this->userService->getUser(), true);
         $displaySettings = false;
         Stream::from(array_keys($permissions))->some(function(string $setting) use ($displaySettings) {
-            if(str_contains($setting, 'parametrage') && !$displaySettings){
+            if(str_contains($setting, StringHelper::stripAccents(Menu::PARAM)) && !$displaySettings){
                 $displaySettings = true;
             }
         });
