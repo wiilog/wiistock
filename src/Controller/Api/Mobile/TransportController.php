@@ -926,9 +926,13 @@ class TransportController extends AbstractFOSRestController {
                 "reason" => $motive,
             ]);
 
-            $historyService->persistTransportHistory($manager, $order, TransportHistoryService::TYPE_FAILED, [
-                "user" => $this->getUser(),
-                "reason" => $motive,
+            $historyService->persistTransportHistory($manager,
+                $request instanceof TransportCollectRequest
+                ? ($request->getDelivery()?->getOrder() ?? $request->getOrder())
+                : $request->getOrder() ,
+                TransportHistoryService::TYPE_FAILED, [
+                    "user" => $this->getUser(),
+                    "reason" => $motive,
             ]);
         }
 
@@ -1322,7 +1326,11 @@ class TransportController extends AbstractFOSRestController {
                 ]);
         }
 
-        $historyService->persistTransportHistory($manager, $order, TransportHistoryService::TYPE_ADD_COMMENT, [
+        $historyService->persistTransportHistory($manager,
+            $request instanceof TransportCollectRequest
+                ? ($request->getDelivery()?->getOrder() ?? $request->getOrder())
+                : $request->getOrder() ,
+            TransportHistoryService::TYPE_ADD_COMMENT, [
             "user" => $this->getUser(),
             "comment" => $comment,
         ]);
@@ -1333,7 +1341,9 @@ class TransportController extends AbstractFOSRestController {
                                               TransportDeliveryRequest|TransportCollectRequest $request,
                                               mixed                                            $signatureAttachment,
                                               mixed                                            $photoAttachment): void {
-        $order = $request->getOrder();
+        $order =  $request instanceof TransportCollectRequest
+            ? ($request->getDelivery()?->getOrder() ?? $request->getOrder())
+            : $request->getOrder();
 
         $historyService->persistTransportHistory($manager, $request, TransportHistoryService::TYPE_ADD_ATTACHMENT, [
             "user" => $this->getUser(),
