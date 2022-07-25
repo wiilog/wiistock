@@ -114,7 +114,7 @@
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIED_OUT_OPERATION_COUNT') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         <div class="form-group col-md-6 col-12">
-                            <label for="carriedOutOperationCount">{{ 'services.Nombre d\'opération(s) réalisée(s)'|trans }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' }}</label>
+                            <label for="carriedOutOperationCount" class="wii-field-name">{{ 'services.Nombre d\'opération(s) réalisée(s)'|trans }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' }}</label>
                             <input type="number"
                                    min="0"
                                    class="form-control data {{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? 'needed' }}"

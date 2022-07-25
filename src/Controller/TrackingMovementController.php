@@ -387,30 +387,36 @@ class TrackingMovementController extends AbstractController
         }
         $mvt = $trackingMovementRepository->find($post->get('id'));
         $pack = $mvt->getPack();
-        if ($userService->hasRightFunction(Menu::TRACA, Action::FULLY_EDIT_TRACKING_MOVEMENTS)) {
-            $pack->setCode($post->get('pack'));
-            $entityManager->flush();
+        $hasChanged = ($mvt->getEmplacement()->getLabel() !== $location->getLabel()) ||
+                            ($mvt->getType()->getCode() !== $action->getCode()) ||
+                                ($post->get('pack') !== $pack->getCode());
+        if ($userService->hasRightFunction(Menu::TRACA, Action::FULLY_EDIT_TRACKING_MOVEMENTS) && $hasChanged) {
             /** @var TrackingMovement $new */
-            $new = $trackingMovementService->persistTrackingMovement(
+
+            $response = $trackingMovementService->persistTrackingMovement(
                 $entityManager,
-                $pack,
+                $post->get('pack'),
                 $location,
                 $operator,
                 new DateTime($post->get('date')),
                 true,
                 $action,
                 false,
-            )['movement'];
+            );
+            if ($response['success']) {
+                $new = $response['movement'];
+                $trackingMovementService->manageLinksForClonedMovement($mvt, $new);
 
-            $trackingMovementService->manageLinksForClonedMovement($mvt, $new);
+                $entityManager->persist($new);
+                $entityManager->remove($mvt);
+                $entityManager->flush();
 
-            $entityManager->persist($new);
-            $entityManager->remove($mvt);
-            $entityManager->flush();
+                $mvt = $new;
+            } else {
+                return $this->json($response);
+            }
 
-            $mvt = $new;
         }
-
         /** @var TrackingMovement $mvt */
         $mvt
             ->setOperateur($operator)
@@ -420,7 +426,6 @@ class TrackingMovementController extends AbstractController
         $entityManager->flush();
 
         $listAttachmentIdToKeep = $post->all('files');
-
         $attachments = $mvt->getAttachments()->toArray();
         foreach ($attachments as $attachment) {
             /** @var Attachment $attachment */
@@ -428,10 +433,8 @@ class TrackingMovementController extends AbstractController
                 $attachmentService->removeAndDeleteAttachment($attachment, $mvt);
             }
         }
-
         $this->persistAttachments($mvt, $attachmentService, $request->files, $entityManager, ['addToDispatch' => true]);
         $freeFieldService->manageFreeFields($mvt, $post->all(), $entityManager);
-
         $entityManager->flush();
 
         return new JsonResponse([
@@ -604,7 +607,7 @@ class TrackingMovementController extends AbstractController
         foreach ($attachments as $attachment) {
             $entityManager->persist($attachment);
             $trackingMovement->addAttachment($attachment);
-            if ($isAddToDispatch) {
+            if ($isAddToDispatch && $trackingMovement->getDispatch()) {
                 $trackingMovement->getDispatch()->addAttachment($attachment);
             }
         }
