@@ -108,7 +108,7 @@ $(function () {
                             batch: batch,
                             expiry: expiry,
                             noCommande: orderNumber,
-                            quantite: quantityToReceive * quantity,
+                            quantite: quantityToReceive,
                             articleQuantity: quantity,
                             refArticle: referenceId,
                             ...freeFields
@@ -129,7 +129,7 @@ $(function () {
         const articleLineIndex = $articlesContainer.find(`.article-line`).index($currentArticleLine);
 
         packingArticlesValues.splice(articleLineIndex, 1);
-        $packingArticles.val(JSON.stringify(packingArticlesValues))
+        $packingArticles.val(JSON.stringify(packingArticlesValues));
 
         $currentArticleLine.remove();
         if($articlesContainer.find(`.article-line`).length === 0) {
