@@ -1348,16 +1348,17 @@ class ReceptionController extends AbstractController {
     /**
      * @Route("/{reception}/etiquettes", name="reception_bar_codes_print", options={"expose"=true})
      */
-    public function getReceptionBarCodes(Reception $reception,
+    public function getReceptionBarCodes(Request $request,
+                                         Reception $reception,
                                          EntityManagerInterface $entityManager,
                                          RefArticleDataService $refArticleDataService,
                                          ArticleDataService $articleDataService,
                                          PDFGeneratorService $PDFGeneratorService): Response {
         $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
         $listReceptionReferenceArticle = $receptionReferenceArticleRepository->findByReception($reception);
-        $barcodeConfigs = array_reduce(
+        $barcodeConfigs = array_filter(array_reduce(
             $listReceptionReferenceArticle,
-            function(array $carry, ReceptionReferenceArticle $recepRef) use ($refArticleDataService, $articleDataService, $reception): array {
+            function(array $carry, ReceptionReferenceArticle $recepRef) use ($request, $refArticleDataService, $articleDataService, $reception): array {
                 $referenceArticle = $recepRef->getReferenceArticle();
 
                 if($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
@@ -1368,8 +1369,11 @@ class ReceptionController extends AbstractController {
                         array_push(
                             $carry,
                             ...array_map(
-                                function(Article $article) use ($articleDataService, $reception) {
-                                    return $articleDataService->getBarcodeConfig($article, $reception);
+                                function(Article $article) use ($request, $articleDataService, $reception) {
+                                    if($article->getReference() === $request->query->get('reference')){
+                                        return $articleDataService->getBarcodeConfig($article, $reception);
+                                    }
+                                    return null;
                                 },
                                 $articlesReception
                             )
@@ -1378,11 +1382,12 @@ class ReceptionController extends AbstractController {
                 }
                 return $carry;
             },
-            []);
+            []));
 
+        dump($barcodeConfigs);
         if(!empty($barcodeConfigs)) {
-            $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'articles_reception');
-            $pdf = $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs);
+            $fileName = $PDFGeneratorService->getBarcodeFileName(array_filter($barcodeConfigs), 'articles_reception');
+            $pdf = $PDFGeneratorService->generatePDFBarCodes($fileName, array_filter($barcodeConfigs));
             return new PdfResponse($pdf, $fileName);
         } else {
             throw new NotFoundHttpException('Aucune étiquette à imprimer');
