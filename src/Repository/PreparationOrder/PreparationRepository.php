@@ -64,6 +64,7 @@ class PreparationRepository extends EntityRepository
             ->leftJoin('d.triggeringSensorWrapper', 'triggeringSensorWrapper')
             ->andWhere('(s.nom = :toTreatStatusLabel OR (s.nom = :inProgressStatusLabel AND p.utilisateur = :user))')
             ->andWhere('t.id IN (:type)')
+            ->andWhere('d.manual = false')
             ->orderBy('t.label', Criteria::ASC)
             ->setMaxResults($maxResult)
             ->setParameters([
@@ -98,7 +99,9 @@ class PreparationRepository extends EntityRepository
         return $this->createQueryBuilder('preparation')
             ->join('preparation.statut', 'statut')
             ->join('preparation.referenceLines', 'referenceLines')
-            ->where('referenceLines.reference = :reference')
+            ->join('preparation.demande', 'request')
+            ->andWhere('request.manual = false')
+            ->andWhere('referenceLines.reference = :reference')
             ->andWhere('preparation.expectedAt BETWEEN :start and :end')
             ->andWhere('statut.code IN (:statuses)')
             ->setParameters([
@@ -120,7 +123,9 @@ class PreparationRepository extends EntityRepository
      */
     public function findByParamsAndFilters(InputBag $params, $filters)
     {
-        $qb = $this->createQueryBuilder("p");
+        $qb = $this->createQueryBuilder("p")
+            ->join('p.demande', 'request')
+            ->andWhere('request.manual = false');
 
         $countTotal = QueryCounter::count($qb, 'p');
         $qb
@@ -130,8 +135,7 @@ class PreparationRepository extends EntityRepository
             switch ($filter['field']) {
                 case FiltreSup::FIELD_TYPE:
                     $qb
-                        ->leftJoin('p.demande', 'd')
-                        ->leftJoin('d.type', 't')
+                        ->leftJoin('request.type', 't')
                         ->andWhere('t.label = :type')
                         ->setParameter('type', $filter['value']);
                     break;
@@ -161,8 +165,7 @@ class PreparationRepository extends EntityRepository
                     break;
                 case FiltreSup::FIELD_DEMANDE:
                     $qb
-                        ->join('p.demande', 'demande')
-                        ->andWhere('demande.id = :id')
+                        ->andWhere('request.id = :id')
                         ->setParameter('id', $filter['value']);
                     break;
             }
@@ -174,8 +177,7 @@ class PreparationRepository extends EntityRepository
                 $search = $params->all('search')['value'];
                 if (!empty($search)) {
                     $qb
-                        ->leftJoin('p.demande', 'd2')
-                        ->leftJoin('d2.type', 't2')
+                        ->leftJoin('request.type', 't2')
                         ->leftJoin('p.utilisateur', 'p2')
                         ->leftJoin('p.statut', 's2')
                         ->andWhere('
@@ -199,8 +201,7 @@ class PreparationRepository extends EntityRepository
                             ->orderBy('s3.nom', $order);
                     } else if ($column === 'type') {
                         $qb
-                            ->leftJoin('p.demande', 'd3')
-                            ->leftJoin('d3.type', 't3')
+                            ->leftJoin('request.type', 't3')
                             ->orderBy('t3.label', $order);
                     } else if ($column === 'user') {
                         $qb
@@ -238,7 +239,9 @@ class PreparationRepository extends EntityRepository
         $dateMin = $dateMin->format('Y-m-d H:i:s');
 
         $iterator = $this->createQueryBuilder('preparation')
-            ->where('preparation.date BETWEEN :dateMin AND :dateMax')
+            ->join('preparation.demande', 'request')
+            ->andWhere('request.manual = false')
+            ->andWhere('preparation.date BETWEEN :dateMin AND :dateMax')
             ->setParameters([
                 'dateMin' => $dateMin,
                 'dateMax' => $dateMax
@@ -252,33 +255,14 @@ class PreparationRepository extends EntityRepository
         }
     }
 
-    public function getFirstDatePreparationGroupByDemande(array $demandes)
-    {
-        $queryBuilder = $this->createQueryBuilder('preparation')
-            ->select('demande.id AS demandeId')
-            ->addSelect('MIN(preparation.date) AS firstDate')
-            ->join('preparation.demande', 'demande')
-            ->where('preparation.demande in (:demandes)')
-            ->groupBy('demande.id')
-            ->setParameter('demandes', $demandes);
-
-        $lastDatePreparationDemande = $queryBuilder->getQuery()->execute();;
-        return array_reduce($lastDatePreparationDemande, function (array $carry, $current) {
-            $demandeId = $current['demandeId'];
-            $firstDate = $current['firstDate'];
-
-            $carry[$demandeId] = $firstDate;
-            return $carry;
-        }, []);
-    }
-
     public function getNumeroPrepaGroupByDemande(array $demandes)
     {
         $queryBuilder = $this->createQueryBuilder('preparation')
             ->select('demande.id AS demandeId')
             ->addSelect('preparation.numero AS numeroPreparation')
             ->join('preparation.demande', 'demande')
-            ->where('preparation.demande in (:demandes)')
+            ->andWhere('preparation.demande in (:demandes)')
+            ->andWhere('demande.manual = false')
             ->setParameter('demandes', $demandes);
 
         $result = $queryBuilder->getQuery()->execute();
@@ -299,7 +283,7 @@ class PreparationRepository extends EntityRepository
         $queryBuilder = $this
             ->createQueryBuilder('preparation')
             ->select('COUNT(preparation.id) AS counter')
-            ->where('preparation.numero = :numero')
+            ->andWhere('preparation.numero = :numero')
             ->setParameter('numero', $numero . '%');
 
         $result = $queryBuilder
@@ -353,6 +337,7 @@ class PreparationRepository extends EntityRepository
                 ->innerJoin('preparation.statut', 'status')
                 ->innerJoin('preparation.demande', 'request')
                 ->innerJoin('request.type', 'type')
+                ->andWhere('request.manual = false')
                 ->andWhere('status IN (:statuses)')
                 ->andWhere('type IN (:types)')
                 ->andWhere('status.state IN (:treatedStates)')
@@ -390,6 +375,8 @@ class PreparationRepository extends EntityRepository
                 ->join('sensorMessage.pairings', 'pairing')
                 ->join('pairing.preparationOrder', 'preparation')
                 ->join('pairing.sensorWrapper', 'sensorWrapper')
+                ->join('preparation.demande', 'request')
+                ->andWhere('request.manual = false')
                 ->where('article = :article')
                 ->andWhere('pairing.article IS NULL');
         };
@@ -443,6 +430,8 @@ class PreparationRepository extends EntityRepository
         if (!empty($statusCodes)) {
             $queryBuilder = $this->createQueryBuilder('preparation')
                 ->join('preparation.statut', 'status')
+                ->join('preparation.demande', 'request')
+                ->andWhere('request.manual = false')
                 ->andWhere('status.code IN (:statusCodes)')
                 ->andWhere('preparation.expectedAt BETWEEN :start AND :end')
                 ->setParameter('statusCodes', $statusCodes)
@@ -460,8 +449,7 @@ class PreparationRepository extends EntityRepository
                     }
                     else if ($filter['field'] === FiltreSup::FIELD_TYPE) {
                         $queryBuilder
-                            ->join('preparation.demande', 'filter_request')
-                            ->join('filter_request.type', 'filter_type')
+                            ->join('request.type', 'filter_type')
                             ->andWhere('filter_type.label = :type')
                             ->setParameter('type', $filter['value']);
                     }

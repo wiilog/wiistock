@@ -86,6 +86,9 @@ class Demande implements PairedEntity {
     #[ORM\Column(type: 'date', nullable: true)]
     private ?DateTime $expectedAt = null;
 
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $manual = false;
+
     public function __construct() {
         $this->preparations = new ArrayCollection();
         $this->referenceLines = new ArrayCollection();
@@ -361,4 +364,12 @@ class Demande implements PairedEntity {
         return $this;
     }
 
+    public function getManual(): bool {
+        return $this->manual;
+    }
+
+    public function setManual(bool $manual): self {
+        $this->manual = $manual;
+        return $this;
+    }
 }

@@ -234,7 +234,10 @@ class DemandeLivraisonService
         ];
     }
 
-    public function newDemande($data, EntityManagerInterface $entityManager, FreeFieldService $champLibreService, bool $fromNomade = false)
+    public function newDemande($data,
+                               EntityManagerInterface $entityManager,
+                               FreeFieldService $champLibreService,
+                               bool $fromNomade = false)
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -242,6 +245,8 @@ class DemandeLivraisonService
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $receptionRepository = $entityManager->getRepository(Reception::class);
+
+        $isManual = $data['isManual'] ?? false;
 
         $requiredCreate = true;
         $type = $typeRepository->find($data['type']);
@@ -284,6 +289,7 @@ class DemandeLivraisonService
             ->setType($type)
             ->setDestination($destination)
             ->setNumero($number)
+            ->setManual($isManual)
             ->setCommentaire($data['commentaire']);
 
         $champLibreService->manageFreeFields($demande, $data, $entityManager);

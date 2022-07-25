@@ -868,7 +868,6 @@ class TrackingMovementService
             $to->addAttachment($attachment);
         }
         return $to;
-
     }
 
     public function persistTrackingMovement(EntityManagerInterface $entityManager,
