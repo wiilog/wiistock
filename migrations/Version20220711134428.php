@@ -19,13 +19,14 @@ final class Version20220711134428 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        // this up() migration is auto-generated, please modify it to your needs
-        $this->addSql('CREATE TABLE attachment_tracking_movement (attachment_id INT NOT NULL, tracking_movement_id INT NOT NULL, PRIMARY KEY(attachment_id, tracking_movement_id))');
-        $this->addSql('INSERT INTO attachment_tracking_movement (attachment_id, tracking_movement_id)
-                            SELECT id AS attachment_id , mvt_traca_id AS tracking_movement_id
-                            FROM attachment
-                            WHERE mvt_traca_id IS NOT NULL
-        ');
+        if(!$schema->hasTable("attachment_tracking_movement")) {
+            $this->addSql('CREATE TABLE attachment_tracking_movement (attachment_id INT NOT NULL, tracking_movement_id INT NOT NULL, PRIMARY KEY(attachment_id, tracking_movement_id))');
+            $this->addSql('INSERT INTO attachment_tracking_movement (attachment_id, tracking_movement_id)
+                                SELECT id AS attachment_id , mvt_traca_id AS tracking_movement_id
+                                FROM attachment
+                                WHERE mvt_traca_id IS NOT NULL
+            ');
+        }
         //$this->addSql('ALTER TABLE attachment DROP mvt_traca_id');
     }
 
