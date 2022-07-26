@@ -183,6 +183,9 @@
     "laminas/laminas-code": {
         "version": "4.0.0"
     },
+    "laminas/laminas-escaper": {
+        "version": "2.10.0"
+    },
     "monolog/monolog": {
         "version": "2.2.0"
     },
@@ -233,6 +236,9 @@
     },
     "phpdocumentor/type-resolver": {
         "version": "1.4.0"
+    },
+    "phpoffice/phpword": {
+        "version": "0.18.3"
     },
     "phpseclib/phpseclib": {
         "version": "3.0.9"
