@@ -278,7 +278,7 @@ class DemandeRepository extends EntityRepository
                     LIMIT 1
                 ");
 
-            $res = $query->fetchColumn();
+            $res = $query->fetchOne();
             return $res
                 ? (DateTime::createFromFormat('Y-m-d H:i:s', $res) ?: null)
                 : null;
