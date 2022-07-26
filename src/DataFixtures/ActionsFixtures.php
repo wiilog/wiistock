@@ -325,7 +325,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::MODULE_TRACK,
                 Action::DEMO_MODE,
             ],
-            self::SUB_MENU_TRACKING => [
+            self::SUB_MENU_TRACING => [
                 Action::MODULE_ACCESS_GROUP,
                 Action::MODULE_ACCESS_UNGROUP,
             ],
