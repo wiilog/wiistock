@@ -1983,19 +1983,24 @@ class ReceptionController extends AbstractController {
         $query = $request->query;
         $reference = $query->get('reference');
         $orderNumber = $query->get('orderNumber');
+        $reception = $query->get('reception');
         $supplierReference = $query->get('supplierReference');
 
         $freeFieldRepository = $manager->getRepository(FreeField::class);
         $referenceArticleRepository = $manager->getRepository(ReferenceArticle::class);
         $supplierReferenceRepository = $manager->getRepository(ArticleFournisseur::class);
+        $receptionRepository = $manager->getRepository(Reception::class);
 
+        $reception = $receptionRepository->find($reception);
         $reference = $referenceArticleRepository->findOneBy(['reference' => $reference]);
         $supplierReference = $supplierReferenceRepository->find($supplierReference);
         $type = $reference->getType();
         $freeFields = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::ARTICLE);
-        $receptionReferenceArticle = $reference->getReceptionReferenceArticles()
-            ->filter(fn(ReceptionReferenceArticle $receptionReferenceArticle) => $receptionReferenceArticle->getCommande() === $orderNumber)
-            ->first();
+        $receptionReferenceArticle = $reception->getReceptionReferenceArticles()
+            ->filter(fn(ReceptionReferenceArticle $line) =>
+                $line->getCommande() === $orderNumber &&
+                $line->getReferenceArticle()->getId() === $reference->getId()
+            )->first();
 
         return $this->json([
             'template' => $this->renderView('reception/show/packing_content.html.twig', [
