@@ -89,10 +89,12 @@ class SensorMessageRepository extends EntityRepository
             $entityColumn = $link['entityColumn'];
             $values = $link['values'];
 
-            foreach ($values as $value) {
-                $queryRaw = "INSERT INTO $type ($entityColumn, sensor_message_id) VALUES ($value, $lastInsertedId)";
-                $connection->executeQuery($queryRaw);
-            }
+            $values = Stream::from($values)
+                ->map(fn($value) => '(' . $value . ', ' . $lastInsertedId . ')')
+                ->join(', ');
+
+            $queryRaw = "INSERT INTO $type ($entityColumn, sensor_message_id) VALUES $values";
+            $connection->executeQuery($queryRaw);
         }
     }
 }
