@@ -863,6 +863,12 @@ class IOTService
                 'entityColumn' => 'vehicle_id'
             ];
 
+            $linked[] = [
+                'type' => 'pairing_sensor_message',
+                'values' => [$pairing->getId()],
+                'entityColumn' => 'pairing_id'
+            ];
+
             if (!empty($locations)) {
                 $linked[] = [
                     'type' => 'emplacement_sensor_message',
