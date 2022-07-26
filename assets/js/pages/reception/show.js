@@ -59,7 +59,8 @@ $(function () {
                 AJAX.route(GET, `packing_template`, {
                     reference,
                     orderNumber: commande,
-                    supplierReference
+                    supplierReference,
+                    reception: $('#receptionId').val(),
                 })
                     .json()
                     .then(({template}) => {
