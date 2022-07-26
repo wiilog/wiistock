@@ -83,6 +83,8 @@ class SensorMessageRepository extends EntityRepository
         $connection->executeQuery($queryRaw);
         $lastInsertedId = $connection->executeQuery('SELECT LAST_INSERT_ID()')->fetchOne();
 
+        $queryRaw = "UPDATE sensor SET last_message_id = $lastInsertedId WHERE sensor.id = $sensor";
+        $connection->executeQuery($queryRaw);
 
         foreach ($linked as $link) {
             $type = $link['type'];
