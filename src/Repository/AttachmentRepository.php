@@ -46,9 +46,9 @@ class AttachmentRepository extends EntityRepository
 
 	public function getNameGroupByMovements() {
         $queryBuilder = $this->createQueryBuilder('attachment')
-            ->select('trackingMovement.id AS trackingMovementId')
+            ->select('trackingMovements.id AS trackingMovementId')
             ->addSelect('attachment.originalName')
-            ->join('attachment.trackingMovement', 'trackingMovement');
+            ->join('attachment.trackingMovements', 'trackingMovements');
 
         $result = $queryBuilder
             ->getQuery()
