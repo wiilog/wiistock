@@ -107,19 +107,16 @@ class MobileApiService {
             ->toArray();
     }
 
-    public function checkMobileVersion( string $mobileVersion, string $clientVersion): bool {
-        $clientVersion = explode('_', $clientVersion, '2');
-        $mobileVersion = explode('_', $mobileVersion, '2');
-        if (count($clientVersion) == count($mobileVersion)){
-           if (count($clientVersion)==1 || $clientVersion[1]==$mobileVersion[1]) {
-               return Semver::satisfies( $mobileVersion[0], $clientVersion[0]);
-           }
-           else {
-               return false;
-           }
-        }
-        else {
+    public function checkMobileVersion(string $mobileVersion, string $requiredVersion): bool {
+        // @ silences the error when the array contains 0 or one value
+        @[$mobileVersion, $mobilePatch] = explode("#", $mobileVersion, 2);
+        @[$requiredVersion, $requiredPatch] = explode("#", $requiredVersion, 2);
+
+        if($mobilePatch !== $requiredPatch) {
             return false;
         }
+
+       return Semver::satisfies($mobileVersion, $requiredVersion);
     }
+
 }

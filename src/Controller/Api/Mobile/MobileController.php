@@ -1857,7 +1857,7 @@ class MobileController extends AbstractFOSRestController
     public function checkNomadeVersion(Request $request, ParameterBagInterface $parameterBag){
         return $this->json([
             "success" => true,
-            "validVersion" => $this->mobileApiService->checkmobileVersion($request->get('nomadeVersion'), $parameterBag->get('nomade_versions')),
+            "validVersion" => $this->mobileApiService->checkMobileVersion($request->get('nomadeVersion'), $parameterBag->get('nomade_version')),
         ]);
     }
 
