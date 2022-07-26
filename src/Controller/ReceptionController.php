@@ -1354,36 +1354,36 @@ class ReceptionController extends AbstractController {
                                          RefArticleDataService $refArticleDataService,
                                          ArticleDataService $articleDataService,
                                          PDFGeneratorService $PDFGeneratorService): Response {
-        $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
         $articleIds = json_decode($request->query->get('articleIds'), true);
-        $articles = $entityManager->getRepository(Article::class)->findBy(['id' => $articleIds]);
-        $listReceptionReferenceArticle = !empty($articles)
-            ? Stream::from($articles)->map(fn(Article $article) => $article->getReceptionReferenceArticle())->toArray()
-            : $receptionReferenceArticleRepository->findByReception($reception);
-        $barcodeConfigs = array_reduce(
-            $listReceptionReferenceArticle,
-            function(array $carry, ReceptionReferenceArticle $recepRef) use ($articles, $request, $refArticleDataService, $articleDataService, $reception): array {
-                $referenceArticle = $recepRef->getReferenceArticle();
 
-                if(empty($articles) && $referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
-                    $carry[] = $refArticleDataService->getBarcodeConfig($referenceArticle);
-                } else {
-                    $articlesReception = !empty($articles) ? $articles : $recepRef->getArticles()->toArray();
-                    if(!empty($articlesReception)) {
-                        array_push(
-                            $carry,
-                            ...array_map(
-                                function(Article $article) use ($request, $articleDataService, $reception) {
-                                    return $articleDataService->getBarcodeConfig($article, $reception);
-                                },
-                                $articlesReception
-                            )
-                        );
+        if(empty($articleIds)) {
+            $listReceptionReferenceArticle = $entityManager->getRepository(ReceptionReferenceArticle::class)->findByReception($reception);
+
+            $barcodeConfigs = Stream::from($listReceptionReferenceArticle)
+                ->reduce(function(array $carry, ReceptionReferenceArticle $recepRef) use ($request, $refArticleDataService, $articleDataService, $reception) {
+                    $referenceArticle = $recepRef->getReferenceArticle();
+
+                    if ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
+                        $carry[] = $refArticleDataService->getBarcodeConfig($referenceArticle);
+                    } else {
+                        $articlesReception = $recepRef->getArticles()->toArray();
+                        if (!empty($articlesReception)) {
+                            array_push(
+                                $carry,
+                                ...Stream::from($articlesReception)
+                                    ->map(fn(Article $article) => $articleDataService->getBarcodeConfig($article, $reception))
+                                    ->toArray()
+                            );
+                        }
                     }
-                }
-                return $carry;
-            },
-            []);
+                    return $carry;
+                }, []);
+        } else {
+            $articles = $entityManager->getRepository(Article::class)->findBy(['id' => $articleIds]);
+            $barcodeConfigs = Stream::from($articles)
+                ->map(fn(Article $article) => $articleDataService->getBarcodeConfig($article, $article->getReceptionReferenceArticle()->getReception()))
+                ->toArray();
+        }
 
         if(!empty($barcodeConfigs)) {
             $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'articles_reception');
@@ -1765,7 +1765,6 @@ class ReceptionController extends AbstractController {
                 }
 
                 $articleArray['quantite'] = intval($articleArray['articleQuantity']);
-                dump($articleArray);
                 for($i = 0; $i < $quantity; $i++) {
                     $article = $articleDataService->newArticle($articleArray, $entityManager);
 
