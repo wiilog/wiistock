@@ -2,8 +2,11 @@
 
 <div class="wii-section">
     <div class="row">
-        <div class="col-md-6 col-12">
+        <div class="col-12">
             {{ form.checkbox(setting('REMOVE_HOURS_DATETIME'), 'Enlever les heures de la date attendue', false, setting_value('REMOVE_HOURS_DATETIME'))}}
+        </div>
+        <div class="col-12 mt-2">
+            {{ form.checkbox(setting('KEEP_HANDLING_MODAL_OPEN'), 'Vider et rester sur la modale de création de service', false, setting_value('KEEP_HANDLING_MODAL_OPEN'))}}
         </div>
     </div>
 </div>

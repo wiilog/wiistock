@@ -127,7 +127,11 @@ function initModals(tableHandling) {
     let $modalNewHandling = $("#modalNewHandling");
     let $submitNewHandling = $("#submitNewHandling");
     let urlNewHandling = Routing.generate('handling_new', true);
-    InitModal($modalNewHandling, $submitNewHandling, urlNewHandling, {tables: [tableHandling]});
+    InitModal($modalNewHandling, $submitNewHandling, urlNewHandling, {
+        tables: [tableHandling],
+        keepModal: $modalNewHandling.is(`.keep-handling-modal-open`),
+        success: () => $modalNewHandling.find(`.free-fields-container [data-type]`).addClass(`d-none`),
+    });
 
     let $modalModifyHandling = $('#modalEditHandling');
     let $submitModifyHandling = $('#submitEditHandling');

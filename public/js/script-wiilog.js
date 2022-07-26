@@ -347,6 +347,7 @@ function displayError(modal, msg, success) {
 }
 
 function clearModal(modal) {
+    console.log('oke');
     let $modal = typeof modal === 'string' ? $(modal) : modal;
 
     let switches = $modal.find('.wii-switch').find('input[type="radio"]');
