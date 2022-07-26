@@ -33,6 +33,7 @@ use App\Entity\Transport\Vehicle;
 use App\Entity\Type;
 use App\Helper\FormatHelper;
 use App\Repository\ArticleRepository;
+use App\Repository\IOT\SensorMessageRepository;
 use App\Repository\PackRepository;
 use App\Repository\StatutRepository;
 use App\Service\DemandeLivraisonService;
@@ -42,6 +43,7 @@ use App\Service\NotificationService;
 use App\Service\UniqueNumberService;
 use DateTimeZone;
 use DateTime;
+use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
@@ -774,11 +776,16 @@ class IOTService
     {
         $sensorProfiles = $entityManager->getRepository(SensorProfile::class);
         $sensors = $entityManager->getRepository(Sensor::class);
+        $sensorMessages = $entityManager->getRepository(SensorMessage::class);
 
         $kooveaHubProfile = $sensorProfiles->findOneBy(['name' => IOTService::KOOVEA_HUB]);
         $hubs = $sensors->findBy([
             'profile' => $kooveaHubProfile,
         ]);
+
+        $entities = Stream::from($hubs)
+            ->keymap(fn(Sensor $hub) => [$hub->getCode(), $hub])
+            ->toArray();
 
         $hubs = Stream::from($hubs)
             ->map(fn(Sensor $hub) => $hub->getCode())
@@ -812,12 +819,73 @@ class IOTService
                             'value' => $value,
                             'event' => IOTService::ACS_PRESENCE,
                         ];
-
-                        $this->onMessageReceived($fakeFrame, $entityManager, true);
+                        $this->insertGPSFrameFromKoovea($entities, $fakeFrame, $sensorMessages, $entityManager);
                     }
                 }
             }
+            $entityManager->flush();
         }
+    }
+
+    public function insertGPSFrameFromKoovea(array $entities, array $frame, SensorMessageRepository $sensorMessageRepository, EntityManagerInterface $entityManager) {
+        /** @var Sensor $linkedDevice */
+        $linkedDevice = $entities[$frame['device_id']];
+        $linked = [];
+
+
+        $wrapper = $linkedDevice->getAvailableSensorWrapper();
+        $pairing = $wrapper?->getActivePairing();
+        if ($pairing) {
+            $packRepository = $entityManager->getRepository(Pack::class);
+
+            /** @var Vehicle $vehicle */
+            $vehicle = $pairing->getEntity();
+            $locations = $vehicle->getLocations();
+
+            $locations = Stream::from($locations)
+                ->map(fn(Emplacement $location) => $location->getId())
+                ->toArray();
+
+            $packs = $packRepository->getCurrentPackOnLocations(
+                $locations,
+                [
+                    'isCount' => false,
+                    'field' => 'colis',
+                ]
+            );
+            $packs = Stream::from($packs)
+                ->map(fn(Pack $pack) => $pack->getId())
+                ->toArray();
+
+            $linked[] = [
+                'type' => 'vehicle_sensor_message',
+                'values' => [$vehicle->getId()],
+                'entityColumn' => 'vehicle_id'
+            ];
+
+            if (!empty($locations)) {
+                $linked[] = [
+                    'type' => 'emplacement_sensor_message',
+                    'values' => $locations,
+                    'entityColumn' => 'emplacement_id'
+                ];
+            }
+            if (!empty($packs)) {
+                $linked[] = [
+                    'type' => 'pack_sensor_message',
+                    'values' => $packs,
+                    'entityColumn' => 'pack_id'
+                ];
+            }
+        }
+
+        $sensorMessageRepository->insertRaw([
+            'date' => str_replace('/', '-', $frame['timestamp']),
+            'content' => $frame['value'],
+            'event' => $frame['event'],
+            'payload' => json_encode($frame),
+            'sensor' => $linkedDevice->getId(),
+        ], $linked);
     }
 
     public function treatTrackLinksOnTrigger(EntityManagerInterface $entityManager,
