@@ -1,6 +1,6 @@
 <?php
-// At 23:00 on Sunday
-// 0 23 * * 0
+// At 22:00 on Sunday
+// 0 22 * * 0
 
 namespace App\Command;
 
