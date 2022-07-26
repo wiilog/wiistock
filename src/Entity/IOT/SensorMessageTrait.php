@@ -53,10 +53,9 @@ trait SensorMessageTrait {
         return $messages->toArray();
     }
 
-    public function addSensorMessage(SensorMessage $sensorMessage): self {
-        if(!$this->sensorMessages->contains($sensorMessage)) {
-            $this->sensorMessages[] = $sensorMessage;
-        }
+    public function addSensorMessage(SensorMessage $sensorMessage): self
+    {
+        $this->sensorMessages[] = $sensorMessage;
         return $this;
     }
 
