@@ -95,7 +95,7 @@ services:
 
     App\EventListener\AnnotationListener:
         arguments:
-            $mobileVersion: '%nomade_versions%'
+            $mobileVersion: '%nomade_version%'
         tags:
             - { name: 'kernel.event_listener', event: 'kernel.controller_arguments', method: 'onRequest' }
 
