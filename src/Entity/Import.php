@@ -111,7 +111,7 @@ class Import {
         'fournisseurReference' => 'référence fournisseur',
         'emplacement' => 'emplacement',
         'catInv' => 'catégorie inventaire',
-        'articleFournisseurReference' => 'articleFournisseurReference',
+        'articleFournisseurReference' => 'Référence article fournisseur',
         'typeLabel' => 'type',
         'dateLastInventory' => 'date dernier inventaire (jj/mm/AAAA)',
         'emergencyComment' => 'commentaire urgence',
