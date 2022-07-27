@@ -207,13 +207,47 @@ class HandlingRepository extends EntityRepository
                         ->andWhere("handling.emergency in (:filter_emergency_value)")
                         ->setParameter('filter_emergency_value', $value);
                     break;
-                case 'dateMin':
-                    $qb->andWhere('handling.creationDate >= :filter_dateMin_value')
-                        ->setParameter('filter_dateMin_value', $filter['value'] . " 00:00:00");
+                case 'date-choice_creationDate':
+                    foreach ($filters as $filter) {
+                        switch ($filter['field']) {
+                            case 'dateMin':
+                                $qb->andWhere('handling.creationDate >= :filter_dateMin_value')
+                                    ->setParameter('filter_dateMin_value', $filter['value'] . " 00:00:00");
+                                break;
+                            case 'dateMax':
+                                $qb->andWhere('handling.creationDate <= :filter_dateMax_value')
+                                    ->setParameter('filter_dateMax_value', $filter['value'] . " 23:59:59");
+                                break;
+                        }
+                    }
                     break;
-                case 'dateMax':
-                    $qb->andWhere('handling.creationDate <= :filter_dateMax_value')
-                        ->setParameter('filter_dateMax_value', $filter['value'] . " 23:59:59");
+                case 'date-choice_expectedDate':
+                    foreach ($filters as $filter) {
+                        switch ($filter['field']) {
+                            case 'dateMin':
+                                $qb->andWhere('handling.desiredDate >= :filter_dateMin_value')
+                                    ->setParameter('filter_dateMin_value', $filter['value'] . " 00:00:00");
+                                break;
+                            case 'dateMax':
+                                $qb->andWhere('handling.desiredDate <= :filter_dateMax_value')
+                                    ->setParameter('filter_dateMax_value', $filter['value'] . " 23:59:59");
+                                break;
+                        }
+                    }
+                    break;
+                case 'date-choice_treatmentDate':
+                    foreach ($filters as $filter) {
+                        switch ($filter['field']) {
+                            case 'dateMin':
+                                $qb->andWhere('handling.validationDate >= :filter_dateMin_value')
+                                    ->setParameter('filter_dateMin_value', $filter['value'] . " 00:00:00");
+                                break;
+                            case 'dateMax':
+                                $qb->andWhere('handling.validationDate <= :filter_dateMax_value')
+                                    ->setParameter('filter_dateMax_value', $filter['value'] . " 23:59:59");
+                                break;
+                        }
+                    }
                     break;
                 case 'subject':
                     $qb->andWhere('handling.subject LIKE :filter_subject')

@@ -469,7 +469,7 @@ function saveFilters(page, tableSelector, callback) {
             const values = {};
             $fields.each(function () {
                 const $elem = $(this);
-                values[$elem.attr('name')] = valFunction[key]($elem);
+                values[$elem.data('override-name') || $elem.attr('name')] = valFunction[key]($elem);
             });
 
             return ({
