@@ -12,7 +12,7 @@
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
-                title: "Choix d'articles pour la référence"
+                title: "Choix d'articles pour la référence " ~ reference
             } %}
 
             <div class="modal-body">
@@ -88,6 +88,7 @@
                 </div>
             </div>
             <div class="error-msg text-right pr-4 pb-4"></div>
+            <input type="hidden" name="quantityToTake" value="{{ quantite }}">
             <div class="modal-footer">
                 <div class="btn btn-outline-secondary" data-dismiss="modal">Fermer</div>
                 <div class="btn btn-success submit"
