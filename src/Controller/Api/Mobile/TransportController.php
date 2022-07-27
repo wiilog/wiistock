@@ -194,9 +194,11 @@ class TransportController extends AbstractFOSRestController
                     $order = $line->getOrder();
                     $request = $order->getRequest();
 
-                    return $line->getFulfilledAt() && !$line->getCancelledAt()
-                        && $request->getStatus()
-                            ->getCode() !== TransportRequest::STATUS_ONGOING;
+                    return ($line->getFulfilledAt() || $line->getFailedAt() || $line->getRejectedAt()
+                            || ($request->getStatus()->getCode() !== TransportRequest::STATUS_ONGOING
+                                && $request->getStatus()->getCode() !== TransportRequest::STATUS_TO_COLLECT
+                                && $request->getStatus()->getCode() !== TransportRequest::STATUS_TO_DELIVER))
+                        && !$line->getCancelledAt();
                 })
                 ->count(),
             'total_transports' => Stream::from($lines)
@@ -365,7 +367,11 @@ class TransportController extends AbstractFOSRestController
                 && !$line->getFailedAt()
                 && !$line->getRejectedAt()
             ),
-            'failure' => $line->getRejectedAt() || $line->getFailedAt(),
+            'failure' =>
+                ($request instanceof TransportCollectRequest
+                && $request->getDelivery()
+                && $request->getStatus()->getCode() === TransportRequest::STATUS_NOT_COLLECTED)
+                || ($line->getRejectedAt() || $line->getFailedAt()),
         ];
     }
 
@@ -762,8 +768,7 @@ class TransportController extends AbstractFOSRestController
         $now = new DateTime('now');
 
         $isEdit = $request->getStatus()->getCode() !== TransportRequest::STATUS_ONGOING
-            && $request->getStatus()
-                ->getCode() !== TransportRequest::STATUS_TO_DELIVER
+            && $request->getStatus()->getCode() !== TransportRequest::STATUS_TO_DELIVER
             && $request->getStatus()->getCode() !== TransportRequest::STATUS_TO_COLLECT
             && $request->getStatus()->getCode() !== TransportRequest::STATUS_AWAITING_PLANNING
             && $request->getStatus()->getCode() !== TransportRequest::STATUS_AWAITING_VALIDATION;
@@ -848,6 +853,7 @@ class TransportController extends AbstractFOSRestController
                 }
             }
 
+            // si c'est une collecte ou une livraison sans collecte
             if ($request instanceof TransportCollectRequest || $request->getCollect() === null) {
                 $statusRepository = $manager->getRepository(Statut::class);
 
@@ -924,11 +930,14 @@ class TransportController extends AbstractFOSRestController
         $order = $request->getOrder();
         $now = new DateTime();
 
-        $isEdit = $request->getStatus()->getCode() !== TransportRequest::STATUS_ONGOING
-            && $request->getStatus()
-                ->getCode() !== TransportRequest::STATUS_TO_DELIVER
-            && $request->getStatus()->getCode() !== TransportRequest::STATUS_TO_COLLECT
-            && $request->getStatus()->getCode() !== TransportRequest::STATUS_AWAITING_PLANNING;
+        $entityForStatusCheck = $request instanceof TransportCollectRequest && $request->getDelivery()
+            ? $request->getDelivery()
+            : $request;
+
+        $isEdit = $entityForStatusCheck->getStatus()->getCode() !== TransportRequest::STATUS_ONGOING
+            && $entityForStatusCheck->getStatus()->getCode() !== TransportRequest::STATUS_TO_DELIVER
+            && $entityForStatusCheck->getStatus()->getCode() !== TransportRequest::STATUS_TO_COLLECT
+            && $entityForStatusCheck->getStatus()->getCode() !== TransportRequest::STATUS_AWAITING_PLANNING;
 
         if ($comment && $order->getComment() != $comment) {
             $this->updateTransportComment($manager, $historyService, $request, $comment);
@@ -979,15 +988,15 @@ class TransportController extends AbstractFOSRestController
         if (!$isEdit) {
             $order->setTreatedAt($now);
 
-            if ($request instanceof TransportCollectRequest && $request->getDelivery()) {
-                $lastLine = $request->getDelivery()->getOrder()->getTransportRoundLines()->last();
-            } else {
+            // si ce n'est pas la collecte d'une livraison collecte
+            // alors on met la ligne en failed
+            if (!($request instanceof TransportCollectRequest && $request->getDelivery())) {
                 $lastLine = $order->getTransportRoundLines()->last();
-            }
 
-            if ($lastLine) {
-                $lastLine->setFulfilledAt($now)
+                if ($lastLine) {
+                    $lastLine->setFulfilledAt($now)
                     ->setFailedAt($now);
+                }
             }
 
             foreach ([$request, $order] as $entity) {
@@ -1016,6 +1025,7 @@ class TransportController extends AbstractFOSRestController
                 }
             }
 
+            // notification WEB si c'est une livraison ratée
             if ($request instanceof TransportDeliveryRequest) {
                 $notificationTitle = 'Notification';
                 $notificationContent = 'Une demande de livraison n\'a pas pu être livrée';
@@ -1040,6 +1050,9 @@ class TransportController extends AbstractFOSRestController
                 }
             }
 
+            // si la livraison n'a pas été possible et qu'on était dans le cas d'une
+            // livraison collecte, alors on passe la collecte en non collecté aussi
+            // car le livreur ne pourra pas la faire non plus
             if ($request instanceof TransportDeliveryRequest && $request->getCollect()) {
                 $collect = $request->getCollect();
                 $order = $collect->getOrder();
@@ -1062,6 +1075,8 @@ class TransportController extends AbstractFOSRestController
                 }
             }
 
+            // dans le cas d'une collecte qui n'est pas dans une livraison-collecte
+            // en fonction du motif choisit, la collecte repassera dans le workflow
             if ($request instanceof TransportCollectRequest && !$request->getDelivery()) {
                 $settingsRepository = $manager->getRepository(Setting::class);
                 $statusRepository = $manager->getRepository(Statut::class);
