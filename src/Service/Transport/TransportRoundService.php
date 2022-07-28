@@ -45,6 +45,9 @@ class TransportRoundService
 
     private array $cacheStatuses = [];
 
+    #[Required]
+    public GeoService $geoService;
+
     /**
      * For csv export on transport round list page
      */
@@ -105,28 +108,48 @@ class TransportRoundService
 
     }
 
-    public function calculateRoundRealDistance(TransportRound $transportRound, GeoService $geoService): float
+    public function calculateRoundRealDistance(TransportRound $transportRound): float
     {
         $vehicle = $transportRound->getVehicle() ?? $transportRound->getDeliverer()?->getVehicle();
-        return $geoService->getDistanceBetween(
-            Stream::from($vehicle->getSensorMessagesBetween($transportRound->getBeganAt(), $transportRound->getEndedAt(), Sensor::GPS))
-                ->map(function (SensorMessage $message) {
-                    $content = $message->getContent();
-                    if ($content && $content !== '-1,-1') {
-                        $coordinates = Stream::explode(',', $content)
-                            ->map(fn($coordinate) => floatval($coordinate))
-                            ->toArray();
-
-                        return [
-                            'latitude' => $coordinates[0],
-                            'longitude' => $coordinates[1],
-                        ];
-                    }
-                    return null;
-                })
-                ->filter()
-                ->toArray()
+        $coordinates = $transportRound->getCoordinates();
+        $initialDistance = $this->geoService->directArcgisQuery(
+            [
+                [
+                    'index' => 0,
+                    'keep' => true,
+                    'geometry' => [
+                        'x' => $coordinates['startPoint']['longitude'],
+                        'y' => $coordinates['startPoint']['latitude']
+                    ]
+                ],
+                [
+                    'index' => 1,
+                    'keep' => true,
+                    'geometry' => [
+                        'x' => $coordinates['startPointScheduleCalculation']['longitude'],
+                        'y' => $coordinates['startPointScheduleCalculation']['latitude']
+                    ]
+                ]
+            ]
         );
+
+        $sensorCoordinates = Stream::from($vehicle->getSensorMessagesBetween($transportRound->getBeganAt(), $transportRound->getEndedAt(), Sensor::GPS))
+            ->map(function (SensorMessage $message) {
+                $content = $message->getContent();
+                if ($content && $content !== '-1,-1') {
+                    $coordinates = Stream::explode(',', $content)
+                        ->map(fn($coordinate) => floatval($coordinate))
+                        ->toArray();
+
+                    return [
+                        'latitude' => $coordinates[0],
+                        'longitude' => $coordinates[1],
+                    ];
+                }
+                return null;
+            })
+            ->filter();
+        return ($initialDistance['distance'] * 1000) + $this->geoService->getDistanceBetween($sensorCoordinates->toArray());
     }
 
     public function putLineRoundAndRequest($output,
