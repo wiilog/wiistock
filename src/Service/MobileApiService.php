@@ -9,6 +9,7 @@ use App\Entity\Setting;
 use App\Entity\Translation;
 use App\Entity\Utilisateur;
 use App\Repository\SettingRepository;
+use Composer\Semver\Semver;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use WiiCommon\Helper\Stream;
@@ -105,4 +106,17 @@ class MobileApiService {
             ->keymap(fn($value, string $key) => [$key, $value == 1])
             ->toArray();
     }
+
+    public function checkMobileVersion(string $mobileVersion, string $requiredVersion): bool {
+        // @ silences the error when the array contains 0 or one value
+        @[$mobileVersion, $mobilePatch] = explode("#", $mobileVersion, 2);
+        @[$requiredVersion, $requiredPatch] = explode("#", $requiredVersion, 2);
+
+        if($mobilePatch !== $requiredPatch) {
+            return false;
+        }
+
+       return Semver::satisfies($mobileVersion, $requiredVersion);
+    }
+
 }
