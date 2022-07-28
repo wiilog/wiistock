@@ -167,8 +167,10 @@ function beginPrepa() {
 }
 
 function validatePreparationArticlesSplitting() {
-    const $inputs = $('#tableSplittingArticles').find('.input');
-    const quantityToTake = Number($('#scissionTitle').data('quantity-to-take'));
+    const $tableSplittingArticles = $(`#tableSplittingArticles`);
+    const $inputs = $tableSplittingArticles.find('.input');
+    const $modal = $tableSplittingArticles.closest(`.modal`);
+    const quantityToTake = $modal.find(`input[name=quantityToTake]`).val();
     const $modalErrorContainer = $('#modalSplitting').find('.error-msg');
     const $remainingQuantity = $('#remainingQuantity');
     const $remainingQuantityParent = $remainingQuantity.parent();

@@ -7,6 +7,7 @@ use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\FiltreSup;
 use App\Entity\FreeField;
 use App\Entity\FieldsParam;
 use App\Entity\Menu;
@@ -77,13 +78,36 @@ class HandlingController extends AbstractController
         $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
+        $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]);
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_HANDLING);
 
         $filterStatus = $request->query->get('filter');
+        $user = $this->getUser();
+        $dateChoice = [
+            [
+                'name' => 'creationDate',
+                'label' => 'Date de création',
+            ],
+            [
+                'name' => 'expectedDate',
+                'label' => 'Date attendue',
+            ],
+            [
+                'name' => 'treatmentDate',
+                'label' => 'Date de réalisation',
+            ],
+        ];
+        foreach ($dateChoice as &$choice) {
+            $choice['default'] = (bool)$filtreSupRepository->findOnebyFieldAndPageAndUser('date-choice_'.$choice['name'], 'handling', $user);
+        }
+        if (Stream::from($dateChoice)->every(function ($choice) { return !$choice['default']; })) {
+            $dateChoice[0]['default'] = true;
+        }
 
         return $this->render('handling/index.html.twig', [
+            'dateChoices' => $dateChoice,
             'statuts' => $statutRepository->findByCategorieName(Handling::CATEGORIE, 'nom'),
 			'filterStatus' => $filterStatus,
             'types' => $types,
@@ -362,7 +386,7 @@ class HandlingController extends AbstractController
 
         $freeFieldService->manageFreeFields($handling, $post->all(), $entityManager);
 
-        $listAttachmentIdToKeep = $post->get('files') ?? [];
+        $listAttachmentIdToKeep = $post->all('files') ?? [];
 
         $attachments = $handling->getAttachments()->toArray();
         foreach ($attachments as $attachment) {

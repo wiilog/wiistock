@@ -151,7 +151,8 @@ class FiltreSupController extends AbstractController
             }
 
             $filterList = [
-                'planning-status-'
+                'planning-status-',
+                'date-choice'
             ];
             foreach ($filterList as $filterItem) {
                 $matches = Stream::from($data)

@@ -58,7 +58,9 @@ class AppExtension extends AbstractExtension {
             new TwigFunction('hasRight', [$this, 'hasRightFunction']),
             new TwigFunction('isCurrentClient', [$this, 'isCurrentClientNameFunction']),
             new TwigFunction('displayMenu', [$this, 'displayMenuFunction']),
+            new TwigFunction('base64', [$this, 'base64']),
             new TwigFunction('logo', [$this, 'logo']),
+            new TwigFunction('image_size', [$this, 'imageSize']),
             new TwigFunction('class', [$this, 'class']),
             new TwigFunction('setting', [$this, 'setting']),
             new TwigFunction('setting_value', [$this, 'settingValue']),
@@ -127,7 +129,11 @@ class AppExtension extends AbstractExtension {
         return $res;
     }
 
-    public function logo(string $platform, bool $file = false): ?string {
+    public function imageSize(string $file): array {
+        return getimagesize("{$this->kernel->getProjectDir()}/$file");
+    }
+
+    public function logo(string $platform, bool $path = false): ?string {
         $pgr = $this->manager->getRepository(Setting::class);
 
         switch($platform) {
@@ -142,8 +148,8 @@ class AppExtension extends AbstractExtension {
         }
 
         if(isset($logo)) {
-            if($file) {
-                return $this->base64("public/$logo");
+            if($path) {
+                return "public/$logo";
             } else {
                 return $_SERVER["APP_URL"] . "/$logo";
             }
