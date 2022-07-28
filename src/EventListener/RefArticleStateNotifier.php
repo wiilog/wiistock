@@ -28,6 +28,12 @@ class RefArticleStateNotifier {
     }
 
     private function handleLinks($entity) {
+
+        if (!($entity instanceof Reception)
+            && !($entity instanceof PurchaseRequest)) {
+            return;
+        }
+
         $receptionReferenceArticleRepository = $this->entityManager->getRepository(ReceptionReferenceArticle::class);
         $purchaseRequestLineRepository = $this->entityManager->getRepository(PurchaseRequestLine::class);
 
