@@ -150,14 +150,15 @@
                     </div>
 
                     <div class="form-group col-12">
-                        <label for="comment">Commentaire</label>
+                        <label for="comment"><span class="wii-field-name wii-field-name-sub">Commentaire</span></label>
                         <input class="commentaire form-control data" name="comment" type="hidden" id="commentaire">
                         <div class="editor-container-new" data-wysiwyg>
                         </div>
                     </div>
                     <div class="form-group col-12">
                         {% include 'attachment/attachment.html.twig' with {
-                            'isNew' : true
+                            fieldNameClass: 'wii-field-name wii-field-name-sub',
+                            isNew: true,
                         } %}
                     </div>
                 </div>
