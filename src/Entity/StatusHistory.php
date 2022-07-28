@@ -29,6 +29,10 @@ class StatusHistory {
     #[ORM\ManyToOne(targetEntity: TransportRound::class, inversedBy: 'statusHistory')]
     private ?TransportRound $transportRound = null;
 
+    #[ORM\ManyToOne(targetEntity: Handling::class, inversedBy: 'statusHistories')]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
+    private ?Handling $Handling = null;
+
     #[ORM\Column(type: 'datetime')]
     private ?DateTime $date;
 
@@ -85,6 +89,16 @@ class StatusHistory {
         }
         $this->transportRound = $transportRound;
         $transportRound?->addStatusHistory($this);
+
+        return $this;
+    }
+
+    public function getHandling(): ?Handling{
+        return $this->Handling;
+    }
+
+    public function setHandling(?Handling $Handling): self{
+        $this->Handling = $Handling;
 
         return $this;
     }

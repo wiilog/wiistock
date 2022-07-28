@@ -14,12 +14,14 @@ use App\Entity\Handling;
 
 use App\Entity\Attachment;
 use App\Entity\Setting;
+use App\Entity\StatusHistory;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 
 use App\Helper\FormatHelper;
 use App\Service\NotificationService;
+use App\Service\StatusHistoryService;
 use GuzzleHttp\Exception\ConnectException;
 use WiiCommon\Helper\Stream;
 use App\Service\AttachmentService;
@@ -118,7 +120,8 @@ class HandlingController extends AbstractController
                         AttachmentService $attachmentService,
                         TranslatorInterface $translator,
                         UniqueNumberService $uniqueNumberService,
-                        NotificationService $notificationService): Response
+                        NotificationService $notificationService,
+                        StatusHistoryService $statusHistoryService): Response
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -155,6 +158,10 @@ class HandlingController extends AbstractController
             ->setComment($post->get('comment'))
             ->setEmergency($post->get('emergency'))
             ->setCarriedOutOperationCount(is_numeric($carriedOutOperationCount) ? ((int) $carriedOutOperationCount) : null);
+
+        $statusHistoryService->updateStatus($entityManager, $handling, $status, [
+            "forceCreation" => false,
+        ]);
 
         if ($status && $status->isTreated()) {
             $handling->setValidationDate($date);
@@ -287,7 +294,8 @@ class HandlingController extends AbstractController
                          TranslatorInterface $translator,
                          AttachmentService $attachmentService,
                          HandlingService $handlingService,
-                         NotificationService $notificationService): Response
+                         NotificationService $notificationService,
+                         StatusHistoryService $statusHistoryService): Response
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $handlingRepository = $entityManager->getRepository(Handling::class);
@@ -327,6 +335,10 @@ class HandlingController extends AbstractController
 
             if($newStatus) {
                 $handling->setStatus($newStatus);
+
+                $statusHistoryService->updateStatus($entityManager, $handling, $newStatus, [
+                    "forceCreation" => false,
+                ]);
 
                 if (($newStatus->getState() == Statut::NOT_TREATED)
                     && $handling->getType()
@@ -442,7 +454,8 @@ class HandlingController extends AbstractController
                 'success' => true,
                 'msg' => $translator->trans('services.La demande de service {numéro} a bien été supprimée', [
                         "{numéro}" => '<strong>' . $handlingNumber . '</strong>'
-                    ]).'.'
+                    ]).'.',
+                'redirect'=> $this->generateUrl('handling_index')
             ]);
         }
 
@@ -560,4 +573,38 @@ class HandlingController extends AbstractController
         }
     }
 
+    // TODO Permission
+    #[Route("/voir/{id}", name: "handling_show", options: ["expose" => true], methods: ["GET","POST"])]
+    public function show(  Handling $handling,
+                           EntityManagerInterface $entityManager): Response {
+        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+
+        $freeFields = $freeFieldRepository->findByType($handling->getType());
+
+        return $this->render('handling/show.html.twig', [
+            'handling' => $handling,
+            'freeFields' => $freeFields,
+        ]);
+    }
+
+    // TODO Permission
+    #[Route("/{id}/status-history-api", name: "handling_status_history_api", options: ['expose' => true], methods: "GET")]
+    public function statusHistoryApi(int $id,
+                                     EntityManagerInterface $entityManager): JsonResponse {
+        $handlingRepository = $entityManager->getRepository(Handling::class);
+        $handling = $handlingRepository->find($id);
+
+        return $this->json([
+            "success" => true,
+            "template" => $this->renderView('handling/status-history.html.twig', [
+                "statusesHistory" => Stream::from($handling->getStatusHistory())
+                    ->map(fn(StatusHistory $statusHistory) => [
+                        "status" => FormatHelper::status($statusHistory->getStatus()),
+                        "date" => FormatHelper::longDate($statusHistory->getDate(), ["short" => true, "time" => true])
+                    ])
+                    ->toArray(),
+                "handling" => $handling,
+            ]),
+        ]);
+    }
 }

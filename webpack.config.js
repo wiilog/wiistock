@@ -32,6 +32,8 @@ Encore
     .addEntry('transport-order-planning', './assets/js/pages/transport/order/planning.js')
     .addEntry('preparation-planning', './assets/js/pages/preparation/planning.js')
     .addEntry('reception-show', './assets/js/pages/reception/show.js')
+
+    .addEntry('handling-show', './assets/js/pages/handling/show.js')
     .autoProvidejQuery()
 
     // When enabled, Webpack "splits" your files into smaller pieces for greater optimization.
