@@ -7,6 +7,7 @@ use App\Entity\IOT\SensorMessage;
 use App\Helper\QueryCounter;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;
+use WiiCommon\Helper\Stream;
 
 /**
  * @method SensorMessage|null find($id, $lockMode = null, $lockVersion = null)
@@ -66,5 +67,36 @@ class SensorMessageRepository extends EntityRepository
             'count' => $countFiltered,
             'total' => $total
         ];
+    }
+
+    public function insertRaw(array $message, array $linked) {
+        $sensor = $message['sensor'];
+        $payload = $message['payload'];
+        $date = $message['date'];
+        $content = $message['content'];
+        $event = $message['event'];
+        $queryRaw = "INSERT INTO sensor_message (sensor_id, payload, date, content, event) VALUES ($sensor, '$payload', '$date', '$content', '$event')";
+
+        $connection = $this
+            ->getEntityManager()
+            ->getConnection();
+        $connection->executeQuery($queryRaw);
+        $lastInsertedId = $connection->executeQuery('SELECT LAST_INSERT_ID()')->fetchOne();
+
+        $queryRaw = "UPDATE sensor SET last_message_id = $lastInsertedId WHERE sensor.id = $sensor";
+        $connection->executeQuery($queryRaw);
+
+        foreach ($linked as $link) {
+            $type = $link['type'];
+            $entityColumn = $link['entityColumn'];
+            $values = $link['values'];
+
+            $values = Stream::from($values)
+                ->map(fn($value) => '(' . $value . ', ' . $lastInsertedId . ')')
+                ->join(', ');
+
+            $queryRaw = "INSERT INTO $type ($entityColumn, sensor_message_id) VALUES $values";
+            $connection->executeQuery($queryRaw);
+        }
     }
 }

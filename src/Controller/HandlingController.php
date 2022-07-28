@@ -386,7 +386,7 @@ class HandlingController extends AbstractController
 
         $freeFieldService->manageFreeFields($handling, $post->all(), $entityManager);
 
-        $listAttachmentIdToKeep = $post->get('files') ?? [];
+        $listAttachmentIdToKeep = $post->all('files') ?? [];
 
         $attachments = $handling->getAttachments()->toArray();
         foreach ($attachments as $attachment) {
