@@ -410,7 +410,8 @@ class DemandeLivraisonService
                                          bool $fromNomade = false,
                                          bool $simpleValidation = false,
                                          bool $flush = true,
-                                         bool $needsQuantitiesCheck = true): array
+                                         bool $needsQuantitiesCheck = true,
+                                         array $options = []): array
     {
         $response = [];
         $response['success'] = true;
@@ -480,10 +481,12 @@ class DemandeLivraisonService
             $preparation->addReferenceLine($lignesArticlePreparation);
         }
 
+        $sendNotification = $options['sendNotification']??true;
         try {
             if ($flush) $entityManager->flush();
             if ($demande->getType()->isNotificationsEnabled()
-                && !$demande->isManual()) {
+                && !$demande->isManual()
+                && $sendNotification) {
                 $this->notificationService->toTreat($preparation);
             }
         } /** @noinspection PhpRedundantCatchClauseInspection */
