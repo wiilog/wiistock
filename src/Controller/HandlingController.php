@@ -275,13 +275,14 @@ class HandlingController extends AbstractController
     }
 
     /**
-     * @Route("/modifier", name="handling_edit", options={"expose"=true}, methods="GET|POST")
+     * @Route("/modifier/{id}", name="handling_edit", options={"expose"=true}, methods="GET|POST")
      * @param EntityManagerInterface $entityManager
      * @param Request $request
      * @param FreeFieldService $freeFieldService
      * @param TranslatorInterface $translator
      * @param AttachmentService $attachmentService
      * @param HandlingService $handlingService
+     * @param Handling $handling
      * @return Response
      * @throws LoaderError
      * @throws RuntimeError
@@ -290,20 +291,19 @@ class HandlingController extends AbstractController
      */
     public function edit(EntityManagerInterface $entityManager,
                          Request $request,
+                         Handling $handling,
                          FreeFieldService $freeFieldService,
                          TranslatorInterface $translator,
                          AttachmentService $attachmentService,
                          HandlingService $handlingService,
-                         NotificationService $notificationService,
-                         StatusHistoryService $statusHistoryService): Response
+                         NotificationService $notificationService,): Response
     {
-        $statutRepository = $entityManager->getRepository(Statut::class);
         $handlingRepository = $entityManager->getRepository(Handling::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
         $post = $request->request;
 
-        $handling = $handlingRepository->find($post->get('id'));
+        dump($post->all());
 
         $date = (new DateTime('now'));
         $desiredDateStr = $post->get('desired-date');
@@ -328,29 +328,6 @@ class HandlingController extends AbstractController
             }
         }
 
-        $oldStatus = $handling->getStatus();
-
-        if (!$oldStatus || !$oldStatus->isTreated()) {
-            $newStatus = $statutRepository->find($post->get('status'));
-
-            if($newStatus) {
-                $handling->setStatus($newStatus);
-
-                $statusHistoryService->updateStatus($entityManager, $handling, $newStatus, [
-                    "forceCreation" => false,
-                ]);
-
-                if (($newStatus->getState() == Statut::NOT_TREATED)
-                    && $handling->getType()
-                    && ($handling->getType()->isNotificationsEnabled() || $handling->getType()->isNotificationsEmergency($handling->getEmergency()))) {
-                    $notificationService->toTreat($handling);
-                }
-            }
-        }
-        else {
-            $newStatus = null;
-        }
-
         $carriedOutOperationCount = $post->get('carriedOutOperationCount');
         $handling
             ->setSubject(substr($post->get('subject'), 0, 64))
@@ -367,10 +344,6 @@ class HandlingController extends AbstractController
                         : null)
             ));
 
-        if (!$handling->getValidationDate() && $newStatus->isTreated()) {
-            $handling->setValidationDate($date);
-            $handling->setTreatedByHandling($currentUser);
-        }
 
         $freeFieldService->manageFreeFields($handling, $post->all(), $entityManager);
 
@@ -387,17 +360,6 @@ class HandlingController extends AbstractController
         $this->persistAttachments($handling, $attachmentService, $request, $entityManager);
 
         $entityManager->flush();
-
-        // check if status has changed
-        if ((!$oldStatus && $newStatus)
-            || (
-                $oldStatus
-                && $newStatus
-                && ($oldStatus->getId() !== $newStatus->getId())
-            )) {
-            $viewHoursOnExpectedDate = !$settingRepository->getOneParamByLabel(Setting::REMOVE_HOURS_DATETIME);
-            $handlingService->sendEmailsAccordingToStatus($entityManager, $handling, $viewHoursOnExpectedDate);
-        }
 
         return new JsonResponse([
             'success' => true,
@@ -605,6 +567,23 @@ class HandlingController extends AbstractController
                     ->toArray(),
                 "handling" => $handling,
             ]),
+        ]);
+    }
+
+    // TODO Permission
+    #[Route("/modifier-page/{id}", name: "handling_edit_page", options: ["expose" => true], methods: ["GET","POST"])]
+    public function editHandling(  Handling $handling,
+                           EntityManagerInterface $entityManager): Response {
+        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+
+
+        $freeFields = $freeFieldRepository->findByType($handling->getType());
+
+        return $this->render('handling/editHandling.html.twig', [
+            'handling' => $handling,
+            'freeFields' => $freeFields,
+            'submit_url' => $this->generateUrl('handling_edit', ['id' => $handling->getId()]),
         ]);
     }
 }

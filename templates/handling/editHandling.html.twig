@@ -1,11 +1,12 @@
 {% extends 'layout.html.twig' %}
+{% import 'form.html.twig' as form %}
 
 {% block title %}Demande | Service | Détails{% endblock %}
 {% block titleLink path('handling_index') %}
 
 {% block page_content %}
 <div class="mb-4 ra-container d-flex justify-content-center align-content-center">
-    <div class="row wii-column">
+    <div class="row wii-form wii-column">
         <div class="col-md-6 col-12">
             <div class="wii-box">
                 <div class="d-flex align-items-center mr-3">
@@ -51,7 +52,7 @@
                     <strong>Urgent - {{ emergency }}</strong>
                 </div>
                 {% endif %}
-                <div class="content row no-gutters {{ not emergency ?  'bordered' }}">
+                <div class="content row {{ not emergency ?  'bordered' }}">
                     <div class="col-6 d-flex flex-column">
                         <div class="box-item my-2">
                             <span class="wii-field-name">Type</span>
@@ -62,56 +63,49 @@
                     </div>
                     <div class="col-6 d-flex flex-column">
                         <div class="box-item my-2">
-                            <span class="wii-field-name">Objet</span>
+                            {{ form.input('subject', 'Objet', true, handling.subject, {
+                                attributes: {
+                                    'data-short-label': 'Départ tournée',
+                                },
+                            }) }}
+                        </div>
+                    </div>
+                    <div class="col-6 d-flex flex-column">
+                        <div class="box-item my-2">
+                            <span class="wii-field-name">Urgence</span>
                             <span class="wii-field-text">
-                                {{ handling.subject }}
+                                {{ emergency == '' ? '-' : emergency }}
                             </span>
                         </div>
                     </div>
-                        <div class="col-6 d-flex flex-column">
-                            <div class="box-item my-2">
-                                <span class="wii-field-name">Urgence</span>
-                                <span class="wii-field-text">
-                                    {{ emergency == '' ? '-' : emergency}}
-                                </span>
-                            </div>
-                        </div>
                 </div>
                 <div class="content">
                     <div class="d-flex flex-wrap w-100">
                         {% include 'attachment/attachment.html.twig' with {
                             'isNew': false,
                             attachments : handling.attachments,
-                            editAttachments : false,
+                            editAttachments : true,
                             fieldNameClass : 'wii-subtitle',
                         } %}
                     </div>
-                    {% if handling.attachments is empty %}
-                        <div class="wii-field-text">
-                            Ce service n'a aucune pièce jointe
-                        </div>
-                    {% endif %}
                 </div>
-                <div class="content comment-container">
+                <div class="content">
                     <div class="wii-subtitle">Commantaire</div>
                     <div>
-                        {% if handling.comment != '<p><br></p>' %}
-                            {{ handling.comment | striptags }}
-                        {% else %}
-                            -
-                        {% endif %}
+                        <input class="commentaire form-control data" name="comment" type="hidden" id="commentaire">
+                        <div class="editor-container-new" data-wysiwyg>{{ handling.comment | striptags }}</div>
                     </div>
                 </div>
             </div>
             <div class="wii-box ">
                 <div class="header wii-title">Champs libres</div>
-                <div class="content row no-gutters">
-                    {% include 'free_field/freeFieldsShow.html.twig' with {
-                        wrapperClass: 'col-6 d-flex flex-column',
-                        values: handling.freeFields,
+                <div class="content">
+                    {% include 'free_field/freeFieldsEdit.html.twig' with {
                         freeFields: freeFields,
-                        emptyTitle: "Ce service n'a aucun champ libre",
-                        emptyLabel: "Ce service n'a aucun champ libre",
+                        freeFieldValues: handling.freeFields,
+                        colType: 'col-md-6 col-12 w-100',
+                        requiredType: 'requiredEdit',
+                        actionType: 'edit'
                     } %}
                 </div>
             </div>
@@ -120,12 +114,6 @@
             <div class="wii-box ">
                 <div class="header wii-title d-flex justify-content-between p-2">
                     <span class="d-flex align-items-center pl-2">Statut</span>
-                    {% if handling.status.treated != 1 %}
-                        <button id="" name='' type="button" class="btn btn-primary data d-flex align-items-center">
-                            <img src="{{ asset('svg/timeline-status-white.svg') }}" alt="Icône statut timeline" width="15px" class="mr-2">
-                            Changer le statut
-                        </button>
-                    {% endif %}
                 </div>
                 <div class="content p-0">
                     <div class="content status-history-container p-0">
@@ -139,13 +127,14 @@
                     <img src="{{ asset('svg/calendar.svg') }}" alt="Icône calendrier" width="15px">
                     <span class="wii-field-name ml-2">Dates</span>
                 </div>
-                <div class="content row no-gutters">
+                <div class="content row ">
                     <div class="col-6 d-flex flex-column">
                         <div class="box-item my-2">
-                            <span class="wii-field-name">Date attendue</span>
-                            <span class="wii-field-text">
-                                {{ handling.desiredDate ? handling.desiredDate | format_helper('longDate', {short: false}) : '-' }}
-                            </span>
+                            {% set desiredDate = handling.desiredDate ? handling.desiredDate|date('Y-m-d\\TH:i') %}
+                            {{ form.input('desired-date', 'Date attendue', true, desiredDate, {
+                                type: 'datetime-local',
+                                min: "now" | date('Y-m-d H:i'),
+                            }) }}
                         </div>
                     </div>
                     <div class="col-6 d-flex flex-column">
@@ -169,13 +158,23 @@
                 </div>
             </div>
             <div class="w-100 d-flex flex-row-reverse">
-                <a href="{{ path('handling_edit_page',{ id: handling.id }) }}">
-                    <button id="" name='' type="button" class="btn btn-success data mt-2">
-                        Modifier
+                <button id="submitEditHandling"
+                        name=''
+                        type="button"
+                        class="btn btn-success data mt-2"
+                        data-submit="{{ submit_url }}">
+                    Enregistrer
+                </button>
+                <a href="javascript:history.back()">
+                    <button id="" name='' type="button" class="btn btn-outline-secondary data mt-2 mr-2" href="javascript:history.back()">
+                        Annuler
                     </button>
                 </a>
+
             </div>
         </div>
+        <input hidden value='1' name="isAttachmentForm">
+        <input hidden value='{{ handling.id }}' name="id">
     </div>
 </div>
 {% include "handling/modalDeleteHandling.html.twig" %}
@@ -185,5 +184,5 @@
 {% block javascripts %}
     {{ parent() }}
     <script src="{{ asset('js/script-wiilog.js') }}?v={{ web_version }}"></script>
-    {{ encore_entry_script_tags('handling-show') }}
+    {{ encore_entry_script_tags('handling-edit') }}
 {% endblock %}
