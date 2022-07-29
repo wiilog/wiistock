@@ -478,12 +478,17 @@ sup {
 .component-type-container {
     display: flex;
     flex-direction: column;
-    box-shadow: 3px 3px 6px #555;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
     border-radius: 4px;
     margin: 0 5px;
     padding: 0 10px;
     width: 25%;
     flex-grow: 1;
+
+    .btn.btn-light {
+        background: #F2F3F7 !important;
+        border-color: #F2F3F7 !important;
+    }
 
     &:first-child {
         margin-left: 0;

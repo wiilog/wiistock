@@ -24,16 +24,18 @@
                 <input type="hidden" name="cellIndex" value/>
 
                 <div class="d-flex">
+                    {% dump componentTypes %}
                     {% for categoryName, componentTypesByCategory in componentTypes %}
+                        {% dump componentTypesByCategory %}
                         <div class="component-type-container">
                             <h4 class="bold my-2">{{ categoryName }}</h4>
-                            {% for componentType in componentTypesByCategory %}
+                            {% for _, componentType in componentTypesByCategory %}
                                 <div class="component-selector">
                                     {% if componentType.hint is defined and componentType.hint is not null %}
                                         <div class="points has-tooltip"
                                              title="{{ componentType.hint }}"
                                              style="position: absolute;top:0;right:0;width:25px;height:25px;display:flex;justify-content:center;align-items:center">
-                                            <i class="fa fa-question fa-sm"></i>
+                                            <span class="wii-icon wii-icon-info wii-icon-13px-primary"></span>
                                         </div>
                                     {% endif %}
                                     <div class="btn btn-light component-type"
