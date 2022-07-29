@@ -815,7 +815,10 @@ function initConditionnementArticleFournisseurDefault() {
 
     if (referenceArticle) {
         const {reference, defaultArticleFournisseur} = referenceArticle;
-        resetDefaultArticleFournisseur(true);
+        $selectArticleFournisseur
+            .val(null)
+            .html('')
+            .select2('data', null);
         Select2Old.init(
             $selectArticleFournisseur,
             '',
@@ -829,6 +832,7 @@ function initConditionnementArticleFournisseurDefault() {
             {},
             defaultArticleFournisseur || {}
         );
+        resetDefaultArticleFournisseur(true);
     }
     else {
         resetDefaultArticleFournisseur();
