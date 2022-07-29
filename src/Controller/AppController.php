@@ -37,7 +37,8 @@ class AppController extends AbstractController {
     #[Route("/qqq", name: "app_qqq")]
     public function qqq(KernelInterface $kernel): Response {
 
-        $templateProcessor = new TemplateProcessor($kernel->getProjectDir() . '/Hello.docx');
+        // todo check if file exists
+        $templateProcessor = new TemplateProcessor($kernel->getProjectDir() . '/Hello.dotx');
         $inline = new TextRun();
         $inline->addText('by a red italic text', array('italic' => true, 'color' => 'red'));
 
@@ -54,23 +55,30 @@ class AppController extends AbstractController {
         $row->addCell(150)->addText('BBB');
 
         $values = [
-            ['userId' => 'huu', 'user1' => 'Batman', 'user2' => 'toto'],
-            ['userId' => 'hii', 'user1' => 'Batman', 'user2' => $inline],
-            ['userId' => 'haa', 'user1' => 'Superman', 'user2' => $table],
-            ['userId' => 'haa', 'user1' => 'Superman', 'user2' => $table],
-            ['userId' => 'haa', 'user1' => 'Superman', 'user2' => $table],
-            ['userId' => 'haa', 'user1' => 'Superman', 'user2' => $table],
-            ['userId' => 'haa', 'user1' => 'Superman', 'user2' => $table],
-            ['userId' => 'haa', 'user1' => 'Superman', 'user2' => $table],
-            ['userId' => 'haa', 'user1' => 'Superman', 'user2' => $table],
-            ['userId' => 'haa', 'user1' => 'Superman', 'user2' => $table],
-            ['userId' => 'haa', 'user1' => 'Superman', 'user2' => $table],
-            ['userId' => 'haa', 'user1' => 'Superman', 'user2' => $table],
-            ['userId' => 'haa', 'user1' => 'Superman', 'user2' => $table],
-            ['userId' => 'haa', 'user1' => 'Superman', 'user2' => $table],
-            ['userId' => 'haa', 'user1' => 'Superman', 'user2' => $table],
-            ['userId' => 'haa', 'user1' => 'Superman', 'user2' => $table],
-            ['userId' => 'haa', 'user1' => 'Superman', 'user2' => $table],
+//            ['userId' => 'huu', 'user1' => 'Batman', 'user2' => 'toto'],
+//            ['userId' => 'hii', 'user1' => 'Batman', 'user2' => $inline],
+            [
+                'userId' => 'haa',
+                'user1' => 'Superman',
+                'packs' => [[
+                    'codeColis' => 'AAAAAA',
+                    'label' => 'tutute',
+                ]]
+            ],
+            [
+                'userId' => 'haa',
+                'user1' => 'Superman',
+                'packs' => [
+                    [
+                        'codeColis' => 'BBBBB',
+                        'label' => 'tutute2',
+                    ],
+                    [
+                        'codeColis' => 'CCCCCC',
+                        'label' => 'tutute3',
+                    ]
+                ]
+            ],
         ];
         $templateProcessor->cloneRow('userId', count($values));
 
@@ -79,6 +87,9 @@ class AppController extends AbstractController {
             foreach ($rowData as $macro => $replace) {
                 if (is_object($replace)) {
                     $templateProcessor->setComplexBlock($macro . '#' . $rowNumber, $replace);
+                }
+                else if (is_array($replace)) {
+
                 }
                 else {
                     $templateProcessor->setValue($macro . '#' . $rowNumber, $replace);
