@@ -1348,37 +1348,41 @@ class ReceptionController extends AbstractController {
     /**
      * @Route("/{reception}/etiquettes", name="reception_bar_codes_print", options={"expose"=true})
      */
-    public function getReceptionBarCodes(Reception $reception,
+    public function getReceptionBarCodes(Request $request,
+                                         Reception $reception,
                                          EntityManagerInterface $entityManager,
                                          RefArticleDataService $refArticleDataService,
                                          ArticleDataService $articleDataService,
                                          PDFGeneratorService $PDFGeneratorService): Response {
-        $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
-        $listReceptionReferenceArticle = $receptionReferenceArticleRepository->findByReception($reception);
-        $barcodeConfigs = array_reduce(
-            $listReceptionReferenceArticle,
-            function(array $carry, ReceptionReferenceArticle $recepRef) use ($refArticleDataService, $articleDataService, $reception): array {
-                $referenceArticle = $recepRef->getReferenceArticle();
+        $articleIds = json_decode($request->query->get('articleIds'), true);
 
-                if($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
-                    $carry[] = $refArticleDataService->getBarcodeConfig($referenceArticle);
-                } else {
-                    $articlesReception = $recepRef->getArticles()->toArray();
-                    if(!empty($articlesReception)) {
-                        array_push(
-                            $carry,
-                            ...array_map(
-                                function(Article $article) use ($articleDataService, $reception) {
-                                    return $articleDataService->getBarcodeConfig($article, $reception);
-                                },
-                                $articlesReception
-                            )
-                        );
+        if(empty($articleIds)) {
+            $listReceptionReferenceArticle = $entityManager->getRepository(ReceptionReferenceArticle::class)->findByReception($reception);
+
+            $barcodeConfigs = Stream::from($listReceptionReferenceArticle)
+                ->flatMap(function(ReceptionReferenceArticle $recepRef) use ($request, $refArticleDataService, $articleDataService, $reception) {
+                    $referenceArticle = $recepRef->getReferenceArticle();
+
+                    if ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
+                        return [$refArticleDataService->getBarcodeConfig($referenceArticle)];
+                    } else {
+                        $articlesReception = $recepRef->getArticles()->toArray();
+                        if (!empty($articlesReception)) {
+                            return Stream::from($articlesReception)
+                                ->map(fn(Article $article) => $articleDataService->getBarcodeConfig($article, $reception))
+                                ->toArray();
+                        }
                     }
-                }
-                return $carry;
-            },
-            []);
+
+                    return [];
+                })
+                ->toArray();
+        } else {
+            $articles = $entityManager->getRepository(Article::class)->findBy(['id' => $articleIds]);
+            $barcodeConfigs = Stream::from($articles)
+                ->map(fn(Article $article) => $articleDataService->getBarcodeConfig($article, $article->getReceptionReferenceArticle()->getReception()))
+                ->toArray();
+        }
 
         if(!empty($barcodeConfigs)) {
             $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'articles_reception');
@@ -1747,6 +1751,7 @@ class ReceptionController extends AbstractController {
             $receptionLocationId = $receptionLocation?->getId();
             $emergencies = [];
 
+            $articleIds = [];
             foreach($articles as $articleArray) {
                 $quantity = $articleArray['quantite'];
                 if(isset($receptionLocationId)) {
@@ -1829,6 +1834,7 @@ class ReceptionController extends AbstractController {
                     $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
                     $entityManager->persist($createdMvt);
                     $entityManager->flush();
+                    $articleIds[] = $article->getId();
                 }
             }
 
@@ -1897,7 +1903,8 @@ class ReceptionController extends AbstractController {
 
             return new JsonResponse([
                 'success' => true,
-                'msg' => 'La réception a bien été effectuée.'
+                'msg' => 'La réception a bien été effectuée.',
+                'articleIds' => json_encode($articleIds)
             ]);
         }
         throw new BadRequestHttpException();
