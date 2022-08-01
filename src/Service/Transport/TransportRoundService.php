@@ -133,7 +133,16 @@ class TransportRoundService
             ]
         );
 
-        $sensorCoordinates = Stream::from($vehicle->getSensorMessagesBetween($transportRound->getBeganAt(), $transportRound->getEndedAt(), Sensor::GPS))
+        if(!$transportRound->getEndedAt()) {
+            $end = clone $transportRound->getBeganAt();
+            $end->setTime(23, 59);
+        } else {
+            $end = $transportRound->getEndedAt();
+        }
+
+        $messages = $vehicle->getSensorMessagesBetween($transportRound->getBeganAt(), $end, Sensor::GPS);
+
+        $sensorCoordinates = Stream::from($messages)
             ->map(function (SensorMessage $message) {
                 $content = $message->getContent();
                 if ($content && $content !== '-1,-1') {
@@ -149,6 +158,7 @@ class TransportRoundService
                 return null;
             })
             ->filter();
+
         return ($initialDistance['distance'] * 1000) + $this->geoService->getDistanceBetween($sensorCoordinates->toArray());
     }
 
