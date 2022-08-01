@@ -247,12 +247,10 @@ function renderCurrentDashboard() {
             $(`.header-title`).html(`Dashboard | <span class="bold">${currentDashboard.name}</span>`);
             document.title = document.title.split('|')[0] + ` | ${currentDashboard.name}`;
         }
-        if (currentDashboard.componentCount) {
+        if (currentDashboard.componentCount && mode !== MODE_EDIT) {
             whenRenderIsDone(componentsToBeRenderedCount, (renderedComponents) => {
-                if(mode !== MODE_EDIT) {
-                    colorComponentsBasedOnDelay(renderedComponents);
-                }
-            });
+                colorComponentsBasedOnDelay(renderedComponents);
+            })
         }
     }
 }
