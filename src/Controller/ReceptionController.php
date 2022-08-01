@@ -1360,24 +1360,23 @@ class ReceptionController extends AbstractController {
             $listReceptionReferenceArticle = $entityManager->getRepository(ReceptionReferenceArticle::class)->findByReception($reception);
 
             $barcodeConfigs = Stream::from($listReceptionReferenceArticle)
-                ->reduce(function(array $carry, ReceptionReferenceArticle $recepRef) use ($request, $refArticleDataService, $articleDataService, $reception) {
+                ->flatMap(function(ReceptionReferenceArticle $recepRef) use ($request, $refArticleDataService, $articleDataService, $reception) {
                     $referenceArticle = $recepRef->getReferenceArticle();
 
                     if ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
-                        $carry[] = $refArticleDataService->getBarcodeConfig($referenceArticle);
+                        return [$refArticleDataService->getBarcodeConfig($referenceArticle)];
                     } else {
                         $articlesReception = $recepRef->getArticles()->toArray();
                         if (!empty($articlesReception)) {
-                            array_push(
-                                $carry,
-                                ...Stream::from($articlesReception)
-                                    ->map(fn(Article $article) => $articleDataService->getBarcodeConfig($article, $reception))
-                                    ->toArray()
-                            );
+                            return Stream::from($articlesReception)
+                                ->map(fn(Article $article) => $articleDataService->getBarcodeConfig($article, $reception))
+                                ->toArray();
                         }
                     }
-                    return $carry;
-                }, []);
+
+                    return [];
+                })
+                ->toArray();
         } else {
             $articles = $entityManager->getRepository(Article::class)->findBy(['id' => $articleIds]);
             $barcodeConfigs = Stream::from($articles)
