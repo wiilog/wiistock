@@ -61,7 +61,8 @@ class HandlingController extends AbstractController
     {
         // cas d'un filtre statut depuis page d'accueil
         $filterStatus = $request->request->get('filterStatus');
-        $data = $handlingService->getDataForDatatable($request->request, $filterStatus);
+        $handlingIds = json_decode($request->request->get('handlingIds'));
+        $data = $handlingService->getDataForDatatable($request->request, $filterStatus, $handlingIds);
 
         return new JsonResponse($data);
     }
@@ -83,6 +84,7 @@ class HandlingController extends AbstractController
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]);
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_HANDLING);
 
+        $handlingIds = $request->query->all('handlingIds');
         $filterStatus = $request->query->get('filter');
         $user = $this->getUser();
         $dateChoice = [
@@ -107,6 +109,7 @@ class HandlingController extends AbstractController
         }
 
         return $this->render('handling/index.html.twig', [
+            'filtersDisabled' => !empty($handlingIds),
             'dateChoices' => $dateChoice,
             'statuts' => $statutRepository->findByCategorieName(Handling::CATEGORIE, 'nom'),
 			'filterStatus' => $filterStatus,
@@ -126,7 +129,8 @@ class HandlingController extends AbstractController
                 }, $types),
                 'handlingStatus' => $statutRepository->findStatusByType(CategorieStatut::HANDLING),
                 'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_EMERGENCY)
-            ]
+            ],
+            'handlingIds' => json_encode($handlingIds),
 		]);
     }
 

@@ -117,7 +117,8 @@ const creators = {
         callback: createIndicatorElement
     },
     [DAILY_HANDLING_INDICATOR]: {
-        callback: createIndicatorElement
+        callback: createIndicatorElement,
+        arguments: {route: `handling_index`}
     },
     [DAILY_HANDLING]: {
         callback: createChart
@@ -549,6 +550,8 @@ function createCarrierTrackingElement(data) {
 function createIndicatorElement(data, config, redefinedNumberingConfig = null) {
     let meterKey = config.meterKey;
     let customContainerClass = config.customContainerClass;
+    const redirectToHandling = config.component?.config?.redirectToHandling;
+    const redirectToHandlingRoute = redirectToHandling && config.route ? Routing.generate(config.route, {handlingIds: config.component?.config?.handlingIds}) : '';
     let remainingConfig = Object.assign({}, config);
     delete remainingConfig.meterKey;
     delete remainingConfig.customContainerClass;
@@ -559,14 +562,14 @@ function createIndicatorElement(data, config, redefinedNumberingConfig = null) {
     }
     customContainerClass = customContainerClass || '';
     const {title, subtitle, tooltip, count, delay, componentLink, emergency, subCounts, backgroundColor} = data;
-    const element = componentLink ? '<a/>' : '<div/>';
-    const customAttributes = componentLink
+    const element = componentLink || redirectToHandlingRoute ? '<a/>' : '<div/>';
+    const customAttributes = componentLink || redirectToHandlingRoute
         ? {
-            href: componentLink,
+            href: componentLink ?? redirectToHandlingRoute,
             target: '_blank'
         }
         : {};
-    const clickableClass = componentLink ? 'pointer' : '';
+    const clickableClass = componentLink || redirectToHandlingRoute ? 'pointer' : '';
     const needsEmergencyDisplay = emergency && count > 0;
     const $logoTag = data.logoURL ? `<img src="${data.logoURL}" class="w-px-30 h-px-30" style="object-fit: contain"/>` : '';
     const $emergencyIcon = needsEmergencyDisplay ? '<i class="fa fa-exclamation-triangle red"></i>' : $logoTag;

@@ -95,7 +95,8 @@ function initDatatable() {
             "url": pathHandling,
             "type": "POST",
             'data' : {
-                'filterStatus': $('#filterStatus').val()
+                'filterStatus': $('#filterStatus').val(),
+                'handlingIds': $('#handlingIds').val()
             },
         },
         columns: [

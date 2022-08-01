@@ -844,7 +844,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
 
                 'subCounts' => [
                     '<span>150</span> <span class="text-wii-black">lignes</span>',
-                    '<span>3/5</span> <span class="text-wii-black">urgences</span>'
+                    '<span class="text-wii-black">Dont</span> <span class="font-">3</span> <span class="text-wii-black">urgences</span>'
                 ]
             ]
         ],

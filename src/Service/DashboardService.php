@@ -337,15 +337,27 @@ class DashboardService {
             ]
         );
 
+        $listEmergenciesHandlings = $handlingRepository->getEmergenciesHandlingForDashboardRedirect(
+            $nowMorning,
+            $nowEvening,
+            [
+                'handlingStatusesFilter' => $handlingStatusesFilter,
+                'handlingTypesFilter' => $handlingTypesFilter
+            ]
+        );
+
+        $config = $component->getConfig();
+        $config['handlingIds'] = Stream::from($listEmergenciesHandlings)->flatten()->toArray();
+        $component->setConfig($config);
+
         $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Indicator::class);
         $secondCount = '<span>'
             . ($numberOfOperations ?? '0')
             . '</span><span class="text-wii-black"> lignes</span>';
-        $thirdCount = '<span>'
+        $thirdCount = '<span class="text-wii-black">Dont</span>'
+            .' <span>'
             . $numberOfEmergenciesHandlings
-            . '/'
-            . $numberOfHandlings
-            . '</span><span class="text-wii-black"> urgences</span>';
+            . '</span> <span class="text-wii-black"> urgences</span>';
 
         $meter
             ->setCount($numberOfHandlings)

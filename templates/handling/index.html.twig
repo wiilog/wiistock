@@ -8,6 +8,7 @@
         page: 'PAGE_HAND',
         tableSelector: '#tableHandling_id',
         callback: 'callbackSaveFilter',
+        disabled: filtersDisabled,
         emergency: true
     } %}
 {% endblock %}
@@ -44,6 +45,7 @@
             </div>
         </div>
     </div>
+    <input hidden id="handlingIds" value="{{ handlingIds }}"/>
     {% include "handling/modalDeleteHandling.html.twig" %}
     {% include "handling/modalEditHandling.html.twig" %}
     {% include "handling/modalNewHandling.html.twig" with modalNewConfig %}
