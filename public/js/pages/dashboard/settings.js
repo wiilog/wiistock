@@ -249,7 +249,9 @@ function renderCurrentDashboard() {
         }
         if (currentDashboard.componentCount) {
             whenRenderIsDone(componentsToBeRenderedCount, (renderedComponents) => {
-                colorComponentsBasedOnDelay(renderedComponents);
+                if(mode !== MODE_EDIT) {
+                    colorComponentsBasedOnDelay(renderedComponents);
+                }
             });
         }
     }
