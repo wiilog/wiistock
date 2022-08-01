@@ -1,36 +1,41 @@
+let tableHandlings = null;
+
 $(function() {
     $('.select2').select2();
 
-    const tableHandling = initDatatable();
-    initModals(tableHandling);
+    initDatatable().then(table => {
+        tableHandlings = table;
 
-    initDateTimePicker();
-    Select2Old.user($('.filter-select2[name="utilisateurs"]'), 'Demandeurs');
-    Select2Old.user($('.filter-select2[name="receivers"]'), 'Destinataires');
-    Select2Old.init($('.filter-select2[name="emergencyMultiple"]'), 'Urgences');
+        initModals(tableHandlings);
 
-    // applique les filtres si pré-remplis
-    let val = $('#filterStatus').val();
+        initDateTimePicker();
+        Select2Old.user($('.filter-select2[name="utilisateurs"]'), 'Demandeurs');
+        Select2Old.user($('.filter-select2[name="receivers"]'), 'Destinataires');
+        Select2Old.init($('.filter-select2[name="emergencyMultiple"]'), 'Urgences');
 
-    if (val && val.length > 0) {
-        let valuesStr = val.split(',');
-        let valuesInt = [];
-        valuesStr.forEach((value) => {
-            valuesInt.push(parseInt(value));
-        })
-        $('#statut').val(valuesInt).select2();
-    } else {
-        // sinon, filtres enregistrés en base pour chaque utilisateur
-        let path = Routing.generate('filter_get_by_page');
-        let params = JSON.stringify(PAGE_HAND);
-        $.post(path, params, function (data) {
-            displayFiltersSup(data);
-        }, 'json');
-    }
+        // applique les filtres si pré-remplis
+        let val = $('#filterStatus').val();
 
-    const $modalNewHandling = $("#modalNewHandling");
-    $modalNewHandling.on('show.bs.modal', function () {
-        initNewHandlingEditor("#modalNewHandling");
+        if (val && val.length > 0) {
+            let valuesStr = val.split(',');
+            let valuesInt = [];
+            valuesStr.forEach((value) => {
+                valuesInt.push(parseInt(value));
+            })
+            $('#statut').val(valuesInt).select2();
+        } else {
+            // sinon, filtres enregistrés en base pour chaque utilisateur
+            let path = Routing.generate('filter_get_by_page');
+            let params = JSON.stringify(PAGE_HAND);
+            $.post(path, params, function (data) {
+                displayFiltersSup(data);
+            }, 'json');
+        }
+
+        const $modalNewHandling = $("#modalNewHandling");
+        $modalNewHandling.on('show.bs.modal', function () {
+            initNewHandlingEditor("#modalNewHandling");
+        });
     });
 });
 
@@ -72,55 +77,38 @@ function callbackSaveFilter() {
 }
 
 function initDatatable() {
-    const showReceiversColumn = Number($('#showReceiversColumn').val()) === 1;
-    const receiversColumn = showReceiversColumn
-        ? [{ "data":  'receivers', 'name': 'receivers', 'title': 'Destinataires', orderable: false}]
-        : [];
-
-    let pathHandling = Routing.generate('handling_api', true);
-    let tableHandlingConfig = {
-        serverSide: true,
-        processing: true,
-        order: [['creationDate', 'desc']],
-        rowConfig: {
-            needsRowClickAction: true,
-            needsColor: true,
-            color: 'danger',
-            dataToCheck: 'emergency'
-        },
-        drawConfig: {
-            needsSearchOverride: true,
-        },
-        ajax: {
-            "url": pathHandling,
-            "type": "POST",
-            'data' : {
-                'filterStatus': $('#filterStatus').val()
-            },
-        },
-        columns: [
-            { "data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis', orderable: false},
-            { "data": 'number', 'name': 'number', 'title': 'Numéro de demande' },
-            { "data": 'creationDate', 'name': 'creationDate', 'title': 'Date demande' },
-            { "data": 'type', 'name': 'type', 'title': 'Type' },
-            { "data": 'requester', 'name': 'requester', 'title': 'Demandeur' },
-            { "data": 'subject', 'name': 'subject', 'title': 'services.Objet', translated: true },
-            { "data": 'desiredDate', 'name': 'desiredDate', 'title': 'Date attendue' },
-            { "data": 'validationDate', 'name': 'validationDate', 'title': 'Date de réalisation' },
-            { "data": 'status', 'name': 'status', 'title': 'Statut' },
-            { "data": 'emergency', 'name': 'emergency', 'title': 'Urgence' },
-            // {
-            //     "data": 'treatmentDelay',
-            //     'name': 'treatmentDelay',
-            //     'title': 'Temps de traitement opérateur',
-            //     'tooltip': "Temps entre l’ouverture de la demande sur la nomade et la validation de cette dernière."
-            // },
-            { "data": 'carriedOutOperationCount', 'name': 'carriedOutOperationCount', 'title': 'services.Nombre d\'opération(s) réalisée(s)', translated: true },
-            { "data": 'treatedBy', 'name': 'treatedBy', 'title': 'Traité par' },
-            ...receiversColumn
-        ]
-    };
-    return initDataTable('tableHandling_id', tableHandlingConfig);
+    return $.post(Routing.generate('handling_api_columns'))
+        .then((columns) => {
+            let pathHandling = Routing.generate('handling_api', true);
+            let tableHandlingConfig = {
+                serverSide: true,
+                processing: true,
+                page: `handling`,
+                order: [['creationDate', 'desc']],
+                rowConfig: {
+                    needsRowClickAction: true,
+                    needsColor: true,
+                    color: 'danger',
+                    dataToCheck: 'emergency'
+                },
+                drawConfig: {
+                    needsSearchOverride: true,
+                },
+                ajax: {
+                    "url": pathHandling,
+                    "type": "POST",
+                    'data' : {
+                        'filterStatus': $('#filterStatus').val()
+                    },
+                },
+                hideColumnConfig: {
+                    columns,
+                    tableFilter: 'tableHandlings',
+                },
+                columns,
+            };
+            return initDataTable('tableHandlings', tableHandlingConfig);
+        });
 }
 
 function initModals(tableHandling) {
