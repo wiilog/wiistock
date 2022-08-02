@@ -521,6 +521,7 @@ input[type=checkbox] {
 
     &:disabled {
         border-color: $grey;
+        background: #e8e8e8;
         cursor: not-allowed !important;
     }
 }
