@@ -158,6 +158,46 @@ class GeoService
             ->sum();
     }
 
+    public function directArcgisQuery(array $coordinates) {
+
+        if (!isset($_SERVER['ARCGIS_API_KEY'])) {
+            throw new GeoException("La configuration de l'instance permettant de récupérer les informations GPS est invalide");
+        }
+
+        $stopsData = [
+            'success' => true,
+            'msg' => 'OK'
+        ];
+        $step = ceil(count($coordinates) / 140);
+        $coordinates = Stream::from($coordinates)
+            ->filter(fn($coordinates, $key) => $coordinates['keep'] ?: ($key % $step === 0))
+            ->sort(fn(array $coordinate1, array $coordinate2) => $coordinate1['index'] <=> $coordinate2['index'])
+            ->map(fn(array $coordinates) => [
+                'geometry' => $coordinates['geometry']
+            ])
+            ->reindex()
+            ->toArray();
+        $url = "https://route.arcgis.com/arcgis/rest/services/World/Route/NAServer/Route_World/solve";
+        try {
+            $request = $this->httpService->request("GET", $url, [
+                "f" => "json",
+                "token" => $_SERVER["ARCGIS_API_KEY"],
+                "returnRoutes" => false,
+                "stops" => json_encode([
+                    "spatialReference" => [
+                        "wkid" => 4326,
+                    ],
+                    "features" => $coordinates,
+                ]),
+            ]);
+            $result = json_decode($request->getContent(), true);
+            $distance = round($result['directions'][0]['summary']['totalLength'] * self::MILES_TO_KM, 2);
+            $stopsData['distance'] = $distance;
+        } catch (Exception) {
+            throw new GeoException('Erreur lors de la récupération des informations GPS');
+        }
+        return $stopsData;
+    }
 
     // retourne en mètres
     public function vincentyGreatCircleDistance(float $latitudeFrom,
