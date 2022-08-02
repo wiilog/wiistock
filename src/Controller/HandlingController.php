@@ -84,7 +84,7 @@ class HandlingController extends AbstractController
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]);
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_HANDLING);
 
-        $handlingIds = $request->query->all('handlingIds');
+        $handlingIds = $request->query?->all('handlingIds');
         $filterStatus = $request->query->get('filter');
         $user = $this->getUser();
         $dateChoice = [
