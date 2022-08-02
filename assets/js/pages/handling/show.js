@@ -10,6 +10,5 @@ $(function () {
     let $submitDeleteHandling = $('#submitDeleteHandling');
     let urlDeleteHandling = Routing.generate('handling_delete', true);
     InitModal($modalDeleteHandling, $submitDeleteHandling, urlDeleteHandling);
-
 });
 
