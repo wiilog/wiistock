@@ -769,45 +769,45 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'hint' => 'Suivi des demandes de services sur les 7 derniers jours',
             'exampleValues' => [
                 'chartColors' => [
-                    'creationDate' => '#FFF',
-                    'expectedDate' => '#000',
-                    'treatmentDate' => '#BBB'
+                    'Date de création' => '#FF763D',
+                    'Date attendue' => '#A5D733',
+                    'Date de traitement' => '#3353D7'
                 ],
                 'chartData' => [
                     '04/01' => [
                         'creationDate' => 25,
-                        'expectedDate' => 12,
-                        'treatmentDate' => 12,
+                        'desiredDate' => 12,
+                        'validationDate' => 12,
                     ],
                     '05/01' => [
                         'creationDate' => 10,
-                        'expectedDate' => 12,
-                        'treatmentDate' => 12,
+                        'desiredDate' => 12,
+                        'validationDate' => 12,
                     ],
                     '06/01' => [
                         'creationDate' => 4,
-                        'expectedDate' => 12,
-                        'treatmentDate' => 12,
+                        'desiredDate' => 12,
+                        'validationDate' => 12,
                     ],
                     '07/01' => [
                         'creationDate' => 25,
-                        'expectedDate' => 9,
-                        'treatmentDate' => 9,
+                        'desiredDate' => 9,
+                        'validationDate' => 9,
                     ],
                     '08/01' => [
                         'creationDate' => 15,
-                        'expectedDate' => 15,
-                        'treatmentDate' => 12,
+                        'desiredDate' => 15,
+                        'validationDate' => 12,
                     ],
                     '09/01' => [
                         'creationDate' => 2,
-                        'expectedDate' => 12,
-                        'treatmentDate' => 12,
+                        'desiredDate' => 12,
+                        'validationDate' => 12,
                     ],
                     '10/01' => [
                         'creationDate' => 23,
-                        'expectedDate' => 8,
-                        'treatmentDate' => 8,
+                        'desiredDate' => 8,
+                        'validationDate' => 8,
                     ]
                 ],
                 'textColor-1' => "#000000",

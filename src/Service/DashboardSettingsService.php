@@ -1111,15 +1111,8 @@ class DashboardSettingsService {
         } else if (isset($config['handlingTypes']) && !empty($config['handlingTypes']) && ($config['creationDate'] || $config['expectedDate'] || $config['treatmentDate'])){
             $values = $componentType->getExampleValues();
             $values['handlingTypes'] = $config['handlingTypes'] ?? '';
-            if (!empty($config['handlingTypes'])) {
-                $values['chartColors'] = $values['chartColors'] ?? [];
 
-            } else {
-                $values['chartColors'] = (isset($config['chartColors']) && isset($config['chartColors'][0]))
-                    ? [$config['chartColors'][0]]
-                    : [Dashboard\ComponentType::DEFAULT_CHART_COLOR];
-            }
-
+            $values['chartColors'] = $config['chartColors'] ?? $values['chartColors'];
             $scale = $config['scale'] ?? DashboardService::DEFAULT_WEEKLY_REQUESTS_SCALE;
             $chartData = $values['chartData'];
             $keysToKeep = array_slice(array_keys($chartData), 0, $scale);
@@ -1127,13 +1120,13 @@ class DashboardSettingsService {
                 ->reduce(function(array $carry, string $key) use ($config, $chartData) {
                     if (isset($chartData[$key])) {
                         if($config['creationDate']){
-                            $carry[$key]['creationDate'] = $chartData[$key]['creationDate'];
+                            $carry[$key]['Date de création'] = $chartData[$key]['creationDate'];
                         }
-                        if($config['expectedDate']){
-                            $carry[$key]['expectedDate'] = $chartData[$key]['expectedDate'];
+                        if($config['desiredDate']){
+                            $carry[$key]['Date attendue'] = $chartData[$key]['desiredDate'];
                         }
-                        if($config['treatmentDate']){
-                            $carry[$key]['treatmentDate'] = $chartData[$key]['treatmentDate'];
+                        if($config['validationDate']){
+                            $carry[$key]['Date de traitement'] = $chartData[$key]['validationDate'];
                         }
                     }
                     return $carry;
@@ -1143,6 +1136,7 @@ class DashboardSettingsService {
         else {
             $values['chartData'] = [];
         }
+
         $values['multiple'] = true;
         return $values;
     }

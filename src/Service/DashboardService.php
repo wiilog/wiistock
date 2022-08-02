@@ -1138,15 +1138,15 @@ class DashboardService {
         $type = "";
         $dates = [];
 
-        if($config['creationDate']){
+        if(!empty($config['creationDate'])){
             $type .= "date de création, ";
             $dates[] = 'creationDate';
         }
-        if($config['expectedDate']){
+        if(!empty($config['desiredDate'])){
             $type .= "date attendue, ";
             $dates[] = 'desiredDate';
         }
-        if($config['treatmentDate']){
+        if(!empty($config['validationDate'])){
             $type .= "date de traitement ";
             $dates[] = 'validationDate';
         }
@@ -1157,7 +1157,11 @@ class DashboardService {
         $typeRepository = $entityManager->getRepository(Type::class);
 
         $chartData = [];
-
+        $labels = [
+            'validationDate' => 'Date de traitement',
+            'desiredDate' => 'Date attendue',
+            'creationDate' => 'Date de création',
+        ];
         foreach ($dates as $date){
             $dateData = $this->getDailyObjectsStatistics(
                 $entityManager,
@@ -1171,11 +1175,12 @@ class DashboardService {
                 [],
                 $period
             );
+            $label = $labels[$date];
             foreach ($dateData as $dateKey => $datum) {
-                if (!isset($chartData[$dateKey][$date])) {
-                    $chartData[$dateKey][$date] = 0;
+                if (!isset($chartData[$dateKey][$label])) {
+                    $chartData[$dateKey][$label] = 0;
                 }
-                $chartData[$dateKey][$date] += intval($datum);
+                $chartData[$dateKey][$label] += intval($datum);
             }
         }
 
