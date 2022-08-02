@@ -130,3 +130,46 @@
 .w-218px {
     width: 218px !important;
 }
+
+.filter-status-multiple {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    width: 250px;
+    height: 36px;
+    font-weight: initial !important;
+}
+
+.filter-status-multiple-dropdown {
+    width: 100%;
+
+    .dropdown-item {
+        padding: 0.35rem 0.6rem !important;
+
+        &:active, &:hover {
+            background: $primary;
+            color: white;
+
+            input[type="checkbox"] {
+                position: relative;
+
+                &, &:before {
+                    transition: all 200ms;
+                }
+
+                &:not(:checked) {
+                    border: 2px solid white;
+                }
+
+                &:checked {
+                    background: white;
+
+                    &:before {
+                        background-color: $primary;
+                    }
+                }
+            }
+        }
+    }
+}

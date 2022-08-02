@@ -176,15 +176,17 @@ class HandlingRepository extends EntityRepository
             ->select('COUNT(handling)')
             ->getQuery()
             ->getSingleScalarResult();
+        dump($filters);
         // filtres sup
         foreach ($filters as $filter) {
             switch($filter['field']) {
-                case 'statut':
-					$value = explode(',', $filter['value']);
-					$qb
-						->join('handling.status', 'filter_status')
-						->andWhere('filter_status.id in (:filter_status_value)')
-						->setParameter('filter_status_value', $value);
+                case 'statuses-filter':
+                    if($filter["value"]) {
+                        $value = explode(",", $filter["value"]);
+                        $qb->join('handling.status', 'filter_status')
+                            ->andWhere('filter_status.id in (:filter_status_value)')
+                            ->setParameter('filter_status_value', $value);
+                    }
 					break;
                 case 'utilisateurs':
                     $value = explode(',', $filter['value']);

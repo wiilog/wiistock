@@ -21,6 +21,7 @@ use App\Entity\Utilisateur;
 
 use App\Helper\FormatHelper;
 use App\Service\NotificationService;
+use App\Service\StatusService;
 use App\Service\VisibleColumnService;
 use GuzzleHttp\Exception\ConnectException;
 use WiiCommon\Helper\Stream;
@@ -57,7 +58,8 @@ class HandlingController extends AbstractController {
      * @Route("/", name="handling_index", options={"expose"=true}, methods={"GET", "POST"})
      * @HasPermission({Menu::DEM, Action::DISPLAY_HAND})
      */
-    public function index(EntityManagerInterface $entityManager, Request $request, HandlingService $handlingService): Response {
+    public function index(EntityManagerInterface $entityManager, Request $request,
+                          StatusService $statusService, HandlingService $handlingService): Response {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
@@ -95,11 +97,16 @@ class HandlingController extends AbstractController {
 
         return $this->render('handling/index.html.twig', [
             'dateChoices' => $dateChoice,
-            'statuts' => $statutRepository->findByCategorieName(Handling::CATEGORIE, 'nom'),
+            'statuses' => $statutRepository->findByCategorieName(Handling::CATEGORIE, 'nom'),
 			'filterStatus' => $filterStatus,
             'types' => $types,
             'fieldsParam' => $fieldsParam,
             'fields' => $fields,
+            'status_state_values' => Stream::from($statusService->getStatusStatesValues())
+                ->reduce(function(array $carry, $test) {
+                    $carry[$test['id']] = $test['label'];
+                    return $carry;
+                }, []),
             'removeHourInDatetime' => $settingRepository->getOneParamByLabel(Setting::REMOVE_HOURS_DATETIME),
             'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_EMERGENCY),
             'modalNewConfig' => [
