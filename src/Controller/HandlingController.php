@@ -15,12 +15,14 @@ use App\Entity\Handling;
 
 use App\Entity\Attachment;
 use App\Entity\Setting;
+use App\Entity\StatusHistory;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 
 use App\Helper\FormatHelper;
 use App\Service\NotificationService;
+use App\Service\StatusHistoryService;
 use App\Service\VisibleColumnService;
 use GuzzleHttp\Exception\ConnectException;
 use WiiCommon\Helper\Stream;
@@ -162,7 +164,8 @@ class HandlingController extends AbstractController {
                         AttachmentService $attachmentService,
                         TranslatorInterface $translator,
                         UniqueNumberService $uniqueNumberService,
-                        NotificationService $notificationService): Response
+                        NotificationService $notificationService,
+                        StatusHistoryService $statusHistoryService): Response
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -199,6 +202,10 @@ class HandlingController extends AbstractController {
             ->setComment($post->get('comment'))
             ->setEmergency($post->get('emergency'))
             ->setCarriedOutOperationCount(is_numeric($carriedOutOperationCount) ? ((int) $carriedOutOperationCount) : null);
+
+        $statusHistoryService->updateStatus($entityManager, $handling, $status, [
+            "forceCreation" => false,
+        ]);
 
         if ($status && $status->isTreated()) {
             $handling->setValidationDate($date);
@@ -270,55 +277,14 @@ class HandlingController extends AbstractController {
     }
 
     /**
-     * @Route("/api-modifier", name="handling_edit_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
-    public function editApi(EntityManagerInterface $entityManager,
-                            DateService $dateService,
-                            Request $request): Response
-    {
-        if ($data = json_decode($request->getContent(), true)) {
-            $statutRepository = $entityManager->getRepository(Statut::class);
-            $handlingRepository = $entityManager->getRepository(Handling::class);
-            $attachmentsRepository = $entityManager->getRepository(Attachment::class);
-            $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
-            $settingRepository = $entityManager->getRepository(Setting::class);
-
-            $handling = $handlingRepository->find($data['id']);
-            $status = $handling->getStatus();
-            $statusTreated = $status && $status->isTreated();
-            $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_HANDLING);
-
-            $treatmentDelay = $handling->getTreatmentDelay();
-            $treatmentDelayInterval = $treatmentDelay ? $dateService->secondsToDateInterval($treatmentDelay) : null;
-            $treatmentDelayStr = $treatmentDelayInterval ? $dateService->intervalToStr($treatmentDelayInterval) : '';
-
-            $json = $this->renderView('handling/modalEditHandlingContent.html.twig', [
-                'handling' => $handling,
-                'removeHourInDatetime' => $settingRepository->getOneParamByLabel(Setting::REMOVE_HOURS_DATETIME),
-                'treatmentDelay' => $treatmentDelayStr,
-                'handlingStatus' => !$statusTreated
-                    ? $statutRepository->findStatusByType(CategorieStatut::HANDLING, $handling->getType())
-                    : [],
-                'attachments' => $attachmentsRepository->findBy(['handling' => $handling]),
-                'fieldsParam' => $fieldsParam,
-                'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_EMERGENCY),
-                'receivers' => $handling->getReceivers()->toArray(),
-            ]);
-
-            return new JsonResponse($json);
-        }
-        throw new BadRequestHttpException();
-    }
-
-    /**
-     * @Route("/modifier", name="handling_edit", options={"expose"=true}, methods="GET|POST")
+     * @Route("/modifier/{id}", name="handling_edit", options={"expose"=true}, methods="GET|POST")
      * @param EntityManagerInterface $entityManager
      * @param Request $request
      * @param FreeFieldService $freeFieldService
      * @param TranslatorInterface $translator
      * @param AttachmentService $attachmentService
      * @param HandlingService $handlingService
+     * @param Handling $handling
      * @return Response
      * @throws LoaderError
      * @throws RuntimeError
@@ -327,19 +293,19 @@ class HandlingController extends AbstractController {
      */
     public function edit(EntityManagerInterface $entityManager,
                          Request $request,
+                         Handling $handling,
                          FreeFieldService $freeFieldService,
                          TranslatorInterface $translator,
                          AttachmentService $attachmentService,
                          HandlingService $handlingService,
-                         NotificationService $notificationService): Response
+                         NotificationService $notificationService,
+                         StatusHistoryService $statusHistoryService): Response
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $handlingRepository = $entityManager->getRepository(Handling::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
         $post = $request->request;
-
-        $handling = $handlingRepository->find($post->get('id'));
 
         $date = (new DateTime('now'));
         $desiredDateStr = $post->get('desired-date');
@@ -364,25 +330,6 @@ class HandlingController extends AbstractController {
             }
         }
 
-        $oldStatus = $handling->getStatus();
-
-        if (!$oldStatus || !$oldStatus->isTreated()) {
-            $newStatus = $statutRepository->find($post->get('status'));
-
-            if($newStatus) {
-                $handling->setStatus($newStatus);
-
-                if (($newStatus->getState() == Statut::NOT_TREATED)
-                    && $handling->getType()
-                    && ($handling->getType()->isNotificationsEnabled() || $handling->getType()->isNotificationsEmergency($handling->getEmergency()))) {
-                    $notificationService->toTreat($handling);
-                }
-            }
-        }
-        else {
-            $newStatus = null;
-        }
-
         $carriedOutOperationCount = $post->get('carriedOutOperationCount');
         $handling
             ->setSubject(substr($post->get('subject'), 0, 64))
@@ -399,10 +346,6 @@ class HandlingController extends AbstractController {
                         : null)
             ));
 
-        if (!$handling->getValidationDate() && $newStatus->isTreated()) {
-            $handling->setValidationDate($date);
-            $handling->setTreatedByHandling($currentUser);
-        }
 
         $freeFieldService->manageFreeFields($handling, $post->all(), $entityManager);
 
@@ -419,17 +362,6 @@ class HandlingController extends AbstractController {
         $this->persistAttachments($handling, $attachmentService, $request, $entityManager);
 
         $entityManager->flush();
-
-        // check if status has changed
-        if ((!$oldStatus && $newStatus)
-            || (
-                $oldStatus
-                && $newStatus
-                && ($oldStatus->getId() !== $newStatus->getId())
-            )) {
-            $viewHoursOnExpectedDate = !$settingRepository->getOneParamByLabel(Setting::REMOVE_HOURS_DATETIME);
-            $handlingService->sendEmailsAccordingToStatus($entityManager, $handling, $viewHoursOnExpectedDate);
-        }
 
         return new JsonResponse([
             'success' => true,
@@ -486,7 +418,8 @@ class HandlingController extends AbstractController {
                 'success' => true,
                 'msg' => $translator->trans('services.La demande de service {numéro} a bien été supprimée', [
                         "{numéro}" => '<strong>' . $handlingNumber . '</strong>'
-                    ]).'.'
+                    ]).'.',
+                'redirect'=> $this->generateUrl('handling_index')
             ]);
         }
 
@@ -627,4 +560,74 @@ class HandlingController extends AbstractController {
         ]);
     }
 
+    #[Route("/voir/{id}", name: "handling_show", options: ["expose" => true], methods: ["GET","POST"])]
+    #[HasPermission([Menu::DEM, Action::EDIT])]
+    public function show(Handling $handling, EntityManagerInterface $entityManager): Response {
+        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+
+        $freeFields = $freeFieldRepository->findByType($handling->getType());
+        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_HANDLING);
+
+        return $this->render('handling/show.html.twig', [
+            'handling' => $handling,
+            'freeFields' => $freeFields,
+            'fieldsParam' => $fieldsParam,
+        ]);
+    }
+
+    // TODO Permission
+    #[Route("/{id}/status-history-api", name: "handling_status_history_api", options: ['expose' => true], methods: "GET")]
+    public function statusHistoryApi(int $id,
+                                     EntityManagerInterface $entityManager): JsonResponse {
+        $handlingRepository = $entityManager->getRepository(Handling::class);
+        $handling = $handlingRepository->find($id);
+
+        return $this->json([
+            "success" => true,
+            "template" => $this->renderView('handling/status-history.html.twig', [
+                "statusesHistory" => Stream::from($handling->getStatusHistory())
+                    ->map(fn(StatusHistory $statusHistory) => [
+                        "status" => FormatHelper::status($statusHistory->getStatus()),
+                        "date" => FormatHelper::longDate($statusHistory->getDate(), ["short" => true, "time" => true])
+                    ])
+                    ->toArray(),
+                "handling" => $handling,
+            ]),
+        ]);
+    }
+
+    // TODO Permission
+    #[Route("/modifier-page/{id}", name: "handling_edit_page", options: ["expose" => true], methods: ["GET","POST"])]
+    public function editHandling(  Handling $handling,
+                           EntityManagerInterface $entityManager): Response {
+        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+
+        $freeFields = $freeFieldRepository->findByType($handling->getType());
+        $emergencies = Stream::from($fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_EMERGENCY))
+            ->map(fn($emergency) => [
+                "label" => $emergency,
+                "value" => $emergency,
+                "selected" => $emergency === $handling->getEmergency()
+            ])
+            ->toArray();
+        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_HANDLING);
+        $receivers = Stream::from($handling->getReceivers())
+            ->map(fn($receiver) => [
+                "label" => $receiver->getUsername(),
+                "value" => $receiver->getId(),
+                "selected" => true
+            ])
+            ->toArray();
+
+        return $this->render('handling/editHandling.html.twig', [
+            'handling' => $handling,
+            'freeFields' => $freeFields,
+            'submit_url' => $this->generateUrl('handling_edit', ['id' => $handling->getId()]),
+            'emergencies' => $emergencies,
+            'fieldsParam' => $fieldsParam,
+            'receivers' => $receivers,
+        ]);
+    }
 }
