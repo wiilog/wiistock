@@ -453,9 +453,6 @@ class DashboardSettingsService {
         if (!$shouldShowEmergencies && isset($values['subCounts'][1])) {
             unset($values['subCounts'][1]);
         }
-        if (!$shouldRedirectToHandling && isset($values['subCounts'][2])) {
-            unset($values['subCounts'][2]);
-        }
 
         $values['subCounts'] = array_values($values['subCounts']);
 

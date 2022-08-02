@@ -1,8 +1,6 @@
 <?php
 
-
 namespace App\Service;
-
 
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;

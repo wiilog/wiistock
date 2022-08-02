@@ -183,89 +183,91 @@ class HandlingRepository extends EntityRepository
             ->getSingleScalarResult();
 
         // filtres sup
-        foreach ($filters as $filter) {
-            switch($filter['field']) {
-                case 'statut':
-					$value = explode(',', $filter['value']);
-					$qb
-						->join('handling.status', 'filter_status')
-						->andWhere('filter_status.id in (:filter_status_value)')
-						->setParameter('filter_status_value', $value);
-					break;
-                case 'utilisateurs':
-                    $value = explode(',', $filter['value']);
-                    $qb
-                        ->join('handling.requester', 'filter_requester')
-                        ->andWhere("filter_requester.id in (:filter_requester_username_value)")
-                        ->setParameter('filter_requester_username_value', $value);
-                    break;
-                case 'type':
-                    $qb
-                        ->join('handling.type', 'filter_type')
-                        ->andWhere("filter_type.label in (:filter_type_value)")
-                        ->setParameter('filter_type_value', $filter['value']);
-                    break;
-                case 'emergencyMultiple':
-                    $value = array_map(function($value) {
-                        return explode(":", $value)[0];
-                    }, explode(',', $filter['value']));
-                    $qb
-                        ->andWhere("handling.emergency in (:filter_emergency_value)")
-                        ->setParameter('filter_emergency_value', $value);
-                    break;
-                case 'date-choice_creationDate':
-                    foreach ($filters as $filter) {
-                        switch ($filter['field']) {
-                            case 'dateMin':
-                                $qb->andWhere('handling.creationDate >= :filter_dateMin_value')
-                                    ->setParameter('filter_dateMin_value', $filter['value'] . " 00:00:00");
-                                break;
-                            case 'dateMax':
-                                $qb->andWhere('handling.creationDate <= :filter_dateMax_value')
-                                    ->setParameter('filter_dateMax_value', $filter['value'] . " 23:59:59");
-                                break;
+        if(!$handlingIds) {
+            foreach ($filters as $filter) {
+                switch ($filter['field']) {
+                    case 'statut':
+                        $value = explode(',', $filter['value']);
+                        $qb
+                            ->join('handling.status', 'filter_status')
+                            ->andWhere('filter_status.id in (:filter_status_value)')
+                            ->setParameter('filter_status_value', $value);
+                        break;
+                    case 'utilisateurs':
+                        $value = explode(',', $filter['value']);
+                        $qb
+                            ->join('handling.requester', 'filter_requester')
+                            ->andWhere("filter_requester.id in (:filter_requester_username_value)")
+                            ->setParameter('filter_requester_username_value', $value);
+                        break;
+                    case 'type':
+                        $qb
+                            ->join('handling.type', 'filter_type')
+                            ->andWhere("filter_type.label in (:filter_type_value)")
+                            ->setParameter('filter_type_value', $filter['value']);
+                        break;
+                    case 'emergencyMultiple':
+                        $value = array_map(function ($value) {
+                            return explode(":", $value)[0];
+                        }, explode(',', $filter['value']));
+                        $qb
+                            ->andWhere("handling.emergency in (:filter_emergency_value)")
+                            ->setParameter('filter_emergency_value', $value);
+                        break;
+                    case 'date-choice_creationDate':
+                        foreach ($filters as $filter) {
+                            switch ($filter['field']) {
+                                case 'dateMin':
+                                    $qb->andWhere('handling.creationDate >= :filter_dateMin_value')
+                                        ->setParameter('filter_dateMin_value', $filter['value'] . " 00:00:00");
+                                    break;
+                                case 'dateMax':
+                                    $qb->andWhere('handling.creationDate <= :filter_dateMax_value')
+                                        ->setParameter('filter_dateMax_value', $filter['value'] . " 23:59:59");
+                                    break;
+                            }
                         }
-                    }
-                    break;
-                case 'date-choice_expectedDate':
-                    foreach ($filters as $filter) {
-                        switch ($filter['field']) {
-                            case 'dateMin':
-                                $qb->andWhere('handling.desiredDate >= :filter_dateMin_value')
-                                    ->setParameter('filter_dateMin_value', $filter['value'] . " 00:00:00");
-                                break;
-                            case 'dateMax':
-                                $qb->andWhere('handling.desiredDate <= :filter_dateMax_value')
-                                    ->setParameter('filter_dateMax_value', $filter['value'] . " 23:59:59");
-                                break;
+                        break;
+                    case 'date-choice_expectedDate':
+                        foreach ($filters as $filter) {
+                            switch ($filter['field']) {
+                                case 'dateMin':
+                                    $qb->andWhere('handling.desiredDate >= :filter_dateMin_value')
+                                        ->setParameter('filter_dateMin_value', $filter['value'] . " 00:00:00");
+                                    break;
+                                case 'dateMax':
+                                    $qb->andWhere('handling.desiredDate <= :filter_dateMax_value')
+                                        ->setParameter('filter_dateMax_value', $filter['value'] . " 23:59:59");
+                                    break;
+                            }
                         }
-                    }
-                    break;
-                case 'date-choice_treatmentDate':
-                    foreach ($filters as $filter) {
-                        switch ($filter['field']) {
-                            case 'dateMin':
-                                $qb->andWhere('handling.validationDate >= :filter_dateMin_value')
-                                    ->setParameter('filter_dateMin_value', $filter['value'] . " 00:00:00");
-                                break;
-                            case 'dateMax':
-                                $qb->andWhere('handling.validationDate <= :filter_dateMax_value')
-                                    ->setParameter('filter_dateMax_value', $filter['value'] . " 23:59:59");
-                                break;
+                        break;
+                    case 'date-choice_treatmentDate':
+                        foreach ($filters as $filter) {
+                            switch ($filter['field']) {
+                                case 'dateMin':
+                                    $qb->andWhere('handling.validationDate >= :filter_dateMin_value')
+                                        ->setParameter('filter_dateMin_value', $filter['value'] . " 00:00:00");
+                                    break;
+                                case 'dateMax':
+                                    $qb->andWhere('handling.validationDate <= :filter_dateMax_value')
+                                        ->setParameter('filter_dateMax_value', $filter['value'] . " 23:59:59");
+                                    break;
+                            }
                         }
-                    }
-                    break;
-                case 'subject':
-                    $qb->andWhere('handling.subject LIKE :filter_subject')
-                        ->setParameter('filter_subject', "%{$filter['value']}%");
-                    break;
-                case 'receivers':
-                    $value = explode(',', $filter['value']);
-                    $qb
-                        ->join('handling.receivers', 'filter_receivers')
-                        ->andWhere("filter_receivers.id in (:filter_receivers_username_value)")
-                        ->setParameter('filter_receivers_username_value', $value);
-                    break;
+                        break;
+                    case 'subject':
+                        $qb->andWhere('handling.subject LIKE :filter_subject')
+                            ->setParameter('filter_subject', "%{$filter['value']}%");
+                        break;
+                    case 'receivers':
+                        $value = explode(',', $filter['value']);
+                        $qb
+                            ->join('handling.receivers', 'filter_receivers')
+                            ->andWhere("filter_receivers.id in (:filter_receivers_username_value)")
+                            ->setParameter('filter_receivers_username_value', $value);
+                        break;
+                }
             }
         }
 
