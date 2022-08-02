@@ -29,7 +29,7 @@ class StatusHistory {
     #[ORM\ManyToOne(targetEntity: TransportRound::class, inversedBy: 'statusHistory')]
     private ?TransportRound $transportRound = null;
 
-    #[ORM\ManyToOne(targetEntity: Handling::class, inversedBy: 'statusHistories')]
+    #[ORM\ManyToOne(targetEntity: Handling::class, inversedBy: 'statusHistory')]
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?Handling $Handling = null;
 
