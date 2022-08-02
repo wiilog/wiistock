@@ -70,7 +70,7 @@ class HandlingController extends AbstractController {
 
         $fields = $handlingService->getColumnVisibleConfig($entityManager, $this->getUser());
 
-        $handlingIds = $request->query->all('handlingIds');
+        $handlingIds = $request->query?->all('handlingIds');
         $filterStatus = $request->query->get('filter');
         $user = $this->getUser();
         $dateChoice = [
