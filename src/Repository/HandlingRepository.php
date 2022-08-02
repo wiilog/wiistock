@@ -407,12 +407,13 @@ class HandlingRepository extends EntityRepository
         $groupByTypes = $options['groupByTypes'] ?? false;
         $isOperations = $options['isOperations'] ?? false;
         $emergency = $options['emergency'] ?? false;
+        $date = $options['date'] ?? 'desiredDate';
         $handlingStatusesFilter = $options['handlingStatusesFilter'] ?? [];
         $handlingTypesFilter = $options['handlingTypesFilter'] ?? [];
 
         $qb = $this->createQueryBuilder('handling')
             ->select(($isOperations ? 'SUM(handling.carriedOutOperationCount) AS count' : ('COUNT(handling) ' . ($groupByTypes ? ' AS count' : ''))))
-            ->where('handling.desiredDate BETWEEN :dateMin AND :dateMax')
+            ->where("handling.$date BETWEEN :dateMin AND :dateMax")
             ->join('handling.type', 'type')
             ->setParameters([
                 'dateMin' => $dateMin,
@@ -503,5 +504,9 @@ class HandlingRepository extends EntityRepository
 
                 return $carry;
             }, []);
+    }
+
+    public function countByDatesAndScale(int $scale, array $handlingTypes){
+        $queryBuilder = $this->createQueryBuilder('handling');
     }
 }

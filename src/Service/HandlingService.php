@@ -283,7 +283,6 @@ class HandlingService {
             ['title' => 'services.Nombre d\'opération(s) réalisée(s)', 'name' => 'carriedOutOperationCount', 'translated' => true],
             ['title' => 'Traité par', 'name' => 'treatedBy'],
         ];
-dump($freeFields);
         return dump($this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible));
     }
 

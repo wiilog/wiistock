@@ -36,6 +36,7 @@ const ACTIVE_REFERENCE_ALERTS = 'active_reference_alerts';
 const REFERENCE_RELIABILITY = 'reference_reliability';
 const DAILY_DISPATCHES = 'daily_dispatches';
 const EXTERNAL_IMAGE = 'external_image';
+const HANDLING_TRACKING = 'handling_tracking';
 let DELAYS = {};
 
 $(function() {
@@ -133,6 +134,9 @@ const creators = {
     },
     [EXTERNAL_IMAGE]: {
         callback: createExternalImage
+    },
+    [HANDLING_TRACKING]: {
+        callback: createChart
     },
 };
 

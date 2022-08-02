@@ -80,7 +80,6 @@
                         let column = {{ table }}.column(columnName + ':name');
                         column.visible($check.hasClass('data'));
                     });
-                    console.log({{ table }});
                     {{ table }}.ajax.reload();
                 };
             {% endif %}

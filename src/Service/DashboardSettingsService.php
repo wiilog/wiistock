@@ -206,6 +206,9 @@ class DashboardSettingsService {
             case Dashboard\ComponentType::ORDERS_TO_TREAT:
                 $values += $this->serializeEntitiesToTreat($componentType, $example, $meter, $config);
                 break;
+            case Dashboard\ComponentType::HANDLING_TRACKING:
+                $values += $this->serializeHandlingTracking($entityManager, $componentType, $config, $example, $meter);
+                break;
             default:
                 //TODO:remove
                 $values += $componentType->getExampleValues();
@@ -1084,5 +1087,63 @@ class DashboardSettingsService {
         }
 
         return $link;
+    }
+
+    /**
+     * @param Dashboard\ComponentType $componentType
+     * @param array $config
+     * @param bool $example
+     * @param DashboardMeter\Chart|null $chart
+     * @return array
+     */
+    public function serializeHandlingTracking(EntityManagerInterface $entityManager,
+                                              Dashboard\ComponentType $componentType,
+                                              array $config,
+                                              bool $example = false,
+                                              DashboardMeter\Chart $chart = null)
+    {
+        if (!$example) {
+            if ($chart) {
+                $values = ["chartData" => $chart->getData(), 'chartColors' => $chart->getChartColors()];
+            } else {
+                $values = ["chartData" => []];
+            }
+        } else if (isset($config['handlingTypes']) && !empty($config['handlingTypes']) && ($config['creationDate'] || $config['expectedDate'] || $config['treatmentDate'])){
+            $values = $componentType->getExampleValues();
+            $values['handlingTypes'] = $config['handlingTypes'] ?? '';
+            if (!empty($config['handlingTypes'])) {
+                $values['chartColors'] = $values['chartColors'] ?? [];
+
+            } else {
+                $values['chartColors'] = (isset($config['chartColors']) && isset($config['chartColors'][0]))
+                    ? [$config['chartColors'][0]]
+                    : [Dashboard\ComponentType::DEFAULT_CHART_COLOR];
+            }
+
+            $scale = $config['scale'] ?? DashboardService::DEFAULT_WEEKLY_REQUESTS_SCALE;
+            $chartData = $values['chartData'];
+            $keysToKeep = array_slice(array_keys($chartData), 0, $scale);
+            $chartData = Stream::from($keysToKeep)
+                ->reduce(function(array $carry, string $key) use ($config, $chartData) {
+                    if (isset($chartData[$key])) {
+                        if($config['creationDate']){
+                            $carry[$key]['creationDate'] = $chartData[$key]['creationDate'];
+                        }
+                        if($config['expectedDate']){
+                            $carry[$key]['expectedDate'] = $chartData[$key]['expectedDate'];
+                        }
+                        if($config['treatmentDate']){
+                            $carry[$key]['treatmentDate'] = $chartData[$key]['treatmentDate'];
+                        }
+                    }
+                    return $carry;
+                }, []);
+            $values['chartData'] = $chartData;
+        }
+        else {
+            $values['chartData'] = [];
+        }
+        $values['multiple'] = true;
+        return $values;
     }
 }

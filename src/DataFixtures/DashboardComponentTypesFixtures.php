@@ -765,6 +765,60 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'template' => Dashboard\ComponentType::DAILY_DISPATCHES,
             'meterKey' => Dashboard\ComponentType::DAILY_DISPATCHES,
         ],
+        'Suivi des demandes de services' => [
+            'hint' => 'Suivi des demandes de services sur les 7 derniers jours',
+            'exampleValues' => [
+                'chartColors' => [
+                    'creationDate' => '#FFF',
+                    'expectedDate' => '#000',
+                    'treatmentDate' => '#BBB'
+                ],
+                'chartData' => [
+                    '04/01' => [
+                        'creationDate' => 25,
+                        'expectedDate' => 12,
+                        'treatmentDate' => 12,
+                    ],
+                    '05/01' => [
+                        'creationDate' => 10,
+                        'expectedDate' => 12,
+                        'treatmentDate' => 12,
+                    ],
+                    '06/01' => [
+                        'creationDate' => 4,
+                        'expectedDate' => 12,
+                        'treatmentDate' => 12,
+                    ],
+                    '07/01' => [
+                        'creationDate' => 25,
+                        'expectedDate' => 9,
+                        'treatmentDate' => 9,
+                    ],
+                    '08/01' => [
+                        'creationDate' => 15,
+                        'expectedDate' => 15,
+                        'treatmentDate' => 12,
+                    ],
+                    '09/01' => [
+                        'creationDate' => 2,
+                        'expectedDate' => 12,
+                        'treatmentDate' => 12,
+                    ],
+                    '10/01' => [
+                        'creationDate' => 23,
+                        'expectedDate' => 8,
+                        'treatmentDate' => 8,
+                    ]
+                ],
+                'textColor-1' => "#000000",
+                'textBold-1' => false,
+                'textItalic-1' => false,
+                'textUnderline-1' => false,
+            ],
+            'category' => Dashboard\ComponentType::CATEGORY_REQUESTS,
+            'template' => Dashboard\ComponentType::HANDLING_TRACKING,
+            'meterKey' => Dashboard\ComponentType::HANDLING_TRACKING,
+        ],
         'Fiabilité par référence' => [
             'hint' => 'Nombre de mouvements de correction d’inventaire / le nombre d’articles de référence ou articles du stock',
             'category' => Dashboard\ComponentType::CATEGORY_STOCK,
