@@ -4,13 +4,17 @@
 namespace App\Service;
 
 
+use App\Entity\CategorieCL;
+use App\Entity\CategoryType;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
+use App\Entity\FreeField;
 use App\Entity\Handling;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
+use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 use DateTime;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -22,43 +26,34 @@ use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 
-class HandlingService
-{
-    /**
-     * @var Twig_Environment
-     */
-    private $templating;
+class HandlingService {
 
-    /**
-     * @var RouterInterface
-     */
-    private $router;
+    #[Required]
+    public Twig_Environment $templating;
 
-    private $userService;
-    private $entityManager;
-    private $mailerService;
-    private $translator;
-    private $dateService;
-    private $tokenStorage;
+    #[Required]
+    public RouterInterface $router;
 
-    public function __construct(TokenStorageInterface $tokenStorage,
-                                UserService $userService,
-                                RouterInterface $router,
-                                MailerService $mailerService,
-                                EntityManagerInterface $entityManager,
-                                DateService $dateService,
-                                Twig_Environment $templating,
-                                TranslatorInterface $translator)
-    {
-        $this->templating = $templating;
-        $this->entityManager  = $entityManager;
-        $this->userService = $userService;
-        $this->mailerService = $mailerService;
-        $this->router = $router;
-        $this->tokenStorage = $tokenStorage;
-        $this->translator = $translator;
-        $this->dateService = $dateService;
-    }
+    #[Required]
+    public UserService $userService;
+
+    #[Required]
+    public EntityManagerInterface $entityManager;
+
+    #[Required]
+    public MailerService $mailerService;
+
+    #[Required]
+    public TranslatorInterface $translator;
+
+    #[Required]
+    public TokenStorageInterface $tokenStorage;
+
+    #[Required]
+    public VisibleColumnService $visibleColumnService;
+
+    #[Required]
+    public FreeFieldService $freeFieldService;
 
     public function getDataForDatatable($params = null, $statusFilter = null, $handlingIds = null)
     {
@@ -103,12 +98,8 @@ class HandlingService
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function dataRowHandling(Handling $handling, bool $includeDesiredTime = true)
-    {
-//        $treatmentDelay = $handling->getTreatmentDelay();
-//        $treatmentDelayInterval = $treatmentDelay ? $this->dateService->secondsToDateInterval($treatmentDelay) : null;
-//        $treatmentDelayStr = $treatmentDelayInterval ? $this->dateService->intervalToStr($treatmentDelayInterval) : '';
-        return [
+    public function dataRowHandling(Handling $handling, bool $includeDesiredTime = true) {
+        $row = [
             'id' => $handling->getId() ?: 'Non défini',
             'number' => $handling->getNumber() ?: '',
             'creationDate' => FormatHelper::datetime($handling->getCreationDate()),
@@ -129,6 +120,18 @@ class HandlingService
                 'handling' => $handling
             ]),
         ];
+
+        if (!isset($this->freeFieldsConfig)) {
+            $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig($this->entityManager, CategorieCL::DEMANDE_HANDLING, CategoryType::DEMANDE_HANDLING);
+        }
+
+        foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
+            $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
+            $freeFieldValue = $handling->getFreeFieldValue($freeFieldId);
+            $row[$freeFieldName] = FormatHelper::freeField($freeFieldValue, $freeField);
+        }
+
+        return $row;
     }
 
     /**
@@ -256,6 +259,32 @@ class HandlingService
             'progressBarColor' => '#2ec2ab',
             'progressBarBGColor' => 'lightGrey',
         ];
+    }
+
+    public function getColumnVisibleConfig(EntityManagerInterface $entityManager, Utilisateur $currentUser): array {
+        $champLibreRepository = $entityManager->getRepository(FreeField::class);
+        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
+
+        $columnsVisible = $currentUser->getVisibleColumns()['handling'];
+        $categorieCL = $categorieCLRepository->findOneBy(['label' => CategorieCL::DEMANDE_HANDLING]);
+        $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::DEMANDE_HANDLING, $categorieCL);
+
+        $columns = [
+            ['title' => 'Actions', 'name' => 'Actions'],
+            ['title' => 'Numéro de demande',  'name' => 'number'],
+            ['title' => 'Date demande', 'name' => 'creationDate'],
+            ['title' => 'Type', 'name' => 'type'],
+            ['title' => 'Demandeur', 'name' => 'requester'],
+            ['title' => 'services.Objet', 'name' => 'subject', 'translated' => true],
+            ['title' => 'Date attendue', 'name' => 'desiredDate'],
+            ['title' => 'Date de réalisation', 'name' => 'validationDate'],
+            ['title' => 'Statut', 'name' => 'status'],
+            ['title' => 'Urgent', 'name' => 'emergency'],
+            ['title' => 'services.Nombre d\'opération(s) réalisée(s)', 'name' => 'carriedOutOperationCount', 'translated' => true],
+            ['title' => 'Traité par', 'name' => 'treatedBy'],
+        ];
+dump($freeFields);
+        return dump($this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible));
     }
 
 }

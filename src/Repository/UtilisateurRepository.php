@@ -270,24 +270,6 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
             ->toIterable();
     }
 
-    public function findWithEmptyVisibleColumns() {
-        $qb = $this->createQueryBuilder('user');
-        $exprBuilder = $qb->expr();
-
-        return $qb->where($exprBuilder->orX(
-            "JSON_EXTRACT(user.visibleColumns, '$.arrival') IS NULL",
-            "JSON_EXTRACT(user.visibleColumns, '$.article') IS NULL",
-            "JSON_EXTRACT(user.visibleColumns, '$.dispute') IS NULL",
-            "JSON_EXTRACT(user.visibleColumns, '$.dispatch') IS NULL",
-            "JSON_EXTRACT(user.visibleColumns, '$.reception') IS NULL",
-            "JSON_EXTRACT(user.visibleColumns, '$.reference') IS NULL",
-            "JSON_EXTRACT(user.visibleColumns, '$.deliveryRequest') IS NULL",
-            "JSON_EXTRACT(user.visibleColumns, '$.trackingMovement') IS NULL",
-        ))
-            ->getQuery()
-            ->getResult();
-    }
-
     public function loadUserByIdentifier(string $identifier): ?UserInterface {
         return $this->findOneBy(["email" => $identifier]);
     }

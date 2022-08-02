@@ -21,6 +21,7 @@ use App\Entity\Utilisateur;
 
 use App\Helper\FormatHelper;
 use App\Service\NotificationService;
+use App\Service\VisibleColumnService;
 use GuzzleHttp\Exception\ConnectException;
 use WiiCommon\Helper\Stream;
 use App\Service\AttachmentService;
@@ -50,30 +51,13 @@ use Twig\Error\SyntaxError;
 /**
  * @Route("/services")
  */
-class HandlingController extends AbstractController
-{
-
-    /**
-     * @Route("/api", name="handling_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::DISPLAY_HAND}, mode=HasPermission::IN_JSON)
-     */
-    public function api(Request $request, HandlingService $handlingService): Response
-    {
-        // cas d'un filtre statut depuis page d'accueil
-        $filterStatus = $request->request->get('filterStatus');
-        $handlingIds = json_decode($request->request->get('handlingIds'));
-        $data = $handlingService->getDataForDatatable($request->request, $filterStatus, $handlingIds);
-
-        return new JsonResponse($data);
-    }
+class HandlingController extends AbstractController {
 
     /**
      * @Route("/", name="handling_index", options={"expose"=true}, methods={"GET", "POST"})
      * @HasPermission({Menu::DEM, Action::DISPLAY_HAND})
      */
-    public function index(EntityManagerInterface $entityManager,
-                          Request $request): Response
-    {
+    public function index(EntityManagerInterface $entityManager, Request $request, HandlingService $handlingService): Response {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
@@ -83,6 +67,8 @@ class HandlingController extends AbstractController
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]);
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_HANDLING);
+
+        $fields = $handlingService->getColumnVisibleConfig($entityManager, $this->getUser());
 
         $handlingIds = $request->query->all('handlingIds');
         $filterStatus = $request->query->get('filter');
@@ -115,6 +101,7 @@ class HandlingController extends AbstractController
 			'filterStatus' => $filterStatus,
             'types' => $types,
             'fieldsParam' => $fieldsParam,
+            'fields' => $fields,
             'removeHourInDatetime' => $settingRepository->getOneParamByLabel(Setting::REMOVE_HOURS_DATETIME),
             'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_EMERGENCY),
             'modalNewConfig' => [
@@ -134,6 +121,32 @@ class HandlingController extends AbstractController
 		]);
     }
 
+    /**
+     * @Route("/api-columns", name="handling_api_columns", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::DEM, Action::DISPLAY_HAND}, mode=HasPermission::IN_JSON)
+     */
+    public function apiColumns(EntityManagerInterface $entityManager, Request $request, HandlingService $handlingService): Response
+    {
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+
+        $columns = $handlingService->getColumnVisibleConfig($entityManager, $currentUser);
+        return new JsonResponse($columns);
+    }
+
+    /**
+     * @Route("/api", name="handling_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::DEM, Action::DISPLAY_HAND}, mode=HasPermission::IN_JSON)
+     */
+    public function api(Request $request, HandlingService $handlingService): Response
+    {
+        // cas d'un filtre statut depuis page d'accueil
+        $filterStatus = $request->request->get('filterStatus');
+        $handlingIds = json_decode($request->request->get('handlingIds'));
+        $data = $handlingService->getDataForDatatable($request->request, $filterStatus, $handlingIds);
+
+        return new JsonResponse($data);
+    }
 
     /**
      * @Route("/creer", name="handling_new", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
@@ -586,6 +599,29 @@ class HandlingController extends AbstractController
         } else {
             throw new BadRequestHttpException();
         }
+    }
+
+    /**
+     * @Route("/colonne-visible", name="save_column_visible_for_handling", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::TRACA, Action::DISPLAY_ARRI}, mode=HasPermission::IN_JSON)
+     */
+    public function saveColumnVisible(Request $request,
+                                      EntityManagerInterface $entityManager,
+                                      VisibleColumnService $visibleColumnService): Response
+    {
+        $data = json_decode($request->getContent(), true);
+
+        $fields = array_keys($data);
+        /** @var Utilisateur $user */
+        $user = $this->getUser();
+
+        $visibleColumnService->setVisibleColumns("handling", $fields, $user);
+        $entityManager->flush();
+
+        return $this->json([
+            "success" => true,
+            "msg" => "Vos préférences de colonnes à afficher ont bien été sauvegardées"
+        ]);
     }
 
 }
