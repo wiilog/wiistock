@@ -45,43 +45,150 @@
                         </div>
                     </div>
                 </div>
+                {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}
                 {% set emergency = handling.emergency %}
-                {% if emergency %}
-                <div class="d-flex align-items-center bordered emergency-container pl-3">
-                    <img src="{{ asset('svg/timeline-urgent.svg') }}" class="mr-2" alt="Icône urgence" width="17px">
-                    <strong>Urgent - {{ emergency }}</strong>
-                </div>
+                {% if (fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') or fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) and emergency %}
+                    <div class="d-flex align-items-center bordered emergency-container pl-3">
+                        <img src="{{ asset('svg/timeline-urgent.svg') }}" class="mr-2" alt="Icône urgence" width="17px">
+                        <strong>{{ emergency }}</strong>
+                    </div>
                 {% endif %}
-                <div class="content row {{ not emergency ?  'bordered' }}">
-                    <div class="col-6 d-flex flex-column">
-                        <div class="box-item my-2">
-                            <span class="wii-field-name">Type</span>
-                            <span class="wii-field-text">
-                                {{ handling.type.label }}
-                            </span>
+                <div class="{{ not ((fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') or fieldsParam|isFieldRequired(fieldCode, 'displayedeEdit')) and emergency) ?  'bordered' }}">
+                    <div class="content row ">
+                        <div class="col-6 d-flex flex-column">
+                            <div class="box-item my-2">
+                                <span class="wii-field-name">Type</span>
+                                <span class="wii-field-text">
+                                    {{ handling.type.label }}
+                                </span>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-6 d-flex flex-column">
-                        <div class="box-item my-2">
-                            {{ form.input('subject', 'Objet', true, handling.subject, {
-                                attributes: {
-                                    'data-short-label': 'Départ tournée',
-                                },
-                            }) }}
+                        <div class="col-6 d-flex flex-column">
+                            <div class="box-item my-2">
+                                {{ form.input('subject', 'Objet', true, handling.subject, {
+                                    attributes: {
+                                        'data-short-label': 'Objet',
+                                    },
+                                }) }}
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-6 d-flex flex-column">
-                        <div class="box-item my-2">
-                            <span class="wii-field-name">Urgence</span>
-                            <span class="wii-field-text">
-                                {{ emergency == '' ? '-' : emergency }}
-                            </span>
-                        </div>
+                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}
+                        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
+                        {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
+                            <div class="col-6 d-flex flex-column">
+                                {{ form.select('emergency', "Urgence", true, {
+                                    items: emergencies,
+                                    required,
+                                    emptyOption : { value : null , text : 'Non urgent', selected : emergency ? false : true},
+                                    labelOptions: {
+                                        removeAsterisk: true
+                                    }
+                                }) }}
+                            </div>
+                        {% elseif fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                            <div class="col-6 d-flex flex-column">
+                                <div class="box-item my-2">
+                                    <span class="wii-field-name">Urgence</span>
+                                    <span class="wii-field-text">
+                                        {{ emergency == '' ? '-' : emergency }}
+                                    </span>
+                                </div>
+                            </div>
+                        {% endif %}
+                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_RECEIVERS_HANDLING') %}
+                        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
+                            {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
+                            <div class="col-6 d-flex flex-column">
+                                {{ form.select('receivers', "Destinataires", required, {
+                                    items: receivers,
+                                    type: 'user',
+                                    multiple :true,
+                                    inputClass: 'receivers-picker',
+                                    labelOptions: not required ? { removeAsterisk: false } : {}
+                                }) }}
+                            </div>
+                        {% elseif fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                            <div class="col-6 d-flex flex-column">
+                                <div class="box-item my-2">
+                                    <span class="wii-field-name">Destinataires</span>
+                                    {% if handling.receivers is not empty %}
+                                        {% for receiver in handling.receivers %}
+                                            <span class="wii-field-text">
+                                                {{ receiver.username }}
+                                            </span>
+                                        {% endfor %}
+                                    {% else %}
+                                        <span class="wii-field-text">-</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endif %}
+                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_LOADING_ZONE') %}
+                        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
+                            {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
+                            <div class="col-6 d-flex flex-column">
+                                {{ form.input('source', 'Chargement', required, handling.source, {
+                                    attributes: {
+                                        'data-short-label': 'Chargement',
+                                    },
+                                }) }}
+                            </div>
+                        {% elseif fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                            <div class="col-6 d-flex flex-column">
+                                <div class="box-item my-2">
+                                    <span class="wii-field-name">Chargement</span>
+                                    <span class="wii-field-text">
+                                        {{ handling.source }}
+                                    </span>
+                                </div>
+                            </div>
+                        {% endif %}
+                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_UNLOADING_ZONE') %}
+                        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
+                            {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
+                            <div class="col-6 d-flex flex-column">
+                                {{ form.input('destination', 'Déchargement', required, handling.source, {
+                                    attributes: {
+                                        'data-short-label': 'Chargement',
+                                    },
+                                }) }}
+                            </div>
+                        {% elseif fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                            <div class="col-6 d-flex flex-column">
+                                <div class="box-item my-2">
+                                    <span class="wii-field-name">Déchargement</span>
+                                    <span class="wii-field-text">
+                                        {{ handling.destination }}
+                                    </span>
+                                </div>
+                            </div>
+                        {% endif %}
+                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIED_OUT_OPERATION_COUNT') %}
+                        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
+                            {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
+                            <div class="col-6 d-flex flex-column">
+
+                                {{ form.number('carriedOutOperationCount', 'Nombre d’opération(s) réalisée(s)', required, null, {
+                                    labelClass: 'w-100',
+                                    min: 0
+                                }) }}
+                            </div>
+                        {% elseif fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                            <div class="col-6 d-flex flex-column">
+                                <div class="box-item my-2">
+                                    <span class="wii-field-name">Nombre d’opération(s) réalisée(s)</span>
+                                    <span class="wii-field-text">
+                                    {{ handling.carriedOutOperationCount ?? '-'}}
+                                </span>
+                                </div>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
                 <div class="content">
                     <div class="d-flex flex-wrap w-100">
                         {% include 'attachment/attachment.html.twig' with {
+                            required : false,
                             'isNew': false,
                             attachments : handling.attachments,
                             editAttachments : true,
@@ -127,6 +234,16 @@
                     <img src="{{ asset('svg/calendar.svg') }}" alt="Icône calendrier" width="15px">
                     <span class="wii-field-name ml-2">Dates</span>
                 </div>
+                {% if handling.withoutHistory %}
+                <div class="col-6 d-flex flex-column">
+                    <div class="box-item my-2">
+                        <span class="wii-field-name">Date des création</span>
+                        <span class="wii-field-text">
+                            {{ handling.creationDate | format_helper('longDate', {short: false}) }}
+                        </span>
+                    </div>
+                </div>
+                {% endif %}
                 <div class="content row ">
                     <div class="col-6 d-flex flex-column">
                         <div class="box-item my-2">
@@ -145,16 +262,6 @@
                             </span>
                         </div>
                     </div>
-                    {% if handling.withoutHistory %}
-                        <div class="col-6 d-flex flex-column">
-                            <div class="box-item my-2">
-                                <span class="wii-field-name">Date des création</span>
-                                <span class="wii-field-text">
-                                    {{ handling.creationDate | format_helper('longDate', {short: false}) }}
-                                </span>
-                            </div>
-                        </div>
-                    {% endif %}
                 </div>
             </div>
             <div class="w-100 d-flex flex-row-reverse">

@@ -296,14 +296,14 @@ class HandlingController extends AbstractController
                          TranslatorInterface $translator,
                          AttachmentService $attachmentService,
                          HandlingService $handlingService,
-                         NotificationService $notificationService,): Response
+                         NotificationService $notificationService,
+                         StatusHistoryService $statusHistoryService): Response
     {
+        $statutRepository = $entityManager->getRepository(Statut::class);
         $handlingRepository = $entityManager->getRepository(Handling::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
         $post = $request->request;
-
-        dump($post->all());
 
         $date = (new DateTime('now'));
         $desiredDateStr = $post->get('desired-date');
@@ -540,12 +540,15 @@ class HandlingController extends AbstractController
     public function show(  Handling $handling,
                            EntityManagerInterface $entityManager): Response {
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
         $freeFields = $freeFieldRepository->findByType($handling->getType());
+        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_HANDLING);
 
         return $this->render('handling/show.html.twig', [
             'handling' => $handling,
             'freeFields' => $freeFields,
+            'fieldsParam' => $fieldsParam,
         ]);
     }
 
@@ -577,13 +580,30 @@ class HandlingController extends AbstractController
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
-
         $freeFields = $freeFieldRepository->findByType($handling->getType());
+        $emergencies = Stream::from($fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_EMERGENCY))
+            ->map(fn($emergency) => [
+                "label" => $emergency,
+                "value" => $emergency,
+                "selected" => $emergency === $handling->getEmergency()
+            ])
+            ->toArray();
+        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_HANDLING);
+        $receivers = Stream::from($handling->getReceivers())
+            ->map(fn($receiver) => [
+                "label" => $receiver->getUsername(),
+                "value" => $receiver->getId(),
+                "selected" => true
+            ])
+            ->toArray();
 
         return $this->render('handling/editHandling.html.twig', [
             'handling' => $handling,
             'freeFields' => $freeFields,
             'submit_url' => $this->generateUrl('handling_edit', ['id' => $handling->getId()]),
+            'emergencies' => $emergencies,
+            'fieldsParam' => $fieldsParam,
+            'receivers' => $receivers,
         ]);
     }
 }
