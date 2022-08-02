@@ -129,11 +129,6 @@ function initModals(tableHandling) {
     let urlNewHandling = Routing.generate('handling_new', true);
     InitModal($modalNewHandling, $submitNewHandling, urlNewHandling, {tables: [tableHandling]});
 
-    let $modalModifyHandling = $('#modalEditHandling');
-    let $submitModifyHandling = $('#submitEditHandling');
-    let urlModifyHandling = Routing.generate('handling_edit', true);
-    InitModal($modalModifyHandling, $submitModifyHandling, urlModifyHandling, {tables: [tableHandling]});
-
     let $modalDeleteHandling = $('#modalDeleteHandling');
     let $submitDeleteHandling = $('#submitDeleteHandling');
     let urlDeleteHandling = Routing.generate('handling_delete', true);

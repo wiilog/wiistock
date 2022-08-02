@@ -233,48 +233,6 @@ class HandlingController extends AbstractController
     }
 
     /**
-     * @Route("/api-modifier", name="handling_edit_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
-    public function editApi(EntityManagerInterface $entityManager,
-                            DateService $dateService,
-                            Request $request): Response
-    {
-        if ($data = json_decode($request->getContent(), true)) {
-            $statutRepository = $entityManager->getRepository(Statut::class);
-            $handlingRepository = $entityManager->getRepository(Handling::class);
-            $attachmentsRepository = $entityManager->getRepository(Attachment::class);
-            $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
-            $settingRepository = $entityManager->getRepository(Setting::class);
-
-            $handling = $handlingRepository->find($data['id']);
-            $status = $handling->getStatus();
-            $statusTreated = $status && $status->isTreated();
-            $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_HANDLING);
-
-            $treatmentDelay = $handling->getTreatmentDelay();
-            $treatmentDelayInterval = $treatmentDelay ? $dateService->secondsToDateInterval($treatmentDelay) : null;
-            $treatmentDelayStr = $treatmentDelayInterval ? $dateService->intervalToStr($treatmentDelayInterval) : '';
-
-            $json = $this->renderView('handling/modalEditHandlingContent.html.twig', [
-                'handling' => $handling,
-                'removeHourInDatetime' => $settingRepository->getOneParamByLabel(Setting::REMOVE_HOURS_DATETIME),
-                'treatmentDelay' => $treatmentDelayStr,
-                'handlingStatus' => !$statusTreated
-                    ? $statutRepository->findStatusByType(CategorieStatut::HANDLING, $handling->getType())
-                    : [],
-                'attachments' => $attachmentsRepository->findBy(['handling' => $handling]),
-                'fieldsParam' => $fieldsParam,
-                'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_EMERGENCY),
-                'receivers' => $handling->getReceivers()->toArray(),
-            ]);
-
-            return new JsonResponse($json);
-        }
-        throw new BadRequestHttpException();
-    }
-
-    /**
      * @Route("/modifier/{id}", name="handling_edit", options={"expose"=true}, methods="GET|POST")
      * @param EntityManagerInterface $entityManager
      * @param Request $request

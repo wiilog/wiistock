@@ -2,12 +2,11 @@
     <div class="dropdown dropright {{ not hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) ? 'd-none' }}">
         {% include 'datatable/dotsRow.html.twig' %}
         <div class="dropdown-menu dropdown-follow-gt pointer ">
+            <a href="{{ path('handling_show',{ id: handling.id }) }}" class="action-on-click d-none"></a>
             {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
                 <a data-id="{{ handling.id }}"
-                   data-target='#modalEditHandling'
-                   data-toggle='modal'
-                   onclick="editRow($(this), Routing.generate('handling_edit_api', true), $('#modalEditHandling'), $('#submitEditHandling'))"
-                   class="dropdown-item action-on-click pointer">
+                   href="{{ path('handling_edit_page',{ id: handling.id }) }}"
+                   class="dropdown-item pointer">
                     <i class="fa fa-pen mr-2"></i>Modifier
                 </a>
             {% endif %}
