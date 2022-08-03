@@ -1258,7 +1258,6 @@ function renderFormComponentExample() {
 
     const componentType = $exampleContainer.data('component-type');
     const {data: formData} = processSecondModalForm($modalComponentTypeSecondStep);
-
     const component = {
         type: componentType,
         meterKey: $exampleContainer.data(`meter-key`),

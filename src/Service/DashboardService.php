@@ -45,6 +45,7 @@ use InvalidArgumentException;
 class DashboardService {
 
     public const DEFAULT_DAILY_REQUESTS_SCALE = 5;
+    public const DEFAULT_HANDLING_TRACKING_SCALE = 7;
     public const DEFAULT_WEEKLY_REQUESTS_SCALE = 7;
 
     public const DAILY_PERIOD_NEXT_DAYS = 'nextDays';
@@ -1132,6 +1133,78 @@ class DashboardService {
                 return $carry;
             },
             []);
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param Dashboard\Component $component
+     * @throws Exception
+     */
+    public function persistHandlingTracking(EntityManagerInterface $entityManager, mixed $component): void
+    {
+        $config = $component->getConfig();
+
+        $handlingTypes = $config['handlingTypes'] ?? [];
+        $scale = $config['scale'] ?? self::DEFAULT_HANDLING_TRACKING_SCALE;
+        $period = $config['period'] ?? self::DAILY_PERIOD_PREVIOUS_DAYS;
+        $type = "";
+        $dates = [];
+
+        if(!empty($config['creationDate'])){
+            $type .= "date de création, ";
+            $dates[] = 'creationDate';
+        }
+        if(!empty($config['desiredDate'])){
+            $type .= "date attendue, ";
+            $dates[] = 'desiredDate';
+        }
+        if(!empty($config['validationDate'])){
+            $type .= "date de traitement ";
+            $dates[] = 'validationDate';
+        }
+
+        $hint = "Nombre d'acheminements ayant leurs $type sur les jours présentés";
+
+        $handlingRepository = $entityManager->getRepository(Handling::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
+
+        $chartData = [];
+        $labels = [
+            'validationDate' => 'Date de traitement',
+            'desiredDate' => 'Date attendue',
+            'creationDate' => 'Date de création',
+        ];
+        foreach ($dates as $date){
+            $dateData = $this->getDailyObjectsStatistics(
+                $entityManager,
+                $scale,
+                function(DateTime $dateMin, DateTime $dateMax) use ($date, $handlingRepository, $handlingTypes) {
+                    return $handlingRepository->countByDates($dateMin, $dateMax, [
+                        'handlingTypesFilter' => $handlingTypes,
+                        'date' => $date
+                    ]);
+                },
+                [],
+                $period
+            );
+            $label = $labels[$date];
+            foreach ($dateData as $dateKey => $datum) {
+                if (!isset($chartData[$dateKey][$label])) {
+                    $chartData[$dateKey][$label] = 0;
+                }
+                $chartData[$dateKey][$label] += intval($datum);
+            }
+        }
+
+        $chartColors = $config['chartColors'] ?? [];
+
+        $chartData['hint'] = $hint;
+        $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Chart::class);
+        $meter
+            ->setData($chartData);
+        if ($chartColors) {
+            $meter->setChartColors($chartColors);
+        }
     }
 
     /**
