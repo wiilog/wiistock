@@ -129,7 +129,7 @@ class HandlingController extends AbstractController {
                 'handlingStatus' => $statutRepository->findStatusByType(CategorieStatut::HANDLING),
                 'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_EMERGENCY)
             ],
-            'handlingIds' => json_encode($handlingIds),
+            'handlingIds' => json_encode($handlingIds ?? []),
 		]);
     }
 

@@ -144,10 +144,16 @@ function initDatatable() {
                     },
                 },
                 hideColumnConfig: {
-                    columns,
+                    columns: [
+                        {data: 'actions', name: 'actions', title: '', orderable: false},
+                        ...columns,
+                    ],
                     tableFilter: 'tableHandlings',
                 },
-                columns,
+                columns: [
+                    {data: 'actions', name: 'actions', title: '', orderable: false},
+                    ...columns,
+                ],
             };
             return initDataTable('tableHandlings', tableHandlingConfig);
         });

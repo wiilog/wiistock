@@ -114,7 +114,7 @@ class HandlingService {
             'treatedBy' => $handling->getTreatedByHandling() ? $handling->getTreatedByHandling()->getUsername() : '',
             //'treatmentDelay' => $treatmentDelayStr,
             'carriedOutOperationCount' => is_int($handling->getCarriedOutOperationCount()) ? $handling->getCarriedOutOperationCount() : '',
-            'Actions' => $this->templating->render('handling/datatableHandlingRow.html.twig', [
+            'actions' => $this->templating->render('handling/datatableHandlingRow.html.twig', [
                 'handling' => $handling
             ]),
         ];
@@ -268,7 +268,6 @@ class HandlingService {
         $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::DEMANDE_HANDLING, $categorieCL);
 
         $columns = [
-            ['title' => 'Actions', 'name' => 'Actions'],
             ['title' => 'Numéro de demande',  'name' => 'number'],
             ['title' => 'Date demande', 'name' => 'creationDate'],
             ['title' => 'Type', 'name' => 'type'],
@@ -281,8 +280,8 @@ class HandlingService {
             ['title' => 'services.Nombre d\'opération(s) réalisée(s)', 'name' => 'carriedOutOperationCount', 'translated' => true],
             ['title' => 'Traité par', 'name' => 'treatedBy'],
         ];
-dump($freeFields);
-        return dump($this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible));
+
+        return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);
     }
 
 }
