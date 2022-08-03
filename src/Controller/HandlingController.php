@@ -499,14 +499,23 @@ class HandlingController extends AbstractController
                            EntityManagerInterface $entityManager): Response {
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $statutRepository = $entityManager->getRepository(Statut::class);
 
         $freeFields = $freeFieldRepository->findByType($handling->getType());
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_HANDLING);
+        $status = Stream::from($statutRepository->findStatusByType(CategorieStatut::HANDLING, $handling->getType()))
+        ->map(function ($statut) {
+            return [
+                "label" => $statut->getNom(),
+                "value" => $statut->getId(),
+            ];
+        })->toArray();
 
         return $this->render('handling/show.html.twig', [
             'handling' => $handling,
             'freeFields' => $freeFields,
             'fieldsParam' => $fieldsParam,
+            'status' => $status,
         ]);
     }
 
@@ -562,6 +571,33 @@ class HandlingController extends AbstractController
             'emergencies' => $emergencies,
             'fieldsParam' => $fieldsParam,
             'receivers' => $receivers,
+        ]);
+    }
+
+    #[Route("/edit-statut", name: "handling_status_edit", options: ['expose' => true], methods: "POST")]
+    public function editStatut(Request $request,
+                               EntityManagerInterface $entityManager,
+                               StatusHistoryService $statusHistoryService): JsonResponse {
+        $handlingRepository = $entityManager->getRepository(Handling::class);
+        $statutRepository = $entityManager->getRepository(Statut::class);
+
+        $request =json_decode($request->getContent(), true);
+        $statut = $statutRepository->find($request['statut']);
+        $handling = $handlingRepository->find($request['handling']);
+        $requester = $this->getUser();
+
+        $statusHistoryService->updateStatus($entityManager, $handling, $statut);
+
+        if ($statut->isTreated()) {
+            $handling->setValidationDate(new \DateTime());
+            $handling->setTreatedByHandling($requester);
+        }
+
+        $entityManager->persist($handling);
+        $entityManager->flush();
+
+        return $this->json([
+            "success" => true,
         ]);
     }
 }

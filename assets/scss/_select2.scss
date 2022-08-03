@@ -126,6 +126,7 @@ $select-height: 36px;
 
     &.select2-results__option--highlighted {
         color: $white !important;
+        background: $primary !important;
     }
 }
 

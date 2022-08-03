@@ -11,5 +11,9 @@ $(function () {
     let urlDeleteHandling = Routing.generate('handling_delete', true);
     InitModal($modalDeleteHandling, $submitDeleteHandling, urlDeleteHandling);
 
+    let $modalEditStatus = $('#modalEditStatut');
+    let $submitEditStatut = $('#submitEditStatut');
+    let urlEditStatut = Routing.generate('handling_status_edit', true);
+    InitModal($modalEditStatus, $submitEditStatut, urlEditStatut, {success: () => { location.reload() }});
 });
 

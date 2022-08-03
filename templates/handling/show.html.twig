@@ -175,7 +175,8 @@
                 <div class="header wii-title d-flex justify-content-between p-2">
                     <span class="d-flex align-items-center pl-2">Statut</span>
                     {% if handling.status.treated != 1 %}
-                        <button id="" name='' type="button" class="btn btn-primary data d-flex align-items-center">
+                        <button id="" name='' type="button" class="btn btn-primary data d-flex align-items-center"
+                                onclick="$('#modalEditStatut').modal('show')">
                             <img src="{{ asset('svg/timeline-status-white.svg') }}" alt="Icône statut timeline" width="15px" class="mr-2">
                             Changer le statut
                         </button>
@@ -234,6 +235,7 @@
     </div>
 </div>
 {% include "handling/modalDeleteHandling.html.twig" %}
+{% include "handling/modalEditStatut.html.twig" %}
 <input hidden value="{{ handling.id }}" name="handlingId">
 {% endblock %}
 
