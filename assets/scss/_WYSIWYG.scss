@@ -23,6 +23,6 @@
 
     &.is-invalid {
         padding-right: 0;
-        border-top: #dc3545 1px solid !important;
+        border-top: $danger 1px solid !important;
     }
 }

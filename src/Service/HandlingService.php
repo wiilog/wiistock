@@ -249,13 +249,13 @@ class HandlingService {
             'requestNumber' => $handling->getNumber(),
             'requestDate' => $requestDateStr,
             'requestUser' => $handling->getRequester() ? $handling->getRequester()->getUsername() : 'Non défini',
-            'cardColor' => 'darkWhite',
-            'bodyColor' => 'lightGrey',
+            'cardColor' => 'lightest-grey',
+            'bodyColor' => 'light-grey',
             'topRightIcon' => $handling->getEmergency() ? '' : 'livreur.svg',
             'emergencyText' => $handling->getEmergency() ?? '',
             'progress' =>  $statusesToProgress[$state] ?? 0,
             'progressBarColor' => '#2ec2ab',
-            'progressBarBGColor' => 'lightGrey',
+            'progressBarBGColor' => 'light-grey',
         ];
     }
 

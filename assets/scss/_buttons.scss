@@ -10,14 +10,14 @@ $outlineButtonConfig: (
     'primary': (
         'bg-color': $white,
         'color': $primary,
-        'active-bg-color': #F2F3F7,
-        'disabled-color': $grey
+        'active-bg-color': $light-blue,
+        'disabled-color': $medium-grey
     ),
     'secondary': (
         'bg-color': transparent,
-        'color': $greyDashboard,
-        'active-bg-color': #E7E7E8,
-        'disabled-color': $grey
+        'color': $dark-grey,
+        'active-bg-color': $light-grey,
+        'disabled-color': $medium-grey
     )
 );
 
@@ -52,7 +52,7 @@ $outlineButtonConfig: (
     &:focus {
         background-color: $color;
         border-color: $color;
-        box-shadow: $buttonBoxShadow;
+        box-shadow: $dark-grey;
     }
 
     &:active {
@@ -60,7 +60,7 @@ $outlineButtonConfig: (
     }
 
     &:disabled {
-        @include button-disabled($grey, $grey, $disabled-color);
+        @include button-disabled($medium-grey, $medium-grey, $disabled-color);
     }
 
     .wii-icon {
@@ -85,19 +85,19 @@ $outlineButtonConfig: (
     &:focus {
         background-color: $bg-color !important;
         border-color: $color !important;
-        box-shadow: $buttonBoxShadow !important;
+        box-shadow: $dark-grey !important;
         color: $color !important;
     }
 
     &:active {
-        border-color: $greyDashboard;
+        border-color: $dark-grey;
         background-color: $active-bg-color !important;
         box-shadow: none !important;
         color: $color !important;
     }
 
     &:disabled {
-        @include button-disabled($grey, $bg-color, $disabled-color);
+        @include button-disabled($medium-grey, $bg-color, $disabled-color);
     }
 }
 
@@ -107,10 +107,10 @@ $outlineButtonConfig: (
 
 // boutons de la colonne Actions
 .btn-col-action {
-    background-color: $greyDark;
+    background-color: $dark-grey;
 
     &:hover {
-        color: $greyDark;
+        color: $dark-grey;
     }
 }
 
@@ -122,7 +122,7 @@ $outlineButtonConfig: (
 
 .third {
     font-size: 0.9rem;
-    color: #888888;
+    color: $dark-grey;
     vertical-align: top;
     width: 100%;
 
@@ -132,8 +132,8 @@ $outlineButtonConfig: (
 }
 
 .btn-disabled {
-    background-color: $greyDark;
-    border-color: $greyDark;
+    background-color: $dark-grey;
+    border-color: $dark-grey;
     pointer-events: none;
 }
 
@@ -186,4 +186,11 @@ $outlineButtonConfig: (
     &:hover {
         color: $primary;
     }
+}
+
+.link-like {
+    display: inline-block;
+    border: none;
+    background: none;
+    padding: 0;
 }

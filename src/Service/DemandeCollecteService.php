@@ -364,13 +364,13 @@ class DemandeCollecteService
             'requestNumber' => $request->getNumero(),
             'requestDate' => $requestDateStr,
             'requestUser' => $request->getDemandeur() ? $request->getDemandeur()->getUsername() : 'Non défini',
-            'cardColor' => $requestStatus === Collecte::STATUT_BROUILLON ? 'lightGrey' : 'darkWhite',
-            'bodyColor' => $requestStatus === Collecte::STATUT_BROUILLON ? 'white' : 'lightGrey',
+            'cardColor' => $requestStatus === Collecte::STATUT_BROUILLON ? 'light-grey' : 'lightest-grey',
+            'bodyColor' => $requestStatus === Collecte::STATUT_BROUILLON ? 'white' : 'light-grey',
             'topRightIcon' => 'livreur.svg',
             'emergencyText' => '',
             'progress' => $statusesToProgress[$requestStatus] ?? 0,
             'progressBarColor' => '#2ec2ab',
-            'progressBarBGColor' => $requestStatus === Collecte::STATUT_BROUILLON ? 'white' : 'lightGrey',
+            'progressBarBGColor' => $requestStatus === Collecte::STATUT_BROUILLON ? 'white' : 'light-grey',
             'backgroundColor' => $backgroundColor
         ];
     }

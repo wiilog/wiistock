@@ -81,7 +81,7 @@
     font-style: italic;
 }
 
-@each $name, $color in $wiiStockTextColors {
+@each $name, $color in $text-colors {
     .text-wii-#{$name} {
         color: $color;
     }

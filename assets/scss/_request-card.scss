@@ -20,12 +20,13 @@
         align-items: center;
 
         .card-title {
-            color: #5867dd;
+            color: $primary;
         }
     }
 
     .wii-card-header {
         margin-bottom: 0.5rem;
+
         .wii-card-icon {
             width: 30px;
         }

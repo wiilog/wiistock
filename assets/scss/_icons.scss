@@ -112,20 +112,20 @@ $icons: (
     }
 }
 
-$wiiIconSizes: 10, 15, 20, 25, 30, 35, 40, 45, 50;
-$wiiIconColors: (
+$icon-sizes: 10, 15, 20, 25, 30, 35, 40, 45, 50;
+$icon-colors: (
     primary: $primary,
     black: $black
 );
 
-@each $size in $wiiIconSizes {
+@each $size in $icon-sizes {
     .wii-icon-#{$size}px {
         display: inline-block;
         width: #{$size}px;
         height: #{$size}px;
     }
 
-    @each $key, $val in $wiiIconColors {
+    @each $key, $val in $icon-colors {
         .wii-icon-#{$size}px-#{$key} {
             display: inline-block;
             width: #{$size}px;

@@ -440,8 +440,8 @@ class DashboardSettingsService {
                 $values = [
                     'subtitle' => '-',
                     'subCounts' => [
-                        '<span class="text-wii-green">-</span> <span class="text-wii-black">lignes</span>',
-                        '<span class="text-wii-black">Dont</span> <span class="text-wii-red">-</span> <span class="text-wii-black">urgences</span>'
+                        '<span class="text-wii-success">-</span> <span class="text-wii-black">lignes</span>',
+                        '<span class="text-wii-black">Dont</span> <span class="text-wii-danger">-</span> <span class="text-wii-black">urgences</span>'
                     ],
                     'count' => '-',
                 ];

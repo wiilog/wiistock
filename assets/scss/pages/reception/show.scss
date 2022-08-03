@@ -9,7 +9,7 @@
     }
 
     .values {
-        background: #F2F3F7;
+        background: $light-blue;
         border-radius: 5px;
         height: 100%;
     }
@@ -29,14 +29,14 @@
     }
 
     .values {
-        background: #F2F3F7;
+        background: $light-blue;
         border-radius: 5px;
         height: 100%;
     }
 }
 
 .transfer-form, .demande-form {
-    background-color: #F2F3F7;
+    background-color: $light-blue;
     padding: 10px;
     border-radius: 4px;
 }

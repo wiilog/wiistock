@@ -224,13 +224,13 @@ class DemandeLivraisonService
             'requestNumber' => $demande->getNumero(),
             'requestDate' => $requestDateStr,
             'requestUser' => $demande->getUtilisateur() ? $demande->getUtilisateur()->getUsername() : 'Non défini',
-            'cardColor' => $requestStatus === Demande::STATUT_BROUILLON ? 'lightGrey' : 'darkWhite',
-            'bodyColor' => $requestStatus === Demande::STATUT_BROUILLON ? 'white' : 'lightGrey',
+            'cardColor' => $requestStatus === Demande::STATUT_BROUILLON ? 'light-grey' : 'lightest-grey',
+            'bodyColor' => $requestStatus === Demande::STATUT_BROUILLON ? 'white' : 'light-grey',
             'topRightIcon' => 'livreur.svg',
             'progress' => $statusesToProgress[$requestStatus] ?? 0,
             'progressBarColor' => '#2ec2ab',
             'emergencyText' => '',
-            'progressBarBGColor' => $requestStatus === Demande::STATUT_BROUILLON ? 'white' : 'lightGrey',
+            'progressBarBGColor' => $requestStatus === Demande::STATUT_BROUILLON ? 'white' : 'light-grey',
         ];
     }
 

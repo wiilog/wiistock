@@ -51,7 +51,7 @@
     }
 }
 
-@each $color, $value in $alertColors {
+@each $color, $value in $alert-colors {
     .wii-alert-#{$color} {
         background-color: $value;
     }

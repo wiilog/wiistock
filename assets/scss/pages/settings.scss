@@ -29,7 +29,7 @@
                 display: inline-block;
                 width: 49%;
                 font-size: 0.9rem;
-                color: #888888;
+                color: $dark-grey;
                 vertical-align: top;
 
                 &.full-size {
@@ -59,12 +59,12 @@
             font-size: 1.1rem;
             font-weight: 600;
             padding: 20px;
-            border-bottom: 1px solid $grey;
+            border-bottom: 1px solid $medium-grey;
             cursor: pointer;
 
             &.selected {
                 color: $primary;
-                background: #F8F9FA;
+                background: $background;
 
                 &::after {
                     transform: rotate(0deg);
@@ -97,6 +97,7 @@
                 &.collapsible.expanded {
                     padding: #{$grid-gutter-width * 0.6} #{$grid-gutter-width};
                 }
+
                 &.collapsible {
                     padding: 0;
                 }
@@ -117,8 +118,8 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    border: 1px solid #CDCDCD;
-    background: #f2f3f7;
+    border: 1px solid $medium-grey;
+    background: $light-blue;
     border-radius: 5px;
     padding: 9px;
     margin: 0 5px;
@@ -145,10 +146,10 @@ textarea {
 
 .hide-arrow {
     .phone-number {
-         border: none;
-         background-color: transparent;
-         padding-left: 40px !important;
-     }
+        border: none;
+        background-color: transparent;
+        padding-left: 40px !important;
+    }
 
     .iti__arrow {
         display: none;

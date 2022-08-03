@@ -75,14 +75,14 @@
         }
 
         &.sa-success {
-            border-color: #A5DC86;
+            border-color: $success;
 
             .sa-success-placeholder {
-                border-color: rgba(165, 220, 134, 0.25);
+                border-color: $success;
             }
 
             .sa-success-tip, .sa-success-long {
-                background-color: #A5DC86;
+                background-color: $success;
                 border-radius: 2px;
                 height: 5px;
                 position: absolute;
@@ -108,10 +108,10 @@
 
         &.sa-error {
             animation: animateErrorIcon 0.5s;
-            border-color: #F27474;
+            border-color: $danger;
 
             .sa-error-placeholder {
-                border-color: rgba(200, 0, 0, 0.2);
+                border-color: $danger;
             }
 
             .sa-error-x {
@@ -126,7 +126,7 @@
                 height: 5px;
                 position: absolute;
                 z-index: 2;
-                background-color: #F27474;
+                background-color: $danger;
                 top: 37px;
                 width: 47px;
             }
@@ -145,7 +145,7 @@
         }
 
         &.sa-warning {
-            border-color: #F8BB86;
+            border-color: $warning;
             animation: scaleWarning 0.75s infinite alternate;
 
             &:after, &:before {
@@ -166,7 +166,7 @@
             }
 
             .sa-warning-body {
-                background-color: #F8BB86;
+                background-color: $warning;
                 border-radius: 2px;
                 height: 47px;
                 left: 50%;
@@ -175,11 +175,10 @@
                 top: 10px;
                 width: 5px;
                 z-index: 2;
-                animation: pulseWarningIns 0.75s infinite alternate;
             }
 
             .sa-warning-dot {
-                background-color: #F8BB86;
+                background-color: $warning;
                 border-radius: 50%;
                 bottom: 10px;
                 height: 7px;
@@ -188,7 +187,6 @@
                 position: absolute;
                 width: 7px;
                 z-index: 2;
-                animation: pulseWarningIns 0.75s infinite alternate;
             }
         }
     }
@@ -330,18 +328,8 @@
     }
 
     100% {
-        background-color: #F8BB86;
+        background-color: $warning;
         transform: scale(2);
         opacity: 0;
-    }
-}
-
-@keyframes pulseWarningIns {
-    0% {
-        background-color: #F8D486;
-    }
-
-    100% {
-        background-color: #F8BB86;
     }
 }
