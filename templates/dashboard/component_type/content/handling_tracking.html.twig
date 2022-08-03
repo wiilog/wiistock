@@ -1,0 +1,93 @@
+{% extends 'dashboard/component_type/content/base_form.html.twig' %}
+
+{% block header %}
+    <p class="font-italic">Des dates attendues doivent être placées sur les services.</p>
+    <p class="font-italic">Des heures travaillées doivent être renseignées.</p>
+    <br>
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="form-group col-12">
+            <label class="wii-field-name">Type(s) de services*</label>
+            <div class="input-group flex-nowrap no-gutters">
+                <div class="flex-fill">
+                    <select class="data form-control h-100 w-100 needed select2"
+                            name="handlingTypes"
+                            multiple
+                            title="Type(s) de services">
+                        {% for handlingType in handlingTypes %}
+                            <option value="{{ handlingType.id }}" {{ handlingType in values.handlingTypes ? 'selected' }}>{{ handlingType.label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="input-group-append col-4">
+                    <button class="btn btn-primary select-all-types w-100" type="button">Tous les types</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <label class="wii-field-name">Date affiché*</label>
+    <div class="row form-group align-items-center mt-2">
+        <div class="col-auto">
+            <label class="switch">
+                <input class="checkbox"
+                       type="checkbox"
+                       name="creationDate"
+                    {{ values.creationDate ?? false ? 'checked' }}/>
+                <span class="slider round"></span>
+            </label>
+        </div>
+        <div class="col">
+            Date de création
+        </div>
+    </div>
+    <div class="row form-group align-items-center">
+        <div class="col-auto">
+            <label class="switch">
+                <input class="checkbox"
+                       type="checkbox"
+                       name="desiredDate"
+                    {{ values.desiredDate ?? false ? 'checked' }}/>
+                <span class="slider round"></span>
+            </label>
+        </div>
+        <div class="col">
+            Date attendue
+        </div>
+    </div>
+    <div class="row form-group align-items-center">
+        <div class="col-auto">
+            <label class="switch">
+                <input class="checkbox"
+                       type="checkbox"
+                       name="validationDate"
+                    {{ values.validationDate ?? false ? 'checked' }}/>
+                <span class="slider round"></span>
+            </label>
+        </div>
+        <div class="col">
+            Date de traitement
+        </div>
+    </div>
+
+    <div class="form-group d-flex align-items-center mt-3">
+        <label>Voir les</label>
+        <input class="form-control data mx-3 needed"
+               name="scale"
+               value="{{ values.scale ?? 7 }}"
+               type="number"
+               min=1
+               max=7
+               step="1"
+               style="width: 70px">
+        <select class="form-control data w-50" name="period">
+            <option value="{{ constant('App\\Service\\DashboardService::DAILY_PERIOD_PREVIOUS_DAYS') }}" {{  values.period is not defined or constant('App\\Service\\DashboardService::DAILY_PERIOD_PREVIOUS_DAYS') == values.period ? 'selected' }}>dernier jours</option>
+            <option value="{{ constant('App\\Service\\DashboardService::DAILY_PERIOD_NEXT_DAYS') }}" {{  values.period is defined and constant('App\\Service\\DashboardService::DAILY_PERIOD_NEXT_DAYS') == values.period ? 'selected' }}>prochains jours</option>
+        </select>
+    </div>
+    <label class="d-block mb-3" style="margin-top: -15px;font-size:0.9rem">
+        (7 jours maximum. Le jour en cours est compté dans le nombre de jours)
+    </label>
+{% endblock %}

@@ -10,7 +10,14 @@ use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: DashboardRepository\ComponentTypeRepository::class)]
 #[ORM\Table(name: 'dashboard_component_type')]
-class ComponentType {
+class ComponentType
+{
+
+    public const CATEGORY_TRACKING = "Traçabilité";
+    public const CATEGORY_REQUESTS = "Demandes";
+    public const CATEGORY_ORDERS = "Ordres";
+    public const CATEGORY_STOCK = "Stock";
+    public const CATEGORY_OTHER = "Autre";
 
     public const ONGOING_PACKS = 'ongoing_packs';
     public const DAILY_ARRIVALS = 'daily_arrivals';
@@ -29,6 +36,7 @@ class ComponentType {
     public const REFERENCE_RELIABILITY = 'reference_reliability';
     public const ACTIVE_REFERENCE_ALERTS = 'active_reference_alerts';
     public const DAILY_DISPATCHES = 'daily_dispatches';
+    public const HANDLING_TRACKING = 'handling_tracking';
     public const DAILY_HANDLING_INDICATOR = 'daily_handling_indicator';
     public const DAILY_HANDLING = 'daily_handling';
     public const DAILY_OPERATIONS = 'daily_operations';
@@ -46,15 +54,50 @@ class ComponentType {
     public const REQUESTS_TO_TREAT_DISPATCH = 'requests_to_treat_dispatch';
     public const REQUESTS_TO_TREAT_TRANSFER = 'requests_to_treat_transfer';
     public const GENERIC_TEMPLATE = 'generic_template';
+
     public const REQUESTS_SELF = 'self';
     public const REQUESTS_EVERYONE = 'everyone';
+
     public const ENTITY_TO_TREAT_REGEX_TREATMENT_DELAY = '/^(([01]?[0-9])|(2[0-3])):[0-5][0-9]$/';
-    public const CATEGORY_TRACKING = "Traçabilité";
-    public const CATEGORY_REQUESTS = "Demandes";
-    public const CATEGORY_ORDERS = "Ordres";
-    public const CATEGORY_STOCK = "Stock";
-    public const CATEGORY_OTHER = "Autre";
     public const DEFAULT_CHART_COLOR = '#A3D1FF';
+
+    public const COMPONENT_ORDER = [
+        self::CATEGORY_TRACKING => [
+            self::ONGOING_PACKS,
+            self::DAILY_ARRIVALS,
+            self::LATE_PACKS,
+            self::DAILY_ARRIVALS_AND_PACKS,
+            self::RECEIPT_ASSOCIATION,
+            self::WEEKLY_ARRIVALS_AND_PACKS,
+            self::DROP_OFF_DISTRIBUTED_PACKS,
+            self::CARRIER_TRACKING,
+            self::ARRIVALS_EMERGENCIES_TO_RECEIVE,
+            self::DAILY_ARRIVALS_EMERGENCIES,
+        ],
+        self::CATEGORY_ORDERS => [
+            self::PACK_TO_TREAT_FROM,
+            self::ENTRIES_TO_HANDLE,
+            self::ORDERS_TO_TREAT,
+        ],
+        self::CATEGORY_STOCK => [
+            self::ACTIVE_REFERENCE_ALERTS,
+            self::MONETARY_RELIABILITY_GRAPH,
+            self::MONETARY_RELIABILITY_INDICATOR,
+            self::REFERENCE_RELIABILITY,
+        ],
+        self::CATEGORY_REQUESTS => [
+            self::REQUESTS_TO_TREAT,
+            self::PENDING_REQUESTS,
+            self::DAILY_DISPATCHES,
+            self::DAILY_HANDLING,
+            //TODO: suivi des demandes de service
+            self::DAILY_OPERATIONS,
+            self::DAILY_HANDLING_INDICATOR,
+        ],
+        self::CATEGORY_OTHER => [
+            self::EXTERNAL_IMAGE,
+        ],
+    ];
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -85,76 +128,90 @@ class ComponentType {
     #[ORM\OneToMany(targetEntity: Component::class, mappedBy: 'type', cascade: ['remove'])]
     private Collection $componentsUsing;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->componentsUsing = new ArrayCollection();
         $this->exampleValues = [];
         $this->inSplitCell = true;
     }
 
-    public function getId(): ?int {
+    public function getId(): ?int
+    {
         return $this->id;
     }
 
-    public function getName(): ?string {
+    public function getName(): ?string
+    {
         return $this->name;
     }
 
-    public function setName(string $name): self {
+    public function setName(string $name): self
+    {
         $this->name = $name;
 
         return $this;
     }
 
-    public function getTemplate(): ?string {
+    public function getTemplate(): ?string
+    {
         return $this->template;
     }
 
-    public function setTemplate(?string $template): self {
+    public function setTemplate(?string $template): self
+    {
         $this->template = $template;
 
         return $this;
     }
 
-    public function getCategory(): ?string {
+    public function getCategory(): ?string
+    {
         return $this->category;
     }
 
-    public function setCategory(?string $category): self {
+    public function setCategory(?string $category): self
+    {
         $this->category = $category;
 
         return $this;
     }
 
-    public function getHint(): ?string {
+    public function getHint(): ?string
+    {
         return $this->hint;
     }
 
-    public function setHint(string $hint): self {
+    public function setHint(string $hint): self
+    {
         $this->hint = $hint;
         return $this;
     }
 
-    public function isInSplitCell(): bool {
+    public function isInSplitCell(): bool
+    {
         return $this->inSplitCell;
     }
 
-    public function setInSplitCell(bool $inSplitCell): self {
+    public function setInSplitCell(bool $inSplitCell): self
+    {
         $this->inSplitCell = $inSplitCell;
         return $this;
     }
 
-    public function getExampleValues(): ?array {
+    public function getExampleValues(): ?array
+    {
 
         $exampleValues = $this->exampleValues;
-        if(isset($exampleValues['chartData'])) {
+        if (isset($exampleValues['chartData'])) {
             $exampleValues['chartData'] = $this->decodeData($exampleValues['chartData']);
         }
 
         return $exampleValues;
     }
 
-    public function setExampleValues(array $exampleValues): self {
-        if(isset($exampleValues['chartData'])) {
+    public function setExampleValues(array $exampleValues): self
+    {
+        if (isset($exampleValues['chartData'])) {
             $exampleValues['chartData'] = $this->encodeData($exampleValues['chartData']);
         }
 
@@ -166,12 +223,14 @@ class ComponentType {
     /**
      * @return Collection|Component[]
      */
-    public function getComponentsUsing(): Collection {
+    public function getComponentsUsing(): Collection
+    {
         return $this->componentsUsing;
     }
 
-    public function addComponentUsing(Component $component): self {
-        if(!$this->componentsUsing->contains($component)) {
+    public function addComponentUsing(Component $component): self
+    {
+        if (!$this->componentsUsing->contains($component)) {
             $this->componentsUsing[] = $component;
             $component->setType($this);
         }
@@ -179,10 +238,11 @@ class ComponentType {
         return $this;
     }
 
-    public function removeComponentUsing(Component $component): self {
-        if($this->componentsUsing->removeElement($component)) {
+    public function removeComponentUsing(Component $component): self
+    {
+        if ($this->componentsUsing->removeElement($component)) {
             // set the owning side to null (unless already changed)
-            if($component->getType() === $this) {
+            if ($component->getType() === $this) {
                 $component->setType(null);
             }
         }
@@ -190,25 +250,29 @@ class ComponentType {
         return $this;
     }
 
-    public function getMeterKey(): ?string {
+    public function getMeterKey(): ?string
+    {
         return $this->meterKey;
     }
 
-    public function setMeterKey(?string $meterKey): self {
+    public function setMeterKey(?string $meterKey): self
+    {
         $this->meterKey = $meterKey;
         return $this;
     }
 
-    private function decodeData(array $data): array {
+    private function decodeData(array $data): array
+    {
         return Stream::from($data)
-            ->keymap(function($value) {
+            ->keymap(function ($value) {
                 return [$value['dataKey'], $value['data']];
             })->toArray();
     }
 
-    private function encodeData(array $data): array {
+    private function encodeData(array $data): array
+    {
         $savedData = [];
-        foreach($data as $key => $datum) {
+        foreach ($data as $key => $datum) {
             $savedData[] = [
                 'dataKey' => $key,
                 'data' => $datum,

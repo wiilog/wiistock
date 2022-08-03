@@ -145,13 +145,13 @@ function initDatatable() {
                 },
                 hideColumnConfig: {
                     columns: [
-                        {data: 'actions', name: 'actions', title: '', orderable: false},
+                        {data: 'actions', name: 'actions', title: '', className: 'noVis', orderable: false},
                         ...columns,
                     ],
                     tableFilter: 'tableHandlings',
                 },
                 columns: [
-                    {data: 'actions', name: 'actions', title: '', orderable: false},
+                    {data: 'actions', name: 'actions', title: '', className: 'noVis', orderable: false},
                     ...columns,
                 ],
             };

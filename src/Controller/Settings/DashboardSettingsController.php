@@ -44,31 +44,35 @@ class DashboardSettingsController extends AbstractController {
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
 
-        $orderedComponentCategories = [
-            Dashboard\ComponentType::CATEGORY_TRACKING,
-            Dashboard\ComponentType::CATEGORY_ORDERS,
-            Dashboard\ComponentType::CATEGORY_STOCK,
-            Dashboard\ComponentType::CATEGORY_REQUESTS
-        ];
+        $orderedComponentTypes = [];
+        foreach($componentTypes as $componentType) {
+            $category = $componentType->getCategory();
+            if(!isset($orderedComponentTypes[$category])) {
+                $orderedComponentTypes[$category] = [];
+            }
 
-        $componentTypes = Stream::from($componentTypes)
-            ->reduce(function(array $carry, Dashboard\ComponentType $componentType) {
-                $category = $componentType->getCategory();
-                if(!isset($carry[$category])) {
-                    $carry[$category] = [];
-                }
+            $orderedComponentTypes[$category][] = $componentType;
+        }
 
-                $carry[$category][] = $componentType;
+        $sortedCategories = array_keys(Dashboard\ComponentType::COMPONENT_ORDER);
 
-                return $carry;
-            }, []);
+        uksort($orderedComponentTypes, function(string $a, string $b) use ($sortedCategories) {
+            return array_search($a, $sortedCategories) <=> array_search($b, $sortedCategories);
+        });
+
+        foreach($orderedComponentTypes as $category => &$categoryComponentTypes) {
+            usort($categoryComponentTypes, function(Dashboard\ComponentType $a, Dashboard\ComponentType $b) use ($category) {
+                return array_search($a->getMeterKey(), Dashboard\ComponentType::COMPONENT_ORDER[$category])
+                    <=> array_search($b->getMeterKey(), Dashboard\ComponentType::COMPONENT_ORDER[$category]);
+            });
+        }
 
         return $this->render("dashboard/settings.html.twig", [
             "dashboards" => $dashboardSettingsService->serialize($entityManager, $loggedUser, DashboardSettingsService::MODE_EDIT),
             "token" => $_SERVER["APP_DASHBOARD_TOKEN"],
             "componentTypeConfig" => [
                 // component types group by category
-                "componentTypes" => array_merge(array_flip($orderedComponentCategories), $componentTypes)
+                "componentTypes" => $orderedComponentTypes,
             ]
         ]);
     }
