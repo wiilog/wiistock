@@ -3,15 +3,15 @@
 .radio-btn {
     .btn {
         color: $white;
-        background-color: $blueGT;
+        background-color: $primary;
         border-radius: 0;
         margin: 0;
-        border: 1px solid $blueGT;
+        border: 1px solid $primary;
 
         &.disabled:hover {
-            background-color: $blueGT;
+            background-color: $primary;
             color: $white;
-            border: 1px solid $blueGT;
+            border: 1px solid $primary;
         }
 
         &:first-child {
@@ -25,18 +25,18 @@
         }
 
         &:hover:not(.disabled) {
-            background-color: $blueGT;
+            background-color: $primary;
             color: $white;
         }
     }
 
     .not-active {
-        color: $blueGT;
+        color: $primary;
         background-color: $white;
 
         &.disabled:hover {
-            color: $blueGT;
-            border: 1px solid $blueGT;
+            color: $primary;
+            border: 1px solid $primary;
             background-color: $white;
         }
     }
@@ -45,25 +45,25 @@
 .radio-btn {
     .btn-danger {
         border-radius: 0;
-        border: 1px solid $redDanger;
+        border: 1px solid $danger;
 
         &.active {
             color: $white;
-            background-color: $redDanger;
+            background-color: $danger;
             margin: 0;
 
             &:hover {
                 background-color: $white !important;
-                color: $redDanger !important;
+                color: $danger !important;
             }
         }
 
         &.not-active {
-            color: $redDanger !important;
+            color: $danger !important;
             background-color: $white;
 
             &:hover {
-                background-color: $redDanger !important;
+                background-color: $danger !important;
                 color: $white !important;
             }
         }

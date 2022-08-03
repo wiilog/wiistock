@@ -16,7 +16,7 @@
 }
 
 .order-card {
-    background-color: #f2f3f7;
+    background-color: $light-blue;
     border-radius: 3px;
     margin: 5px 10px;
     display: flex;
@@ -43,7 +43,7 @@
         border-top-left-radius: inherit;
 
         &.finished {
-            background-color: $greyDashboard !important;
+            background-color: $dark-grey !important;
         }
     }
 
@@ -146,7 +146,7 @@
 .placeholder {
     min-height: 50px;
     border-radius: 5px;
-    border: 1px solid #ccc;;
+    border: 1px solid $medium-grey;
     margin: 5px 10px;
     width: available;
 }
@@ -216,7 +216,7 @@
     .header {
         display: flex;
         align-items: center;
-        background-color: #F2F3F7;
+        background-color: $light-blue;
         padding: 5px 15px;
         border: none !important;
     }

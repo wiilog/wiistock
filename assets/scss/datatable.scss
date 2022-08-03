@@ -14,10 +14,10 @@
         }
     }
 
-    &:hover,&:active {
+    &:hover, &:active {
         color: $white !important;
-        background: $darkenPrimary !important;
-        border: 1px solid $darkenPrimary !important;
+        background: $primary !important;
+        border: 1px solid $primary !important;
     }
 }
 
@@ -29,7 +29,7 @@
 table.wii-table {
     tr {
         &:hover {
-            background-color: #f8f9fa;
+            background-color: $background;
         }
     }
 
@@ -106,7 +106,7 @@ table.wii-table {
 
     &.next, &.previous {
         a {
-            color: #666666 !important;
+            color: $dark-grey !important;
         }
     }
 
@@ -127,11 +127,11 @@ table.wii-table {
 }
 
 .table-light-orange {
-    background-color: #FFF0E1 !important;
+    background-color: $lightest-orange !important;
 }
 
 .table-light-blue {
-    background-color: #D9E2FF !important;
+    background-color: $lightest-primary !important;
 }
 
 .pairing-row {
@@ -160,7 +160,7 @@ table.DTCR_clonedTable.dataTable {
 
 div.DTCR_pointer {
     width: 2px;
-    background-color: #0259c4;
+    background-color: $primary;
     z-index: 201
 }
 
@@ -169,7 +169,7 @@ div.DTCR_pointer {
 .dataTables_scrollHead thead th,
 .dataTables_scrollBody tbody td {
     border: none;
-    border-bottom: 1px solid $grey !important;
+    border-bottom: 1px solid $medium-grey !important;
 }
 
 table.dataTable.no-footer {
@@ -219,6 +219,7 @@ th.hideOrder {
 
 .dataTables_filter {
     font-size: 13px !important;
+
     input {
         @extend .form-control;
         display: inline-block;
@@ -245,7 +246,7 @@ th.hideOrder {
 thead th.datatable-main-header, tbody th.datatable-main-header {
     color: $primary;
     font-size: 1.2rem;
-        border-bottom: none !important;
+    border-bottom: none !important;
 }
 
 table.no-border-top th {
@@ -255,17 +256,17 @@ table.no-border-top th {
 thead th.datatable-main-header, tbody th.datatable-main-header {
     color: $primary;
     font-size: 1.2rem;
-        border-bottom: none !important;
+    border-bottom: none !important;
 }
 
 table.no-border-top th {
     border-top: none !important;
 }
 
-.select-size{
+.select-size {
     min-width: 100px;
 }
 
 .subentities-table {
-    table-layout:fixed;
+    table-layout: fixed;
 }

@@ -10,7 +10,7 @@ table.wii-list {
     tr {
         td {
             padding: 12px;
-            background-color: #F8F8F8;
+            background-color: $light-grey;
             border: none !important;
 
             &:first-child {
@@ -31,42 +31,6 @@ table.wii-list {
                 text-decoration: underline !important;
             }
         }
-    }
-}
-
-.pack-dispute {
-    display: block;
-    padding: 4px 8px;
-    background-color: #EEEEEE;
-    border-radius: 4px;
-    height: 26px;
-    line-height: 12px;
-    margin-top: 3px;
-    text-align: center;
-    border: 2px solid rgba(51, 51, 51, 0.2);
-
-    &.ongoing {
-        background-color: #fff176;
-        color: #bc5100;
-
-        &:hover {
-            background-color: lighten(#fff176, 2);
-            color: lighten(#bc5100, 2) !important;
-        }
-    }
-
-    &.treated {
-        background-color: #b2fab4;
-        color: #00600f;
-
-        &:hover {
-            background-color: lighten(#b2fab4, 2);
-            color: lighten(#00600f, 2) !important;
-        }
-    }
-
-    &:hover {
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
     }
 }
 
@@ -99,7 +63,7 @@ table.wii-list {
 
         .pack-article {
             display: inline-block;
-            background: #F8F8F8;
+            background: $background;
             border-radius: 4px;
             padding: 3px 10px;
             margin-right: 3px;
@@ -115,6 +79,6 @@ table.wii-list {
 }
 
 .text-highlight {
-    background: yellow;
+    background: $warning;
     box-shadow: 0 0 3px $white;
 }

@@ -1,3 +1,5 @@
+@import "variables";
+
 .main-form-wrapper {
     flex: 1;
 }
@@ -5,7 +7,6 @@
 .main-form-wrapper .btn-right {
     margin-top: 7px;
     background-color: transparent;
-    color: #130078;
     border: none;
 }
 
@@ -18,7 +19,7 @@
 }
 
 .main-form-wrapper .login-header {
-    color: #656565;
+    color: $dark-grey;
     margin: 30px 0;
     text-align: center;
     font-size: 32px;
@@ -36,19 +37,19 @@
 }
 
 .errorMessageContent {
-    border: 2px solid red;
+    border: 2px solid $danger;
     border-radius: 5px;
 }
 
 .messageContent {
-    border: 2px solid green;
+    border: 2px solid $success;
     border-radius: 5px;
 }
 
-.messageChrome {
+.chrome-message {
     display: none;
     margin-top: 30px;
     margin-left: 5px;
     text-align: center;
-    color: #656565;
+    color: $dark-grey;
 }

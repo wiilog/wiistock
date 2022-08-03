@@ -1,4 +1,4 @@
-@import "~bootstrap/scss/variables";
+@import "variables";
 
 .association-pane-item-container {
     &:last-child {
@@ -7,7 +7,7 @@
 
     &.first-association-pane-item {
         border-radius: 10px;
-        background-color: #F2F3F7;
+        background-color: $light-blue;
         color: $primary;
 
         .wii-icon {
@@ -53,16 +53,16 @@
     }
 
     .pairing-date-prefix {
-        color: #666666;
+        color: $dark-grey;
         font-size: 14px;
     }
 
     .timeline-container {
 
 
-        .timeline-show-more-button-container + .timeline-row  {
+        .timeline-show-more-button-container + .timeline-row {
             .timeline-cell {
-                &.timeline-cell-right{
+                &.timeline-cell-right {
                     &:after {
                         top: -20px;
                     }
@@ -74,9 +74,9 @@
             display: flex;
             flex-wrap: nowrap;
 
-            &:last-child  {
+            &:last-child {
                 .timeline-cell {
-                    &.timeline-cell-right{
+                    &.timeline-cell-right {
                         &:after {
                             display: none;
                         }
@@ -91,7 +91,7 @@
                 &.timeline-cell-left {
                     flex: 50%;
                     text-align: right;
-                    color: #666666;
+                    color: $dark-grey;
                 }
 
                 &.timeline-cell-right {
@@ -115,7 +115,7 @@
                         content: "";
                         position: absolute;
                         width: 2px;
-                        background-color: #DADADA;
+                        background-color: $medium-grey;
                         top: 20px;
                         left: 0;
                         bottom: -20px;
@@ -127,11 +127,11 @@
 
                     &.timeline-cell-active {
                         &:before {
-                            background-color: #2FC2AB;
+                            background-color: $success;
                         }
 
                         .timeline-cell-title {
-                            color: #2FC2AB;
+                            color: $success;
                         }
                     }
 

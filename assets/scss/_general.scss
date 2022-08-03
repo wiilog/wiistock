@@ -10,15 +10,14 @@ html {
     height: 100%;
 
     body {
-        font-family: $mainFont, Helvetica, Arial, sans-serif;
+        font-family: $main-font, Helvetica, Arial, sans-serif;
         line-height: 20px;
         font-weight: 400;
         -webkit-font-smoothing: antialiased;
         font-size: 1em;
-        color: $bodyColor;
         overflow-x: hidden;
         height: 100%;
-        background-color: #F5F5F7;
+        background-color: $background;
 
         .wrapper {
             height: 100%;
@@ -146,15 +145,11 @@ a {
 //// COLORS ////
 
 .backGreyFormLight {
-    background-color: #e9ecef !important;
+    background-color: $light-grey !important;
 }
 
 .red {
-    color: $red !important;
-}
-
-.green {
-    color: $green;
+    color: $danger !important;
 }
 
 .bg-grey-transparent {
@@ -259,8 +254,8 @@ a {
             font-size: 1rem !important;
             font-weight: 400 !important;
             line-height: 1.5 !important;
-            color: #495057 !important;
-            border: 1px solid #ced4da;
+            color: $dark-grey !important;
+            border: 1px solid $medium-grey;
             border-radius: 0.25rem !important;
         }
     }
@@ -276,30 +271,30 @@ a {
 
 //  reprise du form-control.is-invalid de bootstrap
 .is-invalid:not(label, .wii-radio, .wii-checkbox) {
-    border: 1px solid #dc3545 !important;
+    border: 1px solid $danger !important;
     background-repeat: no-repeat;
     background-position: center right calc(2.25rem / 4);
     background-size: calc(2.25rem / 2) calc(2.25rem / 2);
 
     .select2-selection {
-        border: 1px solid red !important;
+        border: 1px solid $danger !important;
     }
 }
 
 label.is-invalid, .wii-radio.is-invalid, .wii-checkbox.is-invalid {
     input:not([type=radio]) {
-        border: 1px solid #dc3545 !important;
+        border: 1px solid $danger !important;
         background-repeat: no-repeat;
         background-position: center right calc(2.25rem / 4);
         background-size: calc(2.25rem / 2) calc(2.25rem / 2);
     }
 
     input[type=radio] {
-        --radio-color: #dc3545 !important;
+        --radio-color: $danger !important;
     }
 
     .select2-selection {
-        border: 1px solid red !important;
+        border: 1px solid $danger !important;
     }
 }
 
@@ -308,7 +303,7 @@ select.is-invalid {
 }
 
 .label {
-    color: $greyForm;
+    color: $medium-grey;
 }
 
 .no-disabled {
@@ -317,8 +312,8 @@ select.is-invalid {
 }
 
 .progress-bar {
-    background-color: $blueGT;
-    font-family: $mainFont, Helvetica, Arial, sans-serif;
+    background-color: $primary;
+    font-family: $main-font, Helvetica, Arial, sans-serif;
 }
 
 .sizeLoader {
@@ -367,12 +362,10 @@ select.is-invalid {
 }
 
 .bg-primary-followgt {
-    background: rgb(46, 84, 146);
-    background: linear-gradient(-64deg, $backgroundBodyColorDark, #2e5391);
+    background: linear-gradient(-64deg, $header-right, $header-left);
 }
 
 .dataTables_processing {
-    background: rgba(255, 255, 255, 0.5) !important;
     height: 60px !important;
 }
 
@@ -410,7 +403,7 @@ label.required:after {
 
     /* slightly transparent fallback */
     .spinner-border-wrapper {
-        background-color: rgba(0, 0, 0, 0.5);
+        background-color: $black;
         position: absolute;
         top: 0;
         right: 0;
@@ -431,9 +424,9 @@ label.required:after {
 }
 
 .stripped-background {
-    background-color: #F2F3F7;
+    background-color: $light-blue;
     opacity: 0.8;
-    background-image:  repeating-linear-gradient(45deg, $grey 25%, transparent 25%, transparent 75%, $grey 75%, $grey), repeating-linear-gradient(45deg, $grey 25%, #F2F3F7 25%, #F2F3F7 75%, $grey 75%, $grey);
+    background-image: repeating-linear-gradient(45deg, $medium-grey 25%, transparent 25%, transparent 75%, $medium-grey 75%, $medium-grey), repeating-linear-gradient(45deg, $medium-grey 25%, $light-blue 25%, $light-blue 75%, $medium-grey 75%, $medium-grey);
     background-position: 0 0, 10px 10px;
     background-size: 20px 20px;
 }
@@ -475,16 +468,16 @@ label.required:after {
         }
 
         .type {
-            background-color: $grey;
+            background-color: $medium-grey;
             width: 100%;
             border-top-left-radius: 5px;
 
             &.low-temperature-bg {
-                background-color: #CDF0EF;
+                background-color: $lightest-aqua;
             }
 
             &.high-temperature-bg {
-                background-color: #EFB3BF;
+                background-color: $lightest-danger;
             }
 
             .wii-icon {
@@ -495,29 +488,29 @@ label.required:after {
                 padding: 18px;
 
                 &.low-temperature-icon {
-                    background-color: #33D7D1;
+                    background-color: $aqua;
                 }
 
                 &.high-temperature-icon {
-                    background-color: #D73353;
+                    background-color: $danger;
                 }
             }
         }
 
         .name {
             width: 100%;
-            background-color: #F2F3F7;
+            background-color: $light-blue;
             border-top-right-radius: 5px;
             font-family: Myriad, sans-serif;
             font-size: 17px;
 
             &.low-temperature-font {
-                color: #33D7D1;
+                color: $aqua;
                 font-weight: 600;
             }
 
             &.high-temperature-font {
-                color: #D73353;
+                color: $danger;
                 font-weight: 600;
             }
         }
@@ -525,7 +518,7 @@ label.required:after {
         .element {
             width: 100%;
             height: 40px;
-            background-color: #DEE3F8;
+            background-color: $light-blue;
             border-bottom-left-radius: 5px;
             border-bottom-right-radius: 5px;
             font-family: Myriad, sans-serif;
@@ -552,7 +545,7 @@ label.required:after {
 }
 
 .wii-icon-pairing {
-    background-color: $blueGT;
+    background-color: $primary;
     width: 15px;
     height: 15px;
     display: inline-block;
@@ -563,7 +556,7 @@ label.required:after {
 }
 
 .variables-list .highlighted-variable, .editor-container .highlighted-variable {
-    color: #00a3ff;
+    color: $info;
 }
 
 .phone-example {
@@ -587,7 +580,7 @@ label.required:after {
 
 .thick-line {
     border-width: 2px;
-    border-color: $lightGrey;
+    border-color: $medium-grey;
 }
 
 .spinning-cookie {
@@ -699,7 +692,7 @@ label.required:after {
 
     .header {
         padding: 16px;
-        border-bottom: 1px solid $grey;
+        border-bottom: 1px solid $medium-grey;
 
         &.optioned {
             padding-top: 11px;
@@ -710,7 +703,7 @@ label.required:after {
     .sub-header {
         display: flex;
         align-items: center;
-        background-color: #F2F3F7;
+        background-color: $light-blue;
         padding: 5px 15px;
         border: none !important;
     }
@@ -724,7 +717,7 @@ label.required:after {
 
         .section {
             margin: 10px -16px 0;
-            background: #F2F3F7;
+            background: $light-blue;
             color: $black;
             font-weight: bold;
             font-size: 0.9rem;
@@ -734,14 +727,14 @@ label.required:after {
         .display-comment {
             margin: 10px -16px 0;
             padding: 10px 15px;
-            background-color: #E8E8E8;
+            background-color: $light-grey;
             color: $black;
             font-size: 0.9rem;
 
             .comment-title {
                 display: block;
                 margin-bottom: 5px;
-                color: $darkGrey;
+                color: $dark-grey;
                 font-weight: bold;
             }
 
@@ -758,7 +751,7 @@ label.required:after {
             .references-title {
                 display: block;
                 margin-bottom: 5px;
-                color: $darkGrey;
+                color: $dark-grey;
                 font-weight: bold;
             }
         }
@@ -773,7 +766,7 @@ label.required:after {
 }
 
 .wii-subtitle {
-    color: #666666 !important;
+    color: $dark-grey !important;
     font-size: 16px !important;
     font-weight: bold !important;
 }
@@ -784,7 +777,7 @@ label.required:after {
     font-weight: 600;
 
     &.wii-field-name-sub {
-        color: #666666 !important;
+        color: $dark-grey !important;
     }
 }
 
@@ -813,15 +806,16 @@ label.required:after {
 }
 
 .wii-small-text {
-    color: #666666;
+    color: $dark-grey;
     font-size: 14px;
     font-weight: normal;
 }
 
 .wii-big-text {
-    color: #666666;
+    color: $dark-grey;
     font-size: 16px;
 }
+
 /** End classes **/
 
 .wii-type {
@@ -845,7 +839,7 @@ label.required:after {
 
 .wii-icon-plus {
     display: inline-block;
-    background-color: $grey;
+    background-color: $medium-grey;
     width: 18px;
     height: 18px;
 }
@@ -883,7 +877,7 @@ label.required:after {
 
 .wii-section-title {
     color: $black;
-    background-color: #F2F3F7;
+    background-color: $light-blue;
     padding: 5px #{$grid-gutter-width};
     font-weight: 600;
     display: block;
@@ -937,7 +931,7 @@ label.required:after {
 }
 
 .bordered {
-    border-top: 1px solid $grey;
+    border-top: 1px solid $medium-grey;
 }
 
 .emergency-container {
@@ -951,7 +945,7 @@ label.required:after {
 }
 
 .comment-container {
-    background-color: #E8E8E8;
+    background-color: $light-grey;
     border-bottom-left-radius: 5px;
     border-bottom-right-radius: 5px;
 
@@ -1001,11 +995,11 @@ label.required:after {
                 }
 
                 &.future {
-                    background-color: $grey;
+                    background-color: $medium-grey;
                 }
 
                 &.cancelled {
-                    background-color: $red;
+                    background-color: $danger;
                     font-weight: 600;
                 }
             }
@@ -1029,8 +1023,8 @@ label.required:after {
                 }
 
                 &.future {
-                    background-color: #E8E8E8;
-                    color: #666666 !important;
+                    background-color: $light-grey;
+                    color: $dark-grey !important;
                 }
 
                 &.cancelled {
@@ -1039,7 +1033,7 @@ label.required:after {
             }
 
             .subtitle {
-                color: $darkGrey;
+                color: $dark-grey;
             }
         }
 
@@ -1059,7 +1053,7 @@ label.required:after {
             position: relative;
 
             &.last-status-history::before {
-                background-color: $grey !important;
+                background-color: $medium-grey !important;
             }
 
             &:before {
@@ -1083,31 +1077,31 @@ label.required:after {
 
             &.current {
                 &:after {
-                    border: 3px solid #2EC2AB;
+                    border: 3px solid $success;
                     outline: 3px solid $white;
                     left: -9px;
                     top: 17px;
                 }
 
                 &:before {
-                    background-color: $grey;
+                    background-color: $medium-grey;
                 }
             }
 
             &.future {
                 &:after {
-                    border: 3px solid $grey;
+                    border: 3px solid $medium-grey;
                     outline: 2px solid $white;
                 }
 
                 &:before {
-                    background-color: $grey;
+                    background-color: $medium-grey;
                 }
             }
 
             &.cancelled {
                 &:after {
-                    border: 3px solid $red;
+                    border: 3px solid $danger;
                     outline: 2px solid $white;
                 }
             }
@@ -1147,12 +1141,16 @@ label.required:after {
 }
 
 .bg-red-light {
-    background-color: rgba($red, 0.1) !important;
+    background-color: rgba($danger, 0.1) !important;
 }
 
-.dropdown-item:hover{
+.dropdown-item:hover {
     .dropdown-icon {
         filter: invert(1);
     }
+}
+
+.tooltip {
+    margin: 3px !important;
 }
 

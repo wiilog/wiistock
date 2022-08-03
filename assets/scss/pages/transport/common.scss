@@ -59,19 +59,20 @@
     justify-content: space-between;
     align-items: center;
     height: 100%;
-    border: 1px solid $grey;
+    border: 1px solid $medium-grey;
     border-radius: 4px;
     padding: 10px 5px;
 
     &.no-cursor {
-        div,tbody,tr,td{
+        div, tbody, tr, td {
             cursor: initial !important;
         }
     }
 
-    div,tbody,tr,td {
+    div, tbody, tr, td {
         cursor: pointer !important;
     }
+
     .transport-content {
         flex: 1 1 auto;
     }
@@ -118,32 +119,32 @@
         }
 
         &.type {
-            color: #666666;
-            background: #F2F3F7;
+            color: $dark-grey;
+            background: $light-blue;
         }
 
         &.preparing {
-            background: #EAEDFA;
+            background: $lightest-primary;
         }
 
         &.to-validate {
-            background: #F5D8CB;
+            background: $lightest-orange;
         }
 
         &.subcontracted {
-            background: #CBE8F5;
+            background: $lightest-info;
         }
 
         &.ongoing {
-            background: #D8CBF5;
+            background: $lightest-purple;
         }
 
         &.finished {
-            background: #CCF0EB;
+            background: $lightest-success;
         }
 
         &.cancelled {
-            background: #F8DDE3;
+            background: $lightest-danger;
         }
     }
 
@@ -153,7 +154,8 @@
 
     .transport-status-icon {
         position: absolute;
-        top: 10px; right: 10px;
+        top: 10px;
+        right: 10px;
         width: 20px;
         height: 20px;
     }
@@ -209,7 +211,7 @@
     }
 }
 
-.show-round-map-container{
+.show-round-map-container {
     display: flex;
     width: 100%;
 

@@ -2,12 +2,12 @@
 
 .filter {
     background-color: $white !important;
-    color: $greyDark !important;
-    border-color: $greyDark !important;
+    color: $dark-grey !important;
+    border-color: $dark-grey !important;
 
     i:hover {
-        color: $red !important;
-        border-color: $red !important;
+        color: $danger !important;
+        border-color: $danger !important;
     }
 
     span {
@@ -27,13 +27,13 @@
     }
 
     .dropdown-filter {
-        border: 1px solid $grey;
+        border: 1px solid $medium-grey;
     }
 
     .date-dropdown {
-        background-color: #E9ECEF;
+        background-color: $light-grey;
         border-radius: 0 4px 4px 0;
-        color: #6c757d !important;
+        color: $dark-grey !important;
         border-left: none;
         height: 100%;
     }
@@ -113,8 +113,8 @@
     background-color: $white;
     padding: 6.5px;
     width: 260px !important;
-    border: 1px solid #ced4da;
-    color: $darkGrey !important;
+    border: 1px solid $medium-grey;
+    color: $dark-grey !important;
     font-size: 0.9rem;
     border-radius: 5px;
 

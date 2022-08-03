@@ -5,7 +5,7 @@
 }
 
 .error-msg, .password-error-msg, .row-error-msg {
-    color: $red;
+    color: $danger;
 }
 
 .w-50 {
@@ -22,25 +22,25 @@
 }
 
 .input {
-    border: 1px solid #ced4da;
+    border: 1px solid $medium-grey;
     border-radius: 0.25rem;
 
     &.disabled {
-        background-color: #e9ecef;
+        background-color: $light-grey;
         opacity: 1;
     }
 }
 
 div {
     &.disabled {
-        background-color: #e9ecef;
+        background-color: $light-grey;
         opacity: 1;
     }
 }
 
 option {
     &:disabled {
-        background-color: #e9ecef !important;
+        background-color: $light-grey !important;
         opacity: 1;
     }
 }
@@ -54,16 +54,17 @@ option {
 }
 
 .frame {
-    border: 1px solid $greyForm;
+    border: 1px solid $medium-grey;
     border-radius: 8px;
     padding: 8px;
 }
+
 .separatorDatatable {
-  display: block;
-  content: '';
-  width: 100%;
-  height: 1px;
-  border: #B2B2B2 1px solid;
+    display: block;
+    content: '';
+    width: 100%;
+    height: 1px;
+    border: $medium-grey 1px solid;
 }
 
 .button-container {
@@ -75,7 +76,7 @@ option {
         border-radius: 50%;
         width: 25px;
         height: 25px;
-        background-color: grey;
+        background-color: $dark-grey;
     }
 }
 

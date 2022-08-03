@@ -1,68 +1,73 @@
+/*
+ * Couleurs utilisées dans l'application Wiistock
+ * Ces couleurs sont présentes dans la charte graphique, aucune
+ * couleur ne doit être ajoutée ou modifiée sauf si la charte
+ * graphique l'indique.
+ *
+ * Sharepoint : /Projets/Wiistock - Design/Charte graphique.pdf
+ */
+
 $responsive-breakpoint: 1200px;
 $mobile-breakpoint: 768px;
 
-// Default font (will get overriden by customFont if present
-$mainFont: "Montserrat" !default;
+// Possiblement écrasé par la police paramétrée
+// dans les paramètres d'apparence de l'application
+$main-font: "Montserrat" !default;
 
-// Colors
-$blueGT: #130078;
-$blueButton: #1C328E;
-$blue: #154280;
-
-$grey: #CBCBCB;
-$greyDark: #424242;
-$darkGrey: #6c757d;
-$lightGrey: #c6c6c6b3;
-$greyForm: #b2b2b2;
-
-$red: #d73353;
-$redDanger: #bd2130;
-
-$green: #00b31e;
-
-// new design
-$blackDashboard: #1A1A1A;
-$greyDashboard: #666;
-$greyFormLight: #e9ecef;
+$zero: #000000;
+$black: #1A1A1A;
+$dark-grey: #666666;
+$medium-grey: #CBCBCB;
+$light-blue: #F2F3F7;
+$light-grey: #E8E8E8;
 $white: #FFFFFF;
-$backgroundBodyColorDark: #1B1464;
+$background: #F5F5F7;
 
-$bodyColor: #383838;
+$gt-blue: #130078;
+$header-left: #2E5391;
+$header-right: #1B1464;
 
-// box shadow for success, primary, outline-primary & secondary buttons
-$buttonBoxShadow: 0 2px 4px rgba(0, 0, 0, 0.16);
+$orange: #D76433;
+$warning: #EAB713;
+$green: #A5D733;
+$success: #2FC2AB;
+$info: #33A5D7;
+$aqua: #33D7D1;
+$primary: #3353D7;
+$purple: #6433D7;
+$danger: #D73353;
 
-//overriding bootstrap colors
-$primary:       #3353D7;
-$success:       #2FC2AB;
-$warning:       #ffc107;
-$danger:        $red;
-$info:          #33A5D7;
-$dark:          $darkGrey;
+$lightest-orange: lighten($orange, 40%);
+$lightest-warning: lighten($warning, 40%);
+$lightest-green: lighten($green, 40%);
+$lightest-success: lighten($success, 40%);
+$lightest-info: lighten($info, 40%);
+$lightest-aqua: lighten($aqua, 40%);
+$lightest-primary: lighten($primary, 40%);
+$lightest-purple: lighten($purple, 40%);
+$lightest-danger: lighten($danger, 40%);
 
-$darkenPrimary: darken($primary, 7.5%);
-
-$wiiStockTextColors: (
-    grey: $greyDashboard,
-    black: $blackDashboard,
-    blue: $backgroundBodyColorDark,
+$text-colors: (
+    black: $black,
+    grey: $dark-grey,
+    light-grey: #d0d9e0,
+    lightest-grey: #f5f7f6,
     white: $white,
+
     primary: $primary,
-    green: $success,
-    red: $danger,
-    lightGrey: #d0d9e0,
-    darkWhite: #f5f7f6
+    success: $success,
+    danger: $danger,
+);
+
+$alert-colors: (
+    success: $success,
+    danger: $danger,
+    info: $info,
 );
 
 $btn-focus-box-shadow: none;
 $input-btn-focus-box-shadow: none;
 $input-font-size: .9rem;
-
-$alertColors: (
-    success: $success,
-    danger: $danger,
-    info: $info,
-);
 
 @import "~bootstrap/scss/functions";
 @import "~bootstrap/scss/variables";

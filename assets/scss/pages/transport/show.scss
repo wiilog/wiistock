@@ -2,6 +2,7 @@
 
 .transport-details {
     margin-left: 30px;
+
     .content {
         padding: 15px 30px;
     }
@@ -9,13 +10,14 @@
     .header {
         display: flex;
         align-items: center;
-        background-color: #F2F3F7;
+        background-color: $light-blue;
         padding: 5px 15px;
         border: none !important;
     }
 }
-.order-transport{
-    margin-left: 0 !important ;
+
+.order-transport {
+    margin-left: 0 !important;
 }
 
 .transport-history-container {
@@ -38,7 +40,7 @@
                 width: fit-content;
                 margin-left: 3px;
                 min-height: 30px;
-                background-color: #F2F3F7;
+                background-color: $light-blue;
                 padding: 8px 10px;
 
                 .summary {
@@ -54,7 +56,7 @@
 
                 .comment {
                     margin-left: 30px;
-                    border-left: 3px solid $grey;
+                    border-left: 3px solid $medium-grey;
                     padding-left: 8px;
                     width: 80%;
                 }
@@ -96,7 +98,7 @@
             &:before {
                 content: "";
                 position: absolute;
-                background-color: $grey;
+                background-color: $medium-grey;
                 left: 20px;
                 top: 16px;
                 width: 2px;
@@ -110,7 +112,7 @@
 .packs-container {
     .pack-wrapper {
         .nature-line {
-            background-color: #E8E8E8;
+            background-color: $light-grey;
 
             span:last-child {
                 margin-right: 65px;
@@ -127,7 +129,7 @@
             padding: 0 35px;
 
             tr {
-                border-bottom: 1px solid $grey;
+                border-bottom: 1px solid $medium-grey;
                 height: 30px;
 
                 &:not(:first-child) {
@@ -192,7 +194,7 @@
                 }
 
                 &.future {
-                    background-color: #E8E8E8;
+                    background-color: $light-grey;
                 }
             }
 
@@ -210,7 +212,7 @@
             }
 
             .subtitle {
-                color: $darkGrey;
+                color: $dark-grey;
             }
         }
 
@@ -236,14 +238,14 @@
             position: relative;
 
             &.last-status-history::before {
-                background-color: $grey !important;
+                background-color: $medium-grey !important;
             }
 
 
             &:before {
                 content: "";
                 position: absolute;
-                background-color: $grey;
+                background-color: $medium-grey;
             }
 
             &:after {
@@ -261,7 +263,7 @@
 
             &.current {
                 &:after {
-                    border: 3px solid #2EC2AB;
+                    border: 3px solid $success;
                     outline: 3px solid $white;
                     width: 20px;
                     height: 20px;
@@ -270,18 +272,18 @@
                 }
 
                 &:before {
-                    background-color: $grey;
+                    background-color: $medium-grey;
                 }
             }
 
             &.future {
                 &:after {
-                    border: 3px solid $grey;
+                    border: 3px solid $medium-grey;
                     outline: 2px solid $white;
                 }
 
                 &:before {
-                    background-color: $grey;
+                    background-color: $medium-grey;
                 }
             }
 
@@ -319,10 +321,11 @@
     height: 15px;
 }
 
-.map-container{
+.map-container {
     display: flex;
     width: 100%;
-    #map{
+
+    #map {
         height: 300px;
         width: 100%;
         border-radius: 5px;

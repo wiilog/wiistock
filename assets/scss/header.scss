@@ -14,6 +14,7 @@
 
     &.header-ext {
         padding-bottom: 0.2%;
+
         .page-title {
             font-size: 3vh;
         }
@@ -67,7 +68,7 @@
                 }
 
                 &:hover {
-                    background-color: rgba(255, 255, 255, 0.1);
+                    background-color: rgba($medium-grey, 0.2);
                 }
             }
 
@@ -80,7 +81,7 @@
                     align-items: center;
                     padding-top: 0.7rem;
                     padding-bottom: 0.7rem;
-                    color: $greyDashboard;
+                    color: $dark-grey;
 
                     &:active,
                     &:hover,
@@ -101,12 +102,12 @@
                     .arrow-container {
                         width: 10px;
                         margin-right: 4rem;
-                        color: $greyDashboard;
+                        color: $dark-grey;
                     }
 
                     .label {
                         font-size: 1rem;
-                        color: $greyDashboard;
+                        color: $dark-grey;
                         width: 115px;
                         overflow: hidden;
                         white-space: nowrap;
@@ -120,7 +121,7 @@
                         .wii-icon {
                             height: 23px;
                             width: 23px;
-                            background-color: $greyDashboard;
+                            background-color: $dark-grey;
                         }
                     }
                 }
@@ -151,7 +152,7 @@
             font-weight: bold;
             font-size: 2rem;
             padding: 0 16px;
-            color: $blueGT;
+            color: $primary;
         }
 
         .dropdown-menu.pointer {
@@ -210,9 +211,11 @@
     &.cart {
         background-image: url("../../public/svg/cart.svg");
     }
+
     &.notifications {
         background-image: url("../../public/svg/notif-web.svg");
     }
+
     background-repeat: no-repeat;
     background-size: 30px 30px;
     background-position: center;
@@ -227,9 +230,11 @@
 
     .icon-figure {
         border-radius: 6px;
+
         &.notification-figure {
             background: red;
         }
+
         background: rgb(46, 194, 171);
         color: $white;
         text-align: center;
@@ -245,7 +250,7 @@
 .quick-plus {
     @extend .btn;
     @include icon-button;
-    @include button-variant(#2EC2AB, #2EC2AB);
+    @include button-variant($success, $success);
 
     display: flex;
     height: 36px;
@@ -261,7 +266,7 @@
     $itemYPadding: 0.2rem;
 
     .quick-menu-title {
-        color: #2EC2AB;
+        color: $success;
         font-weight: 100;
         font-size: 0.8rem;
         height: 40px;
@@ -283,7 +288,7 @@
         font-weight: 100;
 
         &:hover {
-            background: #2EC2AB;
+            background: $success;
             color: $white;
             cursor: pointer !important;
 
@@ -316,13 +321,13 @@
 .profile-picture {
     display: inline-block;
     min-width: 30px;
-    width:30px;
+    width: 30px;
     height: 30px;
     border-radius: 50%;
     background: $white;
     font-size: 15px;
     font-weight: bold;
-    color: $darkGrey;
+    color: $dark-grey;
     text-align: center;
     line-height: 30px;
     margin: 0 5px;

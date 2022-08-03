@@ -1,7 +1,7 @@
-@import "assets/scss/variables";
+@import "../variables";
 
 body {
-    background-color: #F5F7F7;
+    background-color: $background;
 
     .header-container {
         border-bottom-left-radius: 15px;
@@ -27,7 +27,7 @@ body {
     }
 
     .image-container {
-        background-color: #F5F5F7;
+        background-color: $background;
         margin: 10px;
         width: 120px;
         height: 120px;
@@ -48,7 +48,7 @@ body {
 
 .ra-dropdown {
     background-color: $white;
-    border-top: 1px solid $grey;
+    border-top: 1px solid $medium-grey;
     border-bottom-left-radius: 5px;
     border-bottom-right-radius: 5px;
 
@@ -95,7 +95,7 @@ body {
 }
 
 .provider-label {
-    background-color: #E8E8E8;
+    background-color: $light-grey;
     height: 35px;
     display: flex;
     align-items: center;
@@ -133,7 +133,7 @@ span.icon {
 }
 
 .supplier-container:last-of-type {
-    border-bottom: $grey 1px solid;
+    border-bottom: $medium-grey 1px solid;
     padding-bottom: 5px;
 }
 
@@ -189,15 +189,15 @@ input[type="checkbox"] {
     height: auto;
     min-height: 50px;
     padding: 10px 20px;
-    background-color: #F8DDE3;
+    background-color: $background;
 }
 
 .isRight {
-    background: #F2F3F7;
+    background: $light-blue;
 }
 
 .reference-status {
-    background-color: #CCF0EB;
+    background-color: $lightest-success;
     padding: 5px 12px;
     border-radius: 5px;
 }

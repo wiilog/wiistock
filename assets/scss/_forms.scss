@@ -4,7 +4,7 @@
     display: flex;
     align-items: center;
     width: 45%;
-    border: $grey solid 1px;
+    border: $medium-grey solid 1px;
     border-radius: 5px;
     padding: 5px 10px;
     margin-top: 5px;
@@ -21,7 +21,7 @@
     }
 
     svg {
-        color: $blue !important;
+        color: $primary !important;
         font-size: 0.8rem;
     }
 }
@@ -67,8 +67,8 @@
         }
 
         &:disabled {
-            color: $grey;
-            border-color: $grey;
+            color: $medium-grey;
+            border-color: $medium-grey;
             cursor: not-allowed;
         }
     }
@@ -97,7 +97,7 @@ $wii-switch-height: $input-height;
 .wii-switch {
     display: inline-flex;
     padding: 0;
-    border: 1px solid $grey;
+    border: 1px solid $medium-grey;
     height: $wii-switch-height;
     border-radius: 4px;
     color: $black;
@@ -173,7 +173,7 @@ $wii-switch-height: $input-height;
     }
 
     input:not(:first-of-type), input:not(:first-of-type) + label {
-        border-left: 1px solid $grey;
+        border-left: 1px solid $medium-grey;
     }
 
     input:first-of-type, input:first-of-type + label {
@@ -188,8 +188,9 @@ $wii-switch-height: $input-height;
 
     input:disabled {
         cursor: not-allowed;
+
         &:checked {
-            background-color: $grey;
+            background-color: $medium-grey;
             color: $black;
         }
     }
@@ -209,14 +210,14 @@ $wii-switch-height: $input-height;
         outline: 0;
         padding: 0 15px;
         border-radius: 4px;
-        border: 1px solid $grey;
+        border: 1px solid $medium-grey;
         height: $wii-switch-height;
         line-height: $wii-switch-height;
         font-weight: normal;
         transition: all 200ms linear;
         font-size: 1rem;
         background: $white;
-        color: #666666;
+        color: $dark-grey;
     }
 
     input + label {
@@ -234,18 +235,18 @@ $wii-switch-height: $input-height;
         cursor: pointer;
 
         &:hover:not(:checked) {
-            color: lighten(#666666, 5%);
-            border-color: lighten($grey, 5%);
+            color: lighten($dark-grey, 5%);
+            border-color: lighten($medium-grey, 5%);
         }
     }
 
     input:checked, input:checked + label {
-        background: #F2F3F7;
+        background: $light-blue;
         color: $primary;
         border-color: $primary;
 
         &:hover {
-            background: lighten(#F2F3F7, 5%) !important;
+            background: lighten($light-blue, 5%) !important;
             color: lighten($primary, 5%) !important;
             border-color: lighten($primary, 5%) !important;
         }
@@ -295,7 +296,7 @@ $wii-switch-height: $input-height;
 
 .wii-switch-no-style {
     label {
-        color: #495057;
+        color: $dark-grey;
     }
 }
 
@@ -350,7 +351,7 @@ label, .wii-checkbox, .wii-radio {
         display: block;
         font-size: 0.9rem;
         font-weight: normal;
-        color: $red;
+        color: $danger;
     }
 }
 
@@ -429,7 +430,7 @@ $wysiwyg-dropdown-button-size: 20px;
             height: $wysiwyg-dropdown-button-size;
             width: $wysiwyg-dropdown-button-size;
 
-            background-color: $grey;
+            background-color: $medium-grey;
         }
     }
 }
@@ -448,8 +449,8 @@ input.no-overflow {
     display: flex;
     justify-content: center;
     align-items: center;
-    border: 1px solid #CDCDCD;
-    background: #f2f3f7;
+    border: 1px solid $medium-grey;
+    background: $light-blue;
     border-radius: 5px;
     margin: 10px 5px 0;
     height: 40px;
@@ -486,7 +487,7 @@ input[type=checkbox] {
     cursor: pointer;
 
     &:disabled {
-        border-color: $grey;
+        border-color: $medium-grey;
     }
 
     &:not(:disabled):hover {
@@ -520,8 +521,8 @@ input[type=checkbox] {
     }
 
     &:disabled {
-        border-color: $grey;
-        background: #e8e8e8;
+        border-color: $medium-grey;
+        background: $light-grey;
         cursor: not-allowed !important;
     }
 }
