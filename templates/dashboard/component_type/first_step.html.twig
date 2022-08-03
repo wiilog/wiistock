@@ -24,9 +24,7 @@
                 <input type="hidden" name="cellIndex" value/>
 
                 <div class="d-flex">
-                    {% dump componentTypes %}
                     {% for categoryName, componentTypesByCategory in componentTypes %}
-                        {% dump componentTypesByCategory %}
                         <div class="component-type-container">
                             <h4 class="bold my-2">{{ categoryName }}</h4>
                             {% for _, componentType in componentTypesByCategory %}
