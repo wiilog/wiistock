@@ -197,7 +197,7 @@
                     </div>
                 </div>
                 <div class="content">
-                    <div class="wii-subtitle">Commantaire</div>
+                    <div class="wii-subtitle">Commentaire</div>
                     <div>
                         <input class="commentaire form-control data" name="comment" type="hidden" id="commentaire">
                         <div class="editor-container-new" data-wysiwyg>{{ handling.comment | striptags }}</div>
@@ -234,17 +234,17 @@
                     <img src="{{ asset('svg/calendar.svg') }}" alt="Icône calendrier" width="15px">
                     <span class="wii-field-name ml-2">Dates</span>
                 </div>
-                {% if handling.withoutHistory %}
-                <div class="col-6 d-flex flex-column">
-                    <div class="box-item my-2">
-                        <span class="wii-field-name">Date des création</span>
-                        <span class="wii-field-text">
-                            {{ handling.creationDate | format_helper('longDate', {short: false}) }}
-                        </span>
-                    </div>
-                </div>
-                {% endif %}
                 <div class="content row ">
+                    {% if handling.withoutHistory %}
+                        <div class="col-6 d-flex flex-column">
+                            <div class="box-item my-2">
+                                <span class="wii-field-name">Date de création</span>
+                                <span class="wii-field-text">
+                                    {{ handling.creationDate | format_helper('longDate', {short: false}) }}
+                                </span>
+                            </div>
+                        </div>
+                    {% endif %}
                     <div class="col-6 d-flex flex-column">
                         <div class="box-item my-2">
                             {% set desiredDate = handling.desiredDate ? handling.desiredDate|date('Y-m-d\\TH:i') %}
@@ -272,8 +272,8 @@
                         data-submit="{{ submit_url }}">
                     Enregistrer
                 </button>
-                <a href="javascript:history.back()">
-                    <button id="" name='' type="button" class="btn btn-outline-secondary data mt-2 mr-2" href="javascript:history.back()">
+                <a href="javascript:window.location = document.referrer">
+                    <button type="button" class="btn btn-outline-secondary data mt-2 mr-2">
                         Annuler
                     </button>
                 </a>
@@ -290,6 +290,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/script-wiilog.js') }}?v={{ web_version }}"></script>
     {{ encore_entry_script_tags('handling-edit') }}
 {% endblock %}

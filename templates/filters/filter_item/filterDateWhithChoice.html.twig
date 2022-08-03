@@ -1,0 +1,48 @@
+<div class="col-auto m-1 pr-0">
+    <div class="h-100 w-450px">
+        <div class="btn-group">
+            <div class="input-group">
+                <div class="input-group-prepend h-100">
+                    <span class="input-group-text w-50px">Du</span>
+                </div>
+                <input type="text"
+                       class="form-control cursor-default filter-date-min filter-input w-218px h-100"
+                       name="dateMin"
+                       id="dateMin"
+                       placeholder="jj/mm/aaaa"
+                    {{ disabled }}
+                       autocomplete="off"/>
+                <div class="input-group-prepend h-100">
+                    <span class="input-group-text w-50px border-left-0">Au</span>
+                </div>
+                <input type="text"
+                       class="form-control cursor-default filter-date-max filter-input w-218px border-radius-0 h-100"
+                       name="dateMax"
+                       id="dateMax"
+                       placeholder="jj/mm/aaaa"
+                    {{ disabled }}
+                       autocomplete="off"/>
+            </div>
+            <button type="button" class="dropdown-filter date-dropdown btn btn-secondary dropdown-toggle dropdown-toggle-split"
+                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <span class="fa fa-angle-down"></span>
+            </button>
+            <div class="dropdown-menu dropdown-menu-right w-px-560 allow-focus filter-dropdown-menu date-choice">
+                <div class="wii-switch-no-style needed" data-title="Date de filtre">
+                    {% for dateChoice in dateChoices %}
+                        {% set checked = dateChoice.default ?? false %}
+                        <div class="dropdown-item pl-3">
+                            <input data-id="{{ dateChoice.name }}" class="filter-checkbox" type="radio" id="date-choice_{{ dateChoice.name }}"
+                                   data-override-name="date-choice_{{ dateChoice.name }}" value="1"
+                                   name="filter-date-choice"
+                                   {% if checked %}
+                                        checked
+                                   {% endif %}">
+                            <label for="date-choice_{{ dateChoice.name }}" class="ml-1" style="color: #000 !important;">{{ dateChoice.label }}</label>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -150,13 +150,34 @@ class FiltreSupController extends AbstractController
                 }
             }
 
+            $filterCheckboxes = [
+                'statuses-filter',
+                'date-choice'
+            ];
+
+            foreach ($filterCheckboxes as $filterCheckbox) {
+                $value = Stream::from($data)
+                    ->filter(fn ($filter, $key) => str_starts_with($key, $filterCheckbox) && $filter === true)
+                    ->map(fn($filter, $key) => is_integer(explode('_', $key)[1]) ? intval(explode('_', $key)[1]) : explode('_', $key)[1])
+                    ->join(',');
+                $filter = $filtreSupRepository->findOnebyFieldAndPageAndUser($filterCheckbox, $page, $user);
+                if (!$filter) {
+                    $filter = $filterSupService->createFiltreSup($page, $filterCheckbox, null, $user);
+                    $entityManager->persist($filter);
+                }
+
+                $filter->setValue($value);
+            }
+
             $filterList = [
-                'planning-status-'
+                'planning-status',
+                'date-choice'
             ];
             foreach ($filterList as $filterItem) {
                 $matches = Stream::from($data)
                     ->filter(fn($element, $key) => str_starts_with($key, $filterItem))
                     ->toArray();
+
                 foreach ($matches as $key => $match) {
                     $filterName = $key;
                     if (!is_array($match) && (strpos($match, ',') || strpos($match, ':'))) {

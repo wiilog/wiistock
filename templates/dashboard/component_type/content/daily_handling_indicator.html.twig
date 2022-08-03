@@ -78,4 +78,18 @@
             Afficher le nombre d'urgences de la journée
         </div>
     </div>
+    <div class="row form-group align-items-center">
+        <div class="col-auto">
+            <label class="switch">
+                <input class="checkbox"
+                       type="checkbox"
+                       name="redirectToHandling"
+                    {{ values.redirectToHandling ?? false ? 'checked' }}/>
+                <span class="slider round"></span>
+            </label>
+        </div>
+        <div class="col">
+            Rediriger vers la page Demande de service au clic
+        </div>
+    </div>
 {% endblock %}

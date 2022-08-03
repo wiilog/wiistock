@@ -270,6 +270,10 @@ a {
     border-radius: 10px !important;
 }
 
+.border-radius-0 {
+    border-radius: 0 !important;
+}
+
 //  reprise du form-control.is-invalid de bootstrap
 .is-invalid:not(label, .wii-radio, .wii-checkbox) {
     border: 1px solid #dc3545 !important;
@@ -632,8 +636,6 @@ label.required:after {
         }
 
         input, .select2.select2-container {
-            margin-top: 5px;
-
             &:disabled {
                 cursor: not-allowed;
             }

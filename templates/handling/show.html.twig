@@ -147,7 +147,7 @@
                     {% endif %}
                 </div>
                 <div class="content comment-container">
-                    <div class="wii-subtitle">Commantaire</div>
+                    <div class="wii-subtitle">Commentaire</div>
                     <div>
                         {% if handling.comment != '<p><br></p>' %}
                             {{ handling.comment | striptags }}
@@ -198,7 +198,7 @@
                     {% if handling.withoutHistory %}
                         <div class="col-6 d-flex flex-column">
                             <div class="box-item my-2">
-                                <span class="wii-field-name">Date des création</span>
+                                <span class="wii-field-name">Date de création</span>
                                 <span class="wii-field-text">
                                     {{ handling.creationDate | format_helper('longDate', {short: false}) }}
                                 </span>
@@ -241,6 +241,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/script-wiilog.js') }}?v={{ web_version }}"></script>
     {{ encore_entry_script_tags('handling-show') }}
 {% endblock %}

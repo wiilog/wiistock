@@ -564,7 +564,7 @@ class TransportController extends AbstractFOSRestController
         $manager->persist($trackingMovement);
 
         $round
-            ->setRealDistance($transportRoundService->calculateRoundRealDistance($round, $geoService))
+            ->setRealDistance($transportRoundService->calculateRoundRealDistance($round))
             ->setEndedAt($now);
 
         $collectsToReturn = Stream::from($round->getTransportRoundLines())

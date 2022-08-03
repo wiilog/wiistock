@@ -426,6 +426,7 @@ class DashboardSettingsService {
                                                      DashboardMeter\Indicator $meter = null): array {
         $shouldShowOperations = isset($config['displayOperations']) && $config['displayOperations'];
         $shouldShowEmergencies = isset($config['displayEmergency']) && $config['displayEmergency'];
+        $shouldRedirectToHandling = isset($config['redirectToHandling']) && $config['redirectToHandling'];
         if ($example) {
             $values = $componentType->getExampleValues();
         } else {
@@ -440,7 +441,7 @@ class DashboardSettingsService {
                     'subtitle' => '-',
                     'subCounts' => [
                         '<span class="text-wii-green">-</span> <span class="text-wii-black">lignes</span>',
-                        '<span class="text-wii-red">-</span> <span class="text-wii-black">urgences</span>'
+                        '<span class="text-wii-black">Dont</span> <span class="text-wii-red">-</span> <span class="text-wii-black">urgences</span>'
                     ],
                     'count' => '-',
                 ];

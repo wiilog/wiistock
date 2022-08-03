@@ -4,9 +4,10 @@
             <div class="input-group">
                 <select class="form-control data cursor-default filter-input"
                         name="type" {{ disabled }}
+                        {% if onchange is defined %}onchange="{{ onchange }}"{% endif %}
                         id="type">
                     <option value>Type</option>
-                    {% for type in types |sort((a, b) => a.label <=> b.label) %}
+                    {% for type in types | sort((a, b) => a.label <=> b.label) %}
                         <option value="{{ type.label }}">
                             {{ type.label }}
                         </option>

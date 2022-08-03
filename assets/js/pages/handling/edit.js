@@ -21,7 +21,7 @@ function submitChanges($button, handlingId) {
     clearFormErrors($form);
     processSubmitAction($form, $button, $button.data(`submit`), {
         success: data => {
-            history.back();
+            window.location = document.referrer;
         },
     });
 }

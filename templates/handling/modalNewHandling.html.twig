@@ -59,15 +59,13 @@
                         <input class="form-control data needed" name="subject">
                     </div>
 
-                    <div class="form-group col-md-6 col-12">
-                        <label class="wii-field-name" for="requester">Demandeur</label>
-                        <select class="demandeur form-control data needed" name="requester" disabled>
-                            <option value="{{ app.user.id }}">{{ app.user.username }}</option>
-                        </select>
+                    <div class="form-group d-flex flex-column col-md-6 col-12">
+                        <label class="wii-field-name">Demandeur</label>
+                        <label class="data wii-body-text" value="{{ app.user.id }}">{{ app.user.username }}</label>
                     </div>
 
                     {% set removeHourInDatetime = removeHourInDatetime is defined and removeHourInDatetime %}
-                    <div class="form-group col-12">
+                    <div class="form-group col-md-6 col-12">
                         <label class="wii-field-name" for="desired-date">Date attendue*</label>
                         <input type="{{ removeHourInDatetime ? 'date' : 'datetime-local' }}"
                                class="form-control data needed"
@@ -80,7 +78,7 @@
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
-                        <div class="form-group col-12">
+                        <div class="form-group col-md-6 col-12">
                             <label class="wii-field-name">Urgence{{ required ? '*' }}</label>
                             <div class="w-100">
                                 <select
@@ -151,15 +149,16 @@
                         </div>
                     </div>
 
-                    <div class="form-group col-md-8 col-12">
-                        <label for="comment">Commentaire</label>
+                    <div class="form-group col-12">
+                        <label for="comment"><span class="wii-field-name wii-field-name-sub">Commentaire</span></label>
                         <input class="commentaire form-control data" name="comment" type="hidden" id="commentaire">
                         <div class="editor-container-new" data-wysiwyg>
                         </div>
                     </div>
-                    <div class="form-group col-md-4 col-12">
+                    <div class="form-group col-12">
                         {% include 'attachment/attachment.html.twig' with {
-                            'isNew' : true
+                            fieldNameClass: 'wii-field-name wii-field-name-sub',
+                            isNew: true,
                         } %}
                     </div>
                 </div>
