@@ -36,7 +36,7 @@ class Nature {
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $code = null;
 
-    #[ORM\OneToMany(mappedBy: 'nature', targetEntity: Pack::class)]
+    #[ORM\OneToMany(targetEntity: Pack::class, mappedBy: 'nature')]
     private Collection $packs;
 
     #[ORM\Column(type: 'integer', nullable: true)]
@@ -57,6 +57,9 @@ class Nature {
     #[ORM\ManyToMany(targetEntity: Emplacement::class, mappedBy: 'allowedNatures')]
     private Collection $emplacements;
 
+    #[ORM\Column(type: 'boolean', nullable: true, options: ['default' => 1])]
+    private ?bool $displayed = null;
+
     #[ORM\Column(type: 'boolean', nullable: true, options: ['default' => 0])]
     private ?bool $defaultForDispatch = null;
 
@@ -69,6 +72,9 @@ class Nature {
     #[ORM\ManyToMany(targetEntity: TemperatureRange::class, inversedBy: 'natures')]
     #[ORM\JoinTable(name: 'location_temperature_range')]
     private Collection $temperatureRanges;
+
+    #[ORM\OneToOne(targetEntity: TranslationSource::class, inversedBy: "nature")]
+    private ?TranslationSource $labelTranslation = null;
 
     public function __construct() {
         $this->packs = new ArrayCollection();
@@ -257,6 +263,24 @@ class Nature {
     public function removeTemperatureRange(TemperatureRange $temperatureRange): self {
         if ($this->temperatureRanges->removeElement($temperatureRange)) {
             $temperatureRange->removeNature($this);
+        }
+
+        return $this;
+    }
+
+    public function getLabelTranslation(): ?TranslationSource {
+        return $this->labelTranslation;
+    }
+
+    public function setLabelTranslation(?TranslationSource $labelTranslation): self {
+        if($this->labelTranslation && $this->labelTranslation->getNature() !== $this) {
+            $oldLabelTranslation = $this->labelTranslation;
+            $this->labelTranslation = null;
+            $oldLabelTranslation->setNature(null);
+        }
+        $this->labelTranslation = $labelTranslation;
+        if($this->labelTranslation && $this->labelTranslation->getNature() !== $this) {
+            $this->labelTranslation->setNature($this);
         }
 
         return $this;

@@ -36,19 +36,19 @@ class TranslationService {
 
         $translationRepository = $this->entityManager->getRepository(Translation::class);
 
-        if($translationRepository->countUpdatedRows() > 0
-            || !file_exists($translationYAML)
-            || !file_exists($translationJS)) {
-            $translations = $translationRepository->findAll();
-
-            $this->generateYamlTranslations($translationYAML, $translations);
-            $this->generateJavascriptTranslations($translationJS, $translations);
-
-            $translationRepository->clearUpdate();
-
-            $this->chmod($translationYAML, 'w');
-            $this->chmod($translationJS, 'w');
-        }
+//        if($translationRepository->countUpdatedRows() > 0
+//            || !file_exists($translationYAML)
+//            || !file_exists($translationJS)) {
+//            $translations = $translationRepository->findAll();
+//
+//            $this->generateYamlTranslations($translationYAML, $translations);
+//            $this->generateJavascriptTranslations($translationJS, $translations);
+//
+//            $translationRepository->clearUpdate();
+//
+//            $this->chmod($translationYAML, 'w');
+//            $this->chmod($translationJS, 'w');
+//        }
     }
 
     private function generateYamlTranslations(string $directory, array $translations) {

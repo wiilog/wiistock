@@ -112,6 +112,9 @@ class Statut {
     #[ORM\OneToMany(mappedBy: 'requestStatus', targetEntity: HandlingRequestTemplate::class)]
     private Collection $handlingRequestStatusTemplates;
 
+    #[ORM\OneToOne(targetEntity: TranslationSource::class, inversedBy: "status")]
+    private ?TranslationSource $labelTranslation = null;
+
     public function __construct() {
         $this->articles = new ArrayCollection();
         $this->receptions = new ArrayCollection();
@@ -729,6 +732,24 @@ class Statut {
             if($handlingRequestStatusTemplate->getRequestStatus() === $this) {
                 $handlingRequestStatusTemplate->setRequestStatus(null);
             }
+        }
+
+        return $this;
+    }
+
+    public function getLabelTranslation(): ?TranslationSource {
+        return $this->labelTranslation;
+    }
+
+    public function setLabelTranslation(?TranslationSource $labelTranslation): self {
+        if($this->labelTranslation && $this->labelTranslation->getStatus() !== $this) {
+            $oldLabelTranslation = $this->labelTranslation;
+            $this->labelTranslation = null;
+            $oldLabelTranslation->setStatus(null);
+        }
+        $this->labelTranslation = $labelTranslation;
+        if($this->labelTranslation && $this->labelTranslation->getType() !== $this) {
+            $this->labelTranslation->setStatus($this);
         }
 
         return $this;
