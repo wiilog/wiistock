@@ -1,8 +1,22 @@
 {% extends 'filters/filters.html.twig' %}
 
 {% block filters %}
-    {% include 'filters/filter_item/filterDateWhithChoice.html.twig' %}
-    {% include 'filters/filter_item/filterStatus.html.twig' %}
+    {% if dateChoices is defined %}
+        {% include 'filters/filter_item/filterDateWhithChoice.html.twig' %}
+    {% else %}
+        {% include 'filters/filter_item/filterDate.html.twig' %}
+    {% endif %}
+
+
+    {% if page == 'PAGE_HAND' %}
+        {% include 'filters/filter_item/filterType.html.twig' with {
+            onchange: 'onFilterTypeChange($(this))'
+        } %}
+        {% include 'filters/filter_item/filterMultipleStatuses.html.twig' %}
+    {% else %}
+        {% include 'filters/filter_item/filterType.html.twig' %}
+        {% include 'filters/filter_item/filterStatus.html.twig' %}
+    {% endif %}
 
     {% if displayDemandFilter is defined and displayDemandFilter %}
         {% include 'filters/filter_item/filterDemand.html.twig' %}
@@ -11,7 +25,6 @@
     {% include 'filters/filter_item/filterUser.html.twig' with {
         'placeholder': (page == 'PAGE_HAND' ? 'Demandeurs' : 'Utilisateurs')
     } %}
-    {% include 'filters/filter_item/filterType.html.twig' %}
 
     {% if page == 'PAGE_HAND' %}
         {% include 'filters/filter_item/filterSubject.html.twig' %}
@@ -20,7 +33,7 @@
             {% include 'filters/filter_item/filterUser.html.twig' with {
                 name: 'receivers',
                 'placeholder': 'Destinataires'
-            }%}
+            } %}
         {% endif %}
     {% endif %}
 

@@ -185,13 +185,14 @@ class HandlingRepository extends EntityRepository
         // filtres sup
         if(!$handlingIds) {
             foreach ($filters as $filter) {
-                switch ($filter['field']) {
-                    case 'statut':
-                        $value = explode(',', $filter['value']);
-                        $qb
-                            ->join('handling.status', 'filter_status')
-                            ->andWhere('filter_status.id in (:filter_status_value)')
-                            ->setParameter('filter_status_value', $value);
+                switch($filter['field']) {
+                    case 'statuses-filter':
+                        if($filter["value"]) {
+                            $value = explode(",", $filter["value"]);
+                            $qb->join('handling.status', 'filter_status')
+                                ->andWhere('filter_status.id in (:filter_status_value)')
+                                ->setParameter('filter_status_value', $value);
+                        }
                         break;
                     case 'utilisateurs':
                         $value = explode(',', $filter['value']);
@@ -207,7 +208,7 @@ class HandlingRepository extends EntityRepository
                             ->setParameter('filter_type_value', $filter['value']);
                         break;
                     case 'emergencyMultiple':
-                        $value = array_map(function ($value) {
+                        $value = array_map(function($value) {
                             return explode(":", $value)[0];
                         }, explode(',', $filter['value']));
                         $qb
