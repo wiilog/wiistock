@@ -222,3 +222,18 @@ $wii-switch-height: $input-height;
     }
 }
 
+.plan-round-option > * {
+    display: inline-flex;
+    height: 36px;
+    width: auto !important;
+    justify-content: center;
+    align-items: center;
+
+    &:not(.wii-radio-container) {
+        min-width: 150px;
+    }
+
+    &.wii-radio-container {
+        margin-right: 7px;
+    }
+}
