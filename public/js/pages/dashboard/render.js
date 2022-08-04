@@ -483,7 +483,7 @@ function createChart(data, {route, cssClass, hideRange} = {route: null, cssClass
 
     const dashboardBoxContainerClass = hasRangeButton
         ? 'dashboard-box-container-title-content'
-        : 'dashboard-box-container-title-content-rangeButton';
+        : 'dashboard-box-container-title-content-rangeButton w-100';
     const numberingConfig = {numbering: 0};
 
     const title = data.title || "";
@@ -1199,7 +1199,7 @@ function withStyle(data, numberingConfig, backendNumber, value, overrides = {}) 
 
 function generateColorPickerElement(data, key = 0) {
     return $(`<div/>`, {
-        class: 'd-flex justify-content-between align-items-center mx-5',
+        class: 'd-flex justify-content-between align-items-center ml-5',
         html: $(`<input/>`, {
             type: `color`,
             class: `data-array form-control needed w-50 chart-color-picker`,
