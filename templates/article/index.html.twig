@@ -11,11 +11,11 @@
                 <div class="btn-group">
                     {% if hasRightToCreate %}
                         <button type="button"
-                                class="btn btn-primary split-button"
+                                class="btn btn-primary split-button d-flex align-items-center"
                                 data-toggle="modal"
                                 data-target="#modalNewArticle"
                                 onclick="Select2Old.articleReference($('.ajax-autocomplete'), {typeQuantity: `article`}); clearNewArticleContent($('#submitNewArticle'))">
-                            <span class="fa fa-plus mr-2"></span>
+                            <span class="wii-icon wii-icon-plus mr-2"></span>
                             Nouvel article
                         </button>
                     {% elseif hasRightToExport %}
