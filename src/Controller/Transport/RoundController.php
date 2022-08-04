@@ -171,8 +171,6 @@ class RoundController extends AbstractController {
             $realTime = ($realTimeDif->format("%h") + ($realTimeJ * 24)) . "h" . $realTimeDif->format(" %i") . "min";
         }
 
-        $locationRepository = $entityManager->getRepository(Emplacement::class);
-
         $calculationsPoints = $transportRound->getCoordinates();
         $calculationsPoints['startPoint']['name'] = TransportRound::NAME_START_POINT;
         $calculationsPoints['startPointScheduleCalculation']['name'] = TransportRound::NAME_START_POINT_SCHEDULE_CALCULATION;

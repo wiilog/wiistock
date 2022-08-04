@@ -104,7 +104,7 @@ class HandlingController extends AbstractController {
         return $this->render('handling/index.html.twig', [
             'filtersDisabled' => !empty($handlingIds),
             'dateChoices' => $dateChoice,
-            'statuses' => $statutRepository->findByCategorieName(Handling::CATEGORIE, 'nom'),
+            'statuses' => $statutRepository->findByCategorieName(Handling::CATEGORIE, 'displayOrder'),
 			'filterStatus' => $filterStatus,
             'types' => $types,
             'fieldsParam' => $fieldsParam,
@@ -114,7 +114,6 @@ class HandlingController extends AbstractController {
                     $carry[$test['id']] = $test['label'];
                     return $carry;
                 }, []),
-            'removeHourInDatetime' => $settingRepository->getOneParamByLabel(Setting::REMOVE_HOURS_DATETIME),
             'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_EMERGENCY),
             'modalNewConfig' => [
                 'defaultStatuses' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::HANDLING),
