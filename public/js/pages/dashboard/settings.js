@@ -167,6 +167,7 @@ $pagination.on(`click`, `[data-target="#rename-dashboard-modal"]`, function () {
     } else {
         $highlightComponents.prop('disabled', false);
         $(`input[name="highlight-components-count"]`).prop(`checked`, false);
+        $(`input[name="highlight-components-count"][value="1"]`).prop(`checked`, true);
 
         if (dashboards[dashboard].componentCount) {
             $highlightComponents.prop('checked', true);
