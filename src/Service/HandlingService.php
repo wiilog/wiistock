@@ -100,6 +100,7 @@ class HandlingService {
         $row = [
             'id' => $handling->getId() ?: 'Non défini',
             'number' => $handling->getNumber() ?: '',
+            'comment' => $handling->getComment() ?: '',
             'creationDate' => FormatHelper::datetime($handling->getCreationDate()),
             'type' => $handling->getType() ? $handling->getType()->getLabel() : '',
             'requester' => FormatHelper::handlingRequester($handling),
@@ -279,6 +280,7 @@ class HandlingService {
             ['title' => 'Urgent', 'name' => 'emergency'],
             ['title' => 'services.Nombre d\'opération(s) réalisée(s)', 'name' => 'carriedOutOperationCount', 'translated' => true],
             ['title' => 'Traité par', 'name' => 'treatedBy'],
+            ['title' => 'Commentaire', 'name' => 'comment'],
         ];
 
         return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);
