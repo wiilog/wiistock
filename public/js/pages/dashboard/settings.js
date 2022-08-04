@@ -374,7 +374,7 @@ function renderRow(row) {
         $row.append(`
             <div class="action-row-container">
                 <div class="bg-white w-px-30 rounded">
-                    <i class="icon fa fa-trash ml-1 delete-row"></i>
+                    <span class="wii-icon wii-icon-trash-black delete-row ml-1"></span>
                     <i class="icon fa fa-pen ml-1 edit-row"></i>
                 </div>
             </div>
@@ -433,7 +433,7 @@ function renderCardComponent({columnIndex, cellIndex, component}) {
                     const $deleteButton = $(`<div/>`, {
                         class: 'dropdown-item pointer',
                         role: 'button',
-                        html: '<i class="fa fa-trash mr-2"></i> Supprimer',
+                        html: '<div class="d-flex align-items-center"><span class="wii-icon wii-icon-trash-black mr-2"></span></i> Supprimer</div>',
                         click: onComponentDeleted
                     });
 
@@ -442,7 +442,7 @@ function renderCardComponent({columnIndex, cellIndex, component}) {
                         html: [
                             '<i class="fas fa-cog" data-toggle="dropdown"></i>',
                             $(`<div/>`, {
-                                class: 'dropdown-menu dropdown-follow-gt dropdown-menu-right pointer',
+                                class: 'dropdown-menu dropdown-follow-gt dropdown-menu-right pointer ',
                                 html: [
                                     $editButton,
                                     $deleteButton
@@ -549,8 +549,8 @@ function createDashboardSelectorItem(dashboard) {
                          data-toggle="modal" data-target="#rename-dashboard-modal">
                         <i class="fas fa-cog mr-2"></i>Paramétrage
                     </a>
-                    <a class="dropdown-item delete-dashboard" role="button" data-dashboard-index="${dashboard.dashboardIndex}">
-                        <i class="fas fa-trash mr-2"></i>Supprimer
+                    <a class="dropdown-item delete-dashboard d-flex align-items-center" role="button" data-dashboard-index="${dashboard.dashboardIndex}">
+                        <span class="wii-icon wii-icon-trash-black mr-2"></span></i>Supprimer
                     </a>
                     <a class="dropdown-item" href="${externalRoute}#${dashboard.dashboardIndex + 1}" target="_blank">
                         <i class="fas fa-external-link-alt"></i> Dashboard externe
@@ -1352,7 +1352,7 @@ function addEntryTimeInterval($button, time = null, notEmptySegment = false) {
                            onfocusout="onSegmentInputChange($(this), true)" />
                 </div>
                 <div class="col-2">
-                    <button class="btn d-block" onclick="deleteEntryTimeInterval($(this))"><i class="far fa-trash-alt"></i></button>
+                    <button class="btn d-block" onclick="deleteEntryTimeInterval($(this))"><span class="wii-icon wii-icon-trash-black mr-2"></span></button>
                 </div>
             </div>
         </div>

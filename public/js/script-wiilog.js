@@ -679,7 +679,7 @@ function initDateTimePicker(dateInput = '#dateMin, #dateMax, #expectedDate', for
         showTodayButton: true,
         showClear: true,
         icons: {
-            clear: 'fas fa-trash',
+            clear: 'fas wii-icon wii-icon-trash-black date-picker-icon',
         },
         tooltips: {
             today: 'Aujourd\'hui',

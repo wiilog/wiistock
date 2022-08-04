@@ -52,8 +52,8 @@
                 {% if hasRightDelete %}
                     <a href="" onclick="deleteRow($(this), $('#modalDeleteCollecte'), $('#submitDeleteCollecte'))"
                        data-id='{{ collecte.id }}' data-target='#modalDeleteCollecte' data-toggle='modal'
-                       class="dropdown-item">
-                        <i class="fa fa-trash mr-2"></i>Supprimer</a>
+                       class="dropdown-item d-flex align-items-center">
+                        <span class="wii-icon wii-icon-trash-black mr-2"></span>Supprimer</a>
                 {% endif %}
             </div>
         {% else %}

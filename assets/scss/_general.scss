@@ -1150,9 +1150,7 @@ label.required:after {
     background-color: rgba($red, 0.1) !important;
 }
 
-.dropdown-item:hover{
-    .dropdown-icon {
-        filter: invert(1);
-    }
+.date-picker-icon {
+    height: 12.8px !important;
+    margin: auto !important;
 }
-

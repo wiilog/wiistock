@@ -62,8 +62,8 @@
                 <a data-id='{{ reception.id }}'
                    data-target='#modalCancelReception'
                    data-toggle='modal'
-                   class="dropdown-item pointer">
-                    <i class="fa fa-trash mr-2"></i>Annuler <span title="cette réception">{{ 'réception.cette réception'|trans }}</span></a>
+                   class="dropdown-item pointer d-flex align-items-center">
+                    <span class="wii-icon wii-icon-trash-black mr-2"></span>Annuler <span title="cette réception">{{ 'réception.cette réception'|trans }}</span></a>
             {% endif %}
             {% if hasDemande %}
                 <a href="{{ path('demande_index', {'reception': reception.id }) }}"
@@ -85,9 +85,9 @@
                 <a data-id='{{ reception.id }}'
                    data-target='#modalDeleteReception'
                    data-toggle='modal'
-                   class="dropdown-item pointer"
+                   class="dropdown-item pointer d-flex align-items-center"
                    onclick="checkAndDeleteRow($(this), '#modalDeleteReception', 'reception_check_delete', '#submitDeleteReception')">
-                    <i class="fa fa-trash mr-2"></i>Supprimer</a>
+                    <span class="wii-icon wii-icon-trash-black mr-2"></span>Supprimer</a>
             {% endif %}
         </div>
         {% endif %}

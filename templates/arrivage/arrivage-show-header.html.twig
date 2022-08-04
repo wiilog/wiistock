@@ -48,9 +48,9 @@
             {% if canBeDeleted %}
                 {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::DELETE_ARRI')) %}
                     <a href="" data-id='{{ arrivage.id }}' data-target='#modalDeleteArrivage' data-toggle='modal'
-                       class="dropdown-item"
+                       class="dropdown-item d-flex align-items-center"
                        onclick="deleteRowArrivage($(this), $('#modalDeleteArrivage'), $('#submitDeleteArrivage'))">
-                        <i class="fa fa-trash mr-2"></i>
+                        <span class="wii-icon wii-icon-trash-black mr-2"></span>
                         Supprimer
                     </a>
                 {% endif %}

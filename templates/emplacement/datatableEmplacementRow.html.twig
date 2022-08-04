@@ -23,12 +23,12 @@
                 </a>
             {% endif %}
             {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::DELETE')) %}
-                <div class="dropdown-item"
+                <div class="dropdown-item d-flex align-items-center"
                      onclick="checkAndDeleteRowEmplacement($(this))"
                      data-id='{{ emplacementId }}'
                      data-target='#modalDeleteEmplacement'
                      data-toggle='modal'>
-                    <i class='fas fa-trash mr-2'></i>Supprimer
+                    <span class="wii-icon wii-icon-trash-black mr-2"></span></i>Supprimer
                 </div>
             {% endif %}
         </div>
