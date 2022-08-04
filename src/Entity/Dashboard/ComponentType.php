@@ -87,10 +87,10 @@ class ComponentType
         ],
         self::CATEGORY_REQUESTS => [
             self::REQUESTS_TO_TREAT,
+            self::HANDLING_TRACKING,
             self::PENDING_REQUESTS,
             self::DAILY_DISPATCHES,
             self::DAILY_HANDLING,
-            self::HANDLING_TRACKING,
             self::DAILY_OPERATIONS,
             self::DAILY_HANDLING_INDICATOR,
         ],
