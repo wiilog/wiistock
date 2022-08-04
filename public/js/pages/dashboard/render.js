@@ -220,7 +220,7 @@ function createTooltip(text) {
     } else {
         return `
             <div class="points has-tooltip" title="${trimmedText}">
-                <i class="fa fa-question ml-1"></i>
+                <img src="../../../svg/timeline-information-dashboard.svg" alt="Icône" width="12px">
             </div>
         `;
     }
