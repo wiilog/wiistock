@@ -41,13 +41,15 @@
                     <i class="fa fa-trash mr-2"></i>Supprimer
                 </a>
             {% endif %}
-            <a href="{{ path('demande_show', {'id': demande.id}) }}" class="dropdown-item">
-                <i class="mr-2 fas fa-external-link-alt"></i>Retourner à la demande de livraison
-            </a>
-            <a href="{{ path('preparation_show', {'id': preparation.id}) }}"
-               class="dropdown-item">
-                <i class="mr-2 fas fa-external-link-alt"></i>Retourner à la préparation
-            </a>
+            {% if not livraison.preparation.demande.manual %}
+                <a href="{{ path('demande_show', {'id': demande.id}) }}" class="dropdown-item">
+                    <i class="mr-2 fas fa-external-link-alt"></i>Retourner à la demande de livraison
+                </a>
+                <a href="{{ path('preparation_show', {'id': preparation.id}) }}"
+                   class="dropdown-item">
+                    <i class="mr-2 fas fa-external-link-alt"></i>Retourner à la préparation
+                </a>
+            {% endif %}
         </div>
     </div>
 {% endblock %}

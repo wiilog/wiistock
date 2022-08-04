@@ -123,13 +123,13 @@ class PreparationRepository extends EntityRepository
      */
     public function findByParamsAndFilters(InputBag $params, $filters)
     {
-        $qb = $this->createQueryBuilder("p")
-            ->join('p.demande', 'request')
-            ->andWhere('request.manual = false');
+        $qb = $this->createQueryBuilder("p");
 
         $countTotal = QueryCounter::count($qb, 'p');
         $qb
-            ->where('p.planned IS NULL OR p.planned = 0');
+            ->where('p.planned IS NULL OR p.planned = 0')
+            ->join('p.demande', 'request')
+            ->andWhere('request.manual = false');
         // filtres sup
         foreach ($filters as $filter) {
             switch ($filter['field']) {
