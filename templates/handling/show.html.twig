@@ -210,7 +210,7 @@
                         <div class="box-item my-2">
                             <span class="wii-field-name">Date attendue</span>
                             <span class="wii-field-text">
-                                {{ handling.desiredDate ? handling.desiredDate | format_helper('longDate', {short: true}) : '-' }}
+                                {{ handling.desiredDate ? handling.desiredDate | format_helper('longDate', {short: true, time: not setting_value('REMOVE_HOURS_DATETIME')}) : '-' }}
                             </span>
                         </div>
                     </div>
