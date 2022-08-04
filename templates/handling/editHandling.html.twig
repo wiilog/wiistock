@@ -56,7 +56,7 @@
                 <div class="{{ not ((fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') or fieldsParam|isFieldRequired(fieldCode, 'displayedeEdit')) and emergency) ?  'bordered' }}">
                     <div class="content row ">
                         <div class="col-6 d-flex flex-column">
-                            <div class="box-item my-2">
+                            <div class="box-item mt-2">
                                 <span class="wii-field-name">Type</span>
                                 <span class="wii-field-text">
                                     {{ handling.type.label }}
@@ -64,7 +64,7 @@
                             </div>
                         </div>
                         <div class="col-6 d-flex flex-column">
-                            <div class="box-item my-2">
+                            <div class="box-item mt-2">
                                 {{ form.input('subject', 'Objet', true, handling.subject, {
                                     attributes: {
                                         'data-short-label': 'Objet',
@@ -244,7 +244,7 @@
                             </div>
                         </div>
                     {% endif %}
-                    <div class="col-6 d-flex flex-column mt-2">
+                    <div class="col-6 d-flex flex-column">
                         <div class="box-item my-2">
                             {% set desiredDate = handling.desiredDate ? handling.desiredDate|date('Y-m-d\\TH:i') %}
                             {{ form.input('desired-date', 'Date attendue', true, desiredDate, {
