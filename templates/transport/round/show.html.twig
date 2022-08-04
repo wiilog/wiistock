@@ -92,8 +92,9 @@
                                 {% endif %}
                             </div>
                             <div class="col-6 d-flex flex-column">
+                                {% set finishedStatusesName = constant('App\\Entity\\Transport\\TransportRound::STATUS_FINISHED') %}
                                 <span class="wii-field-name">Kilomètres réels</span>
-                                {% if transportRound.realDistance is not null %}
+                                {% if transportRound.realDistance is not null and transportRound.status.code == finishedStatusesName %}
                                     <span class="wii-field-text">{{ transportRound.realDistance }} km</span>
                                 {% else %}
                                     <span class="wii-field-text">-</span>
