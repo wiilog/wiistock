@@ -48,6 +48,7 @@ use Symfony\Component\Yaml\Yaml;
 use WiiCommon\Helper\Stream;
 
 class SettingsService {
+
     public const CHARACTER_VALID_REGEX = '^[A-Za-z0-9\_\-\/ ]{1,24}$';
 
     /**  @Required */
@@ -149,6 +150,7 @@ class SettingsService {
                 unset($result['template']);
             }
         }
+
         return $result;
     }
 
@@ -849,7 +851,6 @@ class SettingsService {
     private function postSaveTreatment(array $updated): void {
         if (array_intersect($updated, [Setting::FONT_FAMILY])) {
             $this->generateFontSCSS();
-            $this->yarnBuild();
         }
 
         if (array_intersect($updated, [Setting::MAX_SESSION_TIME])) {
@@ -883,12 +884,12 @@ class SettingsService {
     }
 
     public function generateFontSCSS() {
-        $path = "{$this->kernel->getProjectDir()}/assets/scss/_customFont.scss";
+        $path = "{$this->kernel->getProjectDir()}/public/generated/font.css";
 
         $font = $this->manager->getRepository(Setting::class)
                 ->getOneParamByLabel(Setting::FONT_FAMILY) ?? Setting::DEFAULT_FONT_FAMILY;
 
-        file_put_contents($path, "\$mainFont: \"$font\";");
+        file_put_contents($path, "* { font-family: \"$font\" !important; }");
     }
 
     public function generateSessionConfig() {
@@ -968,21 +969,6 @@ class SettingsService {
         }
 
         return $resp ?? null;
-    }
-
-    public function generateScssFile(?Setting $font = null) {
-        $projectDir = $this->kernel->getProjectDir();
-        $scssFile = $projectDir . '/assets/scss/_customFont.scss';
-
-        if (!$font) {
-            $settingRepository = $this->manager->getRepository(Setting::class);
-            $param = $settingRepository->findOneBy(['label' => Setting::FONT_FAMILY]);
-            $font = $param ? $param->getValue() : Setting::DEFAULT_FONT_FAMILY;
-        } else {
-            $font = $font->getValue();
-        }
-
-        file_put_contents($scssFile, "\$mainFont: \"$font\";");
     }
 
     public function getDefaultDeliveryLocationsByType(EntityManagerInterface $entityManager): array {
