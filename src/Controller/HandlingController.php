@@ -149,7 +149,6 @@ class HandlingController extends AbstractController {
         // cas d'un filtre statut depuis page d'accueil
         $filterStatus = $request->request->get('filterStatus');
         $selectedDate = $request->request->get('selectedDate');
-        dump($selectedDate);
         $data = $handlingService->getDataForDatatable($request->request, $filterStatus, $selectedDate);
 
         return new JsonResponse($data);
