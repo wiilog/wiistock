@@ -26,6 +26,11 @@ $(function () {
         }
 
     });
+
+    $(`#modalNewArticle`).on(`shown.bs.modal`, function() {
+        clearModal('#modalNewArticle');
+        $(this).find('#reference').select2("open");
+    });
 });
 
 function getCompareStock(submit) {
