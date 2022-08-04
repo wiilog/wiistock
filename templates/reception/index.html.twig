@@ -43,9 +43,9 @@
                         <button type="button"
                                 data-toggle="modal"
                                 data-target="#modalNewReception"
-                                class="btn btn-primary split-button"
+                                class="btn btn-primary split-button d-flex align-items-center"
                                 onclick="clearModal('#modalNewReception'); initNewReceptionEditor('#modalNewReception'); initReceptionLocation();">
-                            <span class="fa fa-plus mr-2"></span><span title="nouvelle réception">{{ 'réception.nouvelle réception'|trans }}</span>
+                            <span class="wii-icon wii-icon-plus mr-2"></span></span><span title="nouvelle réception">{{ 'réception.nouvelle réception'|trans }}</span>
                         </button>
                         <button type="button"
                                 class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
@@ -69,10 +69,10 @@
                         {% if hasRightCreate %}
                             <div data-toggle="modal"
                                  data-target="#modalNewReception"
-                                 class="btn btn-primary split-button"
+                                 class="btn btn-primary split-button d-flex align-items-center"
                                  onclick="clearModal('#modalNewReception'); initNewReceptionEditor('#modalNewReception'); initReceptionLocation();">
-                                <span class="fa fa-plus mr-2"></span><span
-                                    title="nouvelle réception">{{ 'réception.nouvelle réception'|trans }}</span>
+                                <span class="wii-icon wii-icon-plus mr-2"></span>
+                                <span title="nouvelle réception">{{ 'réception.nouvelle réception'|trans }}</span>
                             </div>
                             <button type="button"
                                     class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"

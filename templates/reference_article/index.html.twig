@@ -51,9 +51,9 @@
             <div class="col-auto">
                 <div class="btn-group">
                     {% if hasRightToCreate %}
-                        <button type="button" class="btn btn-primary split-button"
+                        <button type="button" class="btn btn-primary split-button d-flex align-items-center"
                                 onclick="window.location.href = Routing.generate('reference_article_new_page', {}, true)">
-                            <span class="fa fa-plus mr-2"></span>
+                            <span class="wii-icon wii-icon-plus mr-2"></span>
                             Nouvel article de référence
                         </button>
                     {% elseif hasRightToExport %}

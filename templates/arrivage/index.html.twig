@@ -33,7 +33,7 @@
                 <div class="btn-group arrival-mode-container">
                     {% if hasRightToCreate %}
                         <button type="button"
-                                class="btn btn-primary split-button"
+                                class="btn btn-primary split-button d-flex align-items-center"
                                 data-toggle="modal"
                                 name="new-arrival"
                                 data-target="#modalNewArrivage"
@@ -41,7 +41,7 @@
                                 data-keyboard="false"
                                 disabled
                                 onclick="initNewArrivageEditor('#modalNewArrivage')">
-                            <i class="fa fa-plus mr-2"></i>
+                            <span class="wii-icon wii-icon-plus mr-2"></span>
                             <span title="nouvel arrivage">{{ 'arrivage.nouvel arrivage'|trans }}</span>
                         </button>
                     {% elseif hasRightToExport %}
