@@ -173,18 +173,20 @@
         </div>
         <div class="col-md-6 col-12">
             <div class="wii-box ">
-                <div class="header wii-title">Statut</div>
-                {% if handling.status.treated != 1 %}
-                    <button id="" name='' type="button" class="btn btn-primary data d-flex align-items-center"
-                            onclick="$('#modalEditStatut').modal('show')">
-                        <img src="{{ asset('svg/timeline-status-white.svg') }}" alt="Icône statut timeline" width="15px" class="mr-2">
-                        Changer le statut
-                    </button>
-                {% endif %}
+                <div class="header wii-title d-flex justify-content-between {{ handling.status.treated != 1 ? 'p-2' }}">
+                    <span class="d-flex align-items-center pl-2">Statut</span>
+                    {% if handling.status.treated != 1 %}
+                        <button id="" name='' type="button" class="btn btn-primary data d-flex align-items-center"
+                                onclick="$('#modalEditStatut').modal('show')">
+                            <img src="{{ asset('svg/timeline-status-white.svg') }}" alt="Icône statut timeline" width="15px" class="mr-2">
+                            Changer le statut
+                        </button>
+                    {% endif %}
+                </div>
                 <div class="content p-0">
                     <div class="content status-history-container p-0">
                         <div class="d-flex align-items-center justify-content-center p-3">
-                        <div class="spinner-border text-primary" role="status"></div>
+                            <div class="spinner-border text-primary" role="status"></div>
                             <span class="ml-3">Génération de l'historique en cours</span>
                         </div>
                     </div>
