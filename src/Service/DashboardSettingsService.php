@@ -1109,7 +1109,7 @@ class DashboardSettingsService {
             } else {
                 $values = ["chartData" => []];
             }
-        } else if (isset($config['handlingTypes']) && !empty($config['handlingTypes']) && ($config['creationDate'] ?? $config['expectedDate'] ?? $config['treatmentDate'])) {
+        } else if (isset($config['handlingTypes']) && !empty($config['handlingTypes']) && ($config['creationDate'] || $config['desiredDate'] || $config['validationDate'])) {
             $values = $componentType->getExampleValues();
             $values['handlingTypes'] = $config['handlingTypes'] ?? '';
 

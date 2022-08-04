@@ -49,7 +49,7 @@
                 {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') and emergency %}
                     <div class="d-flex align-items-center bordered emergency-container pl-3">
                         <img src="{{ asset('svg/timeline-urgent.svg') }}" class="mr-2" alt="Icône urgence" width="17px">
-                        <strong>{{ emergency }}</strong>
+                        <strong>Urgent - {{ emergency }}</strong>
                     </div>
                 {% endif %}
                 <div class="content row no-gutters {{ not (fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') and emergency) ?  'bordered' }}">

@@ -31,13 +31,10 @@
     <label class="wii-field-name">Date affiché*</label>
     <div class="row form-group align-items-center mt-2">
         <div class="col-auto">
-            <label class="switch">
-                <input class="checkbox"
-                       type="checkbox"
-                       name="creationDate"
-                    {{ values.creationDate ?? false ? 'checked' }}/>
-                <span class="slider round"></span>
-            </label>
+            <input class="checkbox"
+                   type="checkbox"
+                   name="creationDate"
+                {{ values.creationDate ?? false ? 'checked' }}/>
         </div>
         <div class="col">
             Date de création
@@ -45,13 +42,10 @@
     </div>
     <div class="row form-group align-items-center">
         <div class="col-auto">
-            <label class="switch">
-                <input class="checkbox"
-                       type="checkbox"
-                       name="desiredDate"
-                    {{ values.desiredDate ?? false ? 'checked' }}/>
-                <span class="slider round"></span>
-            </label>
+            <input class="checkbox"
+                   type="checkbox"
+                   name="desiredDate"
+                {{ values.desiredDate ?? false ? 'checked' }}/>
         </div>
         <div class="col">
             Date attendue
@@ -59,13 +53,10 @@
     </div>
     <div class="row form-group align-items-center">
         <div class="col-auto">
-            <label class="switch">
-                <input class="checkbox"
-                       type="checkbox"
-                       name="validationDate"
-                    {{ values.validationDate ?? false ? 'checked' }}/>
-                <span class="slider round"></span>
-            </label>
+            <input class="checkbox"
+                   type="checkbox"
+                   name="validationDate"
+                {{ values.validationDate ?? false ? 'checked' }}/>
         </div>
         <div class="col">
             Date de traitement
@@ -87,7 +78,7 @@
             <option value="{{ constant('App\\Service\\DashboardService::DAILY_PERIOD_NEXT_DAYS') }}" {{  values.period is defined and constant('App\\Service\\DashboardService::DAILY_PERIOD_NEXT_DAYS') == values.period ? 'selected' }}>prochains jours</option>
         </select>
     </div>
-    <label class="d-block mb-3" style="margin-top: -15px;font-size:0.9rem">
+    <label class="d-block mb-3 wii-small-text" style="margin-top: -15px;font-size:0.9rem">
         (7 jours maximum. Le jour en cours est compté dans le nombre de jours)
     </label>
 {% endblock %}
