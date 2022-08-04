@@ -1,15 +1,15 @@
 <div class="form-group">
-    <label>Nom du groupe*</label>
+    <label class="wii-field-name">Nom du groupe*</label>
     <input type="text" class="form-control data needed" name="label" value="{{ group.label }}"/>
 </div>
 
 <div class="form-group">
-    <label>Description*</label>
+    <label class="wii-field-name">Description*</label>
     <textarea class="form-control data needed" name="description">{{ group.description }}</textarea>
 </div>
 
 <div class="form-group">
-    <label>Statut*</label><br>
+    <label class="wii-field-name">Statut*</label><br>
     <div class="wii-switch needed" data-title="Statut">
         <input type="radio" name="active" value="1" content="Actif" {{ group.active ? 'checked' }}>
         <input type="radio" name="active" value="0" content="Inactif" {{ not group.active ? 'checked' }}>
@@ -17,7 +17,7 @@
 </div>
 
 <div class="form-group">
-    <label>Emplacements*</label>
+    <label class="wii-field-name">Emplacements*</label>
     <select name="locations" class="form-control data needed w-100" data-s2="location" multiple>
         {% for location in group.locations %}
             <option value="{{ location.id }}" selected>{{ location.label }}</option>

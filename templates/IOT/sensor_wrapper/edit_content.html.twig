@@ -1,7 +1,7 @@
 {% set sensor = sensorWrapper.sensor %}
 
 <div class="form-group row">
-    <label class="col-12">Code*</label>
+    <label class="wii-field-name col-12">Code*</label>
     <div class="col-12">
         <input type="text" class="form-control" disabled value="{{ sensor ? sensor.code }}" title="Code"/>
     </div>
@@ -21,13 +21,13 @@
     </div>
 </div>
 <div class="row form-group">
-    <label class="col-12">Nom*</label>
+    <label class="wii-field-name col-12">Nom*</label>
     <div class="col-12">
         <input class="data needed form-control" name="name" title="Nom" value="{{ sensorWrapper.name }}"/>
     </div>
 </div>
 <div class="row form-group">
-    <label class="col-12">Gestionnaire</label>
+    <label class="wii-field-name col-12">Gestionnaire</label>
     <div class="col-12">
         <select name="manager"
                 title="Gestionnaire"

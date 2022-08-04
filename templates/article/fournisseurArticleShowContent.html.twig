@@ -1,19 +1,19 @@
 {% if article.articleFournisseur is not empty %}
 <div class="row">
     <div class="form-group col-3 w-100">
-        <label for="reference">Fournisseur</label>
+        <label class="wii-field-name" for="reference">Fournisseur</label>
         <input class="form-control needed" type="text" value="{{article.articleFournisseur.fournisseur.nom}}" disabled>
     </div>
     <div class="form-group col-3">
-        <label for="reference">Ref. article fournisseur</label>
+        <label class="wii-field-name" for="reference">Ref. article fournisseur</label>
         <input class="form-control needed" disabled type="text" value="{{article.articleFournisseur.reference}}">
     </div>
     <div class="form-group col-3">
-        <label for="reference">Label</label>
+        <label class="wii-field-name" for="reference">Label</label>
         <input class="form-control needed" type="text" disabled value="{{article.articleFournisseur.label}}">
     </div>
     <div class="form-group col-3">
-        <label for="reference" title="référence">
+        <label class="wii-field-name" for="reference" title="référence">
             {{ 'reference.référence'|trans }}
         </label>
         <input class="form-control needed" type="text" disabled value="{{article.articleFournisseur.referenceArticle.reference}}">

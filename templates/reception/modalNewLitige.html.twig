@@ -8,7 +8,7 @@
             <div class="modal-body modal-input container-fluid">
                 <div class="row">
                     <div class="form-group col-12">
-                        <label>Type*</label>
+                        <label class="wii-field-name">Type*</label>
                         {% include 'utils/warningSelectEmpty.html.twig' with {
                             array: disputeTypes,
                             warningLabel: 'Attention ! Aucun type de litige n\'a été créé',
@@ -32,7 +32,7 @@
                         </select>
                     </div>
                     <div class="form-group col-12">
-                        <label>Statut*</label>
+                        <label class="wii-field-name">Statut*</label>
                         {% include 'utils/warningSelectEmpty.html.twig' with {
                             array: disputeStatuses,
                             warningLabel: 'Attention ! Aucun statut de litige n\'a été créé',
@@ -59,13 +59,13 @@
                         {% endif %}
                     </div>
                     <div class="form-group w-100 col-12">
-                        <label for="acheteursLitige">Acheteur(s)</label>
+                        <label class="wii-field-name" for="acheteursLitige">Acheteur(s)</label>
                         <select class="form-control data" name="acheteursLitige" data-s2="user"
                                 multiple>
                         </select>
                     </div>
                     <div class="form-group w-100 col-12">
-                        <label for="disputeReporter">Déclarant*</label>
+                        <label class="wii-field-name" for="disputeReporter">Déclarant*</label>
                         <select class="form-control data needed" name="disputeReporter"
                                 data-s2="user">
                         </select>
@@ -75,18 +75,18 @@
                                data-id="{{ app.user.id }}"/>
                     </div>
                     <div class="form-group w-100 col-12">
-                        <label for="disputePacks" title="articles">{{ 'réception.articles'|trans }}*</label>
+                        <label class="wii-field-name" for="disputePacks" title="articles">{{ 'réception.articles'|trans }}*</label>
                         <select class="form-control select2 w-100 data needed select2-autocomplete-articles"
                                 id="disputePacks" name="disputePacks" multiple="multiple">
                         </select>
                     </div>
                     <div class="form-group col-8 h-fit-content">
-                        <label for="litige-commentaire">Commentaire</label>
+                        <label class="wii-field-name" for="litige-commentaire">Commentaire</label>
                         <input type="text" id="litige-commentaire" class="commentaire form-control data"
                                name="commentaire">
                     </div>
                     <div class="form-group col-3 mt-4">
-                        <label>Urgence ?</label>
+                        <label class="wii-field-name">Urgence ?</label>
                         <label class="switch">
                             <input class="checkbox data" type="checkbox" name="emergency">
                             <span class="slider round"></span>

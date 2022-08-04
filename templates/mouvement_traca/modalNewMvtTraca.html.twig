@@ -15,14 +15,14 @@
                                 </div>
                             {% else %}
                                 <div class="form-group col-12">
-                                    <label for="datetime">Date*</label>
+                                    <label class="wii-field-name" for="datetime">Date*</label>
                                     <input type="datetime-local" class="form-control data datetime needed no-clear"
                                            id="datetime"
                                            name="datetime">
                                 </div>
                                 <input type="hidden" class="data" name="forced" value="0">
                                 <div class="form-group col-12">
-                                    <label for="operator my-auto mr-2">Opérateur*</label>
+                                    <label class="wii-field-name" for="operator my-auto mr-2">Opérateur*</label>
                                     <select name="operator"
                                             class="form-control ajax-autocomplete-user data needed operator no-clear w-100">
                                     </select>
@@ -33,7 +33,7 @@
                                 </div>
                                 <div class="form-group col-12">
                                     {% set hasEmptyRoundRight = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EMPTY_ROUND')) %}
-                                    <label for="type">Action*</label>
+                                    <label class="wii-field-name" for="type">Action*</label>
                                     <select class="form-control data needed w-100"
                                             id="type"
                                             name="type"
@@ -56,7 +56,7 @@
                     <div class="col-6">
                         <div class="row">
                             <div class="form-group col-12 h-fit-content">
-                                <label for="commentaire">Commentaire</label>
+                                <label class="wii-field-name" for="commentaire">Commentaire</label>
                                 <input id="commentaire" class="commentaire form-control data" name="commentaire"
                                        type="hidden">
                                 <div class="editor-container-new" data-wysiwyg></div>

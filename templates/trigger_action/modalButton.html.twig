@@ -1,7 +1,7 @@
 {% set config = triggerAction is defined and triggerAction ? triggerAction.config : [] %}
 <div class="form-group col-12">
     <div class="form-group col-12 col-md-6 p-0">
-        <label>{{ 'IoT.Fonction/Zone' | trans }}</label>
+        <label class="wii-field-name">{{ 'IoT.Fonction/Zone' | trans }}</label>
         <input type="text" class="data w-100 form-control" value="{{ config is not empty ? config['zone'] }}" name="zone" title="Fonction/Zone">
     </div>
     {% if profile is defined and profile == constant('App\\Service\\IOT\\IOTService::SYMES_ACTION_MULTI') %}
