@@ -47,7 +47,7 @@
                 </div>
                 {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}
                 {% set emergency = handling.emergency %}
-                {% if (fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') or fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) and emergency %}
+                {% if (fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') or fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) and emergency %}
                     <div class="d-flex align-items-center bordered emergency-container pl-3">
                         <img src="{{ asset('svg/timeline-urgent.svg') }}" class="mr-2" alt="Icône urgence" width="17px">
                         <strong>{{ emergency }}</strong>
@@ -56,7 +56,7 @@
                 <div class="{{ not ((fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') or fieldsParam|isFieldRequired(fieldCode, 'displayedeEdit')) and emergency) ?  'bordered' }}">
                     <div class="content row ">
                         <div class="col-6 d-flex flex-column">
-                            <div class="box-item my-2">
+                            <div class="box-item mt-2">
                                 <span class="wii-field-name">Type</span>
                                 <span class="wii-field-text">
                                     {{ handling.type.label }}
@@ -64,7 +64,7 @@
                             </div>
                         </div>
                         <div class="col-6 d-flex flex-column">
-                            <div class="box-item my-2">
+                            <div class="box-item mt-2">
                                 {{ form.input('subject', 'Objet', true, handling.subject, {
                                     attributes: {
                                         'data-short-label': 'Objet',
@@ -75,7 +75,7 @@
                         {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
                         {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
-                            <div class="col-6 d-flex flex-column">
+                            <div class="col-6 d-flex flex-column mt-2">
                                 {{ form.select('emergency', "Urgence", true, {
                                     items: emergencies,
                                     required,
@@ -98,7 +98,7 @@
                         {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_RECEIVERS_HANDLING') %}
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
-                            <div class="col-6 d-flex flex-column">
+                            <div class="col-6 d-flex flex-column mt-2">
                                 {{ form.select('receivers', "Destinataires", required, {
                                     items: receivers,
                                     type: 'user',
@@ -126,7 +126,7 @@
                         {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_LOADING_ZONE') %}
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
-                            <div class="col-6 d-flex flex-column">
+                            <div class="col-6 d-flex flex-column mt-2">
                                 {{ form.input('source', 'Chargement', required, handling.source, {
                                     attributes: {
                                         'data-short-label': 'Chargement',
@@ -138,7 +138,7 @@
                                 <div class="box-item my-2">
                                     <span class="wii-field-name">Chargement</span>
                                     <span class="wii-field-text">
-                                        {{ handling.source }}
+                                        {{ handling.source ? handling.source : '-' }}
                                     </span>
                                 </div>
                             </div>
@@ -146,7 +146,7 @@
                         {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_UNLOADING_ZONE') %}
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
-                            <div class="col-6 d-flex flex-column">
+                            <div class="col-6 d-flex flex-column mt-2">
                                 {{ form.input('destination', 'Déchargement', required, handling.source, {
                                     attributes: {
                                         'data-short-label': 'Chargement',
@@ -158,7 +158,7 @@
                                 <div class="box-item my-2">
                                     <span class="wii-field-name">Déchargement</span>
                                     <span class="wii-field-text">
-                                        {{ handling.destination }}
+                                        {{ handling.destination ? handling.destination : '-'}}
                                     </span>
                                 </div>
                             </div>
@@ -166,9 +166,8 @@
                         {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIED_OUT_OPERATION_COUNT') %}
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
-                            <div class="col-6 d-flex flex-column">
-
-                                {{ form.number('carriedOutOperationCount', 'Nombre d’opération(s) réalisée(s)', required, null, {
+                            <div class="col-6 d-flex flex-column mt-2">
+                                {{ form.number('carriedOutOperationCount', 'Nombre d’opération(s) réalisée(s)', required, handling.carriedOutOperationCount, {
                                     labelClass: 'w-100',
                                     min: 0
                                 }) }}
@@ -178,7 +177,7 @@
                                 <div class="box-item my-2">
                                     <span class="wii-field-name">Nombre d’opération(s) réalisée(s)</span>
                                     <span class="wii-field-text">
-                                    {{ handling.carriedOutOperationCount ?? '-'}}
+                                    {{ handling.carriedOutOperationCount ? handling.carriedOutOperationCount : '-'}}
                                 </span>
                                 </div>
                             </div>

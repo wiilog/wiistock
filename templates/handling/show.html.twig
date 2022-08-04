@@ -46,13 +46,13 @@
                 </div>
                 {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}
                 {% set emergency = handling.emergency %}
-                {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') and emergency %}
+                {% if (fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') or fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) and emergency %}
                     <div class="d-flex align-items-center bordered emergency-container pl-3">
                         <img src="{{ asset('svg/timeline-urgent.svg') }}" class="mr-2" alt="Icône urgence" width="17px">
                         <strong>Urgent - {{ emergency }}</strong>
                     </div>
                 {% endif %}
-                <div class="content row no-gutters {{ not (fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') and emergency) ?  'bordered' }}">
+                <div class="content row no-gutters {{ not (fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') or fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') and emergency) ?  'bordered' }}">
                     <div class="col-6 d-flex flex-column">
                         <div class="box-item my-2">
                             <span class="wii-field-name">Type</span>
@@ -70,7 +70,7 @@
                         </div>
                     </div>
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}
-                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                    {% if (fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') or fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
                         <div class="col-6 d-flex flex-column">
                             <div class="box-item my-2">
                                 <span class="wii-field-name">Urgence</span>
@@ -81,7 +81,7 @@
                         </div>
                     {% endif %}
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_RECEIVERS_HANDLING') %}
-                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                    {% if (fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') or fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
                         <div class="col-6 d-flex flex-column">
                             <div class="box-item my-2">
                                 <span class="wii-field-name">Destinataires</span>
@@ -98,7 +98,7 @@
                         </div>
                     {% endif %}
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_LOADING_ZONE') %}
-                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                    {% if (fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') or fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
                         <div class="col-6 d-flex flex-column">
                             <div class="box-item my-2">
                                 <span class="wii-field-name">Chargement</span>
@@ -109,7 +109,7 @@
                         </div>
                     {% endif %}
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_UNLOADING_ZONE') %}
-                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                    {% if (fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') or fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
                         <div class="col-6 d-flex flex-column">
                             <div class="box-item my-2">
                                 <span class="wii-field-name">Déchargement</span>
@@ -120,7 +120,7 @@
                         </div>
                     {% endif %}
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIED_OUT_OPERATION_COUNT') %}
-                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                    {% if (fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') or fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
                         <div class="col-6 d-flex flex-column">
                             <div class="box-item my-2">
                                 <span class="wii-field-name">Nombre d’opération(s) réalisée(s)</span>
