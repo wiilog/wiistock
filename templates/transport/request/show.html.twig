@@ -285,7 +285,7 @@
                         {% endfor %}
                         <div>
                             <span class="wii-field-name">Dernière position connue</span>
-                            <span class="wii-small-text">
+                            <div class="wii-small-text">
                                 {%  if order is not null and order.subcontracted %}
                                     Le suivi n'est pas disponible car la demande est sur un horaire non ouvré
                                 {% elseif not roundHasStarted %}
@@ -294,7 +294,7 @@
                                 <div class="map-container p-3">
                                     <div id="map"></div>
                                 </div>
-                            </span>
+                            </div>
                         </div>
                         {% if request_delivery %}
                             <div class="pt-3">
@@ -305,7 +305,7 @@
                                      {% elseif not requiresTemperatureTracking %}
                                          La demande ne nécessite pas de suivi de température
                                      {% elseif not roundHasStarted %}
-                                         <a class="float-right">La tournée n'a pas commencé</a>
+                                         La tournée n'a pas commencé
                                          {% for url in urls %}
                                              {% include 'IOT/data_monitoring/content.html.twig' with {
                                                  type : 'chart',
