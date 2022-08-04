@@ -1,7 +1,7 @@
 <form>
     <div class="row align-items-center">
         <div class="form-group col-12 col-md-4">
-            <label for="sensorWrapperList" title="sensorWrapper">
+            <label class="wii-field-name" for="sensorWrapperList" title="sensorWrapper">
                 Capteur
             </label>
             <input disabled class="form-control" value="{{ triggerAction.sensorWrapper.name }}">
@@ -10,7 +10,7 @@
             <label> OU </label>
         </div>
         <div class="form-group col-12 col-md-4">
-            <label>Code</label>
+            <label class="wii-field-name">Code</label>
             <input disabled class="form-control" value="{{ triggerAction.sensorWrapper.sensor.code }}">
         </div>
     </div>
@@ -23,7 +23,7 @@
             {% endif %}
         </div>
         <div class="form-group col-12 col-md-6">
-            <label>Type de modèle*</label>
+            <label class="wii-field-name">Type de modèle*</label>
             <div class="w-100">
                 <select class="form-control data needed" name="templateType" onchange="onTemplateTypeChange($(this))">
                     <option value=""></option>
@@ -38,7 +38,7 @@
             </div>
         </div>
         <div class="form-group col-12 col-md-6">
-            <label>Modèle*</label>
+            <label class="wii-field-name">Modèle*</label>
             <div class="w-100">
                 <select class="form-control data needed" name="templates">
                     <option selected

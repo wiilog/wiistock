@@ -1,6 +1,6 @@
 <div class="row">
     <div class="form-group col-8">
-        <label for="disputeType">Type*</label>
+        <label class="wii-field-name" for="disputeType">Type*</label>
         <select class="form-control data needed"
                 id="disputeType"
                 name="disputeType">
@@ -15,7 +15,7 @@
         </select>
     </div>
     <div class="form-group col-4 mt-4">
-        <label>Urgence ?</label>
+        <label class="wii-field-name">Urgence ?</label>
         <label class="switch">
             <input class="checkbox"
                    type="checkbox"
@@ -24,7 +24,7 @@
         </label>
     </div>
     <div class="form-group col-12">
-        <label>Statut*</label>
+        <label class="wii-field-name">Statut*</label>
         <select class="form-control data needed"
                 name="disputeStatus"
                 title="Statut">
@@ -35,7 +35,7 @@
         </select>
     </div>
     <div class="form-group w-100 col-12">
-        <label for="acheteursLitige">Acheteur(s)</label>
+        <label class="wii-field-name" for="acheteursLitige">Acheteur(s)</label>
         <select class="form-control data"
                 name="acheteursLitige"
                 id="acheteursLitigeEdit"
@@ -47,7 +47,7 @@
         </select>
     </div>
     <div class="form-group w-100 col-12">
-        <label for="disputeReporter">Déclarant*</label>
+        <label class="wii-field-name" for="disputeReporter">Déclarant*</label>
         <select class="form-control data needed" name="disputeReporter" data-s2="user">
             {% if dispute.reporter %}
                 <option value="{{ dispute.reporter.id }}" selected>{{ dispute.reporter.username }}</option>
@@ -59,7 +59,7 @@
                data-id="{{ dispute.reporter ? dispute.reporter.id : '' }}"/>
     </div>
     <div class="form-group w-100 col-12">
-        <label for="colisEditLitige"
+        <label class="wii-field-name" for="colisEditLitige"
                title="articles">{{ 'réception.articles'|trans }}*</label>
         <select
                 class="form-control data select2 needed select2-autocomplete-articles"
@@ -70,7 +70,7 @@
     </div>
 
     <div class="form-group col-12 h-fit-content">
-        <label for="litige-edit-commentaire">Commentaire</label>
+        <label class="wii-field-name" for="litige-edit-commentaire">Commentaire</label>
 
         <div class="d-flex">
             <input type="text"
