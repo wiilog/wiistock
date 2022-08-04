@@ -462,10 +462,10 @@ function renderCardComponent({columnIndex, cellIndex, component}) {
         if (mode === MODE_EDIT) {
             const isCellSplit = cellIndex !== null;
             const $addComponent = $('<button/>', {
-                class: 'btn btn-light dashboard-button',
+                class: 'btn btn-light dashboard-button d-flex align-items-center',
                 name: 'add-component-button',
                 click: ({target} = {}) => openModalComponentTypeFirstStep($(target), isCellSplit),
-                html: `<i class="fas fa-plus mr-2"></i> Ajouter un composant`
+                html: `<span class="wii-icon wii-icon-plus-black mr-2"></span>Ajouter un composant`
             });
 
             const $splitCells = [];
@@ -506,10 +506,10 @@ function renderDashboardPagination() {
 
     if (mode === MODE_EDIT) {
         $(`.dashboard-pagination`).append(`
-            <button class="btn btn-primary mx-1"
+            <button class="btn btn-primary mx-1 d-flex align-items-center"
                     data-toggle="modal"
                     data-target="#add-dashboard-modal">
-                <span class="fa fa-plus mr-2"></span> Ajouter un dashboard
+                <span class="wii-icon wii-icon-plus mr-2"></span> Ajouter un dashboard
             </button>
         `);
     }
