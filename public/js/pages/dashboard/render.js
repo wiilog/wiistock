@@ -483,7 +483,7 @@ function createChart(data, {route, cssClass, hideRange} = {route: null, cssClass
 
     const dashboardBoxContainerClass = hasRangeButton
         ? 'dashboard-box-container-title-content'
-        : 'dashboard-box-container-title-content-rangeButton';
+        : 'dashboard-box-container-title-content-rangeButton w-100';
     const numberingConfig = {numbering: 0};
 
     const title = data.title || "";
