@@ -29,37 +29,39 @@
     </div>
 
     <label class="wii-field-name">Date affichée*</label>
-    <div class="row form-group align-items-center mt-2">
-        <div class="col-auto">
-            <input class="checkbox"
-                   type="checkbox"
-                   name="creationDate"
-                {{ values.creationDate ?? false ? 'checked' }}/>
+    <div class="wii-switch-no-style needed" data-title="Date affichée">
+        <div class="row form-group align-items-center mt-2">
+            <div class="col-auto">
+                <input class="checkbox"
+                       type="checkbox"
+                       name="creationDate"
+                    {{ values.creationDate ?? false ? 'checked' }}/>
+            </div>
+            <div class="col">
+                Date de création
+            </div>
         </div>
-        <div class="col">
-            Date de création
+        <div class="row form-group align-items-center">
+            <div class="col-auto">
+                <input class="checkbox"
+                       type="checkbox"
+                       name="desiredDate"
+                    {{ values.desiredDate ?? false ? 'checked' }}/>
+            </div>
+            <div class="col">
+                Date attendue
+            </div>
         </div>
-    </div>
-    <div class="row form-group align-items-center">
-        <div class="col-auto">
-            <input class="checkbox"
-                   type="checkbox"
-                   name="desiredDate"
-                {{ values.desiredDate ?? false ? 'checked' }}/>
-        </div>
-        <div class="col">
-            Date attendue
-        </div>
-    </div>
-    <div class="row form-group align-items-center">
-        <div class="col-auto">
-            <input class="checkbox"
-                   type="checkbox"
-                   name="validationDate"
-                {{ values.validationDate ?? false ? 'checked' }}/>
-        </div>
-        <div class="col">
-            Date de traitement
+        <div class="row form-group align-items-center">
+            <div class="col-auto">
+                <input class="checkbox"
+                       type="checkbox"
+                       name="validationDate"
+                    {{ values.validationDate ?? false ? 'checked' }}/>
+            </div>
+            <div class="col">
+                Date de traitement
+            </div>
         </div>
     </div>
 
