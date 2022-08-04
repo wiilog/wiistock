@@ -88,8 +88,8 @@
                                 {% if handling.receivers is not empty %}
                                     {% for receiver in handling.receivers  %}
                                         <span class="wii-field-text">
-                                                {{ receiver.username }}
-                                            </span>
+                                            {{ receiver.username }}
+                                        </span>
                                     {% endfor %}
                                 {% else %}
                                     <span class="wii-field-text">-</span>
@@ -103,7 +103,7 @@
                             <div class="box-item my-2">
                                 <span class="wii-field-name">Chargement</span>
                                 <span class="wii-field-text">
-                                    {{ handling.source }}
+                                    {{ handling.source == "" ? "-" : handling.source }}
                                 </span>
                             </div>
                         </div>
@@ -114,7 +114,7 @@
                             <div class="box-item my-2">
                                 <span class="wii-field-name">Déchargement</span>
                                 <span class="wii-field-text">
-                                    {{ handling.destination }}
+                                    {{ handling.destination == "" ? "-" : handling.destination }}
                                 </span>
                             </div>
                         </div>
@@ -191,7 +191,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="sub-header">
+                <div class="sub-header mt-2">
                     <img src="{{ asset('svg/calendar.svg') }}" alt="Icône calendrier" width="15px">
                     <span class="wii-field-name ml-2">Dates</span>
                 </div>
@@ -210,7 +210,7 @@
                         <div class="box-item my-2">
                             <span class="wii-field-name">Date attendue</span>
                             <span class="wii-field-text">
-                                {{ handling.desiredDate ? handling.desiredDate | format_helper('longDate', {short: false}) : '-' }}
+                                {{ handling.desiredDate ? handling.desiredDate | format_helper('longDate', {short: true}) : '-' }}
                             </span>
                         </div>
                     </div>
