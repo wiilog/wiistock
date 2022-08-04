@@ -114,7 +114,6 @@ class HandlingController extends AbstractController {
                     $carry[$test['id']] = $test['label'];
                     return $carry;
                 }, []),
-            'removeHourInDatetime' => $settingRepository->getOneParamByLabel(Setting::REMOVE_HOURS_DATETIME),
             'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_EMERGENCY),
             'modalNewConfig' => [
                 'defaultStatuses' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::HANDLING),
