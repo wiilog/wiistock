@@ -10,6 +10,7 @@
                        name="dateMin"
                        id="dateMin"
                        placeholder="jj/mm/aaaa"
+                       value="{{ selectedDate is defined ? selectedDate | date('d/m/Y') : '' }}"
                     {{ disabled }}
                        autocomplete="off"/>
                 <div class="input-group-prepend h-100">
@@ -20,6 +21,7 @@
                        name="dateMax"
                        id="dateMax"
                        placeholder="jj/mm/aaaa"
+                       value="{{ selectedDate is defined ? selectedDate | date('d/m/Y') : '' }}"
                     {{ disabled }}
                        autocomplete="off"/>
             </div>
@@ -36,6 +38,7 @@
                             <input data-id="{{ dateChoice.name }}" class="filter-checkbox" type="radio" id="date-choice_{{ dateChoice.name }}"
                                    data-override-name="date-choice_{{ dateChoice.name }}" value="1"
                                    name="filter-date-choice"
+                                   {{ selectedDate is defined and selectedDate and dateChoice.name == 'expectedDate' ? 'checked' }}
                                    {% if checked %}
                                         checked
                                    {% endif %}">

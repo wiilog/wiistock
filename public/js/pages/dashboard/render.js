@@ -555,8 +555,8 @@ function createIndicatorElement(data, config, redefinedNumberingConfig = null) {
     let meterKey = config.meterKey;
     let customContainerClass = config.customContainerClass;
     const redirectToHandling = config.component?.config?.redirectToHandling;
-    const redirectToHandlingRoute = redirectToHandling && config.component?.config?.handlingIds && config.route ? Routing.generate(config.route, {
-        handlingIds: config.component?.config?.handlingIds?.join(','),
+    const redirectToHandlingRoute = redirectToHandling && config.component?.config?.selectedDate && config.route ? Routing.generate(config.route, {
+        date: new Date().toISOString().split('T')[0],
     }) : '';
     let remainingConfig = Object.assign({}, config);
     delete remainingConfig.meterKey;

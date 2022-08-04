@@ -348,7 +348,7 @@ class DashboardService {
         );
 
         $config = $component->getConfig();
-        $config['handlingIds'] = Stream::from($listEmergenciesHandlings)->flatten()->toArray();
+        $config['selectedDate'] = true;
         $component->setConfig($config);
 
         $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Indicator::class);
