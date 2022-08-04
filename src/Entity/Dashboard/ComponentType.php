@@ -90,7 +90,7 @@ class ComponentType
             self::PENDING_REQUESTS,
             self::DAILY_DISPATCHES,
             self::DAILY_HANDLING,
-            //TODO: suivi des demandes de service
+            self::HANDLING_TRACKING,
             self::DAILY_OPERATIONS,
             self::DAILY_HANDLING_INDICATOR,
         ],
