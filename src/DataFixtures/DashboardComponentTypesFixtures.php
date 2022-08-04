@@ -634,7 +634,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'template' => Dashboard\ComponentType::DAILY_HANDLING,
             'meterKey' => Dashboard\ComponentType::DAILY_HANDLING,
         ],
-        'Nombre d\'opérations quotidiennes' => [
+        'Nombre d\'opérations quotidiennes (services)' => [
             'hint' => 'Nombre d\'opérations quotidiennes sur les services ayant leur date attendue sur les jours présentés',
             'exampleValues' => [
                 'chartColors' => [

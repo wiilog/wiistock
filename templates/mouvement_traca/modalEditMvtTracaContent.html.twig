@@ -1,7 +1,7 @@
 <div class="row">
     {% set canEditFully = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::FULLY_EDIT_TRACKING_MOVEMENTS')) %}
     <div class="form-group col-md-6 col-12">
-        <label for="datetime">Date*</label>
+        <label class="wii-field-name" for="datetime">Date*</label>
         <input type="datetime-local"
                class="form-control w-100 data"
                name="date"
@@ -11,7 +11,7 @@
     </div>
 
     <div class="form-group col-md-6 col-12">
-        <label for="operator">Opérateur*</label>
+        <label class="wii-field-name" for="operator">Opérateur*</label>
         <select name="operator"
                 title="Opérateur"
                 class="form-control ajax-autocomplete-user-edit data needed operator w-100">
@@ -24,7 +24,7 @@
     <div class="form-group col-md-6 col-12">
         {% set pack = mvt.pack %}
         {% set code = pack ? pack.code %}
-        <label title="Colis">{{ "mouvement de traçabilité.Colis"|trans }}*</label>
+        <label class="wii-field-name" title="Colis">{{ "mouvement de traçabilité.Colis"|trans }}*</label>
         <input type="text"
                title="Colis"
                class="form-control w-100 data"
@@ -35,7 +35,7 @@
 
     <div class="form-group col-md-6 col-12">
         {% set hasEmptyRoundRight = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EMPTY_ROUND')) %}
-        <label for="type">Action*</label>
+        <label class="wii-field-name" for="type">Action*</label>
         <select class="form-control data needed w-100"
                 id="type"
                 name="type"
@@ -58,7 +58,7 @@
     </div>
 
     <div class="form-group col-md-6 col-12">
-        <label class="my-auto mr-2">Emplacement*</label>
+        <label class="wii-field-name" class="my-auto mr-2">Emplacement*</label>
         <select name='location' data-s2='location' class='data form-control w-100' {{ not canEditFully ? 'disabled' }} required>
             {% if mvt.emplacement is not null %}
                 <option value="{{ mvt.emplacement.id }}" selected>{{ mvt.emplacement.label }}</option>
@@ -85,7 +85,7 @@
 
 <div class="row">
     <div class="form-group col-12 h-fit-content">
-        <label for="commentaire">Commentaire</label>
+        <label class="wii-field-name" for="commentaire">Commentaire</label>
         <input id="commentaire" class="commentaire form-control data" name="commentaire" type="hidden">
         <div class="editor-container-edit" value="{{ mvt.commentaire }}" data-wysiwyg>{{ mvt.commentaire|raw }}</div>
 

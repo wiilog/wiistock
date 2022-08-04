@@ -5,7 +5,7 @@
 <div class="row">
     <div class="col-12 col-md-6">
         <div class="form-group">
-            <label for="utilisateur">Demandeur</label>
+            <label class="wii-field-name" for="utilisateur">Demandeur</label>
             <select disabled class="form-control select2 data" name="demandeur">
                 {% if demande.utilisateur %}
                     <option selected value="{{ demande.utilisateur.id }}">{{ demande.utilisateur.username }}</option>
@@ -15,7 +15,7 @@
     </div>
     <div class="col-12 col-md-6">
         <div class="form-group">
-            <label for="typeEdit">Type</label>
+            <label class="wii-field-name" for="typeEdit">Type</label>
             <select name="type"
                     id="typeEdit"
                     disabled
@@ -30,7 +30,7 @@
     </div>
     <div class="col-12 col-md-6">
         <div class="form-group w-100">
-            <label for="destination">Destination</label>
+            <label class="wii-field-name" for="destination">Destination</label>
             <select name="destination" class="form-control data">
                 {% if demande.destination is defined and demande.destination != null %}
                     <option value="{{ demande.destination.id }}" selected>{{ demande.destination.label }}</option>
@@ -67,7 +67,7 @@
 </div>
 
 <div class="form-group">
-    <label for="commentaire">Commentaire</label>
+    <label class="wii-field-name" for="commentaire">Commentaire</label>
     <input id="commentaire" class="form-control data" name="commentaire" type="hidden" value="{{ demande.commentaire }}">
     <div class="editor-container-edit" value="{{ demande.commentaire }}" data-wysiwyg> {{ demande.commentaire|raw }}
     </div>

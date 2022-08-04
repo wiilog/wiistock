@@ -9,7 +9,7 @@
                 <form class="row">
                     <div class="col-12">
                         <div class="form-group w-100">
-                            <label for="reference" title="Référence">{{ 'reference.référence' | trans }}*</label>
+                            <label class="wii-field-name" for="reference" title="Référence">{{ 'reference.référence' | trans }}*</label>
                             <select class="ajax-autocomplete data form-control needed"
                                 onchange="ajaxGetFournisseurByRefArticle($(this))" id="referenceCEA" name="refArticle">
                             </select>
@@ -17,7 +17,7 @@
                     </div>
                     <div class="col-12 d-none" id="fournisseur">
                         <div class="form-group w-100">
-                            <label for="fournisseur">Fournisseur*</label>
+                            <label class="wii-field-name" for="fournisseur">Fournisseur*</label>
                             <select class="data form-control needed" onchange="getArticleFournisseur()" id="fournisseurID"
                                 name="fournisseur">
                             </select>

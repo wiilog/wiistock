@@ -1,5 +1,5 @@
 <div class="form-group mt-2">
-    <label for="quantity-to-deliver">Quantité à livrer*</label>
+    <label class="wii-field-name" for="quantity-to-deliver">Quantité à livrer*</label>
     <input class="form-control data needed"
            type="number"
            min=1
@@ -11,11 +11,11 @@
 
 {% if showTargetLocationPicking is defined and showTargetLocationPicking %}
     <div class="form-group mt-2">
-        <label>Emplacement cible picking</label>
+        <label class="wii-field-name">Emplacement cible picking</label>
         <select data-s2="location" class="form-control data" name="target-location-picking"></select>
     </div>
 {% endif %}
 <div class="form-group mt-2">
-    <label>Quantité disponible</label>
+    <label class="wii-field-name">Quantité disponible</label>
     <input class="form-control" value="{{ maximum }}" disabled>
 </div>
