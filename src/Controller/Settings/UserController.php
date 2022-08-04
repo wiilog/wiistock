@@ -51,7 +51,7 @@ class UserController extends AbstractController {
                 'userHandlingTypes' => $user->getHandlingTypeIds(),
                 'html' => $this->renderView('settings/utilisateurs/utilisateurs/form.html.twig', [
                     'user' => $user,
-                    "languages" => Stream::from($languageRepository->findBy(['hidden'=>false]))
+                    "languages" => Stream::from($languageRepository->findBy(["hidden" => false]))
                         ->map(fn(Language $language) => [
                             "value" => $language->getId(),
                             "label" => $language->getLabel(),

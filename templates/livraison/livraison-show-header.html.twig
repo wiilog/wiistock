@@ -36,9 +36,9 @@
                 </a>
             {% endif %}
             {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DELETE')) %}
-                <a class="dropdown-item pointer"
+                <a class="dropdown-item pointer d-flex align-items-center"
                    onclick="askForDeleteDelivery()">
-                    <i class="fa fa-trash mr-2"></i>Supprimer
+                    <span class="wii-icon wii-icon-trash-black mr-2"></span>Supprimer
                 </a>
             {% endif %}
             {% if not livraison.preparation.demande.manual %}
