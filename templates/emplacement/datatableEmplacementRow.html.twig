@@ -10,9 +10,9 @@
                     </div>
                 </div>
             {% endif %}
-            <a class="dropdown-item"
+            <a class="dropdown-item d-flex align-items-center"
                href="{{ path('print_single_location_bar_code', {location: emplacementId}) }}">
-                <i class="fas fa-print mr-2"></i>Imprimer
+                <span class="wii-icon wii-icon-printer-black mr-2"></span>Imprimer
             </a>
             {% if hasPairing
                 and hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::DISPLAY_SENSOR')) %}

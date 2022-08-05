@@ -898,6 +898,34 @@ label.required:after {
     }
 }
 
+.wii-icon-printer-white {
+    display: block;
+    background-color: $white;
+    width: 15px;
+    height: 15px;
+}
+
+.wii-icon-printer-black {
+    display: block;
+    background-color: $black;
+    width: 15px;
+    height: 15px;
+}
+
+.dropdown-item.disabled {
+    .wii-icon-printer-black {
+        background-color: #adb5bd;
+    }
+}
+
+.wii-icon-plus-black {
+    display: inline-block;
+    background: $black;
+    width: 17px;
+    height: 17px;
+}
+
+
 .wii-icon-new-article {
     display: block;
     background-color: $white;

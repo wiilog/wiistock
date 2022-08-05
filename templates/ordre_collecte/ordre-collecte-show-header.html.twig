@@ -36,8 +36,8 @@
                         <i class="fas fa-external-link-alt mr-2"></i>
                         Aller vers la demande de collecte
                     </a>
-                    <button onclick="printCollecteBarCodes()" class="dropdown-item pointer">
-                        <i class='fas fa-print print-button mr-2'></i> Imprimer les étiquettes
+                    <button onclick="printCollecteBarCodes()" class="dropdown-item pointer d-flex align-items-center">
+                        <span class="wii-icon wii-icon-printer-black mr-2"></span> Imprimer les étiquettes
                     </button>
                 {% endif %}
                 {% if (collecte.pairings|length>=1)

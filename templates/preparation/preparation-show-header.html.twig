@@ -38,8 +38,8 @@
                     </a>
                 {% endif %}
             {% endif %}
-            <button onclick="printPrepaBarCodes()" class="dropdown-item pointer">
-                <i class='fas fa-print print-button mr-2'></i> Imprimer les étiquettes
+            <button onclick="printPrepaBarCodes()" class="dropdown-item pointe d-flex align-items-center">
+                <span class="wii-icon wii-icon-printer-black mr-2"></span>Imprimer les étiquettes
             </button>
             {% if
                 hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT_PREPARATION_DATE'))

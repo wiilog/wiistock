@@ -2,9 +2,9 @@
     <div class="dropdown dropright">
         {{ include('datatable/dotsRow.html.twig') }}
         <div class="dropdown-menu dropdown-follow-gt pointer">
-            <a class="dropdown-item"
+            <a class="dropdown-item d-flex align-items-center"
                href="{{ path('print_arrivage_single_colis_bar_codes', {arrivage: arrivageId, colis: colisId}) }}">
-                <i class='fas fa-print mr-2'></i>Imprimer
+                <span class="wii-icon wii-icon-printer-black mr-2"></span>Imprimer
             </a>
             {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT_PACK')) %}
             <div class="dropdown-item"

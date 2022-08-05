@@ -37,8 +37,8 @@
                 {% set printPath = (isRef
                     ? path('reference_article_single_bar_code_print', {reference: artOrRefId})
                     : path('article_single_bar_code_print', {article: artOrRefId}) ) %}
-                <a href="{{ printPath }}" class="dropdown-item print-button">
-                    <i class='fas fa-print mr-2'></i>Imprimer
+                <a href="{{ printPath }}" class="dropdown-item print-button d-flex align-items-center">
+                    <span class="wii-icon wii-icon-printer-black mr-2"></span>Imprimer
                 </a>
             {% endif %}
 
