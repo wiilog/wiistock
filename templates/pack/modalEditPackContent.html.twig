@@ -1,7 +1,7 @@
 <form>
     <div class="row">
         <div class="form-group col-12">
-            <label title="Numéro colis">{{"colis.Numéro colis"|trans}}</label>
+            <label class="wii-field-name" title="Numéro colis">{{"colis.Numéro colis"|trans}}</label>
             <input type="text"
                    class="form-control"
                    value="{{ pack.code }}"
@@ -9,7 +9,7 @@
                    disabled/>
         </div>
         <div class="form-group col-md-6 col-12">
-            <label title="Nature de colis">{{ 'natures.Nature de colis'|trans }}*</label>
+            <label class="wii-field-name" title="Nature de colis">{{ 'natures.Nature de colis'|trans }}*</label>
             <select class="form-control data needed"
                     name="nature"
                     title="{{ 'natures.Nature de colis'|trans }}">
@@ -21,7 +21,7 @@
             </select>
         </div>
         <div class="form-group col-md-6 col-12">
-            <label>Quantité</label>
+            <label class="wii-field-name">Quantité</label>
             <input type="number"
                    class="form-control data needed"
                    value="{{ pack.quantity }}"
@@ -31,21 +31,21 @@
                    title="Quantité"/>
         </div>
         <div class="form-group col-md-6 col-12">
-            <label>Poids (kg)</label>
+            <label class="wii-field-name">Poids (kg)</label>
             <input class="form-control data"
                    value="{{ pack.weight }}"
                    name="weight"
                    title="Poids"/>
         </div>
         <div class="form-group col-md-6 col-12">
-            <label>Volume (m3)</label>
+            <label class="wii-field-name">Volume (m3)</label>
             <input class="form-control data"
                    value="{{ pack.volume }}"
                    name="volume"
                    title="Volume"/>
         </div>
         <div class="col-12">
-            <label for="commentaire">Commentaire</label>
+            <label class="wii-field-name" for="commentaire">Commentaire</label>
             <input id="commentaire"
                    class="form-control data"
                    name="comment"
@@ -54,7 +54,7 @@
             <div class="editor-container-edit" data-wysiwyg>{{ pack.comment|raw }}</div>
         </div>
         <div class="col-12 mt-3">
-            <label>Historique de groupage</label>
+            <label class="wii-field-name">Historique de groupage</label>
             <table id="groupHistoryTable" class="table w-100"></table>
         </div>
     </div>

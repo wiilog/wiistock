@@ -883,24 +883,19 @@ class TransportController extends AbstractFOSRestController
                 $orderStatus = $statusRepository->findOneByCategorieNameAndStatutCode($orderCategory,
                     TransportOrder::STATUS_FINISHED);
 
-                $statusHistoryRequest = $statusHistoryService->updateStatus($manager,
-                    $order->getRequest(),
-                    $requestStatus);
+                $statusHistoryRequest = $statusHistoryService->updateStatus($manager, $order->getRequest(), $requestStatus);
                 $statusHistoryOrder = $statusHistoryService->updateStatus($manager, $order, $orderStatus);
-
-                $historyService->persistTransportHistory($manager,
-                    $order->getRequest(),
-                    TransportHistoryService::TYPE_FINISHED,
-                    [
-                        "user" => $this->getUser(),
-                        "history" => $statusHistoryRequest,
-                    ]);
-
-                $historyService->persistTransportHistory($manager, $order, TransportHistoryService::TYPE_FINISHED, [
-                    "user" => $this->getUser(),
-                    "history" => $statusHistoryOrder,
-                ]);
             }
+
+            $historyService->persistTransportHistory($manager, $order->getRequest(), TransportHistoryService::TYPE_FINISHED, [
+                "user" => $this->getUser(),
+                "history" => $statusHistoryRequest ?? null,
+            ]);
+
+            $historyService->persistTransportHistory($manager, $order, TransportHistoryService::TYPE_FINISHED, [
+                "user" => $this->getUser(),
+                "history" => $statusHistoryOrder ?? null,
+            ]);
         }
 
         $manager->flush();
@@ -943,23 +938,28 @@ class TransportController extends AbstractFOSRestController
             $this->updateTransportComment($manager, $historyService, $request, $comment);
         }
 
-        $lastFailedOrderHistory = $order->getLastTransportHistory(TransportHistoryService::TYPE_FAILED);
+        $lastFailedOrderHistory = $order->getLastTransportHistory(TransportHistoryService::TYPE_FAILED_DELIVERY, TransportHistoryService::TYPE_FAILED_COLLECT);
         if (!$lastFailedOrderHistory || ($lastFailedOrderHistory->getReason() !== $motive)) {
             $order->setReturnReason($motive);
 
-            $historyService->persistTransportHistory($manager, $request, TransportHistoryService::TYPE_FAILED, [
-                "user" => $this->getUser(),
-                "reason" => $motive,
-            ]);
+            $requests = [$request];
+            if($request instanceof TransportCollectRequest && $request->getDelivery()) {
+                $requests[] = $request->getDelivery();
+            }
 
-            $historyService->persistTransportHistory($manager,
-                $request instanceof TransportCollectRequest
-                ? ($request->getDelivery()?->getOrder() ?? $request->getOrder())
-                : $request->getOrder() ,
-                TransportHistoryService::TYPE_FAILED, [
+            foreach($requests as $entity) {
+                $historyType = $entity instanceof TransportDeliveryRequest ? TransportHistoryService::TYPE_FAILED_DELIVERY : TransportHistoryService::TYPE_FAILED_COLLECT;
+
+                $historyService->persistTransportHistory($manager, $entity, $historyType, [
                     "user" => $this->getUser(),
                     "reason" => $motive,
-            ]);
+                ]);
+
+                $historyService->persistTransportHistory($manager, $entity->getOrder(), $historyType, [
+                    "user" => $this->getUser(),
+                    "reason" => $motive,
+                ]);
+            }
         }
 
         $signature = $files->get('signature');
@@ -995,7 +995,7 @@ class TransportController extends AbstractFOSRestController
 
                 if ($lastLine) {
                     $lastLine->setFulfilledAt($now)
-                    ->setFailedAt($now);
+                        ->setFailedAt($now);
                 }
             }
 
@@ -1099,6 +1099,21 @@ class TransportController extends AbstractFOSRestController
 
                     $order->setStatus($orderStatus);
                 }
+            }
+
+            // marque la livraison comme terminée si on est dans le cas d'une livraison collecte
+            if($request instanceof TransportCollectRequest && $request->getDelivery() && $request->getDelivery()->getStatus()->getCode() === TransportRequest::STATUS_ONGOING) {
+                $deliveryRequest = $request->getDelivery();
+                $deliveryOrder = $deliveryRequest->getOrder();
+
+                $requestFinished = $manager->getRepository(Statut::class)
+                    ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_REQUEST_DELIVERY, TransportRequest::STATUS_FINISHED);
+
+                $orderFinished = $manager->getRepository(Statut::class)
+                    ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_DELIVERY, TransportOrder::STATUS_FINISHED);
+
+                $statusHistoryService->updateStatus($manager, $deliveryRequest, $requestFinished);
+                $statusHistoryService->updateStatus($manager, $deliveryOrder, $orderFinished);
             }
         }
 

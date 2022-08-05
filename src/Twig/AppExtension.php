@@ -129,8 +129,12 @@ class AppExtension extends AbstractExtension {
         return $res;
     }
 
-    public function imageSize(string $file): array {
-        return getimagesize("{$this->kernel->getProjectDir()}/$file");
+    public function imageSize(string $file): ?array {
+        try {
+            return getimagesize("{$this->kernel->getProjectDir()}/$file");
+        } catch(Throwable $exception) {
+            return null;
+        }
     }
 
     public function logo(string $platform, bool $path = false): ?string {

@@ -74,10 +74,6 @@ class HandlingController extends AbstractController {
 
         $fields = $handlingService->getColumnVisibleConfig($entityManager, $this->getUser());
 
-        if($request->query->has('handlingIds')) {
-            $handlingIds = explode(",", $request->query->get('handlingIds'));
-        }
-
         $filterStatus = $request->query->get('filter');
         $user = $this->getUser();
         $dateChoice = [
@@ -102,9 +98,9 @@ class HandlingController extends AbstractController {
         }
 
         return $this->render('handling/index.html.twig', [
-            'filtersDisabled' => !empty($handlingIds),
+            'selectedDate' => DateTime::createFromFormat("Y-m-d", $request->query->get('date')),
             'dateChoices' => $dateChoice,
-            'statuses' => $statutRepository->findByCategorieName(Handling::CATEGORIE, 'nom'),
+            'statuses' => $statutRepository->findByCategorieName(Handling::CATEGORIE, 'displayOrder'),
 			'filterStatus' => $filterStatus,
             'types' => $types,
             'fieldsParam' => $fieldsParam,
@@ -114,7 +110,6 @@ class HandlingController extends AbstractController {
                     $carry[$test['id']] = $test['label'];
                     return $carry;
                 }, []),
-            'removeHourInDatetime' => $settingRepository->getOneParamByLabel(Setting::REMOVE_HOURS_DATETIME),
             'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_EMERGENCY),
             'modalNewConfig' => [
                 'defaultStatuses' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::HANDLING),
@@ -129,7 +124,6 @@ class HandlingController extends AbstractController {
                 'handlingStatus' => $statutRepository->findStatusByType(CategorieStatut::HANDLING),
                 'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_EMERGENCY)
             ],
-            'handlingIds' => json_encode($handlingIds ?? []),
 		]);
     }
 
@@ -154,8 +148,8 @@ class HandlingController extends AbstractController {
     {
         // cas d'un filtre statut depuis page d'accueil
         $filterStatus = $request->request->get('filterStatus');
-        $handlingIds = json_decode($request->request->get('handlingIds'));
-        $data = $handlingService->getDataForDatatable($request->request, $filterStatus, $handlingIds);
+        $selectedDate = $request->request->get('selectedDate');
+        $data = $handlingService->getDataForDatatable($request->request, $filterStatus, $selectedDate);
 
         return new JsonResponse($data);
     }

@@ -8,12 +8,12 @@
 
 <div class="row">
     <div class="form-group col-6">
-        <label for="label">Libellé*</label>
+        <label class="wii-field-name" for="label">Libellé*</label>
         <input {{ disabled }} type="text" class="form-control data needed" name="label" id='label' value="{{article.label}}"
             placeholder="">
     </div>
     <div class="form-group col-6">
-        <label for="type">Type</label>
+        <label class="wii-field-name" for="type">Type</label>
         <select disabled class="form-control data" name="type" id="type">
             <option value="{{ typeArticleId }}">{{ typeArticle }}</option>
         </select>
@@ -21,7 +21,7 @@
 </div>
 <div class="row">
     <div class="form-group col-3">
-        <label for="quantité">Quantité*</label>
+        <label class="wii-field-name" for="quantité">Quantité*</label>
         {# si on est sur une demande, la quantité ne doit pas être modifiée #}
         <input class="form-control data"
                type="number"
@@ -32,12 +32,12 @@
     </div>
     <div class="form-group col-3">
         <div class="reference">
-            <label for="prix">Prix Unitaire (€)</label>
+            <label class="wii-field-name" for="prix">Prix Unitaire (€)</label>
             <input class="form-control data" type="number" name="prix" min="0" step="0.01" value="{{ article.prixUnitaire }}" {{ disabled }}>
         </div>
     </div>
     <div class="form-group col-6 w-100">
-        <label for="emplacement">Emplacement</label>
+        <label class="wii-field-name" for="emplacement">Emplacement</label>
         <select {{ disabled }} class="data form-control needed" name="emplacement" disabled>
             {% if article.emplacement != null %}
             <option value="{{article.emplacement.id}}">{{article.emplacement.label}}</option>
@@ -48,14 +48,14 @@
 <div class="row">
     {% if not isADemand %}
         <div class="form-group col-3">
-            <label for="statut" class="w-100">Statut</label>
+            <label class="wii-field-name" for="statut" class="w-100">Statut</label>
             <div class="w-100">
                 <button class="btn btn-primary" disabled>{{ statut | capitalize }}</button>
             </div>
         </div>
     {% endif %}
     <div class="form-group col-3">
-        <label class="w-100">Anomalie</label>
+        <label class="wii-field-name" class="w-100">Anomalie</label>
 
         <div class="w-100 mt-1">
             <label class="switch">
@@ -70,40 +70,40 @@
             {% set managers = managers ~ (not loop.first ? ', ') ~ manager.username %}
         {% endfor %}
 
-        <label>Gestionnaires</label>
+        <label class="wii-field-name">Gestionnaires</label>
         <input class="form-control" type="text" value="{{ managers }}" disabled>
     </div>
 </div>
 <div class="row">
     <div class="form-group col-6">
-        <label>Lot</label>
+        <label class="wii-field-name">Lot</label>
         <input class="form-control data" type="text" name="batch" value="{{ article.batch }}" {{ disabled }}>
     </div>
     <div class="form-group col-3">
-        <label>Catégorie d'inventaire</label>
+        <label class="wii-field-name">Catégorie d'inventaire</label>
         <input class="form-control" type="text" value="{{ invCategory ? invCategory.label }}" disabled>
     </div>
     <div class="form-group col-3">
-        <label>Date dernier inventaire</label>
+        <label class="wii-field-name">Date dernier inventaire</label>
         <input name="categorie" class="form-control" disabled value="{{ article.dateLastInventory | format_helper('date') }}">
     </div>
 </div>
 <div class="row">
     <div class="form-group col-6 w-100">
         {% if article.stockEntryDate %}
-            <label>Date d'entrée en stock</label>
+            <label class="wii-field-name">Date d'entrée en stock</label>
             <input type="text" class="form-control" value="{{ article.stockEntryDate | format_helper('datetime') }}" disabled/>
         {% endif %}
     </div>
     <div class="form-group col-6 w-100">
-        <label>Date de péremption</label>
+        <label class="wii-field-name">Date de péremption</label>
         <input type="date" class="form-control data" name="expiry" {{ disabled }} value="{{ article.expiryDate ? article.expiryDate | date('Y-m-d') }}"/>
     </div>
 </div>
 <div class="row">
     <div class="form-group col-12">
         <div>
-            <label for="commentaire">Commentaire</label>
+            <label class="wii-field-name" for="commentaire">Commentaire</label>
             {% set disabledOnDemand = isADemand or disabled ? 'disabled' : disabled %}
             <input {{ disabledOnDemand }} id="commentaire" class="form-control data" type="hidden" name="commentaire"
                 value="{{article.commentaire}}" >

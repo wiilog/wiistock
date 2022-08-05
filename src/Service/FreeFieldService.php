@@ -91,6 +91,10 @@ class FreeFieldService {
                 }
                 break;
 
+            case FreeField::TYPE_LIST:
+                $value = $value === "null" ? "" : $value;
+                break;
+
             default:
                 break;
         }

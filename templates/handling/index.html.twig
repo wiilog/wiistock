@@ -8,7 +8,6 @@
         page: 'PAGE_HAND',
         tableSelector: '#tableHandlings',
         callback: 'callbackSaveFilter',
-        disabled: filtersDisabled,
         emergency: true
     } %}
 {% endblock %}
@@ -65,7 +64,7 @@
             </div>
         </div>
     </div>
-    <input hidden id="handlingIds" value="{{ handlingIds }}"/>
+    <input hidden id="selectedDate" value="{{ selectedDate | date('d/m/Y') }}"/>
     {% include "handling/modalDeleteHandling.html.twig" %}
     {% include "handling/modalNewHandling.html.twig" with modalNewConfig %}
     {% include "utils/visible_columns.html.twig" with {

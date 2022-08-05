@@ -121,6 +121,9 @@ class DashboardFeedCommand extends Command {
                 case Dashboard\ComponentType::LATE_PACKS:
                     $calculateLatePack = true;
                     break;
+                case Dashboard\ComponentType::HANDLING_TRACKING:
+                    $this->dashboardService->persistHandlingTracking($entityManager, $component);
+                    break;
                 default:
                     break;
             }

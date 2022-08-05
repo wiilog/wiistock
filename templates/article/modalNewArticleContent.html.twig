@@ -3,7 +3,7 @@
 {% set disabled = editable ? '' : 'disabled' %}
 <div class="row">
     <div class="form-group col-md-4 col-12">
-        <label for="supplier-reference">Référence fournisseur*</label>
+        <label class="wii-field-name" for="supplier-reference">Référence fournisseur*</label>
             <select id="supplier-reference" class="form-control data needed select2" name="articleFournisseur">
                 {% if references is defined and references %}
                     {% if (defaultArticleFournisseurReference is not defined or defaultArticleFournisseurReference is empty)
@@ -21,20 +21,20 @@
     </div>
     {% if easyForm %}
         <div class="form-group col-md-4 col-12">
-            <label>Lot</label>
+            <label class="wii-field-name">Lot</label>
             <input class="form-control data" type="text" name="batch">
         </div>
         <div class="form-group col-md-4 col-12">
-            <label>Date de péremption</label>
+            <label class="wii-field-name">Date de péremption</label>
             <input type="date" class="form-control data" name="expiry"/>
         </div>
     {% else %}
         <div class="form-group col-md-4 col-12">
-            <label for="libelle">Libellé*</label>
+            <label class="wii-field-name" for="libelle">Libellé*</label>
             <input class="form-control data needed" type="text" name="libelle" id="libelle">
         </div>
         <div class="form-group col-md-4 col-12">
-            <label for="libelle">Type</label>
+            <label class="wii-field-name" for="libelle">Type</label>
             <input class="form-control data" type="text" disabled value="{{ typeArticle }}" name="type" id="type">
         </div>
     {% endif %}
@@ -42,30 +42,30 @@
 {% if not easyForm %}
     <div class="row">
         <div class="form-group col-3">
-            <label for="quantité">Quantité*</label>
+            <label class="wii-field-name" for="quantité">Quantité*</label>
             <input class="form-control data needed" type="number" min="0" name="quantite" id="quantité">
         </div>
         <div class="form-group col-3">
             <div class="reference">
-                <label for="prix">Prix Unitaire (€)</label>
+                <label class="wii-field-name" for="prix">Prix Unitaire (€)</label>
                 <input class="form-control data" type="number" name="prix" min="0" step="0.01">
             </div>
         </div>
         <div class="form-group col-6 w-100">
-            <label for="emplacement">Emplacement*</label>
+            <label class="wii-field-name" for="emplacement">Emplacement*</label>
             <select class="ajax-autocomplete-location data form-control needed" name="emplacement">
             </select>
         </div>
     </div>
     <div class="row">
         <div class="form-group col-3">
-            <label for="statut" class="w-100">Statut</label>
+            <label for="statut"  class="wii-field-name w-100">Statut</label>
             <div class="w-100">
                 <button class="btn btn-primary" disabled>{{ constant('App\\Entity\\Article::STATUT_ACTIF') }}</button>
             </div>
         </div>
         <div class="form-group col-3">
-            <label class="w-100">Anomalie</label>
+            <label  class="wii-field-name w-100">Anomalie</label>
 
             <div class="w-100 mt-1">
                 <label class="switch">
@@ -75,19 +75,19 @@
             </div>
         </div>
         <div class="form-group col-6">
-            <label>Lot</label>
+            <label class="wii-field-name">Lot</label>
             <input class="form-control data" type="text" name="batch">
         </div>
     </div>
     <div class="row">
         <div class="form-group col-12">
-            <label>Date de péremption</label>
+            <label class="wii-field-name">Date de péremption</label>
             <input type="date" class="form-control data" name="expiry"/>
         </div>
     </div>
     <div class="row">
         <div class="form-group col-12">
-            <label>Commentaire</label>
+            <label class="wii-field-name">Commentaire</label>
             <input id='commentaire' class="form-control data" name="commentaire" type="hidden">
             <div class="editor-container-new" data-wysiwyg></div>
         </div>

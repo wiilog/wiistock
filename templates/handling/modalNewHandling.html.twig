@@ -1,5 +1,4 @@
-<form method="" class="modal fade" data-modal-type="new" id="modalNewHandling" role="dialog" aria-labelledby="dataModalCenterTitle"
-      aria-hidden="true">
+<div class="modal fade {{ setting_value('KEEP_HANDLING_MODAL_OPEN') ? 'keep-handling-modal-open' }}" data-modal-type="new" id="modalNewHandling" role="dialog">
     <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
@@ -64,25 +63,23 @@
                         <label class="data wii-body-text" value="{{ app.user.id }}">{{ app.user.username }}</label>
                     </div>
 
-                    {% set removeHourInDatetime = removeHourInDatetime is defined and removeHourInDatetime %}
                     <div class="form-group col-md-6 col-12">
                         <label class="wii-field-name" for="desired-date">Date attendue*</label>
-                        <input type="{{ removeHourInDatetime ? 'date' : 'datetime-local' }}"
+                        <input type="{{ setting_value('REMOVE_HOURS_DATETIME') ? 'date' : 'datetime-local' }}"
                                class="form-control data needed"
                                name="desired-date"
                                title="Date attendue"
                                placeholder="jj/mm/aaaa"
-                               min="{{ 'now' | date(removeHourInDatetime ? 'Y-m-d' : 'Y-m-d\\TH:i') }}"/>
+                               min="{{ 'now' | date(setting_value('REMOVE_HOURS_DATETIME') ? 'Y-m-d' : 'Y-m-d\\TH:i') }}"/>
                     </div>
 
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
-                        {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
                         <div class="form-group col-md-6 col-12">
-                            <label class="wii-field-name">Urgence{{ required ? '*' }}</label>
+                            <label class="wii-field-name">Urgence</label>
                             <div class="w-100">
                                 <select
-                                    class="form-control input-sm data {{ required ? 'needed' : '' }}"
+                                    class="form-control input-sm data"
                                     name="emergency">
                                     <option value="">Non urgent</option>
                                     {% for emergency in emergencies %}
@@ -171,4 +168,4 @@
             </div>
         </div>
     </div>
-</form>
+</div>

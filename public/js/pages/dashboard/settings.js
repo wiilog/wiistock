@@ -148,6 +148,8 @@ $dashboardRowSelector.click(function () {
     $addRowButton.attr(`disabled`, false);
 });
 
+$(`#rename-dashboard-modal`).on()
+
 $pagination.on(`click`, `[data-target="#rename-dashboard-modal"]`, function () {
     const dashboard = $(this).data(`dashboard-index`);
     const $indexInput = $(`input[name="rename-dashboard-index"]`);
@@ -164,6 +166,9 @@ $pagination.on(`click`, `[data-target="#rename-dashboard-modal"]`, function () {
         $highlightComponents.prop('disabled', true);
     } else {
         $highlightComponents.prop('disabled', false);
+        $(`input[name="highlight-components-count"]`).prop(`checked`, false);
+        $(`input[name="highlight-components-count"][value="1"]`).prop(`checked`, true);
+
         if (dashboards[dashboard].componentCount) {
             $highlightComponents.prop('checked', true);
             const $highlightComponentsCount = $(`input[name="highlight-components-count"][value=${dashboards[dashboard].componentCount}]`);
@@ -1258,7 +1263,6 @@ function renderFormComponentExample() {
 
     const componentType = $exampleContainer.data('component-type');
     const {data: formData} = processSecondModalForm($modalComponentTypeSecondStep);
-
     const component = {
         type: componentType,
         meterKey: $exampleContainer.data(`meter-key`),

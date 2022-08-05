@@ -142,7 +142,9 @@
 }
 
 .filter-status-multiple-dropdown {
-    width: 100%;
+    min-width: 100%;
+    width: min-content;
+    max-height: initial !important;
 
     .dropdown-item {
         padding: 0.35rem 0.6rem !important;

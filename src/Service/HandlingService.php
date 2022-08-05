@@ -53,7 +53,7 @@ class HandlingService {
     #[Required]
     public FreeFieldService $freeFieldService;
 
-    public function getDataForDatatable($params = null, $statusFilter = null, $handlingIds = null)
+    public function getDataForDatatable($params = null, $statusFilter = null, $selectedDate = null)
     {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $handlingRepository = $this->entityManager->getRepository(Handling::class);
@@ -72,7 +72,7 @@ class HandlingService {
             $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_HAND, $this->tokenStorage->getToken()->getUser());
         }
 
-        $queryResult = $handlingRepository->findByParamAndFilters($params, $filters, $handlingIds);
+        $queryResult = $handlingRepository->findByParamAndFilters($params, $filters, $selectedDate);
 
         $handlingArray = $queryResult['data'];
 
@@ -100,6 +100,7 @@ class HandlingService {
         $row = [
             'id' => $handling->getId() ?: 'Non défini',
             'number' => $handling->getNumber() ?: '',
+            'comment' => $handling->getComment() ?: '',
             'creationDate' => FormatHelper::datetime($handling->getCreationDate()),
             'type' => $handling->getType() ? $handling->getType()->getLabel() : '',
             'requester' => FormatHelper::handlingRequester($handling),
@@ -279,6 +280,7 @@ class HandlingService {
             ['title' => 'Urgent', 'name' => 'emergency'],
             ['title' => 'services.Nombre d\'opération(s) réalisée(s)', 'name' => 'carriedOutOperationCount', 'translated' => true],
             ['title' => 'Traité par', 'name' => 'treatedBy'],
+            ['title' => 'Commentaire', 'name' => 'comment'],
         ];
 
         return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);

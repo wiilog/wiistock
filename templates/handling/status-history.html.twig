@@ -1,5 +1,5 @@
 {% set entityStatusName = handling.status.nom %}
-<div class="timeline d-flex justify-content-center bg-green-light p-1">
+<div class="timeline d-flex justify-content-center bg-green-light p-1 mb-2">
     <img src="{{ asset('svg/timeline-status.svg') }}" alt="Icône statut timeline" width="15px" class="mr-2">
     <span> Demande <strong>{{ entityStatusName }}</strong></span>
 </div>
@@ -11,7 +11,7 @@
             </div>
             <div class="history-status last-status-history last state current">
                 <div class="title-right current text-left">
-                    <span class="ml-2">{{ handling.validationDate | format_helper('longDate', {short: false}) }}</span>
+                    <span class="ml-2">{{ handling.validationDate | format_helper('longDate', {short: true, time: true}) }}</span>
                 </div>
             </div>
         </div>

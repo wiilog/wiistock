@@ -46,13 +46,13 @@
                 </div>
                 {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}
                 {% set emergency = handling.emergency %}
-                {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') and emergency %}
+                {% if (fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') or fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) and emergency %}
                     <div class="d-flex align-items-center bordered emergency-container pl-3">
                         <img src="{{ asset('svg/timeline-urgent.svg') }}" class="mr-2" alt="Icône urgence" width="17px">
-                        <strong>{{ emergency }}</strong>
+                        <strong>Urgent - {{ emergency }}</strong>
                     </div>
                 {% endif %}
-                <div class="content row no-gutters {{ not (fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') and emergency) ?  'bordered' }}">
+                <div class="content row no-gutters {{ not (fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') or fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') and emergency) ?  'bordered' }}">
                     <div class="col-6 d-flex flex-column">
                         <div class="box-item my-2">
                             <span class="wii-field-name">Type</span>
@@ -70,7 +70,7 @@
                         </div>
                     </div>
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}
-                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                    {% if (fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') or fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
                         <div class="col-6 d-flex flex-column">
                             <div class="box-item my-2">
                                 <span class="wii-field-name">Urgence</span>
@@ -81,15 +81,15 @@
                         </div>
                     {% endif %}
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_RECEIVERS_HANDLING') %}
-                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                    {% if (fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') or fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
                         <div class="col-6 d-flex flex-column">
                             <div class="box-item my-2">
                                 <span class="wii-field-name">Destinataires</span>
                                 {% if handling.receivers is not empty %}
                                     {% for receiver in handling.receivers  %}
                                         <span class="wii-field-text">
-                                                {{ receiver.username }}
-                                            </span>
+                                            {{ receiver.username }}
+                                        </span>
                                     {% endfor %}
                                 {% else %}
                                     <span class="wii-field-text">-</span>
@@ -98,29 +98,29 @@
                         </div>
                     {% endif %}
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_LOADING_ZONE') %}
-                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                    {% if (fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') or fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
                         <div class="col-6 d-flex flex-column">
                             <div class="box-item my-2">
                                 <span class="wii-field-name">Chargement</span>
                                 <span class="wii-field-text">
-                                    {{ handling.source }}
+                                    {{ handling.source == "" ? "-" : handling.source }}
                                 </span>
                             </div>
                         </div>
                     {% endif %}
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_UNLOADING_ZONE') %}
-                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                    {% if (fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') or fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
                         <div class="col-6 d-flex flex-column">
                             <div class="box-item my-2">
                                 <span class="wii-field-name">Déchargement</span>
                                 <span class="wii-field-text">
-                                    {{ handling.destination }}
+                                    {{ handling.destination == "" ? "-" : handling.destination }}
                                 </span>
                             </div>
                         </div>
                     {% endif %}
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIED_OUT_OPERATION_COUNT') %}
-                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                    {% if (fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') or fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
                         <div class="col-6 d-flex flex-column">
                             <div class="box-item my-2">
                                 <span class="wii-field-name">Nombre d’opération(s) réalisée(s)</span>
@@ -137,6 +137,7 @@
                             'isNew': false,
                             attachments : handling.attachments,
                             editAttachments : false,
+                            fullWidth: true,
                             fieldNameClass : 'wii-subtitle',
                         } %}
                     </div>
@@ -172,7 +173,7 @@
         </div>
         <div class="col-md-6 col-12">
             <div class="wii-box ">
-                <div class="header wii-title d-flex justify-content-between p-2">
+                <div class="header wii-title d-flex justify-content-between {{ handling.status.treated != 1 ? 'p-2' }}">
                     <span class="d-flex align-items-center pl-2">Statut</span>
                     {% if handling.status.treated != 1 %}
                         <button id="" name='' type="button" class="btn btn-primary data d-flex align-items-center"
@@ -190,17 +191,17 @@
                         </div>
                     </div>
                 </div>
-                <div class="sub-header">
+                <div class="sub-header mt-2">
                     <img src="{{ asset('svg/calendar.svg') }}" alt="Icône calendrier" width="15px">
                     <span class="wii-field-name ml-2">Dates</span>
                 </div>
-                <div class="content row no-gutters">
+                <div class="content row no-gutters pt-1">
                     {% if handling.withoutHistory %}
                         <div class="col-6 d-flex flex-column">
                             <div class="box-item my-2">
                                 <span class="wii-field-name">Date de création</span>
                                 <span class="wii-field-text">
-                                    {{ handling.creationDate | format_helper('longDate', {short: false}) }}
+                                    {{ handling.creationDate | format_helper('longDate', {short: true}) }}
                                 </span>
                             </div>
                         </div>
@@ -209,7 +210,7 @@
                         <div class="box-item my-2">
                             <span class="wii-field-name">Date attendue</span>
                             <span class="wii-field-text">
-                                {{ handling.desiredDate ? handling.desiredDate | format_helper('longDate', {short: false}) : '-' }}
+                                {{ handling.desiredDate ? handling.desiredDate | format_helper('longDate', {short: true, time: not setting_value('REMOVE_HOURS_DATETIME')}) : '-' }}
                             </span>
                         </div>
                     </div>
@@ -217,7 +218,7 @@
                         <div class="box-item my-2">
                             <span class="wii-field-name">Date réalisation</span>
                             <span class="wii-field-text">
-                                {{ handling.validationDate ? handling.desiredDate | format_helper('longDate', {short: false}) : '-' }}
+                                {{ handling.validationDate ? handling.validationDate | format_helper('longDate', {short: false}) : '-' }}
                             </span>
                         </div>
                     </div>
