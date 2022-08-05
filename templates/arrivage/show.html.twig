@@ -50,17 +50,17 @@
                                             <span class="fa fa-angle-down"></span>
                                         </button>
                                         <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
-                                            <a class="dropdown-item"
+                                            <a class="dropdown-item d-flex align-items-center"
                                                id="printColisBtn"
                                                href="{{ path('print_arrivage_bar_codes', {arrivage: arrivage.id, printArrivage: 1, printColis: 1}) }}">
-                                                <span class="fa fa-print mr-2"></span>Imprimer <span title="colis">{{ 'arrivage.colis'|trans }}</span>
+                                                <span class="wii-icon wii-icon-printer-black mr-2"></span>Imprimer<span class="ml-1" title="colis">{{ 'arrivage.colis'|trans }}</span>
                                             </a>
                                         </div>
                                     {% else %}
                                         <a id="printColisBtn"
-                                           class="btn btn-primary"
+                                           class="btn btn-primary d-flex align-items-center"
                                            href="{{ path('print_arrivage_bar_codes', {arrivage: arrivage.id, printArrivage: 1, printColis: 1}) }}">
-                                            <span class="fa fa-print mr-2"></span>Imprimer <span title="colis">{{ 'arrivage.colis'|trans }}</span>
+                                            <span class="wii-icon wii-icon-printer-black mr-2"></span>Imprimer<span class="ml-1" title="colis">{{ 'arrivage.colis'|trans }}</span>
                                         </a>
                                     {% endif %}
                                 {% endif %}
