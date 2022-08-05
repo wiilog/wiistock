@@ -11,8 +11,8 @@
         {% if hasRightEdit and order.status.nom != constant('App\\Entity\\TransferOrder::TREATED') %}
             <button type="button"
                     onclick="validateOrder($(this))"
-                    class="btn btn-primary split-button">
-                <i class="fa fa-check mr-2"></i>
+                    class="btn btn-primary split-button  d-flex align-items-center">
+                <span class="wii-icon wii-icon-check-white mr-2"></span>
                 Transférer
             </button>
         {% endif %}

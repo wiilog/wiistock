@@ -39,7 +39,7 @@
                         data-id='{{ dispatch.id }}'
                         onclick="openValidateDispatchModal()"
                         class="btn btn-primary d-flex align-items-center justify-content-center split-button mr-0">
-                    <i class="wii-icon wii-icon-check mr-2"></i>
+                    <span class="wii-icon wii-icon-check-white mr-2"></span>
                     Valider la demande
                 </button>
             {% elseif not dispatch.statut.treated %}
@@ -47,7 +47,7 @@
                         data-id='{{ dispatch.id }}'
                         onclick="openTreatDispatchModal()"
                         class="btn btn-primary align-items-center justify-content-center split-button mr-0">
-                    <i class="wii-icon wii-icon-check mr-2"></i>
+                    <span class="wii-icon wii-icon-check-white mr-2"></span>
                     Terminer la demande
                 </button>
             {% endif %}

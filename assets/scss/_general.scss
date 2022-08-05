@@ -536,24 +536,6 @@ label.required:after {
     }
 }
 
-.wii-icon-iot-article, .wii-icon-iot-location, .wii-icon-iot-pack, .wii-icon-iot-vehicle {
-    background-color: $white;
-    width: 15px;
-    height: 15px;
-    display: inline-block;
-}
-
-.wii-icon-pairing {
-    background-color: $primary;
-    width: 15px;
-    height: 15px;
-    display: inline-block;
-
-    .dropdown-item:active & {
-        background-color: $white;
-    }
-}
-
 .variables-list .highlighted-variable, .editor-container .highlighted-variable {
     color: $info;
 }
@@ -836,16 +818,18 @@ label.required:after {
     cursor: pointer;
 }
 
-.wii-icon-plus {
-    display: inline-block;
-    background-color: $medium-grey;
-    width: 18px;
-    height: 18px;
-}
+// <--- WII-ICONS --->
 
 .wii-icon-plus-black {
     display: block;
     background-color: $black;
+    width: 18px;
+    height: 18px;
+}
+
+.wii-icon-plus {
+    display: block;
+    background-color: $grey;
     width: 18px;
     height: 18px;
 }
@@ -901,15 +885,29 @@ label.required:after {
 .wii-icon-printer-white {
     display: block;
     background-color: $white;
-    width: 15px;
-    height: 15px;
+    width: 17px;
+    height: 17px;
 }
 
 .wii-icon-printer-black {
     display: block;
     background-color: $black;
-    width: 15px;
-    height: 15px;
+    width: 17px;
+    height: 17px;
+}
+
+.wii-icon-check-white ,.wii-icon-check {
+    display: inline-block;
+    background: $white;
+    width: 17px;
+    height: 17px;
+}
+
+.wii-icon-check-black {
+    display: inline-block;
+    background: $black;
+    width: 17px;
+    height: 17px;
 }
 
 .dropdown-item.disabled {
@@ -918,20 +916,31 @@ label.required:after {
     }
 }
 
-.wii-icon-plus-black {
-    display: inline-block;
-    background: $black;
-    width: 17px;
-    height: 17px;
-}
-
-
 .wii-icon-new-article {
     display: block;
     background-color: $white;
     width: 18px;
     height: 18px;
 }
+
+.wii-icon-pairing {
+    background-color: $blueGT;
+    width: 15px;
+    height: 15px;
+    display: inline-block;
+
+    .dropdown-item:active & {
+        background-color: $white;
+    }
+}
+
+.wii-icon-iot-article, .wii-icon-iot-location, .wii-icon-iot-pack, .wii-icon-iot-vehicle {
+    background-color: $white;
+    width: 15px;
+    height: 15px;
+    display: inline-block;
+}
+
 
 .p-sticky {
     position: sticky !important;
