@@ -10,9 +10,9 @@
 
         {% if isPrepaEditable and hasRightFinish and preparation.statut.code != constant('App\\Entity\\PreparationOrder\\Preparation::STATUT_VALIDATED') %}
             <button type="button"
-                    class="btn btn-primary split-button"
+                    class="btn btn-primary split-button d-flex align-items-center"
                     onclick="finishPrepa($(this))">
-                <i class="fa fa-check mr-2"></i>Finir la préparation
+                <span class="wii-icon wii-icon-check-white mr-2"></span>Finir la préparation
             </button>
         {% endif %}
         <button type="button"

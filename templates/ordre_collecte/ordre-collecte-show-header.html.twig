@@ -11,13 +11,13 @@
         {% set hasRightFinish = (not finished and ((collecte.utilisateur is null) or collecte.utilisateur.id == app.user.id)) %}
 
         {% if hasRightFinish %}
-            <button class="btn btn-primary {{ ( hasRightDemandeCollecte or hasRightDeleteOrdre )? 'split-button' }}"
+            <button class="btn btn-primary d-flex align-items-center {{ ( hasRightDemandeCollecte or hasRightDeleteOrdre )? 'split-button' }}"
                     {% if collecte.demandeCollecte ? collecte.demandeCollecte.stock : false %}
                         onclick="Select2Old.location($('.ajax-autocomplete-location')); checkIfRowSelected(openLocationModal);"
                     {% else %}
                         onclick="checkIfRowSelected(() => finishCollecte($(this), true))"
                     {% endif %}>
-                <i class='fas fa-check mr-2'></i>
+                <span class="wii-icon wii-icon-check-white mr-2"></span>
                 Finir la collecte
             </button>
         {% endif %}
