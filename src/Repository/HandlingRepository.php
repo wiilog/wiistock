@@ -168,13 +168,15 @@ class HandlingRepository extends EntityRepository
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-	public function findByParamAndFilters(InputBag $params, $filters, $handlingIds = null)
+    public function findByParamAndFilters(InputBag $params, $filters, $selectedDate = null)
     {
         $qb = $this->createQueryBuilder('handling');
 
-        if(!empty($handlingIds) && empty($params->all('search')['value'])){
-            $qb->where('handling.id IN (:handlingIds)')
-                ->setParameter('handlingIds', $handlingIds);
+        if ($selectedDate) {
+            $qb->andWhere('handling.desiredDate >= :filter_dateMin_value')
+                ->setParameter('filter_dateMin_value', "$selectedDate 00:00:00")
+                ->andWhere('handling.desiredDate <= :filter_dateMax_value')
+                ->setParameter('filter_dateMax_value', "$selectedDate 23:59:59");
         }
 
         $countTotal = $qb
@@ -182,12 +184,12 @@ class HandlingRepository extends EntityRepository
             ->getQuery()
             ->getSingleScalarResult();
 
-        // filtres sup
-        if(!$handlingIds) {
+        if (!$selectedDate) {
+            // filtres sup
             foreach ($filters as $filter) {
-                switch($filter['field']) {
+                switch ($filter['field']) {
                     case 'statuses-filter':
-                        if($filter["value"]) {
+                        if ($filter["value"]) {
                             $value = explode(",", $filter["value"]);
                             $qb->join('handling.status', 'filter_status')
                                 ->andWhere('filter_status.id in (:filter_status_value)')
@@ -208,7 +210,7 @@ class HandlingRepository extends EntityRepository
                             ->setParameter('filter_type_value', $filter['value']);
                         break;
                     case 'emergencyMultiple':
-                        $value = array_map(function($value) {
+                        $value = array_map(function ($value) {
                             return explode(":", $value)[0];
                         }, explode(',', $filter['value']));
                         $qb
@@ -270,19 +272,18 @@ class HandlingRepository extends EntityRepository
                         break;
                 }
             }
-        }
 
-		//Filter search
-		if (!empty($params)) {
-			if (!empty($params->all('search'))) {
-				$search = $params->all('search')['value'];
-				if (!empty($search)) {
-					$qb
-                        ->leftJoin("handling.type", 'search_type')
-                        ->leftJoin("handling.requester", 'search_requester')
-                        ->leftJoin("handling.status", 'search_status')
-                        ->leftJoin("handling.treatedByHandling", 'search_treatedBy')
-						->andWhere("(
+            //Filter search
+            if (!empty($params)) {
+                if (!empty($params->all('search'))) {
+                    $search = $params->all('search')['value'];
+                    if (!empty($search)) {
+                        $qb
+                            ->leftJoin("handling.type", 'search_type')
+                            ->leftJoin("handling.requester", 'search_requester')
+                            ->leftJoin("handling.status", 'search_status')
+                            ->leftJoin("handling.treatedByHandling", 'search_treatedBy')
+                            ->andWhere("(
                             handling.number LIKE :search_value
                             OR DATE_FORMAT(handling.creationDate, '%d/%m/%Y') LIKE :search_value
                             OR search_type.label LIKE :search_value
@@ -294,14 +295,16 @@ class HandlingRepository extends EntityRepository
                             OR search_treatedBy.username LIKE :search_value
                             OR handling.carriedOutOperationCount LIKE :search_value
 						)")
-						->setParameter('search_value', '%' . $search . '%');
-				}
-			}
-            if (!empty($params->all('order')))
-            {
+                            ->setParameter('search_value', '%' . $search . '%');
+                    }
+                }
+            }
+        }
+
+        if (!empty($params)) {
+            if (!empty($params->all('order'))) {
                 $order = $params->all('order')[0]['dir'];
-                if (!empty($order))
-                {
+                if (!empty($order)) {
                     $column = self::DtToDbLabels[$params->all('columns')[$params->all('order')[0]['column']]['data']];
                     if ($column === 'type') {
                         $qb
@@ -327,9 +330,9 @@ class HandlingRepository extends EntityRepository
                     }
                 }
             }
-		}
+        }
 
-		// compte éléments filtrés
+        // compte éléments filtrés
         $countFiltered = $qb
             ->select('COUNT(handling)')
             ->getQuery()

@@ -97,12 +97,14 @@
 <div class="mail">
     {% set mail_logo = logo('email', true) %}
     {% set size = image_size(mail_logo) %}
-    {% set ratio = size[1] / size[0] %}
+    {% if size %}
+        {% set ratio = size[1] / size[0] %}
 
-    <img alt="GT Logistics"
-         width="300"
-         height="{{ ratio * 300 }}"
-         src="{{ base64(mail_logo) }}"/>
+        <img alt="GT Logistics"
+             width="300"
+             height="{{ ratio * 300 }}"
+             src="{{ base64(mail_logo) }}"/>
+    {% endif %}
 
     {% if title is defined %}
         <h1>{{ title }}</h1>

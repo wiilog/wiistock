@@ -3,7 +3,11 @@ let tableHandlings = null;
 $(function() {
     $('.select2').select2();
 
-    initDatatable().then(table => {
+    let params = GetRequestQuery();
+
+    $(`.filters .submit-button`).on(`click`, () => params.date = null);
+
+    initDatatable(params).then(table => {
         tableHandlings = table;
 
         initModals(tableHandlings);
@@ -16,13 +20,15 @@ $(function() {
         // applique les filtres si pré-remplis
         let val = $('#filterStatus').val();
 
-        if (val && val.length > 0) {
-            let valuesStr = val.split(',');
-            let valuesInt = [];
-            valuesStr.forEach((value) => {
-                valuesInt.push(parseInt(value));
-            })
-            $('#statut').val(valuesInt).select2();
+        if (params.date || val && val.length > 0) {
+            if(val && val.length > 0) {
+                let valuesStr = val.split(',');
+                let valuesInt = [];
+                valuesStr.forEach((value) => {
+                    valuesInt.push(parseInt(value));
+                })
+                $('#statut').val(valuesInt).select2();
+            }
         } else {
             // sinon, filtres enregistrés en base pour chaque utilisateur
             let path = Routing.generate('filter_get_by_page');
@@ -117,7 +123,7 @@ function callbackSaveFilter() {
     }
 }
 
-function initDatatable() {
+function initDatatable(params) {
     return $.post(Routing.generate('handling_api_columns'))
         .then((columns) => {
             let pathHandling = Routing.generate('handling_api', true);
@@ -140,7 +146,7 @@ function initDatatable() {
                     "type": "POST",
                     'data' : {
                         'filterStatus': $('#filterStatus').val(),
-                        'handlingIds': $('#handlingIds').val(),
+                        'selectedDate': () => params.date,
                     },
                 },
                 hideColumnConfig: {

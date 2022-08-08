@@ -74,15 +74,11 @@
                         </div>
                         {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
-                        {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
                             <div class="col-6 d-flex flex-column mt-2">
                                 {{ form.select('emergency', "Urgence", true, {
                                     items: emergencies,
-                                    required,
+                                    required: false,
                                     emptyOption : { value : null , text : 'Non urgent', selected : emergency ? false : true},
-                                    labelOptions: {
-                                        removeAsterisk: true
-                                    }
                                 }) }}
                             </div>
                         {% elseif fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
@@ -104,7 +100,6 @@
                                     type: 'user',
                                     multiple :true,
                                     inputClass: 'receivers-picker',
-                                    labelOptions: not required ? { removeAsterisk: false } : {}
                                 }) }}
                             </div>
                         {% elseif fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}

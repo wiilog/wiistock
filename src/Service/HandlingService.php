@@ -53,7 +53,7 @@ class HandlingService {
     #[Required]
     public FreeFieldService $freeFieldService;
 
-    public function getDataForDatatable($params = null, $statusFilter = null, $handlingIds = null)
+    public function getDataForDatatable($params = null, $statusFilter = null, $selectedDate = null)
     {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $handlingRepository = $this->entityManager->getRepository(Handling::class);
@@ -72,7 +72,7 @@ class HandlingService {
             $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_HAND, $this->tokenStorage->getToken()->getUser());
         }
 
-        $queryResult = $handlingRepository->findByParamAndFilters($params, $filters, $handlingIds);
+        $queryResult = $handlingRepository->findByParamAndFilters($params, $filters, $selectedDate);
 
         $handlingArray = $queryResult['data'];
 
