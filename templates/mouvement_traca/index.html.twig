@@ -6,7 +6,8 @@
     {% include 'filters/filtersTrackingMovements.html.twig' with {
         'page' : 'PAGE_MVT_TRACA',
         'tableSelector' : '#tableMvts',
-        callback: 'clearURL'
+        callback: 'clearURL',
+        needsDateFormatting: true
     } %}
 {% endblock %}
 
@@ -39,7 +40,7 @@
                         {% elseif hasRightExport %}
                             <button type="button"
                                     class="btn btn-primary"
-                                    onclick="saveExportFile('get_mouvements_traca_csv')">
+                                    onclick="saveExportFile('get_mouvements_traca_csv', true, {}, false, 'Veuillez saisir des dates dans le filtre en haut de page.', true)">
                                 <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
                             </button>
                         {% else %}
@@ -61,7 +62,7 @@
                         <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
                             {% if hasRightToCreateMovement and hasRightExport %}
                                 <a class="dropdown-item pointer"
-                                   onclick="saveExportFile('get_mouvements_traca_csv')">
+                                   onclick="saveExportFile('get_mouvements_traca_csv', true, {}, false, 'Veuillez saisir des dates dans le filtre en haut de page.', true)">
                                     <i class="fa fa-file-csv mr-2" style="padding: 0 2px"></i>
                                     Exporter au format CSV
                                 </a>

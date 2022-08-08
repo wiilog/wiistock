@@ -157,7 +157,7 @@ class ArrivageService {
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
             $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
             $freeFieldValue = $arrival->getFreeFieldValue($freeFieldId);
-            $row[$freeFieldName] = FormatHelper::freeField($freeFieldValue, $freeField);
+            $row[$freeFieldName] = FormatHelper::freeField($freeFieldValue, $freeField, $this->security->getUser());
         }
 
         return $row;
@@ -608,7 +608,7 @@ class ArrivageService {
         }
 
         foreach($freeFieldsConfig["freeFields"] as $freeFieldId => $freeField) {
-            $line[] = FormatHelper::freeField($arrival["freeFields"][$freeFieldId] ?? '', $freeField);
+            $line[] = FormatHelper::freeField($arrival["freeFields"][$freeFieldId] ?? '', $freeField, $this->security->getUser());
         }
 
         $csvService->putLine($handle, $line);

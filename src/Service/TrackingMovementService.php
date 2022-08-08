@@ -142,12 +142,16 @@ class TrackingMovementService
         $trackingPack = $movement->getPack();
 
         if (!isset($this->freeFieldsConfig)) {
-            $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig($this->entityManager, CategorieCL::MVT_TRACA, CategoryType::MOUVEMENT_TRACA);
+            $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig(
+                $this->entityManager,
+                CategorieCL::MVT_TRACA,
+                CategoryType::MOUVEMENT_TRACA
+            );
         }
 
         $row = [
             'id' => $movement->getId(),
-            'date' => FormatHelper::datetime($movement->getDatetime()),
+            'date' => FormatHelper::datetime($movement->getDatetime(), "", false, $this->security->getUser()),
             'code' => FormatHelper::pack($trackingPack),
             'origin' => $this->templating->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
             'group' => $movement->getPackParent()
@@ -180,7 +184,7 @@ class TrackingMovementService
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
             $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
             $freeFieldValue = $movement->getFreeFieldValue($freeFieldId);
-            $row[$freeFieldName] = FormatHelper::freeField($freeFieldValue, $freeField);
+            $row[$freeFieldName] = FormatHelper::freeField($freeFieldValue, $freeField, $this->security->getUser());
         }
 
         return $row;
@@ -661,7 +665,7 @@ class TrackingMovementService
         }
 
         $data = [
-            FormatHelper::datetime($movement['datetime']),
+            FormatHelper::datetime($movement['datetime'], "", false, $this->security->getUser()),
             $movement['code'],
             $movement['locationLabel'],
             $movement['quantity'],
@@ -678,7 +682,7 @@ class TrackingMovementService
         ];
 
         foreach ($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
-            $data[] = FormatHelper::freeField($movement['freeFields'][$freeFieldId] ?? '', $freeField);
+            $data[] = FormatHelper::freeField($movement['freeFields'][$freeFieldId] ?? '', $freeField, $this->security->getUser());
         }
         $CSVExportService->putLine($handle, $data);
     }

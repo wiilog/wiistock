@@ -198,8 +198,9 @@ class FormatHelper {
         return $date ? $date->format($switchEnFormat ? "d-m-Y" : 'd/m/Y') : $else;
     }
 
-    public static function datetime(?DateTimeInterface $date, $else = "", $addAt = false) {
-        return $date ? $date->format($addAt ? "d/m/Y à H:i" : "d/m/Y H:i") : $else;
+    public static function datetime(?DateTimeInterface $date, $else = "", $addAt = false, Utilisateur $user = null) {
+        $prefix = $user && $user->getDateFormat() ? $user->getDateFormat() : 'd/m/Y';
+        return $date ? $date->format($addAt ? "$prefix à H:i" : "$prefix H:i") : $else;
     }
 
     public static function longDate(?DateTimeInterface $date, array $options = [], $else = "-"): ?string {

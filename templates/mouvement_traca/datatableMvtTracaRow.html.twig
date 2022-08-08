@@ -22,7 +22,7 @@
                          data-target='#modalEditMvtTraca'
                          data-toggle='modal'
                          class="d-none action-on-click"
-                         onclick="editRow($(this), Routing.generate('tracking_movement_api_edit', true), $('#modalEditMvtTraca'), $('#submitEditMvtTraca'))">
+                         onclick="editRow($(this), Routing.generate('tracking_movement_api_edit', true), $('#modalEditMvtTraca'), $('#submitEditMvtTraca'), false, initDatePickers)">
                         <i class='fas fa-pencil-alt mr-2'></i>Modifier
                     </div>
                 {% endif %}
