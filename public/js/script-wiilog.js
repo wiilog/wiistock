@@ -714,6 +714,23 @@ function initDateTimePicker(dateInput = '#dateMin, #dateMax, #expectedDate', for
     $(dateInput).datetimepicker(config);
 }
 
+function fillDatePickers(selector, sourceFormat = 'YYYY-MM-DD', appendTime = false) {
+    const $userFormat = $('#userDateFormat');
+    const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
+
+    const time = appendTime ? ' HH:mm' : '';
+    const destinationFormat = DATE_FORMATS_TO_DISPLAY[format] + time;
+    $(selector).each(function () {
+        if ($(this).data('init')) {
+            const dateValue = moment($(this).data('init'), sourceFormat + time).format(destinationFormat);
+            $(this)
+                .data("DateTimePicker")
+                .format(destinationFormat)
+                .date(dateValue);
+        }
+    })
+}
+
 
 function warningEmptyDatesForCsv(errorMsg) {
     showBSAlert(errorMsg, 'danger');
