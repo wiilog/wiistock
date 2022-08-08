@@ -12,11 +12,13 @@ $(function () {
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_MVT_TRACA);
     $.post(path, params, function (data) {
-        displayFiltersSup(data);
+        displayFiltersSup(data, true);
     }, 'json');
 
     Select2Old.user('Opérateurs');
     Select2Old.location($('.ajax-autocomplete-emplacements'), {}, "Emplacement", 3);
+
+    initDatePickers();
     initNewModal($modalNewMvtTraca);
 
     $.post(Routing.generate('tracking_movement_api_columns'))
@@ -45,8 +47,20 @@ $(function () {
 
             tableMvt = initDataTable('tableMvts', config);
             initPageModal(tableMvt);
+
         });
 });
+
+function initDatePickers() {
+    const $userFormat = $('#userDateFormat');
+    const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
+    initDateTimePicker('.free-field-date', DATE_FORMATS_TO_DISPLAY[format]);
+    initDateTimePicker('.free-field-datetime', DATE_FORMATS_TO_DISPLAY[format] + ' HH:mm');
+    initDateTimePicker('.datetime-field', DATE_FORMATS_TO_DISPLAY[format] + ' HH:mm');
+    fillDatePickers('.free-field-date');
+    fillDatePickers('.datetime-field', 'YYYY-MM-DD', true);
+    fillDatePickers('.free-field-datetime', 'YYYY-MM-DD', true);
+}
 
 $.fn.dataTable.ext.search.push(
     function (settings, data) {
@@ -94,6 +108,9 @@ function initPageModal(tableMvt) {
                 } else {
                     displayOnSuccessCreation(success, trackingMovementsCounter);
                     clearModal($('#modalNewMvtTraca'));
+
+                    fillDatePickers('.free-field-date');
+                    fillDatePickers('.free-field-datetime', 'YYYY-MM-DD', true);
                 }
             }
         });
@@ -139,6 +156,10 @@ function resetNewModal($modal) {
             $emplacementPrise.select2('open');
         }, 400);
     }
+
+    fillDatePickers('.free-field-date');
+    fillDatePickers('.free-field-datetime', 'YYYY-MM-DD', true);
+
 }
 
 function switchMvtCreationType($input) {
@@ -154,7 +175,7 @@ function switchMvtCreationType($input) {
             Select2Old.initFree($modal.find('.select2-free'));
 
             const $emptyRound = $modal.find('input[name=empty-round]');
-            if($input.find(':selected').text().trim() === $emptyRound.val()) {
+            if ($input.find(':selected').text().trim() === $emptyRound.val()) {
                 const $packInput = $modal.find('input[name=colis]');
                 $modal.find('input[name=quantity]').closest('div.form-group').addClass('d-none');
                 $packInput.val('passageavide');

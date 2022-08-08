@@ -16,9 +16,12 @@
                             {% else %}
                                 <div class="form-group col-12">
                                     <label class="wii-field-name" for="datetime">Date*</label>
-                                    <input type="datetime-local" class="form-control data datetime needed no-clear"
+                                    <input type="text"
                                            id="datetime"
-                                           name="datetime">
+                                           name="datetime"
+                                           class="form-control data datetime-field needed no-clear pointer"
+                                           placeholder="{{ app.user.displayedDateFormat ~ ' hh:mm' }}"
+                                           autocomplete="off"/>
                                 </div>
                                 <input type="hidden" class="data" name="forced" value="0">
                                 <div class="form-group col-12">
@@ -78,7 +81,8 @@
                         freeFieldValues: [],
                         colType: 'col-md-4 col-12',
                         requiredType: 'requiredCreate',
-                        actionType: 'new'
+                        actionType: 'new',
+                        needsDateFormatting: true
                     } %}
                 </div>
 

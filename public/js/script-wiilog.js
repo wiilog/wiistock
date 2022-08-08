@@ -732,6 +732,7 @@ function fillDatePickers(selector, sourceFormat = 'YYYY-MM-DD', appendTime = fal
 }
 
 
+
 function warningEmptyDatesForCsv(errorMsg) {
     showBSAlert(errorMsg, 'danger');
     $('#dateMin, #dateMax').addClass('is-invalid');
