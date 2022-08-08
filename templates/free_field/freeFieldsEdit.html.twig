@@ -74,14 +74,18 @@
                                 }) }}
                             {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_DATETIME') %}
                                 {% set value = entityValue ? ((entityValue | replace({'/': '-'}) ) | date('Y-m-d\\TH:i')) : '' %}
-                                {{ form.input(freeField.id, label, needed, value, {
-                                    type: 'datetime-local',
-                                    additionalAttributes: [{
-                                        name: 'data-init',
-                                        value: value
-                                    }]
-                                }) }}
+                                <label class="w-100">
+                                    {{ form.label(label, needed, false, {}) }}
+                                    <input type="text"
+                                           value="{{ value }}"
+                                           data-init="{{ value }}"
+                                           class="form-control w-100 data free-field-datetime {{ needed ? 'needed' }} pointer"
+                                           name="{{ freeField.id }}"
+                                           placeholder="{{ app.user.displayedDateFormat ~ ' hh:mm' }}"
+                                           autocomplete="off"/>
+                                </label>
                             {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_DATE') %}
+
                                 {% if entityValue is defined and entityValue matches '{^\\d{2}/\\d{2}/\\d{4}$}' %}
                                     {% set entityValue = entityValue[6:4] ~ '-' ~ entityValue[3:2] ~ '-' ~ entityValue[:2] %}
                                 {% endif %}
@@ -90,13 +94,16 @@
                                 {% else %}
                                     {% set entityValue = '' %}
                                 {% endif %}
-                                {{ form.input(freeField.id, label, needed, entityValue, {
-                                    type: 'date',
-                                    additionalAttributes: [{
-                                        name: 'data-init',
-                                        value: entityValue
-                                    }]
-                                }) }}
+                                <label class="w-100">
+                                    {{ form.label(label, needed, false, {}) }}
+                                    <input type="text"
+                                           value="{{ entityValue }}"
+                                           data-init="{{ entityValue }}"
+                                           class="form-control w-100 data free-field-date {{ needed ? 'needed' }} pointer"
+                                           name="{{ freeField.id }}"
+                                           placeholder="{{ app.user.displayedDateFormat }}"
+                                           autocomplete="off"/>
+                                </label>
                             {% endif %}
                         </div>
                     </div>

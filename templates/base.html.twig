@@ -30,6 +30,8 @@
     {% include 'notifications/notification.html.twig' %}
     {% block body %}
     {% endblock %}
+    <input type="hidden" id="userDateFormat" value="{{ app.user.dateFormat }}">
+
 
     {% block javascripts %}
         {{ encore_entry_script_tags('app') }}
