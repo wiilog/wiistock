@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\CategorieCL;
 use App\Entity\FreeField;
 use App\Entity\Type;
+use App\Entity\Utilisateur;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Helper\FormatHelper;
@@ -104,10 +105,9 @@ class FreeFieldService {
 
     public function getFilledFreeFieldArray(EntityManagerInterface $entityManager,
                                                                    $entity,
-                                            array                  $displayedOptions) {
+                                            array                  $displayedOptions, Utilisateur $user = null) {
         $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
         $freeFieldCategoryRepository = $entityManager->getRepository(CategorieCL::class);
-
 
         /** @var Type $type */
         $type = $displayedOptions['type'] ?? null;
@@ -136,7 +136,7 @@ class FreeFieldService {
         return Stream::from($freeFields ?? [])
             ->map(fn (FreeField $freeField) => [
                 'label' => $freeField->getLabel(),
-                'value' => FormatHelper::freeField($freeFieldValues[$freeField->getId()] ?? null, $freeField)
+                'value' => FormatHelper::freeField($freeFieldValues[$freeField->getId()] ?? null, $freeField, $user)
             ])
             ->toArray();
     }

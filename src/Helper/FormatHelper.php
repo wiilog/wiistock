@@ -228,14 +228,14 @@ class FormatHelper {
         return $comment ? strip_tags($comment) : $else;
     }
 
-    public static function freeField(?string $value, FreeField $freeField): ?string {
+    public static function freeField(?string $value, FreeField $freeField, Utilisateur $user = null): ?string {
         $value = ($value ?? $freeField->getDefaultValue()) ?? '';
         switch ($freeField->getTypage()) {
             case FreeField::TYPE_DATE:
             case FreeField::TYPE_DATETIME:
                 $valueDate = self::parseDatetime($value, ["Y-m-dTH:i", "Y-m-d", "d/m/Y H:i", "Y-m-d H:i", "d/m/Y"]);
                 $hourFormat = ($freeField->getTypage() === FreeField::TYPE_DATETIME ? ' H:i' : '');
-                $formatted = $valueDate ? $valueDate->format('d/m/Y' . $hourFormat) : $value;
+                $formatted = $valueDate ? $valueDate->format(($user && $user->getDateFormat() ? $user->getDateFormat() : 'd/m/Y') . $hourFormat) : $value;
                 break;
             case FreeField::TYPE_BOOL:
                 $formatted = ($value !== '' && $value !== null)
