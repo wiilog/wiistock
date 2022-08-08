@@ -642,7 +642,6 @@ class ArrivageController extends AbstractController {
         $natureRepository = $entityManager->getRepository(Nature::class);
         $packRepository = $entityManager->getRepository(Pack::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
-
         try {
             $from = DateTime::createFromFormat($FORMAT, $request->query->get("dateMin") . " 00:00:00");
             $to = DateTime::createFromFormat($FORMAT, $request->query->get("dateMax") . " 23:59:59");
@@ -691,10 +690,11 @@ class ArrivageController extends AbstractController {
 
         $header = array_merge($baseHeader, $natureLabels, $freeFieldsConfig["freeFieldsHeader"]);
         $today = new DateTime();
-        $today = $today->format("d-m-Y H:i:s");
+        $user = $this->getUser();
+        $today = $today->format($user->getDateFormat() ? $user->getDateFormat() . ' H:i' : "d-m-Y H:i:s");
         return $csvService->streamResponse(function($output) use ($arrivageDataService, $csvService, $fieldsParam, $freeFieldService, $freeFieldsConfig, $arrivals, $buyersByArrival, $natureLabels, $packs, $packsTotalWeight) {
             foreach($arrivals as $arrival) {
-                $arrivageDataService->putArrivalLine($output, $csvService, $freeFieldsConfig, $arrival, $buyersByArrival, $natureLabels, $packs, $fieldsParam, $packsTotalWeight);
+                $arrivageDataService->putArrivalLine($this->getUser(), $output, $csvService, $freeFieldsConfig, $arrival, $buyersByArrival, $natureLabels, $packs, $fieldsParam, $packsTotalWeight);
             }
         }, "export-arrivages-$today.csv", $header);
     }
@@ -908,12 +908,15 @@ class ArrivageController extends AbstractController {
         $disputeRepository = $entityManager->getRepository(Dispute::class);
         $disputes = $disputeRepository->findByArrivage($arrivage);
         $rows = [];
+        /** @var Utilisateur $user */
+        $user = $this->getUser();
+
         foreach ($disputes as $dispute) {
             $rows[] = [
-                'firstDate' => $dispute->getCreationDate()->format('d/m/Y H:i'),
+                'firstDate' => $dispute->getCreationDate()->format($user->getDateFormat() ? $user->getDateFormat() . ' H:i' : 'd/m/Y H:i'),
                 'status' => $dispute->getStatus() ? $dispute->getStatus()->getNom() : '',
                 'type' => $dispute->getType() ? $dispute->getType()->getLabel() : '',
-                'updateDate' => $dispute->getUpdateDate() ? $dispute->getUpdateDate()->format('d/m/Y H:i') : '',
+                'updateDate' => $dispute->getUpdateDate() ? $dispute->getUpdateDate()->format($user->getDateFormat() ? $user->getDateFormat() . ' H:i' : 'd/m/Y H:i') : '',
                 'Actions' => $this->renderView('arrivage/datatableLitigesRow.html.twig', [
                     'arrivageId' => $arrivage->getId(),
                     'url' => [
@@ -1077,7 +1080,8 @@ class ArrivageController extends AbstractController {
     public function apiColis(Arrivage $arrivage): Response
     {
         $packs = $arrivage->getPacks()->toArray();
-
+        /** @var Utilisateur $user */
+        $user = $this->getUser();
         $rows = [];
         /** @var Pack $pack */
         foreach ($packs as $pack) {
@@ -1085,7 +1089,7 @@ class ArrivageController extends AbstractController {
             $rows[] = [
                 'nature' => $pack->getNature() ? $pack->getNature()->getLabel() : '',
                 'code' => $pack->getCode(),
-                'lastMvtDate' => $mouvement ? ($mouvement->getDatetime() ? $mouvement->getDatetime()->format('d/m/Y H:i') : '') : '',
+                'lastMvtDate' => $mouvement ? ($mouvement->getDatetime() ? $mouvement->getDatetime()->format($user->getDateFormat() ? $user->getDateFormat() . ' H:i' : 'd/m/Y H:i') : '') : '',
                 'lastLocation' => $mouvement ? ($mouvement->getEmplacement() ? $mouvement->getEmplacement()->getLabel() : '') : '',
                 'operator' => $mouvement ? ($mouvement->getOperateur() ? $mouvement->getOperateur()->getUsername() : '') : '',
                 'actions' => $this->renderView('arrivage/datatableColisRow.html.twig', [

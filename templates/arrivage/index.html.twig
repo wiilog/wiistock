@@ -7,6 +7,7 @@
     {% include 'filters/filtersArrivage.html.twig' with {
         'page': 'PAGE_ARRIVAGE',
         'tableSelector': '#arrivalsTable',
+        'needsDateFormatting': true,
         'callback': '() => {clicked = true;
         }'
     } %}
@@ -47,7 +48,7 @@
                     {% elseif hasRightToExport %}
                         <button type="button"
                                 class="btn btn-primary split-button"
-                                onclick="saveExportFile('get_arrivages_csv')">
+                                onclick="saveExportFile('get_arrivages_csv', true, {}, false, 'Veuillez saisir des dates dans le filtre en haut de page.', true)">
                             <span class="fa fa-file-csv mr-2" style="padding: 0 2px"></span>
                             Exporter au format CSV
                         </button>
@@ -62,7 +63,7 @@
                     <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
                         {% if hasRightToCreate and hasRightToExport %}
                             <a class="dropdown-item pointer"
-                               onclick="saveExportFile('get_arrivages_csv')">
+                               onclick="saveExportFile('get_arrivages_csv', true, {}, false, 'Veuillez saisir des dates dans le filtre en haut de page.', true)">
                                 <i class="fa fa-file-csv mr-2" style="padding: 0 2px"></i>
                                 Exporter au format CSV
                             </a>

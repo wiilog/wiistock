@@ -46,6 +46,12 @@ const TEAM_SIZE = 11;
 
 const SELECT2_TRIGGER_CHANGE = 'change.select2';
 
+const DATE_FORMATS_TO_DISPLAY = {
+    'd/m/Y': 'DD/MM/YYYY',
+    'Y-m-d': 'YYYY-MM-DD',
+    'm-d-Y': 'MM-DD-YYYY',
+}
+
 $(function () {
     $(document).on('hide.bs.modal', function () {
         $('.select2-container.select2-container--open').remove();
@@ -433,7 +439,7 @@ function clearCheckboxes($modal) {
     });
 }
 
-function saveFilters(page, tableSelector, callback) {
+function saveFilters(page, tableSelector, callback, needsDateFormatting = false) {
     let path = Routing.generate('filter_sup_new');
 
     const $filterDateMin = $('.filter-date-min');
@@ -478,15 +484,19 @@ function saveFilters(page, tableSelector, callback) {
             })
         }, {}))
     };
-
+    let format = 'd/m/Y';
+    if (needsDateFormatting) {
+        const $userFormat = $('#userDateFormat');
+        format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
+    }
     if ($filterDateMinPicker) {
-        $filterDateMinPicker.format('DD/MM/YYYY');
+        $filterDateMinPicker.format(DATE_FORMATS_TO_DISPLAY[format]);
     }
     if ($filterDateMaxPicker) {
-        $filterDateMaxPicker.format('DD/MM/YYYY');
+        $filterDateMaxPicker.format(DATE_FORMATS_TO_DISPLAY[format]);
     }
     if ($filterDateExpectedPicker) {
-        $filterDateExpectedPicker.format('DD/MM/YYYY');
+        $filterDateExpectedPicker.format(DATE_FORMATS_TO_DISPLAY[format]);
     }
 
     $.post(path, JSON.stringify(params), function (response) {
@@ -722,7 +732,13 @@ function warningEmptyTypeTransportForCsv() {
     });
 }
 
-function displayFiltersSup(data) {
+function displayFiltersSup(data, needsDateFormatting = false) {
+    let format = 'd/m/Y';
+    if (needsDateFormatting) {
+        const $userFormat = $('#userDateFormat');
+        format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
+    }
+
     data.forEach(function (element) {
         const $element = $(`.filters [name="${element.field}"]`);
 
@@ -808,9 +824,12 @@ function displayFiltersSup(data) {
                         ? 'DD/MM/YYYY'
                         : 'YYYY-MM-DD';
                     const $fieldDate = $(`.filter-input[name="${element.field}"]`);
-                    const dateValue = moment(element.value, sourceFormat).format('DD/MM/YYYY');
+                    const dateValue = moment(element.value, sourceFormat).format(DATE_FORMATS_TO_DISPLAY[format]);
                     if ($fieldDate.data("DateTimePicker")) {
-                        $fieldDate.data("DateTimePicker").date(dateValue);
+                        $fieldDate
+                            .data("DateTimePicker")
+                            .format(DATE_FORMATS_TO_DISPLAY[format])
+                            .date(dateValue);
                     } else {
                         $fieldDate.val(dateValue);
                     }
@@ -958,15 +977,19 @@ function saveExportFile(routeName,
                         needsDateFilters = true,
                         routeParam = {},
                         needsAdditionalFilters = false,
-                        errorMsgDates = 'Veuillez saisir des dates dans le filtre en haut de page.') {
+                        errorMsgDates = 'Veuillez saisir des dates dans le filtre en haut de page.',
+                        needsDateFormatting = false) {
 
     const buttonTypeTransport = $("input[name='category']:checked")
-
     const $spinner = $('#spinner');
     loadSpinner($spinner);
 
     const path = Routing.generate(routeName, routeParam, true);
-
+    let format = 'd/m/Y';
+    if (needsDateFormatting) {
+        const $userFormat = $('#userDateFormat');
+        format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
+    }
     const data = {};
     $('.filterService input, .dateFilters input').each(function () {
         const $input = $(this);
@@ -978,10 +1001,9 @@ function saveExportFile(routeName,
             }
         }
     });
-
     if (data.dateMin && data.dateMax) {
-        data.dateMin = moment(data.dateMin, 'DD/MM/YYYY').format('YYYY-MM-DD');
-        data.dateMax = moment(data.dateMax, 'DD/MM/YYYY').format('YYYY-MM-DD');
+        data.dateMin = moment(data.dateMin, DATE_FORMATS_TO_DISPLAY[format]).format('YYYY-MM-DD');
+        data.dateMax = moment(data.dateMax, DATE_FORMATS_TO_DISPLAY[format]).format('YYYY-MM-DD');
     }
     const dataKeys = Object.keys(data);
     const joinedData = dataKeys

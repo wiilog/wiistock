@@ -7,6 +7,7 @@ use App\Repository\FreeFieldRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\Mapping\OneToMany;
 
 #[ORM\Entity(repositoryClass: FreeFieldRepository::class)]
 class FreeField implements Serializable {
@@ -95,7 +96,7 @@ class FreeField implements Serializable {
     #[ORM\ManyToOne(targetEntity: CategorieCL::class, inversedBy: 'champsLibres')]
     private ?CategorieCL $categorieCL = null;
 
-    #[ORM\OneToOne(targetEntity: TranslationSource::class, inversedBy: "freeField")]
+    #[ORM\OneToOne(inversedBy: "freeField", targetEntity: TranslationSource::class)]
     private ?TranslationSource $labelTranslation = null;
 
     #[OneToMany(mappedBy: "elementOfFreeField", targetEntity: TranslationSource::class)]

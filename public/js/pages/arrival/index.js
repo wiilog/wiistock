@@ -50,12 +50,17 @@ $(function () {
             });
 
         onTypeChange($modalNewArrivage.find('[name="type"]'));
+        const $userFormat = $('#userDateFormat');
+        const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
+        initDateTimePicker('.free-field-date', DATE_FORMATS_TO_DISPLAY[format]);
+
+        initDateTimePicker('.free-field-datetime', DATE_FORMATS_TO_DISPLAY[format] + ' HH:mm');
     });
 
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_ARRIVAGE);
     $.post(path, params, function (data) {
-        displayFiltersSup(data);
+        displayFiltersSup(data, true);
     }, 'json');
     pageLength = Number($('#pageLengthForArrivage').val());
     Select2Old.user($('.filters .ajax-autocomplete-user'), 'Destinataires');
@@ -235,6 +240,31 @@ function initNewArrivageEditor(modal) {
     Select2Old.location($modal.find('.ajax-autocomplete-location'));
     Select2Old.init($modal.find('.ajax-autocomplete-user'), '', 1);
     Select2Old.initFree($('.select2-free'));
+
+    $('.free-field-date').each(function () {
+        if ($(this).data('init')) {
+            const $userFormat = $('#userDateFormat');
+            const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
+            const dateValue = moment($(this).data('init'), 'YYYY-MM-DD').format(DATE_FORMATS_TO_DISPLAY[format]);
+            $(this)
+                .data("DateTimePicker")
+                .format(DATE_FORMATS_TO_DISPLAY[format])
+                .date(dateValue);
+        }
+    })
+
+    $('.free-field-datetime').each(function () {
+        if ($(this).data('init')) {
+            const $userFormat = $('#userDateFormat');
+            const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
+            const dateValue = moment($(this).data('init'), 'YYYY-MM-DD HH:mm').format(DATE_FORMATS_TO_DISPLAY[format] + ' HH:mm');
+            console.log(DATE_FORMATS_TO_DISPLAY[format] + ' HH:mm', dateValue);
+            $(this)
+                .data("DateTimePicker")
+                .format(DATE_FORMATS_TO_DISPLAY[format] + ' HH:mm')
+                .date(dateValue);
+        }
+    })
 }
 
 function updateArrivalPageLength() {

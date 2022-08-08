@@ -49,6 +49,11 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         'deliveryRequest' => self::DEFAULT_DELIVERY_REQUEST_VISIBLE_COLUMNS,
         'handling' => self::DEFAULT_HANDLING_VISIBLE_COLUMNS,
     ];
+    const DATE_FORMATS_TO_DISPLAY = [
+        'd/m/Y' => 'jj/mm/aaaa',
+        'Y-m-d' => 'yyyy-mm-dd',
+        'm-d-Y' => 'mm-dd-yyyy',
+    ];
     const SEARCH_DEFAULT = ["label", "reference"];
 
     #[ORM\Id]
@@ -1928,6 +1933,10 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
 
     public function getDateFormat(): ?string {
         return $this->dateFormat;
+    }
+
+    public function getDisplayedDateFormat(): ?string {
+        return self::DATE_FORMATS_TO_DISPLAY[$this->getDateFormat() ?: 'd/m/Y'];
     }
 
     public function setDateFormat(?string $dateFormat): self {
