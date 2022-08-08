@@ -10,7 +10,7 @@
                    class="form-control cursor-default filter-date-min {{ databasePersisted ? 'filter-input' }} w-218px"
                    name="dateMin"
                    id="dateMin"
-                   placeholder="{{ app.user.displayedDateFormat }}"
+                   placeholder="{{ needsDateFormatting is defined and needsDateFormatting ? app.user.displayedDateFormat : 'jj/mm/aaaa' }}"
                    {{ disabled }}
                    autocomplete="off"/>
             <div class="input-group-prepend input-group-append">
@@ -20,7 +20,7 @@
                    class="form-control cursor-default filter-date-max {{ databasePersisted ? 'filter-input' }} w-218px"
                    name="dateMax"
                    id="dateMax"
-                   placeholder="{{ app.user.displayedDateFormat }}"
+                   placeholder="{{ needsDateFormatting is defined and needsDateFormatting ? app.user.displayedDateFormat : 'jj/mm/aaaa' }}"
                    {{ disabled }}
                    autocomplete="off"/>
         </div>
