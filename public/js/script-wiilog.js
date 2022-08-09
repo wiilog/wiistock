@@ -87,12 +87,13 @@ $(function () {
 });
 
 function changeUserLanguageDateFormat() {
-    $.post(Routing.generate(`header_language_dateFormat_api`),
-        {language: $("div[data-name='user_language']").find(':checked').val(),
-        dateFormat: $("select[name='user_dateFormat']").find(':selected').val()})
-        .then(() => {
-            window.location.reload();
-        });
+    const params = {
+        language: $("div[data-name='user_language']").find(':checked').val(),
+        dateFormat: $("select[name='user_dateFormat']").find(':selected').val(),
+    };
+
+    $.post(Routing.generate(`header_language_dateFormat_api`), params)
+        .then(() => window.location.reload());
 }
 
 function registerNotificationChannel() {

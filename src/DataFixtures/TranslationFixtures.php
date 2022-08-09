@@ -1892,7 +1892,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
             $french = (new Language())
                 ->setLabel("Français")
                 ->setSlug("french")
-                ->setFlag("fr")
+                ->setFlag("/svg/flags/fr.svg")
                 ->setSelectable(true)
                 ->setSelected(true);
 
@@ -1905,7 +1905,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
             $english = (new Language())
                 ->setLabel("English")
                 ->setSlug("english")
-                ->setFlag("gb")
+                ->setFlag("/svg/flags/gb.svg")
                 ->setSelectable(true)
                 ->setSelected(false);
 

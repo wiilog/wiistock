@@ -50,32 +50,32 @@
                     </div>
                 {% endif %}
 
-                {% if not isDashboardExt and app.user%}
+                {% if not isDashboardExt and app.user %}
                     {% set hasDeliveryRights = (
                         hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_LIVR'))
                         and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE'))
-                    ) %}
+                        ) %}
                     {% set hasCollectRights = (
                         hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_COLL'))
                         and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE'))
-                    ) %}
+                        ) %}
                     {% set hasHandlingRights = (
                         hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_HAND'))
                         and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE'))
-                    ) %}
+                        ) %}
                     {% set hasDispatchRights = (
                         hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_ACHE'))
                         and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE'))
                         and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE_ACHE'))
-                    ) %}
+                        ) %}
                     {% set hasTransferRights = (
                         hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_TRANSFER_REQ'))
                         and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE'))
-                    ) %}
+                        ) %}
                     {% set hasTransportRights = (
                         hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_TRANSPORT'))
                         and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE_TRANSPORT'))
-                    ) %}
+                        ) %}
                     {% set hasPurchaseRequestRights = (
                         hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE'))
                         and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE_PURCHASE_REQUESTS'))
@@ -220,23 +220,25 @@
                                 <span class="fa fa-angle-down"></span>
                             </button>
                         </div>
-                        <div class="language-date-menu dropdown-menu dropdown-menu-right mt-1 p-0">
-                            <div class="language dropdown-item-sub mt-2 pl-3">
-                                {{ form.radio('user_language', null , false,  language_service.getLanguages, {
-                                    iconClass : 'flag',
-                                    labelClass : 'header'
-                                }) }}
+                            <div class="language-date-menu dropdown-menu dropdown-menu-right mt-1 p-0">
+                                <form> <!-- Form prevents the dropdown from closing -->
+                                    <div class="language dropdown-item-sub mt-2 pl-3">
+                                        {{ form.radio('user_language', null , false,  language_service.getLanguages, {
+                                            iconClass : 'flag',
+                                            labelClass : 'header'
+                                        }) }}
+                                    </div>
+                                    <div class="date dropdown-item-sub p-1">
+                                        <label class="label-date">Format de date</label>
+                                        {{ form.select('user_dateFormat', null, false, {
+                                            items: dateFormat.dateFormat,
+                                            type : null,
+                                            search : false,
+                                            value : dateFormat.value,
+                                        }) }}
+                                    </div>
+                                </form>
                             </div>
-                            <div class="date dropdown-item-sub p-1">
-                                <label class="label-date">Format de date</label>
-                                {{ form.select('user_dateFormat', null, false, {
-                                    items: dateFormat.dateFormat,
-                                    type : null,
-                                    search : false,
-                                    value : dateFormat.value,
-                                }) }}
-                            </div>
-                        </div>
                     </div>
 
                     <nav id="main-nav" class="text-white col-auto dropdown dropleft">
@@ -247,7 +249,7 @@
                             <span class="icon-menu"></span>
                         </div>
                         <div class="dropdown-menu pointer mr-0">
-                            <h1 class="dropdown-header d-flex d-md-none" >
+                            <h1 class="dropdown-header d-flex d-md-none">
                                 Menu
                                 <button type="button" class="close-menu" aria-label="Close"></button>
                             </h1>
@@ -281,7 +283,7 @@
                                         </div>
                                     </div>
                                 {% else %}
-                                    {% if itemMenu.label != constant('App\\Entity\\Menu::PARAM') | capitalize or (itemMenu.label == constant('App\\Entity\\Menu::PARAM') | capitalize and displaySettings())%}
+                                    {% if itemMenu.label != constant('App\\Entity\\Menu::PARAM') | capitalize or (itemMenu.label == constant('App\\Entity\\Menu::PARAM') | capitalize and displaySettings()) %}
                                         {% include 'menu/menu-item.html.twig' with {
                                             label: itemMenu.label,
                                             icon: itemMenu.icon is defined ? itemMenu.icon,
