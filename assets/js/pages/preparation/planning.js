@@ -223,6 +223,7 @@ function launchStockCheck($modal) {
     });
     $modal.find('.quantities-information-container').addClass('d-none');
     const $loadingContainers = $.merge($assignedPreparations, $modal.find('.check-stock-button'));
+
     wrapLoadingOnActionButton($loadingContainers, function() {
         $modal.find('.cancel-button').attr("disabled", true);
         return AJAX
@@ -252,7 +253,6 @@ function launchStockCheck($modal) {
                         callbackSaveFilter();
                     } else {
                         Flash.add(SUCCESS, "Le stock demandé est disponible");
-                        console.log($submitButton.find('.cancel-button'));
                         $modal.find('.cancel-button')
                             .removeClass('btn btn-outline-primary')
                             .addClass('btn btn-outline-secondary');
