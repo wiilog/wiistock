@@ -17,6 +17,7 @@ use App\Entity\Inventory\InventoryFrequency;
 use App\Entity\Inventory\InventoryMissionRule;
 use App\Entity\IOT\AlertTemplate;
 use App\Entity\IOT\RequestTemplate;
+use App\Entity\Language;
 use App\Entity\MailerServer;
 use App\Entity\Menu;
 use App\Entity\Nature;
@@ -634,6 +635,7 @@ class SettingsController extends AbstractController {
         $translationRepository = $this->manager->getRepository(Translation::class);
         $settingRepository = $this->manager->getRepository(Setting::class);
         $userRepository = $this->manager->getRepository(Utilisateur::class);
+        $languageRepository = $this->manager->getRepository(Language::class);
 
         return [
             self::CATEGORY_GLOBAL => [
@@ -1006,6 +1008,19 @@ class SettingsController extends AbstractController {
             self::CATEGORY_USERS => [
                 self::MENU_USERS => fn() => [
                     "newUser" => new Utilisateur(),
+                    "languages" => Stream::from($languageRepository->findAll())
+                        ->map(fn(Language $language) => [
+                            "value" => $language->getId(),
+                            "label" => $language->getLabel(),
+                            "icon" => $language->getFlag(),
+                        ])
+                        ->toArray(),
+                    "dateFormats" => Stream::from(Language::DATE_FORMATS)
+                        ->map(fn($format, $key) => [
+                            "label" => $key,
+                            "value" => $format,
+                        ])
+                        ->toArray(),
                 ],
                 self::MENU_LANGUAGES => fn() => [
                     'translations' => $translationRepository->findAll(),

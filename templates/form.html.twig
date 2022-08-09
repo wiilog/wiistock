@@ -201,6 +201,9 @@
                             {{ (text.selected ?? false) or text.value in values ? 'selected' }}
                             {{ text.disabled ?? false ? 'disabled' }}
                             {% if text.class is defined and text.class %}class="{{ text.class }}"{% endif %}
+                        {% if text.icon is defined%}
+                            data-icon="{{ text.icon }}"
+                        {% endif %}
                             {% for dataKey, dataValue in text %}
                                 data-{{ dataKey }}="{{ dataValue }}"
                             {% endfor %}>

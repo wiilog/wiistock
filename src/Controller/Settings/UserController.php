@@ -4,6 +4,7 @@ namespace App\Controller\Settings;
 
 use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
+use App\Entity\Language;
 use App\Entity\LocationGroup;
 use App\Entity\Role;
 use App\Entity\Type;
@@ -40,6 +41,7 @@ class UserController extends AbstractController {
     {
         if ($data = json_decode($request->getContent(), true)) {
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+            $languageRepository = $entityManager->getRepository(Language::class);
 
             $user = $utilisateurRepository->find($data['id']);
 
@@ -49,6 +51,21 @@ class UserController extends AbstractController {
                 'userHandlingTypes' => $user->getHandlingTypeIds(),
                 'html' => $this->renderView('settings/utilisateurs/utilisateurs/form.html.twig', [
                     'user' => $user,
+                    "languages" => Stream::from($languageRepository->findAll())
+                        ->map(fn(Language $language) => [
+                            "value" => $language->getId(),
+                            "label" => $language->getLabel(),
+                            "icon" => $language->getFlag(),
+                            "selected" => $user->getLanguage() && $user->getLanguage() == $language
+                        ])
+                        ->toArray(),
+                    "dateFormats" => Stream::from(Language::DATE_FORMATS)
+                        ->map(fn($format, $key) => [
+                            "label" => $key,
+                            "value" => $format,
+                            "selected" => $key == $user->getDateFormat()
+                        ])
+                        ->toArray(),
                 ])
             ]);
         }
@@ -161,9 +178,11 @@ class UserController extends AbstractController {
             $visibilityGroupRepository = $entityManager->getRepository(VisibilityGroup::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $roleRepository = $entityManager->getRepository(Role::class);
+            $languageRepository = $entityManager->getRepository(Language::class);
 
             $user = $utilisateurRepository->find($data['user']);
             $role = $roleRepository->find($data['role']);
+            $language = $languageRepository->find($data['language']);
 
             $result = $passwordService->checkPassword($data['password'],$data['password2']);
             if ($result['response'] == false){
@@ -240,7 +259,9 @@ class UserController extends AbstractController {
                 ->setDropzone($dropzone)
                 ->setEmail($data['email'])
                 ->setPhone($data['phoneNumber'] ?? '')
-                ->setDeliverer($data['deliverer'] ?? false);
+                ->setDeliverer($data['deliverer'] ?? false)
+                ->setLanguage($language)
+                ->setDateFormat($data['dateFormat']);
 
             $visibilityGroupsIds = is_string($data["visibility-group"]) ? explode(',', $data['visibility-group']) : $data["visibility-group"];
             if ($visibilityGroupsIds) {
