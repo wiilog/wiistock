@@ -10,21 +10,24 @@
                     <diKv class="col-6">
                         <div class="form-group">
                             <label class="wii-field-name" for="dateStart" title="date de début">{{ 'urgences.date de début'|trans }}*</label>
-                            <input type="datetime-local" class="form-control cursor-default data needed date first-date"
-                                   min="{{ date('today midnight') | date('Y-m-d\\TH:i') }}"
-                                   value="{{ date('today midnight') | date('Y-m-d\\TH:i') }}"
-                                   placeholder="jj/mm/aaaa"
-                                   id="dateStart" name="dateStart">
+                            <input type="text"
+                                   id="dateStart" name="dateStart"
+                                   class="form-control data needed date first-date datetime-field pointer"
+                                   data-init="{{ date('today midnight') | date('Y-m-d\\TH:i') }}"
+                                   placeholder="{{ app.user.displayedDateFormat ~ ' hh:mm' }}"
+                                   autocomplete="off"/>
                         </div>
                     </diKv>
 
                     <div class="col-6">
                         <div class="form-group">
                             <label class="wii-field-name" for="dateEnd" title="date de fin">{{ 'urgences.date de fin'|trans }}*</label>
-                            <input type="datetime-local" class="form-control cursor-default data needed date last-date" id="dateEnd" name="dateEnd"
-                                   min="{{ date('today midnight') | date('Y-m-d\\TH:i') }}"
-                                   value="{{ date('today 23:59') | date('Y-m-d\\TH:i') }}"
-                                   placeholder="jj/mm/aaaa">
+                            <input type="text"
+                                   id="dateEnd" name="dateEnd"
+                                   class="form-control data needed date last-date datetime-field pointer"
+                                   data-init="{{ date('today 23:59') | date('Y-m-d\\TH:i') }}"
+                                   placeholder="{{ app.user.displayedDateFormat ~ ' hh:mm' }}"
+                                   autocomplete="off"/>
                         </div>
                     </div>
                 </div>

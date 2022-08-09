@@ -157,19 +157,19 @@ class Urgence {
         return $this;
     }
 
-    public function serialize() {
+    public function serialize(Utilisateur $user = null) {
         return [
-            'dateStart' => FormatHelper::datetime($this->getDateStart()),
-            'dateEnd' => FormatHelper::datetime($this->getDateEnd()),
+            'dateStart' => FormatHelper::datetime($this->getDateStart(), "", false, $user),
+            'dateEnd' => FormatHelper::datetime($this->getDateEnd(), "", false, $user),
             'commande' => $this->getCommande() ?: '',
             'numposte' => $this->getPostNb() ?: '',
             'buyer' => FormatHelper::user($this->getBuyer()),
             'provider' => FormatHelper::supplier($this->getProvider()),
             'carrier' => $this->getCarrier() ? $this->getCarrier()->getLabel() : '',
             'trackingnum' => $this->getTrackingNb() ?: '',
-            'datearrival' => $this->getLastArrival() ? FormatHelper::datetime($this->getLastArrival()->getDate()) : '',
+            'datearrival' => $this->getLastArrival() ? FormatHelper::datetime($this->getLastArrival()->getDate(), "", false, $user) : '',
             'arrivageNumber' => $this->getLastArrival() ? $this->getLastArrival()->getNumeroArrivage() : '',
-            'creationDate' => FormatHelper::datetime($this->getCreatedAt()),
+            'creationDate' => FormatHelper::datetime($this->getCreatedAt(), "", false, $user),
         ];
     }
 
