@@ -28,7 +28,7 @@ class UtilisateurType extends AbstractType
             ->keyMap(fn(Language $language) =>[$language->getLabel(), $language])
             ->toArray();
         $languagesAttr = Stream::from($languages)
-            ->keyMap(fn(Language $language) => [$language->getLabel(), ['data-flag' => $language->getFlag()]])
+            ->keyMap(fn(Language $language) => [$language->getLabel(), ['data-icon' => $language->getFlag()]])
             ->toArray();
        $builder
             ->add('email', EmailType::class, array(
@@ -54,11 +54,7 @@ class UtilisateurType extends AbstractType
             ->add('dateFormat', ChoiceType::class, array(
                 'label' => "Format de date*",
                 'required' => true,
-                'choices' => array(
-                    'jj/mm/aaaa' => 'd/m/Y',
-                    'mm/jj/aa' => 'mm/jj/aa',
-                    'aaaa/mm/jj' => 'aaaa/mm/jj',
-                ),
+                'choices' => Language::DATE_FORMATS,
                 'attr' => array(
                     'class' => 'select2',
                 ),

@@ -47,6 +47,6 @@
     </div>
 </div>
 
-{% include 'settings/utilisateurs/utilisateurs/new.html.twig' with {newUser: newUser} %}
+{% include 'settings/utilisateurs/utilisateurs/new.html.twig' with {newUser: newUser, languages, dateFormats} %}
 {% include 'settings/utilisateurs/utilisateurs/edit.html.twig' %}
 {% include 'settings/utilisateurs/utilisateurs/delete.html.twig' %}
