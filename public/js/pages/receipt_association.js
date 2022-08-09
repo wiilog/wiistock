@@ -3,14 +3,17 @@ $(`.select2`).select2();
 $(function () {
     const tableReceiptAssociation = initDatatable();
 
-    initDateTimePicker();
+    const $userFormat = $('#userDateFormat');
+    const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
+
+    initDateTimePicker('#dateMin, #dateMax', DATE_FORMATS_TO_DISPLAY[format]);
     initModals(tableReceiptAssociation);
     Select2Old.user('Utilisateurs');
 
     let path = Routing.generate(`filter_get_by_page`);
     let params = JSON.stringify(PAGE_RECEIPT_ASSOCIATION);
     $.post(path, params, function (data) {
-        displayFiltersSup(data);
+        displayFiltersSup(data, true);
     }, `json`);
 
     const $modalNewReceiptAssociation = $(`#modalNewReceiptAssociation`);
