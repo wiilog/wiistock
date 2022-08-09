@@ -84,7 +84,6 @@ const initializers = {
     trace_arrivages_statuts: initializeArrivalStatuses,
     stock_demandes_statuts_achats: initializePurchaseRequestStatuses,
     stock_demandes_modeles_demande_livraisons: initializeRequestTemplates,
-
     stock_demandes_modeles_demande_collectes: initializeRequestTemplates,
     track_tournees: initializeTransportRound,
     track_demande_transport_configurations: initializeTransportRequest
