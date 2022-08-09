@@ -6,7 +6,9 @@
 {% block page_filter %}
     {% include 'filters/filtersUrgence.html.twig' with {
         page: 'PAGE_URGENCES',
-        tableSelector: '#tableUrgences'
+        tableSelector: '#tableUrgences',
+        callback: 'null',
+        needsDateFormatting: true
     } %}
 {% endblock %}
 
@@ -29,7 +31,7 @@
                     {% elseif hasRightToExport %}
                         <button type="button"
                                 class="btn btn-primary"
-                                onclick="saveExportFile('get_emergencies_csv')">
+                                onclick="saveExportFile('get_emergencies_csv', true, {}, false, 'Veuillez saisir des dates dans le filtre en haut de page.', true)">
                             <span class="fa fa-file-csv mr-2" style="padding: 0 2px"></span>
                             Exporter au format CSV
                         </button>
@@ -46,7 +48,7 @@
                         <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
                             <div class="dropdown-item pointer"
                                  title="exportCsvUrgence"
-                                 onclick="saveExportFile('get_emergencies_csv')">
+                                 onclick="saveExportFile('get_emergencies_csv', true, {}, false, 'Veuillez saisir des dates dans le filtre en haut de page.', true)">
                                 <i class="fa fa-file-csv"></i>
                                 Exporter au format CSV
                             </div>

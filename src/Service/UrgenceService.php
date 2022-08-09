@@ -57,17 +57,19 @@ class UrgenceService
 
     public function dataRowUrgence(Urgence $urgence)
     {
+        $user = $this->security->getUser();
+        $format = $user && $user->getDateFormat() ? ($user->getDateFormat() . ' H:i') : 'd/m/Y H:i';
         return [
-            'start' => $urgence->getDateStart()->format('d/m/Y H:i'),
-            'end' => $urgence->getDateEnd()->format('d/m/Y H:i'),
+            'start' => $urgence->getDateStart()->format($format),
+            'end' => $urgence->getDateEnd()->format($format),
             'commande' => $urgence->getCommande(),
-            'arrivalDate' => $urgence->getLastArrival() && $urgence->getLastArrival()->getDate() ? $urgence->getLastArrival()->getDate()->format('d/m/Y H:i') : '',
+            'arrivalDate' => $urgence->getLastArrival() && $urgence->getLastArrival()->getDate() ? $urgence->getLastArrival()->getDate()->format($format) : '',
             'buyer' => $urgence->getBuyer() ? $urgence->getBuyer()->getUsername() : '',
             'provider' => $urgence->getProvider() ? $urgence->getProvider()->getNom() : '',
             'carrier' => $urgence->getCarrier() ? $urgence->getCarrier()->getLabel() : '',
             'trackingNb' => $urgence->getTrackingNb() ?? '',
             'arrivalNb' => $urgence->getLastArrival() ? $urgence->getLastArrival()->getNumeroArrivage() : '',
-            'createdAt' =>$urgence->getCreatedAt() ? $urgence->getCreatedAt()->format('d/m/Y H:i') : '' ,
+            'createdAt' =>$urgence->getCreatedAt() ? $urgence->getCreatedAt()->format($format) : '' ,
             'postNb' => $urgence->getPostNb() ?? '',
             'actions' => $this->templating->render('urgence/datatableUrgenceRow.html.twig', [
                 'urgence' => $urgence
@@ -76,8 +78,10 @@ class UrgenceService
     }
 
     public function updateUrgence(Urgence $urgence, $data): Urgence {
-        $dateStart = DateTime::createFromFormat('Y-m-d\TH:i', $data['dateStart']);
-        $dateEnd = DateTime::createFromFormat('Y-m-d\TH:i', $data['dateEnd']);
+        $user = $this->security->getUser();
+        $format = $user && $user->getDateFormat() ? ($user->getDateFormat() . ' H:i') : 'Y-m-d\TH:i';
+        $dateStart = DateTime::createFromFormat($format, $data['dateStart']);
+        $dateEnd = DateTime::createFromFormat($format, $data['dateEnd']);
 
         $utilisateurRepository = $this->entityManager->getRepository(Utilisateur::class);
         $fournisseurRepository = $this->entityManager->getRepository(Fournisseur::class);
