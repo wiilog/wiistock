@@ -691,7 +691,7 @@ class ArrivageController extends AbstractController {
         $header = array_merge($baseHeader, $natureLabels, $freeFieldsConfig["freeFieldsHeader"]);
         $today = new DateTime();
         $user = $this->getUser();
-        $today = $today->format($user->getDateFormat() ? $user->getDateFormat() . ' H:i' : "d-m-Y H:i:s");
+        $today = $today->format($user->getDateFormat() ? $user->getDateFormat() . ' H:i:s' : "d-m-Y H:i:s");
         return $csvService->streamResponse(function($output) use ($arrivageDataService, $csvService, $fieldsParam, $freeFieldService, $freeFieldsConfig, $arrivals, $buyersByArrival, $natureLabels, $packs, $packsTotalWeight) {
             foreach($arrivals as $arrival) {
                 $arrivageDataService->putArrivalLine($this->getUser(), $output, $csvService, $freeFieldsConfig, $arrival, $buyersByArrival, $natureLabels, $packs, $fieldsParam, $packsTotalWeight);

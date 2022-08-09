@@ -5,7 +5,9 @@
 {% block page_filter %}
     {% include 'filters/filtersReceiptAssociation.html.twig' with {
         page : 'PAGE_RECEIPT_ASSOCIATION',
-        tableSelector : '#receiptAssociationTable'
+        tableSelector : '#receiptAssociationTable',
+        callback: 'null',
+        needsDateFormatting: true
     } %}
 {% endblock %}
 {% block page_content %}
@@ -36,7 +38,7 @@
 
                             <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
                                 <div class="dropdown-item pointer"
-                                     onclick="saveExportFile('get_receipt_associations_csv')">
+                                     onclick="saveExportFile('get_receipt_associations_csv', true, {}, false, 'Veuillez saisir des dates dans le filtre en haut de page.', true)">
                                     <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
                                 </div>
                             </div>
