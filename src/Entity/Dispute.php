@@ -303,13 +303,14 @@ class Dispute {
         return $this;
     }
 
-    public function serialize() {
+    public function serialize(Utilisateur $user = null) {
+        $format = $user && $user->getDateFormat() ? ($user->getDateFormat() . ' H:i') : 'd/m/Y H:i';
         return [
             'number' => $this->getNumber(),
             'type' => $this->getType() ? $this->getType()->getLabel() : '',
             'status' => $this->getStatus() ? $this->getStatus()->getNom() : '',
-            'creationDate' => $this->getCreationDate() ? $this->getCreationDate()->format('d/m/Y') : '',
-            'updateDate' => $this->getUpdateDate() ? $this->getUpdateDate()->format('d/m/Y') : '',
+            'creationDate' => $this->getCreationDate() ? $this->getCreationDate()->format($format) : '',
+            'updateDate' => $this->getUpdateDate() ? $this->getUpdateDate()->format($format) : '',
         ];
     }
 

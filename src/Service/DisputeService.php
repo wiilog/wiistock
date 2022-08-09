@@ -92,9 +92,11 @@ class DisputeService {
 
         $lastHistoryRecordDate = $dispute['lastHistoryRecord_date'];
         $lastHistoryRecordComment = $dispute['lastHistoryRecord_comment'];
+        $user = $this->security->getUser();
+        $format = $user && $user->getDateFormat() ? ($user->getDateFormat() . ' H:i') : 'd/m/Y H:i';
 
         $lastHistoryRecordStr = ($lastHistoryRecordDate && $lastHistoryRecordComment)
-            ? (FormatHelper::datetime($lastHistoryRecordDate) . ' : ' . nl2br($lastHistoryRecordComment))
+            ? (FormatHelper::datetime($lastHistoryRecordDate, "", false, $this->security->getUser()) . ' : ' . nl2br($lastHistoryRecordComment))
             : '';
 
         $commands = $disputeRepository->getCommandesByDisputeId($disputeId);
@@ -135,8 +137,8 @@ class DisputeService {
                 ->join(", "),
             'provider' => $dispute['provider'] ?? '',
             'lastHistoryRecord' => $lastHistoryRecordStr,
-            'creationDate' => $dispute['creationDate'] ? $dispute['creationDate']->format('d/m/Y H:i') : '',
-            'updateDate' => $dispute['updateDate'] ? $dispute['updateDate']->format('d/m/Y H:i') : '',
+            'creationDate' => $dispute['creationDate'] ? $dispute['creationDate']->format($format) : '',
+            'updateDate' => $dispute['updateDate'] ? $dispute['updateDate']->format($format) : '',
             'status' => $dispute['status'] ?? '',
             'urgence' => $dispute['emergencyTriggered']
         ];
@@ -240,7 +242,7 @@ class DisputeService {
                     return $acheteur->getEmail();
                 }, $acheteurs));
 
-                $row = $dispute->serialize();
+                $row = $dispute->serialize($this->security->getUser());
 
                 $row[] = $coli->getCode();
                 $row[] = ' ';
@@ -257,7 +259,7 @@ class DisputeService {
                 $row[] = $buyersMailsStr;
                 $lastHistoryRecord = $dispute->getLastHistoryRecord();
                 if ($lastHistoryRecord) {
-                    $row[] = FormatHelper::datetime($lastHistoryRecord->getDate());
+                    $row[] = FormatHelper::datetime($lastHistoryRecord->getDate(), "", false, $this->security->getUser());
                     $row[] = FormatHelper::user($lastHistoryRecord->getUser());
                     $row[] = $lastHistoryRecord->getComment();
                 }
