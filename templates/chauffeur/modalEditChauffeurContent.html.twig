@@ -1,22 +1,22 @@
 <div class="form-group needed">
-    <label for="nom">Nom*</label>
+    <label class="wii-field-name" for="nom">Nom*</label>
     <input type="text" id="nom" class="form-control data needed input" name="nom" value="{{chauffeur.nom}}"
            placeholder="Nom" maxlength="64">
 </div>
 
 <div class="form-group needed">
-    <label for="prenom">Prénom*</label>
+    <label class="wii-field-name" for="prenom">Prénom*</label>
     <input type="text" id="prenom" class="form-control data needed input" name="prenom" value="{{chauffeur.prenom}}"
            placeholder="Prenom" maxlength="64">
 </div>
 
 <div class="form-group needed">
-    <label for="documentID">DocumentID*</label>
+    <label class="wii-field-name" for="documentID">DocumentID*</label>
     <input class="form-control data needed input" value="{{chauffeur.documentID}}" name="documentID" placeholder="DocumentID" maxlength="64">
 </div>
 
 <div class="form-group">
-    <label for="transporteur">Transporteur</label>
+    <label class="wii-field-name" for="transporteur">Transporteur</label>
     <div class="w-100">
         <select class="form-control ajax-autocomplete-transporteur-edit data" name="transporteur">
             {% if transporteur is not empty %}

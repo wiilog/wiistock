@@ -1,7 +1,7 @@
 import '../../../scss/pages/settings.scss';
 import EditableDatatable, {MODE_ADD_ONLY, MODE_CLICK_EDIT, MODE_NO_EDIT, SAVE_MANUALLY, STATE_VIEWING, MODE_EDIT, MODE_CLICK_EDIT_AND_ADD, } from "../../editatable";
-import Flash, {INFO} from '../../flash';
-import {LOADING_CLASS} from "../../loading";
+import Flash, {INFO} from '@app/flash';
+import {LOADING_CLASS} from "@app/loading";
 import {initUserPage} from "./users/users";
 import {initializeExports, initializeImports} from "./data/imports.js";
 import {initializeRolesPage} from "./users/roles";
@@ -96,7 +96,6 @@ const saveCallbacks = {
 };
 
 const slowOperations = [
-    `FONT_FAMILY`,
     `MAX_SESSION_TIME`,
 ];
 

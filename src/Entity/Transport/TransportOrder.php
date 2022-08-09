@@ -433,9 +433,9 @@ class TransportOrder extends StatusHistoryContainer {
         return $this->getStatus()?->getCode() === TransportOrder::STATUS_CANCELLED;
     }
 
-    public function getLastTransportHistory(string $type): TransportHistory|null {
+    public function getLastTransportHistory(string... $types): TransportHistory|null {
         return Stream::from($this->getHistory())
-            ->filter(fn(TransportHistory $history) => $history->getType() === $type)
+            ->filter(fn(TransportHistory $history) => in_array($history->getType(), $types))
             ->sort(fn(TransportHistory $h1, TransportHistory $h2) => $h1->getId() <=> $h2->getId())
             ->last();
     }

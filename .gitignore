@@ -28,7 +28,6 @@ yarn-error.log
 /public/generated/
 /config/generated.yaml
 /SnoreToast.lnk
-/assets/scss/_customFont.scss
 /desktop.ini
 ###< wiilog/wiistock ###
 

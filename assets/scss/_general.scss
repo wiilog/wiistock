@@ -10,7 +10,7 @@ html {
     height: 100%;
 
     body {
-        font-family: $main-font, Helvetica, Arial, sans-serif;
+        font-family: $default-font, Helvetica, Arial, sans-serif;
         line-height: 20px;
         font-weight: 400;
         -webkit-font-smoothing: antialiased;
@@ -313,7 +313,6 @@ select.is-invalid {
 
 .progress-bar {
     background-color: $primary;
-    font-family: $main-font, Helvetica, Arial, sans-serif;
 }
 
 .sizeLoader {

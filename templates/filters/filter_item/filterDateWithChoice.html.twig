@@ -1,6 +1,6 @@
 <div class="col-auto m-1 pr-0">
     <div class="h-100 w-450px">
-        <div class="btn-group">
+        <div class="btn-group" style="max-height: 35px">
             <div class="input-group">
                 <div class="input-group-prepend h-100">
                     <span class="input-group-text w-50px">Du</span>
@@ -10,6 +10,7 @@
                        name="dateMin"
                        id="dateMin"
                        placeholder="jj/mm/aaaa"
+                       value="{{ selectedDate is defined ? selectedDate | date('d/m/Y') : '' }}"
                     {{ disabled }}
                        autocomplete="off"/>
                 <div class="input-group-prepend h-100">
@@ -20,10 +21,12 @@
                        name="dateMax"
                        id="dateMax"
                        placeholder="jj/mm/aaaa"
+                       value="{{ selectedDate is defined ? selectedDate | date('d/m/Y') : '' }}"
                     {{ disabled }}
                        autocomplete="off"/>
             </div>
-            <button type="button" class="dropdown-filter date-dropdown btn btn-secondary dropdown-toggle dropdown-toggle-split"
+            <button type="button" class="dropdown-filter date-dropdown btn btn-secondary dropdown-toggle dropdown-toggle-split date-type-selector"
+                    style="max-height: 35px;"
                     data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 <span class="fa fa-angle-down"></span>
             </button>
@@ -35,6 +38,7 @@
                             <input data-id="{{ dateChoice.name }}" class="filter-checkbox" type="radio" id="date-choice_{{ dateChoice.name }}"
                                    data-override-name="date-choice_{{ dateChoice.name }}" value="1"
                                    name="filter-date-choice"
+                                   {{ selectedDate is defined and selectedDate and dateChoice.name == 'expectedDate' ? 'checked' }}
                                    {% if checked %}
                                         checked
                                    {% endif %}">

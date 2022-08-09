@@ -137,7 +137,7 @@ class HistoryController extends AbstractController
                     ))
                     ->map(fn (TransportHistory $transportHistory) => [
                         'record' => $transportHistory,
-                        'icon' => $transportHistoryService->getIconFromType($transportHistory->getType()),
+                        'icon' => $transportHistoryService->getIconFromType($transportHistory->getOrder() ?? $transportHistory->getRequest(), $transportHistory->getType()),
                     ])
                     ->toArray()
             ]),
