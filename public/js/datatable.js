@@ -26,22 +26,26 @@ function showColumns(table, data) {
     })
 }
 
-function extendsDateSort(name) {
+function extendsDateSort(name, format = '') {
     $.extend($.fn.dataTableExt.oSort, {
         [name + "-pre"]: function (date) {
-            const dateSplitted = date.split(' ');
-            const dateDaysParts = dateSplitted[0].split('/');
-            const year = parseInt(dateDaysParts[2]);
-            const month = parseInt(dateDaysParts[1]);
-            const day = parseInt(dateDaysParts[0]);
+            if (format) {
+                return moment(date, format).unix();
+            } else {
+                const dateSplitted = date.split(' ');
+                const dateDaysParts = dateSplitted[0].split('/');
+                const year = parseInt(dateDaysParts[2]);
+                const month = parseInt(dateDaysParts[1]);
+                const day = parseInt(dateDaysParts[0]);
 
-            const dateHoursParts = dateSplitted.length > 1 ? dateSplitted[1].split(':') : [];
-            const hours = dateHoursParts.length > 0 ? parseInt(dateHoursParts[0]) : 0;
-            const minutes = dateHoursParts.length > 1 ? parseInt(dateHoursParts[1]) : 0;
-            const seconds = dateHoursParts.length > 2 ? parseInt(dateHoursParts[2]) : 0;
+                const dateHoursParts = dateSplitted.length > 1 ? dateSplitted[1].split(':') : [];
+                const hours = dateHoursParts.length > 0 ? parseInt(dateHoursParts[0]) : 0;
+                const minutes = dateHoursParts.length > 1 ? parseInt(dateHoursParts[1]) : 0;
+                const seconds = dateHoursParts.length > 2 ? parseInt(dateHoursParts[2]) : 0;
 
-            const madeDate = new Date(year, month - 1, day, hours, minutes, seconds);
-            return madeDate.getTime() || 0;
+                const madeDate = new Date(year, month - 1, day, hours, minutes, seconds);
+                return madeDate.getTime() || 0;
+            }
         },
         [name + "-asc"]: function (a, b) {
             return ((a < b) ? -1 : ((a > b) ? 1 : 0));
