@@ -75,10 +75,10 @@ function initPage() {
         tables: [tableUrgence],
         success : (data) => callbackUrgenceAction(data, modalModifyUrgence, true)
     });
-        const $userFormat = $('#userDateFormat');
-        const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
-        initDateTimePicker('.datetime-field', DATE_FORMATS_TO_DISPLAY[format] + ' HH:mm');
-        fillDatePickers('.datetime-field', 'YYYY-MM-DD', true);
+    const $userFormat = $('#userDateFormat');
+    const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
+    initDateTimePicker('.datetime-field', DATE_FORMATS_TO_DISPLAY[format] + ' HH:mm');
+    fillDatePickers('.datetime-field', 'YYYY-MM-DD', true);
 }
 
 function callbackEditFormLoading($modal, buyerId, buyerName) {
@@ -91,6 +91,10 @@ function callbackEditFormLoading($modal, buyerId, buyerName) {
         const $selectBuyer = $modal.find('.ajax-autocomplete-user[name="acheteur"]');
         $selectBuyer.append(option).trigger('change');
     }
+    const $userFormat = $('#userDateFormat');
+    const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
+    initDateTimePicker('.datetime-field', DATE_FORMATS_TO_DISPLAY[format] + ' HH:mm');
+    fillDatePickers('.datetime-field', 'YYYY-MM-DD', true);
 }
 
 function callbackUrgenceAction({success, message}, $modal = undefined, resetDate = false) {
