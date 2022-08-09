@@ -260,7 +260,7 @@ class PackController extends AbstractController
         $line = [
             $pack['code'],
             $pack['nature'],
-            FormatHelper::datetime($pack['lastMvtDate']),
+            FormatHelper::datetime($pack['lastMvtDate'], "", false, $this->getUser()),
             $pack['fromLabel'],
             $pack['fromTo'],
             $pack['location']
