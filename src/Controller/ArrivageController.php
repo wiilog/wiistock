@@ -259,7 +259,7 @@ class ArrivageController extends AbstractController {
             ]);
         }
 
-        $champLibreService->manageFreeFields($arrivage, $data, $entityManager);
+        $champLibreService->manageFreeFields($arrivage, $data, $entityManager, $this->getUser());
 
         $supplierEmergencyAlert = $arrivageDataService->createSupplierEmergencyAlert($arrivage);
         $isArrivalUrgent = isset($supplierEmergencyAlert);
@@ -516,7 +516,7 @@ class ArrivageController extends AbstractController {
 
         $this->persistAttachmentsForEntity($arrivage, $this->attachmentService, $request, $entityManager);
 
-        $champLibreService->manageFreeFields($arrivage, $post->all(), $entityManager);
+        $champLibreService->manageFreeFields($arrivage, $post->all(), $entityManager, $this->getUser());
         $entityManager->flush();
 
         $supplierEmergencyAlert = ($oldSupplierId !== $newSupplierId && $newSupplierId)

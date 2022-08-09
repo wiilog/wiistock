@@ -160,8 +160,9 @@ class TrackingMovementController extends AbstractController
                 'msg' => 'La quantité doit être supérieure à 0.'
             ]);
         }
-
-        $date = new DateTime($post->get('datetime') ?: 'now');
+        $user = $this->getUser();
+        $format = $user && $user->getDateFormat() ? ($user->getDateFormat() . ' H:i') : 'd/m/Y H:i';
+        $date = DateTime::createFromFormat($format, $post->get('datetime') ?: 'now');
 
         $fileBag = $request->files->count() > 0 ? $request->files : null;
 
@@ -303,7 +304,7 @@ class TrackingMovementController extends AbstractController
         }
 
         foreach ($createdMouvements as $mouvement) {
-            $freeFieldService->manageFreeFields($mouvement, $post->all(), $entityManager);
+            $freeFieldService->manageFreeFields($mouvement, $post->all(), $entityManager, $this->getUser());
         }
         $countCreatedMouvements = count($createdMouvements);
         $entityManager->flush();
@@ -387,9 +388,14 @@ class TrackingMovementController extends AbstractController
         }
         $mvt = $trackingMovementRepository->find($post->get('id'));
         $pack = $mvt->getPack();
+
+        $user = $this->getUser();
+        $format = $user && $user->getDateFormat() ? ($user->getDateFormat() . ' H:i') : 'd/m/Y H:i';
+        $date = DateTime::createFromFormat($format, $post->get('datetime') ?: 'now');
+
         $hasChanged = ($mvt->getEmplacement()->getLabel() !== $location->getLabel()) ||
                                 ($mvt->getType()->getCode() !== $action->getCode()) ||
-                                ($mvt->getDatetime() !== new DateTime($post->get('date'))) ||
+                                ($mvt->getDatetime() !== $date) ||
                                 ($post->get('pack') !== $pack->getCode());
         if ($userService->hasRightFunction(Menu::TRACA, Action::FULLY_EDIT_TRACKING_MOVEMENTS) && $hasChanged) {
             /** @var TrackingMovement $new */
@@ -399,7 +405,7 @@ class TrackingMovementController extends AbstractController
                 $post->get('pack'),
                 $location,
                 $operator,
-                new DateTime($post->get('date')),
+                $date,
                 true,
                 $action,
                 false,

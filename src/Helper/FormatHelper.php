@@ -234,7 +234,15 @@ class FormatHelper {
         switch ($freeField->getTypage()) {
             case FreeField::TYPE_DATE:
             case FreeField::TYPE_DATETIME:
-                $valueDate = self::parseDatetime($value, ["Y-m-dTH:i", "Y-m-d", "d/m/Y H:i", "Y-m-d H:i", "d/m/Y"]);
+                $valueDate = self::parseDatetime($value, [
+                    "Y-m-dTH:i",
+                    "Y-m-d",
+                    "d/m/Y H:i",
+                    "Y-m-d H:i",
+                    "d/m/Y",
+                    $user && $user->getDateFormat() ? $user->getDateFormat() . ' H:i' : '',
+                    $user && $user->getDateFormat() ? $user->getDateFormat() : '',
+                ]);
                 $hourFormat = ($freeField->getTypage() === FreeField::TYPE_DATETIME ? ' H:i' : '');
                 $formatted = $valueDate ? $valueDate->format(($user && $user->getDateFormat() ? $user->getDateFormat() : 'd/m/Y') . $hourFormat) : $value;
                 break;
