@@ -7,7 +7,10 @@ let arrivalsTable;
 
 $(function () {
     const $filtersContainer = $('.filters-container');
-    initDateTimePicker('#dateMin, #dateMax, .date-cl');
+    const $userFormat = $('#userDateFormat');
+    const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
+
+    initDateTimePicker('#dateMin, #dateMax, .date-cl', DATE_FORMATS_TO_DISPLAY[format]);
     Select2Old.location($('#emplacement'), {}, 'Emplacement de dépose');
     Select2Old.init($filtersContainer.find('[name="carriers"]'), 'Transporteurs');
     initOnTheFlyCopies($('.copyOnTheFly'));

@@ -5,7 +5,10 @@ $(function () {
     const $modalNewMvtTraca = $('#modalNewMvtTraca');
     $modalNewMvtTraca.find('.list-multiple').select2();
 
-    initDateTimePicker();
+    const $userFormat = $('#userDateFormat');
+    const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
+
+    initDateTimePicker('#dateMin, #dateMax', DATE_FORMATS_TO_DISPLAY[format]);
     Select2Old.init($('#emplacement'), 'Emplacements');
 
     // filtres enregistrés en base pour chaque utilisateur
