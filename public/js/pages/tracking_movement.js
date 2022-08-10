@@ -54,16 +54,7 @@ $(function () {
         });
 });
 
-function initDatePickers() {
-    const $userFormat = $('#userDateFormat');
-    const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
-    initDateTimePicker('.free-field-date', DATE_FORMATS_TO_DISPLAY[format]);
-    initDateTimePicker('.free-field-datetime', DATE_FORMATS_TO_DISPLAY[format] + ' HH:mm');
-    initDateTimePicker('.datetime-field', DATE_FORMATS_TO_DISPLAY[format] + ' HH:mm');
-    fillDatePickers('.free-field-date');
-    fillDatePickers('.datetime-field', 'YYYY-MM-DD', true);
-    fillDatePickers('.free-field-datetime', 'YYYY-MM-DD', true);
-}
+
 
 $.fn.dataTable.ext.search.push(
     function (settings, data) {
