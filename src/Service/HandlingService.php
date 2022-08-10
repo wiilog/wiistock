@@ -12,6 +12,7 @@ use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
+use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 use DateTime;
@@ -52,6 +53,9 @@ class HandlingService {
 
     #[Required]
     public FreeFieldService $freeFieldService;
+
+    #[Required]
+    public Security $security;
 
     public function getDataForDatatable($params = null, $statusFilter = null, $selectedDate = null)
     {
@@ -101,15 +105,15 @@ class HandlingService {
             'id' => $handling->getId() ?: 'Non défini',
             'number' => $handling->getNumber() ?: '',
             'comment' => $handling->getComment() ?: '',
-            'creationDate' => FormatHelper::datetime($handling->getCreationDate()),
+            'creationDate' => FormatHelper::datetime($handling->getCreationDate(), "", false, $this->security->getUser()),
             'type' => $handling->getType() ? $handling->getType()->getLabel() : '',
             'requester' => FormatHelper::handlingRequester($handling),
             'subject' => $handling->getSubject() ?: '',
             "receivers" => FormatHelper::users($handling->getReceivers()->toArray()),
             'desiredDate' => $includeDesiredTime
-                ? FormatHelper::datetime($handling->getDesiredDate())
-                : FormatHelper::date($handling->getDesiredDate()),
-            'validationDate' => FormatHelper::datetime($handling->getValidationDate()),
+                ? FormatHelper::datetime($handling->getDesiredDate(), "", false, $this->security->getUser())
+                : FormatHelper::date($handling->getDesiredDate(), "", false, $this->security->getUser()),
+            'validationDate' => FormatHelper::datetime($handling->getValidationDate(), "", false, $this->security->getUser()),
             'status' => $handling->getStatus()->getNom() ? $handling->getStatus()->getNom() : null,
             'emergency' => $handling->getEmergency() ?? '',
             'treatedBy' => $handling->getTreatedByHandling() ? $handling->getTreatedByHandling()->getUsername() : '',
@@ -127,7 +131,7 @@ class HandlingService {
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
             $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
             $freeFieldValue = $handling->getFreeFieldValue($freeFieldId);
-            $row[$freeFieldName] = FormatHelper::freeField($freeFieldValue, $freeField);
+            $row[$freeFieldName] = FormatHelper::freeField($freeFieldValue, $freeField, $this->security->getUser());
         }
 
         return $row;

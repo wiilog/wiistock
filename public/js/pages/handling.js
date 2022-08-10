@@ -12,7 +12,11 @@ $(function() {
 
         initModals(tableHandlings);
 
-        initDateTimePicker();
+        const $userFormat = $('#userDateFormat');
+        const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
+
+        initDateTimePicker('#dateMin, #dateMax, .date-cl', DATE_FORMATS_TO_DISPLAY[format]);
+
         Select2Old.user($('.filter-select2[name="utilisateurs"]'), 'Demandeurs');
         Select2Old.user($('.filter-select2[name="receivers"]'), 'Destinataires');
         Select2Old.init($('.filter-select2[name="emergencyMultiple"]'), 'Urgences');
@@ -34,7 +38,7 @@ $(function() {
             let path = Routing.generate('filter_get_by_page');
             let params = JSON.stringify(PAGE_HAND);
             $.post(path, params, function (data) {
-                displayFiltersSup(data);
+                displayFiltersSup(data, true);
             }, 'json');
         }
 

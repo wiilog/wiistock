@@ -8,7 +8,8 @@
         page: 'PAGE_HAND',
         tableSelector: '#tableHandlings',
         callback: 'callbackSaveFilter',
-        emergency: true
+        emergency: true,
+        needsDateFormatting: true
     } %}
 {% endblock %}
 
@@ -38,7 +39,7 @@
                     </button>
                 {% else %}
                     <div class="btn-group">
-                        <div class="btn btn-primary split-button" onclick="saveExportFile('get_handlings_csv')">
+                        <div class="btn btn-primary split-button" onclick="saveExportFile('get_handlings_csv', true, {}, false, 'Veuillez saisir des dates dans le filtre en haut de page.', true)">
                             <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
                         </div>
                         <button type="button"

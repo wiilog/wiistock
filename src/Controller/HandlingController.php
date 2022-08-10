@@ -494,13 +494,15 @@ class HandlingController extends AbstractController {
                     : [],
                 $freeFieldsConfig['freeFieldsHeader']
             );
-
-            $globalTitle = 'export-services-' . $currentDate->format('d-m-Y') . '.csv';
+            $user = $this->getUser();
+            $today = new DateTime();
+            $today = $today->format($user->getDateFormat() ? $user->getDateFormat() . ' H:i:s' : "d-m-Y H:i:s");
+            $globalTitle = 'export-services-' . $today . '.csv';
             return $CSVExportService->createBinaryResponseFromData(
                 $globalTitle,
                 $handlings,
                 $csvHeader,
-                function ($handling) use ($freeFieldsConfig, $dateService, $includeDesiredTime, $receivers) {
+                function ($handling) use ($freeFieldsConfig, $dateService, $includeDesiredTime, $receivers, $user) {
 //                    $treatmentDelay = $handling['treatmentDelay'];
 //                    $treatmentDelayInterval = $treatmentDelay ? $dateService->secondsToDateInterval($treatmentDelay) : null;
 //                    $treatmentDelayStr = $treatmentDelayInterval ? $dateService->intervalToStr($treatmentDelayInterval) : '';
@@ -509,16 +511,16 @@ class HandlingController extends AbstractController {
                         ->join(", ");
                     $row = [];
                     $row[] = $handling['number'] ?? '';
-                    $row[] = FormatHelper::datetime($handling['creationDate']);
+                    $row[] = FormatHelper::datetime($handling['creationDate'], "", false, $user);
                     $row[] = $handling['sensorName'] ?? ($handling['requester'] ?? '');
                     $row[] = $handling['type'] ?? '';
                     $row[] = $handling['subject'] ?? '';
                     $row[] = $handling['loadingZone'] ?? '';
                     $row[] = $handling['unloadingZone'] ?? '';
                     $row[] = $includeDesiredTime
-                        ? FormatHelper::datetime($handling['desiredDate'])
-                        : FormatHelper::date($handling['desiredDate']);
-                    $row[] = FormatHelper::datetime($handling['validationDate']);
+                        ? FormatHelper::datetime($handling['desiredDate'], "", false, $user)
+                        : FormatHelper::date($handling['desiredDate'], "", false, $user);
+                    $row[] = FormatHelper::datetime($handling['validationDate'], "", false, $user);
                     $row[] = $handling['status'] ?? '';
                     $row[] = strip_tags($handling['comment']) ?? '';
                     $row[] = $handling['emergency'] ?? '';
@@ -528,7 +530,7 @@ class HandlingController extends AbstractController {
 //                    $row[] = $treatmentDelayStr;
 
                     foreach($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
-                        $row[] = FormatHelper::freeField($handling['freeFields'][$freeFieldId] ?? '', $freeField);
+                        $row[] = FormatHelper::freeField($handling['freeFields'][$freeFieldId] ?? '', $freeField, $user);
                     }
 
                     return [$row];
