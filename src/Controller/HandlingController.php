@@ -180,7 +180,12 @@ class HandlingController extends AbstractController {
 
         $status = $statutRepository->find($post->get('status'));
         $type = $typeRepository->find($post->get('type'));
-        $desiredDate = $post->get('desired-date') ? new DateTime($post->get('desired-date')) : null;
+
+        $containsHours = $post->get('desired-date') && str_contains($post->get('desired-date'), ':');
+
+        $user = $this->getUser();
+        $format = ($user && $user->getDateFormat() ? $user->getDateFormat() : 'd/m/Y') . ($containsHours ? ' H:i' : '');
+        $desiredDate = $post->get('desired-date') ? DateTime::createFromFormat($format, $post->get('desired-date')) : null;
         $fileBag = $request->files->count() > 0 ? $request->files : null;
 
         $handlingNumber = $uniqueNumberService->create($entityManager, Handling::NUMBER_PREFIX, Handling::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
