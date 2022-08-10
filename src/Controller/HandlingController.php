@@ -307,18 +307,16 @@ class HandlingController extends AbstractController {
                          NotificationService $notificationService,
                          StatusHistoryService $statusHistoryService): Response
     {
-        $statutRepository = $entityManager->getRepository(Statut::class);
-        $handlingRepository = $entityManager->getRepository(Handling::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
         $post = $request->request;
+        $containsHours = $post->get('desired-date') && str_contains($post->get('desired-date'), ':');
 
-        $date = (new DateTime('now'));
-        $desiredDateStr = $post->get('desired-date');
-        $desiredDate = $desiredDateStr ? FormatHelper::parseDatetime($desiredDateStr) : null;
+        $user = $this->getUser();
+        $format = ($user && $user->getDateFormat() ? $user->getDateFormat() : 'd/m/Y') . ($containsHours ? ' H:i' : '');
+        $desiredDate = $post->get('desired-date') ? DateTime::createFromFormat($format, $post->get('desired-date')) : null;
+
 
         /** @var Utilisateur $currentUser */
-        $currentUser = $this->getUser();
         $receivers = $post->get('receivers')
             ? explode(",", $post->get('receivers') ?? '')
             : [];
@@ -599,14 +597,16 @@ class HandlingController extends AbstractController {
                                      EntityManagerInterface $entityManager): JsonResponse {
         $handlingRepository = $entityManager->getRepository(Handling::class);
         $handling = $handlingRepository->find($id);
-
+        $user = $this->getUser();
         return $this->json([
             "success" => true,
             "template" => $this->renderView('handling/status-history.html.twig', [
                 "statusesHistory" => Stream::from($handling->getStatusHistory())
                     ->map(fn(StatusHistory $statusHistory) => [
                         "status" => FormatHelper::status($statusHistory->getStatus()),
-                        "date" => FormatHelper::longDate($statusHistory->getDate(), ["short" => true, "time" => true])
+                        "date" => $user->getDateFormat() === 'd/m/Y'
+                            ? FormatHelper::longDate($statusHistory->getDate(), ["short" => true, "time" => true])
+                            : FormatHelper::datetime($statusHistory->getDate(), "", false, $user)
                     ])
                     ->toArray(),
                 "handling" => $handling,

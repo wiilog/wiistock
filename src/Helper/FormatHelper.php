@@ -240,6 +240,8 @@ class FormatHelper {
                     "Y-m-d",
                     "d/m/Y H:i",
                     "Y-m-d H:i",
+                    "m-d-Y H:i",
+                    "m-d-Y",
                     "d/m/Y",
                     $user && $user->getDateFormat() ? $user->getDateFormat() . ' H:i' : '',
                     $user && $user->getDateFormat() ? $user->getDateFormat() : '',
