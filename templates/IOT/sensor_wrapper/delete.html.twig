@@ -15,10 +15,15 @@
                        class="data"/>
                 Voulez-vous réellement supprimer cet approvisionnement de capteur ?
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
-                <button type="button" class="btn data btn-danger submit-button">Supprimer</button>
-            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements:
+                [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-danger submit-button data', text: 'Supprimer'},
+                ],
+                hideErrorContainer: true,
+            } %}
+
         </div>
     </div>
 </div>

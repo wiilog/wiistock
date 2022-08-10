@@ -40,15 +40,17 @@
                     <div class="quantities-information"></div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-primary cancel-button" data-dismiss="modal">Annuler</button>
-                <button type="submit" class="btn btn-primary check-stock-button" data-launch-preparations="0" disabled>
-                    <div class="d-inline-flex align-items-center">
-                        <span class="wii-icon wii-icon-white-tick mr-2"></span>
-                        <span>Vérifier le stock</span>
-                    </div>
-                </button>
-            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements:
+                [
+                    {classes: 'btn btn-outline-primary cancel-button', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-primary check-stock-button', type: 'submit', disabled: true, data:
+                        {'launch-preparation': '0'}
+                    },
+                ],
+                hideErrorContainer: true,
+            } %}
+
         </div>
     </div>
 </div>

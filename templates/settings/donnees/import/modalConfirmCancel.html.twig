@@ -9,18 +9,15 @@
             <div class="modal-body">
                 Voulez-vous réellement annuler cet import ?
             </div>
-            <div class="modal-footer">
-                <button type="button"
-                        class="btn btn-outline-secondary"
-                        data-dismiss="modal">Non
-                </button>
-                <button id="submitCancelImport"
-                        name='importId'
-                        type="button"
-                        class="btn btn-danger data"
-                        data-dismiss="modal">Oui
-                </button>
-            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements:
+                [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Non'},
+                    {classes: 'btn btn-danger data', text: 'Oui', name: 'importId', id: 'submitCancelImport', dismiss: true}
+                ],
+                hideErrorContainer: true,
+            } %}
+
         </div>
     </div>
 </form>

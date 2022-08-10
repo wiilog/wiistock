@@ -40,17 +40,15 @@
                     </div>
                 </form>
             </div>
-            <div class="pl-2 error-msg"></div>
-            <div class="modal-footer">
-                <div class="btn btn-outline-secondary" data-dismiss="modal">Annuler</div>
-                <button disabled
-                        name="request"
-                        value="{{request.id}}"
-                        type="button"
-                        class="btn data btn-success submit-button">
-                    Ajouter
-                </button>
-            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements:
+                [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn data btn-success submit-button', text: 'Ajouter',
+                       value: request.id, disabled: true, name: 'request'}
+                ],
+            } %}
+
         </div>
     </div>
 </div>

@@ -8,11 +8,14 @@
             <div class="modal-body modal-input container-fluid">
                 {% include 'vehicle/modal/form.html.twig' with {vehicle: newVehicle} %}
             </div>
-            <div class="error-msg"></div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
-                <button type="button" class="btn btn-success submit">Enregistrer</button>
-            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements:
+                [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-success submit', text: 'Enregistrer'}
+                ],
+            } %}
+
         </div>
     </div>
 </form>

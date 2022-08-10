@@ -83,28 +83,17 @@
                     </div>
                 </div>
             </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements:
+                [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler', event: "clearModal($(this).parents('#modalAddLigneArticle'))"},
+                    {classes: 'btn btn-success', text: 'Enregistrer', id: 'addArticleLigneSubmit'},
+                    {classes: 'btn btn-success d-none', text: 'Enregistrer et ' ~ ('réception.réception' | trans),
+                        id: 'addArticleLigneSubmitAndRedirect', event: 'openModalLigneReception($(this))',
+                        title: 'Enregistrer et réception'},
+                ],
+            } %}
 
-            <div class="error-msg"></div>
-            <div class="modal-footer">
-                <button type="button"
-                        class="btn btn-outline-secondary"
-                        data-dismiss="modal"
-                        onclick="clearModal($(this).parents('#modalAddLigneArticle'))">
-                    Annuler
-                </button>
-                <button type="button"
-                        id="addArticleLigneSubmit"
-                        class="btn btn-success">
-                    Enregistrer
-                </button>
-                <button type="button"
-                        id="addArticleLigneSubmitAndRedirect"
-                        class="btn btn-success d-none"
-                        title="Enregistrer et réception"
-                        onclick="openModalLigneReception($(this))">
-                      Enregistrer et {{ 'réception.réception'|trans }}
-                </button>
-            </div>
         </div>
     </div>
 </div>

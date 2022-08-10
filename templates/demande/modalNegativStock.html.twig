@@ -10,9 +10,14 @@
                 La quantité demandée d'un des articles excède la quantité disponible
                 (<span id="restantQuantite"></span>).
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-success" data-dismiss="modal">Fermer</button>
-            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements:
+                [
+                    {classes: 'btn btn-success', dismiss: true, text: 'Fermer'}
+                ],
+                hideErrorContainer: true,
+            } %}
+
         </div>
     </div>
 </form>

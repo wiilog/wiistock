@@ -9,11 +9,15 @@
             <div class="modal-body">
                 Voulez-vous réellement supprimer cet article ?
             </div>
-            <div class="modal-footer" >
-                <button type="button" class="btn btn-outline-secondary data" name='preparation' value='{{preparation.id}}' data-dismiss="modal">Annuler</button>
-                <button id="submitDeleteArticle" name='article' value='' type="button" data-dismiss="modal"
-                    class="btn btn-danger data">Supprimer</button>
-            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements:
+                [
+                    {classes: 'btn btn-outline-secondary data', dismiss: true, text: 'Annuler', value: preparation.id, name: 'preparation'},
+                    {classes: 'btn btn-danger data', text: 'Supprimer', dismiss: true, name: 'article', id: 'submitDeleteArticle'}
+                ],
+                hideErrorContainer: true,
+            } %}
+
         </div>
     </div>
 </form>

@@ -56,7 +56,7 @@ function ajaxGetCollecteArticle(select, collect) {
         $selection.html(data.selection);
         if (data.modif) {
             $editNewArticle.html(data.modif);
-            registerNumberInputProtection($editNewArticle.find('input[type="number"]'));
+            Wiistock.registerNumberInputProtection($editNewArticle.find('input[type="number"]'));
         }
         $(modalNewArticle).find('.modal-footer').removeClass('d-none');
         toggleRequiredChampsLibres(select.closest('.modal').find('#type'), 'edit');

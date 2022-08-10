@@ -7,14 +7,18 @@
         } %}
 
             <div class="modal-body">
-                Voulez-vous réellement supprimer cet article ?
+                Voulez-vous réellement supprimer cet article qaa?
             </div>
-            <div class="modal-footer">
-                <input type="hidden" class="data" name="collecte" value="{{collecte.id}}">
-                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
-                <button id="submitDeleteArticle" type="button"  data-dismiss="modal"
-                    class="btn data btn-danger">Supprimer</button>
-            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements:
+                [
+                    {input: true, classes: 'data', name: 'collecte', value: collecte.id},
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-danger data', id: 'submitDeleteArticle', dismiss: true, text: 'Supprimer'}
+                ],
+                hideErrorContainer: true
+            } %}
+
         </div>
     </div>
 </div>

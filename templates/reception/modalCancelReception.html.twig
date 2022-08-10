@@ -10,11 +10,16 @@
                     Voulez-vous réellement annuler <span title="cette réception">{{ 'réception.cette réception'|trans }}</span> ?
                 </p>
             </div>
-            <div class="modal-footer">
-                <input type="hidden" class="data" name="receptionId" value="{{ reception.id }}">
-                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Retour</button>
-                <button id="submitCancelReception" type="button" data-dismiss="modal" class="btn btn-danger data">Confirmer</button>
-            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements:
+                [
+                    {input: true, classes: 'data', name: 'receptionId',  value: reception.id},
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Retour'},
+                    {classes: 'btn btn-danger data', text: 'Confirmer', id: 'submitCancelReception', dismiss: true}
+                ],
+                hideErrorContainer: true,
+            } %}
+
         </div>
     </div>
 </form>

@@ -6,15 +6,14 @@
             } %}
 
             <div class="modal-body modal-input"></div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements:
+                [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-success data', text: 'Enregistrer', name: 'id', id: 'submitEditPack'}
+                ],
+            } %}
 
-            <div class="error-msg"></div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
-                <button id="submitEditPack"
-                        type="button"
-                        name="id"
-                        class="btn btn-success data">Enregistrer</button>
-            </div>
         </div>
     </div>
 </div>

@@ -32,3 +32,7 @@ function editPassword() {
         }
     }, 'json');
 }
+
+function loginRedirect() {
+    window.location.href = Routing.generate('login');
+}

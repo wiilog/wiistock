@@ -10,12 +10,16 @@
                     Voulez-vous réellement supprimer ce litige ?
                 </p>
             </div>
-            <div class="modal-footer">
-                <button class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
-                <button id="submitDeleteLitige" name='litige' data-dismiss="modal" class="btn btn-danger data">
-                    Supprimer
-                </button>
-            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements:
+                [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-danger data', dismiss: true, name: 'litige', id: 'submitDeleteLitige',
+                        text: 'Supprimer'}
+                ],
+                hideErrorContainer: true,
+            } %}
+
         </div>
     </div>
 </form>

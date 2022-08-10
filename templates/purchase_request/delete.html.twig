@@ -9,11 +9,15 @@
             <div class="modal-body">
                 Voulez-vous réellement supprimer cette demande d'achat ?
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
-                <button id="submitDeleteRequest" name='request' value='' type="button" data-dismiss="modal"
-                    class="btn btn-danger data">Supprimer</button>
-            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements:
+                [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-danger data', text: 'Supprimer', dismiss: true, name: 'request', id: 'submitDeleteRequest'}
+                ],
+                hideErrorContainer: true,
+            } %}
+
         </div>
     </div>
 </form>

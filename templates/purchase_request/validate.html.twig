@@ -39,18 +39,15 @@
                     } %}
                 {% endif %}
             </div>
-
-            <div class="error-msg"></div>
             {% if statuses is not empty %}
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
-                    <button id="submitValidatePurchaseRequest"
-                            type="button"
-                            name="id"
-                            class="btn btn-success data">
-                        Enregistrer
-                    </button>
-                </div>
+                {% include 'utils/modal/footer.html.twig' with {
+                    elements:
+                    [
+                        {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                        {classes: 'btn btn-success data', text: 'Enregistrer', name: 'id',
+                              id: 'submitValidatePurchaseRequest'}
+                    ],
+                } %}
             {% endif %}
         </div>
     </div>

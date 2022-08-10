@@ -1,20 +1,28 @@
 {% set elements = elements is defined and elements is not empty ? elements : [] %}
 {% set classes = classes is defined and classes ? classes %}
 {% set hideErrorContainer = hideErrorContainer is defined and hideErrorContainer %}
-
+{% set hideFooter = hideFooter is defined and hideFooter %}
 <div class="p-4 error-msg {{ hideErrorContainer ? 'd-none' }}"></div>
-{% if elements is not empty %}
+{% if not hideFooter and elements is not empty %}
     <div class="modal-footer {{ classes }}">
         {% for element in elements %}
             {% if element['input'] is not defined %}
-                <button id="{{ element['id'] ?? '' }}"
-                        type="button"
+                <button
+                        type="{{ element['type'] ?? 'button' }}"
                         class="{{ element['classes'] ?? '' }}"
-                        name="{{ element['name'] ?? '' }}"
-                        value="{{ element['value'] ?? '' }}"
+                        {% if element['id'] is defined %} id="{{ element['id'] }}" {% endif %}
+                        {% if element['name'] ?? false %} name="{{ element['name'] }}" {% endif %}
+                        {% if element['value'] ?? false %} value="{{ element['value'] }}" {% endif %}
+                        {% if element['title'] ?? false %} title=" {{ element['title'] }}" {% endif %}
+                        {% if element['disabled'] ?? false %} disabled {% endif %}
                         {% if element['event'] ?? false %}onclick="{{ element['event'] }}"{% endif %}
-                        {% if element['dismiss'] ?? false %}data-dismiss="modal"{% endif %}>
-                    {{ element['text'] ?? '' }}
+                        {% if element['dismiss'] ?? false %}data-dismiss="modal"{% endif %}
+                        {% if element['data'] ?? false %}
+                            {% for attr, value in element['data'] %}
+                                data-{{ attr }}="{{ value }}"
+                            {% endfor %}
+                        {% endif %}>
+                        {{ element['text'] ?? '' }}
                 </button>
             {% else %}
                 <input type="hidden"

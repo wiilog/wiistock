@@ -7,12 +7,14 @@
 
             <div class="modal-body modal-input container-fluid"></div>
 
-            <div class="error-msg"></div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
-                <button id="submitNewLitige" type="button" class="btn btn-success">Enregistrer
-                </button>
-            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements:
+                [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {id: 'submitNewLitige' , classes: 'btn btn-success', text: 'Enregistrer'}
+                ],
+            } %}
+
         </div>
     </div>
 </form>

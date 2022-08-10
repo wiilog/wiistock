@@ -39,12 +39,15 @@
                 {% endif %}
             </div>
 
-            <div class="error-msg"></div>
             {% if untreatedStatus is not empty %}
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
-                    <button type="button" class="btn btn-success submit-button">Enregistrer</button>
-                </div>
+                {% include 'utils/modal/footer.html.twig' with {
+                    elements:
+                    [
+                        {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                        {classes: 'btn btn-success submit-button', text: 'Enregistrer'}
+                    ],
+                } %}
+
             {% endif %}
         </div>
     </div>

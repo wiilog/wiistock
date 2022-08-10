@@ -29,11 +29,14 @@
                     <div class="btn btn-primary toggle-arrival" onclick="toggleArrivage($(this))" data-arrival="true">Sans arrivage</div>
                 </div>
             </div>
-            <div class="error-msg"></div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
-                <button type="button" id="submitNewReceiptAssociation" class="btn btn-primary">Enregistrer</button>
-            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements:
+                [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-primary', text: 'Enregistrer', id: 'submitNewReceiptAssociation'}
+                ],
+            } %}
+
         </div>
     </div>
 </form>

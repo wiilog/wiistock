@@ -39,17 +39,15 @@
                     </div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button"
-                        class="btn btn-outline-secondary"
-                        data-dismiss="modal">
-                    Annuler
-                </button>
-                <button type="submit"
-                        class="btn {{ submitColor }}">
-                    {{ submitLabel }}
-                </button>
-            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements:
+                [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn ' ~ submitColor, text: submitLabel , type: 'submit'}
+                ],
+                hideErrorContainer: true,
+            } %}
+
         </div>
     </div>
 </div>

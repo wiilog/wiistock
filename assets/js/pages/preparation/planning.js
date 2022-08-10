@@ -27,6 +27,15 @@ $(function () {
     $('input[name=dateFrom], input[name=dateTo]').on('change', function (){
         getPreparationLaunchForm($modalLaunchPreparation);
     });
+
+    $modalLaunchPreparation.find('.check-stock-button').html($(`<div/>`, {
+        class: `d-inline-flex align-items-center`,
+        html: [$(`<span/>`, {
+            class: `wii-icon wii-icon-white-tick mr-2`
+        }), $(`<span/>`, {
+            text: `Vérifier le stock`,
+        })]
+    }));
 });
 
 function callbackSaveFilter() {

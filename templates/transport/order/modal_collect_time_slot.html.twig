@@ -27,15 +27,15 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="modal-footer">
-                <button type="button"
-                        class="btn btn-outline-secondary "
-                        data-dismiss="modal">Annuler
-                </button>
-                <button type="button"
-                        class="btn btn-success submit-button">Envoyer sur le planning
-                </button>
-            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements:
+                [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-success submit-button', text: 'Envoyer sur le planning'}
+                ],
+                hideErrorContainer: true,
+            } %}
+
         </div>
     </div>
 

@@ -49,13 +49,13 @@
             </div>
 
             <input hidden value="{{ arrivage.id }}" name="arrivageId" class="data">
-            <div class="error-msg"></div>
-            {% if natures is not empty %}
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
-                    <button id="submitAddColis" type="button" class="btn btn-success">Valider</button>
-                </div>
-            {% endif %}
+            {% include 'utils/modal/footer.html.twig' with {
+                elements:
+                [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {id: 'submitAddColis', classes: 'btn btn-success', text: 'Valider'}
+                ],
+            } %}
         </div>
     </div>
 </form>

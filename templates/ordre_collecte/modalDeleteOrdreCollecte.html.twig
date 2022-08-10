@@ -8,13 +8,17 @@
             <div class="modal-body">
                 Voulez-vous réellement supprimer cet ordre de collecte ?
             </div>
-            <div class="modal-footer">
+            {% include 'utils/modal/footer.html.twig' with {
+                elements:
+                [
+                    {input: true, classes: 'data', name: 'collecte', value: collecte.id},
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-danger data', text: 'Supprimer', dismiss: true, name: 'collecte',
+                          id: 'submitDeleteOrdreCollecte'}
+                ],
+                hideErrorContainer: true,
+            } %}
 
-                    <input type="hidden" class="data" name="collecte" value="{{collecte.id}}">
-                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
-                <button id="submitDeleteOrdreCollecte" name='collecte' type="button" data-dismiss="modal"
-                    class="btn btn-danger data">Supprimer</button>
-            </div>
         </div>
     </div>
 </form>

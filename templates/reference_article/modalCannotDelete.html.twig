@@ -9,9 +9,14 @@
                 Cet article est lié à une collecte, une livraison, une réception ou un article fournisseur.<br>
                 Vous ne pouvez donc pas le supprimer.
             </div>
-            <div class="modal-footer">
-                <div class="btn btn-outline-secondary" data-dismiss="modal">Fermer</div>
-            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements:
+                [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Fermer'}
+                ],
+                hideErrorContainer: true,
+            } %}
+
         </div>
     </div>
 </form>

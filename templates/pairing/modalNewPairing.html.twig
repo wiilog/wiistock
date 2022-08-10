@@ -111,17 +111,15 @@
                 </div>
 
             </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                classes: 'd-none',
+                elements:
+                [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-success data', text: 'Enregistrer', id: 'submitNewPairing'}
+                ],
+            } %}
 
-            <div class="error-msg"></div>
-            <div class="modal-footer  d-none">
-                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
-
-                <button id="submitNewPairing"
-                        type="button"
-                        class="btn btn-success data">
-                    Enregistrer
-                </button>
-            </div>
         </div>
     </div>
 </form>
