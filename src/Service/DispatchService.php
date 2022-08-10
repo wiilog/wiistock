@@ -364,9 +364,10 @@ class DispatchService {
     }
 
     public function createDateFromStr(?string $dateStr): ?DateTime {
+        $user = $this->security->getUser();
         $date = null;
-        foreach (['Y-m-d', 'd/m/Y'] as $format) {
-            $date = (!empty($dateStr) && empty($date))
+        foreach ([$user->getDateFormat(), 'Y-m-d', 'd/m/Y'] as $format) {
+            $date = (!empty($dateStr) && empty($date) && !empty($format))
                 ? DateTime::createFromFormat($format, $dateStr)
                 : $date;
         }
