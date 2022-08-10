@@ -206,7 +206,8 @@
                         freeFieldValues: handling.freeFields,
                         colType: 'col-md-6 col-12 w-100',
                         requiredType: 'requiredEdit',
-                        actionType: 'edit'
+                        actionType: 'edit',
+                        needsDateFormatting: true
                     } %}
                 </div>
             </div>
@@ -234,7 +235,13 @@
                             <div class="box-item my-2">
                                 <span class="wii-field-name">Date de création</span>
                                 <span class="wii-field-text">
-                                    {{ handling.creationDate | format_helper('longDate', {short: true}) }}
+                                    {{ app.user.dateFormat == 'd/m/Y'
+                                        ? (handling.creationDate
+                                            ? handling.creationDate | format_helper('longDate', {short: true, time: not setting_value('REMOVE_HOURS_DATETIME')})
+                                            : '-'
+                                        )
+                                        : handling.creationDate | format_helper(setting_value('REMOVE_HOURS_DATETIME') ? 'date' : 'datetime', "", false, app.user)
+                                    }}
                                 </span>
                             </div>
                         </div>
@@ -242,17 +249,27 @@
                     <div class="col-6 d-flex flex-column">
                         <div class="box-item my-2">
                             {% set desiredDate = handling.desiredDate ? handling.desiredDate|date('Y-m-d\\TH:i') %}
-                            {{ form.input('desired-date', 'Date attendue', true, desiredDate, {
-                                type: 'datetime-local',
-                                min: "now" | date('Y-m-d H:i'),
-                            }) }}
+                            <label class="wii-field-name" for="desired-date">Date attendue*</label>
+                            <input type="text"
+                                   name="desired-date"
+                                   title="Date attendue"
+                                   data-init="{{ desiredDate }}"
+                                   class="form-control data {{ setting_value('REMOVE_HOURS_DATETIME') ? 'date-field' : 'datetime-field' }} needed pointer"
+                                   placeholder="{{ app.user.displayedDateFormat ~ (not setting_value('REMOVE_HOURS_DATETIME') ? ' MM:SS') }}"
+                                   autocomplete="off"/>
                         </div>
                     </div>
                     <div class="col-6 d-flex flex-column">
                         <div class="box-item my-2">
                             <span class="wii-field-name">Date réalisation</span>
                             <span class="wii-field-text">
-                                {{ handling.validationDate ? handling.desiredDate | format_helper('longDate', {short: true}) : '-' }}
+                                {{ app.user.dateFormat == 'd/m/Y'
+                                    ? (handling.validationDate
+                                        ? handling.validationDate | format_helper('longDate', {short: true, time: not setting_value('REMOVE_HOURS_DATETIME')})
+                                        : '-'
+                                    )
+                                    : handling.validationDate | format_helper(setting_value('REMOVE_HOURS_DATETIME') ? 'date' : 'datetime', "", false, app.user)
+                                }}
                             </span>
                         </div>
                     </div>

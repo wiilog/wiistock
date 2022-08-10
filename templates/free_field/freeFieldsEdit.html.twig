@@ -73,8 +73,8 @@
                                     }]
                                 }) }}
                             {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_DATETIME') %}
-                                {% set value = entityValue ? ((entityValue | replace({'/': '-'}) ) | date('Y-m-d\\TH:i')) : '' %}
                                 {% if needsDateFormatting is defined and needsDateFormatting %}
+                                    {% set value = entityValue ? entityValue : '' %}
                                     <label class="w-100">
                                         {{ form.label(label, needed, false, {}) }}
                                         <input type="text"
@@ -86,6 +86,7 @@
                                                autocomplete="off"/>
                                     </label>
                                 {% else %}
+                                    {% set value = entityValue ? ((entityValue | replace({'/': '-'}) ) | date('Y-m-d\\TH:i')) : '' %}
                                     {{ form.input(freeField.id, label, needed, value, {
                                         type: 'datetime-local',
                                         additionalAttributes: [{
@@ -95,27 +96,27 @@
                                     }) }}
                                 {% endif %}
                             {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_DATE') %}
-
-                                {% if entityValue is defined and entityValue matches '{^\\d{2}/\\d{2}/\\d{4}$}' %}
-                                    {% set entityValue = entityValue[6:4] ~ '-' ~ entityValue[3:2] ~ '-' ~ entityValue[:2] %}
-                                {% endif %}
-                                {% if entityValue is defined and entityValue matches '{^\\d{4}-\\d{2}-\\d{2}$}' %}
-                                    {% set entityValue = entityValue | date('Y-m-d') %}
-                                {% else %}
-                                    {% set entityValue = '' %}
-                                {% endif %}
                                 {% if needsDateFormatting is defined and needsDateFormatting %}
+                                    {% set value = entityValue ? entityValue : '' %}
                                     <label class="w-100">
                                         {{ form.label(label, needed, false, {}) }}
                                         <input type="text"
-                                               value="{{ entityValue }}"
-                                               data-init="{{ entityValue }}"
+                                               value="{{ value }}"
+                                               data-init="{{ value }}"
                                                class="form-control w-100 data free-field-date {{ needed ? 'needed' }} pointer"
                                                name="{{ freeField.id }}"
                                                placeholder="{{ app.user.displayedDateFormat }}"
                                                autocomplete="off"/>
                                     </label>
                                 {% else %}
+                                    {% if entityValue is defined and entityValue matches '{^\\d{2}/\\d{2}/\\d{4}$}' %}
+                                        {% set entityValue = entityValue[6:4] ~ '-' ~ entityValue[3:2] ~ '-' ~ entityValue[:2] %}
+                                    {% endif %}
+                                    {% if entityValue is defined and entityValue matches '{^\\d{4}-\\d{2}-\\d{2}$}' %}
+                                        {% set entityValue = entityValue | date('Y-m-d') %}
+                                    {% else %}
+                                        {% set entityValue = '' %}
+                                    {% endif %}
                                     {{ form.input(freeField.id, label, needed, entityValue, {
                                         type: 'date',
                                         additionalAttributes: [{

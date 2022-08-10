@@ -167,6 +167,7 @@
                         freeFields: freeFields,
                         emptyTitle: "Ce service n'a aucun champ libre",
                         emptyLabel: "Ce service n'a aucun champ libre",
+                        needsDateFormatting: true
                     } %}
                 </div>
             </div>
@@ -201,7 +202,13 @@
                             <div class="box-item my-2">
                                 <span class="wii-field-name">Date de création</span>
                                 <span class="wii-field-text">
-                                    {{ handling.creationDate | format_helper('longDate', {short: true}) }}
+                                    {{ app.user.dateFormat == 'd/m/Y'
+                                        ? (handling.creationDate
+                                            ? handling.creationDate | format_helper('longDate', {short: true, time: not setting_value('REMOVE_HOURS_DATETIME')})
+                                            : '-'
+                                        )
+                                        : handling.creationDate | format_helper(setting_value('REMOVE_HOURS_DATETIME') ? 'date' : 'datetime', "", false, app.user)
+                                    }}
                                 </span>
                             </div>
                         </div>
@@ -210,7 +217,13 @@
                         <div class="box-item my-2">
                             <span class="wii-field-name">Date attendue</span>
                             <span class="wii-field-text">
-                                {{ handling.desiredDate ? handling.desiredDate | format_helper('longDate', {short: true, time: not setting_value('REMOVE_HOURS_DATETIME')}) : '-' }}
+                                {{ app.user.dateFormat == 'd/m/Y'
+                                    ? (handling.desiredDate
+                                        ? handling.desiredDate | format_helper('longDate', {short: true, time: not setting_value('REMOVE_HOURS_DATETIME')})
+                                        : '-'
+                                    )
+                                    : handling.desiredDate | format_helper(setting_value('REMOVE_HOURS_DATETIME') ? 'date' : 'datetime', "", false, app.user)
+                                }}
                             </span>
                         </div>
                     </div>
@@ -218,7 +231,13 @@
                         <div class="box-item my-2">
                             <span class="wii-field-name">Date réalisation</span>
                             <span class="wii-field-text">
-                                {{ handling.validationDate ? handling.validationDate | format_helper('longDate', {short: false}) : '-' }}
+                                {{ app.user.dateFormat == 'd/m/Y'
+                                    ? (handling.validationDate
+                                        ? handling.validationDate | format_helper('longDate', {short: true, time: not setting_value('REMOVE_HOURS_DATETIME')})
+                                        : '-'
+                                    )
+                                    : handling.validationDate | format_helper(setting_value('REMOVE_HOURS_DATETIME') ? 'date' : 'datetime', "", false, app.user)
+                                }}
                             </span>
                         </div>
                     </div>
