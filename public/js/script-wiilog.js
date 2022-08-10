@@ -542,8 +542,10 @@ function initDatePickers() {
     initDateTimePicker('.free-field-date', DATE_FORMATS_TO_DISPLAY[format]);
     initDateTimePicker('.free-field-datetime', DATE_FORMATS_TO_DISPLAY[format] + ' HH:mm');
     initDateTimePicker('.datetime-field', DATE_FORMATS_TO_DISPLAY[format] + ' HH:mm');
+    initDateTimePicker('.date-field', DATE_FORMATS_TO_DISPLAY[format]);
     fillDatePickers('.free-field-date');
     fillDatePickers('.datetime-field', 'YYYY-MM-DD', true);
+    fillDatePickers('.date-field', 'YYYY-MM-DD', false);
     fillDatePickers('.free-field-datetime', 'YYYY-MM-DD', true);
 }
 

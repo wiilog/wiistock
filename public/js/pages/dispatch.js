@@ -16,7 +16,6 @@ $(function() {
     const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
 
     initDateTimePicker('#dateMin, #dateMax', DATE_FORMATS_TO_DISPLAY[format]);
-    initDatePickers();
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');

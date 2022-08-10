@@ -110,7 +110,7 @@
                 <a data-id='{{ dispatch.id }}'
                    data-target='#modalEditDispatch'
                    data-toggle='modal'
-                   onclick="editRow($(this), Routing.generate('dispatch_edit_api', true), $('#modalEditDispatch'), $('#submitEditDispatch'))"
+                   onclick="editRow($(this), Routing.generate('dispatch_edit_api', true), $('#modalEditDispatch'), $('#submitEditDispatch'), false, initDatePickers)"
                    class="dropdown-item pointer">
                     <i class="fa fa-pen mr-2"></i>
                     Modifier
