@@ -9,6 +9,7 @@ $(function () {
     const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
 
     initDateTimePicker('#dateMin, #dateMax', DATE_FORMATS_TO_DISPLAY[format]);
+    initDatePickers();
     Select2Old.init($('#emplacement'), 'Emplacements');
 
     // filtres enregistrés en base pour chaque utilisateur
@@ -21,7 +22,7 @@ $(function () {
     Select2Old.user('Opérateurs');
     Select2Old.location($('.ajax-autocomplete-emplacements'), {}, "Emplacement", 3);
 
-    initDatePickers();
+
     initNewModal($modalNewMvtTraca);
 
     $.post(Routing.generate('tracking_movement_api_columns'))
