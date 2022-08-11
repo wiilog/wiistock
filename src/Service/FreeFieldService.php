@@ -104,7 +104,6 @@ class FreeFieldService {
             default:
                 break;
         }
-        dump($value);
 
         return strval($value);
     }
