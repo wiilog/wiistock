@@ -9,11 +9,14 @@
             <div class="modal-body">
                 Voulez-vous réellement supprimer cette collecte ?
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
-                <button id="submitDeleteCollecte" name='collecte' value='' type="button" data-dismiss="modal"
-                    class="btn btn-danger data">Supprimer</button>
-            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-danger data', id: 'submitDeleteCollecte', dismiss: true, name: 'collecte', text: 'Supprimer'}
+                ],
+                hideErrorContainer: true,
+            } %}
+
         </div>
     </div>
 </form>

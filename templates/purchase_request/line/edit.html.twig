@@ -8,13 +8,13 @@
 
             <div class="modal-body">
             </div>
-            <div class="pl-2 error-msg"></div>
-            <div class="modal-footer">
-                <div class="btn btn-outline-secondary" data-dismiss="modal">Annuler</div>
-                <button name="lineId" type="button" class="btn data btn-success submit-button" value="">
-                    Enregistrer
-                </button>
-            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn data btn-success submit-button', text: 'Enregistrer', name: 'lineId'}
+                ],
+            } %}
+
         </div>
     </div>
 </div>

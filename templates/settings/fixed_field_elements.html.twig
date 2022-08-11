@@ -22,14 +22,14 @@
                     placeholder: 'Ajoutez des éléments',
                 }) }}
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">
-                    Annuler
-                </button>
-                <button type="submit" class="btn btn-success data submit-field-param" value="{{ field }}">
-                    Enregistrer
-                </button>
-            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-success data submit-field-param', text: 'Enregistrer', value: field, type: 'submit'}
+                ],
+                hideErrorContainer: true,
+            } %}
+
         </div>
     </div>
 </div>
