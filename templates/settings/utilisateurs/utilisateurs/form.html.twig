@@ -232,6 +232,7 @@
                         {{ form.select('language', "Langue", true, {
                             items: languages,
                             search : false,
+                            label: 'Langue',
                             value : user.language ? user.language.id : null,
                             inputClass : 'w-100 utilisateur-language',
                         }) }}
@@ -241,6 +242,7 @@
                             items: dateFormats,
                             type : null,
                             search : false,
+                            label: 'Format de date',
                             value : user.dateFormat,
                         }) }}
                     </div>

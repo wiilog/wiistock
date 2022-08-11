@@ -539,20 +539,6 @@ class SettingsController extends AbstractController {
     }
 
     /**
-     * @Route("/utilisateurs/langues", name="settings_language")
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_LABELS_PERSO})
-     */
-    public function language(EntityManagerInterface $manager): Response {
-        $translationRepository = $manager->getRepository(Translation::class);
-
-        return $this->render("settings/utilisateurs/langues.html.twig", [
-            'translations' => $translationRepository->findAll(),
-//            'menusTranslations' => array_column($translationRepository->getMenus(), '1'),
-            'menusTranslations' => [],
-        ]);
-    }
-
-    /**
      * @Route("/langues", name="settings_language_index")
      * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_LABELS_PERSO})
      */
@@ -1274,11 +1260,6 @@ class SettingsController extends AbstractController {
                             "value" => $format,
                         ])
                         ->toArray(),
-                ],
-                self::MENU_LANGUAGES => fn() => [
-                    'translations' => $translationRepository->findAll(),
-                    //'menusTranslations' => array_column($translationRepository->getMenus(), '1'),
-                    'menusTranslations' => [],
                 ],
             ],
         ];
