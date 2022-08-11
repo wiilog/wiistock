@@ -39,16 +39,12 @@
                     } %}
                 {% endif %}
             </div>
-            {% if statuses is not empty %}
-                {% include 'utils/modal/footer.html.twig' with {
-                    elements:
-                    [
-                        {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
-                        {classes: 'btn btn-success data', text: 'Enregistrer', name: 'id',
-                              id: 'submitValidatePurchaseRequest'}
-                    ],
-                } %}
-            {% endif %}
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: statuses is not empty ? [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-success data', text: 'Enregistrer', name: 'id', id: 'submitValidatePurchaseRequest'}
+                ] : [],
+            } %}
         </div>
     </div>
 </form>

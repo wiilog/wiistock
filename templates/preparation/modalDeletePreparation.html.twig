@@ -9,8 +9,7 @@
                     Voulez-vous réellement supprimer cette préparation ?
                 </div>
                 {% include 'utils/modal/footer.html.twig' with {
-                    elements:
-                    [
+                    elements: [
                         {input: true, name: 'preparation', value: preparation.id},
                         {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
                         {classes: 'btn btn-danger data submit', text: 'Supprimer'}

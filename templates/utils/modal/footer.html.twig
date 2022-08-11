@@ -2,18 +2,19 @@
 {% set classes = classes is defined and classes ? classes %}
 {% set hideErrorContainer = hideErrorContainer is defined and hideErrorContainer %}
 {% set hideFooter = hideFooter is defined and hideFooter %}
+
 <div class="p-4 error-msg {{ hideErrorContainer ? 'd-none' }}"></div>
+
 {% if not hideFooter and elements is not empty %}
     <div class="modal-footer {{ classes }}">
         {% for element in elements %}
             {% if element['input'] is not defined %}
-                <button
-                        type="{{ element['type'] ?? 'button' }}"
+                <button type="{{ element['type'] ?? 'button' }}"
                         class="{{ element['classes'] ?? '' }}"
-                        {% if element['id'] is defined %} id="{{ element['id'] }}" {% endif %}
+                        {% if element['id'] ?? false %} id="{{ element['id'] }}" {% endif %}
                         {% if element['name'] ?? false %} name="{{ element['name'] }}" {% endif %}
                         {% if element['value'] ?? false %} value="{{ element['value'] }}" {% endif %}
-                        {% if element['title'] ?? false %} title=" {{ element['title'] }}" {% endif %}
+                        {% if element['title'] ?? false %} title="{{ element['title'] }}" {% endif %}
                         {% if element['disabled'] ?? false %} disabled {% endif %}
                         {% if element['event'] ?? false %}onclick="{{ element['event'] }}"{% endif %}
                         {% if element['dismiss'] ?? false %}data-dismiss="modal"{% endif %}
@@ -27,8 +28,9 @@
             {% else %}
                 <input type="hidden"
                        class="{{ element['classes'] ?? '' }}"
-                       name="{{ element['name'] ?? '' }}"
-                       value="{{ element['value'] ?? ''}}">
+                       {% if element['name'] ?? false %}name="{{ element['name'] }}"{% endif %}
+                       {% if element['value'] ?? false %}value="{{ element['value'] }}"{% endif %}
+                >
             {% endif %}
         {% endfor %}
     </div>

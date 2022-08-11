@@ -10,11 +10,9 @@
                 <p class="text-center italic little-font">L'import sera effectué dans moins de 30min.</p>
             </div>
             {% include 'utils/modal/footer.html.twig' with {
-                elements:
-                [
+                elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
-                    {classes: 'btn btn-success', text: 'Valider', dismiss: true,
-                       event: "launchImport($(this).data('id'), true)", id: 'importIdToLaunch', data: {id: ""}}
+                    {classes: 'btn btn-success', text: 'Valider', dismiss: true, event: "launchImport($(this).data('id'), true)", id: 'importIdToLaunch', data: {id: ""}}
                 ],
             } %}
 

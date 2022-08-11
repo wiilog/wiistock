@@ -9,11 +9,9 @@
                 Voulez-vous réellement supprimer cette reference de la mission ?
             </div>
             {% include 'utils/modal/footer.html.twig' with {
-                elements:
-                [
+                elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
-                    {classes: 'btn btn-danger data', dismiss: true, name: 'missionData',
-                          id: 'submitDeleteRefFromMission', text: 'Supprimer'}
+                    {classes: 'btn btn-danger data', dismiss: true, name: 'missionData', id: 'submitDeleteRefFromMission', text: 'Supprimer'}
                 ],
                 hideErrorContainer: true,
             } %}

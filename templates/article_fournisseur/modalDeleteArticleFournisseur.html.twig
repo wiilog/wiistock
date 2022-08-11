@@ -10,10 +10,9 @@
                 Voulez-vous réellement supprimer cet article fournisseur ?
             </div>
             {% include 'utils/modal/footer.html.twig' with {
-                elements:
-                [
+                elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
-                    {classes: 'btn btn-danger data', dismiss: true, text: 'Supprimer', id: 'submitDeleteArticleFournisseur', name:'article-fournisseur'}
+                    {classes: 'btn btn-danger data', dismiss: true, text: 'Supprimer', id: 'submitDeleteArticleFournisseur', name: 'article-fournisseur'}
                 ],
                 hideErrorContainer: true,
             } %}

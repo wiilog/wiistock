@@ -9,12 +9,10 @@
                 Voulez-vous réellement supprimer cet ordre de collecte ?
             </div>
             {% include 'utils/modal/footer.html.twig' with {
-                elements:
-                [
+                elements: [
                     {input: true, classes: 'data', name: 'collecte', value: collecte.id},
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
-                    {classes: 'btn btn-danger data', text: 'Supprimer', dismiss: true, name: 'collecte',
-                          id: 'submitDeleteOrdreCollecte'}
+                    {classes: 'btn btn-danger data', text: 'Supprimer', dismiss: true, name: 'collecte', id: 'submitDeleteOrdreCollecte'}
                 ],
                 hideErrorContainer: true,
             } %}

@@ -181,42 +181,50 @@ class SecuriteController extends AbstractController {
     }
 
     /**
-     * @Route("/change-password-in-bdd", name="change_password_in_bdd", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @Route("/change-password-in-bdd", name="change_password_in_bdd", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      */
     public function change_password_in_bdd(Request $request,
                                            EntityManagerInterface $entityManager): Response {
-        if($data = json_decode($request->getContent(), true)) {
 
-            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        $data = $request->query->all();
+        $user = $entityManager->getRepository(Utilisateur::class)->findOneBy(['token' => $data['token']]);
 
-            $token = $data['token'];
-            $user = $utilisateurRepository->findOneBy(['token' => $token]);
-            if(!$user) {
-                return new JsonResponse('Le lien a expiré. Veuillez refaire une demande de renouvellement de mot de passe.');
-            } elseif($user->getStatus() === true) {
-                $password = $data['password'];
-                $password2 = $data['password2'];
-                $result = $this->passwordService->checkPassword($password, $password2);
+        $response = [];
+        if(!$user) {
+            $response = [
+                'success' => false,
+                'msg' => 'Le lien a expiré. Veuillez refaire une demande de renouvellement de mot de passe.'
+            ];
+        } else if($user->getStatus()) {
+            $password = $data['password'];
+            $password2 = $data['password2'];
+            $result = $this->passwordService->checkPassword($password, $password2);
 
-                if($result['response'] == true) {
-                    if($password !== '') {
-                        $password = $this->passwordEncoder->hashPassword($user, $password);
-                        $user->setPassword($password);
-                        $user->setToken(null);
+            if($result['response']) {
+                if($password !== '') {
+                    $password = $this->passwordEncoder->hashPassword($user, $password);
+                    $user->setPassword($password);
+                    $user->setToken(null);
 
-                        $entityManager->persist($user);
-                        $entityManager->flush();
+                    $entityManager->persist($user);
+                    $entityManager->flush();
 
-                        return new JsonResponse('ok');
-                    }
-                } else {
-                    return new JsonResponse($result['message']);
+                    $response = [
+                        'success' => true,
+                        'msg' => 'Votre mot de passe a bien été modifié.'
+                    ];
                 }
             } else {
-                return new JsonResponse('access_denied');
+                $response = [
+                    'success' => false,
+                    'msg' => $result['message']
+                ];
             }
+        } else {
+            return $this->redirectToRoute("access_denied");
         }
-        throw new BadRequestHttpException();
+
+        return $this->json($response);
     }
 
     /**

@@ -13,11 +13,9 @@
             <div class="modal-body modal-input container-fluid">
             </div>
             {% include 'utils/modal/footer.html.twig' with {
-                elements:
-                [
+                elements: [
                     {input: true, name: 'importId', classes: 'data'},
-                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler',
-                       event: "deleteImport($(this))"},
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler', event: "deleteImport($(this))"},
                     {classes: 'btn btn-success', text: 'Valider', id: 'submitNewImport'}
                 ],
             } %}

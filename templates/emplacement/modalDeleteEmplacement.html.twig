@@ -9,11 +9,9 @@
             <div class="modal-body">
             </div>
             {% include 'utils/modal/footer.html.twig' with {
-                elements:
-                [
+                elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
-                    {classes: 'btn btn-danger data', id: 'submitDeleteEmplacement', name: 'emplacement',
-                        text: 'Supprimer', dismiss: true}
+                    {classes: 'btn btn-danger data', id: 'submitDeleteEmplacement', name: 'emplacement', text: 'Supprimer', dismiss: true}
                 ],
                 hideErrorContainer: true,
             } %}

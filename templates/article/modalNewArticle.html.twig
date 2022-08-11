@@ -27,11 +27,9 @@
                 </form>
             </div>
             {% include 'utils/modal/footer.html.twig' with {
-                elements:
-                [
-                    {classes: 'btn btn-outline-secondary',dismiss: true,text: 'Annuler'},
-                    {id: 'submitNewArticle', classes: 'btn btn-success data', text: 'Enregistrer',
-                     event:"resetNewArticle($('#fournisseurAdd'))"}
+                elements: [
+                    {classes: 'btn btn-outline-secondary',dismiss: true, text: 'Annuler'},
+                    {id: 'submitNewArticle', classes: 'btn btn-success data', text: 'Enregistrer', event:"resetNewArticle($('#fournisseurAdd'))"}
                 ],
             } %}
         </div>

@@ -85,8 +85,7 @@
                 <input type="hidden" name="empty-round" value="{{ constant('App\\Entity\\TrackingMovement::TYPE_EMPTY_ROUND') }}">
             </div>
             {% include 'utils/modal/footer.html.twig' with {
-                elements:
-                [
+                elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
                     {classes: 'btn btn-success', text: 'Enregistrer', id: 'submitNewMvtTraca'}
                 ],

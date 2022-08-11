@@ -11,11 +11,9 @@
                 </p>
             </div>
             {% include 'utils/modal/footer.html.twig' with {
-                elements:
-                [
+                elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
-                    {classes: 'btn btn-danger data', text: 'Supprimer', dismiss: true,
-                        name: 'litige', id: 'submitDeleteLitige'}
+                    {classes: 'btn btn-danger data', text: 'Supprimer', dismiss: true, name: 'litige', id: 'submitDeleteLitige'}
                 ],
                 hideErrorContainer: true,
             } %}

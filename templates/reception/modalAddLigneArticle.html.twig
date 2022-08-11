@@ -84,13 +84,11 @@
                 </div>
             </div>
             {% include 'utils/modal/footer.html.twig' with {
-                elements:
-                [
+                elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler', event: "clearModal($(this).parents('#modalAddLigneArticle'))"},
                     {classes: 'btn btn-success', text: 'Enregistrer', id: 'addArticleLigneSubmit'},
-                    {classes: 'btn btn-success d-none', text: 'Enregistrer et ' ~ ('réception.réception' | trans),
-                        id: 'addArticleLigneSubmitAndRedirect', event: 'openModalLigneReception($(this))',
-                        title: 'Enregistrer et réception'},
+                    {classes: 'btn btn-success d-none', text: 'Enregistrer et ' ~ ('réception.réception' | trans), id: 'addArticleLigneSubmitAndRedirect',
+                        event: 'openModalLigneReception($(this))', title: 'Enregistrer et réception'},
                 ],
             } %}
 

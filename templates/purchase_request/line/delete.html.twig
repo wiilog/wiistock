@@ -10,8 +10,7 @@
                 Voulez-vous réellement supprimer cette référence ?
             </div>
             {% include 'utils/modal/footer.html.twig' with {
-                elements:
-                [
+                elements: [
                     {input: true, classes: 'data', name: 'request', value: request.id},
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
                     {classes: 'btn data btn-danger submit-button', text: 'Suprimer', name: 'lineId'}

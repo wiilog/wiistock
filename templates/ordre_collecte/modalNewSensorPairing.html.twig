@@ -30,9 +30,8 @@
                 <p class="font-italic">Le capteur sera dissocié automatiquement à la fin de la collecte</p>
             </div>
             {% include 'utils/modal/footer.html.twig' with {
-                elements:
-                [
-                    {input: true, classes: 'data', name: 'orderId', value: collecte.id},
+                elements: [
+                    {input: true, classes: 'data', name: 'orderID', value: collecte.id},
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
                     {classes: 'btn btn-success data', text: 'Enregistrer', id: 'submitNewSensorPairing'}
                 ],

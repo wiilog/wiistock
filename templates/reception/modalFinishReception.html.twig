@@ -9,11 +9,9 @@
                 <span title="cette réception">{{ 'réception.cette réception'|trans }}</span> contient des <span title="articles">{{ 'réception.articles'|trans }}</span> à finir de réceptionner.<br>Êtes-vous sûr de vouloir {{ 'réception.la'|trans }} finir ?
             </div>
             {% include 'utils/modal/footer.html.twig' with {
-                elements:
-                [
+                elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Fermer'},
-                    {classes: 'btn btn-success', text: 'Valider', dismiss: true,
-                       event: 'finishReception(' ~ reception.id ~ ", true, $('#finishReceptionButton'))"}
+                    {classes: 'btn btn-success', text: 'Valider', dismiss: true, event: "finishReception(" ~ reception.id ~ ", true, $('#finishReceptionButton'))"}
                 ],
                 hideErrorContainer: true,
             } %}

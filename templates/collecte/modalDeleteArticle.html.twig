@@ -10,8 +10,7 @@
                 Voulez-vous réellement supprimer cet article qaa?
             </div>
             {% include 'utils/modal/footer.html.twig' with {
-                elements:
-                [
+                elements: [
                     {input: true, classes: 'data', name: 'collecte', value: collecte.id},
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
                     {classes: 'btn btn-danger data', id: 'submitDeleteArticle', dismiss: true, text: 'Supprimer'}

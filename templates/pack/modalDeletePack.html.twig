@@ -10,10 +10,8 @@
                 Voulez-vous réellement supprimer ce colis ?
             </div>
             {% include 'utils/modal/footer.html.twig' with {
-                elements:
-                [
-                    {input: true, classes: arrivage is defined ? 'data' : '' ,
-                        name: 'arrivage', value: arrivage is defined ? arrivage.id : ''},
+                elements: [
+                    {input: true, classes: arrivage is defined ? 'data', name: 'arrivage', value: arrivage is defined ? arrivage.id},
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
                     {classes: 'btn btn-danger data', text: 'Supprimer', name: 'pack', id: 'submitDeletePack'}
                 ],

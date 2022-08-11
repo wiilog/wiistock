@@ -9,11 +9,9 @@
                 <span>Voulez-vous vraiment supprimer la ligne ?</span>
             </div>
             {% include 'utils/modal/footer.html.twig' with {
-                elements:
-                [
+                elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
-                    {classes: 'btn btn-danger data', text: 'Supprimer', dismiss: true, name: 'pack',
-                        id: 'submitDeletePack'}
+                    {classes: 'btn btn-danger data', text: 'Supprimer', dismiss: true, name: 'pack', id: 'submitDeletePack'}
                 ],
                 hideErrorContainer: true,
             } %}
