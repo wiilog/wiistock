@@ -167,7 +167,7 @@
         {% if label %}
             {{ _self.tooltip(options.tooltip ?? null, inline) }}
         {% endif %}
-        <select class="form-control data {{ options.inputClass ?? 'w-100' }}"
+        <select class="form-control data {{ options.inputClass ?? 'w-100' }} {{ required ? 'needed' }}"
             {{ required ? 'required' }}
             {{ options.multiple ?? false ? 'multiple' }}
             {% if options.type is defined %}
@@ -175,6 +175,7 @@
                 {% if options.hiddenDropdown ?? false %}data-hidden-dropdown{% endif %}
                 {% if options.disabledDropdownOptions ?? false %}data-disabled-dropdown-options{% endif %}
                 {% if options.editable ?? false %}data-editable{% endif %}
+                {% if options.label ?? false %}data-label="{{ options.label }}"{% endif %}
                 {% if options.noEmptyOption ?? false %}data-no-empty-option{% endif %}
                 {% if options.placeholder is defined %}data-placeholder="{{ options.placeholder }}"{% endif %}
                 {% if options.includeParams is defined %}data-include-params="{{ options.includeParams }}"{% endif %}
@@ -201,6 +202,9 @@
                             {{ (text.selected ?? false) or text.value in values ? 'selected' }}
                             {{ text.disabled ?? false ? 'disabled' }}
                             {% if text.class is defined and text.class %}class="{{ text.class }}"{% endif %}
+                        {% if text.icon is defined%}
+                            data-icon="{{ text.icon }}"
+                        {% endif %}
                             {% for dataKey, dataValue in text %}
                                 data-{{ dataKey }}="{{ dataValue }}"
                             {% endfor %}>

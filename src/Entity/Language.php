@@ -14,6 +14,12 @@ use Doctrine\ORM\Mapping\OneToMany;
 #[Entity(LanguageRepository::class)]
 class Language {
 
+    public const DATE_FORMATS = [
+        'jj/mm/aaaa'=>'d/m/Y',
+        'mm-dd-yyyy'=>'m-d-Y',
+        'yyyy-mm-dd'=>'Y-m-d'
+    ];
+
     #[Id]
     #[GeneratedValue]
     #[Column(type: "integer")]

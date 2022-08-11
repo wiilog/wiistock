@@ -150,7 +150,6 @@ class PreparationController extends AbstractController
         $preparationStatut = $preparation->getStatut() ? $preparation->getStatut()->getNom() : null;
         $isPrepaEditable =
             $preparationStatut === Preparation::STATUT_A_TRAITER
-            || $preparationStatut === Preparation::STATUT_VALIDATED
             || ($preparationStatut == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparation->getUtilisateur() == $this->getUser());
 
         if (isset($demande)) {

@@ -321,7 +321,8 @@ class DemandeController extends AbstractController
             'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
             'finished' => ($demande->getStatut()->getNom() === Demande::STATUT_A_TRAITER),
             'showDetails' => $demandeLivraisonService->createHeaderDetailsConfig($demande),
-            'showTargetLocationPicking' => $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION)
+            'showTargetLocationPicking' => $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION),
+            'managePreparationWithPlanning' => $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::MANAGE_PREPARATIONS_WITH_PLANNING)
         ]);
     }
 
