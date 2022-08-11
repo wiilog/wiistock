@@ -543,7 +543,7 @@ class SettingsController extends AbstractController {
 
         return $this->render("settings/utilisateurs/langues.html.twig", [
             'translations' => $translationRepository->findAll(),
-            'menusTranslations' => array_column($translationRepository->getMenus(), '1'),
+            'menusTranslations' => array_column([], '1'),
         ]);
     }
 
@@ -1024,7 +1024,7 @@ class SettingsController extends AbstractController {
                 ],
                 self::MENU_LANGUAGES => fn() => [
                     'translations' => $translationRepository->findAll(),
-                    'menusTranslations' => array_column($translationRepository->getMenus(), '1'),
+                    'menusTranslations' => array_column([], '1'),
                 ],
             ],
         ];

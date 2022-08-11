@@ -16,8 +16,8 @@ class Language {
 
     public const DATE_FORMATS = [
         'jj/mm/aaaa'=>'d/m/Y',
-        'mm/dd/yyyy'=>'Y/m/d',
-        'yyyy/mm/dd'=>'d/Y/m'
+        'mm-dd-yyyy'=>'m-d-Y',
+        'yyyy-mm-dd'=>'Y-m-d'
     ];
 
     #[Id]

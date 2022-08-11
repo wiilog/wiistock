@@ -249,7 +249,6 @@ class UserController extends AbstractController {
             } elseif($dropzone[0] === 'locationGroup') {
                 $dropzone = $entityManager->find(LocationGroup::class, $dropzone[1]);
             }
-
             $user
                 ->setSecondaryEmails($secondaryEmails)
                 ->setRole($role)
