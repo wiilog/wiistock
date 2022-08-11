@@ -87,19 +87,16 @@
                     <span id="remainingQuantity">{{ quantite }}</span>
                 </div>
             </div>
-            <div class="error-msg text-right pr-4 pb-4"></div>
             <input type="hidden" name="quantityToTake" value="{{ quantite }}">
-            <div class="modal-footer">
-                <div class="btn btn-outline-secondary" data-dismiss="modal">Fermer</div>
-                <div class="btn btn-success submit"
-                     data-ref="{{ referenceId }}"
-                     data-qtt="{{ quantite }}"
-                     data-demande="{{ demande ? demande.id : '' }}"
-                     data-prep="{{ preparation.id }}"
-                     onclick="submitSplitting($(this))">
-                    Enregistrer
-                </div>
-            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Fermer'},
+                    {classes: 'btn btn-success submit', text: 'Enregistrer', event: 'submitSplitting($(this))', data:
+                        {ref: referenceId, qtt: quantite, demande: demande ? demande.id : '', prep: preparation.id}
+                    },
+                ],
+            } %}
+
         </div>
     </div>
 </div>

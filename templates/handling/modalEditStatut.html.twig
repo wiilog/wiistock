@@ -16,11 +16,14 @@
                     }
                 }) }}
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
-                <button id="submitEditStatut" name='handling' value='{{ handling.id }}' type="button" data-dismiss="modal"
-                    class="btn btn-success data">Enregistrer</button>
-            </div>
+
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-success data', text: 'Enregistrer', dismiss: true, value: handling.id, name: 'handling', id: 'submitEditStatut'}
+                ],
+                hideErrorContainer: true,
+            } %}
         </div>
     </div>
 </form>

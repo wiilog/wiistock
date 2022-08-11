@@ -132,13 +132,14 @@
             <input class="data" name="precheckedDelivery" type="hidden" value="{{ precheckedDelivery }}"/>
             <input type="hidden" class="data" name="packingArticles" value="">
 
-            {% include('utils/modal/footer.html.twig') with {
+            {% include 'utils/modal/footer.html.twig' with {
+                classes: 'd-none',
                 elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Fermer'},
-                    {id: 'submitNewReceptionButton', classes: 'btn btn-success', text: 'Enregistrer'},
-                ],
-                classes: 'd-none'
+                    {id: 'submitNewReceptionButton', classes: 'btn btn-success', text: 'Enregistrer'}
+                ]
             } %}
+
         </div>
     </div>
 </form>

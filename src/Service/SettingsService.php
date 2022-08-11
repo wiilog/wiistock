@@ -646,9 +646,12 @@ class SettingsService {
                     throw new RuntimeException("Un champ libre existe déjà avec le libellé {$item["label"]}");
                 }
 
-                $elements = Stream::explode(";", $item["elements"] ?? [])
-                    ->map(fn(string $element) => trim($element))
-                    ->toArray();
+                if (isset($item["elements"])) {
+                    $elements = Stream::explode(";", $item["elements"])
+                        ->map(fn(string $element) => trim($element))
+                        ->toArray();
+                }
+
                 $freeField->setLabel($item["label"])
                     ->setType($type ?? null)
                     ->setTypage($item["type"] ?? $freeField->getTypage())
