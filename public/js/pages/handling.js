@@ -144,10 +144,10 @@ function initDatatable(params) {
                 ajax: {
                     "url": pathHandling,
                     "type": "POST",
-                    'data' : () => ({
+                    'data' : {
                         'filterStatus': $('#filterStatus').val(),
-                        'selectedDate': params.date,
-                    }),
+                        'selectedDate': () => params.date,
+                    },
                 },
                 hideColumnConfig: {
                     columns: [

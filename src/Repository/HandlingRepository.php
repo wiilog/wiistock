@@ -298,31 +298,34 @@ class HandlingRepository extends EntityRepository
                             ->setParameter('search_value', '%' . $search . '%');
                     }
                 }
-                if (!empty($params->all('order'))) {
-                    $order = $params->all('order')[0]['dir'];
-                    if (!empty($order)) {
-                        $column = self::DtToDbLabels[$params->all('columns')[$params->all('order')[0]['column']]['data']];
-                        if ($column === 'type') {
+            }
+        }
+
+        if (!empty($params)) {
+            if (!empty($params->all('order'))) {
+                $order = $params->all('order')[0]['dir'];
+                if (!empty($order)) {
+                    $column = self::DtToDbLabels[$params->all('columns')[$params->all('order')[0]['column']]['data']];
+                    if ($column === 'type') {
+                        $qb
+                            ->leftJoin('handling.type', 'order_type')
+                            ->orderBy('order_type.label', $order);
+                    } else if ($column === 'requester') {
+                        $qb
+                            ->leftJoin('handling.requester', 'order_requester')
+                            ->orderBy('order_requester.username', $order);
+                    } else if ($column === 'status') {
+                        $qb
+                            ->leftJoin('handling.status', 'order_status')
+                            ->orderBy('order_status.nom', $order);
+                    } else if ($column === 'treatedBy') {
+                        $qb
+                            ->leftJoin('handling.treatedByHandling', 'order_treatedByHandling')
+                            ->orderBy('order_treatedByHandling.username', $order);
+                    } else {
+                        if (property_exists(Handling::class, $column)) {
                             $qb
-                                ->leftJoin('handling.type', 'order_type')
-                                ->orderBy('order_type.label', $order);
-                        } else if ($column === 'requester') {
-                            $qb
-                                ->leftJoin('handling.requester', 'order_requester')
-                                ->orderBy('order_requester.username', $order);
-                        } else if ($column === 'status') {
-                            $qb
-                                ->leftJoin('handling.status', 'order_status')
-                                ->orderBy('order_status.nom', $order);
-                        } else if ($column === 'treatedBy') {
-                            $qb
-                                ->leftJoin('handling.treatedByHandling', 'order_treatedByHandling')
-                                ->orderBy('order_treatedByHandling.username', $order);
-                        } else {
-                            if (property_exists(Handling::class, $column)) {
-                                $qb
-                                    ->orderBy('handling.' . $column, $order);
-                            }
+                                ->orderBy('handling.' . $column, $order);
                         }
                     }
                 }

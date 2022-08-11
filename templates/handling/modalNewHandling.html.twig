@@ -75,12 +75,11 @@
 
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
-                        {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
                         <div class="form-group col-md-6 col-12">
-                            <label class="wii-field-name">Urgence{{ required ? '*' }}</label>
+                            <label class="wii-field-name">Urgence</label>
                             <div class="w-100">
                                 <select
-                                    class="form-control input-sm data {{ required ? 'needed' : '' }}"
+                                    class="form-control input-sm data"
                                     name="emergency">
                                     <option value="">Non urgent</option>
                                     {% for emergency in emergencies %}
