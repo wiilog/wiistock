@@ -86,6 +86,7 @@ function loadAndDisplayInfos(select) {
         $.post(path, params, function (data) {
             $('#newContent').html(data);
             $('#modalNewArticle').find('div').find('div').find('.modal-footer').removeClass('d-none');
+            console.log('gfdgd');
             Select2Old.location($('.ajax-autocomplete-location'));
         })
     }
@@ -110,7 +111,7 @@ function getArticleFournisseur() {
                 modalfooter.removeClass('d-none')
                 $articleFourn.parent('div').addClass('d-block');
                 $articleFourn.html(data.content);
-                registerNumberInputProtection($articleFourn.find('input[type="number"]'));
+                Wiistock.registerNumberInputProtection($articleFourn.find('input[type="number"]'));
                 $('.error-msg').html('')
                 Select2Old.location($('.ajax-autocomplete-location'));
             } else if (data.error) {
