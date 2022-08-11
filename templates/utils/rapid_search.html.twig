@@ -60,10 +60,14 @@
                     {% endfor %}
                 </table>
             </div>
-            <div class="modal-footer">
-                <div class="btn btn-outline-secondary" data-dismiss="modal">Fermer</div>
-                <div class="btn btn-success" id="submit-rapid-search">Enregistrer</div>
-            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Fermer'},
+                    {classes: 'btn btn-success', text: 'Enregistrer', id: 'submit-rapid-search'}
+                ],
+                hideErrorContainer: true,
+            } %}
+
         </div>
     </div>
 </div>

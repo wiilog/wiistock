@@ -30,10 +30,14 @@
 
                 <input type="hidden" name="rename-dashboard-index" class="form-control">
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Fermer</button>
-                <button type="button" class="btn btn-success dashboard-modal-submit-param">Enregistrer</button>
-            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Fermer'},
+                    {classes: 'btn btn-success dashboard-modal-submit-param', text: 'Enregistrer'}
+                ],
+                hideErrorContainer: true,
+            } %}
+
         </div>
     </div>
 </div>

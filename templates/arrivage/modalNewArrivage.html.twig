@@ -454,11 +454,12 @@
                     {% endif %}
                 </div>
             </div>
-            <div class="error-msg pl-4"></div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
-                <button id="submitNewArrivage" type="button" class="btn btn-success">Enregistrer</button>
-            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {id: 'submitNewArrivage', classes: 'btn btn-success', text: 'Enregistrer'}
+                ]
+            } %}
         </div>
     </div>
 </form>

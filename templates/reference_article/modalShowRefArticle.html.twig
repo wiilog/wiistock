@@ -9,10 +9,12 @@
 
             <div class="modal-body modal-input clear container-fluid"></div>
 
-            <div class="error-msg"></div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Fermer</button>
-            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Fermer'}
+                ],
+            } %}
+
         </div>
     </div>
 </form>
