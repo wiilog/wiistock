@@ -39,7 +39,7 @@
                         data-id='{{ dispatch.id }}'
                         onclick="openValidateDispatchModal()"
                         class="btn btn-primary d-flex align-items-center justify-content-center split-button mr-0">
-                    <i class="wii-icon wii-icon-check mr-2"></i>
+                    <span class="wii-icon wii-icon-check-white mr-2"></span>
                     Valider la demande
                 </button>
             {% elseif not dispatch.statut.treated %}
@@ -47,7 +47,7 @@
                         data-id='{{ dispatch.id }}'
                         onclick="openTreatDispatchModal()"
                         class="btn btn-primary align-items-center justify-content-center split-button mr-0">
-                    <i class="wii-icon wii-icon-check mr-2"></i>
+                    <span class="wii-icon wii-icon-check-white mr-2"></span>
                     Terminer la demande
                 </button>
             {% endif %}
@@ -76,15 +76,15 @@
                    onclick="openDeliveryNoteModal($(this))"
                    id="generateDeliveryNoteButton"
                    title="Générer un bon de livraison"
-                   class="dropdown-item">
-                    <i class="fa fa-print mr-2"></i>
+                   class="dropdown-item  d-flex align-items-center">
+                    <span class="wii-icon wii-icon-printer-black mr-2"></span>
                     {{ 'acheminement.Générer un bon de livraison' | trans }}
                 </a>
             {% endif %}
             {% if hasRightToGenerateOverconsumptionBill %}
-                <a class="dropdown-item"
+                <a class="dropdown-item d-flex align-items-center"
                    onclick="generateOverconsumptionBill({{ dispatch.id }})">
-                    <i class="fas fa-print mr-2"></i>
+                    <span class="wii-icon wii-icon-printer-black mr-2"></span>
                     Générer un bon de surconsommation
                 </a>
             {% endif %}
@@ -93,16 +93,16 @@
                    data-dispatch-id='{{ dispatch.id }}'
                    onclick="openWaybillModal($(this))"
                    title="Générer une lettre de voiture"
-                   class="dropdown-item">
-                    <i class="fa fa-print mr-2"></i>
+                   class="dropdown-item d-flex align-items-center">
+                    <span class="wii-icon wii-icon-printer-black mr-2"></span>
                     {{ 'acheminement.Générer une lettre de voiture' | trans }}
                 </a>
             {% endif %}
             {% if hasRightToGenerateDispatchBill %}
-                <a class="dropdown-item"
+                <a class="dropdown-item  d-flex align-items-center"
                    title="Générer un bon d'acheminement"
                    onclick="runDispatchPrint()">
-                    <i class="fas fa-print mr-2"></i>
+                    <span class="wii-icon wii-icon-printer-black mr-2"></span>
                     {{ 'acheminement.Générer un bon d\'acheminement'|trans }}
                 </a>
             {% endif %}
@@ -118,8 +118,8 @@
             {% endif %}
             {% if hasRightDelete %}
                 <a href="" data-id='{{ dispatch.id }}' data-target='#modalDeleteDispatch' data-toggle='modal'
-                   class="dropdown-item">
-                    <i class="fa fa-trash mr-2"></i>
+                   class="dropdown-item d-flex align-items-center">
+                    <span class="wii-icon wii-icon-trash-black mr-2"></span>
                     Supprimer
                 </a>
             {% endif %}
