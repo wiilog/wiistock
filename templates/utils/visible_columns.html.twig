@@ -48,10 +48,14 @@
                     </tbody>
                 </table>
             </div>
-            <div class="modal-footer">
-                <div class="btn btn-outline-secondary" data-dismiss="modal">Fermer</div>
-                <div class="btn btn-success" id="submitColumnVisible">Enregistrer</div>
-            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Fermer'},
+                    {classes: 'btn btn-success', text: 'Enregistrer', id: 'submitColumnVisible'}
+                ],
+                hideErrorContainer: true,
+            } %}
+
         </div>
     </div>
 </div>

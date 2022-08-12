@@ -75,12 +75,11 @@
 
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
-                        {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
                         <div class="form-group col-md-6 col-12">
-                            <label class="wii-field-name">Urgence{{ required ? '*' }}</label>
+                            <label class="wii-field-name">Urgence</label>
                             <div class="w-100">
                                 <select
-                                    class="form-control input-sm data {{ required ? 'needed' : '' }}"
+                                    class="form-control input-sm data"
                                     name="emergency">
                                     <option value="">Non urgent</option>
                                     {% for emergency in emergencies %}
@@ -161,12 +160,13 @@
                     </div>
                 </div>
             </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-success', text: 'Enregistrer', id: 'submitNewHandling'}
+                ],
+            } %}
 
-            <div class="error-msg"></div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
-                <button id="submitNewHandling" type="button" class="btn btn-success">Enregistrer</button>
-            </div>
         </div>
     </div>
 </div>

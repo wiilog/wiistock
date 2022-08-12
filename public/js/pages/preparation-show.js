@@ -25,8 +25,12 @@ $(function () {
     });
 
     initializeEdit();
-});
 
+    const $modalDeletePreparation = $('#modalDeletePreparation');
+    const $submitDeletePreparation = $modalDeletePreparation.find(`.submit`);
+    const pathDeletePreparation = Routing.generate(`preparation_delete`, {preparation: $modalDeletePreparation.find(`input[name=preparation]`).val()}, true);
+    InitModal($modalDeletePreparation, $submitDeletePreparation, pathDeletePreparation);
+});
 
 function initializeEdit() {
     const $modalEditPreparation = $('#modalEditPreparation');

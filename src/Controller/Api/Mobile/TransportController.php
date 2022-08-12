@@ -152,7 +152,8 @@ class TransportController extends AbstractFOSRestController
             ->count();
 
         $toReturn = Stream::from($notDeliveredOrders)
-            ->flatMap(fn(TransportRoundLine $line) => $line->getOrder()->getPacks())
+            ->flatMap(fn(TransportRoundLine $line) => $line->getOrder()->getPacks()
+                ->filter(fn(TransportDeliveryOrderPack $orderPack) => $orderPack->getState() !== TransportDeliveryOrderPack::REJECTED_STATE))
             ->count();
 
         $collectedOrders = Stream::from($lines)

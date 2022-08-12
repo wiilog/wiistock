@@ -280,7 +280,7 @@ class PreparationController extends AbstractController
     }
 
     /**
-     * @Route("/supprimer/{preparation}", name="preparation_delete", methods="GET|POST")
+     * @Route("/supprimer/{preparation}", name="preparation_delete", methods="POST", options={"expose"=true})
      * @HasPermission({Menu::ORDRE, Action::DELETE})
      */
     public function delete(Preparation                $preparation,
@@ -305,7 +305,12 @@ class PreparationController extends AbstractController
 
         $entityManager->flush();
 
-        return $this->redirectToRoute('preparation_index');
+        $this->addFlash('success', 'La préparation a bien été suprimmée');
+
+        return $this->json([
+           'success' => true,
+           'redirect' => $this->generateUrl('preparation_index')
+        ]);
     }
 
     #[Route('/modifier', name: "preparation_edit", options: ['expose' => true], methods: 'POST')]

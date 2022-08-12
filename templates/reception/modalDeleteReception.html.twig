@@ -7,11 +7,15 @@
 
             <div class="modal-body">
             </div>
-            <div class="modal-footer">
-                <input type="hidden" class="data" name="receptionId" value="{{ reception.id }}">
-                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Fermer</button>
-                <button id="submitDeleteReception" type="button" data-dismiss="modal" class="btn btn-danger data">Supprimer</button>
-            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {input: true, classes: 'data', name: 'receptionId', value: reception.id},
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Fermer'},
+                    {classes: 'btn btn-danger data', text: 'Supprimer', dismiss: true, id: 'submitDeleteReception'}
+                ],
+                hideErrorContainer: true,
+            } %}
+
         </div>
     </div>
 </form>

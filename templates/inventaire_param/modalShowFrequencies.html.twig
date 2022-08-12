@@ -9,9 +9,13 @@
                 <table id="tableFrequencies" class="table w-100">
                 </table>
             </div>
-            <div class="modal-footer">
-                <button id="submitNewFrequency" type="button" class="btn btn-success" data-dismiss="modal">Fermer</button>
-            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-primary', dismiss: true, text: 'Fermer'}
+                ],
+                hideErrorContainer: true
+            } %}
+
         </div>
     </div>
 </form>

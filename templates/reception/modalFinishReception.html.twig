@@ -8,15 +8,14 @@
             <div class="modal-body">
                 <span title="cette réception">{{ 'réception.cette réception'|trans }}</span> contient des <span title="articles">{{ 'réception.articles'|trans }}</span> à finir de réceptionner.<br>Êtes-vous sûr de vouloir {{ 'réception.la'|trans }} finir ?
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Fermer</button>
-                <button type="button"
-                        data-dismiss="modal"
-                        class="btn btn-success"
-                        onclick="finishReception({{ reception.id }}, true, $('#finishReceptionButton'))">
-                    Valider
-                </button>
-            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Fermer'},
+                    {classes: 'btn btn-success', text: 'Valider', dismiss: true, event: "finishReception(" ~ reception.id ~ ", true, $('#finishReceptionButton'))"}
+                ],
+                hideErrorContainer: true,
+            } %}
+
         </div>
     </div>
 </form>
