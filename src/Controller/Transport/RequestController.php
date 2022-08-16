@@ -188,13 +188,19 @@ class RequestController extends AbstractController {
                     $minThreshold = $minTriggerActionThreshold?->getConfig()['temperature'];
                     $maxThreshold = $maxTriggerActionThreshold?->getConfig()['temperature'];
                 }
+                if(!$round->getEndedAt()) {
+                    $end = clone $round->getBeganAt();
+                    $end->setTime(23, 59);
+                } else {
+                    $end = $round->getEndedAt();
+                }
 
                 $urls[] = [
                     "fetch_url" => $router->generate("chart_data_history", [
                         "type" => IOTService::getEntityCodeFromEntity($location),
                         "id" => $location->getId(),
                         'start' => $round->getBeganAt()->format('Y-m-d\TH:i'),
-                        'end' => $round->getEndedAt()?->format('Y-m-d\TH:i') ?? $now->format('Y-m-d\TH:i'),
+                        'end' => $end->format('Y-m-d\TH:i'),
                     ], UrlGeneratorInterface::ABSOLUTE_URL),
                     "minTemp" => $minThreshold ?? 0,
                     "maxTemp" => $maxThreshold ?? 0,

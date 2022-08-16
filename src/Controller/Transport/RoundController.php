@@ -218,6 +218,12 @@ class RoundController extends AbstractController {
                     $minThreshold = $minTriggerActionThreshold?->getConfig()['temperature'];
                     $maxThreshold = $maxTriggerActionThreshold?->getConfig()['temperature'];
                 }
+                if(!$transportRound->getEndedAt()) {
+                    $end = clone $transportRound->getBeganAt();
+                    $end->setTime(23, 59);
+                } else {
+                    $end = $transportRound->getEndedAt();
+                }
 
                 $now = new DateTime();
                 $urls[] = [
@@ -225,7 +231,7 @@ class RoundController extends AbstractController {
                         "type" => IOTService::getEntityCodeFromEntity($location),
                         "id" => $location->getId(),
                         'start' => ($transportRound->getBeganAt() ?? $now)->format('Y-m-d\TH:i'),
-                        'end' => ($transportRound->getEndedAt() ?? $now)->format('Y-m-d\TH:i'),
+                        'end' => $end->format('Y-m-d\TH:i'),
                     ], UrlGeneratorInterface::ABSOLUTE_URL),
                     "minTemp" => $minThreshold ?? 0,
                     "maxTemp" => $maxThreshold ?? 0,
