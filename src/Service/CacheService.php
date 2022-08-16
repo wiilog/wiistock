@@ -2,98 +2,59 @@
 
 namespace App\Service;
 
-use Exception;
-use RecursiveIteratorIterator;
-use Symfony\Component\Finder\Iterator\RecursiveDirectoryIterator;
+use App\Helper\FileSystem;
 use Symfony\Component\HttpKernel\KernelInterface;
 
-class CacheService {
+class CacheService
+{
 
     private const CACHE_FOLDER = "/cache";
 
     public const PERMISSIONS = "permissions";
-    public const IMPORTS = "imports";
+    public const TRANSLATIONS = "translations";
 
-    /** @Required  */
-    public KernelInterface $kernel;
+    private FileSystem $filesystem;
 
-    private function getCacheDirectory(): string {
-        return $this->kernel->getProjectDir() . self::CACHE_FOLDER;
+    public function __construct(KernelInterface $kernel)
+    {
+        $this->filesystem = new FileSystem($kernel->getProjectDir() . self::CACHE_FOLDER);
     }
 
-    public function get(string $namespace, $key, ?callable $callback = null) {
-        if($callback === null) {
-            $callback = $key;
-            $originalKey = "";
-            $key = "";
-        } else {
-            $originalKey = $key;
-            $key = ".$key";
+    public function get(string $namespace, string $key, ?callable $callback = null): mixed
+    {
+        if ($callback && !$this->filesystem->exists("$namespace.$key")) {
+            $this->set($namespace, $key, $callback());
         }
 
-        $cache = $this->getCacheDirectory();
-        if (!file_exists("$cache/$namespace$key")) {
-            $this->set($namespace, $originalKey, $callback());
-        }
-
-        return unserialize(file_get_contents("$cache/$namespace$key"));
+        return unserialize($this->filesystem->getContent("$namespace.$key"));
     }
 
-    public function set(string $namespace, $key, $value = null) {
-        if($value === null) {
-            $value = $key;
-            $key = "";
-        } else {
-            $key = ".$key";
+    public function set(string $namespace, string $key, mixed $value = null): void
+    {
+        if (!$this->filesystem->isDir()) {
+            $this->filesystem->remove();
         }
 
-        $cache = $this->getCacheDirectory();
-        if (!is_dir($cache)) {
-            mkdir($cache);
+        if (!$this->filesystem->isDir($namespace)) {
+            $this->filesystem->remove($namespace);
+            $this->filesystem->mkdir($namespace);
         }
 
-        $handle = fopen("$cache/$namespace$key", 'w+');
-        fwrite($handle, serialize($value));
-        fclose($handle);
+        $this->filesystem->dumpFile("$namespace.$key", serialize($value));
     }
 
-    public function delete(string $namespace, ?string $key = null): void {
-        if($key) {
-            $key = ".$key";
-        }
-
-        $cache = $this->getCacheDirectory();
-        if (!is_dir($cache)) {
-            mkdir($cache);
-        }
-
-        if(file_exists("$cache/$namespace$key")) {
-            unlink("$cache/$namespace$key");
+    public function delete(string $namespace, ?string $key = null): void
+    {
+        if ($this->filesystem->exists("$namespace.$key")) {
+            $this->filesystem->remove("$namespace.$key");
         }
     }
 
-    public function clear() {
-        $cache = $this->getCacheDirectory();
-        if (is_dir($cache)) {
-            $this->recursiveRemove($cache);
-        }
-    }
-
-    private function recursiveRemove($dirname) {
-        if (is_dir($dirname)) {
-            $dir = new RecursiveDirectoryIterator($dirname, RecursiveDirectoryIterator::SKIP_DOTS);
-            foreach (new RecursiveIteratorIterator($dir, RecursiveIteratorIterator::CHILD_FIRST) as $object) {
-                if ($object->isFile()) {
-                    unlink($object);
-                } elseif($object->isDir()) {
-                    rmdir($object);
-                } else {
-                    throw new Exception('Unknown object type: '. $object->getFileName());
-                }
-            }
-            rmdir($dirname); // Now remove myfolder
-        } else {
-            throw new Exception('This is not a directory');
+    public function clear(): void
+    {
+        if ($this->filesystem->exists()) {
+            $this->filesystem->remove();
+            $this->filesystem->mkdir();
         }
     }
 

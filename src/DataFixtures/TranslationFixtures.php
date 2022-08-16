@@ -250,13 +250,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                 ],
                 [
                     "fr" => "A traiter sous :",
-                    "en" => "To be process under:",
-                    "tooltip" => "Composant \"Quantité en cours n emplacement(s)\", coche \"Afficher le délai de traitement\"",
-                ],
-                [
-                    "fr" => "A traiter sous :",
-                    "en" => "To be process under:",
-                    "tooltip" => "Composant \"Demandes à traiter\", coche \"Délai de traitement à respecter [...]\"",
+                    "en" => "To be processed within:",
+                    "tooltip" => "Composant \"Quantité en cours n emplacement(s)\", coche \"Afficher le délai de traitement\" et composant \"Demandes à traiter\", coche \"Délai de traitement à respecter [...]\"",
                 ],
             ],
         ],
@@ -1653,11 +1648,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                             "tooltip" => "Modale Création modification BL",
                         ],
                         [
-                            "fr" => "Numéro de livraison",
-                            "en" => "Delivery number",
-                            "tooltip" => "Modale Création modification BL",
-                        ],
-                        [
                             "fr" => "Livrer à",
                             "en" => "Deliver to",
                             "tooltip" => "Modale Création modification BL",
@@ -1880,23 +1870,19 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
             $manager->flush();
         }
 
-        $categoryEntities = Stream::from($categoryRepository->findBy(["label" => array_keys(self::TRANSLATIONS)]))
-            ->map(fn(TranslationCategory $category) => [$category->getLabel(), $category])
-            ->toArray();
-
         foreach(self::TRANSLATIONS as $categoryLabel => $menus) {
-            $this->handleCategory("category", null, $categoryLabel, $menus, $categoryEntities);
+            $this->handleCategory("category", null, $categoryLabel, $menus);
         }
 
         $this->manager->flush();
     }
 
-    private function handleCategory(string $type, ?TranslationCategory $parent, string $label, array $content, array $existingCategories) {
+    private function handleCategory(string $type, ?TranslationCategory $parent, string $label, array $content) {
         $categoryRepository = $this->manager->getRepository(TranslationCategory::class);
         $translationSourceRepository = $this->manager->getRepository(TranslationSource::class);
 
-        if(!isset($existingCategories[$label])) {
-            $subcategoryEntities = [];
+        $category = $categoryRepository->findOneBy(["parent" => $parent, "label" => $label]);
+        if(!$category) {
             $category = (new TranslationCategory())
                 ->setParent($parent)
                 ->setType($type)
@@ -1906,16 +1892,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
 
             $parentLabel = $parent?->getLabel() ?: $parent?->getParent()?->getLabel();
             $this->console->writeln(($label ? "Created $type \"$label\"" : "Created single $type") . ($parentLabel ? " in \"$parentLabel\"" : ""));
-        } else {
-            $category = $existingCategories[$label];
-            $subcategoryEntities = !isset($content["content"]) ? Stream::from($categoryRepository->findBy(["parent" => $category, "label" => array_keys($content)]))
-                ->map(fn(TranslationCategory $menu) => [$menu->getLabel(), $menu])
-                ->toArray() : [];
         }
 
         if(!isset($content["content"])) {
             foreach($content as $childLabel => $childContent) {
-                $this->handleCategory(self::CHILD[$type], $category, $childLabel, $childContent, $subcategoryEntities);
+                $this->handleCategory(self::CHILD[$type], $category, $childLabel, $childContent);
             }
         } else {
             $category->setSubtitle($content["subtitle"] ?? null);
@@ -1946,7 +1927,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
 
                     $this->console->writeln("Updated french translation \"" . str_replace("\n", "\\n ", $translation["fr"]) . "\"");
                 }
-
 
                 $english = $translationEntity->getTranslationIn("english");
                 if(!$english) {

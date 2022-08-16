@@ -45,9 +45,6 @@ services:
         arguments:
             $targetDirectory: '%cards_directory%'
 
-    App\Service\TranslationService:
-        arguments:
-            $appLocale: '%appLocale%'
     App\Twig\BarcodeExtension:
         arguments:
             $barcodeGenerator: '@sgk_barcode.generator'
