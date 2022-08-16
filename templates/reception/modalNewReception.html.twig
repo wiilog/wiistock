@@ -70,8 +70,8 @@
                                 </div>
                                 {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
                                     <div class="form-group col-auto toggle-button-container">
-                                        <span class="btn btn-primary" onclick="onFlyFormToggle('fournisseurDisplay', 'addFournisseur')">
-                                            <i class="fa fa-plus"></i>
+                                        <span class="btn btn-primary d-flex align-items-center p-2" onclick="onFlyFormToggle('fournisseurDisplay', 'addFournisseur')">
+                                            <span class="wii-icon wii-icon-plus"></span>
                                         </span>
                                     </div>
                                 {% endif %}
@@ -92,9 +92,9 @@
                                 </div>
                                 {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
                                     <div class="form-group col-auto toggle-button-container">
-                                        <span class="btn btn-primary"
+                                        <span class="btn btn-primary d-flex align-items-center p-2"
                                               onclick="onFlyFormToggle('transporteurDisplay', 'addTransporteur')">
-                                            <i class="fa fa-plus"></i></span>
+                                            <span class="wii-icon wii-icon-plus"></span>
                                     </div>
                                 {% endif %}
                             </div>
@@ -214,12 +214,13 @@
                     {% endfor %}
                 </div>
             </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-success', text: 'Enregistrer', id: 'submitReceptionButton'}
+                ],
+            } %}
 
-            <div class="error-msg"></div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
-                <button id="submitReceptionButton" type="button" class="btn btn-success">Enregistrer</button>
-            </div>
         </div>
     </div>
 </form>

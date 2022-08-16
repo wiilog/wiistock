@@ -194,12 +194,14 @@ class FormatHelper {
         return isset($bool) ? ($bool ? 'oui' : 'non') : $else;
     }
 
-    public static function date(?DateTimeInterface $date, $else = "", $switchEnFormat = false) {
-        return $date ? $date->format($switchEnFormat ? "d-m-Y" : 'd/m/Y') : $else;
+    public static function date(?DateTimeInterface $date, $else = "", $switchEnFormat = false, Utilisateur $user = null) {
+        $prefix = $user && $user->getDateFormat() ? $user->getDateFormat() : ($switchEnFormat ? "d-m-Y" : 'd/m/Y');
+        return $date ? $date->format($prefix) : $else;
     }
 
-    public static function datetime(?DateTimeInterface $date, $else = "", $addAt = false) {
-        return $date ? $date->format($addAt ? "d/m/Y à H:i" : "d/m/Y H:i") : $else;
+    public static function datetime(?DateTimeInterface $date, $else = "", $addAt = false, Utilisateur $user = null) {
+        $prefix = $user && $user->getDateFormat() ? $user->getDateFormat() : 'd/m/Y';
+        return $date ? $date->format($addAt ? "$prefix à H:i" : "$prefix H:i") : $else;
     }
 
     public static function longDate(?DateTimeInterface $date, array $options = [], $else = "-"): ?string {
@@ -228,14 +230,24 @@ class FormatHelper {
         return $comment ? strip_tags($comment) : $else;
     }
 
-    public static function freeField(?string $value, FreeField $freeField): ?string {
+    public static function freeField(?string $value, FreeField $freeField, Utilisateur $user = null): ?string {
         $value = ($value ?? $freeField->getDefaultValue()) ?? '';
         switch ($freeField->getTypage()) {
             case FreeField::TYPE_DATE:
             case FreeField::TYPE_DATETIME:
-                $valueDate = self::parseDatetime($value, ["Y-m-dTH:i", "Y-m-d", "d/m/Y H:i", "Y-m-d H:i", "d/m/Y"]);
+                $valueDate = self::parseDatetime($value, [
+                    "Y-m-dTH:i",
+                    "Y-m-d",
+                    "d/m/Y H:i",
+                    "Y-m-d H:i",
+                    "m-d-Y H:i",
+                    "m-d-Y",
+                    "d/m/Y",
+                    $user && $user->getDateFormat() ? $user->getDateFormat() . ' H:i' : '',
+                    $user && $user->getDateFormat() ? $user->getDateFormat() : '',
+                ]);
                 $hourFormat = ($freeField->getTypage() === FreeField::TYPE_DATETIME ? ' H:i' : '');
-                $formatted = $valueDate ? $valueDate->format('d/m/Y' . $hourFormat) : $value;
+                $formatted = $valueDate ? $valueDate->format(($user && $user->getDateFormat() ? $user->getDateFormat() : 'd/m/Y') . $hourFormat) : $value;
                 break;
             case FreeField::TYPE_BOOL:
                 $formatted = ($value !== '' && $value !== null)

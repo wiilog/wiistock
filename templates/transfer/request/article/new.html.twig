@@ -19,17 +19,13 @@
                     <div id="add-article-code-selector" class="col-12 clear"></div>
                 </form>
             </div>
-            <div class="pl-2 error-msg"></div>
-            <div class="modal-footer">
-                <div class="btn btn-outline-secondary" data-dismiss="modal">Annuler</div>
-                <button id="submitAddArticle"
-                        name="transfer"
-                        value="{{transfer.id}}"
-                        type="button"
-                        class="btn data btn-success">
-                    Ajouter
-                </button>
-            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-success data', text: 'Ajouter', value: transfer.id, name: 'transfer', id: 'submitAddArticle'}
+                ],
+            } %}
+
         </div>
     </div>
 </div>

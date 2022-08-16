@@ -5,18 +5,24 @@ $(function () {
     const $modalNewMvtTraca = $('#modalNewMvtTraca');
     $modalNewMvtTraca.find('.list-multiple').select2();
 
-    initDateTimePicker();
+    const $userFormat = $('#userDateFormat');
+    const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
+
+    initDateTimePicker('#dateMin, #dateMax', DATE_FORMATS_TO_DISPLAY[format]);
+    initDatePickers();
     Select2Old.init($('#emplacement'), 'Emplacements');
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_MVT_TRACA);
     $.post(path, params, function (data) {
-        displayFiltersSup(data);
+        displayFiltersSup(data, true);
     }, 'json');
 
     Select2Old.user('Opérateurs');
     Select2Old.location($('.ajax-autocomplete-emplacements'), {}, "Emplacement", 3);
+
+
     initNewModal($modalNewMvtTraca);
 
     $.post(Routing.generate('tracking_movement_api_columns'))
@@ -45,8 +51,11 @@ $(function () {
 
             tableMvt = initDataTable('tableMvts', config);
             initPageModal(tableMvt);
+
         });
 });
+
+
 
 $.fn.dataTable.ext.search.push(
     function (settings, data) {
@@ -94,6 +103,9 @@ function initPageModal(tableMvt) {
                 } else {
                     displayOnSuccessCreation(success, trackingMovementsCounter);
                     clearModal($('#modalNewMvtTraca'));
+
+                    fillDatePickers('.free-field-date');
+                    fillDatePickers('.free-field-datetime', 'YYYY-MM-DD', true);
                 }
             }
         });
@@ -139,6 +151,10 @@ function resetNewModal($modal) {
             $emplacementPrise.select2('open');
         }, 400);
     }
+
+    fillDatePickers('.free-field-date');
+    fillDatePickers('.free-field-datetime', 'YYYY-MM-DD', true);
+
 }
 
 function switchMvtCreationType($input) {
@@ -154,7 +170,7 @@ function switchMvtCreationType($input) {
             Select2Old.initFree($modal.find('.select2-free'));
 
             const $emptyRound = $modal.find('input[name=empty-round]');
-            if($input.find(':selected').text().trim() === $emptyRound.val()) {
+            if ($input.find(':selected').text().trim() === $emptyRound.val()) {
                 const $packInput = $modal.find('input[name=colis]');
                 $modal.find('input[name=quantity]').closest('div.form-group').addClass('d-none');
                 $packInput.val('passageavide');

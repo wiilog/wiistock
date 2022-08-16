@@ -10,14 +10,14 @@
 
 <div class="col-4 d-flex flex-column">
     <span class="wii-field-name">Date de création</span>
-    <span class="wii-field-text">{{ selectedDispatch.creationDate | format_helper('datetime') }}</span>
+    <span class="wii-field-text">{{ selectedDispatch.creationDate | format_helper('datetime', "", false, app.user) }}</span>
 </div>
 
 {% if selectedDispatch.startDate or selectedDispatch.endDate %}
     <div class="col-4 d-flex flex-column mt-3">
         <span class="wii-field-name">Dates d'échéance</span>
         <span class="wii-field-text">
-            Du {{ selectedDispatch.startDate ? (selectedDispatch.startDate | format_helper('datetime')) : '-' }} au {{ selectedDispatch.endDate ? (selectedDispatch.endDate | format_helper('datetime')) : '-' }}
+            Du {{ selectedDispatch.startDate ? (selectedDispatch.startDate | format_helper('datetime', "", false, app.user)) : '-' }} au {{ selectedDispatch.endDate ? (selectedDispatch.endDate | format_helper('datetime')) : '-' }}
         </span>
     </div>
 {% endif %}

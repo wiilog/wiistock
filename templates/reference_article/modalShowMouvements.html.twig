@@ -8,10 +8,13 @@
             <div class="modal-body">
 
             </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Fermer'}
+                ],
+                hideErrorContainer: true,
+            } %}
 
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Fermer</button>
-            </div>
         </div>
     </div>
 </form>

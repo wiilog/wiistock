@@ -53,9 +53,9 @@
                     {% set printPath = refArticleId is defined
                         ? path('reference_article_single_bar_code_print', {reference: refArticleId})
                         : path('article_single_bar_code_print', {article: articleId}) %}
-                    <a class="dropdown-item"
+                    <a class="dropdown-item  d-flex align-items-center"
                        href="{{ printPath }}">
-                        <i class="fas fa-print mr-2"></i> Imprimer
+                        <span class="wii-icon wii-icon-printer-black mr-2"></span>Imprimer
                     </a>
                 {% endif %}
             </div>

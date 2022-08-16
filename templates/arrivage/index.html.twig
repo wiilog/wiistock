@@ -7,6 +7,7 @@
     {% include 'filters/filtersArrivage.html.twig' with {
         'page': 'PAGE_ARRIVAGE',
         'tableSelector': '#arrivalsTable',
+        'needsDateFormatting': true,
         'callback': '() => {clicked = true;
         }'
     } %}
@@ -33,7 +34,7 @@
                 <div class="btn-group arrival-mode-container">
                     {% if hasRightToCreate %}
                         <button type="button"
-                                class="btn btn-primary split-button"
+                                class="btn btn-primary split-button d-flex align-items-center"
                                 data-toggle="modal"
                                 name="new-arrival"
                                 data-target="#modalNewArrivage"
@@ -41,13 +42,13 @@
                                 data-keyboard="false"
                                 disabled
                                 onclick="initNewArrivageEditor('#modalNewArrivage')">
-                            <i class="fa fa-plus mr-2"></i>
+                            <span class="wii-icon wii-icon-plus mr-2"></span>
                             <span title="nouvel arrivage">{{ 'arrivage.nouvel arrivage'|trans }}</span>
                         </button>
                     {% elseif hasRightToExport %}
                         <button type="button"
                                 class="btn btn-primary split-button"
-                                onclick="saveExportFile('get_arrivages_csv')">
+                                onclick="saveExportFile('get_arrivages_csv', true, {}, false, 'Veuillez saisir des dates dans le filtre en haut de page.', true)">
                             <span class="fa fa-file-csv mr-2" style="padding: 0 2px"></span>
                             Exporter au format CSV
                         </button>
@@ -62,7 +63,7 @@
                     <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
                         {% if hasRightToCreate and hasRightToExport %}
                             <a class="dropdown-item pointer"
-                               onclick="saveExportFile('get_arrivages_csv')">
+                               onclick="saveExportFile('get_arrivages_csv', true, {}, false, 'Veuillez saisir des dates dans le filtre en haut de page.', true)">
                                 <i class="fa fa-file-csv mr-2" style="padding: 0 2px"></i>
                                 Exporter au format CSV
                             </a>
@@ -87,8 +88,8 @@
                         Annuler acheminer
                     </button>
                     <button type="button"
-                            class="btn btn-primary validate" disabled>
-                        <i class="fa fa-check mr-2"></i>
+                            class="btn btn-primary validate d-flex align-items-center" disabled>
+                        <span class="wii-icon wii-icon-check-white mr-2"></span>
                         Valider arrivages à acheminer
                     </button>
                 </div>

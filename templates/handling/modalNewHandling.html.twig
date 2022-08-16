@@ -4,7 +4,7 @@
             {% include 'utils/modal/header.html.twig' with {
                 title: '<span title="Nouvelle demande de service">' ~ ('services.Nouvelle demande de service' | trans) ~ '</span>'
             } %}
-
+            <input type="hidden" id="REMOVE_HOURS_DATETIME" value="setting_value('REMOVE_HOURS_DATETIME')">
             <div class="modal-body modal-input container-fluid">
                 <div class="row">
                     <div class="form-group col-md-6 col-12">
@@ -65,12 +65,12 @@
 
                     <div class="form-group col-md-6 col-12">
                         <label class="wii-field-name" for="desired-date">Date attendue*</label>
-                        <input type="{{ setting_value('REMOVE_HOURS_DATETIME') ? 'date' : 'datetime-local' }}"
-                               class="form-control data needed"
+                        <input type="text"
                                name="desired-date"
                                title="Date attendue"
-                               placeholder="jj/mm/aaaa"
-                               min="{{ 'now' | date(setting_value('REMOVE_HOURS_DATETIME') ? 'Y-m-d' : 'Y-m-d\\TH:i') }}"/>
+                               class="form-control data {{ setting_value('REMOVE_HOURS_DATETIME') ? 'date-field' : 'datetime-field' }} needed pointer"
+                               placeholder="{{ app.user.displayedDateFormat ~ (not setting_value('REMOVE_HOURS_DATETIME') ? ' MM:SS') }}"
+                               autocomplete="off"/>
                     </div>
 
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}
@@ -140,6 +140,7 @@
                                         colType: 'col-md-6 col-12',
                                         requiredType: 'requiredCreate',
                                         actionType: 'new',
+                                        needsDateFormatting: true
                                     } %}
                                 </div>
                             {% endfor %}
@@ -160,12 +161,13 @@
                     </div>
                 </div>
             </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-success', text: 'Enregistrer', id: 'submitNewHandling'}
+                ],
+            } %}
 
-            <div class="error-msg"></div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
-                <button id="submitNewHandling" type="button" class="btn btn-success">Enregistrer</button>
-            </div>
         </div>
     </div>
 </div>

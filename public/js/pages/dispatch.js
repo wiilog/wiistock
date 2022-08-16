@@ -12,13 +12,16 @@ $(function() {
     Select2Old.initFree(filtersContainer.find('.filter-select2[name="commandList"]'), $('#translateCommandNumber').val());
     Select2Old.user(filtersContainer.find('.ajax-autocomplete-user[name=receivers]'), 'Destinataires');
     Select2Old.user(filtersContainer.find('.ajax-autocomplete-user[name=requesters]'), 'Demandeurs');
-    initDateTimePicker();
+    const $userFormat = $('#userDateFormat');
+    const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
+
+    initDateTimePicker('#dateMin, #dateMax', DATE_FORMATS_TO_DISPLAY[format]);
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_DISPATCHES);
     $.post(path, params, function(data) {
-        displayFiltersSup(data);
+        displayFiltersSup(data, true);
     }, 'json');
 
     const $modalNewDispatch = $('#modalNewDispatch');

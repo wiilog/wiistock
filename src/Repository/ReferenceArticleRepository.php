@@ -248,7 +248,7 @@ class ReferenceArticleRepository extends EntityRepository {
 
         if($minQuantity !== null) {
             $queryBuilder
-                ->andWhere('reference.quantiteDisponible > :minQuantity')
+                ->andWhere('reference.quantiteDisponible >= :minQuantity')
                 ->setParameter('minQuantity', $minQuantity);
         }
 

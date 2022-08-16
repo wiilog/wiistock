@@ -180,7 +180,12 @@ class HandlingController extends AbstractController {
 
         $status = $statutRepository->find($post->get('status'));
         $type = $typeRepository->find($post->get('type'));
-        $desiredDate = $post->get('desired-date') ? new DateTime($post->get('desired-date')) : null;
+
+        $containsHours = $post->get('desired-date') && str_contains($post->get('desired-date'), ':');
+
+        $user = $this->getUser();
+        $format = ($user && $user->getDateFormat() ? $user->getDateFormat() : 'd/m/Y') . ($containsHours ? ' H:i' : '');
+        $desiredDate = $post->get('desired-date') ? DateTime::createFromFormat($format, $post->get('desired-date')) : null;
         $fileBag = $request->files->count() > 0 ? $request->files : null;
 
         $handlingNumber = $uniqueNumberService->create($entityManager, Handling::NUMBER_PREFIX, Handling::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
@@ -302,18 +307,16 @@ class HandlingController extends AbstractController {
                          NotificationService $notificationService,
                          StatusHistoryService $statusHistoryService): Response
     {
-        $statutRepository = $entityManager->getRepository(Statut::class);
-        $handlingRepository = $entityManager->getRepository(Handling::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
         $post = $request->request;
+        $containsHours = $post->get('desired-date') && str_contains($post->get('desired-date'), ':');
 
-        $date = (new DateTime('now'));
-        $desiredDateStr = $post->get('desired-date');
-        $desiredDate = $desiredDateStr ? FormatHelper::parseDatetime($desiredDateStr) : null;
+        $user = $this->getUser();
+        $format = ($user && $user->getDateFormat() ? $user->getDateFormat() : 'd/m/Y') . ($containsHours ? ' H:i' : '');
+        $desiredDate = $post->get('desired-date') ? DateTime::createFromFormat($format, $post->get('desired-date')) : null;
+
 
         /** @var Utilisateur $currentUser */
-        $currentUser = $this->getUser();
         $receivers = $post->get('receivers')
             ? explode(",", $post->get('receivers') ?? '')
             : [];
@@ -494,13 +497,15 @@ class HandlingController extends AbstractController {
                     : [],
                 $freeFieldsConfig['freeFieldsHeader']
             );
-
-            $globalTitle = 'export-services-' . $currentDate->format('d-m-Y') . '.csv';
+            $user = $this->getUser();
+            $today = new DateTime();
+            $today = $today->format($user->getDateFormat() ? $user->getDateFormat() . ' H:i:s' : "d-m-Y H:i:s");
+            $globalTitle = 'export-services-' . $today . '.csv';
             return $CSVExportService->createBinaryResponseFromData(
                 $globalTitle,
                 $handlings,
                 $csvHeader,
-                function ($handling) use ($freeFieldsConfig, $dateService, $includeDesiredTime, $receivers) {
+                function ($handling) use ($freeFieldsConfig, $dateService, $includeDesiredTime, $receivers, $user) {
 //                    $treatmentDelay = $handling['treatmentDelay'];
 //                    $treatmentDelayInterval = $treatmentDelay ? $dateService->secondsToDateInterval($treatmentDelay) : null;
 //                    $treatmentDelayStr = $treatmentDelayInterval ? $dateService->intervalToStr($treatmentDelayInterval) : '';
@@ -509,16 +514,16 @@ class HandlingController extends AbstractController {
                         ->join(", ");
                     $row = [];
                     $row[] = $handling['number'] ?? '';
-                    $row[] = FormatHelper::datetime($handling['creationDate']);
+                    $row[] = FormatHelper::datetime($handling['creationDate'], "", false, $user);
                     $row[] = $handling['sensorName'] ?? ($handling['requester'] ?? '');
                     $row[] = $handling['type'] ?? '';
                     $row[] = $handling['subject'] ?? '';
                     $row[] = $handling['loadingZone'] ?? '';
                     $row[] = $handling['unloadingZone'] ?? '';
                     $row[] = $includeDesiredTime
-                        ? FormatHelper::datetime($handling['desiredDate'])
-                        : FormatHelper::date($handling['desiredDate']);
-                    $row[] = FormatHelper::datetime($handling['validationDate']);
+                        ? FormatHelper::datetime($handling['desiredDate'], "", false, $user)
+                        : FormatHelper::date($handling['desiredDate'], "", false, $user);
+                    $row[] = FormatHelper::datetime($handling['validationDate'], "", false, $user);
                     $row[] = $handling['status'] ?? '';
                     $row[] = strip_tags($handling['comment']) ?? '';
                     $row[] = $handling['emergency'] ?? '';
@@ -528,7 +533,7 @@ class HandlingController extends AbstractController {
 //                    $row[] = $treatmentDelayStr;
 
                     foreach($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
-                        $row[] = FormatHelper::freeField($handling['freeFields'][$freeFieldId] ?? '', $freeField);
+                        $row[] = FormatHelper::freeField($handling['freeFields'][$freeFieldId] ?? '', $freeField, $user);
                     }
 
                     return [$row];
@@ -592,14 +597,16 @@ class HandlingController extends AbstractController {
                                      EntityManagerInterface $entityManager): JsonResponse {
         $handlingRepository = $entityManager->getRepository(Handling::class);
         $handling = $handlingRepository->find($id);
-
+        $user = $this->getUser();
         return $this->json([
             "success" => true,
             "template" => $this->renderView('handling/status-history.html.twig', [
                 "statusesHistory" => Stream::from($handling->getStatusHistory())
                     ->map(fn(StatusHistory $statusHistory) => [
                         "status" => FormatHelper::status($statusHistory->getStatus()),
-                        "date" => FormatHelper::longDate($statusHistory->getDate(), ["short" => true, "time" => true])
+                        "date" => $user->getDateFormat() === 'd/m/Y'
+                            ? FormatHelper::longDate($statusHistory->getDate(), ["short" => true, "time" => true])
+                            : FormatHelper::datetime($statusHistory->getDate(), "", false, $user)
                     ])
                     ->toArray(),
                 "handling" => $handling,

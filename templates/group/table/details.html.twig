@@ -14,7 +14,9 @@
                     </div>
                     {% if last_movement is not null %}
                         <div class="col-12 mt-2">
-                            Mouvementé la dernière fois le <strong>{{ last_movement.datetime | date('d/m/Y H:i:s') }}</strong>
+                            Mouvementé la dernière fois le <strong>
+                                {{ last_movement.datetime | date(app.user.dateFormat ? (app.user.dateFormat ~ ' H:i:s') : 'd/m/Y H:i:s') }}
+                            </strong>
                             sur l'emplacement <strong>{{ last_movement.emplacement ? last_movement.emplacement.label : '-' }}</strong> par
                             <strong>{{ last_movement.operateur.username }}</strong>
                         </div>

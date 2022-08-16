@@ -1192,6 +1192,19 @@ class SettingsController extends AbstractController {
             self::CATEGORY_USERS => [
                 self::MENU_USERS => fn() => [
                     "newUser" => new Utilisateur(),
+                    "languages" => Stream::from($languageRepository->findAll())
+                        ->map(fn(Language $language) => [
+                            "value" => $language->getId(),
+                            "label" => $language->getLabel(),
+                            "icon" => $language->getFlag(),
+                        ])
+                        ->toArray(),
+                    "dateFormats" => Stream::from(Language::DATE_FORMATS)
+                        ->map(fn($format, $key) => [
+                            "label" => $key,
+                            "value" => $format,
+                        ])
+                        ->toArray(),
                 ],
                 self::MENU_LANGUAGES => fn() => [
                     'translations' => $translationRepository->findAll(),

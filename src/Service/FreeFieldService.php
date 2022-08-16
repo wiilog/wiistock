@@ -5,9 +5,11 @@ namespace App\Service;
 use App\Entity\CategorieCL;
 use App\Entity\FreeField;
 use App\Entity\Type;
+use App\Entity\Utilisateur;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Helper\FormatHelper;
+use Monolog\Handler\Curl\Util;
 use RuntimeException;
 use WiiCommon\Helper\Stream;
 
@@ -46,7 +48,7 @@ class FreeFieldService {
 
     public function manageFreeFields($entity,
                                      array $data,
-                                     EntityManagerInterface $entityManager) {
+                                     EntityManagerInterface $entityManager, Utilisateur $user = null) {
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $freeFields = [];
         $champsLibresKey = array_keys($data);
@@ -54,7 +56,7 @@ class FreeFieldService {
             if (gettype($field) === 'integer') {
                 $champLibre = $champLibreRepository->find($field);
                 if ($champLibre) {
-                    $freeFields[$champLibre->getId()] = $this->manageJSONFreeField($champLibre, $data[$field]);
+                    $freeFields[$champLibre->getId()] = $this->manageJSONFreeField($champLibre, $data[$field], $user);
                 }
 
             }
@@ -63,7 +65,7 @@ class FreeFieldService {
         $entity->setFreeFields($freeFields);
     }
 
-    public function manageJSONFreeField(FreeField $champLibre, $value): string {
+    public function manageJSONFreeField(FreeField $champLibre, $value, Utilisateur $user = null): string {
         switch ($champLibre->getTypage()) {
             case FreeField::TYPE_BOOL:
                 $value = empty($value) || $value === "false" ? "0" : "1";
@@ -88,6 +90,10 @@ class FreeFieldService {
                 if(preg_match("/(\d{2})\/(\d{2})\/(\d{4})T(\d{2}):(\d{2})/", $value)) {
                     $date = DateTime::createFromFormat("d/m/Y H:i", $value);
                     $value = $date->format("Y-m-dTH:i");
+                } else if ($user && $user->getDateFormat()) {
+                    $format = $user->getDateFormat() . ' H:i';
+                    $date = DateTime::createFromFormat($format, $value);
+                    $value = $date->format($format);
                 }
                 break;
 
@@ -104,10 +110,9 @@ class FreeFieldService {
 
     public function getFilledFreeFieldArray(EntityManagerInterface $entityManager,
                                                                    $entity,
-                                            array                  $displayedOptions) {
+                                            array                  $displayedOptions, Utilisateur $user = null) {
         $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
         $freeFieldCategoryRepository = $entityManager->getRepository(CategorieCL::class);
-
 
         /** @var Type $type */
         $type = $displayedOptions['type'] ?? null;
@@ -136,7 +141,7 @@ class FreeFieldService {
         return Stream::from($freeFields ?? [])
             ->map(fn (FreeField $freeField) => [
                 'label' => $freeField->getLabel(),
-                'value' => FormatHelper::freeField($freeFieldValues[$freeField->getId()] ?? null, $freeField)
+                'value' => FormatHelper::freeField($freeFieldValues[$freeField->getId()] ?? null, $freeField, $user)
             ])
             ->toArray();
     }

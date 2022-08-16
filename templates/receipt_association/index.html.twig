@@ -5,7 +5,9 @@
 {% block page_filter %}
     {% include 'filters/filtersReceiptAssociation.html.twig' with {
         page : 'PAGE_RECEIPT_ASSOCIATION',
-        tableSelector : '#receiptAssociationTable'
+        tableSelector : '#receiptAssociationTable',
+        callback: 'null',
+        needsDateFormatting: true
     } %}
 {% endblock %}
 {% block page_content %}
@@ -18,10 +20,10 @@
                     <div class="btn-group">
                         {% if hasRightCreate %}
                             <button type="button"
-                                    class="btn btn-primary {{ hasRightExport ? 'split-button' }}"
+                                    class="btn btn-primary d-flex align-items-center {{ hasRightExport ? 'split-button' }}"
                                     data-target='#modalNewReceiptAssociation'
                                     data-toggle='modal'>
-                                <i class="fa fa-plus mr-1"></i>
+                                <span class="wii-icon wii-icon-plus mr-2"></span>
                                 Association / BR
                             </button>
                         {% endif %}
@@ -36,7 +38,7 @@
 
                             <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
                                 <div class="dropdown-item pointer"
-                                     onclick="saveExportFile('get_receipt_associations_csv')">
+                                     onclick="saveExportFile('get_receipt_associations_csv', true, {}, false, 'Veuillez saisir des dates dans le filtre en haut de page.', true)">
                                     <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
                                 </div>
                             </div>

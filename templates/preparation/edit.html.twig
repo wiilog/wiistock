@@ -14,12 +14,13 @@
                 }) }}
                 <input type="hidden" class="data" name="id" value="{{ preparation ? preparation.id }}">
             </div>
-            <div class="error-msg"></div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
-                <button type="submit" class="btn btn-success">Enregistrer
-                </button>
-            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-success', text: 'Enregistrer', type: 'submit'}
+                ],
+            } %}
+
         </div>
     </div>
 </div>

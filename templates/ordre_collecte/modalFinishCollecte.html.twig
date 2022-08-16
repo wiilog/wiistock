@@ -15,19 +15,13 @@
                     </thead>
                     <tbody></tbody>
                 </table>
-                <div class="error-msg"></div>
-                <div class="modal-footer">
-                    <button type="button"
-                            class="btn btn-outline-secondary"
-                            data-dismiss="modal">
-                        Annuler
-                    </button>
-                    <button id="submitFinishCollecte"
-                            type="button"
-                            class="btn btn-success">
-                        Finir la collecte
-                    </button>
-                </div>
+                {% include 'utils/modal/footer.html.twig' with {
+                    elements: [
+                        {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                        {classes: 'btn btn-success', text: 'Finir la collecte', id: 'submitFinishCollecte'}
+                    ],
+                } %}
+
             </div>
         </div>
     </div>

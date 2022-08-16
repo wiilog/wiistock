@@ -1039,9 +1039,9 @@ class DispatchController extends AbstractController {
                     $row = [];
                     $row[] = $number;
                     $row[] = $dispatch['commandNumber'] ?: '';
-                    $row[] = $dispatch['creationDate'] ? $dispatch['creationDate']->format('d/m/Y H:i:s') : '';
-                    $row[] = $dispatch['validationDate'] ? $dispatch['validationDate']->format('d/m/Y H:i:s') : '';
-                    $row[] = $dispatch['treatmentDate'] ? $dispatch['treatmentDate']->format('d/m/Y H:i:s') : '';
+                    $row[] = FormatHelper::datetime($dispatch['creationDate'], "", false, $this->getUser());
+                    $row[] = FormatHelper::datetime($dispatch['validationDate'], "", false, $this->getUser());
+                    $row[] = FormatHelper::datetime($dispatch['treatmentDate'], "", false, $this->getUser());
                     $row[] = $dispatch['type'] ?? '';
                     $row[] = $dispatch['requester'] ?? '';
                     $row[] = $receiversStr;
@@ -1056,13 +1056,13 @@ class DispatchController extends AbstractController {
                     $row[] = $dispatch['packQuantity'] ?? '';
                     $row[] = $dispatch['dispatchQuantity'] ?? '';
                     $row[] = $dispatch['weight'] ?? '';
-                    $row[] = $dispatch['lastMovement'] ? $dispatch['lastMovement']->format('Y/m/d H:i') : '';
+                    $row[] = FormatHelper::datetime($dispatch['lastMovement'], "", false, $this->getUser());
                     $row[] = $dispatch['lastLocation'] ?? '';
                     $row[] = $dispatch['operator'] ?? '';
                     $row[] = $dispatch['treatedBy'] ?? '';
 
                     foreach($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
-                        $row[] = FormatHelper::freeField($dispatch['freeFields'][$freeFieldId] ?? '', $freeField);
+                        $row[] = FormatHelper::freeField($dispatch['freeFields'][$freeFieldId] ?? '', $freeField, $this->getUser());
                     }
 
                     return [$row];

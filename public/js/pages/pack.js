@@ -58,7 +58,10 @@ let groupsTable;
 
 $(function() {
     $('.select2').select2();
-    initDateTimePicker();
+    const $userFormat = $('#userDateFormat');
+    const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
+
+    initDateTimePicker('#dateMin, #dateMax', DATE_FORMATS_TO_DISPLAY[format]);
     Select2Old.init($('.filter-select2[name="natures"]'), 'Natures');
     Select2Old.location($('.ajax-autocomplete-emplacements'), {}, "Emplacement", 3);
 
@@ -66,7 +69,7 @@ $(function() {
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_PACK);
     $.post(path, params, function(data) {
-        displayFiltersSup(data);
+        displayFiltersSup(data, true);
     }, 'json');
 
     switchPageBasedOnHash();
@@ -142,9 +145,9 @@ function switchGroups() {
 
 function toExport() {
     if(selectedTab === TAB_PACKS) {
-        saveExportFile(`export_packs`);
+        saveExportFile(`export_packs`, true, {}, false, 'Veuillez saisir des dates dans le filtre en haut de page.', true);
     } else {
-        saveExportFile(`export_groups`);
+        saveExportFile(`export_groups`, true, {}, false, 'Veuillez saisir des dates dans le filtre en haut de page.', true);
     }
 }
 
