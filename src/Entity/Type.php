@@ -122,6 +122,9 @@ class Type {
     #[ORM\OneToOne(targetEntity: Attachment::class, cascade: ['persist', 'remove'])]
     private ?Attachment $logo = null;
 
+    #[ORM\OneToOne(targetEntity: TranslationSource::class, inversedBy: "type")]
+    private ?TranslationSource $labelTranslation = null;
+
     public function __construct() {
         $this->champsLibres = new ArrayCollection();
         $this->referenceArticles = new ArrayCollection();
@@ -775,6 +778,24 @@ class Type {
 
     public function setLogo(?Attachment $logo): self {
         $this->logo = $logo;
+
+        return $this;
+    }
+
+    public function getLabelTranslation(): ?TranslationSource {
+        return $this->labelTranslation;
+    }
+
+    public function setLabelTranslation(?TranslationSource $labelTranslation): self {
+        if($this->labelTranslation && $this->labelTranslation->getType() !== $this) {
+            $oldLabelTranslation = $this->labelTranslation;
+            $this->labelTranslation = null;
+            $oldLabelTranslation->setType(null);
+        }
+        $this->labelTranslation = $labelTranslation;
+        if($this->labelTranslation && $this->labelTranslation->getType() !== $this) {
+            $this->labelTranslation->setType($this);
+        }
 
         return $this;
     }

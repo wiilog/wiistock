@@ -274,6 +274,12 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\ManyToOne(targetEntity: TransportRoundStartingHour::class, inversedBy: 'deliverers')]
     private ?TransportRoundStartingHour $transportRoundStartingHour = null;
 
+    #[ORM\ManyToOne(targetEntity: Language::class)]
+    private ?Language $language = null;
+
+    #[ORM\Column(type: 'string', nullable: true)]
+    private ?string $dateFormat = null;
+
     public function __construct() {
         $this->receptions = new ArrayCollection();
         $this->demandes = new ArrayCollection();
@@ -1909,6 +1915,24 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
 
     public function getUserIdentifier(): string {
         return $this->getEmail();
+    }
+
+    public function getLanguage(): ?Language {
+        return $this->language;
+    }
+
+    public function setLanguage(?Language $language): self {
+        $this->language = $language;
+        return $this;
+    }
+
+    public function getDateFormat(): ?string {
+        return $this->dateFormat;
+    }
+
+    public function setDateFormat(?string $dateFormat): self {
+        $this->dateFormat = $dateFormat;
+        return $this;
     }
 
 }

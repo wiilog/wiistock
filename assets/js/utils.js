@@ -8,6 +8,7 @@ global.ALLOWED_IMAGE_EXTENSIONS = ALLOWED_IMAGE_EXTENSIONS;
 
 global.updateImagePreview = updateImagePreview;
 global.resetImage = resetImage;
+global.onSettingsItemSelected = onSettingsItemSelected;
 
 function updateImagePreview(preview, upload, $title = null, $delete = null, $callback = null) {
     let $upload = $(upload)[0];
@@ -83,4 +84,19 @@ function resetImage($button) {
         .attr('src', defaultValue)
         .removeClass('d-none');
     $keepImage.val(0);
+}
+
+function onSettingsItemSelected($selected, $settingsItems, $settingsContents) {
+    const $buttons = $('main .save');
+    const selectedKey = $selected.data('menu');
+
+    $settingsItems.removeClass('selected');
+    $settingsContents.addClass('d-none');
+
+    $selected.addClass('selected');
+    $settingsContents
+        .filter(`[data-menu="${selectedKey}"]`)
+        .removeClass('d-none');
+
+    $buttons.removeClass('d-none');
 }
