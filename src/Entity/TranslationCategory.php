@@ -169,4 +169,16 @@ class TranslationCategory {
         return $this;
     }
 
+    public function getTranslations($languageSlugFrom, $languageSlugTo): array {
+        $categorySources = $this->getTranslationSources();
+        $translations = [];
+        foreach ($categorySources as $categorySource) {
+            $translations[] = [
+                'tooltips' => $categorySource->getTooltip(),
+                'original' => $categorySource->getTranslationIn($languageSlugFrom),
+                'translation' => $categorySource->getTranslationIn($languageSlugTo)
+            ];
+        }
+        return $translations;
+    }
 }
