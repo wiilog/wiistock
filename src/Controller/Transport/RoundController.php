@@ -219,7 +219,7 @@ class RoundController extends AbstractController {
                     $maxThreshold = $maxTriggerActionThreshold?->getConfig()['temperature'];
                 }
                 if(!$transportRound->getEndedAt()) {
-                    $end = clone $transportRound->getBeganAt();
+                    $end = clone ($transportRound->getBeganAt() ?? new DateTime("now"));
                     $end->setTime(23, 59);
                 } else {
                     $end = $transportRound->getEndedAt();

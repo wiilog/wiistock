@@ -157,8 +157,9 @@ class RequestController extends AbstractController {
         $delivererPosition = $delivererPosition ? $delivererPosition["content"] : null;
 
         if ($round) {
+
             if(!$round->getEndedAt()) {
-                $end = clone $round->getBeganAt();
+                $end = clone ($round->getBeganAt() ?? new DateTime("now"));
                 $end->setTime(23, 59);
             } else {
                 $end = $round->getEndedAt();
@@ -189,7 +190,7 @@ class RequestController extends AbstractController {
                     $maxThreshold = $maxTriggerActionThreshold?->getConfig()['temperature'];
                 }
                 if(!$round->getEndedAt()) {
-                    $end = clone $round->getBeganAt();
+                    $end = clone ($round->getBeganAt() ?? new DateTime("now"));
                     $end->setTime(23, 59);
                 } else {
                     $end = $round->getEndedAt();
