@@ -154,9 +154,16 @@ class OrderController extends AbstractController {
                 $round->getEndedAt(),
                 Sensor::GPS)
             : null;
-        $delivererPosition = $delivererPosition ? $delivererPosition["content"] : null;
 
+        $delivererPosition = $delivererPosition ? $delivererPosition["content"] : null;
         if ($round) {
+            if(!$round->getEndedAt()) {
+                $end = clone $round->getBeganAt();
+                $end->setTime(23, 59);
+            } else {
+                $end = $round->getEndedAt();
+            }
+
             $now = new DateTime();
             $urls = [];
             $roundLine = $transport->getTransportRoundLines()->last();
@@ -165,7 +172,7 @@ class OrderController extends AbstractController {
                 : null;
 
             foreach ($transportRound?->getLocations() ?? [] as $location) {
-                $hasSensorMessageBetween = $location->getSensorMessagesBetween($round->getBeganAt(), $round->getEndedAt());
+                $hasSensorMessageBetween = $location->getSensorMessagesBetween($round->getBeganAt(), $end);
                 if(!$hasSensorMessageBetween) {
                     continue;
                 }
