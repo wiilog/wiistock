@@ -140,13 +140,17 @@
         {% for item in items %}
             {% set id = random(100000, 10000000) %}
 
-            <div class="wii-radio mt-1">
-                <input type="radio" id="radio-{{ id }}" class="data mr-2" value="{{ item.value ?? '' }}"
+            <div class="wii-radio mt-1 {{ options.inputClass ?? '' }}">
+                <input type="radio" id="radio-{{ id }}" class="data mr-2  " value="{{ item.value ?? '' }}"
                     {{ required ? 'required' }}
                     {{ _self.common_attributes(name, options) }}
                     {{ _self.multiple_key(options) }}
                     {{ (item.checked ?? false) ? 'checked' }} />
+
                 <label class="{{ options.labelClass ?? '' }} pointer d-inline-flex align-items-center" for="radio-{{ id }}">
+                    {% if item.iconUrl ?? false %}
+                        <img src="{{ item.iconUrl }}" alt="" width="20px" class="mr-2 {{ options.iconClass }}">
+                    {% endif %}
                     {{ item.label }}
                 </label>
                 {{ _self.tooltip(item.tooltip ?? null) }}
