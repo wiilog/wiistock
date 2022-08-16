@@ -161,7 +161,7 @@ class OrderController extends AbstractController {
                 $end = clone ($round->getBeganAt() ?? new DateTime("now"));
                 $end->setTime(23, 59);
             } else {
-                $end = $round->getEndedAt();
+                $end = min((clone ($round->getBeganAt()))->setTime(23, 59), $round->getEndedAt());
             }
 
             $now = new DateTime();
@@ -194,7 +194,7 @@ class OrderController extends AbstractController {
                     $end = clone ($round->getBeganAt() ?? new DateTime("now"));
                     $end->setTime(23, 59);
                 } else {
-                    $end = $round->getEndedAt();
+                    $end = min((clone ($round->getBeganAt()))->setTime(23, 59), $round->getEndedAt());
                 }
 
                 $urls[] = [
