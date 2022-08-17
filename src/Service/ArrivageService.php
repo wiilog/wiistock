@@ -20,7 +20,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Contracts\Translation\TranslatorInterface;
+use App\Service\TranslationService;
 use Twig\Environment;
 
 
@@ -51,7 +51,7 @@ class ArrivageService {
     public StringService $stringService;
 
     /** @Required */
-    public TranslatorInterface $translator;
+    public TranslationService $translation;
 
     /** @Required */
     public FreeFieldService $freeFieldService;
@@ -413,19 +413,19 @@ class ArrivageService {
                 'show' => [ 'fieldName' => 'noTracking' ]
             ],
             [
-                'label' => $this->translator->trans('arrivage.Numéro de commande'),
+                'label' => $this->translation->trans('arrivage.Numéro de commande'),
                 'title' => 'Numéro de commande',
                 'value' => !empty($numeroCommandeList) ? implode(', ', $numeroCommandeList) : '',
                 'show' => [ 'fieldName' => 'numeroCommandeList' ]
             ],
             [
-                'label' => $this->translator->trans('arrivage.destinataire'),
+                'label' => $this->translation->trans('arrivage.destinataire'),
                 'title' => 'destinataire',
                 'value' => $destinataire ? $destinataire->getUsername() : '',
                 'show' => [ 'fieldName' => 'destinataire' ]
             ],
             [
-                'label' => $this->translator->trans('arrivage.acheteurs'),
+                'label' => $this->translation->trans('arrivage.acheteurs'),
                 'title' => 'acheteurs',
                 'value' => $buyers->count() > 0 ? implode(', ', $buyers->map(function (Utilisateur $buyer) {return $buyer->getUsername();})->toArray()) : '',
                 'show' => [ 'fieldName' => 'acheteurs' ]
@@ -436,18 +436,18 @@ class ArrivageService {
                 'show' => [ 'fieldName' => 'projectNumber' ]
             ],
             [
-                'label' => $this->translator->trans('acheminement.Business unit'),
+                'label' => $this->translation->trans('acheminement.Business unit'),
                 'value' => $arrivage->getBusinessUnit(),
                 'show' => [ 'fieldName' => 'businessUnit' ]
             ],
             [
-                'label' => $this->translator->trans('arrivage.douane'),
+                'label' => $this->translation->trans('arrivage.douane'),
                 'title' => 'douane',
                 'value' => $arrivage->getCustoms() ? 'oui' : 'non',
                 'show' => [ 'fieldName' => 'customs' ]
             ],
             [
-                'label' => $this->translator->trans('arrivage.congelé'),
+                'label' => $this->translation->trans('arrivage.congelé'),
                 'title' => 'congelé',
                 'value' => $arrivage->getFrozen() ? 'oui' : 'non',
                 'show' => [ 'fieldName' => 'frozen' ]

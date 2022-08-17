@@ -56,7 +56,7 @@ use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Contracts\Translation\TranslatorInterface;
+use App\Service\TranslationService;
 use Throwable;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
@@ -173,7 +173,7 @@ class DispatchController extends AbstractController {
                         DispatchService $dispatchService,
                         AttachmentService $attachmentService,
                         EntityManagerInterface $entityManager,
-                        TranslatorInterface $translator,
+                        TranslationService $translation,
                         UniqueNumberService $uniqueNumberService,
                         RedirectService $redirectService): Response {
         if(!$this->userService->hasRightFunction(Menu::DEM, Action::CREATE) ||
@@ -368,7 +368,7 @@ class DispatchController extends AbstractController {
         catch(UniqueConstraintViolationException $e) {
             return new JsonResponse([
                 'success' => false,
-                'msg' => $translator->trans('acheminement.Une autre demande d\'acheminement est en cours de création, veuillez réessayer') . '.'
+                'msg' => $translation->trans('acheminement.Une autre demande d\'acheminement est en cours de création, veuillez réessayer') . '.'
             ]);
         }
 
@@ -387,7 +387,7 @@ class DispatchController extends AbstractController {
         return new JsonResponse([
             'success' => true,
             'redirect' => $redirectService->generateUrl("dispatch_show", $showArguments, self::EXTRA_OPEN_PACK_MODAL),
-            'msg' => $translator->trans('acheminement.L\'acheminement a bien été créé') . '.'
+            'msg' => $translation->trans('acheminement.L\'acheminement a bien été créé') . '.'
         ]);
     }
 
@@ -432,11 +432,11 @@ class DispatchController extends AbstractController {
      * @Route("/{dispatch}/etat", name="print_dispatch_state_sheet", options={"expose"=true}, methods="GET|POST")
      * @HasPermission({Menu::DEM, Action::DISPLAY_ACHE})
      */
-    public function printDispatchStateSheet(PDFGeneratorService $generator, TranslatorInterface $translator, Dispatch $dispatch): ?Response {
+    public function printDispatchStateSheet(PDFGeneratorService $generator, TranslationService $translation, Dispatch $dispatch): ?Response {
         if($dispatch->getDispatchPacks()->isEmpty()) {
             return $this->json([
                 "success" => false,
-                "msg" => $translator->trans('acheminement.Le bon d\'acheminement n\'existe pas pour cet acheminement')
+                "msg" => $translation->trans('acheminement.Le bon d\'acheminement n\'existe pas pour cet acheminement')
             ]);
         }
 
@@ -453,7 +453,7 @@ class DispatchController extends AbstractController {
                          DispatchService $dispatchService,
                          FreeFieldService $freeFieldService,
                          EntityManagerInterface $entityManager,
-                         TranslatorInterface $translator): Response {
+                         TranslationService $translation): Response {
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $transporterRepository = $entityManager->getRepository(Transporteur::class);
@@ -567,7 +567,7 @@ class DispatchController extends AbstractController {
                 'showDetails' => $dispatchService->createHeaderDetailsConfig($dispatch)
             ]),
             'success' => true,
-            'msg' => $translator->trans('acheminement.L\'acheminement a bien été modifié') . '.'
+            'msg' => $translation->trans('acheminement.L\'acheminement a bien été modifié') . '.'
         ]);
     }
 
@@ -623,7 +623,7 @@ class DispatchController extends AbstractController {
      */
     public function delete(Request $request,
                            EntityManagerInterface $entityManager,
-                           TranslatorInterface $translator): Response {
+                           TranslationService $translation): Response {
         if($data = json_decode($request->getContent(), true)) {
             $dispatchRepository = $entityManager->getRepository(Dispatch::class);
             $attachmentRepository = $entityManager->getRepository(Attachment::class);
@@ -655,7 +655,7 @@ class DispatchController extends AbstractController {
             return new JsonResponse([
                 'success' => true,
                 'redirect' => $this->generateUrl('dispatch_index'),
-                'msg' => $translator->trans("acheminement.L''acheminement a bien été supprimé") . '.'
+                'msg' => $translation->trans("acheminement.L''acheminement a bien été supprimé") . '.'
             ]);
         }
 
@@ -726,7 +726,7 @@ class DispatchController extends AbstractController {
      */
     public function newPack(Request $request,
                             EntityManagerInterface $entityManager,
-                            TranslatorInterface $translator,
+                            TranslationService $translation,
                             PackService $packService,
                             Dispatch $dispatch): Response {
         $data = $request->request->all();
@@ -794,7 +794,7 @@ class DispatchController extends AbstractController {
         $pack->setVolume($volume ? round($volume, 3) : null);
 
         $success = true;
-        $message = $translator->trans("colis.Le colis {numéro} a bien été " . ($dispatchPack->getId() ? "modifié" : "ajouté"), [
+        $message = $translation->trans("colis.Le colis {numéro} a bien été " . ($dispatchPack->getId() ? "modifié" : "ajouté"), [
             "{numéro}" => "<strong>{$pack->getCode()}</strong>"
         ]);
 
@@ -811,7 +811,7 @@ class DispatchController extends AbstractController {
      * @Route("/packs/delete", name="dispatch_delete_pack", options={"expose"=true},methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
      */
     public function deletePack(Request $request,
-                               TranslatorInterface $translator,
+                               TranslationService $translation,
                                EntityManagerInterface $entityManager): Response {
         if($data = json_decode($request->getContent(), true)) {
             $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
@@ -835,7 +835,7 @@ class DispatchController extends AbstractController {
      */
     public function validateDispatchRequest(Request $request,
                                             EntityManagerInterface $entityManager,
-                                            TranslatorInterface $translator,
+                                            TranslationService $translation,
                                             Dispatch $dispatch,
                                             DispatchService $dispatchService,
                                             NotificationService $notificationService): Response {
@@ -876,7 +876,7 @@ class DispatchController extends AbstractController {
 
         return new JsonResponse([
             'success' => true,
-            'msg' => $translator->trans('acheminement.L\'acheminement a bien été passé en à traiter'),
+            'msg' => $translation->trans('acheminement.L\'acheminement a bien été passé en à traiter'),
             'redirect' => $this->generateUrl('dispatch_show', ['id' => $dispatch->getId()])
         ]);
     }
@@ -886,7 +886,7 @@ class DispatchController extends AbstractController {
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @param DispatchService $dispatchService
-     * @param TranslatorInterface $translator
+     * @param TranslationService $translation
      * @param Dispatch $dispatch
      * @return Response
      * @throws Exception
@@ -894,7 +894,7 @@ class DispatchController extends AbstractController {
     public function treatDispatchRequest(Request $request,
                                          EntityManagerInterface $entityManager,
                                          DispatchService $dispatchService,
-                                         TranslatorInterface $translator,
+                                         TranslationService $translation,
                                          Dispatch $dispatch,
                                          ArrivageService $arrivalService): Response {
         $status = $dispatch->getStatut();
@@ -925,7 +925,7 @@ class DispatchController extends AbstractController {
 
         return new JsonResponse([
             'success' => true,
-            'msg' => $translator->trans('acheminement.L\'acheminement a bien été traité'),
+            'msg' => $translation->trans('acheminement.L\'acheminement a bien été traité'),
             'redirect' => $this->generateUrl('dispatch_show', ['id' => $dispatch->getId()])
         ]);
     }
@@ -971,14 +971,14 @@ class DispatchController extends AbstractController {
      * @param FreeFieldService $freeFieldService
      * @param CSVExportService $CSVExportService
      * @param EntityManagerInterface $entityManager
-     * @param TranslatorInterface $translator
+     * @param TranslationService $translation
      * @return Response
      */
     public function getDispatchesCSV(Request $request,
                                      FreeFieldService $freeFieldService,
                                      CSVExportService $CSVExportService,
                                      EntityManagerInterface $entityManager,
-                                     TranslatorInterface $translator): Response {
+                                     TranslationService $translation): Response {
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
 
@@ -999,23 +999,23 @@ class DispatchController extends AbstractController {
             $csvHeader = array_merge(
                 [
                     'Numéro demande',
-                    $translator->trans('acheminement.Numéro de commande'),
+                    $translation->trans('acheminement.Numéro de commande'),
                     'Date de création',
                     'Date de validation',
                     'Date de traitement',
                     'Type',
                     'Demandeur',
                     'Destinataire',
-                    $translator->trans('acheminement.Emplacement prise'),
-                    $translator->trans('acheminement.Emplacement dépose'),
-                    $translator->trans('acheminement.Destination'),
-                    'Nb ' . $translator->trans('colis.colis'),
+                    $translation->trans('acheminement.Emplacement prise'),
+                    $translation->trans('acheminement.Emplacement dépose'),
+                    $translation->trans('acheminement.Destination'),
+                    'Nb ' . $translation->trans('colis.colis'),
                     'Statut',
                     'Urgence',
-                    $translator->trans('natures.nature'),
+                    $translation->trans('natures.nature'),
                     'Code',
-                    'Quantité ' . $translator->trans('colis.colis'),
-                    $translator->trans('acheminement.Quantité à acheminer'),
+                    'Quantité ' . $translation->trans('colis.colis'),
+                    $translation->trans('acheminement.Quantité à acheminer'),
                     'Poids',
                     'Date dernier mouvement',
                     'Dernier emplacement',
@@ -1082,19 +1082,19 @@ class DispatchController extends AbstractController {
      *     condition="request.isXmlHttpRequest()"
      * )
      * @param Request $request
-     * @param TranslatorInterface $translator
+     * @param TranslationService $translation
      * @param Dispatch $dispatch
      * @return JsonResponse
      */
     public function apiDeliveryNote(Request $request, EntityManagerInterface $manager,
-                                    TranslatorInterface $translator,
+                                    TranslationService $translation,
                                     Dispatch $dispatch): JsonResponse {
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
         $maxNumberOfPacks = 10;
 
         if($dispatch->getDispatchPacks()->count() === 0) {
-            $errorMessage = $translator->trans('acheminement.Des colis sont nécessaires pour générer un bon de livraison') . '.';
+            $errorMessage = $translation->trans('acheminement.Des colis sont nécessaires pour générer un bon de livraison') . '.';
 
             return $this->json([
                 "success" => false,
@@ -1241,13 +1241,13 @@ class DispatchController extends AbstractController {
      *     options={"expose"=true},
      *     methods="GET"
      * )
-     * @param TranslatorInterface $trans
+     * @param TranslationService $trans
      * @param Dispatch $dispatch
      * @param KernelInterface $kernel
      * @param Attachment $attachment
      * @return PdfResponse
      */
-    public function printDeliveryNote(TranslatorInterface $trans,
+    public function printDeliveryNote(TranslationService $trans,
                                       Dispatch $dispatch,
                                       KernelInterface $kernel,
                                       Attachment $attachment): Response {
@@ -1272,15 +1272,15 @@ class DispatchController extends AbstractController {
      *     methods="GET",
      *     condition="request.isXmlHttpRequest()"
      * )
-     * @param TranslatorInterface $translator
+     * @param TranslationService $translation
      * @param Dispatch $dispatch
      * @return JsonResponse
      */
-    public function checkWaybill(TranslatorInterface $translator, Dispatch $dispatch) {
+    public function checkWaybill(TranslationService $translation, Dispatch $dispatch) {
         if($dispatch->getDispatchPacks()->count() === 0) {
             return new JsonResponse([
                 'success' => false,
-                'msg' => $translator->trans('acheminement.Des colis sont nécessaires pour générer une lettre de voiture') . '.'
+                'msg' => $translation->trans('acheminement.Des colis sont nécessaires pour générer une lettre de voiture') . '.'
             ]);
         } else {
             return new JsonResponse([
@@ -1383,12 +1383,12 @@ class DispatchController extends AbstractController {
                                         Dispatch $dispatch,
                                         PDFGeneratorService $pdf,
                                         DispatchService $dispatchService,
-                                        TranslatorInterface $translator,
+                                        TranslationService $translation,
                                         Request $request,
                                         SpecificService $specificService): JsonResponse {
 
         if($dispatch->getDispatchPacks()->count() > DispatchService::WAYBILL_MAX_PACK) {
-            $message = 'Attention : ' . $translator->trans("acheminement.L''acheminement contient plus de {nombre} colis", ["{nombre}" => DispatchService::WAYBILL_MAX_PACK]) . ', cette lettre de voiture ne peut contenir plus de ' . DispatchService::WAYBILL_MAX_PACK . ' lignes.';
+            $message = 'Attention : ' . $translation->trans("acheminement.L''acheminement contient plus de {nombre} colis", ["{nombre}" => DispatchService::WAYBILL_MAX_PACK]) . ', cette lettre de voiture ne peut contenir plus de ' . DispatchService::WAYBILL_MAX_PACK . ' lignes.';
             $success = false;
         } else {
             /** @var Utilisateur $loggedUser */
@@ -1458,7 +1458,7 @@ class DispatchController extends AbstractController {
      *     methods="GET"
      * )
      */
-    public function printWaybillNote(TranslatorInterface $trans,
+    public function printWaybillNote(TranslationService $trans,
                                      Dispatch $dispatch,
                                      Attachment $attachment,
                                      KernelInterface $kernel): Response {

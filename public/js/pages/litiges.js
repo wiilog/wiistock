@@ -16,10 +16,10 @@ $(function () {
     initDateTimePicker('#dateMin, #dateMax', DATE_FORMATS_TO_DISPLAY[format]);
 
     Select2Old.init($('#carriers'), 'Transporteurs');
-    Select2Old.init($('#litigeOrigin'), 'Origines');
+    Select2Old.init($('#litigeOrigin'), Translation.of(`Qualité`, `Litiges`, `Origines`));
     Select2Old.user($('.ajax-autocomplete-user:eq(0)'), 'Acheteurs');
     Select2Old.user($('.ajax-autocomplete-user:eq(1)'), 'Déclarant');
-    Select2Old.dispute($('.ajax-autocomplete-dispute'),'Numéro de litige');
+    Select2Old.dispute($('.ajax-autocomplete-dispute'), Translation.of(`Qualité`, `Litiges`, `Numéro de litige`));
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
@@ -49,22 +49,22 @@ function initDatatableLitiges() {
             needsColumnShow: true
         },
         columns: [
-            {"data": 'actions', 'name': 'actions', 'title': '', 'orderable': false, className: 'noVis'},
-            {"data": 'type', 'name': 'type', 'title': 'Type'},
-            {"data": 'disputeNumber', 'name': 'disputeNumber', 'title': 'Numéro du litige'},
-            {"data": "arrivalNumber", 'name': "arrivalNumber", 'title': 'arrivage.n° d\'arrivage', translated: true, className: 'noVis'},
-            {"data": 'receptionNumber', 'name': "receptionNumber", 'title': 'réception.n° de réception', translated: true, className: 'noVis'},
-            {"data": 'buyers', 'name': 'buyers', 'title': 'Acheteur', 'orderable': false},
-            {"data": 'reporter', 'name': 'reporter', 'title': 'Déclarant'},
-            {"data": 'numCommandeBl', 'name': 'numCommandeBl', 'title': 'N° commande / BL'},
-            {"data": 'command', 'name': 'command', 'title': 'N° ligne', 'orderable': false},
-            {"data": 'provider', 'name': 'provider', 'title': 'Fournisseur'},
-            {"data": 'references', 'name': 'references', 'title': 'Référence', 'orderable': false},
-            {"data": 'lastHistoryRecord', 'name': 'lastHistoryRecord', 'title': 'Dernier historique', 'orderable': false},
-            {"data": 'creationDate', 'name': 'creationDate', 'title': 'Créé le'},
-            {"data": 'updateDate', 'name': 'updateDate', 'title': 'Modifié le'},
-            {"data": 'status', 'name': 'status', 'title': 'Statut'},
-            {"data": 'urgence', 'name': 'urgence', 'title': 'urgence', 'visible': false, 'class': 'noVis'},
+            {data: 'actions', title: '', orderable: false, className: 'noVis'},
+            {data: 'type', title: 'Type'},
+            {data: 'disputeNumber', title: Translation.of(`Qualité`, `Litiges`, `Numéro de litige`)},
+            {data: "arrivalNumber", title: 'arrivage.n° d\'arrivage', translated: true, className: 'noVis'},
+            {data: 'receptionNumber', title: 'réception.n° de réception', translated: true, className: 'noVis'},
+            {data: 'buyers', title: 'Acheteur', orderable: false},
+            {data: 'reporter', title: 'Déclarant'},
+            {data: 'numCommandeBl', title: 'N° commande / BL'},
+            {data: 'command', title: 'N° ligne', orderable: false},
+            {data: 'provider', title: 'Fournisseur'},
+            {data: 'references', title: 'Référence', orderable: false},
+            {data: 'lastHistoryRecord', title: 'Dernier historique', orderable: false},
+            {data: 'creationDate', title: 'Créé le'},
+            {data: 'updateDate', title: 'Modifié le'},
+            {data: 'status', title: 'Statut'},
+            {data: 'urgence', title: 'urgence', visible: false, class: 'noVis'},
         ],
         domConfig: {
             needsFullDomOverride: true

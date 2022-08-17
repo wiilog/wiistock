@@ -31,7 +31,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Contracts\Translation\TranslatorInterface;
+use App\Service\TranslationService;
 use WiiCommon\Helper\Stream;
 
 /**
@@ -103,7 +103,7 @@ class PairingController extends AbstractController
      * @Route("/voir/{pairing}", name="pairing_show", options={"expose"=true})
      * @HasPermission({Menu::IOT, Action::DISPLAY_PAIRING})
      */
-    public function show(DataMonitoringService $service, TranslatorInterface $trans, Pairing $pairing): Response
+    public function show(DataMonitoringService $service, TranslationService $trans, Pairing $pairing): Response
     {
         return $service->render([
             "breadcrumb" => [

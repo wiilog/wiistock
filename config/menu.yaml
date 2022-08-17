@@ -8,8 +8,6 @@ parameters:
             icon: 'traca'
             sub:
                 -   label: 'arrivage.flux - arrivages'
-                    isTranslation: true
-                    title: 'Flux - Arrivages'
                     path: 'arrivage_index'
                     rights:
                         menu: App\Entity\Menu::TRACA
@@ -35,17 +33,16 @@ parameters:
                         menu: App\Entity\Menu::TRACA
                         action: App\Entity\Action::DISPLAY_ENCO
                 -   label: 'urgences.urgences'
-                    isTranslation: true
                     title: 'Urgences'
                     path: 'urgence_index'
                     rights:
                         menu: App\Entity\Menu::TRACA
                         action: App\Entity\Action::DISPLAY_URGE
 
-        -   label: 'Qualité'
+        -   label: ['Qualité', 'Litiges', 'Qualité']
             icon: 'qualite'
             sub:
-                -   label: 'Litiges'
+                -   label: ['Qualité', 'Litiges', 'Litiges']
                     path: 'dispute_index'
                     rights:
                         menu: App\Entity\Menu::QUALI
@@ -65,16 +62,12 @@ parameters:
                         menu: App\Entity\Menu::DEM
                         action: App\Entity\Action::DISPLAY_DEM_LIVR
                 -   label: 'services.Service'
-                    isTranslation: true
-                    title: 'Service'
                     path: 'handling_index'
                     rights:
                         menu: App\Entity\Menu::DEM
                         action: App\Entity\Action::DISPLAY_HAND
                 -   label: 'acheminement.Acheminement'
-                    isTranslation: true
                     path: 'dispatch_index'
-                    title: 'Acheminement'
                     rights:
                         menu: App\Entity\Menu::DEM
                         action: App\Entity\Action::DISPLAY_ACHE
@@ -123,8 +116,6 @@ parameters:
                         menu: App\Entity\Menu::ORDRE
                         action: App\Entity\Action::DISPLAY_ORDRE_TRANS
                 -   label: 'réception.réception'
-                    isTranslation: true
-                    title: 'Réception'
                     path: 'reception_index'
                     rights:
                         menu: App\Entity\Menu::ORDRE
@@ -159,8 +150,6 @@ parameters:
                         menu: App\Entity\Menu::STOCK
                         action: App\Entity\Action::DISPLAY_ARTI
                 -   label: 'reference.références'
-                    title: Référence
-                    isTranslation: true
                     path: 'reference_article_index'
                     rights:
                         menu: App\Entity\Menu::STOCK
@@ -210,8 +199,6 @@ parameters:
                         menu: App\Entity\Menu::REFERENTIEL
                         action: App\Entity\Action::DISPLAY_TRAN
                 -   label: 'natures.Natures de colis'
-                    isTranslation: true
-                    title: Natures de colis
                     path: 'nature_param_index'
                     rights:
                         menu: App\Entity\Menu::REFERENTIEL
@@ -223,9 +210,7 @@ parameters:
                         action: App\Entity\Action::DISPLAY_VEHICLE
 
         -   label: 'IoT.IoT'
-            isTranslation: true
             icon: 'iot'
-            title: 'IoT'
             sub:
                 -   label: 'Capteurs'
                     path: 'sensor_wrapper_index'

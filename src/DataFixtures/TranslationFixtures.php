@@ -17,7 +17,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
 
     const TRANSLATIONS = [
         "Général" => [
-            "" => [
+            null => [
                 "Zone filtre" => [
                     "content" => [
                         [
@@ -1126,7 +1126,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
             ],
         ],
         "Qualité" => [
-            "Litige" => [
+            "Litiges" => [
                 "content" => [
                     [
                         "fr" => "Qualité",
@@ -1837,8 +1837,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
         $this->manager = $manager;
 
         $languageRepository = $manager->getRepository(Language::class);
-        $categoryRepository = $manager->getRepository(TranslationCategory::class);
-        $translationSourceRepository = $manager->getRepository(TranslationSource::class);
 
         if(!$languageRepository->findOneBy(["slug" => "french"])) {
             $french = (new Language())

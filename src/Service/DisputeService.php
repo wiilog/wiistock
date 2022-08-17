@@ -15,7 +15,7 @@ use WiiCommon\Helper\Stream;
 use App\Repository\DisputeRepository;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Contracts\Translation\TranslatorInterface;
+use App\Service\TranslationService;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -40,21 +40,21 @@ class DisputeService {
     private $security;
 
     private $entityManager;
-    private $translator;
+    private $translation;
     private $mailerService;
     private $visibleColumnService;
     private $CSVExportService;
 
     public function __construct(EntityManagerInterface $entityManager,
                                 Twig_Environment $templating,
-                                TranslatorInterface $translator,
+                                TranslationService $translation,
                                 MailerService $mailerService,
                                 CSVExportService $CSVExportService,
                                 VisibleColumnService $visibleColumnService,
                                 Security $security) {
         $this->templating = $templating;
         $this->entityManager = $entityManager;
-        $this->translator = $translator;
+        $this->translation = $translation;
         $this->security = $security;
         $this->mailerService = $mailerService;
         $this->visibleColumnService = $visibleColumnService;
@@ -146,8 +146,8 @@ class DisputeService {
 
     public function getLitigeOrigin(): array {
         return [
-            Dispute::ORIGIN_ARRIVAGE => $this->translator->trans('arrivage.arrivage'),
-            Dispute::ORIGIN_RECEPTION => $this->translator->trans('réception.réception')
+            Dispute::ORIGIN_ARRIVAGE => $this->translation->trans('arrivage.arrivage'),
+            Dispute::ORIGIN_RECEPTION => $this->translation->trans('réception.réception')
         ];
     }
 
@@ -173,7 +173,7 @@ class DisputeService {
         }
 
         if (!empty($recipients)) {
-            $translatedCategory = $isArrival ? $category : $this->translator->trans('réception.une réception');
+            $translatedCategory = $isArrival ? $category : $this->translation->trans('réception.une réception');
             $title = !$isUpdate
                 ? ('Un litige a été déclaré sur ' . $translatedCategory . ' vous concernant :')
                 : ('Changement de statut d\'un litige sur ' . $translatedCategory . ' vous concernant :');

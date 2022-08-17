@@ -48,7 +48,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Contracts\Translation\TranslatorInterface;
+use App\Service\TranslationService;
 use Throwable;
 use Twig\Environment as Twig_Environment;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Entity;
@@ -144,7 +144,7 @@ class ArrivageController extends AbstractController {
                         ArrivageService        $arrivageDataService,
                         FreeFieldService       $champLibreService,
                         PackService            $colisService,
-                        TranslatorInterface    $translator): Response
+                        TranslationService    $translation): Response
     {
         $data = $request->request->all();
         $settingRepository = $entityManager->getRepository(Setting::class);
@@ -237,7 +237,7 @@ class ArrivageController extends AbstractController {
         catch (UniqueConstraintViolationException $e) {
             return new JsonResponse([
                 'success' => false,
-                'msg' => $translator->trans('arrivage.Un autre arrivage est en cours de création, veuillez réessayer') . '.'
+                'msg' => $translation->trans('arrivage.Un autre arrivage est en cours de création, veuillez réessayer') . '.'
             ]);
         }
 
@@ -629,7 +629,7 @@ class ArrivageController extends AbstractController {
      * @Route("/csv", name="get_arrivages_csv", options={"expose"=true}, methods={"GET"})
      */
     public function exportArrivals(Request                $request,
-                                   TranslatorInterface    $translator,
+                                   TranslationService    $translation,
                                    EntityManagerInterface $entityManager,
                                    CSVExportService       $csvService,
                                    FieldsParamService     $fieldsParamService,
@@ -680,7 +680,7 @@ class ArrivageController extends AbstractController {
             "date",
             "utilisateur",
             "numéro de projet",
-            $translator->trans('acheminement.Business unit'),
+            $translation->trans('acheminement.Business unit'),
         ];
 
         if ($fieldsParamService->isFieldRequired($fieldsParam, FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'displayedCreate')
@@ -753,7 +753,7 @@ class ArrivageController extends AbstractController {
                                DisputeService         $disputeService,
                                EntityManagerInterface $entityManager,
                                UniqueNumberService    $uniqueNumberService,
-                               TranslatorInterface    $translator): Response
+                               TranslationService    $translation): Response
     {
         $post = $request->request;
 
@@ -825,7 +825,7 @@ class ArrivageController extends AbstractController {
         catch (UniqueConstraintViolationException $e) {
             return new JsonResponse([
                 'success' => false,
-                'msg' => $translator->trans('arrivage.Un autre litige d\'arrivage est en cours de création, veuillez réessayer').'.'
+                'msg' => $translation->trans('arrivage.Un autre litige d\'arrivage est en cours de création, veuillez réessayer').'.'
             ]);
         }
 

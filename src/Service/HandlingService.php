@@ -16,7 +16,7 @@ use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 use DateTime;
-use Symfony\Contracts\Translation\TranslatorInterface;
+use App\Service\TranslationService;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\RouterInterface;
@@ -43,7 +43,7 @@ class HandlingService {
     public MailerService $mailerService;
 
     #[Required]
-    public TranslatorInterface $translator;
+    public TranslationService $translation;
 
     #[Required]
     public TokenStorageInterface $tokenStorage;
@@ -161,15 +161,15 @@ class HandlingService {
         if (!empty($emailReceivers)) {
             $statusTreated = $status->isTreated();
             if ($isNewHandlingAndNotTreated) {
-                $subject = $this->translator->trans('services.Création d\'une demande de service');
-                $title = $this->translator->trans('services.Votre demande de service a été créée') . '.';
+                $subject = $this->translation->trans('services.Création d\'une demande de service');
+                $title = $this->translation->trans('services.Votre demande de service a été créée') . '.';
             } else {
                 $subject = $statusTreated
-                    ? $this->translator->trans('services.Demande de service effectuée')
-                    : $this->translator->trans('services.Changement de statut d\'une demande de service');
+                    ? $this->translation->trans('services.Demande de service effectuée')
+                    : $this->translation->trans('services.Changement de statut d\'une demande de service');
                 $title = $statusTreated
-                    ? $this->translator->trans('services.Votre demande de service a bien été effectuée') . '.'
-                    : $this->translator->trans('services.Une demande de service vous concernant a changé de statut') . '.';
+                    ? $this->translation->trans('services.Votre demande de service a bien été effectuée') . '.'
+                    : $this->translation->trans('services.Une demande de service vous concernant a changé de statut') . '.';
             }
 
             $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);

@@ -21,7 +21,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Contracts\Translation\TranslatorInterface;
+use App\Service\TranslationService;
 use WiiCommon\Helper\Stream;
 
 /**
@@ -60,7 +60,7 @@ class NatureController extends AbstractController
      * @Route("/creer", name="nature_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({MENU::REFERENTIEL, Action::CREATE}, mode=HasPermission::IN_JSON)
      */
-    public function new(Request $request, TranslatorInterface $translator, EntityManagerInterface $entityManager): Response {
+    public function new(Request $request, TranslationService $translation, EntityManagerInterface $entityManager): Response {
         if ($data = json_decode($request->getContent(), true)) {
             if(preg_match("[[,;]]", $data['label'])) {
                 return $this->json([
@@ -142,7 +142,7 @@ class NatureController extends AbstractController
             $natureLabel = $data['label'];
             return new JsonResponse([
                 'success' => true,
-                'msg' => $translator->trans('natures.une nature') . " <strong>$natureLabel</strong> a bien été créée."
+                'msg' => $translation->trans('natures.une nature') . " <strong>$natureLabel</strong> a bien été créée."
             ]);
         }
         throw new BadRequestHttpException();

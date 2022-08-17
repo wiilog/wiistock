@@ -12,6 +12,7 @@ use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Process\Process;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Yaml\Yaml;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
@@ -19,20 +20,36 @@ use WiiCommon\Helper\Stream;
 class TranslationService {
 
     #[Required]
+    public KernelInterface $kernel;
+
+    #[Required]
     public CacheService $cacheService;
 
     #[Required]
     public EntityManagerInterface $manager;
 
-    private array $translations;
+    #[Required]
+    public TokenStorageInterface $tokenStorage;
 
-    public function translate(string $input, ?Utilisateur $user): string {
-        $slug = $user->getLanguage()->getSlug();
+    private array $translations = [];
+
+    public function trans(string $in): string {
+            return "BUG TICKET: $in";
+    }
+
+    public function translate(?string $category, ?string $menu, ?string $submenu, ?string $input, ?Utilisateur $user = null): string {
+        if(!$user) {
+            $user = $this->tokenStorage->getToken()->getUser();
+            $slug = $user?->getLanguage()?->getSlug();
+        }
+
+        $slug = $slug ?? "default";
         if(!isset($translations[$slug])) {
             $this->translations[$slug] = $this->cacheService->get(CacheService::TRANSLATIONS, $slug);
         }
 
-        return $this->translations[$slug][$input];
+        $submenu = $this->translations[$slug][$category ?: null][$menu ?: null][$submenu ?: null];
+        return is_array($submenu) ? ($submenu[$input ?: null] ?? $input) : ($submenu ?? $input);
     }
 
     private function createCategoryStack(Translation $translation): array {
@@ -51,13 +68,14 @@ class TranslationService {
         $languageRepository = $this->manager->getRepository(Language::class);
         $translationRepository = $this->manager->getRepository(Translation::class);
 
+        /** @var Language $language */
         foreach($languageRepository->findAll() as $language) {
             $slug = $language->getSlug();
             $this->translations[$slug] = [];
 
             /** @var Translation $translation */
             foreach($translationRepository->findBy(["language" => $language]) as $translation) {
-                $original = $translation->getSource()->getTranslationIn("french");
+                $original = $translation->getSource()->getTranslationIn("french")->getTranslation();
 
                 $zoomedTranslations = &$this->translations[$slug];
                 $stack = $this->createCategoryStack($translation);
@@ -70,6 +88,28 @@ class TranslationService {
                 }
 
                 $zoomedTranslations[$original] = $translation->getTranslation();
+            }
+
+            $this->cacheService->set(CacheService::TRANSLATIONS, $slug, $this->translations[$slug]);
+            if($language->getSelected()) {
+                $this->cacheService->set(CacheService::TRANSLATIONS, "default", $this->translations[$slug]);
+            }
+        }
+    }
+
+    public function generateJavascripts() {
+        $languageRepository = $this->manager->getRepository(Language::class);
+        $outputDirectory = "{$this->kernel->getProjectDir()}/public/generated";
+
+        /** @var Language $language */
+        foreach($languageRepository->findAll() as $language) {
+            $slug = $language->getSlug();
+            $translations = $this->cacheService->get(CacheService::TRANSLATIONS, $slug);
+            $content = "const TRANSLATIONS = " . json_encode($translations) . ";";
+
+            file_put_contents("$outputDirectory/translations.$slug.js", $content);
+            if($language->getSelected()) {
+                file_put_contents("$outputDirectory/translations.default.js", $content);
             }
         }
     }

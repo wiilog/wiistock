@@ -29,7 +29,7 @@ class TranslationCategory {
     #[Column(type: "string")]
     private ?string $type = null;
 
-    #[Column(type: "string", length: 255)]
+    #[Column(type: "string", length: 255, nullable: true)]
     private ?string $label = null;
 
     #[Column(type: "text", nullable: true)]
