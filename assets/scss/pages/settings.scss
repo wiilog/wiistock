@@ -155,3 +155,55 @@ textarea {
         display: none;
     }
 }
+
+.select-flag{
+    margin-top: 5px;
+    height: 35.58px;
+    border: 1px solid #ced4da;
+    &.is-invalid {
+        border-color: $danger !important;
+    }
+}
+
+.dropdown-menu.dropdown-menu-wide {
+    min-width: 100%;
+    text-align: center;
+}
+
+.flag{
+    width: 25px;
+    height: 25px;
+    margin: 3px;
+
+    &.select:hover {
+        cursor: pointer;
+        border: 1px solid $primary;
+        padding:2px;
+    }
+}
+
+.menu {
+    &.selected{
+        border-bottom: 2px solid $black;
+    }
+}
+
+.tooltip-logo{
+    width: 15x;
+    height: 15px;
+    margin-right: 3px;
+}
+
+.tooltip-input{
+    border-right: none;
+}
+
+.input-group-tooltip{
+    border : 1px solid $medium-grey;
+    border-left: none;
+    height: revert;
+    border-bottom-right-radius: 0.25rem;
+    border-top-right-radius: 0.25rem;
+    display: flex;
+    align-items: center;
+}

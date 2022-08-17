@@ -20,6 +20,7 @@ Encore
     .addEntry('settings-data-imports', './assets/js/pages/settings/data/imports.js')
     .addEntry('settings-data-inventories-imports', './assets/js/pages/settings/data/inventories-imports.js')
     .addEntry('settings-users-roles-form', './assets/js/pages/settings/users/roles/form.js')
+    .addEntry('settings-languages', './assets/js/pages/settings/users/languages.js')
     .addEntry('vehicle', './assets/js/pages/vehicle.js')
     .addEntry('transport-request-index', './assets/js/pages/transport/request/index.js')
     .addEntry('transport-request-show', './assets/js/pages/transport/request/show.js')

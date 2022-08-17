@@ -1,0 +1,104 @@
+{% extends 'layout.html.twig' %}
+{% import 'form.html.twig' as form %}
+
+{% block title %}Paramétrage | Langues{% endblock %}
+{% block titleLink path('settings_index') %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('settings-index') }}
+{% endblock %}
+
+{% block page_content %}
+    <div class="settings row">
+        <aside class="col-xl-3 col-4 d-flex flex-column">
+            <div class="wii-box">
+                <div class="header wii-title">
+                    Langue par défaut de l’application
+                </div>
+                <div class="p-3">
+                    {{ form.radio('defaultLanguages', null , false,  defaultLanguages, {
+                        containerClass :'row no-gutters',
+                        inputClass : 'col-lg-6',
+                        iconClass : 'flag'
+                    }) }}
+                </div>
+            </div>
+            <div class="wii-box">
+                <div class="header wii-title">
+                    Modication et ajout de langues
+                </div>
+                <div class="p-3">
+                    {{ form.radio('language', null , false,  languages, {
+                        iconClass : 'flag'
+                    }) }}
+                </div>
+                <div class="d-none" id="new-language">
+                    <div class="sub-header bold">
+                        Nouvelle langue
+                    </div>
+                    <div class="row m-3">
+                        {{ form.input('newLanguage', 'Libellé', true, null, {
+                            labelClass : 'col-8 no-gutter pl-0',
+                        }) }}
+                        <div class=" px-0 col-4 no-gutter">
+                            <label class="w-100">
+                                Drapeau*
+                                <button type="button" class="dropdown-filter btn btn-outline-secondary dropdown-toggle dropdown-toggle-split w-100 select-flag d-flex flex-row-reverse justify-content-between align-items-center"
+                                        data-toggle="dropdown"
+                                        aria-expanded="false">
+                                    <span class="fa fa-angle-down"></span>
+                                    <img src="data:image/svg+xml;charset=utf8,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E" alt="" class="custom-flag-preview flag">
+                                </button>
+                                <input hidden type="file" name="customFlag"/>
+                                <div class="dropdown-menu dropdown-menu-wide allow-focus filter-dropdown-menu">
+                                    <img src="{{ asset('svg/flags/es.svg') }}" alt="fr" class="flag select">
+                                    <img src="{{ asset('svg/flags/de.svg') }}" alt="fr" class="flag select">
+                                    <img src="{{ asset('svg/flags/it.svg') }}" alt="fr" class="flag select">
+                                    <img src="{{ asset('svg/flags/pt.svg') }}" alt="fr" class="flag select">
+                                    <img src="{{ asset('svg/flags/nl.svg') }}" alt="fr" class="flag select">
+                                    <img src="{{ asset('svg/plus.svg') }}" alt="fr" class="flag select add-new-flag">
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="wii-box flex-fill" id="categoriesNavbar">
+                {% for category, menus in categories %}
+                    <div class="settings-item text-capitalize {{ loop.first ? 'selected'}}"
+                         title="{{ category }}"
+                         onclick="onSettingsItemSelected($(this), $('aside .settings-item'), $('main .settings-content'))"
+                         data-menu="{{ category }}">
+                        <div>
+                            <div class="">
+                                {{ category }}
+                            </div>
+                            <div class="wii-small-text">
+                                {% for menu in menus %}
+                                    {{ menu }} {{ not loop.last ? ', '}}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </aside>
+
+        <main class="col-xl-9 col-8">
+            <div class="translations-container">
+                <div class="wii-box d-flex align-items-center justify-content-center p-5">
+                    <div class="spinner-border text-primary" role="status"></div>
+                </div>
+            </div>
+            <div class="save mb-5">
+                <button class="btn btn-success ml-2" name="save-translations">Enregistrer</button>
+            </div>
+        </main>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('settings-languages') }}
+{% endblock %}
