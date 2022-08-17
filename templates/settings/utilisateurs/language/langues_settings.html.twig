@@ -1,0 +1,70 @@
+{% for categorie, categorieData in translations %}
+    <div class="wii-box settings-content {{ not loop.first ? 'd-none' }}" data-menu="{{ categorie }}">
+        {% if categorieData.menus is defined %}
+            {% set menus =  categorieData.menus %}
+                {% if categorieData.menus|length >1 %}
+                <div class="header d-flex p-0 flex-wrap">
+                    {% for menu, menuData in menus %}
+                        <div class="p-3 mx-4 wii-field-name menu pointer {{ loop.first ? 'selected' }}"
+                             data-menu="{{ menu }}"
+                             onclick="onSettingsItemSelected($(this), $('.menu'), $('.menu-content'))">
+                            {{ menu }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% else %}
+            {% set menus =  [] %}
+        {% endif %}
+        <div class="d-flex justify-content-between p-3">
+            <div class="d-flex ">
+                <span class="p-1 d-flex align-items-center language-button">
+                    <img src="{{ defaultLanguage.flag }}" class="flag" alt="">
+                    <span class="mr-1">{{  defaultLanguage.label }}</span>
+                </span>
+                <img src="{{ asset('svg/lang-arrow.svg') }}" width="20px">
+                </span>
+                <span class=" p-1 d-flex align-items-center language-button">
+                    <img src="{{ userLanguage.flag }}" class="flag custom-flag-preview" alt="">
+                    <span class="language-to mr-1">{{  userLanguage.label }}</span>
+                </span>
+            </div>
+            {% if not userLanguage.selectable %}
+                <button class="btn btn-outline-primary" name="deleteLanguage">Suprimer la langue</button>
+            {% endif %}
+        </div>
+        <div class="wii-small-text mb-3 mx-4">
+            Les libellés non traduits apparaîtront dans la langue par défaut que vous avez choisi
+        </div>
+        {% if categorieData.translations is not empty %}
+            <div class="p-3">
+                {% include 'settings/utilisateurs/language/langues_settings_traduction_input.html.twig' with { translations : categorieData.translations} %}
+            </div>
+        {% endif %}
+        {% for menu, menuData in menus %}
+            <div class="{{ menus|length >1 ? 'menu-content' }}{{ not loop.first ? ' d-none' }}" data-menu="{{ menu }}">
+                {% if menuData.translations is defined and menuData.translations is not empty %}
+                    <div class="p-3">
+                        {% include 'settings/utilisateurs/language/langues_settings_traduction_input.html.twig' with { translations : menuData.translations} %}
+                    </div>
+                {% endif %}
+                {% if menuData.submenus is defined %}
+                    {% for subMenu, subMenuData in menuData.submenus %}
+                        <div class="wii-section-title toggle-collapsible">
+                            {{ subMenu | capitalize }}
+                            <span class="wii-small-text ml-2">{{ subMenuData.subtitle }}</span>
+                        </div>
+                        <div class="wii-section collapsible">
+                            <div class="row">
+                                {% if subMenuData.translations is defined and subMenuData.translations is not empty %}
+                                    {% include 'settings/utilisateurs/language/langues_settings_traduction_input.html.twig' with { translations : subMenuData.translations} %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+{% endfor %}
+{% include 'settings/utilisateurs/language/langues_modale_delete.html.twig' with { language : userLanguage.id } %}

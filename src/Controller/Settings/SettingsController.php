@@ -25,6 +25,8 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Translation;
+use App\Entity\TranslationCategory;
+use App\Entity\TranslationSource;
 use App\Entity\Transport\CollectTimeSlot;
 use App\Entity\Transport\TemperatureRange;
 use App\Entity\Transport\TransportRoundStartingHour;
@@ -37,6 +39,7 @@ use App\Repository\IOT\AlertTemplateRepository;
 use App\Repository\IOT\RequestTemplateRepository;
 use App\Repository\SettingRepository;
 use App\Repository\TypeRepository;
+use App\Service\AttachmentService;
 use App\Service\CacheService;
 use App\Service\InventoryService;
 use App\Service\PackService;
@@ -47,6 +50,7 @@ use App\Service\TranslationService;
 use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Util\Json;
 use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -543,9 +547,227 @@ class SettingsController extends AbstractController {
 
         return $this->render("settings/utilisateurs/langues.html.twig", [
             'translations' => $translationRepository->findAll(),
-            'menusTranslations' => array_column([], '1'),
+//            'menusTranslations' => array_column($translationRepository->getMenus(), '1'),
+            'menusTranslations' => [],
         ]);
     }
+
+    /**
+     * @Route("/langues", name="settings_language_index")
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_LABELS_PERSO})
+     */
+    public function languageIndex(EntityManagerInterface $manager): Response {
+        $languageRepository = $manager->getRepository(Language::class);
+        $translationCategoryRepository = $manager->getRepository(TranslationCategory::class);
+        $translationRepository = $manager->getRepository(Translation::class);
+
+        $user = $this->getUser();
+
+        $defaultLanguages = Stream::from($languageRepository->findBy(['selectable' => true]))
+        ->map(fn(Language $language) => [
+            'label' => $language->getLabel(),
+            'value' => $language->getId(),
+            'iconUrl' => $language->getFlag(),
+            'checked' => $language->getSelected()
+        ])
+        ->toArray();
+
+        $languages = Stream::from($languageRepository->findAll())
+            ->map(fn(Language $language) => [
+                'label' => $language->getLabel(),
+                'value' => $language->getId(),
+                'iconUrl' => $language->getFlag(),
+                'checked' => $user->getLanguage()->getId() === $language->getId()
+
+            ])
+            ->toArray();
+        $languages[]=[
+            'label' => 'Ajouter une langue',
+            'value' => 'NEW',
+            'iconUrl' => '/svg/plus-black.svg',
+        ];
+
+        $sidebar = [];
+        $categories = $translationCategoryRepository->findBy(['type' => 'category']);
+        foreach ($categories as $category) {
+            $categoryLabel = $category->getLabel();
+            $sidebar[$categoryLabel] = [];
+            $menus = $translationCategoryRepository->findBy(['parent' => $category, 'type' => 'menu']);
+            foreach ($menus as $menu) {
+                $menuLabel = $menu->getLabel();
+                $sidebar[$categoryLabel][] = $menuLabel;
+            }
+        }
+        return $this->render("settings/utilisateurs/language/langues_index.html.twig", [
+            'defaultLanguages' => $defaultLanguages,
+            'languages' => $languages,
+            'categories' => $sidebar,
+        ]);
+    }
+
+    /**
+     * @Route("/langues/api", name="settings_language_api" , methods={"GET"}, options={"expose"=true})
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_LABELS_PERSO})
+     */
+    public function languageApi( Request $request, EntityManagerInterface $manager): Response {
+        $data = $request->query;
+        $languageRepository = $manager->getRepository(Language::class);
+        $translationCategoryRepository = $manager->getRepository(TranslationCategory::class);
+        $translationRepository = $manager->getRepository(Translation::class);
+
+        $defaultLanguage = $languageRepository->findOneBy(['selected' => true]);
+
+        $language = $data->get('language');
+        if ($language === 'NEW') {
+            $userLanguage = new Language();
+            $userLanguage
+                ->setFlag("data:image/svg+xml;charset=utf8,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E")
+                ->setSelectable(true)
+                ->setSlug('');
+        } else {
+            $userLanguage = $languageRepository->findOneBy(['id' => $data->get('language')]);
+        }
+
+        $translations = [];
+        $categories = $translationCategoryRepository->findBy(['type' => 'category']);
+        foreach ($categories as $category) {
+            $categoryLabel = $category->getLabel();
+            $translations[$categoryLabel] = ['subtitle'=> $category->getSubtitle()];
+            $translations[$categoryLabel]["translations"] = $category->getTranslations($defaultLanguage->getSlug(), $userLanguage->getSlug());
+            $menus = $translationCategoryRepository->findBy(['parent' => $category, 'type' => 'menu']);
+            foreach ($menus as $menu) {
+                $menuLabel = $menu->getLabel();
+                $translations[$categoryLabel]['menus'][$menuLabel] = ['subtitle'=> $menu->getSubtitle()];
+                $translations[$categoryLabel]['menus'][$menuLabel]["translations"] = $menu->getTranslations($defaultLanguage->getSlug(), $userLanguage->getSlug());
+                $submenus = $translationCategoryRepository->findBy(['parent' => $menu, 'type' => 'submenu']);
+                foreach ($submenus as $submenu){
+                    $submenuLabel = $submenu->getLabel();
+                    $translations[$categoryLabel]['menus'][$menuLabel]['submenus'][$submenuLabel] =['subtitle'=> $submenu->getSubtitle()];
+                    $translations[$categoryLabel]['menus'][$menuLabel]['submenus'][$submenuLabel]["translations"] = $submenu->getTranslations($defaultLanguage->getSlug(), $userLanguage->getSlug());
+                }
+            }
+        }
+
+        return $this->json([
+            'template' => $this->renderView("settings/utilisateurs/language/langues_settings.html.twig", [
+                'defaultLanguage' => [
+                    'label' => $defaultLanguage->getLabel(),
+                    'flag' => $defaultLanguage->getFlag(),
+                ],
+                'userLanguage' => $userLanguage,
+                'translations' => $translations,
+            ])
+        ]);
+    }
+
+    /**
+     * @Route("/langues/api/default", name="settings_defaultLanguage_api" , methods={"POST"}, options={"expose"=true})
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_LABELS_PERSO})
+     */
+    public function defaultLanguageApi(EntityManagerInterface $manager,
+                                Request $request ): Response {
+        $data = $request->request;
+
+        $languageRepository = $manager->getRepository(Language::class);
+        $defaultLanguage = $languageRepository->find($data->get('language'));
+
+        Stream::from($languageRepository->findBy(['selected' => true]))
+            ->map(fn(Language $language) => $language->setSelected(false));
+        $defaultLanguage->setSelected(true);
+        $manager->flush();
+
+        return $this->json([
+            "success" => true,
+        ]);
+    }
+
+    /**
+     * @Route("/langues/api/delete", name="settings_language_delete_api" , methods={"POST"}, options={"expose"=true})
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_LABELS_PERSO})
+     */
+    public function deleteLanguageApi(EntityManagerInterface $manager,
+                                       Request $request ): Response {
+        $data = json_decode($request->getContent(), true);
+        $languageRepository = $manager->getRepository(Language::class);
+        $userRepository = $manager->getRepository(Utilisateur::class);
+        $language = $languageRepository->find($data['language']);
+        $defaultLanguage = $languageRepository->findOneBy(['selected' => true]);
+        foreach ($userRepository->findBy(['language' => $language]) as $user) {
+            $user->setLanguage($defaultLanguage);
+        }
+
+        $manager->remove($language);
+        $manager->flush();
+
+        return $this->json([
+            "success" => true,
+        ]);
+    }
+
+    /**
+     * @Route("/langues/api/save", name="settings_language_save_api" , methods={"POST"}, options={"expose"=true})
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_LABELS_PERSO})
+     */
+    public function saveTranslationApi(EntityManagerInterface $manager,
+                                       Request $request,
+                                       AttachmentService $attachmentService): Response {
+        $data = $request->request;
+        $file = $request->files;
+        dump($data->all());
+        $languageRepository = $manager->getRepository(Language::class);
+        $translationRepository = $manager->getRepository(Translation::class);
+        $translationSourceRepository = $manager->getRepository(TranslationSource::class);
+
+        $language = $data->get('language');
+        if ($language === 'NEW') {
+            $language = new Language;
+            $languageName = $data->get('languageName');
+
+           //$attachmentService->createAttachements()
+
+            $language
+                ->setLabel($languageName)
+                ->setFlag($data->get('languageFlag'))
+                ->setSelectable(false)
+                ->setSlug(strtolower(str_replace(' ', '_', $languageName)))
+                ->setSelected(false);
+            $manager->persist($language);
+        } else {
+            $language = $languageRepository->findOneBy(['id' => $data->get('language')]);
+        }
+
+        $translations = json_decode($data->get('translations'));
+
+        foreach ($translations as $translation) {
+           $id = $translation->id;
+           $value = $translation->value;
+           $source = $translationSourceRepository->find($translation->source);
+           if ($id != null or $id != '') {
+               $translation= $translationRepository->find($id);
+               if($value != null or $value != '') {
+                   $translation->setTranslation($value);
+               }
+               else {
+                   $manager->remove($translation);
+               }
+           }
+           elseif ($value != null or $value != '') {
+               $translation = new Translation();
+               $translation
+                   ->setTranslation($value)
+                   ->setSource($source)
+                   ->setLanguage($language);
+                $manager->persist($translation);
+           }
+        }
+
+        $manager->flush();
+
+        return $this->json([
+            "success" => true,
+        ]);
+    }
+
 
     /**
      * @Route("/afficher/{category}/{menu}/{submenu}", name="settings_item", options={"expose"=true})
@@ -635,7 +857,6 @@ class SettingsController extends AbstractController {
         $translationRepository = $this->manager->getRepository(Translation::class);
         $settingRepository = $this->manager->getRepository(Setting::class);
         $userRepository = $this->manager->getRepository(Utilisateur::class);
-        $languageRepository = $this->manager->getRepository(Language::class);
 
         return [
             self::CATEGORY_GLOBAL => [
@@ -1024,7 +1245,8 @@ class SettingsController extends AbstractController {
                 ],
                 self::MENU_LANGUAGES => fn() => [
                     'translations' => $translationRepository->findAll(),
-                    'menusTranslations' => array_column([], '1'),
+                    //'menusTranslations' => array_column($translationRepository->getMenus(), '1'),
+                    'menusTranslations' => [],
                 ],
             ],
         ];
@@ -2267,5 +2489,4 @@ class SettingsController extends AbstractController {
             ]);
         }
     }
-
 }

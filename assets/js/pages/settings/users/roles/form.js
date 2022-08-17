@@ -1,10 +1,8 @@
 import {LOADING_CLASS} from "../../../../loading";
 import Flash, {INFO} from "../../../../flash";
 
-global.onSettingsItemSelected = onSettingsItemSelected;
 global.discardChanges = discardChanges;
 global.saveSettings = saveSettings;
-global.onSettingsItemSelected = onSettingsItemSelected;
 
 $(function() {
     const $settingsItems = $('aside .settings-item');
@@ -13,23 +11,6 @@ $(function() {
         onSettingsItemSelected($selectedItem);
     }
 });
-
-function onSettingsItemSelected($selected) {
-    const $settingsItems = $('aside .settings-item');
-    const $settingsContents = $('main .settings-content');
-    const $buttons = $('main .save');
-    const selectedKey = $selected.data('menu');
-
-    $settingsItems.removeClass('selected');
-    $settingsContents.addClass('d-none');
-
-    $selected.addClass('selected');
-    $settingsContents
-        .filter(`[data-menu="${selectedKey}"]`)
-        .removeClass('d-none');
-
-    $buttons.removeClass('d-none');
-}
 
 function saveSettings($saveButton) {
     const role = $saveButton.data('role-id');

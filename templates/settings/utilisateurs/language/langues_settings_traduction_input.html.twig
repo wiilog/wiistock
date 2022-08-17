@@ -1,0 +1,22 @@
+<div class="row">
+    {% for translation in translations %}
+        <div class="col-md-6">
+            {# translation.tooltips #}
+            <div class="input-group pb-2">
+                <div class="input-group-prepend h-100 ">
+                    <span class="input-group-text">{{ translation.original.translation }}</span>
+                </div>
+                <div class="tooltip-input">
+                    <img src="{{ asset('/svg/cookie.svg') }}" alt="" class="tooltip-logo">
+                    <input type="text"
+                           data-name="input-translation"
+                           class="form-control cursor-default input-text-tooltip input-translation"
+                           data-translation-id="{{ translation.translation is defined and translation.translation is not null ? translation.translation.id }}"
+                           value="{{ translation.translation is defined and translation.translation is not null ? translation.translation.translation }}"
+                           data-source="{{ translation.original.source.id }}"
+                    />
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>

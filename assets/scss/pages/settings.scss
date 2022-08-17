@@ -155,3 +155,48 @@ textarea {
         display: none;
     }
 }
+
+.select-flag{
+    margin-top: 5px;
+    height: 35.58px;
+    border: 1px solid #ced4da;
+}
+
+.dropdown-menu.dropdown-menu-wide {
+    min-width: 100%;
+    text-align: center;
+}
+
+.flag{
+    width: 25px;
+    height: 25px;
+    margin: 3px;
+
+    &.select:hover {
+        cursor: pointer;
+        border: 1px solid $primary;
+        padding:2px;
+    }
+}
+
+.menu {
+    &.selected{
+        border-bottom: 2px solid $black;
+    }
+}
+
+.tooltip-input {
+    position: relative;
+    z-index: 2;
+}
+
+.tooltip-input img {
+    position: absolute;
+    top: 9px;
+    right: 9px;
+    height: 15px;;
+}
+
+.input-text-tooltip {
+    z-index: 1;
+}
