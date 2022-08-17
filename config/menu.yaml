@@ -7,7 +7,7 @@ parameters:
         -   label: ['Traçabilité', 'Général', 'Traçabilité']
             icon: 'traca'
             sub:
-                -   label: ['Traçabilité', 'Flux - Arrivages', 'Flux - arrivages']
+                -   label: ['Traçabilité', 'Flux - Arrivages', 'Divers', 'Flux - arrivages']
                     path: 'arrivage_index'
                     rights:
                         menu: App\Entity\Menu::TRACA

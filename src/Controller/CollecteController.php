@@ -359,7 +359,6 @@ class CollecteController extends AbstractController
             $articleRepository = $entityManager->getRepository(Article::class);
             $collecteRepository = $entityManager->getRepository(Collecte::class);
             $collecteReferenceRepository = $entityManager->getRepository(CollecteReference::class);
-            dump($data);
             if (array_key_exists(ReferenceArticle::QUANTITY_TYPE_REFERENCE, $data)) {
                 $collecteReference = $collecteReferenceRepository->find($data[ReferenceArticle::QUANTITY_TYPE_REFERENCE]);
                 $entityManager->remove($collecteReference);
