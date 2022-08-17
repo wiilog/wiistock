@@ -26,6 +26,7 @@ use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Translation;
 use App\Entity\TranslationCategory;
+use App\Entity\TranslationSource;
 use App\Entity\Transport\CollectTimeSlot;
 use App\Entity\Transport\TemperatureRange;
 use App\Entity\Transport\TransportRoundStartingHour;
@@ -38,6 +39,7 @@ use App\Repository\IOT\AlertTemplateRepository;
 use App\Repository\IOT\RequestTemplateRepository;
 use App\Repository\SettingRepository;
 use App\Repository\TypeRepository;
+use App\Service\AttachmentService;
 use App\Service\CacheService;
 use App\Service\InventoryService;
 use App\Service\PackService;
@@ -604,25 +606,26 @@ class SettingsController extends AbstractController {
     }
 
     /**
-     * @Route("/langues/api", name="settings_language_api" , methods={"GET","POST"}, options={"expose"=true})
+     * @Route("/langues/api", name="settings_language_api" , methods={"GET"}, options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_LABELS_PERSO})
      */
     public function languageApi( Request $request, EntityManagerInterface $manager): Response {
+        $data = $request->query;
         $languageRepository = $manager->getRepository(Language::class);
         $translationCategoryRepository = $manager->getRepository(TranslationCategory::class);
         $translationRepository = $manager->getRepository(Translation::class);
 
         $defaultLanguage = $languageRepository->findOneBy(['selected' => true]);
 
-        $language = $request->get('language');
+        $language = $data->get('language');
         if ($language === 'NEW') {
             $userLanguage = new Language();
             $userLanguage
                 ->setFlag("data:image/svg+xml;charset=utf8,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E")
-                ->setSelectable(false)
+                ->setSelectable(true)
                 ->setSlug('');
         } else {
-            $userLanguage = $languageRepository->findOneBy(['id' => $request->get('language')]);
+            $userLanguage = $languageRepository->findOneBy(['id' => $data->get('language')]);
         }
 
         $translations = [];
@@ -658,14 +661,15 @@ class SettingsController extends AbstractController {
     }
 
     /**
-     * @Route("/langues/api/default", name="settings_defaultLanguage_api" , methods={"GET","POST"}, options={"expose"=true})
+     * @Route("/langues/api/default", name="settings_defaultLanguage_api" , methods={"POST"}, options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_LABELS_PERSO})
      */
     public function defaultLanguageApi(EntityManagerInterface $manager,
                                 Request $request ): Response {
+        $data = $request->request;
 
         $languageRepository = $manager->getRepository(Language::class);
-        $defaultLanguage = $languageRepository->find($request->get('language'));
+        $defaultLanguage = $languageRepository->find($data->get('language'));
 
         Stream::from($languageRepository->findBy(['selected' => true]))
             ->map(fn(Language $language) => $language->setSelected(false));
@@ -678,14 +682,19 @@ class SettingsController extends AbstractController {
     }
 
     /**
-     * @Route("/langues/api/delete", name="settings_language_delete_api" , methods={"GET","POST"}, options={"expose"=true})
+     * @Route("/langues/api/delete", name="settings_language_delete_api" , methods={"POST"}, options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_LABELS_PERSO})
      */
     public function deleteLanguageApi(EntityManagerInterface $manager,
                                        Request $request ): Response {
-
+        $data = json_decode($request->getContent(), true);
         $languageRepository = $manager->getRepository(Language::class);
-        $language = $languageRepository->find($request->get('language'));
+        $userRepository = $manager->getRepository(Utilisateur::class);
+        $language = $languageRepository->find($data['language']);
+        $defaultLanguage = $languageRepository->findOneBy(['selected' => true]);
+        foreach ($userRepository->findBy(['language' => $language]) as $user) {
+            $user->setLanguage($defaultLanguage);
+        }
 
         $manager->remove($language);
         $manager->flush();
@@ -696,35 +705,63 @@ class SettingsController extends AbstractController {
     }
 
     /**
-     * @Route("/langues/api/save", name="settings_language_save_api" , methods={"GET","POST"}, options={"expose"=true})
+     * @Route("/langues/api/save", name="settings_language_save_api" , methods={"POST"}, options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_LABELS_PERSO})
      */
     public function saveTranslationApi(EntityManagerInterface $manager,
-                                      Request $request ): Response {
-
+                                       Request $request,
+                                       AttachmentService $attachmentService): Response {
+        $data = $request->request;
+        $file = $request->files;
+        dump($data->all());
         $languageRepository = $manager->getRepository(Language::class);
+        $translationRepository = $manager->getRepository(Translation::class);
+        $translationSourceRepository = $manager->getRepository(TranslationSource::class);
 
-        $language = $request->get('language');
+        $language = $data->get('language');
         if ($language === 'NEW') {
             $language = new Language;
-            $languageName = $request->get('languageName');
+            $languageName = $data->get('languageName');
+
+           //$attachmentService->createAttachements()
+
             $language
                 ->setLabel($languageName)
-                ->setFlag($request->get('languageFlag'))
+                ->setFlag($data->get('languageFlag'))
                 ->setSelectable(false)
-                ->setSlug(strtolower(str_replace(' ', '_', $languageName)));
+                ->setSlug(strtolower(str_replace(' ', '_', $languageName)))
+                ->setSelected(false);
             $manager->persist($language);
         } else {
-            $language = $languageRepository->findOneBy(['id' => $request->get('language')]);
+            $language = $languageRepository->findOneBy(['id' => $data->get('language')]);
         }
 
-        $translations = json_decode($request->get('translations'));
-        dump($request->get('translations'));
-        dump($translations);
+        $translations = json_decode($data->get('translations'));
 
+        foreach ($translations as $translation) {
+           $id = $translation->id;
+           $value = $translation->value;
+           $source = $translationSourceRepository->find($translation->source);
+           if ($id != null or $id != '') {
+               $translation= $translationRepository->find($id);
+               if($value != null or $value != '') {
+                   $translation->setTranslation($value);
+               }
+               else {
+                   $manager->remove($translation);
+               }
+           }
+           elseif ($value != null or $value != '') {
+               $translation = new Translation();
+               $translation
+                   ->setTranslation($value)
+                   ->setSource($source)
+                   ->setLanguage($language);
+                $manager->persist($translation);
+           }
+        }
 
-
-//        $manager->flush();
+        $manager->flush();
 
         return $this->json([
             "success" => true,
