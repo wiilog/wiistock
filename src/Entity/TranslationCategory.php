@@ -174,7 +174,7 @@ class TranslationCategory {
         $translations = [];
         foreach ($categorySources as $categorySource) {
             $translations[] = [
-                'tooltips' => $categorySource->getTooltip(),
+                'tooltip' => $categorySource->getTooltip(),
                 'original' => $categorySource->getTranslationIn($languageSlugFrom),
                 'translation' => $categorySource->getTranslationIn($languageSlugTo)
             ];

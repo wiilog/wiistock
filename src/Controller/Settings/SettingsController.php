@@ -407,7 +407,7 @@ class SettingsController extends AbstractController {
                 self::MENU_LANGUAGES => [
                     "label" => "Personnalisation des libellés",
                     "right" => Action::SETTINGS_DISPLAY_LABELS_PERSO,
-                    "save" => false,
+                    'route' => "settings_language_index"
                 ],
                 self::MENU_ROLES => [
                     "label" => "Rôles",
@@ -671,14 +671,24 @@ class SettingsController extends AbstractController {
         $languageRepository = $manager->getRepository(Language::class);
         $defaultLanguage = $languageRepository->find($data->get('language'));
 
-        Stream::from($languageRepository->findBy(['selected' => true]))
-            ->map(fn(Language $language) => $language->setSelected(false));
-        $defaultLanguage->setSelected(true);
-        $manager->flush();
+        if($defaultLanguage->getSelectable()){
+            Stream::from($languageRepository->findBy(['selected' => true]))
+                ->map(fn(Language $language) => $language->setSelected(false));
+            $defaultLanguage->setSelected(true);
+            $manager->flush();
 
-        return $this->json([
-            "success" => true,
-        ]);
+            return $this->json([
+                "success" => true,
+            ]);
+        }
+        else {
+            return $this->json([
+                "success" => false,
+                "message" => "La langue n'est pas sélectionnable",
+            ]);
+        }
+
+
     }
 
     /**
@@ -686,22 +696,38 @@ class SettingsController extends AbstractController {
      * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_LABELS_PERSO})
      */
     public function deleteLanguageApi(EntityManagerInterface $manager,
-                                       Request $request ): Response {
+                                       Request $request ): Response
+    {
         $data = json_decode($request->getContent(), true);
         $languageRepository = $manager->getRepository(Language::class);
         $userRepository = $manager->getRepository(Utilisateur::class);
+        $translationRepository = $manager->getRepository(Translation::class);
         $language = $languageRepository->find($data['language']);
-        $defaultLanguage = $languageRepository->findOneBy(['selected' => true]);
-        foreach ($userRepository->findBy(['language' => $language]) as $user) {
-            $user->setLanguage($defaultLanguage);
+
+        if ($language->getSelectable()) {
+            return $this->json([
+                "success" => false,
+                "message" => "Cette langue ne peut pas être supprimée"
+            ]);
         }
+        else {
+            $translations = $translationRepository->findBy(['language' => $language]);
+            foreach ($translations as $translation) {
+                $manager->remove($translation);
+            }
 
-        $manager->remove($language);
-        $manager->flush();
+            $defaultLanguage = $languageRepository->findOneBy(['selected' => true]);
+            foreach ($userRepository->findBy(['language' => $language]) as $user) {
+                $user->setLanguage($defaultLanguage);
+            }
 
-        return $this->json([
-            "success" => true,
-        ]);
+            $manager->remove($language);
+            $manager->flush();
+
+            return $this->json([
+                "success" => true,
+            ]);
+        }
     }
 
     /**
@@ -713,7 +739,6 @@ class SettingsController extends AbstractController {
                                        AttachmentService $attachmentService): Response {
         $data = $request->request;
         $file = $request->files;
-        dump($data->all());
         $languageRepository = $manager->getRepository(Language::class);
         $translationRepository = $manager->getRepository(Translation::class);
         $translationSourceRepository = $manager->getRepository(TranslationSource::class);
@@ -721,13 +746,19 @@ class SettingsController extends AbstractController {
         $language = $data->get('language');
         if ($language === 'NEW') {
             $language = new Language;
+            $flagCustom = $file->get('flagCustom');
+            if ($flagCustom) {
+                $flagFile = $attachmentService->createAttachements($file);
+                $languageFile = $flagFile[0]->getFullPath();
+            }
+            else {
+                $languageFile = $data->get('flagDefault');
+            }
             $languageName = $data->get('languageName');
-
-           //$attachmentService->createAttachements()
-
+            $languageName = $data->get('languageName');
             $language
                 ->setLabel($languageName)
-                ->setFlag($data->get('languageFlag'))
+                ->setFlag($languageFile)
                 ->setSelectable(false)
                 ->setSlug(strtolower(str_replace(' ', '_', $languageName)))
                 ->setSelected(false);
@@ -857,6 +888,7 @@ class SettingsController extends AbstractController {
         $translationRepository = $this->manager->getRepository(Translation::class);
         $settingRepository = $this->manager->getRepository(Setting::class);
         $userRepository = $this->manager->getRepository(Utilisateur::class);
+        $languageRepository = $this->manager->getRepository(Language::class);
 
         return [
             self::CATEGORY_GLOBAL => [

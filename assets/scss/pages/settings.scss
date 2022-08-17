@@ -160,6 +160,9 @@ textarea {
     margin-top: 5px;
     height: 35.58px;
     border: 1px solid #ced4da;
+    &.is-invalid {
+        border-color: $danger !important;
+    }
 }
 
 .dropdown-menu.dropdown-menu-wide {
@@ -185,18 +188,22 @@ textarea {
     }
 }
 
-.tooltip-input {
-    position: relative;
-    z-index: 2;
+.tooltip-logo{
+    width: 15x;
+    height: 15px;
+    margin-right: 3px;
 }
 
-.tooltip-input img {
-    position: absolute;
-    top: 9px;
-    right: 9px;
-    height: 15px;;
+.tooltip-input{
+    border-right: none;
 }
 
-.input-text-tooltip {
-    z-index: 1;
+.input-group-tooltip{
+    border : 1px solid $medium-grey;
+    border-left: none;
+    height: revert;
+    border-bottom-right-radius: 0.25rem;
+    border-top-right-radius: 0.25rem;
+    display: flex;
+    align-items: center;
 }
