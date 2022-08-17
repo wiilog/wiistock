@@ -25,7 +25,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use DateTime;
-use Symfony\Contracts\Translation\TranslatorInterface;
+use App\Service\TranslationService;
 use Throwable;
 
 /**
@@ -67,7 +67,7 @@ class PackController extends AbstractController
     public function printCSVPacks(Request $request,
                                   CSVExportService $CSVExportService,
                                   TrackingMovementService $trackingMovementService,
-                                  TranslatorInterface $translator,
+                                  TranslationService $translation,
                                   EntityManagerInterface $entityManager): Response
     {
         $dateMin = $request->query->get('dateMin');
@@ -83,7 +83,7 @@ class PackController extends AbstractController
 
             $csvHeader = [
                 'Numéro colis',
-                $translator->trans('natures.Nature de colis'),
+                $translation->trans('natures.Nature de colis'),
                 'Date du dernier mouvement',
                 'Issu de',
                 'Issu de (numéro)',
@@ -91,7 +91,7 @@ class PackController extends AbstractController
             ];
 
             return $CSVExportService->streamResponse(
-                function ($output) use ($CSVExportService, $translator, $entityManager, $dateTimeMin, $dateTimeMax, $trackingMovementService) {
+                function ($output) use ($CSVExportService, $translation, $entityManager, $dateTimeMin, $dateTimeMax, $trackingMovementService) {
                     $packRepository = $entityManager->getRepository(Pack::class);
                     $packs = $packRepository->getPacksByDates($dateTimeMin, $dateTimeMax);
                     $trackingMouvementRepository = $entityManager->getRepository(TrackingMovement::class);
@@ -99,7 +99,7 @@ class PackController extends AbstractController
                     foreach ($packs as $pack) {
                         $trackingMouvment = $trackingMouvementRepository->find($pack['fromTo']);
                         $mvtData = $trackingMovementService->getFromColumnData($trackingMouvment);
-                        $pack['fromLabel'] = $translator->trans($mvtData['fromLabel']);
+                        $pack['fromLabel'] = $translation->trans($mvtData['fromLabel']);
                         $pack['fromTo'] = $mvtData['from'];
                         $this->putPackLine($output, $CSVExportService, $pack);
                     }
@@ -176,7 +176,7 @@ class PackController extends AbstractController
     public function edit(Request $request,
                          EntityManagerInterface $entityManager,
                          PackService $packService,
-                         TranslatorInterface $translator): Response
+                         TranslationService $translation): Response
     {
         $data = json_decode($request->getContent(), true);
         $response = [];
@@ -192,7 +192,7 @@ class PackController extends AbstractController
             $entityManager->flush();
             $response = [
                 'success' => true,
-                'msg' => $translator->trans('colis.Le colis {numéro} a bien été modifié', [
+                'msg' => $translation->trans('colis.Le colis {numéro} a bien été modifié', [
                         "{numéro}" => '<strong>' . $pack->getCode() . '</strong>'
                     ]) . '.'
             ];
@@ -208,7 +208,7 @@ class PackController extends AbstractController
      */
     public function delete(Request $request,
                            EntityManagerInterface $entityManager,
-                           TranslatorInterface $translator): Response
+                           TranslationService $translation): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
             $packRepository = $entityManager->getRepository(Pack::class);
@@ -218,18 +218,18 @@ class PackController extends AbstractController
             $packCode = $pack->getCode();
             $arrivage = isset($data['arrivage']) ? $arrivageRepository->find($data['arrivage']) : null;
             if (!$pack->getTrackingMovements()->isEmpty()) {
-                $msg = $translator->trans("colis.Ce colis est référencé dans un ou plusieurs mouvements de traçabilité");
+                $msg = $translation->trans("colis.Ce colis est référencé dans un ou plusieurs mouvements de traçabilité");
             }
 
             if (!$pack->getDispatchPacks()->isEmpty()) {
-                $msg = $translator->trans("colis.Ce colis est référencé dans un ou plusieurs acheminements");
+                $msg = $translation->trans("colis.Ce colis est référencé dans un ou plusieurs acheminements");
             }
 
             if (!$pack->getDisputes()->isEmpty()) {
-                $msg = $translator->trans("colis.Ce colis est référencé dans un ou plusieurs litiges");
+                $msg = $translation->trans("colis.Ce colis est référencé dans un ou plusieurs litiges");
             }
             if ($pack->getArrivage() && $arrivage !== $pack->getArrivage()) {
-                $msg = $translator->trans('colis.Ce colis est utilisé dans l\'arrivage {arrivage}', [
+                $msg = $translation->trans('colis.Ce colis est utilisé dans l\'arrivage {arrivage}', [
                     "{arrivage}" => $pack->getArrivage()->getNumeroArrivage()
                 ]);
             }
@@ -246,7 +246,7 @@ class PackController extends AbstractController
 
             return new JsonResponse([
                 'success' => true,
-                'msg' => $translator->trans('colis.Le colis {numéro} a bien été supprimé', [
+                'msg' => $translation->trans('colis.Le colis {numéro} a bien été supprimé', [
                         "{numéro}" => '<strong>' . $packCode . '</strong>'
                     ]) . '.'
             ]);

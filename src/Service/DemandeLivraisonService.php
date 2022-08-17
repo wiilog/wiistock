@@ -26,7 +26,7 @@ use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
-use Symfony\Contracts\Translation\TranslatorInterface;
+use App\Service\TranslationService;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\RouterInterface;
@@ -53,7 +53,7 @@ class DemandeLivraisonService
     public MailerService $mailerService;
 
     /** @Required */
-    public TranslatorInterface $translator;
+    public TranslationService $translation;
 
     /** @Required */
     public PreparationsManagerService $preparationsManager;

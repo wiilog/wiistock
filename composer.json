@@ -54,7 +54,6 @@
         "symfony/security-bundle": "^6.0",
         "symfony/serializer": "^6.0",
         "symfony/string": "^6.0",
-        "symfony/translation": "^6.0",
         "symfony/twig-bundle": "^6.0",
         "symfony/validator": "^6.0",
         "symfony/web-link": "^6.0",

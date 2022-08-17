@@ -24,7 +24,7 @@ use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use Google\Service\AndroidPublisher\Track;
 use Symfony\Component\HttpFoundation\FileBag;
-use Symfony\Contracts\Translation\TranslatorInterface;
+use App\Service\TranslationService;
 use WiiCommon\Helper\Stream;
 use App\Repository\TrackingMovementRepository;
 use DateTime;
@@ -54,7 +54,7 @@ class TrackingMovementService
     public MouvementStockService $stockMovementService;
 
     /** @Required */
-    public TranslatorInterface $translator;
+    public TranslationService $translation;
 
     public array $stockStatuses = [];
 
@@ -916,8 +916,8 @@ class TrackingMovementService
 
         // Dans le cas d'une dépose, on vérifie si l'emplacement peut accueillir le colis
         if ($movementTypeName === TrackingMovement::TYPE_DEPOSE && !$location->ableToBeDropOff($movement->getPack())) {
-            $packTranslation = $this->translator->trans('arrivage.colis');
-            $natureTranslation = $this->translator->trans('natures.natures requises');
+            $packTranslation = $this->translation->trans('arrivage.colis');
+            $natureTranslation = $this->translation->trans('natures.natures requises');
             $packCode = $movement->getPack()->getCode();
             $bold = '<span class="font-weight-bold"> ';
             return [

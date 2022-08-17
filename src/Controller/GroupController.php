@@ -23,7 +23,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use DateTime;
-use Symfony\Contracts\Translation\TranslatorInterface;
+use App\Service\TranslationService;
 use Throwable;
 
 /**
@@ -139,7 +139,7 @@ class GroupController extends AbstractController {
     public function exportGroups(Request $request,
                                  CSVExportService $CSVExportService,
                                  TrackingMovementService $trackingMovementService,
-                                 TranslatorInterface $translator,
+                                 TranslationService $translation,
                                  EntityManagerInterface $entityManager): Response {
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
@@ -153,7 +153,7 @@ class GroupController extends AbstractController {
         if (isset($dateTimeMin) && isset($dateTimeMax)) {
             $csvHeader = [
                 'Numéro groupe',
-                $translator->trans('natures.Nature de colis'),
+                $translation->trans('natures.Nature de colis'),
                 'Date du dernier mouvement',
                 'Nombre de colis',
                 'Poids',
@@ -164,7 +164,7 @@ class GroupController extends AbstractController {
             ];
 
             return $CSVExportService->streamResponse(
-                function($output) use ($CSVExportService, $translator, $entityManager, $dateTimeMin, $dateTimeMax, $trackingMovementService) {
+                function($output) use ($CSVExportService, $translation, $entityManager, $dateTimeMin, $dateTimeMax, $trackingMovementService) {
                     $packRepository = $entityManager->getRepository(Pack::class);
                     $groups = $packRepository->getGroupsByDates($dateTimeMin, $dateTimeMax);
 
@@ -182,7 +182,7 @@ class GroupController extends AbstractController {
                             $groupData['packCounter'],
                             $group->getWeight(),
                             $group->getVolume(),
-                            $translator->trans($trackingData['fromLabel']),
+                            $translation->trans($trackingData['fromLabel']),
                             $trackingData["from"],
                             FormatHelper::location($trackingLocation)
                         ]);

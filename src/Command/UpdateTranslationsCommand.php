@@ -21,6 +21,7 @@ class UpdateTranslationsCommand extends Command {
 
     protected function execute(InputInterface $input, OutputInterface $output) {
         $this->translationService->generateCache();
+        $this->translationService->generateJavascripts();
         $output->writeln("Updated translation files");
 
         return 0;

@@ -32,12 +32,11 @@ class CacheService
     public function set(string $namespace, string $key, mixed $value = null): void
     {
         if (!$this->filesystem->isDir()) {
-            $this->filesystem->remove();
+            $this->clear();
         }
 
-        if (!$this->filesystem->isDir($namespace)) {
-            $this->filesystem->remove($namespace);
-            $this->filesystem->mkdir($namespace);
+        if(!$this->filesystem->isFile("$namespace.$key")) {
+            $this->filesystem->remove("$namespace.$key");
         }
 
         $this->filesystem->dumpFile("$namespace.$key", serialize($value));

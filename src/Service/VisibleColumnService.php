@@ -9,13 +9,13 @@ use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query\Expr\Orx;
 use Doctrine\ORM\QueryBuilder;
-use Symfony\Contracts\Translation\TranslatorInterface;
+use App\Service\TranslationService;
 
 class VisibleColumnService {
     public const FREE_FIELD_NAME_PREFIX = 'free_field';
 
     /** @Required */
-    public TranslatorInterface $translator;
+    public TranslationService $translation;
 
     /** @Required  */
     public EntityManagerInterface $entityManager;
@@ -34,7 +34,7 @@ class VisibleColumnService {
                     return [
                         'title' => $title,
                         'hiddenTitle' => $column['hiddenTitle'] ?? '',
-                        'displayedTitle' => $translated ? $this->translator->trans($title) : $title,
+                        'displayedTitle' => $translated ? $this->translation->trans($title) : $title,
                         'alwaysVisible' => $column['alwaysVisible'] ?? null,
                         'hiddenColumn' => $column['hiddenColumn'] ?? false,
                         'orderable' => $column['orderable'] ?? true,

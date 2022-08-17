@@ -7,6 +7,7 @@ use App\Entity\Setting;
 use App\Entity\Transport\TransportHistory;
 use App\Service\FieldsParamService;
 use App\Service\SpecificService;
+use App\Service\TranslationService;
 use App\Service\Transport\TransportHistoryService;
 use App\Service\UserService;
 use App\Helper\FormatHelper;
@@ -14,6 +15,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 use ReflectionClass;
 use Symfony\Component\HttpKernel\KernelInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 use Throwable;
 use Twig\Markup;
 use Twig\TwigFilter;
@@ -24,33 +26,26 @@ use WiiCommon\Helper\Stream;
 
 class AppExtension extends AbstractExtension {
 
-    /**
-     * @Required
-     */
+    #[Required]
     public EntityManagerInterface $manager;
 
-    /**
-     * @Required
-     */
+    #[Required]
     public UserService $userService;
 
-    /**
-     * @Required
-     */
+    #[Required]
     public SpecificService $specificService;
 
-    /**
-     * @Required
-     */
+    #[Required]
     public FieldsParamService $fieldsParamService;
 
-    /**
-     * @Required
-     */
+    #[Required]
     public KernelInterface $kernel;
 
-    /** @Required */
+    #[Required]
     public TransportHistoryService $transportHistoryService;
+
+    #[Required]
+    public TranslationService $translationService;
 
     private array $settingsCache = [];
 
@@ -69,7 +64,10 @@ class AppExtension extends AbstractExtension {
             new TwigFunction('interleave', [$this, 'interleave']),
             new TwigFunction('formatHistory', [$this, 'formatHistory']),
             new TwigFunction('isImage', [$this, 'isImage']),
-
+            new TwigFunction('merge', "array_merge"),
+            new TwigFunction('getLanguage', [$this, "getLanguage"]),
+            new TwigFunction('getDefaultLanguage', [$this, "getDefaultLanguage"]),
+            new TwigFunction('trans', [$this, "translate"]),
         ];
     }
 
@@ -83,6 +81,7 @@ class AppExtension extends AbstractExtension {
             new TwigFilter("json_decode", "json_decode"),
             new TwigFilter("flip", [$this, "flip"]),
             new TwigFilter("some", [$this, "some"]),
+            new TwigFilter("trans", fn(string $in) => "BUG TICKET: $in"),
         ];
     }
 
@@ -253,4 +252,17 @@ class AppExtension extends AbstractExtension {
             return false;
         }
     }
+
+    public function getDefaultLanguage(){
+        return  $this->manager->getRepository(Language::class)->findOneBy(['selected' => true]);
+    }
+
+    public function getLanguage(){
+        return $this->userService->getUser()?->getLanguage() ?? $this->manager->getRepository(Language::class)->findOneBy(['selected' => true]);
+    }
+
+    public function translate(?string $category, ?string $menu, ?string $submenu, ?string $translation): string {
+        return $this->translationService->translate($category, $menu, $submenu, $translation);
+    }
+
 }
