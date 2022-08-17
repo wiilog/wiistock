@@ -21,7 +21,6 @@ $(function () {
         getTranslations($(this).find(':checked').val());
     });
 
-
     $("input[name='newLanguage']").on('keyup', function () {
         const $languageTo = $(".language-to");
         $languageTo.text($(this).val());
@@ -33,7 +32,9 @@ $(function () {
         $(".custom-flag-preview").attr('src', $flag.attr('src'));
     });
     $(".add-new-flag").on('click', function () {
-        $flagFile.click();
+        $flagFile.click().then(function () {
+            console.log('file selected');
+        });
     });
     $flagFile.on('change', function () {
         updateImagePreview($(".custom-flag-preview"), $flagFile)
@@ -41,7 +42,7 @@ $(function () {
 
     // change the default language and reload the page
     $("div[data-name='defaultLanguages']").on('change', function () {
-        $.get(Routing.generate(`settings_defaultLanguage_api`, {language: $(this).find(':checked').val()}, true))
+        $.post(Routing.generate(`settings_defaultLanguage_api`),{language: $(this).find(':checked').val()})
             .then(() => {
                 window.location.reload();
             });
@@ -50,26 +51,39 @@ $(function () {
     //save translations
     $("button[name='save-translations']").on('click', function () {
         //get all translations that are modified
-        const $translations =$("input[data-name='input-translation'][data-is-modify=\"1\"]");
+        const $translations =$("input[data-name='input-translation'][data-is-modify='1']");
         const translations = [];
         $translations.each(function () {
             translations.push({
                 id: $(this).data('translation-id'),
-                value: $(this).val()
+                value: $(this).val(),
+                source : $(this).data('source')
             })
         });
-
         const language = $("div[data-name='language']").find(':checked').val();
         const languageName = $("input[name='newLanguage']").val();
-        const languageFlag = $flagPreview.attr('src');
+        const languageCustomFlag = $flagFile[0].files[0];
+        const languageFlag = $(".custom-flag-preview").attr('src');
 
-        console.log(language, languageName, languageFlag, translations);
+        const formData = new FormData();
+        formData.set('translations', JSON.stringify(translations));
+        formData.set('language', language);
+        formData.set('languageName', languageName);
+        formData.append('languageFlag', languageFlag);
+        formData.set('flag', languageflag);
 
-        //send them to the server
-        $.get(Routing.generate(`settings_language_save_api`, {translations : JSON.stringify(translations), language, languageName, languageFlag}, true))
-            .then(() => {
+        $.ajax({
+            url: Routing.generate('settings_language_save_api', true),
+            data: formData,
+            type: "post",
+            contentType: false,
+            processData: false,
+            cache: false,
+            dataType: "json",
+            success: function (data) {
                 window.location.reload();
-            });
+            }
+        });
     });
 });
 
@@ -77,19 +91,18 @@ function getTranslations(language) {
     const $categoriesNavbar = $("#categoriesNavbar")
     $categoriesNavbar.find('.selected').removeClass('selected');
     $categoriesNavbar.find(':first-child').addClass('selected');
-
-
     $.get(Routing.generate(`settings_language_api`, {language}, true))
         .then(({template}) => {
             const $translationsContainer = $(`.translations-container`);
             $translationsContainer.html(template);
+
             // delete language
+            const $modaleDeleteTranslationSubmit = $("#submitDeleteLanguage");
+            const $modaleDeleteTranslation = $("#modalDeleteLanguage");
+            const urlDeleteModale =  Routing.generate("settings_language_delete_api", true);
+            InitModal( $modaleDeleteTranslation, $modaleDeleteTranslationSubmit, urlDeleteModale, {success: () => {window.location.reload()}});
             $("button[name='deleteLanguage']").on('click', function () {
-                const language = $("div[data-name='language']").find(':checked').val();
-                $.get(Routing.generate(`settings_language_delete_api`, {language}, true))
-                    .then(() => {
-                        window.location.reload();
-                    });
+                $modaleDeleteTranslation.modal('show');
             });
 
             // mark translations as modified
