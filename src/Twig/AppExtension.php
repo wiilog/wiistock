@@ -66,7 +66,6 @@ class AppExtension extends AbstractExtension {
             new TwigFunction('isImage', [$this, 'isImage']),
             new TwigFunction('merge', "array_merge"),
             new TwigFunction('getLanguage', [$this, "getLanguage"]),
-            new TwigFunction('getDefaultLanguage', [$this, "getDefaultLanguage"]),
             new TwigFunction('trans', [$this, "translate"]),
         ];
     }
@@ -253,15 +252,11 @@ class AppExtension extends AbstractExtension {
         }
     }
 
-    public function getDefaultLanguage(){
-        return  $this->manager->getRepository(Language::class)->findOneBy(['selected' => true]);
-    }
-
     public function getLanguage(){
         return $this->userService->getUser()?->getLanguage() ?? $this->manager->getRepository(Language::class)->findOneBy(['selected' => true]);
     }
 
-    public function translate(?string $category, ?string $menu, ?string $submenu, ?string $translation): string {
+    public function translate(?string $category, ?string $menu, ?string $submenu, ?string $translation = null): string {
         return $this->translationService->translate($category, $menu, $submenu, $translation);
     }
 

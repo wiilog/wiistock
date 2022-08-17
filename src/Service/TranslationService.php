@@ -49,6 +49,7 @@ class TranslationService {
         }
 
         $submenu = $this->translations[$slug][$category ?: null][$menu ?: null][$submenu ?: null];
+        dump($category, $menu, $submenu, $input, $this->translations[$slug][$category ?: null][$menu ?: null]);
         return is_array($submenu) ? ($submenu[$input ?: null] ?? $input) : ($submenu ?? $input);
     }
 
@@ -109,7 +110,10 @@ class TranslationService {
 
             file_put_contents("$outputDirectory/translations.$slug.js", $content);
             if($language->getSelected()) {
-                file_put_contents("$outputDirectory/translations.default.js", $content);
+                file_put_contents(
+                    "$outputDirectory/translations.default.js",
+                    "const DEFAULT_TRANSLATIONS = " . json_encode($translations) . ";"
+                );
             }
         }
     }

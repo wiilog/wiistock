@@ -4,36 +4,35 @@ parameters:
             icon: 'accueil'
             path: 'app_index'
 
-        -   label: 'Traçabilité'
+        -   label: ['Traçabilité', 'Général', 'Traçabilité']
             icon: 'traca'
             sub:
-                -   label: 'arrivage.flux - arrivages'
+                -   label: ['Traçabilité', 'Flux - arrivages', 'Flux - arrivages']
                     path: 'arrivage_index'
                     rights:
                         menu: App\Entity\Menu::TRACA
                         action: App\Entity\Action::DISPLAY_ARRI
-                -   label: 'Mouvements'
+                -   label: ['Traçabilité', 'Général', 'Unités logistiques']
                     path: 'mvt_traca_index'
                     rights:
                         menu: App\Entity\Menu::TRACA
                         action: App\Entity\Action::DISPLAY_MOUV
-                -   label: 'Colis'
+                -   label: ['Traçabilité', 'Mouvements', 'Mouvements']
                     path: 'pack_index'
                     rights:
                         menu: App\Entity\Menu::TRACA
                         action: App\Entity\Action::DISPLAY_PACK
-                -   label: 'Association BR'
+                -   label: ['Traçabilité', 'Association BR', 'Association BR']
                     path: 'receipt_association_index'
                     rights:
                         menu: App\Entity\Menu::TRACA
                         action: App\Entity\Action::DISPLAY_ASSO
-                -   label: 'Encours'
+                -   label: ['Traçabilité', 'Encours', 'Encours']
                     path: 'en_cours'
                     rights:
                         menu: App\Entity\Menu::TRACA
                         action: App\Entity\Action::DISPLAY_ENCO
-                -   label: 'urgences.urgences'
-                    title: 'Urgences'
+                -   label: ['Traçabilité', 'Urgences', 'Urgences']
                     path: 'urgence_index'
                     rights:
                         menu: App\Entity\Menu::TRACA
@@ -48,7 +47,7 @@ parameters:
                         menu: App\Entity\Menu::QUALI
                         action: App\Entity\Action::DISPLAY_LITI
 
-        -   label: 'Demande'
+        -   label: ['Demande', 'Général', 'Demande']
             icon: 'demande'
             sub:
                 -   label: 'Collecte'
@@ -61,12 +60,12 @@ parameters:
                     rights:
                         menu: App\Entity\Menu::DEM
                         action: App\Entity\Action::DISPLAY_DEM_LIVR
-                -   label: 'services.Service'
+                -   label: 'BUG services.Service'
                     path: 'handling_index'
                     rights:
                         menu: App\Entity\Menu::DEM
                         action: App\Entity\Action::DISPLAY_HAND
-                -   label: 'acheminement.Acheminement'
+                -   label: ['Demande', 'Acheminement', 'Divers', 'Acheminement']
                     path: 'dispatch_index'
                     rights:
                         menu: App\Entity\Menu::DEM
