@@ -713,7 +713,6 @@ class SettingsController extends AbstractController {
                                        AttachmentService $attachmentService): Response {
         $data = $request->request;
         $file = $request->files;
-        dump($data->all());
         $languageRepository = $manager->getRepository(Language::class);
         $translationRepository = $manager->getRepository(Translation::class);
         $translationSourceRepository = $manager->getRepository(TranslationSource::class);

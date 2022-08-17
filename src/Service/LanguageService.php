@@ -6,6 +6,7 @@ use App\Entity\Language;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Service\Attribute\Required;
+use WiiCommon\Helper\Stream;
 
 class LanguageService
 {
@@ -29,4 +30,15 @@ class LanguageService
         return $mappedLanguages;
     }
 
+    public function getDateFormats() : array {
+        $user = $this->security->getUser();
+
+        return ['dateFormat' => Stream::from(Language::DATE_FORMATS)
+            ->map(fn($format, $key) => [
+                "label" => $key,
+                "value" => $format
+            ])
+            ->toArray(),
+            'value' => $user->getDateFormat()];
+    }
 }

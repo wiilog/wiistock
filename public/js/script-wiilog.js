@@ -82,7 +82,24 @@ $(function () {
 
     registerNotificationChannel();
     registerEasterEgg();
+
+    $("div[data-name='user_language']").on('change', function() {
+        changeUserLanguageDateFormat();
+    });
+
+    $("select[name='user_dateFormat']").on('change', function() {
+        changeUserLanguageDateFormat();
+    });
 });
+
+function changeUserLanguageDateFormat() {
+    $.post(Routing.generate(`header_language_dateFormat_api`),
+        {language: $("div[data-name='user_language']").find(':checked').val(),
+        dateFormat: $("select[name='user_dateFormat']").find(':selected').val()})
+        .then(() => {
+            window.location.reload();
+        });
+}
 
 function registerNotificationChannel() {
     if(typeof FCM !== `undefined`) {

@@ -6,6 +6,7 @@
 {% set tooltipExists = title_tooltip is defined and title_tooltip is not empty %}
 {% set subtitleExists = subtitle is defined and subtitle is not empty %}
 {% set titleLink = titleLink is defined ? titleLink : '' %}
+{% set dateFormat = language_service.getDateFormats %}
 
 <div class="main-header">
     <div class="px-lg-3 w-100">
@@ -210,26 +211,32 @@
 
 
                     <div class="col col-lg-auto language-date d-flex align-items-center user-select-none dropdown ml-3">
-                        <div class="language-picture"></div>
+                        <div class="language-picture" style="background-image: url({{ app.user.language.flag }})"></div>
                         <button class="language-date-btn flex-fill dropdown-toggle"
                                 data-toggle="dropdown"
                                 aria-haspopup="true"
                                 aria-expanded="false">
                             <span class="fa fa-angle-down"></span>
                         </button>
-                        <div class="language-date-menu dropdown-menu p-0 mt-3">
+                        <div class="language-date-menu dropdown-menu p-0">
                             <form>
-                                <div class="language dropdown-item-sub">
-                                    <div class="language-btn p-3">
-                                        {{ form.radio('language', null , false,  language_service.getLanguages, {
+                                <div class="language dropdown-item-sub pl-3">
+
+                                        {{ form.radio('user_language', null , false,  language_service.getLanguages, {
                                             iconClass : 'flag',
                                             labelClass : 'header'
                                         }) }}
-                                    </div>
+
                                 </div>
-                                <div class="date dropdown-item-sub">
-                                    <p class="bold ml-2">Format de date</p>
-                                    <!-- TODO: select format de date -->
+                                <div class="date dropdown-item-sub p-1">
+                                    <label class="label-date">Format de date</label>
+                                        {{ form.select('user_dateFormat', null, false, {
+                                            items: dateFormat.dateFormat,
+                                            type : null,
+                                            search : false,
+                                            value : dateFormat.value,
+                                        }) }}
+
                                 </div>
                             </form>
                         </div>
