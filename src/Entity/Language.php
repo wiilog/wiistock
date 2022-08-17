@@ -10,6 +10,7 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\GeneratedValue;
 use Doctrine\ORM\Mapping\Id;
 use Doctrine\ORM\Mapping\OneToMany;
+use WiiCommon\Helper\Stream;
 
 #[Entity(LanguageRepository::class)]
 class Language {
@@ -132,6 +133,15 @@ class Language {
         }
 
         return $this;
+    }
+
+    public function serialize(Utilisateur $user): array {
+        return [
+            'label' => $this->getLabel(),
+            'value' => $this->getId(),
+            'iconUrl' => $this->getFlag(),
+            'checked' => $user->getLanguage()->getId() === $this->getId()
+        ];
     }
 
 }

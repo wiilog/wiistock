@@ -2,6 +2,7 @@
 
 namespace App\Twig;
 
+use App\Entity\Language;
 use App\Entity\Setting;
 use App\Entity\Transport\TransportHistory;
 use App\Service\FieldsParamService;
@@ -68,7 +69,7 @@ class AppExtension extends AbstractExtension {
             new TwigFunction('interleave', [$this, 'interleave']),
             new TwigFunction('formatHistory', [$this, 'formatHistory']),
             new TwigFunction('isImage', [$this, 'isImage']),
-            new TwigFunction('merge', "array_merge"),
+
         ];
     }
 
