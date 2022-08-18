@@ -98,7 +98,7 @@ class FreeField implements Serializable {
     #[ORM\OneToOne(targetEntity: TranslationSource::class, inversedBy: "freeField")]
     private ?TranslationSource $labelTranslation = null;
 
-    #[OneToMany(mappedBy: "elementOfFreeField", targetEntity: TranslationSource::class)]
+    #[ORM\OneToMany(mappedBy: "elementOfFreeField", targetEntity: TranslationSource::class)]
     private Collection $elementsTranslations;
 
     public function __construct() {
