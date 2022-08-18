@@ -1889,17 +1889,45 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
 
         $languageRepository = $manager->getRepository(Language::class);
 
+        if(!$languageRepository->findOneBy(["slug" => Language::FRENCH_SLUG])) {
+            $french = (new Language())
+                ->setLabel("Français")
+                ->setSlug(Language::FRENCH_SLUG)
+                ->setFlag("/svg/flags/fr.svg")
+                ->setSelectable(true)
+                ->setSelected(true)
+                ->setHidden(true);
+
+            $manager->persist($french);
+
+            $this->console->writeln("Created language \"Français\"");
+        }
+
         if(!$languageRepository->findOneBy(["slug" => "french"])) {
             $french = (new Language())
                 ->setLabel("Français")
                 ->setSlug("french")
                 ->setFlag("/svg/flags/fr.svg")
-                ->setSelectable(true)
-                ->setSelected(true);
+                ->setSelectable(false)
+                ->setSelected(false);
 
             $manager->persist($french);
 
             $this->console->writeln("Created language \"Français\"");
+        }
+
+        if(!$languageRepository->findOneBy(["slug" => "english-default"])) {
+            $english = (new Language())
+                ->setLabel("English")
+                ->setSlug("english-default")
+                ->setFlag("/svg/flags/gb.svg")
+                ->setSelectable(true)
+                ->setSelected(false)
+                ->setHidden(true);;
+
+            $manager->persist($english);
+
+            $this->console->writeln("Created language \"English\"");
         }
 
         if(!$languageRepository->findOneBy(["slug" => "english"])) {
@@ -1907,7 +1935,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                 ->setLabel("English")
                 ->setSlug("english")
                 ->setFlag("/svg/flags/gb.svg")
-                ->setSelectable(true)
+                ->setSelectable(false)
                 ->setSelected(false);
 
             $manager->persist($english);
@@ -1980,10 +2008,42 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                     $this->console->writeln("Updated french translation \"" . str_replace("\n", "\\n ", $translation["fr"]) . "\"");
                 }
 
+                $french = $translationEntity->getTranslationIn("french-default");
+                if(!$french) {
+                    $french = (new Translation())
+                        ->setLanguage($this->getLanguage("french-default"))
+                        ->setSource($translationEntity)
+                        ->setTranslation($translation["fr"]);
+
+                    $this->manager->persist($french);
+
+                    $this->console->writeln("Created french translation \"" . str_replace("\n", "\\n ", $translation["fr"]) . "\"");
+                } else if($french->getTranslation() != $translation["fr"]) {
+                    $french->setTranslation($translation["fr"]);
+
+                    $this->console->writeln("Updated french translation \"" . str_replace("\n", "\\n ", $translation["fr"]) . "\"");
+                }
+
                 $english = $translationEntity->getTranslationIn("english");
                 if(!$english) {
                     $english = (new Translation())
                         ->setLanguage($this->getLanguage("english"))
+                        ->setSource($translationEntity)
+                        ->setTranslation($translation["en"]);
+
+                    $this->manager->persist($english);
+
+                    $this->console->writeln("Created english translation \"" . str_replace("\n", "\\n ", $translation["en"]) . "\"");
+                } else if($english->getTranslation() != $translation["en"]) {
+                    $english->setTranslation($translation["en"]);
+
+                    $this->console->writeln("Updated english translation \"" . str_replace("\n", "\\n ", $translation["en"]) . "\"");
+                }
+
+                $english = $translationEntity->getTranslationIn("english-default");
+                if(!$english) {
+                    $english = (new Translation())
+                        ->setLanguage($this->getLanguage("english-default"))
                         ->setSource($translationEntity)
                         ->setTranslation($translation["en"]);
 

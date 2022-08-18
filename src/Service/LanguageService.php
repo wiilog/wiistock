@@ -16,18 +16,22 @@ class LanguageService {
     #[Required]
     public Security $security;
 
+    #[Required]
+    public CacheService $cacheService;
+
     public function getLanguages() : array {
-        $languageRepository = $this->manager->getRepository(Language::class);
+        return $this->cacheService->get(CacheService::LANGUAGES, 'languages', function() {
+            $languageRepository = $this->manager->getRepository(Language::class);
 
-        $user = $this->security->getUser();
-        $languages = $languageRepository->findAll();
+            $user = $this->security->getUser();
+            $languages = $languageRepository->findBy(['hidden' => false]);
 
-        $mappedLanguages = [];
-        foreach ($languages as $language) {
-            $mappedLanguages[] = $language->serialize($user);
-        }
-
-        return $mappedLanguages;
+            $mappedLanguages = [];
+            foreach ($languages as $language) {
+                $mappedLanguages[] = $language->serialize($user);
+            }
+            return $mappedLanguages;
+        });
     }
 
     public function getDateFormats() : array {

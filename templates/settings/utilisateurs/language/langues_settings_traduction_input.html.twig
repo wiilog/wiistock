@@ -1,5 +1,6 @@
 <div class="row">
     {% for translation in translations %}
+        {% if translation.original.translation is defined%}
         <div class="col-md-6">
             <div class="input-group pb-2">
                 <div class="input-group-prepend h-100 ">
@@ -24,5 +25,6 @@
                 {% endif %}
             </div>
         </div>
+        {%  endif %}
     {% endfor %}
 </div>

@@ -4,6 +4,7 @@ namespace App\Form;
 
 use App\Entity\Language;
 use App\Entity\Utilisateur;
+use App\Service\LanguageService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -23,7 +24,7 @@ class UtilisateurType extends AbstractType
 
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
-        $languages = $this->entityManager->getRepository(Language::class)->findAll();
+        $languages = $this->entityManager->getRepository(Language::class)->findBy(['hidden' => false]);
         $languageChoices = Stream::from($languages)
             ->keyMap(fn(Language $language) =>[$language->getLabel(), $language])
             ->toArray();

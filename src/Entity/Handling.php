@@ -88,7 +88,6 @@ class Handling extends StatusHistoryContainer{
     #[ORM\OneToMany(mappedBy: 'Handling', targetEntity: StatusHistory::class)]
     private Collection $statusHistory;
 
-    //
     #[ORM\Column(type: 'boolean', options: ['default' => true])]
     private bool $withoutHistory = false;
 
