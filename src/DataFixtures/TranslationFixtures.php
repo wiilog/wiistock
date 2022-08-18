@@ -6,6 +6,7 @@ use App\Entity\Language;
 use App\Entity\Translation;
 use App\Entity\TranslationCategory;
 use App\Entity\TranslationSource;
+use App\Entity\Utilisateur;
 use App\Service\SpecificService;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
@@ -1923,6 +1924,9 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
         }
 
         $this->manager->flush();
+
+        $this->updateUsers();
+        $this->manager->flush();
     }
 
     private function handleCategory(string $type, ?TranslationCategory $parent, string $label, array $content) {
@@ -2002,6 +2006,18 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
         }
 
         return $this->languages[$slug];
+    }
+
+    private function updateUsers() {
+        $users = $this->manager->getRepository(Utilisateur::class)->findAll();
+        $french = $this->manager->getRepository(Language::class)->findOneBy(["slug" => "french"]);
+
+        foreach($users as $user) {
+            if(!$user->getLanguage() || !$user->getDateFormat()) {
+                $user->setLanguage($french)
+                    ->setDateFormat("jj/mm/aaaa");
+            }
+        }
     }
 
     public static function getGroups(): array {
