@@ -34,7 +34,7 @@
                         </div>
                         <div class="d-flex flex-fill flex-column">
                             <div class="d-block">Date attendue</div>
-                            <div class="d-block date">{{ preparation.date | format_helper('longDate', {short: true}) }}</div>
+                            <div class="d-block date">{{ preparation.demande.expectedAt | format_helper('longDate', {short: true}) }}</div>
                         </div>
                     </div>
                     <div class="d-flex expected-date mt-1">
@@ -43,7 +43,7 @@
                         </div>
                         <div class="d-flex flex-fill flex-column">
                             <div class="d-block">Date de préparation</div>
-                            <div class="d-block date">{{ preparation.demande.expectedAt | format_helper('longDate', {short: true}) }}</div>
+                            <div class="d-block date">{{ preparation.expectedAt | format_helper('longDate', {short: true}) }}</div>
                         </div>
                     </div>
                 </div>
