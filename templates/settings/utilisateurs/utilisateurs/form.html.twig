@@ -144,6 +144,26 @@
                         </textarea>
                     </div>
                 </div>
+                <div class="form-group row">
+                    <div class="col-6">
+                        {{ form.select('language', "Langue", true, {
+                            items: languages,
+                            search : false,
+                            label: 'Langue',
+                            value : user.language ? user.language.id : null,
+                            inputClass : 'w-100 utilisateur-language',
+                        }) }}
+                    </div>
+                    <div class="col-6">
+                        {{ form.select('dateFormat', "Format de date", true, {
+                            items: dateFormats,
+                            type : null,
+                            search : false,
+                            label: 'Format de date',
+                            value : user.dateFormat,
+                        }) }}
+                    </div>
+                </div>
             </div>
         </div>
         <div class="col-12 col-md-6">
@@ -226,26 +246,6 @@
                 </div>
                 <div class="form-group">
                     {{ form.checkbox('deliverer', 'Livreur', false, user.deliverer) }}
-                </div>
-                <div class="form-group row">
-                    <div class="col-6">
-                        {{ form.select('language', "Langue", true, {
-                            items: languages,
-                            search : false,
-                            label: 'Langue',
-                            value : user.language ? user.language.id : null,
-                            inputClass : 'w-100 utilisateur-language',
-                        }) }}
-                    </div>
-                    <div class="col-6">
-                        {{ form.select('dateFormat', "Format de date", true, {
-                            items: dateFormats,
-                            type : null,
-                            search : false,
-                            label: 'Format de date',
-                            value : user.dateFormat,
-                        }) }}
-                    </div>
                 </div>
             </div>
         </div>

@@ -21,6 +21,24 @@ class Language {
         "yyyy-mm-dd" => "Y-m-d"
     ];
 
+    public const FRENCH_DEFAULT_SLUG = 'french-default';
+    public const ENGLISH_DEFAULT_SLUG = 'english-default';
+    public const FRENCH_SLUG = 'french';
+    public const ENGLISH_SLUG = 'english';
+    public const NEW_SLUG = 'NEW';
+
+    public const OLD_TRANSLATIONS_SLUG = Language::FRENCH_SLUG;
+    public const DEFAULT_LANGUAGE_SLUG = Language::FRENCH_DEFAULT_SLUG;
+
+    public const NOT_DELETABLE_LANGUAGES = [
+        Language::FRENCH_DEFAULT_SLUG,
+        Language::ENGLISH_DEFAULT_SLUG,
+        Language::FRENCH_SLUG,
+        Language::ENGLISH_SLUG,
+        Language::NEW_SLUG
+
+    ];
+
     #[Id]
     #[GeneratedValue]
     #[Column(type: "integer")]
@@ -43,6 +61,9 @@ class Language {
 
     #[OneToMany(mappedBy: "language", targetEntity: Translation::class)]
     private Collection $translations;
+
+    #[Column(type: 'boolean', options: ['default' => false])]
+    private bool $hidden = false;
 
     public function __construct() {
         $this->translations = new ArrayCollection();
@@ -150,4 +171,15 @@ class Language {
         ];
     }
 
+    public function isHidden(): bool
+    {
+        return $this->hidden;
+    }
+
+    public function setHidden(bool $hidden): self
+    {
+        $this->hidden = $hidden;
+
+        return $this;
+    }
 }
