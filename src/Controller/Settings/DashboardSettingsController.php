@@ -8,6 +8,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Dashboard;
 use App\Entity\Emplacement;
+use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\Statut;
@@ -142,6 +143,7 @@ class DashboardSettingsController extends AbstractController {
         $statusRepository = $entityManager->getRepository(Statut::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
+        $languageRepository = $entityManager->getRepository(Language::class);
 
         $values = json_decode($request->request->get('values'), true);
         $values += [ //default values should be initialized hered
@@ -294,6 +296,50 @@ class DashboardSettingsController extends AbstractController {
             $values['natures'] = $natureRepository->findBy(['id' => $values['natures']]);
         }
 
+        $values['languages'] = $languageRepository->findAll();
+
+        $tooltip = $values['tooltip'];
+        $title = $values['title'] ?? '';
+        $values['tooltip'] = [];
+        $values['title'] = [];
+        foreach ($values['languages'] as $language) {
+            $values['tooltip'][$language->getSlug()] = $language->getSelected() ? $tooltip : '';
+            $values['title'][$language->getSlug()] = $language->getSelected() ? $title : '';
+        }
+
+        Stream::from($values)
+            ->each(function($conf, $key) use (&$values) {
+                if (str_starts_with($key, 'tooltip_')) {
+                    $values['tooltip'][str_replace('tooltip_', '', $key)] = $conf;
+                    unset($values[$key]);
+                }
+            });
+
+        Stream::from($values)
+            ->each(function($conf, $key) use (&$values) {
+                if (str_starts_with($key, 'title_')) {
+                    $values['title'][str_replace('title_', '', $key)] = $conf;
+                    unset($values[$key]);
+                }
+            });
+
+        $values['legends'] = [];
+        if(!empty($values['chartColors'])){
+            $countLegend = 1;
+            foreach($values['chartColors'] as $key => $legend){
+                $values['legends'][$key] = [];
+
+                Stream::from($values)
+                    ->each(function($conf, $arrayKey) use ($countLegend, $key, &$values) {
+                        if (str_starts_with($arrayKey, 'legend') && str_contains($arrayKey, '_') && str_contains($arrayKey, $countLegend)) {
+                            $explode = explode('_', $arrayKey);
+                            $values['legends'][$key][$explode[1]] = $conf;
+                            unset($values[$arrayKey]);
+                        }
+                    });
+                $countLegend++;
+            }
+        }
 
         $arrivalTypes = $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]);
         $dispatchTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);

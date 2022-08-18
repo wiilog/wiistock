@@ -1197,3 +1197,7 @@ function registerEasterEgg() {
         count = 0;
     })
 }
+
+function isObject(object){
+    return object !== null && typeof object === 'object';
+}

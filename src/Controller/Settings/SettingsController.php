@@ -718,8 +718,6 @@ class SettingsController extends AbstractController {
         }
 
         $translations = json_decode($request->get('translations'));
-        dump($request->get('translations'));
-        dump($translations);
 
 
 

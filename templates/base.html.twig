@@ -31,10 +31,18 @@
     {% block body %}
     {% endblock %}
     <input type="hidden" id="userDateFormat" value="{{ app.user ? app.user.dateFormat }}">
+    <input type="hidden" id="userLanguage" value="{{ app.user ? app.user.language.slug : getLanguage().slug }}">
 
 
     {% block javascripts %}
+
+
         {{ encore_entry_script_tags('app') }}
+
+        <script>
+            let USER_SLUG = null;
+            USER_SLUG = $('#userLanguage').val();
+        </script>
 
         {# datetime picker #}
         <script src={{ asset('js/bootstrap-datetimepicker.min.js') }}></script>

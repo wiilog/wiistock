@@ -2,6 +2,7 @@
 
 namespace App\Twig;
 
+use App\Entity\Language;
 use App\Entity\Setting;
 use App\Entity\Transport\TransportHistory;
 use App\Service\FieldsParamService;
@@ -69,6 +70,7 @@ class AppExtension extends AbstractExtension {
             new TwigFunction('formatHistory', [$this, 'formatHistory']),
             new TwigFunction('isImage', [$this, 'isImage']),
             new TwigFunction('merge', "array_merge"),
+            new TwigFunction('getLanguage', [$this, 'getLanguage']),
         ];
     }
 
@@ -251,5 +253,9 @@ class AppExtension extends AbstractExtension {
         catch (Throwable) {
             return false;
         }
+    }
+
+    public function getLanguage(){
+        return $this->userService->getUser()?->getLanguage() ?? $this->manager->getRepository(Language::class)->findOneBy(['selected' => true]);
     }
 }

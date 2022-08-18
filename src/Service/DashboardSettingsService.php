@@ -139,10 +139,26 @@ class DashboardSettingsService {
                 }
             });
 
-        $values['title'] = !empty($config['title']) ? $config['title'] : $componentType->getName();
+        if (!empty($config['title'])){
+            $values['title'] = !empty($config['title']) ? $config['title'] : $componentType->getName();
+        } else {
+            Stream::from($config)
+                ->each(function($conf, $key) use (&$values) {
+                    if (str_starts_with($key, 'title_')) {
+                        $values['title'][str_replace('title_', '', $key)] = $conf;
+                    }
+                });
+        }
 
         if (!empty($config['tooltip'])) {
-            $values['tooltip'] = $config['tooltip'];
+            $values['tooltip'] = !empty($config['tooltip']) ? $config['tooltip'] : $componentType->getHint();
+        } else {
+            Stream::from($config)
+                ->each(function($conf, $key) use (&$values) {
+                    if (str_starts_with($key, 'tooltip_')) {
+                        $values['tooltip'][str_replace('tooltip_', '', $key)] = $conf;
+                    }
+                });
         }
 
         if (!empty($config['backgroundColor']) && ($componentType->getMeterKey() !== Dashboard\ComponentType::EXTERNAL_IMAGE)) {
@@ -220,9 +236,29 @@ class DashboardSettingsService {
             $values['chartColors'] = $config['chartColors'];
         }
 
+        if (isset($values['chartColors']) && !empty($config['legends'])){
+            $values['legends'] = $config['legends'];
+        } else if(isset($values['chartColors'])){
+            $values['legends'] = [];
+            $countLegend = 1;
+            foreach($values['chartColors'] as $key => $legend){
+                $values['legends'][$key] = [];
+                Stream::from($config)
+                    ->each(function($conf, $arrayKey) use ($countLegend, $key, &$values) {
+                        if (str_starts_with($arrayKey, 'legend') && str_contains($arrayKey, '_') && str_contains($arrayKey, $countLegend)) {
+                            $explode = explode('_', $arrayKey);
+                            $values['legends'][$key][$explode[1]] = $conf;
+                            unset($values[$arrayKey]);
+                        }
+                    });
+                $countLegend++;
+            }
+        }
+
         if (!isset($values['chartColorsLabels']) && !empty($config['chartColorsLabels'])) {
             $values['chartColorsLabels'] = $config['chartColorsLabels'];
         }
+
         return $values;
     }
 
