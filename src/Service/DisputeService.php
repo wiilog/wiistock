@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\DisputeHistoryRecord;
 use App\Entity\FiltreSup;
 use App\Entity\Dispute;
+use App\Entity\Pack;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
@@ -216,29 +217,31 @@ class DisputeService {
         );
     }
 
-    public function putDisputeLine(string            $mode,
-                                                     $handle,
-                                   Dispute           $dispute,
-                                   array             $buyers,
-                                   array             $associatedIdAndReferences = [],
-                                   array             $associatedIdsAndOrderNumbers = [],
-                                   array             $articles = []): void {
-
+    public function putDisputeLine(EntityManagerInterface $manager,
+                                   string $mode,
+                                          $handle,
+                                   array  $dispute,
+                                   array  $associatedIdAndReferences = [],
+                                   array  $associatedIdsAndOrderNumbers = [],
+                                   array  $articles = []): void
+    {
         if (!in_array($mode, [self::PUT_LINE_ARRIVAL, self::PUT_LINE_RECEPTION])) {
             throw new \InvalidArgumentException('Invalid mode');
         }
 
-        $row = $dispute->serialize();
-        $buyers = join(" / ", $buyers);
+        $userRepository = $manager->getRepository(Utilisateur::class);
+        $buyers = join(" / ", $userRepository->getBuyers($dispute["id"]));
 
-        $lastHistoryRecord = $dispute->getLastHistoryRecord();
-        $lastHistoryRecordDate = FormatHelper::datetime($lastHistoryRecord?->getDate());
-        $lastHistoryRecordUser = FormatHelper::user($lastHistoryRecord?->getUser());
-        $lastHistoryRecordComment = $lastHistoryRecord?->getComment() ?? '';
-        $disputeReporter = FormatHelper::user($dispute->getReporter());
+        $row = [
+            $dispute["number"],
+            $dispute["type"],
+            $dispute["status"],
+            FormatHelper::date($dispute["creationDate"]),
+            FormatHelper::date($dispute["updateDate"]),
+        ];
 
         if ($mode === self::PUT_LINE_ARRIVAL) {
-            $packs = $dispute->getPacks();
+            $packs = $manager->getRepository(Pack::class)->findBy(["disputes" => $dispute["id"]]);
             $arrival = ($packs->count() > 0 && $packs->first()->getArrivage())
                 ? $packs->first()->getArrivage()
                 : null;
@@ -255,13 +258,13 @@ class DisputeService {
                     '',
                     $arrivalNumber,
                     $orderNumbers,
-                    $disputeReporter,
+                    $dispute["reporter"],
                     $supplier,
                     '',
                     $buyers,
-                    $lastHistoryRecordDate,
-                    $lastHistoryRecordUser,
-                    $lastHistoryRecordUser,
+                    $dispute["lastHistoryUser"],
+                    FormatHelper::date($dispute["lastHistoryDate"]),
+                    $dispute["lastHistoryComment"],
                 ]);
 
                 $this->CSVExportService->putLine($handle, $row);
@@ -274,8 +277,8 @@ class DisputeService {
             $receptionSupplier = $firstArticle ? $firstArticle['supplier'] : '';
             $receptionOrderNumber = $firstArticle ? $firstArticle['receptionOrderNumber'] : '';
 
-            $references = $associatedIdAndReferences[$dispute->getId()];
-            $orderNumbers = $associatedIdsAndOrderNumbers[$dispute->getId()];
+            $references = $associatedIdAndReferences[$dispute["id"]];
+            $orderNumbers = $associatedIdsAndOrderNumbers[$dispute["id"]];
 
             foreach ($articles as $article) {
                 $row = array_merge($row, [
@@ -284,13 +287,13 @@ class DisputeService {
                     $article['quantity'],
                     $receptionNumber,
                     $receptionOrderNumber,
-                    $disputeReporter,
+                    $dispute["reporter"],
                     $receptionSupplier,
                     $orderNumbers,
                     $buyers,
-                    $lastHistoryRecordDate,
-                    $lastHistoryRecordUser,
-                    $lastHistoryRecordComment
+                    $dispute["lastHistoryUser"],
+                    FormatHelper::date($dispute["lastHistoryDate"]),
+                    $dispute["lastHistoryComment"],
                 ]);
 
                 $this->CSVExportService->putLine($handle, $row);

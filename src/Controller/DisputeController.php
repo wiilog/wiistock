@@ -123,13 +123,11 @@ class DisputeController extends AbstractController
             $disputeRepository = $entityManager->getRepository(Dispute::class);
             $articleRepository = $entityManager->getRepository(Article::class);
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
-            $userRepository = $entityManager->getRepository(Utilisateur::class);
 
             $arrivalDisputes = $disputeRepository->iterateArrivalDisputesByDates($dateTimeMin, $dateTimeMax);
             /** @var Dispute $dispute */
             foreach ($arrivalDisputes as $dispute) {
-                $buyers = $userRepository->getBuyers($dispute);
-                $disputeService->putDisputeLine(DisputeService::PUT_LINE_ARRIVAL, $output, $dispute, $buyers);
+                $disputeService->putDisputeLine($entityManager, DisputeService::PUT_LINE_ARRIVAL, $output, $dispute);
             }
 
             $entityManager->clear();
@@ -140,9 +138,8 @@ class DisputeController extends AbstractController
             $receptionDisputes = $disputeRepository->iterateReceptionDisputesByDates($dateTimeMin, $dateTimeMax);
             /** @var Dispute $dispute */
             foreach ($receptionDisputes as $dispute) {
-                $articles = $articleRepository->getArticlesByDisputeId($dispute->getId());
-                $buyers = $userRepository->getBuyers($dispute);
-                $disputeService->putDisputeLine(DisputeService::PUT_LINE_RECEPTION, $output, $dispute, $buyers, $associatedIdAndReferences, $associatedIdAndOrderNumbers, $articles);
+                $articles = $articleRepository->getArticlesByDisputeId($dispute["id"]);
+                $disputeService->putDisputeLine($entityManager, DisputeService::PUT_LINE_RECEPTION, $output, $dispute, $associatedIdAndReferences, $associatedIdAndOrderNumbers, $articles);
             }
 
         }, "Export-Litiges" . $nowStr . ".csv", $headers);
