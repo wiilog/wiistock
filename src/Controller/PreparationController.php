@@ -883,6 +883,7 @@ class PreparationController extends AbstractController
         }
 
         if (empty($quantityErrorPreparationId) && $launchPreparation === "1") {
+            $previous = null;
             foreach ($preparationsToLaunch as $preparation) {
                 $preparation->setStatut($toTreatStatut);
                 $demande = $preparation->getDemande();
@@ -890,7 +891,7 @@ class PreparationController extends AbstractController
                 if ($demande->getType()->isNotificationsEnabled()) {
                     $notificationService->toTreat($preparation);
                 }
-                if ($demande->getType()->getSendMail()) {
+                if ($demande->getType()->getSendMail() && $previous !== $demande) {
                     $nowDate = new DateTime('now');
                     $mailerService->sendMail(
                         'FOLLOW GT // Validation d\'une demande vous concernant',
@@ -905,6 +906,8 @@ class PreparationController extends AbstractController
                         $demande->getUtilisateur()
                     );
                 }
+                $previous = $demande;
+
                 foreach ($refLines as $refLine) {
                     $referenceArticle = $refLine->getReference();
                     if ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
