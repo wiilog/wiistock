@@ -501,6 +501,27 @@ class ReferenceArticleController extends AbstractController
     }
 
     /**
+     * @Route("/removeFournisseur", name="ajax_render_remove_fournisseur", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::STOCK, Action::DELETE}, mode=HasPermission::IN_JSON))
+     */
+    public function removeFournisseur(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        if ($data = json_decode($request->getContent(), true)) {
+            $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+
+            $entityManager->remove($articleFournisseurRepository->find($data['articleF']));
+            $entityManager->flush();
+            $json =  $this->renderView('reference_article/fournisseurArticleContent.html.twig', [
+                'articles' => $articleFournisseurRepository->findByRefArticle($data['articleRef']),
+                'articleRef' => $referenceArticleRepository->find($data['articleRef'])
+            ]);
+            return new JsonResponse($json);
+        }
+        throw new BadRequestHttpException();
+    }
+
+    /**
      * @Route("/quantite", name="get_quantity_ref_article", options={"expose"=true}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON))
      */

@@ -12,8 +12,8 @@
             {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::DELETE')) %}
                 <div data-id='{{ chauffeur.id }}' data-target='#modalDeleteChauffeur' data-toggle='modal'
                      onclick="checkAndDeleteRow($(this), '#modalDeleteChauffeur', 'chauffeur_check_delete', '#submitDeleteChauffeur')"
-                     class="dropdown-item d-flex align-items-center">
-                    <span class="wii-icon wii-icon-trash-black mr-2"></span>Supprimer
+                     class="dropdown-item">
+                    <i class='fas fa-trash mr-2'></i>Supprimer
                 </div>
             {% endif %}
         </div>

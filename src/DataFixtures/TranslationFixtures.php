@@ -17,7 +17,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
 
     const TRANSLATIONS = [
         "Général" => [
-            "" => [
+            null => [
                 "Zone filtre" => [
                     "content" => [
                         [
@@ -181,7 +181,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                 [
                     "fr" => "Unité logistique",
                     "en" => "Logistics unit",
-                    "tooltip" => "Composant \"UL en retard\"\nComposant \"Nombre d\'arrivages et d'UL quotidiens\"\nComposant \"Nombres d\'arrivages et d'UL hebdomadaires\"",
+                    "tooltip" => "Composant \"UL en retard\"\nComposant \"Nombre d'arrivages et d'UL quotidiens\"\nComposant \"Nombres d'arrivages et d'UL hebdomadaires\"",
                 ],
                 [
                     "fr" => "Dépose",
@@ -201,7 +201,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                 [
                     "fr" => "Arrivages",
                     "en" => "Deliveries",
-                    "tooltip" => "Composant \"Nombre d\'arrivages et d'UL quotidiens\"\nComposant \"Nombres d\'arrivages et d'UL hebdomadaires\"",
+                    "tooltip" => "Composant \"Nombre d'arrivages et d'UL quotidiens\"\nComposant \"Nombres d'arrivages et d'UL hebdomadaires\"",
                 ],
                 [
                     "fr" => "Nombre de lignes à traiter",
@@ -219,12 +219,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                     "tooltip" => "Composant \"Entrées à effectuer\"",
                 ],
                 [
-                    "fr" => "Moins d\'{1}",
+                    "fr" => "Moins d'{1}",
                     "en" => "Less than {1}",
                     "tooltip" => "Composant \"Entrées à effectuer\"",
                 ],
                 [
-                    "fr" => "Date d\'acheminement non estimée",
+                    "fr" => "Date d'acheminement non estimée",
                     "en" => "Transport date not estimated",
                     "tooltip" => "Composant \"Demande en cours\"",
                 ],
@@ -241,22 +241,17 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                 [
                     "fr" => "lignes",
                     "en" => "lines",
-                    "tooltip" => "Composant \"Nombre de services du jour\", coche \"Afficher le nombre d\'opération(s) réalisé(s) de la journée\"",
+                    "tooltip" => "Composant \"Nombre de services du jour\", coche \"Afficher le nombre d'opération(s) réalisé(s) de la journée\"",
                 ],
                 [
                     "fr" => "urgences",
                     "en" => "Urgencies",
-                    "tooltip" => "Composant \"Nombre de services du jour\", coche \"Afficher le nombre d\'urgences de la journée\"",
+                    "tooltip" => "Composant \"Nombre de services du jour\", coche \"Afficher le nombre d'urgences de la journée\"",
                 ],
                 [
                     "fr" => "A traiter sous :",
-                    "en" => "To be process under:",
-                    "tooltip" => "Composant \"Quantité en cours n emplacement(s)\", coche \"Afficher le délai de traitement\"",
-                ],
-                [
-                    "fr" => "A traiter sous :",
-                    "en" => "To be process under:",
-                    "tooltip" => "Composant \"Demandes à traiter\", coche \"Délai de traitement à respecter [...]\"",
+                    "en" => "To be processed within:",
+                    "tooltip" => "Composant \"Quantité en cours n emplacement(s)\", coche \"Afficher le délai de traitement\" et composant \"Demandes à traiter\", coche \"Délai de traitement à respecter [...]\"",
                 ],
             ],
         ],
@@ -266,12 +261,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                     [
                         "fr" => "Traçabilité",
                         "en" => "Traceability",
-                        "tooltip" => "Menu niveau 1\nFil d\'ariane",
+                        "tooltip" => "Menu niveau 1\nFil d'ariane",
                     ],
                     [
-                        "fr" => "UL",
+                        "fr" => "Unités logistiques",
                         "en" => "Logistic unit",
-                        "tooltip" => "Page Flux - Arrivages :\nDétails arrivage - Liste des UL - Nom de colonnes (Renommage Code -> UL)\nDétails arrivage - Liste des litiges - Modale Nouveau litige\nDétails arrivage - Liste des litiges - Modifier litige\nMail litige\n______\nPage Mouvements : \nFiltre\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouveau mouvement\nModale Modifier un mouvement\n______\nPage UL :\nMenu\nFil d\'ariane\nFiltre (renommage UL -> UL)\nOnglet\nOnglet UL - Colonne (renommage en Numéro UL -> UL)\nOnglet UL - Modale Modifier une unité logistique (renommage en Numéro UL -> UL)\nOnglet Groupes - Carte UL dans Carte Groupe\n_____\nPage Association BR :\nFiltre \nZone liste - Nom de colonnes \n_____\nPage Encours :\nCarte emplacement - Zone liste - Nom de colonnes",
+                        "tooltip" => "Page Flux - Arrivages :\nDétails arrivage - Liste des UL - Nom de colonnes (Renommage Code -> UL)\nDétails arrivage - Liste des litiges - Modale Nouveau litige\nDétails arrivage - Liste des litiges - Modifier litige\nMail litige\n______\nPage Mouvements : \nFiltre\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouveau mouvement\nModale Modifier un mouvement\n______\nPage UL :\nMenu\nFil d'ariane\nFiltre (renommage UL -> UL)\nOnglet\nOnglet UL - Colonne (renommage en Numéro UL -> UL)\nOnglet UL - Modale Modifier une unité logistique (renommage en Numéro UL -> UL)\nOnglet Groupes - Carte UL dans Carte Groupe\n_____\nPage Association BR :\nFiltre \nZone liste - Nom de colonnes \n_____\nPage Encours :\nCarte emplacement - Zone liste - Nom de colonnes",
                     ],
                     [
                         "fr" => "Emplacement",
@@ -336,12 +331,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                         [
                             "fr" => "Flux - arrivages",
                             "en" => "Arrivals",
-                            "tooltip" => "Page Flux - Arrivages :\nMenu\nFil d\'ariane",
+                            "tooltip" => "Page Flux - Arrivages :\nMenu\nFil d'ariane",
                         ],
                         [
-                            "fr" => "N° d\'arrivage",
+                            "fr" => "N° d'arrivage",
                             "en" => "Arrival number",
-                            "tooltip" => "Page Flux - Arrivages : \nFiltre (renommage n° d\'arrivage -> N° d\'arrivage)\nZone liste - Nom de colonnes (renommage n° d\'arrivage -> N° d\'arrivage)\nGestion des colonnes\nDétails arrivage - Liste des litiges - Modale Nouveau litige (renommage ordre arrivage -> N° d\'arrivage)\n_____\nPage Urgences :\nZone liste - Nom de colonnes (renommage Numéro d\'arrivage -> N° d\'arrivage)",
+                            "tooltip" => "Page Flux - Arrivages : \nFiltre (renommage n° d'arrivage -> N° d'arrivage)\nZone liste - Nom de colonnes (renommage n° d'arrivage -> N° d'arrivage)\nGestion des colonnes\nDétails arrivage - Liste des litiges - Modale Nouveau litige (renommage ordre arrivage -> N° d'arrivage)\n_____\nPage Urgences :\nZone liste - Nom de colonnes (renommage Numéro d'arrivage -> N° d'arrivage)\n_____\nPage Qualité - Litiges :\nZone liste - Nom de colonnes",
                         ],
                         [
                             "fr" => "Fournisseurs",
@@ -394,9 +389,9 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                             "tooltip" => "Page Flux - Arrivages :\nModale Nouvel arrivage\nDétails arrivages - Liste des UL - Modale Ajouter une UL",
                         ],
                         [
-                            "fr" => "Arrivage (mettre majuscule)",
+                            "fr" => "Arrivage",
                             "en" => "Arrival",
-                            "tooltip" => "Page Flux - Arrivages :\nFil d\'ariane\nDétails arrivage - Entête\nMail arrivage",
+                            "tooltip" => "Page Flux - Arrivages :\nFil d'ariane\nDétails arrivage - Entête\nMail arrivage",
                         ],
                         [
                             "fr" => "Modifier arrivage",
@@ -404,14 +399,14 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                             "tooltip" => "Page Flux - Arrivages :\nModale Modifier arrivage (renommage arrivage -> Modifier arrivage)",
                         ],
                         [
-                            "fr" => "Supprimer l\'arrivage",
+                            "fr" => "Supprimer l'arrivage",
                             "en" => "Delete the arrival",
-                            "tooltip" => "Page Flux - Arrivages :\nModale Supprimer l\'arrivage",
+                            "tooltip" => "Page Flux - Arrivages :\nModale Supprimer l'arrivage",
                         ],
                         [
                             "fr" => "Voulez-vous réellement supprimer cet arrivage ?",
                             "en" => "Do you really want to delete this arrival ?",
-                            "tooltip" => "Page Flux - Arrivages :\nModale Supprimer l\'arrivage",
+                            "tooltip" => "Page Flux - Arrivages :\nModale Supprimer l'arrivage",
                         ],
                         [
                             "fr" => "Liste des UL générées",
@@ -433,7 +428,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                             "en" => "Another arrival was being created, please try again",
                         ],
                         [
-                            "fr" => "Un autre litige d\'arrivage est en cours de création, veuillez réessayer",
+                            "fr" => "Un autre litige d'arrivage est en cours de création, veuillez réessayer",
                             "en" => "Another arrival dispute was being created, please try again",
                         ],
                     ],
@@ -575,7 +570,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                         ],
                         [
                             "fr" => "Historique",
-                            "en" => "Record / history",
+                            "en" => "History",
                             "tooltip" => "Modale Modifier le litige",
                         ],
                         [
@@ -623,7 +618,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                             "tooltip" => "Mail arrivage",
                         ],
                         [
-                            "fr" => "L\'équipe GT Logistics.",
+                            "fr" => "L'équipe GT Logistics.",
                             "en" => "The GT Logistics team",
                             "tooltip" => "Mail arrivage",
                         ],
@@ -658,8 +653,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                         ],
                     ],
                 ],
-                "Modale Nouvelle demande d\'acheminement" => [
-                    "subtitle" => "La plupart des libellés ont leur traduction qui s\'applique à partir de la page Acheminement",
+                "Modale Nouvelle demande d'acheminement" => [
+                    "subtitle" => "La plupart des libellés ont leur traduction qui s'applique à partir de la page Acheminement",
                     "content" => [
                         [
                             "fr" => "UL à acheminer",
@@ -674,7 +669,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                     [
                         "fr" => "Urgences",
                         "en" => "Urgencies",
-                        "tooltip" => "Fil d\'ariane\nMenu",
+                        "tooltip" => "Fil d'ariane\nMenu",
                     ],
                     [
                         "fr" => "Date de début",
@@ -717,19 +712,19 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                         "tooltip" => "Modale Modifier une urgence",
                     ],
                     [
-                        "fr" => "Supprimer l\'urgence",
+                        "fr" => "Supprimer l'urgence",
                         "en" => "Delete the urgency",
-                        "tooltip" => "Modale Supprimer l\'urgence",
+                        "tooltip" => "Modale Supprimer l'urgence",
                     ],
                     [
                         "fr" => "Cette urgence est liée à un arrivage.\nVous ne pouvez pas la supprimer",
                         "en" => "This urgency is linked to an arrival. You can not delete it",
-                        "tooltip" => "Modale Supprimer l\'urgence (renommage cette -> Cette)",
+                        "tooltip" => "Modale Supprimer l'urgence (renommage cette -> Cette)",
                     ],
                     [
                         "fr" => "Voulez-vous réellement supprimer cette urgence ?",
                         "en" => "Do you really want to delete this urgency ?",
-                        "tooltip" => "Modale Supprimer l\'urgence",
+                        "tooltip" => "Modale Supprimer l'urgence",
                     ],
                 ],
             ],
@@ -907,7 +902,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                     [
                         "fr" => "Mouvements",
                         "en" => "Movements",
-                        "tooltip" => "Menu\nFil d\'arianne",
+                        "tooltip" => "Menu\nFil d'arianne",
                     ],
                     [
                         "fr" => "Types",
@@ -1031,7 +1026,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                     [
                         "fr" => "Association BR",
                         "en" => "Receipt and L.U. matching",
-                        "tooltip" => "Menu\nFil d\'Ariane\nZone liste - Bouton",
+                        "tooltip" => "Menu\nFil d'Ariane\nZone liste - Bouton",
                     ],
                     [
                         "fr" => "Réceptions",
@@ -1069,34 +1064,39 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                         "tooltip" => "Modale Enregistrer une réception",
                     ],
                     [
-                        "fr" => "Supprimer l\'association BR",
+                        "fr" => "Supprimer l'association BR",
                         "en" => "Delete this match",
-                        "tooltip" => "Modale Supprimer l\'association BR",
+                        "tooltip" => "Modale Supprimer l'association BR",
                     ],
                     [
                         "fr" => "Voulez-vous réellement supprimer cette association BR ?",
                         "en" => "Do you really want to delete this match ?",
-                        "tooltip" => "Modale Supprimer l\'association BR",
+                        "tooltip" => "Modale Supprimer l'association BR",
                     ],
                     [
-                        "fr" => "Un numéro de réception minimum est requis pour procéder à l\'association",
+                        "fr" => "Un numéro de réception minimum est requis pour procéder à l'association",
                         "en" => "A receipt number is required to match with arrival",
-                        "tooltip" => "Modale Supprimer l\'association BR",
+                        "tooltip" => "Modale Supprimer l'association BR",
                     ],
                     [
                         "fr" => "Une association sans unité logistique avec ce numéro de réception existe déjà",
                         "en" => "A match without L.U. with this receipt number already exists",
-                        "tooltip" => "Modale Supprimer l\'association BR",
+                        "tooltip" => "Modale Supprimer l'association BR",
                     ],
                     [
-                        "fr" => "Les unités logistiques suivantes n\'existent pas :",
+                        "fr" => "Les unités logistiques suivantes n'existent pas :",
                         "en" => "The following L.U does not exist :",
-                        "tooltip" => "Modale Supprimer l\'association BR",
+                        "tooltip" => "Modale Supprimer l'association BR",
                     ],
                 ],
             ],
             "Encours" => [
                 "content" => [
+                    [
+                        "fr" => "Encours",
+                        "en" => "Ongoing",
+                        "tooltip" => "Fil d'arriane\nMenu",
+                    ],
                     [
                         "fr" => "Emplacements",
                         "en" => "Locations",
@@ -1122,26 +1122,31 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                         "en" => "Updated on {1} at {2}",
                         "tooltip" => "Page",
                     ],
-                    [
-                        "fr" => "Encours",
-                        "en" => "Ongoing",
-                        "tooltip" => "Fil d\'arriane\nMenu",
-                    ],
                 ],
             ],
         ],
         "Qualité" => [
-            "Litige" => [
+            "Litiges" => [
                 "content" => [
                     [
                         "fr" => "Qualité",
                         "en" => "Quality",
-                        "tooltip" => "Menu\nFil d\'ariane",
+                        "tooltip" => "Menu\nFil d'ariane",
                     ],
                     [
                         "fr" => "Litiges",
                         "en" => "Disputes",
-                        "tooltip" => "Menu\nFil d\'ariane",
+                        "tooltip" => "Menu\nFil d'ariane",
+                    ],
+                    [
+                        "fr" => "Statuts",
+                        "en" => "Statuses",
+                        "tooltip" => "Filtres",
+                    ],
+                    [
+                        "fr" => "Statut",
+                        "en" => "Status",
+                        "tooltip" => "Zone liste - Nom de colonnes",
                     ],
                     [
                         "fr" => "Origines",
@@ -1149,9 +1154,44 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                         "tooltip" => "Filtres",
                     ],
                     [
+                        "fr" => "Acheteurs",
+                        "en" => "Buyers",
+                        "tooltip" => "Filtres",
+                    ],
+                    [
+                        "fr" => "Acheteur",
+                        "en" => "Buyer",
+                        "tooltip" => "Zone liste - Nom de colonnes",
+                    ],
+                    [
                         "fr" => "Numéro de litige",
                         "en" => "Dispute number",
                         "tooltip" => "Filtres\nZone liste - Nom de colonnes",
+                    ],
+                    [
+                        "fr" => "Déclarant",
+                        "en" => "Declarant",
+                        "tooltip" => "Filtres\nZone liste - Nom de colonnes",
+                    ],
+                    [
+                        "fr" => "Type",
+                        "en" => "Type",
+                        "tooltip" => "Filtres\nZone liste - Nom de colonnes",
+                    ],
+                    [
+                        "fr" => "Urgence ?",
+                        "en" => "Urgent ?",
+                        "tooltip" => "Filtres",
+                    ],
+                    [
+                        "fr" => "N° commande / BL",
+                        "en" => "Order number",
+                        "tooltip" => "Zone liste - Nom de colonnes",
+                    ],
+                    [
+                        "fr" => "Fournisseur",
+                        "en" => "Supplier",
+                        "tooltip" => "Zone liste - Nom de colonnes",
                     ],
                     [
                         "fr" => "Créé le",
@@ -1161,6 +1201,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                     [
                         "fr" => "Modifié le",
                         "en" => "Edited on",
+                        "tooltip" => "Zone liste - Nom de colonnes",
+                    ],
+                    [
+                        "fr" => "Dernier historique",
+                        "en" => "Last history",
                         "tooltip" => "Zone liste - Nom de colonnes",
                     ],
                     [
@@ -1187,7 +1232,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                     [
                         "fr" => "Demande",
                         "en" => "Operation",
-                        "tooltip" => "Menu\nFil d\'ariane",
+                        "tooltip" => "Menu\nFil d'ariane",
                     ],
                     [
                         "fr" => "Statuts",
@@ -1237,12 +1282,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                         [
                             "fr" => "Acheminement",
                             "en" => "Transfer",
-                            "tooltip" => "Menu\nFil d\'ariane\nMenu \"+\"\nDétails",
+                            "tooltip" => "Menu\nFil d'ariane\nMenu \"+\"\nDétails",
                         ],
                         [
-                            "fr" => "Nouvelle demande d\'acheminement",
+                            "fr" => "Nouvelle demande d'acheminement",
                             "en" => "New transfer operation",
-                            "tooltip" => "Modale Nouvelle demande d\'acheminement (renommage Nouvelle demande -> Nouvelle demande d\'acheminement)",
+                            "tooltip" => "Modale Nouvelle demande d'acheminement (renommage Nouvelle demande -> Nouvelle demande d'acheminement)",
                         ],
                         [
                             "fr" => "N° demande",
@@ -1260,14 +1305,14 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                             "tooltip" => "Filtre",
                         ],
                         [
-                            "fr" => "Supprimer la demande d\'acheminement",
+                            "fr" => "Supprimer la demande d'acheminement",
                             "en" => "Delete the transfer operation",
-                            "tooltip" => "Modale Supprimer la demande d\'acheminement",
+                            "tooltip" => "Modale Supprimer la demande d'acheminement",
                         ],
                         [
-                            "fr" => "Vous-vous réllement supprimer cette demande d\'acheminement ?",
+                            "fr" => "Vous-vous réllement supprimer cette demande d'acheminement ?",
                             "en" => "Do you really want to delete this transfer operation ?",
-                            "tooltip" => "Modale Supprimer la demande d\'acheminement",
+                            "tooltip" => "Modale Supprimer la demande d'acheminement",
                         ],
                     ],
                 ],
@@ -1314,9 +1359,9 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                             "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle demande\nModale Modifier un acheminement \nDétails acheminement - Entête",
                         ],
                         [
-                            "fr" => "Dates d\'échéances",
+                            "fr" => "Dates d'échéances",
                             "en" => "Due dates",
-                            "tooltip" => "Détails\nModale Nouvelle demande (renommage Echéance -> Dates d\'échéances)",
+                            "tooltip" => "Détails\nModale Nouvelle demande (renommage Echéance -> Dates d'échéances)",
                         ],
                     ],
                 ],
@@ -1338,7 +1383,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                             "tooltip" => "Zone liste - Nom de colonnes\nDétails acheminements - Entête\nPDF bon acheminement",
                         ],
                         [
-                            "fr" => "Date d\'échéance",
+                            "fr" => "Date d'échéance",
                             "en" => "Due date",
                             "tooltip" => "Zone liste - Nom de colonnes",
                         ],
@@ -1372,7 +1417,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                             "tooltip" => "Détails acheminements - Bouton sous flèche",
                         ],
                         [
-                            "fr" => "Générer un bon d\'acheminement",
+                            "fr" => "Générer un bon d'acheminement",
                             "en" => "Generate a transfer note",
                             "tooltip" => "Détails acheminements - Bouton sous flèche",
                         ],
@@ -1485,7 +1530,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                             "tooltip" => "Modale Création/Modification Lettre de voiture",
                         ],
                         [
-                            "fr" => "Date d\'acheminement",
+                            "fr" => "Date d'acheminement",
                             "en" => "Transfer date",
                             "tooltip" => "Modale Création/Modification Lettre de voiture",
                         ],
@@ -1531,15 +1576,15 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                         ],
                         [
                             "fr" => "Information : Le contenu des UL doit être modifié sur les UL",
-                            "en" => "Information: The  L.U.s\' content must be changed on the L.U.s",
+                            "en" => "Information: The  L.U.s' content must be changed on the L.U.s",
                             "tooltip" => "Modale Création/Modification Lettre de voiture",
                         ],
                     ],
                 ],
-                "Bon d\'acheminement" => [
+                "Bon d'acheminement" => [
                     "content" => [
                         [
-                            "fr" => "Bon d\'acheminement",
+                            "fr" => "Bon d'acheminement",
                             "en" => "Transfer note",
                             "tooltip" => "PDF bon acheminement",
                         ],
@@ -1649,12 +1694,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                         ],
                         [
                             "fr" => "Nom dernier utilisateur",
-                            "en" => "Last user\'s name",
-                            "tooltip" => "Modale Création modification BL",
-                        ],
-                        [
-                            "fr" => "Numéro de livraison",
-                            "en" => "Delivery number",
+                            "en" => "Last user's name",
                             "tooltip" => "Modale Création modification BL",
                         ],
                         [
@@ -1692,17 +1732,17 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                 "Mails" => [
                     "content" => [
                         [
-                            "fr" => "Changement de statut d\'un(e) demande d\'acheminement.",
+                            "fr" => "Changement de statut d'un(e) demande d'acheminement.",
                             "en" => "Transfer operation status changed",
                             "tooltip" => "Mail changement statut acheminement",
                         ],
                         [
-                            "fr" => "Changement de statut d\'un(e) demande d\'acheminement de type {1} vous concernant :\nBonjour,\nVotre acheminement/expédition est en cours de traitement avec les informations suivantes :",
+                            "fr" => "Changement de statut d'un(e) demande d'acheminement de type {1} vous concernant :\nBonjour,\nVotre acheminement/expédition est en cours de traitement avec les informations suivantes :",
                             "en" => "Status change of a transfer operation of type {1} for you:\nHello,\nYour transfer / shipment is being processed with the following information:",
                             "tooltip" => "Mail changement statut acheminement",
                         ],
                         [
-                            "fr" => "Bonne journée, \n\nL\'équipe GT Logistics.",
+                            "fr" => "Bonne journée, \n\nL'équipe GT Logistics.",
                             "en" => "Have a nice day,\n\nThe GT Logistics team",
                             "tooltip" => "Mail changement statut acheminement\nMail traitement acheminement",
                         ],
@@ -1712,7 +1752,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                             "tooltip" => "Mail changement statut acheminement\nMail traitement acheminement",
                         ],
                         [
-                            "fr" => "Notification de traitement d\'une demande d\'acheminement",
+                            "fr" => "Notification de traitement d'une demande d'acheminement",
                             "en" => "Notification upon transfer  operation finishing",
                             "tooltip" => "Mail traitement acheminement",
                         ],
@@ -1734,7 +1774,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                     [
                         "fr" => "Service",
                         "en" => "Service",
-                        "tooltip" => "Menu \"+\"\nMenu\nFil d\'ariane",
+                        "tooltip" => "Menu \"+\"\nMenu\nFil d'ariane",
                     ],
                     [
                         "fr" => "{1} statut sélectionné",
@@ -1787,7 +1827,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                         "tooltip" => "Modale Nouvelle demande de service Modale Modifier une demande de service",
                     ],
                     [
-                        "fr" => "Nombre d\'opération(s) réalisée(s)",
+                        "fr" => "Nombre d'opération(s) réalisée(s)",
                         "en" => "Number of operations performed",
                         "tooltip" => "Modale Nouvelle demande de service Modale Modifier une demande de service",
                     ],
@@ -1847,20 +1887,46 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
         $this->manager = $manager;
 
         $languageRepository = $manager->getRepository(Language::class);
-        $categoryRepository = $manager->getRepository(TranslationCategory::class);
-        $translationSourceRepository = $manager->getRepository(TranslationSource::class);
+
+        if(!$languageRepository->findOneBy(["slug" => Language::FRENCH_SLUG])) {
+            $french = (new Language())
+                ->setLabel("Français")
+                ->setSlug(Language::FRENCH_SLUG)
+                ->setFlag("/svg/flags/fr.svg")
+                ->setSelectable(true)
+                ->setSelected(true)
+                ->setHidden(true);
+
+            $manager->persist($french);
+
+            $this->console->writeln("Created language \"Français\"");
+        }
 
         if(!$languageRepository->findOneBy(["slug" => "french"])) {
             $french = (new Language())
                 ->setLabel("Français")
                 ->setSlug("french")
                 ->setFlag("/svg/flags/fr.svg")
-                ->setSelectable(true)
-                ->setSelected(true);
+                ->setSelectable(false)
+                ->setSelected(false);
 
             $manager->persist($french);
 
             $this->console->writeln("Created language \"Français\"");
+        }
+
+        if(!$languageRepository->findOneBy(["slug" => "english-default"])) {
+            $english = (new Language())
+                ->setLabel("English")
+                ->setSlug("english-default")
+                ->setFlag("/svg/flags/gb.svg")
+                ->setSelectable(true)
+                ->setSelected(false)
+                ->setHidden(true);;
+
+            $manager->persist($english);
+
+            $this->console->writeln("Created language \"English\"");
         }
 
         if(!$languageRepository->findOneBy(["slug" => "english"])) {
@@ -1868,7 +1934,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                 ->setLabel("English")
                 ->setSlug("english")
                 ->setFlag("/svg/flags/gb.svg")
-                ->setSelectable(true)
+                ->setSelectable(false)
                 ->setSelected(false);
 
             $manager->persist($english);
@@ -1880,23 +1946,19 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
             $manager->flush();
         }
 
-        $categoryEntities = Stream::from($categoryRepository->findBy(["label" => array_keys(self::TRANSLATIONS)]))
-            ->map(fn(TranslationCategory $category) => [$category->getLabel(), $category])
-            ->toArray();
-
         foreach(self::TRANSLATIONS as $categoryLabel => $menus) {
-            $this->handleCategory("category", null, $categoryLabel, $menus, $categoryEntities);
+            $this->handleCategory("category", null, $categoryLabel, $menus);
         }
 
         $this->manager->flush();
     }
 
-    private function handleCategory(string $type, ?TranslationCategory $parent, string $label, array $content, array $existingCategories) {
+    private function handleCategory(string $type, ?TranslationCategory $parent, string $label, array $content) {
         $categoryRepository = $this->manager->getRepository(TranslationCategory::class);
         $translationSourceRepository = $this->manager->getRepository(TranslationSource::class);
 
-        if(!isset($existingCategories[$label])) {
-            $subcategoryEntities = [];
+        $category = $categoryRepository->findOneBy(["parent" => $parent, "label" => $label]);
+        if(!$category) {
             $category = (new TranslationCategory())
                 ->setParent($parent)
                 ->setType($type)
@@ -1906,16 +1968,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
 
             $parentLabel = $parent?->getLabel() ?: $parent?->getParent()?->getLabel();
             $this->console->writeln(($label ? "Created $type \"$label\"" : "Created single $type") . ($parentLabel ? " in \"$parentLabel\"" : ""));
-        } else {
-            $category = $existingCategories[$label];
-            $subcategoryEntities = !isset($content["content"]) ? Stream::from($categoryRepository->findBy(["parent" => $category, "label" => array_keys($content)]))
-                ->map(fn(TranslationCategory $menu) => [$menu->getLabel(), $menu])
-                ->toArray() : [];
         }
 
         if(!isset($content["content"])) {
             foreach($content as $childLabel => $childContent) {
-                $this->handleCategory(self::CHILD[$type], $category, $childLabel, $childContent, $subcategoryEntities);
+                $this->handleCategory(self::CHILD[$type], $category, $childLabel, $childContent);
             }
         } else {
             $category->setSubtitle($content["subtitle"] ?? null);
@@ -1947,11 +2004,42 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                     $this->console->writeln("Updated french translation \"" . str_replace("\n", "\\n ", $translation["fr"]) . "\"");
                 }
 
+                $french = $translationEntity->getTranslationIn("french-default");
+                if(!$french) {
+                    $french = (new Translation())
+                        ->setLanguage($this->getLanguage("french-default"))
+                        ->setSource($translationEntity)
+                        ->setTranslation($translation["fr"]);
+
+                    $this->manager->persist($french);
+
+                    $this->console->writeln("Created french translation \"" . str_replace("\n", "\\n ", $translation["fr"]) . "\"");
+                } else if($french->getTranslation() != $translation["fr"]) {
+                    $french->setTranslation($translation["fr"]);
+
+                    $this->console->writeln("Updated french translation \"" . str_replace("\n", "\\n ", $translation["fr"]) . "\"");
+                }
 
                 $english = $translationEntity->getTranslationIn("english");
                 if(!$english) {
                     $english = (new Translation())
                         ->setLanguage($this->getLanguage("english"))
+                        ->setSource($translationEntity)
+                        ->setTranslation($translation["en"]);
+
+                    $this->manager->persist($english);
+
+                    $this->console->writeln("Created english translation \"" . str_replace("\n", "\\n ", $translation["en"]) . "\"");
+                } else if($english->getTranslation() != $translation["en"]) {
+                    $english->setTranslation($translation["en"]);
+
+                    $this->console->writeln("Updated english translation \"" . str_replace("\n", "\\n ", $translation["en"]) . "\"");
+                }
+
+                $english = $translationEntity->getTranslationIn("english-default");
+                if(!$english) {
+                    $english = (new Translation())
+                        ->setLanguage($this->getLanguage("english-default"))
                         ->setSource($translationEntity)
                         ->setTranslation($translation["en"]);
 

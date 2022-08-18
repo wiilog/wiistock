@@ -51,7 +51,7 @@ class UserController extends AbstractController {
                 'userHandlingTypes' => $user->getHandlingTypeIds(),
                 'html' => $this->renderView('settings/utilisateurs/utilisateurs/form.html.twig', [
                     'user' => $user,
-                    "languages" => Stream::from($languageRepository->findAll())
+                    "languages" => Stream::from($languageRepository->findBy(['hidden'=>false]))
                         ->map(fn(Language $language) => [
                             "value" => $language->getId(),
                             "label" => $language->getLabel(),
@@ -590,6 +590,26 @@ class UserController extends AbstractController {
         return new JsonResponse();
     }
 
+    /**
+     * @Route("/langues/api", name="header_language_dateFormat_api" , methods={"POST"}, options={"expose"=true})
+     */
+    public function userLanguageApi(EntityManagerInterface $manager,
+                                       Request $request ): Response {
+        $data = $request->request;
+
+        $languageRepository = $manager->getRepository(Language::class);
+        $newLanguage = $languageRepository->find($data->get('language'));
+
+        $this->getUser()
+            ->setDateFormat($data->get('dateFormat'))
+            ->setLanguage($newLanguage);
+
+        $manager->flush();
+
+        return $this->json([
+            "success" => true,
+        ]);
+    }
 
     /**
      * @Route("/set-columns-order", name="set_columns_order", methods="POST", options={"expose"=true}, condition="request.isXmlHttpRequest()")

@@ -18,9 +18,9 @@
 
             {% if hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::DELETE')) %}
                 <div onclick="deleteRow($(this), $('#modalDeleteLitige'), $('#submitDeleteLitige'))"
-                     class="dropdown-item d-flex align-items-center"
+                     class="dropdown-item"
                      data-id='{{ disputeId }}' data-target='#modalDeleteLitige' data-toggle='modal'>
-                    <span class="wii-icon wii-icon-trash-black mr-2"></span></i>Supprimer
+                        <i class='fas fa-trash mr-2'></i>Supprimer
                 </div>
             {% endif %}
         </div>

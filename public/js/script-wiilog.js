@@ -82,7 +82,25 @@ $(function () {
 
     registerNotificationChannel();
     registerEasterEgg();
+
+    $("div[data-name='user_language']").on('change', function() {
+        changeUserLanguageDateFormat();
+    });
+
+    $("select[name='user_dateFormat']").on('change', function() {
+        changeUserLanguageDateFormat();
+    });
 });
+
+function changeUserLanguageDateFormat() {
+    const params = {
+        language: $("div[data-name='user_language']").find(':checked').val(),
+        dateFormat: $("select[name='user_dateFormat']").find(':selected').val(),
+    };
+
+    $.post(Routing.generate(`header_language_dateFormat_api`), params)
+        .then(() => window.location.reload());
+}
 
 function registerNotificationChannel() {
     if(typeof FCM !== `undefined`) {
@@ -702,8 +720,7 @@ function initDateTimePicker(dateInput = '#dateMin, #dateMax, #expectedDate', for
         showTodayButton: true,
         showClear: true,
         icons: {
-            clear: 'fas wii-icon wii-icon-trash-black date-picker-icon pointer',
-            today: 'fa fa-crosshairs date-picker-icon pointer',
+            clear: 'fas fa-trash',
         },
         tooltips: {
             today: 'Aujourd\'hui',

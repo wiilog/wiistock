@@ -1,0 +1,18 @@
+<form method="" class="modal fade" id="modalDeleteLanguage" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            {% include 'utils/modal/header.html.twig' with {
+                title: "Supprimer la langue"
+            } %}
+            <div class="modal-body">
+            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {id: 'submitDeleteLanguage', name:'language', value: language, classes: 'btn btn-danger data', dismiss: true, text: 'Supprimer'}
+                ],
+                hideErrorContainer: true
+            } %}
+        </div>
+    </div>
+</form>

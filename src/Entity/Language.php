@@ -10,14 +10,33 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\GeneratedValue;
 use Doctrine\ORM\Mapping\Id;
 use Doctrine\ORM\Mapping\OneToMany;
+use WiiCommon\Helper\Stream;
 
 #[Entity(LanguageRepository::class)]
 class Language {
 
     public const DATE_FORMATS = [
-        'jj/mm/aaaa'=>'d/m/Y',
-        'mm-dd-yyyy'=>'m-d-Y',
-        'yyyy-mm-dd'=>'Y-m-d'
+        "jj/mm/aaaa" => "d/m/Y",
+        "mm-dd-yyyy" => "m-d-Y",
+        "yyyy-mm-dd" => "Y-m-d"
+    ];
+
+    public const FRENCH_DEFAULT_SLUG = 'french-default';
+    public const ENGLISH_DEFAULT_SLUG = 'english-default';
+    public const FRENCH_SLUG = 'french';
+    public const ENGLISH_SLUG = 'english';
+    public const NEW_SLUG = 'NEW';
+
+    public const OLD_TRANSLATIONS_SLUG = Language::FRENCH_SLUG;
+    public const DEFAULT_LANGUAGE_SLUG = Language::FRENCH_DEFAULT_SLUG;
+
+    public const NOT_DELETABLE_LANGUAGES = [
+        Language::FRENCH_DEFAULT_SLUG,
+        Language::ENGLISH_DEFAULT_SLUG,
+        Language::FRENCH_SLUG,
+        Language::ENGLISH_SLUG,
+        Language::NEW_SLUG
+
     ];
 
     #[Id]
@@ -42,6 +61,9 @@ class Language {
 
     #[OneToMany(mappedBy: "language", targetEntity: Translation::class)]
     private Collection $translations;
+
+    #[Column(type: 'boolean', options: ['default' => false])]
+    private bool $hidden = false;
 
     public function __construct() {
         $this->translations = new ArrayCollection();
@@ -140,4 +162,24 @@ class Language {
         return $this;
     }
 
+    public function serialize(Utilisateur $user): array {
+        return [
+            'label' => $this->getLabel(),
+            'value' => $this->getId(),
+            'iconUrl' => $this->getFlag(),
+            'checked' => $user->getLanguage()->getId() === $this->getId()
+        ];
+    }
+
+    public function isHidden(): bool
+    {
+        return $this->hidden;
+    }
+
+    public function setHidden(bool $hidden): self
+    {
+        $this->hidden = $hidden;
+
+        return $this;
+    }
 }

@@ -4,10 +4,10 @@
         <div class="dropdown-menu dropdown-follow-gt pointer">
             {% if modifiable %}
                 {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
-                    <div class="dropdown-item d-flex align-items-center"
+                    <div class="dropdown-item"
                          onclick="deleteRowTransfer($(this), $('#modalDeleteArticle'), $('#submitDeleteArticle'))"
                          data-target='#modalDeleteArticle' data-toggle='modal' data-id='{{ id }}' data-name='{{ name }}'>
-                        <span class="wii-icon wii-icon-trash-black mr-2"></span>Supprimer
+                        <i class='fas fa-trash mr-2'></i>Supprimer
                     </div>
                 {% endif %}
             {% else %}

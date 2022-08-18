@@ -11,11 +11,11 @@
                 <div class="btn-group">
                     {% if hasRightToCreate %}
                         <button type="button"
-                                class="btn btn-primary split-button d-flex align-items-center"
+                                class="btn btn-primary split-button"
                                 data-toggle="modal"
                                 data-target="#modalNewArticle"
                                 onclick="Select2Old.articleReference($('.ajax-autocomplete'), {typeQuantity: `article`}); clearNewArticleContent($('#submitNewArticle'))">
-                            <span class="wii-icon wii-icon-plus mr-2"></span>
+                            <span class="fa fa-plus mr-2"></span>
                             Nouvel article
                         </button>
                     {% elseif hasRightToExport %}
@@ -23,10 +23,10 @@
                              data-toggle="tooltip"
                              title="Veuillez faire une recherche pour imprimer.">
                             <button type="button"
-                                    class="btn btn-primary split-button printButton btn-disabled d-flex align-items-center"
+                                    class="btn btn-primary split-button printButton btn-disabled"
                                     id="printTag"
                                     onclick="printArticlesBarCodes($(this))">
-                                <span class="wii-icon wii-icon-printer-black mr-2"></span>
+                                <span class="fa fa-print mr-2"></span>
                                 Impression des étiquettes
                             </button>
                         </div>
@@ -38,12 +38,12 @@
                     </button>
                     <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
                         {% if hasRightToCreate and hasRightToExport %}
-                            <div class="dropdown-item user-select-none disabled has-tooltip d-flex align-items-center"
+                            <div class="dropdown-item user-select-none disabled has-tooltip"
                                  tabindex="0"
                                  id="printTag"
                                  onclick="printArticlesBarCodes($(this), event)"
                                  title="Veuillez faire une recherche pour imprimer.">
-                                <span class="wii-icon wii-icon-printer-black mr-2"></span>
+                                <span class="fa fa-print mr-2"></span>
                                 Impression des étiquettes
                             </div>
                         {% endif %}

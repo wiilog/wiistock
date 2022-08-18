@@ -25,7 +25,7 @@ use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Service\Attribute\Required;
-use Symfony\Contracts\Translation\TranslatorInterface;
+use App\Service\TranslationService;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
@@ -49,7 +49,7 @@ class DispatchService {
     public FreeFieldService $freeFieldService;
 
     /** @Required */
-    public TranslatorInterface $translator;
+    public TranslationService $translation;
 
     /** @Required */
     public MailerService $mailerService;
@@ -266,13 +266,13 @@ class DispatchService {
                 'value' => $type ? $type->getLabel() : ''
             ],
             [
-                'label' => $this->translator->trans('acheminement.Transporteur'),
+                'label' => $this->translation->trans('acheminement.Transporteur'),
                 'title' => 'Transporteur',
                 'value' => $carrier ? $carrier->getLabel() : '',
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_CARRIER_DISPATCH]
             ],
             [
-                'label' => $this->translator->trans('acheminement.Numéro de tracking transporteur'),
+                'label' => $this->translation->trans('acheminement.Numéro de tracking transporteur'),
                 'title' => 'Numéro de tracking transporteur',
                 'value' => $carrierTrackingNumber,
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH]
@@ -283,30 +283,30 @@ class DispatchService {
             ],
             $receiverDetails ?? [],
             [
-                'label' => $this->translator->trans('acheminement.Numéro de projet'),
+                'label' => $this->translation->trans('acheminement.Numéro de projet'),
                 'title' => 'Numéro de projet',
                 'value' => $projectNumber,
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_PROJECT_NUMBER]
             ],
             [
-                'label' => $this->translator->trans('acheminement.Business unit'),
+                'label' => $this->translation->trans('acheminement.Business unit'),
                 'title' => 'Business unit',
                 'value' => $dispatch->getBusinessUnit() ?? '',
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_BUSINESS_UNIT]
             ],
             [
-                'label' => $this->translator->trans('acheminement.Numéro de commande'),
+                'label' => $this->translation->trans('acheminement.Numéro de commande'),
                 'value' => $commandNumber,
                 'title' => 'Numéro de commande',
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_COMMAND_NUMBER_DISPATCH]
             ],
             [
-                'label' => $this->translator->trans('acheminement.Emplacement prise'),
+                'label' => $this->translation->trans('acheminement.Emplacement prise'),
                 'value' => $locationFrom ? $locationFrom->getLabel() : '', 'title' => 'Emplacement prise',
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_LOCATION_PICK]
             ],
             [
-                'label' => $this->translator->trans('acheminement.Emplacement dépose'),
+                'label' => $this->translation->trans('acheminement.Emplacement dépose'),
                 'value' => $locationTo ? $locationTo->getLabel() : '', 'title' => 'Emplacement dépose',
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_LOCATION_DROP]
             ],
@@ -408,9 +408,9 @@ class DispatchService {
                 ? 'acheminement.Acheminement {numéro} traité partiellement le {date}'
                 : 'acheminement.Acheminement {numéro} traité le {date}';
 
-            $translatedCategory = $this->translator->trans('acheminement.demande d\'acheminement');
+            $translatedCategory = $this->translation->trans('acheminement.demande d\'acheminement');
             $title = $status->isTreated()
-                ? $this->translator->trans($translatedTitle, [
+                ? $this->translation->trans($translatedTitle, [
                     "{numéro}" => $dispatch->getNumber(),
                     "{date}" => FormatHelper::datetime($dispatch->getTreatmentDate(), "", false, $this->security->getUser())
                 ])
@@ -418,7 +418,7 @@ class DispatchService {
                     ? ('Un(e) ' . $translatedCategory . ' de type ' . $type . ' vous concerne :')
                     : ('Changement de statut d\'un(e) ' . $translatedCategory . ' de type ' . $type . ' vous concernant :'));
             $subject = ($status->isTreated() || $status->isPartial())
-                ? ('FOLLOW GT // Notification de traitement d\'une ' . $this->translator->trans('acheminement.demande d\'acheminement') . '.')
+                ? ('FOLLOW GT // Notification de traitement d\'une ' . $this->translation->trans('acheminement.demande d\'acheminement') . '.')
                 : (!$isUpdate
                     ? ('FOLLOW GT // Création d\'un(e) ' . $translatedCategory)
                     : 'FOLLOW GT // Changement de statut d\'un(e) ' . $translatedCategory . '.');

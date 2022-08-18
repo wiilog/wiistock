@@ -8,7 +8,7 @@
                 {% set placeholder = needsDateFormatting is defined and needsDateFormatting and app.user.displayedDateFormat ? app.user.displayedDateFormat : 'jj/mm/aaaa' %}
                 {% set format = needsDateFormatting is defined and needsDateFormatting and app.user.displayedDateFormat ? app.user.displayedDateFormat : 'd/m/Y' %}
                 <input type="text"
-                       class="form-control pointer cursor-default filter-date-min filter-input w-218px h-100"
+                       class="form-control cursor-default filter-date-min filter-input w-218px h-100"
                        name="dateMin"
                        id="dateMin"
                        placeholder="{{ placeholder }}"

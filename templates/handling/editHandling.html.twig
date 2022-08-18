@@ -20,9 +20,9 @@
                                     or handling.status.treated == 1 and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_PROCESSED_HANDLING')) %}
 
                                 {% if canDelete %}
-                                    <div class="dropdown-item d-flex align-items-center" data-id="{{ handling.id }}" data-target="#modalDeleteHandling" data-toggle="modal"
+                                    <div class="dropdown-item" data-id="{{ handling.id }}" data-target="#modalDeleteHandling" data-toggle="modal"
                                          onclick="deleteRow($(this), $('#modalDeleteHandling'), $('#submitDeleteHandling'))">
-                                        <span class="wii-icon wii-icon-trash-black mr-2"></span>
+                                        <img src="{{ asset('svg/trash-black.svg') }}" width="15px" class="mr-2 dropdown-icon">
                                         Supprimer
                                     </div>
                                 {% endif %}

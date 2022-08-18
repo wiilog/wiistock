@@ -33,11 +33,11 @@
             <span class="fa fa-angle-down"></span>
         </button>
         <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
-            <a class="dropdown-item d-flex align-items-center"
+            <a class="dropdown-item"
                id="printArrivageBtn"
                href="{{ path('print_arrivage_bar_codes', {arrivage: arrivage.id, printArrivage: 1}) }}">
-                <span class="wii-icon wii-icon-printer-black mr-2"></span>
-                Imprimer<span class="ml-1" arrivage">{{ 'arrivage.arrivage'|trans }}</span>
+                <i class='fas fa-print pointer mr-2'></i>
+                Imprimer <span title="arrivage">{{ 'arrivage.arrivage'|trans }}</span>
             </a>
             {% if not allPacksAlreadyInDispatch and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE_ACHE')) %}
                 <button class="dropdown-item dispatch-button" data-id="{{ arrivage.id }}">
@@ -48,9 +48,9 @@
             {% if canBeDeleted %}
                 {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::DELETE_ARRI')) %}
                     <a href="" data-id='{{ arrivage.id }}' data-target='#modalDeleteArrivage' data-toggle='modal'
-                       class="dropdown-item d-flex align-items-center"
+                       class="dropdown-item"
                        onclick="deleteRowArrivage($(this), $('#modalDeleteArrivage'), $('#submitDeleteArrivage'))">
-                        <span class="wii-icon wii-icon-trash-black mr-2"></span>
+                        <i class="fa fa-trash mr-2"></i>
                         Supprimer
                     </a>
                 {% endif %}

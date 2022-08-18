@@ -12,7 +12,7 @@
 {% block page_content %}
     <div class="settings row">
         <aside class="col-xl-3 col-4 d-flex flex-column">
-            <div class="wii-box">
+            <div class="wii-box language-choice ">
                 <div class="header wii-title">
                     Langue par défaut de l’application
                 </div>
@@ -24,9 +24,9 @@
                     }) }}
                 </div>
             </div>
-            <div class="wii-box">
+            <div class="wii-box language-choice ">
                 <div class="header wii-title">
-                    Modication et ajout de langues
+                    Modification et ajout de langues
                 </div>
                 <div class="p-3">
                     {{ form.radio('language', null , false,  languages, {
@@ -52,12 +52,11 @@
                                 </button>
                                 <input hidden type="file" name="customFlag"/>
                                 <div class="dropdown-menu dropdown-menu-wide allow-focus filter-dropdown-menu">
-                                    <img src="{{ asset('svg/flags/fr.svg') }}" alt="fr" class="flag select">
-                                    <img src="{{ asset('svg/flags/ta.svg') }}" alt="fr" class="flag select">
+                                    <img src="{{ asset('svg/flags/es.svg') }}" alt="fr" class="flag select">
                                     <img src="{{ asset('svg/flags/de.svg') }}" alt="fr" class="flag select">
-                                    <img src="{{ asset('svg/flags/ga.svg') }}" alt="fr" class="flag select">
-                                    <img src="{{ asset('svg/flags/ta.svg') }}" alt="fr" class="flag select">
-                                    <img src="{{ asset('svg/flags/ta.svg') }}" alt="fr" class="flag select">
+                                    <img src="{{ asset('svg/flags/it.svg') }}" alt="fr" class="flag select">
+                                    <img src="{{ asset('svg/flags/pt.svg') }}" alt="fr" class="flag select">
+                                    <img src="{{ asset('svg/flags/nl.svg') }}" alt="fr" class="flag select">
                                     <img src="{{ asset('svg/plus.svg') }}" alt="fr" class="flag select add-new-flag">
                                 </div>
                             </label>
@@ -67,9 +66,9 @@
             </div>
             <div class="wii-box flex-fill" id="categoriesNavbar">
                 {% for category, menus in categories %}
-                    <div class="settings-item text-capitalize {{ loop.first ? 'selected'}}"
+                    <div class="settings-item text-capitalize {{ loop.first ? 'selected'}} {{ category in constant('App\\Entity\\TranslationCategory::NONE_MULTILINGUE_CATEGORY') ? 'old-translation'}}"
                          title="{{ category }}"
-                         onclick="onSettingsItemSelected($(this), $('aside .settings-item'), $('main .settings-content'))"
+                         onclick="onSettingsItemSelected($(this), $('aside .settings-item'), $('main .settings-content'), {'hideClass': 'old-translation', 'hiddenElement' : $('.language-choice')})"
                          data-menu="{{ category }}">
                         <div>
                             <div class="">
@@ -92,13 +91,10 @@
                     <div class="spinner-border text-primary" role="status"></div>
                 </div>
             </div>
-            <div class="save">
-                <button class="btn btn-outline-secondary discard-settings">Annuler</button>
+            <div class="save mb-5">
                 <button class="btn btn-success ml-2" name="save-translations">Enregistrer</button>
             </div>
         </main>
-
-
     </div>
 {% endblock %}
 

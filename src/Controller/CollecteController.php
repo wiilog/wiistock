@@ -165,7 +165,7 @@ class CollecteController extends AbstractController
                 'Actions' => $this->renderView('collecte/datatableArticleRow.html.twig', [
                     'type' => 'reference',
                     'id' => $referenceCollecte->getId(),
-                    'name' => ($referenceCollecte->getReferenceArticle() ? $referenceCollecte->getReferenceArticle()->getTypeQuantite() : ReferenceArticle::QUANTITY_TYPE_REFERENCE),
+                    'name' => ReferenceArticle::QUANTITY_TYPE_REFERENCE,
                     'refArticleId' => $referenceCollecte->getReferenceArticle()->getId(),
                     'collecteId' => $collecte->getid(),
                     'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUT_BROUILLON),
@@ -359,7 +359,6 @@ class CollecteController extends AbstractController
             $articleRepository = $entityManager->getRepository(Article::class);
             $collecteRepository = $entityManager->getRepository(Collecte::class);
             $collecteReferenceRepository = $entityManager->getRepository(CollecteReference::class);
-
             if (array_key_exists(ReferenceArticle::QUANTITY_TYPE_REFERENCE, $data)) {
                 $collecteReference = $collecteReferenceRepository->find($data[ReferenceArticle::QUANTITY_TYPE_REFERENCE]);
                 $entityManager->remove($collecteReference);

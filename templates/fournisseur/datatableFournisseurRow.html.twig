@@ -15,12 +15,12 @@
             {% endif %}
             {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::DELETE')) %}
                 <div>
-                    <div class="dropdown-item d-flex align-items-center"
+                    <div class="dropdown-item"
                          onclick="checkAndDeleteRow($(this), '#modalDeleteFournisseur', 'supplier_check_delete', '#submitDeleteFournisseur')"
                          data-id='{{ supplierId }}'
                          data-target='#modalDeleteFournisseur'
                          data-toggle='modal'>
-                        <span class="wii-icon wii-icon-trash-black mr-2"></span>
+                        <i class='fas fa-trash mr-2'></i>
                         Supprimer
                     </div>
                 </div>

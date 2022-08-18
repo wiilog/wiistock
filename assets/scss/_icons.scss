@@ -78,8 +78,7 @@ $icons: (
     'cart-collect': "../../public/svg/cart-collect.svg",
     'cart-purchase': "../../public/svg/cart-purchase.svg",
     'plus': "../../public/svg/plus.svg",
-    'check-white': "../../public/svg/check-white.svg",
-    'check-black': "../../public/svg/check-black.svg",
+    'check': "../../public/svg/check.svg",
     'wysiwyg-edit': "../../public/svg/wysiwyg-edit.svg",
     'visibility-group': "../../public/svg/visibility-group.svg",
     'menu-terminal-mobile': "../../public/svg/menu-terminal-mobile.svg",
@@ -104,7 +103,7 @@ $icons: (
     'transfer-black': "../../public/svg/transfer-black.svg",
     'trash-black': "../../public/svg/trash-black.svg",
     'new-article': "../../public/svg/new-article.svg",
-    'white-tick': "../../public/svg/check-white.svg",
+    'white-tick': "../../public/svg/tick-blanc.svg",
 );
 
 @each $iconName, $iconPath in $icons {

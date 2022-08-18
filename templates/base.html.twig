@@ -52,7 +52,8 @@
         <script type="text/javascript" src="{{ asset('js/js-csv-encoding-master/fileSaver.js') }}"></script>
 
         {# scripts wiilog #}
-        <script src="{{ asset('generated/translations.js') }}?v={{ date().timestamp }}"></script>
+        <script src="{{ asset('generated/translations.' ~ getLanguage().slug ~ '.js') }}?v={{ date().timestamp }}"></script>
+        <script src="{{ asset('generated/translations.default.js') }}?v={{ date().timestamp }}"></script>
         <script src="{{ asset('js/alerts.js') }}?v={{ web_version }}"></script>
         <script src="{{ asset('js/translations.js') }}?v={{ web_version }}"></script>
         <script src="{{ asset('js/select2.js') }}?v={{ web_version }}"></script>

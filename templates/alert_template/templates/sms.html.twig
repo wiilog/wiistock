@@ -7,7 +7,7 @@
             <div class="phone-number-container d-flex {{ loop.index != 1 ? 'mt-2' }}">
                 <input class="form-control data-array phone-number" name="receivers" type="text" value="{{ phoneNumber }}">
                 {% if loop.index != 1 %}
-                    <button class="btn d-block" onclick="deletePhoneNumber($(this))"><span class="wii-icon wii-icon-trash-black"></span></button>
+                    <button class="btn d-block" onclick="deletePhoneNumber($(this))"><i class="far fa-trash-alt"></i></button>
                 {% endif %}
             </div>
         {% endfor %}
@@ -16,9 +16,9 @@
             <input class="form-control data-array phone-number" name="receivers" type="text">
         </div>
     {% endif %}
-    <button class="btn btn-primary mt-3 d-flex align-items-center p-2"
+    <button class="btn btn-primary mt-3"
             onclick="addPhoneNumber($(this))" type="button">
-        <span class="wii-icon wii-icon-plus "></span>
+        <i class="fa fa-plus"></i>
     </button>
 </div>
 
@@ -37,6 +37,6 @@
 <template class="phone-number-template">
     <div class="phone-number-container d-flex mt-2">
         <input class="form-control data-array" name="receivers" type="text">
-        <button class="btn d-block" onclick="deletePhoneNumber($(this))"><span class="wii-icon wii-icon-trash-black"></span></button>
+        <button class="btn d-block" onclick="deletePhoneNumber($(this))"><i class="far fa-trash-alt"></i></button>
     </div>
 </template>

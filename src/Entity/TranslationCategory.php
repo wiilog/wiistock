@@ -15,6 +15,12 @@ use Doctrine\ORM\Mapping\OneToMany;
 #[Entity(TranslationCategoryRepository::class)]
 class TranslationCategory {
 
+    public const NONE_MULTILINGUE_CATEGORY = [
+        'Ordre',
+        'Stock',
+        'Iot',
+    ];
+
     #[Id]
     #[GeneratedValue]
     #[Column(type: "integer")]
@@ -29,7 +35,7 @@ class TranslationCategory {
     #[Column(type: "string")]
     private ?string $type = null;
 
-    #[Column(type: "string", length: 255)]
+    #[Column(type: "string", length: 255, nullable: true)]
     private ?string $label = null;
 
     #[Column(type: "text", nullable: true)]
@@ -173,10 +179,18 @@ class TranslationCategory {
         $categorySources = $this->getTranslationSources();
         $translations = [];
         foreach ($categorySources as $categorySource) {
+            $originalTranslation = $categorySource->getTranslationIn($languageSlugFrom);
+            if ($originalTranslation) {
+               $translation = $categorySource->getTranslationIn($languageSlugTo);
+            }
+            else {
+                $originalTranslation = $categorySource->getTranslationIn(Language::DEFAULT_LANGUAGE_SLUG);
+                $translation = $categorySource->getTranslationIn(Language::OLD_TRANSLATIONS_SLUG);
+            }
             $translations[] = [
-                'tooltips' => $categorySource->getTooltip(),
-                'original' => $categorySource->getTranslationIn($languageSlugFrom),
-                'translation' => $categorySource->getTranslationIn($languageSlugTo)
+                'tooltip' => $categorySource->getTooltip(),
+                'original' => $originalTranslation,
+                'translation' => $translation,
             ];
         }
         return $translations;

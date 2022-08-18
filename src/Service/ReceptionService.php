@@ -20,7 +20,7 @@ use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use DateTime;
 use InvalidArgumentException;
-use Symfony\Contracts\Translation\TranslatorInterface;
+use App\Service\TranslationService;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -48,7 +48,7 @@ class ReceptionService
     public StringService $stringService;
 
     /** @Required */
-    public TranslatorInterface $translator;
+    public TranslationService $translation;
 
     /** @Required */
     public FreeFieldService $freeFieldService;
@@ -339,7 +339,7 @@ class ReceptionService
                 'value' => $status ? $this->stringService->mbUcfirst($status->getNom()) : ''
             ],
             [
-                'label' => $this->translator->trans('réception.n° de réception'),
+                'label' => $this->translation->trans('réception.n° de réception'),
                 'title' => 'n° de réception',
                 'value' => $reception->getNumber(),
                 'show' => [ 'fieldName' => 'number' ]

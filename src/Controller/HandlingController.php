@@ -45,7 +45,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Contracts\Translation\TranslatorInterface;
+use App\Service\TranslationService;
 use Throwable;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
@@ -163,7 +163,7 @@ class HandlingController extends AbstractController {
                         HandlingService $handlingService,
                         FreeFieldService $freeFieldService,
                         AttachmentService $attachmentService,
-                        TranslatorInterface $translator,
+                        TranslationService $translation,
                         UniqueNumberService $uniqueNumberService,
                         NotificationService $notificationService,
                         StatusHistoryService $statusHistoryService): Response
@@ -260,7 +260,7 @@ class HandlingController extends AbstractController {
         catch (UniqueConstraintViolationException | ConnectException $e) {
 
             if ($e instanceof UniqueConstraintViolationException) {
-                $message = $translator->trans('services.Une autre demande de service est en cours de création, veuillez réessayer') . '.';
+                $message = $translation->trans('services.Une autre demande de service est en cours de création, veuillez réessayer') . '.';
             } else if ($e instanceof ConnectException) {
                 $message = "Une erreur s'est produite lors de l'envoi de la notifiation de cette demande de service. Veuillez réessayer.";
             }
@@ -276,7 +276,7 @@ class HandlingController extends AbstractController {
 
         return new JsonResponse([
             'success' => true,
-            'msg' => $translator->trans("services.La demande de service {numéro} a bien été créée", [
+            'msg' => $translation->trans("services.La demande de service {numéro} a bien été créée", [
                     "{numéro}" => '<strong>' . $handling->getNumber() . '</strong>'
                 ]) . '.'
         ]);
@@ -287,7 +287,7 @@ class HandlingController extends AbstractController {
      * @param EntityManagerInterface $entityManager
      * @param Request $request
      * @param FreeFieldService $freeFieldService
-     * @param TranslatorInterface $translator
+     * @param TranslationService $translation
      * @param AttachmentService $attachmentService
      * @param HandlingService $handlingService
      * @param Handling $handling
@@ -301,7 +301,7 @@ class HandlingController extends AbstractController {
                          Request $request,
                          Handling $handling,
                          FreeFieldService $freeFieldService,
-                         TranslatorInterface $translator,
+                         TranslationService $translation,
                          AttachmentService $attachmentService,
                          HandlingService $handlingService,
                          NotificationService $notificationService,
@@ -369,7 +369,7 @@ class HandlingController extends AbstractController {
 
         return new JsonResponse([
             'success' => true,
-            'msg' => $translator->trans("services.La demande de service {numéro} a bien été modifiée", [
+            'msg' => $translation->trans("services.La demande de service {numéro} a bien été modifiée", [
                     "{numéro}" => '<strong>' . $handling->getNumber() . '</strong>'
                 ]) . '.'
         ]);
@@ -399,7 +399,7 @@ class HandlingController extends AbstractController {
      */
     public function delete(Request $request,
                            EntityManagerInterface $entityManager,
-                           TranslatorInterface $translator): Response
+                           TranslationService $translation): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
             $handlingRepository = $entityManager->getRepository(Handling::class);
@@ -420,7 +420,7 @@ class HandlingController extends AbstractController {
 
             return new JsonResponse([
                 'success' => true,
-                'msg' => $translator->trans('services.La demande de service {numéro} a bien été supprimée', [
+                'msg' => $translation->trans('services.La demande de service {numéro} a bien été supprimée', [
                         "{numéro}" => '<strong>' . $handlingNumber . '</strong>'
                     ]).'.',
                 'redirect'=> $this->generateUrl('handling_index')
@@ -433,7 +433,7 @@ class HandlingController extends AbstractController {
     /**
      * @Route("/csv", name="get_handlings_csv", options={"expose"=true}, methods={"GET","POST"})
      * @param Request $request
-     * @param TranslatorInterface $translator
+     * @param TranslationService $translation
      * @param CSVExportService $CSVExportService
      * @param FreeFieldService $freeFieldService
      * @param DateService $dateService
@@ -441,7 +441,7 @@ class HandlingController extends AbstractController {
      * @return Response
      */
     public function getHandlingsCSV(Request $request,
-                                    TranslatorInterface $translator,
+                                    TranslationService $translation,
                                     CSVExportService $CSVExportService,
                                     FreeFieldService $freeFieldService,
                                     DateService $dateService,
@@ -476,7 +476,7 @@ class HandlingController extends AbstractController {
                 'date création',
                 'demandeur',
                 'type',
-                $translator->trans('services.Objet'),
+                $translation->trans('services.Objet'),
                 'chargement',
                 'déchargement',
                 'date attendue',
@@ -484,7 +484,7 @@ class HandlingController extends AbstractController {
                 'statut',
                 'commentaire',
                 'urgence',
-                $translator->trans('services.Nombre d\'opération(s) réalisée(s)'),
+                $translation->trans('services.Nombre d\'opération(s) réalisée(s)'),
                 'traité par',
             ];
 

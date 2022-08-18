@@ -1,7 +1,7 @@
 <h1 class="text-center">Arrivage n° {{ arrivage.numeroArrivage }}
-    <a class="btn btn-primary p-2"
+    <a class="btn btn-primary"
        href="{{ path('print_arrivage_bar_codes', {arrivage: arrivage.id, printArrivage: 1}) }}">
-        <span class="wii-icon wii-icon-printer-black pointer"></span>
+        <i class='fas fa-print pointer'></i>
     </a>
 </h1>
 
@@ -13,19 +13,19 @@
             {% set comma = loop.first ? '' : ',' %}
             {% set listCodeColis = listCodeColis~comma~pack.code %}
         {% endfor %}
-        <th class="d-flex align-items-center justify-content-center">
+        <th class="text-center">
             Impression
             <a href="{{ path('print_arrivage_bar_codes', {arrivage: arrivage.id, printColis: 1}) }}">
-                <span class="wii-icon wii-icon-printer-black ml-1"></span>
+                <i class='fas fa-print'></i>
             </a>
         </th>
     </tr>
     {% for pack in arrivage.packs %}
         <tr>
             <td>{{ pack.code }}</td>
-            <td class="d-flex align-items-center justify-content-center">
+            <td class="text-center">
                 <a href="{{ path('print_arrivage_single_colis_bar_codes', {arrivage: arrivage.id, colis: pack.id}) }}">
-                    <span class="wii-icon wii-icon-printer-black"></span>
+                    <i class='fas fa-print'></i>
                 </a>
             </td>
         </tr>

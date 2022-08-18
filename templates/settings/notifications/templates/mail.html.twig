@@ -29,8 +29,8 @@
         <img src="{{ image ? app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ image : '' }}"
              id="preview-mail-image" alt="Logo choisi" height="50px" class="{{ image ? '' : 'd-none' }} mr-2"/>
 
-        <button class="btn btn-primary w-40px d-flex align-items-center py-2" onclick="$('#upload-mail-image').click();">
-            <span class="wii-icon wii-icon-plus"></span>
+        <button class="btn btn-primary w-40px" onclick="$('#upload-mail-image').click();">
+            <i class='fa fa-plus'></i>
         </button>
 
         <input type="file" name="image" class="data-file" id="upload-mail-image" accept="image/png, image/jpeg, image/jpg" hidden>

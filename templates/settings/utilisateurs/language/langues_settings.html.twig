@@ -16,26 +16,27 @@
         {% else %}
             {% set menus =  [] %}
         {% endif %}
-        <div class="d-flex justify-content-between p-3">
-            <div class="d-flex ">
-                <span class="p-1 d-flex align-items-center language-button">
-                    <img src="{{ defaultLanguage.flag }}" class="flag" alt="">
-                    <span class="mr-1">{{  defaultLanguage.label }}</span>
-                </span>
-                <img src="{{ asset('svg/lang-arrow.svg') }}" width="20px">
-                </span>
-                <span class=" p-1 d-flex align-items-center language-button">
-                    <img src="{{ userLanguage.flag }}" class="flag custom-flag-preview" alt="">
-                    <span class="language-to mr-1">{{  userLanguage.label }}</span>
-                </span>
+        {% if categorie not in constant('App\\Entity\\TranslationCategory::NONE_MULTILINGUE_CATEGORY') %}
+            <div class="d-flex justify-content-between p-3">
+                <div class="d-flex ">
+                    <span class="p-1 d-flex align-items-center language-button">
+                        <img src="{{ defaultLanguage.flag }}" class="flag" alt="">
+                        <span class="mr-1">{{  defaultLanguage.label }}</span>
+                    </span>
+                    <img src="{{ asset('svg/lang-arrow.svg') }}" width="20px">
+                    <span class=" p-1 d-flex align-items-center language-button">
+                        <img src="{{ userLanguage.flag }}" class="flag custom-flag-preview" alt="">
+                        <span class="language-to mr-1">{{  userLanguage.label }}</span>
+                    </span>
+                </div>
+                {% if userLanguage.slug not in constant('App\\Entity\\Language::NOT_DELETABLE_LANGUAGES') %}
+                    <button class="btn btn-outline-primary" name="deleteLanguage">Suprimer la langue</button>
+                {% endif %}
             </div>
-            {% if not userLanguage.selectable %}
-                <button class="btn btn-outline-primary" name="deleteLanguage">Suprimer la langue</button>
-            {% endif %}
-        </div>
-        <div class="wii-small-text mb-3 mx-4">
-            Les libellés non traduits apparaîtront dans la langue par défaut que vous avez choisi
-        </div>
+            <div class="wii-small-text mb-3 mx-4">
+                Les libellés non traduits apparaîtront dans la langue par défaut que vous avez choisi
+            </div>
+        {% endif %}
         {% if categorieData.translations is not empty %}
             <div class="p-3">
                 {% include 'settings/utilisateurs/language/langues_settings_traduction_input.html.twig' with { translations : categorieData.translations} %}
@@ -54,12 +55,10 @@
                             {{ subMenu | capitalize }}
                             <span class="wii-small-text ml-2">{{ subMenuData.subtitle }}</span>
                         </div>
-                        <div class="wii-section collapsible">
-                            <div class="row">
-                                {% if subMenuData.translations is defined and subMenuData.translations is not empty %}
-                                    {% include 'settings/utilisateurs/language/langues_settings_traduction_input.html.twig' with { translations : subMenuData.translations} %}
-                                {% endif %}
-                            </div>
+                        <div class="wii-section collapsible {{ menuData.submenus | length <= 3 ? 'expanded' }}">
+                            {% if subMenuData.translations is defined and subMenuData.translations is not empty %}
+                                {% include 'settings/utilisateurs/language/langues_settings_traduction_input.html.twig' with { translations : subMenuData.translations} %}
+                            {% endif %}
                         </div>
                     {% endfor %}
                 {% endif %}
@@ -67,3 +66,4 @@
         {% endfor %}
     </div>
 {% endfor %}
+{% include 'settings/utilisateurs/language/langues_modale_delete.html.twig' with { language : userLanguage.id } %}

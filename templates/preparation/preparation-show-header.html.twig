@@ -10,9 +10,9 @@
 
         {% if isPrepaEditable and hasRightFinish and preparation.statut.code != constant('App\\Entity\\PreparationOrder\\Preparation::STATUT_VALIDATED') %}
             <button type="button"
-                    class="btn btn-primary split-button d-flex align-items-center"
+                    class="btn btn-primary split-button"
                     onclick="finishPrepa($(this))">
-                <span class="wii-icon wii-icon-check-white mr-2"></span>Finir la préparation
+                <i class="fa fa-check mr-2"></i>Finir la préparation
             </button>
         {% endif %}
         <button type="button"
@@ -25,21 +25,21 @@
         <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
             {% if isPrepaEditable and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DELETE')) %}
                 {% if preparation.activePairing %}
-                    <button class="dropdown-item disabled d-flex align-items-center"
+                    <button class="dropdown-item disabled"
                             style="pointer-events: initial"
                             disabled title="La livraison est associée à un capteur, il faut d'abord la dissocier de son capteur">
-                        <span class="wii-icon wii-icon-trash-black mr-2"></span>Supprimer
+                        <i class="fa fa-trash mr-2"></i>Supprimer
                     </button>
                 {% else %}
-                    <a class="dropdown-item d-flex align-items-center" href=""
+                    <a class="dropdown-item" href=""
                        data-target='#modalDeletePreparation'
                        data-toggle='modal'>
-                        <span class="wii-icon wii-icon-trash-black mr-2"></span>Supprimer
+                        <i class="fa fa-trash mr-2"></i>Supprimer
                     </a>
                 {% endif %}
             {% endif %}
-            <button onclick="printPrepaBarCodes()" class="dropdown-item pointe d-flex align-items-center">
-                <span class="wii-icon wii-icon-printer-black mr-2"></span>Imprimer les étiquettes
+            <button onclick="printPrepaBarCodes()" class="dropdown-item pointer">
+                <i class='fas fa-print print-button mr-2'></i> Imprimer les étiquettes
             </button>
             {% if
                 hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT_PREPARATION_DATE'))

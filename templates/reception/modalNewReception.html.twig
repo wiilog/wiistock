@@ -70,8 +70,8 @@
                                 </div>
                                 {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
                                     <div class="form-group col-auto toggle-button-container">
-                                        <span class="btn btn-primary d-flex align-items-center p-2" onclick="onFlyFormToggle('fournisseurDisplay', 'addFournisseur')">
-                                            <span class="wii-icon wii-icon-plus"></span>
+                                        <span class="btn btn-primary" onclick="onFlyFormToggle('fournisseurDisplay', 'addFournisseur')">
+                                            <i class="fa fa-plus"></i>
                                         </span>
                                     </div>
                                 {% endif %}
@@ -92,9 +92,9 @@
                                 </div>
                                 {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
                                     <div class="form-group col-auto toggle-button-container">
-                                        <span class="btn btn-primary d-flex align-items-center p-2"
+                                        <span class="btn btn-primary"
                                               onclick="onFlyFormToggle('transporteurDisplay', 'addTransporteur')">
-                                            <span class="wii-icon wii-icon-plus"></span>
+                                            <i class="fa fa-plus"></i></span>
                                     </div>
                                 {% endif %}
                             </div>

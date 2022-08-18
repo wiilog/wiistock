@@ -86,7 +86,7 @@ function resetImage($button) {
     $keepImage.val(0);
 }
 
-function onSettingsItemSelected($selected, $settingsItems, $settingsContents) {
+function onSettingsItemSelected($selected, $settingsItems, $settingsContents, options = {}) {
     const $buttons = $('main .save');
     const selectedKey = $selected.data('menu');
 
@@ -97,6 +97,15 @@ function onSettingsItemSelected($selected, $settingsItems, $settingsContents) {
     $settingsContents
         .filter(`[data-menu="${selectedKey}"]`)
         .removeClass('d-none');
+
+    if (options.hideClass && options.hiddenElement){
+        if ($selected.hasClass(options.hideClass)) {
+            options.hiddenElement.addClass('d-none');
+        }
+        else {
+            options.hiddenElement.removeClass('d-none');
+        }
+    }
 
     $buttons.removeClass('d-none');
 }
