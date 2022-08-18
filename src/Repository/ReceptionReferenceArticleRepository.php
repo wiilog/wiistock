@@ -8,6 +8,7 @@ use App\Entity\ReferenceArticle;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use WiiCommon\Helper\Stream;
 
 /**
  * @method ReceptionReferenceArticle|null find($id, $lockMode = null, $lockVersion = null)
@@ -128,5 +129,66 @@ class ReceptionReferenceArticleRepository extends EntityRepository
 	    return $query
             ->getQuery()
             ->getResult();
+    }
+
+    public function getAssociatedIdAndReferences(int $disputeId = null): array {
+        $subQuery = $this->createQueryBuilder('sub_reception_reference_article')
+            ->select("GROUP_CONCAT(sub_join_referenceArticle.reference SEPARATOR ', ')")
+            ->join('sub_reception_reference_article.referenceArticle', 'sub_join_referenceArticle')
+            ->join('sub_reception_reference_article.articles', 'sub_join_articles')
+            ->join('sub_join_articles.disputes', 'sub_join_disputes')
+            ->where('sub_join_disputes.id = join_disputes.id')
+            ->getQuery()
+            ->getDQL();
+
+        $results = $this->createQueryBuilder('reception_reference_article')
+            ->select("($subQuery) AS references")
+            ->addSelect('join_disputes.id AS disputeId')
+            ->join('reception_reference_article.articles', 'join_articles')
+            ->join('join_articles.disputes', 'join_disputes');
+
+        if($disputeId) {
+            $results
+                ->andWhere('join_disputes.id = :disputeId')
+                ->setParameter('disputeId', $disputeId);
+        }
+
+        $results = $results
+            ->getQuery()
+            ->getResult();
+
+        return Stream::from($results)
+            ->keymap(fn($line) => [$line['disputeId'], $line['references']])
+            ->toArray();
+    }
+
+    public function getAssociatedIdAndOrderNumbers(int $disputeId = null): array {
+        $subQuery = $this->createQueryBuilder('sub_reception_reference_article')
+            ->select("GROUP_CONCAT(sub_reception_reference_article.commande SEPARATOR ', ')")
+            ->join('sub_reception_reference_article.articles', 'sub_join_articles')
+            ->join('sub_join_articles.disputes', 'sub_join_disputes')
+            ->where('sub_join_disputes.id = join_disputes.id')
+            ->getQuery()
+            ->getDQL();
+
+        $results = $this->createQueryBuilder('reception_reference_article')
+            ->select("($subQuery) AS orderNumbers")
+            ->addSelect('join_disputes.id AS disputeId')
+            ->join('reception_reference_article.articles', 'join_articles')
+            ->join('join_articles.disputes', 'join_disputes');
+
+        if($disputeId) {
+            $results
+                ->andWhere('join_disputes.id = :disputeId')
+                ->setParameter('disputeId', $disputeId);
+        }
+
+        $results = $results
+            ->getQuery()
+            ->getResult();
+
+        return Stream::from($results)
+            ->keymap(fn($line) => [$line['disputeId'], $line['orderNumbers']])
+            ->toArray();
     }
 }

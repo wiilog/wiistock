@@ -355,37 +355,6 @@ class DisputeRepository extends EntityRepository
         );
     }
 
-	public function getCommandesByDisputeId(int $disputeId): array {
-		$em = $this->getEntityManager();
-
-		$query = $em->createQuery(
-			"SELECT rra.commande
-			FROM App\Entity\ReceptionReferenceArticle rra
-			JOIN rra.articles a
-			JOIN a.disputes dispute
-            WHERE dispute.id = :disputeId")
-			->setParameter('disputeId', $disputeId);
-
-		$result = $query->execute();
-		return array_column($result, 'commande');
-	}
-
-	public function getReferencesByDisputeId(int $disputeId): array {
-		$em = $this->getEntityManager();
-
-		$query = $em->createQuery(
-			"SELECT ra.reference
-			FROM App\Entity\ReceptionReferenceArticle rra
-			JOIN rra.articles a
-			JOIN rra.referenceArticle ra
-			JOIN a.disputes dispute
-            WHERE dispute.id = :disputeId")
-			->setParameter('disputeId', $disputeId);
-
-		$result = $query->execute();
-		return array_column($result, 'reference');
-	}
-
     public function getLastNumberByDate(string $date, ?string $prefix): ?string {
         $result = $this->createQueryBuilder('dispute')
             ->select('dispute.number AS number')
