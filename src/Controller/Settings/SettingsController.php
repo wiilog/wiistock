@@ -405,7 +405,7 @@ class SettingsController extends AbstractController {
             "icon" => "user",
             "menus" => [
                 self::MENU_LANGUAGES => [
-                    "label" => "Personnalisation des libellés",
+                    "label" => "Langues",
                     "right" => Action::SETTINGS_DISPLAY_LABELS_PERSO,
                     'route' => "settings_language_index"
                 ],
