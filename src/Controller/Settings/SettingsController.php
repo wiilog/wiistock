@@ -577,11 +577,11 @@ class SettingsController extends AbstractController {
                 'label' => $language->getLabel(),
                 'value' => $language->getId(),
                 'iconUrl' => $language->getFlag(),
-                'checked' => $user->getLanguage()->getId() === $language->getId()
-
+                'checked' => $user->getLanguage() && $user->getLanguage()->getId() === $language->getId()
             ])
             ->toArray();
-        $languages[]=[
+
+        $languages[] = [
             'label' => 'Ajouter une langue',
             'value' => 'NEW',
             'iconUrl' => '/svg/plus-black.svg',
