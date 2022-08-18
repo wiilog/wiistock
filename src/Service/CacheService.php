@@ -12,6 +12,7 @@ class CacheService
 
     public const PERMISSIONS = "permissions";
     public const TRANSLATIONS = "translations";
+    public const LANGUAGES = "languages";
 
     private FileSystem $filesystem;
 

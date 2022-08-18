@@ -42,6 +42,7 @@ use App\Repository\TypeRepository;
 use App\Service\AttachmentService;
 use App\Service\CacheService;
 use App\Service\InventoryService;
+use App\Service\LanguageService;
 use App\Service\PackService;
 use App\Service\SettingsService;
 use App\Service\SpecificService;
@@ -542,7 +543,7 @@ class SettingsController extends AbstractController {
      * @Route("/langues", name="settings_language_index")
      * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_LABELS_PERSO})
      */
-    public function languageIndex(EntityManagerInterface $manager): Response {
+    public function languageIndex(EntityManagerInterface $manager, LanguageService $languageService): Response {
         $languageRepository = $manager->getRepository(Language::class);
         $translationCategoryRepository = $manager->getRepository(TranslationCategory::class);
         $translationRepository = $manager->getRepository(Translation::class);
@@ -558,16 +559,9 @@ class SettingsController extends AbstractController {
         ])
         ->toArray();
 
-        $languages = Stream::from($languageRepository->findAll())
-            ->map(fn(Language $language) => [
-                'label' => $language->getLabel(),
-                'value' => $language->getId(),
-                'iconUrl' => $language->getFlag(),
-                'checked' => $user->getLanguage() && $user->getLanguage()->getId() === $language->getId()
-            ])
-            ->toArray();
+        $languages = $languageService->getLanguages();
 
-        $languages[] = [
+        $languages[]=[
             'label' => 'Ajouter une langue',
             'value' => 'NEW',
             'iconUrl' => '/svg/plus-black.svg',
@@ -609,7 +603,7 @@ class SettingsController extends AbstractController {
             $userLanguage
                 ->setFlag("data:image/svg+xml;charset=utf8,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E")
                 ->setSelectable(true)
-                ->setSlug('');
+                ->setSlug('NEW');
         } else {
             $userLanguage = $languageRepository->findOneBy(['id' => $data->get('language')]);
         }
@@ -682,7 +676,8 @@ class SettingsController extends AbstractController {
      * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_LABELS_PERSO})
      */
     public function deleteLanguageApi(EntityManagerInterface $manager,
-                                       Request $request ): Response
+                                      Request $request,
+                                      CacheService $cacheService ): Response
     {
         $data = json_decode($request->getContent(), true);
         $languageRepository = $manager->getRepository(Language::class);
@@ -690,7 +685,7 @@ class SettingsController extends AbstractController {
         $translationRepository = $manager->getRepository(Translation::class);
         $language = $languageRepository->find($data['language']);
 
-        if ($language->getSelectable()) {
+        if ( in_array($language->getSlug(),Language::NOT_DELETABLE_LANGUAGES )) {
             return $this->json([
                 "success" => false,
                 "message" => "Cette langue ne peut pas être supprimée"
@@ -709,6 +704,7 @@ class SettingsController extends AbstractController {
 
             $manager->remove($language);
             $manager->flush();
+            $cacheService->delete(CacheService::LANGUAGES, 'languages');
 
             return $this->json([
                 "success" => true,
@@ -722,7 +718,8 @@ class SettingsController extends AbstractController {
      */
     public function saveTranslationApi(EntityManagerInterface $manager,
                                        Request $request,
-                                       AttachmentService $attachmentService): Response {
+                                       AttachmentService $attachmentService,
+                                       CacheService $cacheService ): Response {
         $data = $request->request;
         $file = $request->files;
         $languageRepository = $manager->getRepository(Language::class);
@@ -779,6 +776,7 @@ class SettingsController extends AbstractController {
         }
 
         $manager->flush();
+        $cacheService->delete(CacheService::LANGUAGES, 'languages');
 
         return $this->json([
             "success" => true,
@@ -1247,7 +1245,7 @@ class SettingsController extends AbstractController {
             self::CATEGORY_USERS => [
                 self::MENU_USERS => fn() => [
                     "newUser" => new Utilisateur(),
-                    "languages" => Stream::from($languageRepository->findAll())
+                    "languages" => Stream::from($languageRepository->findby(['hidden' => false]))
                         ->map(fn(Language $language) => [
                             "value" => $language->getId(),
                             "label" => $language->getLabel(),
