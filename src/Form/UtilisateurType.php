@@ -32,15 +32,18 @@ class UtilisateurType extends AbstractType
             ->toArray();
        $builder
             ->add('email', EmailType::class, array(
-                'label' => "Adresse email*"
+                'label' => "Adresse email*",
+                "translation_domain" => false,
             ))
             ->add('username', TextType::class, array(
                 'label' => "Nom d'utilisateur*",
+                "translation_domain" => false,
             ))
             ->add('plainPassword', RepeatedType::class, array(
                 'type' => PasswordType::class,
-                'first_options' => array('label' => 'Mot de Passe*'),
-                'second_options' => array('label' => 'Confirmer Mot de Passe*'),
+                'first_options' => array('label' => 'Mot de passe*'),
+                'second_options' => array('label' => 'Confirmer mot de passe*'),
+                "translation_domain" => false,
             ))
             ->add('language', ChoiceType::class, array(
                 'label' => "Langue*",
@@ -50,6 +53,7 @@ class UtilisateurType extends AbstractType
                 'attr' => array(
                     'class' => 'select2',
                 ),
+                "translation_domain" => false,
             ))
             ->add('dateFormat', ChoiceType::class, array(
                 'label' => "Format de date*",
@@ -58,6 +62,7 @@ class UtilisateurType extends AbstractType
                 'attr' => array(
                     'class' => 'select2',
                 ),
+                "translation_domain" => false,
             ));
     }
 
