@@ -322,19 +322,17 @@
         background-color: transparent;
         border: none;
     }
+}
 
-    .dropdown-language-date {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        height: 60px;
-        font-family: Retroyal, sans-serif;
-        font-style: normal;
-        font-weight: bold;
-        font-size: 2rem;
-        padding: 0 16px;
-        color: $primary;
-    }
+.label-date {
+    color: $black !important;
+    font-size: 14px;
+    font-weight: 600;
+    display: inline;
+}
+
+.language-date-menu {
+    line-height: 30px;
 }
 
 .profile-picture, .language-picture {
