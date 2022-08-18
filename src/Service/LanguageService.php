@@ -39,6 +39,6 @@ class LanguageService
                 "value" => $format
             ])
             ->toArray(),
-            'value' => $user->getDateFormat()];
+            'value' => $user?->getDateFormat()];
     }
 }
