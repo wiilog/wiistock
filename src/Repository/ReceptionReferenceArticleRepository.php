@@ -131,7 +131,7 @@ class ReceptionReferenceArticleRepository extends EntityRepository
             ->getResult();
     }
 
-    public function getReferencesByDisputeId(): array {
+    public function getAssociatedIdAndReferences(int $disputeId = null): array {
         $subQuery = $this->createQueryBuilder('sub_reception_reference_article')
             ->select("GROUP_CONCAT(sub_join_referenceArticle.reference SEPARATOR ', ')")
             ->join('sub_reception_reference_article.referenceArticle', 'sub_join_referenceArticle')
@@ -145,7 +145,15 @@ class ReceptionReferenceArticleRepository extends EntityRepository
             ->select("($subQuery) AS references")
             ->addSelect('join_disputes.id AS disputeId')
             ->join('reception_reference_article.articles', 'join_articles')
-            ->join('join_articles.disputes', 'join_disputes')
+            ->join('join_articles.disputes', 'join_disputes');
+
+        if($disputeId) {
+            $results
+                ->andWhere('join_disputes.id = :disputeId')
+                ->setParameter('disputeId', $disputeId);
+        }
+
+        $results = $results
             ->getQuery()
             ->getResult();
 
@@ -154,7 +162,7 @@ class ReceptionReferenceArticleRepository extends EntityRepository
             ->toArray();
     }
 
-    public function getOrderNumbersByDisputeId(): array {
+    public function getAssociatedIdAndOrderNumbers(int $disputeId = null): array {
         $subQuery = $this->createQueryBuilder('sub_reception_reference_article')
             ->select("GROUP_CONCAT(sub_reception_reference_article.commande SEPARATOR ', ')")
             ->join('sub_reception_reference_article.articles', 'sub_join_articles')
@@ -167,7 +175,15 @@ class ReceptionReferenceArticleRepository extends EntityRepository
             ->select("($subQuery) AS orderNumbers")
             ->addSelect('join_disputes.id AS disputeId')
             ->join('reception_reference_article.articles', 'join_articles')
-            ->join('join_articles.disputes', 'join_disputes')
+            ->join('join_articles.disputes', 'join_disputes');
+
+        if($disputeId) {
+            $results
+                ->andWhere('join_disputes.id = :disputeId')
+                ->setParameter('disputeId', $disputeId);
+        }
+
+        $results = $results
             ->getQuery()
             ->getResult();
 

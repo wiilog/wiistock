@@ -2,10 +2,10 @@
 
 namespace App\Service;
 
-use App\Entity\Arrivage;
 use App\Entity\DisputeHistoryRecord;
 use App\Entity\FiltreSup;
 use App\Entity\Dispute;
+use App\Entity\ReceptionReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use DateTime;
@@ -83,6 +83,7 @@ class DisputeService {
 
     public function dataRowDispute(array $dispute): array {
         $disputeRepository = $this->entityManager->getRepository(Dispute::class);
+        $receptionReferenceArticleRepository = $this->entityManager->getRepository(ReceptionReferenceArticle::class);
 
         $disputeId = $dispute['id'];
         $acheteursArrivage = $disputeRepository->getAcheteursArrivageByDisputeId($disputeId, 'username');
@@ -95,9 +96,8 @@ class DisputeService {
             ? (FormatHelper::datetime($lastHistoryRecordDate) . ' : ' . nl2br($lastHistoryRecordComment))
             : '';
 
-        $commands = $disputeRepository->getCommandesByDisputeId($disputeId);
-
-        $references = $disputeRepository->getReferencesByDisputeId($disputeId);
+        $commands = $receptionReferenceArticleRepository->getAssociatedIdAndOrderNumbers($disputeId)[$disputeId];
+        $references = $receptionReferenceArticleRepository->getAssociatedIdAndReferences($disputeId)[$disputeId];
 
         $isNumeroBLJson = !empty($dispute['arrivageId']);
         $numerosBL = isset($dispute['numCommandeBl'])
@@ -227,46 +227,48 @@ class DisputeService {
             throw new \InvalidArgumentException('Invalid mode');
         }
 
+        $row = $dispute->serialize();
+
+        $lastHistoryRecord = $dispute->getLastHistoryRecord();
+        $lastHistoryRecordDate = FormatHelper::datetime($lastHistoryRecord?->getDate());
+        $lastHistoryRecordUser = FormatHelper::user($lastHistoryRecord?->getUser());
+        $lastHistoryRecordComment = $lastHistoryRecord?->getComment() ?? '';
+        $disputeReporter = FormatHelper::user($dispute->getReporter());
+        $buyers = Stream::from($dispute->getBuyers())
+            ->map(fn(Utilisateur $user) => $user->getEmail())
+            ->join(' / ');
+
         if ($mode === self::PUT_LINE_ARRIVAL) {
-            $colis = $dispute->getPacks();
-            foreach ($colis as $coli) {
-                $colis = $dispute->getPacks();
-                /** @var Arrivage $arrivage */
-                $arrivage = ($colis->count() > 0 && $colis->first()->getArrivage())
-                    ? $colis->first()->getArrivage()
-                    : null;
-                $acheteurs = $arrivage->getAcheteurs()->toArray();
-                $buyersMailsStr = implode('/', array_map(function(Utilisateur $acheteur) {
-                    return $acheteur->getEmail();
-                }, $acheteurs));
+            $packs = $dispute->getPacks();
+            $arrival = ($packs->count() > 0 && $packs->first()->getArrivage())
+                ? $packs->first()->getArrivage()
+                : null;
+            $arrivalNumber = $arrival?->getNumeroArrivage() ?? '';
+            $orderNumbers = Stream::from($arrival?->getNumeroCommandeList() ?? [])->join(' / ');
+            $supplier = FormatHelper::supplier($arrival?->getFournisseur());
 
-                $row = $dispute->serialize();
+            foreach ($packs as $pack) {
+                $packCode = $pack->getCode();
 
-                $row[] = $coli->getCode();
-                $row[] = ' ';
-                $row[] = '';
+                $row = array_merge($row, [
+                    $packCode,
+                    '',
+                    '',
+                    $arrivalNumber,
+                    $orderNumbers,
+                    $disputeReporter,
+                    $supplier,
+                    '',
+                    $buyers,
+                    $lastHistoryRecordDate,
+                    $lastHistoryRecordUser,
+                    $lastHistoryRecordUser,
+                ]);
 
-                $row[] = $arrivage ? $arrivage->getNumeroArrivage() : '';
-
-                $numeroCommandeList = $arrivage ? $arrivage->getNumeroCommandeList() : [];
-                $row[] = implode(' / ', $numeroCommandeList); // N° de commandes
-                $row[] = FormatHelper::user($dispute->getReporter());
-                $fournisseur = $arrivage?->getFournisseur();
-                $row[] = $fournisseur ? $fournisseur->getNom() : '';
-                $row[] = ''; // N° de ligne
-                $row[] = $buyersMailsStr;
-                $lastHistoryRecord = $dispute->getLastHistoryRecord();
-                if ($lastHistoryRecord) {
-                    $row[] = FormatHelper::datetime($lastHistoryRecord->getDate());
-                    $row[] = FormatHelper::user($lastHistoryRecord->getUser());
-                    $row[] = $lastHistoryRecord->getComment();
-                }
                 $this->CSVExportService->putLine($handle, $row);
             }
         }
         else if ($mode === self::PUT_LINE_RECEPTION) {
-            $row = $dispute->serialize();
-
             $firstArticle = $articles[0] ?? null;
 
             $receptionNumber = $firstArticle ? $firstArticle['receptionNumber'] : '';
@@ -275,14 +277,6 @@ class DisputeService {
 
             $references = $associatedIdAndReferences[$dispute->getId()];
             $orderNumbers = $associatedIdsAndOrderNumbers[$dispute->getId()];
-            $buyers = Stream::from($dispute->getBuyers())
-                ->map(fn(Utilisateur $user) => $user->getEmail())
-                ->join('/');
-            $disputeReporter = FormatHelper::user($dispute->getReporter());
-            $lastHistoryRecord = $dispute->getLastHistoryRecord();
-            $lastHistoryRecordDate = FormatHelper::datetime($lastHistoryRecord?->getDate());
-            $lastHistoryRecordUser = FormatHelper::user($lastHistoryRecord?->getUser());
-            $lastHistoryRecordComment = $lastHistoryRecord?->getComment() ?? '';
 
             foreach ($articles as $article) {
                 $row = array_merge($row, [

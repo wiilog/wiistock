@@ -124,8 +124,8 @@ class DisputeController extends AbstractController
             $articleRepository = $entityManager->getRepository(Article::class);
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
 
-            $associatedIdAndReferences = $receptionReferenceArticleRepository->getReferencesByDisputeId();
-            $associatedIdAndOrderNumbers = $receptionReferenceArticleRepository->getOrderNumbersByDisputeId();
+            $associatedIdAndReferences = $receptionReferenceArticleRepository->getAssociatedIdAndReferences();
+            $associatedIdAndOrderNumbers = $receptionReferenceArticleRepository->getAssociatedIdAndOrderNumbers();
 
             $arrivalDisputes = $disputeRepository->iterateArrivalDisputesByDates($dateTimeMin, $dateTimeMax);
             /** @var Dispute $dispute */
