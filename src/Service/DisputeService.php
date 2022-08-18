@@ -262,8 +262,8 @@ class DisputeService {
                     $supplier,
                     '',
                     $buyers,
-                    $dispute["lastHistoryUser"],
                     FormatHelper::date($dispute["lastHistoryDate"]),
+                    $dispute["lastHistoryUser"],
                     $dispute["lastHistoryComment"],
                 ]);
 
@@ -291,8 +291,8 @@ class DisputeService {
                     $receptionSupplier,
                     $orderNumbers,
                     $buyers,
-                    $dispute["lastHistoryUser"],
                     FormatHelper::date($dispute["lastHistoryDate"]),
+                    $dispute["lastHistoryUser"],
                     $dispute["lastHistoryComment"],
                 ]);
 
