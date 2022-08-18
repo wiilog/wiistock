@@ -402,7 +402,7 @@ function initSteppedLineChart($element, labels, values, tooltips, label) {
                 yAxes: [{
                     display: true,
                     ticks: {
-                        suggestedMin: Math.min(...values) - 5,
+                        suggestedMax: 5,
                         callback: function(value, index, values) {
                             if (Math.floor(value) === value) {
                                 return value;

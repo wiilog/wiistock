@@ -573,6 +573,7 @@ class ReferenceArticleController extends AbstractController
             $locationFilter,
             $buyerFilter
         );
+
         return new JsonResponse(['results' => $refArticles]);
     }
 
