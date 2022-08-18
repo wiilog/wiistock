@@ -378,4 +378,5 @@ class DisputeRepository extends EntityRepository
 
         return $query->execute();
     }
+
 }

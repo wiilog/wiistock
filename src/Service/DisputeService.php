@@ -219,6 +219,7 @@ class DisputeService {
     public function putDisputeLine(string            $mode,
                                                      $handle,
                                    Dispute           $dispute,
+                                   array             $buyers,
                                    array             $associatedIdAndReferences = [],
                                    array             $associatedIdsAndOrderNumbers = [],
                                    array             $articles = []): void {
@@ -228,15 +229,13 @@ class DisputeService {
         }
 
         $row = $dispute->serialize();
+        $buyers = join(" / ", $buyers);
 
         $lastHistoryRecord = $dispute->getLastHistoryRecord();
         $lastHistoryRecordDate = FormatHelper::datetime($lastHistoryRecord?->getDate());
         $lastHistoryRecordUser = FormatHelper::user($lastHistoryRecord?->getUser());
         $lastHistoryRecordComment = $lastHistoryRecord?->getComment() ?? '';
         $disputeReporter = FormatHelper::user($dispute->getReporter());
-        $buyers = Stream::from($dispute->getBuyers())
-            ->map(fn(Utilisateur $user) => $user->getEmail())
-            ->join(' / ');
 
         if ($mode === self::PUT_LINE_ARRIVAL) {
             $packs = $dispute->getPacks();
