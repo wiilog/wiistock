@@ -19,9 +19,9 @@
                                     or handling.status.treated == 1 and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_PROCESSED_HANDLING')) %}
 
                                 {% if canDelete %}
-                                    <div class="dropdown-item d-flex align-items-center" data-id="{{ handling.id }}" data-target="#modalDeleteHandling" data-toggle="modal"
+                                    <div class="dropdown-item" data-id="{{ handling.id }}" data-target="#modalDeleteHandling" data-toggle="modal"
                                          onclick="deleteRow($(this), $('#modalDeleteHandling'), $('#submitDeleteHandling'))">
-                                        <span class="wii-icon wii-icon-trash-black mr-2"></span>
+                                        <img src="{{ asset('svg/trash-black.svg') }}" width="15px" class="mr-2 dropdown-icon">
                                         Supprimer
                                     </div>
                                 {% endif %}
@@ -168,7 +168,6 @@
                         freeFields: freeFields,
                         emptyTitle: "Ce service n'a aucun champ libre",
                         emptyLabel: "Ce service n'a aucun champ libre",
-                        needsDateFormatting: true
                     } %}
                 </div>
             </div>
@@ -203,13 +202,7 @@
                             <div class="box-item my-2">
                                 <span class="wii-field-name">Date de création</span>
                                 <span class="wii-field-text">
-                                    {{ app.user.dateFormat == 'd/m/Y'
-                                        ? (handling.creationDate
-                                            ? handling.creationDate | format_helper('longDate', {short: true, time: not setting_value('REMOVE_HOURS_DATETIME')})
-                                            : '-'
-                                        )
-                                        : handling.creationDate | format_helper(setting_value('REMOVE_HOURS_DATETIME') ? 'date' : 'datetime', "", false, app.user)
-                                    }}
+                                    {{ handling.creationDate | format_helper('longDate', {short: true}) }}
                                 </span>
                             </div>
                         </div>
@@ -218,13 +211,7 @@
                         <div class="box-item my-2">
                             <span class="wii-field-name">Date attendue</span>
                             <span class="wii-field-text">
-                                {{ app.user.dateFormat == 'd/m/Y'
-                                    ? (handling.desiredDate
-                                        ? handling.desiredDate | format_helper('longDate', {short: true, time: not setting_value('REMOVE_HOURS_DATETIME')})
-                                        : '-'
-                                    )
-                                    : handling.desiredDate | format_helper(setting_value('REMOVE_HOURS_DATETIME') ? 'date' : 'datetime', "", false, app.user)
-                                }}
+                                {{ handling.desiredDate ? handling.desiredDate | format_helper('longDate', {short: true, time: not setting_value('REMOVE_HOURS_DATETIME')}) : '-' }}
                             </span>
                         </div>
                     </div>
@@ -232,13 +219,7 @@
                         <div class="box-item my-2">
                             <span class="wii-field-name">Date réalisation</span>
                             <span class="wii-field-text">
-                                {{ app.user.dateFormat == 'd/m/Y'
-                                    ? (handling.validationDate
-                                        ? handling.validationDate | format_helper('longDate', {short: true, time: not setting_value('REMOVE_HOURS_DATETIME')})
-                                        : '-'
-                                    )
-                                    : handling.validationDate | format_helper(setting_value('REMOVE_HOURS_DATETIME') ? 'date' : 'datetime', "", false, app.user)
-                                }}
+                                {{ handling.validationDate ? handling.validationDate | format_helper('longDate', {short: false}) : '-' }}
                             </span>
                         </div>
                     </div>

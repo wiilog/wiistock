@@ -5,9 +5,7 @@
 {% block page_filter %}
     {% include 'filters/filtersPack.html.twig' with {
         page: 'PAGE_PACK',
-        tableSelector: '#packsTable, #groupsTable',
-        callback: 'null',
-        needsDateFormatting: true
+        tableSelector: '#packsTable, #groupsTable'
     } %}
 {% endblock %}
 

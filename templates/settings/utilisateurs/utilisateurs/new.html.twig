@@ -10,7 +10,7 @@
             } %}
 
             <div class="modal-body modal-input p-0">
-                {% include 'settings/utilisateurs/utilisateurs/form.html.twig' with {user: newUser, languages, dateFormats} %}
+                {% include 'settings/utilisateurs/utilisateurs/form.html.twig' with {user: newUser} %}
             </div>
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [

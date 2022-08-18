@@ -205,14 +205,6 @@ function editRowArrivage($button) {
         Select2Old.initFree($('.select2-free'));
         Select2Old.location(modal.find('.ajax-autocomplete-location'));
         Select2Old.user(modal.find('.ajax-autocomplete-user'));
-        const $userFormat = $('#userDateFormat');
-        const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
-
-        initDateTimePicker('.free-field-date', DATE_FORMATS_TO_DISPLAY[format]);
-        initDateTimePicker('.free-field-datetime', DATE_FORMATS_TO_DISPLAY[format] + ' HH:mm');
-
-        fillDatePickers('.free-field-date');
-        fillDatePickers('.free-field-datetime', 'YYYY-MM-DD', true);
     }, 'json');
 
     modal.find(submit).attr('value', id);

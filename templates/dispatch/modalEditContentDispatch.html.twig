@@ -197,21 +197,21 @@
                 <div class="input-group-prepend">
                     <span class="input-group-text w-50px">Du</span>
                 </div>
-                <input type="text"
-                       class="form-control pointer date-field data {{ required ? 'needed' }}"
+                <input type="date"
+                       class="form-control data {{ required ? 'needed' }}"
                        name="startDate"
-                       data-init="{{ dispatch.startDate ? dispatch.startDate|date('Y-m-d') }}"
+                       value="{{ dispatch.startDate ? dispatch.startDate|date('Y-m-d') }}"
                        title="Date d'échéance min"
-                       autocomplete="off"/>
-                <div class="input-group-prepend input-group-append">
+                       placeholder="jj/mm/aaaa"/>
+                <div class="input-group-prepend">
                     <span class="input-group-text w-50px">Au</span>
                 </div>
-                <input type="text"
-                       class="form-control pointer date-field data {{ required ? 'needed' }}"
+                <input type="date"
+                       class="form-control data {{ required ? 'needed' }}"
                        name="endDate"
-                       data-init="{{ dispatch.endDate ? dispatch.endDate|date('Y-m-d') }}"
+                       value="{{ dispatch.endDate ? dispatch.endDate|date('Y-m-d') }}"
                        title="Date d'échéance max"
-                       autocomplete="off"/>
+                       placeholder="jj/mm/aaaa"/>
             </div>
         </div>
     {% endif %}
@@ -225,8 +225,7 @@
                 freeFieldValues: dispatch.freeFields,
                 colType: 'col-md-4 col-12',
                 requiredType: 'requiredEdit',
-                actionType: 'edit',
-                needsDateFormatting: true
+                actionType: 'edit'
             } %}
         </div>
     </div>

@@ -51,9 +51,9 @@
             <div class="col-auto">
                 <div class="btn-group">
                     {% if hasRightToCreate %}
-                        <button type="button" class="btn btn-primary split-button d-flex align-items-center"
+                        <button type="button" class="btn btn-primary split-button"
                                 onclick="window.location.href = Routing.generate('reference_article_new_page', {}, true)">
-                            <span class="wii-icon wii-icon-plus mr-2"></span>
+                            <span class="fa fa-plus mr-2"></span>
                             Nouvel article de référence
                         </button>
                     {% elseif hasRightToExport %}
@@ -61,10 +61,10 @@
                              title="Veuillez faire une recherche ou renseigner un filtre pour imprimer."
                              data-toggle="tooltip">
                             <button type="button"
-                                    class="btn btn-primary split-button printButton d-flex align-items-center"
+                                    class="btn btn-primary split-button printButton"
                                     id="printTag"
                                     onclick="printReferenceArticleBarCode($(this), event)">
-                                <span class="wii-icon wii-icon-printer-black mr-2"></span>Impression des étiquettes
+                                <span class="fa fa-print mr-2"></span>Impression des étiquettes
                             </button>
                         </div>
                     {% endif %}
@@ -77,12 +77,12 @@
                     </button>
                     <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
                         {% if hasRightToCreate and hasRightToExport %}
-                            <div class="dropdown-item has-tooltip printButton d-flex align-items-center"
+                            <div class="dropdown-item has-tooltip printButton"
                                  id="printTag"
                                  tabindex="0"
                                  title="Veuillez faire une recherche ou renseigner un filtre pour imprimer."
                                  onclick="printReferenceArticleBarCode($(this), event)">
-                                <span class="wii-icon wii-icon-printer-black mr-2"></span>
+                                <span class="fa fa-print mr-2"></span>
                                 Impression des étiquettes
                             </div>
                         {% endif %}

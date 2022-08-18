@@ -66,9 +66,6 @@ class DispatchService {
     /** @Required */
     public ArrivageService $arrivalService;
 
-    #[Required]
-    public Security $security;
-
     private ?array $freeFieldsConfig = null;
 
     public function getDataForDatatable(InputBag $params) {
@@ -110,16 +107,16 @@ class DispatchService {
                 })
                 ->join(', ');
         }
-        $user = $this->security->getUser();
+
         $row = [
             'id' => $dispatch->getId() ?? 'Non défini',
             'number' => $dispatch->getNumber() ?? '',
             'carrier' => $dispatch->getCarrier() ? $dispatch->getCarrier()->getLabel() : '',
             'carrierTrackingNumber' => $dispatch->getCarrierTrackingNumber(),
             'commandNumber' => $dispatch->getCommandNumber(),
-            'creationDate' => FormatHelper::datetime($dispatch->getCreationDate(), "", false, $user),
-            'validationDate' => FormatHelper::datetime($dispatch->getValidationDate(), "", false, $user),
-            'endDate' => FormatHelper::date($dispatch->getEndDate(), "", false, $user),
+            'creationDate' => $dispatch->getCreationDate() ? $dispatch->getCreationDate()->format('d/m/Y H:i:s') : '',
+            'validationDate' => $dispatch->getValidationDate() ? $dispatch->getValidationDate()->format('d/m/Y H:i:s') : '',
+            'endDate' => $dispatch->getEndDate() ? $dispatch->getEndDate()->format('d/m/Y') : '',
             'requester' => $dispatch->getRequester() ? $dispatch->getRequester()->getUserName() : '',
             'receivers' => $receiversUsernames ?? '',
             'locationFrom' => $dispatch->getLocationFrom() ? $dispatch->getLocationFrom()->getLabel() : '',
@@ -130,7 +127,7 @@ class DispatchService {
             'status' => $dispatch->getStatut() ? $dispatch->getStatut()->getNom() : '',
             'emergency' => $dispatch->getEmergency() ?? '',
             'treatedBy' => $dispatch->getTreatedBy() ? $dispatch->getTreatedBy()->getUsername() : '',
-            'treatmentDate' => FormatHelper::datetime($dispatch->getTreatmentDate(), "", false, $user),
+            'treatmentDate' => $dispatch->getTreatmentDate() ? $dispatch->getTreatmentDate()->format('d/m/Y H:i:s') : '',
             'actions' => $this->templating->render('dispatch/list/actions.html.twig', [
                 'dispatch' => $dispatch,
                 'url' => $url
@@ -140,7 +137,7 @@ class DispatchService {
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
             $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
             $freeFieldValue = $dispatch->getFreeFieldValue($freeFieldId);
-            $row[$freeFieldName] = FormatHelper::freeField($freeFieldValue, $freeField, $user);
+            $row[$freeFieldName] = FormatHelper::freeField($freeFieldValue, $freeField);
         }
 
         return $row;
@@ -217,12 +214,12 @@ class DispatchService {
         $locationFrom = $dispatch->getLocationFrom();
         $locationTo = $dispatch->getLocationTo();
         $creationDate = $dispatch->getCreationDate();
-        $validationDate = $dispatch->getValidationDate() ?: null;
-        $treatmentDate = $dispatch->getTreatmentDate() ?: null;
+        $validationDate = $dispatch->getValidationDate() ? $dispatch->getValidationDate() : '';
+        $treatmentDate = $dispatch->getTreatmentDate() ? $dispatch->getTreatmentDate() : '';
         $startDate = $dispatch->getStartDate();
         $endDate = $dispatch->getEndDate();
-        $startDateStr = FormatHelper::date($startDate, "", false, $this->security->getUser());
-        $endDateStr = FormatHelper::date($endDate, "", false, $this->security->getUser());
+        $startDateStr = $startDate ? $startDate->format('d/m/Y') : '-';
+        $endDateStr = $endDate ? $endDate->format('d/m/Y') : '-';
         $projectNumber = $dispatch->getProjectNumber();
         $comment = $dispatch->getCommentaire() ?? '';
         $treatedBy = $dispatch->getTreatedBy() ? $dispatch->getTreatedBy()->getUsername() : '';
@@ -232,7 +229,6 @@ class DispatchService {
             $this->entityManager,
             $dispatch,
             ['type' => $dispatch->getType()],
-            $this->security->getUser()
         );
         $receiverDetails = [
             "label" => "Destinataire(s)",
@@ -312,11 +308,11 @@ class DispatchService {
             ],
             [
                 'label' => 'Date de création',
-                'value' => FormatHelper::datetime($creationDate, "", false, $this->security->getUser())
+                'value' => $creationDate ? $creationDate->format('d/m/Y H:i:s') : ''
             ],
             [
                 'label' => 'Date de validation',
-                'value' => FormatHelper::datetime($validationDate, "", false, $this->security->getUser())
+                'value' => $validationDate ? $validationDate->format('d/m/Y H:i:s') : ''
             ],
             [
                 'label' => 'Dates d\'échéance',
@@ -328,7 +324,7 @@ class DispatchService {
             ],
             [
                 'label' => 'Date de traitement',
-                'value' => FormatHelper::datetime($treatmentDate, "", false, $this->security->getUser())
+                'value' => $treatmentDate ? $treatmentDate->format('d/m/Y H:i:s') : ''
             ],
             [
                 'label' => 'Destination',
@@ -364,10 +360,9 @@ class DispatchService {
     }
 
     public function createDateFromStr(?string $dateStr): ?DateTime {
-        $user = $this->security->getUser();
         $date = null;
-        foreach ([$user->getDateFormat(), 'Y-m-d', 'd/m/Y'] as $format) {
-            $date = (!empty($dateStr) && empty($date) && !empty($format))
+        foreach (['Y-m-d', 'd/m/Y'] as $format) {
+            $date = (!empty($dateStr) && empty($date))
                 ? DateTime::createFromFormat($format, $dateStr)
                 : $date;
         }
@@ -412,7 +407,7 @@ class DispatchService {
             $title = $status->isTreated()
                 ? $this->translation->trans($translatedTitle, [
                     "{numéro}" => $dispatch->getNumber(),
-                    "{date}" => FormatHelper::datetime($dispatch->getTreatmentDate(), "", false, $this->security->getUser())
+                    "{date}" => $dispatch->getTreatmentDate() ? $dispatch->getTreatmentDate()->format('d/m/Y à H:i:s') : ''
                 ])
                 : (!$isUpdate
                     ? ('Un(e) ' . $translatedCategory . ' de type ' . $type . ' vous concerne :')

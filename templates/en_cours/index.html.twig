@@ -13,7 +13,7 @@
     <div class="m-4">
         <input type="hidden" id="encours-min-location-filter" value="{{ minLocationFilter }}"/>
         <div class="row">
-            <div class="col-auto ml-auto"><h2 class="m-0">Actualisé le {{ "now"|date(app.user.dateFormat ? (app.user.dateFormat ~ ' à H:i:s') : 'd/m/Y à H:i:s') }}</h2></div>
+            <div class="col-auto ml-auto"><h2 class="m-0">Actualisé le {{ "now"|date("d/m/Y à H:i", "Europe/Paris") }}</h2></div>
         </div>
         <div class="row">
             {% if emplacements is empty %}

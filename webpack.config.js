@@ -35,7 +35,6 @@ Encore
     .addEntry('reception-show', './assets/js/pages/reception/show.js')
     .addEntry('handling-show', './assets/js/pages/handling/show.js')
     .addEntry('handling-edit', './assets/js/pages/handling/edit.js')
-    .addEntry('register', './assets/js/pages/register/register.js')
     .autoProvidejQuery()
 
     // When enabled, Webpack "splits" your files into smaller pieces for greater optimization.

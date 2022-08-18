@@ -6,9 +6,9 @@
                 <a href="{{ path('mvt_traca_index') }}{{ packFilter is not empty ? ('?colis=' ~ packFilter) }}" class="dropdown-item">
                     <i class="fas fa-list mr-2"></i>Voir mouvements de tracabilité
                 </a>
-                <a class="dropdown-item d-flex align-items-center"
+                <a class="dropdown-item"
                    href="{{ path('reception_ligne_article_bar_code_print', {reception: receptionId, ligneArticle: ligneId}) }}">
-                    <span class="wii-icon wii-icon-printer-black mr-2"></span>Imprimer
+                    <i class="fas fa-print mr-2"></i>Imprimer
                 </a>
             {% elseif (isArticleTypeLinked and ligneArticleQuantity > 0)%}
                 <div class="dropdown-item"
@@ -25,10 +25,10 @@
                             <i class='fas fa-pencil-alt'></i>
                         </div>
                     </div>
-                    <div class="dropdown-item d-flex align-items-center"
+                    <div class="dropdown-item"
                          onclick="checkAndDeleteRow($(this), '#modalDeleteLigneArticle', 'ligne_recep_check_delete', '#submitDeleteLigneArticle')"
                          data-id='{{ ligneId }}' data-target='#modalDeleteLigneArticle' data-toggle='modal'>
-                        <span class="wii-icon wii-icon-trash-black mr-2"></span>Supprimer
+                        <i class='fas fa-trash mr-2'></i>Supprimer
                     </div>
                 {% endif %}
             {% endif %}

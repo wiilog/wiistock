@@ -10,7 +10,7 @@ $(function () {
     let $submitDeleteHandling = $('#submitDeleteHandling');
     let urlDeleteHandling = Routing.generate('handling_delete', true);
     InitModal($modalDeleteHandling, $submitDeleteHandling, urlDeleteHandling);
-    initDatePickers();
+
     $('#submitEditHandling').on('click', function () {
         submitChanges($(this, handlingId));
     });

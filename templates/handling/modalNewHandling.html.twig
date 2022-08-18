@@ -4,7 +4,7 @@
             {% include 'utils/modal/header.html.twig' with {
                 title: '<span title="Nouvelle demande de service">' ~ ('services.Nouvelle demande de service' | trans) ~ '</span>'
             } %}
-            <input type="hidden" id="REMOVE_HOURS_DATETIME" value="setting_value('REMOVE_HOURS_DATETIME')">
+
             <div class="modal-body modal-input container-fluid">
                 <div class="row">
                     <div class="form-group col-md-6 col-12">
@@ -65,12 +65,12 @@
 
                     <div class="form-group col-md-6 col-12">
                         <label class="wii-field-name" for="desired-date">Date attendue*</label>
-                        <input type="text"
+                        <input type="{{ setting_value('REMOVE_HOURS_DATETIME') ? 'date' : 'datetime-local' }}"
+                               class="form-control data needed"
                                name="desired-date"
                                title="Date attendue"
-                               class="form-control data {{ setting_value('REMOVE_HOURS_DATETIME') ? 'date-field' : 'datetime-field' }} needed pointer"
-                               placeholder="{{ app.user.displayedDateFormat ~ (not setting_value('REMOVE_HOURS_DATETIME') ? ' MM:SS') }}"
-                               autocomplete="off"/>
+                               placeholder="jj/mm/aaaa"
+                               min="{{ 'now' | date(setting_value('REMOVE_HOURS_DATETIME') ? 'Y-m-d' : 'Y-m-d\\TH:i') }}"/>
                     </div>
 
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}
@@ -140,7 +140,6 @@
                                         colType: 'col-md-6 col-12',
                                         requiredType: 'requiredCreate',
                                         actionType: 'new',
-                                        needsDateFormatting: true
                                     } %}
                                 </div>
                             {% endfor %}

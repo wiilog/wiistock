@@ -17,17 +17,17 @@
                          data-target="#modalEditLocationGroup"
                          data-id="{{ group.id }}"
                          onclick="editRow($(this), Routing.generate('location_group_edit_api', true), $('#modalEditLocationGroup'), $('#submitEditLocationGroup'))">
-                        Modifier
+                        <i class="fas fa-trash mr-2"></i>Modifier
                     </div>
                 </div>
             {% endif %}
             {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::DELETE')) %}
-                <div class="dropdown-item d-flex align-items-center"
+                <div class="dropdown-item"
                      data-toggle="modal"
                      data-target="#modalDeleteLocationGroup"
                      data-id="{{ group.id }}"
                      onclick="editRow($(this), Routing.generate('location_group_delete_api', true), $('#modalDeleteLocationGroup'), '#submitDeleteLocationGroup')">
-                    <span class="wii-icon wii-icon-trash-black mr-2"></span>Supprimer
+                    <i class="fas fa-trash mr-2"></i>Supprimer
                 </div>
             {% endif %}
         </div>

@@ -310,9 +310,7 @@ function initializePacksTable(dispatchId, isEdit) {
                 if(type !== `sort`) {
                     const date = moment(data, 'YYYY/MM/DD HH:mm');
                     if(date.isValid()) {
-                        const $userFormat = $('#userDateFormat');
-                        const format = ($userFormat.val() ? DATE_FORMATS_TO_DISPLAY[$userFormat.val()] : 'DD/MM/YYYY') + ' HH:mm';
-                        return date.format(format);
+                        return date.format('DD/MM/YYYY HH:mm');
                     }
                 }
 
@@ -360,6 +358,7 @@ function initializePacksTable(dispatchId, isEdit) {
             $select.closest(`td, th`)
                 .empty()
                 .append(`<span title="${code}">${code}</span> <input type="hidden" name="pack" class="data" value="${code}"/>`);
+
             $row.find(`.d-none`).removeClass(`d-none`);
             $row.find(`[name=weight]`).val(value.weight);
             $row.find(`[name=volume]`).val(value.volume);

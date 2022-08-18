@@ -2,14 +2,12 @@
     {% set canEditFully = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::FULLY_EDIT_TRACKING_MOVEMENTS')) %}
     <div class="form-group col-md-6 col-12">
         <label class="wii-field-name" for="datetime">Date*</label>
-        <input type="text"
-               title="Date"
+        <input type="datetime-local"
+               class="form-control w-100 data"
                name="date"
-               {{ not canEditFully ? 'disabled' }}
-               data-init="{{ mvt.datetime|date('Y-m-d\\TH:i') }}"
-               value="{{ mvt.datetime|date('Y-m-d\\TH:i') }}"
-               class="form-control w-100 data datetime-field needed no-clear pointer"
-               autocomplete="off"/>
+               title="Date"
+            {{ not canEditFully ? 'disabled' }}
+               value="{{ mvt.datetime|date('Y-m-d\\TH:i') }}"/>
     </div>
 
     <div class="form-group col-md-6 col-12">
@@ -81,8 +79,7 @@
         freeFieldValues: mvt.freeFields,
         colType: 'col-md-6 col-12',
         requiredType: 'requiredEdit',
-        actionType: 'edit',
-        needsDateFormatting: true
+        actionType: 'edit'
     } %}
 </div>
 

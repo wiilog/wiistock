@@ -19,7 +19,7 @@ $(function () {
             if (!isPreFilledFilter) {
                 displayFiltersSup(data);
             }
-            extendsDateSort('date', 'YYYY-MM-DDTHH:mm:ss');
+            extendsDateSort('date');
             loadPage();
         }, 'json');
     });

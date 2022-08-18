@@ -10,15 +10,10 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\GeneratedValue;
 use Doctrine\ORM\Mapping\Id;
 use Doctrine\ORM\Mapping\OneToMany;
+use WiiCommon\Helper\Stream;
 
 #[Entity(LanguageRepository::class)]
 class Language {
-
-    public const DATE_FORMATS = [
-        'jj/mm/aaaa'=>'d/m/Y',
-        'mm-dd-yyyy'=>'m-d-Y',
-        'yyyy-mm-dd'=>'Y-m-d'
-    ];
 
     #[Id]
     #[GeneratedValue]
@@ -138,6 +133,15 @@ class Language {
         }
 
         return $this;
+    }
+
+    public function serialize(Utilisateur $user): array {
+        return [
+            'label' => $this->getLabel(),
+            'value' => $this->getId(),
+            'iconUrl' => $this->getFlag(),
+            'checked' => $user->getLanguage()->getId() === $this->getId()
+        ];
     }
 
 }

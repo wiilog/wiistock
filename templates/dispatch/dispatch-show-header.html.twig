@@ -39,7 +39,7 @@
                         data-id='{{ dispatch.id }}'
                         onclick="openValidateDispatchModal()"
                         class="btn btn-primary d-flex align-items-center justify-content-center split-button mr-0">
-                    <span class="wii-icon wii-icon-check-white mr-2"></span>
+                    <i class="wii-icon wii-icon-check mr-2"></i>
                     Valider la demande
                 </button>
             {% elseif not dispatch.statut.treated %}
@@ -47,7 +47,7 @@
                         data-id='{{ dispatch.id }}'
                         onclick="openTreatDispatchModal()"
                         class="btn btn-primary align-items-center justify-content-center split-button mr-0">
-                    <span class="wii-icon wii-icon-check-white mr-2"></span>
+                    <i class="wii-icon wii-icon-check mr-2"></i>
                     Terminer la demande
                 </button>
             {% endif %}
@@ -76,15 +76,15 @@
                    onclick="openDeliveryNoteModal($(this))"
                    id="generateDeliveryNoteButton"
                    title="Générer un bon de livraison"
-                   class="dropdown-item  d-flex align-items-center">
-                    <span class="wii-icon wii-icon-printer-black mr-2"></span>
+                   class="dropdown-item">
+                    <i class="fa fa-print mr-2"></i>
                     {{ 'acheminement.Générer un bon de livraison' | trans }}
                 </a>
             {% endif %}
             {% if hasRightToGenerateOverconsumptionBill %}
-                <a class="dropdown-item d-flex align-items-center"
+                <a class="dropdown-item"
                    onclick="generateOverconsumptionBill({{ dispatch.id }})">
-                    <span class="wii-icon wii-icon-printer-black mr-2"></span>
+                    <i class="fas fa-print mr-2"></i>
                     Générer un bon de surconsommation
                 </a>
             {% endif %}
@@ -93,16 +93,16 @@
                    data-dispatch-id='{{ dispatch.id }}'
                    onclick="openWaybillModal($(this))"
                    title="Générer une lettre de voiture"
-                   class="dropdown-item d-flex align-items-center">
-                    <span class="wii-icon wii-icon-printer-black mr-2"></span>
+                   class="dropdown-item">
+                    <i class="fa fa-print mr-2"></i>
                     {{ 'acheminement.Générer une lettre de voiture' | trans }}
                 </a>
             {% endif %}
             {% if hasRightToGenerateDispatchBill %}
-                <a class="dropdown-item  d-flex align-items-center"
+                <a class="dropdown-item"
                    title="Générer un bon d'acheminement"
                    onclick="runDispatchPrint()">
-                    <span class="wii-icon wii-icon-printer-black mr-2"></span>
+                    <i class="fas fa-print mr-2"></i>
                     {{ 'acheminement.Générer un bon d\'acheminement'|trans }}
                 </a>
             {% endif %}
@@ -110,7 +110,7 @@
                 <a data-id='{{ dispatch.id }}'
                    data-target='#modalEditDispatch'
                    data-toggle='modal'
-                   onclick="editRow($(this), Routing.generate('dispatch_edit_api', true), $('#modalEditDispatch'), $('#submitEditDispatch'), false, initDatePickers)"
+                   onclick="editRow($(this), Routing.generate('dispatch_edit_api', true), $('#modalEditDispatch'), $('#submitEditDispatch'))"
                    class="dropdown-item pointer">
                     <i class="fa fa-pen mr-2"></i>
                     Modifier
@@ -118,8 +118,8 @@
             {% endif %}
             {% if hasRightDelete %}
                 <a href="" data-id='{{ dispatch.id }}' data-target='#modalDeleteDispatch' data-toggle='modal'
-                   class="dropdown-item d-flex align-items-center">
-                    <span class="wii-icon wii-icon-trash-black mr-2"></span>
+                   class="dropdown-item">
+                    <i class="fa fa-trash mr-2"></i>
                     Supprimer
                 </a>
             {% endif %}

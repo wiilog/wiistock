@@ -11,10 +11,10 @@
                         </div>
                     </div>
                 {% endif %}
-                <div class="dropdown-item d-flex align-items-center"
+                <div class="dropdown-item"
                      onclick="deleteRowDemande($(this), $('#modalDeleteArticle'), $('#submitDeleteArticle'))" data-id='{{ id }}'
                      data-name='{{ name }}' data-target='#modalDeleteArticle' data-toggle='modal'>
-                    <span class="wii-icon wii-icon-trash-black mr-2"></span>Supprimer
+                    <i class='fas fa-trash mr-2'></i>Supprimer
                 </div>
             {% else %}
                 {% if refArticleId is defined %}

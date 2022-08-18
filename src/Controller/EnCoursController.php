@@ -87,7 +87,7 @@ class EnCoursController extends AbstractController
             },
             $filtersParam ? explode(',', $filtersParam) : []
         );
-        $response = $enCoursService->getEnCours([$emplacement->getId()], $natureIds, false, 100, $this->getUser());
+        $response = $enCoursService->getEnCours([$emplacement->getId()], $natureIds);
         return new JsonResponse([
             'data' => $response
         ]);
@@ -130,7 +130,7 @@ class EnCoursController extends AbstractController
                                     $encoursService,
                                     $headers)
             {
-                $data = $encoursService->getEnCours([$emplacement->getId()], [], false, 100, $this->getUser());
+                $data = $encoursService->getEnCours([$emplacement->getId()]);
                 foreach ($data as $line) {
                     $encoursService->putOngoingPackLine($output, $CSVExportService, $line);
                 }

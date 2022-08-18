@@ -106,7 +106,6 @@ class ArrivageService {
 
     public function dataRowArrivage(Arrivage $arrival, array $options = []): array
     {
-        $user = $this->security->getUser();
         $arrivalId = $arrival->getId();
         $url = $this->router->generate('arrivage_show', [
             'id' => $arrivalId,
@@ -138,7 +137,7 @@ class ArrivageService {
             'receiver' => $arrival->getDestinataire() ? $arrival->getDestinataire()->getUsername() : '',
             'buyers' => implode(', ', $acheteursUsernames),
             'status' => $arrival->getStatut() ? $arrival->getStatut()->getNom() : '',
-            'creationDate' => $arrival->getDate() ? $arrival->getDate()->format($user->getDateFormat() ? $user->getDateFormat() . ' H:i:s' : 'd/m/Y H:i:s') : '',
+            'creationDate' => $arrival->getDate() ? $arrival->getDate()->format('d/m/Y H:i:s') : '',
             'user' => $arrival->getUtilisateur() ? $arrival->getUtilisateur()->getUsername() : '',
             'emergency' => $arrival->getIsUrgent() ? 'oui' : 'non',
             'projectNumber' => $arrival->getProjectNumber() ?? '',
@@ -157,15 +156,13 @@ class ArrivageService {
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
             $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
             $freeFieldValue = $arrival->getFreeFieldValue($freeFieldId);
-            $row[$freeFieldName] = FormatHelper::freeField($freeFieldValue, $freeField, $this->security->getUser());
+            $row[$freeFieldName] = FormatHelper::freeField($freeFieldValue, $freeField);
         }
 
         return $row;
     }
 
     public function sendArrivalEmails(Arrivage $arrival, array $emergencies = []): void {
-        $user = $this->security->getUser();
-
         $isUrgentArrival = !empty($emergencies);
         $finalRecipients = [];
         if ($isUrgentArrival) {
@@ -185,13 +182,12 @@ class ArrivageService {
         }
 
         if (!empty($finalRecipients)) {
-            $title = 'Arrivage reçu : ' . $arrival->getNumeroArrivage() . ', le ' . $arrival->getDate()->format($user->getDateFormat() ? $user->getDateFormat() . ' H:i' : 'd/m/Y à H:i');
+            $title = 'Arrivage reçu : ' . $arrival->getNumeroArrivage() . ', le ' . $arrival->getDate()->format('d/m/Y à H:i');
 
             $freeFields = $this->freeFieldService->getFilledFreeFieldArray(
                 $this->entityManager,
                 $arrival,
-                ['type' => $arrival->getType()],
-                $this->security->getUser()
+                ['type' => $arrival->getType()]
             );
 
             $this->mailerService->sendMail(
@@ -374,8 +370,7 @@ class ArrivageService {
         $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
             $this->entityManager,
             $arrivage,
-            ['type' => $arrivage->getType()],
-            $this->security->getUser()
+            ['type' => $arrivage->getType()]
         );
 
         $config = [
@@ -564,8 +559,7 @@ class ArrivageService {
         return $location;
     }
 
-    public function putArrivalLine(Utilisateur $user,
-                                   $handle,
+    public function putArrivalLine($handle,
                                    CSVExportService $csvService,
                                    array $freeFieldsConfig,
                                    array $arrival,
@@ -576,6 +570,7 @@ class ArrivageService {
                                    array $packsTotalWeight)
     {
         $id = (int)$arrival['id'];
+
         $line = [
             $arrival['numeroArrivage'] ?: '',
             $packsTotalWeight[$id] ?? '',
@@ -593,7 +588,7 @@ class ArrivageService {
             $arrival['frozen'] ? 'oui' : 'non',
             $arrival['statusName'] ?: '',
             $arrival['commentaire'] ? strip_tags($arrival['commentaire']) : '',
-            $arrival['date'] ? $arrival['date']->format($user->getDateFormat() ? $user->getDateFormat() . ' H:i:s' : 'd/m/Y H:i:s') : '',
+            $arrival['date'] ? $arrival['date']->format('d/m/Y H:i:s') : '',
             $arrival['userUsername'] ?: '',
             $arrival['projectNumber'] ?: '',
             $arrival['businessUnit'] ?: '',
@@ -608,7 +603,7 @@ class ArrivageService {
         }
 
         foreach($freeFieldsConfig["freeFields"] as $freeFieldId => $freeField) {
-            $line[] = FormatHelper::freeField($arrival["freeFields"][$freeFieldId] ?? '', $freeField, $this->security->getUser());
+            $line[] = FormatHelper::freeField($arrival["freeFields"][$freeFieldId] ?? '', $freeField);
         }
 
         $csvService->putLine($handle, $line);

@@ -257,30 +257,27 @@
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DEADLINE_DISPATCH') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
-                        {% set placeholder = app.user.displayedDateFormat ? app.user.displayedDateFormat : 'jj/mm/aaaa' %}
                         <div class="form-group col-md-8 col-12">
                             <label class="wii-field-name">Echéance{{ required ? '*' }}</label>
                             <div class="input-group w-100">
                                 <div class="input-group-prepend">
                                     <span class="input-group-text w-50px">Du</span>
                                 </div>
-                                <input type="text"
-                                       class="form-control pointer date-field data {{ required ? 'needed' }}"
+                                <input type="date"
+                                       class="form-control data {{ required ? 'needed' }} needs-default"
                                        name="startDate"
-                                       data-init="{{ preFill ? "now"|date('Y-m-d') }}"
                                        title="Date d'échéance min"
-                                       placeholder="{{ placeholder }}"
-                                       autocomplete="off"/>
+                                       data-init="{{ preFill ? "now"|date('Y-m-d') }}"
+                                       placeholder="jj/mm/aaaa"/>
                                 <div class="input-group-prepend input-group-append">
                                     <span class="input-group-text w-50px">Au</span>
                                 </div>
-                                <input type="text"
-                                       class="form-control pointer date-field data {{ required ? 'needed' }}"
-                                       name="endDate"
+                                <input type="date"
                                        data-init="{{ preFill ? "now"|date('Y-m-d') }}"
+                                       class="form-control data {{ required ? 'needed' }} needs-default"
+                                       name="endDate"
                                        title="Date d'échéance max"
-                                       placeholder="{{ placeholder }}"
-                                       autocomplete="off"/>
+                                       placeholder="jj/mm/aaaa"/>
                             </div>
                         </div>
                     {% endif %}
@@ -299,8 +296,7 @@
                                             colType: 'col-md-4 col-12',
                                             requiredType: 'requiredCreate',
                                             actionType: 'new',
-                                            disabledNeeded: true,
-                                            needsDateFormatting: true
+                                            disabledNeeded: true
                                         } %}
                                     </div>
                                 {% endfor %}

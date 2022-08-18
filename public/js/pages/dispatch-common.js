@@ -11,7 +11,6 @@ function initNewDispatchEditor(modal) {
         .trigger('change')
         .append(option)
         .trigger('change');
-    initDatePickers();
 }
 
 function onDispatchTypeChange($select) {

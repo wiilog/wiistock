@@ -11,13 +11,13 @@
         {% set hasRightFinish = (not finished and ((collecte.utilisateur is null) or collecte.utilisateur.id == app.user.id)) %}
 
         {% if hasRightFinish %}
-            <button class="btn btn-primary d-flex align-items-center {{ ( hasRightDemandeCollecte or hasRightDeleteOrdre )? 'split-button' }}"
+            <button class="btn btn-primary {{ ( hasRightDemandeCollecte or hasRightDeleteOrdre )? 'split-button' }}"
                     {% if collecte.demandeCollecte ? collecte.demandeCollecte.stock : false %}
                         onclick="Select2Old.location($('.ajax-autocomplete-location')); checkIfRowSelected(openLocationModal);"
                     {% else %}
                         onclick="checkIfRowSelected(() => finishCollecte($(this), true))"
                     {% endif %}>
-                <span class="wii-icon wii-icon-check-white mr-2"></span>
+                <i class='fas fa-check mr-2'></i>
                 Finir la collecte
             </button>
         {% endif %}
@@ -36,8 +36,8 @@
                         <i class="fas fa-external-link-alt mr-2"></i>
                         Aller vers la demande de collecte
                     </a>
-                    <button onclick="printCollecteBarCodes()" class="dropdown-item pointer d-flex align-items-center">
-                        <span class="wii-icon wii-icon-printer-black mr-2"></span> Imprimer les étiquettes
+                    <button onclick="printCollecteBarCodes()" class="dropdown-item pointer">
+                        <i class='fas fa-print print-button mr-2'></i> Imprimer les étiquettes
                     </button>
                 {% endif %}
                 {% if (collecte.pairings|length>=1)
@@ -50,16 +50,17 @@
                 {% endif %}
                 {% if hasRightDeleteOrdre %}
                     {% if collecte.activePairing %}
-                        <button class="dropdown-item disabled d-flex align-items-center"
+                        <button class="dropdown-item disabled"
                                 style="pointer-events: initial"
                                 disabled title="La collecte est associée à un capteur, il faut d'abord la dissocier de son capteur">
-                            <span class="wii-icon wii-icon-trash-black mr-2"></span>Supprimer
+                            <i class="fa fa-trash mr-2"></i>Supprimer
                         </button>
                     {% else %}
                         <a href="" onclick="deleteRow($(this), $('#modalDeleteOrdreCollecte'), $('#submitDeleteOrdreCollecte'))"
                            data-id='{{ collecte.id }}' data-target='#modalDeleteOrdreCollecte' data-toggle='modal'
-                           class="dropdown-item d-flex align-items-center">
-                            <span class="wii-icon wii-icon-trash-black mr-2"></span>Supprimer
+                           class="dropdown-item">
+                            <i class='fas fa-trash mr-2'></i>
+                            Supprimer
                         </a>
                     {% endif %}
                 {% endif %}

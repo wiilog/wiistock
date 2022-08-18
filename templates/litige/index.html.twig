@@ -5,8 +5,7 @@
 {% block page_filter %}
     {% include 'filters/filtersLitiges.html.twig' with {
         page: 'PAGE_LITIGE_ARR',
-        tableSelector: '#tableLitiges',
-        needsDateFormatting: true
+        tableSelector: '#tableLitiges'
     } %}
 {% endblock %}
 {% block page_content %}
@@ -14,8 +13,7 @@
         <div class="row wii-page-card-header">
             <div class="col-auto ml-auto">
                 <div class="btn-group">
-                    <div class="btn btn-primary split-button"
-                         onclick="saveExportFile('export_csv_dispute', true, {}, false, 'Veuillez saisir des dates dans le filtre en haut de page.', true)">
+                    <div class="btn btn-primary split-button" onclick="saveExportFile('export_csv_dispute')">
                         <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
                     </div>
                     <button type="button"

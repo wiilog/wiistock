@@ -84,8 +84,7 @@ class PackService {
     {
         $firstMovement = $pack->getTrackingMovements('ASC')->first();
         $fromColumnData = $this->trackingMovementService->getFromColumnData($firstMovement ?: null);
-        $user = $this->security->getUser();
-        $prefix = $user && $user->getDateFormat() ? $user->getDateFormat() : 'd/m/Y';
+
         $lastMessage = $pack->getLastMessage();
         $hasPairing = !$pack->getPairings()->isEmpty() || $lastMessage;
         $sensorCode = ($lastMessage && $lastMessage->getSensor() && $lastMessage->getSensor()->getAvailableSensorWrapper())
@@ -108,7 +107,7 @@ class PackService {
             'quantity' => $pack->getQuantity() ?: 1,
             'packLastDate' => $lastPackMovement
                 ? ($lastPackMovement->getDatetime()
-                    ? $lastPackMovement->getDatetime()->format($prefix . ' \à H:i:s')
+                    ? $lastPackMovement->getDatetime()->format('d/m/Y \à H:i:s')
                     : '')
                 : '',
             'packOrigin' => $this->templating->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
@@ -123,7 +122,7 @@ class PackService {
     public function dataRowGroupHistory(TrackingMovement $trackingMovement) {
         return [
             'group' => $trackingMovement->getPackParent() ? (FormatHelper::pack($trackingMovement->getPackParent()) . '-' . $trackingMovement->getGroupIteration()) : '',
-            'date' => FormatHelper::datetime($trackingMovement->getDatetime(), "", false, $this->security->getUser()),
+            'date' => FormatHelper::datetime($trackingMovement->getDatetime()),
             'type' => FormatHelper::status($trackingMovement->getType())
         ];
     }

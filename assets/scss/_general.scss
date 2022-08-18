@@ -836,17 +836,8 @@ label.required:after {
     cursor: pointer;
 }
 
-// <--- WII-ICONS --->
-
-.wii-icon-plus-black {
-    display: block;
-    background-color: $black;
-    width: 18px;
-    height: 18px;
-}
-
 .wii-icon-plus {
-    display: block;
+    display: inline-block;
     background-color: $medium-grey;
     width: 18px;
     height: 18px;
@@ -906,25 +897,6 @@ label.required:after {
     width: 18px;
     height: 18px;
 }
-
-.wii-icon-pairing {
-    background-color: $primary;
-    width: 15px;
-    height: 15px;
-    display: inline-block;
-
-    .dropdown-item:active & {
-        background-color: $white;
-    }
-}
-
-.wii-icon-iot-article, .wii-icon-iot-location, .wii-icon-iot-pack, .wii-icon-iot-vehicle {
-    background-color: $white;
-    width: 15px;
-    height: 15px;
-    display: inline-block;
-}
-
 
 .p-sticky {
     position: sticky !important;
@@ -1211,11 +1183,6 @@ label.required:after {
     }
 }
 
-.date-picker-icon {
-    height: 12.8px !important;
-    margin: auto !important;
-}
-
 .tooltip {
     margin: 3px !important;
 }
@@ -1224,7 +1191,4 @@ label.required:after {
     display: block;
     width: 15px;
     height: 15px;
-}
-.round {
-    border-radius: 50%;
 }

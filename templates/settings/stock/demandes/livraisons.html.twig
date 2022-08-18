@@ -58,8 +58,8 @@
         <div class="col-auto">
             <div class="row justify-content-end">
                 <div class="col-auto">
-                    <button class="btn btn-sm btn-primary new-type-association-button d-flex align-items-center" {{ not (deliveryTypesCount - deliveryTypeSettings | json_decode | length) ? 'data-keep-disabled' }} disabled>
-                        <span class="wii-icon wii-icon-plus mr-1"></span>
+                    <button class="btn btn-sm btn-primary new-type-association-button" {{ not (deliveryTypesCount - deliveryTypeSettings | json_decode | length) ? 'data-keep-disabled' }} disabled>
+                        <i class="fa fa-plus"></i>
                         Ajouter un emplacement
                     </button>
                 </div>

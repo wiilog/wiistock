@@ -1,5 +1,3 @@
-import {formatIconSelector} from "@app/form";
-
 global.editRowUser = editRowUser;
 
 export function initUserPage($container) {
@@ -33,12 +31,6 @@ export function initUserPage($container) {
 
     let $modalNewUser = $("#modalNewUser");
     InitModal($modalNewUser, $modalNewUser.find('.submit-button'), Routing.generate('user_new', true), {tables: [tableUser]});
-    const $languageSelect = $('.utilisateur-language');
-    $languageSelect.select2({
-        minimumResultsForSearch: -1,
-        templateResult: formatIconSelector,
-        templateSelection: formatIconSelector,
-    })
 
     let $modalEditUser = $("#modalEditUser");
     InitModal($modalEditUser, $modalEditUser.find('.submit-button'), Routing.generate('user_edit', true), {tables: [tableUser]});
@@ -85,12 +77,6 @@ function editRowUser(button) {
                 modal.find('#visibility-group').append(newOption).trigger('change');
             });
         }
-        const $languageSelect = $('.utilisateur-language');
-        $languageSelect.select2({
-            minimumResultsForSearch: -1,
-            templateResult: formatIconSelector,
-            templateSelection: formatIconSelector,
-        })
     }, 'json');
 
     modal.find(submit).attr('value', id);

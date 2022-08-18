@@ -35,9 +35,9 @@
                                     <button type="button"
                                             data-toggle="modal"
                                             data-target="#modalAddColis"
-                                            class="btn btn-primary d-flex align-items-center {{ hasRightEdit ? 'split-button' }}"
+                                            class="btn btn-primary {{ hasRightEdit ? 'split-button' }}"
                                             id="btnModalAddColis">
-                                        <span class="wii-icon wii-icon-plus mr-2"></span>Ajouter &nbsp;<span title="colis">{{ 'arrivage.colis'|trans }}</span>
+                                        <span class="fa fa-plus mr-2"></span>Ajouter <span title="colis">{{ 'arrivage.colis'|trans }}</span>
                                     </button>
                                 {% endif %}
                                 {% if hasRightExport %}
@@ -50,17 +50,17 @@
                                             <span class="fa fa-angle-down"></span>
                                         </button>
                                         <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
-                                            <a class="dropdown-item d-flex align-items-center"
+                                            <a class="dropdown-item"
                                                id="printColisBtn"
                                                href="{{ path('print_arrivage_bar_codes', {arrivage: arrivage.id, printArrivage: 1, printColis: 1}) }}">
-                                                <span class="wii-icon wii-icon-printer-black mr-2"></span>Imprimer<span class="ml-1" title="colis">{{ 'arrivage.colis'|trans }}</span>
+                                                <span class="fa fa-print mr-2"></span>Imprimer <span title="colis">{{ 'arrivage.colis'|trans }}</span>
                                             </a>
                                         </div>
                                     {% else %}
                                         <a id="printColisBtn"
-                                           class="btn btn-primary d-flex align-items-center"
+                                           class="btn btn-primary"
                                            href="{{ path('print_arrivage_bar_codes', {arrivage: arrivage.id, printArrivage: 1, printColis: 1}) }}">
-                                            <span class="wii-icon wii-icon-printer-black mr-2"></span>Imprimer<span class="ml-1" title="colis">{{ 'arrivage.colis'|trans }}</span>
+                                            <span class="fa fa-print mr-2"></span>Imprimer <span title="colis">{{ 'arrivage.colis'|trans }}</span>
                                         </a>
                                     {% endif %}
                                 {% endif %}
@@ -85,8 +85,8 @@
                                 {% if hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::CREATE')) %}
                                     <button type="button"
                                             data-id="{{ arrivage.id }}"
-                                            class="btn btn-primary new-dispute-modal d-flex align-items-center">
-                                        <span class="wii-icon wii-icon-plus mr-2"></span>
+                                            class="btn btn-primary new-dispute-modal">
+                                        <i class="fa fa-plus mr-2"></i>
                                         Nouveau litige
                                     </button>
                                 {% endif %}

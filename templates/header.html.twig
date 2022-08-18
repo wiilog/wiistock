@@ -1,3 +1,5 @@
+{% import 'form.html.twig' as form %}
+
 {% set isDashboardExt = isDashboardExt is defined and isDashboardExt %}
 {% set withOnlyLogo = withOnlyLogo is defined and withOnlyLogo %}
 {% set titleExists = title is defined and title is not empty %}
@@ -197,14 +199,41 @@
                                'modal-edit-id': app.user.id
                            }) }}">
                             <div class="profile-picture">{{ app.user.username | first | upper }}</div>
-                            <div class="flex-fill text-center text-truncate">{{ app.user.username }}</div>
+                            <div class="username flex-fill text-center text-truncate">{{ app.user.username }}</div>
                         </a>
                     {% else %}
                         <div class="col col-lg-auto user d-flex align-items-center user-select-none">
                             <div class="profile-picture">{{ app.user.username | first | upper }}</div>
-                            <div class="flex-fill text-center text-truncate">{{ app.user.username }}</div>
+                            <div class="username flex-fill text-center text-truncate">{{ app.user.username }}</div>
                         </div>
                     {% endif %}
+
+
+                    <div class="col col-lg-auto language-date d-flex align-items-center user-select-none dropdown ml-3">
+                        <div class="language-picture"></div>
+                        <button class="language-date-btn flex-fill dropdown-toggle"
+                                data-toggle="dropdown"
+                                aria-haspopup="true"
+                                aria-expanded="false">
+                            <span class="fa fa-angle-down"></span>
+                        </button>
+                        <div class="language-date-menu dropdown-menu p-0 mt-3">
+                            <form>
+                                <div class="language dropdown-item-sub">
+                                    <div class="language-btn p-3">
+                                        {{ form.radio('language', null , false,  language_service.getLanguages, {
+                                            iconClass : 'flag',
+                                            labelClass : 'header'
+                                        }) }}
+                                    </div>
+                                </div>
+                                <div class="date dropdown-item-sub">
+                                    <p class="bold ml-2">Format de date</p>
+                                    <!-- TODO: select format de date -->
+                                </div>
+                            </form>
+                        </div>
+                    </div>
                     <nav id="main-nav" class="text-white col-auto dropdown dropleft">
                         <div class="menu-button rounded pointer"
                              data-toggle="dropdown"

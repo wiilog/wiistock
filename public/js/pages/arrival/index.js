@@ -7,10 +7,7 @@ let arrivalsTable;
 
 $(function () {
     const $filtersContainer = $('.filters-container');
-    const $userFormat = $('#userDateFormat');
-    const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
-
-    initDateTimePicker('#dateMin, #dateMax, .date-cl', DATE_FORMATS_TO_DISPLAY[format]);
+    initDateTimePicker('#dateMin, #dateMax, .date-cl');
     Select2Old.location($('#emplacement'), {}, 'Emplacement de dépose');
     Select2Old.init($filtersContainer.find('[name="carriers"]'), 'Transporteurs');
     initOnTheFlyCopies($('.copyOnTheFly'));
@@ -53,16 +50,12 @@ $(function () {
             });
 
         onTypeChange($modalNewArrivage.find('[name="type"]'));
-        const $userFormat = $('#userDateFormat');
-        const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
-        initDateTimePicker('.free-field-date', DATE_FORMATS_TO_DISPLAY[format]);
-        initDateTimePicker('.free-field-datetime', DATE_FORMATS_TO_DISPLAY[format] + ' HH:mm');
     });
 
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_ARRIVAGE);
     $.post(path, params, function (data) {
-        displayFiltersSup(data, true);
+        displayFiltersSup(data);
     }, 'json');
     pageLength = Number($('#pageLengthForArrivage').val());
     Select2Old.user($('.filters .ajax-autocomplete-user'), 'Destinataires');
@@ -242,9 +235,6 @@ function initNewArrivageEditor(modal) {
     Select2Old.location($modal.find('.ajax-autocomplete-location'));
     Select2Old.init($modal.find('.ajax-autocomplete-user'), '', 1);
     Select2Old.initFree($('.select2-free'));
-
-    fillDatePickers('.free-field-date');
-    fillDatePickers('.free-field-datetime', 'YYYY-MM-DD', true);
 }
 
 function updateArrivalPageLength() {

@@ -472,13 +472,3 @@ function clearFormError(form) {
     $form.find(`.invalid-feedback`).remove();
 }
 
-export function formatIconSelector(state) {
-    const $option = $(state.element);
-    return $(`
-        <span class="d-flex align-items-center">
-            <img src="${$option.data('icon')??''}" width="20px" height="20px" class="round mr-2"/>
-            ${state.text}
-        </span>
-    `);
-}
-

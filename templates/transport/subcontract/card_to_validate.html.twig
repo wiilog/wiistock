@@ -63,7 +63,7 @@
                 <td class="transport-subcontract-button-container">
                     <input type="hidden" value="{{ request.id }}" name="requestId">
                     <button class="btn btn-primary submit-button w-120px mb-2 mr-3 accept-request" data-type="{{ constant('App\\Controller\\Transport\\SubcontractController::VALIDATE') }}">
-                        <span class="wii-icon wii-icon-check-white mr-2"></span><span>Accepter</span>
+                        <img alt="Accepter" src="{{ asset('svg/tick-blanc.svg') }}" height="20px" class="mr-2"> <span>Accepter</span>
                     </button>
                     {% if not isCollect %}
                         <button class="btn btn-outline-primary w-120px mr-3 submit-button subcontract-request" data-type="{{ constant('App\\Controller\\Transport\\SubcontractController::SUBCONTRACT') }}">

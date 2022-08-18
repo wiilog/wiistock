@@ -25,18 +25,18 @@
                         <button type="button"
                                 data-toggle="modal"
                                 data-target="#modalNewEmplacement"
-                                class="btn btn-primary split-button d-none align-items-center"
+                                class="btn btn-primary split-button d-none"
                                 onclick="clearModal('#modalNewEmplacement')">
-                            <span class="wii-icon wii-icon-plus mr-2 align-middle"></span>
+                            <span class="fa fa-plus mr-2"></span>
                             Nouvel emplacement
                         </button>
 
                         <button type="button"
                                 data-toggle="modal"
                                 data-target="#modalNewLocationGroup"
-                                class="btn btn-primary d-none align-items-center"
+                                class="btn btn-primary d-none"
                                 onclick="clearModal('#modalNewLocationGroup')">
-                            <span class="wii-icon wii-icon-plus mr-2 align-middle"></span>
+                            <span class="fa fa-plus mr-2"></span>
                             Nouveau groupe
                         </button>
                     {% endif %}
@@ -52,10 +52,10 @@
                     <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right filters-container">
                         <div tabindex="0"
                              id="btnPrint"
-                             class="dropdown-item printButton user-select-none disabled has-tooltip  d-flex align-items-center"
+                             class="dropdown-item printButton user-select-none disabled has-tooltip"
                              onclick="printLocationsBarCodes($(this), event)"
                              title="Veuillez faire une recherche pour imprimer.">
-                            <span class="wii-icon wii-icon-printer-black mr-2"></span>
+                            <i class="fas fa-print mr-2"></i>
                             Imprimer les étiquettes
                         </div>
                         <div class="statut dropdown-item">

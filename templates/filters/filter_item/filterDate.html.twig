@@ -6,12 +6,11 @@
             <div class="input-group-prepend">
                 <span class="input-group-text w-50px d-flex justify-content-center">Du</span>
             </div>
-            {% set placeholder = needsDateFormatting is defined and needsDateFormatting and app.user.displayedDateFormat ? app.user.displayedDateFormat : 'jj/mm/aaaa' %}
             <input type="text"
-                   class="form-control pointer filter-date-min {{ databasePersisted ? 'filter-input' }} w-218px"
+                   class="form-control cursor-default filter-date-min {{ databasePersisted ? 'filter-input' }} w-218px"
                    name="dateMin"
                    id="dateMin"
-                   placeholder="{{ placeholder }}"
+                   placeholder="jj/mm/aaaa"
                    {{ disabled }}
                    autocomplete="off"/>
             <div class="input-group-prepend input-group-append">
@@ -21,7 +20,7 @@
                    class="form-control cursor-default filter-date-max {{ databasePersisted ? 'filter-input' }} w-218px"
                    name="dateMax"
                    id="dateMax"
-                   placeholder="{{ placeholder }}"
+                   placeholder="jj/mm/aaaa"
                    {{ disabled }}
                    autocomplete="off"/>
         </div>

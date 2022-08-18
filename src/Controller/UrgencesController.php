@@ -258,16 +258,15 @@ class UrgencesController extends AbstractController
                 "Numero d'arrivage",
                 'Date de creation',
             ];
-            $today = new DateTime();
-            $user = $this->getUser();
-            $today = $today->format($user->getDateFormat() ? $user->getDateFormat() . ' H:i:s' : "d-m-Y H:i:s");
+            $nowStr = new DateTime('now');
+
             return $CSVExportService->streamResponse(
-                function ($output) use ($urgenceIterator, $CSVExportService, $user) {
+                function ($output) use ($urgenceIterator, $CSVExportService) {
                     foreach ($urgenceIterator as $urgence) {
-                        $CSVExportService->putLine($output, $urgence->serialize($user));
+                        $CSVExportService->putLine($output, $urgence->serialize());
                     }
                 },
-                "Export-Urgence-" . $today . ".csv",
+                "Export-Urgence-" . $nowStr->format('d_m_y') . ".csv",
                 $csvheader
             );
         } else {

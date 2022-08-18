@@ -51,9 +51,9 @@ class ReceiptAssociation {
         return $this;
     }
 
-    public function serialize(Utilisateur $user = null): array {
+    public function serialize(): array {
         return [
-            'creationDate' => FormatHelper::datetime($this->getCreationDate(), "", false, $user),
+            'creationDate' => FormatHelper::datetime($this->getCreationDate()),
             'packCode' => $this->getPackCode() ?? '',
             'receptionNumber' => $this->getReceptionNumber() ?? '',
             'user' => FormatHelper::user($this->getUser()),

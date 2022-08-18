@@ -169,9 +169,8 @@ class ReceiptAssociationController extends AbstractController
         }
 
         if (!empty($dateTimeMin) && !empty($dateTimeMax)) {
-            $today = new DateTime();
-            $user = $this->getUser();
-            $today = $today->format($user->getDateFormat() ? $user->getDateFormat() . ' H:i:s' : "d-m-Y H:i:s");
+
+            $today = (new DateTime())->format("d-m-Y-H-i-s");
 
             $headers = [
                 'date',
@@ -184,7 +183,7 @@ class ReceiptAssociationController extends AbstractController
                 $receiptAssociations = $manager->getRepository(ReceiptAssociation::class)->iterateBetween($dateTimeMin, $dateTimeMax);
 
                 foreach ($receiptAssociations as $receiptAssociation) {
-                    $csvService->putLine($output, $receiptAssociation->serialize($this->getUser()));
+                    $csvService->putLine($output, $receiptAssociation->serialize());
                 }
             }, "association-br_${today}.csv", $headers);
         }

@@ -6,8 +6,7 @@
     {% include 'utils/data-show.html.twig' with {
         data: freeFields|map((freeField) => {
             label: freeField.label,
-            value: (values[freeField.id] ?? (freeField.defaultValue ?? ''))
-                | format_helper('freeField', freeField, needsDateFormatting is defined and needsDateFormatting ? app.user : null)
+            value: (values[freeField.id] ?? (freeField.defaultValue ?? '')) | format_helper('freeField', freeField)
         }),
         wrapperClass: wrapperClass
     } %}

@@ -31,12 +31,12 @@
         <div class="dropdown dropright">
             {% include 'datatable/dotsRow.html.twig' %}
             <div class="dropdown-menu dropdown-follow-gt pointer">
-                <div class="dropdown-item d-flex align-items-center"
+                <div class="dropdown-item"
                      onclick="deleteRowLine($(this), $('#modalDeletePurchaseRequestLine').find('.submit-button'))"
                      data-target='#modalDeletePurchaseRequestLine'
                      data-toggle='modal'
                      data-id='{{ lineId }}'>
-                    <span class="wii-icon wii-icon-trash-black mr-2"></span>Supprimer
+                    <i class='fas fa-trash mr-2'></i>Supprimer
                 </div>
             </div>
         </div>

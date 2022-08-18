@@ -114,9 +114,8 @@ class DisputeController extends AbstractController
             'Commentaire'
         ];
 
-        $today = new DateTime();
-        $user = $this->getUser();
-        $today = $today->format($user->getDateFormat() ? $user->getDateFormat() . ' H:i:s' : "d-m-Y H:i:s");
+        $nowStr = date("d-m-Y_H-i");
+
         return $CSVExportService->streamResponse(function ($output) use ($disputeService, $entityManager, $dateTimeMin, $dateTimeMax) {
 
             $disputeRepository = $entityManager->getRepository(Dispute::class);
@@ -132,7 +131,7 @@ class DisputeController extends AbstractController
             foreach ($receptionDisputes as $dispute) {
                 $disputeService->putDisputeLine(DisputeService::PUT_LINE_RECEPTION, $output, $disputeRepository, $dispute);
             }
-        }, "Export-Litiges" . $today . ".csv", $headers);
+        }, "Export-Litiges" . $nowStr . ".csv", $headers);
     }
 
     /**
@@ -176,7 +175,7 @@ class DisputeController extends AbstractController
         {
             $rows[] = [
                 'user' => FormatHelper::user($record->getUser()),
-                'date' => FormatHelper::datetime($record->getDate(), "", false, $this->getUser()),
+                'date' => FormatHelper::datetime($record->getDate()),
                 'commentaire' => nl2br($record->getComment()),
                 'status' => $record->getStatusLabel(),
                 'type' => $record->getTypeLabel()

@@ -16,12 +16,12 @@
                     </div>
                 {% endif %}
                 {% if hasRightDelete %}
-                    <div class="dropdown-item d-flex align-items-center"
+                    <div class="dropdown-item"
                          onclick="deleteRow($(this),$('#modalDeleteTriggerAction'), $('#submitDeleteTriggerAction'))"
                          data-target='#modalDeleteTriggerAction'
                          data-toggle='modal'
                          data-id='{{ triggerId }}'>
-                        <span class="wii-icon wii-icon-trash-black mr-2"></span>Supprimer
+                        <i class='fas fa-trash mr-2'></i>Supprimer
                     </div>
                 {% endif %}
             </div>

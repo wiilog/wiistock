@@ -25,8 +25,6 @@ use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
-use App\Helper\FormatHelper;
-use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -478,9 +476,9 @@ class SelectController extends AbstractController {
                 $packCode,
                 $request->query->all("pack")
             );
-            foreach($results as &$result) {
+
+            foreach($results as $result) {
                 $result["stripped_comment"] = strip_tags($result["comment"]);
-                $result["lastMvtDate"] = FormatHelper::datetime(DateTime::createFromFormat('d/m/Y H:i', $result['lastMvtDate']) ?: null, "", false, $this->getUser());
             }
         }
 
@@ -502,6 +500,7 @@ class SelectController extends AbstractController {
                 ];
             }
         }
+
         return $this->json([
             "results" => $results ?? null,
             "error" => $error ?? null,

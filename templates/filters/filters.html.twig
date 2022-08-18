@@ -17,8 +17,7 @@
                         onclick="saveFilters(
                             {{ page ?? '""' }},
                             {{ tableSelector is defined ? ("'" ~ tableSelector ~ "'") : 'undefined' }},
-                            {{ callback is defined ? callback : 'null' }},
-                            {{ needsDateFormatting is defined ? needsDateFormatting : 'false' }}
+                            {{ callback is defined ? callback }}
                         )">
                     <i class="fas fa-filter mr-1"></i>
                     Filtrer

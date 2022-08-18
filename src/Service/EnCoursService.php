@@ -6,7 +6,6 @@ namespace App\Service;
 
 use App\Entity\Pack;
 use App\Entity\DaysWorked;
-use App\Entity\Utilisateur;
 use App\Entity\WorkFreeDay;
 use App\Helper\FormatHelper;
 use DateInterval;
@@ -14,7 +13,6 @@ use DatePeriod;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
-use Monolog\Handler\Curl\Util;
 use Twig\Environment;
 
 
@@ -165,12 +163,7 @@ class EnCoursService
      * @return array
      * @throws Exception
      */
-    public function getEnCours(
-        $locations,
-        array $natures = [],
-        bool $onlyLate = false,
-        ?int $limitOnlyLate = 100,
-        Utilisateur $user = null): array
+    public function getEnCours($locations, array $natures = [], bool $onlyLate = false, ?int $limitOnlyLate = 100): array
     {
         $packRepository = $this->entityManager->getRepository(Pack::class);
         $dropsCounter = 0;
@@ -210,7 +203,7 @@ class EnCoursService
                         $emplacementInfo[] = [
                             'colis' => $oldestDrop['code'],
                             'delay' => $timeInformation['ageTimespan'],
-                            'date' => $dateMvt->format(($user && $user->getDateFormat() ? $user->getDateFormat() : 'd/m/Y') . ' H:i:s'),
+                            'date' => $dateMvt->format('d/m/Y H:i:s'),
                             'late' => $isLate,
                             'emp' => $oldestDrop['label'],
                             'linkedArrival' => $this->templating->render('en_cours/datatableOnGoingRow.html.twig', [
@@ -245,7 +238,7 @@ class EnCoursService
                 $emplacementInfo[] = [
                     'colis' => $oldestDrop['code'],
                     'delay' => $timeInformation['ageTimespan'],
-                    'date' => $dateMvt->format(($user && $user->getDateFormat() ? $user->getDateFormat() : 'd/m/Y') . ' H:i:s'),
+                    'date' => $dateMvt->format('d/m/Y H:i:s'),
                     'late' => $isLate,
                     'emp' => $oldestDrop['label'],
                     'linkedArrival' => $this->templating->render('en_cours/datatableOnGoingRow.html.twig', [

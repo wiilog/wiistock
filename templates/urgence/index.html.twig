@@ -6,9 +6,7 @@
 {% block page_filter %}
     {% include 'filters/filtersUrgence.html.twig' with {
         page: 'PAGE_URGENCES',
-        tableSelector: '#tableUrgences',
-        callback: 'null',
-        needsDateFormatting: true
+        tableSelector: '#tableUrgences'
     } %}
 {% endblock %}
 
@@ -24,14 +22,14 @@
                     {% if hasRightToCreate %}
                         <button data-toggle="modal"
                                 data-target="#modalNewUrgence"
-                                class="btn btn-primary split-button d-flex align-items-center">
-                            <span class="wii-icon wii-icon-plus mr-2"></span>
+                                class="btn btn-primary split-button">
+                            <span class="fa fa-plus mr-2"></span>
                             <span title="nouvelle urgence">{{ 'urgences.nouvelle urgence'|trans }}</span>
                         </button>
                     {% elseif hasRightToExport %}
                         <button type="button"
                                 class="btn btn-primary"
-                                onclick="saveExportFile('get_emergencies_csv', true, {}, false, 'Veuillez saisir des dates dans le filtre en haut de page.', true)">
+                                onclick="saveExportFile('get_emergencies_csv')">
                             <span class="fa fa-file-csv mr-2" style="padding: 0 2px"></span>
                             Exporter au format CSV
                         </button>
@@ -48,7 +46,7 @@
                         <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
                             <div class="dropdown-item pointer"
                                  title="exportCsvUrgence"
-                                 onclick="saveExportFile('get_emergencies_csv', true, {}, false, 'Veuillez saisir des dates dans le filtre en haut de page.', true)">
+                                 onclick="saveExportFile('get_emergencies_csv')">
                                 <i class="fa fa-file-csv"></i>
                                 Exporter au format CSV
                             </div>
