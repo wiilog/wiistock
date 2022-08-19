@@ -79,6 +79,7 @@
                 display: block;
                 width: 20px;
                 height: 20px;
+                min-width: 20px;
                 background-image: url("../../../public/svg/arrow.svg");
                 background-repeat: no-repeat;
                 transform: rotate(90deg);
@@ -185,6 +186,7 @@ textarea {
 .menu {
     &.selected{
         border-bottom: 2px solid $black;
+        font-weight: bold;
     }
 }
 
@@ -206,4 +208,12 @@ textarea {
     border-top-right-radius: 0.25rem;
     display: flex;
     align-items: center;
+}
+
+.tooltip-inner {
+    text-align: left;
+}
+
+.tooltip-wide .tooltip.bottom, .tooltip-inner  {
+    max-width: none;
 }

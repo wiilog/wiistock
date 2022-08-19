@@ -5,7 +5,7 @@
                 {% if categorieData.menus|length >1 %}
                 <div class="header d-flex p-0 flex-wrap">
                     {% for menu, menuData in menus %}
-                        <div class="p-3 mx-4 wii-field-name menu pointer {{ loop.first ? 'selected' }}"
+                        <div class="p-3 mx-4 wii-field-text menu pointer {{ loop.first ? 'selected' }}"
                              data-menu="{{ menu }}"
                              onclick="onSettingsItemSelected($(this), $('.menu'), $('.menu-content'))">
                             {{ menu }}
@@ -33,9 +33,11 @@
                     <button class="btn btn-outline-primary" name="deleteLanguage">Suprimer la langue</button>
                 {% endif %}
             </div>
-            <div class="wii-small-text mb-3 mx-4">
-                Les libellés non traduits apparaîtront dans la langue par défaut que vous avez choisi
-            </div>
+            {% if message %}
+                <div class="wii-small-text mb-3 mx-4">
+                    Les libellés non traduits apparaîtront dans la langue par défaut que vous avez choisi
+                </div>
+            {% endif %}
         {% endif %}
         {% if categorieData.translations is not empty %}
             <div class="p-3">

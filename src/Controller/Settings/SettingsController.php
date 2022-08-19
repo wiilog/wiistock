@@ -564,7 +564,7 @@ class SettingsController extends AbstractController {
         $languages[]=[
             'label' => 'Ajouter une langue',
             'value' => 'NEW',
-            'iconUrl' => '/svg/plus-black.svg',
+            'iconUrl' => '/svg/flags/Plus-flag.svg',
         ];
 
         $sidebar = [];
@@ -602,8 +602,10 @@ class SettingsController extends AbstractController {
                 ->setFlag("data:image/svg+xml;charset=utf8,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E")
                 ->setSelectable(true)
                 ->setSlug('NEW');
+            $message = true;
         } else {
             $language = $languageRepository->findOneBy(['id' => $data->get('language')]);
+            $message = false;
         }
 
         $languageSlug = $language->getSlug();
@@ -639,6 +641,7 @@ class SettingsController extends AbstractController {
                 ],
                 'language' => $language,
                 'translations' => $translations,
+                'message' => $message,
             ])
         ]);
     }

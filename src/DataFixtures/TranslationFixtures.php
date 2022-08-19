@@ -20,6 +20,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
         "Général" => [
             null => [
                 "Zone filtre" => [
+                    "subtitle" => "Les libellés génériques présents dans tous les encarts filtre de l’application",
                     "content" => [
                         [
                             "fr" => "Du",
@@ -44,6 +45,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                     ],
                 ],
                 "Zone liste" => [
+                    "subtitle" => "Les libellés génériques présents pour la recherche rapide les boutons d’action et la pagination",
                     "content" => [
                         [
                             "fr" => "Rechercher",
@@ -108,6 +110,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                     ],
                 ],
                 "Modale" => [
+                    "subtitle" => "Les libellés génériques présents dans les modales de l’application",
                     "content" => [
                         [
                             "fr" => "Champs libres",
