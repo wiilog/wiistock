@@ -32,7 +32,7 @@
                         <div class="align-self-center">
                             <i class="wii-icon wii-icon-calendar-creation-grey"></i>
                         </div>
-                        <div class="d-flex flex-fill flex-column">
+                        <div class="d-flex flex-fill flex-column ml-2">
                             <div class="d-block">Date attendue</div>
                             <div class="d-block date">{{ preparation.date | format_helper('longDate', {short: true}) }}</div>
                         </div>
@@ -41,7 +41,7 @@
                         <div class="align-self-center">
                             <i class="wii-icon wii-icon-calendar-due-black"></i>
                         </div>
-                        <div class="d-flex flex-fill flex-column">
+                        <div class="d-flex flex-fill flex-column ml-2">
                             <div class="d-block">Date de préparation</div>
                             <div class="d-block date">{{ preparation.demande.expectedAt | format_helper('longDate', {short: true}) }}</div>
                         </div>

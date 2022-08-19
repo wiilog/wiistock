@@ -1147,26 +1147,21 @@ class DashboardService {
         $handlingTypes = $config['handlingTypes'] ?? [];
         $scale = $config['scale'] ?? self::DEFAULT_HANDLING_TRACKING_SCALE;
         $period = $config['period'] ?? self::DAILY_PERIOD_PREVIOUS_DAYS;
-        $type = "";
         $dates = [];
 
         if(!empty($config['creationDate'])){
-            $type .= "date de création, ";
             $dates[] = 'creationDate';
         }
         if(!empty($config['desiredDate'])){
-            $type .= "date attendue, ";
             $dates[] = 'desiredDate';
         }
         if(!empty($config['validationDate'])){
-            $type .= "date de traitement ";
             $dates[] = 'validationDate';
         }
 
-        $hint = "Nombre d'acheminements ayant leurs $type sur les jours présentés";
+        $hint = $config['tooltip'];
 
         $handlingRepository = $entityManager->getRepository(Handling::class);
-        $typeRepository = $entityManager->getRepository(Type::class);
 
         $chartData = [];
         $labels = [
