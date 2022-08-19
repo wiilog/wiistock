@@ -124,21 +124,24 @@ class DisputeController extends AbstractController
             $articleRepository = $entityManager->getRepository(Article::class);
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
 
-            $associatedIdAndReferences = $receptionReferenceArticleRepository->getAssociatedIdAndReferences();
-            $associatedIdAndOrderNumbers = $receptionReferenceArticleRepository->getAssociatedIdAndOrderNumbers();
-
             $arrivalDisputes = $disputeRepository->iterateArrivalDisputesByDates($dateTimeMin, $dateTimeMax);
             /** @var Dispute $dispute */
             foreach ($arrivalDisputes as $dispute) {
-                $disputeService->putDisputeLine(DisputeService::PUT_LINE_ARRIVAL, $output, $dispute);
+                $disputeService->putDisputeLine($entityManager, DisputeService::PUT_LINE_ARRIVAL, $output, $dispute);
             }
+
+            $entityManager->clear();
+
+            $associatedIdAndReferences = $receptionReferenceArticleRepository->getAssociatedIdAndReferences();
+            $associatedIdAndOrderNumbers = $receptionReferenceArticleRepository->getAssociatedIdAndOrderNumbers();
 
             $receptionDisputes = $disputeRepository->iterateReceptionDisputesByDates($dateTimeMin, $dateTimeMax);
             /** @var Dispute $dispute */
             foreach ($receptionDisputes as $dispute) {
-                $articles = $articleRepository->getArticlesByDisputeId($dispute->getId());
-                $disputeService->putDisputeLine(DisputeService::PUT_LINE_RECEPTION, $output, $dispute, $associatedIdAndReferences, $associatedIdAndOrderNumbers, $articles);
+                $articles = $articleRepository->getArticlesByDisputeId($dispute["id"]);
+                $disputeService->putDisputeLine($entityManager, DisputeService::PUT_LINE_RECEPTION, $output, $dispute, $associatedIdAndReferences, $associatedIdAndOrderNumbers, $articles);
             }
+
         }, "Export-Litiges" . $nowStr . ".csv", $headers);
     }
 

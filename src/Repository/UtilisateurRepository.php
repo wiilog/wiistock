@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Action;
+use App\Entity\Dispute;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
 use Doctrine\ORM\EntityRepository;
@@ -272,6 +273,15 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
 
     public function loadUserByIdentifier(string $identifier): ?UserInterface {
         return $this->findOneBy(["email" => $identifier]);
+    }
+
+    public function getBuyers(Dispute|int $dispute) {
+        return $this->createQueryBuilder("user")
+            ->select("user.username")
+            ->andWhere(":dispute MEMBER OF user.disputes")
+            ->setParameter("dispute", $dispute)
+            ->getQuery()
+            ->getSingleColumnResult();
     }
 
 }

@@ -1101,13 +1101,13 @@ class ArticleRepository extends EntityRepository {
             ->addSelect('join_reception.number AS receptionNumber')
             ->addSelect('join_reception.orderNumber AS receptionOrderNumber')
             ->addSelect('join_supplier.nom AS supplier')
-            ->join('article.disputes', 'join_disputes')
-            ->join('article.receptionReferenceArticle', 'join_receptionReferenceArticle')
-            ->join('join_receptionReferenceArticle.reception', 'join_reception')
-            ->join('join_reception.fournisseur', 'join_supplier')
+            ->leftJoin('article.disputes', 'join_disputes')
+            ->leftJoin('article.receptionReferenceArticle', 'join_receptionReferenceArticle')
+            ->leftJoin('join_receptionReferenceArticle.reception', 'join_reception')
+            ->leftJoin('join_reception.fournisseur', 'join_supplier')
             ->where('join_disputes.id = :disputeId')
             ->setParameter('disputeId', $disputeId)
             ->getQuery()
-            ->getResult();
+            ->getArrayResult();
     }
 }
