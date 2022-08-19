@@ -829,7 +829,7 @@ label.required:after {
 
 .wii-icon-plus {
     display: block;
-    background-color: $grey;
+    background-color: $light-grey;
     width: 18px;
     height: 18px;
 }
@@ -924,7 +924,7 @@ label.required:after {
 }
 
 .wii-icon-pairing {
-    background-color: $blueGT;
+    background-color: $primary;
     width: 15px;
     height: 15px;
     display: inline-block;
@@ -1236,11 +1236,6 @@ label.required:after {
     margin: 3px !important;
 }
 
-.wii-icon-white-tick {
-    display: block;
-    width: 15px;
-    height: 15px;
-}
 .round {
     border-radius: 50%;
 }
