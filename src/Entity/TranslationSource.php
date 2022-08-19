@@ -27,7 +27,7 @@ class TranslationSource {
     #[Column(type: "text", nullable: true)]
     private ?string $tooltip = null;
 
-    #[OneToMany(mappedBy: "source", targetEntity: Translation::class)]
+    #[OneToMany(mappedBy: "source", targetEntity: Translation::class, cascade: ["remove"])]
     private Collection $translations;
 
     #[OneToOne(mappedBy: "labelTranslation", targetEntity: Type::class)]

@@ -1889,6 +1889,19 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
 
         $languageRepository = $manager->getRepository(Language::class);
 
+        if(!$languageRepository->findOneBy(["slug" => Language::FRENCH_DEFAULT_SLUG])) {
+            $frenchDefault = (new Language())
+                ->setLabel("Français")
+                ->setSlug(Language::FRENCH_DEFAULT_SLUG)
+                ->setFlag("/svg/flags/fr.svg")
+                ->setSelectable(false)
+                ->setSelected(false);
+
+            $manager->persist($frenchDefault);
+
+            $this->console->writeln("Created default language \"Français\"");
+        }
+
         if(!$languageRepository->findOneBy(["slug" => Language::FRENCH_SLUG])) {
             $french = (new Language())
                 ->setLabel("Français")
@@ -1903,37 +1916,24 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
             $this->console->writeln("Created language \"Français\"");
         }
 
-        if(!$languageRepository->findOneBy(["slug" => "french"])) {
-            $french = (new Language())
-                ->setLabel("Français")
-                ->setSlug("french")
-                ->setFlag("/svg/flags/fr.svg")
-                ->setSelectable(false)
-                ->setSelected(false);
-
-            $manager->persist($french);
-
-            $this->console->writeln("Created language \"Français\"");
-        }
-
-        if(!$languageRepository->findOneBy(["slug" => "english-default"])) {
-            $english = (new Language())
+        if(!$languageRepository->findOneBy(["slug" => Language::ENGLISH_DEFAULT_SLUG])) {
+            $englishDefault = (new Language())
                 ->setLabel("English")
-                ->setSlug("english-default")
+                ->setSlug(Language::ENGLISH_DEFAULT_SLUG)
                 ->setFlag("/svg/flags/gb.svg")
                 ->setSelectable(true)
                 ->setSelected(false)
                 ->setHidden(true);;
 
-            $manager->persist($english);
+            $manager->persist($englishDefault);
 
-            $this->console->writeln("Created language \"English\"");
+            $this->console->writeln("Created default language \"English\"");
         }
 
-        if(!$languageRepository->findOneBy(["slug" => "english"])) {
+        if(!$languageRepository->findOneBy(["slug" => Language::ENGLISH_SLUG])) {
             $english = (new Language())
                 ->setLabel("English")
-                ->setSlug("english")
+                ->setSlug(Language::ENGLISH_SLUG)
                 ->setFlag("/svg/flags/gb.svg")
                 ->setSelectable(false)
                 ->setSelected(false);
@@ -1943,7 +1943,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
             $this->console->writeln("Created language \"English\"");
         }
 
-        if(isset($french) || isset($english)) {
+        if(isset($frenchDefault) || isset($french) || isset($englishDefault) || isset($english)) {
             $manager->flush();
         }
 
@@ -1978,84 +1978,125 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
             foreach($content as $childLabel => $childContent) {
                 $this->handleCategory(self::CHILD[$type], $category, $childLabel, $childContent);
             }
+
+            $this->deleteUnusedCategories($category, $content);
         } else {
             $category->setSubtitle($content["subtitle"] ?? null);
 
             foreach($content["content"] as $translation) {
-                $translationEntity = $category->getId() ? $translationSourceRepository->findByFrenchTranslation($category, $translation["fr"]) : null;
-                if(!$translationEntity) {
-                    $translationEntity = new TranslationSource();
-                    $translationEntity->setCategory($category);
+                $transSource = $category->getId() ? $translationSourceRepository->findByDefaultFrenchTranslation($category, $translation["fr"]) : null;
+                if(!$transSource) {
+                    $transSource = new TranslationSource();
+                    $transSource->setCategory($category);
 
-                    $this->manager->persist($translationEntity);
+                    $this->manager->persist($transSource);
                 }
 
-                $translationEntity->setTooltip($translation["tooltip"] ?? null);
+                $transSource->setTooltip($translation["tooltip"] ?? null);
 
-                $french = $translationEntity->getTranslationIn("french");
-                if(!$french) {
-                    $french = (new Translation())
-                        ->setLanguage($this->getLanguage("french"))
-                        ->setSource($translationEntity)
-                        ->setTranslation($translation["fr"]);
-
-                    $this->manager->persist($french);
-
-                    $this->console->writeln("Created french translation \"" . str_replace("\n", "\\n ", $translation["fr"]) . "\"");
-                } else if($french->getTranslation() != $translation["fr"]) {
-                    $french->setTranslation($translation["fr"]);
-
-                    $this->console->writeln("Updated french translation \"" . str_replace("\n", "\\n ", $translation["fr"]) . "\"");
-                }
-
-                $french = $translationEntity->getTranslationIn("french-default");
+                $french = $transSource->getTranslationIn("french-default");
                 if(!$french) {
                     $french = (new Translation())
                         ->setLanguage($this->getLanguage("french-default"))
-                        ->setSource($translationEntity)
+                        ->setSource($transSource)
+                        ->setTranslation($translation["fr"]);
+
+                    $this->manager->persist($french);
+
+                    $this->console->writeln("Created french source translation \"" . str_replace("\n", "\\n ", $translation["fr"]) . "\"");
+                }
+
+                $english = $transSource->getTranslationIn("english-default");
+                if(!$english) {
+                    $english = (new Translation())
+                        ->setLanguage($this->getLanguage("english-default"))
+                        ->setSource($transSource)
+                        ->setTranslation($translation["en"]);
+
+                    $this->manager->persist($english);
+
+                    $this->console->writeln("Created english source translation \"" . str_replace("\n", "\\n ", $translation["en"]) . "\"");
+                } else if($english->getTranslation() != $translation["en"]) {
+                    $english->setTranslation($translation["en"]);
+
+                    $this->console->writeln("Updated english source translation \"" . str_replace("\n", "\\n ", $translation["en"]) . "\"");
+                }
+
+                $french = $transSource->getTranslationIn("french");
+                if(!$french) {
+                    $french = (new Translation())
+                        ->setLanguage($this->getLanguage("french"))
+                        ->setSource($transSource)
                         ->setTranslation($translation["fr"]);
 
                     $this->manager->persist($french);
 
                     $this->console->writeln("Created french translation \"" . str_replace("\n", "\\n ", $translation["fr"]) . "\"");
-                } else if($french->getTranslation() != $translation["fr"]) {
-                    $french->setTranslation($translation["fr"]);
-
-                    $this->console->writeln("Updated french translation \"" . str_replace("\n", "\\n ", $translation["fr"]) . "\"");
                 }
 
-                $english = $translationEntity->getTranslationIn("english");
+                $english = $transSource->getTranslationIn("english");
                 if(!$english) {
                     $english = (new Translation())
                         ->setLanguage($this->getLanguage("english"))
-                        ->setSource($translationEntity)
+                        ->setSource($transSource)
                         ->setTranslation($translation["en"]);
 
                     $this->manager->persist($english);
 
                     $this->console->writeln("Created english translation \"" . str_replace("\n", "\\n ", $translation["en"]) . "\"");
-                } else if($english->getTranslation() != $translation["en"]) {
-                    $english->setTranslation($translation["en"]);
-
-                    $this->console->writeln("Updated english translation \"" . str_replace("\n", "\\n ", $translation["en"]) . "\"");
                 }
+            }
 
-                $english = $translationEntity->getTranslationIn("english-default");
-                if(!$english) {
-                    $english = (new Translation())
-                        ->setLanguage($this->getLanguage("english-default"))
-                        ->setSource($translationEntity)
-                        ->setTranslation($translation["en"]);
+            $this->deleteUnusedTranslations($category, $content["content"]);
+        }
+    }
 
-                    $this->manager->persist($english);
+    private function deleteUnusedCategories(TranslationCategory $parent, array $categories) {
+        $categoryRepository = $this->manager->getRepository(TranslationCategory::class);
 
-                    $this->console->writeln("Created english translation \"" . str_replace("\n", "\\n ", $translation["en"]) . "\"");
-                } else if($english->getTranslation() != $translation["en"]) {
-                    $english->setTranslation($translation["en"]);
+        if($parent->getId()) {
+            $fixtureCategories = array_keys($categories);
+            $unusedCategories = $categoryRepository->findUnusedCategories($parent, $fixtureCategories);
+            foreach($unusedCategories as $category) {
+                $this->deleteCategory($category, true);
+                $this->manager->remove($category);
+            }
+        }
+    }
 
-                    $this->console->writeln("Updated english translation \"" . str_replace("\n", "\\n ", $translation["en"]) . "\"");
-                }
+    private function deleteCategory(?TranslationCategory $category, bool $root = false) {
+        $this->manager->remove($category);
+        if($root) {
+            $this->console->writeln("Deleting unused category \"{$category->getLabel()}\"");
+        } else {
+            $this->console->writeln("Cascade deleting unused category \"{$category->getLabel()}\", child of \"{$category->getParent()->getLabel()}\"");
+        }
 
+        foreach($category->getChildren() as $child) {
+            $this->deleteCategory($child);
+        }
+
+        foreach($category->getTranslationSources() as $source) {
+            $this->manager->remove($source);
+
+            $translation = $source->getTranslationIn(Language::FRENCH_DEFAULT_SLUG);
+            if($translation) {
+                $this->console->writeln("Cascade deleting unused source \"{$translation->getTranslation()}\" child of category \"{$category->getParent()->getLabel()}\"");
+            } else {
+                $this->console->writeln("Cascade deleting unknown unused source child of category \"{$category->getParent()->getLabel()}\"");
+            }
+        }
+    }
+
+    private function deleteUnusedTranslations(TranslationCategory $category, array $translations) {
+        $translationSourceRepository = $this->manager->getRepository(TranslationSource::class);
+
+        if($category->getId()) {
+            $fixtureTranslations = array_map(fn(array $item) => $item["fr"], $translations);
+            $unusedTranslations = $translationSourceRepository->findUnusedTranslations($category, $fixtureTranslations);
+            foreach($unusedTranslations as $source) {
+                $this->manager->remove($source);
+                $this->console->writeln("Deleting unused source \"{$source->getTranslationIn("french-default")->getTranslation()}\" and all associated translations");
             }
         }
     }
