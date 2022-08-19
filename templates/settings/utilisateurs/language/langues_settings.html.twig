@@ -53,7 +53,7 @@
                 {% endif %}
                 {% if menuData.submenus is defined %}
                     {% for subMenu, subMenuData in menuData.submenus %}
-                        <div class="wii-section-title toggle-collapsible">
+                        <div class="wii-section-title mb-1 toggle-collapsible">
                             {{ subMenu | capitalize }}
                             <span class="wii-small-text ml-2">{{ subMenuData.subtitle }}</span>
                         </div>

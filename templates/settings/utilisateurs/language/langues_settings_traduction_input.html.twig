@@ -3,11 +3,11 @@
         {% if translation.original.translation is defined%}
         <div class="col-md-6">
             <div class="input-group pb-2">
-                <div class="input-group-prepend h-100 ">
-                    <span class="input-group-text">{{ translation.original.translation }}</span>
+                <div class="input-group-prepend h-100 w-max-50">
+                    <span class="input-group-text text-wrap">{{ translation.original.translation }}</span>
                 </div>
                 <input type="text"
-                       class="form-control cursor-default {{ translation.tooltip ? 'tooltip-input' }}"
+                       class="form-control cursor-default h-auto {{ translation.tooltip ? 'tooltip-input' }}"
                        data-name="input-translation"
                        data-translation-id="{{ translation.translation is defined and translation.translation is not null ? translation.translation.id }}"
                        value="{{ translation.translation is defined and translation.translation is not null ? translation.translation.translation }}"

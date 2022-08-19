@@ -480,12 +480,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                             "tooltip" => "Détails arrivage - Entête\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouvel arrivage\nModale Modifier arrivage",
                         ],
                         [
-                            "fr" => "Destinataire (mettre majuscule)",
+                            "fr" => "Destinataire",
                             "en" => "Recipient",
                             "tooltip" => "Arrivages :\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouvel arrivage\nModale Modifier arrivage\nArrivage détails - Entête",
                         ],
                         [
-                            "fr" => "Acheteur(s) (mettre une majuscule)",
+                            "fr" => "Acheteur(s)",
                             "en" => "Buyer(s)",
                             "tooltip" => "Zone liste - Nom de colonnes (renommage Acheteurs -> Acheteur(s))\nGestion des colonnes (renommage Acheteurs -> Acheteur(s))\nModale Nouvel arrivage (renommage Acheteurs -> Acheteur(s))\nArrivages détails - Entête (renommage Acheteurs -> Acheteur(s))\nModale Nouveau litige",
                         ],
@@ -510,12 +510,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                             "tooltip" => "Détails arrivage - Entête\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouvel arrivage\nModale Modifier arrivage",
                         ],
                         [
-                            "fr" => "Douane (mettre majuscule)",
+                            "fr" => "Douane",
                             "en" => "Customs",
                             "tooltip" => "Filtre\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouvel arrivage\nModale Modifer arrivage\nArrivages détails - Entête",
                         ],
                         [
-                            "fr" => "Congelé (mettre majuscule)",
+                            "fr" => "Congelé",
                             "en" => "Frozen",
                             "tooltip" => "Filtre \nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouvel arrivage\nModale Modifer arrivage\nArrivages détails - Entête",
                         ],
@@ -732,7 +732,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                     ],
                 ],
             ],
-            "UL" => [
+            "Unités logistiques" => [
                 "Divers" => [
                     "content" => [
                         [
@@ -747,7 +747,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                         ],
                     ],
                 ],
-                "Onglet \"UL\"" => [
+                "Onglet \"Unités logistiques\"" => [
                     "content" => [
                         [
                             "fr" => "Unité logistique",
