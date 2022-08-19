@@ -238,8 +238,8 @@ class DisputeService {
             $dispute["number"],
             $dispute["type"],
             $dispute["status"],
-            FormatHelper::date($dispute["creationDate"]),
-            FormatHelper::date($dispute["updateDate"]),
+            FormatHelper::date($dispute["creationDate"], null, false, $this->security->getUser()),
+            FormatHelper::date($dispute["updateDate"], null, false, $this->security->getUser()),
         ];
 
         if ($mode === self::PUT_LINE_ARRIVAL) {
@@ -264,7 +264,7 @@ class DisputeService {
                     $supplier,
                     '',
                     $buyers,
-                    FormatHelper::date($dispute["lastHistoryDate"]),
+                    FormatHelper::date($dispute["lastHistoryDate"], null, false, $this->security->getUser()),
                     $dispute["lastHistoryUser"],
                     $dispute["lastHistoryComment"],
                 ]);
@@ -293,7 +293,7 @@ class DisputeService {
                     $receptionSupplier,
                     $orderNumbers,
                     $buyers,
-                    FormatHelper::date($dispute["lastHistoryDate"]),
+                    FormatHelper::date($dispute["lastHistoryDate"], null, false, $this->security->getUser()),
                     $dispute["lastHistoryUser"],
                     $dispute["lastHistoryComment"],
                 ]);
