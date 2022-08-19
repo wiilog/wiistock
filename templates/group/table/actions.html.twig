@@ -11,12 +11,12 @@
                     <i class='fas fa-edit mr-2'></i>Modifier
                 </div>
                 {% if group.children is not empty %}
-                    <div class="dropdown-item"
+                    <div class="dropdown-item d-flex align-items-center"
                          data-target="#modalUngroup"
                          data-toggle="modal"
                          data-id="{{ group.id }}"
                          onclick="editRow($(this), Routing.generate('group_ungroup_api', true), $('#modalUngroup'), $('#submitUngroup'))">
-                        <i class="fas fa-trash mr-2"></i>Dégrouper
+                        <span class="wii-icon wii-icon-trash-black mr-2"></span>Dégrouper
                     </div>
                 {% endif %}
             {% endif %}

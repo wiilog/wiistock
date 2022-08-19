@@ -28,24 +28,24 @@
                 <button type="button"
                         onclick="openEvolutionModal($('#modalValidatePurchaseRequest'))"
                         data-id='{{ request.id }}'
-                        class="btn btn-primary">
-                    <i class="fa fa-check mr-2"></i>
+                        class="btn btn-primary  d-flex align-items-center">
+                    <span class="wii-icon wii-icon-check-white mr-2"></span>
                     Valider
                 </button>
             {% elseif request.status.notTreated %}
                 <button type="button"
                         data-id='{{ request.id }}'
                         onclick="openEvolutionModal($('#modalConsiderPurchaseRequest'))"
-                        class="btn btn-primary split-button">
-                    <i class="fa fa-check mr-2"></i>
+                        class="btn btn-primary split-button d-flex align-items-center">
+                    <span class="wii-icon wii-icon-check-white mr-2"></span>
                     Prendre en compte
                 </button>
             {% elseif request.status.inProgress %}
                 <button type="button"
                         data-id='{{ request.id }}'
                         onclick="openEvolutionModal($('#modalTreatPurchaseRequest'))"
-                        class="btn btn-primary split-button">
-                    <i class="fa fa-check mr-2"></i>
+                        class="btn btn-primary split-button d-flex align-items-center">
+                    <span class="wii-icon wii-icon-check-white mr-2"></span>
                     Terminer la demande
                 </button>
             {% endif %}
@@ -76,8 +76,8 @@
                 {% if hasRightDelete %}
                     <a href="" onclick="deleteRow($(this), $('#modalDeleteRequest'), $('#submitDeleteRequest'))"
                        data-id='{{ request.id }}' data-target='#modalDeleteRequest' data-toggle='modal'
-                       class="dropdown-item">
-                        <i class="fa fa-trash mr-2"></i>Supprimer</a>
+                       class="dropdown-item d-flex align-items-center">
+                        <span class="wii-icon wii-icon-trash-black mr-2"></span>Supprimer</a>
                 {% endif %}
             </div>
         {% endif %}
