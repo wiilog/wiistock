@@ -601,11 +601,9 @@ class SettingsController extends AbstractController {
             $language
                 ->setFlag("data:image/svg+xml;charset=utf8,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E")
                 ->setSelectable(true)
-                ->setSlug('NEW');
-            $message = true;
+                ->setSlug(Language::NEW_SLUG);
         } else {
             $language = $languageRepository->findOneBy(['id' => $data->get('language')]);
-            $message = false;
         }
 
         $languageSlug = $language->getSlug();
@@ -641,7 +639,6 @@ class SettingsController extends AbstractController {
                 ],
                 'language' => $language,
                 'translations' => $translations,
-                'message' => $message,
             ])
         ]);
     }
