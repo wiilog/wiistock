@@ -1028,7 +1028,7 @@ class ReceptionController extends AbstractController {
             $entityManager->flush();
         }
 
-        $listAttachmentIdToKeep = $post->get('files') ?? [];
+        $listAttachmentIdToKeep = $post->all('files') ?? [];
         $attachments = $dispute->getAttachments()->toArray();
         foreach($attachments as $attachment) {
             /** @var Attachment $attachment */

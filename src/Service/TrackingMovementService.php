@@ -334,9 +334,9 @@ class TrackingMovementService
             ->setCommentaire(!empty($commentaire) ? $commentaire : null);
 
         if ($attachments) {
-            ForEach($attachments as $attachment) {
+            foreach($attachments as $attachment) {
                 $tracking->addAttachment($attachment);
-            };
+            }
         }
 
         $pack->addTrackingMovement($tracking);
