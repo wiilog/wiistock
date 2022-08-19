@@ -607,9 +607,9 @@ class SettingsController extends AbstractController {
         }
 
         $languageSlug = $language->getSlug();
-        $defaultLanguage = array_key_exists($languageSlug, Language::DEFAULT_LANGUAGE_TRANSLATIONS ) ? Language::DEFAULT_LANGUAGE_TRANSLATIONS[$languageSlug] : null ;
-        $defaultLanguage = $defaultLanguage ? $languageRepository->findOneBy(['slug' => $defaultLanguage]) : $languageRepository->findOneBy(['selected' => true]);
-
+        $defaultLanguage = array_key_exists($languageSlug, Language::DEFAULT_LANGUAGE_TRANSLATIONS )
+            ? $languageRepository->findOneBy(['slug' => Language::DEFAULT_LANGUAGE_TRANSLATIONS[$languageSlug]])
+            : $languageRepository->findOneBy(['selected' => true]) ;
 
         $translations = [];
         $categories = $translationCategoryRepository->findBy(['type' => 'category']);
