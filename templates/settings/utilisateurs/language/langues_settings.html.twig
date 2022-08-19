@@ -25,11 +25,11 @@
                     </span>
                     <img src="{{ asset('svg/lang-arrow.svg') }}" width="20px">
                     <span class=" p-1 d-flex align-items-center language-button">
-                        <img src="{{ userLanguage.flag }}" class="flag custom-flag-preview" alt="">
-                        <span class="language-to mr-1">{{  userLanguage.label }}</span>
+                        <img src="{{ language.flag }}" class="flag custom-flag-preview" alt="">
+                        <span class="language-to mr-1">{{  language.label }}</span>
                     </span>
                 </div>
-                {% if userLanguage.slug not in constant('App\\Entity\\Language::NOT_DELETABLE_LANGUAGES') %}
+                {% if language.slug not in constant('App\\Entity\\Language::NOT_DELETABLE_LANGUAGES') %}
                     <button class="btn btn-outline-primary" name="deleteLanguage">Suprimer la langue</button>
                 {% endif %}
             </div>
@@ -66,4 +66,4 @@
         {% endfor %}
     </div>
 {% endfor %}
-{% include 'settings/utilisateurs/language/langues_modale_delete.html.twig' with { language : userLanguage.id } %}
+{% include 'settings/utilisateurs/language/langues_modale_delete.html.twig' with { language : language.id } %}
