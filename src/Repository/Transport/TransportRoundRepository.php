@@ -58,7 +58,7 @@ class TransportRoundRepository extends EntityRepository {
                     break;
                 case FiltreSup::FIELD_ROUND_NUMBER:
                     $qb->andWhere("transport_round.number LIKE :filter_round_number")
-                        ->setParameter("filter_round_number", "%" . $filter['value'] . "%");
+                        ->setParameter("filter_round_number", "%" . ltrim($filter['value'], "T") . "%");
                     break;
                 case FiltreSup::FIELD_DELIVERERS:
                     $value = Stream::explode(",", $filter['value'])
