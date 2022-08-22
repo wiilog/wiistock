@@ -7,6 +7,18 @@ $(function () {
     const $languageSelect = $("div[data-name='language']");
     const $languageNameInput = $("input[name='newLanguage']");
 
+    const hash = window.location.hash;
+    if (hash.includes('languageBeforeReload')) {
+        const language = hash.split('=')[1];
+        if (language==='NEW') {
+            $languageSelect.children().eq($languageSelect.children().length-2).find('input').prop('checked', true);
+        }
+        else {
+            $languageSelect.find(`input[value='${language}']`).prop('checked', true);
+        }
+        window.location.hash = 'languageBeforeReload=' +  $languageSelect.find(':checked').val();
+    }
+
     // show new language form on check of the input and generate translations
     getTranslations($languageSelect.find(':checked').val());
     $languageSelect.on('change', function () {
@@ -19,7 +31,9 @@ $(function () {
         else {
             $("#new-language").addClass('d-none');
         }
-        getTranslations($(this).find(':checked').val());
+        const language = $(this).find(':checked').val();
+        window.location.hash = 'languageBeforeReload=' + language;
+        getTranslations(language);
     });
 
     $languageNameInput.on('keyup', function () {

@@ -23,11 +23,11 @@ class CacheService
 
     public function get(string $namespace, string $key, ?callable $callback = null): mixed
     {
-        if ($callback && !$this->filesystem->exists("$namespace.$key")) {
+        if ($callback && !$this->filesystem->exists("$namespace/$key")) {
             $this->set($namespace, $key, $callback());
         }
 
-        return unserialize($this->filesystem->getContent("$namespace.$key"));
+        return unserialize($this->filesystem->getContent("$namespace/$key"));
     }
 
     public function set(string $namespace, string $key, mixed $value = null): void
@@ -36,17 +36,16 @@ class CacheService
             $this->clear();
         }
 
-        if(!$this->filesystem->isFile("$namespace.$key")) {
-            $this->filesystem->remove("$namespace.$key");
+        if(!$this->filesystem->isFile("$namespace/$key")) {
+            $this->filesystem->remove("$namespace/$key");
         }
-
-        $this->filesystem->dumpFile("$namespace.$key", serialize($value));
+        $this->filesystem->dumpFile("$namespace/$key", serialize($value));
     }
 
     public function delete(string $namespace, ?string $key = null): void
     {
-        if ($this->filesystem->exists("$namespace.$key")) {
-            $this->filesystem->remove("$namespace.$key");
+        if ($this->filesystem->exists("$namespace/$key")) {
+            $this->filesystem->remove("$namespace/$key");
         }
     }
 

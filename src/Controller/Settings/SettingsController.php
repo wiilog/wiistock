@@ -707,7 +707,7 @@ class SettingsController extends AbstractController {
 
             $manager->remove($language);
             $manager->flush();
-            $cacheService->delete(CacheService::LANGUAGES, 'languagesNotHidden');
+            $cacheService->delete(CacheService::LANGUAGES);
 
             return $this->json([
                 "success" => true,
@@ -779,7 +779,7 @@ class SettingsController extends AbstractController {
         }
 
         $manager->flush();
-        $cacheService->delete(CacheService::LANGUAGES, 'languagesNotHidden');
+        $cacheService->delete(CacheService::LANGUAGES);
 
         return $this->json([
             "success" => true,
