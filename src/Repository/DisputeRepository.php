@@ -79,6 +79,34 @@ class DisputeRepository extends EntityRepository
         }, $query->execute());
     }
 
+    public function createQueryBuilderByDates(DateTime $dateMin, DateTime $dateMax): QueryBuilder {
+        $queryBuilder = $this->createQueryBuilder('dispute');
+        $exprBuilder = $queryBuilder->expr();
+
+        return $queryBuilder
+            ->distinct()
+            ->select("dispute.id AS id")
+            ->addSelect("dispute.number AS number")
+            ->addSelect("join_type.label AS type")
+            ->addSelect("join_status.nom AS status")
+            ->addSelect("dispute.creationDate AS creationDate")
+            ->addSelect("dispute.updateDate AS updateDate")
+            ->addSelect("join_reporter.username AS reporter")
+            ->addSelect("join_last_history_record_user.username AS lastHistoryUser")
+            ->addSelect("join_last_history_record.date AS lastHistoryDate")
+            ->addSelect("join_last_history_record.comment AS lastHistoryComment")
+            ->leftJoin("dispute.lastHistoryRecord", "join_last_history_record")
+            ->leftJoin("join_last_history_record.user", "join_last_history_record_user")
+            ->leftJoin("dispute.reporter", "join_reporter")
+            ->leftJoin("dispute.type", "join_type")
+            ->leftJoin("dispute.status", "join_status")
+            ->where($exprBuilder->between('dispute.creationDate', ':dateMin', ':dateMax'))
+            ->setParameters([
+                'dateMin' => $dateMin,
+                'dateMax' => $dateMax
+            ]);
+    }
+
 	public function iterateArrivalDisputesByDates(DateTime $dateMin, DateTime $dateMax): iterable {
         return $this
             ->createQueryBuilderByDates($dateMin, $dateMax)
@@ -97,19 +125,6 @@ class DisputeRepository extends EntityRepository
             ->join('receptionReferenceArticle.reception', 'reception')
             ->getQuery()
             ->toIterable();
-	}
-
-	public function createQueryBuilderByDates(DateTime $dateMin, DateTime $dateMax): QueryBuilder {
-        $queryBuilder = $this->createQueryBuilder('dispute');
-        $exprBuilder = $queryBuilder->expr();
-
-        return $queryBuilder
-            ->distinct()
-            ->where($exprBuilder->between('dispute.creationDate', ':dateMin', ':dateMax'))
-            ->setParameters([
-                'dateMin' => $dateMin,
-                'dateMax' => $dateMax
-            ]);
 	}
 
     public function findByArrivage($arrivage)
@@ -355,37 +370,6 @@ class DisputeRepository extends EntityRepository
         );
     }
 
-	public function getCommandesByDisputeId(int $disputeId): array {
-		$em = $this->getEntityManager();
-
-		$query = $em->createQuery(
-			"SELECT rra.commande
-			FROM App\Entity\ReceptionReferenceArticle rra
-			JOIN rra.articles a
-			JOIN a.disputes dispute
-            WHERE dispute.id = :disputeId")
-			->setParameter('disputeId', $disputeId);
-
-		$result = $query->execute();
-		return array_column($result, 'commande');
-	}
-
-	public function getReferencesByDisputeId(int $disputeId): array {
-		$em = $this->getEntityManager();
-
-		$query = $em->createQuery(
-			"SELECT ra.reference
-			FROM App\Entity\ReceptionReferenceArticle rra
-			JOIN rra.articles a
-			JOIN rra.referenceArticle ra
-			JOIN a.disputes dispute
-            WHERE dispute.id = :disputeId")
-			->setParameter('disputeId', $disputeId);
-
-		$result = $query->execute();
-		return array_column($result, 'reference');
-	}
-
     public function getLastNumberByDate(string $date, ?string $prefix): ?string {
         $result = $this->createQueryBuilder('dispute')
             ->select('dispute.number AS number')
@@ -409,4 +393,5 @@ class DisputeRepository extends EntityRepository
 
         return $query->execute();
     }
+
 }
