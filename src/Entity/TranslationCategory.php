@@ -29,7 +29,7 @@ class TranslationCategory {
     #[ManyToOne(targetEntity: TranslationCategory::class, inversedBy: "children")]
     private ?TranslationCategory $parent = null;
 
-    #[OneToMany(mappedBy: "parent", targetEntity: TranslationCategory::class)]
+    #[OneToMany(mappedBy: "parent", targetEntity: TranslationCategory::class, cascade: ["remove"])]
     private Collection $children;
 
     #[Column(type: "string")]

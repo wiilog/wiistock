@@ -561,7 +561,7 @@ class SettingsController extends AbstractController {
 
         $languages = $languageService->getLanguages();
 
-        $languages[]=[
+        $languages[] = [
             'label' => 'Ajouter une langue',
             'value' => 'NEW',
             'iconUrl' => '/svg/flags/Plus-flag.svg',

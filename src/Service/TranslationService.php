@@ -45,11 +45,28 @@ class TranslationService {
 
         $slug = $slug ?? "default";
         if(!isset($translations[$slug])) {
-            $this->translations[$slug] = $this->cacheService->get(CacheService::TRANSLATIONS, $slug);
+            $this->translations[$slug] = $this->cacheService->get(CacheService::TRANSLATIONS, $slug, function() {
+                $this->generateCache();
+                $this->generateJavascripts();
+            }) ?? [];
         }
 
-        $submenu = $this->translations[$slug][$category ?: null][$menu ?: null][$submenu ?: null];
-        return is_array($submenu) ? ($submenu[$input ?: null] ?? $input) : ($submenu ?? $input);
+        $transCategory = $this->translations[$slug][$category ?: null] ?? null;
+        if(!is_array($transCategory)) {
+            return $transCategory ?? $input ?? $submenu ?? $menu ?? $category;
+        }
+
+        $transMenu = $transCategory[$menu ?: null] ?? null;
+        if(!is_array($transMenu)) {
+            return $transMenu ?? $input ?? $submenu ?? $menu;
+        }
+
+        $transSubmenu = $transMenu[$submenu ?: null] ?? null;
+        if(!is_array($transSubmenu)) {
+            return $transSubmenu ?? $input ?? $submenu;
+        }
+
+        return $transSubmenu[$input ?: null] ?? $input;
     }
 
     private function createCategoryStack(Translation $translation): array {
@@ -64,12 +81,14 @@ class TranslationService {
         return array_reverse($stack);
     }
 
-    public function generateCache() {
+    public function generateCache(?string $slug = null) {
         $languageRepository = $this->manager->getRepository(Language::class);
         $translationRepository = $this->manager->getRepository(Translation::class);
 
+        $languages = $slug ? $languageRepository->findBy(["slug" => $slug]) : $languageRepository->findAll();
+
         /** @var Language $language */
-        foreach($languageRepository->findAll() as $language) {
+        foreach($languages as $language) {
             $slug = $language->getSlug();
             $this->translations[$slug] = [];
 
@@ -97,14 +116,16 @@ class TranslationService {
         }
     }
 
-    public function generateJavascripts() {
+    public function generateJavascripts(?string $slug = null) {
         $languageRepository = $this->manager->getRepository(Language::class);
         $outputDirectory = "{$this->kernel->getProjectDir()}/public/generated";
 
+        $languages = $slug ? $languageRepository->findBy(["slug" => $slug]) : $languageRepository->findAll();
+
         /** @var Language $language */
-        foreach($languageRepository->findAll() as $language) {
+        foreach($languages as $language) {
             $slug = $language->getSlug();
-            $translations = $this->cacheService->get(CacheService::TRANSLATIONS, $slug);
+            $translations = $this->cacheService->get(CacheService::TRANSLATIONS, $slug) ?? [];
             $content = "const TRANSLATIONS = " . json_encode($translations) . ";";
 
             file_put_contents("$outputDirectory/translations.$slug.js", $content);
