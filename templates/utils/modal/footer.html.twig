@@ -3,7 +3,7 @@
 {% set hideErrorContainer = hideErrorContainer is defined and hideErrorContainer %}
 {% set hideFooter = hideFooter is defined and hideFooter %}
 
-<div class="p-4 error-msg {{ hideErrorContainer ? 'd-none' }}"></div>
+<div class="error-msg {{ hideErrorContainer ? 'd-none' }}"></div>
 
 {% if not hideFooter and elements is not empty %}
     <div class="modal-footer {{ classes }}">
