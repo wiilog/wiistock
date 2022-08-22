@@ -157,6 +157,14 @@ class RequestController extends AbstractController {
         $delivererPosition = $delivererPosition ? $delivererPosition["content"] : null;
 
         if ($round) {
+
+            if(!$round->getEndedAt()) {
+                $end = clone ($round->getBeganAt() ?? new DateTime("now"));
+                $end->setTime(23, 59);
+            } else {
+                $end = min((clone ($round->getBeganAt()))->setTime(23, 59), $round->getEndedAt());
+            }
+
             $now = new DateTime();
             $urls = [];
             $roundLine = $transport->getOrder()?->getTransportRoundLines()?->last();
@@ -165,7 +173,7 @@ class RequestController extends AbstractController {
                 : null;
 
             foreach ($transportRound?->getLocations() ?? [] as $location) {
-                $hasSensorMessageBetween = $location->getSensorMessagesBetween($round->getBeganAt(), $round->getEndedAt());
+                $hasSensorMessageBetween = $location->getSensorMessagesBetween($round->getBeganAt(), $end);
                 if(!$hasSensorMessageBetween) {
                     continue;
                 }
@@ -181,13 +189,19 @@ class RequestController extends AbstractController {
                     $minThreshold = $minTriggerActionThreshold?->getConfig()['temperature'];
                     $maxThreshold = $maxTriggerActionThreshold?->getConfig()['temperature'];
                 }
+                if(!$round->getEndedAt()) {
+                    $end = clone ($round->getBeganAt() ?? new DateTime("now"));
+                    $end->setTime(23, 59);
+                } else {
+                    $end = min((clone ($round->getBeganAt()))->setTime(23, 59), $round->getEndedAt());
+                }
 
                 $urls[] = [
                     "fetch_url" => $router->generate("chart_data_history", [
                         "type" => IOTService::getEntityCodeFromEntity($location),
                         "id" => $location->getId(),
                         'start' => $round->getBeganAt()->format('Y-m-d\TH:i'),
-                        'end' => $round->getEndedAt()?->format('Y-m-d\TH:i') ?? $now->format('Y-m-d\TH:i'),
+                        'end' => $end->format('Y-m-d\TH:i'),
                     ], UrlGeneratorInterface::ABSOLUTE_URL),
                     "minTemp" => $minThreshold ?? 0,
                     "maxTemp" => $maxThreshold ?? 0,

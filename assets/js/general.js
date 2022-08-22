@@ -26,6 +26,10 @@ export default class Wiistock {
         ];
 
         $(document).on(`keydown`, `input[type=number]`, function (e) {
+            if($(this).is(`[data-negative]`)) {
+                const dashIndex = forbiddenChars.findIndex(token => token === '-');
+                forbiddenChars.splice(dashIndex, 1);
+            }
             const step = Number($(this).attr(`step`));
             if(step % 1 === 0 && (e.key === `,` || e.key === `.`)) {
                 e.preventDefault();
