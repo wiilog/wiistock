@@ -127,14 +127,14 @@ class TranslationSource {
     }
 
     public function setType(?Type $type): self {
-        if($this->type && $this->type->getEntity() !== $this) {
+        if($this->type && $this->type->getLabelTranslation() !== $this) {
             $oldType = $this->type;
             $this->type = null;
-            $oldType->setEntity(null);
+            $oldType->setLabelTranslation(null);
         }
         $this->type = $type;
-        if($this->type && $this->type->getEntity() !== $this) {
-            $this->type->setEntity($this);
+        if($this->type && $this->type->getLabelTranslation() !== $this) {
+            $this->type->setLabelTranslation($this);
         }
 
         return $this;
@@ -145,14 +145,14 @@ class TranslationSource {
     }
 
     public function setNature(?Nature $nature): self {
-        if($this->nature && $this->nature->getEntity() !== $this) {
+        if($this->nature && $this->nature->getLabelTranslation() !== $this) {
             $oldNature = $this->nature;
             $this->nature = null;
-            $oldNature->setEntity(null);
+            $oldNature->setLabelTranslation(null);
         }
         $this->nature = $nature;
-        if($this->nature && $this->nature->getEntity() !== $this) {
-            $this->nature->setEntity($this);
+        if($this->nature && $this->nature->getLabelTranslation() !== $this) {
+            $this->nature->setLabelTranslation($this);
         }
 
         return $this;
@@ -163,14 +163,14 @@ class TranslationSource {
     }
 
     public function setStatus(?Statut $status): self {
-        if($this->status && $this->status->getEntity() !== $this) {
+        if($this->status && $this->status->getLabelTranslation() !== $this) {
             $oldStatus = $this->status;
             $this->status = null;
-            $oldStatus->setEntity(null);
+            $oldStatus->setLabelTranslation(null);
         }
         $this->status = $status;
-        if($this->status && $this->status->getEntity() !== $this) {
-            $this->status->setEntity($this);
+        if($this->status && $this->status->getLabelTranslation() !== $this) {
+            $this->status->setLabelTranslation($this);
         }
 
         return $this;
@@ -181,14 +181,14 @@ class TranslationSource {
     }
 
     public function setFreeField(?FreeField $freeField): self {
-        if($this->freeField && $this->freeField->getEntity() !== $this) {
+        if($this->freeField && $this->freeField->getLabelTranslation() !== $this) {
             $oldFreeField = $this->freeField;
             $this->freeField = null;
-            $oldFreeField->setEntity(null);
+            $oldFreeField->setLabelTranslation(null);
         }
         $this->freeField = $freeField;
-        if($this->freeField && $this->freeField->getEntity() !== $this) {
-            $this->freeField->setEntity($this);
+        if($this->freeField && $this->freeField->getLabelTranslation() !== $this) {
+            $this->freeField->setLabelTranslation($this);
         }
 
         return $this;

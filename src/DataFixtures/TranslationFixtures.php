@@ -3,6 +3,7 @@
 namespace App\DataFixtures;
 
 use App\Entity\Language;
+use App\Entity\Nature;
 use App\Entity\Translation;
 use App\Entity\TranslationCategory;
 use App\Entity\TranslationSource;
@@ -1958,6 +1959,10 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
 
         $this->manager->flush();
 
+        $this->initTranslationSources();
+
+        $this->manager->flush();
+
         $this->updateUsers();
         $this->manager->flush();
     }
@@ -2130,4 +2135,23 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
         return ["fixtures", "language"];
     }
 
+
+    private function initTranslationSources() {
+        $natures = $this->manager->getRepository(Nature::class)->findBy(['labelTranslation' => null]);
+
+        foreach ($natures as $nature) {
+            $natureSource = new TranslationSource();
+            $this->manager->persist($natureSource);
+
+            $natureTranslation = new Translation();
+            $natureTranslation
+                ->setLanguage($this->getLanguage(Translation::FRENCH_SLUG))
+                ->setSource($natureSource)
+                ->setTranslation($nature->getLabel());
+
+            $natureSource->addTranslation($natureTranslation);
+            $nature->setLabelTranslation($natureSource);
+            $this->manager->persist($natureTranslation);
+        }
+    }
 }
