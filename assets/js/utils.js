@@ -94,10 +94,13 @@ function onSettingsItemSelected($selected, $settingsItems, $settingsContents, op
     $settingsContents.addClass('d-none');
 
     $selected.addClass('selected');
-    $settingsContents
-        .filter(`[data-menu="${selectedKey}"]`)
-        .removeClass('d-none');
+    const $menu = $settingsContents.filter(`[data-menu="${selectedKey}"]`);
+    $menu.removeClass('d-none');
 
+    const $firstMenu = $menu.find('.menu').first();
+    if ($firstMenu.length) {
+        onSettingsItemSelected($firstMenu, $('.menu'), $('.menu-content'));
+    }
     if (options.hideClass && options.hiddenElement){
         if ($selected.hasClass(options.hideClass)) {
             options.hiddenElement.addClass('d-none');
