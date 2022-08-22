@@ -1897,8 +1897,9 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                 ->setLabel("Français")
                 ->setSlug(Language::FRENCH_DEFAULT_SLUG)
                 ->setFlag("/svg/flags/fr.svg")
-                ->setSelectable(false)
-                ->setSelected(false);
+                ->setSelectable(true)
+                ->setSelected(true)
+                ->setHidden(true);
 
             $manager->persist($frenchDefault);
 
@@ -1910,9 +1911,9 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                 ->setLabel("Français")
                 ->setSlug(Language::FRENCH_SLUG)
                 ->setFlag("/svg/flags/fr.svg")
-                ->setSelectable(true)
-                ->setSelected(true)
-                ->setHidden(true);
+                ->setSelectable(false)
+                ->setSelected(false)
+                ->setHidden(false);
 
             $manager->persist($french);
 
@@ -1926,7 +1927,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                 ->setFlag("/svg/flags/gb.svg")
                 ->setSelectable(true)
                 ->setSelected(false)
-                ->setHidden(true);;
+                ->setHidden(true);
 
             $manager->persist($englishDefault);
 
@@ -1939,7 +1940,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                 ->setSlug(Language::ENGLISH_SLUG)
                 ->setFlag("/svg/flags/gb.svg")
                 ->setSelectable(false)
-                ->setSelected(false);
+                ->setSelected(false)
+                ->setHidden(false);
 
             $manager->persist($english);
 
