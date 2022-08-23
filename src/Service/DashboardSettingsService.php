@@ -10,6 +10,7 @@ use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Dispatch;
 use App\Entity\Emplacement;
 use App\Entity\Handling;
+use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\TransferRequest;
@@ -238,6 +239,21 @@ class DashboardSettingsService {
 
         if (isset($values['chartColors']) && !empty($config['legends'])){
             $values['legends'] = $config['legends'];
+        } else if(isset($values['chartColorsLabels'])){
+            $values['legends'] = [];
+            $countLegend = 1;
+            foreach($values['chartColorsLabels'] as $legend){
+                $values['legends'][$legend] = [];
+                Stream::from($config)
+                    ->each(function($conf, $arrayKey) use ($legend, $countLegend, &$values) {
+                        if (str_starts_with($arrayKey, 'legend') && str_contains($arrayKey, '_') && str_contains($arrayKey, $countLegend)) {
+                            $explode = explode('_', $arrayKey);
+                            $values['legends'][$legend][$explode[1]] = $conf;
+                            unset($values[$arrayKey]);
+                        }
+                    });
+                $countLegend++;
+            }
         } else if(isset($values['chartColors'])){
             $values['legends'] = [];
             $countLegend = 1;
@@ -258,6 +274,31 @@ class DashboardSettingsService {
         if (!isset($values['chartColorsLabels']) && !empty($config['chartColorsLabels'])) {
             $values['chartColorsLabels'] = $config['chartColorsLabels'];
         }
+
+        if (isset($config['creationDate']) && $config['creationDate'] !== false){
+            $values['creationDate'] = true;
+        }
+
+        if (isset($config['desiredDate']) && $config['desiredDate'] !== false){
+            $values['desiredDate'] = true;
+        }
+
+        if (isset($config['validationDate']) && $config['validationDate'] !== false){
+            $values['validationDate'] = true;
+        }
+
+        if(!isset($values['languages'])){
+            $languageRepository = $entityManager->getRepository(Language::class);
+            $languages = Stream::from($languageRepository->findAll())
+                ->map(fn(Language $language) => [
+                    'selected' => $language->getSelected(),
+                    'slug' => $language->getSlug(),
+                    'flag' => $language->getFlag(),
+                ])->toArray();
+            $values['languages'] = json_encode($languages, true);
+        }
+
+        dump($values);
 
         return $values;
     }

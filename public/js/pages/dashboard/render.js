@@ -161,6 +161,7 @@ function renderComponent(component, $container, data) {
         if(isCardExample && $modal.exists()) {
             resetColorPickersElementsToForm($modal, data);
             $modal.find(`.component-numbering`).empty();
+            displayLegendTranslation(data);
         }
 
         const {callback, arguments} = creators[component.meterKey];
@@ -1260,4 +1261,39 @@ function guidGenerator() {
         return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
     };
     return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
+}
+
+function displayLegendTranslation(data){
+    if(data.legends && Object.keys(data.legends).length > 1){
+        let legendCounter = 1;
+        const $legendTranslationContainer = $('.legend-translation');
+        const languages = JSON.parse(data.languages);
+
+        for (const legend in data.legends){
+            let $legendTranslationContainerLabels = $('.legend-translation label');
+            let addFormGroup = $legendTranslationContainerLabels.toArray().some((element) => $(element).text() === legend);
+
+            if (!addFormGroup){
+                $legendTranslationContainer.append(`<div class="form-group col-12 p-0"><label class="wii-field-name">${legend}</label></div>`);
+
+                languages.forEach((language) => {
+                    $legendTranslationContainer.find('.form-group').last().append(`
+                    <div>
+                        <div class="input-group pb-2">
+                            <div class="input-group-prepend h-100 ">
+                                <span class="input-group-text">
+                                    <img class="flag" src="${ language.flag }" alt="${ language.slug }_flag">
+                                </span>
+                            </div>
+                            <input class="form-control cursor-default tooltip-input data"
+                                   name="legend${ legendCounter }_${ language.slug }"
+                                   type="text"
+                                   value="${ legend[language.slug] ?? language.selected ? legend : '' }"/>
+                        </div>
+                    </div>`);
+                });
+                legendCounter++;
+            }
+        }
+    }
 }

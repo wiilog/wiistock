@@ -324,7 +324,22 @@ class DashboardSettingsController extends AbstractController {
             });
 
         $values['legends'] = [];
-        if(!empty($values['chartColors'])){
+        if(!empty($values['chartColorsLabels'])){
+            $values['legends'] = [];
+            $countLegend = 1;
+            foreach($values['chartColorsLabels'] as $legend){
+                $values['legends'][$legend] = [];
+                Stream::from($values)
+                    ->each(function($conf, $arrayKey) use ($legend, $countLegend, &$values) {
+                        if (str_starts_with($arrayKey, 'legend') && str_contains($arrayKey, '_') && str_contains($arrayKey, $countLegend)) {
+                            $explode = explode('_', $arrayKey);
+                            $values['legends'][$legend][$explode[1]] = $conf;
+                            unset($values[$arrayKey]);
+                        }
+                    });
+                $countLegend++;
+            }
+        } else if(!empty($values['chartColors'])){
             $countLegend = 1;
             foreach($values['chartColors'] as $key => $legend){
                 $values['legends'][$key] = [];
