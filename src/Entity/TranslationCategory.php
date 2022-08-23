@@ -16,9 +16,10 @@ use Doctrine\ORM\Mapping\OneToMany;
 class TranslationCategory {
 
     public const NONE_MULTILINGUE_CATEGORY = [
-        'Ordre',
-        'Stock',
-        'Iot',
+        "Référentiel",
+        "Ordre",
+        "Stock",
+        "IoT",
     ];
 
     #[Id]

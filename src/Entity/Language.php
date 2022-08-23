@@ -41,7 +41,6 @@ class Language {
         self::FRENCH_SLUG,
         self::ENGLISH_SLUG,
         self::NEW_SLUG
-
     ];
 
     #[Id]
