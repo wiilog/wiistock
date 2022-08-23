@@ -635,7 +635,7 @@ function createIndicatorElement(data, config, redefinedNumberingConfig = null) {
                         data,
                         smartNumberingConfig,
                         4,
-                        delay < 0 ? 'Retard : ' : 'A traiter sous : ',
+                        delay < 0 ? Translation.of('Dashboard', 'Retard') + ' : ' : Translation.of('Dashboard', 'A traiter sous') + ' : ',
                         delay < 0 ? OVERRIDE_FONT_RED : {}
                     ),
                 })
