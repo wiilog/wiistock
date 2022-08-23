@@ -14,7 +14,8 @@ use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use WiiCommon\Helper\Stream;
 
-class TranslationFixtures extends Fixture implements FixtureGroupInterface {
+class TranslationFixtures extends Fixture implements FixtureGroupInterface
+{
 
     const TRANSLATIONS = [
         "Général" => [
@@ -868,6 +869,34 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                             "fr" => "Indisponible",
                             "en" => "Unavailable",
                             "tooltip" => "Zone liste - contenu UL",
+                        ],
+                        [
+                            "fr" => "Liste des colis",
+                            "en" => "L.U. list",
+                        ],
+                        [
+                            "fr" => "L'unité logistique {1} a bien été supprimée",
+                            "en" => "The L.U. {1} has been deleted",
+                        ],
+                        [
+                            "fr" => "L'unité logistique {1} a bien été modifiée",
+                            "en" => "The L.U. {1} has been edited",
+                        ],
+                        [
+                            "fr" => "Ce colis est utilisé dans l'arrivage {1}",
+                            "en" => "This logistic unit is in use in the arrival {1}",
+                        ],
+                        [
+                            "fr" => "Ce colis est référencé dans un ou plusieurs mouvements de traçabilité",
+                            "en" => "This logistic unit is in use in one or more movements",
+                        ],
+                        [
+                            "fr" => "Ce colis est référencé dans un ou plusieurs acheminements",
+                            "en" => "This logistic unit appears in one or more transfers",
+                        ],
+                        [
+                            "fr" => "Ce colis est référencé dans un ou plusieurs litiges",
+                            "en" => "This logistic unit appears in one or more disputes",
                         ],
                     ],
                 ],
@@ -1873,6 +1902,63 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                 ],
             ],
         ],
+        "Référentiel" => [
+            "Natures" => [
+                "content" => [
+                    ["fr" => "Natures d'UL autorisées"],
+                    ["fr" => "Natures des UL"],
+                    ["fr" => "Nature d'UL"],
+                    ["fr" => "Nature"],
+                    ["fr" => "La nature {1} a bien été créée"],
+                    ["fr" => "Création de nature"],
+                    ["fr" => "Modification de nature"],
+                    ["fr" => "cette nature"],
+                    ["fr" => "natures requises"],
+                    ["fr" => "Sélectionner une nature"],
+                ],
+            ],
+        ],
+        "Ordre" => [
+            "Réception" => [
+                "content" => [
+                    ["fr" => "réceptions"],
+                    ["fr" => "Réception"],
+                    ["fr" => "de réception"],
+                    ["fr" => "n° de réception"],
+                    ["fr" => "cette réception"],
+                    ["fr" => "nouvelle réception"],
+                    ["fr" => "la"],
+                    ["fr" => "une réception"],
+                    ["fr" => "la réception"],
+                    ["fr" => "article"],
+                    ["fr" => "articles"],
+                    ["fr" => "l'article"],
+                    ["fr" => "d'article"],
+                    ["fr" => "d'articles"],
+                    ["fr" => "Cette réception est urgente"],
+                    ["fr" => "Une ou plusieurs références liées à cette réception sont urgentes"],
+                    ["fr" => "Cette réception ainsi qu'une ou plusieurs références liées sont urgentes"],
+                    ["fr" => "Une autre réception est en cours de création, veuillez réessayer"],
+                    ["fr" => "Un autre litige de réception est en cours de création, veuillez réessayer"],
+                ],
+            ],
+        ],
+        "Stock" => [
+            "Référence" => [
+                "content" => [
+                    "Référence" => ["fr" => "Référence"],
+                    "Références" => ["fr" => "Références"],
+                ],
+            ],
+        ],
+        "IoT" => [
+            null => [
+                "content" => [
+                    "IoT" => ["fr" => "IoT"],
+                    "Fonction/Zone" => ["fr" => "Fonction/Zone"],
+                ],
+            ],
+        ],
     ];
 
     private const CHILD = [
@@ -1886,13 +1972,14 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
 
     private array $languages = [];
 
-    public function load(ObjectManager $manager) {
+    public function load(ObjectManager $manager)
+    {
         $this->console = new ConsoleOutput();
         $this->manager = $manager;
 
         $languageRepository = $manager->getRepository(Language::class);
 
-        if(!$languageRepository->findOneBy(["slug" => Language::FRENCH_DEFAULT_SLUG])) {
+        if (!$languageRepository->findOneBy(["slug" => Language::FRENCH_DEFAULT_SLUG])) {
             $frenchDefault = (new Language())
                 ->setLabel("Français")
                 ->setSlug(Language::FRENCH_DEFAULT_SLUG)
@@ -1906,7 +1993,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
             $this->console->writeln("Created default language \"Français\"");
         }
 
-        if(!$languageRepository->findOneBy(["slug" => Language::FRENCH_SLUG])) {
+        if (!$languageRepository->findOneBy(["slug" => Language::FRENCH_SLUG])) {
             $french = (new Language())
                 ->setLabel("Français")
                 ->setSlug(Language::FRENCH_SLUG)
@@ -1920,7 +2007,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
             $this->console->writeln("Created language \"Français\"");
         }
 
-        if(!$languageRepository->findOneBy(["slug" => Language::ENGLISH_DEFAULT_SLUG])) {
+        if (!$languageRepository->findOneBy(["slug" => Language::ENGLISH_DEFAULT_SLUG])) {
             $englishDefault = (new Language())
                 ->setLabel("English")
                 ->setSlug(Language::ENGLISH_DEFAULT_SLUG)
@@ -1934,7 +2021,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
             $this->console->writeln("Created default language \"English\"");
         }
 
-        if(!$languageRepository->findOneBy(["slug" => Language::ENGLISH_SLUG])) {
+        if (!$languageRepository->findOneBy(["slug" => Language::ENGLISH_SLUG])) {
             $english = (new Language())
                 ->setLabel("English")
                 ->setSlug(Language::ENGLISH_SLUG)
@@ -1948,11 +2035,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
             $this->console->writeln("Created language \"English\"");
         }
 
-        if(isset($frenchDefault) || isset($french) || isset($englishDefault) || isset($english)) {
+        if (isset($frenchDefault) || isset($french) || isset($englishDefault) || isset($english)) {
             $manager->flush();
         }
 
-        foreach(self::TRANSLATIONS as $categoryLabel => $menus) {
+        foreach (self::TRANSLATIONS as $categoryLabel => $menus) {
             $this->handleCategory("category", null, $categoryLabel, $menus);
         }
 
@@ -1962,12 +2049,13 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
         $this->manager->flush();
     }
 
-    private function handleCategory(string $type, ?TranslationCategory $parent, string $label, array $content) {
+    private function handleCategory(string $type, ?TranslationCategory $parent, string $label, array $content)
+    {
         $categoryRepository = $this->manager->getRepository(TranslationCategory::class);
         $translationSourceRepository = $this->manager->getRepository(TranslationSource::class);
 
         $category = $categoryRepository->findOneBy(["parent" => $parent, "label" => $label]);
-        if(!$category) {
+        if (!$category) {
             $category = (new TranslationCategory())
                 ->setParent($parent)
                 ->setType($type)
@@ -1979,8 +2067,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
             $this->console->writeln(($label ? "Created $type \"$label\"" : "Created single $type") . ($parentLabel ? " in \"$parentLabel\"" : ""));
         }
 
-        if(!isset($content["content"])) {
-            foreach($content as $childLabel => $childContent) {
+        if (!isset($content["content"])) {
+            if ($type === "submenu") {
+                dump($label, $content);
+            }
+            foreach ($content as $childLabel => $childContent) {
                 $this->handleCategory(self::CHILD[$type], $category, $childLabel, $childContent);
             }
 
@@ -1988,9 +2079,9 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
         } else {
             $category->setSubtitle($content["subtitle"] ?? null);
 
-            foreach($content["content"] as $translation) {
+            foreach ($content["content"] as $translation) {
                 $transSource = $category->getId() ? $translationSourceRepository->findByDefaultFrenchTranslation($category, $translation["fr"]) : null;
-                if(!$transSource) {
+                if (!$transSource) {
                     $transSource = new TranslationSource();
                     $transSource->setCategory($category);
 
@@ -2000,7 +2091,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                 $transSource->setTooltip($translation["tooltip"] ?? null);
 
                 $french = $transSource->getTranslationIn("french-default");
-                if(!$french) {
+                if (!$french) {
                     $french = (new Translation())
                         ->setLanguage($this->getLanguage("french-default"))
                         ->setSource($transSource)
@@ -2008,27 +2099,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
 
                     $this->manager->persist($french);
 
-                    $this->console->writeln("Created french source translation \"" . str_replace("\n", "\\n ", $translation["fr"]) . "\"");
-                }
-
-                $english = $transSource->getTranslationIn("english-default");
-                if(!$english) {
-                    $english = (new Translation())
-                        ->setLanguage($this->getLanguage("english-default"))
-                        ->setSource($transSource)
-                        ->setTranslation($translation["en"]);
-
-                    $this->manager->persist($english);
-
-                    $this->console->writeln("Created english source translation \"" . str_replace("\n", "\\n ", $translation["en"]) . "\"");
-                } else if($english->getTranslation() != $translation["en"]) {
-                    $english->setTranslation($translation["en"]);
-
-                    $this->console->writeln("Updated english source translation \"" . str_replace("\n", "\\n ", $translation["en"]) . "\"");
+                    $this->console->writeln("Created default french source translation \"" . str_replace("\n", "\\n ", $translation["fr"]) . "\"");
                 }
 
                 $french = $transSource->getTranslationIn("french");
-                if(!$french) {
+                if (!$french) {
                     $french = (new Translation())
                         ->setLanguage($this->getLanguage("french"))
                         ->setSource($transSource)
@@ -2039,16 +2114,34 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                     $this->console->writeln("Created french translation \"" . str_replace("\n", "\\n ", $translation["fr"]) . "\"");
                 }
 
-                $english = $transSource->getTranslationIn("english");
-                if(!$english) {
-                    $english = (new Translation())
-                        ->setLanguage($this->getLanguage("english"))
-                        ->setSource($transSource)
-                        ->setTranslation($translation["en"]);
+                if(isset($translation["en"])) {
+                    $english = $transSource->getTranslationIn("english-default");
+                    if (!$english) {
+                        $english = (new Translation())
+                            ->setLanguage($this->getLanguage("english-default"))
+                            ->setSource($transSource)
+                            ->setTranslation($translation["en"]);
 
-                    $this->manager->persist($english);
+                        $this->manager->persist($english);
 
-                    $this->console->writeln("Created english translation \"" . str_replace("\n", "\\n ", $translation["en"]) . "\"");
+                        $this->console->writeln("Created default english source translation \"" . str_replace("\n", "\\n ", $translation["en"]) . "\"");
+                    } else if ($english->getTranslation() != $translation["en"]) {
+                        $english->setTranslation($translation["en"]);
+
+                        $this->console->writeln("Updated default english source translation \"" . str_replace("\n", "\\n ", $translation["en"]) . "\"");
+                    }
+
+                    $english = $transSource->getTranslationIn("english");
+                    if (!$english) {
+                        $english = (new Translation())
+                            ->setLanguage($this->getLanguage("english"))
+                            ->setSource($transSource)
+                            ->setTranslation($translation["en"]);
+
+                        $this->manager->persist($english);
+
+                        $this->console->writeln("Created english translation \"" . str_replace("\n", "\\n ", $translation["en"]) . "\"");
+                    }
                 }
             }
 
@@ -2056,36 +2149,38 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
         }
     }
 
-    private function deleteUnusedCategories(TranslationCategory $parent, array $categories) {
+    private function deleteUnusedCategories(TranslationCategory $parent, array $categories)
+    {
         $categoryRepository = $this->manager->getRepository(TranslationCategory::class);
 
-        if($parent->getId()) {
+        if ($parent->getId()) {
             $fixtureCategories = array_keys($categories);
             $unusedCategories = $categoryRepository->findUnusedCategories($parent, $fixtureCategories);
-            foreach($unusedCategories as $category) {
+            foreach ($unusedCategories as $category) {
                 $this->deleteCategory($category, true);
                 $this->manager->remove($category);
             }
         }
     }
 
-    private function deleteCategory(?TranslationCategory $category, bool $root = false) {
+    private function deleteCategory(?TranslationCategory $category, bool $root = false)
+    {
         $this->manager->remove($category);
-        if($root) {
+        if ($root) {
             $this->console->writeln("Deleting unused category \"{$category->getLabel()}\"");
         } else {
             $this->console->writeln("Cascade deleting unused category \"{$category->getLabel()}\", child of \"{$category->getParent()->getLabel()}\"");
         }
 
-        foreach($category->getChildren() as $child) {
+        foreach ($category->getChildren() as $child) {
             $this->deleteCategory($child);
         }
 
-        foreach($category->getTranslationSources() as $source) {
+        foreach ($category->getTranslationSources() as $source) {
             $this->manager->remove($source);
 
             $translation = $source->getTranslationIn(Language::FRENCH_DEFAULT_SLUG);
-            if($translation) {
+            if ($translation) {
                 $this->console->writeln("Cascade deleting unused source \"{$translation->getTranslation()}\" child of category \"{$category->getParent()->getLabel()}\"");
             } else {
                 $this->console->writeln("Cascade deleting unknown unused source child of category \"{$category->getParent()->getLabel()}\"");
@@ -2093,40 +2188,44 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
         }
     }
 
-    private function deleteUnusedTranslations(TranslationCategory $category, array $translations) {
+    private function deleteUnusedTranslations(TranslationCategory $category, array $translations)
+    {
         $translationSourceRepository = $this->manager->getRepository(TranslationSource::class);
 
-        if($category->getId()) {
+        if ($category->getId()) {
             $fixtureTranslations = array_map(fn(array $item) => $item["fr"], $translations);
             $unusedTranslations = $translationSourceRepository->findUnusedTranslations($category, $fixtureTranslations);
-            foreach($unusedTranslations as $source) {
+            foreach ($unusedTranslations as $source) {
                 $this->manager->remove($source);
                 $this->console->writeln("Deleting unused source \"{$source->getTranslationIn("french-default")->getTranslation()}\" and all associated translations");
             }
         }
     }
 
-    private function getLanguage(string $slug) {
-        if(!isset($this->languages[$slug])) {
+    private function getLanguage(string $slug)
+    {
+        if (!isset($this->languages[$slug])) {
             $this->languages[$slug] = $this->manager->getRepository(Language::class)->findOneBy(["slug" => $slug]);
         }
 
         return $this->languages[$slug];
     }
 
-    private function updateUsers() {
+    private function updateUsers()
+    {
         $users = $this->manager->getRepository(Utilisateur::class)->findAll();
         $french = $this->manager->getRepository(Language::class)->findOneBy(["slug" => "french"]);
 
-        foreach($users as $user) {
-            if(!$user->getLanguage() || !$user->getDateFormat()) {
+        foreach ($users as $user) {
+            if (!$user->getLanguage() || !$user->getDateFormat()) {
                 $user->setLanguage($french)
                     ->setDateFormat("jj/mm/aaaa");
             }
         }
     }
 
-    public static function getGroups(): array {
+    public static function getGroups(): array
+    {
         return ["fixtures", "language"];
     }
 

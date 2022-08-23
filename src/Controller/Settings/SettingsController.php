@@ -593,7 +593,6 @@ class SettingsController extends AbstractController {
         $data = $request->query;
         $languageRepository = $manager->getRepository(Language::class);
         $translationCategoryRepository = $manager->getRepository(TranslationCategory::class);
-        $translationRepository = $manager->getRepository(Translation::class);
 
         $language = $data->get('language');
         if ($language === 'NEW') {
