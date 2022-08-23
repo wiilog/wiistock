@@ -11,23 +11,26 @@
             <div class="wii-box">
                 <div class="d-flex align-items-center mr-3">
                     <div class="mx-2">
-                        <div class="dropdown dropright">
-                            <div class="d-flex pointer" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <img alt="Actions" src="{{ asset('svg/dotsblack.svg') }}" height="20px" width="8px">
-                            </div>
-                            <div class="dropdown-menu dropdown-follow-gt pointer">
-                                {% set canDelete = handling.status.treated != 1 and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_UNPROCESSED_HANDLING'))
-                                    or handling.status.treated == 1 and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_PROCESSED_HANDLING')) %}
-
-                                {% if canDelete %}
-                                    <div class="dropdown-item" data-id="{{ handling.id }}" data-target="#modalDeleteHandling" data-toggle="modal"
+                        {% set canDelete = hasRight(constant('App\\Entity\\Menu::DEM'),constant('App\\Entity\\Action::DELETE'))
+                            and( handling.status.treated != 1 and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_UNPROCESSED_HANDLING'))
+                            or handling.status.treated == 1 and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_PROCESSED_HANDLING'))) %}
+                        {% if canDelete %}
+                            <div class="dropdown dropright">
+                                <div class="d-flex pointer" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <img alt="Actions" src="{{ asset('svg/dotsblack.svg') }}" height="20px" width="8px">
+                                </div>
+                                <div class="dropdown-menu dropdown-follow-gt pointer">
+                                    <div class="dropdown-item"
+                                         data-id="{{ handling.id }}"
+                                         data-target="#modalDeleteHandling"
+                                         data-toggle="modal"
                                          onclick="deleteRow($(this), $('#modalDeleteHandling'), $('#submitDeleteHandling'))">
                                         <img src="{{ asset('svg/trash-black.svg') }}" width="15px" class="mr-2 dropdown-icon">
                                         Supprimer
                                     </div>
-                                {% endif %}
+                                </div>
                             </div>
-                        </div>
+                        {% endif %}
                     </div>
                     <div class="d-flex py-2 w-100 justify-content-between">
                         <div class="d-flex align-items-center">
@@ -53,7 +56,7 @@
                         <strong>{{ emergency }}</strong>
                     </div>
                 {% endif %}
-                <div class="{{ not ((fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') or fieldsParam|isFieldRequired(fieldCode, 'displayedeEdit')) and emergency) ?  'bordered' }}">
+                <div class="bordered">
                     <div class="content row ">
                         <div class="col-6 d-flex flex-column">
                             <div class="box-item mt-2">
