@@ -2068,9 +2068,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
         }
 
         if (!isset($content["content"])) {
-            if ($type === "submenu") {
-                dump($label, $content);
-            }
             foreach ($content as $childLabel => $childContent) {
                 $this->handleCategory(self::CHILD[$type], $category, $childLabel, $childContent);
             }
