@@ -106,7 +106,7 @@ class TransportController extends AbstractFOSRestController
 
         $totalLoaded = Stream::from($lines)
             ->flatMap(fn(TransportRoundLine $line) => $line->getOrder()->getPacks()->toArray())
-            ->filter(fn(TransportDeliveryOrderPack $orderPack) => !$orderPack->getRejectReason())
+            ->filter(fn(TransportDeliveryOrderPack $orderPack) => !$orderPack->getRejectReason() && $orderPack->getOrder()->getStatus()->getCode() !== TransportOrder::STATUS_CANCELLED)
             ->count();
 
         $loadedPacks = Stream::from($lines)
@@ -728,24 +728,16 @@ class TransportController extends AbstractFOSRestController
 
         $lines = $round->getTransportRoundLines();
         $updatedPacks = Stream::from($lines)
-            ->map(fn(TransportRoundLine $line) => $line->getOrder()->getPacks());
-
-        $updatedPackCodes = Stream::from($updatedPacks)
-            ->reduce(function (array $acc, Collection $packs) {
-                $acc[] = Stream::from($packs)
-                    ->map(fn(TransportDeliveryOrderPack $orderPack) => $orderPack->getPack()->getCode())
-                    ->toArray();
-                return $acc;
-            }, []);
-
-        $updatedPackCodes = Stream::from($updatedPackCodes)->flatten()->toArray();
-
-        $newPacks = Stream::diff($currentPacks, $updatedPackCodes)
+            ->filter(fn(TransportRoundLine $line) => $line->getOrder()->getStatus()->getCode() !== TransportOrder::STATUS_CANCELLED)
+            ->flatMap(fn(TransportRoundLine $line) => $line->getOrder()->getPacks())
+            ->map(fn(TransportDeliveryOrderPack $orderPack) => $orderPack->getPack()->getCode())
             ->toArray();
 
+        $hasNewPacks = !Stream::diff($currentPacks, $updatedPacks)->isEmpty();
+
         return $this->json([
-            'success' => true,
-            'has_new_packs' => !empty($newPacks),
+            "success" => true,
+            "has_new_packs" => $hasNewPacks,
         ]);
     }
 

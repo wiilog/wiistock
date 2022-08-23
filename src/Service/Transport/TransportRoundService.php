@@ -134,10 +134,10 @@ class TransportRoundService
         );
 
         if(!$transportRound->getEndedAt()) {
-            $end = clone $transportRound->getBeganAt();
+            $end = clone ($transportRound->getBeganAt() ?? new DateTime("now"));
             $end->setTime(23, 59);
         } else {
-            $end = $transportRound->getEndedAt();
+            $end = min((clone ($transportRound->getBeganAt()))->setTime(23, 59), $transportRound->getEndedAt());
         }
 
         $messages = $vehicle->getSensorMessagesBetween($transportRound->getBeganAt(), $end, Sensor::GPS);

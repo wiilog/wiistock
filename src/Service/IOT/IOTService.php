@@ -702,13 +702,13 @@ class IOTService
 
     public function runKooveaJOB(EntityManagerInterface $entityManager, string $type) {
         $auth = $this->getAuthenticationTokens();
-
-        if ($type === self::KOOVEA_TAG) {
-            $this->getTagsTemperatures($entityManager, $auth);
-        } else if ($type === self::KOOVEA_HUB) {
-            $this->getHubsPositions($entityManager, $auth);
+        if ($auth) {
+            if ($type === self::KOOVEA_TAG) {
+                $this->getTagsTemperatures($entityManager, $auth);
+            } else if ($type === self::KOOVEA_HUB) {
+                $this->getHubsPositions($entityManager, $auth);
+            }
         }
-
     }
 
     private function getAuthenticationTokens() {
