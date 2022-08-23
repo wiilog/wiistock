@@ -154,6 +154,18 @@ function getPreparationLaunchForm($modal){
                     $modalContent.removeClass('d-none');
                     $modalContent.append(response.template);
 
+                    $modal.find('.check-stock-button').html($(`<div/>`, {
+                        class: `d-inline-flex align-items-center`,
+                        html: [$(`<span/>`, {
+                            class: `wii-icon wii-icon-white-tick mr-2`
+                        }), $(`<span/>`, {
+                            text: `Vérifier le stock`,
+                        })]
+                    }))
+                        .data('launch-preparations', "0")
+                        .removeClass('btn-success')
+                        .addClass('btn-primary');
+
                     onOrdersDragAndDropDone($modal);
                     const sortables = Sortable.create(`.available-preparations, .assigned-preparations`, {
                         acceptFrom: `.preparations-container`,
@@ -182,6 +194,17 @@ function getPreparationLaunchForm($modal){
                         .appendTo($targetContainer);
                     onOrdersDragAndDropDone($modal);
                     $modal.find('.quantities-information-container').addClass('d-none');
+                    $modal.find('.check-stock-button').html($(`<div/>`, {
+                        class: `d-inline-flex align-items-center`,
+                        html: [$(`<span/>`, {
+                            class: `wii-icon wii-icon-white-tick mr-2`
+                        }), $(`<span/>`, {
+                            text: `Vérifier le stock`,
+                        })]
+                    }))
+                        .data('launch-preparations', "0")
+                        .removeClass('btn-success')
+                        .addClass('btn-primary');
                 });
 
                 $modal.find('.check-stock-button').on('click', function () {
@@ -242,9 +265,17 @@ function launchStockCheck($modal) {
                                 .removeClass('orange-card');
                         });
                         $modal.find('.assigned-preparations').addClass('border border-danger');
-                        $submitButton
-                            .text("Vérifier le stock")
-                            .data('launch-preparations', "0");
+                        $submitButton.html($(`<div/>`, {
+                            class: `d-inline-flex align-items-center`,
+                            html: [$(`<span/>`, {
+                                class: `wii-icon wii-icon-white-tick mr-2`
+                            }), $(`<span/>`, {
+                                text: `Vérifier le stock`,
+                            })]
+                        }))
+                            .data('launch-preparations', "0")
+                            .removeClass('btn-success')
+                            .addClass('btn-primary');
                         $modal.find('.quantities-information-container').removeClass('d-none');
                         $modal.find('.quantities-information').empty();
                         $modal.find('.quantities-information').append(res.template);
