@@ -1,12 +1,9 @@
-function checkIfUserExists() {
+function checkIfUserExists($button) {
     const result = Form.process($(`.form-signin`));
     if(result) {
-        wrapLoadingOnActionButton($(`.submit-password-reset`), () => (
+        wrapLoadingOnActionButton($button, () => (
             AJAX.route(`POST`, `check_email`, result.asObject())
                 .json()
-                .then(({success, msg}) => {
-                    Flash.add(success ? `success` : `danger`, msg);
-                })
         ));
     }
 }

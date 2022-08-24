@@ -222,7 +222,7 @@ class SecuriteController extends AbstractController {
     }
 
     /**
-     * @Route("/verifier-email", name="check_email", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @Route("/verifier-email", name="check_email", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      */
     public function checkEmail(Request $request, EntityManagerInterface $entityManager): Response {
 
