@@ -60,6 +60,38 @@ class TranslationService {
      * @return string Translated input
      */
     public function translate(mixed... $args): string {
+        $user = null;
+        foreach($args as $arg) {
+            if ($arg instanceof Utilisateur) {
+                $user = $arg;
+            }
+        }
+
+        if(!isset($user)) {
+            $user = $this->tokenStorage->getToken()->getUser();
+        }
+
+        $slug = $user?->getLanguage()?->getSlug();
+        if($trans = $this->translateIn($slug, false, ...$args)) {
+            return $trans;
+        } else {
+            $languageRepository = $this->manager->getRepository(Language::class);
+            $defaultLanguage = $languageRepository->findOneBy(["selected" => true]);
+
+            //peut-être optimisable en refactorant le cache
+            if($defaultLanguage->getSlug() === Language::FRENCH_SLUG) {
+                return $this->translateIn(Language::FRENCH_SLUG, false, ...$args)
+                    ?? $this->translateIn(Language::FRENCH_DEFAULT_SLUG, true, ...$args);
+            } else {
+                return $this->translateIn(Language::ENGLISH_SLUG, false, ...$args)
+                    ?? $this->translateIn(Language::ENGLISH_DEFAULT_SLUG, false, ...$args)
+                    ?? $this->translateIn(Language::FRENCH_SLUG, false, ...$args)
+                    ?? $this->translateIn(Language::FRENCH_DEFAULT_SLUG, true, ...$args);
+            }
+        }
+    }
+
+    public function translateIn(string $slug, bool $lastResort, mixed... $args): ?string {
         $variables = ["category", "menu", "submenu", "input"];
         foreach($variables as $variable) {
             $$variable = null;
@@ -68,9 +100,7 @@ class TranslationService {
         foreach($args as $arg) {
             if(is_array($arg)) {
                 $params = $arg;
-            } else if($arg instanceof Utilisateur) {
-                $user = $arg;
-            } else {
+            } else if(!($arg instanceof Utilisateur)) {
                 if(empty($variables)) {
                     throw new RuntimeException("Too many arguments, expected at most 4 strings, 1 array and 1 user");
                 }
@@ -79,40 +109,38 @@ class TranslationService {
             }
         }
 
-        if(!isset($user)) {
-            $user = $this->tokenStorage->getToken()->getUser();
-            $slug = $user?->getLanguage()?->getSlug();
-        }
-
-        $slug = $slug ?? "default";
-        if(!isset($translations[$slug])) {
-            $this->translations[$slug] = $this->cacheService->get(CacheService::TRANSLATIONS, $slug, function() {
-                $this->generateCache();
-                $this->generateJavascripts();
+        if(!isset($this->translations[$slug])) {
+            $this->translations[$slug] = $this->cacheService->get(CacheService::TRANSLATIONS, $slug, function() use ($slug) {
+                $this->generateCache($slug);
+                $this->generateJavascripts($slug);
             }) ?? [];
         }
 
         $transCategory = $this->translations[$slug][$category ?: null] ?? null;
         if(!is_array($transCategory)) {
-            $output = $transCategory ?? $input ?? $submenu ?? $menu ?? $category;
+            $output = $transCategory ?? ($lastResort ? $input ?? $submenu ?? $menu ?? $category : null);
         }
 
         if(!isset($output)) {
             $transMenu = $transCategory[$menu ?: null] ?? null;
             if (!is_array($transMenu)) {
-                $output = $transMenu ?? $input ?? $submenu ?? $menu;
+                $output = $transMenu ?? ($lastResort ? $input ?? $submenu ?? $menu : null);
             }
         }
 
         if(!isset($output)) {
             $transSubmenu = $transMenu[$submenu ?: null] ?? null;
             if (!is_array($transSubmenu)) {
-                $output = $transSubmenu ?? $input ?? $submenu;
+                $output = $transSubmenu ?? ($lastResort ? $input ?? $submenu : null);
             }
         }
 
         if(!isset($output)) {
-            $output = $transSubmenu[$input ?: null] ?? $input;
+            $output = $transSubmenu[$input ?: null] ?? ($lastResort ? $input : null);
+        }
+
+        if($output === null) {
+            return null;
         }
 
         if(!isset($params)) {
@@ -147,7 +175,7 @@ class TranslationService {
 
             /** @var Translation $translation */
             foreach($translationRepository->findBy(["language" => $language]) as $translation) {
-                $original = $translation->getSource()->getTranslationIn("french")->getTranslation();
+                $original = $translation->getSource()->getTranslationIn(Language::FRENCH_DEFAULT_SLUG)->getTranslation();
 
                 $zoomedTranslations = &$this->translations[$slug];
                 $stack = $this->createCategoryStack($translation);

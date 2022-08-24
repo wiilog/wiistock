@@ -256,8 +256,8 @@ class AppExtension extends AbstractExtension {
         return $this->userService->getUser()?->getLanguage() ?? $this->manager->getRepository(Language::class)->findOneBy(['selected' => true]);
     }
 
-    public function translate(?string $category, ?string $menu, ?string $submenu, ?string $translation = null): string {
-        return $this->translationService->translate($category, $menu, $submenu, $translation);
+    public function translate(mixed... $args): string {
+        return $this->translationService->translate(...$args);
     }
 
 }

@@ -1309,7 +1309,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     ],
                 ],
             ],
-            "Acheminement" => [
+            "Acheminements" => [
                 "Divers" => [
                     "content" => [
                         [
@@ -1919,7 +1919,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
             ],
         ],
         "Ordre" => [
-            "Réception" => [
+            "Réceptions" => [
                 "content" => [
                     ["fr" => "réceptions"],
                     ["fr" => "Réception"],
@@ -1944,7 +1944,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
             ],
         ],
         "Stock" => [
-            "Référence" => [
+            "Références" => [
                 "content" => [
                     "Référence" => ["fr" => "Référence"],
                     "Références" => ["fr" => "Références"],
