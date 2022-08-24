@@ -71,35 +71,41 @@ class TranslationService {
             $user = $this->tokenStorage->getToken()->getUser();
         }
 
-        $slug = $user?->getLanguage()?->getSlug();
-        if($trans = $this->translateIn($slug, false, ...$args)) {
-            return $trans;
-        } else {
+        $defaultSlug = $this->cacheService->get(CacheService::LANGUAGES, "default-language-slug", function() {
             $languageRepository = $this->manager->getRepository(Language::class);
             $defaultLanguage = $languageRepository->findOneBy(["selected" => true]);
 
+            return $defaultLanguage->getSlug();
+        });
+
+        $slug = $user?->getLanguage()?->getSlug();
+        if($trans = $this->translateIn($slug, $defaultSlug, false, ...$args)) {
+            return $trans;
+        } else if($defaultSlug === Language::FRENCH_SLUG) {
             //peut-être optimisable en refactorant le cache
-            if($defaultLanguage->getSlug() === Language::FRENCH_SLUG) {
-                return $this->translateIn(Language::FRENCH_SLUG, false, ...$args)
-                    ?? $this->translateIn(Language::FRENCH_DEFAULT_SLUG, true, ...$args);
-            } else {
-                return $this->translateIn(Language::ENGLISH_SLUG, false, ...$args)
-                    ?? $this->translateIn(Language::ENGLISH_DEFAULT_SLUG, false, ...$args)
-                    ?? $this->translateIn(Language::FRENCH_SLUG, false, ...$args)
-                    ?? $this->translateIn(Language::FRENCH_DEFAULT_SLUG, true, ...$args);
-            }
+            return $this->translateIn(Language::FRENCH_SLUG, $defaultSlug, false, ...$args)
+                ?? $this->translateIn(Language::FRENCH_DEFAULT_SLUG, $defaultSlug, true, ...$args);
+        } else {
+            //peut-être optimisable en refactorant le cache
+            return $this->translateIn(Language::ENGLISH_SLUG, $defaultSlug, false, ...$args)
+                ?? $this->translateIn(Language::ENGLISH_DEFAULT_SLUG, $defaultSlug, false, ...$args)
+                ?? $this->translateIn(Language::FRENCH_SLUG, $defaultSlug, false, ...$args)
+                ?? $this->translateIn(Language::FRENCH_DEFAULT_SLUG, $defaultSlug, true, ...$args);
         }
     }
 
-    public function translateIn(string $slug, bool $lastResort, mixed... $args): ?string {
+    public function translateIn(string $slug, string $defaultSlug, bool $lastResort, mixed... $args): ?string {
         $variables = ["category", "menu", "submenu", "input"];
         foreach($variables as $variable) {
             $$variable = null;
         }
 
+        $disableTooltip = false;
         foreach($args as $arg) {
             if(is_array($arg)) {
                 $params = $arg;
+            }if(is_bool($arg)) {
+                $disableTooltip = $arg;
             } else if(!($arg instanceof Utilisateur)) {
                 if(empty($variables)) {
                     throw new RuntimeException("Too many arguments, expected at most 4 strings, 1 array and 1 user");
@@ -143,11 +149,17 @@ class TranslationService {
             return null;
         }
 
-        if(!isset($params)) {
-            return $output;
-        } else {
+        if(isset($params)) {
             return str_replace(array_keys($params), array_values($params), $output);
         }
+
+        if($slug === $defaultSlug) {
+            $tooltip = $output;
+        } else {
+            $tooltip = $this->translateIn($defaultSlug, $defaultSlug, true, true, ...$args);
+        }
+
+        return $disableTooltip ? $output : "<span title='$tooltip'>$output</span>";
     }
 
     private function createCategoryStack(Translation $translation): array {

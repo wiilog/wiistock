@@ -2139,6 +2139,18 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
 
                         $this->console->writeln("Created english translation \"" . str_replace("\n", "\\n ", $translation["en"]) . "\"");
                     }
+                } else {
+                    $english = $transSource->getTranslationIn("english-default");
+                    if (!$english) {
+                        $english = (new Translation())
+                            ->setLanguage($this->getLanguage("english-default"))
+                            ->setSource($transSource)
+                            ->setTranslation($translation["fr"]);
+
+                        $this->manager->persist($english);
+
+                        $this->console->writeln("Created default english source translation \"" . str_replace("\n", "\\n ", $translation["fr"]) . "\"");
+                    }
                 }
             }
 

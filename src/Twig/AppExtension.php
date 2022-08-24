@@ -66,7 +66,9 @@ class AppExtension extends AbstractExtension {
             new TwigFunction('isImage', [$this, 'isImage']),
             new TwigFunction('merge', "array_merge"),
             new TwigFunction('getLanguage', [$this, "getLanguage"]),
-            new TwigFunction('trans', [$this, "translate"]),
+            new TwigFunction('trans', [$this, "translate"], [
+                "is_safe" => ["html"]
+            ]),
         ];
     }
 
