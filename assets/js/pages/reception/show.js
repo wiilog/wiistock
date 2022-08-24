@@ -8,6 +8,7 @@ let modalNewLigneReception = "#modalNewLigneReception";
 let $modalNewLigneReception = $(modalNewLigneReception);
 let modalArticleAlreadyInit = false;
 let tableArticleLitige;
+let tableHistoLitige;
 
 window.initNewArticleEditor = initNewArticleEditor;
 window.openModalLigneReception = openModalLigneReception;

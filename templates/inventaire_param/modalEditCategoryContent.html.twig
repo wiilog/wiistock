@@ -5,12 +5,12 @@
         </div>
 
         <div class="col-12 form-group">
-            <label for="username">Label*</label>
+            <label for="username" class="wii-field-name">Label*</label>
             <input type="text" class="form-control data needed" name="label" required="" value="{{ category.label }}">
         </div>
 
         <div class="form-group col-12">
-            <label for="label">Fréquence</label>
+            <label for="label" class="wii-field-name">Fréquence</label>
             <select name="frequency" class="form-control ajax-autocomplete-frequency data select2 w-100">
                 <option value="{{ category.frequency.id }}">{{ category.frequency.label }}</option>
             </select>

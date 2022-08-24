@@ -45,7 +45,7 @@ $(function() {
     });
 
     $('.filter-status-multiple-dropdown .dropdown-item:not(:first-of-type)').on('click', event => {
-        const $clicked = $(event.target);console.log(event.target);
+        const $clicked = $(event.target);
         if(!$clicked.is(`input[type="checkbox"]`)) {
             event.preventDefault();
             event.stopImmediatePropagation();

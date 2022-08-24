@@ -22,79 +22,81 @@
         </div>
         <div class="row mt-3 justify-content-around">
             <div class="{{ displayLitiges ? 'col-6 pr-2' : 'col-12' }}">
-                <div class="wii-page-card">
-                    <div class="row mb-2">
-                        <h5 class="col-auto h5">Liste des <span title="colis">{{'arrivage.colis'|trans}}</span></h5>
+                <div class="wii-box mt-0">
+                    <div class="header wii-title">Liste des
+                        <span title="colis">{{'arrivage.colis'|trans}}</span>
                     </div>
-                    <div class="row wii-page-card-header">
-                        <div class="col-auto ml-auto">
-                            <div class="btn-group">
-                                {% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT')) %}
-                                {% set hasRightExport = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EXPORT')) %}
-                                {% if hasRightEdit and hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::ADD_PACK')) %}
-                                    <button type="button"
-                                            data-toggle="modal"
-                                            data-target="#modalAddColis"
-                                            class="btn btn-primary {{ hasRightEdit ? 'split-button' }}"
-                                            id="btnModalAddColis">
-                                        <span class="fa fa-plus mr-2"></span>Ajouter <span title="colis">{{ 'arrivage.colis'|trans }}</span>
-                                    </button>
-                                {% endif %}
-                                {% if hasRightExport %}
-                                    {% if hasRightEdit %}
+                    <div class="content">
+                        <div class="row wii-page-card-header">
+                            <div class="col-auto ml-auto">
+                                <div class="btn-group">
+                                    {% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT')) %}
+                                    {% set hasRightExport = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EXPORT')) %}
+                                    {% if hasRightEdit and hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::ADD_PACK')) %}
                                         <button type="button"
-                                                class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
-                                                data-toggle="dropdown"
-                                                aria-haspopup="true"
-                                                aria-expanded="false">
-                                            <span class="fa fa-angle-down"></span>
+                                                data-toggle="modal"
+                                                data-target="#modalAddColis"
+                                                class="btn btn-primary {{ hasRightEdit ? 'split-button' }}"
+                                                id="btnModalAddColis">
+                                            <span class="fa fa-plus mr-2"></span>Ajouter <span title="colis">{{ 'arrivage.colis'|trans }}</span>
                                         </button>
-                                        <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
-                                            <a class="dropdown-item"
-                                               id="printColisBtn"
+                                    {% endif %}
+                                    {% if hasRightExport %}
+                                        {% if hasRightEdit %}
+                                            <button type="button"
+                                                    class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
+                                                    data-toggle="dropdown"
+                                                    aria-haspopup="true"
+                                                    aria-expanded="false">
+                                                <span class="fa fa-angle-down"></span>
+                                            </button>
+                                            <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
+                                                <a class="dropdown-item"
+                                                   id="printColisBtn"
+                                                   href="{{ path('print_arrivage_bar_codes', {arrivage: arrivage.id, printArrivage: 1, printColis: 1}) }}">
+                                                    <span class="fa fa-print mr-2"></span>Imprimer <span title="colis">{{ 'arrivage.colis'|trans }}</span>
+                                                </a>
+                                            </div>
+                                        {% else %}
+                                            <a id="printColisBtn"
+                                               class="btn btn-primary"
                                                href="{{ path('print_arrivage_bar_codes', {arrivage: arrivage.id, printArrivage: 1, printColis: 1}) }}">
                                                 <span class="fa fa-print mr-2"></span>Imprimer <span title="colis">{{ 'arrivage.colis'|trans }}</span>
                                             </a>
-                                        </div>
-                                    {% else %}
-                                        <a id="printColisBtn"
-                                           class="btn btn-primary"
-                                           href="{{ path('print_arrivage_bar_codes', {arrivage: arrivage.id, printArrivage: 1, printColis: 1}) }}">
-                                            <span class="fa fa-print mr-2"></span>Imprimer <span title="colis">{{ 'arrivage.colis'|trans }}</span>
-                                        </a>
+                                        {% endif %}
                                     {% endif %}
-                                {% endif %}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-12">
-                            <table id="tableColis" class="table w-100"></table>
+                        <div class="row">
+                            <div class="col-12">
+                                <table id="tableColis" class="table w-100"></table>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
             {% if displayLitiges %}
                 <div class="col-6 pl-2">
-                    <div class="wii-page-card">
-                        <div class="row mb-2">
-                            <h5 class="col-auto h5">Liste des litiges</h5>
-                        </div>
-                        <div class="row wii-page-card-header">
-                            <div class="col-auto ml-auto">
-                                {% if hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::CREATE')) %}
-                                    <button type="button"
-                                            data-id="{{ arrivage.id }}"
-                                            class="btn btn-primary new-dispute-modal">
-                                        <i class="fa fa-plus mr-2"></i>
-                                        Nouveau litige
-                                    </button>
-                                {% endif %}
+                    <div class="wii-box mt-0">
+                        <div class="header wii-title">Liste des litiges</div>
+                        <div class="content">
+                            <div class="row wii-page-card-header">
+                                <div class="col-auto ml-auto">
+                                    {% if hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::CREATE')) %}
+                                        <button type="button"
+                                                data-id="{{ arrivage.id }}"
+                                                class="btn btn-primary new-dispute-modal">
+                                            <i class="fa fa-plus mr-2"></i>
+                                            Nouveau litige
+                                        </button>
+                                    {% endif %}
+                                </div>
                             </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-12">
-                                <table id="tableArrivageLitiges" class="table w-100"></table>
+                            <div class="row">
+                                <div class="col-12">
+                                    <table id="tableArrivageLitiges" class="table w-100"></table>
+                                </div>
                             </div>
                         </div>
                     </div>

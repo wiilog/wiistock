@@ -21,52 +21,52 @@
         </div>
         <div class="row mt-3">
             <div class="col-12">
-                <div class="wii-page-card">
-                    <div class="row mb-2">
-                        <h5 class="col-auto h5">Liste des articles</h5>
-                    </div>
-                    {% if modifiable %}
-                        {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
-                            <div class="row wii-page-card-header" id="boutonCollecteInf">
-                                <div class="col-auto ml-auto">
-                                    <div class="btn-group">
-                                        <button
+                <div class="wii-box mt-0">
+                    <div class="header wii-title">Liste des articles</div>
+                    <div class="content">
+                        {% if modifiable %}
+                            {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
+                                <div class="row wii-page-card-header" id="boutonCollecteInf">
+                                    <div class="col-auto ml-auto">
+                                        <div class="btn-group">
+                                            <button
                                                 onclick="redirectToArticlesList()"
                                                 class="btn btn-primary split-button"
                                                 title="Chercher une référence">
-                                            <i class="fa fa-search mr-2"></i>
-                                            Chercher une {{ 'reference.référence'|trans }}
-                                        </button>
-                                        <button type="button"
-                                                class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
-                                                data-toggle="dropdown"
-                                                aria-haspopup="true"
-                                                aria-expanded="false">
-                                            <span class="fa fa-angle-down"></span>
-                                        </button>
-                                        <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
-                                            <a data-toggle="modal"
-                                               data-target="#modalNewArticle"
-                                               class="dropdown-item pointer"
-                                               onclick="clearModal('#modalNewArticle')"
-                                               title="référence">
-                                                <i class="fa fa-plus mr-2"></i>
-                                                Ajouter article
-                                            </a>
+                                                <i class="fa fa-search mr-2"></i>
+                                                Chercher une {{ 'reference.référence'|trans }}
+                                            </button>
+                                            <button type="button"
+                                                    class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
+                                                    data-toggle="dropdown"
+                                                    aria-haspopup="true"
+                                                    aria-expanded="false">
+                                                <span class="fa fa-angle-down"></span>
+                                            </button>
+                                            <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
+                                                <a data-toggle="modal"
+                                                   data-target="#modalNewArticle"
+                                                   class="dropdown-item pointer"
+                                                   onclick="clearModal('#modalNewArticle')"
+                                                   title="référence">
+                                                    <i class="fa fa-plus mr-2"></i>
+                                                    Ajouter article
+                                                </a>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            {% endif %}
                         {% endif %}
-                    {% endif %}
-                    <input id="demande-id" type="hidden" value="{{ demande.id }}"/>
+                        <input id="demande-id" type="hidden" value="{{ demande.id }}"/>
 
-                    <div class="row">
-                        <div class="col-12">
-                            <table id="table-lignes"
-                                   data-id="{{ demande.id }}"
-                                   class="table w-100">
-                            </table>
+                        <div class="row">
+                            <div class="col-12">
+                                <table id="table-lignes"
+                                       data-id="{{ demande.id }}"
+                                       class="table w-100">
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
