@@ -7,6 +7,7 @@ use App\Entity\Translation;
 use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
@@ -37,8 +38,48 @@ class TranslationService {
             return "BUG TICKET: $in";
     }
 
-    public function translate(?string $category, ?string $menu, ?string $submenu, ?string $input, ?Utilisateur $user = null): string {
-        if(!$user) {
+    /**
+     * Translates the given input
+     * The function expects from 1 to 4 strings, then an array of
+     * strings to replace or a user or both in any order.
+     *
+     * Example usage with more or less string inputs and with and without custom user and params array :
+     * translate("Traçabilité", "Unités logistiques", "Onglet \"Groupes\"", "Groupes")
+     * translate("Traçabilité", "Unités logistiques", "Onglet \"Groupes\"", "Groupes", $customUser)
+     *
+     * translate("Traçabilité", "Unités logistiques", "Onglet \"Groupes\"", "Mouvementé la dernière fois le {1}", [1 => "DATE"])
+     * translate("Traçabilité", "Unités logistiques", "Onglet \"Groupes\"", "Mouvementé la dernière fois le {1}", [1 => "DATE"], $customUser)
+     *
+     * translate("Référentiel", "Natures", "Sélectionner une nature")
+     * translate("Référentiel", "Natures", "Sélectionner une nature", $customUser)
+     *
+     * translate("Référentiel", "Natures", "La nature {1} a bien été créée", [1 => "NOMNATURE"])
+     * translate("Référentiel", "Natures", "La nature {1} a bien été créée", [1 => "NOMNATURE"], $customUser)
+     *
+     * @param mixed ...$args Arguments
+     * @return string Translated input
+     */
+    public function translate(mixed... $args): string {
+        $variables = ["category", "menu", "submenu", "input"];
+        foreach($variables as $variable) {
+            $$variable = null;
+        }
+
+        foreach($args as $arg) {
+            if(is_array($arg)) {
+                $params = $arg;
+            } else if($arg instanceof Utilisateur) {
+                $user = $arg;
+            } else {
+                if(empty($variables)) {
+                    throw new RuntimeException("Too many arguments, expected at most 4 strings, 1 array and 1 user");
+                }
+
+                ${array_shift($variables)} = $arg;
+            }
+        }
+
+        if(!isset($user)) {
             $user = $this->tokenStorage->getToken()->getUser();
             $slug = $user?->getLanguage()?->getSlug();
         }
@@ -53,20 +94,32 @@ class TranslationService {
 
         $transCategory = $this->translations[$slug][$category ?: null] ?? null;
         if(!is_array($transCategory)) {
-            return $transCategory ?? $input ?? $submenu ?? $menu ?? $category;
+            $output = $transCategory ?? $input ?? $submenu ?? $menu ?? $category;
         }
 
-        $transMenu = $transCategory[$menu ?: null] ?? null;
-        if(!is_array($transMenu)) {
-            return $transMenu ?? $input ?? $submenu ?? $menu;
+        if(!isset($output)) {
+            $transMenu = $transCategory[$menu ?: null] ?? null;
+            if (!is_array($transMenu)) {
+                $output = $transMenu ?? $input ?? $submenu ?? $menu;
+            }
         }
 
-        $transSubmenu = $transMenu[$submenu ?: null] ?? null;
-        if(!is_array($transSubmenu)) {
-            return $transSubmenu ?? $input ?? $submenu;
+        if(!isset($output)) {
+            $transSubmenu = $transMenu[$submenu ?: null] ?? null;
+            if (!is_array($transSubmenu)) {
+                $output = $transSubmenu ?? $input ?? $submenu;
+            }
         }
 
-        return $transSubmenu[$input ?: null] ?? $input;
+        if(!isset($output)) {
+            $output = $transSubmenu[$input ?: null] ?? $input;
+        }
+
+        if(!isset($params)) {
+            return $output;
+        } else {
+            return str_replace(array_keys($params), array_values($params), $output);
+        }
     }
 
     private function createCategoryStack(Translation $translation): array {
