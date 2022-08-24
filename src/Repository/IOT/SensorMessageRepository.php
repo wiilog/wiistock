@@ -2,10 +2,13 @@
 
 namespace App\Repository\IOT;
 
+use App\Entity\Emplacement;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorMessage;
+use App\Entity\LocationGroup;
 use App\Helper\QueryCounter;
 use Doctrine\ORM\EntityRepository;
+use http\Exception\RuntimeException;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
 
@@ -98,5 +101,29 @@ class SensorMessageRepository extends EntityRepository
             $queryRaw = "INSERT INTO $type ($entityColumn, sensor_message_id) VALUES $values";
             $connection->executeQuery($queryRaw);
         }
+    }
+
+    public function getLastSensorMessage(mixed $entity) {
+        $query = $this->createQueryBuilder("sensor_message");
+
+        if($entity instanceof Emplacement) {
+            $query->leftJoin("sensor_message.pairings", "join_pairings")
+                ->leftJoin("join_pairings.location", "join_location")
+                ->andWhere("join_location = :location")
+                ->setParameter("location", $entity);
+        } else if($entity instanceof LocationGroup) {
+            $query->leftJoin("sensor_message.pairings", "join_pairings")
+                ->leftJoin("join_pairings.locationGroup", "join_location_group")
+                ->andWhere("join_location_group = :location_group")
+                ->setParameter("location_group", $entity);
+        } else {
+            throw new RuntimeException("Unsupported entity");
+        }
+
+        return $query->orderBy("sensor_message.date", "DESC")
+            ->addOrderBy("sensor_message.id", "DESC")
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 }
