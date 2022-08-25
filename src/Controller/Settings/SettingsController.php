@@ -643,21 +643,25 @@ class SettingsController extends AbstractController {
     }
 
     /**
-     * @Route("/langues/api/default", name="settings_defaultLanguage_api" , methods={"POST"}, options={"expose"=true})
+     * @Route("/langues/api/default", name="settings_default_language_api" , methods={"POST"}, options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_LABELS_PERSO})
      */
-    public function defaultLanguageApi(EntityManagerInterface $manager,
-                                Request $request ): Response {
+    public function defaultLanguageApi(Request $request, EntityManagerInterface $manager, CacheService $cacheService): Response {
         $data = $request->request;
 
         $languageRepository = $manager->getRepository(Language::class);
         $defaultLanguage = $languageRepository->find($data->get('language'));
 
         if($defaultLanguage->getSelectable()){
-            Stream::from($languageRepository->findBy(['selected' => true]))
-                ->map(fn(Language $language) => $language->setSelected(false));
+            foreach($languageRepository->findBy(['selected' => true]) as $language) {
+                $language->setSelected(false);
+            }
+
             $defaultLanguage->setSelected(true);
             $manager->flush();
+
+            $cacheService->delete(CacheService::LANGUAGES);
+            $cacheService->delete(CacheService::TRANSLATIONS);
 
             return $this->json([
                 "success" => true,
@@ -669,8 +673,6 @@ class SettingsController extends AbstractController {
                 "message" => "La langue n'est pas sélectionnable",
             ]);
         }
-
-
     }
 
     /**
@@ -706,7 +708,9 @@ class SettingsController extends AbstractController {
 
             $manager->remove($language);
             $manager->flush();
+
             $cacheService->delete(CacheService::LANGUAGES);
+            $cacheService->delete(CacheService::TRANSLATIONS);
 
             return $this->json([
                 "success" => true,
@@ -778,7 +782,9 @@ class SettingsController extends AbstractController {
         }
 
         $manager->flush();
+
         $cacheService->delete(CacheService::LANGUAGES);
+        $cacheService->delete(CacheService::TRANSLATIONS);
 
         return $this->json([
             "success" => true,

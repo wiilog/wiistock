@@ -16,7 +16,7 @@ final class Version20220823103654 extends AbstractMigration
 
         $translations = $this->connection->executeQuery("SELECT * FROM previous_translation")->fetchAll();
         foreach($translations as $translation) {
-            if($translation === null || $translation === "") {
+            if($translation["translation"] === null || $translation["translation"] === "") {
                 continue;
             }
 

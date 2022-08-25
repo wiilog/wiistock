@@ -60,7 +60,7 @@ $(function () {
 
     // change the default language and reload the page
     $("div[data-name='defaultLanguages']").on('change', function () {
-        $.post(Routing.generate(`settings_defaultLanguage_api`),{language: $(this).find(':checked').val()})
+        $.post(Routing.generate(`settings_default_language_api`),{language: $(this).find(':checked').val()})
             .then(() => {
                 window.location.reload();
             });

@@ -186,8 +186,9 @@ class TranslationCategory {
             }
             else {
                 $originalTranslation = $categorySource->getTranslationIn(Language::DEFAULT_LANGUAGE_SLUG);
-                $translation = $categorySource->getTranslationIn(Language::OLD_TRANSLATIONS_SLUG);
+                $translation = $categorySource->getTranslationIn(Language::PREVIOUS_TRANSLATIONS_SYSTEM_SLUG);
             }
+
             $translations[] = [
                 'tooltip' => str_replace("\n",'<br>', $categorySource->getTooltip()) ,
                 'original' => $originalTranslation,
