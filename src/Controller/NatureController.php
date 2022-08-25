@@ -167,10 +167,11 @@ class NatureController extends AbstractController
             $entityManager->persist($nature);
             $entityManager->flush();
 
-            $natureLabel = $data['label'];
-            return new JsonResponse([
-                'success' => true,
-                'msg' => $translation->trans('natures.une nature') . " <strong>$natureLabel</strong> a bien été créée."
+            return $this->json([
+                "success" => true,
+                "msg" => $translation->translate("Référentiel", "Natures", "La nature {1} a bien été créée", [
+                    1 => $data["label"],
+                ])
             ]);
         }
         throw new BadRequestHttpException();

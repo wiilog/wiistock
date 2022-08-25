@@ -2,7 +2,7 @@
     <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
-                title: 'Créer <span title="une nature">' ~ ('natures.une nature' | trans) ~ '</span>'
+                title: trans('Référentiel', 'Natures', 'Création de nature'),
             } %}
 
             <div class="modal-body modal-input container-fluid">
