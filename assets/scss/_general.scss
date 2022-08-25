@@ -226,6 +226,11 @@ a {
     width: 40px;
 }
 
+.wh-18px {
+    width: 18px;
+    height: 18px;
+}
+
 .w-300px, .w-300px + .select2.select2-container {
     width: 300px !important;
 }
@@ -236,6 +241,10 @@ a {
 
 .w-22 {
     width: 22% !important;
+}
+
+.w-20 {
+    width: 20% !important;
 }
 
 .w-fit-content {

@@ -50,13 +50,11 @@ class NatureService
         $typeRepository = $this->manager->getRepository(Type::class);
         $userLanguage = $this->security->getUser()->getLanguage();
         $label = $nature->getLabel();
-        dump($label);
 
         if ($userLanguage !== $this->manager->getRepository(Language::class)->find(1)
             && $nature->getLabelTranslation() && $nature->getLabelTranslation()->getTranslationIn($userLanguage->getSlug())) {
             $label = $nature->getLabelTranslation()->getTranslationIn($userLanguage->getSlug())->getTranslation();
         }
-        dump($label);
 
         return [
             'label' => $label,

@@ -191,7 +191,7 @@ textarea {
 }
 
 .tooltip-logo{
-    width: 15x;
+    width: 15px;
     height: 15px;
     margin-right: 3px;
 }
@@ -216,4 +216,21 @@ textarea {
 
 .tooltip-wide .tooltip.bottom, .tooltip-inner  {
     max-width: none;
+}
+
+.modalDialogEditTranslations {
+    @media (max-width: $responsive-breakpoint) {
+        width: calc(100% - 20px);
+    }
+}
+
+.edit-status-translation {
+    padding: 0rem !important;
+}
+
+.status-translation {
+    &.border-bottom {
+        border-bottom: 1px solid $medium-grey;
+    }
+    padding: 10px 1rem 13px 1rem;
 }

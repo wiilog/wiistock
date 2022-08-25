@@ -1015,11 +1015,16 @@ class SettingsController extends AbstractController {
                         'types' => $this->typeGenerator(CategoryType::DEMANDE_DISPATCH),
                         'category' => CategoryType::DEMANDE_DISPATCH,
                     ],
-                    self::MENU_STATUSES => fn() => [
-                        'types' => $this->typeGenerator(CategoryType::DEMANDE_DISPATCH, false),
-                        'categoryType' => CategoryType::DEMANDE_DISPATCH,
-                        'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_DISPATCH),
-                    ],
+                    self::MENU_STATUSES => function() {
+                        $types = $this->typeGenerator(CategoryType::DEMANDE_DISPATCH, false);
+                        $types[0]["checked"] = true;
+
+                        return [
+                            'types' => $types,
+                            'categoryType' => CategoryType::DEMANDE_DISPATCH,
+                            'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_DISPATCH),
+                        ];
+                    },
                 ],
                 self::MENU_ARRIVALS => [
                     self::MENU_FIXED_FIELDS => function() use ($fixedFieldRepository) {

@@ -170,6 +170,7 @@ class Language {
         return [
             'label' => $this->getLabel(),
             'value' => $this->getId(),
+            'slug' => $this->getSlug(),
             'iconUrl' => $this->getFlag(),
             'checked' => $user->getLanguage()->getId() === $this->getId()
         ];

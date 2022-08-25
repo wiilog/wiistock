@@ -5,12 +5,17 @@ namespace App\Controller\Settings;
 use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
+use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\Statut;
+use App\Entity\Translation;
+use App\Entity\TranslationSource;
 use App\Entity\Type;
 use App\Helper\FormatHelper;
 use App\Service\StatusService;
+use App\Service\TranslationService;
 use App\Service\UserService;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpClient\Exception\InvalidArgumentException;
@@ -41,6 +46,7 @@ class StatusController extends AbstractController
                                 StatusService          $statusService,
                                 EntityManagerInterface $entityManager): JsonResponse {
         $edit = $request->query->getBoolean("edit");
+        $translate = $request->query->getBoolean("translate");
         $mode = $request->query->get("mode");
         $typeId = $request->query->get("type");
 
@@ -126,6 +132,10 @@ class StatusController extends AbstractController
                     "automaticReceptionCreation" => "<div class='checkbox-container'><input type='checkbox' name='automaticReceptionCreation' class='form-control data $showAutomaticReceptionCreation' {$automaticReceptionCreation}/></div>",
                     "order" => "<input type='number' name='order' min='1' value='{$status->getDisplayOrder()}' class='form-control data needed px-2 text-center' data-no-arrow/>",
                 ];
+            } else if ($translate) {
+                $data[] = [
+
+                ];
             } else {
                 $data[] = [
                     "actions" => $actionColumn,
@@ -202,5 +212,111 @@ class StatusController extends AbstractController
                 "msg" => "Le statut a été supprimé",
             ]);
         }
+    }
+
+    /**
+     * @Route("/status-api/edit/translate", name="settings_edit_status_translations_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::EDIT})
+     */
+    public function apiEditTranslations(Request $request,
+                                        EntityManagerInterface $manager,
+                                        TranslationService $translationService): JsonResponse
+    {
+        $data = $request->request;
+
+        $mode = $data->get("mode");
+        $typeId = $data->get("type");
+
+        $statusRepository = $manager->getRepository(Statut::class);
+        $typeRepository = $manager->getRepository(Type::class);
+
+        $category = match ($mode) {
+            self::MODE_ARRIVAL_DISPUTE => CategorieStatut::DISPUTE_ARR,
+            self::MODE_RECEPTION_DISPUTE => CategorieStatut::LITIGE_RECEPT,
+            self::MODE_PURCHASE_REQUEST => CategorieStatut::PURCHASE_REQUEST,
+            self::MODE_ARRIVAL => CategorieStatut::ARRIVAGE,
+            self::MODE_DISPATCH => CategorieStatut::DISPATCH,
+            self::MODE_HANDLING => CategorieStatut::HANDLING
+        };
+
+        $type = $typeId ? $typeRepository->find($typeId) : null;
+        $statuses = $statusRepository->findStatusByType($category, $type);
+
+        foreach ($statuses as $status) {
+            if ($status->getLabelTranslation() === null) {
+                $translationService->setFirstTranslation($manager, $status->getId(), Statut::class, $status->getNom());
+            }
+        }
+        $manager->flush();
+
+        $html = $this->renderView('settings/modal_edit_translations_content.html.twig', [
+            'statuses' => $statuses,
+            'last_status' => end($statuses)
+        ]);
+
+        return new JsonResponse([
+            'success' => true,
+            'html' => $html
+            ]);
+    }
+
+    /**
+     * @Route("/status/edit/translate", name="settings_edit_status_translations", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
+     */
+    public function editTranslations(Request $request,
+                                     EntityManagerInterface $manager,
+                                     TranslationService $translationService): JsonResponse
+    {
+        if ($data = json_decode($request->getContent(), true)) {
+            $statusRepository = $manager->getRepository(Statut::class);
+            $statusesId[] = json_decode($data['status'], true);
+
+            $statuses = [];
+            foreach ($statusesId[0] as $statusId) {
+                $statuses[] = $statusRepository->find((int)($statusId));
+            }
+
+            foreach ($statuses as $status) {
+                $name = 'labels-'.$status->getId();
+                $labels = $data[$name];
+                $frenchName = $status->getNom();
+                $labelTranslationSource = $status->getLabelTranslation();
+
+                foreach ($labels as $label) {
+                    if (preg_match("[[,;]]", $label['label'])) {
+                        return $this->json([
+                            "success" => false,
+                            "msg" => "Le nom d'un statut ne peut pas contenir ; ou ,",
+                        ]);
+                    }
+
+                    $existingNatures = Stream::from($statusRepository->findBy(["nom" => $label['label'], "type" => $status->getType()]))
+                        ->filter(fn(Statut $fnStatus) => $fnStatus->getId() != $status->getId())
+                        ->count();
+
+                    if ($existingNatures > 0) {
+                        return $this->json([
+                            "success" => false,
+                            "msg" => "Un statut existe déjà avec ce libellé",
+                        ]);
+                    }
+
+                    $frenchName = $label['language-id'] == "1" ? $label['label'] : $frenchName;
+                }
+
+                $translationService->editEntityTranslations($manager, $labels, $labelTranslationSource);
+
+                $status->setNom($frenchName);
+            }
+
+            $manager->flush();
+
+            return new JsonResponse([
+                'success' => true,
+                'msg' => "Les traductions ont bien été modifiées."
+            ]);
+        }
+        throw new BadRequestHttpException();
     }
 }

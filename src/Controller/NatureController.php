@@ -19,13 +19,13 @@ use App\Service\UserService;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Service\TranslationService;
+use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
 /**
@@ -191,16 +191,7 @@ class NatureController extends AbstractController
             $nature = $natureRepository->find($data['id']);
 
             if ($nature->getLabelTranslation() === null) {
-                $labelTranslation = new TranslationSource();
-                $frenchLabel = $nature->getLabel();
-                $frenchTranslation = new Translation();
-
-                $frenchTranslation
-                    ->setLanguage($manager->getRepository(Language::class)->find(1))
-                    ->setSource($labelTranslation)
-                    ->setTranslation($frenchLabel);
-                $labelTranslation->addTranslation($frenchTranslation);
-                $nature->setLabelTranslation($labelTranslation);
+                $translationService->setFirstTranslation($manager, $nature->getId(), Nature::class, $nature->getLabel());
             }
 
             $translations = new ArrayCollection();
@@ -231,7 +222,8 @@ class NatureController extends AbstractController
      * @HasPermission({MENU::REFERENTIEL, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function edit(Request $request,
-                         EntityManagerInterface $entityManager): Response
+                         EntityManagerInterface $entityManager,
+                         TranslationService $translationService): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
             $natureRepository = $entityManager->getRepository(Nature::class);
@@ -264,23 +256,7 @@ class NatureController extends AbstractController
                 $frenchLabel = $label['language-id'] == "1" ? $label['label'] : $frenchLabel;
             }
 
-            foreach ($labels as $label) {
-                $labelLanguage = $entityManager->getRepository(Language::class)->find($label['language-id']);
-                $currentTranslation = $labelTranslationSource->getTranslationIn($labelLanguage->getSlug());
-
-                if (!$currentTranslation) {
-                    $newTranslation = new Translation();
-                    $newTranslation
-                        ->setTranslation($label['label'])
-                        ->setSource($labelTranslationSource)
-                        ->setLanguage($labelLanguage);
-
-                    $labelTranslationSource->addTranslation($newTranslation);
-                    $entityManager->persist($newTranslation);
-                } else {
-                    $currentTranslation->setTranslation($label['label']);
-                }
-            }
+            $translationService::class->editEntityTranslations($entityManager, $labels, $labelTranslationSource);
 
             $currentNature
                 ->setLabel($frenchLabel)

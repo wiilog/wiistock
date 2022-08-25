@@ -4,6 +4,7 @@ namespace App\DataFixtures;
 
 use App\Entity\Language;
 use App\Entity\Nature;
+use App\Entity\Statut;
 use App\Entity\Translation;
 use App\Entity\TranslationCategory;
 use App\Entity\TranslationSource;
@@ -2245,21 +2246,28 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
 
 
     private function initTranslationSources() {
-        $natures = $this->manager->getRepository(Nature::class)->findBy(['labelTranslation' => null]);
-
-        foreach ($natures as $nature) {
-            $natureSource = new TranslationSource();
-            $this->manager->persist($natureSource);
-
-            $natureTranslation = new Translation();
-            $natureTranslation
-                ->setLanguage($this->getLanguage(Translation::FRENCH_SLUG))
-                ->setSource($natureSource)
-                ->setTranslation($nature->getLabel());
-
-            $natureSource->addTranslation($natureTranslation);
-            $nature->setLabelTranslation($natureSource);
-            $this->manager->persist($natureTranslation);
+        $classes = [Nature::class, Statut::class];
+        $entities = [];
+        foreach ($classes as $class) {
+            $entities = $this->manager->getRepository($class)->findBy(['labelTranslation' => null]);
         }
+        Stream::from($entities)->flatten()->toArray();
+
+        foreach ($entities as $entity) {
+            $entitySource = new TranslationSource();
+            $this->manager->persist($entitySource);
+
+            $entityTranslation = new Translation();
+            $entityTranslation
+                ->setLanguage($this->getLanguage(Translation::FRENCH_SLUG))
+                ->setSource($entitySource)
+                ->setTranslation($entity->getNom());
+
+            $entitySource->addTranslation($entityTranslation);
+            $entity->setLabelTranslation($entitySource);
+            $this->manager->persist($entityTranslation);
+        }
+
+
     }
 }
