@@ -126,7 +126,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 ],
                 'chartColorsLabels' => [
                     'Arrivages',
-                    'Colis'
+                    'Unité logistique'
                 ],
                 'chartData' => [
                     '04/01' => 5,
@@ -225,7 +225,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 ],
                 'chartColorsLabels' => [
                     'Arrivages',
-                    'Colis'
+                    'Unité logistique'
                 ],
                 'chartData' => [
                     'S01' => 102,
