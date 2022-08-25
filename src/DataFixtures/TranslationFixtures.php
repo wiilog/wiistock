@@ -234,8 +234,73 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     "tooltip" => "Composant \"Demande en cours\"",
                 ],
                 [
+                    "fr" => "Date de traitement non estimée",
+                    "en" => "Process date not estimated",
+                    "tooltip" => "Composant \"Demande en cours\"",
+                ],
+                [
+                    "fr" => "Date de livraison non estimée",
+                    "en" => "Delivery date not estimated",
+                    "tooltip" => "Composant \"Demande en cours\"",
+                ],
+                [
+                    "fr" => "Date de collecte non estimée",
+                    "en" => "Collect date not estimated",
+                    "tooltip" => "Composant \"Demande en cours\"",
+                ],
+                [
+                    "fr" => "Date de transfert non estimée",
+                    "en" => "Transfer date not estimated",
+                    "tooltip" => "Composant \"Demande en cours\"",
+                ],
+                [
+                    "fr" => "Date et heure d'acheminement prévue",
+                    "en" => "Expected date and hour of shipment",
+                    "tooltip" => "Composant \"Demande en cours\"",
+                ],
+                [
+                    "fr" => "Date et heure de transfert prévue",
+                    "en" => "Expected date and hour of transfer",
+                    "tooltip" => "Composant \"Demande en cours\"",
+                ],
+                [
+                    "fr" => "Date et heure de collecte prévue",
+                    "en" => "Expected date and hour of collect",
+                    "tooltip" => "Composant \"Demande en cours\"",
+                ],
+                [
+                    "fr" => "Date et heure de traitement prévue",
+                    "en" => "Expected date and hour of process",
+                    "tooltip" => "Composant \"Demande en cours\"",
+                ],
+                [
+                    "fr" => "Date et heure de livraison prévue",
+                    "en" => "Expected date and hour of delivery",
+                    "tooltip" => "Composant \"Demande en cours\"",
+                ],
+                [
                     "fr" => "Heure de traitement estimée",
-                    "en" => "Estimated processing time",
+                    "en" => "Estimated process time",
+                    "tooltip" => "Composant \"Demande en cours\"",
+                ],
+                [
+                    "fr" => "Heure d'acheminement estimée",
+                    "en" => "Estimated transport time",
+                    "tooltip" => "Composant \"Demande en cours\"",
+                ],
+                [
+                    "fr" => "Heure de collecte estimée",
+                    "en" => "Estimated collect time",
+                    "tooltip" => "Composant \"Demande en cours\"",
+                ],
+                [
+                    "fr" => "Heure de livraison estimée",
+                    "en" => "Estimated delivery time",
+                    "tooltip" => "Composant \"Demande en cours\"",
+                ],
+                [
+                    "fr" => "Heure de transfert estimée",
+                    "en" => "Estimated delivery time",
                     "tooltip" => "Composant \"Demande en cours\"",
                 ],
                 [
@@ -249,8 +314,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     "tooltip" => "Composant \"Nombre de services du jour\", coche \"Afficher le nombre d'opération(s) réalisé(s) de la journée\"",
                 ],
                 [
-                    "fr" => "urgences",
-                    "en" => "Urgencies",
+                    "fr" => "Dont {1} urgences",
+                    "en" => "Including {1} urgencies",
                     "tooltip" => "Composant \"Nombre de services du jour\", coche \"Afficher le nombre d'urgences de la journée\"",
                 ],
                 [

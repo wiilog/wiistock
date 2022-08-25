@@ -60,6 +60,9 @@ class DashboardSettingsService {
     /** @Required */
     public RouterInterface $router;
 
+    /** @Required */
+    public TranslationService $translationService;
+
     public function serialize(EntityManagerInterface $entityManager, ?Utilisateur $user, int $mode): string {
         $pageRepository = $entityManager->getRepository(Dashboard\Page::class);
 
@@ -353,8 +356,10 @@ class DashboardSettingsService {
             $segments = $config['segments'] ?? [];
             if (!empty($segments)) {
                 $segmentsLabels = [
-                    'Retard',
-                    'Moins d\'1h'
+                    $this->translationService->translate("Dashboard", "Retard"),
+                    $this->translationService->translate("Dashboard", "Moins d'{1}", [
+                        1 => "1h"
+                    ])
                 ];
                 $lastKey = "1";
                 foreach ($segments as $segment) {
@@ -443,8 +448,10 @@ class DashboardSettingsService {
                 $values = [
                     'subtitle' => '-',
                     'subCounts' => [
-                        '<span class="text-wii-success">-</span> <span class="text-wii-black">lignes</span>',
-                        '<span class="text-wii-black">Dont</span> <span class="text-wii-danger">-</span> <span class="text-wii-black">urgences</span>'
+                        '<span class="text-wii-success">-</span> <span class="text-wii-black">'.$this->translationService->translate('Dashboard', 'lignes').'</span>',
+                        '<span class="text-wii-black">'.$this->translationService->translate('Dashboard', 'Dont {1} urgences', [
+                            1 => '<span class="text-wii-danger">-</span>'
+                        ]).'</span>'
                     ],
                     'count' => '-',
                 ];

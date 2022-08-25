@@ -34,6 +34,7 @@ use App\Entity\WorkFreeDay;
 use App\Entity\Wiilock;
 use App\Helper\FormatHelper;
 use App\Helper\QueryCounter;
+use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -51,19 +52,19 @@ class DashboardService {
     public const DAILY_PERIOD_NEXT_DAYS = 'nextDays';
     public const DAILY_PERIOD_PREVIOUS_DAYS = 'previousDays';
 
-    private $enCoursService;
-    private $entityManager;
-    private $wiilockService;
+    #[Required]
+    public EnCoursService $enCoursService;
+
+    #[Required]
+    public EntityManagerInterface $entityManager;
+
+    #[Required]
+    public WiilockService $wiilockService;
+
+    #[Required]
+    public TranslationService $translationService;
 
     private $cacheDaysWorked;
-
-    public function __construct(EnCoursService $enCoursService,
-                                WiilockService $wiilockService,
-                                EntityManagerInterface $entityManager) {
-        $this->entityManager = $entityManager;
-        $this->enCoursService = $enCoursService;
-        $this->wiilockService = $wiilockService;
-    }
 
     public function refreshDate(EntityManagerInterface $entityManager): string {
         $wiilockRepository = $entityManager->getRepository(Wiilock::class);
@@ -257,9 +258,11 @@ class DashboardService {
 
         foreach ($timeSpans as $timeBegin => $timeEnd) {
             $key = $timeBegin === -1
-                ? "Retard"
+                ? $this->translationService->translate("Dashboard", "Retard")
                 : ($timeEnd === 1
-                    ? "Moins d'1h"
+                    ? $this->translationService->translate("Dashboard", "Moins d'{1}", [
+                        1 => "1h"
+                    ])
                     : ($timeBegin . "h-" . $timeEnd . 'h'));
             $timeSpanToObject[$key] = $getObject($timeBegin, $timeEnd);
         }
@@ -354,11 +357,10 @@ class DashboardService {
         $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Indicator::class);
         $secondCount = '<span>'
             . ($numberOfOperations ?? '0')
-            . '</span><span class="text-wii-black"> lignes</span>';
-        $thirdCount = '<span class="text-wii-black">Dont</span>'
-            .' <span>'
-            . $numberOfEmergenciesHandlings
-            . '</span> <span class="text-wii-black"> urgences</span>';
+            . '</span><span class="text-wii-black"> '.$this->translationService->translate('Dashboard', 'lignes').'</span>';
+        $thirdCount = '<span class="text-wii-black">'.$this->translationService->translate('Dashboard', 'Dont {1} urgences', [
+                1 => '<span class="text-wii-danger">'.$numberOfEmergenciesHandlings.'</span>'
+            ]).'</span>';
 
         $meter
             ->setCount($numberOfHandlings)

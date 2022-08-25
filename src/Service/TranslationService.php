@@ -80,7 +80,7 @@ class TranslationService {
         }
 
         if(!isset($user)) {
-            $user = $this->tokenStorage->getToken()->getUser();
+            $user = $this->tokenStorage->getToken()?->getUser();
             $slug = $user?->getLanguage()?->getSlug();
         }
 
