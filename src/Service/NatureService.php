@@ -3,22 +3,28 @@
 
 namespace App\Service;
 
+use App\Entity\Language;
 use App\Entity\Nature;
 use App\Entity\Transport\TemperatureRange;
 use App\Entity\Type;
 use App\Helper\FormatHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\InputBag;
+use Symfony\Component\Security\Core\Security;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
 class NatureService
 {
-    /** @Required */
+    #[Required]
     public Twig_Environment $templating;
 
-    /** @Required */
+    #[Required]
     public EntityManagerInterface $manager;
+
+    #[Required]
+    public Security $security;
 
     public function getDataForDatatable(InputBag $params)
     {
@@ -42,9 +48,18 @@ class NatureService
     public function dataRowNature(Nature $nature): array
     {
         $typeRepository = $this->manager->getRepository(Type::class);
+        $userLanguage = $this->security->getUser()->getLanguage();
+        $label = $nature->getLabel();
+        dump($label);
+
+        if ($userLanguage !== $this->manager->getRepository(Language::class)->find(1)
+            && $nature->getLabelTranslation() && $nature->getLabelTranslation()->getTranslationIn($userLanguage->getSlug())) {
+            $label = $nature->getLabelTranslation()->getTranslationIn($userLanguage->getSlug())->getTranslation();
+        }
+        dump($label);
 
         return [
-            'label' => $nature->getLabel(),
+            'label' => $label,
             'code' => $nature->getCode(),
             'defaultQuantity' => $nature->getDefaultQuantity() ?? 'Non définie',
             'prefix' => $nature->getPrefix() ?? 'Non défini',
