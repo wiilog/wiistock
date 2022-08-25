@@ -4,9 +4,12 @@ namespace App\Service;
 
 use App\Entity\Language;
 use App\Entity\Translation;
+use App\Entity\TranslationCategory;
+use App\Entity\TranslationSource;
 use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
@@ -37,36 +40,128 @@ class TranslationService {
             return "BUG TICKET: $in";
     }
 
-    public function translate(?string $category, ?string $menu, ?string $submenu, ?string $input, ?Utilisateur $user = null): string {
-        if(!$user) {
-            $user = $this->tokenStorage->getToken()->getUser();
-            $slug = $user?->getLanguage()?->getSlug();
+    /**
+     * Translates the given input
+     * The function expects from 1 to 4 strings, then an array of
+     * strings to replace or a user or both in any order.
+     *
+     * Example usage with more or less string inputs and with and without custom user and params array :
+     * translate("Traçabilité", "Unités logistiques", "Onglet \"Groupes\"", "Groupes")
+     * translate("Traçabilité", "Unités logistiques", "Onglet \"Groupes\"", "Groupes", $customUser)
+     *
+     * translate("Traçabilité", "Unités logistiques", "Onglet \"Groupes\"", "Mouvementé la dernière fois le {1}", [1 => "DATE"])
+     * translate("Traçabilité", "Unités logistiques", "Onglet \"Groupes\"", "Mouvementé la dernière fois le {1}", [1 => "DATE"], $customUser)
+     *
+     * translate("Référentiel", "Natures", "Sélectionner une nature")
+     * translate("Référentiel", "Natures", "Sélectionner une nature", $customUser)
+     *
+     * translate("Référentiel", "Natures", "La nature {1} a bien été créée", [1 => "NOMNATURE"])
+     * translate("Référentiel", "Natures", "La nature {1} a bien été créée", [1 => "NOMNATURE"], $customUser)
+     *
+     * @param mixed ...$args Arguments
+     * @return string Translated input
+     */
+    public function translate(mixed... $args): string {
+        $user = null;
+        foreach($args as $arg) {
+            if ($arg instanceof Utilisateur) {
+                $user = $arg;
+            }
         }
 
-        $slug = $slug ?? "default";
-        if(!isset($translations[$slug])) {
-            $this->translations[$slug] = $this->cacheService->get(CacheService::TRANSLATIONS, $slug, function() {
-                $this->generateCache();
-                $this->generateJavascripts();
-            }) ?? [];
+        if(!isset($user)) {
+            $user = $this->tokenStorage->getToken()->getUser();
+        }
+
+        $slug = $user?->getLanguage()?->getSlug();
+
+        if($slug === Language::FRENCH_SLUG) {
+            $defaultSlug = Language::FRENCH_DEFAULT_SLUG;
+        } else if($slug === Language::ENGLISH_SLUG) {
+            $defaultSlug = Language::ENGLISH_DEFAULT_SLUG;
+        } else {
+            $defaultSlug = $this->getDefaultSlug();
+        }
+
+        if($trans = $this->translateIn($slug, $defaultSlug, false, ...$args)) {
+            return $trans;
+        } else if($defaultSlug === Language::FRENCH_SLUG) {
+            //peut-être optimisable en refactorant le cache
+            return $this->translateIn(Language::FRENCH_SLUG, $defaultSlug, false, ...$args)
+                ?? $this->translateIn(Language::FRENCH_DEFAULT_SLUG, $defaultSlug, true, ...$args);
+        } else {
+            //peut-être optimisable en refactorant le cache
+            return $this->translateIn(Language::ENGLISH_SLUG, $defaultSlug, false, ...$args)
+                ?? $this->translateIn(Language::ENGLISH_DEFAULT_SLUG, $defaultSlug, true, ...$args);
+        }
+    }
+
+    public function translateIn(string $slug, string $defaultSlug, bool $lastResort, mixed... $args): ?string {
+        $variables = ["category", "menu", "submenu", "input"];
+        foreach($variables as $variable) {
+            $$variable = null;
+        }
+
+        $enableTooltip = true;
+        foreach($args as $arg) {
+            if(is_array($arg)) {
+                $params = $arg;
+            }if(is_bool($arg)) {
+                $enableTooltip = $arg;
+            } else if(!($arg instanceof Utilisateur)) {
+                if(empty($variables)) {
+                    throw new RuntimeException("Too many arguments, expected at most 4 strings, 1 array, 1 boolean and 1 user");
+                }
+
+                ${array_shift($variables)} = $arg;
+            }
+        }
+
+        if(!isset($this->translations[$slug])) {
+            $this->generateCache($slug);
+            $this->generateJavascripts();
         }
 
         $transCategory = $this->translations[$slug][$category ?: null] ?? null;
         if(!is_array($transCategory)) {
-            return $transCategory ?? $input ?? $submenu ?? $menu ?? $category;
+            $output = $transCategory ?? ($lastResort ? $input ?? $submenu ?? $menu ?? $category : null);
         }
 
-        $transMenu = $transCategory[$menu ?: null] ?? null;
-        if(!is_array($transMenu)) {
-            return $transMenu ?? $input ?? $submenu ?? $menu;
+        if(!isset($output)) {
+            $transMenu = $transCategory[$menu ?: null] ?? null;
+            if (!is_array($transMenu)) {
+                $output = $transMenu ?? ($lastResort ? $input ?? $submenu ?? $menu : null);
+            }
         }
 
-        $transSubmenu = $transMenu[$submenu ?: null] ?? null;
-        if(!is_array($transSubmenu)) {
-            return $transSubmenu ?? $input ?? $submenu;
+        if(!isset($output)) {
+            $transSubmenu = $transMenu[$submenu ?: null] ?? null;
+            if (!is_array($transSubmenu)) {
+                $output = $transSubmenu ?? ($lastResort ? $input ?? $submenu : null);
+            }
         }
 
-        return $transSubmenu[$input ?: null] ?? $input;
+        if(!isset($output)) {
+            $output = $transSubmenu[$input ?: null] ?? ($lastResort ? $input : null);
+        }
+
+        if($output === null) {
+            return null;
+        }
+
+        if(isset($params)) {
+            foreach($params as $key => $value) {
+                $output = str_replace("{$key}", $value, $output);
+            }
+        }
+
+        if($slug === $defaultSlug) {
+            $tooltip = htmlspecialchars($output);
+        } else {
+            $tooltip = htmlspecialchars($this->translateIn($defaultSlug, $defaultSlug, true, false, ...$args));
+        }
+
+        return $enableTooltip ? "<span title='$tooltip'>$output</span>" : $output;
     }
 
     private function createCategoryStack(Translation $translation): array {
@@ -83,9 +178,10 @@ class TranslationService {
 
     public function generateCache(?string $slug = null) {
         $languageRepository = $this->manager->getRepository(Language::class);
-        $translationRepository = $this->manager->getRepository(Translation::class);
+        $translationSourceRepository = $this->manager->getRepository(TranslationSource::class);
 
         $languages = $slug ? $languageRepository->findBy(["slug" => $slug]) : $languageRepository->findAll();
+        $sources = $translationSourceRepository->findAll();
 
         /** @var Language $language */
         foreach($languages as $language) {
@@ -93,8 +189,9 @@ class TranslationService {
             $this->translations[$slug] = [];
 
             /** @var Translation $translation */
-            foreach($translationRepository->findBy(["language" => $language]) as $translation) {
-                $original = $translation->getSource()->getTranslationIn("french")->getTranslation();
+            foreach($sources as $source) {
+                $original = $source->getTranslationIn(Language::FRENCH_DEFAULT_SLUG);
+                $translation = $source->getTranslationIn($slug) ?? $original;
 
                 $zoomedTranslations = &$this->translations[$slug];
                 $stack = $this->createCategoryStack($translation);
@@ -106,36 +203,44 @@ class TranslationService {
                     $zoomedTranslations = &$zoomedTranslations[$category->getLabel()];
                 }
 
-                $zoomedTranslations[$original] = $translation->getTranslation();
+                $zoomedTranslations[$original->getTranslation()] = $translation->getTranslation();
             }
 
             $this->cacheService->set(CacheService::TRANSLATIONS, $slug, $this->translations[$slug]);
-            if($language->getSelected()) {
+            if ($language->getSelected()) {
                 $this->cacheService->set(CacheService::TRANSLATIONS, "default", $this->translations[$slug]);
             }
         }
     }
 
-    public function generateJavascripts(?string $slug = null) {
+    public function generateJavascripts() {
         $languageRepository = $this->manager->getRepository(Language::class);
         $outputDirectory = "{$this->kernel->getProjectDir()}/public/generated";
 
-        $languages = $slug ? $languageRepository->findBy(["slug" => $slug]) : $languageRepository->findAll();
+        $languages = $languageRepository->findAll();
 
         /** @var Language $language */
         foreach($languages as $language) {
             $slug = $language->getSlug();
-            $translations = $this->cacheService->get(CacheService::TRANSLATIONS, $slug) ?? [];
-            $content = "const TRANSLATIONS = " . json_encode($translations) . ";";
-
-            file_put_contents("$outputDirectory/translations.$slug.js", $content);
-            if($language->getSelected()) {
-                file_put_contents(
-                    "$outputDirectory/translations.default.js",
-                    "const DEFAULT_TRANSLATIONS = " . json_encode($translations) . ";"
-                );
+            if(!isset($this->translations[$slug])) {
+                $this->generateCache($slug);
             }
         }
+
+        $content = "//generated file for translations\n";
+        $content .= "const DEFAULT_SLUG = `{$this->getDefaultSlug()}`;\n";
+        $content .= "const TRANSLATIONS = " . json_encode($this->translations) . ";\n";
+
+        file_put_contents("$outputDirectory/translations.js", $content);
+    }
+
+    private function getDefaultSlug(): string {
+        return $this->cacheService->get(CacheService::LANGUAGES, "default-language-slug", function () {
+            $languageRepository = $this->manager->getRepository(Language::class);
+            $defaultLanguage = $languageRepository->findOneBy(["selected" => true]);
+
+            return $defaultLanguage->getSlug();
+        });
     }
 
 //    private $kernel;

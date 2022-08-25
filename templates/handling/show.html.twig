@@ -11,21 +11,21 @@
                 <div class="d-flex align-items-center mr-3">
                     <div class="mx-2">
                         <div class="dropdown dropright">
-                            <div class="d-flex pointer" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <img alt="Actions" src="{{ asset('svg/dotsblack.svg') }}" height="20px" width="8px">
-                            </div>
-                            <div class="dropdown-menu dropdown-follow-gt pointer">
-                                {% set canDelete = handling.status.treated != 1 and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_UNPROCESSED_HANDLING'))
-                                    or handling.status.treated == 1 and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_PROCESSED_HANDLING')) %}
-
-                                {% if canDelete %}
-                                    <div class="dropdown-item d-flex align-items-center" data-id="{{ handling.id }}" data-target="#modalDeleteHandling" data-toggle="modal"
+                            {% set canDelete = hasRight(constant('App\\Entity\\Menu::DEM'),constant('App\\Entity\\Action::DELETE'))
+                                and ( handling.status.treated != 1 and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_UNPROCESSED_HANDLING'))
+                                    or handling.status.treated == 1 and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_PROCESSED_HANDLING'))) %}
+                            {% if canDelete %}
+                                <div class="d-flex pointer" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <img alt="Actions" src="{{ asset('svg/dotsblack.svg') }}" height="20px" width="8px">
+                                </div>
+                                <div class="dropdown-menu dropdown-follow-gt pointer">
+                                    <div class="dropdown-item" data-id="{{ handling.id }}" data-target="#modalDeleteHandling" data-toggle="modal"
                                          onclick="deleteRow($(this), $('#modalDeleteHandling'), $('#submitDeleteHandling'))">
                                         <span class="wii-icon wii-icon-trash-black mr-2"></span>
                                         Supprimer
                                     </div>
-                                {% endif %}
-                            </div>
+                                </div>
+                            {% endif %}
                         </div>
                     </div>
                     <div class="d-flex py-2 w-100 justify-content-between">
@@ -52,7 +52,7 @@
                         <strong>{{ emergency }}</strong>
                     </div>
                 {% endif %}
-                <div class="content row no-gutters {{ not (fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') or fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') and emergency) ?  'bordered' }}">
+                <div class="content row no-gutters bordered">
                     <div class="col-6 d-flex flex-column">
                         <div class="box-item my-2">
                             <span class="wii-field-name">Type</span>
@@ -246,11 +246,13 @@
                 </div>
             </div>
             <div class="w-100 d-flex flex-row-reverse">
-                <a href="{{ path('handling_edit_page',{ id: handling.id }) }}">
-                    <button id="" name='' type="button" class="btn btn-success data mt-2">
-                        Modifier
-                    </button>
-                </a>
+                {% if hasRight(constant('App\\Entity\\Menu::DEM'),constant('App\\Entity\\Action::EDIT')) %}
+                    <a href="{{ path('handling_edit_page',{ id: handling.id }) }}">
+                        <button id="" name='' type="button" class="btn btn-success data mt-2">
+                            Modifier
+                        </button>
+                    </a>
+                {% endif %}
             </div>
         </div>
     </div>

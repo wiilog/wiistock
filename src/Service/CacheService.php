@@ -39,6 +39,7 @@ class CacheService
         if(!$this->filesystem->isFile("$namespace/$key")) {
             $this->filesystem->remove("$namespace/$key");
         }
+
         $this->filesystem->dumpFile("$namespace/$key", serialize($value));
     }
 

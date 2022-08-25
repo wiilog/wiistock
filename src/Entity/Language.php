@@ -27,7 +27,7 @@ class Language {
     public const ENGLISH_SLUG = 'english';
     public const NEW_SLUG = 'NEW';
 
-    public const OLD_TRANSLATIONS_SLUG = self::FRENCH_SLUG;
+    public const PREVIOUS_TRANSLATIONS_SYSTEM_SLUG = self::FRENCH_SLUG;
     public const DEFAULT_LANGUAGE_SLUG = self::FRENCH_DEFAULT_SLUG;
 
     public const DEFAULT_LANGUAGE_TRANSLATIONS = [
@@ -41,7 +41,6 @@ class Language {
         self::FRENCH_SLUG,
         self::ENGLISH_SLUG,
         self::NEW_SLUG
-
     ];
 
     #[Id]
