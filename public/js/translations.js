@@ -52,7 +52,7 @@ class Translation {
         };
 
         for(const arg of args) {
-            if(Array.isArray(arg)) {
+            if(typeof  arg === 'object') {
                 params = arg;
             } else if(typeof arg === `boolean`) {
                 enableTooltip = arg;
@@ -97,8 +97,8 @@ class Translation {
         }
 
         if(params !== null) {
-            for(const [key, value] of params) {
-                output = output.replaceAll(`{${key}`, value);
+            for(const [key, value] of Object.entries(params)) {
+                output = output.replaceAll(`{${key}}`, value);
             }
         }
 

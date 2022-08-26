@@ -36,8 +36,16 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "en" => "Filter",
                         ],
                         [
-                            "fr" => "Veuillez entrer au moins 1 caractère",
-                            "en" => "Please enter at least 1 character",
+                            "fr" => "Veuillez entrer au moins {1} caractère{2}.",
+                            "en" => "Please enter at least {1} character{2}.",
+                        ],
+                        [
+                            "fr" => "Recherche en cours...",
+                            "en" => "Research in progress...",
+                        ],
+                        [
+                            "fr" => "Aucun résultat.",
+                            "en" => "No results.",
                         ],
                         [
                             "fr" => "Ajouter des éléments",
@@ -93,20 +101,32 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "en" => "Displayed",
                         ],
                         [
-                            "fr" => "Enregister",
-                            "en" => "Save",
-                        ],
-                        [
-                            "fr" => "Fermer",
-                            "en" => "Close",
-                        ],
-                        [
                             "fr" => "Chargement en cours",
                             "en" => "Loading",
                         ],
                         [
                             "fr" => "Traitement en cours",
                             "en" => "Loading",
+                        ],
+                        [
+                            "fr" => "Vos préférences de colonnes à afficher ont bien été sauvegardées",
+                            "en" => "Your displayed columns preferences have been saved",
+                        ],
+                        [
+                            "fr" => "Vos préférences d'ordre de colonnes ont bien été enregistrées",
+                            "en" => "Your column order preferences have been saved",
+                        ],
+                        [
+                            "fr" => "Succès",
+                            "en" => "Success",
+                        ],
+                        [
+                            "fr" => "Erreur",
+                            "en" => "Error",
+                        ],
+                        [
+                            "fr" => "Information",
+                            "en" => "Information",
                         ],
                     ],
                 ],
@@ -118,7 +138,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "en" => "Custom fields",
                         ],
                         [
-                            "fr" => "commentaire",
+                            "fr" => "Commentaire",
                             "en" => "Comment",
                         ],
                         [
@@ -176,6 +196,46 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Aucune",
                             "en" => "None",
+                        ],
+                        [
+                            "fr" => "Enregistrer",
+                            "en" => "Save",
+                        ],
+                        [
+                            "fr" => "Veuillez renseigner le champ {1}",
+                            "en" => "Please fill in the field {1}",
+                        ],
+                        [
+                            "fr" => "Veuillez renseigner les champs : {1}",
+                            "en" => "Please fill in the fields {1}",
+                        ],
+                        [
+                            "fr" => "Veuillez saisir des dates dans le filtre en haut de page.",
+                            "en" => "Please enter dates in the filter at the top of the page.",
+                        ],
+                        [
+                            "fr" => "Veuillez renseigner au moins un {1}",
+                            "en" => "Please fill in at least one {1}",
+                        ],
+                        [
+                            "fr" => "L'opération est en cours de traitement",
+                            "en" => "The operation is currently being processed",
+                        ],
+                        [
+                            "fr" => "Le commentaire excède les {1} caractères maximum.",
+                            "en" => "The comment exceeds {1} characters maximum.",
+                        ],
+                        [
+                            "fr" => "Vous devez ajouter au moins une pièce jointe.",
+                            "en" => "You must add at least one attachment.",
+                        ],
+                        [
+                            "fr" => "\"{1}\" : Le format de votre pièce jointe n'est pas supporté. Le fichier doit avoir une extension.",
+                            "en" => "''{1}'' : The format of your attachment is not supported. The file must have an extension.",
+                        ],
+                        [
+                            "fr" => "\"{1}\" : La taille du fichier ne doit pas dépasser 10 Mo.",
+                            "en" => "\"{1}\": The file size must not exceed 10 MB.",
                         ],
                     ],
                 ],
@@ -370,16 +430,16 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                         [
                             "fr" => "Urgent",
-                            "en" => "Urgent",
+                            "en" => "Urgency",
                             "tooltip" => "Page Flux - Arrivages :\nZone liste - Nom de colonnes\nGestion des colonnes",
                         ],
                         [
                             "fr" => "Nombre d'UL",
-                            "en" => "Quantity L.U (Logistics unit)",
-                            "tooltip" => "Page Flux - Arrivages :\nZone liste - Nom de colonnes (renommage nb um -> Nombre d'UL)\nGestion des colonnes (renommage nb um -> Nombre d'UL)",
+                            "en" => "Quantity L.U",
+                            "tooltip" => "Page Flux - Arrivages :\nZone liste - Nom de colonnes\nGestion des colonnes",
                         ],
                         [
-                            "fr" => "Nouvel arrivage (mettre majuscule)",
+                            "fr" => "Nouvel arrivage",
                             "en" => "New arrival",
                             "tooltip" => "Page Flux - Arrivages :\nBouton\nModale Nouvel arrivage",
                         ],
@@ -414,13 +474,23 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Page Flux - Arrivages :\nModale Supprimer l'arrivage",
                         ],
                         [
-                            "fr" => "Liste des UL générées",
+                            "fr" => "(attention, un litige a été créé sur cet arrivage : il sera également supprimé)",
+                            "en" => "(attention, a dispute has been created on this arrival: it will also be deleted)",
+                            "tooltip" => "Page Flux - Arrivages :\nModale Supprimer l'arrivage",
+                        ],
+                        [
+                            "fr" => "Liste des UL générés",
                             "en" => "List of L.U",
-                            "tooltip" => "Page Flux - Arrivages :\nModale Liste des UL générées",
+                            "tooltip" => "Page Flux - Arrivages :\nModale Liste des UL générés",
                         ],
                         [
                             "fr" => "Impression",
                             "en" => "Print label",
+                            "tooltip" => "Page Flux - Arrivages :\nModale Liste des UL générées",
+                        ],
+                        [
+                            "fr" => "N° UL",
+                            "en" => "N°L.U.",
                             "tooltip" => "Page Flux - Arrivages :\nModale Liste des UL générées",
                         ],
                         [
@@ -537,7 +607,41 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Acheminer",
                             "en" => "Transfer",
-                            "tooltip" => "Détails arrivages - Entête - Bouton",
+                            "tooltip" => "Zone liste - Bouton\nDétails arrivages - Entête - Bouton",
+                        ],
+                    ],
+                ],
+                "Modale création nouvel arrivage" => [
+                    "content" =>[
+                        [
+                            "fr" => "Nom",
+                            "en" => "Surname",
+                            "tooltip" => "Création Fournisseur\nCréation Transporteur\nCréation Chauffeur",
+                        ],
+                        [
+                            "fr" => "Code",
+                            "en" => "Code",
+                            "tooltip" => "Création Fournisseur\nCréation Transporteur",
+                        ],
+                        [
+                            "fr" => "Prénom",
+                            "en" => "First name",
+                            "tooltip" => "Création Chauffeur",
+                        ],
+                        [
+                            "fr" => "DocumentID",
+                            "en" => "DocumentID",
+                            "tooltip" => "Création Chauffeur",
+                        ],
+                        [
+                            "fr" => "Type à choisir...",
+                            "en" => "Choose a type...",
+                            "tooltip" => "Modale Nouvel arrivage",
+                        ],
+                        [
+                            "fr" => "Choisir un statut...",
+                            "en" => "Choose a status...",
+                            "tooltip" => "Modale Nouvel arrivage",
                         ],
                     ],
                 ],
@@ -662,9 +766,30 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     "subtitle" => "La plupart des libellés ont leur traduction qui s'applique à partir de la page Acheminement",
                     "content" => [
                         [
-                            "fr" => "UL à acheminer",
-                            "en" => "Asset to transfert",
-                            "tooltip" => "Modale acheminer (idem que acheminement)",
+                            "fr" => "Colis à acheminer",
+                            "en" => "L.U. to ship",
+                            "tooltip" => "Modale acheminer",
+                        ],
+                        [
+                            "fr" => "Annuler acheminer",
+                            "en" => "Cancel transfer",
+                            "tooltip" => "Zone liste - Mode acheminer",
+                        ],
+                        [
+                            "fr" => "Valider arrivages à acheminer",
+                            "en" => "Validate arrivals to transfer",
+                            "tooltip" => "Zone liste - Mode acheminer",
+                        ],
+                        [
+                            "fr" => "Créer une nouvelle demande",
+                            "en" => "Create a new operation",
+                            "tooltip" => "Modale acheminer",
+                        ],
+
+                        [
+                            "fr" => "Ajouter à une demande existante",
+                            "en" => "Add to an existing operation",
+                            "tooltip" => "Modale acheminer",
                         ],
                     ],
                 ],
@@ -1354,7 +1479,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "N° commande",
                             "en" => "Order number",
-                            "tooltip" => "Filtre \nZone liste - Nom de colonnes\nModale Nouvelle demande \nModale Modifier un acheminement \nDétails acheminement - Entête \n(renommage Numéro de commande -> N° commande)",
+                            "tooltip" => "Filtre \nZone liste - Nom de colonnes\nModale Nouvelle demande \nModale Modifier un acheminement \nDétails acheminement - Entête \n",
                         ],
                         [
                             "fr" => "Destination",

@@ -496,25 +496,25 @@ class ArrivageService {
 
         $columns = [
             ['name' => 'packsInDispatch', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
-            ['title' => 'Date de création', 'name' => 'creationDate', 'type' => ($dispatchMode ? 'customDate' : '')],
-            ['title' => 'arrivage.n° d\'arrivage',  'name' => 'arrivalNumber', 'translated' => true],
-            ['title' => 'Poids total (kg)', 'name' => 'totalWeight'],
-            ['title' => 'Transporteur', 'name' => 'carrier'],
-            ['title' => 'Chauffeur', 'name' => 'driver'],
-            ['title' => 'N° tracking transporteur', 'name' => 'trackingCarrierNumber'],
-            ['title' => 'arrivage.Numéro de commande', 'name' => 'orderNumber', 'translated' => true],
-            ['title' => 'Type', 'name' => 'type'],
-            ['title' => 'Fournisseur', 'name' => 'provider'],
-            ['title' => 'arrivage.destinataire', 'name' => 'receiver', 'translated' => true],
-            ['title' => 'arrivage.acheteurs', 'name' => 'buyers', 'translated' => true],
-            ['title' => 'Nb um', 'name' => 'nbUm'],
-            ['title' => 'Douane', 'name' => 'customs'],
-            ['title' => 'Congelé', 'name' => 'frozen'],
-            ['title' => 'Statut', 'name' => 'status'],
-            ['title' => 'Utilisateur', 'name' => 'user'],
-            ['title' => 'Urgent', 'name' => 'emergency'],
-            ['title' => 'Numéro de projet', 'name' => 'projectNumber'],
-            ['title' => 'acheminement.Business unit', 'name' => 'businessUnit', 'translated' => true],
+            ['title' => $this->translation->translate('Traçabilité', 'Général', 'Date de création'), 'name' => 'creationDate', 'type' => ($dispatchMode ? 'customDate' : '')],
+            ['title' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Divers', 'N° d\'arrivage'), 'name' => 'arrivalNumber'],
+            ['title' => $this->translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Poids (kg)'), 'name' => 'totalWeight'],
+            ['title' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Transporteur'), 'name' => 'carrier'],
+            ['title' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Chauffeur'), 'name' => 'driver'],
+            ['title' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° tracking transporteur'), 'name' => 'trackingCarrierNumber'],
+            ['title' => $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'N° commande'), 'name' => 'orderNumber'],
+            ['title' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Type'), 'name' => 'type'],
+            ['title' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Fournisseur'), 'name' => 'provider'],
+            ['title' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Destinataire'),'name' => 'receiver'],
+            ['title' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Acheteur(s)'), 'name' => 'buyers'],
+            ['title' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Divers', 'Nombre d\'UL'), 'name' => 'nbUm'],
+            ['title' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Douane'), 'name' => 'customs'],
+            ['title' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Congelé'), 'name' => 'frozen'],
+            ['title' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Statut'), 'name' => 'status'],
+            ['title' => $this->translation->translate('Traçabilité', 'Général', 'Utilisateur'), 'name' => 'user'],
+            ['title' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Divers', 'Urgent'), 'name' => 'emergency'],
+            ['title' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Numéro de projet'), 'name' => 'projectNumber'],
+            ['title' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Business unit'), 'name' => 'businessUnit'],
         ];
 
         if($dispatchMode) {
@@ -528,7 +528,7 @@ class ArrivageService {
 
         if ($this->fieldsParamService->isFieldRequired($arrivalFieldsParam, FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'displayedCreate')
             || $this->fieldsParamService->isFieldRequired($arrivalFieldsParam, FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'displayedEdit')) {
-            $columns[] = ['title' => 'Emplacement de dépose', 'name' => 'dropLocation'];
+            $columns[] = ['title' =>  $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Emplacement de dépose'), 'name' => 'dropLocation'];
         }
 
         return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);

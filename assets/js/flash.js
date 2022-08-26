@@ -42,7 +42,7 @@ export default class Flash {
         $alert
             .find('.alert-content')
             .find('.type')
-            .html('<strong>' + LABELS[type] + '</strong>');
+            .html('<strong>' + Translation.of(`Général`, '', `Zone liste`, LABELS[type]) + '</strong>');
 
         $alertContainer.append($alert);
 
