@@ -1155,6 +1155,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "en" => "Updated on {1} at {2}",
                         "tooltip" => "Page",
                     ],
+                    [
+                        "fr" => "Natures",
+                        "en" => "Natures",
+                        "tooltip" => "Filtres",
+                    ],
                 ],
             ],
         ],
