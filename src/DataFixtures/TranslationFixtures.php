@@ -271,7 +271,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "Unités logistiques",
                         "en" => "Logistic unit",
-                        "tooltip" => "Page Flux - Arrivages :\nDétails arrivage - Liste des UL - Nom de colonnes (Renommage Code -> UL)\nDétails arrivage - Liste des litiges - Modale Nouveau litige\nDétails arrivage - Liste des litiges - Modifier litige\nMail litige\n______\nPage Mouvements : \nFiltre\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouveau mouvement\nModale Modifier un mouvement\n______\nPage UL :\nMenu\nFil d'ariane\nFiltre (renommage UL -> UL)\nOnglet\nOnglet UL - Colonne (renommage en Numéro UL -> UL)\nOnglet UL - Modale Modifier une unité logistique (renommage en Numéro UL -> UL)\nOnglet Groupes - Carte UL dans Carte Groupe\n_____\nPage Association BR :\nFiltre \nZone liste - Nom de colonnes \n_____\nPage Encours :\nCarte emplacement - Zone liste - Nom de colonnes",
+                        "tooltip" => "Page Flux - Arrivages :\nDétails arrivage - Liste des UL - Nom de colonnes\nDétails arrivage - Liste des litiges - Modale Nouveau litige\nDétails arrivage - Liste des litiges - Modifier litige\nMail litige\n______\nPage Mouvements : \nFiltre\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouveau mouvement\nModale Modifier un mouvement\n______\nPage UL :\nMenu\nFil d'ariane\nFiltre\nOnglet\nOnglet UL - Colonne\nOnglet UL - Modale Modifier une unité logistique\nOnglet Groupes - Carte UL dans Carte Groupe\n_____\nPage Association BR :\nFiltre \nZone liste - Nom de colonnes \n_____\nPage Encours :\nCarte emplacement - Zone liste - Nom de colonnes",
                     ],
                     [
                         "fr" => "Emplacement",
@@ -301,7 +301,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "Nature",
                         "en" => "Nature",
-                        "tooltip" => "Page Flux - Arrivages :\nDétails arrivage - Liste des UL - Colonne (renommage nature -> Nature)\n_____\nPage UL :\nOnglet UL - Colonne (renommage Nature d'UL -> Nature)\nOnglet UL - Modale Modifier une unité logistique (renommage Nature d'UL -> Nature)\nOnglet Groupes - Carte groupe\nOnglet Groupes - Carte UL dans Carte groupe",
+                        "tooltip" => "Page Flux - Arrivages :\nDétails arrivage - Liste des UL - Colonne\n_____\nPage UL :\nOnglet UL - Colonne\nOnglet UL - Modale Modifier une unité logistique\nOnglet Groupes - Carte groupe\nOnglet Groupes - Carte UL dans Carte groupe",
                     ],
                     [
                         "fr" => "Natures",
@@ -321,12 +321,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "Date dernier mouvement",
                         "en" => "Last movement date",
-                        "tooltip" => "Page UL :\nZone liste - Nom de colonnes (renommage Date du dernier mouvement -> Date dernier mouvement)\n_____\nPage Flux - Arrivages :\nDétails arrivage - Liste des UL - Nom de colonnes",
+                        "tooltip" => "Page UL :\nZone liste - Nom de colonnes\n_____\nPage Flux - Arrivages :\nDétails arrivage - Liste des UL - Nom de colonnes",
                     ],
                     [
                         "fr" => "Dernier emplacement",
                         "en" => "Last location",
-                        "tooltip" => "Page Flux - Arrivages :\nDétails arrivage - Liste des UL - Nom de colonnes\n_____\nPage UL :\nZone liste - Nom de colonnes (renommage Emplacement -> Dernier emplacement)",
+                        "tooltip" => "Page Flux - Arrivages :\nDétails arrivage - Liste des UL - Nom de colonnes\n_____\nPage UL :\nZone liste - Nom de colonnes",
                     ],
                 ],
             ],
@@ -341,7 +341,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "N° d'arrivage",
                             "en" => "Arrival number",
-                            "tooltip" => "Page Flux - Arrivages : \nFiltre (renommage n° d'arrivage -> N° d'arrivage)\nZone liste - Nom de colonnes (renommage n° d'arrivage -> N° d'arrivage)\nGestion des colonnes\nDétails arrivage - Liste des litiges - Modale Nouveau litige (renommage ordre arrivage -> N° d'arrivage)\n_____\nPage Urgences :\nZone liste - Nom de colonnes (renommage Numéro d'arrivage -> N° d'arrivage)\n_____\nPage Qualité - Litiges :\nZone liste - Nom de colonnes",
+                            "tooltip" => "Page Flux - Arrivages : \nFiltre\nZone liste - Nom de colonnes\nGestion des colonnes\nDétails arrivage - Liste des litiges - Modale Nouveau litige\n_____\nPage Urgences :\nZone liste - Nom de colonnes\n_____\nPage Qualité - Litiges :\nZone liste - Nom de colonnes",
                         ],
                         [
                             "fr" => "Fournisseurs",
@@ -376,7 +376,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Nombre d'UL",
                             "en" => "Quantity L.U (Logistics unit)",
-                            "tooltip" => "Page Flux - Arrivages :\nZone liste - Nom de colonnes (renommage nb um -> Nombre d'UL)\nGestion des colonnes (renommage nb um -> Nombre d'UL)",
+                            "tooltip" => "Page Flux - Arrivages :\nZone liste - Nom de colonnes\nGestion des colonnes",
                         ],
                         [
                             "fr" => "Nouvel arrivage (mettre majuscule)",
@@ -386,7 +386,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Ajouter une UL",
                             "en" => "Add L.U",
-                            "tooltip" => "Page Flux - Arrivages :\nDétails arrivages - Liste des UL - Bouton\nDétails arrivages - Liste des UL - Modale Ajouter une UL (renommage Ajouter une unité logistique -> Ajouter une UL)",
+                            "tooltip" => "Page Flux - Arrivages :\nDétails arrivages - Liste des UL - Bouton\nDétails arrivages - Liste des UL - Modale Ajouter une UL",
                         ],
                         [
                             "fr" => "Nombre d'UL à ajouter :",
@@ -401,7 +401,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Modifier arrivage",
                             "en" => "Edit arrival",
-                            "tooltip" => "Page Flux - Arrivages :\nModale Modifier arrivage (renommage arrivage -> Modifier arrivage)",
+                            "tooltip" => "Page Flux - Arrivages :\nModale Modifier arrivage",
                         ],
                         [
                             "fr" => "Supprimer l'arrivage",
@@ -458,12 +458,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "N° tracking transporteur",
                             "en" => "Carrier tracking number",
-                            "tooltip" => "Arrivages :\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouvel arrivage\nModale Modifier arrivage\nArrivages détails - Entête\nModale Nouveau litige\n_____\nUrgences :\nZone liste - Nom de colonnes\nModale Nouvelle urgence (renommage Numéro tracking transporteur -> N° tracking transporteur)\nModale Modifier une urgence (renommage Numéro tracking transporteur -> N° tracking transporteur)",
+                            "tooltip" => "Arrivages :\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouvel arrivage\nModale Modifier arrivage\nArrivages détails - Entête\nModale Nouveau litige\n_____\nUrgences :\nZone liste - Nom de colonnes\nModale Nouvelle urgence\nModale Modifier une urgence",
                         ],
                         [
                             "fr" => "N° commande / BL",
                             "en" => "Order number",
-                            "tooltip" => "Zone liste - Nom de colonnes (renommage)\nGestion des colonnes (renommage)\nModale Nouvel arrivage (renommage)\nModale Modifier arrivage (renommage)\nDétails arrivage - Entête (renommage)\nModale Nouveau litige\nMail litige",
+                            "tooltip" => "Zone liste - Nom de colonnes\nGestion des colonnes\nModale Nouvel arrivage\nModale Modifier arrivage\nDétails arrivage - Entête\nModale Nouveau litige\nMail litige",
                         ],
                         [
                             "fr" => "Type",
@@ -488,7 +488,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Acheteur(s)",
                             "en" => "Buyer(s)",
-                            "tooltip" => "Zone liste - Nom de colonnes (renommage Acheteurs -> Acheteur(s))\nGestion des colonnes (renommage Acheteurs -> Acheteur(s))\nModale Nouvel arrivage (renommage Acheteurs -> Acheteur(s))\nArrivages détails - Entête (renommage Acheteurs -> Acheteur(s))\nModale Nouveau litige",
+                            "tooltip" => "Zone liste - Nom de colonnes\nGestion des colonnes\nModale Nouvel arrivage\nArrivages détails - Entête\nModale Nouveau litige",
                         ],
                         [
                             "fr" => "Imprimer arrivage",
@@ -679,22 +679,22 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "Date de début",
                         "en" => "Start date",
-                        "tooltip" => "Zone liste - Nom de colonnes (renommage date de début -> Date de début)\nModale Nouvelle urgence (renommage date de début -> Date de début)\nModale Modifier une urgence (renommage date de début -> Date de début)",
+                        "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle urgence\nModale Modifier une urgence",
                     ],
                     [
                         "fr" => "Date de fin",
                         "en" => "End date",
-                        "tooltip" => "Zone liste - Nom de colonnes (renommage date de fin -> Date de fin) \nModale Nouvelle urgence (renommage date de fin -> Date de fin)\nModale Modifier une urgence (renommage date de fin -> Date de fin)",
+                        "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle urgence\nModale Modifier une urgence",
                     ],
                     [
                         "fr" => "N° poste (ligne de commande)",
                         "en" => "Item number",
-                        "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle urgence (renommage Numéro de poste -> N° poste)\nModale Modifier une urgence (renommage Numéro de poste -> N° poste)",
+                        "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle urgence\nModale Modifier une urgence",
                     ],
                     [
                         "fr" => "Acheteur",
                         "en" => "Buyer",
-                        "tooltip" => "Zone liste - Nom de colonnes(renommage acheteur -> Acheteur)\nModale Nouvelle urgence (renommage acheteur -> Acheteur)\nModale Modifier une urgence (renommage acheteur -> Acheteur)",
+                        "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle urgence\nModale Modifier une urgence",
                     ],
                     [
                         "fr" => "Date arrivage",
@@ -709,7 +709,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "Nouvelle urgence",
                         "en" => "New urgency",
-                        "tooltip" => "Modale Nouvelle urgence (renommage nouvelle urgence -> Nouvelle urgence)",
+                        "tooltip" => "Modale Nouvelle urgence",
                     ],
                     [
                         "fr" => "Modifier une urgence",
@@ -724,7 +724,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "Cette urgence est liée à un arrivage.\nVous ne pouvez pas la supprimer",
                         "en" => "This urgency is linked to an arrival. You can not delete it",
-                        "tooltip" => "Modale Supprimer l'urgence (renommage cette -> Cette)",
+                        "tooltip" => "Modale Supprimer l'urgence",
                     ],
                     [
                         "fr" => "Voulez-vous réellement supprimer cette urgence ?",
@@ -798,12 +798,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Supprimer l'UL",
                             "en" => "Delete the L.U.",
-                            "tooltip" => "Modale Supprimer l'UL (renommage Supprimer la référence article -> Supprimer l'UL)",
+                            "tooltip" => "Modale Supprimer l'UL",
                         ],
                         [
                             "fr" => "Voulez-vous réellement supprimer cette UL ?",
                             "en" => "Do you really want to delete this L.U. ?",
-                            "tooltip" => "Modale Supprimer l'UL (renommage Supprimer la référence article -> Supprimer l'UL)",
+                            "tooltip" => "Modale Supprimer l'UL",
                         ],
                         [
                             "fr" => "X articles dans l'unité logistique. Cliquez sur le logo pour voir le contenu de l'unité logistique.",
@@ -1290,7 +1290,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "Destinataire(s)",
                         "en" => "Addressees",
-                        "tooltip" => "Acheminement :\nFiltre \nModale Nouvelle demande\nModale Modifier un acheminement\nDétails acheminement - Entête\nPDF bon acheminement\n(renommage Destinataires -> Destinataire(s))\n_____\nService :\nFiltre\nModale Nouvelle demande de service\nModale Modifier une demande de service\n(renommage Destinataires -> Destinataire(s))",
+                        "tooltip" => "Acheminement :\nFiltre \nModale Nouvelle demande\nModale Modifier un acheminement\nDétails acheminement - Entête\nPDF bon acheminement\n\n_____\nService :\nFiltre\nModale Nouvelle demande de service\nModale Modifier une demande de service\n",
                     ],
                     [
                         "fr" => "Type",
@@ -1320,12 +1320,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Nouvelle demande d'acheminement",
                             "en" => "New transfer operation",
-                            "tooltip" => "Modale Nouvelle demande d'acheminement (renommage Nouvelle demande -> Nouvelle demande d'acheminement)",
+                            "tooltip" => "Modale Nouvelle demande d'acheminement",
                         ],
                         [
                             "fr" => "N° demande",
                             "en" => "Transfer number",
-                            "tooltip" => "Filtre \nZone liste - Nom de colonnes\n(renommage Numéro demande -> N° demande)\nNomade (renommage Numéro -> N° demande)",
+                            "tooltip" => "Filtre \nZone liste - Nom de colonnes\n\nNomade",
                         ],
                         [
                             "fr" => "Types",
@@ -1354,7 +1354,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "N° commande",
                             "en" => "Order number",
-                            "tooltip" => "Filtre \nZone liste - Nom de colonnes\nModale Nouvelle demande \nModale Modifier un acheminement \nDétails acheminement - Entête \n(renommage Numéro de commande -> N° commande)",
+                            "tooltip" => "Filtre \nZone liste - Nom de colonnes\nModale Nouvelle demande \nModale Modifier un acheminement \nDétails acheminement - Entête \n",
                         ],
                         [
                             "fr" => "Destination",
@@ -1379,12 +1379,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "N° tracking transporteur",
                             "en" => "Carrier tracking ID",
-                            "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle demande\nModale Modifier un acheminement \nDétails acheminement - Entête \n(renommage Numéro de tracking transporteur -> N° tracking transporteur)",
+                            "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle demande\nModale Modifier un acheminement \nDétails acheminement - Entête \n",
                         ],
                         [
                             "fr" => "N° projet",
                             "en" => "Project ID",
-                            "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle demande\nModale Modifier un acheminement \nDétails acheminement - Entête \n(renommage Numéro de projet -> N° projet)",
+                            "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle demande\nModale Modifier un acheminement \nDétails acheminement - Entête \n",
                         ],
                         [
                             "fr" => "Business unit",
@@ -1394,7 +1394,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Dates d'échéances",
                             "en" => "Due dates",
-                            "tooltip" => "Détails\nModale Nouvelle demande (renommage Echéance -> Dates d'échéances)",
+                            "tooltip" => "Détails\nModale Nouvelle demande",
                         ],
                     ],
                 ],
@@ -1691,7 +1691,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Modale Création modification BL",
                         ],
                         [
-                            "fr" => "Téléphone (renommage)",
+                            "fr" => "Téléphone",
                             "en" => "Phone number",
                             "tooltip" => "Modale Création modification BL",
                         ],
