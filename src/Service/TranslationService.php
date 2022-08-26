@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\Language;
 use App\Entity\Translation;
+use App\Entity\TranslationCategory;
 use App\Entity\TranslationSource;
 use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
@@ -73,14 +74,16 @@ class TranslationService {
             $user = $this->tokenStorage->getToken()->getUser();
         }
 
-        $defaultSlug = $this->cacheService->get(CacheService::LANGUAGES, "default-language-slug", function() {
-            $languageRepository = $this->manager->getRepository(Language::class);
-            $defaultLanguage = $languageRepository->findOneBy(["selected" => true]);
-
-            return $defaultLanguage->getSlug();
-        });
-
         $slug = $user?->getLanguage()?->getSlug();
+
+        if($slug === Language::FRENCH_SLUG) {
+            $defaultSlug = Language::FRENCH_DEFAULT_SLUG;
+        } else if($slug === Language::ENGLISH_SLUG) {
+            $defaultSlug = Language::ENGLISH_DEFAULT_SLUG;
+        } else {
+            $defaultSlug = $this->getDefaultSlug();
+        }
+
         if($trans = $this->translateIn($slug, $defaultSlug, false, ...$args)) {
             return $trans;
         } else if($defaultSlug === Language::FRENCH_SLUG) {
@@ -90,9 +93,7 @@ class TranslationService {
         } else {
             //peut-être optimisable en refactorant le cache
             return $this->translateIn(Language::ENGLISH_SLUG, $defaultSlug, false, ...$args)
-                ?? $this->translateIn(Language::ENGLISH_DEFAULT_SLUG, $defaultSlug, false, ...$args)
-                ?? $this->translateIn(Language::FRENCH_SLUG, $defaultSlug, false, ...$args)
-                ?? $this->translateIn(Language::FRENCH_DEFAULT_SLUG, $defaultSlug, true, ...$args);
+                ?? $this->translateIn(Language::ENGLISH_DEFAULT_SLUG, $defaultSlug, true, ...$args);
         }
     }
 
@@ -102,15 +103,15 @@ class TranslationService {
             $$variable = null;
         }
 
-        $disableTooltip = false;
+        $enableTooltip = true;
         foreach($args as $arg) {
             if(is_array($arg)) {
                 $params = $arg;
             }if(is_bool($arg)) {
-                $disableTooltip = $arg;
+                $enableTooltip = $arg;
             } else if(!($arg instanceof Utilisateur)) {
                 if(empty($variables)) {
-                    throw new RuntimeException("Too many arguments, expected at most 4 strings, 1 array and 1 user");
+                    throw new RuntimeException("Too many arguments, expected at most 4 strings, 1 array, 1 boolean and 1 user");
                 }
 
                 ${array_shift($variables)} = $arg;
@@ -118,10 +119,8 @@ class TranslationService {
         }
 
         if(!isset($this->translations[$slug])) {
-            $this->translations[$slug] = $this->cacheService->get(CacheService::TRANSLATIONS, $slug, function() use ($slug) {
-                $this->generateCache($slug);
-                $this->generateJavascripts($slug);
-            }) ?? [];
+            $this->generateCache($slug);
+            $this->generateJavascripts();
         }
 
         $transCategory = $this->translations[$slug][$category ?: null] ?? null;
@@ -152,16 +151,18 @@ class TranslationService {
         }
 
         if(isset($params)) {
-            return str_replace(array_keys($params), array_values($params), $output);
+            foreach($params as $key => $value) {
+                $output = str_replace("{" . $key . "}", $value, $output);
+            }
         }
 
         if($slug === $defaultSlug) {
-            $tooltip = $output;
+            $tooltip = htmlspecialchars($output);
         } else {
-            $tooltip = $this->translateIn($defaultSlug, $defaultSlug, true, true, ...$args);
+            $tooltip = htmlspecialchars($this->translateIn($defaultSlug, $defaultSlug, true, false, ...$args));
         }
 
-        return $disableTooltip ? $output : "<span title='$tooltip'>$output</span>";
+        return $enableTooltip ? "<span title='$tooltip'>$output</span>" : $output;
     }
 
     private function createCategoryStack(Translation $translation): array {
@@ -178,9 +179,10 @@ class TranslationService {
 
     public function generateCache(?string $slug = null) {
         $languageRepository = $this->manager->getRepository(Language::class);
-        $translationRepository = $this->manager->getRepository(Translation::class);
+        $translationSourceRepository = $this->manager->getRepository(TranslationSource::class);
 
         $languages = $slug ? $languageRepository->findBy(["slug" => $slug]) : $languageRepository->findAll();
+        $sources = $translationSourceRepository->findAll();
 
         /** @var Language $language */
         foreach($languages as $language) {
@@ -188,8 +190,14 @@ class TranslationService {
             $this->translations[$slug] = [];
 
             /** @var Translation $translation */
-            foreach($translationRepository->findBy(["language" => $language]) as $translation) {
-                $original = $translation->getSource()->getTranslationIn(Language::FRENCH_DEFAULT_SLUG)->getTranslation();
+            foreach($sources as $source) {
+                //no category means it's a translation for natures, types, etc
+                if($source->getCategory() === null) {
+                    continue;
+                }
+
+                $original = $source->getTranslationIn(Language::FRENCH_DEFAULT_SLUG);
+                $translation = $source->getTranslationIn($slug) ?? $original;
 
                 $zoomedTranslations = &$this->translations[$slug];
                 $stack = $this->createCategoryStack($translation);
@@ -201,36 +209,44 @@ class TranslationService {
                     $zoomedTranslations = &$zoomedTranslations[$category->getLabel()];
                 }
 
-                $zoomedTranslations[$original] = $translation->getTranslation();
+                $zoomedTranslations[$original->getTranslation()] = $translation->getTranslation();
             }
 
             $this->cacheService->set(CacheService::TRANSLATIONS, $slug, $this->translations[$slug]);
-            if($language->getSelected()) {
+            if ($language->getSelected()) {
                 $this->cacheService->set(CacheService::TRANSLATIONS, "default", $this->translations[$slug]);
             }
         }
     }
 
-    public function generateJavascripts(?string $slug = null) {
+    public function generateJavascripts() {
         $languageRepository = $this->manager->getRepository(Language::class);
         $outputDirectory = "{$this->kernel->getProjectDir()}/public/generated";
 
-        $languages = $slug ? $languageRepository->findBy(["slug" => $slug]) : $languageRepository->findAll();
+        $languages = $languageRepository->findAll();
 
         /** @var Language $language */
         foreach($languages as $language) {
             $slug = $language->getSlug();
-            $translations = $this->cacheService->get(CacheService::TRANSLATIONS, $slug) ?? [];
-            $content = "const TRANSLATIONS = " . json_encode($translations) . ";";
-
-            file_put_contents("$outputDirectory/translations.$slug.js", $content);
-            if($language->getSelected()) {
-                file_put_contents(
-                    "$outputDirectory/translations.default.js",
-                    "const DEFAULT_TRANSLATIONS = " . json_encode($translations) . ";"
-                );
+            if(!isset($this->translations[$slug])) {
+                $this->generateCache($slug);
             }
         }
+
+        $content = "//generated file for translations\n";
+        $content .= "const DEFAULT_SLUG = `{$this->getDefaultSlug()}`;\n";
+        $content .= "const TRANSLATIONS = " . json_encode($this->translations) . ";\n";
+
+        file_put_contents("$outputDirectory/translations.js", $content);
+    }
+
+    private function getDefaultSlug(): string {
+        return $this->cacheService->get(CacheService::LANGUAGES, "default-language-slug", function () {
+            $languageRepository = $this->manager->getRepository(Language::class);
+            $defaultLanguage = $languageRepository->findOneBy(["selected" => true]);
+
+            return $defaultLanguage->getSlug();
+        });
     }
 
     public function editEntityTranslations(EntityManagerInterface $entityManager,

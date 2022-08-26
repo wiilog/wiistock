@@ -30,16 +30,16 @@ class TranslationSource {
     #[OneToMany(mappedBy: "source", targetEntity: Translation::class, cascade: ["remove"])]
     private Collection $translations;
 
-    #[OneToOne(mappedBy: "labelTranslation", targetEntity: Type::class)]
+    #[OneToOne(inversedBy: "labelTranslation", targetEntity: Type::class)]
     private ?Type $type = null;
 
-    #[OneToOne(mappedBy: "labelTranslation", targetEntity: Nature::class)]
+    #[OneToOne(inversedBy: "labelTranslation", targetEntity: Nature::class)]
     private ?Nature $nature = null;
 
-    #[OneToOne(mappedBy: "labelTranslation", targetEntity: Statut::class)]
+    #[OneToOne(inversedBy: "labelTranslation", targetEntity: Statut::class)]
     private ?Statut $status = null;
 
-    #[OneToOne(mappedBy: "labelTranslation", targetEntity: FreeField::class)]
+    #[OneToOne(inversedBy: "labelTranslation", targetEntity: FreeField::class)]
     private ?FreeField $freeField = null;
 
     #[ManyToOne(targetEntity: FreeField::class, inversedBy: "elementsTranslations")]
@@ -84,10 +84,24 @@ class TranslationSource {
         return $this->translations;
     }
 
-    public function getTranslationIn(string $slug): ?Translation {
-        return $this->getTranslations()
-            ->filter(fn(Translation $translation) => $translation->getLanguage()->getSlug() === $slug)
+    public function getTranslationIn(Language|string $in, Language|string|null $default = null): ?Translation {
+        if(!$in) {
+            throw new \RuntimeException("Input language can not be null");
+        }
+
+        if($in instanceof Language) {
+            $in = $in->getSlug();
+        }
+
+        $translation = $this->getTranslations()
+            ->filter(fn(Translation $translation) => $translation->getLanguage()->getSlug() === $in)
             ->first() ?: null;
+
+        if($translation === null && $default) {
+            $translation = $this->getTranslationIn($default, null);
+        }
+
+        return $translation;
     }
 
     public function addTranslation(Translation $translation): self {

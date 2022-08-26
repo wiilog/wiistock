@@ -3,6 +3,7 @@
 namespace App\Controller\Api\Mobile;
 
 use App\Annotation as Wii;
+use App\Controller\Api\AbstractApiController;
 use App\Entity\Article;
 use App\Entity\Attachment;
 use App\Entity\CategorieStatut;
@@ -75,26 +76,14 @@ use Throwable;
 use WiiCommon\Helper\Stream;
 
 
-class MobileController extends AbstractFOSRestController
+class MobileController extends AbstractApiController
 {
-
-    /** @var Utilisateur|null */
-    private $user;
 
     /** @Required */
     public NotificationService $notificationService;
 
     /** @Required */
     public MobileApiService $mobileApiService;
-
-    public function getUser(): Utilisateur {
-        return $this->user;
-    }
-
-    public function setUser(Utilisateur $user)
-    {
-        $this->user = $user;
-    }
 
     /**
      * @Rest\Post("/api/api-key", condition="request.isXmlHttpRequest()")

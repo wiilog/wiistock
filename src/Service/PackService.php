@@ -17,28 +17,32 @@ use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
 use Symfony\Component\Security\Core\Security;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
 class PackService {
 
-    /** @Required */
+    #[Required]
     public EntityManagerInterface $entityManager;
 
-    /** @Required */
+    #[Required]
     public Security $security;
 
-    /** @Required */
+    #[Required]
     public Twig_Environment $templating;
 
-    /** @Required */
+    #[Required]
     public TrackingMovementService $trackingMovementService;
 
-    /** @Required */
+    #[Required]
     public ArrivageService $arrivageDataService;
 
-    /** @Required */
+    #[Required]
     public MailerService $mailerService;
+
+    #[Required]
+    public FormatService $formatService;
 
     public function getDataForDatatable($params = null) {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
@@ -104,7 +108,7 @@ class PackService {
                 'hasPairing' => $hasPairing
             ]),
             'packNum' => $pack->getCode(),
-            'packNature' => $pack->getNature() ? $pack->getNature()->getLabel() : '',
+            'packNature' => $this->formatService->nature($pack->getNature()),
             'quantity' => $pack->getQuantity() ?: 1,
             'packLastDate' => $lastPackMovement
                 ? ($lastPackMovement->getDatetime()

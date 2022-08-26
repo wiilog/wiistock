@@ -1261,16 +1261,30 @@ label.required:after {
     margin: auto;
 }
 
-.langue-img-prepend {
-    border-bottom-left-radius: 5px;
-    border-top-left-radius: 5px;
-    background-color: $medium-grey;
-    width: 35px;
-    height: 35px;
-}
-
 .langue-input-group {
     margin-left: 2px !important;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+
+    .input-group-prepend {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 4px 4px 0 0;
+        background-color: $light-grey;
+        width: $input-height;
+        height: $input-height;
+
+        img {
+            border-radius: 50%;
+            width: 23px;
+            height: 23px;
+        }
+    }
+
+    input.form-control {
+        border: none !important;
+    }
 }
 
 .w-max-50{

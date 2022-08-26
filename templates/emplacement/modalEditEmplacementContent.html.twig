@@ -15,7 +15,7 @@
 </div>
 
 <div class="form-group">
-    <label class="wii-field-name" title="Natures de colis autorisées">{{ 'natures.Natures de colis autorisées'|trans }}</label>
+    <label class="wii-field-name">{{ trans('Référentiel', 'Natures', 'Natures d\'UL autorisées') }}</label>
     <select name="allowed-natures" class="form-control data select2 w-100" multiple>
         {% for nature in natures %}
             {% set selected = (nature in location.allowedNatures ? 'selected') %}

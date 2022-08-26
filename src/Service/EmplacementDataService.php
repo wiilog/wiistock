@@ -13,6 +13,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
 
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
@@ -20,17 +21,20 @@ class EmplacementDataService {
 
     const PAGE_EMPLACEMENT = 'emplacement';
 
-    /** @Required */
+    #[Required]
     public Twig_Environment $templating;
 
-    /** @Required */
+    #[Required]
     public RouterInterface $router;
 
-    /** @Required */
+    #[Required]
     public Security $security;
 
-    /** @Required */
+    #[Required]
     public EntityManagerInterface $entityManager;
+
+    #[Required]
+    public FormatService $formatService;
 
     private array $labeledCacheLocations = [];
 
@@ -71,7 +75,7 @@ class EmplacementDataService {
         $sensorMessageRepository = $manager->getRepository(SensorMessage::class);
 
         $allowedNatures = Stream::from($emplacement->getAllowedNatures())
-            ->map(fn(Nature $nature) => $nature->getLabel())
+            ->map(fn(Nature $nature) => $this->formatService->nature($nature))
             ->join(", ");
 
         $allowedTemperatures = Stream::from($emplacement->getTemperatureRanges())
