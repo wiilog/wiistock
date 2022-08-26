@@ -1906,11 +1906,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
         "Référentiel" => [
             "Natures" => [
                 "content" => [
+                    ["fr" => "Natures d'UL"],
+                    ["fr" => "Ajouter une nature d'UL"],
                     ["fr" => "Natures d'UL autorisées"],
-                    ["fr" => "Natures des UL"],
-                    ["fr" => "Nature d'UL"],
                     ["fr" => "Nature"],
                     ["fr" => "La nature {1} a bien été créée"],
+                    ["fr" => "La nature {1} a bien été modifiée"],
                     ["fr" => "Création de nature"],
                     ["fr" => "Modification de nature"],
                     ["fr" => "cette nature"],
@@ -2043,10 +2044,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
         foreach (self::TRANSLATIONS as $categoryLabel => $menus) {
             $this->handleCategory("category", null, $categoryLabel, $menus);
         }
-
-        $this->manager->flush();
-
-        $this->initTranslationSources();
 
         $this->manager->flush();
 
@@ -2231,23 +2228,4 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
         return ["fixtures", "language"];
     }
 
-
-    private function initTranslationSources() {
-        $natures = $this->manager->getRepository(Nature::class)->findBy(['labelTranslation' => null]);
-
-        foreach ($natures as $nature) {
-            $natureSource = new TranslationSource();
-            $this->manager->persist($natureSource);
-
-            $natureTranslation = new Translation();
-            $natureTranslation
-                ->setLanguage($this->getLanguage(Translation::FRENCH_SLUG))
-                ->setSource($natureSource)
-                ->setTranslation($nature->getLabel());
-
-            $natureSource->addTranslation($natureTranslation);
-            $nature->setLabelTranslation($natureSource);
-            $this->manager->persist($natureTranslation);
-        }
-    }
 }

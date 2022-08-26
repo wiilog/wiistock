@@ -53,7 +53,7 @@ use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Util\Json;
 use RuntimeException;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -953,9 +953,9 @@ class SettingsController extends AbstractController {
                 self::MENU_INVENTORIES => [
                     self::MENU_CATEGORIES => fn() => [
                         "frequencyOptions" => Stream::from($frequencyRepository->findAll())
-                            ->map(fn(InventoryFrequency $n) => [
-                                "id" => $n->getId(),
-                                "label" => $n->getLabel(),
+                            ->map(fn(InventoryFrequency $freq) => [
+                                "id" => $freq->getId(),
+                                "label" => $freq->getLabel(),
                             ])
                             ->sort(fn(array $a, array $b) => $a["label"] <=> $b["label"])
                             ->map(fn(array $n) => "<option value='{$n["id"]}'>{$n["label"]}</option>")
@@ -1168,7 +1168,7 @@ class SettingsController extends AbstractController {
                             ->keymap(fn(string $value) => [
                                 $value, [
                                     "value" => $value,
-                                    "label" => $natureRepository->find($value)->getLabel(),
+                                    "label" => $this->getFormatter()->nature($natureRepository->find($value)),
                                     "selected" => true,
                                 ],
                             ])

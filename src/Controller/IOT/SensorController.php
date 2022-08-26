@@ -2,7 +2,7 @@
 
 namespace App\Controller\IOT;
 
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 
 

@@ -7,6 +7,7 @@ use App\Repository\NatureRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use JetBrains\PhpStorm\Deprecated;
 
 #[ORM\Entity(repositoryClass: NatureRepository::class)]
 class Nature {
@@ -30,6 +31,7 @@ class Nature {
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
+    #[Deprecated]
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $label = null;
 
@@ -73,7 +75,7 @@ class Nature {
     #[ORM\JoinTable(name: 'location_temperature_range')]
     private Collection $temperatureRanges;
 
-    #[ORM\OneToOne(targetEntity: TranslationSource::class, inversedBy: "nature")]
+    #[ORM\OneToOne(mappedBy: "nature", targetEntity: TranslationSource::class)]
     private ?TranslationSource $labelTranslation = null;
 
     public function __construct() {
@@ -86,10 +88,26 @@ class Nature {
         return $this->id;
     }
 
+    public function getLabelIn(Language|string $in, Language|string $default): ?string {
+        if($default instanceof Language) {
+            $default = $default->getSlug();
+        }
+
+        $default = match($default) {
+            Language::FRENCH_DEFAULT_SLUG => Language::FRENCH_SLUG,
+            Language::ENGLISH_DEFAULT_SLUG => Language::ENGLISH_SLUG,
+            default => $default,
+        };
+
+        return $this->getLabelTranslation()->getTranslationIn($in, $default)?->getTranslation();
+    }
+
+    #[Deprecated]
     public function getLabel(): ?string {
         return $this->label;
     }
 
+    #[Deprecated]
     public function setLabel(?string $label): self {
         $this->label = $label;
 

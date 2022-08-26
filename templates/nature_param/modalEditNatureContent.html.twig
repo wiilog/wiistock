@@ -10,9 +10,10 @@
                 <div class="input-group-prepend langue-img-prepend">
                     <span class="langue-img" style="background-image: url({{ language.iconUrl }})"></span>
                 </div>
-                {% set value = translations.get((language.value-1)) %}
+
+                {% set translation = nature.labelTranslation.translationIn(language.slug) %}
                 <input type="hidden" class="data" name="language-id" value="{{ language.value }}">
-                <input type="text" class="data form-control needed" name="label" value="{{ value }}">
+                <input type="text" class="data form-control needed" name="label" value="{{ translation ? translation.translation }}">
             </div>
         {% endfor %}
     </div>
