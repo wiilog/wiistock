@@ -270,7 +270,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     ],
                     [
                         "fr" => "Unités logistiques",
-                        "en" => "Logistic unit",
+                        "en" => "Logistics units",
                         "tooltip" => "Page Flux - Arrivages :\nDétails arrivage - Liste des UL - Nom de colonnes\nDétails arrivage - Liste des litiges - Modale Nouveau litige\nDétails arrivage - Liste des litiges - Modifier litige\nMail litige\n______\nPage Mouvements : \nFiltre\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouveau mouvement\nModale Modifier un mouvement\n______\nPage UL :\nMenu\nFil d'ariane\nFiltre\nOnglet\nOnglet UL - Colonne\nOnglet UL - Modale Modifier une unité logistique\nOnglet Groupes - Carte UL dans Carte Groupe\n_____\nPage Association BR :\nFiltre \nZone liste - Nom de colonnes \n_____\nPage Encours :\nCarte emplacement - Zone liste - Nom de colonnes",
                     ],
                     [
@@ -375,22 +375,22 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                         [
                             "fr" => "Nombre d'UL",
-                            "en" => "Quantity L.U (Logistics unit)",
+                            "en" => "Quantity L.U.",
                             "tooltip" => "Page Flux - Arrivages :\nZone liste - Nom de colonnes\nGestion des colonnes",
                         ],
                         [
-                            "fr" => "Nouvel arrivage (mettre majuscule)",
+                            "fr" => "Nouvel arrivage",
                             "en" => "New arrival",
                             "tooltip" => "Page Flux - Arrivages :\nBouton\nModale Nouvel arrivage",
                         ],
                         [
                             "fr" => "Ajouter une UL",
-                            "en" => "Add L.U",
+                            "en" => "Add L.U.",
                             "tooltip" => "Page Flux - Arrivages :\nDétails arrivages - Liste des UL - Bouton\nDétails arrivages - Liste des UL - Modale Ajouter une UL",
                         ],
                         [
                             "fr" => "Nombre d'UL à ajouter :",
-                            "en" => "Quantity of L.U to add :",
+                            "en" => "Quantity of L.U. to add :",
                             "tooltip" => "Page Flux - Arrivages :\nModale Nouvel arrivage\nDétails arrivages - Liste des UL - Modale Ajouter une UL",
                         ],
                         [
@@ -415,7 +415,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                         [
                             "fr" => "Liste des UL générées",
-                            "en" => "List of L.U",
+                            "en" => "List of L.U.",
                             "tooltip" => "Page Flux - Arrivages :\nModale Liste des UL générées",
                         ],
                         [
@@ -497,7 +497,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                         [
                             "fr" => "Imprimer UL",
-                            "en" => "Print L.U",
+                            "en" => "Print L.U.",
                             "tooltip" => "Modale Nouvel arrivage\nDétails arrivages - Liste des UL - Bouton",
                         ],
                         [
@@ -570,7 +570,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                         [
                             "fr" => "Modifier le litige",
-                            "en" => "Modify the dispute",
+                            "en" => "Edit the dispute",
                             "tooltip" => "Modale Modifier le litige",
                         ],
                         [
@@ -604,7 +604,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                         [
                             "fr" => "Unités logistiques réceptionnées :",
-                            "en" => "Receipted logistic units",
+                            "en" => "Receipted logistics units",
                             "tooltip" => "Mail arrivage",
                         ],
                         [
@@ -663,8 +663,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     "content" => [
                         [
                             "fr" => "UL à acheminer",
-                            "en" => "Asset to transfert",
-                            "tooltip" => "Modale acheminer (idem que acheminement)",
+                            "en" => "L.U. to transfer",
+                            "tooltip" => "Modale acheminer",
                         ],
                     ],
                 ],
@@ -687,7 +687,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle urgence\nModale Modifier une urgence",
                     ],
                     [
-                        "fr" => "N° poste (ligne de commande)",
+                        "fr" => "N° poste",
                         "en" => "Item number",
                         "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle urgence\nModale Modifier une urgence",
                     ],
@@ -713,7 +713,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     ],
                     [
                         "fr" => "Modifier une urgence",
-                        "en" => "Modify an urgency",
+                        "en" => "Edit an urgency",
                         "tooltip" => "Modale Modifier une urgence",
                     ],
                     [
@@ -723,7 +723,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     ],
                     [
                         "fr" => "Cette urgence est liée à un arrivage.\nVous ne pouvez pas la supprimer",
-                        "en" => "This urgency is linked to an arrival. You can not delete it",
+                        "en" => "This urgency is linked to an arrival. You cannot delete it",
                         "tooltip" => "Modale Supprimer l'urgence",
                     ],
                     [
@@ -738,7 +738,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     "content" => [
                         [
                             "fr" => "Natures",
-                            "en" => "Nature",
+                            "en" => "Natures",
                             "tooltip" => "Filtre",
                         ],
                         [
@@ -751,13 +751,13 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 "Onglet \"Unités logistiques\"" => [
                     "content" => [
                         [
-                            "fr" => "Unité logistique",
-                            "en" => "Logistic unit number",
+                            "fr" => "Numéro unité logistique",
+                            "en" => "Logistics unit number",
                             "tooltip" => "Zone liste\nModale Modifier une unité logistique",
                         ],
                         [
                             "fr" => "Nature d'unité logistique",
-                            "en" => "Logistic unit nature",
+                            "en" => "Logistics unit nature",
                             "tooltip" => "Zone liste\nModale Modifier une unité logistique",
                         ],
                         [
@@ -888,7 +888,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                         [
                             "fr" => "Ce colis est référencé dans un ou plusieurs mouvements de traçabilité",
-                            "en" => "This logistic unit is in use in one or more movements",
+                            "en" => "This logistic unit appears use in one or more movements",
                         ],
                         [
                             "fr" => "Ce colis est référencé dans un ou plusieurs acheminements",
@@ -919,7 +919,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                         [
                             "fr" => "Mouvementé la dernière fois le {1}",
-                            "en" => "Moved for the last time on the {1}",
+                            "en" => "Moved for the last time on {1}",
                             "tooltip" => "Onglet \"Groupes\"",
                         ],
                         [
@@ -1118,7 +1118,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     ],
                     [
                         "fr" => "Les unités logistiques suivantes n'existent pas :",
-                        "en" => "The following L.U does not exist :",
+                        "en" => "The following L.U. does not exist :",
                         "tooltip" => "Modale Supprimer l'association BR",
                     ],
                 ],
@@ -1289,7 +1289,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     ],
                     [
                         "fr" => "Destinataire(s)",
-                        "en" => "Addressees",
+                        "en" => "Addressee(s)",
                         "tooltip" => "Acheminement :\nFiltre \nModale Nouvelle demande\nModale Modifier un acheminement\nDétails acheminement - Entête\nPDF bon acheminement\n\n_____\nService :\nFiltre\nModale Nouvelle demande de service\nModale Modifier une demande de service\n",
                     ],
                     [
@@ -1484,7 +1484,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Détails acheminements - Liste des UL - Nom de colonnes\nPDF bon acheminement",
                         ],
                         [
-                            "fr" => "Nature (mettre majuscule)",
+                            "fr" => "Nature",
                             "en" => "Nature",
                             "tooltip" => "Détails acheminements - Liste des UL - Nom de colonnes\nPDF bon acheminement",
                         ],
@@ -1603,13 +1603,13 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Modale Création/Modification Lettre de voiture",
                         ],
                         [
-                            "fr" => "Not de bas de page",
+                            "fr" => "Note de bas de page",
                             "en" => "Footnote",
                             "tooltip" => "Modale Création/Modification Lettre de voiture",
                         ],
                         [
                             "fr" => "Information : Le contenu des UL doit être modifié sur les UL",
-                            "en" => "Information: The  L.U.s' content must be changed on the L.U.s",
+                            "en" => "Information: The L.U.s' content must be changed on the L.U.s",
                             "tooltip" => "Modale Création/Modification Lettre de voiture",
                         ],
                     ],
@@ -1742,7 +1742,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                         [
                             "fr" => "Note(s)",
-                            "en" => "Notes",
+                            "en" => "Note(s)",
                             "tooltip" => "Modale Création modification BL",
                         ],
                         [
@@ -1861,12 +1861,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     ],
                     [
                         "fr" => "Nombre d'opération(s) réalisée(s)",
-                        "en" => "Number of operations performed",
+                        "en" => "Amount of operations performed",
                         "tooltip" => "Modale Nouvelle demande de service Modale Modifier une demande de service",
                     ],
                     [
                         "fr" => "Traité par",
-                        "en" => "Finished by",
+                        "en" => "Processed by",
                         "tooltip" => "Zone liste - Nom de colonnes",
                     ],
                     [
