@@ -143,7 +143,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                         [
                             "fr" => "Modifier",
-                            "en" => "Modify",
+                            "en" => "Edit",
                         ],
                         [
                             "fr" => "Supprimer",
@@ -205,12 +205,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 ],
                 [
                     "fr" => "Arrivages",
-                    "en" => "Deliveries",
+                    "en" => "Arrivals",
                     "tooltip" => "Composant \"Nombre d'arrivages et d'UL quotidiens\"\nComposant \"Nombres d'arrivages et d'UL hebdomadaires\"",
                 ],
                 [
                     "fr" => "Nombre de lignes à traiter",
-                    "en" => "Number of lines to \nprocess",
+                    "en" => "Number of lines to process",
                     "tooltip" => "Composant \"Entrées à effectuer\"",
                 ],
                 [
@@ -230,7 +230,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 ],
                 [
                     "fr" => "Date d'acheminement non estimée",
-                    "en" => "Transport date not estimated",
+                    "en" => "Transfer date not estimated",
                     "tooltip" => "Composant \"Demande en cours\"",
                 ],
                 [
@@ -250,12 +250,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 ],
                 [
                     "fr" => "urgences",
-                    "en" => "Urgencies",
+                    "en" => "urgencies",
                     "tooltip" => "Composant \"Nombre de services du jour\", coche \"Afficher le nombre d'urgences de la journée\"",
                 ],
                 [
                     "fr" => "A traiter sous :",
-                    "en" => "To be processed within:",
+                    "en" => "To process within:",
                     "tooltip" => "Composant \"Quantité en cours n emplacement(s)\", coche \"Afficher le délai de traitement\" et composant \"Demandes à traiter\", coche \"Délai de traitement à respecter [...]\"",
                 ],
             ],
@@ -430,11 +430,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                         [
                             "fr" => "Un autre arrivage est en cours de création, veuillez réessayer",
-                            "en" => "Another arrival was being created, please try again",
+                            "en" => "Another arrival is being created, please try again",
                         ],
                         [
                             "fr" => "Un autre litige d'arrivage est en cours de création, veuillez réessayer",
-                            "en" => "Another arrival dispute was being created, please try again",
+                            "en" => "Another arrival dispute is being created, please try again",
                         ],
                     ],
                 ],
@@ -482,7 +482,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                         [
                             "fr" => "Destinataire",
-                            "en" => "Recipient",
+                            "en" => "Addressee",
                             "tooltip" => "Arrivages :\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouvel arrivage\nModale Modifier arrivage\nArrivage détails - Entête",
                         ],
                         [
@@ -1574,7 +1574,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                         [
                             "fr" => "Destinataire",
-                            "en" => "Receiver",
+                            "en" => "Addressee",
                             "tooltip" => "Modale Création/Modification Lettre de voiture",
                         ],
                         [
@@ -1584,12 +1584,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                         [
                             "fr" => "Contact destinataire",
-                            "en" => "Receiver contact",
+                            "en" => "Addressee contact",
                             "tooltip" => "Modale Création/Modification Lettre de voiture",
                         ],
                         [
                             "fr" => "Téléphone - Email",
-                            "en" => "Phone number - Mail",
+                            "en" => "Phone number - Email",
                             "tooltip" => "Modale Création/Modification Lettre de voiture",
                         ],
                         [
@@ -1627,7 +1627,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     "content" => [
                         [
                             "fr" => "Création modification BL",
-                            "en" => "Create / Modify Order",
+                            "en" => "Create / Edit Order",
                             "tooltip" => "Modale Création modification BL",
                         ],
                         [
@@ -1717,7 +1717,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                         [
                             "fr" => "Facturé à",
-                            "en" => "Invoice to",
+                            "en" => "Invoiced to",
                             "tooltip" => "Modale Création modification BL",
                         ],
                         [
@@ -1766,12 +1766,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     "content" => [
                         [
                             "fr" => "Changement de statut d'un(e) demande d'acheminement.",
-                            "en" => "Transfer operation status changed",
+                            "en" => "The status of the transfer operation changed",
                             "tooltip" => "Mail changement statut acheminement",
                         ],
                         [
                             "fr" => "Changement de statut d'un(e) demande d'acheminement de type {1} vous concernant :\nBonjour,\nVotre acheminement/expédition est en cours de traitement avec les informations suivantes :",
-                            "en" => "Status change of a transfer operation of type {1} for you:\nHello,\nYour transfer / shipment is being processed with the following information:",
+                            "en" => "Status change of a transfer operation of type {1} for you:\nHello,\nYour transfer is being processed with the following information:",
                             "tooltip" => "Mail changement statut acheminement",
                         ],
                         [
@@ -1846,7 +1846,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     ],
                     [
                         "fr" => "Date de réalisation",
-                        "en" => "Finish date",
+                        "en" => "Completion date",
                         "tooltip" => "Zone liste - Nom de colonnes\nModale Modifier une demande de service",
                     ],
                     [
