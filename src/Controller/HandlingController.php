@@ -12,7 +12,6 @@ use App\Entity\FreeField;
 use App\Entity\FieldsParam;
 use App\Entity\Menu;
 use App\Entity\Handling;
-
 use App\Entity\Attachment;
 use App\Entity\Setting;
 use App\Entity\StatusHistory;
@@ -38,7 +37,6 @@ use App\Service\HandlingService;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
-use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 use Symfony\Component\HttpFoundation\Request;
@@ -48,26 +46,20 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Throwable;
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
 
 /**
  * @Route("/services")
  */
 class HandlingController extends AbstractController {
 
-    /**
-     * @Route("/", name="handling_index", options={"expose"=true}, methods={"GET", "POST"})
-     * @HasPermission({Menu::DEM, Action::DISPLAY_HAND})
-     */
+    #[Route("/", name: "handling_index", options: ["expose" => true], methods: "GET")]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_HAND])]
     public function index(EntityManagerInterface $entityManager, Request $request,
                           StatusService $statusService, HandlingService $handlingService): Response {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]);
@@ -128,11 +120,9 @@ class HandlingController extends AbstractController {
 		]);
     }
 
-    /**
-     * @Route("/api-columns", name="handling_api_columns", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::DISPLAY_HAND}, mode=HasPermission::IN_JSON)
-     */
-    public function apiColumns(EntityManagerInterface $entityManager, Request $request, HandlingService $handlingService): Response
+    #[Route("/api-columns", name: "handling_api_columns", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_HAND], mode: HasPermission::IN_JSON)]
+    public function apiColumns(EntityManagerInterface $entityManager, HandlingService $handlingService): Response
     {
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
@@ -141,10 +131,8 @@ class HandlingController extends AbstractController {
         return new JsonResponse($columns);
     }
 
-    /**
-     * @Route("/api", name="handling_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::DISPLAY_HAND}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/api", name: "handling_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_HAND], mode: HasPermission::IN_JSON)]
     public function api(Request $request, HandlingService $handlingService): Response
     {
         // cas d'un filtre statut depuis page d'accueil
@@ -155,10 +143,8 @@ class HandlingController extends AbstractController {
         return new JsonResponse($data);
     }
 
-    /**
-     * @Route("/creer", name="handling_new", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::CREATE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/creer", name: "handling_new", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::CREATE], mode: HasPermission::IN_JSON)]
     public function new(EntityManagerInterface $entityManager,
                         Request $request,
                         HandlingService $handlingService,
@@ -278,43 +264,21 @@ class HandlingController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/modifier/{id}", name="handling_edit", options={"expose"=true}, methods="GET|POST")
-     * @param EntityManagerInterface $entityManager
-     * @param Request $request
-     * @param FreeFieldService $freeFieldService
-     * @param TranslatorInterface $translator
-     * @param AttachmentService $attachmentService
-     * @param HandlingService $handlingService
-     * @param Handling $handling
-     * @return Response
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     * @throws Exception
-     */
+    #[Route("/modifier/{id}", name: "handling_edit", options: ["expose" => true], methods: "POST")]
+    #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function edit(EntityManagerInterface $entityManager,
                          Request $request,
                          Handling $handling,
                          FreeFieldService $freeFieldService,
                          TranslatorInterface $translator,
-                         AttachmentService $attachmentService,
-                         HandlingService $handlingService,
-                         NotificationService $notificationService,
-                         StatusHistoryService $statusHistoryService): Response
+                         AttachmentService $attachmentService): Response
     {
-        $statutRepository = $entityManager->getRepository(Statut::class);
-        $handlingRepository = $entityManager->getRepository(Handling::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
         $post = $request->request;
 
-        $date = (new DateTime('now'));
         $desiredDateStr = $post->get('desired-date');
         $desiredDate = $desiredDateStr ? FormatHelper::parseDatetime($desiredDateStr) : null;
 
-        /** @var Utilisateur $currentUser */
-        $currentUser = $this->getUser();
         $receivers = $post->get('receivers')
             ? explode(",", $post->get('receivers') ?? '')
             : [];
@@ -374,12 +338,6 @@ class HandlingController extends AbstractController {
 
     }
 
-    /**
-     * @param Handling $entity
-     * @param AttachmentService $attachmentService
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     */
     private function persistAttachments(Handling $entity, AttachmentService $attachmentService, Request $request, EntityManagerInterface $entityManager)
     {
         $attachments = $attachmentService->createAttachements($request->files);
@@ -391,10 +349,8 @@ class HandlingController extends AbstractController {
         $entityManager->flush();
     }
 
-    /**
-     * @Route("/supprimer", name="handling_delete", options={"expose"=true},methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::DELETE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/supprimer", name: "handling_delete", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::DELETE], mode: HasPermission::IN_JSON)]
     public function delete(Request $request,
                            EntityManagerInterface $entityManager,
                            TranslatorInterface $translator): Response
@@ -428,16 +384,8 @@ class HandlingController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/csv", name="get_handlings_csv", options={"expose"=true}, methods={"GET","POST"})
-     * @param Request $request
-     * @param TranslatorInterface $translator
-     * @param CSVExportService $CSVExportService
-     * @param FreeFieldService $freeFieldService
-     * @param DateService $dateService
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     */
+    #[Route("/csv", name: "get_handlings_csv", methods: "GET")]
+    #[HasPermission([Menu::DEM, Action::EXPORT])]
     public function getHandlingsCSV(Request $request,
                                     TranslatorInterface $translator,
                                     CSVExportService $CSVExportService,
@@ -539,10 +487,8 @@ class HandlingController extends AbstractController {
         }
     }
 
-    /**
-     * @Route("/colonne-visible", name="save_column_visible_for_handling", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::TRACA, Action::DISPLAY_ARRI}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/colonne-visible", name: "save_column_visible_for_handling", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_HAND], mode: HasPermission::IN_JSON)]
     public function saveColumnVisible(Request $request,
                                       EntityManagerInterface $entityManager,
                                       VisibleColumnService $visibleColumnService): Response
@@ -571,22 +517,24 @@ class HandlingController extends AbstractController {
 
         $freeFields = $freeFieldRepository->findByType($handling->getType());
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_HANDLING);
-        $status = [];
-        foreach($statutRepository->findStatusByType(CategorieStatut::HANDLING, $handling->getType()) as $statut){
-            if($userService->hasRightFunction(Menu::DEM, Action::TREAT_HANDLING)
-                || !$userService->hasRightFunction(Menu::DEM, Action::TREAT_HANDLING) && $statut->isNotTreated()){
-                $status[]= [
-                    "label" => $statut->getNom(),
-                    "value" => $statut->getId(),
-                ];
-            }
-        }
+
+        $hasRightToTreadHandling = $userService->hasRightFunction(Menu::DEM, Action::TREAT_HANDLING);
+        $currentStatus = $handling->getStatus();
+        $statuses = Stream::from($statutRepository->findStatusByType(CategorieStatut::HANDLING, $handling->getType()))
+            ->map(fn(Statut $status) => ($hasRightToTreadHandling || $status->isNotTreated()
+                ? [
+                    "label" => $status->getNom(),
+                    "value" => $status->getId(),
+                ] : []
+            ))
+            ->toArray();
 
         return $this->render('handling/show.html.twig', [
             'handling' => $handling,
             'freeFields' => $freeFields,
             'fieldsParam' => $fieldsParam,
-            'status' => $status,
+            'statuses' => $statuses,
+            'currentStatus' => $currentStatus,
         ]);
     }
 
@@ -647,24 +595,29 @@ class HandlingController extends AbstractController {
     #[Route("/edit-statut", name: "handling_status_edit", options: ['expose' => true], methods: "POST")]
     public function editStatut(Request $request,
                                EntityManagerInterface $entityManager,
-                               StatusHistoryService $statusHistoryService): JsonResponse {
+                               StatusHistoryService $statusHistoryService,
+                               HandlingService $handlingService): JsonResponse {
         $handlingRepository = $entityManager->getRepository(Handling::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
 
-        $request =json_decode($request->getContent(), true);
-        $statut = $statutRepository->find($request['statut']);
+        $request = json_decode($request->getContent(), true);
+        $status = $statutRepository->find($request['statut']);
         $handling = $handlingRepository->find($request['handling']);
         $requester = $this->getUser();
 
-        $statusHistoryService->updateStatus($entityManager, $handling, $statut);
+        $statusHistoryService->updateStatus($entityManager, $handling, $status);
 
-        if ($statut->isTreated()) {
+        if ($status->isTreated()) {
             $handling->setValidationDate(new \DateTime());
             $handling->setTreatedByHandling($requester);
         }
 
         $entityManager->persist($handling);
         $entityManager->flush();
+
+        $viewHoursOnExpectedDate = !$settingRepository->getOneParamByLabel(Setting::REMOVE_HOURS_DATETIME);
+        $handlingService->sendEmailsAccordingToStatus($entityManager, $handling, $viewHoursOnExpectedDate, !$status->isTreated());
 
         return $this->json([
             "success" => true,
