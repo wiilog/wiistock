@@ -436,7 +436,18 @@ class PreparationRepository extends EntityRepository
                 ->andWhere('preparation.expectedAt BETWEEN :start AND :end')
                 ->setParameter('statusCodes', $statusCodes)
                 ->setParameter('start', $startStr)
-                ->setParameter('end', $endStr);
+                ->setParameter('end', $endStr)
+                ->orderBy("FIELD(status.code, '"
+                    .Preparation::STATUT_VALIDATED
+                    ."', '"
+                    .Preparation::STATUT_A_TRAITER
+                    ."', '"
+                    .Preparation::STATUT_EN_COURS_DE_PREPARATION
+                    ."', '"
+                    .Preparation::STATUT_INCOMPLETE
+                    ."', '".
+                    Preparation::STATUT_PREPARE
+                    ."')");
 
             foreach ($filters as $filter) {
                 if ($queryBuilder !== []) {
