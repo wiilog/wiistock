@@ -151,7 +151,7 @@ class TranslationService {
 
         if(isset($params)) {
             foreach($params as $key => $value) {
-                $output = str_replace("{" . $key . "}", $value, $output);
+                $output = str_replace( '{' . $key . '}', $value, $output);
             }
         }
 
