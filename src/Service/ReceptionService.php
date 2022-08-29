@@ -21,6 +21,7 @@ use App\Helper\FormatHelper;
 use DateTime;
 use InvalidArgumentException;
 use App\Service\TranslationService;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -35,36 +36,38 @@ class ReceptionService
     public const INVALID_PROVIDER = 'invalid-provider';
 
 
-    /** @Required */
+    #[Required]
     public Twig_Environment $templating;
 
-    /** @Required */
+    #[Required]
     public EntityManagerInterface $entityManager;
 
-    /** @Required */
+    #[Required]
     public FieldsParamService $fieldsParamService;
 
-    /** @Required */
+    #[Required]
     public StringService $stringService;
 
-    /** @Required */
+    #[Required]
     public TranslationService $translation;
 
-    /** @Required */
+    #[Required]
     public FreeFieldService $freeFieldService;
 
-    /** @Required */
+    #[Required]
     public UniqueNumberService $uniqueNumberService;
 
-    /** @Required */
+    #[Required]
     public FormService $formService;
 
-    /** @Required  */
+    #[Required]
     public SettingsService $settingsService;
 
-    /** @Required  */
+    #[Required]
     public VisibleColumnService $visibleColumnService;
 
+    #[Required]
+    public FormatService $formatService;
 
     public function getDataForDatatable(Utilisateur $user, $params = null, $purchaseRequestFilter = null)
     {
@@ -336,7 +339,7 @@ class ReceptionService
         $config = [
             [
                 'label' => 'Statut',
-                'value' => $status ? $this->stringService->mbUcfirst($status->getNom()) : ''
+                'value' => $status ? $this->stringService->mbUcfirst($this->formatService->status($status)) : ''
             ],
             [
                 'label' => $this->translation->trans('réception.n° de réception'),

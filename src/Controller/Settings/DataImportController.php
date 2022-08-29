@@ -261,7 +261,7 @@ class DataImportController extends AbstractController
         $importId = (int)$request->request->get('importId');
         $import = $manager->getRepository(Import::class)->find($importId);
 
-        if ($import && $import->getStatus()->getNom() === Import::STATUS_DRAFT) {
+        if ($import && $this->getFormatter()->status($import->getStatus()) === Import::STATUS_DRAFT) {
             $manager->remove($import);
             $manager->flush();
         }

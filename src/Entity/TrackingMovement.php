@@ -4,10 +4,12 @@ namespace App\Entity;
 
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Repository\TrackingMovementRepository;
+use App\Service\FormatService;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Contracts\Service\Attribute\Required;
 
 #[ORM\Entity(repositoryClass: TrackingMovementRepository::class)]
 class TrackingMovement {
@@ -115,6 +117,9 @@ class TrackingMovement {
     #[ORM\ManyToMany(targetEntity: Attachment::class, mappedBy: 'trackingMovements')]
     private Collection $attachments;
 
+    #[Required]
+    public FormatService $formatService;
+
     public function __construct() {
         $this->quantity = 1;
         $this->firstDropRecords = new ArrayCollection();
@@ -173,14 +178,14 @@ class TrackingMovement {
     public function isDrop(): bool {
         return (
             $this->type
-            && $this->type->getNom() === self::TYPE_DEPOSE
+            && $this->formatService->status($this->type) === self::TYPE_DEPOSE
         );
     }
 
     public function isTaking(): bool {
         return (
             $this->type
-            && $this->type->getNom() === self::TYPE_PRISE
+            && $this->formatService->status($this->type) === self::TYPE_PRISE
         );
     }
 

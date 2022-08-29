@@ -27,6 +27,7 @@ use App\Helper\FormatHelper;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use App\Service\TranslationService;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\RouterInterface;
@@ -34,44 +35,47 @@ use WiiCommon\Helper\Stream;
 
 class DemandeLivraisonService
 {
-    /** @Required */
+    #[Required]
     public Twig_Environment $templating;
 
-    /** @Required */
+    #[Required]
     public RouterInterface $router;
 
-    /** @Required */
+    #[Required]
     public EntityManagerInterface $entityManager;
 
-    /** @Required */
+    #[Required]
     public StringService $stringService;
 
-    /** @Required */
+    #[Required]
     public RefArticleDataService $refArticleDataService;
 
-    /** @Required */
+    #[Required]
     public MailerService $mailerService;
 
-    /** @Required */
+    #[Required]
     public TranslationService $translation;
 
-    /** @Required */
+    #[Required]
     public PreparationsManagerService $preparationsManager;
 
-    /** @Required */
+    #[Required]
     public FreeFieldService $freeFieldService;
 
-    /** @Required */
+    #[Required]
     public FieldsParamService $fieldsParamService;
 
-    /** @Required */
+    #[Required]
     public NotificationService $notificationService;
 
-    /** @Required */
+    #[Required]
     public VisibleColumnService $visibleColumnService;
 
-    /** @Required */
+    #[Required]
     public UniqueNumberService $uniqueNumberService;
+
+    #[Required]
+    public FormatService $formatService;
 
     private ?array $freeFieldsConfig = null;
 
@@ -153,7 +157,7 @@ class DemandeLivraisonService
                                         array       $averageRequestTimesByType): array
     {
 
-        $requestStatus = $demande->getStatut() ? $demande->getStatut()->getNom() : '';
+        $requestStatus = $demande->getStatut() ? $this->formatService->status($demande->getStatut()) : '';
         $demandeType = $demande->getType() ? $demande->getType()->getLabel() : '';
 
         if ($requestStatus === Demande::STATUT_A_TRAITER && !$demande->getPreparations()->isEmpty()) {
@@ -350,7 +354,7 @@ class DemandeLivraisonService
         } else {
             $demande = $demandeRepository->find($demandeArray['demande']);
         }
-        if ($demande->getStatut() && $demande->getStatut()->getNom() === Demande::STATUT_BROUILLON) {
+        if ($demande->getStatut() && $this->formatService->status($demande->getStatut()) === Demande::STATUT_BROUILLON) {
             $response = [];
             $response['success'] = true;
             $response['msg'] = '';
@@ -361,7 +365,7 @@ class DemandeLivraisonService
                 $article = $articleLine->getArticle();
                 $statutArticle = $article->getStatut();
                 if (isset($statutArticle)
-                    && $statutArticle->getNom() !== Article::STATUT_ACTIF) {
+                    && $this->formatService->status($statutArticle) !== Article::STATUT_ACTIF) {
                     $response['success'] = false;
                     $response['nomadMessage'] = 'Erreur de quantité sur l\'article : ' . $articleLine->getBarCode();
                     $response['msg'] = "Un article de votre demande n'est plus disponible. Assurez vous que chacun des articles soit en statut disponible pour valider votre demande.";
@@ -396,7 +400,7 @@ class DemandeLivraisonService
         } else {
             $response['entete'] = $this->templating->render('demande/demande-show-header.html.twig', [
                 'demande' => $demande,
-                'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
+                'modifiable' => ($this->formatService->status($demande->getStatut()) === (Demande::STATUT_BROUILLON)),
                 'showDetails' => $this->createHeaderDetailsConfig($demande)
             ]);
             $response['msg'] = 'Votre demande de livraison a bien été validée';
@@ -522,7 +526,7 @@ class DemandeLivraisonService
         if (!$simpleValidation && !$fromNomade) {
             $response['entete'] = $this->templating->render('demande/demande-show-header.html.twig', [
                 'demande' => $demande,
-                'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
+                'modifiable' => ($this->formatService->status($demande->getStatut()) === (Demande::STATUT_BROUILLON)),
                 'showDetails' => $this->createHeaderDetailsConfig($demande)
             ]);
             $response['msg'] = 'Votre demande de livraison a bien été validée';

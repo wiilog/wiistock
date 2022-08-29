@@ -253,8 +253,8 @@ class TranslationService {
                                            array $labels,
                                            TranslationSource $labelTranslationSource) {
         foreach ($labels as $label) {
-            $labelLanguage = $entityManager->getRepository(Language::class)->find($label['language-id']);
-            $currentTranslation = $labelTranslationSource->getTranslationIn($labelLanguage->getSlug());
+            $labelLanguage = $entityManager->find(Language::class, $label["language-id"]);
+            $currentTranslation = $labelTranslationSource->getTranslationIn($labelLanguage);
 
             if (!$currentTranslation) {
                 $newTranslation = new Translation();
@@ -274,7 +274,7 @@ class TranslationService {
     public function setFirstTranslation(EntityManagerInterface $entityManager,
                                         int $entityId,
                                         string $classe,
-                                        string $frenchLabel) {
+                                        string $firstLabel) {
         $entityRepository = $entityManager->getRepository($classe);
         $entity = $entityRepository->find($entityId);
 
@@ -286,7 +286,7 @@ class TranslationService {
         $frenchTranslation
             ->setLanguage($entityManager->getRepository(Language::class)->find(1))
             ->setSource($labelTranslation)
-            ->setTranslation($frenchLabel);
+            ->setTranslation($firstLabel);
         $labelTranslation->addTranslation($frenchTranslation);
         $entity->setLabelTranslation($labelTranslation);
     }

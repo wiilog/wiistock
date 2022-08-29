@@ -19,6 +19,7 @@ use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 
 
@@ -32,8 +33,11 @@ class LivraisonsManagerService
     public const MOUVEMENT_DOES_NOT_EXIST_EXCEPTION = 'mouvement-does-not-exist';
     public const LIVRAISON_ALREADY_BEGAN = 'livraison-already-began';
 
-    /** @Required */
+    #[Required]
     public NotificationService $notificationService;
+
+    #[Required]
+    public FormatService $formatService;
 
     private $entityManager;
     private $mailerService;
@@ -105,7 +109,7 @@ class LivraisonsManagerService
             }
         }
 
-        if (($livraison->getStatut() && $livraison->getStatut()->getNom() === Livraison::STATUT_A_TRAITER) ||
+        if (($livraison->getStatut() && $this->formatService->status($livraison->getStatut()) === Livraison::STATUT_A_TRAITER) ||
             $livraison->getUtilisateur() && ($livraison->getUtilisateur()->getId() === $user->getId())) {
 
             // repositories
@@ -114,7 +118,7 @@ class LivraisonsManagerService
 
             $statutForLivraison = $statutRepository->findOneByCategorieNameAndStatutCode(
                 CategorieStatut::ORDRE_LIVRAISON,
-                $livraison->getPreparation()->getStatut()->getNom() === Preparation::STATUT_INCOMPLETE ? Livraison::STATUT_INCOMPLETE : Livraison::STATUT_LIVRE);
+                $this->formatService->status($livraison->getPreparation()->getStatut()) === Preparation::STATUT_INCOMPLETE ? Livraison::STATUT_INCOMPLETE : Livraison::STATUT_LIVRE);
 
             $livraison
                 ->setStatut($statutForLivraison)
@@ -126,8 +130,8 @@ class LivraisonsManagerService
                 $demande
                     ->getPreparations()
                     ->filter(function (Preparation $preparation) {
-                        return $preparation->getStatut()->getNom() === Preparation::STATUT_A_TRAITER ||
-                            ($preparation->getLivraison() && $preparation->getLivraison()->getStatut()->getNom() === Livraison::STATUT_A_TRAITER);
+                        return $this->formatService->status($preparation->getStatut()) === Preparation::STATUT_A_TRAITER ||
+                            ($preparation->getLivraison() && $this->formatService->status($preparation->getLivraison()->getStatut()) === Livraison::STATUT_A_TRAITER);
                     })
                     ->count()
                 > 0
@@ -224,7 +228,7 @@ class LivraisonsManagerService
         $statutTransit = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT);
         $preparation = $livraison->getpreparation();
         $livraisonStatus = $livraison->getStatut();
-        $livraisonStatusName = $livraisonStatus->getNom();
+        $livraisonStatusName = $this->formatService->status($livraisonStatus);
 
         $articleLines = $preparation->getArticleLines();
 

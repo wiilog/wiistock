@@ -189,17 +189,7 @@ class NatureController extends AbstractController
             $nature = $natureRepository->find($data['id']);
 
             if ($nature->getLabelTranslation() === null) {
-                $labelTranslation = new TranslationSource();
-                $frenchLabel = $this->getFormatter()->nature($nature);
-                $frenchTranslation = new Translation();
-
-                $frenchTranslation
-                    ->setLanguage($manager->getRepository(Language::class)->find(1))
-                    ->setSource($labelTranslation)
-                    ->setTranslation($frenchLabel);
-                $labelTranslation->addTranslation($frenchTranslation);
-                $nature->setLabelTranslation($labelTranslation);
-                $translationService->setFirstTranslation($manager, $nature->getId(), Nature::class, $nature->getLabel());
+                $translationService->setFirstTranslation($manager, $nature->getId(), Nature::class, $this->getFormatter()->nature($nature));;
             }
 
             $temperatures = $manager->getRepository(TemperatureRange::class)->findBy([]);
@@ -256,27 +246,9 @@ class NatureController extends AbstractController
                 $frenchLabel = $label['language-id'] == "1" ? $label['label'] : $frenchLabel;
             }
 
-            foreach ($labels as $label) {
-                $labelLanguage = $entityManager->find(Language::class, $label["language-id"]);
-                $currentTranslation = $labelTranslationSource->getTranslationIn($labelLanguage);
-
-                if (!$currentTranslation) {
-                    $newTranslation = new Translation();
-                    $newTranslation
-                        ->setTranslation($label['label'])
-                        ->setSource($labelTranslationSource)
-                        ->setLanguage($labelLanguage);
-
-                    $labelTranslationSource->addTranslation($newTranslation);
-                    $entityManager->persist($newTranslation);
-                } else {
-                    $currentTranslation->setTranslation($label['label']);
-                }
-            }
-            $translationService::class->editEntityTranslations($entityManager, $labels, $labelTranslationSource);
+            $translationService->editEntityTranslations($entityManager, $labels, $labelTranslationSource);
 
             $currentNature
-                ->setLabel($frenchLabel)
                 ->setPrefix($data['prefix'] ?? null)
                 ->setDefaultQuantity($data['quantity'])
                 ->setNeedsMobileSync($data['mobileSync'] ?? false)

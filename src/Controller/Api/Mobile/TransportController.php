@@ -284,7 +284,7 @@ class TransportController extends AbstractApiController
         return [
             'id' => $request->getId(),
             'number' => $request->getNumber(),
-            'status' => $request->getStatus()->getNom(),
+            'status' => $this->getFormatter()->status($request->getStatus()),
             'type' => FormatHelper::type($request->getType()),
             'type_icon' => $request->getType()?->getLogo() ? $_SERVER["APP_URL"] . $request->getType()
                     ->getLogo()
