@@ -23,16 +23,19 @@ class LanguageService {
     {
         $user = $this->security->getUser();
         $userId = $user->getId();
-        return $this->cacheService->get(CacheService::LANGUAGES, 'languagesSelector' . $userId, function () {
-            $languages = $this->cacheService->get(CacheService::LANGUAGES, 'languagesNotHidden', function () {
-                $languageRepository = $this->manager->getRepository(Language::class);
-                return $languageRepository->findBy(['hidden' => false]);
+
+        return $this->cacheService->get(CacheService::LANGUAGES, "languagesSelector" . $userId, function () {
+            $languages = $this->cacheService->get(CacheService::LANGUAGES, "languagesNotHidden", function () {
+                return $this->manager->getRepository(Language::class)->findBy(["hidden" => false]);
             });
+
             $user = $this->security->getUser();
             $mappedLanguages = [];
+            /** @var Language $language */
             foreach ($languages as $language) {
                 $mappedLanguages[] = $language->serialize($user);
             }
+
             return $mappedLanguages;
         });
     }

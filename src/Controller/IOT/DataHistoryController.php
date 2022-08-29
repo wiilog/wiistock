@@ -19,7 +19,7 @@ use App\Service\GeoService;
 use App\Service\IOT\DataMonitoringService;
 use App\Service\IOT\PairingService;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Controller\AbstractController;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;

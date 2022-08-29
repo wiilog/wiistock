@@ -3,6 +3,7 @@
 namespace App\Controller\Api\Mobile;
 
 use App\Annotation as Wii;
+use App\Controller\Api\AbstractApiController;
 use App\Entity\Attachment;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
@@ -35,7 +36,6 @@ use App\Service\TrackingMovementService;
 use App\Service\Transport\TransportHistoryService;
 use App\Service\Transport\TransportRoundService;
 use DateTime;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
 use FOS\RestBundle\Controller\Annotations as Rest;
@@ -43,20 +43,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use WiiCommon\Helper\Stream;
 
-class TransportController extends AbstractFOSRestController
+class TransportController extends AbstractApiController
 {
-
-    private Utilisateur|null $user;
-
-    public function getUser(): ?Utilisateur
-    {
-        return $this->user;
-    }
-
-    public function setUser(Utilisateur $user)
-    {
-        $this->user = $user;
-    }
 
     /**
      * @Rest\Get("/api/transport-rounds", name="api_transport_rounds", methods={"GET"}, condition="request.isXmlHttpRequest()")
@@ -268,7 +256,7 @@ class TransportController extends AbstractFOSRestController
         $temperatureRanges = Stream::from($request->getLines())
             ->filter(fn($line) => $line instanceof TransportDeliveryRequestLine)
             ->keymap(fn(TransportDeliveryRequestLine $line) => [
-                $line->getNature()->getLabel(),
+                $this->getFormatter()->nature($line->getNature()),
                 $line->getTemperatureRange()?->getValue(),
             ])->toArray();
 
@@ -276,7 +264,7 @@ class TransportController extends AbstractFOSRestController
             $naturesToCollect = $request->getLines()
                 ->map(fn(TransportCollectRequestLine $line) => [
                     "nature_id" => $line->getNature()->getId(),
-                    "nature" => $line->getNature()->getLabel(),
+                    "nature" => $this->getFormatter()->nature($line->getNature()),
                     "color" => $line->getNature()->getColor(),
                     "quantity_to_collect" => $line->getQuantityToCollect(),
                     "collected_quantity" => $line->getCollectedQuantity(),
@@ -314,9 +302,9 @@ class TransportController extends AbstractFOSRestController
 
                     return [
                         'code' => $pack->getCode(),
-                        'nature' => FormatHelper::nature($nature),
+                        'nature' => $this->getFormatter()->nature($nature),
                         'nature_id' => $nature->getId(),
-                        'temperature_range' => $temperatureRanges[$nature->getLabel()],
+                        'temperature_range' => $temperatureRanges[$this->getFormatter()->nature($nature)],
                         'color' => $nature->getColor(),
                         'rejected' => $orderPack->getState() === TransportDeliveryOrderPack::REJECTED_STATE,
                         'loaded' => $orderPack->getState() === TransportDeliveryOrderPack::LOADED_STATE,
@@ -1199,7 +1187,8 @@ class TransportController extends AbstractFOSRestController
                 $nature = $manager->find(Nature::class, $pack["nature_id"]);
 
                 for ($i = 0; $i < $pack["quantity"]; $i++) {
-                    $createdPack = $packService->createPackWithCode(TransportRound::NUMBER_PREFIX . "{$round->getNumber()}-{$nature->getLabel()}-$i");
+                    $natureLabel = $this->getFormatter()->nature($nature);
+                    $createdPack = $packService->createPackWithCode(TransportRound::NUMBER_PREFIX . "{$round->getNumber()}-$natureLabel-$i");
 
                     $trackingMovement = $trackingMovementService->createTrackingMovement(
                         $createdPack,

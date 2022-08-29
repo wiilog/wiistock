@@ -12,6 +12,8 @@ use Doctrine\ORM\Mapping\ManyToOne;
 #[Entity(TranslationRepository::class)]
 class Translation {
 
+    public const FRENCH_SLUG = "french";
+
     #[Id]
     #[GeneratedValue]
     #[Column(type: "integer")]

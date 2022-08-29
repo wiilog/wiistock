@@ -23,6 +23,7 @@ use App\Exceptions\FormException;
 use App\Exceptions\GeoException;
 use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
+use App\Service\FormatService;
 use App\Service\FreeFieldService;
 use App\Service\GeoService;
 use App\Service\PackService;
@@ -71,6 +72,9 @@ class TransportService {
 
     #[Required]
     public GeoService $geoService;
+
+    #[Required]
+    public FormatService $formatService;
 
     public function persistTransportRequest(EntityManagerInterface $entityManager,
                                             Utilisateur $user,
@@ -590,7 +594,7 @@ class TransportService {
             if ($packs && !$packs->isEmpty()) {
                 foreach ($packs as $pack) {
                     $dataTransportDeliveryRequestPacks = array_merge($dataTransportDeliveryRequest, [
-                        $pack->getPack()?->getNature()?->getLabel() ?: '',
+                        $this->formatService->nature($pack->getPack()?->getNature()),
                         $pack->getPack()?->getQuantity() ?: '0',
                         $pack->getPack()?->getNature() ? $pack->getPackTemperature($pack->getPack()->getNature()) ?: '' : '',
                         $pack->getPack()?->getCode() ?: '',
@@ -627,7 +631,7 @@ class TransportService {
                 /** @var TransportCollectRequestLine $line */
                 foreach ($lines as $line) {
                     $dataTransportCollectRequestPacks = array_merge($dataTransportCollectRequest, [
-                        $line->getNature()?->getLabel()? : '',
+                        $this->formatService->nature($line->getNature()),
                         $line->getQuantityToCollect() !== null ? $line->getQuantityToCollect() : '/',
                         $line->getCollectedQuantity() !== null ? $line->getCollectedQuantity() : '-',
                     ], $freeFields);
@@ -716,7 +720,7 @@ class TransportService {
             if (!$packs->isEmpty()) {
                 foreach ($packs as $pack) {
                     $dataTransportDeliveryRequestPacks = array_merge($dataTransportDeliveryRequest, [
-                        $pack->getPack()?->getNature()?->getLabel() ?: '',
+                        $this->formatService->nature($pack->getPack()?->getNature()),
                         $pack->getPack()?->getQuantity() ?: '0',
                         $pack->getPack()?->getNature() ? $pack->getPackTemperature($pack->getPack()->getNature()) ?: '' : '',
                         $pack->getPack()?->getActivePairing()?->hasExceededThreshold()
@@ -760,7 +764,7 @@ class TransportService {
                 /** @var TransportCollectRequestLine $line */
                 foreach ($lines as $line) {
                     $dataTransportCollectRequestPacks = array_merge($dataTransportCollectRequest, [
-                        $line->getNature()?->getLabel()? : '',
+                        $this->formatService->nature($line->getNature()),
                         $line->getQuantityToCollect() !== null ? $line->getQuantityToCollect() : '/',
                         $line->getCollectedQuantity() !== null ? $line->getCollectedQuantity() : '-',
                     ], $freeFields);
@@ -843,7 +847,7 @@ class TransportService {
         $temperatureRanges = Stream::from($transportRequest->getLines())
             ->filter(fn($line) => $line instanceof TransportDeliveryRequestLine)
             ->keymap(fn(TransportDeliveryRequestLine $line) => [
-                $line->getNature()->getLabel(),
+                $this->formatService->nature($line->getNature()),
                 $line->getTemperatureRange()?->getValue()
             ])
             ->toArray();
@@ -860,7 +864,7 @@ class TransportService {
             ->keymap(fn(TransportDeliveryOrderPack $pack, int $index) => [(string) ($index + 1), $pack])
             ->filter(fn(TransportDeliveryOrderPack $pack) => !$pack->getRejectReason() && ($filteredPacksEmpty || in_array($pack->getId(), $deliveryPackIds)))
             ->map(function(TransportDeliveryOrderPack $pack, int $position) use ($logo, $contactName, $contactFileNumber, $cleanedContactAddress, $total, $temperatureRanges) {
-                $temperatureRange = $temperatureRanges[$pack->getPack()?->getNature()?->getLabel()] ?? null;
+                $temperatureRange = $temperatureRanges[$this->formatService->nature($pack->getPack()?->getNature())] ?? null;
                 $separated = strlen($contactName) > 25;
 
                 return [

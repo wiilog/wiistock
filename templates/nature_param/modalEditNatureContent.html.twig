@@ -5,7 +5,17 @@
 
     <div class="form-group col-md-6 col-12">
         <label class="wii-field-name">Label*</label>
-        <input type="text" class="data form-control needed" name="label" value="{{ nature.label }}">
+        {% for language in language_service.getLanguages %}
+            <div class="input-group langue-input-group mb-1" data-multiple-key="labels" data-multiple-object-index="{{ language.value }}">
+                <div class="input-group-prepend langue-img-prepend">
+                    <span class="langue-img" style="background-image: url({{ language.iconUrl }})"></span>
+                </div>
+
+                {% set translation = nature.labelTranslation.translationIn(language.slug) %}
+                <input type="hidden" class="data" name="language-id" value="{{ language.value }}">
+                <input type="text" class="data form-control needed" name="label" value="{{ translation ? translation.translation }}">
+            </div>
+        {% endfor %}
     </div>
     <div class="form-group col-md-6 col-12">
         <label class="wii-field-name">Code*</label>

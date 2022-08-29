@@ -90,6 +90,13 @@ class Import {
         self::ENTITY_DELIVERY => null,
         self::ENTITY_LOCATION => 'name',
     ];
+
+    public const IMPORT_FIELDS_TO_FIELDS_PARAM = [
+        'commentaire' => 'commentaire',
+        'destination' => 'emplacement',
+        'fournisseur' => 'fournisseur',
+        'transporteur' => 'transporteur',
+    ];
     const FIELDS_ENTITY = [
         'storageLocation' => 'Emplacement de stockage',
         'visibilityGroups' => 'Groupes de visibilité',
@@ -153,7 +160,7 @@ class Import {
         'name' => 'Nom',
         'description' => 'Description',
         'dateMaxTime' => 'Délais traça HH:MM',
-        'allowedPackNatures' => 'Natures de colis autorisées',
+        'allowedPackNatures' => ["Référentiel", "Natures", "Natures d'UL autorisées"],
         'allowedDeliveryTypes' => 'Types de livraisons autorisés',
         'allowedCollectTypes' => 'Types de collectes autorisés',
         'isDeliveryPoint' => 'Point de livraison',
@@ -162,12 +169,6 @@ class Import {
 
         'possibleCustoms' => 'Possible douane',
         'urgent' => 'Urgent',
-    ];
-    public const IMPORT_FIELDS_TO_FIELDS_PARAM = [
-        'commentaire' => 'commentaire',
-        'destination' => 'emplacement',
-        'fournisseur' => 'fournisseur',
-        'transporteur' => 'transporteur',
     ];
 
     #[ORM\Id]

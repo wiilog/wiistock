@@ -6,15 +6,19 @@ namespace App\Controller;
 use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\CategoryType;
+use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\Nature;
+use App\Entity\Translation;
+use App\Entity\TranslationSource;
 use App\Entity\Transport\TemperatureRange;
 use App\Entity\Type;
 use App\Service\NatureService;
 use App\Service\UserService;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Controller\AbstractController;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -62,32 +66,54 @@ class NatureController extends AbstractController
      */
     public function new(Request $request, TranslationService $translation, EntityManagerInterface $entityManager): Response {
         if ($data = json_decode($request->getContent(), true)) {
-            if(preg_match("[[,;]]", $data['label'])) {
-                return $this->json([
-                    "success" => false,
-                    "msg" => "Le libellé d'une nature ne peut pas contenir ; ou ,",
-                ]);
-            }
+            $labels = $data['labels'];
+            foreach ($labels as $label) {
+                if (preg_match("[[,;]]", $label['label'])) {
+                    return $this->json([
+                        "success" => false,
+                        "msg" => "Le libellé d'une nature ne peut pas contenir ; ou ,",
+                    ]);
+                }
 
-            $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
-            $natureRepository = $entityManager->getRepository(Nature::class);
+                $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
+                $natureRepository = $entityManager->getRepository(Nature::class);
 
-            if($natureRepository->findOneBy(["label" => $data["label"]])) {
-                return $this->json([
-                    "success" => false,
-                    "msg" => "Une nature existe déjà avec ce libellé",
-                ]);
+                if ($natureRepository->findDuplicates($label["label"], $label["language-id"])) {
+                    $language = $entityManager->find(Language::class, $label["language-id"]);
+
+                    return $this->json([
+                        "success" => false,
+                        "msg" => "Une nature existe déjà avec ce libellé dans la langue \"{$language->getLabel()}\"",
+                    ]);
+                }
             }
 
             $nature = new Nature();
             $nature
-                ->setLabel($data['label'])
                 ->setPrefix($data['prefix'] ?? null)
                 ->setColor($data['color'])
                 ->setNeedsMobileSync($data['mobileSync'] ?? false)
                 ->setDefaultQuantity($data['quantity'])
                 ->setDescription($data['description'] ?? null)
-                ->setCode($data['code']);
+                ->setCode($data['code'])
+                ->setLabelTranslation(new TranslationSource());
+
+            $labelTranslationSource = $nature->getLabelTranslation();
+            $entityManager->persist($labelTranslationSource);
+            $labelTranslationSource->setNature($nature);
+
+            foreach ($labels as $label) {
+                $labelLanguage = $entityManager->getRepository(Language::class)->find($label['language-id']);
+
+                $newTranslation = new Translation();
+                $newTranslation
+                    ->setTranslation($label['label'])
+                    ->setSource($labelTranslationSource)
+                    ->setLanguage($labelLanguage);
+
+                $labelTranslationSource->addTranslation($newTranslation);
+                $entityManager->persist($newTranslation);
+            }
 
             if (!empty($data['allowedTemperatures'])) {
                 foreach ($data['allowedTemperatures'] as $allowedTemperatureId) {
@@ -154,12 +180,26 @@ class NatureController extends AbstractController
      * @HasPermission({MENU::REFERENTIEL, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function apiEdit(Request $request,
-                            EntityManagerInterface $manager): Response
+                            EntityManagerInterface $manager,
+                            TranslationService $translationService): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
             $natureRepository = $manager->getRepository(Nature::class);
             $typeRepository = $manager->getRepository(Type::class);
             $nature = $natureRepository->find($data['id']);
+
+            if ($nature->getLabelTranslation() === null) {
+                $labelTranslation = new TranslationSource();
+                $frenchLabel = $this->getFormatter()->nature($nature);
+                $frenchTranslation = new Translation();
+
+                $frenchTranslation
+                    ->setLanguage($manager->getRepository(Language::class)->find(1))
+                    ->setSource($labelTranslation)
+                    ->setTranslation($frenchLabel);
+                $labelTranslation->addTranslation($frenchTranslation);
+                $nature->setLabelTranslation($labelTranslation);
+            }
 
             $temperatures = $manager->getRepository(TemperatureRange::class)->findBy([]);
             $types = [
@@ -167,13 +207,11 @@ class NatureController extends AbstractController
                 'transportDelivery' => $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::DELIVERY_TRANSPORT)
             ];
 
-            $json = $this->renderView('nature_param/modalEditNatureContent.html.twig', [
-                'nature' => $nature,
-                'temperatures' => $temperatures,
-                'types' => $types
-            ]);
-
-            return new JsonResponse($json);
+            return new JsonResponse($this->renderView('nature_param/modalEditNatureContent.html.twig', [
+                "nature" => $nature,
+                "temperatures" => $temperatures,
+                "types" => $types
+            ]));
         }
         throw new BadRequestHttpException();
     }
@@ -182,35 +220,61 @@ class NatureController extends AbstractController
      * @Route("/modifier", name="nature_edit",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({MENU::REFERENTIEL, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function edit(Request $request,
-                         EntityManagerInterface $entityManager): Response
+    public function edit(Request $request, EntityManagerInterface $entityManager, TranslationService $translationService): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
             $natureRepository = $entityManager->getRepository(Nature::class);
             $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
             $currentNature = $natureRepository->find($data['nature']);
-            $natureLabel = $currentNature->getLabel();
+            $natureLabel = $this->getFormatter()->nature($currentNature);
+            $labelTranslationSource = $currentNature->getLabelTranslation();
 
-            if(preg_match("[[,;]]", $data['label'])) {
-                return $this->json([
-                    "success" => false,
-                    "msg" => "Le label d'une nature ne peut pas contenir ; ou ,",
-                ]);
+            $labels = $data['labels'];
+            $frenchLabel = $this->getFormatter()->nature($currentNature);
+            foreach ($labels as $label) {
+                if (preg_match("[[,;]]", $label['label'])) {
+                    return $this->json([
+                        "success" => false,
+                        "msg" => "Le label d'une nature ne peut pas contenir ; ou ,",
+                    ]);
+                }
+
+                $existingNatures = Stream::from($natureRepository->findBy(["label" => $label['label']]))
+                    ->filter(fn(Nature $nature) => $nature->getId() != $currentNature->getId())
+                    ->count();
+
+                if ($existingNatures > 0) {
+                    $language = $entityManager->find(Language::class, $label["language-id"]);
+
+                    return $this->json([
+                        "success" => false,
+                        "msg" => "Une nature existe déjà avec ce libellé dans la langue \"{$language->getLabel()}\"",
+                    ]);
+                }
+
+                $frenchLabel = $label['language-id'] == "1" ? $label['label'] : $frenchLabel;
             }
 
-            $existingNatures = Stream::from($natureRepository->findBy(["label" => $data["label"]]))
-                ->filter(fn(Nature $nature) => $nature->getId() != $currentNature->getId())
-                ->count();
+            foreach ($labels as $label) {
+                $labelLanguage = $entityManager->find(Language::class, $label["language-id"]);
+                $currentTranslation = $labelTranslationSource->getTranslationIn($labelLanguage);
 
-            if($existingNatures > 0) {
-                return $this->json([
-                    "success" => false,
-                    "msg" => "Une nature existe déjà avec ce libellé",
-                ]);
+                if (!$currentTranslation) {
+                    $newTranslation = new Translation();
+                    $newTranslation
+                        ->setTranslation($label['label'])
+                        ->setSource($labelTranslationSource)
+                        ->setLanguage($labelLanguage);
+
+                    $labelTranslationSource->addTranslation($newTranslation);
+                    $entityManager->persist($newTranslation);
+                } else {
+                    $currentTranslation->setTranslation($label['label']);
+                }
             }
 
             $currentNature
-                ->setLabel($data['label'])
+                ->setLabel($frenchLabel)
                 ->setPrefix($data['prefix'] ?? null)
                 ->setDefaultQuantity($data['quantity'])
                 ->setNeedsMobileSync($data['mobileSync'] ?? false)
@@ -273,7 +337,9 @@ class NatureController extends AbstractController
 
             return new JsonResponse([
                 'success' => true,
-                'msg' => "La nature <strong>$natureLabel</strong> a bien été modifiée."
+                'msg' => $translationService->translate("Référentiel", "Natures", "La nature {1} a bien été modifiée", [
+                    1 => $natureLabel,
+                ])
             ]);
         }
         throw new BadRequestHttpException();

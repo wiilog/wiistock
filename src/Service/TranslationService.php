@@ -151,7 +151,7 @@ class TranslationService {
 
         if(isset($params)) {
             foreach($params as $key => $value) {
-                $output = str_replace("{$key}", $value, $output);
+                $output = str_replace("{" . $key . "}", $value, $output);
             }
         }
 
@@ -190,6 +190,11 @@ class TranslationService {
 
             /** @var Translation $translation */
             foreach($sources as $source) {
+                //no category means it's a translation for natures, types, etc
+                if($source->getCategory() === null) {
+                    continue;
+                }
+
                 $original = $source->getTranslationIn(Language::FRENCH_DEFAULT_SLUG);
                 $translation = $source->getTranslationIn($slug) ?? $original;
 
