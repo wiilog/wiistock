@@ -1127,7 +1127,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 "content" => [
                     [
                         "fr" => "Encours",
-                        "en" => "Ongoing",
+                        "en" => "In progress",
                         "tooltip" => "Fil d'arriane\nMenu",
                     ],
                     [
@@ -1138,6 +1138,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "Vous devez sélectionner au moins un emplacement dans les filtres",
                         "en" => "You must select at least one location in the filters",
+                        "tooltip" => "Erreur",
+                    ],
+                    [
+                        "fr" => "Veuillez paramétrer le délai maximum de vos emplacements pour visualiser leurs encours.",
+                        "en" => "Please set the maximum time for your locations to view their in progress.",
                         "tooltip" => "Erreur",
                     ],
                     [
