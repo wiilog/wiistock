@@ -265,6 +265,7 @@ class NatureController extends AbstractController
                 }
             }
 
+            dump($data);
             if($data['displayedOnForms']) {
                 $allowedForms = [];
                 if($data[Nature::ARRIVAL_CODE]) {
@@ -311,9 +312,7 @@ class NatureController extends AbstractController
 
             return new JsonResponse([
                 'success' => true,
-                'msg' => $translationService->translate("Référentiel", "Natures", "La nature {1} a bien été modifiée", [
-                    1 => $natureLabel,
-                ])
+                'msg' => $translationService->translate("Référentiel", "Natures", "La nature ".$natureLabel." a bien été modifiée")
             ]);
         }
         throw new BadRequestHttpException();
