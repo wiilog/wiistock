@@ -19,8 +19,8 @@ use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Exception;
 use Generator;
-use Google\Service\AdMob\Date;
 use Symfony\Component\HttpFoundation\InputBag;
+use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
 
 /**
@@ -428,6 +428,15 @@ class PreparationRepository extends EntityRepository
         $endStr = $end->format('Y-m-d');
 
         if (!empty($statusCodes)) {
+            $statuses = Stream::from([
+                Preparation::STATUT_VALIDATED,
+                Preparation::STATUT_A_TRAITER,
+                Preparation::STATUT_EN_COURS_DE_PREPARATION,
+                Preparation::STATUT_INCOMPLETE,
+                Preparation::STATUT_PREPARE
+            ])->map(fn(string $statusName) => "'$statusName'")
+            ->join(',');
+
             $queryBuilder = $this->createQueryBuilder('preparation')
                 ->join('preparation.statut', 'status')
                 ->join('preparation.demande', 'request')
@@ -437,17 +446,7 @@ class PreparationRepository extends EntityRepository
                 ->setParameter('statusCodes', $statusCodes)
                 ->setParameter('start', $startStr)
                 ->setParameter('end', $endStr)
-                ->orderBy("FIELD(status.code, '"
-                    .Preparation::STATUT_VALIDATED
-                    ."', '"
-                    .Preparation::STATUT_A_TRAITER
-                    ."', '"
-                    .Preparation::STATUT_EN_COURS_DE_PREPARATION
-                    ."', '"
-                    .Preparation::STATUT_INCOMPLETE
-                    ."', '".
-                    Preparation::STATUT_PREPARE
-                    ."')");
+                ->orderBy("FIELD(status.code, $statuses)");
 
             foreach ($filters as $filter) {
                 if ($queryBuilder !== []) {

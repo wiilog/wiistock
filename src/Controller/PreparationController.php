@@ -790,8 +790,6 @@ class PreparationController extends AbstractController
             ], true)
             ->toArray();
 
-
-
         $dates = Stream::fill(0, $nbDaysOnPlanning, null)
             ->map(function ($_, int $index) use ($planningStart, $preparations, $cards) {
                 $day = (clone $planningStart)->modify("+{$index} days");
