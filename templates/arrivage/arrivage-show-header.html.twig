@@ -8,8 +8,7 @@
     <input hidden value="{{ printArrivage is defined ? printArrivage : false }}" id="printArrivage">
 {% endblock %}
 
-{% block showTitleTooltip 'arrivage' %}
-{% block showTitle ('arrivage.arrivage'|trans) %}
+{% block showTitle (trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'Flux - arrivages')) %}
 {% block showSubtitle (arrivage.numeroArrivage) %}
 
 {% block showActions %}
@@ -23,7 +22,7 @@
                     data-target='#modalEditArrivage'
                     onclick="editRowArrivage($(this))"
                     data-toggle='modal' class="btn btn-primary ml-auto split-button">
-                Modifier
+                {{ trans('Général', null, 'Modale', 'Modifier') }}
             </button>
         {% endif %}
         <button type="button" class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
@@ -37,12 +36,12 @@
                id="printArrivageBtn"
                href="{{ path('print_arrivage_bar_codes', {arrivage: arrivage.id, printArrivage: 1}) }}">
                 <span class="wii-icon wii-icon-printer-black mr-2"></span>
-                Imprimer<span class="ml-1" arrivage">{{ 'arrivage.arrivage'|trans }}</span>
+                {{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Imprimer arrivage') }}
             </a>
             {% if not allPacksAlreadyInDispatch and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE_ACHE')) %}
                 <button class="dropdown-item dispatch-button" data-id="{{ arrivage.id }}">
                     <i class="fas fa-exchange-alt mr-2"></i>
-                    {{ 'arrivage.Acheminer'|trans }}
+                    {{ trans('Traçabilité', 'Flux - Arrivages', 'Détails arrivage - Entête', 'Acheminer') }}
                 </button>
             {% endif %}
             {% if canBeDeleted %}
@@ -51,7 +50,7 @@
                        class="dropdown-item d-flex align-items-center"
                        onclick="deleteRowArrivage($(this), $('#modalDeleteArrivage'), $('#submitDeleteArrivage'))">
                         <span class="wii-icon wii-icon-trash-black mr-2"></span>
-                        Supprimer
+                        {{ trans('Général', null, 'Modale', 'Supprimer') }}
                     </a>
                 {% endif %}
             {% endif %}
@@ -62,6 +61,6 @@
 {% block showUrgence %}
     {% if arrivage.isUrgent is defined and arrivage.isUrgent == true %}
         <i class="fa fa-exclamation-triangle mr-2"></i>
-        <span title="cet arrivage">{{ 'arrivage.cet arrivage'|trans }}</span> est à traiter en URGENCE.
+        {{ trans('Traçabilité', 'Flux - Arrivages', 'Détails arrivage - Entête', 'Cet arrivage est à traiter en URGENCE') }}
     {% endif %}
 {% endblock %}

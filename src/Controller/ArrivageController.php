@@ -24,6 +24,7 @@ use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Service\VisibleColumnService;
+use Doctrine\ORM\Tools\DebugUnitOfWorkListener;
 use WiiCommon\Helper\Stream;
 use App\Service\ArrivageService;
 use App\Service\AttachmentService;
@@ -93,13 +94,21 @@ class ArrivageController extends AbstractController {
         $statuses = $statutRepository->findStatusByType(CategorieStatut::ARRIVAGE);
         $defaultLocation = $settingRepository->getOneParamByLabel(Setting::MVT_DEPOSE_DESTINATION);
         $defaultLocation = $defaultLocation ? $emplacementRepository->find($defaultLocation) : null;
+
+        $natures = Stream::from($natureRepository->findByAllowedForms([Nature::ARRIVAL_CODE]))
+            ->map(fn(Nature $nature) => [
+                'id' => $nature->getId(),
+                'label' => $this->getFormatter()->nature($nature),
+                'defaultQuantity' => $nature->getDefaultQuantity(),
+            ])
+            ->toArray();
         return $this->render('arrivage/index.html.twig', [
             'carriers' => $transporteurRepository->findAllSorted(),
             'chauffeurs' => $chauffeurRepository->findAllSorted(),
             'users' => $utilisateurRepository->findBy(['status' => true], ['username'=> 'ASC']),
             'fournisseurs' => $fournisseurRepository->findBy([], ['nom' => 'ASC']),
             'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
-            'natures' => $natureRepository->findByAllowedForms([Nature::ARRIVAL_CODE]),
+            'natures' => $natures ,
             'statuts' => $statuses,
             'typesArrival' => $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]),
             'fieldsParam' => $fieldsParam,
@@ -732,13 +741,21 @@ class ArrivageController extends AbstractController {
 
         $defaultDisputeStatus = $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::DISPUTE_ARR);
 
+        $natures = Stream::from($natureRepository->findByAllowedForms([Nature::ARRIVAL_CODE]))
+            ->map(fn(Nature $nature) => [
+                'id' => $nature->getId(),
+                'label' => $this->getFormatter()->nature($nature),
+                'defaultQuantity' => $nature->getDefaultQuantity(),
+            ])
+            ->toArray();
+
         return $this->render("arrivage/show.html.twig", [
             'arrivage' => $arrivage,
             'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
             'acheteurs' => $acheteursNames,
             'disputeStatuses' => $statutRepository->findByCategorieName(CategorieStatut::DISPUTE_ARR, 'displayOrder'),
             'allColis' => $arrivage->getPacks(),
-            'natures' => $natureRepository->findByAllowedForms([Nature::ARRIVAL_CODE]),
+            'natures' => $natures,
             'printColis' => $printColis,
             'printArrivage' => $printArrivage,
             'canBeDeleted' => $arrivageRepository->countUnsolvedDisputesByArrivage($arrivage) == 0,
