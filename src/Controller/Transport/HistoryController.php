@@ -108,6 +108,7 @@ class HistoryController extends AbstractController
                 "entity" => $entity,
                 "round" => $line ?? null,
                 "estimatedTimeSlot" => $estimatedTimeSlot ?? null,
+                "noFollowingStatuses" => $entity instanceof TransportDeliveryRequest && $entity->getCollect()?->getStatus()->getNom() === TransportRequest::STATUS_NOT_COLLECTED
             ]),
         ]);
     }

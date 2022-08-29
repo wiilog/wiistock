@@ -10,7 +10,7 @@
 {% set lastHistory = statusesHistory | last ?: null %}
 {% set lastStatus = lastHistory ? lastHistory.status : null %}
 {% set followingStatusIndex = lastStatus is not null ? ((statusWorkflow|flip)[lastStatus] ?? null) : 0 %}
-{% set followingStatuses = followingStatusIndex is not null ? statusWorkflow|slice(followingStatusIndex + 1) : [] %}
+{% set followingStatuses = followingStatusIndex is not null and not noFollowingStatuses ? statusWorkflow|slice(followingStatusIndex + 1) : [] %}
 
 {% set statusName = transport.status|format_helper('status') %}
 {% set headerClass = statusName in constant('App\\Entity\\Transport\\TransportRequest::RED_STATUSES') ? 'bg-red-light' : 'bg-green-light' %}
