@@ -161,7 +161,7 @@ class RequestTemplateController extends AbstractController {
                     ? 'required'
                     : '';
                 if($template && $template->getRequestStatus()) {
-                    $status = "<option value='{$template->getRequestStatus()->getId()}'>{$template->getRequestStatus()->getNom()}</option>";
+                    $status = "<option value='{$template->getRequestStatus()->getId()}'>{$this->getFormatter()->status($template->getRequestStatus())}</option>";
                 }
                 $data[] = [
                     "label" => "Type de service*",

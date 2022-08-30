@@ -11,6 +11,7 @@ use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use DateTime;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
@@ -25,11 +26,14 @@ class DisputeService {
     public const PUT_LINE_ARRIVAL = 'arrival';
     public const PUT_LINE_RECEPTION = 'reception';
 
-    /** @Required */
+    #[Required]
     public AttachmentService $attachmentService;
 
-    /** @Required */
+    #[Required]
     public RouterInterface $router;
+
+    #[Required]
+    public FormatService $formatService;
 
     /**
      * @var Twig_Environment
@@ -331,7 +335,7 @@ class DisputeService {
             ->setUser($user);
 
         if ($dispute->getStatus()) {
-            $historyRecord->setStatusLabel($dispute->getStatus()->getNom());
+            $historyRecord->setStatusLabel($this->formatService->status($dispute->getStatus()));
         }
 
         if ($dispute->getType()) {

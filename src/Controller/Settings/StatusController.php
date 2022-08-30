@@ -119,7 +119,7 @@ class StatusController extends AbstractController
 
                 $data[] = [
                     "actions" => $actionColumn,
-                    "label" => "<input type='text' name='label' value='{$status->getNom()}' class='form-control data needed'/>",
+                    "label" => "<input type='text' name='label' value='{$this->getFormatter()->status($status)}' class='form-control data needed'/>",
                     "state" => "<select name='state' class='data form-control needed select-size'>{$stateOptions}</select>",
                     "comment" => "<input type='text' name='comment' value='{$status->getComment()}' class='form-control data'/>",
                     "type" => FormatHelper::type($status->getType()),
@@ -139,7 +139,7 @@ class StatusController extends AbstractController
             } else {
                 $data[] = [
                     "actions" => $actionColumn,
-                    "label" => $status->getNom(),
+                    "label" => $this->getFormatter()->status($status),
                     "type" => FormatHelper::type($status->getType()),
                     "state" => $statusService->getStatusStateLabel($status->getState()),
                     "comment" => $status->getComment(),
@@ -244,7 +244,7 @@ class StatusController extends AbstractController
 
         foreach ($statuses as $status) {
             if ($status->getLabelTranslation() === null) {
-                $translationService->setFirstTranslation($manager, $status->getId(), Statut::class, $status->getNom());
+                $translationService->setFirstTranslation($manager, $status->getId(), Statut::class, $this->getFormatter()->status($status));
             }
         }
         $manager->flush();
@@ -280,7 +280,6 @@ class StatusController extends AbstractController
             foreach ($statuses as $status) {
                 $name = 'labels-'.$status->getId();
                 $labels = $data[$name];
-                $frenchName = $status->getNom();
                 $labelTranslationSource = $status->getLabelTranslation();
 
                 foreach ($labels as $label) {
@@ -291,23 +290,17 @@ class StatusController extends AbstractController
                         ]);
                     }
 
-                    $existingNatures = Stream::from($statusRepository->findBy(["nom" => $label['label'], "type" => $status->getType()]))
-                        ->filter(fn(Statut $fnStatus) => $fnStatus->getId() != $status->getId())
-                        ->count();
+                    if ($statusRepository->findDuplicates($label["label"], $label["language-id"])) {
+                        $language = $manager->find(Language::class, $label["language-id"]);
 
-                    if ($existingNatures > 0) {
                         return $this->json([
                             "success" => false,
-                            "msg" => "Un statut existe déjà avec ce libellé",
+                            "msg" => "Une nature existe déjà avec ce libellé dans la langue \"{$language->getLabel()}\"",
                         ]);
                     }
-
-                    $frenchName = $label['language-id'] == "1" ? $label['label'] : $frenchName;
                 }
 
                 $translationService->editEntityTranslations($manager, $labels, $labelTranslationSource);
-
-                $status->setNom($frenchName);
             }
 
             $manager->flush();

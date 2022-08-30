@@ -987,7 +987,7 @@ class SettingsController extends AbstractController {
                             ->filter(fn(Statut $status) => $status->getState() === Statut::NOT_TREATED)
                             ->map(fn(Statut $status) => [
                                 "value" => $status->getId(),
-                                "label" => $status->getNom(),
+                                "label" => $this->getFormatter()->status($status),
                             ])->toArray(),
                     ],
                     self::MENU_FIXED_FIELDS => function() use ($fixedFieldRepository) {

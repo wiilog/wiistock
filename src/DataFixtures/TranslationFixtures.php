@@ -1917,12 +1917,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
         "Référentiel" => [
             "Natures" => [
                 "content" => [
-                    ["fr" => "Natures d'UL"],
-                    ["fr" => "Ajouter une nature d'UL"],
                     ["fr" => "Natures d'UL autorisées"],
+                    ["fr" => "Natures des UL"],
+                    ["fr" => "Nature d'UL"],
                     ["fr" => "Nature"],
                     ["fr" => "La nature {1} a bien été créée"],
-                    ["fr" => "La nature {1} a bien été modifiée"],
                     ["fr" => "Création de nature"],
                     ["fr" => "Modification de nature"],
                     ["fr" => "cette nature"],
@@ -2152,6 +2151,18 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
 
                         $this->console->writeln("Created english translation \"" . str_replace("\n", "\\n ", $translation["en"]) . "\"");
                     }
+                } else {
+                    $english = $transSource->getTranslationIn("english-default");
+                    if (!$english) {
+                        $english = (new Translation())
+                            ->setLanguage($this->getLanguage("english-default"))
+                            ->setSource($transSource)
+                            ->setTranslation($translation["fr"]);
+
+                        $this->manager->persist($english);
+
+                        $this->console->writeln("Created default english source translation \"" . str_replace("\n", "\\n ", $translation["fr"]) . "\"");
+                    }
                 }
             }
 
@@ -2237,32 +2248,5 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
     public static function getGroups(): array
     {
         return ["fixtures", "language"];
-    }
-
-
-    private function initTranslationSources() {
-        $classes = [Nature::class, Statut::class];
-        $entities = [];
-        foreach ($classes as $class) {
-            $entities = $this->manager->getRepository($class)->findBy(['labelTranslation' => null]);
-        }
-        Stream::from($entities)->flatten()->toArray();
-
-        foreach ($entities as $entity) {
-            $entitySource = new TranslationSource();
-            $this->manager->persist($entitySource);
-
-            $entityTranslation = new Translation();
-            $entityTranslation
-                ->setLanguage($this->getLanguage(Translation::FRENCH_SLUG))
-                ->setSource($entitySource)
-                ->setTranslation($entity->getNom());
-
-            $entitySource->addTranslation($entityTranslation);
-            $entity->setLabelTranslation($entitySource);
-            $this->manager->persist($entityTranslation);
-        }
-
-
     }
 }

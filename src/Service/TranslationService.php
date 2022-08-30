@@ -4,13 +4,22 @@ namespace App\Service;
 
 use App\Entity\Language;
 use App\Entity\Translation;
+use App\Entity\TranslationCategory;
 use App\Entity\TranslationSource;
 use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Mapping\Entity;
+use Exception;
 use RuntimeException;
+use Symfony\Bundle\FrameworkBundle\Console\Application;
+use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\HttpKernel\KernelInterface;
+use Symfony\Component\Process\Process;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Yaml\Yaml;
 use Symfony\Contracts\Service\Attribute\Required;
+use WiiCommon\Helper\Stream;
 
 class TranslationService {
 
@@ -244,8 +253,8 @@ class TranslationService {
                                            array $labels,
                                            TranslationSource $labelTranslationSource) {
         foreach ($labels as $label) {
-            $labelLanguage = $entityManager->getRepository(Language::class)->find($label['language-id']);
-            $currentTranslation = $labelTranslationSource->getTranslationIn($labelLanguage->getSlug());
+            $labelLanguage = $entityManager->find(Language::class, $label["language-id"]);
+            $currentTranslation = $labelTranslationSource->getTranslationIn($labelLanguage);
 
             if (!$currentTranslation) {
                 $newTranslation = new Translation();
@@ -265,7 +274,7 @@ class TranslationService {
     public function setFirstTranslation(EntityManagerInterface $entityManager,
                                         int $entityId,
                                         string $classe,
-                                        string $frenchLabel) {
+                                        string $firstLabel) {
         $entityRepository = $entityManager->getRepository($classe);
         $entity = $entityRepository->find($entityId);
 
@@ -277,7 +286,7 @@ class TranslationService {
         $frenchTranslation
             ->setLanguage($entityManager->getRepository(Language::class)->find(1))
             ->setSource($labelTranslation)
-            ->setTranslation($frenchLabel);
+            ->setTranslation($firstLabel);
         $labelTranslation->addTranslation($frenchTranslation);
         $entity->setLabelTranslation($labelTranslation);
     }
