@@ -2,18 +2,18 @@
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
-                title: "Supprimer un litige"
+                title: trans('Qualité', 'Litiges', 'Supprimer le litige')
             } %}
 
             <div class="modal-body">
                 <p>
-                    Voulez-vous réellement supprimer ce litige ?
+                    {{ trans('Qualité', 'Litiges', 'Voulez-vous réellement supprimer ce litige ?') }}
                 </p>
             </div>
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
-                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
-                    {classes: 'btn btn-danger data', dismiss: true, name: 'litige', id: 'submitDeleteLitige', text: 'Supprimer'}
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
+                    {classes: 'btn btn-danger data', dismiss: true, name: 'litige', id: 'submitDeleteLitige', text: trans('Général', null, 'Modale', 'Supprimer')}
                 ],
                 renderErrorContainer: false
             } %}

@@ -1432,6 +1432,31 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "tooltip" => "Zone liste - Nom de colonnes",
                     ],
                     [
+                        "fr" => "articles",
+                        "en" => "units",
+                        "tooltip" => "Modale modifier un litige",
+                    ],
+                    [
+                        "fr" => "Modifier un litige",
+                        "en" => "Edit a dispute",
+                        "tooltip" => "Modale modifier un litige",
+                    ],
+                    [
+                        "fr" => "Code article",
+                        "en" => "Unit code",
+                        "tooltip" => "Modale modifier un litige",
+                    ],
+                    [
+                        "fr" => "Libellé",
+                        "en" => "Label",
+                        "tooltip" => "Modale modifier un litige",
+                    ],
+                    [
+                        "fr" => "Référence article",
+                        "en" => "Unit reference",
+                        "tooltip" => "Modale modifier un litige",
+                    ],
+                    [
                         "fr" => "Supprimer le litige",
                         "en" => "Delete the dispute",
                         "tooltip" => "Modale Supprimer le litige",
@@ -1439,6 +1464,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "Voulez-vous réellement supprimer ce litige ?",
                         "en" => "Do you really want to delete this dispute ?",
+                        "tooltip" => "Modale Supprimer le litige",
+                    ],
+                    [
+                        "fr" => "Le litige {1} a bien été supprimé",
+                        "en" => "The dispute {1} has been deleted successfully",
                         "tooltip" => "Modale Supprimer le litige",
                     ],
                 ],

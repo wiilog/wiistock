@@ -380,7 +380,7 @@ class ArrivageService {
 
         $config = [
             [
-                'label' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Type'),
+                'label' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Statut'),
                 'value' => $type ? $this->stringService->mbUcfirst($type->getLabel()) : '',
                 'isRaw' => true
             ],
