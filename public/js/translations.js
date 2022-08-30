@@ -9,26 +9,120 @@ class Trans {
 }
 
 class Translation {
-    static of(category, menu, submenu, translation) {
-        return Translation.fetch(TRANSLATIONS, category, menu, submenu, translation) || Translation.fetch(DEFAULT_TRANSLATIONS, category, menu, submenu, translation);
+    static FRENCH_SLUG = `french`;
+    static FRENCH_DEFAULT_SLUG = `french-default`;
+    static ENGLISH_SLUG = `english`;
+    static ENGLISH_DEFAULT_SLUG = `english-default`;
+
+    static slug;
+    static defaultSlug;
+
+    static of(...args) {
+        let defaultSlug;
+        if(Translation.slug === Translation.FRENCH_SLUG) {
+            defaultSlug = Translation.FRENCH_DEFAULT_SLUG;
+        } else if(Translation.slug === Translation.ENGLISH_SLUG) {
+            defaultSlug = Translation.ENGLISH_DEFAULT_SLUG;
+        } else {
+            defaultSlug = Translation.defaultSlug;
+        }
+
+        const trans = Translation.fetch(Translation.slug, defaultSlug, false, ...args);
+        if(trans) {
+            return trans;
+        } else if(defaultSlug === Translation.FRENCH_SLUG) {
+            return Translation.fetch(Translation.FRENCH_SLUG, defaultSlug, false, ...args)
+                || Translation.fetch(Translation.FRENCH_DEFAULT_SLUG, defaultSlug, false, ...args);
+        } else {
+            return Translation.fetch(Translation.ENGLISH_SLUG, defaultSlug, false, ...args)
+                || Translation.fetch(Translation.ENGLISH_DEFAULT_SLUG, defaultSlug, false, ...args);
+        }
     }
 
-    static fetch(repository, category = null, menu = null, submenu = null, translation = null) {
-        const transCategory = TRANSLATIONS[category];
+    static fetch(slug, defaultSlug, lastResort, ...args) {
+        let enableTooltip = true;
+        let params = null;
+
+        const variables = [`category`, `menu`, `submenu`, `translation`]
+        const stack = {
+            category: null,
+            menu: null,
+            submenu: null,
+            translation: null,
+        };
+
+        for(const arg of args) {
+            if(Array.isArray(arg)) {
+                params = arg;
+            } else if(typeof arg === `boolean`) {
+                enableTooltip = arg;
+            } else {
+                if(variables.length === 0) {
+                    throw new Error(`Too many arguments, expected at most 4 strings, 1 array and 1 boolean`);
+                }
+
+                stack[variables.shift()] = arg
+            }
+        }
+
+        let output = null;
+
+        const transCategory = TRANSLATIONS[slug][stack.category];
         if(typeof transCategory !== `object`) {
-            return transCategory || translation || submenu || menu || category;
+            output = transCategory || (lastResort ? stack.translation || stack.submenu || stack.menu || stack.category : null);
         }
 
-        const transMenu = transCategory[menu];
-        if(typeof transMenu !== `object`) {
-            return transMenu || translation || submenu || menu;
+        let transMenu = null;
+        if(output === null) {
+            transMenu = transCategory[stack.menu];
+            if (typeof transMenu !== `object`) {
+                output = transMenu || (lastResort ? stack.translation || stack.submenu || stack.menu : null);
+            }
         }
 
-        const transSubmenu = transMenu[submenu];
-        if(typeof transSubmenu !== `object`) {
-            return transSubmenu || translation || submenu;
+        let transSubmenu = null;
+        if(output === null) {
+            transSubmenu = transMenu[stack.submenu];
+            if (typeof transSubmenu !== `object`) {
+                output = transSubmenu || (lastResort ? stack.translation || stack.submenu : null);
+            }
         }
 
-        return transSubmenu[translation] || translation;
+        if(output === null) {
+            output = transSubmenu[stack.translation] || (lastResort ? stack.translation : null);
+        }
+
+        if(output === null) {
+            return null;
+        }
+
+        if(params !== null) {
+            for(const [key, value] of params) {
+                output = output.replaceAll(`{${key}`, value);
+            }
+        }
+
+        let tooltip;
+        if(slug === defaultSlug) {
+            tooltip = Translation.escape(output);
+        } else {
+            tooltip = Translation.escape(Translation.fetch(defaultSlug, defaultSlug, true, false, ...args));
+        }
+
+        return enableTooltip ? `<span title="${tooltip}">${output}</span>` : output;
+    }
+
+    static escape(unsafe) {
+        return unsafe
+            .replace(/&/g, `&amp;`)
+            .replace(/</g, `&lt;`)
+            .replace(/>/g, `&gt;`)
+            .replace(/"/g, `&quot;`)
+            .replace(/'/g, `&#039;`);
     }
 }
+
+$(document).ready(() => {
+    Translation.slug = $(`#language`).val();
+    Translation.defaultSlug = DEFAULT_SLUG;
+})

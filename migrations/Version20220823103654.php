@@ -12,11 +12,11 @@ final class Version20220823103654 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        $this->skipIf(!$schema->hasTable("translation_category"));
+        $this->skipIf(!$schema->hasTable("translation_category"), "Reexecute migrations after fixtures");
 
         $translations = $this->connection->executeQuery("SELECT * FROM previous_translation")->fetchAll();
         foreach($translations as $translation) {
-            if($translation === null || $translation === "") {
+            if($translation["translation"] === null || $translation["translation"] === "") {
                 continue;
             }
 

@@ -42,6 +42,7 @@ use Exception;
 use InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Routing\RouterInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 use Throwable;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
@@ -166,45 +167,50 @@ class ImportService
         ]
     ];
 
-    /** @Required */
+    #[Required]
     public Twig_Environment $templating;
 
-    /** @Required */
+    #[Required]
     public RouterInterface $router;
 
-    /** @Required */
+    #[Required]
     public ArticleDataService $articleDataService;
 
-    /** @Required */
+    #[Required]
     public RefArticleDataService $refArticleDataService;
 
-    /** @Required */
+    #[Required]
     public MouvementStockService $mouvementStockService;
 
-    /** @Required */
+    #[Required]
     public LoggerInterface $logger;
 
-    /** @Required */
+    #[Required]
     public AttachmentService $attachmentService;
 
-    /** @Required */
+    #[Required]
     public ReceptionService $receptionService;
 
-    /** @Required */
+    #[Required]
     public DemandeLivraisonService $demandeLivraisonService;
 
-    /** @Required */
+    #[Required]
     public ArticleFournisseurService $articleFournisseurService;
 
-    /** @Required */
+    #[Required]
     public UserService $userService;
 
-    /** @Required */
+    #[Required]
     public FormService $formService;
 
-    /** @Required */
+    #[Required]
     public UniqueNumberService $uniqueNumberService;
 
+    #[Required]
+    public TranslationService $translationService;
+
+    #[Required]
+    public FormatService $formatService;
 
     private Import $currentImport;
     private EntityManagerInterface $em;
@@ -611,6 +617,9 @@ class ImportService
         $data = [];
         foreach ($originalDatasToCheck as $column => $originalDataToCheck) {
             $fieldName = Import::FIELDS_ENTITY[$column] ?? $column;
+            if(is_array($fieldName)) {
+                $fieldName = $this->translationService->translate(...$fieldName);
+            }
 
             if (is_null($originalDataToCheck['value']) && $originalDataToCheck['needed']) {
                 $message = "La colonne $fieldName est manquante.";
@@ -1620,7 +1629,7 @@ class ImportService
             $elements = Stream::explode([";", ","], $data['allowedPackNatures'])->toArray();
             $natures = $natureRepository->findBy(['label' => $elements]);
             $natureLabels = Stream::from($natures)
-                ->map(fn(Nature $nature) => $nature->getLabel())
+                ->map(fn(Nature $nature) => $this->formatService->nature($nature))
                 ->toArray();
 
             $diff = Stream::diff($elements, $natureLabels, true);
@@ -1988,6 +1997,7 @@ class ImportService
 
         $fieldsToAssociate = $fieldsToAssociate
             ->keymap(fn(string $key) => [$key, Import::FIELDS_ENTITY[$key] ?? $key])
+            ->map(fn(string|array $field) => is_array($field) ? $this->translationService->translate(...$field) : $field)
             ->toArray();
 
         $categoryCLByEntity = [

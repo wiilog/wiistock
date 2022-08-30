@@ -21,7 +21,7 @@ use App\Service\CartService;
 use App\Service\SettingsService;
 use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;

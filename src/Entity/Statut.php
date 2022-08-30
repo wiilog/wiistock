@@ -9,6 +9,7 @@ use App\Repository\StatutRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use JetBrains\PhpStorm\Deprecated;
 
 #[ORM\Entity(repositoryClass: StatutRepository::class)]
 class Statut {
@@ -28,6 +29,7 @@ class Statut {
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $code = null;
 
+    #[Deprecated]
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $nom = null;
 
@@ -112,7 +114,7 @@ class Statut {
     #[ORM\OneToMany(mappedBy: 'requestStatus', targetEntity: HandlingRequestTemplate::class)]
     private Collection $handlingRequestStatusTemplates;
 
-    #[ORM\OneToOne(targetEntity: TranslationSource::class, inversedBy: "status")]
+    #[ORM\OneToOne(mappedBy: "status", targetEntity: TranslationSource::class)]
     private ?TranslationSource $labelTranslation = null;
 
     public function __construct() {
@@ -138,10 +140,26 @@ class Statut {
         return $this->id;
     }
 
+    public function getLabelIn(Language|string $in, Language|string $default): ?string {
+        if($default instanceof Language) {
+            $default = $default->getSlug();
+        }
+
+        $default = match($default) {
+            Language::FRENCH_DEFAULT_SLUG => Language::FRENCH_SLUG,
+            Language::ENGLISH_DEFAULT_SLUG => Language::ENGLISH_SLUG,
+            default => $default,
+        };
+
+        return $this->getLabelTranslation()->getTranslationIn($in, $default)?->getTranslation();
+    }
+
+    #[Deprecated]
     public function getNom(): ?string {
         return $this->nom;
     }
 
+    #[Deprecated]
     public function setNom(?string $nom): self {
         $this->nom = $nom;
 

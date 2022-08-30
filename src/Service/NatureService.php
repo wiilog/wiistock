@@ -26,6 +26,9 @@ class NatureService
     #[Required]
     public Security $security;
 
+    #[Required]
+    public FormatService $formatService;
+
     public function getDataForDatatable(InputBag $params)
     {
         $natureRepository = $this->manager->getRepository(Nature::class);
@@ -49,7 +52,7 @@ class NatureService
     {
         $typeRepository = $this->manager->getRepository(Type::class);
         $userLanguage = $this->security->getUser()->getLanguage();
-        $label = $nature->getLabel();
+        $label = $this->formatService->nature($nature);
 
         if ($userLanguage !== $this->manager->getRepository(Language::class)->find(1)
             && $nature->getLabelTranslation() && $nature->getLabelTranslation()->getTranslationIn($userLanguage->getSlug())) {
@@ -89,7 +92,7 @@ class NatureService
     {
         return [
             'id' => $nature->getId(),
-            'label' => $nature->getLabel(),
+            'label' => $this->formatService->nature($nature),
             'color' => $nature->getColor(),
             'hide' => !$nature->getNeedsMobileSync()
         ];

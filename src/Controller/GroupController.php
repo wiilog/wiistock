@@ -9,14 +9,12 @@ use App\Entity\Menu;
 use App\Entity\Nature;
 
 use App\Entity\Pack;
-use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use App\Service\GroupService;
 use App\Service\TrackingMovementService;
 
 use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -177,8 +175,8 @@ class GroupController extends AbstractController {
 
                         $CSVExportService->putLine($output, [
                             $group->getCode(),
-                            FormatHelper::nature($group->getNature()),
-                            FormatHelper::datetime($trackingDate),
+                            $this->getFormatter()->nature($group->getNature()),
+                            $this->getFormatter()->datetime($trackingDate),
                             $groupData['packCounter'],
                             $group->getWeight(),
                             $group->getVolume(),
