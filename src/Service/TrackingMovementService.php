@@ -606,8 +606,8 @@ class TrackingMovementService
 
         $columns = [
             ['name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
-            ['title' => 'Issu de', 'name' => 'origin', 'orderable' => false],
-            ['title' => 'Date', 'name' => 'date'],
+            ['title' => $this->translation->translate('Traçabilité', 'Général', 'Issu de'), 'name' => 'origin', 'orderable' => false],
+            ['title' => $this->translation->translate('Traçabilité', 'Général', 'Date'), 'name' => 'date'],
             ['title' => 'mouvement de traçabilité.Colis', 'name' => 'code', 'translated' => true],
             ['title' => 'Référence', 'name' => 'reference'],
             ['title' => 'Libellé',  'name' => 'label'],

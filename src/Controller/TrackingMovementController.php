@@ -26,6 +26,7 @@ use App\Service\FilterSupService;
 use App\Service\FreeFieldService;
 use App\Service\TrackingMovementService;
 use App\Service\SpecificService;
+use App\Service\TranslationService;
 use App\Service\UserService;
 
 use App\Service\VisibleColumnService;
