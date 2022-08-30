@@ -101,13 +101,13 @@ class Select2Old {
                 language: {
                     inputTooShort: function () {
                         let s = lengthMin > 1 ? 's' : '';
-                        return 'Veuillez entrer au moins ' + lengthMin + ' caractère' + s + '.';
+                        return Translation.of(`Général`, '', 'Zone filtre', 'Veuillez entrer au moins {1} caractère{2}.',{1: lengthMin, 2: s}, false);
                     },
                     searching: function () {
-                        return 'Recherche en cours...';
+                        return Translation.of(`Général`, '', 'Zone filtre', 'Recherche en cours...', false);
                     },
                     noResults: function () {
-                        return 'Aucun résultat.';
+                        return Translation.of(`Général`, '', 'Zone filtre', 'Aucun résultat.', false);
                     }
                 },
                 minimumInputLength: lengthMin,
@@ -213,7 +213,7 @@ class Select2Old {
                     : {}),
                 "language": {
                     "noResults": function () {
-                        return 'Ajoutez des éléments';
+                        return Translation.of(`Général`, '', 'Zone filtre', 'Ajouter des éléments', false);
                     }
                 },
             });

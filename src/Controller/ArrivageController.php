@@ -185,7 +185,9 @@ class ArrivageController extends AbstractController {
         } else {
             return new JsonResponse([
                 'success' => false,
-                'msg' => "Veuillez renseigner le statut."
+                'msg' => $translation->translate("Général", null, "Modale", "Veuillez renseigner le champ {1}", [
+                    1 =>  $translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Statut'),
+                ]),
             ]);
         }
 
@@ -237,7 +239,7 @@ class ArrivageController extends AbstractController {
         catch (UniqueConstraintViolationException $e) {
             return new JsonResponse([
                 'success' => false,
-                'msg' => $translation->trans('arrivage.Un autre arrivage est en cours de création, veuillez réessayer') . '.'
+                'msg' => $translation->translate('Traçabilité', 'Flux - Arrivages', 'Divers fixes', 'Un autre arrivage est en cours de création, veuillez réessayer')
             ]);
         }
 
@@ -255,7 +257,9 @@ class ArrivageController extends AbstractController {
         if ($total === 0) {
             return new JsonResponse([
                 'success' => false,
-                'msg' => "Veuillez renseigner au moins un colis.<br>"
+                'msg' => $translation->translate("Général", null, "Modale", "Veuillez renseigner le champ {1}", [
+                    1 =>  $translation->translate('Traçabilité', 'Général', 'Unités logistiques'),
+                ]),
             ]);
         }
 
@@ -1391,7 +1395,7 @@ class ArrivageController extends AbstractController {
      */
     public function saveColumnVisible(Request $request,
                                       EntityManagerInterface $entityManager,
-                                      VisibleColumnService $visibleColumnService): Response
+                                      VisibleColumnService $visibleColumnService, TranslationService $translation): Response
     {
         $data = json_decode($request->getContent(), true);
 
@@ -1404,7 +1408,7 @@ class ArrivageController extends AbstractController {
 
         return $this->json([
             'success' => true,
-            'msg' => 'Vos préférences de colonnes à afficher ont bien été sauvegardées'
+            'msg' => $translation->translate('Général', null, 'Zone liste', 'Vos préférences de colonnes à afficher ont bien été sauvegardées')
         ]);
     }
 
