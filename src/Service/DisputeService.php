@@ -103,8 +103,8 @@ class DisputeService {
             ? (FormatHelper::datetime($lastHistoryRecordDate, "", false, $this->security->getUser()) . ' : ' . nl2br($lastHistoryRecordComment))
             : '';
 
-        $commands = $receptionReferenceArticleRepository->getAssociatedIdAndOrderNumbers($disputeId)[$disputeId] ?? null;
-        $references = $receptionReferenceArticleRepository->getAssociatedIdAndReferences($disputeId)[$disputeId] ?? null;
+        $commands = $receptionReferenceArticleRepository->getAssociatedIdAndOrderNumbers($disputeId)[$disputeId] ?? '';
+        $references = $receptionReferenceArticleRepository->getAssociatedIdAndReferences($disputeId)[$disputeId] ?? '';
 
         $isNumeroBLJson = !empty($dispute['arrivageId']);
         $numerosBL = isset($dispute['numCommandeBl'])
@@ -247,7 +247,7 @@ class DisputeService {
         ];
 
         if ($mode === self::PUT_LINE_ARRIVAL) {
-            $packs = $manager->getRepository(Pack::class)->findBy(["disputes" => $dispute["id"]]);
+            $packs = $manager->getRepository(Dispute::class)->find($dispute["id"])->getPacks();
             $arrival = ($packs->count() > 0 && $packs->first()->getArrivage())
                 ? $packs->first()->getArrivage()
                 : null;
