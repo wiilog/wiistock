@@ -4,22 +4,13 @@ namespace App\Service;
 
 use App\Entity\Language;
 use App\Entity\Translation;
-use App\Entity\TranslationCategory;
 use App\Entity\TranslationSource;
 use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Mapping\Entity;
-use Exception;
 use RuntimeException;
-use Symfony\Bundle\FrameworkBundle\Console\Application;
-use Symfony\Component\Console\Input\ArrayInput;
-use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\HttpKernel\KernelInterface;
-use Symfony\Component\Process\Process;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-use Symfony\Component\Yaml\Yaml;
 use Symfony\Contracts\Service\Attribute\Required;
-use WiiCommon\Helper\Stream;
 
 class TranslationService {
 
