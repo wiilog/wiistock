@@ -20,9 +20,6 @@ use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
 
 class HandlingService {
 
@@ -53,7 +50,7 @@ class HandlingService {
     #[Required]
     public FreeFieldService $freeFieldService;
 
-    public function getDataForDatatable($params = null, $statusFilter = null, $selectedDate = null)
+    public function getDataForDatatable($params = null, $statusFilter = null, $selectedDate = null): array
     {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $handlingRepository = $this->entityManager->getRepository(Handling::class);
@@ -88,15 +85,7 @@ class HandlingService {
         ];
     }
 
-    /**
-     * @param Handling $handling
-     * @param bool $includeDesiredTime
-     * @return array
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     */
-    public function dataRowHandling(Handling $handling, bool $includeDesiredTime = true) {
+    public function dataRowHandling(Handling $handling, bool $includeDesiredTime = true): array {
         $row = [
             'id' => $handling->getId() ?: 'Non défini',
             'number' => $handling->getNumber() ?: '',
@@ -110,9 +99,9 @@ class HandlingService {
                 ? FormatHelper::datetime($handling->getDesiredDate())
                 : FormatHelper::date($handling->getDesiredDate()),
             'validationDate' => FormatHelper::datetime($handling->getValidationDate()),
-            'status' => $handling->getStatus()->getNom() ? $handling->getStatus()->getNom() : null,
+            'status' => FormatHelper::status($handling->getStatus()),
             'emergency' => $handling->getEmergency() ?? '',
-            'treatedBy' => $handling->getTreatedByHandling() ? $handling->getTreatedByHandling()->getUsername() : '',
+            'treatedBy' => $handling->getTreatedByHandling() ? FormatHelper::user($handling->getTreatedByHandling()) : '',
             //'treatmentDelay' => $treatmentDelayStr,
             'carriedOutOperationCount' => is_int($handling->getCarriedOutOperationCount()) ? $handling->getCarriedOutOperationCount() : '',
             'actions' => $this->templating->render('handling/datatableHandlingRow.html.twig', [
@@ -133,19 +122,10 @@ class HandlingService {
         return $row;
     }
 
-    /**
-     * @param EntityManagerInterface $entityManager
-     * @param Handling $handling
-     * @param bool $isNewHandlingAndNotTreated
-     * @param bool $viewHoursOnExpectedDate
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     */
     public function sendEmailsAccordingToStatus(EntityManagerInterface $entityManager,
-                                                Handling $handling,
-                                                $viewHoursOnExpectedDate = false,
-                                                $isNewHandlingAndNotTreated = false): void {
+                                                Handling               $handling,
+                                                bool                   $viewHoursOnExpectedDate = false,
+                                                bool                   $isNewHandlingAndNotTreated = false): void {
         $status = $handling->getStatus();
         $requester = $status->getSendNotifToDeclarant() ? $handling->getRequester() : null;
         $receivers = $status->getSendNotifToRecipient() ? $handling->getReceivers() : [];
@@ -184,25 +164,18 @@ class HandlingService {
         }
     }
 
-    /**
-     * @param Handling $handling
-     * @param DateService $dateService
-     * @param array $averageRequestTimesByType
-     * @return array
-     * @throws \Exception
-     */
-    public function parseRequestForCard(Handling $handling, DateService $dateService, array $averageRequestTimesByType) {
+    public function parseRequestForCard(Handling $handling, DateService $dateService, array $averageRequestTimesByType): array {
         $requestStatus = $handling->getStatus() ? $handling->getStatus()->getNom() : '';
         $requestBodyTitle = !empty($handling->getSubject())
             ? $handling->getSubject() . (!empty($handling->getType())
                 ? ' - ' . $handling->getType()->getLabel()
                 : '')
             : '';
-        $state = $handling->getStatus() ? $handling->getStatus()->getState() : null;
+        $state = $handling->getStatus()?->getState();
 
         $href = $this->router->generate('handling_index') . '?open-modal=edit&modal-edit-id=' . $handling->getId();
 
-        $typeId = $handling->getType() ? $handling->getType()->getId() : null;
+        $typeId = $handling->getType()?->getId();
         $averageTime = $averageRequestTimesByType[$typeId] ?? null;
 
         $deliveryDateEstimated = 'Non estimée';
