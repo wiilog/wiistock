@@ -50,8 +50,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     "subtitle" => "Les libellés génériques présents pour la recherche rapide les boutons d’action et la pagination",
                     "content" => [
                         [
-                            "fr" => "Rechercher",
-                            "en" => "Search",
+                            "fr" => "Rechercher : ",
+                            "en" => "Search : ",
                         ],
                         [
                             "fr" => "Entrée pour valider",
@@ -108,6 +108,18 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Traitement en cours",
                             "en" => "Loading",
+                        ],
+                        [
+                            "fr" => "Aucun élément à afficher",
+                            "en" => "No elements to display",
+                        ],
+                        [
+                            "fr" => "Aucune donnée disponible dans le tableau",
+                            "en" => "No data available in the board",
+                        ],
+                        [
+                            "fr" => "(filtré de {1} éléments au total)",
+                            "en" => "(filtered by {1} elements in total)",
                         ],
                     ],
                 ],
