@@ -389,7 +389,7 @@ class ArrivageService {
                 'isRaw' => true
             ],
             [
-                'label' => 'Statut',
+                'label' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Statut'),
                 'value' => $status ? $this->stringService->mbUcfirst($this->formatService->status($status)) : ''
             ],
             [

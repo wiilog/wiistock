@@ -224,7 +224,7 @@
                                         data-type-id="{{ status.type.id }}"
                                         value="{{ status.id }}"
                                     {{ hasDefaultStatus and defaultStatuses[(typesArrival|first).id] == status.id ? 'selected' }}>
-                                    {{ status.nom }} {# TODO Traduire #}
+                                    {{ status.nom }}
                                 </option>
                             {% endfor %}
                         </select>
@@ -420,7 +420,7 @@
                 <!-- CHAMPS LIBRES -->
                 <span class="toggle-collapsible expanded">{{ trans('Général', null, 'Modale', 'Champs libres') }}</span>
                 <div class="collapsible expanded free-fields-container mb-2">
-                {% for type in typesArrival %} {# TODO Traduire #}
+                {% for type in typesArrival %}
                         <div class="d-none"
                              data-type="{{ type.id }}">
                             {% include 'free_field/freeFieldsEdit.html.twig' with {
