@@ -46,7 +46,6 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
     const statusStateOptions = JSON.parse($statusStateOptions.val());
     const tableSelector = `#${mode}-statuses-table`;
     const type = $('[name=type]:checked').val();
-    console.log(type);
     const route = Routing.generate(`settings_statuses_api`, {mode, type});
 
     const table = EditableDatatable.create(tableSelector, {

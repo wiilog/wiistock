@@ -119,7 +119,7 @@ class StatusController extends AbstractController
 
                 $data[] = [
                     "actions" => $actionColumn,
-                    "label" => "<input type='text' name='label' value='{$this->getFormatter()->status($status)}' class='form-control data needed'/>",
+                    "label" => "<input type='text' name='label' value='{$status->getLabelIn("french", $this->getUser()->getLanguage())}' class='form-control data needed'/>",
                     "state" => "<select name='state' class='data form-control needed select-size'>{$stateOptions}</select>",
                     "comment" => "<input type='text' name='comment' value='{$status->getComment()}' class='form-control data'/>",
                     "type" => FormatHelper::type($status->getType()),
@@ -132,14 +132,10 @@ class StatusController extends AbstractController
                     "automaticReceptionCreation" => "<div class='checkbox-container'><input type='checkbox' name='automaticReceptionCreation' class='form-control data $showAutomaticReceptionCreation' {$automaticReceptionCreation}/></div>",
                     "order" => "<input type='number' name='order' min='1' value='{$status->getDisplayOrder()}' class='form-control data needed px-2 text-center' data-no-arrow/>",
                 ];
-            } else if ($translate) {
-                $data[] = [
-
-                ];
             } else {
                 $data[] = [
                     "actions" => $actionColumn,
-                    "label" => $this->getFormatter()->status($status),
+                    "label" => $status->getLabelIn("french", $this->getUser()->getLanguage()),
                     "type" => FormatHelper::type($status->getType()),
                     "state" => $statusService->getStatusStateLabel($status->getState()),
                     "comment" => $status->getComment(),
