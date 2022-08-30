@@ -351,7 +351,13 @@ class ArrivageController extends AbstractController {
                 }
                 $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
 
-                $statuses = $statutRepository->findStatusByType(CategorieStatut::ARRIVAGE, $arrivage->getType());
+                $statuses = Stream::from($statutRepository->findStatusByType(CategorieStatut::ARRIVAGE, $arrivage->getType()))
+                    ->map(fn(Statut $statut) => [
+                        'id' => $statut->getId(),
+                        'type' => $statut->getType(),
+                        'nom' => $this->getFormatter()->status($statut),
+                    ])
+                    ->toArray();
 
                 $html = $this->renderView('arrivage/modalEditArrivageContent.html.twig', [
                     'arrivage' => $arrivage,
