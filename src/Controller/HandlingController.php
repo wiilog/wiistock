@@ -558,10 +558,10 @@ class HandlingController extends AbstractController {
         ]);
     }
 
-    #[Route("/modifier-page/{id}", name: "handling_edit_page", options: ["expose" => true], methods: ["GET","POST"])]
+    #[Route("/modifier-page/{id}", name: "handling_edit_page", options: ["expose" => true], methods: ["GET", "POST"])]
     #[HasPermission([Menu::DEM, Action::EDIT])]
-    public function editHandling(  Handling $handling,
-                           EntityManagerInterface $entityManager): Response {
+    public function editHandling(Handling               $handling,
+                                 EntityManagerInterface $entityManager): Response {
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
@@ -570,7 +570,7 @@ class HandlingController extends AbstractController {
             ->map(fn($emergency) => [
                 "label" => $emergency,
                 "value" => $emergency,
-                "selected" => $emergency === $handling->getEmergency()
+                "selected" => $emergency === $handling->getEmergency(),
             ])
             ->toArray();
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_HANDLING);
