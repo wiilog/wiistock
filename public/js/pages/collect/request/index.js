@@ -31,8 +31,6 @@ let collecteTableConfig = {
     ]
 };
 let table = initDataTable('tableCollecte_id', collecteTableConfig);
-console.log("coucou");
-console.log(table);
 
 
 let modalNewCollecte = $("#modalNewCollecte");
