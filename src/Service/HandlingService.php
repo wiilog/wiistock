@@ -180,7 +180,9 @@ class HandlingService {
             : '';
         $state = $handling->getStatus()?->getState();
 
-        $href = $this->router->generate('handling_index') . '?open-modal=edit&modal-edit-id=' . $handling->getId();
+        $href = $this->router->generate('handling_edit_page', [
+            "id" => $handling->getId()
+        ]);
 
         $typeId = $handling->getType()?->getId();
         $averageTime = $averageRequestTimesByType[$typeId] ?? null;
