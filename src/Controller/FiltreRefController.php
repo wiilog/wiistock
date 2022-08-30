@@ -177,7 +177,7 @@ class FiltreRefController extends AbstractController
                     ReferenceArticle::DRAFT_STATUS
                 ]);
                 foreach ($statuses as $status) {
-                    $options[] = $status->getNom();
+                    $options[] = $this->getFormatter()->status($status);
                 }
 			} else if ($value === 'visibilityGroups' || $value === 'visibilityGroup') {
                 $multiple = true;

@@ -33,37 +33,37 @@ class DispatchService {
 
     const WAYBILL_MAX_PACK = 20;
 
-    /** @Required */
+    #[Required]
     public Twig_Environment $templating;
 
-    /** @Required */
+    #[Required]
     public RouterInterface $router;
 
-    /** @Required */
+    #[Required]
     public UserService $userService;
 
-    /** @Required */
+    #[Required]
     public EntityManagerInterface $entityManager;
 
-    /** @Required */
+    #[Required]
     public FreeFieldService $freeFieldService;
 
-    /** @Required */
+    #[Required]
     public TranslationService $translation;
 
-    /** @Required */
+    #[Required]
     public MailerService $mailerService;
 
-    /** @Required */
+    #[Required]
     public TrackingMovementService $trackingMovementService;
 
-    /** @Required */
+    #[Required]
     public FieldsParamService $fieldsParamService;
 
-    /** @Required */
+    #[Required]
     public VisibleColumnService $visibleColumnService;
 
-    /** @Required */
+    #[Required]
     public ArrivageService $arrivalService;
 
     #[Required]
@@ -130,7 +130,7 @@ class DispatchService {
             'destination' => $dispatch->getDestination() ?? '',
             'nbPacks' => $dispatch->getDispatchPacks()->count(),
             'type' => $dispatch->getType() ? $dispatch->getType()->getLabel() : '',
-            'status' => $dispatch->getStatut() ? $dispatch->getStatut()->getNom() : '',
+            'status' => $dispatch->getStatut() ? $this->formatService->status($dispatch->getStatut()) : '',
             'emergency' => $dispatch->getEmergency() ?? '',
             'treatedBy' => $dispatch->getTreatedBy() ? $dispatch->getTreatedBy()->getUsername() : '',
             'treatmentDate' => FormatHelper::datetime($dispatch->getTreatmentDate(), "", false, $user),
@@ -262,7 +262,7 @@ class DispatchService {
         $config = [
             [
                 'label' => 'Statut',
-                'value' => $status ? $status->getNom() : ''
+                'value' => $status ? $this->formatService->status($status) : ''
             ],
             [
                 'label' => 'Type',
@@ -564,7 +564,7 @@ class DispatchService {
                                         DateService $dateService,
                                         array $averageRequestTimesByType): array {
 
-        $requestStatus = $dispatch->getStatut() ? $dispatch->getStatut()->getNom() : '';
+        $requestStatus = $dispatch->getStatut() ? $this->formatService->status($dispatch->getStatut()) : '';
         $requestType = $dispatch->getType() ? $dispatch->getType()->getLabel() : '';
         $typeId = $dispatch->getType() ? $dispatch->getType()->getId() : null;
         $requestState = $dispatch->getStatut() ? $dispatch->getStatut()->getState() : null;

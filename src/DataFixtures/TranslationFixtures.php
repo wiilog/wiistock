@@ -4,6 +4,7 @@ namespace App\DataFixtures;
 
 use App\Entity\Language;
 use App\Entity\Nature;
+use App\Entity\Statut;
 use App\Entity\Translation;
 use App\Entity\TranslationCategory;
 use App\Entity\TranslationSource;
@@ -1307,7 +1308,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 "content" => [
                     [
                         "fr" => "Encours",
-                        "en" => "Ongoing",
+                        "en" => "In progress",
                         "tooltip" => "Fil d'arriane\nMenu",
                     ],
                     [
@@ -1318,6 +1319,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "Vous devez sélectionner au moins un emplacement dans les filtres",
                         "en" => "You must select at least one location in the filters",
+                        "tooltip" => "Erreur",
+                    ],
+                    [
+                        "fr" => "Veuillez paramétrer le délai maximum de vos emplacements pour visualiser leurs encours.",
+                        "en" => "Please set the maximum time for your locations to view their in progress.",
                         "tooltip" => "Erreur",
                     ],
                     [
@@ -1334,6 +1340,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "fr" => "Actualisé le {1} à {2}",
                         "en" => "Updated on {1} at {2}",
                         "tooltip" => "Page",
+                    ],
+                    [
+                        "fr" => "Natures",
+                        "en" => "Natures",
+                        "tooltip" => "Filtres",
                     ],
                 ],
             ],
@@ -2137,12 +2148,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
         "Référentiel" => [
             "Natures" => [
                 "content" => [
-                    ["fr" => "Natures d'UL"],
-                    ["fr" => "Ajouter une nature d'UL"],
                     ["fr" => "Natures d'UL autorisées"],
+                    ["fr" => "Natures des UL"],
+                    ["fr" => "Nature d'UL"],
                     ["fr" => "Nature"],
                     ["fr" => "La nature {1} a bien été créée"],
-                    ["fr" => "La nature {1} a bien été modifiée"],
                     ["fr" => "Création de nature"],
                     ["fr" => "Modification de nature"],
                     ["fr" => "cette nature"],
@@ -2372,6 +2382,18 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
 
                         $this->console->writeln("Created english translation \"" . str_replace("\n", "\\n ", $translation["en"]) . "\"");
                     }
+                } else {
+                    $english = $transSource->getTranslationIn("english-default");
+                    if (!$english) {
+                        $english = (new Translation())
+                            ->setLanguage($this->getLanguage("english-default"))
+                            ->setSource($transSource)
+                            ->setTranslation($translation["fr"]);
+
+                        $this->manager->persist($english);
+
+                        $this->console->writeln("Created default english source translation \"" . str_replace("\n", "\\n ", $translation["fr"]) . "\"");
+                    }
                 }
             }
 
@@ -2458,5 +2480,4 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
     {
         return ["fixtures", "language"];
     }
-
 }

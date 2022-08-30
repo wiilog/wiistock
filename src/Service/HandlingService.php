@@ -57,6 +57,9 @@ class HandlingService {
     #[Required]
     public Security $security;
 
+    #[Required]
+    public FormatService $formatService;
+
     public function getDataForDatatable($params = null, $statusFilter = null, $selectedDate = null)
     {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
@@ -114,7 +117,7 @@ class HandlingService {
                 ? FormatHelper::datetime($handling->getDesiredDate(), "", false, $this->security->getUser())
                 : FormatHelper::date($handling->getDesiredDate(), "", false, $this->security->getUser()),
             'validationDate' => FormatHelper::datetime($handling->getValidationDate(), "", false, $this->security->getUser()),
-            'status' => $handling->getStatus()->getNom() ? $handling->getStatus()->getNom() : null,
+            'status' => $this->formatService->status($handling->getStatus()) ? $handling->getStatus()->getNom() : null,
             'emergency' => $handling->getEmergency() ?? '',
             'treatedBy' => $handling->getTreatedByHandling() ? $handling->getTreatedByHandling()->getUsername() : '',
             //'treatmentDelay' => $treatmentDelayStr,
@@ -196,7 +199,7 @@ class HandlingService {
      * @throws \Exception
      */
     public function parseRequestForCard(Handling $handling, DateService $dateService, array $averageRequestTimesByType) {
-        $requestStatus = $handling->getStatus() ? $handling->getStatus()->getNom() : '';
+        $requestStatus = $handling->getStatus() ? $this->formatService->status($handling->getStatus()) : '';
         $requestBodyTitle = !empty($handling->getSubject())
             ? $handling->getSubject() . (!empty($handling->getType())
                 ? ' - ' . $handling->getType()->getLabel()

@@ -8,6 +8,8 @@ const MODE_DISPATCH = 'dispatch';
 const MODE_HANDLING = 'handling';
 
 const $managementButtons = $(`.save-settings, .discard-settings`);
+const $modalEditTranslations = $("#modalEditTranslations");
+let $canTranslate = true;
 
 export function initializeArrivalDisputeStatuses($container, canEdit) {
     initializeStatuses($container, canEdit, MODE_ARRIVAL_DISPUTE);
@@ -35,13 +37,17 @@ export function initializeHandlingStatuses($container, canEdit) {
 
 function initializeStatuses($container, canEdit, mode, categoryType) {
     const $addButton = $container.find(`.add-row-button`);
+    const $translateButton = $container.find(`.translate-labels-button`);
     const $filtersContainer = $container.find('.filters-container');
     const $pageBody = $container.find('.page-body');
-    const $tableHeader = $(`.wii-page-card-header`);
+    const $addRow = $container.find(`.add-row`);
+    const $translateLabels = $container.find('.translate-labels');
     const $statusStateOptions = $container.find('[name=status-state-options]');
     const statusStateOptions = JSON.parse($statusStateOptions.val());
     const tableSelector = `#${mode}-statuses-table`;
-    const route = Routing.generate(`settings_statuses_api`, {mode});
+    const type = $('[name=type]:checked').val();
+    console.log(type);
+    const route = Routing.generate(`settings_statuses_api`, {mode, type});
 
     const table = EditableDatatable.create(tableSelector, {
         route,
@@ -58,23 +64,47 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
         },
         onEditStart: () => {
             $managementButtons.removeClass('d-none');
-            $tableHeader.addClass('d-none');
+            $addRow.addClass('d-none');
+            if ($canTranslate) { $translateLabels.removeClass('d-none'); }
+            $translateButton
+                .off('click')
+                .on(`click`, function () {
+                const params = {
+                    type: $('[name=type]:checked').val(),
+                    mode: mode
+                };
+                $.post(Routing.generate("settings_edit_status_translations_api", true), params)
+                    .then(response => {$modalEditTranslations.find(`.modal-body`).html(response.html)});
+            });
         },
         onEditStop: () => {
             $managementButtons.addClass('d-none');
-            $tableHeader.removeClass('d-none');
+            $addRow.removeClass('d-none');
             $filtersContainer.removeClass('d-none');
+            if ($canTranslate) { $translateLabels.addClass('d-none'); }
+            $canTranslate = true;
             $pageBody.find('.wii-title').remove();
         },
         columns: getStatusesColumn(mode),
         form: getFormColumn(mode, statusStateOptions, categoryType),
     });
 
-    $addButton
+    let submitEditTranslations = $("#submitEditTranslations");
+    let urlEditTranslations = Routing.generate('settings_edit_status_translations', true)
+    InitModal($modalEditTranslations, submitEditTranslations, urlEditTranslations);
+
+    $addRow.on(`click`, function() {
+        const url = Routing.generate(`settings_edit_status_translations_api`);
+        table.setURL(url);
+    });
+
+    $addRow
         .off('click')
         .on(`click`, function() {
             table.addRow(true);
         });
+
+
 
     $container.on('change', '[name=state]', function () {
         onStatusStateChange($(this));
@@ -188,6 +218,7 @@ function initializeStatusesByTypes($container, canEdit, mode) {
         .on('click', function() {
             $filtersContainer.addClass('d-none');
             $pageBody.prepend('<div class="header wii-title">Ajouter des statuts</div>');
+            $canTranslate = false;
         });
 }
 

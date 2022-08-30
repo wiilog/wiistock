@@ -581,7 +581,7 @@ class HandlingController extends AbstractController {
             if($userService->hasRightFunction(Menu::DEM, Action::TREAT_HANDLING)
                 || !$userService->hasRightFunction(Menu::DEM, Action::TREAT_HANDLING) && $statut->isNotTreated()){
                 $status[]= [
-                    "label" => $statut->getNom(),
+                    "label" => $this->getFormatter()->status($statut),
                     "value" => $statut->getId(),
                 ];
             }
