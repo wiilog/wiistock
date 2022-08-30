@@ -46,9 +46,8 @@ function InitModal($modal, submit, path, options = {}) {
 
     const onclick = function () {
         const $button = $(this);
-
         if ($button.hasClass(LOADING_CLASS)) {
-            showBSAlert('L\'opération est en cours de traitement', 'info');
+            showBSAlert( Translation.of('Général', '', 'Modale', 'L\'opération est en cours de traitement'), 'info');
         } else {
             SubmitAction($modal, $button, path, options)
                 .catch(() => {});
@@ -512,8 +511,7 @@ function processInputsForm($modal, data, isAttachmentForm) {
                 if (maxLength) {
                     const $commentStrWithoutTag = $qlEditor.text();
                     if ($commentStrWithoutTag.length > maxLength) {
-                        errorMessages.push(`Le commentaire excède les ${maxLength} caractères maximum.`);
-                        $isInvalidElements.push($editorContainer);
+                        errorMessages.push(Translation.of('Général', '', 'Modale', 'Le commentaire excède les {1} caractères maximum.',{1: maxLength}));
                     }
                     else {
                         saveData($input, data, name, val, isAttachmentForm);
@@ -546,8 +544,8 @@ function processInputsForm($modal, data, isAttachmentForm) {
 
     if (missingInputNames.length > 0) {
         errorMessages.push(missingInputNames.length === 1
-            ? `Veuillez renseigner le champ ${missingInputNames[0]}.`
-            : `Veuillez renseigner les champs : ${missingInputNames.join(', ')}.`
+            ? Translation.of('Général', '', 'Modale', 'Veuillez renseigner le champ {1}', {1 : missingInputNames[0]})
+            : Translation.of('Général', '', 'Modale', 'Veuillez renseigner les champs {1}', {1 : missingInputNames.join(', ')})
         );
     }
 
@@ -677,7 +675,7 @@ function processFilesForm($modal, data) {
 
     return {
         success: !isInvalidRequired,
-        errorMessages: isInvalidRequired ? ['Vous devez ajouter au moins une pièce jointe.'] : [],
+        errorMessages: isInvalidRequired ? [Translation.of('Général', '', 'Modale', 'Vous devez ajouter au moins une pièce jointe.')] : [],
         $isInvalidElements: isInvalidRequired ? [$modal.find('.dropFrame')] : []
     };
 }
@@ -758,7 +756,7 @@ function processDataArrayForm($modal, data) {
         []
     );
     if (dataArrayNeedPositiveNames.length > 0) {
-        errorMessages.push(...dataArrayNeedPositiveNames.map((name) => `Veuillez renseigner au moins un ${name}.`));
+        errorMessages.push(...dataArrayNeedPositiveNames.map((name) => Translation.of('Général', '', 'Modale', 'Veuillez renseigner au moins un {1}',{1: name})));
         $isInvalidElements.push(...dataArrayNeedPositiveNames.map((name) => $(`.data-array.needed-positiv[name="${name}"]`)));
     }
     if (dataArrayPhonesInvalid.length > 0) {
@@ -839,9 +837,9 @@ function displayAttachements(files, $dropFrame, isMultiple = true) {
         let sizeValid = checkSizeFormat(file, $dropFrame);
 
         if (!formatValid) {
-            errorMessages.push('"' + file.name + '" : Le format de votre pièce jointe n\'est pas supporté. Le fichier doit avoir une extension.');
+            errorMessages.push(Translation.of('Général', '', 'Modale', '"{1}" : Le format de votre pièce jointe n\'est pas supporté. Le fichier doit avoir une extension.',{1: file.name}));
         } else if (!sizeValid) {
-            errorMessages.push('"' + file.name + '" : La taille du fichier ne doit pas dépasser 10 Mo.');
+            errorMessages.push(Translation.of('Général', '', 'Modale', '"{1}" : La taille du fichier ne doit pas dépasser 10 Mo.',{1: file.name}));
         } else {
             let fileName = file.name;
 
