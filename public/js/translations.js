@@ -15,10 +15,10 @@ class Translation {
     static ENGLISH_DEFAULT_SLUG = `english-default`;
 
     static slug;
-    static defaultSlug;
+    static defaultSlug = DEFAULT_SLUG;
 
     static of(...args) {
-        Translation.slug = Translation.slug || $(`#language`).val(); //TODO: trouver une meilleure solution
+        Translation.slug = $(`#language`).val();
 
         let defaultSlug;
         if(Translation.slug === Translation.FRENCH_SLUG) {
@@ -126,8 +126,3 @@ class Translation {
             .replace(/'/g, `&#039;`);
     }
 }
-
-$(document).ready(() => {
-    Translation.slug = $(`#language`).val();
-    Translation.defaultSlug = DEFAULT_SLUG;
-})
