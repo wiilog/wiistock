@@ -7,17 +7,7 @@ use FOS\RestBundle\Controller\AbstractFOSRestController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use FOS\RestBundle\Controller\Annotations as Rest;
 
-class ApiController extends AbstractFOSRestController {
-
-    private ?Utilisateur $user = null;
-
-    public function getUser(): Utilisateur {
-        return $this->user;
-    }
-
-    public function setUser(?Utilisateur $user): void {
-        $this->user = $user;
-    }
+class ApiController extends AbstractApiController {
 
     /**
      * @Rest\Get("/api/ping")

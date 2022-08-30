@@ -10,7 +10,7 @@ use App\Entity\Utilisateur;
 use App\Service\AttachmentService;
 use App\Service\ImportService;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -261,7 +261,7 @@ class DataImportController extends AbstractController
         $importId = (int)$request->request->get('importId');
         $import = $manager->getRepository(Import::class)->find($importId);
 
-        if ($import && $import->getStatus()->getNom() === Import::STATUS_DRAFT) {
+        if ($import && $this->getFormatter()->status($import->getStatus()) === Import::STATUS_DRAFT) {
             $manager->remove($import);
             $manager->flush();
         }

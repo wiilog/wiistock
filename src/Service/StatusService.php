@@ -5,9 +5,13 @@ namespace App\Service;
 use App\Controller\Settings\StatusController;
 use App\Entity\Statut;
 use JetBrains\PhpStorm\ArrayShape;
+use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
 class StatusService {
+
+    #[Required]
+    public FormatService $formatService;
 
     #[ArrayShape([
         'success' => "bool",
@@ -68,7 +72,7 @@ class StatusService {
             ->reduce(function(array $carry, Statut $status): array {
                 $categoryId = $status->getCategorie()?->getId() ?: 0;
                 $typeId = $status->getType()?->getId() ?: 0;
-                $statusLabel = $status->getNom();
+                $statusLabel = $this->formatService->status($status);
 
                 if (!isset($carry[$categoryId])) {
                     $carry[$categoryId] = [];

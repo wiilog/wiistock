@@ -39,7 +39,7 @@ use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Controller\AbstractController;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -581,7 +581,7 @@ class HandlingController extends AbstractController {
             if($userService->hasRightFunction(Menu::DEM, Action::TREAT_HANDLING)
                 || !$userService->hasRightFunction(Menu::DEM, Action::TREAT_HANDLING) && $statut->isNotTreated()){
                 $status[]= [
-                    "label" => $statut->getNom(),
+                    "label" => $this->getFormatter()->status($statut),
                     "value" => $statut->getId(),
                 ];
             }

@@ -53,7 +53,7 @@ use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Util\Json;
 use RuntimeException;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -953,9 +953,9 @@ class SettingsController extends AbstractController {
                 self::MENU_INVENTORIES => [
                     self::MENU_CATEGORIES => fn() => [
                         "frequencyOptions" => Stream::from($frequencyRepository->findAll())
-                            ->map(fn(InventoryFrequency $n) => [
-                                "id" => $n->getId(),
-                                "label" => $n->getLabel(),
+                            ->map(fn(InventoryFrequency $freq) => [
+                                "id" => $freq->getId(),
+                                "label" => $freq->getLabel(),
                             ])
                             ->sort(fn(array $a, array $b) => $a["label"] <=> $b["label"])
                             ->map(fn(array $n) => "<option value='{$n["id"]}'>{$n["label"]}</option>")
@@ -987,7 +987,7 @@ class SettingsController extends AbstractController {
                             ->filter(fn(Statut $status) => $status->getState() === Statut::NOT_TREATED)
                             ->map(fn(Statut $status) => [
                                 "value" => $status->getId(),
-                                "label" => $status->getNom(),
+                                "label" => $this->getFormatter()->status($status),
                             ])->toArray(),
                     ],
                     self::MENU_FIXED_FIELDS => function() use ($fixedFieldRepository) {
@@ -1021,11 +1021,16 @@ class SettingsController extends AbstractController {
                         'types' => $this->typeGenerator(CategoryType::DEMANDE_DISPATCH),
                         'category' => CategoryType::DEMANDE_DISPATCH,
                     ],
-                    self::MENU_STATUSES => fn() => [
-                        'types' => $this->typeGenerator(CategoryType::DEMANDE_DISPATCH, false),
-                        'categoryType' => CategoryType::DEMANDE_DISPATCH,
-                        'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_DISPATCH),
-                    ],
+                    self::MENU_STATUSES => function() {
+                        $types = $this->typeGenerator(CategoryType::DEMANDE_DISPATCH, false);
+                        $types[0]["checked"] = true;
+
+                        return [
+                            'types' => $types,
+                            'categoryType' => CategoryType::DEMANDE_DISPATCH,
+                            'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_DISPATCH),
+                        ];
+                    },
                 ],
                 self::MENU_ARRIVALS => [
                     self::MENU_FIXED_FIELDS => function() use ($fixedFieldRepository) {
@@ -1168,7 +1173,7 @@ class SettingsController extends AbstractController {
                             ->keymap(fn(string $value) => [
                                 $value, [
                                     "value" => $value,
-                                    "label" => $natureRepository->find($value)->getLabel(),
+                                    "label" => $this->getFormatter()->nature($natureRepository->find($value)),
                                     "selected" => true,
                                 ],
                             ])

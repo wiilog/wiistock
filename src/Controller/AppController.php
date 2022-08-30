@@ -4,7 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Role;
 use App\Entity\Utilisateur;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 

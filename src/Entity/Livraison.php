@@ -5,9 +5,11 @@ namespace App\Entity;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\PreparationOrder\Preparation;
 use App\Repository\LivraisonRepository;
+use App\Service\FormatService;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Contracts\Service\Attribute\Required;
 
 #[ORM\Entity(repositoryClass: LivraisonRepository::class)]
 class Livraison {
@@ -48,6 +50,9 @@ class Livraison {
 
     #[ORM\OneToMany(targetEntity: MouvementStock::class, mappedBy: 'livraisonOrder')]
     private $mouvements;
+
+    #[Required]
+    public FormatService $formatService;
 
     public function __construct() {
         $this->mouvements = new ArrayCollection();
@@ -166,7 +171,7 @@ class Livraison {
     public function isCompleted(): bool {
         return (
             isset($this->statut)
-            && in_array($this->statut->getNom(), [Livraison::STATUT_LIVRE, Livraison::STATUT_INCOMPLETE])
+            && in_array($this->formatService->status($this->statut), [Livraison::STATUT_LIVRE, Livraison::STATUT_INCOMPLETE])
         );
     }
 

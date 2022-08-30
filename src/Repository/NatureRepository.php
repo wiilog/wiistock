@@ -136,4 +136,19 @@ class NatureRepository extends EntityRepository
 
         return $qb->getQuery()->getResult();
     }
+
+    public function findDuplicates(string $label, string $language, array $except = []) {
+        return $this->createQueryBuilder("nature")
+            ->join("nature.labelTranslation", "join_source")
+            ->leftJoin("join_source.translations", "join_translations")
+            ->leftJoin("join_translations.language", "join_language")
+            ->andWhere("nature NOT IN :except")
+            ->andWhere("join_language.slug = :language")
+            ->andWhere("join_translations.translation = :label")
+            ->setParameter("except", $except)
+            ->setParameter("language", $language)
+            ->setParameter("label", $label)
+            ->getQuery()
+            ->getResult();
+    }
 }

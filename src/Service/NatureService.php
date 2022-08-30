@@ -3,22 +3,31 @@
 
 namespace App\Service;
 
+use App\Entity\Language;
 use App\Entity\Nature;
 use App\Entity\Transport\TemperatureRange;
 use App\Entity\Type;
 use App\Helper\FormatHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\InputBag;
+use Symfony\Component\Security\Core\Security;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
 class NatureService
 {
-    /** @Required */
+    #[Required]
     public Twig_Environment $templating;
 
-    /** @Required */
+    #[Required]
     public EntityManagerInterface $manager;
+
+    #[Required]
+    public Security $security;
+
+    #[Required]
+    public FormatService $formatService;
 
     public function getDataForDatatable(InputBag $params)
     {
@@ -42,9 +51,16 @@ class NatureService
     public function dataRowNature(Nature $nature): array
     {
         $typeRepository = $this->manager->getRepository(Type::class);
+        $userLanguage = $this->security->getUser()->getLanguage();
+        $label = $this->formatService->nature($nature);
+
+        if ($userLanguage !== $this->manager->getRepository(Language::class)->find(1)
+            && $nature->getLabelTranslation() && $nature->getLabelTranslation()->getTranslationIn($userLanguage->getSlug())) {
+            $label = $nature->getLabelTranslation()->getTranslationIn($userLanguage->getSlug())->getTranslation();
+        }
 
         return [
-            'label' => $nature->getLabel(),
+            'label' => $label,
             'code' => $nature->getCode(),
             'defaultQuantity' => $nature->getDefaultQuantity() ?? 'Non définie',
             'prefix' => $nature->getPrefix() ?? 'Non défini',
@@ -76,7 +92,7 @@ class NatureService
     {
         return [
             'id' => $nature->getId(),
-            'label' => $nature->getLabel(),
+            'label' => $this->formatService->nature($nature),
             'color' => $nature->getColor(),
             'hide' => !$nature->getNeedsMobileSync()
         ];

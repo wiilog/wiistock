@@ -38,7 +38,7 @@ use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -641,7 +641,7 @@ class ReferenceArticleController extends AbstractController
                     'reference' => $providerArticle->getReference(),
                     'label' => $providerArticle->getLabel(),
                     'quantity' => Stream::from($articles)
-                        ->reduce(fn(int $carry, Article $article) => ($article->getStatut() && $article->getStatut()->getNom() === Article::STATUT_ACTIF)
+                        ->reduce(fn(int $carry, Article $article) => ($article->getStatut() && $this->getFormatter()->status($article->getStatut()) === Article::STATUT_ACTIF)
                             ? $carry + $article->getQuantite()
                             : $carry, 0)
                 ];

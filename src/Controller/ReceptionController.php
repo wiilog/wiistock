@@ -58,7 +58,7 @@ use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -948,7 +948,7 @@ class ReceptionController extends AbstractController {
         $typeBeforeName = $dispute->getType()->getLabel();
         $typeAfter = (int)$post->get('disputeType');
         $statutBeforeId = $dispute->getStatus()->getId();
-        $statutBeforeName = $dispute->getStatus()->getNom();
+        $statutBeforeName = $this->getFormatter()->status($dispute->getStatus());
         $statutAfterId = (int)$post->get('disputeStatus');
         $statutAfter = $statutRepository->find($statutAfterId);
 
@@ -957,7 +957,7 @@ class ReceptionController extends AbstractController {
             ->filter(function(Article $article) {
                 // articles non disponibles
                 return in_array(
-                    $article->getStatut()->getNom(),
+                    $this->getFormatter()->status($article->getStatut()),
                     [
                         Article::STATUT_EN_TRANSIT,
                         Article::STATUT_INACTIF
@@ -1236,7 +1236,7 @@ class ReceptionController extends AbstractController {
             }
             $rows[] = [
                 'type' => $dispute->getType()->getLabel(),
-                'status' => $dispute->getStatus()->getNom(),
+                'status' => $this->getFormatter()->status($dispute->getStatus()),
                 'lastHistoryRecord' => $dispute->getLastHistoryRecord() ? $dispute->getLastHistoryRecord()->getComment() : null,
                 'date' => $dispute->getCreationDate()->format('d/m/Y H:i'),
                 'actions' => $this->renderView('reception/datatableLitigesRow.html.twig', [

@@ -17,6 +17,7 @@ use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
+use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 use App\Entity\Dashboard as Dashboard;
 use App\Entity\Dashboard\Meter as DashboardMeter;
@@ -33,32 +34,35 @@ class DashboardSettingsService {
     const UNKNOWN_COMPONENT = 'unknown_component';
     const INVALID_SEGMENTS_ENTRY = 'invalid_segments_entry';
 
-    /** @Required */
+    #[Required]
     public DashboardService $dashboardService;
 
-    /** @Required */
+    #[Required]
     public DateService $dateService;
 
-    /** @Required */
+    #[Required]
     public DemandeLivraisonService $demandeLivraisonService;
 
-    /** @Required */
+    #[Required]
     public DemandeCollecteService $demandeCollecteService;
 
-    /** @Required */
+    #[Required]
     public HandlingService $handlingService;
 
-    /** @Required */
+    #[Required]
     public DispatchService $dispatchService;
 
-    /** @Required */
+    #[Required]
     public TransferRequestService $transferRequestService;
 
-    /** @Required */
+    #[Required]
     public UserService $userService;
 
-    /** @Required */
+    #[Required]
     public RouterInterface $router;
+
+    #[Required]
+    public FormatService $formatService;
 
     public function serialize(EntityManagerInterface $entityManager, ?Utilisateur $user, int $mode): string {
         $pageRepository = $entityManager->getRepository(Dashboard\Page::class);
@@ -336,8 +340,9 @@ class DashboardSettingsService {
                 $natures = $natureRepository->findBy(['id' => $config['natures']]);
                 $generated = Stream::from($natures)
                     ->reduce(function(array $carry, Nature $nature) {
-                        $carry['chartColors'][$nature->getLabel()] = $nature->getColor();
-                        $carry['defaultCounters'][$nature->getLabel()] = random_int(0, 30);
+                        $label = $this->formatService->nature($nature);
+                        $carry['chartColors'][$label] = $nature->getColor();
+                        $carry['defaultCounters'][$label] = random_int(0, 30);
                         return $carry;
                     }, ['chartColors' => [], 'defaultCounters' => []]);
                 $values['chartColors'] = $generated['chartColors'];
