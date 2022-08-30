@@ -288,6 +288,7 @@ a {
     background-repeat: no-repeat;
     background-position: center right calc(2.25rem / 4);
     background-size: calc(2.25rem / 2) calc(2.25rem / 2);
+    height: auto;
 
     .select2-selection {
         border: 1px solid $danger !important;
@@ -1261,8 +1262,7 @@ label.required:after {
     margin: auto;
 }
 
-.langue-input-group {
-    margin-left: 2px !important;
+.lang-input-group {
     border: 1px solid #ced4da;
     border-radius: 4px;
 
@@ -1270,7 +1270,7 @@ label.required:after {
         display: flex;
         justify-content: center;
         align-items: center;
-        border-radius: 4px 4px 0 0;
+        border-radius: 4px 0 0 4px;
         background-color: $light-grey;
         width: $input-height;
         height: $input-height;
@@ -1279,6 +1279,10 @@ label.required:after {
             border-radius: 50%;
             width: 23px;
             height: 23px;
+        }
+
+        input {
+            height: auto !important;
         }
     }
 

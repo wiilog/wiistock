@@ -268,7 +268,6 @@ class NatureController extends AbstractController
                 }
             }
 
-            dump($data);
             if($data['displayedOnForms']) {
                 $allowedForms = [];
                 if($data[Nature::ARRIVAL_CODE]) {
