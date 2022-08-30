@@ -154,6 +154,10 @@ class Statut {
         return $this->getLabelTranslation()->getTranslationIn($in, $default)?->getTranslation();
     }
 
+    public function getLabel() {
+        return $this->getFormatter()->status($this);
+    }
+
     #[Deprecated]
     public function getNom(): ?string {
         return $this->nom;

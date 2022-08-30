@@ -15,6 +15,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 
 class TransferRequestService {
@@ -25,6 +26,9 @@ class TransferRequestService {
     private $em;
     private $userService;
     private $uniqueNumberService;
+
+    #[Required]
+    public FormatService $formatService;
 
     public function __construct(TokenStorageInterface $tokenStorage,
                                 UniqueNumberService $uniqueNumberService,
@@ -145,7 +149,7 @@ class TransferRequestService {
     public function parseRequestForCard(TransferRequest $request,
                                         DateService $dateService,
                                         array $averageRequestTimesByType) {
-        $requestStatus = $request->getStatus() ? $request->getStatus()->getNom() : '';
+        $requestStatus = $request->getStatus() ? $this->formatService->status($request->getStatus()) : '';
 
         if ($requestStatus !== TransferRequest::DRAFT && $request->getOrder()) {
             $href = $this->router->generate('transfer_order_show', ['id' => $request->getOrder()->getId()]);

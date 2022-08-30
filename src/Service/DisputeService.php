@@ -11,6 +11,7 @@ use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use DateTime;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
@@ -25,11 +26,14 @@ class DisputeService {
     public const PUT_LINE_ARRIVAL = 'arrival';
     public const PUT_LINE_RECEPTION = 'reception';
 
-    /** @Required */
+    #[Required]
     public AttachmentService $attachmentService;
 
-    /** @Required */
+    #[Required]
     public RouterInterface $router;
+
+    #[Required]
+    public FormatService $formatService;
 
     /**
      * @var Twig_Environment
@@ -99,8 +103,8 @@ class DisputeService {
             ? (FormatHelper::datetime($lastHistoryRecordDate, "", false, $this->security->getUser()) . ' : ' . nl2br($lastHistoryRecordComment))
             : '';
 
-        $commands = $receptionReferenceArticleRepository->getAssociatedIdAndOrderNumbers($disputeId)[$disputeId] ?? null;
-        $references = $receptionReferenceArticleRepository->getAssociatedIdAndReferences($disputeId)[$disputeId] ?? null;
+        $commands = $receptionReferenceArticleRepository->getAssociatedIdAndOrderNumbers($disputeId)[$disputeId] ?? '';
+        $references = $receptionReferenceArticleRepository->getAssociatedIdAndReferences($disputeId)[$disputeId] ?? '';
 
         $isNumeroBLJson = !empty($dispute['arrivageId']);
         $numerosBL = isset($dispute['numCommandeBl'])
@@ -243,7 +247,7 @@ class DisputeService {
         ];
 
         if ($mode === self::PUT_LINE_ARRIVAL) {
-            $packs = $manager->getRepository(Pack::class)->findBy(["disputes" => $dispute["id"]]);
+            $packs = $manager->getRepository(Dispute::class)->find($dispute["id"])->getPacks();
             $arrival = ($packs->count() > 0 && $packs->first()->getArrivage())
                 ? $packs->first()->getArrivage()
                 : null;
@@ -331,7 +335,7 @@ class DisputeService {
             ->setUser($user);
 
         if ($dispute->getStatus()) {
-            $historyRecord->setStatusLabel($dispute->getStatus()->getNom());
+            $historyRecord->setStatusLabel($this->formatService->status($dispute->getStatus()));
         }
 
         if ($dispute->getType()) {

@@ -21,46 +21,50 @@ use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Service\TranslationService;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment;
 
 
 class ArrivageService {
 
-    /** @Required */
+    #[Required]
     public Environment $templating;
 
-    /** @Required */
+    #[Required]
     public RouterInterface $router;
 
-    /** @Required */
+    #[Required]
     public Security $security;
 
-    /** @Required */
+    #[Required]
     public EntityManagerInterface $entityManager;
 
-    /** @Required */
+    #[Required]
     public MailerService $mailerService;
 
-    /** @Required */
+    #[Required]
     public UrgenceService $urgenceService;
 
-    /** @Required */
+    #[Required]
     public SpecificService $specificService;
 
-    /** @Required */
+    #[Required]
     public StringService $stringService;
 
-    /** @Required */
+    #[Required]
     public TranslationService $translation;
 
-    /** @Required */
+    #[Required]
     public FreeFieldService $freeFieldService;
 
-    /** @Required */
+    #[Required]
     public FieldsParamService $fieldsParamService;
 
-    /** @Required */
+    #[Required]
     public VisibleColumnService $visibleColumnService;
+
+    #[Required]
+    public FormatService $formatService;
 
     private ?array $freeFieldsConfig = null;
 
@@ -137,7 +141,7 @@ class ArrivageService {
             'provider' => $arrival->getFournisseur() ? $arrival->getFournisseur()->getNom() : '',
             'receiver' => $arrival->getDestinataire() ? $arrival->getDestinataire()->getUsername() : '',
             'buyers' => implode(', ', $acheteursUsernames),
-            'status' => $arrival->getStatut() ? $arrival->getStatut()->getNom() : '',
+            'status' => $arrival->getStatut() ? $this->formatService->status($arrival->getStatut()) : '',
             'creationDate' => $arrival->getDate() ? $arrival->getDate()->format($user->getDateFormat() ? $user->getDateFormat() . ' H:i:s' : 'd/m/Y H:i:s') : '',
             'user' => $arrival->getUtilisateur() ? $arrival->getUtilisateur()->getUsername() : '',
             'emergency' => $arrival->getIsUrgent() ? 'oui' : 'non',
@@ -386,8 +390,7 @@ class ArrivageService {
             ],
             [
                 'label' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Statut'),
-                'value' => $status ? $this->stringService->mbUcfirst($status->getNom()) : '',
-                'isRaw' => true
+                'value' => $status ? $this->stringService->mbUcfirst($this->formatService->status($status)) : ''
             ],
             [
                 'label' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Fournisseur'),

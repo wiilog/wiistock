@@ -4,6 +4,7 @@ namespace App\DataFixtures;
 
 use App\Entity\Language;
 use App\Entity\Nature;
+use App\Entity\Statut;
 use App\Entity\Translation;
 use App\Entity\TranslationCategory;
 use App\Entity\TranslationSource;
@@ -2177,12 +2178,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
         "Référentiel" => [
             "Natures" => [
                 "content" => [
-                    ["fr" => "Natures d'UL"],
-                    ["fr" => "Ajouter une nature d'UL"],
                     ["fr" => "Natures d'UL autorisées"],
+                    ["fr" => "Natures des UL"],
+                    ["fr" => "Nature d'UL"],
                     ["fr" => "Nature"],
                     ["fr" => "La nature {1} a bien été créée"],
-                    ["fr" => "La nature {1} a bien été modifiée"],
                     ["fr" => "Création de nature"],
                     ["fr" => "Modification de nature"],
                     ["fr" => "cette nature"],
@@ -2412,6 +2412,18 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
 
                         $this->console->writeln("Created english translation \"" . str_replace("\n", "\\n ", $translation["en"]) . "\"");
                     }
+                } else {
+                    $english = $transSource->getTranslationIn("english-default");
+                    if (!$english) {
+                        $english = (new Translation())
+                            ->setLanguage($this->getLanguage("english-default"))
+                            ->setSource($transSource)
+                            ->setTranslation($translation["fr"]);
+
+                        $this->manager->persist($english);
+
+                        $this->console->writeln("Created default english source translation \"" . str_replace("\n", "\\n ", $translation["fr"]) . "\"");
+                    }
                 }
             }
 
@@ -2498,5 +2510,4 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
     {
         return ["fixtures", "language"];
     }
-
 }

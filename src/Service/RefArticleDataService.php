@@ -39,6 +39,7 @@ use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
@@ -81,13 +82,13 @@ class RefArticleDataService {
 
     private $filtreRefRepository;
 
-    /** @Required */
+    #[Required]
     public Twig_Environment $templating;
 
-    /** @Required */
+    #[Required]
     public UserService $userService;
 
-    /** @Required */
+    #[Required]
     public CSVExportService $CSVExportService;
 
     /**
@@ -95,32 +96,35 @@ class RefArticleDataService {
      */
     private $user;
 
-    /** @Required */
+    #[Required]
     public EntityManagerInterface $entityManager;
 
-    /** @Required */
+    #[Required]
     public RouterInterface $router;
 
-    /** @Required */
+    #[Required]
     public FreeFieldService $freeFieldService;
 
-    /** @Required */
+    #[Required]
     public ArticleFournisseurService $articleFournisseurService;
 
-    /** @Required */
+    #[Required]
     public AlertService $alertService;
 
-    /** @Required */
+    #[Required]
     public VisibleColumnService $visibleColumnService;
 
-    /** @Required */
+    #[Required]
     public AttachmentService $attachmentService;
 
-    /** @Required */
+    #[Required]
     public MouvementStockService $mouvementStockService;
 
-    /** @Required */
+    #[Required]
     public MailerService $mailerService;
+
+    #[Required]
+    public FormatService $formatService;
 
     private ?array $freeFieldsConfig = null;
 
@@ -182,7 +186,7 @@ class RefArticleDataService {
                         'label' => $articleFournisseur->getLabel(),
                         'fournisseurCode' => $articleFournisseur->getFournisseur()->getCodeReference(),
                         'quantity' => array_reduce($articles, function(int $carry, Article $article) {
-                            return ($article->getStatut() && $article->getStatut()->getNom() === Article::STATUT_ACTIF)
+                            return ($article->getStatut() && $this->formatService->status($article->getStatut()) === Article::STATUT_ACTIF)
                                 ? $carry + $article->getQuantite()
                                 : $carry;
                         }, 0)
@@ -552,7 +556,7 @@ class RefArticleDataService {
             "actions" => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
                 "attachmentsLength" => $refArticle->getAttachments()->count(),
                 "reference_id" => $refArticle->getId(),
-                "active" => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF : 0,
+                "active" => $refArticle->getStatut() ? $this->formatService->status($refArticle->getStatut()) == ReferenceArticle::STATUT_ACTIF : 0,
             ]),
             "colorClass" => (
                 $refArticle->getOrderState() === ReferenceArticle::PURCHASE_IN_PROGRESS_ORDER_STATE ? 'table-light-orange' :
@@ -722,7 +726,7 @@ class RefArticleDataService {
             ?? $alert->getArticle()->getArticleFournisseur()->getReferenceArticle();
         $referenceArticleId = isset($referenceArticle) ? $referenceArticle->getId() : null;
         $referenceArticleStatus = isset($referenceArticle) ? $referenceArticle->getStatut() : null;
-        $referenceArticleActive = $referenceArticleStatus ? ($referenceArticleStatus->getNom() == ReferenceArticle::STATUT_ACTIF) : 0;
+        $referenceArticleActive = $referenceArticleStatus ? ($this->formatService->status($referenceArticleStatus) == ReferenceArticle::STATUT_ACTIF) : 0;
 
         return [
             'actions' => $this->templating->render('alerte_reference/datatableAlertRow.html.twig', [
@@ -813,12 +817,12 @@ class RefArticleDataService {
                 ->filter(function(PreparationOrderReferenceLine $ligneArticlePreparation) use ($fromCommand) {
                     $preparation = $ligneArticlePreparation->getPreparation();
                     $livraison = $preparation->getLivraison();
-                    return $preparation->getStatut()->getNom() === Preparation::STATUT_EN_COURS_DE_PREPARATION
-                        || $preparation->getStatut()->getNom() === Preparation::STATUT_A_TRAITER
+                    return $this->formatService->status($preparation->getStatut()) === Preparation::STATUT_EN_COURS_DE_PREPARATION
+                        || $this->formatService->status($preparation->getStatut()) === Preparation::STATUT_A_TRAITER
                         || (
                             $fromCommand &&
                             $livraison &&
-                            $livraison->getStatut()->getNom() === Livraison::STATUT_A_TRAITER
+                            $this->formatService->status($livraison->getStatut()) === Livraison::STATUT_A_TRAITER
                         );
                 });
             /**
@@ -832,7 +836,7 @@ class RefArticleDataService {
     }
 
     public function treatAlert(EntityManagerInterface $entityManager, ReferenceArticle $reference): void {
-        if($reference->getStatut()->getNom() === ReferenceArticle::STATUT_INACTIF) {
+        if($this->formatService->status($reference->getStatut()) === ReferenceArticle::STATUT_INACTIF) {
             foreach($reference->getAlerts() as $alert) {
                 $entityManager->remove($alert);
             }

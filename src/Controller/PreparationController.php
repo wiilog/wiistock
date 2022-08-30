@@ -147,7 +147,7 @@ class PreparationController extends AbstractController
     public function apiLignePreparation(Preparation $preparation): Response
     {
         $demande = $preparation->getDemande();
-        $preparationStatut = $preparation->getStatut() ? $preparation->getStatut()->getNom() : null;
+        $preparationStatut = $preparation->getStatut() ? $this->getFormatter()->status($preparation->getStatut()) : null;
         $isPrepaEditable =
             $preparationStatut === Preparation::STATUT_A_TRAITER
             || ($preparationStatut == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparation->getUtilisateur() == $this->getUser());
@@ -231,7 +231,7 @@ class PreparationController extends AbstractController
                     ->every(fn (Pairing $pairing) => !$pairing->isActive())
             ));
 
-        $preparationStatus = $preparation->getStatut() ? $preparation->getStatut()->getNom() : null;
+        $preparationStatus = $preparation->getStatut() ? $this->getFormatter()->status($preparation->getStatut()) : null;
 
         $demande = $preparation->getDemande();
         $destination = $demande?->getDestination();

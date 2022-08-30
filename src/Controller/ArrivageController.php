@@ -91,7 +91,13 @@ class ArrivageController extends AbstractController {
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
         $paramGlobalRedirectAfterNewArrivage = $settingRepository->findOneBy(['label' => Setting::REDIRECT_AFTER_NEW_ARRIVAL]);
 
-        $statuses = $statutRepository->findStatusByType(CategorieStatut::ARRIVAGE);
+        $statuses = Stream::from($statutRepository->findStatusByType(CategorieStatut::ARRIVAGE))
+            ->map(fn(Statut $statut) => [
+                'id' => $statut->getId(),
+                'type' => $statut->getType(),
+                'nom' => $this->getFormatter()->status($statut),
+            ])
+            ->toArray();
         $defaultLocation = $settingRepository->getOneParamByLabel(Setting::MVT_DEPOSE_DESTINATION);
         $defaultLocation = $defaultLocation ? $emplacementRepository->find($defaultLocation) : null;
 

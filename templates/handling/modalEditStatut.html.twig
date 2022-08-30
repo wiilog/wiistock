@@ -1,14 +1,15 @@
 {% import 'form.html.twig' as form %}
 
-<form method="" class="modal fade" id="modalEditStatut" role="dialog" aria-labelledby="dataModalCenterTitle" aria-hidden="true">
+<form class="modal fade" id="modalEditStatut" aria-labelledby="dataModalCenterTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
-                title: '<span title="Modier le statut">' ~ ('Modier le statut' | trans) ~ '</span>'
+                title: '<span title="Modifier le statut">' ~ ('Modifier le statut' | trans) ~ '</span>'
             } %}
             <div class="modal-body modal-input container-fluid">
                 {{ form.select('statut', "Statut", true, {
-                    items: status,
+                    items: statuses,
+                    value: currentStatus.id,
                     type : null,
                     search : false,
                     labelOptions: {

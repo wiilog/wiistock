@@ -36,6 +36,9 @@ class PurchaseRequestService {
     #[Required]
     public TokenStorageInterface $tokenStorage;
 
+    #[Required]
+    public FormatService $formatService;
+
     public function getDataForDatatable($params = null)
     {
         $filters = $this->em->getRepository(FiltreSup::class)
@@ -168,7 +171,7 @@ class PurchaseRequestService {
                     ? 'Création d\'une demande d\'achat'
                     : 'Changement de statut d\'une demande d\'achat');
 
-            $statusName = $status->getNom();
+            $statusName = $this->formatService->status($status);
             $number = $purchaseRequest->getNumber();
             $processingDate = FormatHelper::datetime($purchaseRequest->getProcessingDate(), "", true);
             $title = $status->isTreated()

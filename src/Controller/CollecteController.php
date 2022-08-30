@@ -123,7 +123,7 @@ class CollecteController extends AbstractController
 		return $this->render('collecte/show.html.twig', [
             'refCollecte' => $collecteReferenceRepository->findByCollecte($collecte),
             'collecte' => $collecte,
-            'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUT_BROUILLON),
+            'modifiable' => ($this->getFormatter()->status($collecte->getStatut()) == Collecte::STATUT_BROUILLON),
             'detailsConfig' => $collecteService->createHeaderDetailsConfig($collecte),
             'hasPairings' => $hasPairings,
 		]);
@@ -168,7 +168,7 @@ class CollecteController extends AbstractController
                     'name' => ReferenceArticle::QUANTITY_TYPE_REFERENCE,
                     'refArticleId' => $referenceCollecte->getReferenceArticle()->getId(),
                     'collecteId' => $collecte->getid(),
-                    'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUT_BROUILLON),
+                    'modifiable' => ($this->getFormatter()->status($collecte->getStatut()) == Collecte::STATUT_BROUILLON),
                 ]),
             ];
         }
@@ -184,7 +184,7 @@ class CollecteController extends AbstractController
                     'type' => 'article',
                     'id' => $article->getId(),
                     'collecteId' => $collecte->getid(),
-                    'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUT_BROUILLON ? true : false),
+                    'modifiable' => ($this->getFormatter()->status($collecte->getStatut()) == Collecte::STATUT_BROUILLON ? true : false),
                 ]),
             ];
         }
@@ -467,7 +467,7 @@ class CollecteController extends AbstractController
                 $response = [
 					'entete' => $this->renderView('collecte/collecte-show-header.html.twig', [
 						'collecte' => $collecte,
-						'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUT_BROUILLON),
+						'modifiable' => ($this->getFormatter()->status($collecte->getStatut()) == Collecte::STATUT_BROUILLON),
                         'showDetails' => $collecteService->createHeaderDetailsConfig($collecte)
 					]),
 				];
