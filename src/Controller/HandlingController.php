@@ -131,7 +131,7 @@ class HandlingController extends AbstractController {
         return new JsonResponse($columns);
     }
 
-    #[Route("/api", name: "handling_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[Route("/api", name: "handling_api", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::DISPLAY_HAND], mode: HasPermission::IN_JSON)]
     public function api(Request $request, HandlingService $handlingService): Response
     {
@@ -558,10 +558,10 @@ class HandlingController extends AbstractController {
         ]);
     }
 
-    #[Route("/modifier-page/{id}", name: "handling_edit_page", options: ["expose" => true], methods: ["GET","POST"])]
+    #[Route("/modifier-page/{id}", name: "handling_edit_page", options: ["expose" => true], methods: ["GET", "POST"])]
     #[HasPermission([Menu::DEM, Action::EDIT])]
-    public function editHandling(  Handling $handling,
-                           EntityManagerInterface $entityManager): Response {
+    public function editHandling(Handling               $handling,
+                                 EntityManagerInterface $entityManager): Response {
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
@@ -570,7 +570,7 @@ class HandlingController extends AbstractController {
             ->map(fn($emergency) => [
                 "label" => $emergency,
                 "value" => $emergency,
-                "selected" => $emergency === $handling->getEmergency()
+                "selected" => $emergency === $handling->getEmergency(),
             ])
             ->toArray();
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_HANDLING);
