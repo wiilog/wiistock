@@ -107,7 +107,7 @@ class PurchaseRequestController extends AbstractController
         $dateTimeMax = DateTime::createFromFormat("Y-m-d H:i:s", $dateMax . " 23:59:59");
 
         if(isset($dateTimeMin, $dateTimeMax)) {
-            $now = new DateTime("now");
+            $now = (new DateTime('now'))->format("d-m-Y-H-i-s");;
 
             $purchaseRequestRepository = $entityManager->getRepository(PurchaseRequest::class);
             $purchaseRequestLineRepository = $entityManager->getRepository(PurchaseRequestLine::class);
@@ -155,7 +155,7 @@ class PurchaseRequestController extends AbstractController
                         }
                     }
                 },
-                "export_demande_achat" . $now->format("d_m_Y") . ".csv",
+                "export_demande_achat_$now.csv",
                 $header
             );
         }

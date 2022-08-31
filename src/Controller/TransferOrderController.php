@@ -306,7 +306,7 @@ class TransferOrderController extends AbstractController {
         $dateTimeMax = DateTime::createFromFormat("Y-m-d H:i:s", $dateMax . " 23:59:59");
 
         if(isset($dateTimeMin, $dateTimeMax)) {
-            $now = new DateTime("now");
+            $now = (new DateTime('now'))->format("d-m-Y-H-i-s");
 
             $transferRepository = $entityManager->getRepository(TransferOrder::class);
             $articleRepository = $entityManager->getRepository(Article::class);
@@ -332,7 +332,7 @@ class TransferOrderController extends AbstractController {
             ];
 
             return $CSVExportService->createBinaryResponseFromData(
-                "export_ordre_transfert" . $now->format("d_m_Y") . ".csv",
+                "export_ordre_transfert_$now.csv",
                 $transfers,
                 $header,
                 function (TransferOrder $transferOrder) use ($articlesByRequest, $referenceArticlesByRequest) {
