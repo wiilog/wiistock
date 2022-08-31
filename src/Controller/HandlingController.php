@@ -24,6 +24,7 @@ use App\Helper\FormatHelper;
 use App\Service\NotificationService;
 use App\Service\StatusHistoryService;
 use App\Service\StatusService;
+use App\Service\UserService;
 use App\Service\VisibleColumnService;
 use GuzzleHttp\Exception\ConnectException;
 use WiiCommon\Helper\Stream;
@@ -567,21 +568,24 @@ class HandlingController extends AbstractController {
     }
 
     #[Route("/voir/{id}", name: "handling_show", options: ["expose" => true], methods: ["GET","POST"])]
-    #[HasPermission([Menu::DEM, Action::EDIT])]
-    public function show(Handling $handling, EntityManagerInterface $entityManager): Response {
+    #[HasPermission([Menu::DEM, Action::DISPLAY_HAND])]
+    public function show(Handling $handling, EntityManagerInterface $entityManager, UserService $userService): Response {
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
 
         $freeFields = $freeFieldRepository->findByType($handling->getType());
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_HANDLING);
-        $status = Stream::from($statutRepository->findStatusByType(CategorieStatut::HANDLING, $handling->getType()))
-        ->map(function ($statut) {
-            return [
-                "label" => $statut->getNom(),
-                "value" => $statut->getId(),
-            ];
-        })->toArray();
+        $status = [];
+        foreach($statutRepository->findStatusByType(CategorieStatut::HANDLING, $handling->getType()) as $statut){
+            if($userService->hasRightFunction(Menu::DEM, Action::TREAT_HANDLING)
+                || !$userService->hasRightFunction(Menu::DEM, Action::TREAT_HANDLING) && $statut->isNotTreated()){
+                $status[]= [
+                    "label" => $statut->getNom(),
+                    "value" => $statut->getId(),
+                ];
+            }
+        }
 
         return $this->render('handling/show.html.twig', [
             'handling' => $handling,
@@ -591,7 +595,6 @@ class HandlingController extends AbstractController {
         ]);
     }
 
-    // TODO Permission
     #[Route("/{id}/status-history-api", name: "handling_status_history_api", options: ['expose' => true], methods: "GET")]
     public function statusHistoryApi(int $id,
                                      EntityManagerInterface $entityManager): JsonResponse {
@@ -614,8 +617,8 @@ class HandlingController extends AbstractController {
         ]);
     }
 
-    // TODO Permission
     #[Route("/modifier-page/{id}", name: "handling_edit_page", options: ["expose" => true], methods: ["GET","POST"])]
+    #[HasPermission([Menu::DEM, Action::EDIT])]
     public function editHandling(  Handling $handling,
                            EntityManagerInterface $entityManager): Response {
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);

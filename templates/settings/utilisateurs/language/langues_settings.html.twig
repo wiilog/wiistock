@@ -5,7 +5,7 @@
                 {% if categorieData.menus|length >1 %}
                 <div class="header d-flex p-0 flex-wrap">
                     {% for menu, menuData in menus %}
-                        <div class="p-3 mx-4 wii-field-name menu pointer {{ loop.first ? 'selected' }}"
+                        <div class="p-3 mx-4 wii-field-text menu pointer {{ loop.first ? 'selected' }}"
                              data-menu="{{ menu }}"
                              onclick="onSettingsItemSelected($(this), $('.menu'), $('.menu-content'))">
                             {{ menu }}
@@ -25,17 +25,19 @@
                     </span>
                     <img src="{{ asset('svg/lang-arrow.svg') }}" width="20px">
                     <span class=" p-1 d-flex align-items-center language-button">
-                        <img src="{{ userLanguage.flag }}" class="flag custom-flag-preview" alt="">
-                        <span class="language-to mr-1">{{  userLanguage.label }}</span>
+                        <img src="{{ language.flag }}" class="flag custom-flag-preview" alt="">
+                        <span class="language-to mr-1">{{  language.label }}</span>
                     </span>
                 </div>
-                {% if userLanguage.slug not in constant('App\\Entity\\Language::NOT_DELETABLE_LANGUAGES') %}
+                {% if language.slug not in constant('App\\Entity\\Language::NOT_DELETABLE_LANGUAGES') %}
                     <button class="btn btn-outline-primary" name="deleteLanguage">Suprimer la langue</button>
                 {% endif %}
             </div>
-            <div class="wii-small-text mb-3 mx-4">
-                Les libellés non traduits apparaîtront dans la langue par défaut que vous avez choisi
-            </div>
+            {% if language.slug not in constant('App\\Entity\\Language::NOT_DELETABLE_LANGUAGES') or language.slug == constant('App\\Entity\\Language::NEW_SLUG')%}
+                <div class="wii-small-text mb-3 mx-4">
+                    Les libellés non traduits apparaîtront dans la langue par défaut que vous avez choisi
+                </div>
+            {% endif %}
         {% endif %}
         {% if categorieData.translations is not empty %}
             <div class="p-3">
@@ -51,7 +53,7 @@
                 {% endif %}
                 {% if menuData.submenus is defined %}
                     {% for subMenu, subMenuData in menuData.submenus %}
-                        <div class="wii-section-title toggle-collapsible">
+                        <div class="wii-section-title mb-1 toggle-collapsible">
                             {{ subMenu | capitalize }}
                             <span class="wii-small-text ml-2">{{ subMenuData.subtitle }}</span>
                         </div>
@@ -66,4 +68,4 @@
         {% endfor %}
     </div>
 {% endfor %}
-{% include 'settings/utilisateurs/language/langues_modale_delete.html.twig' with { language : userLanguage.id } %}
+{% include 'settings/utilisateurs/language/langues_modale_delete.html.twig' with { language : language.id } %}

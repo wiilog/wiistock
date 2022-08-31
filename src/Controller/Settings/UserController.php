@@ -10,6 +10,7 @@ use App\Entity\Role;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
+use App\Service\CacheService;
 use App\Service\CSVExportService;
 use App\Service\PasswordService;
 use App\Service\UserService;
@@ -51,7 +52,7 @@ class UserController extends AbstractController {
                 'userHandlingTypes' => $user->getHandlingTypeIds(),
                 'html' => $this->renderView('settings/utilisateurs/utilisateurs/form.html.twig', [
                     'user' => $user,
-                    "languages" => Stream::from($languageRepository->findBy(['hidden'=>false]))
+                    "languages" => Stream::from($languageRepository->findBy(["hidden" => false]))
                         ->map(fn(Language $language) => [
                             "value" => $language->getId(),
                             "label" => $language->getLabel(),
@@ -168,7 +169,8 @@ class UserController extends AbstractController {
                          UserPasswordHasherInterface $encoder,
                          PasswordService $passwordService,
                          UserService $userService,
-                         EntityManagerInterface $entityManager): Response
+                         EntityManagerInterface $entityManager,
+                         CacheService $cacheService): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
             /** @var Utilisateur $loggedUser */
@@ -343,6 +345,7 @@ class UserController extends AbstractController {
 
             $entityManager->persist($user);
             $entityManager->flush();
+            $cacheService->delete(CacheService::LANGUAGES, 'languagesSelector'.$user->getId());
 
             $dataResponse = ['success' => true];
 
@@ -594,17 +597,19 @@ class UserController extends AbstractController {
      * @Route("/langues/api", name="header_language_dateFormat_api" , methods={"POST"}, options={"expose"=true})
      */
     public function userLanguageApi(EntityManagerInterface $manager,
-                                       Request $request ): Response {
+                                       Request $request, CacheService $cacheService ): Response {
         $data = $request->request;
+        $user = $this->getUser();
 
         $languageRepository = $manager->getRepository(Language::class);
         $newLanguage = $languageRepository->find($data->get('language'));
 
-        $this->getUser()
+        $user
             ->setDateFormat($data->get('dateFormat'))
             ->setLanguage($newLanguage);
 
         $manager->flush();
+        $cacheService->delete(CacheService::LANGUAGES, 'languagesSelector'.$user->getId());
 
         return $this->json([
             "success" => true,

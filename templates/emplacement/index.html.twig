@@ -20,6 +20,18 @@
 
         <div class="row wii-page-card-header">
             <div class="col-auto ml-auto">
+                {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
+                <button type="button"
+                        data-toggle="modal"
+                        data-target="#modalNewLocationGroup"
+                        class="btn btn-primary d-none"
+                        onclick="clearModal('#modalNewLocationGroup')">
+                    <div class="d-flex align-items-center ">
+                        <span class="wii-icon wii-icon-plus mr-2 align-middle"></span>
+                        Nouveau groupe
+                    </div>
+                </button>
+                {% endif %}
                 <div class="btn-group">
                     {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
                         <button type="button"
@@ -27,17 +39,10 @@
                                 data-target="#modalNewEmplacement"
                                 class="btn btn-primary split-button d-none"
                                 onclick="clearModal('#modalNewEmplacement')">
-                            <span class="fa fa-plus mr-2"></span>
-                            Nouvel emplacement
-                        </button>
-
-                        <button type="button"
-                                data-toggle="modal"
-                                data-target="#modalNewLocationGroup"
-                                class="btn btn-primary d-none"
-                                onclick="clearModal('#modalNewLocationGroup')">
-                            <span class="fa fa-plus mr-2"></span>
-                            Nouveau groupe
+                            <div class="d-flex align-items-center">
+                                <span class="wii-icon wii-icon-plus mr-2 align-middle"></span>
+                                Nouvel emplacement
+                            </div>
                         </button>
                     {% endif %}
 
@@ -52,10 +57,10 @@
                     <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right filters-container">
                         <div tabindex="0"
                              id="btnPrint"
-                             class="dropdown-item printButton user-select-none disabled has-tooltip"
+                             class="dropdown-item printButton user-select-none disabled has-tooltip  d-flex align-items-center"
                              onclick="printLocationsBarCodes($(this), event)"
                              title="Veuillez faire une recherche pour imprimer.">
-                            <i class="fas fa-print mr-2"></i>
+                            <span class="wii-icon wii-icon-printer-black mr-2"></span>
                             Imprimer les étiquettes
                         </div>
                         <div class="statut dropdown-item">

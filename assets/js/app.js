@@ -40,6 +40,10 @@ export const $document = $(document);
 
 ///////////////// Main
 
+$(document).on('click', '.dropdown-menu.keep-open', function (e) {
+    e.stopPropagation();
+});
+
 importRouting();
 importWiistock();
 importForm();

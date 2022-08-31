@@ -16,9 +16,10 @@ use Doctrine\ORM\Mapping\OneToMany;
 class TranslationCategory {
 
     public const NONE_MULTILINGUE_CATEGORY = [
-        'Ordre',
-        'Stock',
-        'Iot',
+        "Référentiel",
+        "Ordre",
+        "Stock",
+        "IoT",
     ];
 
     #[Id]
@@ -29,7 +30,7 @@ class TranslationCategory {
     #[ManyToOne(targetEntity: TranslationCategory::class, inversedBy: "children")]
     private ?TranslationCategory $parent = null;
 
-    #[OneToMany(mappedBy: "parent", targetEntity: TranslationCategory::class)]
+    #[OneToMany(mappedBy: "parent", targetEntity: TranslationCategory::class, cascade: ["remove"])]
     private Collection $children;
 
     #[Column(type: "string")]
@@ -188,7 +189,7 @@ class TranslationCategory {
                 $translation = $categorySource->getTranslationIn(Language::OLD_TRANSLATIONS_SLUG);
             }
             $translations[] = [
-                'tooltip' => $categorySource->getTooltip(),
+                'tooltip' => str_replace("\n",'<br>', $categorySource->getTooltip()) ,
                 'original' => $originalTranslation,
                 'translation' => $translation,
             ];

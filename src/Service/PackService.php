@@ -194,7 +194,7 @@ class PackService {
                 $nature = $options['nature'];
 
                 $arrivalNum = $arrival->getNumeroArrivage();
-                $counter = $arrival->getPacks()->count() + 1;
+                $counter = $this->getNextPackCodeForArrival($arrival) + 1;
                 $counterStr = sprintf("%03u", $counter);
 
                 $code = (($nature->getPrefix() ?? '') . $arrivalNum . $counterStr ?? '');
@@ -312,5 +312,16 @@ class PackService {
                 $arrival->getDestinataire()
             );
         }
+    }
+
+    public function getNextPackCodeForArrival(Arrivage $arrival): int {
+        $lastPack = $arrival->getPacks()->last();
+
+        $counter = 0;
+        if($lastPack) {
+            $counter = (int) substr($lastPack->getCode(), -3);
+        }
+
+        return $counter;
     }
 }

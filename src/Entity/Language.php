@@ -27,16 +27,20 @@ class Language {
     public const ENGLISH_SLUG = 'english';
     public const NEW_SLUG = 'NEW';
 
-    public const OLD_TRANSLATIONS_SLUG = Language::FRENCH_SLUG;
-    public const DEFAULT_LANGUAGE_SLUG = Language::FRENCH_DEFAULT_SLUG;
+    public const OLD_TRANSLATIONS_SLUG = self::FRENCH_SLUG;
+    public const DEFAULT_LANGUAGE_SLUG = self::FRENCH_DEFAULT_SLUG;
+
+    public const DEFAULT_LANGUAGE_TRANSLATIONS = [
+        self::FRENCH_SLUG => self::FRENCH_DEFAULT_SLUG ,
+        self::ENGLISH_SLUG => self::ENGLISH_DEFAULT_SLUG
+    ];
 
     public const NOT_DELETABLE_LANGUAGES = [
-        Language::FRENCH_DEFAULT_SLUG,
-        Language::ENGLISH_DEFAULT_SLUG,
-        Language::FRENCH_SLUG,
-        Language::ENGLISH_SLUG,
-        Language::NEW_SLUG
-
+        self::FRENCH_DEFAULT_SLUG,
+        self::ENGLISH_DEFAULT_SLUG,
+        self::FRENCH_SLUG,
+        self::ENGLISH_SLUG,
+        self::NEW_SLUG
     ];
 
     #[Id]

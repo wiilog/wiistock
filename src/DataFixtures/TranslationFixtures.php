@@ -6,6 +6,7 @@ use App\Entity\Language;
 use App\Entity\Translation;
 use App\Entity\TranslationCategory;
 use App\Entity\TranslationSource;
+use App\Entity\Utilisateur;
 use App\Service\SpecificService;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
@@ -13,12 +14,14 @@ use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use WiiCommon\Helper\Stream;
 
-class TranslationFixtures extends Fixture implements FixtureGroupInterface {
+class TranslationFixtures extends Fixture implements FixtureGroupInterface
+{
 
     const TRANSLATIONS = [
         "Général" => [
             null => [
                 "Zone filtre" => [
+                    "subtitle" => "Les libellés génériques présents dans tous les encarts filtre de l’application",
                     "content" => [
                         [
                             "fr" => "Du",
@@ -43,6 +46,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                     ],
                 ],
                 "Zone liste" => [
+                    "subtitle" => "Les libellés génériques présents pour la recherche rapide les boutons d’action et la pagination",
                     "content" => [
                         [
                             "fr" => "Rechercher",
@@ -107,6 +111,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                     ],
                 ],
                 "Modale" => [
+                    "subtitle" => "Les libellés génériques présents dans les modales de l’application",
                     "content" => [
                         [
                             "fr" => "Champs libres",
@@ -229,8 +234,73 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                     "tooltip" => "Composant \"Demande en cours\"",
                 ],
                 [
+                    "fr" => "Date de traitement non estimée",
+                    "en" => "Process date not estimated",
+                    "tooltip" => "Composant \"Demande en cours\"",
+                ],
+                [
+                    "fr" => "Date de livraison non estimée",
+                    "en" => "Delivery date not estimated",
+                    "tooltip" => "Composant \"Demande en cours\"",
+                ],
+                [
+                    "fr" => "Date de collecte non estimée",
+                    "en" => "Collect date not estimated",
+                    "tooltip" => "Composant \"Demande en cours\"",
+                ],
+                [
+                    "fr" => "Date de transfert non estimée",
+                    "en" => "Transfer date not estimated",
+                    "tooltip" => "Composant \"Demande en cours\"",
+                ],
+                [
+                    "fr" => "Date et heure d'acheminement prévue",
+                    "en" => "Expected date and hour of shipment",
+                    "tooltip" => "Composant \"Demande en cours\"",
+                ],
+                [
+                    "fr" => "Date et heure de transfert prévue",
+                    "en" => "Expected date and hour of transfer",
+                    "tooltip" => "Composant \"Demande en cours\"",
+                ],
+                [
+                    "fr" => "Date et heure de collecte prévue",
+                    "en" => "Expected date and hour of collect",
+                    "tooltip" => "Composant \"Demande en cours\"",
+                ],
+                [
+                    "fr" => "Date et heure de traitement prévue",
+                    "en" => "Expected date and hour of process",
+                    "tooltip" => "Composant \"Demande en cours\"",
+                ],
+                [
+                    "fr" => "Date et heure de livraison prévue",
+                    "en" => "Expected date and hour of delivery",
+                    "tooltip" => "Composant \"Demande en cours\"",
+                ],
+                [
                     "fr" => "Heure de traitement estimée",
-                    "en" => "Estimated processing time",
+                    "en" => "Estimated process time",
+                    "tooltip" => "Composant \"Demande en cours\"",
+                ],
+                [
+                    "fr" => "Heure d'acheminement estimée",
+                    "en" => "Estimated transport time",
+                    "tooltip" => "Composant \"Demande en cours\"",
+                ],
+                [
+                    "fr" => "Heure de collecte estimée",
+                    "en" => "Estimated collect time",
+                    "tooltip" => "Composant \"Demande en cours\"",
+                ],
+                [
+                    "fr" => "Heure de livraison estimée",
+                    "en" => "Estimated delivery time",
+                    "tooltip" => "Composant \"Demande en cours\"",
+                ],
+                [
+                    "fr" => "Heure de transfert estimée",
+                    "en" => "Estimated delivery time",
                     "tooltip" => "Composant \"Demande en cours\"",
                 ],
                 [
@@ -244,8 +314,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                     "tooltip" => "Composant \"Nombre de services du jour\", coche \"Afficher le nombre d'opération(s) réalisé(s) de la journée\"",
                 ],
                 [
-                    "fr" => "urgences",
-                    "en" => "Urgencies",
+                    "fr" => "Dont {1} urgences",
+                    "en" => "Including {1} urgencies",
                     "tooltip" => "Composant \"Nombre de services du jour\", coche \"Afficher le nombre d'urgences de la journée\"",
                 ],
                 [
@@ -476,12 +546,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                             "tooltip" => "Détails arrivage - Entête\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouvel arrivage\nModale Modifier arrivage",
                         ],
                         [
-                            "fr" => "Destinataire (mettre majuscule)",
+                            "fr" => "Destinataire",
                             "en" => "Recipient",
                             "tooltip" => "Arrivages :\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouvel arrivage\nModale Modifier arrivage\nArrivage détails - Entête",
                         ],
                         [
-                            "fr" => "Acheteur(s) (mettre une majuscule)",
+                            "fr" => "Acheteur(s)",
                             "en" => "Buyer(s)",
                             "tooltip" => "Zone liste - Nom de colonnes (renommage Acheteurs -> Acheteur(s))\nGestion des colonnes (renommage Acheteurs -> Acheteur(s))\nModale Nouvel arrivage (renommage Acheteurs -> Acheteur(s))\nArrivages détails - Entête (renommage Acheteurs -> Acheteur(s))\nModale Nouveau litige",
                         ],
@@ -506,12 +576,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                             "tooltip" => "Détails arrivage - Entête\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouvel arrivage\nModale Modifier arrivage",
                         ],
                         [
-                            "fr" => "Douane (mettre majuscule)",
+                            "fr" => "Douane",
                             "en" => "Customs",
                             "tooltip" => "Filtre\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouvel arrivage\nModale Modifer arrivage\nArrivages détails - Entête",
                         ],
                         [
-                            "fr" => "Congelé (mettre majuscule)",
+                            "fr" => "Congelé",
                             "en" => "Frozen",
                             "tooltip" => "Filtre \nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouvel arrivage\nModale Modifer arrivage\nArrivages détails - Entête",
                         ],
@@ -728,7 +798,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                     ],
                 ],
             ],
-            "UL" => [
+            "Unités logistiques" => [
                 "Divers" => [
                     "content" => [
                         [
@@ -743,7 +813,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                         ],
                     ],
                 ],
-                "Onglet \"UL\"" => [
+                "Onglet \"Unités logistiques\"" => [
                     "content" => [
                         [
                             "fr" => "Unité logistique",
@@ -864,6 +934,34 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                             "fr" => "Indisponible",
                             "en" => "Unavailable",
                             "tooltip" => "Zone liste - contenu UL",
+                        ],
+                        [
+                            "fr" => "Liste des colis",
+                            "en" => "L.U. list",
+                        ],
+                        [
+                            "fr" => "L'unité logistique {1} a bien été supprimée",
+                            "en" => "The L.U. {1} has been deleted",
+                        ],
+                        [
+                            "fr" => "L'unité logistique {1} a bien été modifiée",
+                            "en" => "The L.U. {1} has been edited",
+                        ],
+                        [
+                            "fr" => "Ce colis est utilisé dans l'arrivage {1}",
+                            "en" => "This logistic unit is in use in the arrival {1}",
+                        ],
+                        [
+                            "fr" => "Ce colis est référencé dans un ou plusieurs mouvements de traçabilité",
+                            "en" => "This logistic unit is in use in one or more movements",
+                        ],
+                        [
+                            "fr" => "Ce colis est référencé dans un ou plusieurs acheminements",
+                            "en" => "This logistic unit appears in one or more transfers",
+                        ],
+                        [
+                            "fr" => "Ce colis est référencé dans un ou plusieurs litiges",
+                            "en" => "This logistic unit appears in one or more disputes",
                         ],
                     ],
                 ],
@@ -1869,6 +1967,63 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
                 ],
             ],
         ],
+        "Référentiel" => [
+            "Natures" => [
+                "content" => [
+                    ["fr" => "Natures d'UL autorisées"],
+                    ["fr" => "Natures des UL"],
+                    ["fr" => "Nature d'UL"],
+                    ["fr" => "Nature"],
+                    ["fr" => "La nature {1} a bien été créée"],
+                    ["fr" => "Création de nature"],
+                    ["fr" => "Modification de nature"],
+                    ["fr" => "cette nature"],
+                    ["fr" => "natures requises"],
+                    ["fr" => "Sélectionner une nature"],
+                ],
+            ],
+        ],
+        "Ordre" => [
+            "Réception" => [
+                "content" => [
+                    ["fr" => "réceptions"],
+                    ["fr" => "Réception"],
+                    ["fr" => "de réception"],
+                    ["fr" => "n° de réception"],
+                    ["fr" => "cette réception"],
+                    ["fr" => "nouvelle réception"],
+                    ["fr" => "la"],
+                    ["fr" => "une réception"],
+                    ["fr" => "la réception"],
+                    ["fr" => "article"],
+                    ["fr" => "articles"],
+                    ["fr" => "l'article"],
+                    ["fr" => "d'article"],
+                    ["fr" => "d'articles"],
+                    ["fr" => "Cette réception est urgente"],
+                    ["fr" => "Une ou plusieurs références liées à cette réception sont urgentes"],
+                    ["fr" => "Cette réception ainsi qu'une ou plusieurs références liées sont urgentes"],
+                    ["fr" => "Une autre réception est en cours de création, veuillez réessayer"],
+                    ["fr" => "Un autre litige de réception est en cours de création, veuillez réessayer"],
+                ],
+            ],
+        ],
+        "Stock" => [
+            "Référence" => [
+                "content" => [
+                    "Référence" => ["fr" => "Référence"],
+                    "Références" => ["fr" => "Références"],
+                ],
+            ],
+        ],
+        "IoT" => [
+            null => [
+                "content" => [
+                    "IoT" => ["fr" => "IoT"],
+                    "Fonction/Zone" => ["fr" => "Fonction/Zone"],
+                ],
+            ],
+        ],
     ];
 
     private const CHILD = [
@@ -1882,83 +2037,90 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
 
     private array $languages = [];
 
-    public function load(ObjectManager $manager) {
+    public function load(ObjectManager $manager)
+    {
         $this->console = new ConsoleOutput();
         $this->manager = $manager;
 
         $languageRepository = $manager->getRepository(Language::class);
 
-        if(!$languageRepository->findOneBy(["slug" => Language::FRENCH_SLUG])) {
-            $french = (new Language())
+        if (!$languageRepository->findOneBy(["slug" => Language::FRENCH_DEFAULT_SLUG])) {
+            $frenchDefault = (new Language())
                 ->setLabel("Français")
-                ->setSlug(Language::FRENCH_SLUG)
+                ->setSlug(Language::FRENCH_DEFAULT_SLUG)
                 ->setFlag("/svg/flags/fr.svg")
                 ->setSelectable(true)
                 ->setSelected(true)
                 ->setHidden(true);
 
-            $manager->persist($french);
+            $manager->persist($frenchDefault);
 
-            $this->console->writeln("Created language \"Français\"");
+            $this->console->writeln("Created default language \"Français\"");
         }
 
-        if(!$languageRepository->findOneBy(["slug" => "french"])) {
+        if (!$languageRepository->findOneBy(["slug" => Language::FRENCH_SLUG])) {
             $french = (new Language())
                 ->setLabel("Français")
-                ->setSlug("french")
+                ->setSlug(Language::FRENCH_SLUG)
                 ->setFlag("/svg/flags/fr.svg")
                 ->setSelectable(false)
-                ->setSelected(false);
+                ->setSelected(false)
+                ->setHidden(false);
 
             $manager->persist($french);
 
             $this->console->writeln("Created language \"Français\"");
         }
 
-        if(!$languageRepository->findOneBy(["slug" => "english-default"])) {
-            $english = (new Language())
+        if (!$languageRepository->findOneBy(["slug" => Language::ENGLISH_DEFAULT_SLUG])) {
+            $englishDefault = (new Language())
                 ->setLabel("English")
-                ->setSlug("english-default")
+                ->setSlug(Language::ENGLISH_DEFAULT_SLUG)
                 ->setFlag("/svg/flags/gb.svg")
                 ->setSelectable(true)
                 ->setSelected(false)
-                ->setHidden(true);;
+                ->setHidden(true);
 
-            $manager->persist($english);
+            $manager->persist($englishDefault);
 
-            $this->console->writeln("Created language \"English\"");
+            $this->console->writeln("Created default language \"English\"");
         }
 
-        if(!$languageRepository->findOneBy(["slug" => "english"])) {
+        if (!$languageRepository->findOneBy(["slug" => Language::ENGLISH_SLUG])) {
             $english = (new Language())
                 ->setLabel("English")
-                ->setSlug("english")
+                ->setSlug(Language::ENGLISH_SLUG)
                 ->setFlag("/svg/flags/gb.svg")
                 ->setSelectable(false)
-                ->setSelected(false);
+                ->setSelected(false)
+                ->setHidden(false);
 
             $manager->persist($english);
 
             $this->console->writeln("Created language \"English\"");
         }
 
-        if(isset($french) || isset($english)) {
+        if (isset($frenchDefault) || isset($french) || isset($englishDefault) || isset($english)) {
             $manager->flush();
         }
 
-        foreach(self::TRANSLATIONS as $categoryLabel => $menus) {
+        foreach (self::TRANSLATIONS as $categoryLabel => $menus) {
             $this->handleCategory("category", null, $categoryLabel, $menus);
         }
 
         $this->manager->flush();
+
+        $this->updateUsers();
+        $this->manager->flush();
     }
 
-    private function handleCategory(string $type, ?TranslationCategory $parent, string $label, array $content) {
+    private function handleCategory(string $type, ?TranslationCategory $parent, string $label, array $content)
+    {
         $categoryRepository = $this->manager->getRepository(TranslationCategory::class);
         $translationSourceRepository = $this->manager->getRepository(TranslationSource::class);
 
         $category = $categoryRepository->findOneBy(["parent" => $parent, "label" => $label]);
-        if(!$category) {
+        if (!$category) {
             $category = (new TranslationCategory())
                 ->setParent($parent)
                 ->setType($type)
@@ -1970,101 +2132,162 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface {
             $this->console->writeln(($label ? "Created $type \"$label\"" : "Created single $type") . ($parentLabel ? " in \"$parentLabel\"" : ""));
         }
 
-        if(!isset($content["content"])) {
-            foreach($content as $childLabel => $childContent) {
+        if (!isset($content["content"])) {
+            foreach ($content as $childLabel => $childContent) {
                 $this->handleCategory(self::CHILD[$type], $category, $childLabel, $childContent);
             }
+
+            $this->deleteUnusedCategories($category, $content);
         } else {
             $category->setSubtitle($content["subtitle"] ?? null);
 
-            foreach($content["content"] as $translation) {
-                $translationEntity = $category->getId() ? $translationSourceRepository->findByFrenchTranslation($category, $translation["fr"]) : null;
-                if(!$translationEntity) {
-                    $translationEntity = new TranslationSource();
-                    $translationEntity->setCategory($category);
+            foreach ($content["content"] as $translation) {
+                $transSource = $category->getId() ? $translationSourceRepository->findByDefaultFrenchTranslation($category, $translation["fr"]) : null;
+                if (!$transSource) {
+                    $transSource = new TranslationSource();
+                    $transSource->setCategory($category);
 
-                    $this->manager->persist($translationEntity);
+                    $this->manager->persist($transSource);
                 }
 
-                $translationEntity->setTooltip($translation["tooltip"] ?? null);
+                $transSource->setTooltip($translation["tooltip"] ?? null);
 
-                $french = $translationEntity->getTranslationIn("french");
-                if(!$french) {
-                    $french = (new Translation())
-                        ->setLanguage($this->getLanguage("french"))
-                        ->setSource($translationEntity)
-                        ->setTranslation($translation["fr"]);
-
-                    $this->manager->persist($french);
-
-                    $this->console->writeln("Created french translation \"" . str_replace("\n", "\\n ", $translation["fr"]) . "\"");
-                } else if($french->getTranslation() != $translation["fr"]) {
-                    $french->setTranslation($translation["fr"]);
-
-                    $this->console->writeln("Updated french translation \"" . str_replace("\n", "\\n ", $translation["fr"]) . "\"");
-                }
-
-                $french = $translationEntity->getTranslationIn("french-default");
-                if(!$french) {
+                $french = $transSource->getTranslationIn("french-default");
+                if (!$french) {
                     $french = (new Translation())
                         ->setLanguage($this->getLanguage("french-default"))
-                        ->setSource($translationEntity)
+                        ->setSource($transSource)
+                        ->setTranslation($translation["fr"]);
+
+                    $this->manager->persist($french);
+
+                    $this->console->writeln("Created default french source translation \"" . str_replace("\n", "\\n ", $translation["fr"]) . "\"");
+                }
+
+                $french = $transSource->getTranslationIn("french");
+                if (!$french) {
+                    $french = (new Translation())
+                        ->setLanguage($this->getLanguage("french"))
+                        ->setSource($transSource)
                         ->setTranslation($translation["fr"]);
 
                     $this->manager->persist($french);
 
                     $this->console->writeln("Created french translation \"" . str_replace("\n", "\\n ", $translation["fr"]) . "\"");
-                } else if($french->getTranslation() != $translation["fr"]) {
-                    $french->setTranslation($translation["fr"]);
-
-                    $this->console->writeln("Updated french translation \"" . str_replace("\n", "\\n ", $translation["fr"]) . "\"");
                 }
 
-                $english = $translationEntity->getTranslationIn("english");
-                if(!$english) {
-                    $english = (new Translation())
-                        ->setLanguage($this->getLanguage("english"))
-                        ->setSource($translationEntity)
-                        ->setTranslation($translation["en"]);
+                if(isset($translation["en"])) {
+                    $english = $transSource->getTranslationIn("english-default");
+                    if (!$english) {
+                        $english = (new Translation())
+                            ->setLanguage($this->getLanguage("english-default"))
+                            ->setSource($transSource)
+                            ->setTranslation($translation["en"]);
 
-                    $this->manager->persist($english);
+                        $this->manager->persist($english);
 
-                    $this->console->writeln("Created english translation \"" . str_replace("\n", "\\n ", $translation["en"]) . "\"");
-                } else if($english->getTranslation() != $translation["en"]) {
-                    $english->setTranslation($translation["en"]);
+                        $this->console->writeln("Created default english source translation \"" . str_replace("\n", "\\n ", $translation["en"]) . "\"");
+                    } else if ($english->getTranslation() != $translation["en"]) {
+                        $english->setTranslation($translation["en"]);
 
-                    $this->console->writeln("Updated english translation \"" . str_replace("\n", "\\n ", $translation["en"]) . "\"");
+                        $this->console->writeln("Updated default english source translation \"" . str_replace("\n", "\\n ", $translation["en"]) . "\"");
+                    }
+
+                    $english = $transSource->getTranslationIn("english");
+                    if (!$english) {
+                        $english = (new Translation())
+                            ->setLanguage($this->getLanguage("english"))
+                            ->setSource($transSource)
+                            ->setTranslation($translation["en"]);
+
+                        $this->manager->persist($english);
+
+                        $this->console->writeln("Created english translation \"" . str_replace("\n", "\\n ", $translation["en"]) . "\"");
+                    }
                 }
+            }
 
-                $english = $translationEntity->getTranslationIn("english-default");
-                if(!$english) {
-                    $english = (new Translation())
-                        ->setLanguage($this->getLanguage("english-default"))
-                        ->setSource($translationEntity)
-                        ->setTranslation($translation["en"]);
+            $this->deleteUnusedTranslations($category, $content["content"]);
+        }
+    }
 
-                    $this->manager->persist($english);
+    private function deleteUnusedCategories(TranslationCategory $parent, array $categories)
+    {
+        $categoryRepository = $this->manager->getRepository(TranslationCategory::class);
 
-                    $this->console->writeln("Created english translation \"" . str_replace("\n", "\\n ", $translation["en"]) . "\"");
-                } else if($english->getTranslation() != $translation["en"]) {
-                    $english->setTranslation($translation["en"]);
-
-                    $this->console->writeln("Updated english translation \"" . str_replace("\n", "\\n ", $translation["en"]) . "\"");
-                }
-
+        if ($parent->getId()) {
+            $fixtureCategories = array_keys($categories);
+            $unusedCategories = $categoryRepository->findUnusedCategories($parent, $fixtureCategories);
+            foreach ($unusedCategories as $category) {
+                $this->deleteCategory($category, true);
+                $this->manager->remove($category);
             }
         }
     }
 
-    private function getLanguage(string $slug) {
-        if(!isset($this->languages[$slug])) {
+    private function deleteCategory(?TranslationCategory $category, bool $root = false)
+    {
+        $this->manager->remove($category);
+        if ($root) {
+            $this->console->writeln("Deleting unused category \"{$category->getLabel()}\"");
+        } else {
+            $this->console->writeln("Cascade deleting unused category \"{$category->getLabel()}\", child of \"{$category->getParent()->getLabel()}\"");
+        }
+
+        foreach ($category->getChildren() as $child) {
+            $this->deleteCategory($child);
+        }
+
+        foreach ($category->getTranslationSources() as $source) {
+            $this->manager->remove($source);
+
+            $translation = $source->getTranslationIn(Language::FRENCH_DEFAULT_SLUG);
+            if ($translation) {
+                $this->console->writeln("Cascade deleting unused source \"{$translation->getTranslation()}\" child of category \"{$category->getParent()->getLabel()}\"");
+            } else {
+                $this->console->writeln("Cascade deleting unknown unused source child of category \"{$category->getParent()->getLabel()}\"");
+            }
+        }
+    }
+
+    private function deleteUnusedTranslations(TranslationCategory $category, array $translations)
+    {
+        $translationSourceRepository = $this->manager->getRepository(TranslationSource::class);
+
+        if ($category->getId()) {
+            $fixtureTranslations = array_map(fn(array $item) => $item["fr"], $translations);
+            $unusedTranslations = $translationSourceRepository->findUnusedTranslations($category, $fixtureTranslations);
+            foreach ($unusedTranslations as $source) {
+                $this->manager->remove($source);
+                $this->console->writeln("Deleting unused source \"{$source->getTranslationIn("french-default")->getTranslation()}\" and all associated translations");
+            }
+        }
+    }
+
+    private function getLanguage(string $slug)
+    {
+        if (!isset($this->languages[$slug])) {
             $this->languages[$slug] = $this->manager->getRepository(Language::class)->findOneBy(["slug" => $slug]);
         }
 
         return $this->languages[$slug];
     }
 
-    public static function getGroups(): array {
+    private function updateUsers()
+    {
+        $users = $this->manager->getRepository(Utilisateur::class)->findAll();
+        $french = $this->manager->getRepository(Language::class)->findOneBy(["slug" => "french"]);
+
+        foreach ($users as $user) {
+            if (!$user->getLanguage() || !$user->getDateFormat()) {
+                $user->setLanguage($french)
+                    ->setDateFormat("jj/mm/aaaa");
+            }
+        }
+    }
+
+    public static function getGroups(): array
+    {
         return ["fixtures", "language"];
     }
 

@@ -9,8 +9,8 @@
             <button type="button"
                     data-id='{{ demande.id }}'
                     onclick="validateLivraison({{ demande.id }}, $(this))"
-                    class="btn btn-primary split-button">
-                <i class="fa fa-check mr-2"></i>
+                    class="btn btn-primary split-button  d-flex align-items-center">
+                <span class="wii-icon wii-icon-check-white mr-2"></span>
                 Valider
             </button>
         {% endif %}
@@ -80,8 +80,9 @@
             {% endif %}
             {% if modifiable and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE')) %}
                 <a href="" data-id='{{ demande.id }}' data-target='#modalDeleteDemande' data-toggle='modal'
-                   class="dropdown-item">
-                    <i class="fa fa-trash mr-2"></i>Supprimer</a>
+                    class="dropdown-item d-flex align-items-center">
+                    <span class="wii-icon wii-icon-trash-black mr-2"></span>Supprimer
+                </a>
             {% endif %}
         </div>
     </div>

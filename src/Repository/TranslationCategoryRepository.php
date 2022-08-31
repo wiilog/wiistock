@@ -13,4 +13,21 @@ use Doctrine\ORM\EntityRepository;
  */
 class TranslationCategoryRepository extends EntityRepository {
 
+    public function findUnusedCategories(?TranslationCategory $parent, array $activeCategories) {
+        $query = $this->createQueryBuilder("category");
+            //->leftJoin("category.parent", "parentCategory");
+
+        if($parent === null) {
+            $query->andWhere("category.parent IS NULL");
+        } else {
+            $query->andWhere("category.parent = :parent")
+                ->setParameter("parent", $parent);
+        }
+
+        return $query->andWhere("category.label NOT IN (:categories)")
+            ->setParameter("categories", $activeCategories)
+            ->getQuery()
+            ->getResult();
+    }
+
 }

@@ -406,7 +406,7 @@ class SettingsController extends AbstractController {
             "icon" => "user",
             "menus" => [
                 self::MENU_LANGUAGES => [
-                    "label" => "Personnalisation des libellés",
+                    "label" => "Langues",
                     "right" => Action::SETTINGS_DISPLAY_LABELS_PERSO,
                     'route' => "settings_language_index"
                 ],
@@ -574,10 +574,10 @@ class SettingsController extends AbstractController {
 
         $languages = $languageService->getLanguages();
 
-        $languages[]=[
+        $languages[] = [
             'label' => 'Ajouter une langue',
             'value' => 'NEW',
-            'iconUrl' => '/svg/plus-black.svg',
+            'iconUrl' => '/svg/flags/Plus-flag.svg',
         ];
 
         $sidebar = [];
@@ -606,37 +606,39 @@ class SettingsController extends AbstractController {
         $data = $request->query;
         $languageRepository = $manager->getRepository(Language::class);
         $translationCategoryRepository = $manager->getRepository(TranslationCategory::class);
-        $translationRepository = $manager->getRepository(Translation::class);
-
-        $defaultLanguage = $languageRepository->findOneBy(['selected' => true]);
 
         $language = $data->get('language');
         if ($language === 'NEW') {
-            $userLanguage = new Language();
-            $userLanguage
+            $language = new Language();
+            $language
                 ->setFlag("data:image/svg+xml;charset=utf8,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E")
                 ->setSelectable(true)
-                ->setSlug('NEW');
+                ->setSlug(Language::NEW_SLUG);
         } else {
-            $userLanguage = $languageRepository->findOneBy(['id' => $data->get('language')]);
+            $language = $languageRepository->findOneBy(['id' => $data->get('language')]);
         }
+
+        $languageSlug = $language->getSlug();
+        $defaultLanguage = array_key_exists($languageSlug, Language::DEFAULT_LANGUAGE_TRANSLATIONS )
+            ? $languageRepository->findOneBy(['slug' => Language::DEFAULT_LANGUAGE_TRANSLATIONS[$languageSlug]])
+            : $languageRepository->findOneBy(['selected' => true]) ;
 
         $translations = [];
         $categories = $translationCategoryRepository->findBy(['type' => 'category']);
         foreach ($categories as $category) {
             $categoryLabel = $category->getLabel();
             $translations[$categoryLabel] = ['subtitle'=> $category->getSubtitle()];
-            $translations[$categoryLabel]["translations"] = $category->getTranslations($defaultLanguage->getSlug(), $userLanguage->getSlug());
+            $translations[$categoryLabel]["translations"] = $category->getTranslations($defaultLanguage->getSlug(), $language->getSlug());
             $menus = $translationCategoryRepository->findBy(['parent' => $category, 'type' => 'menu']);
             foreach ($menus as $menu) {
                 $menuLabel = $menu->getLabel();
                 $translations[$categoryLabel]['menus'][$menuLabel] = ['subtitle'=> $menu->getSubtitle()];
-                $translations[$categoryLabel]['menus'][$menuLabel]["translations"] = $menu->getTranslations($defaultLanguage->getSlug(), $userLanguage->getSlug());
+                $translations[$categoryLabel]['menus'][$menuLabel]["translations"] = $menu->getTranslations($defaultLanguage->getSlug(), $language->getSlug());
                 $submenus = $translationCategoryRepository->findBy(['parent' => $menu, 'type' => 'submenu']);
                 foreach ($submenus as $submenu){
                     $submenuLabel = $submenu->getLabel();
                     $translations[$categoryLabel]['menus'][$menuLabel]['submenus'][$submenuLabel] =['subtitle'=> $submenu->getSubtitle()];
-                    $translations[$categoryLabel]['menus'][$menuLabel]['submenus'][$submenuLabel]["translations"] = $submenu->getTranslations($defaultLanguage->getSlug(), $userLanguage->getSlug());
+                    $translations[$categoryLabel]['menus'][$menuLabel]['submenus'][$submenuLabel]["translations"] = $submenu->getTranslations($defaultLanguage->getSlug(), $language->getSlug());
                 }
             }
         }
@@ -647,7 +649,7 @@ class SettingsController extends AbstractController {
                     'label' => $defaultLanguage->getLabel(),
                     'flag' => $defaultLanguage->getFlag(),
                 ],
-                'userLanguage' => $userLanguage,
+                'language' => $language,
                 'translations' => $translations,
             ])
         ]);
@@ -717,7 +719,7 @@ class SettingsController extends AbstractController {
 
             $manager->remove($language);
             $manager->flush();
-            $cacheService->delete(CacheService::LANGUAGES, 'languages');
+            $cacheService->delete(CacheService::LANGUAGES);
 
             return $this->json([
                 "success" => true,
@@ -789,7 +791,7 @@ class SettingsController extends AbstractController {
         }
 
         $manager->flush();
-        $cacheService->delete(CacheService::LANGUAGES, 'languages');
+        $cacheService->delete(CacheService::LANGUAGES);
 
         return $this->json([
             "success" => true,

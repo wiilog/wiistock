@@ -31,7 +31,7 @@ $(function () {
     $modalLaunchPreparation.find('.check-stock-button').html($(`<div/>`, {
         class: `d-inline-flex align-items-center`,
         html: [$(`<span/>`, {
-            class: `wii-icon wii-icon-white-tick mr-2`
+            class: `wii-icon wii-icon-check-white mr-2`
         }), $(`<span/>`, {
             text: `Vérifier le stock`,
         })]
