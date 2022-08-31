@@ -24,7 +24,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use App\Helper\FormatHelper;
 use App\Service\IOT\DataMonitoringService;
 use DateTime;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 

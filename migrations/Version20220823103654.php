@@ -12,10 +12,14 @@ final class Version20220823103654 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        $this->skipIf(!$schema->hasTable("translation_category"));
+        $this->skipIf(!$schema->hasTable("translation_category") || !$schema->hasTable("translation"), "Reexecute migrations after fixtures");
 
         $translations = $this->connection->executeQuery("SELECT * FROM previous_translation")->fetchAll();
         foreach($translations as $translation) {
+            if($translation["translation"] === null || $translation["translation"] === "") {
+                continue;
+            }
+
             $query = "
                 UPDATE translation
                 INNER JOIN language ON translation.language_id = language.id

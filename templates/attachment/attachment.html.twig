@@ -5,7 +5,7 @@
     <input type="hidden" name="isAttachmentForm" value="1"/>
     <input type="hidden" name="isFileNeeded" value="{{ required ? 1 : 0 }}"/>
 
-    <label for="dropfile"  class="{{ override is not defined or not override ? 'wii-field-name'}} {{ fieldNameClass }}">Pièces jointes{{ required ? '*' }}</label>
+    <label for="dropfile"  class="{{ override is not defined or not override ? 'wii-field-name'}} {{ fieldNameClass }}">{{ trans('Général', null, 'Modale', 'Pièces jointes') }}{{ required ? '*' }}</label>
     {% if editAttachments %}
         <div class="dropFrame justify-content-md-center {{ small ?? false ? 'small-frame' }}"
              data-arrivage-id="{{ arrivage is defined ? arrivage.id : '' }}"
@@ -15,8 +15,8 @@
              ondragleave="dragLeaveDiv(event, $(this))"
              ondrop="saveDroppedFiles(event, $(this))">
             {% set text = text is not defined ? 'Faites glisser vos pièces jointes' : text %}
-            <p class="drop-file-hint">Faites glisser vos pièces jointes &ensp; ou&ensp;<span onclick="openFileExplorer($(this))" class="click-here"><i class="fa fa-folder-open mr-2"></i>
-                Parcourir {{ not (small ?? false) ? 'vos fichiers' }}</span>
+            <p class="drop-file-hint">{{ trans('Général', null, 'Modale', 'Faites glisser vos pièces jointes ou') }}&ensp;<span onclick="openFileExplorer($(this))" class="click-here"><i class="fa fa-folder-open mr-2"></i>
+                {{ trans('Général', null, 'Modale', 'Parcourir vos fichiers') }}</span>
                 <input type="file" name="files[]" {{ (unique is not defined) or (not unique) ? 'multiple' }} class="d-none fileInput"
                        onchange="saveInputFiles($(this))">
             </p>

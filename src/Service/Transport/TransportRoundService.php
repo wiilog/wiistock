@@ -18,6 +18,7 @@ use App\Entity\Transport\TransportRoundLine;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
+use App\Service\FormatService;
 use App\Service\GeoService;
 use DateTime;
 use App\Service\StatusHistoryService;
@@ -43,10 +44,13 @@ class TransportRoundService
     #[Required]
     public CSVExportService $CSVExportService;
 
-    private array $cacheStatuses = [];
+    #[Required]
+    public FormatService $formatService;
 
     #[Required]
     public GeoService $geoService;
+
+    private array $cacheStatuses = [];
 
     /**
      * For csv export on transport round list page
@@ -96,7 +100,7 @@ class TransportRoundService
                     TransportRequest::NUMBER_PREFIX . $request?->getNumber(),
                     str_replace("\n", " ", $request?->getContact()?->getAddress() ?: ''),
                     $transportRoundLine->getPriority() ?: '',
-                    $order?->getStatus()->getNom() ?: '',
+                    $this->formatService->status($order?->getStatus()) ?: '',
                     FormatHelper::bool($order?->isThresholdExceeded(), 'non'),
                 ]);
                 $csvService->putLine($output, $ordersInformation);
@@ -192,7 +196,7 @@ class TransportRoundService
                         $statusRequest = $request->getLastStatusHistory([TransportRequest::STATUS_FINISHED]);
 
                         $naturesStr = Stream::from($request->getLines() ?: [])
-                            ->filterMap(fn(TransportRequestLine $line) => $line->getNature()?->getLabel())
+                            ->filterMap(fn(TransportRequestLine $line) => $this->formatService->nature($line->getNature()))
                             ->unique()
                             ->join(', ');
 

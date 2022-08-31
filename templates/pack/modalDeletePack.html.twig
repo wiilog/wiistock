@@ -3,17 +3,17 @@
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
-                title: 'Supprimer la référence article'
+                title: trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Supprimer l\'UL')
             } %}
 
             <div class="modal-body">
-                Voulez-vous réellement supprimer ce colis ?
+                {{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Voulez-vous réellement supprimer cette UL ?') }}
             </div>
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
                     {input: true, classes: arrivage is defined ? 'data', name: 'arrivage', value: arrivage is defined ? arrivage.id},
-                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
-                    {classes: 'btn btn-danger data', text: 'Supprimer', name: 'pack', id: 'submitDeletePack'}
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
+                    {classes: 'btn btn-danger data', text: trans('Général', null, 'Modale', 'Supprimer'), name: 'pack', id: 'submitDeletePack'}
                 ],
                 renderErrorContainer: false
             } %}

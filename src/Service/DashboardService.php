@@ -53,6 +53,9 @@ class DashboardService {
     public const DAILY_PERIOD_PREVIOUS_DAYS = 'previousDays';
 
     #[Required]
+    public FormatService $formatService;
+
+    #[Required]
     public EnCoursService $enCoursService;
 
     #[Required]
@@ -610,7 +613,7 @@ class DashboardService {
             }, []);
             $countByNatureBase = [];
             foreach ($naturesFilter as $wantedNature) {
-                $countByNatureBase[$wantedNature->getLabel()] = 0;
+                $countByNatureBase[$this->formatService->nature($wantedNature)] = 0;
             }
             $segments = $config['segments'];
             $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
@@ -706,7 +709,7 @@ class DashboardService {
                     function (array $carry, Nature $nature) {
                         $color = $nature->getColor();
                         if (!empty($color)) {
-                            $carry[$nature->getLabel()] = $color;
+                            $carry[$this->formatService->nature($nature)] = $color;
                         }
                         return $carry;
                     },
@@ -1277,7 +1280,7 @@ class DashboardService {
                 $natureId = $nature->getId();
                 if (!isset($naturesStack[$natureId])) {
                     $naturesStack[$natureId] = [
-                        'label' => $nature->getLabel(),
+                        'label' => $this->formatService->nature($nature),
                         'backgroundColor' => $nature->getColor(),
                         'stack' => 'stack',
                         'data' => []

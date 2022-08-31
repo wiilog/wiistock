@@ -23,7 +23,7 @@ use App\Service\UserService;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Controller\AbstractController;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -166,7 +166,7 @@ class TransferOrderController extends AbstractController {
         return $this->render('transfer/order/show.html.twig', [
             'order' => $transfer,
             'detailsConfig' => $this->service->createHeaderDetailsConfig($transfer),
-            'modifiable' => $transfer->getStatus()->getNom() === TransferOrder::TO_TREAT
+            'modifiable' => $this->getFormatter()->status($transfer->getStatus()) === TransferOrder::TO_TREAT
         ]);
     }
 
@@ -306,7 +306,7 @@ class TransferOrderController extends AbstractController {
         $dateTimeMax = DateTime::createFromFormat("Y-m-d H:i:s", $dateMax . " 23:59:59");
 
         if(isset($dateTimeMin, $dateTimeMax)) {
-            $now = new DateTime("now");
+            $now = (new DateTime('now'))->format("d-m-Y-H-i-s");
 
             $transferRepository = $entityManager->getRepository(TransferOrder::class);
             $articleRepository = $entityManager->getRepository(Article::class);
@@ -332,7 +332,7 @@ class TransferOrderController extends AbstractController {
             ];
 
             return $CSVExportService->createBinaryResponseFromData(
-                "export_ordre_transfert" . $now->format("d_m_Y") . ".csv",
+                "export_ordre_transfert_$now.csv",
                 $transfers,
                 $header,
                 function (TransferOrder $transferOrder) use ($articlesByRequest, $referenceArticlesByRequest) {

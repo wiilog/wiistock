@@ -13,7 +13,7 @@ use App\Service\UrgenceService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -260,7 +260,7 @@ class UrgencesController extends AbstractController
             ];
             $today = new DateTime();
             $user = $this->getUser();
-            $today = $today->format($user->getDateFormat() ? $user->getDateFormat() . ' H:i:s' : "d-m-Y H:i:s");
+            $today = $today->format("d-m-Y-H-i-s");
             return $CSVExportService->streamResponse(
                 function ($output) use ($urgenceIterator, $CSVExportService, $user) {
                     foreach ($urgenceIterator as $urgence) {

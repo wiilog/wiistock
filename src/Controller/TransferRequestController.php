@@ -22,7 +22,7 @@ use App\Service\CSVExportService;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Controller\AbstractController;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -160,7 +160,7 @@ class TransferRequestController extends AbstractController {
             return $this->json([
                 'entete' => $this->renderView('transfer/request/show_header.html.twig', [
                     'transfer' => $transfer,
-                    'modifiable' => ($transfer->getStatus()->getNom() == TransferRequest::DRAFT),
+                    'modifiable' => ($this->getFormatter()->status($transfer->getStatus()) == TransferRequest::DRAFT),
                     'showDetails' => $service->createHeaderDetailsConfig($transfer)
                 ]),
                 'success' => true,
@@ -191,7 +191,7 @@ class TransferRequestController extends AbstractController {
                     'name' => $reference->getTypeQuantite(),
                     'refArticleId' => $reference->getId(),
                     'transferId' => $transfer->getid(),
-                    'modifiable' => ($transfer->getStatus()->getNom() == TransferRequest::DRAFT),
+                    'modifiable' => ($this->getFormatter()->status($transfer->getStatus()) == TransferRequest::DRAFT),
                 ]),
             ];
         }
@@ -207,7 +207,7 @@ class TransferRequestController extends AbstractController {
                     'type' => 'article',
                     'id' => $article->getId(),
                     'transferId' => $transfer->getid(),
-                    'modifiable' => ($transfer->getStatus()->getNom() == TransferRequest::DRAFT),
+                    'modifiable' => ($this->getFormatter()->status($transfer->getStatus()) == TransferRequest::DRAFT),
                 ]),
             ];
         }
@@ -340,7 +340,7 @@ class TransferRequestController extends AbstractController {
 
         $count = $transferRequest->getArticles()->count() + $transferRequest->getReferences()->count();
 
-        if ($transferRequest->getStatus() && $transferRequest->getStatus()->getNom() !== TransferRequest::DRAFT) {
+        if ($transferRequest->getStatus() && $this->getFormatter()->status($transferRequest->getStatus()) !== TransferRequest::DRAFT) {
 
             $transferOrderRepository = $entityManager->getRepository(TransferOrder::class);
             $transferOrder = $transferOrderRepository->findOneBy(['request' => $transferRequest]);
@@ -383,7 +383,7 @@ class TransferRequestController extends AbstractController {
         $dateTimeMax = DateTime::createFromFormat("Y-m-d H:i:s", $dateMax . " 23:59:59");
 
         if(isset($dateTimeMin, $dateTimeMax)) {
-            $now = new DateTime("now");
+            $now = (new DateTime('now'))->format("d-m-Y-H-i-s");
 
             $transferRequestRepository = $entityManager->getRepository(TransferRequest::class);
             $articleRepository = $entityManager->getRepository(Article::class);
@@ -407,7 +407,7 @@ class TransferRequestController extends AbstractController {
             ];
 
             return $CSVExportService->createBinaryResponseFromData(
-                "export_demande_transfert" . $now->format("d_m_Y") . ".csv",
+                "export_demande_transfert_$now.csv",
                 $transfers,
                 $header,
                 function (TransferRequest $transferRequest) use ($articlesByRequest, $referenceArticlesByRequest) {

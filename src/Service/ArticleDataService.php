@@ -24,6 +24,7 @@ use App\Entity\Utilisateur;
 use App\Entity\CategorieCL;
 use App\Helper\FormatHelper;
 use Symfony\Component\HttpFoundation\InputBag;
+use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -43,11 +44,14 @@ class ArticleDataService
 	private $clIdWantedOnLabel;
 	private $typeCLOnLabel;
 
-    /** @Required */
+    #[Required]
     public CSVExportService $CSVExportService;
 
-    /** @Required */
+    #[Required]
     public FreeFieldService $freeFieldService;
+
+    #[Required]
+    public FormatService $formatService;
 
     private $visibleColumnService;
 
@@ -348,7 +352,7 @@ class ArticleDataService
         $deliveryRequestRepository = $this->entityManager->getRepository(Demande::class);
 
         $url['edit'] = $this->router->generate('demande_article_edit', ['id' => $article->getId()]);
-        $status = $article->getStatut() ? $article->getStatut()->getNom() : 'Non défini';
+        $status = $article->getStatut() ? $this->formatService->status($article->getStatut()) : 'Non défini';
 
         $supplierArticle = $article->getArticleFournisseur();
         $referenceArticle = $supplierArticle ? $supplierArticle->getReferenceArticle() : null;
@@ -465,7 +469,7 @@ class ArticleDataService
         $articleReceptionRecipientDropzoneLabel = ($articleReceptionRecipientDropzone && $wantsRecipientDropzone) ? $articleReceptionRecipientDropzone->getLabel() : '';
 
         $articleLinkedToTransferRequestToTreat = $article->getTransferRequests()->map(function (TransferRequest $transferRequest) use ($reception) {
-            if ($reception && $transferRequest->getStatus()->getNom() === TransferOrder::TO_TREAT) {
+            if ($reception && $this->formatService->status($transferRequest->getStatus()) === TransferOrder::TO_TREAT) {
                 $transferRequestLocation = $reception->getStorageLocation() ? $reception->getStorageLocation()->getLabel() : '';
             } else {
                 $transferRequestLocation = '';
@@ -541,7 +545,7 @@ class ArticleDataService
     }
 
     public function articleCanBeAddedInDispute(Article $article): bool {
-        return in_array($article->getStatut()->getNom(), [Article::STATUT_ACTIF, Article::STATUT_EN_LITIGE]);
+        return in_array($this->formatService->status($article->getStatut()), [Article::STATUT_ACTIF, Article::STATUT_EN_LITIGE]);
     }
 
     public function getColumnVisibleConfig(EntityManagerInterface $entityManager,

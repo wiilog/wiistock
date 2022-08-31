@@ -18,7 +18,7 @@ use App\Service\PackService;
 use App\Service\TrackingMovementService;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -126,12 +126,12 @@ class PackController extends AbstractController
         if ($pack && $pack->getNature()) {
             $nature = [
                 'id' => $pack->getNature()->getId(),
-                'label' => $pack->getNature()->getLabel(),
+                'label' => $this->getFormatter()->nature($pack->getNature()),
             ];
         } else {
             $nature = ($uniqueNature ? [
                 'id' => $natures[0]->getId(),
-                'label' => $natures[0]->getLabel(),
+                'label' => $this->getFormatter()->nature($natures[0]),
             ] : null);
         }
 

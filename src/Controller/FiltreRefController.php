@@ -15,7 +15,7 @@ use App\Entity\VisibilityGroup;
 use App\Service\RefArticleDataService;
 use App\Service\VisibleColumnService;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -177,7 +177,7 @@ class FiltreRefController extends AbstractController
                     ReferenceArticle::DRAFT_STATUS
                 ]);
                 foreach ($statuses as $status) {
-                    $options[] = $status->getNom();
+                    $options[] = $this->getFormatter()->status($status);
                 }
 			} else if ($value === 'visibilityGroups' || $value === 'visibilityGroup') {
                 $multiple = true;

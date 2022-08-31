@@ -34,7 +34,7 @@ use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -147,7 +147,7 @@ class PreparationController extends AbstractController
     public function apiLignePreparation(Preparation $preparation): Response
     {
         $demande = $preparation->getDemande();
-        $preparationStatut = $preparation->getStatut() ? $preparation->getStatut()->getNom() : null;
+        $preparationStatut = $preparation->getStatut() ? $this->getFormatter()->status($preparation->getStatut()) : null;
         $isPrepaEditable =
             $preparationStatut === Preparation::STATUT_A_TRAITER
             || ($preparationStatut == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparation->getUtilisateur() == $this->getUser());
@@ -231,7 +231,7 @@ class PreparationController extends AbstractController
                     ->every(fn (Pairing $pairing) => !$pairing->isActive())
             ));
 
-        $preparationStatus = $preparation->getStatut() ? $preparation->getStatut()->getNom() : null;
+        $preparationStatus = $preparation->getStatut() ? $this->getFormatter()->status($preparation->getStatut()) : null;
 
         $demande = $preparation->getDemande();
         $destination = $demande?->getDestination();
@@ -589,7 +589,7 @@ class PreparationController extends AbstractController
                 'quantité à préparer',
                 'code-barre'
             ];
-            $nowStr = new DateTime('now');
+            $nowStr = (new DateTime('now'))->format("d-m-Y-H-i-s");;
 
             return $CSVExportService->streamResponse(
                 function ($output) use ($preparationIterator, $CSVExportService, $preparationsManager) {
@@ -597,7 +597,7 @@ class PreparationController extends AbstractController
                         $preparationsManager->putPreparationLines($output, $preparation);
                     }
                 },
-                "Export-Ordre-Preparation-" . $nowStr->format('d_m_Y') . ".csv",
+                "Export-Ordre-Preparation-$nowStr.csv",
                 $csvHeader
             );
         } else {

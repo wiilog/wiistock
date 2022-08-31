@@ -1,0 +1,18 @@
+<form class="modal fade" id="modalEditTranslations" aria-hidden="true">
+    <div class="modalDialogEditTranslations modal-dialog modal-dialog-centered modal-xl w-20 " role="document">
+        <div class="modal-content">
+            {% include 'utils/modal/header.html.twig' with {
+                title: "Modifier les traductions"
+            } %}
+
+            <div class="edit-status-translation modal-body modal-input container-fluid">
+            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-success data', text: 'Enregistrer', id: 'submitEditTranslations'}
+                ],
+            } %}
+        </div>
+    </div>
+</form>

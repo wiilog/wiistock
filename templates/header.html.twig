@@ -106,7 +106,7 @@
                                 <span class="icon"></span>
                             </button>
                             <div id="quick-menu" class="dropdown-menu p-0 mt-3">
-                                <p class="mx-3 quick-menu-title user-select-none">Nouvelle demande</p>
+                                <p class="mx-3 quick-menu-title user-select-none">{{ trans('Demande', 'Général', 'Nouvelle demande') }}</p>
 
                                 {% if hasDeliveryRights %}
                                     {% set isCurrentPage = (app.request.attributes.get('_route') == 'demande_index') %}
@@ -131,20 +131,18 @@
                                     {% set isCurrentPage = (app.request.attributes.get('_route') == 'handling_index') %}
                                     <a class="d-flex align-items-center"
                                        onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new'}, event)" }}"
-                                       href="{{ path('handling_index', {'open-modal': 'new'}) }}"
-                                       title="Service">
+                                       href="{{ path('handling_index', {'open-modal': 'new'}) }}">
                                         <span class="wii-icon wii-icon-handling quick-menu-icon mx-2"></span>
-                                        <span class="flex-fill align-self-center">{{ 'services.Service' | trans }}</span>
+                                        <span class="flex-fill align-self-center">{{ trans('Demande', 'Services', 'Service') }}</span>
                                     </a>
                                 {% endif %}
                                 {% if hasDispatchRights %}
                                     {% set isCurrentPage = (app.request.attributes.get('_route') == 'dispatch_index') %}
                                     <a class="d-flex align-items-center"
                                        onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new'}, event)" }}"
-                                       href="{{ path('dispatch_index', {'open-modal': 'new'}) }}"
-                                       title="Acheminements">
+                                       href="{{ path('dispatch_index', {'open-modal': 'new'}) }}">
                                         <span class="wii-icon wii-icon-way quick-menu-icon mx-2"></span>
-                                        <span class="flex-fill align-self-center">{{ 'acheminement.Acheminement' | trans }}</span>
+                                        <span class="flex-fill align-self-center">{{ trans('Demande', 'Acheminements', 'Divers', 'Acheminement') }}</span>
                                     </a>
                                 {% endif %}
                                 {% if hasTransferRights %}
@@ -220,7 +218,7 @@
                                 <span class="fa fa-angle-down"></span>
                             </button>
                         </div>
-                            <div class="language-date-menu dropdown-menu dropdown-menu-right keep-open mt-1 p-0" style="max-width:148px !important;">
+                            <div class="language-date-menu dropdown-menu dropdown-menu-right keep-open mt-1 p-0">
                                     <div class="language dropdown-item-sub mt-2 pl-3">
                                         {{ form.radio('user_language', null , false,  language_service.getLanguages, {
                                             iconClass : 'flag',

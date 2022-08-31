@@ -17,7 +17,7 @@ use App\Service\InventoryService;
 use App\Service\InvMissionService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -188,14 +188,14 @@ class InventoryMissionController extends AbstractController
                     if($article = $articleRepository->findOneBy(["barCode" => $barcode])) {
 
                         $checkForArt = $article instanceof Article
-                            && $article->getArticleFournisseur()->getReferenceArticle()->getStatut()->getNom() === ReferenceArticle::STATUT_ACTIF
+                            && $this->getFormatter()->status($article->getArticleFournisseur()->getReferenceArticle()->getStatut()) === ReferenceArticle::STATUT_ACTIF
                             && !$inventoryService->isInMissionInSamePeriod($article, $mission, false);
 
                         return $checkForArt ? $article : $article->getBarCode();
                     } else if($reference = $refArtRepository->findOneBy(["barCode" => $barcode])) {
 
                         $checkForRef = $reference instanceof ReferenceArticle
-                            && $reference->getStatut()->getNom() === ReferenceArticle::STATUT_ACTIF
+                            && $this->getFormatter()->status($reference->getStatut()) === ReferenceArticle::STATUT_ACTIF
                             && !$inventoryService->isInMissionInSamePeriod($reference, $mission, true);
 
                         return $checkForRef ? $reference : $reference->getBarCode();

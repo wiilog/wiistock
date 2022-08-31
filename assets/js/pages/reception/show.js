@@ -414,11 +414,11 @@ function openTableHisto() {
             type: "POST"
         },
         columns: [
-            {data: 'user', name: 'Utilisateur', title: 'Utilisateur'},
-            {data: 'date', name: 'date', title: 'Date'},
-            {data: 'commentaire', name: 'commentaire', title: 'Commentaire'},
-            {data: 'status', name: 'status', title: 'Statut'},
-            {data: 'type', name: 'type', title: 'Type'},
+            {data: 'user', name: 'Utilisateur', title: Translation.of('Traçabilité', 'Général', 'Utilisateur')},
+            {data: 'date', name: 'date', title: Translation.of('Traçabilité', 'Général', 'Date')},
+            {data: 'commentaire', name: 'commentaire', title: Translation.of('Général', '', 'Modale', 'Commentaire')},
+            {data: 'status', name: 'status', title: Translation.of('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Statut')},
+            {data: 'type', name: 'type', title: Translation.of('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Type')},
         ],
         rowConfig: {
             needsRowClickAction: true,

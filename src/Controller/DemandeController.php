@@ -30,7 +30,7 @@ use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpFoundation\Request;
@@ -160,7 +160,7 @@ class DemandeController extends AbstractController
                     'success' => true,
                     'entete' => $this->renderView('demande/demande-show-header.html.twig', [
                         'demande' => $demande,
-                        'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
+                        'modifiable' => ($this->getFormatter()->status($demande->getStatut()) === (Demande::STATUT_BROUILLON)),
                         'showDetails' => $demandeLivraisonService->createHeaderDetailsConfig($demande)
                     ]),
                 ];
@@ -318,8 +318,8 @@ class DemandeController extends AbstractController
         return $this->render('demande/show.html.twig', [
             'demande' => $demande,
             'statuts' => $statutRepository->findByCategorieName(Demande::CATEGORIE),
-            'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
-            'finished' => ($demande->getStatut()->getNom() === Demande::STATUT_A_TRAITER),
+            'modifiable' => ($this->getFormatter()->status($demande->getStatut()) === (Demande::STATUT_BROUILLON)),
+            'finished' => ($this->getFormatter()->status($demande->getStatut()) === Demande::STATUT_A_TRAITER),
             'showDetails' => $demandeLivraisonService->createHeaderDetailsConfig($demande),
             'showTargetLocationPicking' => $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION),
             'managePreparationWithPlanning' => $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::MANAGE_PREPARATIONS_WITH_PLANNING)
@@ -353,7 +353,7 @@ class DemandeController extends AbstractController
                         'name' => ReferenceArticle::QUANTITY_TYPE_REFERENCE,
                         'refArticleId' => $line->getReference()->getId(),
                         'reference' => ReferenceArticle::QUANTITY_TYPE_REFERENCE,
-                        'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
+                        'modifiable' => ($this->getFormatter()->status($demande->getStatut()) === (Demande::STATUT_BROUILLON)),
                     ]
                 )
             ];
@@ -379,7 +379,7 @@ class DemandeController extends AbstractController
                         'articleId' => $article->getId(),
                         'name' => ReferenceArticle::QUANTITY_TYPE_ARTICLE,
                         'reference' => ReferenceArticle::QUANTITY_TYPE_REFERENCE,
-                        'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
+                        'modifiable' => ($this->getFormatter()->status($demande->getStatut()) === (Demande::STATUT_BROUILLON)),
                     ]
                 ),
             ];
@@ -579,7 +579,7 @@ class DemandeController extends AbstractController
             $articleLines = $articleLineRepository->findByRequests($demandes);
             $referenceLines = $referenceLineRepository->findByRequests($demandes);
 
-            $nowStr = date("d-m-Y H:i");
+            $nowStr = (new DateTime('now'))->format("d-m-Y-H-i-s");
             return $CSVExportService->createBinaryResponseFromData(
                 "dem-livr $nowStr.csv",
                 $demandes,

@@ -31,7 +31,7 @@ use App\Service\UserService;
 use App\Service\VisibleColumnService;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -590,10 +590,10 @@ class TrackingMovementController extends AbstractController
                     );
             } else {
                 $appropriateType = $statutRepository->find($typeId);
-                if ($appropriateType && $appropriateType->getNom() === TrackingMovement::TYPE_PRISE_DEPOSE) {
+                if ($appropriateType && $this->getFormatter()->status($appropriateType) === TrackingMovement::TYPE_PRISE_DEPOSE) {
                     $fileToRender = "$templateDirectory/newMassMvtTraca.html.twig";
                 }
-                else if ($appropriateType && $appropriateType->getNom() === TrackingMovement::TYPE_GROUP) {
+                else if ($appropriateType && $this->getFormatter()->status($appropriateType) === TrackingMovement::TYPE_GROUP) {
                     $fileToRender = "$templateDirectory/newGroupMvtTraca.html.twig";
                 }
                 else {

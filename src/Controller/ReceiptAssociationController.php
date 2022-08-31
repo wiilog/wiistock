@@ -12,7 +12,7 @@ use App\Service\ReceiptAssociationService;
 use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -169,9 +169,7 @@ class ReceiptAssociationController extends AbstractController
         }
 
         if (!empty($dateTimeMin) && !empty($dateTimeMax)) {
-            $today = new DateTime();
-            $user = $this->getUser();
-            $today = $today->format($user->getDateFormat() ? $user->getDateFormat() . ' H:i:s' : "d-m-Y H:i:s");
+            $today = (new DateTime('now'))->format("d-m-Y-H-i-s");
 
             $headers = [
                 'date',
@@ -186,7 +184,7 @@ class ReceiptAssociationController extends AbstractController
                 foreach ($receiptAssociations as $receiptAssociation) {
                     $csvService->putLine($output, $receiptAssociation->serialize($this->getUser()));
                 }
-            }, "association-br_${today}.csv", $headers);
+            }, "association-br_$today.csv", $headers);
         }
         else {
             throw new BadRequestHttpException();
