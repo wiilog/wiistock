@@ -1077,13 +1077,13 @@ function updateMultipleChartData(chart, data) {
         chart.data.labels.push(key);
         for(const subKey of dataSubKeys) {
             let dataset = chart.data.datasets.find(({label}) => (label ===
-                (data.legends[subKey][$('#userLanguage').val()] !== ''
-                ? data.legends[subKey][$('#userLanguage').val()]
+                (data.legends[subKey][$('#language').val()] !== ''
+                ? data.legends[subKey][$('#language').val()]
                 : data.legends[subKey]['french'] || subKey)));
             if(!dataset) {
                 dataset = {
-                    label: data.legends[subKey][$('#userLanguage').val()] !== ''
-                        ? data.legends[subKey][$('#userLanguage').val()]
+                    label: data.legends[subKey][$('#language').val()] !== ''
+                        ? data.legends[subKey][$('#language').val()]
                         : data.legends[subKey]['french'] || subKey,
                     backgroundColor: (chartColors
                             ? (
@@ -1280,7 +1280,7 @@ function displayLegendTranslation(data){
                     $legendTranslationContainer.find('.form-group').last().append(`
                     <div>
                         <div class="input-group pb-2">
-                            <div class="input-group-prepend h-100 ">
+                            <div class="input-group-prepend">
                                 <span class="input-group-text">
                                     <img class="flag" src="${ language.flag }" alt="${ language.slug }_flag">
                                 </span>

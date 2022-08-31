@@ -296,7 +296,7 @@ class DashboardSettingsService {
 
         if(!isset($values['languages'])){
             $languageRepository = $entityManager->getRepository(Language::class);
-            $languages = Stream::from($languageRepository->findAll())
+            $languages = Stream::from($languageRepository->findBy(['hidden' => false]))
                 ->map(fn(Language $language) => [
                     'selected' => $language->getSelected(),
                     'slug' => $language->getSlug(),
@@ -304,8 +304,6 @@ class DashboardSettingsService {
                 ])->toArray();
             $values['languages'] = json_encode($languages, true);
         }
-
-        dump($values);
 
         return $values;
     }

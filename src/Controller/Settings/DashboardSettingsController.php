@@ -296,7 +296,7 @@ class DashboardSettingsController extends AbstractController {
             $values['natures'] = $natureRepository->findBy(['id' => $values['natures']]);
         }
 
-        $values['languages'] = $languageRepository->findAll();
+        $values['languages'] = $languageRepository->findBy(['hidden' => false]);
 
         $tooltip = $values['tooltip'];
         $title = $values['title'] ?? '';
