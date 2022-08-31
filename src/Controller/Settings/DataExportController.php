@@ -68,8 +68,7 @@ class DataExportController extends AbstractController {
             "date dernier mouvement de sortie",
         ], $freeFieldsConfig['freeFieldsHeader']);
 
-        $today = new DateTime();
-        $today = $today->format("d-m-Y H:i:s");
+        $today = (new DateTime('now'))->format("d-m-Y-H-i-s");
         $user = $userService->getUser();
 
         return $csvService->streamResponse(function($output) use ($manager, $user, $freeFieldsConfig, $refArticleDataService) {
@@ -114,8 +113,7 @@ class DataExportController extends AbstractController {
             'groupe de visibilité'
         ], $freeFieldsConfig['freeFieldsHeader']);
 
-        $today = new DateTime();
-        $today = $today->format("d-m-Y H:i:s");
+        $today = (new DateTime('now'))->format("d-m-Y-H-i-s");
         $user = $userService->getUser();
 
         return $csvService->streamResponse(function($output) use ($freeFieldsConfig, $entityManager, $csvService, $freeFieldService, $user, $articleDataService) {
@@ -142,8 +140,7 @@ class DataExportController extends AbstractController {
         $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
 
         $transportRoundRepository = $entityManager->getRepository(TransportRound::class);
-        $today = new DateTime();
-        $today = $today->format("d-m-Y H:i:s");
+        $today = (new DateTime('now'))->format("d-m-Y-H-i-s");
         $nameFile = "export-tournees-$today.csv";
         $csvHeader = $transportRoundService->getHeaderRoundAndRequestExport();
 

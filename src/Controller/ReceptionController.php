@@ -1493,11 +1493,11 @@ class ReceptionController extends AbstractController {
                 'code-barre reference',
                 'code-barre article',
             ];
-            $nowStr = date("d-m-Y_H:i");
+            $nowStr = (new DateTime('now'))->format("d-m-Y-H-i-s");
             $addedRefs = [];
 
             return $CSVExportService->createBinaryResponseFromData(
-                "export-" . str_replace(["/", "\\"], "-", $translation->trans('réception.réception')) . "-" . $nowStr  . ".csv",
+                "export-" . str_replace(["/", "\\"], "-", $translation->trans('réception.réception')) . "-$nowStr.csv",
                 $receptions,
                 $csvHeader,
                 function($reception) use (&$addedRefs, $requesters) {

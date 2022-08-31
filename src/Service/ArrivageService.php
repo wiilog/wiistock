@@ -395,73 +395,73 @@ class ArrivageService {
             [
                 'label' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Fournisseur'),
                 'value' => $provider ? $provider->getNom() : '',
-                'show' => [ 'fieldName' => 'fournisseur' ],
+                'show' => ['fieldName' => 'fournisseur'],
                 'isRaw' => true
             ],
             [
                 'label' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Emplacement de dépose'),
                 'value' => $dropLocation ? $dropLocation->getLabel() : '',
-                'show' => [ 'fieldName' => FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE ],
+                'show' => ['fieldName' => FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE ],
                 'isRaw' => true
             ],
             [
                 'label' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Transporteur'),
                 'value' => $carrier ? $carrier->getLabel() : '',
-                'show' => [ 'fieldName' => 'transporteur' ],
+                'show' => ['fieldName' => 'transporteur'],
                 'isRaw' => true
             ],
             [
                 'label' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Chauffeur'),
                 'value' => $driver ? $driver->getNom() : '',
-                'show' => [ 'fieldName' => 'chauffeur' ],
+                'show' => ['fieldName' => 'chauffeur'],
                 'isRaw' => true
             ],
             [
                 'label' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° tracking transporteur'),
                 'value' => $arrivage->getNoTracking(),
-                'show' => [ 'fieldName' => 'noTracking' ],
+                'show' => ['fieldName' => 'noTracking'],
                 'isRaw' => true
             ],
             [
                 'label' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° commande / BL'),
                 'value' => !empty($numeroCommandeList) ? implode(', ', $numeroCommandeList) : '',
-                'show' => [ 'fieldName' => 'numeroCommandeList' ],
+                'show' => ['fieldName' => 'numeroCommandeList'],
                 'isRaw' => true
             ],
             [
                 'label' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Destinataire'),
                 'value' => $destinataire ? $destinataire->getUsername() : '',
-                'show' => [ 'fieldName' => 'destinataire' ],
+                'show' => ['fieldName' => 'destinataire'],
                 'isRaw' => true
             ],
             [
                 'label' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Acheteur(s)'),
                 'value' => $buyers->count() > 0 ? implode(', ', $buyers->map(function (Utilisateur $buyer) {return $buyer->getUsername();})->toArray()) : '',
-                'show' => [ 'fieldName' => 'acheteurs' ],
+                'show' => ['fieldName' => 'acheteurs'],
                 'isRaw' => true
             ],
             [
                 'label' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Numéro de projet'),
                 'value' => $arrivage->getProjectNumber(),
-                'show' => [ 'fieldName' => 'projectNumber' ],
+                'show' => ['fieldName' => 'projectNumber'],
                 'isRaw' => true
             ],
             [
                 'label' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Business unit'),
                 'value' => $arrivage->getBusinessUnit(),
-                'show' => [ 'fieldName' => 'businessUnit' ],
+                'show' => ['fieldName' => 'businessUnit'],
                 'isRaw' => true
             ],
             [
                 'label' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Douane'),
                 'value' => $arrivage->getCustoms() ? 'oui' : 'non',
-                'show' => [ 'fieldName' => 'customs' ],
+                'show' => ['fieldName' => 'customs'],
                 'isRaw' => true
             ],
             [
                 'label' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Congelé'),
                 'value' => $arrivage->getFrozen() ? 'oui' : 'non',
-                'show' => [ 'fieldName' => 'frozen' ],
+                'show' => ['fieldName' => 'frozen'],
                 'isRaw' => true
             ],
         ];
