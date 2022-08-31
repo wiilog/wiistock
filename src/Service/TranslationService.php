@@ -7,6 +7,7 @@ use App\Entity\Translation;
 use App\Entity\TranslationSource;
 use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
+use JetBrains\PhpStorm\Deprecated;
 use RuntimeException;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -28,8 +29,9 @@ class TranslationService {
 
     private array $translations = [];
 
+    #[Deprecated]
     public function trans(string $in): string {
-            return "BUG TICKET: $in";
+        return "BUG TICKET: $in";
     }
 
     /**
@@ -53,7 +55,7 @@ class TranslationService {
      * @param mixed ...$args Arguments
      * @return string Translated input
      */
-    public function translate(mixed... $args): string {
+    public function translate(mixed ...$args): string {
         $user = null;
         foreach($args as $arg) {
             if ($arg instanceof Utilisateur) {
@@ -88,7 +90,7 @@ class TranslationService {
         }
     }
 
-    public function translateIn(string $slug, string $defaultSlug, bool $lastResort, mixed... $args): ?string {
+    public function translateIn(string $slug, string $defaultSlug, bool $lastResort, mixed ...$args): ?string {
         $variables = ["category", "menu", "submenu", "input"];
         foreach($variables as $variable) {
             $$variable = null;

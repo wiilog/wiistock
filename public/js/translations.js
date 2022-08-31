@@ -17,6 +17,10 @@ class Translation {
     static slug;
     static defaultSlug;
 
+    /**
+     * @param args Same as php method TranslationService::translate
+     * @return {string}
+     */
     static of(...args) {
         let defaultSlug;
         if(Translation.slug === Translation.FRENCH_SLUG) {
