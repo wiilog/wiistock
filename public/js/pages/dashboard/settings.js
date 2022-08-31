@@ -1334,7 +1334,7 @@ function addEntryTimeInterval($button, time = null, notEmptySegment = false) {
     const $newSegmentInput = $(`
         <div class="segment-container interval">
             <div class="form-group row align-items-center">
-                <label class="col-3">Segment <span class="segment-value">0</span></label>
+                <label class="col-3 wii-field-name">Segment <span class="segment-value">0</span></label>
                 <div class="input-group col-7">
                     <input type="text"
                            class="data needed form-control text-center display-previous segment-hour"

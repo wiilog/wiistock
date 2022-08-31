@@ -19,11 +19,10 @@
                 </div>
             </div>
         </div>
-        <div class="mt-3 wii-page-card">
-            <div class="row mb-2">
-                <h5 class="col-auto h5">Liste des articles</h5>
-            </div>
+        <div class="wii-box">
+            <div class="header wii-title">Liste des articles</div>
             {% if modifiable and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
+            <div class="content">
                 <div class="row wii-page-card-header">
                     <div class="col-auto ml-auto">
                         <div class="btn-group">
@@ -49,10 +48,11 @@
                         </div>
                     </div>
                 </div>
-            {% endif %}
-            <div class="row">
-                <div class="col-12">
-                    <table id="tableArticle_id" class="table"></table>
+                {% endif %}
+                <div class="row">
+                    <div class="col-12">
+                        <table id="tableArticle_id" class="table"></table>
+                    </div>
                 </div>
             </div>
         </div>

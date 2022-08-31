@@ -6,7 +6,7 @@
 {% block content %}
     <div class="row">
         <div class="form-group col-12">
-            <label>Demande*</label>
+            <label class="wii-field-name">Demande*</label>
             <select class="data form-control w-100 needed" name="kind">
                 <option value="delivery" {{ kind == 'delivery' ? 'selected' }}>Livraison</option>
                 <option value="collect" {{ kind == 'collect' ? 'selected' }}>Collecte</option>
@@ -18,7 +18,7 @@
     </div>
     <div class="row">
         <div class="form-group col-12">
-            <label class="d-inline-block">Afficher</label>
+            <label class="d-inline-block wii-field-name">Afficher</label>
             <select class="data form-control w-100 needed d-inline-block" name="shown">
                 <option value="{{ constant('App\\Entity\\Dashboard\\ComponentType::REQUESTS_SELF') }}" {{ shown == constant('App\\Entity\\Dashboard\\ComponentType::REQUESTS_SELF') ? 'selected' }}>seulement les demandes de l'utilisateur en cours</option>
                 <option value="{{ constant('App\\Entity\\Dashboard\\ComponentType::REQUESTS_EVERYONE') }}" {{ shown == constant('App\\Entity\\Dashboard\\ComponentType::REQUESTS_EVERYONE') ? 'selected' }}>toutes les demandes</option>

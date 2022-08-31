@@ -163,7 +163,7 @@
 
     {% if fieldsParam|isFieldRequired('manualUrgent', 'displayedEdit') %}
         <div class="form-group col-3 mt-4">
-            <label class="wii-field-name">Urgence ?{{ fieldsParam|isFieldRequired('manualUrgent', 'requiredEdit') ? '*' : '' }}</label>
+            <label class="wii-field-text">Urgence ?{{ fieldsParam|isFieldRequired('manualUrgent', 'requiredEdit') ? '*' : '' }}</label>
             <label class="switch">
                 <input class="checkbox {{ fieldsParam|isFieldRequired('manualUrgent', 'requiredEdit') ? 'needed' : '' }}"
                        type="checkbox" name="emergency" {{ reception.manualUrgent ? 'checked': ''}}>
@@ -173,7 +173,7 @@
     {% endif %}
     {% if fieldsParam|isFieldRequired('anomalie', 'displayedEdit') %}
         <div class="form-group col-3 pt-4">
-            <label class="wii-field-name">Anomalie{{ fieldsParam|isFieldRequired('anomalie', 'mustToModify') ? '*' : '' }}</label>
+            <label class="wii-field-text">Anomalie{{ fieldsParam|isFieldRequired('anomalie', 'mustToModify') ? '*' : '' }}</label>
             <label class="switch">
                 <input class="checkbox"
                     {{ fieldsParam|isFieldRequired('anomalie', 'mustToModify') ? 'needed' : '' }}

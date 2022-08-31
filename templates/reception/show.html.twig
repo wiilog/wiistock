@@ -21,74 +21,74 @@
         </div>
         <div class="row mt-3">
             <div class="{{ displayLitiges ? 'col-6 pr-2' : 'col-12' }}">
-                <div class="wii-page-card">
-                    <div class="row mb-2">
-                        <h5 class="col-auto h5">Liste des articles</h5>
-                    </div>
-                    <div class="row wii-page-card-header">
-                        <div class="col-auto ml-auto">
-                            <div class="btn-group">
-                                {% if modifiable %}
-                                    {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
-                                        <button type="button"
-                                                data-toggle="modal"
-                                                data-target="#modalAddLigneArticle"
-                                                class="btn btn-primary split-button d-flex align-items-center"
-                                                onclick="initNewArticleEditor('#modalAddLigneArticle'),
+                <div class="wii-box mt-0">
+                    <div class="header wii-title">Liste des articles</div>
+                    <div class="content">
+                        <div class="row wii-page-card-header">
+                            <div class="col-auto ml-auto">
+                                <div class="btn-group">
+                                    {% if modifiable %}
+                                        {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
+                                            <button type="button"
+                                                    data-toggle="modal"
+                                                    data-target="#modalAddLigneArticle"
+                                                    class="btn btn-primary split-button d-flex align-items-center"
+                                                    onclick="initNewArticleEditor('#modalAddLigneArticle'),
                                                 Select2Old.provider($('.ajax-autocomplete-fournisseur'))">
-                                            <span class="wii-icon wii-icon-new-article mr-2"></span>
-                                            Ajouter une référence
-                                        </button>
+                                                <span class="wii-icon wii-icon-new-article mr-2"></span>
+                                                Ajouter une référence
+                                            </button>
+                                        {% endif %}
                                     {% endif %}
-                                {% endif %}
-                                <button type="button"
-                                        class="btn btn-outline-primary d-none print dropdown-toggle dropdown-toggle-split"
-                                        data-toggle="dropdown"
-                                        aria-haspopup="true"
-                                        aria-expanded="false">
-                                    <span class="fa fa-angle-down"></span>
-                                </button>
-                                <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
-                                    <a href="{{ path('reception_bar_codes_print', {reception: reception.id}) }}"
-                                       id="buttonPrintMultipleBarcodes"
-                                       class="dropdown-item d-none print">
-                                        <span class="fa fa-print mr-2"></span>Générer les étiquettes
-                                    </a>
+                                    <button type="button"
+                                            class="btn btn-outline-primary d-none print dropdown-toggle dropdown-toggle-split"
+                                            data-toggle="dropdown"
+                                            aria-haspopup="true"
+                                            aria-expanded="false">
+                                        <span class="fa fa-angle-down"></span>
+                                    </button>
+                                    <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
+                                        <a href="{{ path('reception_bar_codes_print', {reception: reception.id}) }}"
+                                           id="buttonPrintMultipleBarcodes"
+                                           class="dropdown-item d-none print">
+                                            <span class="fa fa-print mr-2"></span>Générer les étiquettes
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-12">
-                            <table id="tableArticle_id" class="table"></table>
+                        <div class="row">
+                            <div class="col-12">
+                                <table id="tableArticle_id" class="table"></table>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
             {% if displayLitiges %}
                 <div class="col-6 pl-2">
-                    <div class="wii-page-card">
-                        <div class="row mb-2">
-                            <h5 class="col-auto h5">Liste des litiges</h5>
-                        </div>
-                        {% if hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::CREATE')) %}
-                            <div class="row wii-page-card-header">
-                                <div class="col-auto ml-auto">
-                                    <button type="button"
-                                            data-id='{{ reception.id }}'
-                                            data-target='#modalNewLitige'
-                                            data-toggle='modal'
-                                            class="btn btn-primary"
-                                            onclick="openNewLitigeModal($(this))">
-                                        <i class="fa fa-plus mr-2"></i>
-                                        Nouveau litige
-                                    </button>
+                    <div class="wii-box mt-0">
+                        <div class="header wii-title">Liste des litiges</div>
+                        <div class="content">
+                            {% if hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::CREATE')) %}
+                                <div class="row wii-page-card-header">
+                                    <div class="col-auto ml-auto">
+                                        <button type="button"
+                                                data-id='{{ reception.id }}'
+                                                data-target='#modalNewLitige'
+                                                data-toggle='modal'
+                                                class="btn btn-primary"
+                                                onclick="openNewLitigeModal($(this))">
+                                            <i class="fa fa-plus mr-2"></i>
+                                            Nouveau litige
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
-                        {% endif %}
-                        <div class="row">
-                            <div class="col-12">
-                                <table id="tableReceptionLitiges" class="table w-100"></table>
+                            {% endif %}
+                            <div class="row">
+                                <div class="col-12">
+                                    <table id="tableReceptionLitiges" class="table w-100"></table>
+                                </div>
                             </div>
                         </div>
                     </div>

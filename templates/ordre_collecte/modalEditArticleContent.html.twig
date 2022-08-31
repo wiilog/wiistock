@@ -1,11 +1,11 @@
 {% if modifiable %}
-<div class="mb-3 form-group">
-    <label for="quantite">Quantité*</label>
-    <input type="number" class="data form-control needed" name="quantite" id="quantite"
-        value="{{ ligneArticle.quantite }}" min="1" max="{{ ligneArticle.quantite }}">
-</div>
+    <div class="mb-3 form-group">
+        <label class="wii-field-name">Quantité*</label>
+        <input type="number" class="data form-control needed" name="quantite" id="quantite"
+            value="{{ ligneArticle.quantite }}" min="1" max="{{ ligneArticle.quantite }}">
+    </div>
 {% else %}
-<div class="mb-3 form-group">
-    Cette ligne concerne une référence gérée par article. Il n'est donc pas possible de modifier la quantité interne de ce dernier.
-</div>
+    <div class="mb-3 form-group">
+        Cette ligne concerne une référence gérée par article. Il n'est donc pas possible de modifier la quantité interne de ce dernier.
+    </div>
 {% endif %}

@@ -2,7 +2,7 @@
     <div class="form-group col-8">
         <label class="wii-field-name" for="disputeType">Type*</label>
         <select class="form-control data needed"
-                {{ not hasRightToTreatLitige ? 'disabled' }}
+            {{ not hasRightToTreatLitige ? 'disabled' }}
                 id="disputeType" name="disputeType">
             <option value="{{ dispute.type.id }}" selected>{{ dispute.type.label }}</option>
             {% for type in disputeTypes %}
@@ -13,9 +13,9 @@
         </select>
     </div>
     <div class="form-group col-4 mt-4">
-        <label class="wii-field-name">Urgence ?</label>
+        <label class="wii-field-text">Urgence ?</label>
         <label class="switch">
-            <input class="checkbox" type="checkbox" name="emergency" {{ dispute.emergencyTriggered ? 'checked': ''}}>
+            <input class="checkbox" type="checkbox" name="emergency" {{ dispute.emergencyTriggered ? 'checked': '' }}>
             <span class="slider round"></span>
         </label>
     </div>
@@ -69,7 +69,9 @@
         </div>
     </div>
 </div>
-<div class="label">Historique</div>
+<div class="wii-section-title my-3 d-flex align-items-center">
+    Historique des modifications
+</div>
 <div class="tableHistoric">
     <table id="tableHistoLitige" class="table w-100"></table>
 </div>

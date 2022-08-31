@@ -16,17 +16,33 @@ class UtilisateurType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-            ->add('email', EmailType::class, array(
-                'label' => "Adresse email*"
-            ))
-            ->add('username', TextType::class, array(
+            ->add('email', EmailType::class, [
+                'label' => "Adresse email*",
+                'label_attr' => [
+                    'class' => 'wii-field-name'
+                ]
+            ])
+            ->add('username', TextType::class, [
                 'label' => "Nom d'utilisateur*",
-            ))
-            ->add('plainPassword', RepeatedType::class, array(
+                'label_attr' => [
+                    'class' => 'wii-field-name'
+                ]
+            ])
+            ->add('plainPassword', RepeatedType::class, [
                 'type' => PasswordType::class,
-                'first_options'  => array('label' => 'Mot de Passe*'),
-                'second_options' => array('label' => 'Confirmer Mot de Passe*'),
-            ));
+                'first_options'  => [
+                    'label' => 'Mot de passe*',
+                    'label_attr' => [
+                        'class' => 'wii-field-name'
+                    ]
+                ],
+                'second_options' => [
+                    'label' => 'Confirmer mot de passe*',
+                    'label_attr' => [
+                        'class' => 'wii-field-name'
+                    ]
+                ],
+            ]);
     }
 
     public function configureOptions(OptionsResolver $resolver)

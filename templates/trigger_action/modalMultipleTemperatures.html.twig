@@ -1,7 +1,7 @@
 {% set config = triggerAction is defined and triggerAction ? triggerAction.config : [] %}
 <div class="col-6 pl-0">
     <div class="form-group col-10">
-        <label>Température*</label>
+        <label class="wii-field-name">Température*</label>
         <div class="d-flex align-items-center">
             <label class="wii-field-name" style="white-space: nowrap">Si température supérieure à </label>
             <input type="number" class="data form-control needed w-120px mx-2" value="{{ config is not empty ? config[0]['temperature'] }}"
