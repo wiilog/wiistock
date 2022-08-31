@@ -987,7 +987,7 @@ class ArrivageController extends AbstractController {
 
             $hasRightToTreatLitige = $userService->hasRightFunction(Menu::QUALI, Action::TREAT_DISPUTE);
 
-            $disputeStatuses= Stream::from($statutRepository->findByCategorieName(CategorieStatut::DISPUTE_ARR, 'displayOrder'))
+            $disputeStatuses = Stream::from($statutRepository->findByCategorieName(CategorieStatut::DISPUTE_ARR, 'displayOrder'))
                 ->map(fn(Statut $statut) => [
                     'id' => $statut->getId(),
                     'type' => $statut->getType(),
