@@ -52,12 +52,12 @@ $(function () {
             needsRowClickAction: true
         },
         columns: [
-            {"data": 'actions', 'name': 'actions', 'title': '', className: 'noVis', orderable: true},
-            {"data": 'nature', 'name': 'nature', 'title': 'natures.nature', translated: true},
-            {"data": 'code', 'name': 'code', 'title': 'Code'},
-            {"data": 'lastMvtDate', 'name': 'lastMvtDate', 'title': 'Date dernier mouvement'},
-            {"data": 'lastLocation', 'name': 'lastLocation', 'title': 'Dernier emplacement'},
-            {"data": 'operator', 'name': 'operator', 'title': 'Opérateur'},
+            {"data": 'actions', 'name': 'actions',  'title': '', className: 'noVis', orderable: true},
+            {"data": 'nature', 'name': 'nature',    'title': Translation.of('Traçabilité', 'Général', 'Nature')},
+            {"data": 'code', 'name': 'code',        'title': Translation.of('Traçabilité', 'Général', 'Unités logistiques')},
+            {"data": 'lastMvtDate', 'name': 'lastMvtDate',      'title':  Translation.of('Traçabilité', 'Général', 'Date dernier mouvement')},
+            {"data": 'lastLocation', 'name': 'lastLocation',    'title':  Translation.of('Traçabilité', 'Général', 'Dernier emplacement')},
+            {"data": 'operator', 'name': 'operator',            'title': Translation.of('Traçabilité', 'Général', 'Opérateur')},
         ],
         order: [['code', 'asc']]
     };
@@ -94,10 +94,10 @@ $(function () {
         },
         columns: [
             {"data": 'Actions', 'name': 'actions', 'title': '', orderable: false, className: 'noVis'},
-            {"data": 'firstDate', 'name': 'firstDate', 'title': 'Date de création'},
-            {"data": 'status', 'name': 'status', 'title': 'Statut'},
-            {"data": 'type', 'name': 'type', 'title': 'Type'},
-            {"data": 'updateDate', 'name': 'updateDate', 'title': 'Date de modification'},
+            {"data": 'firstDate', 'name': 'firstDate', 'title': Translation.of('Traçabilité', 'Général', 'Date de création')},
+            {"data": 'status', 'name': 'status', 'title': Translation.of('Traçabilité','Flux - Arrivages', 'Champs fixes', 'Statut')},
+            {"data": 'type', 'name': 'type', 'title': Translation.of('Traçabilité','Flux - Arrivages', 'Champs fixes', 'Type')},
+            {"data": 'updateDate', 'name': 'updateDate', 'title': Translation.of('Traçabilité','Flux - Arrivages', 'Détails arrivage - Liste des litiges', 'Date de modification')},
             {"data": 'urgence', 'name': 'urgence', 'title': 'urgence', visible: false},
         ],
         rowConfig: {

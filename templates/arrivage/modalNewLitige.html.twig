@@ -2,15 +2,15 @@
     <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
-                title: "Nouveau litige"
+                title: trans('Traçabilité', 'Flux - Arrivages', 'Détails arrivage - Liste des litiges', 'Nouveau litige')
             } %}
 
             <div class="modal-body modal-input container-fluid"></div>
 
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
-                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
-                    {id: 'submitNewLitige' , classes: 'btn btn-success', text: 'Enregistrer'}
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
+                    {id: 'submitNewLitige' , classes: 'btn btn-success', text: trans('Général', null, 'Modale', 'Enregistrer')}
                 ],
             } %}
         </div>

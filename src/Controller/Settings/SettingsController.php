@@ -987,7 +987,7 @@ class SettingsController extends AbstractController {
                             ->filter(fn(Statut $status) => $status->getState() === Statut::NOT_TREATED)
                             ->map(fn(Statut $status) => [
                                 "value" => $status->getId(),
-                                "label" => $status->getNom(),
+                                "label" => $this->getFormatter()->status($status),
                             ])->toArray(),
                     ],
                     self::MENU_FIXED_FIELDS => function() use ($fixedFieldRepository) {
@@ -1021,11 +1021,16 @@ class SettingsController extends AbstractController {
                         'types' => $this->typeGenerator(CategoryType::DEMANDE_DISPATCH),
                         'category' => CategoryType::DEMANDE_DISPATCH,
                     ],
-                    self::MENU_STATUSES => fn() => [
-                        'types' => $this->typeGenerator(CategoryType::DEMANDE_DISPATCH, false),
-                        'categoryType' => CategoryType::DEMANDE_DISPATCH,
-                        'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_DISPATCH),
-                    ],
+                    self::MENU_STATUSES => function() {
+                        $types = $this->typeGenerator(CategoryType::DEMANDE_DISPATCH, false);
+                        $types[0]["checked"] = true;
+
+                        return [
+                            'types' => $types,
+                            'categoryType' => CategoryType::DEMANDE_DISPATCH,
+                            'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_DISPATCH),
+                        ];
+                    },
                 ],
                 self::MENU_ARRIVALS => [
                     self::MENU_FIXED_FIELDS => function() use ($fixedFieldRepository) {
@@ -1051,11 +1056,16 @@ class SettingsController extends AbstractController {
                     self::MENU_DISPUTE_STATUSES => fn() => [
                         'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_ARRIVAL_DISPUTE),
                     ],
-                    self::MENU_STATUSES => fn() => [
-                        'types' => $this->typeGenerator(CategoryType::ARRIVAGE, false),
-                        'categoryType' => CategoryType::ARRIVAGE,
-                        'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_ARRIVAL),
-                    ],
+                    self::MENU_STATUSES => function() {
+                        $types = $this->typeGenerator(CategoryType::ARRIVAGE, false);
+                        $types[0]["checked"] = true;
+
+                        return [
+                            'types' => $types,
+                            'categoryType' => CategoryType::ARRIVAGE,
+                            'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_ARRIVAL),
+                        ];
+                    },
                 ],
                 self::MENU_HANDLINGS => [
                     self::MENU_FIXED_FIELDS => function() use ($fixedFieldRepository) {
@@ -1081,11 +1091,16 @@ class SettingsController extends AbstractController {
                     self::MENU_REQUEST_TEMPLATES => function() use ($requestTemplateRepository, $typeRepository) {
                         return $this->getRequestTemplates($typeRepository, $requestTemplateRepository, Type::LABEL_HANDLING);
                     },
-                    self::MENU_STATUSES => fn() => [
-                        'types' => $this->typeGenerator(CategoryType::DEMANDE_HANDLING, false),
-                        'categoryType' => CategoryType::DEMANDE_HANDLING,
-                        'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_HANDLING),
-                    ],
+                    self::MENU_STATUSES => function() {
+                        $types = $this->typeGenerator(CategoryType::DEMANDE_HANDLING, false);
+                        $types[0]["checked"] = true;
+
+                        return [
+                            'types' => $types,
+                            'categoryType' => CategoryType::DEMANDE_HANDLING,
+                            'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_HANDLING),
+                        ];
+                    },
                 ],
                 self::MENU_MOVEMENTS => [
                     self::MENU_FREE_FIELDS => fn() => [

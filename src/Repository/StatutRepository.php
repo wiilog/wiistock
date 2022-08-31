@@ -271,4 +271,19 @@ class StatutRepository extends EntityRepository {
             ->getQuery()
             ->getResult();
     }
+
+    public function findDuplicates(string $nom, string $language, array $except = []) {
+        return $this->createQueryBuilder("status")
+            ->join("status.labelTranslation", "join_source")
+            ->leftJoin("join_source.translations", "join_translations")
+            ->leftJoin("join_translations.language", "join_language")
+            ->andWhere("status NOT IN (:except)")
+            ->andWhere("join_language.slug = :language")
+            ->andWhere("join_translations.translation = :nom")
+            ->setParameter("except", $except)
+            ->setParameter("language", $language)
+            ->setParameter("nom", $nom)
+            ->getQuery()
+            ->getResult();
+    }
 }

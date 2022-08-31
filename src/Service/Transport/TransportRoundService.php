@@ -100,7 +100,7 @@ class TransportRoundService
                     TransportRequest::NUMBER_PREFIX . $request?->getNumber(),
                     str_replace("\n", " ", $request?->getContact()?->getAddress() ?: ''),
                     $transportRoundLine->getPriority() ?: '',
-                    $order?->getStatus()->getNom() ?: '',
+                    $this->formatService->status($order?->getStatus()) ?: '',
                     FormatHelper::bool($order?->isThresholdExceeded(), 'non'),
                 ]);
                 $csvService->putLine($output, $ordersInformation);

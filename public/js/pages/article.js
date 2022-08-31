@@ -86,7 +86,6 @@ function loadAndDisplayInfos(select) {
         $.post(path, params, function (data) {
             $('#newContent').html(data);
             $('#modalNewArticle').find('div').find('div').find('.modal-footer').removeClass('d-none');
-            console.log('gfdgd');
             Select2Old.location($('.ajax-autocomplete-location'));
         })
     }
