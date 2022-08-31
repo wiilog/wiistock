@@ -12,11 +12,11 @@ use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Service\InventoryEntryService;
 use App\Service\InventoryService;
-use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -24,42 +24,19 @@ use Symfony\Component\Routing\Annotation\Route;
 /**
  * @Route("/inventaire/anomalie")
  */
-class InventoryAnomalyController extends AbstractController
-{
-    /**
-     * @var UserService
-     */
-    private $userService;
+class InventoryAnomalyController extends AbstractController {
 
-	/**
-	 * @var InventoryService
-	 */
-    private $inventoryService;
-
-    public function __construct(InventoryService $inventoryService,
-                                UserService $userService)
-    {
-        $this->userService = $userService;
-        $this->inventoryService = $inventoryService;
+    #[Route("/", name: "show_anomalies")]
+    #[HasPermission([Menu::STOCK, Action::INVENTORY_MANAGER])]
+    public function showAnomalies(): Response {
+        return $this->render('inventaire/anomalies.html.twig');
     }
 
-	/**
-	 * @Route("/", name="show_anomalies")
-     * @HasPermission({Menu::STOCK, Action::INVENTORY_MANAGER})
-	 */
-    public function showAnomalies()
-	{
-		return $this->render('inventaire/anomalies.html.twig');
-	}
-
-    /**
-     * @Route("/api", name="inv_anomalies_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::INVENTORY_MANAGER}, mode=HasPermission::IN_JSON)
-     */
-	public function apiAnomalies(Request $request,
+    #[Route("/api", name: "inv_anomalies_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::STOCK, Action::INVENTORY_MANAGER], mode: HasPermission::IN_JSON)]
+    public function apiAnomalies(Request                $request,
                                  EntityManagerInterface $entityManager,
-                                 InventoryEntryService $inventoryEntryService)
-	{
+                                 InventoryEntryService  $inventoryEntryService): Response {
         $inventoryEntryRepository = $entityManager->getRepository(InventoryEntry::class);
         $anomaliesData = $inventoryEntryRepository->findByParamsAndFilters($request->request, [], true);
 
@@ -84,26 +61,23 @@ class InventoryAnomalyController extends AbstractController
             $rows[] = $row;
         }
 
-        return new JsonResponse([
+        return $this->json([
             'data' => $rows,
             'recordsFiltered' => $anomaliesData['count'],
             'recordsTotal' => $anomaliesData['total'],
         ]);
-	}
+    }
 
-    /**
-     * @Route("/traitement", name="anomaly_treat", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::INVENTORY_MANAGER}, mode=HasPermission::IN_JSON)
-     */
-	public function treatAnomaly(Request $request)
-	{
-		if ($data = json_decode($request->getContent(), true)) {
+    #[Route("/traitement", name: "anomaly_treat", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::STOCK, Action::INVENTORY_MANAGER], mode: HasPermission::IN_JSON)]
+    public function treatAnomaly(Request $request, InventoryService $inventoryService): Response {
+        if ($data = json_decode($request->getContent(), true)) {
             try {
-                $res = $this->inventoryService->doTreatAnomaly(
+                $res = $inventoryService->doTreatAnomaly(
                     $data['id'],
-                    $data['barCode'],
+                    $data['barcode'],
                     $data['isRef'],
-                    (int)$data['newQuantity'],
+                    (int) $data['newQuantity'],
                     $data['comment'],
                     $this->getUser()
                 );
@@ -112,21 +86,20 @@ class InventoryAnomalyController extends AbstractController
                     'success' => true,
                     'msg' => $res['quantitiesAreEqual']
                         ? 'L\'anomalie a bien été traitée.'
-                        : 'Un mouvement de stock correctif vient d\'être créé.'
+                        : 'Un mouvement de stock correctif vient d\'être créé.',
                 ];
-            }
-            catch (ArticleNotAvailableException|RequestNeedToBeProcessedException $exception) {
+            } catch (ArticleNotAvailableException|RequestNeedToBeProcessedException $exception) {
                 $responseData = [
                     'success' => false,
                     'msg' => ($exception instanceof RequestNeedToBeProcessedException)
                         ? 'Impossible : un ordre de livraison est en cours sur cet article'
-                        : 'Impossible : l\'article n\'est pas disponible'
+                        : 'Impossible : l\'article n\'est pas disponible',
                 ];
             }
 
-			return new JsonResponse($responseData);
-		}
-		throw new BadRequestHttpException();
-	}
+            return $this->json($responseData);
+        }
+        throw new BadRequestHttpException();
+    }
 
 }

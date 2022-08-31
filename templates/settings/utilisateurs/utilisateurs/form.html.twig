@@ -245,7 +245,9 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    {{ form.checkbox('deliverer', 'Livreur', false, user.deliverer) }}
+                    {{ form.checkbox('deliverer', 'Livreur', false, user.deliverer, {
+                        labelClass: 'wii-field-text'
+                    }) }}
                 </div>
             </div>
         </div>

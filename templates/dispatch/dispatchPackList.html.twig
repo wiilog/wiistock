@@ -4,7 +4,7 @@
     <input type="hidden" class="data" name="packId" value="{{ pack.id }}">
     <div class="col-3">
         <div class="form-group">
-            <label for="transporter-tracking-number">{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Numéro d\'UL') }}</label>
+            <label for="transporter-tracking-number" class="wii-field-name">{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Numéro d\'UL') }}</label>
             <input class="form-control data no-clear"
                    value="{{ pack.code }}"
                    name="packNumber" disabled>
@@ -12,7 +12,7 @@
     </div>
     <div class="col-3">
         <div class="form-group">
-            <label for="transporter-tracking-number">{{ trans('Demande', 'Acheminements', 'Divers', 'Quantité UL') }}</label>
+            <label for="transporter-tracking-number" class="wii-field-name">{{ 'colis.Quantité colis'|trans }}</label>
             <input class="form-control data no-clear"
                    value="{{ pack.quantity }}"
                    name="packQuantity">
@@ -20,7 +20,7 @@
     </div>
     <div class="col">
         <div class="form-group">
-            <label for="transporter-tracking-number">{{ trans('Général', null, 'Modale', 'Commentaire') }}</label>
+            <label for="transporter-tracking-number" class="wii-field-name">{{ trans('Général', null, 'Modale', 'Commentaire') }}</label>
             <input class="form-control data no-clear"
                    value="{{ pack.comment | striptags }}"
                    name="packComment">

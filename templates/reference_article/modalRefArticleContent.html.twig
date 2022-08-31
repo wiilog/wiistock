@@ -5,14 +5,14 @@
 
 <div class="row">
     <div class="form-group col-6">
-        <label for="reference">
+        <label for="reference" class="wii-field-name">
             Référence*
         </label>
         <input {{ disabled }} class="form-control data needed" type="text" value="{{ articleRef.reference }}" name="reference" maxlength="21"
                               id="reference">
     </div>
     <div class="form-group col-6">
-        <label for="libelle">Nom*</label>
+        <label for="libelle" class="wii-field-name">Nom*</label>
         <input {{ disabled }} class="form-control data needed" type="text" name="libelle" value="{{ articleRef.libelle }}"
                               id="libelle">
     </div>
@@ -20,7 +20,7 @@
         {% if isADemand is not defined or not isADemand %}
             {% set active = statut == constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') ? 1 : 0 %}
 
-            <label>Statut</label><br>
+            <label class="wii-field-name">Statut</label><br>
             <div class="wii-switch needed" data-title="Statut">
                 <input type="radio" name="statut"
                        value="{{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') }}"
@@ -32,7 +32,7 @@
         {% endif %}
     </div>
     <div class="form-group col-4 d-flex align-items-center">
-        <label>Synchronisation nomade ?</label>
+        <label class="wii-field-text">Synchronisation nomade ?</label>
         {% set checkedSync = articleRef.needsMobileSync ? 'checked' %}
         <label class="switch ml-3">
             <input class="checkbox data" type="checkbox" name="mobileSync" {{ checkedSync }}>
@@ -43,7 +43,7 @@
 
 <div class="row">
     <div class="form-group col-4">
-        <label for="type">Type*</label>
+        <label for="type" class="wii-field-name">Type*</label>
         <select disabled name="type" class="form-control data needed d-block" id="typeEdit">
 
             {% set selected = articleRef.type is null ? 'selected' : '' %}
@@ -57,7 +57,7 @@
         </select>
     </div>
     <div class="form-group col-4">
-        <label>Catégorie d'inventaire</label>
+        <label class="wii-field-name">Catégorie d'inventaire</label>
         {% if editable %}
             <select name="categorie" class="form-control data {{ disabled }}">
                 {% set selectedCat = articleRef.category is null ? 'selected' : '' %}
@@ -75,13 +75,13 @@
         {% endif %}
     </div>
     <div class="form-group col-4">
-        <label>Date dernier inventaire</label>
+        <label class="wii-field-name">Date dernier inventaire</label>
         <input name="categorie" class="form-control" disabled
                value="{{ articleRef.dateLastInventory ? articleRef.dateLastInventory | date('d/m/Y') }}">
     </div>
 
     <div class="form-group col-4">
-        <label>Gestionnaires</label>
+        <label class="wii-field-name">Gestionnaires</label>
         <select name="managers" class="form-control data ajax-autocomplete-user-edit w-100" multiple>
             {% if managers is not empty %}
                 {% for manager in managers %}
@@ -92,13 +92,13 @@
     </div>
 
     <div class="form-group col-4">
-        <label>Acheteur</label>
+        <label class="wii-field-name">Acheteur</label>
         <select name="buyer" class="form-control data ajax-autocomplete-user-edit w-100">
             <option value="{{ articleRef.buyer ? articleRef.buyer.id }}" selected>{{ articleRef.buyer ? articleRef.buyer.username }}</option>
         </select>
     </div>
     <div class="col-4 form-group w-100">
-        <label for="visibility-group">Groupe de visibilité</label>
+        <label for="visibility-group" class="wii-field-name">Groupe de visibilité</label>
         <select name="visibility-group" class="form-control data" data-s2="visibilityGroup">
             {% if articleRef.visibilityGroup %}
                 <option value="{{ articleRef.visibilityGroup.id }}" selected>{{ articleRef.visibilityGroup.label }}</option>
@@ -108,15 +108,12 @@
 </div>
 <div class="row">
     <div class="form-group col-8">
-        <div class="">
-            <label>Nomenclature</label>
-            <input id='commentaire' class="form-control data" name="commentaire" type="hidden" value='{{ articleRef.commentaire }}'>
+        <label class="wii-field-name">Nomenclature</label>
+        <input id='commentaire' class="form-control data" name="commentaire" type="hidden" value='{{ articleRef.commentaire }}'>
 
-            {% set disableNomenclature = (isADemand is defined and isADemand) or disabled ? 'disabled' %}
-            <div class="form-control editor-container-edit comment {{ disableNomenclature }}" data-wysiwyg>
-                {{ articleRef.commentaire|raw }}
-            </div>
-
+        {% set disableNomenclature = (isADemand is defined and isADemand) or disabled ? 'disabled' %}
+        <div class="form-control editor-container-edit comment {{ disableNomenclature }}" data-wysiwyg>
+            {{ articleRef.commentaire|raw }}
         </div>
     </div>
     {% if showAttachments %}
@@ -138,7 +135,7 @@
             {% set reference = articleRef.typeQuantite == 'reference' ? 1 : 0 %}
             {% set article = articleRef.typeQuantite == 'article' ? 1 : 0 %}
 
-            <label>Gestion quantité</label><br>
+            <label class="wii-field-name">Gestion quantité</label><br>
             <div class="wii-switch needed" data-title="Gestion quantité">
                 <input type="radio" name="type_quantite" value="reference" content="Par référence" {{ reference ? 'checked' }} disabled>
                 <input type="radio" name="type_quantite" value="article" content="Par article" {{ article ? 'checked' }} disabled>
@@ -148,7 +145,7 @@
 
     <div class="form-group col-4 mt-4">
         <div class="article {{ dnone }}">
-            <label for="urgence">Urgence</label><br>
+            <label for="urgence" class="wii-field-text">Urgence</label><br>
             <label class="switch">
                 <input class="checkbox" type="checkbox" onchange="toggleEmergency($(this))" name="urgence"
                        value="{{ articleRef.isUrgent }}" {{ articleRef.isUrgent ? 'checked' : '' }}>
@@ -159,7 +156,7 @@
 
     <div class="form-group col-4 mt-4">
         <div class="emergency-comment {{ not articleRef.isUrgent ? 'd-none' }}">
-            <label for="emergency-comment-input">Commentaire de l'urgence</label>
+            <label for="emergency-comment-input" class="wii-field-name">Commentaire de l'urgence</label>
             <input class="form-control data w-100" type="text" name="emergency-comment-input" value="{{ articleRef.emergencyComment }}">
         </div>
     </div>
@@ -171,7 +168,7 @@
         {% set emplacementId = (articleRef.emplacement is null) ? '' : articleRef.emplacement.id %}
         {% set emplacementLabel = (articleRef.emplacement is null) ? '': articleRef.emplacement.label %}
 
-        <label>Emplacement*</label>
+        <label class="wii-field-name">Emplacement*</label>
         <select {{ disabled }} name="emplacement" id="emplacement"
                                class="form-control w-100 data {{ dnoneRef == 'd-none' ? '' : 'needed' }}" disabled>
             <option value="{{ emplacementId }}">{{ emplacementLabel }}</option>
@@ -179,25 +176,25 @@
     </div>
 
     <div class="form-group col-4 reference {{ dnoneRef }}">
-        <label class="my-auto mr-2" for="quantite">Quantité</label>
+        <label class="my-auto mr-2 wii-field-name" for="quantite">Quantité</label>
         {# si on est sur une demande, la quantité ne doit pas être modifiée #}
         <input class="form-control rounded data" value='{{ articleRef.quantiteDisponible }}' type="number" min="0"
                id="quantite" disabled>
     </div>
 
     <div class="form-group col-4 article {{ dnone }}">
-        <label class="my-auto mr-2">Quantité</label>
+        <label class="my-auto mr-2 wii-field-name">Quantité</label>
         <input class="form-control rounded" disabled value="{{ totalQuantity }}">
     </div>
 
     <div class="form-group col-4 reference {{ dnoneRef }}">
-        <label for="prix">Prix Unitaire (€)</label>
+        <label for="prix" class="wii-field-name">Prix Unitaire (€)</label>
         <input class="form-control data" type="number" name="prix" min="0" step="0.01" value="{{ articleRef.prixUnitaire }}" {{ disabled }}>
     </div>
 
     {% if articleRef.typeQuantite == constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_ARTICLE') %}
         <div class="form-group col-4">
-            <label>Gestion de stock</label>
+            <label class="wii-field-name">Gestion de stock</label>
             <select name="stockManagement" class="form-control data">
                 <option value=""></option>
                 {% for value in stockManagement %}
@@ -211,7 +208,7 @@
     <div class="form-group col-4">
         <div class="form-group w-100">
             <div>
-                <label for="limitWarning">Seuil d'alerte</label>
+                <label for="limitWarning" class="wii-field-name">Seuil d'alerte</label>
                 <input class="form-control data" type="number" name="limitWarning" min="0" value="{{ articleRef.limitWarning }}" {{ disabled }}>
             </div>
         </div>
@@ -219,7 +216,7 @@
     <div class="form-group col-4">
         <div class="form-group w-100">
             <div>
-                <label for="limitSecurity">Seuil de sécurité</label>
+                <label for="limitSecurity" class="wii-field-name">Seuil de sécurité</label>
                 <input class="form-control data" type="number" name="limitSecurity" min="0" value="{{ articleRef.limitSecurity }}" {{ disabled }}>
             </div>
         </div>

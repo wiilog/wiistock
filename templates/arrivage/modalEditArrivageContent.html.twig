@@ -171,7 +171,7 @@
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CUSTOMS_ARRIVAGE') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         <div class="form-group col-2">
-            <label class="wii-field-name">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Douane') }}</label>
+            <label class="wii-field-text">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Douane') }}</label>
             <label class="switch d-block-switch mt-2">
                 {% set checked =  arrivage.customs ? 'checked' : '' %}
                 <input class="checkbox no-clear" type="checkbox" name="customs" {{ checked }}>
@@ -183,7 +183,7 @@
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_FROZEN_ARRIVAGE') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         <div class="form-group col-2">
-            <label class="wii-field-name">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Congelé') }}</label>
+            <label class="wii-field-text">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Congelé') }}</label>
             <label class="switch d-block-switch mt-2">
                 {% set checked =  arrivage.frozen ? 'checked' : '' %}
                 <input class="checkbox no-clear" type="checkbox" name="frozen" {{ checked }}>

@@ -4,8 +4,7 @@
         <select class="form-control data needed"
                 id="disputeType"
                 name="disputeType">
-            <option placeholder=""
-                    value="{{ dispute.type.id }}"
+            <option value="{{ dispute.type.id }}"
                     selected>{{ dispute.type.label }}</option>
             {% for type in disputeTypes %}
                 {% if type.id != dispute.type.id %}
@@ -15,11 +14,11 @@
         </select>
     </div>
     <div class="form-group col-4 mt-4">
-        <label class="wii-field-name">{{ trans('Qualité', 'Litiges', 'Urgence ?') }}</label>
+        <label class="wii-field-text">{{ trans('Qualité', 'Litiges', 'Urgence ?') }}</label>
         <label class="switch">
             <input class="checkbox"
                    type="checkbox"
-                   name="emergency" {{ dispute.emergencyTriggered ? 'checked': ''}}>
+                   name="emergency" {{ dispute.emergencyTriggered ? 'checked': '' }}>
             <span class="slider round"></span>
         </label>
     </div>
@@ -55,17 +54,17 @@
         </select>
         <input hidden
                name="logged-user"
-               data-username="{{ dispute.reporter ? dispute.reporter.username : ''}}"
+               data-username="{{ dispute.reporter ? dispute.reporter.username : '' }}"
                data-id="{{ dispute.reporter ? dispute.reporter.id : '' }}"/>
     </div>
     <div class="form-group w-100 col-12">
         <label class="wii-field-name" for="colisEditLitige"
                title="articles">{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Articles') }}*</label>
         <select
-                class="form-control data select2 needed select2-autocomplete-articles"
-                name="colis"
-                multiple="multiple"
-                id="colisEditLitige">
+            class="form-control data select2 needed select2-autocomplete-articles"
+            name="colis"
+            multiple="multiple"
+            id="colisEditLitige">
         </select>
     </div>
 
@@ -90,17 +89,16 @@
         </div>
     </div>
 </div>
-<div class="label">{{ trans('Traçabilité', 'Flux - Arrivages', 'Détails arrivage - Liste des litiges', 'Historique') }}</div>
-<div class="tableHistoric">
-    <table id="tableHistoLitige"
-           class="table w-100"></table>
+<div class="wii-section-title my-3 d-flex align-items-center">
+    {{ trans('Traçabilité', 'Flux - Arrivages', 'Détails arrivage - Liste des litiges', 'Historique') }}
 </div>
-<input hidden value="{{ dispute.id }}"
-       id="disputeId"
-       class="data">
-<div class="separatorDatatable my-4"></div>
-<div class="label">{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Articles') }}</div>
+<div class="tableHistoric">
+    <table id="tableHistoLitige" class="table w-100"></table>
+</div>
+<input hidden value="{{ dispute.id }}" id="disputeId" class="data">
+<div class="wii-section-title my-3 d-flex align-items-center">
+    {{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Articles') }}
+</div>
 <div class="tableArticleLitige">
-    <table id="tableArticleInLitige"
-           class="table w-100"></table>
+    <table id="tableArticleInLitige" class="table w-100"></table>
 </div>

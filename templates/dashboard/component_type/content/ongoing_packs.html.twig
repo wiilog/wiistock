@@ -3,7 +3,7 @@
 {% block content %}
     <div class="row">
         <div class="form-group col-12">
-            <label>Choix des emplacements*</label>
+            <label class="wii-field-name">Choix des emplacements*</label>
             <select class="ajax-autocomplete-location data form-control w-100 needed"
                     name="locations"
                     multiple
@@ -26,7 +26,8 @@
             </label>
         </div>
         <div class="col">
-            Afficher le delai de traitement (Les emplacements choisis doivent avoir un délai de paramétré)
+            <span class="wii-field-text">Afficher le delai de traitement (Les emplacements choisis doivent avoir un délai de paramétré)
+            </span>
         </div>
     </div>
 
@@ -41,7 +42,7 @@
             </label>
         </div>
         <div class="col">
-            Afficher le nom des emplacements paramétrés sous le titre
+            <span class="wii-field-text">Afficher le nom des emplacements paramétrés sous le titre</span>
         </div>
     </div>
 
@@ -56,7 +57,7 @@
             </label>
         </div>
         <div class="col">
-            Rediriger au clic vers la page Encours
+            <span class="wii-field-text">Rediriger au clic vers la page Encours</span>
         </div>
     </div>
     <div class="row form-group align-items-center">
@@ -70,7 +71,7 @@
             </label>
         </div>
         <div class="col">
-            Afficher en urgence
+            <span class="wii-field-text">Afficher en urgence</span>
         </div>
     </div>
 {% endblock %}

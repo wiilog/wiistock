@@ -2,19 +2,19 @@
     {% if articleF is not empty %}
         <div class="row">
             <div class="form-group col-2">
-                <label for="reference">Code fournisseur</label>
+                <label for="reference" class="wii-field-name">Code fournisseur</label>
                 <input class="form-control needed" type="text" value="{{articleF.fournisseur.codeReference}}" disabled/>
             </div>
             <div class="form-group col-3">
-                <label for="reference">Nom fournisseur</label>
+                <label for="reference" class="wii-field-name">Nom fournisseur</label>
                 <input class="form-control needed" type="text" value="{{articleF.fournisseur.nom}}" disabled/>
             </div>
             <div class="form-group col-3">
-                <label for="reference">Ref. article fournisseur</label>
+                <label for="reference" class="wii-field-name">Ref. article fournisseur</label>
                 <input class="form-control needed" type="text" value="{{articleF.reference}}" disabled/>
             </div>
             <div class="form-group col-3">
-                <label for="reference">Libellé article</label>
+                <label for="reference" class="wii-field-name">Libellé article</label>
                 <input class="form-control needed" type="text" value="{{articleF.label}}" disabled/>
             </div>
             {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::DELETE')) and (editable is not defined or editable) %}

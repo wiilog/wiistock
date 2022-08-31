@@ -6,18 +6,18 @@
 
     <div class="row">
         <div class="col-12 form-group required">
-            <label>Agit sur :</label>
+            <label class="wii-field-name">Agit sur :</label>
             <input type="text" class="form-control" name="entityCode" required="" value="{{ field.entityCode }}" disabled>
         </div>
 
         <div class="col-12 form-group required">
-            <label>Champ fixe :</label>
+            <label class="wii-field-name">Champ fixe :</label>
             <input type="text" class="form-control" name="fieldCode" required="" value="{{ field.fieldLabel }}" disabled>
         </div>
 
         {% set isCheckedFormCreateDisplayed = field.displayedCreate ? 'checked' : '' %}
         <div class="form-group col-12">
-            <label>Affiché dans formulaires de création ?</label>
+            <label class="wii-field-text">Affiché dans formulaires de création ?</label>
             <label class="switch">
                 <input class="checkbox data" type="checkbox" name="displayedCreate" {{ isCheckedFormCreateDisplayed }} onchange="switchDisplay($(this))">
                 <span class="slider round"></span>
@@ -26,7 +26,7 @@
 
         {% set isCheckedFormEditDisplayed = field.displayedEdit ? 'checked' : '' %}
         <div class="form-group col-12">
-            <label>Affiché dans formulaires de modification ?</label>
+            <label class="wii-field-text">Affiché dans formulaires de modification ?</label>
             <label class="switch">
                 <input class="checkbox data" type="checkbox" name="displayedEdit" {{ isCheckedFormEditDisplayed }} onchange="switchDisplay($(this))">
                 <span class="slider round"></span>
@@ -36,7 +36,7 @@
         {% if not field.fieldRequiredHidden %}
             {% set isCheckedCreate = field.requiredCreate ? 'checked' : '' %}
             <div class="form-group col-12">
-                <label>Obligatoire à la création ?</label>
+                <label class="wii-field-text">Obligatoire à la création ?</label>
                 <label class="switch">
                     <input class="checkbox data" type="checkbox" name="requiredCreate" {{ isCheckedCreate }} onchange="switchDisplayByMust($(this))">
                     <span class="slider round"></span>
@@ -45,7 +45,7 @@
 
             {% set isCheckedModify = field.requiredEdit ? 'checked' : '' %}
             <div class="form-group col-12">
-                <label>Obligatoire à la modification ?</label>
+                <label class="wii-field-text">Obligatoire à la modification ?</label>
                 <label class="switch">
                     <input class="checkbox data" type="checkbox" name="requiredEdit" {{ isCheckedModify }} onchange="switchDisplayByMust($(this))">
                     <span class="slider round"></span>
@@ -55,7 +55,7 @@
         {% if field.fieldCode in filteredFields %}
             {% set isCheckedFilterDisplayed = field.displayedFilters ? 'checked' : '' %}
             <div class="form-group col-12">
-                <label>Afficher dans les filtres ?</label>
+                <label class="wii-field-text">Afficher dans les filtres ?</label>
                 <label class="switch">
                     <input class="checkbox data" type="checkbox" name="displayedFilters" {{ isCheckedFilterDisplayed }}>
                     <span class="slider round"></span>
@@ -65,7 +65,7 @@
 
         {% if field.elements is not null %}
             <div class="form-group col-12">
-                <label>Valeurs possibles</label><br>
+                <label class="wii-field-name">Valeurs possibles</label><br>
                 {# Temporaire pour Emerson, les business unit doivent êtres séparés par des ';' #}
                 {% if field.fieldCode == 'businessUnit' %}
                     <input type="text" name="elements-text" class="form-control data" value="{{ field.elements | join(';') }}"/>
