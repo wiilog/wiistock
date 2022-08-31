@@ -6,6 +6,7 @@ use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Livraison;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
+use App\Service\FormatService;
 use App\Service\RefArticleDataService;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -13,6 +14,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 
 class UpdateRefQuantitiesCommand extends Command
 {
@@ -20,6 +22,9 @@ class UpdateRefQuantitiesCommand extends Command
 
     private $em;
     private $refArticleService;
+
+    #[Required]
+    public FormatService $formatService;
 
     public function __construct(EntityManagerInterface $entityManager, RefArticleDataService $refArticleDataService)
     {
@@ -74,8 +79,9 @@ class UpdateRefQuantitiesCommand extends Command
             ->getPreparationOrderReferenceLines()
             ->filter(function (PreparationOrderReferenceLine $ligneArticlePreparation) {
                 $preparation = $ligneArticlePreparation->getPreparation();
-                return $preparation->getStatut()->getNom() === Preparation::STATUT_EN_COURS_DE_PREPARATION
-                    || $preparation->getStatut()->getNom() === Preparation::STATUT_A_TRAITER;
+                $statusLabel = $this->formatService->status($preparation->getStatut());
+                return $statusLabel === Preparation::STATUT_EN_COURS_DE_PREPARATION
+                    || $statusLabel === Preparation::STATUT_A_TRAITER;
             })
             ->map(function (PreparationOrderReferenceLine $ligneArticlePreparation) {
                 $preparation = $ligneArticlePreparation->getPreparation();
@@ -97,7 +103,7 @@ class UpdateRefQuantitiesCommand extends Command
             ->filter(function (PreparationOrderReferenceLine $ligneArticlePreparation) {
                 $preparation = $ligneArticlePreparation->getPreparation();
                 $livraison = $preparation->getLivraison();
-                return isset($livraison) && $livraison->getStatut()->getNom() === Livraison::STATUT_A_TRAITER;
+                return isset($livraison) && $this->formatService->status($preparation->getStatut()) === Livraison::STATUT_A_TRAITER;
             })->map(function (PreparationOrderReferenceLine $ligneArticlePreparation) {
                 $preparation = $ligneArticlePreparation->getPreparation();
                 $livraison = $preparation->getLivraison();

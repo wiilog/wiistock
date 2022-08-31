@@ -160,7 +160,7 @@ class TransferRequestController extends AbstractController {
             return $this->json([
                 'entete' => $this->renderView('transfer/request/show_header.html.twig', [
                     'transfer' => $transfer,
-                    'modifiable' => ($transfer->getStatus()->getNom() == TransferRequest::DRAFT),
+                    'modifiable' => ($this->getFormatter()->status($transfer->getStatus()) == TransferRequest::DRAFT),
                     'showDetails' => $service->createHeaderDetailsConfig($transfer)
                 ]),
                 'success' => true,
@@ -191,7 +191,7 @@ class TransferRequestController extends AbstractController {
                     'name' => $reference->getTypeQuantite(),
                     'refArticleId' => $reference->getId(),
                     'transferId' => $transfer->getid(),
-                    'modifiable' => ($transfer->getStatus()->getNom() == TransferRequest::DRAFT),
+                    'modifiable' => ($this->getFormatter()->status($transfer->getStatus()) == TransferRequest::DRAFT),
                 ]),
             ];
         }
@@ -207,7 +207,7 @@ class TransferRequestController extends AbstractController {
                     'type' => 'article',
                     'id' => $article->getId(),
                     'transferId' => $transfer->getid(),
-                    'modifiable' => ($transfer->getStatus()->getNom() == TransferRequest::DRAFT),
+                    'modifiable' => ($this->getFormatter()->status($transfer->getStatus()) == TransferRequest::DRAFT),
                 ]),
             ];
         }
@@ -340,7 +340,7 @@ class TransferRequestController extends AbstractController {
 
         $count = $transferRequest->getArticles()->count() + $transferRequest->getReferences()->count();
 
-        if ($transferRequest->getStatus() && $transferRequest->getStatus()->getNom() !== TransferRequest::DRAFT) {
+        if ($transferRequest->getStatus() && $this->getFormatter()->status($transferRequest->getStatus()) !== TransferRequest::DRAFT) {
 
             $transferOrderRepository = $entityManager->getRepository(TransferOrder::class);
             $transferOrder = $transferOrderRepository->findOneBy(['request' => $transferRequest]);

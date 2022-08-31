@@ -91,7 +91,13 @@ class ArrivageController extends AbstractController {
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
         $paramGlobalRedirectAfterNewArrivage = $settingRepository->findOneBy(['label' => Setting::REDIRECT_AFTER_NEW_ARRIVAL]);
 
-        $statuses = $statutRepository->findStatusByType(CategorieStatut::ARRIVAGE);
+        $statuses = Stream::from($statutRepository->findStatusByType(CategorieStatut::ARRIVAGE))
+            ->map(fn(Statut $statut) => [
+                'id' => $statut->getId(),
+                'type' => $statut->getType(),
+                'nom' => $this->getFormatter()->status($statut),
+            ])
+            ->toArray();
         $defaultLocation = $settingRepository->getOneParamByLabel(Setting::MVT_DEPOSE_DESTINATION);
         $defaultLocation = $defaultLocation ? $emplacementRepository->find($defaultLocation) : null;
 
@@ -981,11 +987,19 @@ class ArrivageController extends AbstractController {
 
             $hasRightToTreatLitige = $userService->hasRightFunction(Menu::QUALI, Action::TREAT_DISPUTE);
 
+            $disputeStatuses= Stream::from($statutRepository->findByCategorieName(CategorieStatut::DISPUTE_ARR, 'displayOrder'))
+                ->map(fn(Statut $statut) => [
+                    'id' => $statut->getId(),
+                    'type' => $statut->getType(),
+                    'nom' => $this->getFormatter()->status($statut),
+                ])
+                ->toArray();
+
             $html = $this->renderView('arrivage/modalEditLitigeContent.html.twig', [
                 'dispute' => $dispute,
                 'hasRightToTreatLitige' => $hasRightToTreatLitige,
                 'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
-                'disputeStatuses' => $statutRepository->findByCategorieName(CategorieStatut::DISPUTE_ARR, 'displayOrder'),
+                'disputeStatuses' => $disputeStatuses,
                 'attachments' => $attachmentRepository->findBy(['dispute' => $dispute]),
                 'colis' => $arrivage->getPacks(),
             ]);
@@ -1454,7 +1468,14 @@ class ArrivageController extends AbstractController {
         $typeRepository = $manager->getRepository(Type::class);
 
         $arrival = $manager->find(Arrivage::class, $request->query->get('id'));
-        $disputeStatuses = $statusRepository->findByCategorieName(CategorieStatut::DISPUTE_ARR, 'displayOrder');
+        $disputeStatuses = Stream::from($statusRepository->findByCategorieName(CategorieStatut::DISPUTE_ARR, 'displayOrder'))
+            ->map(fn(Statut $statut) => [
+                'id' => $statut->getId(),
+                'type' => $statut->getType(),
+                'nom' => $this->getFormatter()->status($statut),
+            ])
+            ->toArray();
+
         $defaultDisputeStatus = $statusRepository->getIdDefaultsByCategoryName(CategorieStatut::DISPUTE_ARR);
         $disputeTypes = $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]);
         $fixedFields = $manager->getRepository(FieldsParam::class)->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);

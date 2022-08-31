@@ -590,10 +590,10 @@ class TrackingMovementController extends AbstractController
                     );
             } else {
                 $appropriateType = $statutRepository->find($typeId);
-                if ($appropriateType && $appropriateType->getNom() === TrackingMovement::TYPE_PRISE_DEPOSE) {
+                if ($appropriateType && $this->getFormatter()->status($appropriateType) === TrackingMovement::TYPE_PRISE_DEPOSE) {
                     $fileToRender = "$templateDirectory/newMassMvtTraca.html.twig";
                 }
-                else if ($appropriateType && $appropriateType->getNom() === TrackingMovement::TYPE_GROUP) {
+                else if ($appropriateType && $this->getFormatter()->status($appropriateType) === TrackingMovement::TYPE_GROUP) {
                     $fileToRender = "$templateDirectory/newGroupMvtTraca.html.twig";
                 }
                 else {

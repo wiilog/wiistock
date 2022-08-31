@@ -368,3 +368,24 @@
         </div>
     </label>
 {% endmacro %}
+
+{% macro lang(name, label, required, options = {}) %}
+    <label class="w-100 {{ options.labelClass ?? '' }}">
+        {{ _self.label(label, required, false, options.labelOptions ?? {}) }}
+        {{ _self.tooltip(options.tooltip ?? null, false) }}
+
+        {% for language in options.languages ?? [] %}
+            <div class="input-group lang-input-group mb-1" data-multiple-key="labels" data-multiple-object-index="{{ language.value }}">
+                <div class="input-group-prepend">
+                    <img alt="Icône de la langue {{ language.label }}" src="{{ language.iconUrl }}">
+                </div>
+
+                {% set entity = options.entity ?? null %}
+                {% set translation = entity ? entity.labelTranslation.translationIn(language.slug) %}
+                <input type="hidden" class="data" name="language-id" value="{{ language.value }}">
+                <input type="text" class="data form-control {{ required and loop.first ? 'needed' }} data-array"
+                       name="label" value="{{ translation ? translation.translation }}">
+            </div>
+        {% endfor %}
+    </label>
+{% endmacro %}

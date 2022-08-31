@@ -22,7 +22,7 @@
     <div class="form-group col-12">
         <label class="wii-field-name">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Statut') }}*</label>
         <select class="form-control data needed" name="disputeStatus" title="Statut">
-            {% for statut in disputeStatuses %}  {# TODO : Trad #}
+            {% for statut in disputeStatuses %}
                 {% set selected = (dispute.status.id == statut.id) ? 'selected' : '' %}
                 {% set disabled = hasRightToTreatLitige ? '' : (statut.treated and statut.id != dispute.status.id ? 'disabled' : '') %}
                 <option value="{{ statut.id }}" {{ selected }} {{ disabled }}>{{ statut.nom }}</option>

@@ -168,11 +168,11 @@ class Language {
 
     public function serialize(Utilisateur $user): array {
         return [
-            "label" => $this->getLabel(),
-            "slug" => $this->getSlug(),
-            "value" => $this->getId(),
-            "iconUrl" => $this->getFlag(),
-            "checked" => $user->getLanguage()->getId() === $this->getId()
+            'label' => $this->getLabel(),
+            'value' => $this->getId(),
+            'slug' => $this->getSlug(),
+            'iconUrl' => $this->getFlag(),
+            'checked' => $user->getLanguage()->getId() === $this->getId()
         ];
     }
 

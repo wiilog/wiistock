@@ -641,7 +641,7 @@ class ReferenceArticleController extends AbstractController
                     'reference' => $providerArticle->getReference(),
                     'label' => $providerArticle->getLabel(),
                     'quantity' => Stream::from($articles)
-                        ->reduce(fn(int $carry, Article $article) => ($article->getStatut() && $article->getStatut()->getNom() === Article::STATUT_ACTIF)
+                        ->reduce(fn(int $carry, Article $article) => ($article->getStatut() && $this->getFormatter()->status($article->getStatut()) === Article::STATUT_ACTIF)
                             ? $carry + $article->getQuantite()
                             : $carry, 0)
                 ];
