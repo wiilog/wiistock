@@ -2,14 +2,14 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
-                title: "Détail de mouvement"
+                title: trans('Traçabilité', 'Mouvements', 'Détail de mouvement', false)
             } %}
 
             <div class="modal-body modal-input container-fluid">
             </div>
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
-                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Fermer'}
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Fermer')}
                 ],
                 hideErrorContainer: true,
             } %}

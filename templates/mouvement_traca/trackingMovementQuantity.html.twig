@@ -1,7 +1,7 @@
 {% set value = quantity is defined ? quantity : 1 %}
 {% set containerClass = containerClass is defined ? containerClass %}
 <div class="form-group col-12 {{ containerClass }}">
-    <label class="wii-field-name">Quantité*</label>
+    <label class="wii-field-name">{{ trans('Traçabilité', 'Général', 'Quantité', false) }}*</label>
     <input type="number"
            name="quantity"
            title="Quantité"

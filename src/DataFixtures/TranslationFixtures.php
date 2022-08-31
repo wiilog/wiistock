@@ -275,6 +275,19 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "fr" => "\"{1}\" : La taille du fichier ne doit pas dépasser 10 Mo.",
                             "en" => "\"{1}\": The file size must not exceed 10 MB.",
                         ],
+                        [
+                            "fr" => "Veuillez saisir des dates dans le filtre en haut de page.",
+                            "en" => "Please enter dates in the filter at the top of the page.",
+                            "tooltip" => "Erreur",
+                        ],
+                    ],
+                ],
+                "Stock" => [
+                    "content" => [
+                        [
+                            "fr" => "Libellé",
+                            "en" => "Label",
+                        ]
                     ],
                 ],
             ],
@@ -370,6 +383,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "fr" => "Unités logistiques",
                         "en" => "Logistics units",
                         "tooltip" => "Page Flux - Arrivages :\nDétails arrivage - Liste des UL - Nom de colonnes\nDétails arrivage - Liste des litiges - Modale Nouveau litige\nDétails arrivage - Liste des litiges - Modifier litige\nMail litige\n______\nPage Mouvements : \nFiltre\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouveau mouvement\nModale Modifier un mouvement\n______\nPage UL :\nMenu\nFil d'ariane\nFiltre\nOnglet\nOnglet UL - Colonne\nOnglet UL - Modale Modifier une unité logistique\nOnglet Groupes - Carte UL dans Carte Groupe\n_____\nPage Association BR :\nFiltre \nZone liste - Nom de colonnes \n_____\nPage Encours :\nCarte emplacement - Zone liste - Nom de colonnes",
+                    ],
+                    [
+                        "fr" => "Unité logistique",
+                        "en" => "Logistics unit",
+                        "tooltip" => "Composant \"UL en retard\"\nComposant \"Nombre d'arrivages et d'UL quotidiens\"\nComposant \"Nombres d'arrivages et d'UL hebdomadaires\"",
                     ],
                     [
                         "fr" => "Emplacement",
@@ -1244,6 +1262,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "fr" => "Voulez-vous réellement supprimer ce mouvement ?",
                         "en" => "Do you really want to delete this movement ?",
                         "tooltip" => "Modale Supprimer le mouvement",
+                    ],
+                    [
+                        "fr" => "Modifier un mouvement",
+                        "en" => "Edit a movement",
+                        "tooltip" => "Modale modifier un mouvement"
                     ],
                 ],
             ],

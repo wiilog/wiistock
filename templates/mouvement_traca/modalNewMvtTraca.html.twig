@@ -2,7 +2,7 @@
     <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
-                title: "Nouvement mouvement"
+                title: trans('Traçabilité', 'Mouvements', 'Nouveau mouvement')
             } %}
 
             <div class="modal-body modal-input">
@@ -15,7 +15,7 @@
                                 </div>
                             {% else %}
                                 <div class="form-group col-12">
-                                    <label class="wii-field-name" for="datetime">Date*</label>
+                                    <label class="wii-field-name" for="datetime">{{ trans('Traçabilité', 'Général', 'Date', false) }}*</label>
                                     <input type="text"
                                            id="datetime"
                                            name="datetime"
@@ -25,7 +25,7 @@
                                 </div>
                                 <input type="hidden" class="data" name="forced" value="0">
                                 <div class="form-group col-12">
-                                    <label class="wii-field-name" for="operator my-auto mr-2">Opérateur*</label>
+                                    <label class="wii-field-name" for="operator my-auto mr-2">{{ trans('Traçabilité', 'Général', 'Opérateur', false) }}*</label>
                                     <select name="operator"
                                             class="form-control ajax-autocomplete-user data needed operator no-clear w-100">
                                     </select>
@@ -36,7 +36,7 @@
                                 </div>
                                 <div class="form-group col-12">
                                     {% set hasEmptyRoundRight = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EMPTY_ROUND')) %}
-                                    <label class="wii-field-name" for="type">Action*</label>
+                                    <label class="wii-field-name" for="type">{{ trans('Traçabilité', 'Mouvement', 'Action', false) }}*</label>
                                     <select class="form-control data needed w-100"
                                             id="type"
                                             name="type"
@@ -59,7 +59,7 @@
                     <div class="col-6">
                         <div class="row">
                             <div class="form-group col-12 h-fit-content">
-                                <label class="wii-field-name" for="commentaire">Commentaire</label>
+                                <label class="wii-field-name" for="commentaire">{{ trans('Général', '', 'Modale', 'Commentaire', false) }}</label>
                                 <input id="commentaire" class="commentaire form-control data" name="commentaire"
                                        type="hidden">
                                 <div class="editor-container-new" data-wysiwyg></div>
@@ -74,7 +74,7 @@
                         </div>
                     </div>
                 </div>
-                <span class="toggle-collapsible expanded">Champs libres</span>
+                <span class="toggle-collapsible expanded">{{ trans('Général', '', 'Modale', 'Champs libres', false) }}</span>
                 <div class="collapsible expanded free-fields-container">
                     {% include 'free_field/freeFieldsEdit.html.twig' with {
                         freeFields: champsLibres,
@@ -90,8 +90,8 @@
             </div>
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
-                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
-                    {classes: 'btn btn-success', text: 'Enregistrer', id: 'submitNewMvtTraca'}
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
+                    {classes: 'btn btn-success', text: trans('Général', null, 'Modale', 'Enregistrer'), id: 'submitNewMvtTraca'}
                 ],
             } %}
 

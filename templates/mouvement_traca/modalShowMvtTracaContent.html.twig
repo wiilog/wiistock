@@ -1,36 +1,36 @@
 <div class="row">
     <div class="form-group col-6">
-        <label>Date</label>
+        <label>{{ trans('Traçabilité', 'Général', 'Date', false) }}</label>
         <input disabled type="text" class="form-control" value="{{ mvt.datetime|date('d/m/Y H:i') }}">
     </div>
 
     <div class="form-group col-6">
-        <label>Opérateur</label>
+        <label>{{ trans('Traçabilité', 'Général', 'Opérateur', false) }}</label>
         <input disabled type="text" class="form-control" value="{{ mvt.operateur ? mvt.operateur.username : '' }}">
     </div>
 
     <div class="form-group col-6">
         {% set pack = mvt.pack %}
         {% set code = pack ? pack.code %}
-        <label title="Colis">{{"mouvement de traçabilité.Colis"|trans}}</label>
+        <label title="Colis">{{ trans('Traçabilité', 'Général', 'Unité logistique', false) }}</label>
 
         <input disabled type="text" class="form-control" value="{{ code }}">
     </div>
 
     <div class="form-group col-6">
-        <label>Action</label>
+        <label>{{ trans('Traçabilité', 'Mouvement', 'Action', false) }}</label>
         <input disabled type="text" class="form-control" value="{{ mvt.type.nom }}">
     </div>
 
     <div class="form-group col-12 w-100">
-        <label class="my-auto mr-2">Emplacement</label>
+        <label class="my-auto mr-2">{{ trans('Traçabilité', 'Général', 'Emplacement', false) }}</label>
         <input disabled type="text" class="form-control" value="{{ mvt.emplacement ? mvt.emplacement.label }}">
     </div>
 </div>
 
 <div class="row">
     <div class="form-group col-12 h-fit-content">
-        <label>Commentaire</label>
+        <label>{{ trans('Général', '', 'Modale', 'Commentaire', false) }}</label>
         <div class="input disabled comment"> {{ mvt.commentaire|raw }}
         </div>
     </div>
