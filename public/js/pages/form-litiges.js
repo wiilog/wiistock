@@ -27,11 +27,11 @@ function initTableArticleLitige() {
             "type": "POST"
         },
         columns: [
-            {"data": 'codeArticle', 'name': 'codeArticle', 'title': Translation.of('Qualité', 'Litiges', 'Code article')},
-            {"data": 'status', 'name': 'status', 'title': Translation.of('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Statut')},
-            {"data": 'libelle', 'name': 'libelle', 'title': Translation.of('Qualité', 'Litiges', 'Libellé')},
-            {"data": 'reference', 'name': 'reference', 'title': Translation.of('Qualité', 'Litiges', 'Référence article')},
-            {"data": 'quantity', 'name': 'quantity', 'title': Translation.of('Traçabilité', 'Général', 'Quantité')}
+            {data: 'codeArticle', name: 'codeArticle', title: Translation.of('Qualité', 'Litiges', 'Code article')},
+            {data: 'status', name: 'status', title: Translation.of('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Statut')},
+            {data: 'libelle', name: 'libelle', title: Translation.of('Qualité', 'Litiges', 'Libellé')},
+            {data: 'reference', name: 'reference', title: Translation.of('Qualité', 'Litiges', 'Référence article')},
+            {data: 'quantity', name: 'quantity', title: Translation.of('Traçabilité', 'Général', 'Quantité')}
         ],
         domConfig: {
             needsPartialDomOverride: true,
