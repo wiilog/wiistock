@@ -1,6 +1,6 @@
 <div class="row">
     <div class="form-group col-8">
-        <label class="wii-field-name" for="disputeType">Type*</label>
+        <label class="wii-field-name" for="disputeType">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Type') }}*</label>
         <select class="form-control data needed"
                 id="disputeType"
                 name="disputeType">
@@ -15,7 +15,7 @@
         </select>
     </div>
     <div class="form-group col-4 mt-4">
-        <label class="wii-field-name">Urgence ?</label>
+        <label class="wii-field-name">{{ trans('Qualité', 'Litiges', 'Urgence ?') }}</label>
         <label class="switch">
             <input class="checkbox"
                    type="checkbox"
@@ -24,18 +24,18 @@
         </label>
     </div>
     <div class="form-group col-12">
-        <label class="wii-field-name">Statut*</label>
+        <label class="wii-field-name">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Statut') }}*</label>
         <select class="form-control data needed"
                 name="disputeStatus"
                 title="Statut">
-            {% for statut in disputeStatuses %}
+            {% for statut in disputeStatuses %} {# TODO : Trad #}
                 {% set selected = (dispute.status.id == statut.id) ? 'selected' : '' %}
                 <option value="{{ statut.id }}" {{ selected }}>{{ statut.nom }}</option>
             {% endfor %}
         </select>
     </div>
     <div class="form-group w-100 col-12">
-        <label class="wii-field-name" for="acheteursLitige">Acheteur(s)</label>
+        <label class="wii-field-name" for="acheteursLitige">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Acheteur(s)') }}</label>
         <select class="form-control data"
                 name="acheteursLitige"
                 id="acheteursLitigeEdit"
@@ -47,7 +47,7 @@
         </select>
     </div>
     <div class="form-group w-100 col-12">
-        <label class="wii-field-name" for="disputeReporter">Déclarant*</label>
+        <label class="wii-field-name" for="disputeReporter">{{ trans('Traçabilité', 'Flux - Arrivages', 'Détails arrivage - Liste des litiges', 'Déclarant') }}*</label>
         <select class="form-control data needed" name="disputeReporter" data-s2="user">
             {% if dispute.reporter %}
                 <option value="{{ dispute.reporter.id }}" selected>{{ dispute.reporter.username }}</option>
@@ -60,7 +60,7 @@
     </div>
     <div class="form-group w-100 col-12">
         <label class="wii-field-name" for="colisEditLitige"
-               title="articles">{{ 'réception.articles'|trans }}*</label>
+               title="articles">{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Articles') }}*</label>
         <select
                 class="form-control data select2 needed select2-autocomplete-articles"
                 name="colis"
@@ -70,7 +70,7 @@
     </div>
 
     <div class="form-group col-12 h-fit-content">
-        <label class="wii-field-name" for="litige-edit-commentaire">Commentaire</label>
+        <label class="wii-field-name" for="litige-edit-commentaire">{{ trans('Général', null, 'Modale', 'Commentaire') }}</label>
 
         <div class="d-flex">
             <input type="text"
@@ -79,7 +79,7 @@
                    name="commentaire">
             <button type="button"
                     class="btn btn-outline-secondary form-group m-0 ml-2"
-                    onclick="getCommentAndAddHisto()">Ajouter</button>
+                    onclick="getCommentAndAddHisto()">{{ trans('Général', null, 'Modale', 'Ajouter') }}</button>
         </div>
     </div>
     <div class="form-group col-12">
@@ -90,7 +90,7 @@
         </div>
     </div>
 </div>
-<div class="label">Historique</div>
+<div class="label">{{ trans('Traçabilité', 'Flux - Arrivages', 'Détails arrivage - Liste des litiges', 'Historique') }}</div>
 <div class="tableHistoric">
     <table id="tableHistoLitige"
            class="table w-100"></table>
@@ -99,7 +99,7 @@
        id="disputeId"
        class="data">
 <div class="separatorDatatable my-4"></div>
-<div class="label">Articles</div>
+<div class="label">{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Articles') }}</div>
 <div class="tableArticleLitige">
     <table id="tableArticleInLitige"
            class="table w-100"></table>

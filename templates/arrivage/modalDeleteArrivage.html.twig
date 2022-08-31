@@ -6,13 +6,13 @@
             } %}
 
             <div class="modal-body">
-                Voulez-vous réellement supprimer cet arrivage ?
-                <span class="d-none hasLitige red"><br><br>(attention, un litige a été créé sur cet arrivage :<br>il sera également supprimé)</span>
+                {{ trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'Voulez-vous réellement supprimer cet arrivage ?') }}
+                <span class="d-none hasLitige red">{{ trans('Traçabilité', 'Flux - Arrivages', 'Divers', '(attention, un litige a été créé sur cet arrivage : il sera également supprimé)') }}</span>
             </div>
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
-                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
-                    {id: 'submitDeleteArrivage', name: 'arrivage', dismiss: true, classes: 'btn btn-danger data', text: 'Supprimer'}
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
+                    {id: 'submitDeleteArrivage', name: 'arrivage', dismiss: true, classes: 'btn btn-danger data', text: trans('Général', null, 'Modale', 'Supprimer')}
                 ],
                 renderErrorContainer: false
             } %}

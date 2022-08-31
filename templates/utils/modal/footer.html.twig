@@ -26,7 +26,7 @@
                                 data-{{ attr }}="{{ value }}"
                             {% endfor %}
                         {% endif %}>
-                        {{ element['text'] ?? '' }}
+                        {{ (element['text'] ?? '') | raw}}
                 </button>
             {% else %}
                 <input type="hidden"

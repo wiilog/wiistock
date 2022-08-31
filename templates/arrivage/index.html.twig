@@ -1,7 +1,7 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Traçabilité | {{ 'arrivage.flux - arrivages'|trans }}{% endblock %}
-{% block title_tooltip %}Traçabilité | Flux - arrivages{% endblock %}
+{% block title %}{{ trans('Traçabilité', 'Général', 'Traçabilité') }} | {{ trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'Flux - arrivages') }}{% endblock %}
+{% block title_tooltip %}{{ trans('Traçabilité', 'Général', 'Traçabilité') }} | {{ trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'Flux - arrivages') }}{% endblock %}
 
 {% block page_filter %}
     {% include 'filters/filtersArrivage.html.twig' with {
@@ -24,11 +24,6 @@
     <input type="hidden" id="usersFilter">
 
     <div class="m-4 wii-page-card overflow-x-hidden">
-        <div class="d-none justify-content-center" id="spinner">
-            <div class="spinner-border sizeLoader" role="status">
-                <span class="sr-only">Loading...</span>
-            </div>
-        </div>
         <div class="row wii-page-card-header">
             <div class="col-auto ml-auto">
                 <div class="btn-group arrival-mode-container">
@@ -43,14 +38,14 @@
                                 disabled
                                 onclick="initNewArrivageEditor('#modalNewArrivage')">
                             <span class="wii-icon wii-icon-plus mr-2"></span>
-                            <span title="nouvel arrivage">{{ 'arrivage.nouvel arrivage'|trans }}</span>
+                            {{ trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'Nouvel arrivage') }}
                         </button>
                     {% elseif hasRightToExport %}
                         <button type="button"
                                 class="btn btn-primary split-button"
-                                onclick="saveExportFile('get_arrivages_csv', true, {}, false, 'Veuillez saisir des dates dans le filtre en haut de page.', true)">
+                                onclick="saveExportFile('get_arrivages_csv', true, {}, false, '{{ trans('Général', null, 'Modale',  'Veuillez saisir des dates dans le filtre en haut de page.', false) }}', true)">
                             <span class="fa fa-file-csv mr-2" style="padding: 0 2px"></span>
-                            Exporter au format CSV
+                            {{ trans('Général', null, 'Zone liste', 'Exporter au format CSV') }}
                         </button>
                     {% endif %}
                     <button type="button"
@@ -63,20 +58,20 @@
                     <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
                         {% if hasRightToCreate and hasRightToExport %}
                             <a class="dropdown-item pointer"
-                               onclick="saveExportFile('get_arrivages_csv', true, {}, false, 'Veuillez saisir des dates dans le filtre en haut de page.', true)">
+                               onclick="saveExportFile('get_arrivages_csv', true, {}, false, '{{ trans('Général', null, 'Modale',  'Veuillez saisir des dates dans le filtre en haut de page.', false) }}', true)">
                                 <i class="fa fa-file-csv mr-2" style="padding: 0 2px"></i>
-                                Exporter au format CSV
+                                {{ trans('Général', null, 'Zone liste', 'Exporter au format CSV') }}
                             </a>
                         {% endif %}
                         <a class="dropdown-item pointer"
                            data-toggle="modal"
                            data-target="#modalColumnVisible">
                             <i class="fa fa-cog mr-2"></i>
-                            Gestion des colonnes
+                            {{ trans('Général', null, 'Zone liste', 'Gestion des colonnes') }}
                         </a>
                         <a class="dropdown-item pointer dispatch-mode-button d-none">
                             <i class="fas fa-exchange-alt mr-2"></i>
-                            Acheminer
+                            {{ trans('Traçabilité', 'Flux - Arrivages', 'Détails arrivage - Entête', 'Acheminer') }}
                         </a>
                     </div>
                 </div>
@@ -85,12 +80,12 @@
                 <div class="dispatch-mode-container d-none">
                     <button type="button"
                             class="btn btn-outline-primary cancel" disabled>
-                        Annuler acheminer
+                        {{ trans('Traçabilité', 'Flux - Arrivages', 'Modale Nouvelle demande d\'acheminement', 'Annuler acheminer') }}
                     </button>
                     <button type="button"
-                            class="btn btn-primary validate d-flex align-items-center" disabled>
-                        <span class="wii-icon wii-icon-check-white mr-2"></span>
-                        Valider arrivages à acheminer
+                            class="btn btn-primary validate" disabled>
+                        <span class="wii-icon wii-icon-check-white mr-2 align-self-center"></span>
+                        {{ trans('Traçabilité', 'Flux - Arrivages', 'Modale Nouvelle demande d\'acheminement', 'Valider arrivages à acheminer') }}
                     </button>
                 </div>
             </div>
@@ -107,7 +102,6 @@
     <input id="pageLengthForArrivage" value="{{ pageLengthForArrivage }}" hidden>
 
     {% include "arrivage/modalNewArrivage.html.twig" with modalNewConfig %}
-    {% include "arrivage/modalDeleteArrivage.html.twig" %}
     {% include "arrivage/modalListColis.html.twig" %}
     {% include "utils/visible_columns.html.twig" with {
         'fields': fields,

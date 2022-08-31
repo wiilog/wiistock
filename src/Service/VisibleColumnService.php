@@ -34,7 +34,6 @@ class VisibleColumnService {
                     return [
                         'title' => $title,
                         'hiddenTitle' => $column['hiddenTitle'] ?? '',
-                        'displayedTitle' => $translated ? $this->translation->trans($title) : $title,
                         'alwaysVisible' => $column['alwaysVisible'] ?? null,
                         'hiddenColumn' => $column['hiddenColumn'] ?? false,
                         'orderable' => $column['orderable'] ?? true,

@@ -193,7 +193,7 @@ class DispatchController extends AbstractController {
             if(empty($packs)) {
                 return $this->json([
                     'success' => false,
-                    'msg' => "Un colis minimum est nécessaire pour procéder à l'acheminement"
+                    'msg' => $translation->translate('Demande', 'Acheminements', 'Divers', 'Une unité logistique minimum est nécessaire pour procéder à l\'acheminement')
                 ]);
             }
         }
@@ -208,7 +208,7 @@ class DispatchController extends AbstractController {
             return $this->json([
                 'success' => true,
                 'redirect' => $redirectService->generateUrl("dispatch_show", ['id' => $existingDispatch->getId()]),
-                'msg' => "Les colis de l'arrivage ont bien été ajoutés dans l'acheminement <strong>$number</strong>"
+                'msg' => $translation->translate('Demande', 'Acheminements', 'Divers', 'Les unités logistiques de l\'arrivage ont bien été ajoutés dans l`\'acheminement {1}', [1=>$number])
             ]);
         }
 
@@ -253,17 +253,14 @@ class DispatchController extends AbstractController {
         if (!isset($status) || $status?->getCategorie()?->getNom() !== CategorieStatut::DISPATCH) {
             return new JsonResponse([
                 'success' => false,
-                'msg' => 'Veuillez renseigner un statut valide.'
+                'msg' => $translation->translate('Demande', 'Acheminements', 'Divers', 'Veuillez renseigner un statut valide.')
             ]);
         }
 
         if(!$locationTake || !$locationDrop) {
             return new JsonResponse([
                 'success' => false,
-                'msg' => (
-                    'Il n\'y a aucun emplacement de prise ou de dépose paramétré pour ce type.' .
-                    'Veuillez en paramétrer ou rendre les champs visibles à la création et/ou modification.'
-                )
+                'msg' => $translation->translate('Demande', 'Acheminements', 'Divers', 'Il n\'y a aucun emplacement de prise ou de dépose paramétré pour ce type.Veuillez en paramétrer ou rendre les champs visibles à la création et/ou modification.')
             ]);
         }
 
@@ -273,7 +270,7 @@ class DispatchController extends AbstractController {
         if($startDate && $endDate && $startDate > $endDate) {
             return new JsonResponse([
                 'success' => false,
-                'msg' => 'La date de fin d\'échéance est inférieure à la date de début.'
+                'msg' => $translation->translate('Demande', 'Acheminements', 'Divers', 'La date de fin d\'échéance est inférieure à la date de début.')
             ]);
         }
 
@@ -368,7 +365,7 @@ class DispatchController extends AbstractController {
         catch(UniqueConstraintViolationException $e) {
             return new JsonResponse([
                 'success' => false,
-                'msg' => $translation->trans('acheminement.Une autre demande d\'acheminement est en cours de création, veuillez réessayer') . '.'
+                'msg' => $translation->translate('Demande', 'Acheminements', 'Divers', 'Une autre demande d\'acheminement est en cours de création, veuillez réessayer')
             ]);
         }
 
@@ -387,7 +384,7 @@ class DispatchController extends AbstractController {
         return new JsonResponse([
             'success' => true,
             'redirect' => $redirectService->generateUrl("dispatch_show", $showArguments, self::EXTRA_OPEN_PACK_MODAL),
-            'msg' => $translation->trans('acheminement.L\'acheminement a bien été créé') . '.'
+            'msg' => $translation->translate('Demande', 'Acheminements', 'Divers', 'L\'acheminement a bien été créé')
         ]);
     }
 

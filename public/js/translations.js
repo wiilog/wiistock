@@ -55,7 +55,7 @@ class Translation {
         };
 
         for(const arg of args) {
-            if (typeof  arg === 'object') {
+            if (typeof arg === 'object') {
                 params = arg;
             } else if(typeof arg === `boolean`) {
                 enableTooltip = arg;

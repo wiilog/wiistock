@@ -1177,7 +1177,7 @@ class ReceptionController extends AbstractController {
      * @HasPermission({Menu::QUALI, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
     public function deleteDispute(Request $request,
-                                 EntityManagerInterface $entityManager): Response {
+                                 EntityManagerInterface $entityManager, TranslationService $translation): Response {
         if($data = json_decode($request->getContent(), true)) {
             $disputeRepository = $entityManager->getRepository(Dispute::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
@@ -1206,7 +1206,7 @@ class ReceptionController extends AbstractController {
 
             return new JsonResponse([
                 'success' => true,
-                'msg' => 'Le litige <strong>' . $disputeNumber . '</strong> a bien été supprimé.'
+                'msg' => $translation->translate('Qualité', 'Litiges', 'Le litige {1} a bien été supprimé', [1 => $disputeNumber])
             ]);
         }
         throw new BadRequestHttpException();

@@ -2,15 +2,15 @@
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
-                title: "Gestion des colonnes"
-            } %}
+                title: trans('Général', null, 'Zone liste', 'Gestion des colonnes')
+                } %}
 
             <div class="modal-body">
                 <table class="table" style="width:100%">
                     <thead>
                     <tr>
-                        <th>Champs</th>
-                        <th>Visible</th>
+                        <th>{{ trans('Général', null, 'Zone liste', 'Champs') }}</th>
+                        <th>{{ trans('Général', null, 'Zone liste', 'Visible') }}</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -27,9 +27,8 @@
                                 {% set label = ((field.displayedTitle is defined)
                                     ? field.displayedTitle
                                     : title) %}
-                                {% set tooltip = (field.translated is defined and field.translated) ? ('title="' ~ title ~ '"') %}
                                 <td>
-                                    <span {{ tooltip }}>{{ label | capitalize }}</span>
+                                    {{ label | raw }}
                                 </td>
                                 <td>
                                     <div class="wii-checkbox d-inline-block pointer no-data" style="pointer-events: none;">
@@ -50,8 +49,8 @@
             </div>
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
-                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Fermer'},
-                    {classes: 'btn btn-success', text: 'Enregistrer', id: 'submitColumnVisible'}
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Fermer')},
+                    {classes: 'btn btn-success', text: trans('Général', null, 'Modale', 'Enregistrer') , id: 'submitColumnVisible' }
                 ],
                 hideErrorContainer: true,
             } %}

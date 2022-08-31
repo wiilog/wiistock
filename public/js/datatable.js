@@ -558,9 +558,8 @@ function getAndApplyOrder(config, datatable) {
                 datatable
                     .on('column-reorder', function () {
                         params.order = datatable.colReorder.order();
-
                         $.post(Routing.generate('set_columns_order'), params).then(() => {
-                            showBSAlert(`Vos préférences d'ordre de colonnes ont bien été enregistrées`, `success`);
+                            showBSAlert( Translation.of(`Général`, '', 'Zone liste', 'Vos préférences d\'ordre de colonnes ont bien été enregistrées'), `success`);
                         });
                     });
             }

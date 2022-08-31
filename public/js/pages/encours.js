@@ -68,11 +68,11 @@ function loadEncoursDatatable($table) {
                 "data": {id: tableId}
             },
             columns: [
-                {"data": 'linkedArrival', 'name': 'linkedArrival', 'className': 'noVis', orderable : false},
-                {"data": 'colis', 'name': 'colis', 'title': Translation.of('Traçabilité', 'Encours', 'Unités logistiques')},
-                {"data": 'date', 'name': 'date', 'title': Translation.of('Traçabilité', 'Encours', 'Date de dépose') },
-                {"data": 'delay', 'name': 'delay', 'title': Translation.of('Traçabilité', 'Encours', 'Délai') , render: (milliseconds, type) => renderMillisecondsToDelay(milliseconds, type)},
-                {"data": 'late', 'name': 'late', 'title': 'late', 'visible': false, 'searchable': false},
+                {data: 'linkedArrival', name: 'linkedArrival', className: 'noVis', orderable : false},
+                {data: 'colis', name: 'colis', title: Translation.of('Traçabilité', 'Général', 'Unités logistiques')},
+                {data: 'date', name: 'date', title: Translation.of('Traçabilité', 'Encours', 'Date de dépose') },
+                {data: 'delay', name: 'delay', title: Translation.of('Traçabilité', 'Encours', 'Délai') , render: (milliseconds, type) => renderMillisecondsToDelay(milliseconds, type)},
+                {data: 'late', name: 'late', title: 'late', 'visible': false, 'searchable': false},
             ],
             rowConfig: {
                 needsColor: true,

@@ -1,7 +1,7 @@
 {% extends "layout.html.twig" %}
 
-{% block title %}Traçabilité | {{ 'arrivage.arrivage'|trans }} | Détails{% endblock %}
-{% block title_tooltip %}Traçabilité | Arrivage | Détails{% endblock %}
+{% block title %}{{ trans('Traçabilité', 'Général', 'Traçabilité') }} | {{ trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'Flux - arrivages') }} | {{ trans('Général', null, 'Header', 'Détails') }}{% endblock %}
+{% block title_tooltip %}{{ trans('Traçabilité', 'Général', 'Traçabilité') }} | {{ trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'Flux - arrivages') }} |  {{ trans('Général', null, 'Header', 'Détails') }}{% endblock %}
 {% block titleLink path('arrivage_index') %}
 
 {% block page_content %}
@@ -24,7 +24,7 @@
             <div class="{{ displayLitiges ? 'col-6 pr-2' : 'col-12' }}">
                 <div class="wii-page-card">
                     <div class="row mb-2">
-                        <h5 class="col-auto h5">Liste des <span title="colis">{{'arrivage.colis'|trans}}</span></h5>
+                        <h5 class="col-auto h5">{{ trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'Liste des unités logistiques') }}</span></h5>
                     </div>
                     <div class="row wii-page-card-header">
                         <div class="col-auto ml-auto">
@@ -37,7 +37,7 @@
                                             data-target="#modalAddColis"
                                             class="btn btn-primary d-flex align-items-center {{ hasRightEdit ? 'split-button' }}"
                                             id="btnModalAddColis">
-                                        <span class="wii-icon wii-icon-plus mr-2"></span>Ajouter &nbsp;<span title="colis">{{ 'arrivage.colis'|trans }}</span>
+                                        <span class="wii-icon wii-icon-plus mr-2"></span>{{ trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'Ajouter des unités logistiques') }}</span>
                                     </button>
                                 {% endif %}
                                 {% if hasRightExport %}
@@ -53,14 +53,14 @@
                                             <a class="dropdown-item d-flex align-items-center"
                                                id="printColisBtn"
                                                href="{{ path('print_arrivage_bar_codes', {arrivage: arrivage.id, printArrivage: 1, printColis: 1}) }}">
-                                                <span class="wii-icon wii-icon-printer-black mr-2"></span>Imprimer<span class="ml-1" title="colis">{{ 'arrivage.colis'|trans }}</span>
+                                                <span class="wii-icon wii-icon-printer-black mr-2"></span>{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Imprimer UL') }}</span>
                                             </a>
                                         </div>
                                     {% else %}
                                         <a id="printColisBtn"
                                            class="btn btn-primary d-flex align-items-center"
                                            href="{{ path('print_arrivage_bar_codes', {arrivage: arrivage.id, printArrivage: 1, printColis: 1}) }}">
-                                            <span class="wii-icon wii-icon-printer-black mr-2"></span>Imprimer<span class="ml-1" title="colis">{{ 'arrivage.colis'|trans }}</span>
+                                            <span class="wii-icon wii-icon-printer-black mr-2"></span>{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Imprimer UL') }}</span>
                                         </a>
                                     {% endif %}
                                 {% endif %}
@@ -78,7 +78,7 @@
                 <div class="col-6 pl-2">
                     <div class="wii-page-card">
                         <div class="row mb-2">
-                            <h5 class="col-auto h5">Liste des litiges</h5>
+                            <h5 class="col-auto h5">{{ trans('Traçabilité', 'Flux - Arrivages', 'Détails arrivage - Liste des litiges', 'Liste des litiges') }}</h5>
                         </div>
                         <div class="row wii-page-card-header">
                             <div class="col-auto ml-auto">
@@ -87,7 +87,7 @@
                                             data-id="{{ arrivage.id }}"
                                             class="btn btn-primary new-dispute-modal d-flex align-items-center">
                                         <span class="wii-icon wii-icon-plus mr-2"></span>
-                                        Nouveau litige
+                                        {{ trans('Traçabilité', 'Flux - Arrivages', 'Détails arrivage - Liste des litiges', 'Nouveau litige') }}
                                     </button>
                                 {% endif %}
                             </div>

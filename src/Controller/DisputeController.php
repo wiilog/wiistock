@@ -21,6 +21,7 @@ use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use App\Service\DisputeService;
+use App\Service\TranslationService;
 use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -265,7 +266,8 @@ class DisputeController extends AbstractController
      */
     public function saveColumnVisible(Request $request,
                                       EntityManagerInterface $entityManager,
-                                      VisibleColumnService $visibleColumnService): Response
+                                      VisibleColumnService $visibleColumnService,
+                                      TranslationService $translation): Response
     {
         $data = json_decode($request->getContent(), true);
         $fields = array_keys($data);
@@ -278,7 +280,7 @@ class DisputeController extends AbstractController
 
         return $this->json([
             'success' => true,
-            'msg' => 'Vos préférences de colonnes à afficher ont bien été sauvegardées'
+            'msg' => $translation->translate('Général', null, 'Zone liste', 'Vos préférences de colonnes à afficher ont bien été sauvegardées')
         ]);
     }
 
