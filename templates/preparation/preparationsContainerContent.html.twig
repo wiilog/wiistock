@@ -4,7 +4,8 @@
         {% for preparation in preparations %}
             {% include 'preparation/planning_card.html.twig' with {
                 preparation: preparation,
-                color: 'orange-card'
+                color: 'orange-card',
+                'inPlanning': false
             }%}
         {% endfor %}
     </div>
