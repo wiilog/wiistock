@@ -2384,18 +2384,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     $this->console->writeln("Created default french source translation \"" . str_replace("\n", "\\n ", $translation["fr"]) . "\"");
                 }
 
-                $french = $transSource->getTranslationIn("french");
-                if (!$french) {
-                    $french = (new Translation())
-                        ->setLanguage($this->getLanguage("french"))
-                        ->setSource($transSource)
-                        ->setTranslation($translation["fr"]);
-
-                    $this->manager->persist($french);
-
-                    $this->console->writeln("Created french translation \"" . str_replace("\n", "\\n ", $translation["fr"]) . "\"");
-                }
-
                 if(isset($translation["en"])) {
                     $english = $transSource->getTranslationIn("english-default");
                     if (!$english) {
@@ -2413,17 +2401,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         $this->console->writeln("Updated default english source translation \"" . str_replace("\n", "\\n ", $translation["en"]) . "\"");
                     }
 
-                    $english = $transSource->getTranslationIn("english");
-                    if (!$english) {
-                        $english = (new Translation())
-                            ->setLanguage($this->getLanguage("english"))
-                            ->setSource($transSource)
-                            ->setTranslation($translation["en"]);
-
-                        $this->manager->persist($english);
-
-                        $this->console->writeln("Created english translation \"" . str_replace("\n", "\\n ", $translation["en"]) . "\"");
-                    }
                 } else {
                     $english = $transSource->getTranslationIn("english-default");
                     if (!$english) {
