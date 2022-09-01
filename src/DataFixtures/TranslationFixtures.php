@@ -2187,22 +2187,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 ],
             ],
         ],
-        "Référentiel" => [
-            "Natures" => [
-                "content" => [
-                    ["fr" => "Natures d'UL autorisées"],
-                    ["fr" => "Natures des UL"],
-                    ["fr" => "Nature d'UL"],
-                    ["fr" => "Nature"],
-                    ["fr" => "La nature {1} a bien été créée"],
-                    ["fr" => "Création de nature"],
-                    ["fr" => "Modification de nature"],
-                    ["fr" => "cette nature"],
-                    ["fr" => "natures requises"],
-                    ["fr" => "Sélectionner une nature"],
-                ],
-            ],
-        ],
         "Ordre" => [
             "Réceptions" => [
                 "content" => [
