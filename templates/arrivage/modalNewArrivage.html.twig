@@ -300,7 +300,7 @@
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PRINT_ARRIVAGE') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         <div class="form-group col-2">
-                            <label class="wii-field-name" title="arrivage">Imprimer {{ 'arrivage.arrivage'|trans }}</label>
+                            <label class="wii-field-text" title="arrivage">Imprimer {{ 'arrivage.arrivage'|trans }}</label>
                             <label class="switch d-block-switch mt-2">
                                 <input class="checkbox no-clear" type="checkbox" name="printArrivage" {{ checked }}>
                                 <span class="slider round"></span>
@@ -310,7 +310,7 @@
 
                     {% if natures != null %}
                         <div class="form-group col-2">
-                            <label class="wii-field-name" title="colis">Imprimer {{ 'arrivage.colis'|trans }}</label>
+                            <label class="wii-field-text" title="colis">Imprimer {{ 'arrivage.colis'|trans }}</label>
                             <label class="switch d-block-switch mt-2">
                                 <input class="checkbox no-clear" type="checkbox" name="printColis"
                                        id="printColis" {{ checked }}>
@@ -390,7 +390,7 @@
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CUSTOMS_ARRIVAGE') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         <div class="form-group col-2">
-                            <label class="wii-field-name">{{ 'arrivage.douane'|trans }}</label>
+                            <label class="wii-field-text">{{ 'arrivage.douane'|trans }}</label>
                             <label class="switch d-block-switch mt-2">
                                 <input class="checkbox {{ not isClientSafranED ? 'no-clear' }}" type="checkbox" name="customs">
                                 <span class="slider round"></span>
@@ -400,7 +400,7 @@
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_FROZEN_ARRIVAGE') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         <div class="form-group col-2">
-                            <label class="wii-field-name">{{ 'arrivage.congelé'|trans }}</label>
+                            <label class="wii-field-text">{{ 'arrivage.congelé'|trans }}</label>
                             <label class="switch d-block-switch mt-2">
                                 <input class="checkbox no-clear" type="checkbox" name="frozen">
                                 <span class="slider round"></span>
