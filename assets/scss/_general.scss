@@ -998,11 +998,13 @@ label.required:after {
     width: 20px;
     height: 20px;
     border-radius: 100%;
+    object-fit: contain;
 }
 
 .flag-radio {
     display: flex;
     align-items: center;
+
 
     .flag {
         margin: 0 10px;
