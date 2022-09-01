@@ -173,7 +173,7 @@ class HandlingService {
             : '';
         $state = $handling->getStatus()?->getState();
 
-        $href = $this->router->generate('handling_edit_page', [
+        $href = $this->router->generate('handling_show', [
             "id" => $handling->getId()
         ]);
 
