@@ -36,7 +36,7 @@
 <div class="row">
     {% if fieldsParam|isFieldRequired('fournisseur', 'displayedCreate') %}
         <div class="form-group col-4">
-            <label class="wii-field-name">Fournisseur</label>
+            <label class="wii-field-name">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Fournisseur') }}</label>
             <input type="text" id="fournisseurLitige" class="form-control data" name="fournisseurLitige"
                    value="{{ arrivage.fournisseur ? arrivage.fournisseur.nom }}" disabled>
         </div>
@@ -44,7 +44,7 @@
 
     {% if fieldsParam|isFieldRequired('transporteur', 'displayedCreate') %}
         <div class="form-group col-4">
-            <label class="wii-field-name">Transporteur</label>
+            <label class="wii-field-name">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Transporteur') }}</label>
             <input type="text" id="transporteurLitige" class="form-control data" name="transporteurLitige"
                    value="{{ arrivage.transporteur ? arrivage.transporteur.label }}" disabled>
         </div>
@@ -52,21 +52,21 @@
 
     {% if fieldsParam|isFieldRequired('chauffeur', 'displayedCreate') %}
         <div class="form-group col-4">
-            <label class="wii-field-name">Chauffeur</label>
+            <label class="wii-field-name">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Chauffeur') }}</label>
             <input type="text" id="chauffeurLitige" class="form-control data" name="chauffeurLitige"
                    value="{{ arrivage.chauffeur ? arrivage.chauffeur.nom }}" disabled>
         </div>
     {% endif %}
 
     <div class="form-group col-4">
-        <label class="wii-field-name">Ordre arrivage</label>
+        <label class="wii-field-name">{{ trans('Traçabilité', 'Unités logistiques', 'N° d\'arrivage') }}</label>
         <input type="text" id="arrivageOrderLitige" class="form-control data" name="arrivageOrderLitige"
                value="{{ arrivage.numeroArrivage }}" disabled>
     </div>
 
     {% if fieldsParam|isFieldRequired('numeroCommandeList', 'displayedCreate') %}
         <div class="form-group w-100 col-4">
-            <label class="wii-field-name">N° commande / BL</label>
+            <label class="wii-field-name">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° commande / BL') }}</label>
             <select class="form-control data"
                     name="numeroCommandeListLitige"
                     multiple="multiple"
@@ -76,7 +76,7 @@
     {% endif %}
 
     <div class="form-group col-4">
-        <label class="wii-field-name">Type*</label>
+        <label class="wii-field-name">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Type') }}*</label>
         <select class="form-control data needed" id="disputeType" name="disputeType">
             <option disabled value="" selected></option>
             {% for type in disputeTypes %}
@@ -87,7 +87,7 @@
 
     {% if fieldsParam|isFieldRequired('acheteurs', 'displayedCreate') %}
         <div class="form-group w-100 col-4">
-            <label class="wii-field-name">Acheteur(s)</label>
+            <label class="wii-field-name">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Acheteur(s)') }}</label>
             <select class="form-control data"
                     name="acheteursLitige"
                     id="acheteursLitige"
@@ -97,7 +97,7 @@
         </div>
     {% endif %}
     <div class="form-group w-100 col-4">
-        <label class="wii-field-name">Déclarant*</label>
+        <label class="wii-field-name">{{ trans('Traçabilité', 'Flux - Arrivages', 'Détails arrivage - Liste des litiges', 'Déclarant') }}*</label>
         <select class="form-control data needed" name="disputeReporter" data-s2="user"></select>
         <input hidden
                name="logged-user"
@@ -105,7 +105,7 @@
                data-id="{{ app.user.id }}"/>
     </div>
     <div class="form-group col-4">
-        <label class="wii-field-name">Statut*</label>
+        <label class="wii-field-name">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Statut') }}*</label>
         {% include 'utils/warningSelectEmpty.html.twig' with {
             array: disputeStatuses,
             warningLabel: 'Attention ! Aucun statut de litige n\'a été créé',
@@ -132,7 +132,7 @@
         </select>
     </div>
     <div class="form-group col-4">
-        <label class="wii-field-name">Colis*</label>
+        <label class="wii-field-name">{{ trans('Traçabilité', 'Général', 'Unités logistiques') }}*</label>
         <select class="form-control w-100 data needed" name="disputePacks" data-s2
                 data-placeholder="Sélectionner un ou plusieurs colis..." multiple>
             {% for pack in packs %}
@@ -141,11 +141,11 @@
         </select>
     </div>
     <div class="form-group col-4 h-fit-content">
-        <label class="wii-field-name">Commentaire</label>
+        <label class="wii-field-name">{{ trans('Général', null, 'Modale', 'Commentaire') }}</label>
         <input type="text" id="litige-commentaire" class="commentaire form-control data" name="commentaire">
     </div>
     <div class="form-group col-3 mt-4">
-        <label class="wii-field-name">Urgence ?</label>
+        <label class="wii-field-text">{{ trans('Qualité', 'Litiges', 'Urgence ?') }}</label>
         <label class="switch">
             <input class="checkbox data" type="checkbox" name="emergency">
             <span class="slider round"></span>

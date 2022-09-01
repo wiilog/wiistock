@@ -383,7 +383,7 @@ class TransferRequestController extends AbstractController {
         $dateTimeMax = DateTime::createFromFormat("Y-m-d H:i:s", $dateMax . " 23:59:59");
 
         if(isset($dateTimeMin, $dateTimeMax)) {
-            $now = new DateTime("now");
+            $now = (new DateTime('now'))->format("d-m-Y-H-i-s");
 
             $transferRequestRepository = $entityManager->getRepository(TransferRequest::class);
             $articleRepository = $entityManager->getRepository(Article::class);
@@ -407,7 +407,7 @@ class TransferRequestController extends AbstractController {
             ];
 
             return $CSVExportService->createBinaryResponseFromData(
-                "export_demande_transfert" . $now->format("d_m_Y") . ".csv",
+                "export_demande_transfert_$now.csv",
                 $transfers,
                 $header,
                 function (TransferRequest $transferRequest) use ($articlesByRequest, $referenceArticlesByRequest) {

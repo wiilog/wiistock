@@ -2,7 +2,7 @@ let path = Routing.generate('inv_anomalies_api', true);
 let tableConfig = {
     ajax:{
         "url": path,
-        "type": "POST"
+        "type": "GET"
     },
     rowConfig: {
         needsRowClickAction: true
@@ -30,7 +30,8 @@ function showModalAnomaly($button) {
 
     $modal.find('.ref-title').text(isRef ? 'Référence' : 'Article');
     $modal.find('.reference').text(ref);
-    $modal.find('.barCode').val(barCode);
+    $modal.find('input[name=barcode]').val(barCode);
+    $modal.find('span.barcode').text(barCode);
     $modal.find('.isRef').val(isRef);
     $modal.find('.quantity').text(quantity);
     $modal.find('.location').text(location);

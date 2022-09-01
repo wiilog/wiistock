@@ -50,7 +50,7 @@
                     </div>
                     <div class="form-group col-12">
                         <div class="wii-checkbox pl-0 pointer">
-                            <label class="pointer d-flex align-items-center">
+                            <label class="pointer d-flex align-items-center wii-field-text">
                                 <input class="checkbox data ml-2" type="checkbox" name="mobileSync">
                                 Synchronisation nomade ?
                             </label>
@@ -58,7 +58,7 @@
                     </div>
                     <div class="form-group col-12">
                         <div class="wii-checkbox pl-0 pointer">
-                            <label class="pointer d-flex align-items-center">
+                            <label class="pointer d-flex align-items-center wii-field-text">
                                 <input class="checkbox data ml-2" type="checkbox" name="defaultForDispatch">
                                 Nature par défaut (acheminements)
                             </label>
@@ -66,7 +66,7 @@
                     </div>
                     <div class="form-group col-12 d-flex align-items-center">
                         <div class="wii-checkbox pl-0 pointer">
-                            <label class="pointer d-flex align-items-center">
+                            <label class="pointer d-flex align-items-center wii-field-text">
                                 <input class="checkbox data ml-2" type="checkbox" name="displayedOnForms" onchange="toggleEntitiesContainer($(this))">
                                 Affichage sur les formulaires ?
                             </label>
@@ -76,7 +76,7 @@
                         {% for index, entity in constant('App\\Entity\\Nature::ENTITIES') %}
                             <div class="d-flex mb-1 entity-item">
                                 <div class="form-group col-4 d-flex align-items-center mb-2">
-                                    <label class="d-flex align-items-center font-size-mini pointer mr-2">
+                                    <label class="d-flex align-items-center font-size-mini pointer mr-2 wii-field-text">
                                         <input class="checkbox data mr-2" type="checkbox" name="{{ index }}"
                                                onclick="toggleTypes($(this))">
                                         {{ entity }}

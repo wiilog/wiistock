@@ -21,6 +21,7 @@ use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use App\Service\DisputeService;
+use App\Service\TranslationService;
 use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -116,9 +117,7 @@ class DisputeController extends AbstractController
             'Commentaire'
         ];
 
-        $today = new DateTime();
-        $user = $this->getUser();
-        $today = $today->format($user->getDateFormat() ? $user->getDateFormat() . ' H:i:s' : "d-m-Y H:i:s");
+        $today = (new DateTime('now'))->format("d-m-Y-H-i-s");
         return $CSVExportService->streamResponse(function ($output) use ($disputeService, $entityManager, $dateTimeMin, $dateTimeMax) {
 
             $disputeRepository = $entityManager->getRepository(Dispute::class);
@@ -142,7 +141,7 @@ class DisputeController extends AbstractController
                 $articles = $articleRepository->getArticlesByDisputeId($dispute["id"]);
                 $disputeService->putDisputeLine($entityManager, DisputeService::PUT_LINE_RECEPTION, $output, $dispute, $associatedIdAndReferences, $associatedIdAndOrderNumbers, $articles);
             }
-        }, "Export-Litiges" . $today . ".csv", $headers);
+        }, "Export-Litiges_$today.csv", $headers);
     }
 
     /**
@@ -265,7 +264,8 @@ class DisputeController extends AbstractController
      */
     public function saveColumnVisible(Request $request,
                                       EntityManagerInterface $entityManager,
-                                      VisibleColumnService $visibleColumnService): Response
+                                      VisibleColumnService $visibleColumnService,
+                                      TranslationService $translation): Response
     {
         $data = json_decode($request->getContent(), true);
         $fields = array_keys($data);
@@ -278,7 +278,7 @@ class DisputeController extends AbstractController
 
         return $this->json([
             'success' => true,
-            'msg' => 'Vos préférences de colonnes à afficher ont bien été sauvegardées'
+            'msg' => $translation->translate('Général', null, 'Zone liste', 'Vos préférences de colonnes à afficher ont bien été sauvegardées')
         ]);
     }
 

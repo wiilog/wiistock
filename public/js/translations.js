@@ -15,13 +15,15 @@ class Translation {
     static ENGLISH_DEFAULT_SLUG = `english-default`;
 
     static slug;
-    static defaultSlug;
+    static defaultSlug = DEFAULT_SLUG;
 
     /**
      * @param args Same as php method TranslationService::translate
      * @return {string}
      */
     static of(...args) {
+        Translation.slug = $(`#language`).val();
+
         let defaultSlug;
         if(Translation.slug === Translation.FRENCH_SLUG) {
             defaultSlug = Translation.FRENCH_DEFAULT_SLUG;
@@ -32,6 +34,7 @@ class Translation {
         }
 
         const trans = Translation.fetch(Translation.slug, defaultSlug, false, ...args);
+
         if(trans) {
             return trans;
         } else if(defaultSlug === Translation.FRENCH_SLUG) {
@@ -56,7 +59,7 @@ class Translation {
         };
 
         for(const arg of args) {
-            if(typeof  arg === 'object') {
+            if (typeof arg === 'object') {
                 params = arg;
             } else if(typeof arg === `boolean`) {
                 enableTooltip = arg;
@@ -71,7 +74,9 @@ class Translation {
 
         let output = null;
 
+
         const transCategory = TRANSLATIONS[slug][stack.category];
+
         if(typeof transCategory !== `object`) {
             output = transCategory || (lastResort ? stack.translation || stack.submenu || stack.menu || stack.category : null);
         }
@@ -125,8 +130,3 @@ class Translation {
             .replace(/'/g, `&#039;`);
     }
 }
-
-$(document).ready(() => {
-    Translation.slug = $(`#language`).val();
-    Translation.defaultSlug = DEFAULT_SLUG;
-})

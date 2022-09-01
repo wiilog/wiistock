@@ -32,39 +32,61 @@ class UtilisateurType extends AbstractType
             ->keyMap(fn(Language $language) => [$language->getLabel(), ['data-icon' => $language->getFlag()]])
             ->toArray();
        $builder
-            ->add('email', EmailType::class, array(
+            ->add('email', EmailType::class, [
                 'label' => "Adresse email*",
+                'label_attr' => [
+                    'class' => 'wii-field-name'
+                ],
                 "translation_domain" => false,
-            ))
-            ->add('username', TextType::class, array(
+            ])
+            ->add('username', TextType::class, [
                 'label' => "Nom d'utilisateur*",
+                'label_attr' => [
+                    'class' => 'wii-field-name'
+                ],
                 "translation_domain" => false,
-            ))
-            ->add('plainPassword', RepeatedType::class, array(
+            ])
+            ->add('plainPassword', RepeatedType::class, [
                 'type' => PasswordType::class,
-                'first_options' => array('label' => 'Mot de passe*'),
-                'second_options' => array('label' => 'Confirmer mot de passe*'),
+                'first_options'  => [
+                    'label' => 'Mot de passe*',
+                    'label_attr' => [
+                        'class' => 'wii-field-name'
+                    ]
+                ],
+                'second_options' => [
+                    'label' => 'Confirmer mot de passe*',
+                    'label_attr' => [
+                        'class' => 'wii-field-name'
+                    ]
+                ],
                 "translation_domain" => false,
-            ))
-            ->add('language', ChoiceType::class, array(
+            ])
+            ->add('language', ChoiceType::class, [
                 'label' => "Langue*",
+                'label_attr' => [
+                    'class' => 'wii-field-name'
+                ],
                 'required' => true,
                 'choices' => $languageChoices,
                 'choice_attr' => $languagesAttr,
-                'attr' => array(
+                'attr' => [
                     'class' => 'select2',
-                ),
+                ],
                 "translation_domain" => false,
-            ))
-            ->add('dateFormat', ChoiceType::class, array(
+            ])
+            ->add('dateFormat', ChoiceType::class, [
                 'label' => "Format de date*",
+                'label_attr' => [
+                    'class' => 'wii-field-name'
+                ],
                 'required' => true,
                 'choices' => Language::DATE_FORMATS,
-                'attr' => array(
+                'attr' => [
                     'class' => 'select2',
-                ),
+                ],
                 "translation_domain" => false,
-            ));
+            ]);
     }
 
     public function configureOptions(OptionsResolver $resolver)

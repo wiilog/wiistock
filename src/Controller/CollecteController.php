@@ -580,8 +580,8 @@ class CollecteController extends AbstractController
                 ],
                 $freeFieldsConfig['freeFieldsHeader']
             );
-            $today = new DateTime('now');
-            $fileName = "export_demande_collecte" . $today->format('d_m_Y') . ".csv";
+            $today = (new DateTime('now'))->format("d-m-Y-H-i-s");
+            $fileName = "export_demande_collecte_$today.csv";
             return $CSVExportService->createBinaryResponseFromData(
                 $fileName,
                 $collectes,

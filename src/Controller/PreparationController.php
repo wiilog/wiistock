@@ -589,7 +589,7 @@ class PreparationController extends AbstractController
                 'quantité à préparer',
                 'code-barre'
             ];
-            $nowStr = new DateTime('now');
+            $nowStr = (new DateTime('now'))->format("d-m-Y-H-i-s");;
 
             return $CSVExportService->streamResponse(
                 function ($output) use ($preparationIterator, $CSVExportService, $preparationsManager) {
@@ -597,7 +597,7 @@ class PreparationController extends AbstractController
                         $preparationsManager->putPreparationLines($output, $preparation);
                     }
                 },
-                "Export-Ordre-Preparation-" . $nowStr->format('d_m_Y') . ".csv",
+                "Export-Ordre-Preparation-$nowStr.csv",
                 $csvHeader
             );
         } else {

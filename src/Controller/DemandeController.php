@@ -579,7 +579,7 @@ class DemandeController extends AbstractController
             $articleLines = $articleLineRepository->findByRequests($demandes);
             $referenceLines = $referenceLineRepository->findByRequests($demandes);
 
-            $nowStr = date("d-m-Y H:i");
+            $nowStr = (new DateTime('now'))->format("d-m-Y-H-i-s");
             return $CSVExportService->createBinaryResponseFromData(
                 "dem-livr $nowStr.csv",
                 $demandes,

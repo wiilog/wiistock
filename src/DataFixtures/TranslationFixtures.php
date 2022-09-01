@@ -22,6 +22,26 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
     const TRANSLATIONS = [
         "Général" => [
             null => [
+                "Header" => [
+                    "content" => [
+                        [
+                            "fr" => "Accueil",
+                            "en" => "Home",
+                        ],
+                        [
+                            "fr" => "Détails",
+                            "en" => "Détails",
+                        ],
+                        [
+                            "fr" => "Déconnexion",
+                            "en" => "Log out",
+                        ],
+                        [
+                            "fr" => "Format de date",
+                            "en" => "Date format",
+                        ],
+                    ],
+                ],
                 "Zone filtre" => [
                     "subtitle" => "Les libellés génériques présents dans tous les encarts filtre de l’application",
                     "content" => [
@@ -59,8 +79,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     "subtitle" => "Les libellés génériques présents pour la recherche rapide les boutons d’action et la pagination",
                     "content" => [
                         [
-                            "fr" => "Rechercher",
-                            "en" => "Search",
+                            "fr" => "Rechercher : ",
+                            "en" => "Search : ",
                         ],
                         [
                             "fr" => "Entrée pour valider",
@@ -111,6 +131,10 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "en" => "Loading",
                         ],
                         [
+                            "fr" => "Imprimer",
+                            "en" => "Print",
+                        ],
+                        [
                             "fr" => "Vos préférences de colonnes à afficher ont bien été sauvegardées",
                             "en" => "Your displayed columns preferences have been saved",
                         ],
@@ -129,6 +153,18 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Information",
                             "en" => "Information",
+                        ],
+                        [
+                            "fr" => "Aucun élément à afficher",
+                            "en" => "No elements to display",
+                        ],
+                        [
+                            "fr" => "Aucune donnée disponible dans le tableau",
+                            "en" => "No data available in the board",
+                        ],
+                        [
+                            "fr" => "(filtré de {1} éléments au total)",
+                            "en" => "(filtered by {1} elements in total)",
                         ],
                     ],
                 ],
@@ -161,7 +197,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                         [
                             "fr" => "Détails",
-                            "en" => "Details",
+                            "en" => "Détails",
                         ],
                         [
                             "fr" => "Modifier",
@@ -446,9 +482,14 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Page Flux - Arrivages :\nBouton\nModale Nouvel arrivage",
                         ],
                         [
-                            "fr" => "Ajouter une UL",
-                            "en" => "Add L.U.",
-                            "tooltip" => "Page Flux - Arrivages :\nDétails arrivages - Liste des UL - Bouton\nDétails arrivages - Liste des UL - Modale Ajouter une UL",
+                            "fr" => "Ajouter des unités logistiques",
+                            "en" => "Add Logistics units",
+                            "tooltip" => "Page Flux - Arrivages :\nDétails arrivages - Liste des colis - Bouton\nDétails arrivages - Liste des colis - Modale Ajouter colis ",
+                        ],
+                        [
+                            "fr" => "Liste des unités logistiques",
+                            "en" => "Logistics unit list",
+                            "tooltip" => "Détails arrivages - Liste des unités logistiques",
                         ],
                         [
                             "fr" => "Nombre d'UL à ajouter :",
@@ -481,7 +522,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Page Flux - Arrivages :\nModale Supprimer l'arrivage",
                         ],
                         [
-                            "fr" => "Liste des UL générés",
+                            "fr" => "Liste des UL générées",
                             "en" => "List of L.U",
                             "tooltip" => "Page Flux - Arrivages :\nModale Liste des UL générés",
                         ],
@@ -768,7 +809,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     "subtitle" => "La plupart des libellés ont leur traduction qui s'applique à partir de la page Acheminement",
                     "content" => [
                         [
-                            "fr" => "Colis à acheminer",
+                            "fr" => "UL à acheminer",
                             "en" => "L.U. to transfer",
                             "tooltip" => "Modale acheminer",
                         ],
@@ -783,6 +824,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Zone liste - Mode acheminer",
                         ],
                         [
+                            "fr" => "Demande d'acheminement",
+                            "en" => "Transfer operation",
+                            "tooltip" => "Mode acheminer",
+                        ],
+                        [
                             "fr" => "Créer une nouvelle demande",
                             "en" => "Create a new operation",
                             "tooltip" => "Modale acheminer",
@@ -791,6 +837,26 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Ajouter à une demande existante",
                             "en" => "Add to an existing operation",
+                            "tooltip" => "Modale acheminer",
+                        ],
+                        [
+                            "fr" => "Ma demande d'acheminement",
+                            "en" => "My transfer operation",
+                            "tooltip" => "Mode acheminer",
+                        ],
+                        [
+                            "fr" => "Mes demandes",
+                            "en" => "My operations",
+                            "tooltip" => "Mode acheminer",
+                        ],
+                        [
+                            "fr" => "Sélectionnez  un acheminement",
+                            "en" => "Select a transfer",
+                            "tooltip" => "Mode acheminer",
+                        ],
+                        [
+                            "fr" => "Unités logistiques à acheminer",
+                            "en" => "Logistics unit to ship",
                             "tooltip" => "Modale acheminer",
                         ],
                     ],
@@ -878,8 +944,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 "Onglet \"Unités logistiques\"" => [
                     "content" => [
                         [
-                            "fr" => "Numéro unité logistique",
-                            "en" => "Logistics unit number",
+                            "fr" => "Numéro d'UL",
+                            "en" => "L.U. number",
                             "tooltip" => "Zone liste\nModale Modifier une unité logistique",
                         ],
                         [
@@ -1379,6 +1445,31 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "tooltip" => "Zone liste - Nom de colonnes",
                     ],
                     [
+                        "fr" => "articles",
+                        "en" => "units",
+                        "tooltip" => "Modale modifier un litige",
+                    ],
+                    [
+                        "fr" => "Modifier un litige",
+                        "en" => "Edit a dispute",
+                        "tooltip" => "Modale modifier un litige",
+                    ],
+                    [
+                        "fr" => "Code article",
+                        "en" => "Unit code",
+                        "tooltip" => "Modale modifier un litige",
+                    ],
+                    [
+                        "fr" => "Libellé",
+                        "en" => "Label",
+                        "tooltip" => "Modale modifier un litige",
+                    ],
+                    [
+                        "fr" => "Référence article",
+                        "en" => "Unit reference",
+                        "tooltip" => "Modale modifier un litige",
+                    ],
+                    [
                         "fr" => "Supprimer le litige",
                         "en" => "Delete the dispute",
                         "tooltip" => "Modale Supprimer le litige",
@@ -1386,6 +1477,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "Voulez-vous réellement supprimer ce litige ?",
                         "en" => "Do you really want to delete this dispute ?",
+                        "tooltip" => "Modale Supprimer le litige",
+                    ],
+                    [
+                        "fr" => "Le litige {1} a bien été supprimé",
+                        "en" => "The dispute {1} has been deleted successfully",
                         "tooltip" => "Modale Supprimer le litige",
                     ],
                 ],
@@ -1475,6 +1571,14 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Filtre",
                         ],
                         [
+                            "fr" => "Quantité UL",
+                            "en" => "LU quantity",
+                        ],
+                        [
+                            "fr" => "L'acheminement a bien été créé",
+                            "en" => "The transfer has been successfully created",
+                        ],
+                        [
                             "fr" => "Supprimer la demande d'acheminement",
                             "en" => "Delete the transfer operation",
                             "tooltip" => "Modale Supprimer la demande d'acheminement",
@@ -1484,6 +1588,31 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "en" => "Do you really want to delete this transfer operation ?",
                             "tooltip" => "Modale Supprimer la demande d'acheminement",
                         ],
+                        [
+                            "fr" => "Une autre demande d'acheminement est en cours de création, veuillez réessayer",
+                            "en" => "Another operation of transfer is being created, please try again",
+                        ],
+                        [
+                            "fr" => "Une unité logistique minimum est nécessaire pour procéder à l'acheminement",
+                            "en" => "A logistics unit is required to proceed with the transfer",
+                        ],
+                        [
+                            "fr" => "Les unités logistiques de l'arrivage ont bien été ajoutés dans l'acheminement {1}",
+                            "en" => "L.U.s of the arrival have been added successfully to the transfer {1}",
+                        ],
+                        [
+                            "fr" => "Veuillez renseigner un statut valide.",
+                            "en" => "Please fill in a valid status",
+                        ],
+                        [
+                            "fr" => "Il n'y a aucun emplacement de prise ou de dépose paramétré pour ce type.Veuillez en paramétrer ou rendre les champs visibles à la création et/ou modification.",
+                            "en" => "There is no pickup or drop location set for this type. Please set or make the fields visible during the creation and/or modification",
+                        ],
+                        [
+                            "fr" => "La date de fin d'échéance est inférieure à la date de début.",
+                            "en" => "End date is inferior to the start date",
+                        ],
+
                     ],
                 ],
                 "Champs fixes" => [
@@ -1669,6 +1798,25 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "fr" => "La ligne a bien été supprimée",
                             "en" => "The line has been deleted",
                             "tooltip" => "Message succès Supprimer la ligne",
+                        ],
+                    ],
+                ],
+                "Modale" => [
+                    "content" => [
+                        [
+                            "fr" => "Non urgent",
+                            "en" => "Not urgent",
+                            "tooltip" => "Modale Nouvelle demande d'acheminement - Urgence\nModale Modifier un acheminement",
+                        ],
+                        [
+                            "fr" => "Echéance",
+                            "en" => "Due",
+                            "tooltip" => "Modale Nouvelle demande d'acheminement\nModale Modifier un acheminement ",
+                        ],
+                        [
+                            "fr" => "Destinataire(s)",
+                            "en" => "Addressee(s)",
+                            "tooltip" => "Modale modifier un acheminement",
                         ],
                     ],
                 ],

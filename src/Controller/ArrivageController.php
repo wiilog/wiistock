@@ -24,6 +24,7 @@ use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Service\VisibleColumnService;
+use Doctrine\ORM\Tools\DebugUnitOfWorkListener;
 use WiiCommon\Helper\Stream;
 use App\Service\ArrivageService;
 use App\Service\AttachmentService;
@@ -90,16 +91,30 @@ class ArrivageController extends AbstractController {
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
         $paramGlobalRedirectAfterNewArrivage = $settingRepository->findOneBy(['label' => Setting::REDIRECT_AFTER_NEW_ARRIVAL]);
 
-        $statuses = $statutRepository->findStatusByType(CategorieStatut::ARRIVAGE);
+        $statuses = Stream::from($statutRepository->findStatusByType(CategorieStatut::ARRIVAGE))
+            ->map(fn(Statut $statut) => [
+                'id' => $statut->getId(),
+                'type' => $statut->getType(),
+                'nom' => $this->getFormatter()->status($statut),
+            ])
+            ->toArray();
         $defaultLocation = $settingRepository->getOneParamByLabel(Setting::MVT_DEPOSE_DESTINATION);
         $defaultLocation = $defaultLocation ? $emplacementRepository->find($defaultLocation) : null;
+
+        $natures = Stream::from($natureRepository->findByAllowedForms([Nature::ARRIVAL_CODE]))
+            ->map(fn(Nature $nature) => [
+                'id' => $nature->getId(),
+                'label' => $this->getFormatter()->nature($nature),
+                'defaultQuantity' => $nature->getDefaultQuantity(),
+            ])
+            ->toArray();
         return $this->render('arrivage/index.html.twig', [
             'carriers' => $transporteurRepository->findAllSorted(),
             'chauffeurs' => $chauffeurRepository->findAllSorted(),
             'users' => $utilisateurRepository->findBy(['status' => true], ['username'=> 'ASC']),
             'fournisseurs' => $fournisseurRepository->findBy([], ['nom' => 'ASC']),
             'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
-            'natures' => $natureRepository->findByAllowedForms([Nature::ARRIVAL_CODE]),
+            'natures' => $natures ,
             'statuts' => $statuses,
             'typesArrival' => $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]),
             'fieldsParam' => $fieldsParam,
@@ -336,7 +351,13 @@ class ArrivageController extends AbstractController {
                 }
                 $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
 
-                $statuses = $statutRepository->findStatusByType(CategorieStatut::ARRIVAGE, $arrivage->getType());
+                $statuses = Stream::from($statutRepository->findStatusByType(CategorieStatut::ARRIVAGE, $arrivage->getType()))
+                    ->map(fn(Statut $statut) => [
+                        'id' => $statut->getId(),
+                        'type' => $statut->getType(),
+                        'nom' => $this->getFormatter()->status($statut),
+                    ])
+                    ->toArray();
 
                 $html = $this->renderView('arrivage/modalEditArrivageContent.html.twig', [
                     'arrivage' => $arrivage,
@@ -694,13 +715,12 @@ class ArrivageController extends AbstractController {
 
         $header = array_merge($baseHeader, $natureLabels, $freeFieldsConfig["freeFieldsHeader"]);
         $today = new DateTime();
-        $user = $this->getUser();
-        $today = $today->format($user->getDateFormat() ? $user->getDateFormat() . ' H:i:s' : "d-m-Y H:i:s");
+        $today = $today->format("d-m-Y-H-i-s");
         return $csvService->streamResponse(function($output) use ($arrivageDataService, $csvService, $fieldsParam, $freeFieldService, $freeFieldsConfig, $arrivals, $buyersByArrival, $natureLabels, $packs, $packsTotalWeight) {
             foreach($arrivals as $arrival) {
                 $arrivageDataService->putArrivalLine($this->getUser(), $output, $csvService, $freeFieldsConfig, $arrival, $buyersByArrival, $natureLabels, $packs, $fieldsParam, $packsTotalWeight);
             }
-        }, "export-arrivages-$today.csv", $header);
+        }, "export-arrivages_$today.csv", $header);
     }
 
     /**
@@ -732,13 +752,21 @@ class ArrivageController extends AbstractController {
 
         $defaultDisputeStatus = $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::DISPUTE_ARR);
 
+        $natures = Stream::from($natureRepository->findByAllowedForms([Nature::ARRIVAL_CODE]))
+            ->map(fn(Nature $nature) => [
+                'id' => $nature->getId(),
+                'label' => $this->getFormatter()->nature($nature),
+                'defaultQuantity' => $nature->getDefaultQuantity(),
+            ])
+            ->toArray();
+
         return $this->render("arrivage/show.html.twig", [
             'arrivage' => $arrivage,
             'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
             'acheteurs' => $acheteursNames,
             'disputeStatuses' => $statutRepository->findByCategorieName(CategorieStatut::DISPUTE_ARR, 'displayOrder'),
             'allColis' => $arrivage->getPacks(),
-            'natures' => $natureRepository->findByAllowedForms([Nature::ARRIVAL_CODE]),
+            'natures' => $natures,
             'printColis' => $printColis,
             'printArrivage' => $printArrivage,
             'canBeDeleted' => $arrivageRepository->countUnsolvedDisputesByArrivage($arrivage) == 0,
@@ -964,11 +992,19 @@ class ArrivageController extends AbstractController {
 
             $hasRightToTreatLitige = $userService->hasRightFunction(Menu::QUALI, Action::TREAT_DISPUTE);
 
+            $disputeStatuses = Stream::from($statutRepository->findByCategorieName(CategorieStatut::DISPUTE_ARR, 'displayOrder'))
+                ->map(fn(Statut $statut) => [
+                    'id' => $statut->getId(),
+                    'type' => $statut->getType(),
+                    'nom' => $this->getFormatter()->status($statut),
+                ])
+                ->toArray();
+
             $html = $this->renderView('arrivage/modalEditLitigeContent.html.twig', [
                 'dispute' => $dispute,
                 'hasRightToTreatLitige' => $hasRightToTreatLitige,
                 'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
-                'disputeStatuses' => $statutRepository->findByCategorieName(CategorieStatut::DISPUTE_ARR, 'displayOrder'),
+                'disputeStatuses' => $disputeStatuses,
                 'attachments' => $attachmentRepository->findBy(['dispute' => $dispute]),
                 'colis' => $arrivage->getPacks(),
             ]);
@@ -1437,7 +1473,14 @@ class ArrivageController extends AbstractController {
         $typeRepository = $manager->getRepository(Type::class);
 
         $arrival = $manager->find(Arrivage::class, $request->query->get('id'));
-        $disputeStatuses = $statusRepository->findByCategorieName(CategorieStatut::DISPUTE_ARR, 'displayOrder');
+        $disputeStatuses = Stream::from($statusRepository->findByCategorieName(CategorieStatut::DISPUTE_ARR, 'displayOrder'))
+            ->map(fn(Statut $statut) => [
+                'id' => $statut->getId(),
+                'type' => $statut->getType(),
+                'nom' => $this->getFormatter()->status($statut),
+            ])
+            ->toArray();
+
         $defaultDisputeStatus = $statusRepository->getIdDefaultsByCategoryName(CategorieStatut::DISPUTE_ARR);
         $disputeTypes = $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]);
         $fixedFields = $manager->getRepository(FieldsParam::class)->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);

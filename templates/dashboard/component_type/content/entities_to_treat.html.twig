@@ -3,7 +3,7 @@
     {% set category = componentType.category == constant('App\\Entity\\Dashboard\\ComponentType::CATEGORY_REQUESTS') %}
     <div class="row">
         <div class="form-group col-12">
-            <label>{{ category ? 'Demande' : 'Ordre' }}*</label>
+            <label class="wii-field-name">{{ category ? 'Demande' : 'Ordre' }}*</label>
             <div class="input-group flex-nowrap no-gutters">
                 <div class="flex-fill">
                     <select class="data form-control h-100 w-100 needed init-entity-change"
@@ -27,7 +27,7 @@
 
     <div class="row">
         <div class="form-group col-12">
-            <label>Type(s) de {{ category ? 'la demande' : 'l\'ordre' }}*</label>
+            <label class="wii-field-name">Type(s) de {{ category ? 'la demande' : 'l\'ordre' }}*</label>
             <div class="input-group flex-nowrap no-gutters">
                 <div class="flex-fill">
                     <select class="data form-control h-100 w-100 needed select2"
@@ -51,7 +51,7 @@
 
     <div class="row">
         <div class="form-group col-12">
-            <label>Statut(s) de {{ category ? 'la demande' : 'l\'ordre' }}*</label>
+            <label class="wii-field-name">Statut(s) de {{ category ? 'la demande' : 'l\'ordre' }}*</label>
             <div class="input-group flex-nowrap no-gutters">
                 <div class="flex-fill">
                     <select class="data form-control h-100 w-100 needed select2"
@@ -80,7 +80,7 @@
                 {{ values.treatmentDelay ? 'checked' }}>
             <span class="slider round"></span>
         </label>
-        <label>Délai de traitement à respecter après validation de {{ category ? 'la demande' : 'l\'ordre' }} (au format hh:mm)</label>
+        <label class="wii-field-text">Délai de traitement à respecter après validation de {{ category ? 'la demande' : 'l\'ordre' }} (au format hh:mm)</label>
     </div>
 
     <div class="row">

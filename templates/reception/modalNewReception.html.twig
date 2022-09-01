@@ -154,7 +154,7 @@
                     {% endif %}
                     {% if fieldsParam|isFieldRequired('anomalie', 'displayedCreate') %}
                         <div class="form-group col-3 pt-4">
-                            <label class="wii-field-name">Anomalie</label>
+                            <label class="wii-field-text">Anomalie</label>
                             <label class="switch">
                                 <input class="checkbox" type="checkbox" name="anomalie">
                                 <span class="slider round"></span>
@@ -163,7 +163,7 @@
                     {% endif %}
                     {% if fieldsParam|isFieldRequired('manualUrgent', 'displayedCreate') %}
                         <div class="form-group col-3 mt-4">
-                            <label class="wii-field-name">Urgence ?{{ fieldsParam|isFieldRequired('manualUrgent', 'requiredCreate') ? '*' : '' }}</label>
+                            <label class="wii-field-text">Urgence ?{{ fieldsParam|isFieldRequired('manualUrgent', 'requiredCreate') ? '*' : '' }}</label>
                             <label class="switch">
                                 <input class="checkbox {{ fieldsParam|isFieldRequired('manualUrgent', 'requiredCreate') ? 'needed' : '' }}"
                                        type="checkbox"
