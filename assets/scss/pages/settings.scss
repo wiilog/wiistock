@@ -175,6 +175,7 @@ textarea {
     width: 25px;
     height: 25px;
     margin: 3px;
+    object-fit: contain;
 
     &.select:hover {
         cursor: pointer;
