@@ -233,7 +233,7 @@ class TranslationService {
         file_put_contents("$outputDirectory/translations.js", $content);
     }
 
-    private function getDefaultSlug(): string {
+    public function getDefaultSlug(): string {
         return $this->cacheService->get(CacheService::LANGUAGES, "default-language-slug", function () {
             $languageRepository = $this->manager->getRepository(Language::class);
             $defaultLanguage = $languageRepository->findOneBy(["selected" => true]);
