@@ -924,13 +924,14 @@ class TransportController extends AbstractApiController
             $order->setReturnReason($motive);
 
             $requests = [$request];
-            if($request instanceof TransportCollectRequest && $request->getDelivery()) {
-                $requests[] = $request->getDelivery();
+            if($request instanceof TransportDeliveryRequest && $request->getCollect()) {
+                $requests[] = $request->getCollect();
             }
 
             foreach($requests as $entity) {
                 $historyType = $entity instanceof TransportDeliveryRequest ? TransportHistoryService::TYPE_FAILED_DELIVERY : TransportHistoryService::TYPE_FAILED_COLLECT;
 
+                $entity = $entity instanceof TransportCollectRequest && $entity->getDelivery() ? $entity->getDelivery() : $entity;
                 $historyService->persistTransportHistory($manager, $entity, $historyType, [
                     "user" => $this->getUser(),
                     "reason" => $motive,
@@ -975,7 +976,8 @@ class TransportController extends AbstractApiController
                 $lastLine = $order->getTransportRoundLines()->last();
 
                 if ($lastLine) {
-                    $lastLine->setFulfilledAt($now)
+                    $lastLine
+                        ->setFulfilledAt($now)
                         ->setFailedAt($now);
                 }
             }
