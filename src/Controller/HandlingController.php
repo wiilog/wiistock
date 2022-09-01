@@ -521,11 +521,12 @@ class HandlingController extends AbstractController {
         $hasRightToTreadHandling = $userService->hasRightFunction(Menu::DEM, Action::TREAT_HANDLING);
         $currentStatus = $handling->getStatus();
         $statuses = Stream::from($statutRepository->findStatusByType(CategorieStatut::HANDLING, $handling->getType()))
-            ->map(fn(Statut $status) => ($hasRightToTreadHandling || $status->isNotTreated()
+            ->filterMap(fn(Statut $status) => ($hasRightToTreadHandling || $status->isNotTreated()
                 ? [
                     "label" => $status->getNom(),
                     "value" => $status->getId(),
-                ] : []
+                ]
+                : null
             ))
             ->toArray();
 
