@@ -236,6 +236,10 @@ function initEditatable(datatable, onDatatableInit = null) {
         scrollX: true,
         autoWidth: false,
         drawCallback: () => {
+            if (!datatable.table) {
+                return;
+            }
+
             const $parent = datatable.element.closest(`.wii-box`);
 
             $parent.find(`.dataTables_wrapper`)

@@ -353,50 +353,53 @@ function initDataTable($table, options) {
             autoWidth: true,
             scrollX: true,
             language: {
-                    "sProcessing": Translation.of(`Général`, ``, `Zone liste`, `Traitement en cours`, false),
-                    "searchPlaceholder": "",
-                    "sSearch": Translation.of(`Général`, ``, `Zone liste`, `Rechercher : `, false),
-                    "sLengthMenu": Translation.of(`Général`, ``, `Zone liste`, `Afficher {1} éléments`, false, {1: '_MENU_'}),
-                    "sInfo": Translation.of(`Général`, ``, `Zone liste`, `{1} à {2} sur {3}`, false, {1: '_START_', 2: '_END_', 3: '_TOTAL_'}),
-                    "sInfoEmpty": Translation.of(`Général`, ``, `Zone liste`, `Aucun élément à afficher`, false),
-                    "sInfoFiltered": Translation.of(`Général`, ``, `Zone liste`, `(filtré de {1} éléments au total)`, false, {1: '_MAX_'}),
-                    "sInfoPostFix": "",
-                    "sLoadingRecords": Translation.of(`Général`, ``, `Zone liste`, `Chargement en cours`, false),
-                    "sZeroRecords": Translation.of(`Général`, ``, `Zone liste`, `Aucun élément à afficher`, false),
-                    "sEmptyTable": Translation.of(`Général`, ``, `Zone liste`, `Aucune donnée disponible dans le tableau`, false),
-                    "oPaginate": {
-                        "sFirst": "Premier",
-                        "sPrevious": Translation.of(`Général`, ``, `Zone liste`, `Précédent`, false),
-                        "sNext": Translation.of(`Général`, ``, `Zone liste`, `Suivant`, false),
-                        "sLast": "Dernier"
+                "sProcessing": Translation.of(`Général`, ``, `Zone liste`, `Traitement en cours`, false),
+                "searchPlaceholder": "",
+                "sSearch": Translation.of(`Général`, ``, `Zone liste`, `Rechercher : `, false),
+                "sLengthMenu": Translation.of(`Général`, ``, `Zone liste`, `Afficher {1} éléments`, false, {1: '_MENU_'}),
+                "sInfo": Translation.of(`Général`, ``, `Zone liste`, `{1} à {2} sur {3}`, false, {1: '_START_', 2: '_END_', 3: '_TOTAL_'}),
+                "sInfoEmpty": Translation.of(`Général`, ``, `Zone liste`, `Aucun élément à afficher`, false),
+                "sInfoFiltered": Translation.of(`Général`, ``, `Zone liste`, `(filtré de {1} éléments au total)`, false, {1: '_MAX_'}),
+                "sInfoPostFix": "",
+                "sLoadingRecords": Translation.of(`Général`, ``, `Zone liste`, `Chargement en cours`, false),
+                "sZeroRecords": Translation.of(`Général`, ``, `Zone liste`, `Aucun élément à afficher`, false),
+                "sEmptyTable": Translation.of(`Général`, ``, `Zone liste`, `Aucune donnée disponible dans le tableau`, false),
+                "oPaginate": {
+                    "sFirst": "Premier",
+                    "sPrevious": Translation.of(`Général`, ``, `Zone liste`, `Précédent`, false),
+                    "sNext": Translation.of(`Général`, ``, `Zone liste`, `Suivant`, false),
+                    "sLast": "Dernier"
                 },
-                    "oAria": {
+                "oAria": {
                     "sSortAscending": ": activer pour trier la colonne par ordre croissant",
-                        "sSortDescending": ": activer pour trier la colonne par ordre d&eacute;croissant"
+                    "sSortDescending": ": activer pour trier la colonne par ordre d&eacute;croissant"
                 }
             },
             dom: getAppropriateDom(domConfig || {}),
             rowCallback: getAppropriateRowCallback(rowConfig || {}),
             drawCallback: (response) => {
-                datatableDrawCallback(Object.assign({
-                    table: datatableToReturn,
-                    response,
-                    $table
-                }, drawConfig || {}));
+                if (datatableToReturn) {
+                    datatableDrawCallback(Object.assign({
+                        table: datatableToReturn,
+                        response,
+                        $table
+                    }, drawConfig || {}));
+                }
             },
             initComplete: () => {
-                let $searchInputContainer = $table.parents('.dataTables_wrapper').find('.dataTables_filter');
-                moveSearchInputToHeader($searchInputContainer);
-                tableCallback(hideColumnConfig || {}, datatableToReturn);
-                if (initCompleteCallback) {
-                    initCompleteCallback();
-                }
-                attachDropdownToBodyOnDropdownOpening($table);
-                if(config.page && config.page !== '') {
-                    getAndApplyOrder(config, datatableToReturn);
-                }
-                else {
-                    datatableToReturn.off('column-reorder');
+                if (datatableToReturn) {
+                    let $searchInputContainer = $table.parents('.dataTables_wrapper').find('.dataTables_filter');
+                    moveSearchInputToHeader($searchInputContainer);
+                    tableCallback(hideColumnConfig || {}, datatableToReturn);
+                    if (initCompleteCallback) {
+                        initCompleteCallback();
+                    }
+                    attachDropdownToBodyOnDropdownOpening($table);
+                    if (config.page && config.page !== '') {
+                        getAndApplyOrder(config, datatableToReturn);
+                    } else {
+                        datatableToReturn.off('column-reorder');
+                    }
                 }
             }
         }, colReorderActivated, config));
