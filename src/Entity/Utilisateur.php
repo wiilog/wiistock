@@ -49,8 +49,9 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         'deliveryRequest' => self::DEFAULT_DELIVERY_REQUEST_VISIBLE_COLUMNS,
         'handling' => self::DEFAULT_HANDLING_VISIBLE_COLUMNS,
     ];
+    const DEFAULT_DATE_FORMAT = 'd/m/Y';
     const DATE_FORMATS_TO_DISPLAY = [
-        'd/m/Y' => 'jj/mm/aaaa',
+        self::DEFAULT_DATE_FORMAT => 'jj/mm/aaaa',
         'Y-m-d' => 'yyyy-mm-dd',
         'm-d-Y' => 'mm-dd-yyyy',
     ];

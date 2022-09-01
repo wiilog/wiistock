@@ -2512,8 +2512,9 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
 
         foreach ($users as $user) {
             if (!$user->getLanguage() || !$user->getDateFormat()) {
-                $user->setLanguage($french)
-                    ->setDateFormat("jj/mm/aaaa");
+                $user
+                    ->setLanguage($french)
+                    ->setDateFormat(Utilisateur::DEFAULT_DATE_FORMAT);
             }
         }
     }
