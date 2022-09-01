@@ -1282,13 +1282,13 @@ function displayLegendTranslation(data){
                         <div class="input-group pb-2">
                             <div class="input-group-prepend">
                                 <span class="input-group-text">
-                                    <img class="flag" src="${ language.flag }" alt="${ language.slug }_flag">
+                                    <img class="flag" src="${language.flag}" alt="${language.slug}_flag">
                                 </span>
                             </div>
                             <input class="form-control cursor-default tooltip-input data"
-                                   name="legend${ legendCounter }_${ language.slug }"
+                                   name="legend${legendCounter}_${language.slug}"
                                    type="text"
-                                   value="${ legend[language.slug] ?? language.selected ? legend : '' }"/>
+                                   value="${legend[language.slug] ?? language.selected ? legend : '' }"/>
                         </div>
                     </div>`);
                 });

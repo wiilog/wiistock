@@ -298,12 +298,12 @@ class DashboardSettingsController extends AbstractController {
 
         $values['languages'] = $languageRepository->findBy(['hidden' => false]);
 
-        $tooltip = $values['tooltip'];
-        $title = $values['title'] ?? '';
+        $tooltip = $values['tooltip'] ?? $componentType->getHint();
+        $title = $values['title'] ?? $componentType->getName();
         $values['tooltip'] = [];
         $values['title'] = [];
         foreach ($values['languages'] as $language) {
-            $values['tooltip'][$language->getSlug()] = $language->getSelected() ? $tooltip : '';
+            $values['tooltip'][$language->getSlug()] = $language->getSelected() ? $tooltip : ''; // TODO ici
             $values['title'][$language->getSlug()] = $language->getSelected() ? $title : '';
         }
 
