@@ -676,7 +676,7 @@ class SettingsController extends AbstractController {
     }
 
     /**
-     * @Route("/langues/api/delete", name="settings_language_delete_api" , methods={"POST"}, options={"expose"=true})
+     * @Route("/langues/api/delete", name="settings_language_delete" , methods={"POST"}, options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_LABELS_PERSO})
      */
     public function deleteLanguageApi(EntityManagerInterface $manager,
@@ -714,6 +714,7 @@ class SettingsController extends AbstractController {
 
             return $this->json([
                 "success" => true,
+                "msg" => "La langue <strong>{$language->getLabel()}</strong> a bien été supprimée."
             ]);
         }
     }
