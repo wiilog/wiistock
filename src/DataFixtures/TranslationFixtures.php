@@ -1320,7 +1320,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 "content" => [
                     [
                         "fr" => "Encours",
-                        "en" => "In progress",
+                        "en" => "Current",
                         "tooltip" => "Fil d'arriane\nMenu",
                     ],
                     [
