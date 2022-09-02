@@ -1,6 +1,6 @@
 parameters:
     menu_config:
-        -   label: 'Accueil'
+        -   label: [ 'Général', null, 'Header', 'Accueil']
             icon: 'accueil'
             path: 'app_index'
 
@@ -231,6 +231,6 @@ parameters:
             icon: 'parametre'
             path: 'settings_index'
 
-        -   label: 'Déconnexion'
+        -   label: [ 'Général', null, 'Header', 'Déconnexion']
             icon: 'deco'
             path: 'logout'

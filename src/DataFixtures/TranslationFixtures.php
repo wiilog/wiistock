@@ -240,12 +240,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "en" => "Save",
                         ],
                         [
-                            "fr" => "Veuillez renseigner le champ {1}",
-                            "en" => "Please fill in the field {1}",
+                            "fr" => "Veuillez renseigner le champ : {1}",
+                            "en" => "Please fill in the field : {1}",
                         ],
                         [
                             "fr" => "Veuillez renseigner les champs : {1}",
-                            "en" => "Please fill in the fields {1}",
+                            "en" => "Please fill in the fields : {1}",
                         ],
                         [
                             "fr" => "Veuillez saisir des dates dans le filtre en haut de page.",
@@ -1743,6 +1743,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "fr" => "Liste des UL",
                             "en" => "L.U. list",
                             "tooltip" => "Détails acheminements - Liste des UL",
+                        ],
+                        [
+                            "fr" => "Unité logistique",
+                            "en" => "Logistics unit",
+                            "tooltip" => "Détails acheminements - Liste des colis - Nom de colonnes\nPDF bon acheminement",
                         ],
                         [
                             "fr" => "Quantité à acheminer",
