@@ -104,6 +104,7 @@ $icons: (
     'trash-black': "../../public/svg/trash-black.svg",
     'new-article': "../../public/svg/new-article.svg",
     'white-tick': "../../public/svg/tick-blanc.svg",
+    'calendar-preparation-black': "../../public/svg/calendar-preparation-black.svg",
 );
 
 @each $iconName, $iconPath in $icons {
