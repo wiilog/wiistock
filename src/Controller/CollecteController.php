@@ -467,7 +467,7 @@ class CollecteController extends AbstractController
                 $response = [
 					'entete' => $this->renderView('collecte/collecte-show-header.html.twig', [
 						'collecte' => $collecte,
-						'modifiable' => ($this->getFormatter()->status($collecte->getStatut()) == Collecte::STATUT_BROUILLON),
+						'modifiable' => $collecte->getStatut()->getCode() == Collecte::STATUT_BROUILLON,
                         'showDetails' => $collecteService->createHeaderDetailsConfig($collecte)
 					]),
 				];
