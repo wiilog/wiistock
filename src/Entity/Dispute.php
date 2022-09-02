@@ -3,12 +3,10 @@
 namespace App\Entity;
 
 use App\Repository\DisputeRepository;
-use App\Service\FormatService;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Contracts\Service\Attribute\Required;
 
 #[ORM\Entity(repositoryClass: DisputeRepository::class)]
 class Dispute {
@@ -62,9 +60,6 @@ class Dispute {
 
     #[ORM\OneToOne(targetEntity: DisputeHistoryRecord::class)]
     private ?DisputeHistoryRecord $lastHistoryRecord = null;
-
-    #[Required]
-    public FormatService $formatService;
 
     public function __construct() {
         $this->attachements = new ArrayCollection();
@@ -306,17 +301,6 @@ class Dispute {
     public function setLastHistoryRecord(?DisputeHistoryRecord $lastHistoryRecord): self {
         $this->lastHistoryRecord = $lastHistoryRecord;
         return $this;
-    }
-
-    public function serialize(Utilisateur $user = null) {
-        $format = $user && $user->getDateFormat() ? ($user->getDateFormat() . ' H:i') : 'd/m/Y H:i';
-        return [
-            'number' => $this->getNumber(),
-            'type' => $this->getType() ? $this->getType()->getLabel() : '',
-            'status' => $this->getStatus() ? $this->formatService->status($this->getStatus()) : '',
-            'creationDate' => $this->getCreationDate() ? $this->getCreationDate()->format($format) : '',
-            'updateDate' => $this->getUpdateDate() ? $this->getUpdateDate()->format($format) : '',
-        ];
     }
 
 }

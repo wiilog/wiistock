@@ -11,12 +11,10 @@ use App\Entity\Traits\CommentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Helper\FormatHelper;
 use App\Repository\CollecteRepository;
-use App\Service\FormatService;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: CollecteRepository::class)]
@@ -82,9 +80,6 @@ class Collecte implements Serializable, PairedEntity {
 
     #[ORM\ManyToOne(targetEntity: SensorWrapper::class)]
     private ?SensorWrapper $triggeringSensorWrapper = null;
-
-    #[Required]
-    public FormatService $formatService;
 
     public function __construct() {
         $this->articles = new ArrayCollection();
@@ -334,28 +329,6 @@ class Collecte implements Serializable, PairedEntity {
             }
         }
         return $activePairing;
-    }
-
-    public function serialize(): array {
-        $freeFieldData = [];
-
-        foreach($this->getFreeFields() as $freeFieldId => $freeFieldValue) {
-            $freeFieldData[$freeFieldId] = $freeFieldValue;
-        }
-
-        return [
-            'numero' => $this->getNumero(),
-            'creationDate' => $this->getDate() ? $this->getDate()->format('d/m/Y h:i') : '',
-            'validationDate' => $this->getValidationDate() ? $this->getValidationDate()->format('d/m/Y h:i') : '',
-            'type' => $this->getType() ? $this->getType()->getLabel() : '',
-            'statut' => $this->getStatut() ? $this->formatService->status($this->getStatut()) : '',
-            'subject' => $this->getObjet(),
-            'destination' => $this->isStock() ? "Mise en stock" : "Destruction",
-            'requester' => FormatHelper::collectRequester($this),
-            'gatheringPoint' => $this->getPointCollecte() ? $this->getPointCollecte()->getLabel() : '',
-            'comment' => $this->getCommentaire() ? strip_tags($this->getCommentaire()) : '',
-            'freeFields' => $freeFieldData,
-        ];
     }
 
 }
