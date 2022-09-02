@@ -248,7 +248,7 @@ class InventoryMissionRepository extends EntityRepository {
                         ->createQueryBuilder()
                         ->select('COUNT(entry)')
                         ->from(InventoryEntry::class, 'entry')
-                        ->andWhere('ie.mission = im AND ie.anomaly = 1')
+                        ->andWhere('entry.mission = im AND entry.anomaly = 1')
                         ->getQuery()
                         ->getDQL();
                     if ($filter['value'] == 'true') {
