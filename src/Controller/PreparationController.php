@@ -785,7 +785,9 @@ class PreparationController extends AbstractController
                         Preparation::STATUT_EN_COURS_DE_PREPARATION => 'blue-card',
                         // Preparation::STATUT_INCOMPLETE, Preparation::STATUT_A_TRAITER => 'grey-card',
                         default => 'grey-card',
-                    }
+
+                    },
+                    'inPlanning' => true
                 ])
             ], true)
             ->toArray();

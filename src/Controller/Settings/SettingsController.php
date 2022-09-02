@@ -61,6 +61,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Service\Attribute\Required;
 use Throwable;
 use Twig\Environment;
 use WiiCommon\Helper\Stream;
@@ -70,23 +71,26 @@ use WiiCommon\Helper\Stream;
  */
 class SettingsController extends AbstractController {
 
-    /** @Required */
+    #[Required]
     public EntityManagerInterface $manager;
 
-    /** @Required */
+    #[Required]
     public SpecificService $specificService;
 
-    /** @Required */
+    #[Required]
     public Environment $twig;
 
-    /** @Required */
+    #[Required]
     public KernelInterface $kernel;
 
-    /** @Required */
+    #[Required]
     public StatusService $statusService;
 
-    /** @Required */
+    #[Required]
     public SettingsService $settingsService;
+
+    #[Required]
+    public LanguageService $languageService;
 
     public const SETTINGS = [
         self::CATEGORY_GLOBAL => [
@@ -543,12 +547,10 @@ class SettingsController extends AbstractController {
      * @Route("/langues", name="settings_language_index")
      * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_LABELS_PERSO})
      */
-    public function languageIndex(EntityManagerInterface $manager, LanguageService $languageService): Response {
-        $languageRepository = $manager->getRepository(Language::class);
-        $translationCategoryRepository = $manager->getRepository(TranslationCategory::class);
-        $translationRepository = $manager->getRepository(Translation::class);
-
-        $user = $this->getUser();
+    public function languageIndex(EntityManagerInterface $entityManager,
+                                  LanguageService        $languageService): Response {
+        $languageRepository = $entityManager->getRepository(Language::class);
+        $translationCategoryRepository = $entityManager->getRepository(TranslationCategory::class);
 
         $defaultLanguages = Stream::from($languageRepository->findBy(['selectable' => true]))
         ->map(fn(Language $language) => [
@@ -744,7 +746,7 @@ class SettingsController extends AbstractController {
             else {
                 $languageFile = $data->get('flagDefault');
             }
-            $languageName = $data->get('languageName');
+
             $languageName = $data->get('languageName');
             $language
                 ->setLabel($languageName)
@@ -870,7 +872,6 @@ class SettingsController extends AbstractController {
         $temperatureRepository = $this->manager->getRepository(TemperatureRange::class);
         $natureRepository = $this->manager->getRepository(Nature::class);
         $locationsRepository = $this->manager->getRepository(Emplacement::class);
-        $settingRepository = $this->manager->getRepository(Setting::class);
         $typeRepository = $this->manager->getRepository(Type::class);
         $statusRepository = $this->manager->getRepository(Statut::class);
         $freeFieldRepository = $this->manager->getRepository(FreeField::class);
@@ -878,7 +879,6 @@ class SettingsController extends AbstractController {
         $fixedFieldRepository = $this->manager->getRepository(FieldsParam::class);
         $requestTemplateRepository = $this->manager->getRepository(RequestTemplate::class);
         $alertTemplateRepository = $this->manager->getRepository(AlertTemplate::class);
-        $translationRepository = $this->manager->getRepository(Translation::class);
         $settingRepository = $this->manager->getRepository(Setting::class);
         $userRepository = $this->manager->getRepository(Utilisateur::class);
         $languageRepository = $this->manager->getRepository(Language::class);
@@ -1269,6 +1269,7 @@ class SettingsController extends AbstractController {
             self::CATEGORY_USERS => [
                 self::MENU_USERS => fn() => [
                     "newUser" => new Utilisateur(),
+                    "newUserLanguage" => $this->languageService->getNewUserLanguage(),
                     "languages" => Stream::from($languageRepository->findby(['hidden' => false]))
                         ->map(fn(Language $language) => [
                             "value" => $language->getId(),

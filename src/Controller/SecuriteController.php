@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\Entity\Role;
 use App\Service\MailerService;
-use App\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
@@ -227,7 +226,7 @@ class SecuriteController extends AbstractController {
     public function checkEmail(Request $request, EntityManagerInterface $entityManager): Response {
 
         $userRepository = $entityManager->getRepository(Utilisateur::class);
-        $email = $request->request->get('email');
+        $email = $request->query->get('email');
 
         if(!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return $this->json([

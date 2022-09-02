@@ -12,7 +12,6 @@ use RuntimeException;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Contracts\Service\Attribute\Required;
-use function PHPUnit\Framework\returnArgument;
 
 class TranslationService {
 
@@ -27,6 +26,9 @@ class TranslationService {
 
     #[Required]
     public TokenStorageInterface $tokenStorage;
+
+    #[Required]
+    public LanguageService $languageService;
 
     private array $translations = [];
 
@@ -217,19 +219,10 @@ class TranslationService {
         }
 
         $content = "//generated file for translations\n";
-        $content .= "const DEFAULT_SLUG = `{$this->getDefaultSlug()}`;\n";
+        $content .= "const DEFAULT_SLUG = `{$this->languageService->getDefaultSlug()}`;\n";
         $content .= "const TRANSLATIONS = " . json_encode($this->translations) . ";\n";
 
         file_put_contents("$outputDirectory/translations.js", $content);
-    }
-
-    public function getDefaultSlug(): string {
-        return $this->cacheService->get(CacheService::LANGUAGES, "default-language-slug", function () {
-            $languageRepository = $this->manager->getRepository(Language::class);
-            $defaultLanguage = $languageRepository->findOneBy(["selected" => true]);
-
-            return $defaultLanguage->getSlug();
-        });
     }
 
     public function editEntityTranslations(EntityManagerInterface $entityManager,
