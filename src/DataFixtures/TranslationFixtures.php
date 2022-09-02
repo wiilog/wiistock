@@ -1382,7 +1382,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "Statut",
                         "en" => "Status",
-                        "tooltip" => "Zone liste - Nom de colonnes",
+                        "tooltip" => "Zone liste - Nom de colonnes\nModale modifier un litige"
                     ],
                     [
                         "fr" => "Origines",
@@ -1407,12 +1407,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "Déclarant",
                         "en" => "Declarant",
-                        "tooltip" => "Filtres\nZone liste - Nom de colonnes",
+                        "tooltip" => "Filtres\nZone liste - Nom de colonnes\nModale modifier un litige",
                     ],
                     [
                         "fr" => "Type",
                         "en" => "Type",
-                        "tooltip" => "Filtres\nZone liste - Nom de colonnes",
+                        "tooltip" => "Filtres\nZone liste - Nom de colonnes\nModale modifier un litige",
                     ],
                     [
                         "fr" => "Urgence ?",
