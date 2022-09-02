@@ -72,7 +72,7 @@ class TranslationService {
 
         $slug = $user?->getLanguage()?->getSlug();
 
-        $defaultSlug = Language::DEFAULT_LANGUAGE_TRANSLATIONS[$slug] ?? $this->getDefaultSlug();
+        $defaultSlug = Language::DEFAULT_LANGUAGE_TRANSLATIONS[$slug] ?? $this->languageService->getDefaultSlug();
 
         return (
             $this->translateIn($slug, $defaultSlug, false, ...$args)
