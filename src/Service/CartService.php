@@ -186,6 +186,7 @@ class CartService {
                 ->setExpectedAt($expectedAt)
                 ->setCreatedAt(new DateTime('now'))
                 ->setDestination($destination)
+                ->setCommentaire($data['comment'])
                 ->setStatut($draft);
 
             $this->freeFieldService->manageFreeFields($deliveryRequest, $data, $manager);
