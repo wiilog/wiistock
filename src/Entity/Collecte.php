@@ -18,7 +18,7 @@ use Doctrine\ORM\Mapping as ORM;
 use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: CollecteRepository::class)]
-class Collecte implements Serializable, PairedEntity {
+class Collecte implements PairedEntity {
 
     const CATEGORIE = 'collecte';
     const STATUT_COLLECTE = 'collecté';
