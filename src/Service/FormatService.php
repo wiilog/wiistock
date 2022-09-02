@@ -14,7 +14,7 @@ class FormatService
 {
 
     #[Required]
-    public TranslationService $translationService;
+    public LanguageService $languageService;
 
     #[Required]
     public Security $security;
@@ -27,7 +27,7 @@ class FormatService
 
     private function defaultLanguage(): ?string {
         if(!$this->defaultLanguage) {
-            $this->defaultLanguage = $this->translationService->getDefaultSlug();
+            $this->defaultLanguage = $this->languageService->getDefaultSlug();
         }
 
         return $this->defaultLanguage;

@@ -212,6 +212,9 @@ class ImportService
     #[Required]
     public FormatService $formatService;
 
+    #[Required]
+    public LanguageService $languageService;
+
     private Import $currentImport;
     private EntityManagerInterface $em;
 
@@ -1201,6 +1204,14 @@ class ImportService
         $visibilityGroupRepository = $this->em->getRepository(VisibilityGroup::class);
 
         $user = $userAlreadyExists ?? new Utilisateur();
+
+        // on user creation
+        if (!isset($userAlreadyExists)) {
+            $language = $this->languageService->getNewUserLanguage();
+            $user
+                ->setLanguage($language)
+                ->setDateFormat(Utilisateur::DEFAULT_DATE_FORMAT);
+        }
 
         $role = $this->em->getRepository(Role::class)->findOneBy(['label' => $data['role']]);
         if($role) {
