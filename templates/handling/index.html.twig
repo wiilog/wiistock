@@ -58,7 +58,6 @@
             </div>
         </div>
     </div>
-    <input hidden id="selectedDate" value="{{ selectedDate | date('d/m/Y') }}"/>
     {% include "handling/modalDeleteHandling.html.twig" %}
     {% include "handling/modalNewHandling.html.twig" with modalNewConfig %}
     {% include "utils/visible_columns.html.twig" with {
