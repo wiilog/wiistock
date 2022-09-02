@@ -429,6 +429,8 @@ function processInputsForm($modal, data, isAttachmentForm) {
             )) {
             if($input.data(`label`)) {
                 missingInputNames.push($input.data(`label`));
+            } else if ($input.prev('label').text()){
+                missingInputNames.push($input.prev('label').text().replace('*', ''));
             } else if (missingInputNames.indexOf(label) === -1) {
                 missingInputNames.push(label);
             }
@@ -544,8 +546,8 @@ function processInputsForm($modal, data, isAttachmentForm) {
 
     if (missingInputNames.length > 0) {
         errorMessages.push(missingInputNames.length === 1
-            ? Translation.of('Général', '', 'Modale', 'Veuillez renseigner le champ {1}', {1 : missingInputNames[0]})
-            : Translation.of('Général', '', 'Modale', 'Veuillez renseigner les champs {1}', {1 : missingInputNames.join(', ')})
+            ? Translation.of('Général', '', 'Modale', 'Veuillez renseigner le champ : {1}', {1 : missingInputNames[0]})
+            : Translation.of('Général', '', 'Modale', 'Veuillez renseigner les champs : {1}', {1 : missingInputNames.join(', ')})
         );
     }
 

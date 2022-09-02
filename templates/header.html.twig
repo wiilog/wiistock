@@ -226,7 +226,7 @@
                                         }) }}
                                     </div>
                                     <div class="date dropdown-item-sub p-1">
-                                        <label class="label-date">Format de date</label>
+                                        <label class="label-date">{{ trans( 'Général', null, 'Header', 'Format de date') }}</label>
                                         {{ form.select('user_dateFormat', null, false, {
                                             items: dateFormat.dateFormat,
                                             type: null,
