@@ -253,7 +253,8 @@ class ImportService
 
         $importStatus = $import->getStatus();
         $statusLabel = isset($importStatus) ? $this->formatService->status($importStatus) : null;
-        $statusTitle = (!empty($statusLabel) && ($statusLabel === Import::STATUS_PLANNED))
+        $statusCode = $importStatus?->getCode();
+        $statusTitle = $statusCode === Import::STATUS_PLANNED
             ? ($import->isForced() ? 'L\'import sera réalisé dans moins de 30 min' : 'L\'import sera réalisé la nuit suivante')
             : '';
 
@@ -277,7 +278,7 @@ class ImportService
                 'url' => $url,
                 'importId' => $importId,
                 'fournisseurId' => $importId,
-                'canCancel' => ($statusLabel === Import::STATUS_PLANNED),
+                'canCancel' => ($statusCode === Import::STATUS_PLANNED),
                 'logFile' => $import->getLogFile() ? $import->getLogFile()->getFileName() : null
             ]),
         ];
@@ -1474,7 +1475,7 @@ class ImportService
             $this->throwError('Quantité fournie non valide.');
         }
 
-        if (!$articleReference || $this->formatService->status($articleReference->getStatut()) === ReferenceArticle::STATUT_INACTIF) {
+        if (!$articleReference || $articleReference->getStatut()?->getCode() === ReferenceArticle::STATUT_INACTIF) {
             $this->throwError('Article de référence inconnu ou inactif.');
         } else {
             if ($article && $articleReference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {

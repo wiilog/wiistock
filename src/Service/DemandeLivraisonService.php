@@ -157,7 +157,7 @@ class DemandeLivraisonService
                                         array       $averageRequestTimesByType): array
     {
 
-        $requestStatus = $demande->getStatut() ? $this->formatService->status($demande->getStatut()) : '';
+        $requestStatus = $demande->getStatut()?->getCode();
         $demandeType = $demande->getType() ? $demande->getType()->getLabel() : '';
 
         if ($requestStatus === Demande::STATUT_A_TRAITER && !$demande->getPreparations()->isEmpty()) {
@@ -354,7 +354,7 @@ class DemandeLivraisonService
         } else {
             $demande = $demandeRepository->find($demandeArray['demande']);
         }
-        if ($demande->getStatut() && $this->formatService->status($demande->getStatut()) === Demande::STATUT_BROUILLON) {
+        if ($demande->getStatut()?->getCode() === Demande::STATUT_BROUILLON) {
             $response = [];
             $response['success'] = true;
             $response['msg'] = '';
@@ -364,8 +364,7 @@ class DemandeLivraisonService
             foreach ($articleLines as $articleLine) {
                 $article = $articleLine->getArticle();
                 $statutArticle = $article->getStatut();
-                if (isset($statutArticle)
-                    && $this->formatService->status($statutArticle) !== Article::STATUT_ACTIF) {
+                if ($statutArticle?->getCode() !== Article::STATUT_ACTIF) {
                     $response['success'] = false;
                     $response['nomadMessage'] = 'Erreur de quantité sur l\'article : ' . $articleLine->getBarCode();
                     $response['msg'] = "Un article de votre demande n'est plus disponible. Assurez vous que chacun des articles soit en statut disponible pour valider votre demande.";
@@ -400,7 +399,7 @@ class DemandeLivraisonService
         } else {
             $response['entete'] = $this->templating->render('demande/demande-show-header.html.twig', [
                 'demande' => $demande,
-                'modifiable' => ($this->formatService->status($demande->getStatut()) === (Demande::STATUT_BROUILLON)),
+                'modifiable' => $demande->getStatut()?->getCode() === Demande::STATUT_BROUILLON,
                 'showDetails' => $this->createHeaderDetailsConfig($demande)
             ]);
             $response['msg'] = 'Votre demande de livraison a bien été validée';
@@ -526,7 +525,7 @@ class DemandeLivraisonService
         if (!$simpleValidation && !$fromNomade) {
             $response['entete'] = $this->templating->render('demande/demande-show-header.html.twig', [
                 'demande' => $demande,
-                'modifiable' => ($this->formatService->status($demande->getStatut()) === (Demande::STATUT_BROUILLON)),
+                'modifiable' => $demande->getStatut()?->getCode() === Demande::STATUT_BROUILLON,
                 'showDetails' => $this->createHeaderDetailsConfig($demande)
             ]);
             $response['msg'] = 'Votre demande de livraison a bien été validée';

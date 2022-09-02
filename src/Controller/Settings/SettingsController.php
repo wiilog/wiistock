@@ -989,7 +989,8 @@ class SettingsController extends AbstractController {
                             ->map(fn(Statut $status) => [
                                 "value" => $status->getId(),
                                 "label" => $this->getFormatter()->status($status),
-                            ])->toArray(),
+                            ])
+                            ->toArray(),
                     ],
                     self::MENU_FIXED_FIELDS => function() use ($fixedFieldRepository) {
                         $emergencyField = $fixedFieldRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY);

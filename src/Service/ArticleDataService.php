@@ -469,7 +469,7 @@ class ArticleDataService
         $articleReceptionRecipientDropzoneLabel = ($articleReceptionRecipientDropzone && $wantsRecipientDropzone) ? $articleReceptionRecipientDropzone->getLabel() : '';
 
         $articleLinkedToTransferRequestToTreat = $article->getTransferRequests()->map(function (TransferRequest $transferRequest) use ($reception) {
-            if ($reception && $this->formatService->status($transferRequest->getStatus()) === TransferOrder::TO_TREAT) {
+            if ($reception && $transferRequest->getStatus()?->getCode() === TransferOrder::TO_TREAT) {
                 $transferRequestLocation = $reception->getStorageLocation() ? $reception->getStorageLocation()->getLabel() : '';
             } else {
                 $transferRequestLocation = '';
@@ -545,7 +545,7 @@ class ArticleDataService
     }
 
     public function articleCanBeAddedInDispute(Article $article): bool {
-        return in_array($this->formatService->status($article->getStatut()), [Article::STATUT_ACTIF, Article::STATUT_EN_LITIGE]);
+        return in_array($article->getStatut()?->getCode(), [Article::STATUT_ACTIF, Article::STATUT_EN_LITIGE]);
     }
 
     public function getColumnVisibleConfig(EntityManagerInterface $entityManager,

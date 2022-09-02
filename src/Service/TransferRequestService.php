@@ -149,7 +149,7 @@ class TransferRequestService {
     public function parseRequestForCard(TransferRequest $request,
                                         DateService $dateService,
                                         array $averageRequestTimesByType) {
-        $requestStatus = $request->getStatus() ? $this->formatService->status($request->getStatus()) : '';
+        $requestStatus = $request->getStatus()?->getCode();
 
         if ($requestStatus !== TransferRequest::DRAFT && $request->getOrder()) {
             $href = $this->router->generate('transfer_order_show', ['id' => $request->getOrder()->getId()]);

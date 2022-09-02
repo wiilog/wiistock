@@ -157,7 +157,7 @@ class PreparationsManagerService
         $statutPreparePreparation = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::PREPARATION, $prepaStatusLabel);
         $demandeStatusLabel = $isPreparationComplete ? Demande::STATUT_PREPARE : Demande::STATUT_INCOMPLETE;
         $statutPrepareDemande = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::DEM_LIVRAISON, $demandeStatusLabel);
-        if ($this->formatService->status($demande->getStatut()) === Demande::STATUT_A_TRAITER) {
+        if ($demande->getStatut()?->getCode() === Demande::STATUT_A_TRAITER) {
             $demande->setStatut($statutPrepareDemande);
         }
 

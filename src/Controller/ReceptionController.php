@@ -948,7 +948,6 @@ class ReceptionController extends AbstractController {
         $typeBeforeName = $dispute->getType()->getLabel();
         $typeAfter = (int)$post->get('disputeType');
         $statutBeforeId = $dispute->getStatus()->getId();
-        $statutBeforeName = $this->getFormatter()->status($dispute->getStatus());
         $statutAfterId = (int)$post->get('disputeStatus');
         $statutAfter = $statutRepository->find($statutAfterId);
 
@@ -957,7 +956,7 @@ class ReceptionController extends AbstractController {
             ->filter(function(Article $article) {
                 // articles non disponibles
                 return in_array(
-                    $this->getFormatter()->status($article->getStatut()),
+                    $article->getStatut()?->getCode(),
                     [
                         Article::STATUT_EN_TRANSIT,
                         Article::STATUT_INACTIF

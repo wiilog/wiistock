@@ -186,8 +186,8 @@ class RefArticleDataService {
                         'label' => $articleFournisseur->getLabel(),
                         'fournisseurCode' => $articleFournisseur->getFournisseur()->getCodeReference(),
                         'quantity' => array_reduce($articles, function(int $carry, Article $article) {
-                            return ($article->getStatut() && $this->formatService->status($article->getStatut()) === Article::STATUT_ACTIF)
-                                ? $carry + $article->getQuantite()
+                            return $article->getStatut()?->getCode() === Article::STATUT_ACTIF
+                                ? ($carry + $article->getQuantite())
                                 : $carry;
                         }, 0)
                     ];
@@ -556,7 +556,7 @@ class RefArticleDataService {
             "actions" => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
                 "attachmentsLength" => $refArticle->getAttachments()->count(),
                 "reference_id" => $refArticle->getId(),
-                "active" => $refArticle->getStatut() ? $this->formatService->status($refArticle->getStatut()) == ReferenceArticle::STATUT_ACTIF : 0,
+                "active" => $refArticle->getStatut() ? $refArticle->getStatut()?->getCode() == ReferenceArticle::STATUT_ACTIF : 0,
             ]),
             "colorClass" => (
                 $refArticle->getOrderState() === ReferenceArticle::PURCHASE_IN_PROGRESS_ORDER_STATE ? 'table-light-orange' :
@@ -726,7 +726,7 @@ class RefArticleDataService {
             ?? $alert->getArticle()->getArticleFournisseur()->getReferenceArticle();
         $referenceArticleId = isset($referenceArticle) ? $referenceArticle->getId() : null;
         $referenceArticleStatus = isset($referenceArticle) ? $referenceArticle->getStatut() : null;
-        $referenceArticleActive = $referenceArticleStatus ? ($this->formatService->status($referenceArticleStatus) == ReferenceArticle::STATUT_ACTIF) : 0;
+        $referenceArticleActive = $referenceArticleStatus ? ($referenceArticleStatus?->getCode() == ReferenceArticle::STATUT_ACTIF) : 0;
 
         return [
             'actions' => $this->templating->render('alerte_reference/datatableAlertRow.html.twig', [
@@ -817,12 +817,12 @@ class RefArticleDataService {
                 ->filter(function(PreparationOrderReferenceLine $ligneArticlePreparation) use ($fromCommand) {
                     $preparation = $ligneArticlePreparation->getPreparation();
                     $livraison = $preparation->getLivraison();
-                    return $this->formatService->status($preparation->getStatut()) === Preparation::STATUT_EN_COURS_DE_PREPARATION
-                        || $this->formatService->status($preparation->getStatut()) === Preparation::STATUT_A_TRAITER
+                    return $preparation->getStatut()?->getCode() === Preparation::STATUT_EN_COURS_DE_PREPARATION
+                        || $preparation->getStatut()?->getCode() === Preparation::STATUT_A_TRAITER
                         || (
                             $fromCommand &&
                             $livraison &&
-                            $this->formatService->status($livraison->getStatut()) === Livraison::STATUT_A_TRAITER
+                            $livraison->getStatut()?->getCode() === Livraison::STATUT_A_TRAITER
                         );
                 });
             /**
@@ -836,7 +836,7 @@ class RefArticleDataService {
     }
 
     public function treatAlert(EntityManagerInterface $entityManager, ReferenceArticle $reference): void {
-        if($this->formatService->status($reference->getStatut()) === ReferenceArticle::STATUT_INACTIF) {
+        if($reference->getStatut()?->getCode() === ReferenceArticle::STATUT_INACTIF) {
             foreach($reference->getAlerts() as $alert) {
                 $entityManager->remove($alert);
             }

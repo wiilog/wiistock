@@ -70,7 +70,7 @@ class LivraisonController extends AbstractController
                            LivraisonsManagerService $livraisonsManager,
                            EntityManagerInterface $entityManager): Response
     {
-        if ($this->getFormatter()->status($livraison->getStatut()) === Livraison::STATUT_A_TRAITER) {
+        if ($livraison->getStatut()?->getCode() === Livraison::STATUT_A_TRAITER) {
             try {
                 $dateEnd = new DateTime('now');
                 /** @var Utilisateur $user */

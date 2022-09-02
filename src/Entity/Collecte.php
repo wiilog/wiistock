@@ -27,6 +27,7 @@ class Collecte implements PairedEntity {
     const STATUT_BROUILLON = 'brouillon';
     const DESTRUCT_STATE = 0;
     const STOCKPILLING_STATE = 1;
+
     use CommentTrait;
     use SensorMessageTrait;
     use FreeFieldsManagerTrait;

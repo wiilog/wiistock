@@ -166,7 +166,7 @@ class TransferOrderController extends AbstractController {
         return $this->render('transfer/order/show.html.twig', [
             'order' => $transfer,
             'detailsConfig' => $this->service->createHeaderDetailsConfig($transfer),
-            'modifiable' => $this->getFormatter()->status($transfer->getStatus()) === TransferOrder::TO_TREAT
+            'modifiable' => $transfer->getStatus()?->getCode() === TransferOrder::TO_TREAT
         ]);
     }
 

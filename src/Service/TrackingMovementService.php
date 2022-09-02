@@ -352,7 +352,7 @@ class TrackingMovementService
 
         if (!$disableUngrouping
              && $pack->getParent()
-             && in_array($this->formatService->status($type), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE])) {
+             && in_array($type?->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE])) {
             $type = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_UNGROUP);
 
             $trackingUngroup = new TrackingMovement();
@@ -720,7 +720,7 @@ class TrackingMovementService
     public function finishTrackingMovement(?TrackingMovement $trackingMovement): ?string {
         if ($trackingMovement) {
             $type = $trackingMovement->getType();
-            if ($this->formatService->status($type) === TrackingMovement::TYPE_PRISE) {
+            if ($type?->getCode() === TrackingMovement::TYPE_PRISE) {
                 $trackingMovement->setFinished(true);
                 return $trackingMovement->getPack()->getCode();
             }
@@ -854,7 +854,7 @@ class TrackingMovementService
                 $trackingPack = $mouvementTracaPriseToFinish->getPack();
                 if ($trackingPack) {
                     $packCode = $trackingPack->getCode();
-                    if (($this->formatService->status($mouvementTracaPriseToFinish->getType()) === TrackingMovement::TYPE_PRISE) &&
+                    if (($mouvementTracaPriseToFinish->getType()?->getCode() === TrackingMovement::TYPE_PRISE) &&
                         in_array($packCode, $finishMouvementTraca) &&
                         !$mouvementTracaPriseToFinish->isFinished()) {
                         $mouvementTracaPriseToFinish->setFinished((bool)$mvt['finished']);
@@ -916,10 +916,9 @@ class TrackingMovementService
         }
 
         $movementType = $movement->getType();
-        $movementTypeName = $movementType ? $this->formatService->status($movementType) : null;
 
         // Dans le cas d'une dépose, on vérifie si l'emplacement peut accueillir le colis
-        if ($movementTypeName === TrackingMovement::TYPE_DEPOSE && !$location->ableToBeDropOff($movement->getPack())) {
+        if ($movementType?->getCode() === TrackingMovement::TYPE_DEPOSE && !$location->ableToBeDropOff($movement->getPack())) {
             $packTranslation = $this->translation->trans('arrivage.colis');
             $natureTranslation = $this->translation->trans('natures.natures requises');
             $packCode = $movement->getPack()->getCode();

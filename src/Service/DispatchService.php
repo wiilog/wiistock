@@ -564,7 +564,7 @@ class DispatchService {
                                         DateService $dateService,
                                         array $averageRequestTimesByType): array {
 
-        $requestStatus = $dispatch->getStatut() ? $this->formatService->status($dispatch->getStatut()) : '';
+        $requestStatus = $dispatch->getStatut()?->getCode();
         $requestType = $dispatch->getType() ? $dispatch->getType()->getLabel() : '';
         $typeId = $dispatch->getType() ? $dispatch->getType()->getId() : null;
         $requestState = $dispatch->getStatut() ? $dispatch->getStatut()->getState() : null;
