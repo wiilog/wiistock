@@ -995,6 +995,17 @@ class SettingsService {
         foreach ($defaultDeliveryLocationsIds as $typeId => $locationId) {
             if ($typeId !== 'all' && $typeId) {
                 $type = $typeRepository->find($typeId);
+                $typeOption = [
+                    'id' => $type->getId(),
+                    'label' => $type->getLabel(),
+                ];
+                // Déclarer une variable qui vaut 1013 et 1014
+            }elseif ($typeId === 'all') {
+                $typeOption = [
+                    'id' => 'all',
+                    'label' => 'Tous les types',
+                ];
+                // Déclarer une variable qui vaut id => 'all'
             }
             if ($locationId) {
                 $location = $locationRepository->find($locationId);
@@ -1003,15 +1014,11 @@ class SettingsService {
             if (isset($location)) {
                 $defaultDeliveryLocations[] = [
                     'location' => [
-                        'label' => $location->getLabel(),
                         'id' => $location->getId(),
+                        'label' => $location->getLabel(),
                     ],
-                    'type' => isset($type)
-                        ? [
-                            'label' => $type->getLabel(),
-                            'id' => $type->getId(),
-                        ]
-                        : null,
+                    // Remplacer par la
+                    'type' => $typeOption ?? null,
                 ];
             }
         }
