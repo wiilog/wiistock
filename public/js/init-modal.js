@@ -384,6 +384,7 @@ function processInputsForm($modal, data, isAttachmentForm) {
     $inputs.each(function () {
         const $input = $(this);
         const name = $input.attr('name');
+        const defaultTranslationsSelector = $(`.defaultLanguageTranslations`);
 
         let $formGroupLabel = $input.closest('.form-group').find('label');
         if (!$formGroupLabel.exists()) {
@@ -418,6 +419,11 @@ function processInputsForm($modal, data, isAttachmentForm) {
             .replace(/\n/g, ' ')
             .trim();
 
+        var defaultLanguages = {};
+        if(defaultTranslationsSelector.val()) {
+            defaultLanguages = JSON.parse(defaultTranslationsSelector.val());
+        }
+
         // validation données obligatoires
         if (($input.hasClass('needed') && $input.is(`:not([type=radio])`))
             && $input.is(':disabled') === false
@@ -425,19 +431,36 @@ function processInputsForm($modal, data, isAttachmentForm) {
                 || val === ''
                 || val === null
                 || (Array.isArray(val) && val.length === 0)
-                || ($qlEditor && $qlEditor.length > 0 && !$qlEditor.text())
-            )) {
-            if($input.data(`label`)) {
-                missingInputNames.push($input.data(`label`));
-            } else if ($input.prev('label').text()){
-                missingInputNames.push($input.prev('label').text().replace('*', ''));
-            } else if (missingInputNames.indexOf(label) === -1) {
-                missingInputNames.push(label);
+                || ($qlEditor && $qlEditor.length > 0 && !$qlEditor.text()))) {
+
+
+            if ($modal.data() === $('#modalEditTranslations').data()) {
+                if(defaultLanguages[$input.prev('input:hidden').val()]) {
+                    const labelLanguage = $input.parent().parent().text().replace('*', '');
+                    if (!(missingInputNames.indexOf(labelLanguage) > -1)) {
+                        missingInputNames.push(labelLanguage);
+                    }
+
+                    $isInvalidElements.push($input, $input.next().find('.select2-selection'));
+                    if ($editorContainer.length > 0) {
+                        $isInvalidElements.push($editorContainer);
+                    }
+                }
+            } else {
+                if($input.data(`label`)) {
+                    missingInputNames.push($input.data(`label`));
+                } else if ($input.prev('label').text()){
+                    missingInputNames.push($input.prev('label').text().replace('*', ''));
+                } else if (missingInputNames.indexOf(label) === -1) {
+                    missingInputNames.push(label);
+                }
+
+                $isInvalidElements.push($input, $input.next().find('.select2-selection'));
+                if ($editorContainer.length > 0) {
+                    $isInvalidElements.push($editorContainer);
+                }
             }
-            $isInvalidElements.push($input, $input.next().find('.select2-selection'));
-            if ($editorContainer.length > 0) {
-                $isInvalidElements.push($editorContainer);
-            }
+
         }
         else if ($input.hasClass('is-barcode')
             && !isBarcodeValid($input)) {
