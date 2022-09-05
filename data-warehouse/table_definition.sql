@@ -28,7 +28,7 @@ CREATE TABLE dw_association_br
     utilisateur varchar(255)
 );
 
-CREATE TABLE dw_services_statuts
+CREATE TABLE dw_service_statut
 (
     date_statut timestamp(0),
     service_id  varchar(255),

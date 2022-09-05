@@ -127,11 +127,17 @@ class SelectController extends AbstractController {
         if($request->query->has('alreadyDefinedTypes')) {
             $alreadyDefinedTypes = explode(";", $request->query->get('alreadyDefinedTypes'));
         } else if($request->query->has('deliveryType')) {
-            $alreadyDefinedTypes = $request->query->get('deliveryType');
+            $parameters = $request->query->all();
+            if (is_array($parameters['deliveryType'] ?? null)) {
+                $alreadyDefinedTypes = $request->query->all('deliveryType');
+            }
+            else {
+                $alreadyDefinedTypes = [$request->query->get('deliveryType')];
+            }
         }
 
         $allTypesOption = [];
-        if($request->query->has('allTypesOption') && $request->query->getBoolean('allTypesOption') && !in_array('all', $alreadyDefinedTypes)) {
+        if($request->query->has('all-types-option') && $request->query->getBoolean('all-types-option') && !in_array('all', $alreadyDefinedTypes)) {
             $allTypesOption = [[
                 'id' => 'all',
                 'text' => 'Tous les types'

@@ -1,4 +1,4 @@
-import '../../../scss/pages/settings.scss';
+import '@styles/pages/settings.scss';
 import EditableDatatable, {MODE_ADD_ONLY, MODE_CLICK_EDIT, MODE_NO_EDIT, SAVE_MANUALLY, STATE_VIEWING, MODE_EDIT, MODE_CLICK_EDIT_AND_ADD, } from "../../editatable";
 import Flash, {INFO} from '@app/flash';
 import {LOADING_CLASS} from "@app/loading";

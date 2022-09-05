@@ -204,6 +204,15 @@ class SettingsService {
             $setting = $this->manager->getRepository(Setting::class)
                 ->findOneBy(["label" => Setting::DEFAULT_LOCATION_LIVRAISON]);
             $associatedTypesAndLocations = array_combine($deliveryTypes, $deliveryRequestLocations);
+            $invalidDeliveryTypes = (
+                empty($associatedTypesAndLocations)
+                || !Stream::from($associatedTypesAndLocations)
+                    ->filter(fn(string $key, string $value) => !$key || !$value)
+                    ->isEmpty()
+            );
+            if ($invalidDeliveryTypes) {
+                throw new RuntimeException("Une configuration d'emplacement de livraison par défaut est invalide");
+            }
             $setting->setValue(json_encode($associatedTypesAndLocations));
 
             $updated = array_merge($updated, [
