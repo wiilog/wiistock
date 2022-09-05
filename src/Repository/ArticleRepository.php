@@ -1084,17 +1084,7 @@ class ArticleRepository extends EntityRepository {
             ->toIterable();
     }
 
-    public function countArtByMission(int $mission): int {
-        return $this->createQueryBuilder('article')
-            ->select('COUNT(article)')
-            ->join('article.inventoryMissions', 'inventory_missions')
-            ->where('inventory_missions.id = :mission')
-            ->setParameter('mission', $mission)
-            ->getQuery()
-            ->getSingleScalarResult();
-    }
-
-    public function getArticlesByDisputeId(int $disputeId) {
+    public function getArticlesByDisputeId(int $disputeId): array {
         return $this->createQueryBuilder('article')
             ->select('article.barCode AS barcode')
             ->addSelect('article.quantite AS quantity')

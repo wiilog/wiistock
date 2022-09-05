@@ -127,7 +127,7 @@ class DisputeController extends AbstractController
             $arrivalDisputes = $disputeRepository->iterateArrivalDisputesByDates($dateTimeMin, $dateTimeMax);
             /** @var Dispute $dispute */
             foreach ($arrivalDisputes as $dispute) {
-                $disputeService->putDisputeLine($entityManager, DisputeService::PUT_LINE_ARRIVAL, $output, $dispute);
+                $disputeService->putDisputeLine($entityManager, DisputeService::PUT_LINE_ARRIVAL, $output, $dispute, $disputeRepository);
             }
 
             $entityManager->clear();
@@ -139,7 +139,7 @@ class DisputeController extends AbstractController
             /** @var Dispute $dispute */
             foreach ($receptionDisputes as $dispute) {
                 $articles = $articleRepository->getArticlesByDisputeId($dispute["id"]);
-                $disputeService->putDisputeLine($entityManager, DisputeService::PUT_LINE_RECEPTION, $output, $dispute, $associatedIdAndReferences, $associatedIdAndOrderNumbers, $articles);
+                $disputeService->putDisputeLine($entityManager, DisputeService::PUT_LINE_RECEPTION, $output, $dispute, $disputeRepository, $associatedIdAndReferences, $associatedIdAndOrderNumbers, $articles);
             }
 
         }, "Export-Litiges" . $nowStr . ".csv", $headers);
