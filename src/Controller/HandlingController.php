@@ -91,7 +91,6 @@ class HandlingController extends AbstractController {
         }
 
         return $this->render('handling/index.html.twig', [
-            'selectedDate' => DateTime::createFromFormat("Y-m-d", $request->query->get('date')),
             'dateChoices' => $dateChoice,
             'statuses' => $statutRepository->findByCategorieName(Handling::CATEGORIE, 'displayOrder'),
 			'filterStatus' => $filterStatus,
