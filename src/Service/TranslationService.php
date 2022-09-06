@@ -90,7 +90,7 @@ class TranslationService {
         foreach($args as $arg) {
             if(is_array($arg)) {
                 $params = $arg;
-            }if(is_bool($arg)) {
+            }else if(is_bool($arg)) {
                 $enableTooltip = $arg;
             } else if(!($arg instanceof Utilisateur)) {
                 if(empty($variables)) {

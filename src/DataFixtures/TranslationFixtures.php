@@ -735,6 +735,16 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 "Mail arrivage" => [
                     "content" => [
                         [
+                            "fr" => "FOLLOW GT // Arrivage",
+                            "en" => "FOLLOW GT // Arrivals",
+                            "tooltip" => "Mail arrivage : objet ",
+                        ],
+                        [
+                            "fr" => "FOLLOW GT // Arrivage urgent",
+                            "en" => "FOLLOW GT // Urgent arrival",
+                            "tooltip" => "Mail arrivage : objet ",
+                        ],
+                        [
                             "fr" => "Arrivage reçu :  le {1} à {2}",
                             "en" => "Arrival received : on {1} at {2}",
                             "tooltip" => "Mail arrivage",
@@ -747,6 +757,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Votre commande est arrivée :",
                             "en" => "Your order has arrived",
+                            "tooltip" => "Mail arrivage",
+                        ],
+                        [
+                            "fr" => "Votre commande urgente est arrivée :",
+                            "en" => "Your urgent order has arrived:",
                             "tooltip" => "Mail arrivage",
                         ],
                         [
@@ -784,13 +799,39 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 "Mail litige" => [
                     "content" => [
                         [
-                            "fr" => "Un litige a été déclaré sur un arrivage vous concernant :",
-                            "en" => "A dispute has been declared on a delivery concerning you:",
+                            "fr" => "FOLLOW GT // Litige sur {1}",
+                            "en" => "FOLLOW GT // Dispute on {1}",
+                            "tooltip" => "Mail litige : objet",
+                        ],
+                        [
+                            "fr" => "FOLLOW GT // Changement de statut d'un litige sur {1}",
+                            "en" => "Change of status of a dispute on {1}",
+                            "tooltip" => "Mail litige : objet",
+                        ],
+
+                        [
+                            "fr" => "Un litige a été déclaré sur {1} vous concernant :",
+                            "en" => "A dispute has been declared on {1} concerning you:",
+                            "tooltip" => "Mail litige",
+                        ],
+                        [
+                            "fr" => "Changement de statut d'un litige sur {1} vous concernant :",
+                            "en" => "Change the status of a dispute on {1} concerning you:",
+                            "tooltip" => "Mail litige",
+                        ],
+                        [
+                            "fr" => "un arrivage",
+                            "en" => "a delivery",
                             "tooltip" => "Mail litige",
                         ],
                         [
                             "fr" => "1 litige vous concerne :",
                             "en" => "1 dispute concerns you:",
+                            "tooltip" => "Mail litige",
+                        ],
+                        [
+                            "fr" => "{1} litiges vous concernent :",
+                            "en" => "{1} disputes concern you:",
                             "tooltip" => "Mail litige",
                         ],
                         [
@@ -808,11 +849,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 "Modale Nouvelle demande d'acheminement" => [
                     "subtitle" => "La plupart des libellés ont leur traduction qui s'applique à partir de la page Acheminement",
                     "content" => [
-                        [
-                            "fr" => "UL à acheminer",
-                            "en" => "L.U. to transfer",
-                            "tooltip" => "Modale acheminer",
-                        ],
                         [
                             "fr" => "Annuler acheminer",
                             "en" => "Cancel transfer",
@@ -2065,8 +2101,13 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Mail changement statut acheminement",
                         ],
                         [
-                            "fr" => "Bonne journée, \n\nL'équipe GT Logistics.",
-                            "en" => "Have a nice day,\n\nThe GT Logistics team",
+                            "fr" => "Bonne journée,",
+                            "en" => "Have a nice day,",
+                            "tooltip" => "Mail changement statut acheminement\nMail traitement acheminement",
+                        ],
+                        [
+                            "fr" => "L'équipe GT Logistics.",
+                            "en" => "The GT Logistics team",
                             "tooltip" => "Mail changement statut acheminement\nMail traitement acheminement",
                         ],
                         [

@@ -14,37 +14,44 @@
         : arrival.commentaire|striptags
     %}
 
-    <p>Bonjour,</p>
-    <p>Votre commande {{ isUrgentArrival ? 'urgente ' }} est arrivée :</p>
+    {% set lastResort = true %}
+
+    <p>{{ translateIn(defaultLanguageSlug, defaultLanguageSlug, lastResort, 'Traçabilité', 'Flux - Arrivages', 'Mail arrivage', 'Bonjour,', false) }}</p>
+    <p>
+        {{ isUrgentArrival
+            ? translateIn(defaultLanguageSlug, defaultLanguageSlug, lastResort, 'Traçabilité', 'Flux - Arrivages', 'Mail arrivage', 'Votre commande urgente est arrivée :', false)
+            : translateIn(defaultLanguageSlug, defaultLanguageSlug, lastResort, 'Traçabilité', 'Flux - Arrivages', 'Mail arrivage', 'Votre commande est arrivée :', false)
+        }}
+    </p>
     <ul>
-        <li>{{ "arrivage.n° d\'arrivage"|trans }} : <strong>{{ arrival.numeroArrivage }}</strong></li>
+        <li>{{ translateIn(defaultLanguageSlug, defaultLanguageSlug, lastResort, 'Traçabilité', 'Flux - Arrivages', 'Divers', 'N° d\'arrivage', false) }} : <strong>{{ arrival.numeroArrivage }}</strong></li>
 
         {% if numeroCommandeList|length > 0 %}
-            <li>{{ 'arrivage.Numéro de commande'|trans }}{{ numeroCommandeList|length > 1 ? 's' }} : <strong>{{ numeroCommandeList|join(', ') }}</strong></li>
+            <li>{{ translateIn(defaultLanguageSlug, defaultLanguageSlug, lastResort, 'Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° commande / BL', false) }} : <strong>{{ numeroCommandeList|join(', ') }}</strong></li>
         {% endif %}
 
         {% if arrival.fournisseur %}
-            <li>Fournisseur : <strong>{{ arrival.fournisseur.nom }}</strong></li>
+            <li>{{ translateIn(defaultLanguageSlug, defaultLanguageSlug, lastResort, 'Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Fournisseur', false) }} : <strong>{{ arrival.fournisseur.nom }}</strong></li>
         {% endif %}
 
         {% if arrival.transporteur %}
-            <li>Transporteur : <strong>{{ arrival.transporteur.label }}</strong></li>
+            <li>{{ translateIn(defaultLanguageSlug, defaultLanguageSlug, lastResort, 'Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Transporteur', false) }} : <strong>{{ arrival.transporteur.label }}</strong></li>
         {% endif %}
 
         {% if arrival.noTracking %}
-            <li>Numéro de tracking transporteur : <strong>{{ arrival.noTracking }}</strong></li>
+            <li>{{ translateIn(defaultLanguageSlug, defaultLanguageSlug, lastResort, 'Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° tracking transporteur', false) }} : <strong>{{ arrival.noTracking }}</strong></li>
         {% endif %}
 
         {% if arrival.projectNumber %}
-            <li>Numéro projet : <strong>{{ arrival.projectNumber }}</strong></li>
+            <li>{{ translateIn(defaultLanguageSlug, defaultLanguageSlug, lastResort, 'Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Numéro de projet', false) }} : <strong>{{ arrival.projectNumber }}</strong></li>
         {% endif %}
 
         {% if arrival.businessUnit %}
-            <li>Business Unit : <strong>{{ arrival.businessUnit }}</strong></li>
+            <li>{{ translateIn(defaultLanguageSlug, defaultLanguageSlug, lastResort, 'Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Business unit', false) }} : <strong>{{ arrival.businessUnit }}</strong></li>
         {% endif %}
 
         <li>
-            Pièces jointes :
+            {{ translateIn(defaultLanguageSlug, defaultLanguageSlug, lastResort, 'Général', null, 'Modale', 'Pièces jointes', false) }} :
             <ul>
                 {% set linkBaseHref = app.request is not null ? app.request.getSchemeAndHttpHost() : app_url %}
                 {% for attachment in arrival.attachments %}
@@ -58,7 +65,7 @@
         </li>
 
         {% if arrival.commentaire %}
-            <li>Commentaire : {{ comment }}</li>
+            <li>{{ translateIn(defaultLanguageSlug, defaultLanguageSlug, lastResort, 'Général', null, 'Modale', 'Commentaire', false) }} : {{ comment }}</li>
         {% endif %}
 
         {% for freeField in freeFields %}

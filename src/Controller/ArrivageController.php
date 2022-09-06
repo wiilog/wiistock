@@ -69,7 +69,7 @@ class ArrivageController extends AbstractController {
      * @Route("/", name="arrivage_index")
      * @HasPermission({Menu::TRACA, Action::DISPLAY_ARRI})
      */
-    public function index(EntityManagerInterface $entityManager, ArrivageService $arrivageDataService)
+    public function index(EntityManagerInterface $entityManager, ArrivageService $arrivageDataService, TranslationService $translation)
     {
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
@@ -201,7 +201,7 @@ class ArrivageController extends AbstractController {
             return new JsonResponse([
                 'success' => false,
                 'msg' => $translation->translate("Général", null, "Modale", "Veuillez renseigner le champ {1}", [
-                    1 =>  $translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Statut'),
+                    '1' =>  $translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Statut', false),
                 ]),
             ]);
         }
@@ -254,7 +254,7 @@ class ArrivageController extends AbstractController {
         catch (UniqueConstraintViolationException $e) {
             return new JsonResponse([
                 'success' => false,
-                'msg' => $translation->translate('Traçabilité', 'Flux - Arrivages', 'Divers fixes', 'Un autre arrivage est en cours de création, veuillez réessayer')
+                'msg' => $translation->translate('Traçabilité', 'Flux - Arrivages', 'Divers', 'Un autre arrivage est en cours de création, veuillez réessayer')
             ]);
         }
 
@@ -273,7 +273,7 @@ class ArrivageController extends AbstractController {
             return new JsonResponse([
                 'success' => false,
                 'msg' => $translation->translate("Général", null, "Modale", "Veuillez renseigner le champ {1}", [
-                    1 =>  $translation->translate('Traçabilité', 'Général', 'Unités logistiques'),
+                    '1' =>  $translation->translate('Traçabilité', 'Général', 'Unités logistiques', false),
                 ]),
             ]);
         }
