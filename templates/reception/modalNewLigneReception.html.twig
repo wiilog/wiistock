@@ -60,7 +60,7 @@
                     <input type="hidden"
                            name="defaultDeliveryLocations"
                            data-value="{{ defaultDeliveryLocations|json_encode }}"/>
-                    <div class="row">
+                    <div class="row demande-header-form">
                         <div class="col-4 form-group">
                             <label class="wii-field-name">Demandeur*</label>
                             <select class="data needed wii-field-text w-100"
@@ -132,13 +132,14 @@
             <input class="data" name="precheckedDelivery" type="hidden" value="{{ precheckedDelivery }}"/>
             <input type="hidden" class="data" name="packingArticles" value="">
 
-            {% include('utils/modal/footer.html.twig') with {
+            {% include 'utils/modal/footer.html.twig' with {
+                classes: 'd-none',
                 elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Fermer'},
-                    {id: 'submitNewReceptionButton', classes: 'btn btn-success', text: 'Enregistrer'},
-                ],
-                classes: 'd-none'
+                    {id: 'submitNewReceptionButton', classes: 'btn btn-success', text: 'Enregistrer'}
+                ]
             } %}
+
         </div>
     </div>
 </form>

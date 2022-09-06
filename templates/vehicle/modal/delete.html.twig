@@ -10,15 +10,14 @@
 
             <div class="modal-body">
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
-                    <button id="submitDeleteVehicle"
-                            name="id"
-                            type="button"
-                            class="btn btn-danger data">
-                        Supprimer
-                    </button>
-            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-danger data', text: 'Supprimer', name: 'id', id: 'submitDeleteVehicle'}
+                ],
+                renderErrorContainer: false
+            } %}
+
         </div>
     </div>
 </form>

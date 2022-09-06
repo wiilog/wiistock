@@ -607,13 +607,13 @@ class DispatchService {
             'requestNumber' => $dispatch->getNumber(),
             'requestDate' => $requestDateStr,
             'requestUser' => $dispatch->getRequester() ? $dispatch->getRequester()->getUsername() : 'Non défini',
-            'cardColor' => $requestState === Statut::DRAFT ? 'lightGrey' : 'white',
-            'bodyColor' => $requestState === Statut::DRAFT ? 'white' : 'lightGrey',
+            'cardColor' => $requestState === Statut::DRAFT ? 'light-grey' : 'white',
+            'bodyColor' => $requestState === Statut::DRAFT ? 'white' : 'light-grey',
             'topRightIcon' => 'livreur.svg',
             'emergencyText' => '',
             'progress' => $statusesToProgress[$requestState] ?? 0,
             'progressBarColor' => '#2ec2ab',
-            'progressBarBGColor' => $requestState === Statut::DRAFT ? 'white' : 'lightGrey',
+            'progressBarBGColor' => $requestState === Statut::DRAFT ? 'white' : 'light-grey',
         ];
     }
 

@@ -43,7 +43,8 @@ class TransportHistoryService {
     public const TYPE_FINISHED_BOTH = "FINISHED_BOTH";
     public const TYPE_ADD_COMMENT = "ADD_COMMENT";
     public const TYPE_ADD_ATTACHMENT = "ADD_ATTACHMENT";
-    public const TYPE_FAILED = "FAILED";
+    public const TYPE_FAILED_DELIVERY = "FAILED";
+    public const TYPE_FAILED_COLLECT = "TYPE_FAILED_COLLECT";
     public const TYPE_PACKS_FAILED = "PACKS_FAILED";
     public const TYPE_PACKS_DEPOSITED = "PACKS_DEPOSITED";
     public const TYPE_NO_MONITORING = "NO_MONITORING";
@@ -69,7 +70,8 @@ class TransportHistoryService {
         self::TYPE_FINISHED_BOTH => "{user} a terminé la livraison et une collecte",
         self::TYPE_ADD_COMMENT => "{user} a laissé un commentaire",
         self::TYPE_ADD_ATTACHMENT => "{user} a ajouté des pièces jointes",
-        self::TYPE_FAILED => "{user} n'a pas pu effectuer la {category}",
+        self::TYPE_FAILED_DELIVERY => "{user} n'a pas pu effectuer la livraison",
+        self::TYPE_FAILED_COLLECT => "{user} n'a pas pu effectuer la collecte",
         self::TYPE_PACKS_FAILED => "{user} a déposé les colis {message} sur {location}",
         self::TYPE_PACKS_DEPOSITED => "{user} a déposé les objets sur {location}",
         self::TYPE_NO_MONITORING => "Le suivi en temps réel n'est pas disponible car la livraison est un horaire non ouvré. {message}",
@@ -224,7 +226,15 @@ class TransportHistoryService {
         return str_replace(array_keys($replace), array_values($replace), self::CONTENT[$history->getType()]);
     }
 
-    private function getCategoryFromType(string $type): string {
+    private function getCategoryFromType(mixed $entity, string $type): string {
+        if($type === self::TYPE_LABELS_PRINTING) {
+            if($entity instanceof TransportRequest) {
+                return self::CATEGORY_TIMELINE;
+            } else {
+                return self::CATEGORY_INFORMATION;
+            }
+        }
+
         return match($type) {
             self::TYPE_BOTH_REQUEST_CREATION,
             self::TYPE_ONGOING,
@@ -236,17 +246,18 @@ class TransportHistoryService {
             self::TYPE_ACCEPTED,
             self::TYPE_AWAITING_PLANNING,
             self::TYPE_PACKS_DEPOSITED,
-            self::TYPE_REQUEST_AFFECTED_ROUND,
             self::TYPE_AFFECTED_ROUND,
-            self::TYPE_CONTACT_VALIDATED => self::CATEGORY_TIMELINE,
+            self::TYPE_CONTACT_VALIDATED =>  self::CATEGORY_TIMELINE,
 
             self::TYPE_REQUEST_CREATION,
             self::TYPE_LABELS_PRINTING,
             self::TYPE_REQUEST_EDITED,
+            self::TYPE_REQUEST_AFFECTED_ROUND,
             self::TYPE_PACKS_FAILED => self::CATEGORY_INFORMATION,
 
             self::TYPE_DROP_REJECTED_PACK,
-            self::TYPE_FAILED,
+            self::TYPE_FAILED_DELIVERY,
+            self::TYPE_FAILED_COLLECT,
             self::TYPE_NO_MONITORING,
             self::TYPE_REJECTED_DELIVERY,
             self::TYPE_CANCELLED => self::CATEGORY_WARNING,
@@ -259,8 +270,8 @@ class TransportHistoryService {
         };
     }
 
-    public function getIconFromType(string $type): string {
-        $category = $this->getCategoryFromType($type);
+    public function getIconFromType(mixed $entity, string $type): string {
+        $category = $this->getCategoryFromType($entity, $type);
         return match ($category) {
             self::CATEGORY_ATTACHMENT => 'timeline-attachment.svg',
             self::CATEGORY_COMMENT => 'timeline-comment.svg',

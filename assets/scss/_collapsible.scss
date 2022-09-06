@@ -1,14 +1,16 @@
+@import "variables";
+
 .toggle-collapsible {
     display: inline-block;
     cursor: pointer;
     transition: all 0.25s ease-out;
-    color: #666666;
+    color: $dark-grey;
     font-weight: 600;
     font-size: 14px;
 
     &::before {
         content: '⯈ ';
-        color: black;
+        color: $dark-grey;
         display: inline-block;
         vertical-align: middle;
         margin-right: 3px;

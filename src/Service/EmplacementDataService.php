@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 
+use App\Entity\IOT\SensorMessage;
 use App\Entity\Nature;
 use App\Entity\Transport\TemperatureRange;
 use Doctrine\ORM\EntityManagerInterface;
@@ -54,7 +55,7 @@ class EmplacementDataService {
 
         $rows = [];
         foreach ($emplacements as $emplacement) {
-            $rows[] = $this->dataRowEmplacement($emplacement);
+            $rows[] = $this->dataRowEmplacement($this->entityManager, $emplacement);
         }
         return [
             'data' => $rows,
@@ -64,8 +65,10 @@ class EmplacementDataService {
         ];
     }
 
-    public function dataRowEmplacement(Emplacement $emplacement) {
+    public function dataRowEmplacement(EntityManagerInterface $manager, Emplacement $emplacement) {
         $url['edit'] = $this->router->generate('emplacement_edit', ['id' => $emplacement->getId()]);
+
+        $sensorMessageRepository = $manager->getRepository(SensorMessage::class);
 
         $allowedNatures = Stream::from($emplacement->getAllowedNatures())
             ->map(fn(Nature $nature) => $nature->getLabel())
@@ -76,8 +79,8 @@ class EmplacementDataService {
             ->join(", ");
 
         $linkedGroup = $emplacement->getLocationGroup();
-        $groupLastMessage = $linkedGroup ? $linkedGroup->getLastMessage() : null;
-        $locationLastMessage = $emplacement->getLastMessage();
+        $groupLastMessage = $linkedGroup ?  $sensorMessageRepository->getLastSensorMessage($linkedGroup) : null;
+        $locationLastMessage = $sensorMessageRepository->getLastSensorMessage($emplacement);
 
         $sensorCode = $groupLastMessage && $groupLastMessage->getSensor()->getAvailableSensorWrapper()
             ? $groupLastMessage->getSensor()->getAvailableSensorWrapper()->getName()

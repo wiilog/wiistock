@@ -28,6 +28,15 @@ CREATE TABLE dw_association_br
     utilisateur varchar(255)
 );
 
+CREATE TABLE dw_service_statut
+(
+    date_statut timestamp(0),
+    service_id  varchar(255),
+    numero      varchar(255),
+    statut      varchar(255),
+    utilisateur varchar(255)
+);
+
 CREATE TABLE dw_arrivage_champs_libres
 (
     arrivage_id integer,

@@ -1,16 +1,16 @@
 {% set config = triggerAction is defined and triggerAction ? triggerAction.config : [] %}
 <div class="col-6 pl-0">
     <div class="form-group col-10">
-        <label>Température*</label>
+        <label class="wii-field-name">Température*</label>
         <div class="d-flex align-items-center">
-            <label style="white-space: nowrap">Si température supérieure à </label>
+            <label class="wii-field-name" style="white-space: nowrap">Si température supérieure à </label>
             <input type="number" class="data form-control needed w-120px mx-2" value="{{ config is not empty ? config[0]['temperature'] }}"
                    name="sensorTemperatureLimitHigher">
             <label>°C</label>
         </div>
     </div>
     <div class="form-group col-10">
-        <label>Type de modèle*</label>
+        <label class="wii-field-name">Type de modèle*</label>
         <div class="w-100">
             <select class="form-control data needed" name="templateTypeHigher" onchange="onTemplateTypeChange($(this))">
                 <option value=""></option>
@@ -25,7 +25,7 @@
         </div>
     </div>
     <div class="form-group col-10">
-        <label>Modèle*</label>
+        <label class="wii-field-name">Modèle*</label>
         <div class="w-100">
             <select disabled class="form-control data needed" name="templatesForHigher">
             </select>
@@ -35,7 +35,7 @@
 
 <div class="col-6" style="border-left: black solid 1px">
     <div class="form-group col-10" >
-        <label style="color: transparent">Température*</label>
+        <label class="wii-field-name" style="color: transparent">Température*</label>
         <div class="d-flex align-items-center">
             <label style="white-space: nowrap">Si température inférieure à </label>
             <input type="number" class="data form-control needed w-120px mx-2" value="{{ config is not empty ? config[1]['temperature'] }}"
@@ -44,7 +44,7 @@
         </div>
     </div>
     <div class="form-group col-10">
-        <label>Type de modèle*</label>
+        <label class="wii-field-name">Type de modèle*</label>
         <div class="w-100">
             <select class="form-control data needed" name="templateTypeLower" onchange="onTemplateTypeChange($(this))">
                 <option value=""></option>
@@ -59,7 +59,7 @@
         </div>
     </div>
     <div class="form-group col-10">
-        <label>Modèle*</label>
+        <label class="wii-field-name">Modèle*</label>
         <div class="w-100">
             <select disabled class="form-control data needed" name="templatesForLower">
             </select>

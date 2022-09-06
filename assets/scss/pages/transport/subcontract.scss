@@ -6,7 +6,7 @@
     white-space: initial !important;
 }
 
-.transport-request-card{
+.transport-request-card {
 
     .transport-subcontract-contact, .transport-subcontract-details-container {
         width: calc(100% / 7);
@@ -28,7 +28,7 @@
         vertical-align: middle;
         padding-right: 16px !important;
 
-        button{
+        button {
             display: flex;
             justify-content: center;
             align-items: center;
@@ -39,6 +39,6 @@
     }
 }
 
-.modal-dialog{
+.modal-dialog {
     max-width: 800px;
 }

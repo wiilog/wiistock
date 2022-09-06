@@ -2,7 +2,7 @@
 {% set defaultDate = 'tomorrow' | date('Y-m-d') %}
 
 <div class="modal fade" role="dialog" id="modalRoundPlan">
-    <div class="modal-dialog" role="document">
+    <div class="modal-dialog" role="document" style="max-width: 550px !important;">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
                 title: "Planifier une tournée"
@@ -11,40 +11,36 @@
             <div class="modal-body">
                 <form>
                     <input type="hidden" name="request" value="10" class="data"/>
-                    <div class="row">
-                        <div class="col-auto">
-                            {{ form.radio('roundInfo', null, true, [
-                                {label: 'Créer une nouvelle tournée pour le', value: 'newRound' },
-                            ]) }}
-                        </div>
-                        <div class="col-5">
-                            {{ form.input('date', null, true, defaultDate, {
-                                type: 'date',
-                                min: defaultDate | date_modify('-1 day') | date('Y-m-d'),
-                            }) }}
-                        </div>
+                    <div class="plan-round-option">
+                        {{ form.radio('roundInfo', null, true, [
+                            {label: 'Créer une nouvelle tournée pour le', value: 'newRound' },
+                        ]) }}
+                        {{ form.input('date', null, true, defaultDate, {
+                            type: 'date',
+                            min: defaultDate | date_modify('-1 day') | date('Y-m-d'),
+                        }) }}
                     </div>
 
-                    <div class="row mt-3">
-                        <div class="col-auto">
-                            {{ form.radio('roundInfo', null, true, [
-                                {label: 'Ajouter à la tournée', value: 'editRound'},
-                            ]) }}
-                        </div>
-                        <div class="col-5">
-                            {{ form.select('round', null, false, {
-                                inline: true,
-                                disabled: true,
-                                type: 'roundsDelivererPending',
-                            }) }}
-                        </div>
+                    <div class="plan-round-option mt-3">
+                        {{ form.radio('roundInfo', null, true, [
+                            {label: 'Ajouter à la tournée', value: 'editRound'},
+                        ]) }}
+                        {{ form.select('round', null, false, {
+                            inline: true,
+                            disabled: true,
+                            type: 'roundsDelivererPending',
+                        }) }}
                     </div>
                 </form>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
-                <button type="submit" class="btn btn-success">Suivant</button>
-            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-success', text: 'Suivant', type: 'submit'}
+                ],
+                renderErrorContainer: false
+            } %}
+
         </div>
     </div>
 </div>

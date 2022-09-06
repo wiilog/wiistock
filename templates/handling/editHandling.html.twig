@@ -1,0 +1,292 @@
+{% extends 'layout.html.twig' %}
+{% import 'form.html.twig' as form %}
+
+{% block title %}Demande | Service | Détails{% endblock %}
+{% block titleLink path('handling_index') %}
+
+{% block page_content %}
+<div class="mb-4 ra-container d-flex justify-content-center align-content-center">
+    <div class="row wii-form wii-column">
+        <div class="col-md-6 col-12">
+            <div class="wii-box">
+                <div class="d-flex align-items-center mr-3">
+                    <div class="mx-2">
+                        {% set canDelete = hasRight(constant('App\\Entity\\Menu::DEM'),constant('App\\Entity\\Action::DELETE'))
+                            and( handling.status.treated != 1 and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_UNPROCESSED_HANDLING'))
+                            or handling.status.treated == 1 and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_PROCESSED_HANDLING'))) %}
+                        {% if canDelete %}
+                            <div class="dropdown dropright">
+                                <div class="d-flex pointer" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <img alt="Actions" src="{{ asset('svg/dotsblack.svg') }}" height="20px" width="8px">
+                                </div>
+                                <div class="dropdown-menu dropdown-follow-gt pointer">
+                                    <div class="dropdown-item"
+                                         data-id="{{ handling.id }}"
+                                         data-target="#modalDeleteHandling"
+                                         data-toggle="modal"
+                                         onclick="deleteRow($(this), $('#modalDeleteHandling'), $('#submitDeleteHandling'))">
+                                        <img src="{{ asset('svg/trash-black.svg') }}" width="15px" class="mr-2 dropdown-icon">
+                                        Supprimer
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="d-flex py-2 w-100 justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <div class="d-flex flex-column">
+                                <span class="wii-title" title="Acheminement">Service</span>
+                                <span class="wii-small-text">
+                                    {{ handling.number }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-end">
+                            <span class="wii-field-name">
+                                {{ handling.requester.username }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}
+                {% set emergency = handling.emergency %}
+                {% if (fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') or fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) and emergency %}
+                    <div class="d-flex align-items-center bordered emergency-container pl-3">
+                        <img src="{{ asset('svg/timeline-urgent.svg') }}" class="mr-2" alt="Icône urgence" width="17px">
+                        <strong>{{ emergency }}</strong>
+                    </div>
+                {% endif %}
+                <div class="bordered">
+                    <div class="content row ">
+                        <div class="col-6 d-flex flex-column">
+                            <div class="box-item mt-2">
+                                <span class="wii-field-name">Type</span>
+                                <span class="wii-field-text">
+                                    {{ handling.type.label }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-6 d-flex flex-column">
+                            <div class="box-item mt-2">
+                                {{ form.input('subject', 'Objet', true, handling.subject, {
+                                    attributes: {
+                                        'data-short-label': 'Objet',
+                                    },
+                                }) }}
+                            </div>
+                        </div>
+                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}
+                        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
+                            <div class="col-6 d-flex flex-column mt-2">
+                                {{ form.select('emergency', "Urgence", true, {
+                                    items: emergencies,
+                                    required: false,
+                                    emptyOption : { value : null , text : 'Non urgent', selected : emergency ? false : true},
+                                }) }}
+                            </div>
+                        {% elseif fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                            <div class="col-6 d-flex flex-column">
+                                <div class="box-item my-2">
+                                    <span class="wii-field-name">Urgence</span>
+                                    <span class="wii-field-text">
+                                        {{ emergency == '' ? '-' : emergency }}
+                                    </span>
+                                </div>
+                            </div>
+                        {% endif %}
+                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_RECEIVERS_HANDLING') %}
+                        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
+                            {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
+                            <div class="col-6 d-flex flex-column mt-2">
+                                {{ form.select('receivers', "Destinataires", required, {
+                                    items: receivers,
+                                    type: 'user',
+                                    multiple :true,
+                                    inputClass: 'receivers-picker',
+                                }) }}
+                            </div>
+                        {% elseif fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                            <div class="col-6 d-flex flex-column">
+                                <div class="box-item my-2">
+                                    <span class="wii-field-name">Destinataires</span>
+                                    {% if handling.receivers is not empty %}
+                                        {% for receiver in handling.receivers %}
+                                            <span class="wii-field-text">
+                                                {{ receiver.username }}
+                                            </span>
+                                        {% endfor %}
+                                    {% else %}
+                                        <span class="wii-field-text">-</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endif %}
+                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_LOADING_ZONE') %}
+                        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
+                            {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
+                            <div class="col-6 d-flex flex-column mt-2">
+                                {{ form.input('source', 'Chargement', required, handling.source, {
+                                    attributes: {
+                                        'data-short-label': 'Chargement',
+                                    },
+                                }) }}
+                            </div>
+                        {% elseif fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                            <div class="col-6 d-flex flex-column">
+                                <div class="box-item my-2">
+                                    <span class="wii-field-name">Chargement</span>
+                                    <span class="wii-field-text">
+                                        {{ handling.source ? handling.source : '-' }}
+                                    </span>
+                                </div>
+                            </div>
+                        {% endif %}
+                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_UNLOADING_ZONE') %}
+                        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
+                            {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
+                            <div class="col-6 d-flex flex-column mt-2">
+                                {{ form.input('destination', 'Déchargement', required, handling.source, {
+                                    attributes: {
+                                        'data-short-label': 'Chargement',
+                                    },
+                                }) }}
+                            </div>
+                        {% elseif fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                            <div class="col-6 d-flex flex-column">
+                                <div class="box-item my-2">
+                                    <span class="wii-field-name">Déchargement</span>
+                                    <span class="wii-field-text">
+                                        {{ handling.destination ? handling.destination : '-'}}
+                                    </span>
+                                </div>
+                            </div>
+                        {% endif %}
+                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIED_OUT_OPERATION_COUNT') %}
+                        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
+                            {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
+                            <div class="col-6 d-flex flex-column mt-2">
+                                {{ form.number('carriedOutOperationCount', 'Nombre d’opération(s) réalisée(s)', required, handling.carriedOutOperationCount, {
+                                    labelClass: 'w-100',
+                                    min: 0
+                                }) }}
+                            </div>
+                        {% elseif fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                            <div class="col-6 d-flex flex-column">
+                                <div class="box-item my-2">
+                                    <span class="wii-field-name">Nombre d’opération(s) réalisée(s)</span>
+                                    <span class="wii-field-text">
+                                    {{ handling.carriedOutOperationCount ? handling.carriedOutOperationCount : '-'}}
+                                </span>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="content">
+                    <div class="d-flex flex-wrap w-100">
+                        {% include 'attachment/attachment.html.twig' with {
+                            required : false,
+                            'isNew': false,
+                            attachments : handling.attachments,
+                            editAttachments : true,
+                            fieldNameClass : 'wii-subtitle',
+                            override: true,
+                        } %}
+                    </div>
+                </div>
+                <div class="content">
+                    <div class="wii-subtitle">Commentaire</div>
+                    <div>
+                        <input class="commentaire form-control data" name="comment" type="hidden" id="commentaire">
+                        <div class="editor-container-new" data-wysiwyg>{{ handling.comment | striptags }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="wii-box ">
+                <div class="header wii-title">Champs libres</div>
+                <div class="content">
+                    {% include 'free_field/freeFieldsEdit.html.twig' with {
+                        freeFields: freeFields,
+                        freeFieldValues: handling.freeFields,
+                        colType: 'col-md-6 col-12 w-100',
+                        requiredType: 'requiredEdit',
+                        actionType: 'edit'
+                    } %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-12">
+            <div class="wii-box ">
+                <div class="header wii-title d-flex justify-content-between">
+                    <span class="d-flex align-items-center pl-2">Statut</span>
+                </div>
+                <div class="content p-0">
+                    <div class="content status-history-container p-0">
+                        <div class="d-flex align-items-center justify-content-center p-3">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <span class="ml-3">Génération de l'historique en cours</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="sub-header">
+                    <img src="{{ asset('svg/calendar.svg') }}" alt="Icône calendrier" width="15px">
+                    <span class="wii-field-name ml-2">Dates</span>
+                </div>
+                <div class="content row ">
+                    {% if handling.withoutHistory %}
+                        <div class="col-6 d-flex flex-column">
+                            <div class="box-item my-2">
+                                <span class="wii-field-name">Date de création</span>
+                                <span class="wii-field-text">
+                                    {{ handling.creationDate | format_helper('longDate', {short: true}) }}
+                                </span>
+                            </div>
+                        </div>
+                    {% endif %}
+                    <div class="col-6 d-flex flex-column">
+                        <div class="box-item my-2">
+                            {% set desiredDate = handling.desiredDate ? handling.desiredDate|date('Y-m-d\\TH:i') %}
+                            {{ form.input('desired-date', 'Date attendue', true, desiredDate, {
+                                type: 'datetime-local',
+                                min: "now" | date('Y-m-d H:i'),
+                            }) }}
+                        </div>
+                    </div>
+                    <div class="col-6 d-flex flex-column">
+                        <div class="box-item my-2">
+                            <span class="wii-field-name">Date réalisation</span>
+                            <span class="wii-field-text">
+                                {{ handling.validationDate ? handling.validationDate | format_helper('longDate', {short: true}) : '-' }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="w-100 d-flex flex-row-reverse">
+                <button id="submitEditHandling"
+                        name=''
+                        type="button"
+                        class="btn btn-success data mt-2"
+                        data-submit="{{ submit_url }}">
+                    Enregistrer
+                </button>
+                <a href="javascript:window.location = document.referrer">
+                    <button type="button" class="btn btn-outline-secondary data mt-2 mr-2">
+                        Annuler
+                    </button>
+                </a>
+
+            </div>
+        </div>
+        <input hidden value='1' name="isAttachmentForm">
+        <input hidden value='{{ handling.id }}' name="id">
+    </div>
+</div>
+{% include "handling/modalDeleteHandling.html.twig" %}
+<input hidden value="{{ handling.id }}" name="handlingId">
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('handling-edit') }}
+{% endblock %}

@@ -1,8 +1,8 @@
 <div class="row">
     <div class="form-group col-8">
-        <label for="disputeType">Type*</label>
+        <label class="wii-field-name" for="disputeType">Type*</label>
         <select class="form-control data needed"
-                {{ not hasRightToTreatLitige ? 'disabled' }}
+            {{ not hasRightToTreatLitige ? 'disabled' }}
                 id="disputeType" name="disputeType">
             <option value="{{ dispute.type.id }}" selected>{{ dispute.type.label }}</option>
             {% for type in disputeTypes %}
@@ -13,14 +13,14 @@
         </select>
     </div>
     <div class="form-group col-4 mt-4">
-        <label>Urgence ?</label>
+        <label class="wii-field-text">Urgence ?</label>
         <label class="switch">
-            <input class="checkbox" type="checkbox" name="emergency" {{ dispute.emergencyTriggered ? 'checked': ''}}>
+            <input class="checkbox" type="checkbox" name="emergency" {{ dispute.emergencyTriggered ? 'checked': '' }}>
             <span class="slider round"></span>
         </label>
     </div>
     <div class="form-group col-12">
-        <label>Statut*</label>
+        <label class="wii-field-name">Statut*</label>
         <select class="form-control data needed" name="disputeStatus" title="Statut">
             {% for statut in disputeStatuses %}
                 {% set selected = (dispute.status.id == statut.id) ? 'selected' : '' %}
@@ -30,7 +30,7 @@
         </select>
     </div>
     <div class="form-group w-100 col-12">
-        <label for="disputeReporter">Déclarant*</label>
+        <label class="wii-field-name" for="disputeReporter">Déclarant*</label>
         <select class="form-control data" name="disputeReporter" data-s2="user">
             {% if dispute.reporter %}
                 <option value="{{ dispute.reporter.id }}" selected>{{ dispute.reporter.username }}</option>
@@ -42,7 +42,7 @@
                data-id="{{ dispute.reporter ? dispute.reporter.id : '' }}"/>
     </div>
     <div class="form-group w-100 col-12">
-        <label for="colisEditLitige">Colis*</label>
+        <label class="wii-field-name" for="colisEditLitige">Colis*</label>
         <select class="form-control data select2 needed" name="colis" multiple="multiple"
                 id="colisEditLitige">
             {% for coli in colis %}
@@ -54,7 +54,7 @@
     </div>
 
     <div class="form-group col-12 h-fit-content">
-        <label for="litige-edit-commentaire">Commentaire</label>
+        <label class="wii-field-name" for="litige-edit-commentaire">Commentaire</label>
 
         <div class="d-flex">
             <input type="text" id="litige-edit-commentaire" class="commentaire form-control data" name="commentaire">
@@ -69,7 +69,9 @@
         </div>
     </div>
 </div>
-<div class="label">Historique</div>
+<div class="wii-section-title my-3 d-flex align-items-center">
+    Historique des modifications
+</div>
 <div class="tableHistoric">
     <table id="tableHistoLitige" class="table w-100"></table>
 </div>

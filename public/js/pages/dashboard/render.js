@@ -36,6 +36,7 @@ const ACTIVE_REFERENCE_ALERTS = 'active_reference_alerts';
 const REFERENCE_RELIABILITY = 'reference_reliability';
 const DAILY_DISPATCHES = 'daily_dispatches';
 const EXTERNAL_IMAGE = 'external_image';
+const HANDLING_TRACKING = 'handling_tracking';
 let DELAYS = {};
 
 $(function() {
@@ -117,7 +118,8 @@ const creators = {
         callback: createIndicatorElement
     },
     [DAILY_HANDLING_INDICATOR]: {
-        callback: createIndicatorElement
+        callback: createIndicatorElement,
+        arguments: {route: `handling_index`}
     },
     [DAILY_HANDLING]: {
         callback: createChart
@@ -133,6 +135,9 @@ const creators = {
     },
     [EXTERNAL_IMAGE]: {
         callback: createExternalImage
+    },
+    [HANDLING_TRACKING]: {
+        callback: createChart
     },
 };
 
@@ -215,7 +220,7 @@ function createTooltip(text) {
     } else {
         return `
             <div class="points has-tooltip" title="${trimmedText}">
-                <i class="fa fa-question ml-1"></i>
+                <img src="../../../svg/timeline-information-dashboard.svg" alt="Icône" width="12px">
             </div>
         `;
     }
@@ -478,7 +483,7 @@ function createChart(data, {route, cssClass, hideRange} = {route: null, cssClass
 
     const dashboardBoxContainerClass = hasRangeButton
         ? 'dashboard-box-container-title-content'
-        : 'dashboard-box-container-title-content-rangeButton';
+        : 'dashboard-box-container-title-content-rangeButton w-100';
     const numberingConfig = {numbering: 0};
 
     const title = data.title || "";
@@ -549,6 +554,10 @@ function createCarrierTrackingElement(data) {
 function createIndicatorElement(data, config, redefinedNumberingConfig = null) {
     let meterKey = config.meterKey;
     let customContainerClass = config.customContainerClass;
+    const redirectToHandling = config.component?.config?.redirectToHandling;
+    const redirectToHandlingRoute = redirectToHandling && config.component?.config?.selectedDate && config.route ? Routing.generate(config.route, {
+        date: new Date().toISOString().split('T')[0],
+    }) : '';
     let remainingConfig = Object.assign({}, config);
     delete remainingConfig.meterKey;
     delete remainingConfig.customContainerClass;
@@ -559,14 +568,14 @@ function createIndicatorElement(data, config, redefinedNumberingConfig = null) {
     }
     customContainerClass = customContainerClass || '';
     const {title, subtitle, tooltip, count, delay, componentLink, emergency, subCounts, backgroundColor} = data;
-    const element = componentLink ? '<a/>' : '<div/>';
-    const customAttributes = componentLink
+    const element = componentLink || redirectToHandlingRoute ? '<a/>' : '<div/>';
+    const customAttributes = componentLink || redirectToHandlingRoute
         ? {
-            href: componentLink,
+            href: componentLink ?? redirectToHandlingRoute,
             target: '_blank'
         }
         : {};
-    const clickableClass = componentLink ? 'pointer' : '';
+    const clickableClass = componentLink || redirectToHandlingRoute ? 'pointer' : '';
     const needsEmergencyDisplay = emergency && count > 0;
     const $logoTag = data.logoURL ? `<img src="${data.logoURL}" class="w-px-30 h-px-30" style="object-fit: contain"/>` : '';
     const $emergencyIcon = needsEmergencyDisplay ? '<i class="fa fa-exclamation-triangle red"></i>' : $logoTag;
@@ -1190,7 +1199,7 @@ function withStyle(data, numberingConfig, backendNumber, value, overrides = {}) 
 
 function generateColorPickerElement(data, key = 0) {
     return $(`<div/>`, {
-        class: 'd-flex justify-content-between align-items-center mx-5',
+        class: 'd-flex justify-content-between align-items-center ml-5',
         html: $(`<input/>`, {
             type: `color`,
             class: `data-array form-control needed w-50 chart-color-picker`,

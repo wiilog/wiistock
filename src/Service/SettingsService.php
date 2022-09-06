@@ -48,6 +48,7 @@ use Symfony\Component\Yaml\Yaml;
 use WiiCommon\Helper\Stream;
 
 class SettingsService {
+
     public const CHARACTER_VALID_REGEX = '^[A-Za-z0-9\_\-\/ ]{1,24}$';
 
     /**  @Required */
@@ -149,6 +150,7 @@ class SettingsService {
                 unset($result['template']);
             }
         }
+
         return $result;
     }
 
@@ -202,6 +204,15 @@ class SettingsService {
             $setting = $this->manager->getRepository(Setting::class)
                 ->findOneBy(["label" => Setting::DEFAULT_LOCATION_LIVRAISON]);
             $associatedTypesAndLocations = array_combine($deliveryTypes, $deliveryRequestLocations);
+            $invalidDeliveryTypes = (
+                empty($associatedTypesAndLocations)
+                || !Stream::from($associatedTypesAndLocations)
+                    ->filter(fn(string $key, string $value) => !$key || !$value)
+                    ->isEmpty()
+            );
+            if ($invalidDeliveryTypes) {
+                throw new RuntimeException("Une configuration d'emplacement de livraison par défaut est invalide");
+            }
             $setting->setValue(json_encode($associatedTypesAndLocations));
 
             $updated = array_merge($updated, [
@@ -644,6 +655,12 @@ class SettingsService {
                     throw new RuntimeException("Un champ libre existe déjà avec le libellé {$item["label"]}");
                 }
 
+                if (isset($item["elements"])) {
+                    $elements = Stream::explode(";", $item["elements"])
+                        ->map(fn(string $element) => trim($element))
+                        ->toArray();
+                }
+
                 $freeField->setLabel($item["label"])
                     ->setType($type ?? null)
                     ->setTypage($item["type"] ?? $freeField->getTypage())
@@ -652,7 +669,7 @@ class SettingsService {
                         : ($type?->getCategory()->getCategorieCLs()->first() ?: null)
                     )
                     ->setDefaultValue(($item["defaultValue"] ?? null) === "null" ? "" : $item["defaultValue"] ?? null)
-                    ->setElements(isset($item["elements"]) ? explode(";", $item["elements"]) : null)
+                    ->setElements(isset($item["elements"]) ? $elements : null)
                     ->setDisplayedCreate($item["displayedCreate"])
                     ->setRequiredCreate($item["requiredCreate"])
                     ->setRequiredEdit($item["requiredEdit"]);
@@ -846,7 +863,6 @@ class SettingsService {
     private function postSaveTreatment(array $updated): void {
         if (array_intersect($updated, [Setting::FONT_FAMILY])) {
             $this->generateFontSCSS();
-            $this->yarnBuild();
         }
 
         if (array_intersect($updated, [Setting::MAX_SESSION_TIME])) {
@@ -880,12 +896,12 @@ class SettingsService {
     }
 
     public function generateFontSCSS() {
-        $path = "{$this->kernel->getProjectDir()}/assets/scss/_customFont.scss";
+        $path = "{$this->kernel->getProjectDir()}/public/generated/font.css";
 
         $font = $this->manager->getRepository(Setting::class)
                 ->getOneParamByLabel(Setting::FONT_FAMILY) ?? Setting::DEFAULT_FONT_FAMILY;
 
-        file_put_contents($path, "\$mainFont: \"$font\";");
+        file_put_contents($path, "* { font-family: \"$font\" !important; }");
     }
 
     public function generateSessionConfig() {
@@ -967,21 +983,6 @@ class SettingsService {
         return $resp ?? null;
     }
 
-    public function generateScssFile(?Setting $font = null) {
-        $projectDir = $this->kernel->getProjectDir();
-        $scssFile = $projectDir . '/assets/scss/_customFont.scss';
-
-        if (!$font) {
-            $settingRepository = $this->manager->getRepository(Setting::class);
-            $param = $settingRepository->findOneBy(['label' => Setting::FONT_FAMILY]);
-            $font = $param ? $param->getValue() : Setting::DEFAULT_FONT_FAMILY;
-        } else {
-            $font = $font->getValue();
-        }
-
-        file_put_contents($scssFile, "\$mainFont: \"$font\";");
-    }
-
     public function getDefaultDeliveryLocationsByType(EntityManagerInterface $entityManager): array {
         $typeRepository = $entityManager->getRepository(Type::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
@@ -994,6 +995,17 @@ class SettingsService {
         foreach ($defaultDeliveryLocationsIds as $typeId => $locationId) {
             if ($typeId !== 'all' && $typeId) {
                 $type = $typeRepository->find($typeId);
+                $typeOption = [
+                    'id' => $type->getId(),
+                    'label' => $type->getLabel(),
+                ];
+                // Déclarer une variable qui vaut 1013 et 1014
+            }elseif ($typeId === 'all') {
+                $typeOption = [
+                    'id' => 'all',
+                    'label' => 'Tous les types',
+                ];
+                // Déclarer une variable qui vaut id => 'all'
             }
             if ($locationId) {
                 $location = $locationRepository->find($locationId);
@@ -1002,15 +1014,11 @@ class SettingsService {
             if (isset($location)) {
                 $defaultDeliveryLocations[] = [
                     'location' => [
-                        'label' => $location->getLabel(),
                         'id' => $location->getId(),
+                        'label' => $location->getLabel(),
                     ],
-                    'type' => isset($type)
-                        ? [
-                            'label' => $type->getLabel(),
-                            'id' => $type->getId(),
-                        ]
-                        : null,
+                    // Remplacer par la
+                    'type' => $typeOption ?? null,
                 ];
             }
         }

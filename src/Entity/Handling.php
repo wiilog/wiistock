@@ -2,16 +2,19 @@
 
 namespace App\Entity;
 
+use App\Entity\Interfaces\StatusHistoryContainer;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Repository\HandlingRepository;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
+use phpDocumentor\Reflection\Types\Boolean;
 
 #[ORM\Entity(repositoryClass: HandlingRepository::class)]
-class Handling {
+class Handling extends StatusHistoryContainer{
 
     use FreeFieldsManagerTrait;
 
@@ -82,10 +85,18 @@ class Handling {
     #[ORM\ManyToOne(targetEntity: SensorWrapper::class)]
     private ?SensorWrapper $triggeringSensorWrapper = null;
 
+    #[ORM\OneToMany(mappedBy: 'Handling', targetEntity: StatusHistory::class)]
+    private Collection $statusHistory;
+
+    //
+    #[ORM\Column(type: 'boolean', options: ['default' => true])]
+    private bool $withoutHistory = false;
+
     public function __construct() {
         $this->attachments = new ArrayCollection();
         $this->emergency = false;
         $this->receivers = new ArrayCollection();
+        $this->statusHistory = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -309,5 +320,54 @@ class Handling {
 
         return $this;
     }
+
+    /**
+     * @return Collection<int, StatusHistory>
+     */
+    public function getStatusHistory(string $handling = Criteria::ASC): Collection {
+        return $this->statusHistory
+            ->matching(Criteria::create()
+                ->orderBy([
+                    'date' => $handling,
+                    'id' => $handling,
+                ])
+            );
+    }
+
+    public function addStatusHistory(StatusHistory $statusHistory): self
+    {
+        if (!$this->statusHistory->contains($statusHistory)) {
+            $this->statusHistory[] = $statusHistory;
+            $statusHistory->setHandling($this);
+        }
+
+        return $this;
+    }
+
+    public function removeStatusHistory(StatusHistory $statusHistory): self
+    {
+        if ($this->statusHistory->removeElement($statusHistory)) {
+            // set the owning side to null (unless already changed)
+            if ($statusHistory->getHandling() === $this) {
+                $statusHistory->setHandling(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function isWithoutHistory(): bool
+    {
+        return $this->withoutHistory;
+    }
+
+    public function setWithoutHistory(bool $withoutHistory): self
+    {
+        $this->withoutHistory = $withoutHistory;
+
+        return $this;
+    }
+
+
 
 }

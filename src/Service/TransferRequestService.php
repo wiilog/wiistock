@@ -203,13 +203,13 @@ class TransferRequestService {
             'requestNumber' => $request->getNumber(),
             'requestDate' => $requestDateStr,
             'requestUser' => $request->getRequester() ? $request->getRequester()->getUsername() : 'Non défini',
-            'cardColor' => $requestStatus === TransferRequest::DRAFT ? 'lightGrey' : 'darkWhite',
-            'bodyColor' => $requestStatus === TransferRequest::DRAFT ? 'white' : 'lightGrey',
+            'cardColor' => $requestStatus === TransferRequest::DRAFT ? 'light-grey' : 'lightest-grey',
+            'bodyColor' => $requestStatus === TransferRequest::DRAFT ? 'white' : 'light-grey',
             'topRightIcon' => 'transfer.svg',
             'progress' => $statusesToProgress[$requestStatus] ?? 0,
             'progressBarColor' => '#2ec2ab',
             'emergencyText' => '',
-            'progressBarBGColor' => $requestStatus === TransferRequest::DRAFT ? 'white' : 'lightGrey',
+            'progressBarBGColor' => $requestStatus === TransferRequest::DRAFT ? 'white' : 'light-grey',
         ];
     }
 

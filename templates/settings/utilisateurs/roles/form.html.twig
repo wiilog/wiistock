@@ -68,7 +68,9 @@
                             ) }}
                         </div>
                         <div class="col-xl-auto col-12 my-1 pb-xl-2">
-                            {{ form.checkbox('isMailSendAccountCreation', 'Réception email création nouveau compte', false, role.isMailSendAccountCreation) }}
+                            {{ form.checkbox('isMailSendAccountCreation', 'Réception email création nouveau compte', false, role.isMailSendAccountCreation, {
+                                labelClass: 'wii-field-text'
+                            }) }}
                         </div>
                     </div>
                 </div>

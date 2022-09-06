@@ -1,0 +1,38 @@
+{% macro status_item(status_state_values, status) %}
+    <li class="dropdown-item pl-2 pointer" data-type="{{ status.type.id }}" data-type-label="{{ status.type.label }}">
+        <label>
+            <input name="statuses-filter_{{ status.id }}"
+                   data-id="{{ status.id }}"
+                   class="styled data filter-checkbox"
+                   type="checkbox">
+            <span class="pointer">
+                {{ status.nom }} - <span class="italic">{{ status_state_values[status.state] }}</span>
+            </span>
+        </label>
+    </li>
+{% endmacro %}
+
+{% import _self as macros %}
+
+<div class="col-auto m-1 select-filter statuses-filter pr-0">
+    <div class="btn-group">
+        <button class="btn dropdown-filter dropdown-toggle filter-status-multiple" data-toggle="dropdown"  type="button">
+            <span class="status-filter-title">0 statut sélectionné</span>
+            <span class="fa fa-angle-down"></span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-left allow-focus filter-dropdown-menu filter-status-multiple-dropdown">
+            <li class="dropdown-item pl-2 pointer">
+                <label>
+                    <input name="all" class="styled" onclick="checkAllInDropdown($(this))" type="checkbox">
+                    <span>
+                        Tout sélectionner
+                    </span>
+                </label>
+            </li>
+            <div class="dropdown-divider"></div>
+            {% for status in statuses %}
+                {{ macros.status_item(status_state_values, status) }}
+            {% endfor %}
+        </ul>
+    </div>
+</div>

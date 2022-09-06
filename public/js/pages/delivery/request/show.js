@@ -5,7 +5,7 @@ $(function () {
     initDateTimePicker();
     Select2Old.user('Utilisateurs');
     Select2Old.articleReference($('.ajax-autocomplete'), {
-        minQuantity: 0,
+        minQuantity: Number($('input[name=managePreparationWithPlanning]').val()) ? 0 : 1,
     });
 
     tableArticle = initPageDatatable();
@@ -25,6 +25,11 @@ $(function () {
             return true;
         }
 
+    });
+
+    $(`#modalNewArticle`).on(`shown.bs.modal`, function() {
+        clearModal('#modalNewArticle');
+        $(this).find('#reference').select2("open");
     });
 });
 

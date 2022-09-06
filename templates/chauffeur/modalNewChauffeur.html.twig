@@ -9,33 +9,35 @@
             <div class="modal-body modal-input container-fluid">
 
                 <div class="form-group">
-                    <label for="Nom">Nom*</label>
+                    <label class="wii-field-name" for="Nom">Nom*</label>
                     <input type="text" id="nom" class="form-control data needed" name="nom" maxlength="64">
                 </div>
 
                 <div class="form-group">
-                    <label for="prenom">Prénom*</label>
+                    <label class="wii-field-name" for="prenom">Prénom*</label>
                     <input type="text" id="prenom" class="form-control data needed" name="prenom" maxlength="64">
                 </div>
 
                 <div class="form-group needed">
-                    <label for="documentID">DocumentID*</label>
+                    <label class="wii-field-name" for="documentID">DocumentID*</label>
                     <input id="document" class="form-control data needed" name="documentID" maxlength="64">
                 </div>
 
                 <div class="form-group">
-                    <label for="transporteur">Transporteur*</label>
+                    <label class="wii-field-name" for="transporteur">Transporteur*</label>
                     <div class="w-100">
                         <select type="text" class="form-control data ajax-autocomplete-transporteur d-block needed w-100" name="transporteur">
                         </select>
                     </div>
                 </div>
             </div>
-            <div class="error-msg"></div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
-                <button id="submitNewChauffeur" type="button" class="btn btn-success">Enregistrer</button>
-            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-success', id: 'submitNewChauffeur', text: 'Enregistrer'}
+                ],
+            } %}
+
         </div>
     </div>
 </form>

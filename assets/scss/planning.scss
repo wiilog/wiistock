@@ -13,6 +13,7 @@
             .planning-col {
                 flex: 0 0 calc(100% / 7);
             }
+
             .planning-col-2 {
                 flex: 0 0 calc((100% / 7) * 2);
             }
@@ -35,10 +36,12 @@
                 }
             }
         }
+
         &.planning-container-2 {
             .planning-col {
                 flex: 0 0 calc(100% / 2);
             }
+
             .planning-col-2 {
                 flex: 0 0 100%;
             }
@@ -55,7 +58,7 @@
     .column-hint-container {
         display: flex;
         align-items: center;
-        background-color: #F2F3F7;
+        background-color: $light-blue;
         padding: 5px 15px;
         border: none !important;
         box-sizing: border-box;
@@ -109,7 +112,7 @@
         font-size: 14px;
         width: 100%;
         border-radius: 5px;
-        padding: 5px;
+        padding: 10px;
         height: 100%;
         display: flex;
         flex-direction: column;

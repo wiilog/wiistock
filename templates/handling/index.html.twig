@@ -6,7 +6,7 @@
 {% block page_filter %}
     {% include 'filters/filtersDemands.html.twig' with {
         page: 'PAGE_HAND',
-        tableSelector: '#tableHandling_id',
+        tableSelector: '#tableHandlings',
         callback: 'callbackSaveFilter',
         emergency: true
     } %}
@@ -17,22 +17,36 @@
     <input type="hidden"
            id="showReceiversColumn"
            value="{{ (fieldsParam|isFieldRequired(fieldCodeReceiversHandling, 'displayedCreate')
-                     or fieldsParam|isFieldRequired(fieldCodeReceiversHandling, 'displayedEdit')
-                     or fieldsParam|isFieldRequired(fieldCodeReceiversHandling, 'displayedFilters')) ? 1 : 0 }}"/>
+           or fieldsParam|isFieldRequired(fieldCodeReceiversHandling, 'displayedEdit')
+           or fieldsParam|isFieldRequired(fieldCodeReceiversHandling, 'displayedFilters')) ? 1 : 0 }}"/>
 
-    <input type="hidden"
-           data-id=""
-           data-target='#modalEditHandling'
-           data-toggle='modal'
-           onclick="editRow($(this), Routing.generate('handling_edit_api', true), $('#modalEditHandling'), $('#submitEditHandling'))"
-           class="d-none open-modal-edit"/>
     <div class="m-4 wii-page-card">
         <div class="row wii-page-card-header">
             <div class="col-auto ml-auto">
-                {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EXPORT')) %}
+                {% if not hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EXPORT')) %}
+                    <button type="button"
+                            class="btn btn-primary ml-auto split-button"
+                            data-toggle="modal" data-target="#modalColumnVisible">
+                        <i class="fa fa-cog mr-2"></i>
+                        Gestion des colonnes
+                    </button>
+                {% else %}
                     <div class="btn-group">
-                        <div class="btn btn-primary" onclick="saveExportFile('get_handlings_csv')">
+                        <div class="btn btn-primary split-button" onclick="saveExportFile('get_handlings_csv')">
                             <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
+                        </div>
+                        <button type="button"
+                                class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
+                                data-toggle="dropdown"
+                                aria-haspopup="true"
+                                aria-expanded="false">
+                            <span class="fa fa-angle-down"></span>
+                        </button>
+                        <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
+                            <a class="dropdown-item pointer" data-toggle="modal" data-target="#modalColumnVisible">
+                                <i class="fa fa-cog mr-2"></i>
+                                Gestion des colonnes
+                            </a>
                         </div>
                     </div>
                 {% endif %}
@@ -40,13 +54,18 @@
         </div>
         <div class="row">
             <div class="col-12">
-                <table id="tableHandling_id" class="table w-100"></table>
+                <table id="tableHandlings" class="table w-100"></table>
             </div>
         </div>
     </div>
+    <input hidden id="selectedDate" value="{{ selectedDate | date('d/m/Y') }}"/>
     {% include "handling/modalDeleteHandling.html.twig" %}
-    {% include "handling/modalEditHandling.html.twig" %}
     {% include "handling/modalNewHandling.html.twig" with modalNewConfig %}
+    {% include "utils/visible_columns.html.twig" with {
+        'fields': fields,
+        'table': 'tableHandlings',
+        'route': 'save_column_visible_for_handling'
+    } %}
 {% endblock %}
 
 {% block javascripts %}

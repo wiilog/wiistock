@@ -9,7 +9,7 @@
                 <form>
                     <div class="row">
                         <div class="form-group col-12">
-                            <label for="add-article-reference" title="référence">
+                            <label class="wii-field-name" for="add-article-reference" title="référence">
                                 {{ 'reference.référence'|trans }}*
                             </label>
                             <div class="w-100">
@@ -22,35 +22,31 @@
                     </div>
                     <div class="row line-form-following-container d-none">
                         <div class="form-group col-12">
-                            <label>Libelle</label>
+                            <label class="wii-field-name">Libelle</label>
                             <input type="text" disabled class="w-100 form-control" name="label" title="Libellé">
                         </div>
                         <div class="form-group col-12 col-md-6">
-                            <label>Quantité en stock</label>
+                            <label class="wii-field-name">Quantité en stock</label>
                             <input type="text" disabled class="w-100 form-control" name="stockQuantity" title="Quantité en stock">
                         </div>
                         <div class="form-group col-12 col-md-6">
-                            <label>Acheteur</label>
+                            <label class="wii-field-name">Acheteur</label>
                             <input type="text" disabled class="w-100 form-control" name="buyer" title="Acheteur">
                         </div>
                         <div class="form-group col-12">
-                            <label>Quantité demandée*</label>
+                            <label class="wii-field-name">Quantité demandée*</label>
                             <input type="number" class="w-100 form-control data needed" min="1" name="requestedQuantity" title="Quantité demandée">
                         </div>
                     </div>
                 </form>
             </div>
-            <div class="pl-2 error-msg"></div>
-            <div class="modal-footer">
-                <div class="btn btn-outline-secondary" data-dismiss="modal">Annuler</div>
-                <button disabled
-                        name="request"
-                        value="{{request.id}}"
-                        type="button"
-                        class="btn data btn-success submit-button">
-                    Ajouter
-                </button>
-            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn data btn-success submit-button', text: 'Ajouter', value: request.id, disabled: true, name: 'request'}
+                ],
+            } %}
+
         </div>
     </div>
 </div>

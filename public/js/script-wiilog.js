@@ -469,7 +469,7 @@ function saveFilters(page, tableSelector, callback) {
             const values = {};
             $fields.each(function () {
                 const $elem = $(this);
-                values[$elem.attr('name')] = valFunction[key]($elem);
+                values[$elem.data('override-name') || $elem.attr('name')] = valFunction[key]($elem);
             });
 
             return ({
@@ -725,6 +725,7 @@ function warningEmptyTypeTransportForCsv() {
 function displayFiltersSup(data) {
     data.forEach(function (element) {
         const $element = $(`.filters [name="${element.field}"]`);
+
         if($element.is(`.filter-switch`)) {
             $(`.filter-switch[name="${element.field}"][value="${element.value}"]`)
                 .prop(`checked`, true)
@@ -814,13 +815,44 @@ function displayFiltersSup(data) {
                         $fieldDate.val(dateValue);
                     }
                     break;
+                case 'statuses-filter':
+                case 'date-choice':
+                    let values = element.value.split(',');
+                    values = values.map((value) => typeof value === "string" && !isNaN(value) && !isNaN(Number.parseInt(value)) ? Number.parseInt(value) : value);
+                    const $parent = $(`.${element.field}`);
+                    let itemChecked = false;
+                    let itemSelectCount = 0;
+                    $parent.find('.dropdown-item').each(function () {
+                        const $input = $(this).find('input');
+                        const id = $input.data('id');
+                        if (values.includes(id)) {
+                            $input.prop('checked', true);
+                            itemChecked = true;
+                            itemSelectCount++;
+                        }
+                    });
+
+                    const plural = itemSelectCount > 1 ? 's' : '';
+
+                    $parent
+                        .find('.status-filter-title')
+                        .html(`${itemSelectCount} statut${plural} sélectionné${plural}`)
+
+                    // checked input if no selected for date-choice
+                    if (!itemChecked) {
+                        $parent
+                            .find('.dropdown-item input[data-id="creationDate"]')
+                            .prop('checked', true);
+                    }
+
+                    break;
 
                 default:
                     const $fieldWithId = $('#' + element.field);
                     const $field = $fieldWithId.length > 0
                         ? $fieldWithId
                         : $('.filters-container').find(`[name="${element.field}"]`);
-                    $field.val(element.value);
+                    $field.val(element.value).trigger(`change`);
             }
         }
     });

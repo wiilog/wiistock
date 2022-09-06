@@ -150,7 +150,6 @@ class PreparationController extends AbstractController
         $preparationStatut = $preparation->getStatut() ? $preparation->getStatut()->getNom() : null;
         $isPrepaEditable =
             $preparationStatut === Preparation::STATUT_A_TRAITER
-            || $preparationStatut === Preparation::STATUT_VALIDATED
             || ($preparationStatut == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparation->getUtilisateur() == $this->getUser());
 
         if (isset($demande)) {
@@ -281,7 +280,7 @@ class PreparationController extends AbstractController
     }
 
     /**
-     * @Route("/supprimer/{preparation}", name="preparation_delete", methods="GET|POST")
+     * @Route("/supprimer/{preparation}", name="preparation_delete", methods="POST", options={"expose"=true})
      * @HasPermission({Menu::ORDRE, Action::DELETE})
      */
     public function delete(Preparation                $preparation,
@@ -306,7 +305,12 @@ class PreparationController extends AbstractController
 
         $entityManager->flush();
 
-        return $this->redirectToRoute('preparation_index');
+        $this->addFlash('success', 'La préparation a bien été suprimmée');
+
+        return $this->json([
+           'success' => true,
+           'redirect' => $this->generateUrl('preparation_index')
+        ]);
     }
 
     #[Route('/modifier', name: "preparation_edit", options: ['expose' => true], methods: 'POST')]
@@ -781,7 +785,9 @@ class PreparationController extends AbstractController
                         Preparation::STATUT_EN_COURS_DE_PREPARATION => 'blue-card',
                         // Preparation::STATUT_INCOMPLETE, Preparation::STATUT_A_TRAITER => 'grey-card',
                         default => 'grey-card',
-                    }
+
+                    },
+                    'inPlanning' => true
                 ])
             ], true)
             ->toArray();

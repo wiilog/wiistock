@@ -174,7 +174,12 @@ class TransportService {
         ['status' => $status, 'subcontracted' => $subcontracted] = $this->getStatusRequest($entityManager, $transportRequest, $expectedAt);
         if ($creation) { // transport creation
             $statusHistory = $this->statusHistoryService->updateStatus($entityManager, $transportRequest, $status);
-            $this->transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_REQUEST_CREATION, [
+
+            $historyType = $transportRequest instanceof TransportDeliveryRequest && $data->getBoolean('collectLinked')
+                ? TransportHistoryService::TYPE_BOTH_REQUEST_CREATION
+                : TransportHistoryService::TYPE_REQUEST_CREATION;
+
+            $this->transportHistoryService->persistTransportHistory($entityManager, $transportRequest, $historyType, [
                 'history' => $statusHistory,
                 'user' => $loggedUser,
             ]);

@@ -108,6 +108,7 @@ class HistoryController extends AbstractController
                 "entity" => $entity,
                 "round" => $line ?? null,
                 "estimatedTimeSlot" => $estimatedTimeSlot ?? null,
+                "noFollowingStatuses" => $entity instanceof TransportDeliveryRequest && $entity->getCollect()?->getStatus()->getNom() === TransportRequest::STATUS_NOT_COLLECTED
             ]),
         ]);
     }
@@ -137,7 +138,7 @@ class HistoryController extends AbstractController
                     ))
                     ->map(fn (TransportHistory $transportHistory) => [
                         'record' => $transportHistory,
-                        'icon' => $transportHistoryService->getIconFromType($transportHistory->getType()),
+                        'icon' => $transportHistoryService->getIconFromType($transportHistory->getOrder() ?? $transportHistory->getRequest(), $transportHistory->getType()),
                     ])
                     ->toArray()
             ]),

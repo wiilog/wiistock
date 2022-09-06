@@ -8,22 +8,22 @@
 
             <div class="modal-body modal-input container-fluid">
                 <div class="form-group">
-                    <label for="label">Nom*</label>
+                    <label class="wii-field-name" for="label">Nom*</label>
                     <input type="text" id="Label" class="form-control data needed is-barcode" name="Label"/>
                 </div>
 
                 <div class="form-group">
-                    <label for="Description">Description*</label>
+                    <label class="wii-field-name" for="Description">Description*</label>
                     <input type="text" id="Description" class="form-control data needed" name="Description">
                 </div>
 
                 <div class="form-group">
-                    <label for="Description">Délais traça HH:MM</label>
+                    <label class="wii-field-name" for="Description">Délais traça HH:MM</label>
                     <input type="text" id="dateMaxTime" class="form-control data" name="dateMaxTime">
                 </div>
 
                 <div class="form-group">
-                    <label title="Natures de colis autorisées">{{ 'natures.Natures de colis autorisées'|trans }}</label>
+                    <label class="wii-field-name" title="Natures de colis autorisées">{{ 'natures.Natures de colis autorisées'|trans }}</label>
                     <select name="allowed-natures" class="form-control data select2 w-100" multiple>
                         {% for nature in natures %}
                             <option value="{{ nature.id }}">{{ nature.label }}</option>
@@ -32,7 +32,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Températures autorisées</label>
+                    <label class="wii-field-name">Températures autorisées</label>
                     <select name="allowedTemperatures" class="form-control data select2 w-100" multiple>
                         {% for temperature in temperatures %}
                             <option value="{{ temperature.id }}">{{ temperature.value }}</option>
@@ -41,7 +41,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Types de livraisons autorisés</label>
+                    <label class="wii-field-name">Types de livraisons autorisés</label>
                     <select name="allowedDeliveryTypes" class="form-control data needs-default select2 w-100" data-default-all multiple>
                         {% for type in deliveryTypes %}
                             <option value="{{ type.id }}" selected>{{ type.label }}</option>
@@ -50,7 +50,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Types de collectes autorisés</label>
+                    <label class="wii-field-name">Types de collectes autorisés</label>
                     <select name="allowedCollectTypes" class="form-control data needs-default select2 w-100" data-default-all multiple>
                         {% for type in collectTypes %}
                             <option value="{{ type.id }}" selected>{{ type.label }}</option>
@@ -60,7 +60,7 @@
 
 
                 <div class="form-group d-flex align-content-center">
-                    <label>Point de livraison ? </label>
+                    <label class="wii-field-text">Point de livraison ? </label>
                     <label class="switch ml-2">
                         <input class="checkbox form-control data" type="checkbox" name="isDeliveryPoint">
                         <span class="slider round"></span>
@@ -68,18 +68,20 @@
                 </div>
 
                 <div class="form-group d-flex align-content-center">
-                    <label>Encours visible nomade ? </label>
+                    <label class="wii-field-text">Encours visible nomade ? </label>
                     <label class="switch ml-2">
                         <input class="checkbox form-control data" type="checkbox" name="isOngoingVisibleOnMobile">
                         <span class="slider round"></span>
                     </label>
                 </div>
             </div>
-            <div class="error-msg"></div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
-                <div id="submitNewEmplacement" class="btn btn-success">Enregistrer</div>
-            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-success', text: 'Enregistrer', id: 'submitNewEmplacement'}
+                ],
+            } %}
+
         </div>
     </div>
 </form>

@@ -9,7 +9,7 @@
 {% block content %}
     <div class="row">
         <div class="form-group col-12">
-            <label>Type(s) de services*</label>
+            <label class="wii-field-name">Type(s) de services*</label>
             <div class="input-group flex-nowrap no-gutters">
                 <div class="flex-fill">
                     <select class="data form-control h-100 w-100 needed select2"
@@ -31,7 +31,7 @@
 
     <div class="row">
         <div class="col-12">
-            <label>Statut(s)*</label>
+            <label class="wii-field-name">Statut(s)*</label>
             <div class="input-group flex-nowrap no-gutters">
                 <div class="flex-fill">
                     <select class="data form-control h-100 w-100 needed select2"
@@ -61,7 +61,7 @@
             </label>
         </div>
         <div class="col">
-            Afficher le nombre d'opération(s) réalisé(s) de la journée
+            <label class="wii-field-text">Afficher le nombre d'opération(s) réalisé(s) de la journée</label>
         </div>
     </div>
     <div class="row form-group align-items-center">
@@ -75,7 +75,21 @@
             </label>
         </div>
         <div class="col">
-            Afficher le nombre d'urgences de la journée
+            <label class="wii-field-text">Afficher le nombre d'urgences de la journée</label>
+        </div>
+    </div>
+    <div class="row form-group align-items-center">
+        <div class="col-auto">
+            <label class="switch">
+                <input class="checkbox"
+                       type="checkbox"
+                       name="redirectToHandling"
+                    {{ values.redirectToHandling ?? false ? 'checked' }}/>
+                <span class="slider round"></span>
+            </label>
+        </div>
+        <div class="col">
+            <label class="wii-field-text">Rediriger vers la page Demande de service au clic</label>
         </div>
     </div>
 {% endblock %}

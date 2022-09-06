@@ -34,7 +34,7 @@
                 text: 'Demande de livraison en "A traiter" et ordre de préparation en "A traiter"'
             }, checked: deliveryRequestBehavior == setting('CREATE_PREPA_AFTER_DL')},
             {label: "Livraison directe : passage direct à l'ordre de livraison", value: setting('DIRECT_DELIVERY'), tooltip: {
-                text: 'Demande de livraison en "A traiter", ordre de préparation en "Préparé" et ordre de livraison en "A traiter'
+                text: 'Demande de livraison et ordre de préparation en "Préparé" et ordre de livraison en "A traiter"'
             }, checked: deliveryRequestBehavior == setting('DIRECT_DELIVERY')},
         ]) }}
     </div>
@@ -77,6 +77,8 @@
                         required
                         class="form-control data-array"
                         data-s2="deliveryType"
+                        data-other-params
+                        data-other-params-all-types-option="1"
                         data-include-params-parent=".setting-type-association"
                         data-include-params="select[name=deliveryType]">
                 </select>
@@ -103,7 +105,6 @@
     </div>
 </template>
 <input type="hidden" value="{{ deliveryTypeSettings }}" name="deliveryTypeSettings">
-<input type="hidden" value="" name="allTypesOption">
 <input type="hidden" value="" name="alreadyDefinedTypes">
 <input type="hidden" value="{{ setting_value('DEFAULT_LOCATION_LIVRAISON') }}" name="{{ setting('DEFAULT_LOCATION_LIVRAISON') }}">
 

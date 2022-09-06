@@ -2,11 +2,12 @@
 
 .notification-modal {
     .modal-dialog {
-        position:absolute;
-        top:20px;
-        right:100px;
+        position: absolute;
+        top: 20px;
+        right: 100px;
         z-index: 100000000;
         width: 500px !important;
+
         .modal-content {
             background: $white;
         }

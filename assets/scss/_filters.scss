@@ -2,12 +2,12 @@
 
 .filter {
     background-color: $white !important;
-    color: $greyDark !important;
-    border-color: $greyDark !important;
+    color: $dark-grey !important;
+    border-color: $dark-grey !important;
 
     i:hover {
-        color: $red !important;
-        border-color: $red !important;
+        color: $danger !important;
+        border-color: $danger !important;
     }
 
     span {
@@ -24,6 +24,23 @@
         .select2-selection__placeholder {
             vertical-align: middle;
         }
+    }
+
+    .dropdown-filter {
+        border: 1px solid $medium-grey;
+    }
+
+    .date-dropdown {
+        background-color: $light-grey;
+        border-radius: 0 4px 4px 0;
+        color: $dark-grey !important;
+        border-left: none;
+        height: 100%;
+    }
+
+    .filter-dropdown-menu {
+        max-height: 400px;
+        overflow-y: auto;
     }
 
     .select-filter {
@@ -96,8 +113,8 @@
     background-color: $white;
     padding: 6.5px;
     width: 260px !important;
-    border: 1px solid #ced4da;
-    color: $darkGrey !important;
+    border: 1px solid $medium-grey;
+    color: $dark-grey !important;
     font-size: 0.9rem;
     border-radius: 5px;
 
@@ -112,4 +129,49 @@
 
 .w-218px {
     width: 218px !important;
+}
+
+.filter-status-multiple {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    width: 250px;
+    height: 36px;
+    font-weight: initial !important;
+}
+
+.filter-status-multiple-dropdown {
+    min-width: 100%;
+    width: min-content;
+    max-height: initial !important;
+
+    .dropdown-item {
+        padding: 0.35rem 0.6rem !important;
+
+        &:active, &:hover {
+            background: $primary;
+            color: white;
+
+            input[type="checkbox"] {
+                position: relative;
+
+                &, &:before {
+                    transition: all 200ms;
+                }
+
+                &:not(:checked) {
+                    border: 2px solid white;
+                }
+
+                &:checked {
+                    background: white;
+
+                    &:before {
+                        background-color: $primary;
+                    }
+                }
+            }
+        }
+    }
 }

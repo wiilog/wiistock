@@ -168,78 +168,122 @@ class HandlingRepository extends EntityRepository
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-	public function findByParamAndFilters(InputBag $params, $filters)
+    public function findByParamAndFilters(InputBag $params, $filters, $selectedDate = null)
     {
         $qb = $this->createQueryBuilder('handling');
+
+        if ($selectedDate) {
+            $qb->andWhere('handling.desiredDate >= :filter_dateMin_value')
+                ->setParameter('filter_dateMin_value', "$selectedDate 00:00:00")
+                ->andWhere('handling.desiredDate <= :filter_dateMax_value')
+                ->setParameter('filter_dateMax_value', "$selectedDate 23:59:59");
+        }
 
         $countTotal = $qb
             ->select('COUNT(handling)')
             ->getQuery()
             ->getSingleScalarResult();
-        // filtres sup
-        foreach ($filters as $filter) {
-            switch($filter['field']) {
-                case 'statut':
-					$value = explode(',', $filter['value']);
-					$qb
-						->join('handling.status', 'filter_status')
-						->andWhere('filter_status.id in (:filter_status_value)')
-						->setParameter('filter_status_value', $value);
-					break;
-                case 'utilisateurs':
-                    $value = explode(',', $filter['value']);
-                    $qb
-                        ->join('handling.requester', 'filter_requester')
-                        ->andWhere("filter_requester.id in (:filter_requester_username_value)")
-                        ->setParameter('filter_requester_username_value', $value);
-                    break;
-                case 'type':
-                    $qb
-                        ->join('handling.type', 'filter_type')
-                        ->andWhere("filter_type.label in (:filter_type_value)")
-                        ->setParameter('filter_type_value', $filter['value']);
-                    break;
-                case 'emergencyMultiple':
-                    $value = array_map(function($value) {
-                        return explode(":", $value)[0];
-                    }, explode(',', $filter['value']));
-                    $qb
-                        ->andWhere("handling.emergency in (:filter_emergency_value)")
-                        ->setParameter('filter_emergency_value', $value);
-                    break;
-                case 'dateMin':
-                    $qb->andWhere('handling.creationDate >= :filter_dateMin_value')
-                        ->setParameter('filter_dateMin_value', $filter['value'] . " 00:00:00");
-                    break;
-                case 'dateMax':
-                    $qb->andWhere('handling.creationDate <= :filter_dateMax_value')
-                        ->setParameter('filter_dateMax_value', $filter['value'] . " 23:59:59");
-                    break;
-                case 'subject':
-                    $qb->andWhere('handling.subject LIKE :filter_subject')
-                        ->setParameter('filter_subject', "%{$filter['value']}%");
-                    break;
-                case 'receivers':
-                    $value = explode(',', $filter['value']);
-                    $qb
-                        ->join('handling.receivers', 'filter_receivers')
-                        ->andWhere("filter_receivers.id in (:filter_receivers_username_value)")
-                        ->setParameter('filter_receivers_username_value', $value);
-                    break;
-            }
-        }
 
-		//Filter search
-		if (!empty($params)) {
-			if (!empty($params->all('search'))) {
-				$search = $params->all('search')['value'];
-				if (!empty($search)) {
-					$qb
-                        ->leftJoin("handling.type", 'search_type')
-                        ->leftJoin("handling.requester", 'search_requester')
-                        ->leftJoin("handling.status", 'search_status')
-                        ->leftJoin("handling.treatedByHandling", 'search_treatedBy')
-						->andWhere("(
+        if (!$selectedDate) {
+            // filtres sup
+            foreach ($filters as $filter) {
+                switch ($filter['field']) {
+                    case 'statuses-filter':
+                        if ($filter["value"]) {
+                            $value = explode(",", $filter["value"]);
+                            $qb->join('handling.status', 'filter_status')
+                                ->andWhere('filter_status.id in (:filter_status_value)')
+                                ->setParameter('filter_status_value', $value);
+                        }
+                        break;
+                    case 'utilisateurs':
+                        $value = explode(',', $filter['value']);
+                        $qb
+                            ->join('handling.requester', 'filter_requester')
+                            ->andWhere("filter_requester.id in (:filter_requester_username_value)")
+                            ->setParameter('filter_requester_username_value', $value);
+                        break;
+                    case 'type':
+                        $qb
+                            ->join('handling.type', 'filter_type')
+                            ->andWhere("filter_type.label in (:filter_type_value)")
+                            ->setParameter('filter_type_value', $filter['value']);
+                        break;
+                    case 'emergencyMultiple':
+                        $value = array_map(function ($value) {
+                            return explode(":", $value)[0];
+                        }, explode(',', $filter['value']));
+                        $qb
+                            ->andWhere("handling.emergency in (:filter_emergency_value)")
+                            ->setParameter('filter_emergency_value', $value);
+                        break;
+                    case 'date-choice_creationDate':
+                        foreach ($filters as $filter) {
+                            switch ($filter['field']) {
+                                case 'dateMin':
+                                    $qb->andWhere('handling.creationDate >= :filter_dateMin_value')
+                                        ->setParameter('filter_dateMin_value', $filter['value'] . " 00:00:00");
+                                    break;
+                                case 'dateMax':
+                                    $qb->andWhere('handling.creationDate <= :filter_dateMax_value')
+                                        ->setParameter('filter_dateMax_value', $filter['value'] . " 23:59:59");
+                                    break;
+                            }
+                        }
+                        break;
+                    case 'date-choice_expectedDate':
+                        foreach ($filters as $filter) {
+                            switch ($filter['field']) {
+                                case 'dateMin':
+                                    $qb->andWhere('handling.desiredDate >= :filter_dateMin_value')
+                                        ->setParameter('filter_dateMin_value', $filter['value'] . " 00:00:00");
+                                    break;
+                                case 'dateMax':
+                                    $qb->andWhere('handling.desiredDate <= :filter_dateMax_value')
+                                        ->setParameter('filter_dateMax_value', $filter['value'] . " 23:59:59");
+                                    break;
+                            }
+                        }
+                        break;
+                    case 'date-choice_treatmentDate':
+                        foreach ($filters as $filter) {
+                            switch ($filter['field']) {
+                                case 'dateMin':
+                                    $qb->andWhere('handling.validationDate >= :filter_dateMin_value')
+                                        ->setParameter('filter_dateMin_value', $filter['value'] . " 00:00:00");
+                                    break;
+                                case 'dateMax':
+                                    $qb->andWhere('handling.validationDate <= :filter_dateMax_value')
+                                        ->setParameter('filter_dateMax_value', $filter['value'] . " 23:59:59");
+                                    break;
+                            }
+                        }
+                        break;
+                    case 'subject':
+                        $qb->andWhere('handling.subject LIKE :filter_subject')
+                            ->setParameter('filter_subject', "%{$filter['value']}%");
+                        break;
+                    case 'receivers':
+                        $value = explode(',', $filter['value']);
+                        $qb
+                            ->join('handling.receivers', 'filter_receivers')
+                            ->andWhere("filter_receivers.id in (:filter_receivers_username_value)")
+                            ->setParameter('filter_receivers_username_value', $value);
+                        break;
+                }
+            }
+
+            //Filter search
+            if (!empty($params)) {
+                if (!empty($params->all('search'))) {
+                    $search = $params->all('search')['value'];
+                    if (!empty($search)) {
+                        $qb
+                            ->leftJoin("handling.type", 'search_type')
+                            ->leftJoin("handling.requester", 'search_requester')
+                            ->leftJoin("handling.status", 'search_status')
+                            ->leftJoin("handling.treatedByHandling", 'search_treatedBy')
+                            ->andWhere("(
                             handling.number LIKE :search_value
                             OR DATE_FORMAT(handling.creationDate, '%d/%m/%Y') LIKE :search_value
                             OR search_type.label LIKE :search_value
@@ -251,14 +295,16 @@ class HandlingRepository extends EntityRepository
                             OR search_treatedBy.username LIKE :search_value
                             OR handling.carriedOutOperationCount LIKE :search_value
 						)")
-						->setParameter('search_value', '%' . $search . '%');
-				}
-			}
-            if (!empty($params->all('order')))
-            {
+                            ->setParameter('search_value', '%' . $search . '%');
+                    }
+                }
+            }
+        }
+
+        if (!empty($params)) {
+            if (!empty($params->all('order'))) {
                 $order = $params->all('order')[0]['dir'];
-                if (!empty($order))
-                {
+                if (!empty($order)) {
                     $column = self::DtToDbLabels[$params->all('columns')[$params->all('order')[0]['column']]['data']];
                     if ($column === 'type') {
                         $qb
@@ -284,9 +330,9 @@ class HandlingRepository extends EntityRepository
                     }
                 }
             }
-		}
+        }
 
-		// compte éléments filtrés
+        // compte éléments filtrés
         $countFiltered = $qb
             ->select('COUNT(handling)')
             ->getQuery()
@@ -373,12 +419,13 @@ class HandlingRepository extends EntityRepository
         $groupByTypes = $options['groupByTypes'] ?? false;
         $isOperations = $options['isOperations'] ?? false;
         $emergency = $options['emergency'] ?? false;
+        $date = $options['date'] ?? 'desiredDate';
         $handlingStatusesFilter = $options['handlingStatusesFilter'] ?? [];
         $handlingTypesFilter = $options['handlingTypesFilter'] ?? [];
 
         $qb = $this->createQueryBuilder('handling')
             ->select(($isOperations ? 'SUM(handling.carriedOutOperationCount) AS count' : ('COUNT(handling) ' . ($groupByTypes ? ' AS count' : ''))))
-            ->where('handling.desiredDate BETWEEN :dateMin AND :dateMax')
+            ->where("handling.$date BETWEEN :dateMin AND :dateMax")
             ->join('handling.type', 'type')
             ->setParameters([
                 'dateMin' => $dateMin,
@@ -409,6 +456,51 @@ class HandlingRepository extends EntityRepository
         }
 
         return $groupByTypes ? $qb->getQuery()->getResult() : $qb->getQuery()->getSingleScalarResult();
+    }
+
+    /**
+     * @param DateTime $dateMin
+     * @param DateTime $dateMax
+     * @param array $options
+     * @return int
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function getEmergenciesHandlingForDashboardRedirect(DateTime $dateMin,
+                                                                 DateTime $dateMax,
+                                                                 array $options)
+    {
+        $emergency = $options['emergency'] ?? false;
+        $handlingStatusesFilter = $options['handlingStatusesFilter'] ?? [];
+        $handlingTypesFilter = $options['handlingTypesFilter'] ?? [];
+
+        $qb = $this->createQueryBuilder('handling')
+            ->select('handling.id')
+            ->where('handling.desiredDate BETWEEN :dateMin AND :dateMax')
+            ->join('handling.type', 'type')
+            ->setParameters([
+                'dateMin' => $dateMin,
+                'dateMax' => $dateMax
+            ]);
+
+        if ($emergency) {
+            $qb
+                ->andWhere("handling.emergency NOT LIKE ''");
+        }
+
+        if (!empty($handlingStatusesFilter)) {
+            $qb
+                ->andWhere('handling.status IN (:handlingStatuses)')
+                ->setParameter('handlingStatuses', $handlingStatusesFilter);
+        }
+
+        if (!empty($handlingTypesFilter)) {
+            $qb
+                ->andWhere('handling.type IN (:handlingTypes)')
+                ->setParameter('handlingTypes', $handlingTypesFilter);
+        }
+
+        return $qb->getQuery()->getResult();
     }
 
     public function getOlderDateToTreat(array $types = [],
@@ -469,5 +561,9 @@ class HandlingRepository extends EntityRepository
 
                 return $carry;
             }, []);
+    }
+
+    public function countByDatesAndScale(int $scale, array $handlingTypes){
+        $queryBuilder = $this->createQueryBuilder('handling');
     }
 }

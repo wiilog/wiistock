@@ -1,7 +1,7 @@
 {% set restrictedLocations = restrictedLocations is defined and restrictedLocations %}
 
 <div class="form-group row">
-    <label class="col-12" for="date-collecte">Date de la collecte</label>
+    <label class="wii-field-name col-12" for="date-collecte">Date de la collecte</label>
     <div class="col-12">
         <input type="date" class="form-control data w-100" name="date-collecte" id="dateCollecte"
                value="{{ collecte.date | date('Y-m-d') }}" required="true" min="{{ 'now' | date('Y-m-d') }}"
@@ -10,7 +10,7 @@
 </div>
 
 <div class="form-group row">
-    <label class="col-12" for="objet">Objet de collecte*</label>
+    <label class="wii-field-name col-12" for="objet">Objet de collecte*</label>
     <div class="col-12">
         <input type="text" class="form-control data needed w-100" name="objet" id='objet' value="{{ collecte.objet }}"
                placeholder="objet" maxlength="255">
@@ -18,7 +18,7 @@
 </div>
 
 <div class="form-group row">
-    <label class="col-12" for="statut">Statut</label>
+    <label class="wii-field-name col-12" for="statut">Statut</label>
     <div class="col-12">
         <select class="form-control select2 data w-100" name="statut" disabled>
             <option value="{{ collecte.statut.id }}">{{ collecte.statut.nom }}</option>
@@ -27,7 +27,7 @@
 </div>
 
 <div class="form-group row">
-    <label class="col-12" for="utilisateur">Utilisateur</label>
+    <label class="wii-field-name col-12" for="utilisateur">Utilisateur</label>
     <div class="col-12">
         <select class="form-control select2 data w-100" name="demandeur" disabled>
             {% if collecte.demandeur %}
@@ -38,7 +38,7 @@
 </div>
 
 <div class="form-group row">
-    <label class="col-12" for="type">Type*</label>
+    <label class="wii-field-name col-12" for="type">Type*</label>
     <div class="col-12">
         <select name="type" class="form-control data d-block type needed col-12" disabled>
             <option value="{{ collecte.type.id }}">{{ collecte.type.label }}</option>
@@ -52,7 +52,7 @@
 </div>
 
 <div class="form-group row">
-    <label class="col-12" for="Pcollecte">Point de collecte*</label>
+    <label class="wii-field-name col-12" for="Pcollecte">Point de collecte*</label>
     <div class="col-12">
         <select class="pointCollecte form-control needed ajax-autocomplete-location-edit data w-100" name="Pcollecte">
             {% if collecte.pointCollecte %}
@@ -64,7 +64,7 @@
 </div>
 
 <div class="form-group">
-    <label>Destination*</label><br>
+    <label class="wii-field-name">Destination*</label><br>
     <div class="wii-switch needed" data-title="Destination">
         <input type="radio" name="destination" value="0" content="Destruction" {% if collecte.isDestruct %}checked{% endif %}>
         <input type="radio" name="destination" value="1" content="Mise en stock" {% if collecte.isStock %}checked{% endif %}>
@@ -84,7 +84,7 @@
 
 
 <div class="form-group row">
-    <label class="col-12" for="commentaire">Commentaire</label>
+    <label class="col-12 wii-field-name">Commentaire</label>
     <div class="col-12">
         <input id="commentaire" class="form-control data" name="commentaire" type="hidden"
                value="{{ collecte.commentaire }}">

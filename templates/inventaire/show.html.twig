@@ -43,35 +43,31 @@
     <div class="mx-4 mb-4 mt-3">
         <div class="row">
             <div class="col-6 pr-2">
-                <div class="wii-page-card">
-                    <div class="row mb-2">
-                        <h5 class="col-auto h5">Liste des articles</h5>
-                    </div>
-                    <div class="row wii-page-card-header">
-                    </div>
-                    <div class="d-none justify-content-center">
-                        <div class="spinner-border sizeLoader" role="status">
-                            <span class="sr-only">Loading...</span>
+                <div class="wii-box mt-0">
+                    <div class="header wii-title">Liste des articles</div>
+                    <div class="content">
+                        <div class="d-none justify-content-center">
+                            <div class="spinner-border sizeLoader" role="status">
+                                <span class="sr-only">Loading...</span>
+                            </div>
                         </div>
+                        <table id="tableMissionInvArticle" class="table">
+                        </table>
                     </div>
-                    <table id="tableMissionInvArticle" class="table">
-                    </table>
                 </div>
             </div>
             <div class="col-6 pl-2">
-                <div class="wii-page-card">
-                    <div class="row mb-2">
-                        <h5 class="col-auto h5">Liste des références</h5>
-                    </div>
-                    <div class="row wii-page-card-header">
-                    </div>
-                    <div class="d-none justify-content-center">
-                        <div class="spinner-border sizeLoader" role="status">
-                            <span class="sr-only">Loading...</span>
+                <div class="wii-box mt-0">
+                    <div class="header wii-title">Liste des références</div>
+                    <div class="content">
+                        <div class="d-none justify-content-center">
+                            <div class="spinner-border sizeLoader" role="status">
+                                <span class="sr-only">Loading...</span>
+                            </div>
                         </div>
+                        <table id="tableMissionInvReferenceArticle" class="table w-100">
+                        </table>
                     </div>
-                    <table id="tableMissionInvReferenceArticle" class="table w-100">
-                    </table>
                 </div>
             </div>
         </div>
@@ -80,7 +76,8 @@
     {% include 'inventaire/modalAddToMission.html.twig' %}
     {% include 'inventaire/modalRemoveRef.html.twig' %}
 {% endblock %}
-    {% block javascripts %}
-        {{ parent() }}
-        <script src="{{ asset('js/pages/mission-inventaire-show.js') }}?v={{ web_version }}"></script>
-    {% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/pages/mission-inventaire-show.js') }}?v={{ web_version }}"></script>
+{% endblock %}

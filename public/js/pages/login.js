@@ -19,7 +19,7 @@ catch (ignored) {
 }
 
 function showCompliantBrowserMessage() {
-    const elementsToDisplay = document.getElementsByClassName('messageChrome');
+    const elementsToDisplay = document.getElementsByClassName('chrome-message');
     const elementsToHide = document.getElementsByClassName('form-signin');
     if (elementsToDisplay) {
         for (let i = 0; i < elementsToDisplay.length; i++) {

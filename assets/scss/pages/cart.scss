@@ -3,11 +3,12 @@
 .empty-cart {
     & > .wii-box {
         height: calc(100% - #{$grid-gutter-width / 2});
+
         & > .row {
             height: 100%;
 
             .empty-cart-icon-container {
-                background-color: #e8e8e8;
+                background-color: $light-grey;
                 width: 120px;
                 height: 120px;
 
@@ -59,7 +60,7 @@
             padding: 0 20px;
 
             &:not(.cart-reference-quantity) {
-                border-right: 1px solid $greyFormLight;
+                border-right: 1px solid $light-grey;
             }
 
             & .increase-decrease-field {

@@ -111,55 +111,58 @@ class TransportRoundService
     public function calculateRoundRealDistance(TransportRound $transportRound): float
     {
         $vehicle = $transportRound->getVehicle() ?? $transportRound->getDeliverer()?->getVehicle();
-        $coordinates = $transportRound->getCoordinates();
-        $initialDistance = $this->geoService->directArcgisQuery(
-            [
-                [
-                    'index' => 0,
-                    'keep' => true,
-                    'geometry' => [
-                        'x' => $coordinates['startPoint']['longitude'],
-                        'y' => $coordinates['startPoint']['latitude']
-                    ]
-                ],
-                [
-                    'index' => 1,
-                    'keep' => true,
-                    'geometry' => [
-                        'x' => $coordinates['startPointScheduleCalculation']['longitude'],
-                        'y' => $coordinates['startPointScheduleCalculation']['latitude']
-                    ]
-                ]
-            ]
-        );
 
         if(!$transportRound->getEndedAt()) {
-            $end = clone $transportRound->getBeganAt();
+            $end = clone ($transportRound->getBeganAt() ?? new DateTime("now"));
             $end->setTime(23, 59);
         } else {
-            $end = $transportRound->getEndedAt();
+            $end = min((clone ($transportRound->getBeganAt()))->setTime(23, 59), $transportRound->getEndedAt());
         }
 
         $messages = $vehicle->getSensorMessagesBetween($transportRound->getBeganAt(), $end, Sensor::GPS);
+        if (!empty($messages)) {
+            $coordinates = $transportRound->getCoordinates();
+            $initialDistance = $this->geoService->directArcgisQuery(
+                [
+                    [
+                        'index' => 0,
+                        'keep' => true,
+                        'geometry' => [
+                            'x' => $coordinates['startPoint']['longitude'],
+                            'y' => $coordinates['startPoint']['latitude']
+                        ]
+                    ],
+                    [
+                        'index' => 1,
+                        'keep' => true,
+                        'geometry' => [
+                            'x' => $coordinates['startPointScheduleCalculation']['longitude'],
+                            'y' => $coordinates['startPointScheduleCalculation']['latitude']
+                        ]
+                    ]
+                ]
+            );
+            $sensorCoordinates = Stream::from($messages)
+                ->map(function (SensorMessage $message) {
+                    $content = $message->getContent();
+                    if ($content && $content !== '-1,-1') {
+                        $coordinates = Stream::explode(',', $content)
+                            ->map(fn($coordinate) => floatval($coordinate))
+                            ->toArray();
 
-        $sensorCoordinates = Stream::from($messages)
-            ->map(function (SensorMessage $message) {
-                $content = $message->getContent();
-                if ($content && $content !== '-1,-1') {
-                    $coordinates = Stream::explode(',', $content)
-                        ->map(fn($coordinate) => floatval($coordinate))
-                        ->toArray();
+                        return [
+                            'latitude' => $coordinates[0],
+                            'longitude' => $coordinates[1],
+                        ];
+                    }
+                    return null;
+                })
+                ->filter();
 
-                    return [
-                        'latitude' => $coordinates[0],
-                        'longitude' => $coordinates[1],
-                    ];
-                }
-                return null;
-            })
-            ->filter();
+            return ($initialDistance['distance'] * 1000) + $this->geoService->getDistanceBetween($sensorCoordinates->toArray());
+        }
 
-        return ($initialDistance['distance'] * 1000) + $this->geoService->getDistanceBetween($sensorCoordinates->toArray());
+        return 0.0;
     }
 
     public function putLineRoundAndRequest($output,

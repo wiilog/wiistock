@@ -7,33 +7,35 @@
 
             <div class="modal-body modal-input container-fluid">
                 <div class="form-group">
-                    <label>Nom*</label>
+                    <label class="wii-field-name">Nom*</label>
                     <input type="text" class="form-control data needed" name="name">
                 </div>
 
                 <div class="form-group">
-                    <label>Code de référence*</label>
+                    <label class="wii-field-name">Code de référence*</label>
                     <input type="text" class="form-control data needed" name="code">
                 </div>
 
                 <div class="row">
                     <div class="col-6 d-flex align-items-center">
                         <input class="checkbox data" type="checkbox" name="possibleCustoms">
-                        <span class="font-size-mini pointer ml-2"
+                        <span class="font-size-mini pointer ml-2 wii-field-text"
                               onclick="$(this).closest('div').find('.checkbox').click();">Possible douane</span>
                     </div>
                     <div class="col-6 d-flex align-items-center">
                         <input class="checkbox data" type="checkbox" name="urgent">
-                        <span class="font-size-mini pointer ml-2"
+                        <span class="font-size-mini pointer ml-2 wii-field-text"
                               onclick="$(this).closest('div').find('.checkbox').click();">Urgent</span>
                     </div>
                 </div>
             </div>
-            <div class="error-msg"></div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
-                <button id="submitNewFournisseur" type="button" class="btn btn-success">Enregistrer</button>
-            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-success', text: 'Enregistrer', id: 'submitNewFournisseur'}
+                ],
+            } %}
+
         </div>
     </div>
 </form>

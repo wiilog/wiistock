@@ -7,18 +7,19 @@
 
             <div class="modal-body modal-input container-fluid pb-0">
                 <div class="form-group">
-                    <label>Date de fin d'association*</label>
+                    <label class="wii-field-name">Date de fin d'association*</label>
                     <input type="datetime-local" class="form-control data needed" name="end"/>
                 </div>
             </div>
 
             <input type="hidden" class="form-control data needed" name="id"/>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-success', text: 'Enregistrer', id: 'submitEditPairingEnd'}
+                ],
+            } %}
 
-            <div class="error-msg"></div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
-                <div id="submitEditPairingEnd" class="btn btn-success">Enregistrer</div>
-            </div>
         </div>
     </div>
 </div>

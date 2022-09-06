@@ -24,7 +24,8 @@ $rowNumberToDatatableHeight: (
 
     &.external {
         position: absolute;
-        top: 10px; right: 10px;
+        top: 10px;
+        right: 10px;
         font-weight: bold;
         float: right;
         color: $white;
@@ -52,11 +53,11 @@ $rowNumberToDatatableHeight: (
 }
 
 .primary-danger {
-    background-color: #F29664 !important;
+    background-color: $orange !important;
 }
 
 .secondary-danger {
-    background-color: #F5DA64 !important;
+    background-color: $warning !important;
 }
 
 .dashboard-container {
@@ -150,12 +151,12 @@ $rowNumberToDatatableHeight: (
     }
 
     &.selected {
-        border: 4px solid #00c2f1;
+        border: 4px solid $aqua;
     }
 
     &.not-selectable {
-        border: 4px dashed #808080;
-        background: #e7e7e7;
+        border: 4px dashed $dark-grey;
+        background: $light-grey;
     }
 }
 
@@ -192,7 +193,8 @@ $rowNumberToDatatableHeight: (
                 flex: 1 1 50%;
                 height: calc(50% - 5px);
             }
-            &> .dashboard-component:not(:last-child) {
+
+            & > .dashboard-component:not(:last-child) {
                 margin-bottom: 10px;
             }
         }
@@ -207,7 +209,8 @@ $rowNumberToDatatableHeight: (
                 flex: 1 1 50%;
                 width: calc(50% - 5px);
             }
-            &> .dashboard-component:not(:last-child) {
+
+            & > .dashboard-component:not(:last-child) {
                 margin-right: 10px;
             }
         }
@@ -218,10 +221,10 @@ $rowNumberToDatatableHeight: (
     }
 
     &.empty {
-        background: #D0D9E0;
+        background: $light-grey;
         align-items: center;
         justify-content: center;
-        border: 2px dashed #878d92;
+        border: 2px dashed $dark-grey;
         display: flex;
 
         @media (max-width: $responsive-breakpoint) {
@@ -242,6 +245,12 @@ $rowNumberToDatatableHeight: (
     }
 }
 
+.dashboard-ext {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
 .dashboard-box {
     @extend .wii-card;
 
@@ -253,12 +262,12 @@ $rowNumberToDatatableHeight: (
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
     background: $white;
 
-    .dashboard:not(.dashboard-bounce) &,
-    &:not(a){
+    .dashboard:not(.dashboard-bounce) &, &:not(a) {
         transform: none !important;
     }
 
     padding: 0.5rem;
+
     .dashboard-ext & {
         padding: 0.20rem;
     }
@@ -307,7 +316,7 @@ $rowNumberToDatatableHeight: (
         @extend .h5;
         margin-bottom: 0.3rem;
         padding: 0;
-        color: $blackDashboard;
+        color: $black;
 
         @media all and (max-width: $responsive-breakpoint) {
             font-size: 0.9rem;
@@ -330,7 +339,7 @@ $rowNumberToDatatableHeight: (
     }
 
     .arrow-chart {
-        color: $blueGT;
+        color: $primary;
         font-weight: bold;
         display: inline-block;
         margin: 0 10px;
@@ -374,7 +383,7 @@ $rowNumberToDatatableHeight: (
 
         .dashboard-stats {
             font-weight: bold;
-            color: #0000CC;
+            color: $primary;
             cursor: default;
             text-align: center;
             font-size: 1.5rem;
@@ -394,7 +403,7 @@ $rowNumberToDatatableHeight: (
                     font-size: 5vw;
                 }
                 &.dashboard-stats-delay {
-                    font-size : 4vw
+                    font-size: 4vw
                 }
             }
 
@@ -428,7 +437,7 @@ $rowNumberToDatatableHeight: (
 }
 
 .dashboard-row-selector {
-    border: 1px solid #EEE;
+    border: 1px solid $light-grey;
     padding: 5px;
     margin: 5px;
     border-radius: 4px;
@@ -436,17 +445,17 @@ $rowNumberToDatatableHeight: (
     cursor: pointer;
 
     &.selected {
-        background-color: #EEE;
-        border-color: #BBB;
+        background-color: $light-grey;
+        border-color: $medium-grey;
     }
 
     &:hover {
-        background-color: #F8F8F8;
+        background-color: $background;
     }
 }
 
 .dashboard-example {
-    background-color: #130078;
+    background-color: $gt-blue;
     border-radius: 3px;
     height: 15px;
     flex: 1;
@@ -459,6 +468,7 @@ $rowNumberToDatatableHeight: (
 .component-example-container {
     min-height: 120px;
     display: flex;
+
     &.graph {
         min-height: 250px;
     }
@@ -478,12 +488,17 @@ sup {
 .component-type-container {
     display: flex;
     flex-direction: column;
-    box-shadow: 3px 3px 6px #555;
+    box-shadow: 0 0 6px rgba($dark-grey, 0.15);
     border-radius: 4px;
     margin: 0 5px;
     padding: 0 10px;
     width: 25%;
     flex-grow: 1;
+
+    .btn.btn-light {
+        background: #F2F3F7 !important;
+        border-color: #F2F3F7 !important;
+    }
 
     &:first-child {
         margin-left: 0;
@@ -503,6 +518,8 @@ sup {
             align-items: center;
             width: 100%;
             min-height: 70px;
+            padding: 20px 10px;
+            font-size: 0.9rem;
         }
     }
 }
@@ -532,7 +549,7 @@ sup {
     }
 }
 
-@mixin font-style-selector ($path) {
+@mixin font-style-selector($path) {
     width: 30px;
     height: 30px;
     margin: 0 3px;
@@ -549,7 +566,7 @@ sup {
     }
 
     input:checked ~ i {
-        border-color: #008ccd;
+        border-color: $primary;
     }
 
     input {
@@ -583,4 +600,9 @@ p.card-title {
 
 .chart-color-picker {
     margin: 5px 20% 5px 0;
+}
+
+.chart {
+    height: 70%;
+    width: 99%;
 }

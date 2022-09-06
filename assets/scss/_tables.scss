@@ -1,7 +1,7 @@
 @import "variables";
 
 .table-striped > tbody > tr:nth-of-type(odd) {
-    background-color: #e9e9e9;
+    background-color: $light-grey;
 }
 
 .table thead {
@@ -11,7 +11,7 @@
 
 .table-hover {
     thead > tr > th:hover {
-        background-color: #130078;
+        background-color: $gt-blue;
     }
 }
 
@@ -21,4 +21,8 @@
 
 .table-auto td {
     white-space: unset !important;
+}
+
+#modalColumnVisible thead th {
+    border-top: 0 !important;
 }

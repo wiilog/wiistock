@@ -27,6 +27,15 @@ $(function () {
     $('input[name=dateFrom], input[name=dateTo]').on('change', function (){
         getPreparationLaunchForm($modalLaunchPreparation);
     });
+
+    $modalLaunchPreparation.find('.check-stock-button').html($(`<div/>`, {
+        class: `d-inline-flex align-items-center`,
+        html: [$(`<span/>`, {
+            class: `wii-icon wii-icon-white-tick mr-2`
+        }), $(`<span/>`, {
+            text: `Vérifier le stock`,
+        })]
+    }));
 });
 
 function callbackSaveFilter() {
@@ -145,6 +154,18 @@ function getPreparationLaunchForm($modal){
                     $modalContent.removeClass('d-none');
                     $modalContent.append(response.template);
 
+                    $modal.find('.check-stock-button').html($(`<div/>`, {
+                        class: `d-inline-flex align-items-center`,
+                        html: [$(`<span/>`, {
+                            class: `wii-icon wii-icon-white-tick mr-2`
+                        }), $(`<span/>`, {
+                            text: `Vérifier le stock`,
+                        })]
+                    }))
+                        .data('launch-preparations', "0")
+                        .removeClass('btn-success')
+                        .addClass('btn-primary');
+
                     onOrdersDragAndDropDone($modal);
                     const sortables = Sortable.create(`.available-preparations, .assigned-preparations`, {
                         acceptFrom: `.preparations-container`,
@@ -173,6 +194,17 @@ function getPreparationLaunchForm($modal){
                         .appendTo($targetContainer);
                     onOrdersDragAndDropDone($modal);
                     $modal.find('.quantities-information-container').addClass('d-none');
+                    $modal.find('.check-stock-button').html($(`<div/>`, {
+                        class: `d-inline-flex align-items-center`,
+                        html: [$(`<span/>`, {
+                            class: `wii-icon wii-icon-white-tick mr-2`
+                        }), $(`<span/>`, {
+                            text: `Vérifier le stock`,
+                        })]
+                    }))
+                        .data('launch-preparations', "0")
+                        .removeClass('btn-success')
+                        .addClass('btn-primary');
                 });
 
                 $modal.find('.check-stock-button').on('click', function () {
@@ -201,11 +233,7 @@ function onOrdersDragAndDropDone($modal){
         .attr(`disabled`, !$preparationsToStart.exists());
     $preparationsAvailableContainer.html($availableCounter);
     $preparationsToStartContainer.html($assignedCounter);
-    if(!$preparationsToStart.exists()) {
-        $submitButton.text("Lancer les préparations");
-    } else {
-        $submitButton.text("Vérifier le stock");
-    }
+    $submitButton.find(`div > span:last-child`).text("Vérifier le stock");
 }
 
 function launchStockCheck($modal) {
@@ -218,15 +246,18 @@ function launchStockCheck($modal) {
     });
     $modal.find('.quantities-information-container').addClass('d-none');
     const $loadingContainers = $.merge($assignedPreparations, $modal.find('.check-stock-button'));
-    wrapLoadingOnActionButton($loadingContainers, () => (
-        AJAX
+
+    wrapLoadingOnActionButton($loadingContainers, function() {
+        $modal.find('.cancel-button').attr("disabled", true);
+        return AJAX
             .route(POST, `planning_preparation_launch_check_stock`, {
                 launchPreparations: $submitButton.data('launch-preparations')
             })
             .json(data)
             .then((res) => {
-                if(res.success) {
-                    if(res.unavailablePreparationsId.length > 0){
+                if (res.success) {
+                    $modal.find('.cancel-button').attr("disabled", false);
+                    if (res.unavailablePreparationsId.length > 0) {
                         Flash.add(ERROR, "Votre stock est insuffisant pour démarrer cette préparation");
                         res.unavailablePreparationsId.forEach((id) => {
                             $modal.find(`[data-preparation="${id}"]`)
@@ -234,25 +265,38 @@ function launchStockCheck($modal) {
                                 .removeClass('orange-card');
                         });
                         $modal.find('.assigned-preparations').addClass('border border-danger');
-                        $submitButton
-                            .text("Vérifier le stock")
-                            .data('launch-preparations', "0");
+                        $submitButton.html($(`<div/>`, {
+                            class: `d-inline-flex align-items-center`,
+                            html: [$(`<span/>`, {
+                                class: `wii-icon wii-icon-white-tick mr-2`
+                            }), $(`<span/>`, {
+                                text: `Vérifier le stock`,
+                            })]
+                        }))
+                            .data('launch-preparations', "0")
+                            .removeClass('btn-success')
+                            .addClass('btn-primary');
                         $modal.find('.quantities-information-container').removeClass('d-none');
                         $modal.find('.quantities-information').empty();
                         $modal.find('.quantities-information').append(res.template);
-                    } else if($submitButton.data('launch-preparations') === "1"){
+                    } else if ($submitButton.data('launch-preparations') === "1") {
                         $modal.modal('hide');
                         callbackSaveFilter();
                     } else {
                         Flash.add(SUCCESS, "Le stock demandé est disponible");
+                        $modal.find('.cancel-button')
+                            .removeClass('btn btn-outline-primary')
+                            .addClass('btn btn-outline-secondary');
                         $submitButton
-                            .text("Lancer les préparations")
+                            .removeClass('btn-primary')
+                            .addClass('btn-success')
+                            .text("Valider le lancement")
                             .data('launch-preparations', "1");
                         $modal.find('.assigned-preparations').addClass('border border-success');
                     }
                 }
-            })
-    ));
+            });
+    });
 }
 
 

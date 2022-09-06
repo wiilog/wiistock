@@ -4,11 +4,14 @@
             {% include 'utils/modal/header.html.twig' %}
             <div class="modal-body">
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
-                <button name='request' type="button"
-                        class="btn btn-danger data confirm">Supprimer</button>
-            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-danger data confirm', text: 'Supprimer', name: 'request'}
+                ],
+                renderErrorContainer: false
+            } %}
+
         </div>
     </div>
 </form>

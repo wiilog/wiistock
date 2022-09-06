@@ -1,13 +1,13 @@
 {% if roleIsHandlingArticles and collect.isStock %}
     <div class="form-group mt-2 col-12">
-        <label for="article-to-pick">Code article (laisser vide pour créer un nouvel article)</label>
+        <label for="article-to-pick" class="wii-field-name">Code article (laisser vide pour créer un nouvel article)</label>
         <select class="form-control data" id="article-to-pick" name="article-to-pick"
                 data-s2="collectableArticles" data-include-params="select[name=referenceArticle]">
         </select>
     </div>
 {% endif %}
 <div class="form-group col-12 mb-3">
-    <label for="quantity">Quantité à collecter*</label>
+    <label class="wii-field-name" for="quantity">Quantité à collecter*</label>
     <input class="form-control data needed" type="number" min=1 id="quantity" name="quantity-to-pick">
 </div>
 <input hidden class="data" name="roleIsHandlingArticles" value="{{ roleIsHandlingArticles }}">

@@ -1,8 +1,11 @@
 function initImagePopovers() {
-    $('[data-toggle="popover-hover"]').popover({
+    $(`body`).popover({
+        selector: `[data-toggle=popover-hover]`,
         html: true,
-        trigger: 'hover',
-        placement: 'bottom',
-        content: function () { return '<img src="' + $(this).data('img') + '" width="400" />'; }
+        trigger: `hover`,
+        placement: `bottom`,
+        content: function () {
+            return `<img alt src="${$(this).data('img')}" width="400" />`;
+        }
     });
 }

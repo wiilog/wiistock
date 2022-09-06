@@ -1,17 +1,17 @@
 @import "../../variables";
 
-.card-content{
+.card-content {
     height: content-box;
 }
 
-.details{
+.details {
     display: flex;
     flex: 1 1 auto;
     flex-direction: column;
     justify-content: space-between;
 }
 
-.wii-box{
+.wii-box {
     box-shadow: none;
 }
 
@@ -20,20 +20,20 @@
     border-bottom-right-radius: 5px;
 }
 
-.bottom-border{
+.bottom-border {
     height: 60vh;
 }
 
-.card-container{
-    max-height:  60vh;
+.card-container {
+    max-height: 60vh;
     overflow-y: auto;
     display: flex;
     flex-wrap: wrap;
 }
 
-.orderCardHover{
+.orderCardHover {
     width: 100%;
-    height:100%;
+    height: 100%;
 }
 
 @media screen and (min-width: 992px) {
@@ -41,8 +41,9 @@
         width: 50%;
     }
 }
+
 @media screen and (max-width: 992px) {
-    .planning-card{
+    .planning-card {
         width: 100%;
     }
 }
@@ -53,23 +54,24 @@ $wii-switch-height: $input-height;
     [value=to-assign] {
         &:not(:disabled), &:not(:disabled) + label {
             &:hover:not(:checked) {
-                    color: lighten($black, 5%);
-                    border-color: lighten(#D76433, 5%);
+                color: lighten($black, 5%);
+                border-color: lighten($orange, 5%);
             }
         }
 
         &:checked, &:checked + label {
             background: rgba(215, 100, 51, 0.15);
-            border-color: #D76433;
+            border-color: $orange;
+
             &:hover {
-                background: lighten(#F2F3F7, 5%) !important;
+                background: lighten($light-blue, 5%) !important;
                 color: lighten($black, 5%) !important;
-                border-color: lighten(#D76433, 5%) !important;
+                border-color: lighten($orange, 5%) !important;
             }
         }
 
         &, & + label {
-            border: 1px solid #D76433;
+            border: 1px solid $orange;
             background: $white;
             color: $black;
         }
@@ -79,23 +81,24 @@ $wii-switch-height: $input-height;
         &:not(:disabled), &:not(:disabled) + label {
             &:hover:not(:checked) {
                 color: lighten($black, 5%);
-                border-color: lighten(#A5D733, 5%);
+                border-color: lighten($green, 5%);
             }
         }
 
         &:checked, &:checked + label {
             background: rgba(165, 215, 51, 0.15);
             color: $black;
-            border-color: #A5D733;
+            border-color: $green;
+
             &:hover {
-                background: lighten(#F2F3F7, 5%) !important;
+                background: lighten($light-blue, 5%) !important;
                 color: lighten($black, 5%) !important;
-                border-color: lighten(#A5D733, 5%) !important;
+                border-color: lighten($green, 5%) !important;
             }
         }
 
         &, & + label {
-            border: 1px solid #A5D733;
+            border: 1px solid $green;
             background: $white;
             color: $black;
         }
@@ -105,23 +108,24 @@ $wii-switch-height: $input-height;
         &:not(:disabled), &:not(:disabled) + label {
             &:hover:not(:checked) {
                 color: lighten($black, 5%);
-                border-color: lighten(#6433D7, 5%);
+                border-color: lighten($purple, 5%);
             }
         }
 
         &:checked, &:checked + label {
             background: rgba(100, 51, 215, 0.15);
             color: $black;
-            border-color: #6433D7;
+            border-color: $purple;
+
             &:hover {
-                background: lighten(#F2F3F7, 5%) !important;
+                background: lighten($light-blue, 5%) !important;
                 color: lighten($black, 5%) !important;
-                border-color: lighten(#6433D7, 5%) !important;
+                border-color: lighten($purple, 5%) !important;
             }
         }
 
         &, & + label {
-            border: 1px solid #6433D7;
+            border: 1px solid $purple;
             background: $white;
             color: $black;
         }
@@ -149,7 +153,7 @@ $wii-switch-height: $input-height;
         cursor: pointer;
 
         &:hover:not(:checked) {
-            color: lighten(#666666, 5%);
+            color: lighten($dark-grey, 5%);
             border-color: lighten($white, 5%);
         }
 
@@ -159,7 +163,7 @@ $wii-switch-height: $input-height;
     flex-wrap: wrap;
     padding: 0;
 
-    div{
+    div {
         padding: 0 5px 0 5px;
     }
 
@@ -190,23 +194,27 @@ $wii-switch-height: $input-height;
 .transport-planning {
     .sub-planning-column {
         display: flex;
+
         &:first-child {
             padding-right: .13rem;
         }
+
         &:last-child {
             padding-left: .13rem;
         }
     }
+
     .planning-card {
         .transport-type {
             padding: 3px 7px;
             margin-top: 7px;
-            background-color: #FFFFFF;
+            background-color: $white;
             border-radius: 4px;
             display: flex;
             align-items: center;
             width: fit-content;
             word-break: break-all;
+
             img {
                 margin-right: 3px;
             }
@@ -214,3 +222,18 @@ $wii-switch-height: $input-height;
     }
 }
 
+.plan-round-option > * {
+    display: inline-flex;
+    height: 36px;
+    width: auto !important;
+    justify-content: center;
+    align-items: center;
+
+    &:not(.wii-radio-container) {
+        min-width: 150px;
+    }
+
+    &.wii-radio-container {
+        margin-right: 7px;
+    }
+}

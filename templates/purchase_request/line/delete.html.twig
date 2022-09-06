@@ -9,13 +9,14 @@
             <div class="modal-body">
                 Voulez-vous réellement supprimer cette référence ?
             </div>
-            <div class="modal-footer">
-                <input type="hidden" class="data" name="request" value="{{request.id}}">
-                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
-                <button name="lineId" type="button" class="btn data btn-danger submit-button" value="">
-                    Supprimer
-                </button>
-            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {input: true, classes: 'data', name: 'request', value: request.id},
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn data btn-danger submit-button', text: 'Suprimer', name: 'lineId'}
+                ],
+                renderErrorContainer: false
+            } %}
         </div>
     </div>
 </div>

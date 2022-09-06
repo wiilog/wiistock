@@ -9,7 +9,7 @@
 {% block content %}
     <div class="row">
         <div class="form-group col-12">
-            <label>Type(s) d'acheminements*</label>
+            <label class="wii-field-name">Type(s) d'acheminements*</label>
             <div class="input-group flex-nowrap no-gutters">
                 <div class="flex-fill">
                     <select class="data form-control h-100 w-100 needed select2"
@@ -39,7 +39,7 @@
             </label>
         </div>
         <div class="col">
-            Distinguer les acheminements par type
+            <label class="wii-field-text">Distinguer les acheminements par type</label>
         </div>
     </div>
     <div class="row form-group align-items-center stack-button {{ values.separateType != true ? 'd-none' : '' }}">
@@ -59,7 +59,7 @@
 
     <div class="row">
         <div class="col-12">
-            <label>Statut(s)*</label>
+            <label class="wii-field-name">Statut(s)*</label>
             <div class="input-group flex-nowrap no-gutters">
                 <div class="flex-fill">
                     <select class="data form-control h-100 w-100 needed select2"

@@ -232,11 +232,14 @@ class RequestTemplateController extends AbstractController {
             foreach ($types as $type) {
 
                 $freeFields = $freeFieldsRepository->findByType($type->getId());
+                $filteredFreeFields = Stream::from($freeFields)
+                    ->filter(fn(FreeField $freeField) => (!$template && $freeField->getDisplayedCreate()) || $template)
+                    ->toArray();
 
                 /** @var FreeField $freeField */
-                foreach ($freeFields as $freeField) {
+                foreach ($filteredFreeFields as $freeField) {
                     $data[] = [
-                        "label" => (!$template && $freeField->getDisplayedCreate()) || $template ? $freeField->getLabel() : '',
+                        "label" => $freeField->getLabel(),
                         "value" => $freeFieldTemplate->render([
                             "free_field" => $freeField,
                             "value" => $template ? $template->getFreeFields() : [],

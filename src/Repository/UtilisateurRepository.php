@@ -6,7 +6,6 @@ use App\Entity\Action;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bridge\Doctrine\Security\User\UserLoaderInterface;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -60,17 +59,6 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
             ->getArrayResult();
     }
 
-    public function removeFromSearch(string $searchField, string $fieldToRemove) {
-        $queryBuilder = $this->createQueryBuilder('utilisateur');
-        return $queryBuilder
-            ->update(Utilisateur::class, 'utilisateur')
-            ->set("utilisateur.${searchField}", "JSON_REMOVE(utilisateur.${searchField}, REPLACE(JSON_SEARCH(utilisateur.${searchField}, 'one', '${fieldToRemove}'), '\"', ''))")
-            ->where("utilisateur.${searchField} LIKE :searchField")
-            ->setParameter('searchField', '%' . $fieldToRemove . '%')
-            ->getQuery()
-            ->execute();
-    }
-
     public function countByRoleId(int $roleId): int {
 
         return $this->createQueryBuilder("user")
@@ -82,12 +70,7 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
             ->getSingleScalarResult();
     }
 
-    /**
-     * @param $key
-     * @return Utilisateur | null
-     * @throws NonUniqueResultException
-     */
-    public function findOneByApiKey($key)
+    public function findOneByApiKey(string $key): Utilisateur|null
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
@@ -238,11 +221,6 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
         }, $result);
     }
 
-    // implemented
-    public function loadUserByUsername($username) {
-        return $this->findOneBy(['email' => $username]);
-    }
-
     public function getUsernameManagersGroupByReference() {
         $result = $this->createQueryBuilder('utilisateur')
             ->select('referencesArticle.id AS referencesArticleId')
@@ -270,26 +248,7 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
             ->toIterable();
     }
 
-    public function findWithEmptyVisibleColumns() {
-        $qb = $this->createQueryBuilder('user');
-        $exprBuilder = $qb->expr();
-
-        return $qb->where($exprBuilder->orX(
-            "JSON_EXTRACT(user.visibleColumns, '$.arrival') IS NULL",
-            "JSON_EXTRACT(user.visibleColumns, '$.article') IS NULL",
-            "JSON_EXTRACT(user.visibleColumns, '$.dispute') IS NULL",
-            "JSON_EXTRACT(user.visibleColumns, '$.dispatch') IS NULL",
-            "JSON_EXTRACT(user.visibleColumns, '$.reception') IS NULL",
-            "JSON_EXTRACT(user.visibleColumns, '$.reference') IS NULL",
-            "JSON_EXTRACT(user.visibleColumns, '$.deliveryRequest') IS NULL",
-            "JSON_EXTRACT(user.visibleColumns, '$.trackingMovement') IS NULL",
-        ))
-            ->getQuery()
-            ->getResult();
-    }
-
     public function loadUserByIdentifier(string $identifier): ?UserInterface {
         return $this->findOneBy(["email" => $identifier]);
     }
-
 }

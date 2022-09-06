@@ -52,6 +52,7 @@ use App\Service\NatureService;
 use App\Service\NotificationService;
 use App\Service\OrdreCollecteService;
 use App\Service\PreparationsManagerService;
+use App\Service\StatusHistoryService;
 use App\Service\StatusService;
 use App\Service\TrackingMovementService;
 use App\Service\TransferOrderService;
@@ -834,7 +835,8 @@ class MobileController extends AbstractFOSRestController
                                   EntityManagerInterface $entityManager,
                                   FreeFieldService $freeFieldService,
                                   StatusService $statusService,
-                                  HandlingService $handlingService)
+                                  HandlingService $handlingService,
+                                  StatusHistoryService $statusHistoryService)
     {
         $nomadUser = $this->getUser();
 
@@ -853,7 +855,7 @@ class MobileController extends AbstractFOSRestController
             $statusId = $request->request->get('statusId');
             $newStatus = $statusRepository->find($statusId);
             if (!empty($newStatus)) {
-                $handling->setStatus($newStatus);
+                $statusHistoryService->updateStatus($entityManager, $handling, $newStatus);
             }
 
             $commentaire = $request->request->get('comment');

@@ -1,0 +1,30 @@
+{% import 'form.html.twig' as form %}
+
+<form class="modal fade" id="modalEditStatut" aria-labelledby="dataModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            {% include 'utils/modal/header.html.twig' with {
+                title: '<span title="Modifier le statut">' ~ ('Modifier le statut' | trans) ~ '</span>'
+            } %}
+            <div class="modal-body modal-input container-fluid">
+                {{ form.select('statut', "Statut", true, {
+                    items: statuses,
+                    value: currentStatus.id,
+                    type : null,
+                    search : false,
+                    labelOptions: {
+                        removeAsterisk: true
+                    }
+                }) }}
+            </div>
+
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-success data', text: 'Enregistrer', dismiss: true, value: handling.id, name: 'handling', id: 'submitEditStatut'}
+                ],
+                hideErrorContainer: true,
+            } %}
+        </div>
+    </div>
+</form>

@@ -350,12 +350,12 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                         'requestDate' => '18 Janv. (12h01)',
                         'requestUser' => 'mbenoukaiss',
                         'cardColor' => 'white',
-                        'bodyColor' => 'lightGrey',
+                        'bodyColor' => 'light-grey',
                         'topRightIcon' => 'livreur.svg',
                         'progress' => 0,
                         'progressBarColor' => '#2ec2ab',
                         'emergencyText' => '',
-                        'progressBarBGColor' => 'lightGrey',
+                        'progressBarBGColor' => 'light-grey',
                     ], [
                         'estimatedFinishTime' => 'Non estimée',
                         'estimatedFinishTimeLabel' => 'Date de livraison non estimée',
@@ -365,7 +365,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                         'requestNumber' => 'DL21010001',
                         'requestDate' => '07 Janv. (12h55)',
                         'requestUser' => 'mbenoukaiss',
-                        'cardColor' => 'lightGrey',
+                        'cardColor' => 'light-grey',
                         'bodyColor' => 'white',
                         'topRightIcon' => 'livreur.svg',
                         'progress' => 0,
@@ -634,7 +634,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'template' => Dashboard\ComponentType::DAILY_HANDLING,
             'meterKey' => Dashboard\ComponentType::DAILY_HANDLING,
         ],
-        'Nombre d\'opérations quotidiennes' => [
+        'Nombre d\'opérations quotidiennes (services)' => [
             'hint' => 'Nombre d\'opérations quotidiennes sur les services ayant leur date attendue sur les jours présentés',
             'exampleValues' => [
                 'chartColors' => [
@@ -765,6 +765,60 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'template' => Dashboard\ComponentType::DAILY_DISPATCHES,
             'meterKey' => Dashboard\ComponentType::DAILY_DISPATCHES,
         ],
+        'Suivi des demandes de services' => [
+            'hint' => 'Suivi des demandes de services sur les 7 derniers jours',
+            'exampleValues' => [
+                'chartColors' => [
+                    'Date de création' => '#FF763D',
+                    'Date attendue' => '#A5D733',
+                    'Date de traitement' => '#3353D7'
+                ],
+                'chartData' => [
+                    '04/01' => [
+                        'creationDate' => 25,
+                        'desiredDate' => 12,
+                        'validationDate' => 12,
+                    ],
+                    '05/01' => [
+                        'creationDate' => 10,
+                        'desiredDate' => 12,
+                        'validationDate' => 12,
+                    ],
+                    '06/01' => [
+                        'creationDate' => 4,
+                        'desiredDate' => 12,
+                        'validationDate' => 12,
+                    ],
+                    '07/01' => [
+                        'creationDate' => 25,
+                        'desiredDate' => 9,
+                        'validationDate' => 9,
+                    ],
+                    '08/01' => [
+                        'creationDate' => 15,
+                        'desiredDate' => 15,
+                        'validationDate' => 12,
+                    ],
+                    '09/01' => [
+                        'creationDate' => 2,
+                        'desiredDate' => 12,
+                        'validationDate' => 12,
+                    ],
+                    '10/01' => [
+                        'creationDate' => 23,
+                        'desiredDate' => 8,
+                        'validationDate' => 8,
+                    ]
+                ],
+                'textColor-1' => "#000000",
+                'textBold-1' => false,
+                'textItalic-1' => false,
+                'textUnderline-1' => false,
+            ],
+            'category' => Dashboard\ComponentType::CATEGORY_REQUESTS,
+            'template' => Dashboard\ComponentType::HANDLING_TRACKING,
+            'meterKey' => Dashboard\ComponentType::HANDLING_TRACKING,
+        ],
         'Fiabilité par référence' => [
             'hint' => 'Nombre de mouvements de correction d’inventaire / le nombre d’articles de référence ou articles du stock',
             'category' => Dashboard\ComponentType::CATEGORY_STOCK,
@@ -844,7 +898,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
 
                 'subCounts' => [
                     '<span>150</span> <span class="text-wii-black">lignes</span>',
-                    '<span>3/5</span> <span class="text-wii-black">urgences</span>'
+                    '<span class="text-wii-black">Dont</span> <span class="font-">3</span> <span class="text-wii-black">urgences</span>'
                 ]
             ]
         ],

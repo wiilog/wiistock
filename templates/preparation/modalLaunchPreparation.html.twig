@@ -33,21 +33,23 @@
                 </div>
                 <div class="row modal-content-wrapper mt-2">
 
+
                 </div>
                 <div class="quantities-information-container d-none">
                     <span class="ps-2 bold">Manque quantité sur : </span>
                     <div class="quantities-information"></div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
-                <button type="submit" class="btn btn-success check-stock-button" data-launch-preparations="0" disabled>
-                    <span class="d-inline-flex align-items-center">
-                        <img src="{{ asset('svg/tick-blanc.svg') }}" alt="" width="15px" class="mr-2">
-                        <span>Vérifier le stock</span>
-                    </span>
-                </button>
-            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-primary cancel-button', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-primary check-stock-button', type: 'submit', disabled: true, data:
+                        {'launch-preparation': '0'}
+                    },
+                ],
+                hideErrorContainer: true,
+            } %}
+
         </div>
     </div>
 </div>

@@ -92,8 +92,9 @@
                                 {% endif %}
                             </div>
                             <div class="col-6 d-flex flex-column">
+                                {% set finishedStatusesName = constant('App\\Entity\\Transport\\TransportRound::STATUS_FINISHED') %}
                                 <span class="wii-field-name">Kilomètres réels</span>
-                                {% if transportRound.realDistance is not null %}
+                                {% if transportRound.realDistance is not null and transportRound.status.code == finishedStatusesName %}
                                     <span class="wii-field-text">{{ transportRound.realDistance }} km</span>
                                 {% else %}
                                     <span class="wii-field-text">-</span>
@@ -195,7 +196,7 @@
                         <span class="wii-field-name">Courbe{{ urls | length != 1 ? 's' }} de température</span>
                         {% if not roundDateBegan %}
                             <span class="wii-small-text">
-                                La demande ne nécessite pas de suivi de température
+                                La tournée n’a pas commencé
                             </span>
                         {% endif %}
                     </div>

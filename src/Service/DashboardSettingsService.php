@@ -206,6 +206,9 @@ class DashboardSettingsService {
             case Dashboard\ComponentType::ORDERS_TO_TREAT:
                 $values += $this->serializeEntitiesToTreat($componentType, $example, $meter, $config);
                 break;
+            case Dashboard\ComponentType::HANDLING_TRACKING:
+                $values += $this->serializeHandlingTracking($entityManager, $componentType, $config, $example, $meter);
+                break;
             default:
                 //TODO:remove
                 $values += $componentType->getExampleValues();
@@ -426,6 +429,7 @@ class DashboardSettingsService {
                                                      DashboardMeter\Indicator $meter = null): array {
         $shouldShowOperations = isset($config['displayOperations']) && $config['displayOperations'];
         $shouldShowEmergencies = isset($config['displayEmergency']) && $config['displayEmergency'];
+        $shouldRedirectToHandling = isset($config['redirectToHandling']) && $config['redirectToHandling'];
         if ($example) {
             $values = $componentType->getExampleValues();
         } else {
@@ -439,8 +443,8 @@ class DashboardSettingsService {
                 $values = [
                     'subtitle' => '-',
                     'subCounts' => [
-                        '<span class="text-wii-green">-</span> <span class="text-wii-black">lignes</span>',
-                        '<span class="text-wii-red">-</span> <span class="text-wii-black">urgences</span>'
+                        '<span class="text-wii-success">-</span> <span class="text-wii-black">lignes</span>',
+                        '<span class="text-wii-black">Dont</span> <span class="text-wii-danger">-</span> <span class="text-wii-black">urgences</span>'
                     ],
                     'count' => '-',
                 ];
@@ -1084,5 +1088,57 @@ class DashboardSettingsService {
         }
 
         return $link;
+    }
+
+    /**
+     * @param Dashboard\ComponentType $componentType
+     * @param array $config
+     * @param bool $example
+     * @param DashboardMeter\Chart|null $chart
+     * @return array
+     */
+    public function serializeHandlingTracking(EntityManagerInterface $entityManager,
+                                              Dashboard\ComponentType $componentType,
+                                              array $config,
+                                              bool $example = false,
+                                              DashboardMeter\Chart $chart = null)
+    {
+        if (!$example) {
+            if ($chart) {
+                $values = ["chartData" => $chart->getData(), 'chartColors' => $chart->getChartColors()];
+            } else {
+                $values = ["chartData" => []];
+            }
+        } else if (isset($config['handlingTypes']) && !empty($config['handlingTypes']) && ($config['creationDate'] || $config['desiredDate'] || $config['validationDate'])) {
+            $values = $componentType->getExampleValues();
+            $values['handlingTypes'] = $config['handlingTypes'] ?? '';
+
+            $values['chartColors'] = $config['chartColors'] ?? $values['chartColors'];
+            $scale = $config['scale'] ?? DashboardService::DEFAULT_WEEKLY_REQUESTS_SCALE;
+            $chartData = $values['chartData'];
+            $keysToKeep = array_slice(array_keys($chartData), 0, $scale);
+            $chartData = Stream::from($keysToKeep)
+                ->reduce(function(array $carry, string $key) use ($config, $chartData) {
+                    if (isset($chartData[$key])) {
+                        if($config['creationDate']){
+                            $carry[$key]['Date de création'] = $chartData[$key]['creationDate'];
+                        }
+                        if($config['desiredDate']){
+                            $carry[$key]['Date attendue'] = $chartData[$key]['desiredDate'];
+                        }
+                        if($config['validationDate']){
+                            $carry[$key]['Date de traitement'] = $chartData[$key]['validationDate'];
+                        }
+                    }
+                    return $carry;
+                }, []);
+            $values['chartData'] = $chartData;
+        }
+        else {
+            $values['chartData'] = [];
+        }
+
+        $values['multiple'] = true;
+        return $values;
     }
 }

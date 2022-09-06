@@ -17,7 +17,7 @@ $select-height: 36px;
     min-height: $select-height;
 
     &:not(.is-invalid) {
-        border: 1px solid #ced4da !important;
+        border: 1px solid $medium-grey !important;
     }
 
     &:not(.select2-selection--multiple) .select2-selection__rendered {
@@ -87,7 +87,7 @@ $select-height: 36px;
 }
 
 .select2-dropdown {
-    border: 1px solid $grey !important;
+    border: 1px solid $medium-grey !important;
     border-radius: 4px !important;
 
     .hidden-dropdown & {
@@ -126,14 +126,15 @@ $select-height: 36px;
 
     &.select2-results__option--highlighted {
         color: $white !important;
+        background: $primary !important;
     }
 }
 
 .select2-search {
     .search-prefix {
-        border: 1px solid $grey;
-        background: #E8E8E8;
-        color: #666666;
+        border: 1px solid $medium-grey;
+        background: $light-grey;
+        color: $dark-grey;
         border-radius: 4px;
         margin-right: 3px;
         padding: 4px 6px;

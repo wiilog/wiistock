@@ -171,8 +171,6 @@ class RoundController extends AbstractController {
             $realTime = ($realTimeDif->format("%h") + ($realTimeJ * 24)) . "h" . $realTimeDif->format(" %i") . "min";
         }
 
-        $locationRepository = $entityManager->getRepository(Emplacement::class);
-
         $calculationsPoints = $transportRound->getCoordinates();
         $calculationsPoints['startPoint']['name'] = TransportRound::NAME_START_POINT;
         $calculationsPoints['startPointScheduleCalculation']['name'] = TransportRound::NAME_START_POINT_SCHEDULE_CALCULATION;
@@ -218,6 +216,12 @@ class RoundController extends AbstractController {
                     $minThreshold = $minTriggerActionThreshold?->getConfig()['temperature'];
                     $maxThreshold = $maxTriggerActionThreshold?->getConfig()['temperature'];
                 }
+                if(!$transportRound->getEndedAt()) {
+                    $end = clone ($transportRound->getBeganAt() ?? new DateTime("now"));
+                    $end->setTime(23, 59);
+                } else {
+                    $end = min((clone ($transportRound->getBeganAt()))->setTime(23, 59), $transportRound->getEndedAt());
+                }
 
                 $now = new DateTime();
                 $urls[] = [
@@ -225,7 +229,7 @@ class RoundController extends AbstractController {
                         "type" => IOTService::getEntityCodeFromEntity($location),
                         "id" => $location->getId(),
                         'start' => ($transportRound->getBeganAt() ?? $now)->format('Y-m-d\TH:i'),
-                        'end' => ($transportRound->getEndedAt() ?? $now)->format('Y-m-d\TH:i'),
+                        'end' => $end->format('Y-m-d\TH:i'),
                     ], UrlGeneratorInterface::ABSOLUTE_URL),
                     "minTemp" => $minThreshold ?? 0,
                     "maxTemp" => $maxThreshold ?? 0,

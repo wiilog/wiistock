@@ -7,35 +7,39 @@
 
             <div class="modal-body">
                 <div class="form-group row">
-                    <label class="required col-12">Demandeur</label>
+                    <label class="wii-field-name required col-12">Demandeur</label>
                     <div class="col-12">
                         <input type="text" disabled class="w-100 form-control" value="{{ app.user.username }}">
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label class="required col-12">Origine*</label>
+                    <label class="wii-field-name required col-12">Origine*</label>
                     <div class="col-12">
                         <select name="origin" required class="w-100 form-control needed data ajax-autocomplete-location"></select>
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label class="required col-12">Destination*</label>
+                    <label class="wii-field-name required col-12">Destination*</label>
                     <div class="col-12">
                         <select name="destination" required="required" class="w-100 form-control needed data ajax-autocomplete-location"></select>
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label class="col-12">Commentaire</label>
+                    <label class="wii-field-name col-12">Commentaire</label>
                     <div class="col-12">
                         <input id="comment" class="form-control data" name="comment" type="hidden"/>
                         <div class="editor-container" data-wysiwyg></div>
                     </div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
-                <button type="button" id="submitNewTransfer" class="btn btn-success">Créer la demande</button>
-            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-success', text: 'Créer la demande', id:'submitNewTransfer'}
+                ],
+                hideErrorContainer: true,
+            } %}
+
         </div>
     </div>
 </div>

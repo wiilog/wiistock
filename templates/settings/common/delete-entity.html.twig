@@ -10,10 +10,14 @@
                 </div>
                 <div class="message-container d-none"></div>
             </div>
-            <div class="modal-footer">
-                <button class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
-                <button class="btn btn-danger submit-danger">Supprimer</button>
-            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-danger submit-danger', text: 'Supprimer'},
+                ],
+                renderErrorContainer: false
+            } %}
+
         </div>
     </div>
 </div>

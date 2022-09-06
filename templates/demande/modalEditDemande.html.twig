@@ -7,11 +7,15 @@
 
             <div class="modal-body modal-input container-fluid">
             </div>
-            <div class="modal-footer">
-                <input type="hidden" class="data" name="demandeId" value="{{ demande.id }}">
-                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
-                <button id="submitEditDemande" type="button" class="btn btn-success data">Enregistrer</button>
-            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {input: true, classes: 'data', name: 'demandeId', value: demande.id},
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-success data', text: 'Enregistrer', id: 'submitEditDemande'}
+                ],
+                hideErrorContainer: true,
+            } %}
+
         </div>
     </div>
 </div>

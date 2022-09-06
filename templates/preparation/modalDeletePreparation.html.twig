@@ -8,12 +8,15 @@
                 <div class="modal-body">
                     Voulez-vous réellement supprimer cette préparation ?
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
-                    <a href="{{path('preparation_delete', {'preparation': preparation.id}) }}"
-                    id="submitDeletePreparation" name='article' value=''
-                        class="btn btn-danger data">Supprimer</a>
-                </div>
+                {% include 'utils/modal/footer.html.twig' with {
+                    elements: [
+                        {input: true, name: 'preparation', value: preparation.id},
+                        {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                        {classes: 'btn btn-danger data submit', text: 'Supprimer'}
+                    ],
+                    renderErrorContainer: false
+                } %}
+
             </div>
         </div>
     </form>
