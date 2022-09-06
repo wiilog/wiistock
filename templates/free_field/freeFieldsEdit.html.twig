@@ -15,20 +15,22 @@
                     : '') %}
             {% if (actionType == 'new' and freeField.displayedCreate) or actionType == 'edit' %}
                 <div class="{{ colType is defined ? colType }} {% if showLabels ?? true %}my-2{% endif %}">
-                    <div class="row form-group free-field mb-0">
+                    <div class="row form-group free-field mb-0 ">
                         <div class="col-12 d-flex">
                             {% set label = (showLabels ?? true) ? freeField.label : '' %}
                             {% if freeField.typage == constant('App\\Entity\\FreeField::TYPE_BOOL') %}
                                 {% if freeFieldValues[freeField.id] is defined %}
                                     {% set entityValue = freeFieldValues[freeField.id] %}
                                 {% elseif freeField.defaultValue is defined %}
+                                    {{ dump(freeField.defaultValue) }}
                                     {% set entityValue = freeField.defaultValue %}
+                                    {{ dump(entityValue) }}
                                 {% else %}
                                     {% set entityValue = 0 %}
                                 {% endif %}
                                 {{ form.switch(freeField.id, label, needed, [
-                                    {label: 'Oui', value: '1'},
-                                    {label: 'Non', value: '0'}
+                                    {label: 'Oui', value: '1', checked: entityValue == 1},
+                                    {label: 'Non', value: '0', checked: entityValue is not null and entityValue == 0}
                                 ], {
                                     additionalAttributes: [{
                                         name: 'data-title',
