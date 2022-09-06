@@ -484,7 +484,7 @@ class UserController extends AbstractController {
             $uniqueMobileKey = $userService->createUniqueMobileLoginKey($entityManager);
             $language = !empty($data['language'])
                 ? $languageRepository->find($data['language'])
-                : $languageService->getNewUserLanguage();
+                : $languageService->getNewUserLanguage($entityManager);
             $role = $roleRepository->find($data['role']);
 
             $utilisateur

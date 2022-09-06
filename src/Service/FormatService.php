@@ -7,6 +7,7 @@ use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use DateTimeInterface;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Service\Attribute\Required;
 
@@ -18,6 +19,9 @@ class FormatService
 
     #[Required]
     public Security $security;
+
+    #[Required]
+    public EntityManagerInterface $entityManager;
 
     private ?string $defaultLanguage = null;
 
