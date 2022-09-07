@@ -144,7 +144,7 @@ class DashboardSettingsController extends AbstractController {
         $userRepository = $entityManager->getRepository(Utilisateur::class);
 
         $values = json_decode($request->request->get('values'), true);
-        $values += [ //default values should be initialized hered
+        $values += [ //default values should be initialized here
             "locations" => [],
             "firstOriginLocation" => [],
             "secondOriginLocation" => [],
