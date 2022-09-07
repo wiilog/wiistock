@@ -13,8 +13,12 @@
             {% endif %}
 
             {% set canDelete = hasRight(constant('App\\Entity\\Menu::DEM'),constant('App\\Entity\\Action::DELETE'))
-                and (handling.status.treated != 1 and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_UNPROCESSED_HANDLING'))
-                or handling.status.treated == 1 and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_PROCESSED_HANDLING'))) %}
+                and (
+                    (handling.status.treated != 1
+                        and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_UNPROCESSED_HANDLING')))
+                    or (handling.status.treated == 1
+                        and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_PROCESSED_HANDLING')))
+                ) %}
 
             {% if canDelete %}
                 <div class="dropdown-item" data-id="{{ handling.id }}" data-target="#modalDeleteHandling" data-toggle="modal"
