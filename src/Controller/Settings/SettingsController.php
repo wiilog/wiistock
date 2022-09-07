@@ -691,7 +691,7 @@ class SettingsController extends AbstractController {
         $translationRepository = $manager->getRepository(Translation::class);
         $language = $languageRepository->find($data['language']);
 
-        if ( in_array($language->getSlug(),Language::NOT_DELETABLE_LANGUAGES )) {
+        if (in_array($language->getSlug(),Language::NOT_DELETABLE_LANGUAGES)) {
             return $this->json([
                 "success" => false,
                 "message" => "Cette langue ne peut pas être supprimée"
