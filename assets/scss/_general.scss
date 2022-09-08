@@ -517,7 +517,7 @@ label.required:after {
         .element {
             width: 100%;
             height: 40px;
-            background-color: $light-blue;
+            background-color: $lightest-primary;
             border-bottom-left-radius: 5px;
             border-bottom-right-radius: 5px;
             font-family: Myriad, sans-serif;
@@ -555,7 +555,7 @@ label.required:after {
 }
 
 .variables-list .highlighted-variable, .editor-container .highlighted-variable {
-    color: $info;
+    color: $primary;
 }
 
 .phone-example {

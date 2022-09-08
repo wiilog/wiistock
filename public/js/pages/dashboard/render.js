@@ -10,7 +10,7 @@ let fontSizeYAxes;
 
 const MARQUEE_PADDING = `&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`;
 
-const OVERRIDE_FONT_RED = {color: `#CC0000`};
+const OVERRIDE_FONT_RED = {color: `#D73353`};
 
 const ONGOING_PACK = 'ongoing_packs';
 const DAILY_ARRIVALS = 'daily_arrivals';
