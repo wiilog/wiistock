@@ -5,12 +5,12 @@
     {% include 'filters/filter_item/filterDispatch.html.twig' %}
     {% include 'filters/filter_item/filterStatus.html.twig' with {
         name: 'statut',
-        placeholder: 'Statut'
+        placeholder: trans('Demande', 'Général', 'Statut', false)
     } %}
     {% include 'filters/filter_item/filterTypeMultiple.html.twig' %}
     {% include 'filters/filter_item/filterUser.html.twig' with {
         name: 'requesters',
-        placeholder: 'Demandeurs'
+        placeholder: trans('Demande', 'Général', 'Demandeurs', false)
     } %}
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIER_DISPATCH') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
@@ -24,7 +24,7 @@
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
         {% include 'filters/filter_item/filterUser.html.twig' with {
             name: 'receivers',
-            placeholder: 'Destinataires'
+            placeholder: trans('Demande', 'Général', 'Destinataire(s)', false)
         } %}
     {% endif %}
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_COMMAND_NUMBER_DISPATCH') %}

@@ -14,6 +14,7 @@ use App\Entity\TrackingMovement;
 use App\Entity\Type;
 use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
+use App\Service\LanguageService;
 use App\Service\PackService;
 use App\Service\TrackingMovementService;
 
@@ -38,12 +39,14 @@ class PackController extends AbstractController
      * @Route("/", name="pack_index", options={"expose"=true})
      * @HasPermission({Menu::TRACA, Action::DISPLAY_PACK})
      */
-    public function index(EntityManagerInterface $entityManager)
+    public function index(EntityManagerInterface $entityManager, LanguageService $languageService)
     {
         $naturesRepository = $entityManager->getRepository(Nature::class);
         $typeRepository = $entityManager->getRepository(Type::class);
 
         return $this->render('pack/index.html.twig', [
+            'userLanguage' => $this->getUser()->getLanguage(),
+            'defaultLanguage' => $languageService->getDefaultLanguage(),
             'natures' => $naturesRepository->findBy([], ['label' => 'ASC']),
             'types' => $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE])
         ]);

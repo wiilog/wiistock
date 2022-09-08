@@ -17,9 +17,9 @@ $(function() {
 
         initDateTimePicker('#dateMin, #dateMax, .date-cl', DATE_FORMATS_TO_DISPLAY[format]);
         initDatePickers();
-        Select2Old.user($('.filter-select2[name="utilisateurs"]'), 'Demandeurs');
-        Select2Old.user($('.filter-select2[name="receivers"]'), 'Destinataires');
-        Select2Old.init($('.filter-select2[name="emergencyMultiple"]'), 'Urgences');
+        Select2Old.user($('.filter-select2[name="utilisateurs"]'), Translation.of('Demande', 'Général', 'Demandeurs', false));
+        Select2Old.user($('.filter-select2[name="receivers"]'), Translation.of('Demande', 'Général', 'Destinataire(s)', false));
+        Select2Old.init($('.filter-select2[name="emergencyMultiple"]'), Translation.of('Demande', 'Général', 'Urgence', false));
 
         // applique les filtres si pré-remplis
         let val = $('#filterStatus').val();
@@ -110,8 +110,10 @@ function checkAllInDropdown($checkbox) {
 }
 
 function updateSelectedStatusesCount(length) {
-    const plural = length > 1 ? 's' : '';
-    $('.status-filter-title').html(`${length} statut${plural} sélectionné${plural}`);
+    const plural = length > 1;
+    $('.status-filter-title').html( !plural
+        ? Translation.of('Demande', 'Services', '{1} statut sélectionné', false, {'1':length})
+        : Translation.of('Demande', 'Services', '{1} statuts sélectionnés', false, {'1':length}));
 }
 
 function initNewHandlingEditor(modal) {

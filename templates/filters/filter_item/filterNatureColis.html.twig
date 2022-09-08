@@ -7,7 +7,7 @@
                     multiple="multiple"
                     {{ disabled is defined ? disabled }}>
                 {% for nature in natures |sort((a, b) => a.label <=> b.label) %}
-                    <option class="d-none" value="{{ nature.id }}">{{ nature.label }}</option>
+                    <option class="d-none" value="{{ nature.id }}">{{ nature.labelIn(userLanguage, defaultLanguage) }}</option>
                 {% endfor %}
             </select>
         </div>

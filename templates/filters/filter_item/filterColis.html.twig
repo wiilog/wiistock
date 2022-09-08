@@ -1,4 +1,4 @@
-{% set transPack = transPack is defined ? transPack : 'mouvement de traçabilité.Colis'|trans %}
+{% set transPack = transPack is defined ? transPack : trans('Général', null, 'Zone filtre', 'Unité logistique', false) %}
 <div class="col-auto m-1 pr-0">
     <div class="input-group minw-100px">
         <input type="text" class="form-control data cursor-default filter-input" name="colis" id="colis" placeholder="{{ transPack }}" title="Colis">
