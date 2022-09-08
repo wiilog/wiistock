@@ -176,7 +176,7 @@ class DisputeService {
         }
 
         if (!empty($recipients)) {
-            $translatedCategory = $isArrival ? $category : $this->translation->trans('réception.une réception');
+            $translatedCategory = $isArrival ? $category : $this->translation->translate('Ordre', 'Réceptions', 'une réception', false);
             $title = !$isUpdate
                 ? ('Un litige a été déclaré sur ' . $translatedCategory . ' vous concernant :')
                 : ('Changement de statut d\'un litige sur ' . $translatedCategory . ' vous concernant :');

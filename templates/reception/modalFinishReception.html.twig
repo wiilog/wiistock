@@ -2,11 +2,11 @@
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
-                title: 'Valider <span title="la réception">' ~ ('réception.la réception' | trans) ~ '</span>'
+                title: 'Valider <span title="la réception">' ~ trans('Ordre', 'Réception', 'la réception', false) ~ '</span>'
             } %}
 
             <div class="modal-body">
-                <span title="cette réception">{{ 'réception.cette réception'|trans }}</span> contient des <span title="articles">{{ 'réception.articles'|trans }}</span> à finir de réceptionner.<br>Êtes-vous sûr de vouloir {{ 'réception.la'|trans }} finir ?
+                {{ trans('Ordre', 'Réceptions', 'Cette réception contient des articles à finir de réceptionner.', false) }}<br>{{ trans('Ordre', 'Réceptions', 'Êtes-vous sûr de vouloir la finir ?', false) }}
             </div>
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [

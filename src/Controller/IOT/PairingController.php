@@ -107,7 +107,7 @@ class PairingController extends AbstractController
     {
         return $service->render([
             "breadcrumb" => [
-                'title' => $trans->trans("IoT.IoT") . " | Associations | Détails",
+                'title' => $trans->translate('IoT', '', 'IoT', false) . " | Associations | Détails",
                 'path' => "pairing_index",
             ],
             "type" => DataMonitoringService::PAIRING,

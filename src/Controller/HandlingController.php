@@ -248,7 +248,7 @@ class HandlingController extends AbstractController {
         catch (UniqueConstraintViolationException | ConnectException $e) {
 
             if ($e instanceof UniqueConstraintViolationException) {
-                $message = $translation->trans('services.Une autre demande de service est en cours de création, veuillez réessayer') . '.';
+                $message = $translation->translate('Demande', 'Services', 'Une autre demande de service est en cours de création, veuillez réessayer.', false);
             } else if ($e instanceof ConnectException) {
                 $message = "Une erreur s'est produite lors de l'envoi de la notifiation de cette demande de service. Veuillez réessayer.";
             }
@@ -262,11 +262,10 @@ class HandlingController extends AbstractController {
         $viewHoursOnExpectedDate = !$settingRepository->getOneParamByLabel(Setting::REMOVE_HOURS_DATETIME);
         $handlingService->sendEmailsAccordingToStatus($entityManager, $handling, $viewHoursOnExpectedDate, !$status->isTreated());
 
+        $number = '<strong>' . $handling->getNumber() . '</strong>';
         return new JsonResponse([
             'success' => true,
-            'msg' => $translation->trans("services.La demande de service {numéro} a bien été créée", [
-                    "{numéro}" => '<strong>' . $handling->getNumber() . '</strong>'
-                ]) . '.'
+            'msg' => $translation->translate('Demande', 'Services', 'La demande de service {1} a bien été créée.', [1 => $number], false),
         ]);
     }
 
@@ -339,11 +338,10 @@ class HandlingController extends AbstractController {
 
         $entityManager->flush();
 
+        $number = '<strong>' . $handling->getNumber() . '</strong>';
         return new JsonResponse([
             'success' => true,
-            'msg' => $translation->trans("services.La demande de service {numéro} a bien été modifiée", [
-                    "{numéro}" => '<strong>' . $handling->getNumber() . '</strong>'
-                ]) . '.'
+            'msg' => $translation->translate('Demande', 'Services', 'La demande de service {1} a bien été modifiée.', [1 => $number], false),
         ]);
 
     }
@@ -382,11 +380,10 @@ class HandlingController extends AbstractController {
             $entityManager->remove($handling);
             $entityManager->flush();
 
+            $number = '<strong>' . $handlingNumber . '</strong>';
             return new JsonResponse([
                 'success' => true,
-                'msg' => $translation->trans('services.La demande de service {numéro} a bien été supprimée', [
-                        "{numéro}" => '<strong>' . $handlingNumber . '</strong>'
-                    ]).'.',
+                'msg' => $translation->translate('Demande', 'Services', 'La demande de service {1} a bien été supprimée.', [1 => $number], false),
                 'redirect'=> $this->generateUrl('handling_index')
             ]);
         }
@@ -432,7 +429,7 @@ class HandlingController extends AbstractController {
                 'date création',
                 'demandeur',
                 'type',
-                $translation->trans('services.Objet'),
+                $translation->translate('Demande', 'Services', 'Objet', false),
                 'chargement',
                 'déchargement',
                 'date attendue',
@@ -440,7 +437,7 @@ class HandlingController extends AbstractController {
                 'statut',
                 'commentaire',
                 'urgence',
-                $translation->trans('services.Nombre d\'opération(s) réalisée(s)'),
+                $translation->translate('Demande', 'Services', 'Nombre d\'opération(s) réalisée(s)', false),
                 'traité par',
             ];
 

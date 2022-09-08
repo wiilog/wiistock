@@ -288,11 +288,7 @@ function initDataTable($table, options) {
 
     let tooltips = [];
     (config.columns || []).forEach((column, id) => {
-        //TODO: retirer quand le nouveau système de traduction est terminé
-        if (column.translated) {
-            tooltips.push({id, text: Trans.original(column.title)});
-            column.title = Trans.translated(column.title);
-        } else if (column.tooltip) {
+        if (column.tooltip) {
             tooltips.push({id, text: column.tooltip});
         }
 

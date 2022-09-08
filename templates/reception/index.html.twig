@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Ordre | {{ 'réception.réceptions'|trans }}{% endblock %}
+{% block title %}Ordre | {{ trans('Ordre','Réceptions', 'Réceptions', false) }}{% endblock %}
 {% block title_tooltip %}Ordre | Réceptions{% endblock %}
 
 {% block page_filter %}
@@ -45,7 +45,7 @@
                                 data-target="#modalNewReception"
                                 class="btn btn-primary split-button d-flex align-items-center"
                                 onclick="clearModal('#modalNewReception'); initNewReceptionEditor('#modalNewReception'); initReceptionLocation();">
-                            <span class="wii-icon wii-icon-plus mr-2"></span></span><span title="nouvelle réception">{{ 'réception.nouvelle réception'|trans }}</span>
+                            <span class="wii-icon wii-icon-plus mr-2"></span></span><span title="nouvelle réception">{{ trans('Ordre','Réceptions', 'nouvelle réception', false) }}</span>
                         </button>
                         <button type="button"
                                 class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
@@ -72,7 +72,7 @@
                                  class="btn btn-primary split-button d-flex align-items-center"
                                  onclick="clearModal('#modalNewReception'); initNewReceptionEditor('#modalNewReception'); initReceptionLocation();">
                                 <span class="wii-icon wii-icon-plus mr-2"></span>
-                                <span title="nouvelle réception">{{ 'réception.nouvelle réception'|trans }}</span>
+                                <span title="nouvelle réception">{{ trans('Ordre','Réceptions', 'nouvelle réception', false) }}</span>
                             </div>
                             <button type="button"
                                     class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"

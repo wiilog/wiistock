@@ -82,7 +82,6 @@ class AppExtension extends AbstractExtension {
             new TwigFilter("json_decode", "json_decode"),
             new TwigFilter("flip", [$this, "flip"]),
             new TwigFilter("some", [$this, "some"]),
-            new TwigFilter("trans", fn(string $in) => "BUG TICKET: $in"),
         ];
     }
 

@@ -14,7 +14,7 @@
                         <div class="row no-gutters align-items-end">
                             <div class="col">
                                 <label for="reception-add-ligne"
-                                       title="référence" class="wii-field-name">{{ 'reference.référence'|trans }}*</label>
+                                       title="référence" class="wii-field-name">{{ trans('Stock', 'Références', 'référence', false) }}*</label>
                                 <select class="ajax-autocomplete w-100 data form-control needed wii-field-text"
                                         onchange="articleChanged($(this))"
                                         id="reception-add-ligne"
@@ -87,7 +87,7 @@
                 elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler', event: "clearModal($(this).parents('#modalAddLigneArticle'))"},
                     {classes: 'btn btn-success', text: 'Enregistrer', id: 'addArticleLigneSubmit'},
-                    {classes: 'btn btn-success d-none', text: 'Enregistrer et ' ~ ('réception.réception' | trans), id: 'addArticleLigneSubmitAndRedirect',
+                    {classes: 'btn btn-success d-none', text: 'Enregistrer et ' ~ trans('Ordre', 'Réception', 'réception', false), id: 'addArticleLigneSubmitAndRedirect',
                         event: 'openModalLigneReception($(this))', title: 'Enregistrer et réception'},
                 ],
             } %}

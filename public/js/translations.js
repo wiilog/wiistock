@@ -1,13 +1,3 @@
-class Trans {
-    static original(key) {
-        return "BUG TICKET : " + key;
-    }
-
-    static translated(key) {
-        return "BUG TICKET " + key;
-    }
-}
-
 class Translation {
     static FRENCH_SLUG = `french`;
     static FRENCH_DEFAULT_SLUG = `french-default`;

@@ -3,7 +3,7 @@
 {% set isReception = (isReception is defined and isReception) %}
 {% block content %}
     {% if isReception and reception.manualUrgent %}
-        <p style="font-weight: 600">{{ 'réception.Cette réception est urgente'|trans }}.</p>
+        <p style="font-weight: 600">{{ trans('Ordre', 'Réceptions', 'Cette réception est urgente', false) }}.</p>
     {% endif %}
     <table class="table"
            style="border: 1px solid black; border-collapse: collapse;">
@@ -11,11 +11,11 @@
         <tr>
             <th class="th"
                 style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
-                {{ 'reference.référence'|trans }}
+                {{ trans('Stock', 'Référence', 'référence', false) }}
             </th>
             <th class="th"
                 style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
-                Code barre {{ 'reference.référence'|trans }}
+                Code barre {{ trans('Stock', 'Référence', 'référence', false) }}
             </th>
             <th class="th"
                 style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
