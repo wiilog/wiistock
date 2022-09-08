@@ -121,7 +121,7 @@
                                     <option class="d-none"
                                             data-type-id="{{ statut.type.id }}"
                                             value="{{ statut.id }}">
-                                        {{ statut.nom }}
+                                        {{ statut.getLabelIn(language_service.getCurrentUserLanguageSlug, language_service.defaultSlug) }}
                                     </option>
                                 {% endfor %}
                             </select>
