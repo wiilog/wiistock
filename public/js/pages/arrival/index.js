@@ -11,8 +11,8 @@ $(function () {
     const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
 
     initDateTimePicker('#dateMin, #dateMax, .date-cl', DATE_FORMATS_TO_DISPLAY[format]);
-    Select2Old.location($('#emplacement'), {}, 'Emplacement de dépose');
-    Select2Old.init($filtersContainer.find('[name="carriers"]'), 'Transporteurs');
+    Select2Old.location($('#emplacement'), {}, Translation.of('Traçabilité', 'Mouvements', 'Emplacement de dépose', false));
+    Select2Old.init($filtersContainer.find('[name="carriers"]'), Translation.of('Traçabilité', 'Flux - Arrivages', 'Divers', 'Transporteurs', false));
     initOnTheFlyCopies($('.copyOnTheFly'));
 
     initTableArrival().then((returnedArrivalsTable) => {
@@ -65,8 +65,7 @@ $(function () {
         displayFiltersSup(data, true);
     }, 'json');
     pageLength = Number($('#pageLengthForArrivage').val());
-    Select2Old.user($('.filters .ajax-autocomplete-user'), 'Destinataires');
-    Select2Old.provider($('.ajax-autocomplete-fournisseur'), 'Fournisseurs');
+    Select2Old.provider($('.ajax-autocomplete-fournisseur'), Translation.of('Traçabilité', 'Flux - Arrivages', 'Divers', 'Fournisseurs', false));
 
     const $arrivalsTable = $(`#arrivalsTable`);
     const $dispatchModeContainer = $(`.dispatch-mode-container`);

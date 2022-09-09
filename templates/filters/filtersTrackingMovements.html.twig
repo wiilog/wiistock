@@ -5,9 +5,9 @@
     {% include 'filters/filter_item/filterColis.html.twig' %}
     {% include 'filters/filter_item/filterLocation.html.twig' %}
     {% include 'filters/filter_item/filterStatus.html.twig' with {
-        placeholder: 'Type',
+        placeholder: trans('Traçabilité', 'Mouvements', 'Types', false),
     } %}
     {% include 'filters/filter_item/filterUser.html.twig' with {
-        placeholder: 'Opérateurs'
+        placeholder: trans('Traçabilité', 'Mouvements', 'Opérateurs', false),
     } %}
 {% endblock %}

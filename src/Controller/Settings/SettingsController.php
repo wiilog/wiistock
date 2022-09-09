@@ -51,6 +51,7 @@ use App\Service\TranslationService;
 use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use JetBrains\PhpStorm\ArrayShape;
 use PHPUnit\Util\Json;
 use RuntimeException;
 use App\Controller\AbstractController;
@@ -798,7 +799,10 @@ class SettingsController extends AbstractController {
     /**
      * @Route("/afficher/{category}/{menu}/{submenu}", name="settings_item", options={"expose"=true})
      */
-    public function item(string $category, ?string $menu = null, ?string $submenu = null): Response {
+    public function item(EntityManagerInterface $entityManager,
+                         string $category,
+                         ?string $menu = null,
+                         ?string $submenu = null): Response {
         if ($submenu) {
             $parent = self::SETTINGS[$category]["menus"][$menu] ?? null;
             $path = "settings/$category/$menu/";
@@ -830,7 +834,7 @@ class SettingsController extends AbstractController {
             "parent" => $parent,
             "selected" => $submenu ?? $menu,
             "path" => $path,
-            "values" => $this->customValues(),
+            "values" => $this->customValues($entityManager),
         ]);
     }
 
@@ -867,21 +871,28 @@ class SettingsController extends AbstractController {
         return $types;
     }
 
-    public function customValues(): array {
-        $mailerServerRepository = $this->manager->getRepository(MailerServer::class);
-        $temperatureRepository = $this->manager->getRepository(TemperatureRange::class);
-        $natureRepository = $this->manager->getRepository(Nature::class);
-        $locationsRepository = $this->manager->getRepository(Emplacement::class);
-        $typeRepository = $this->manager->getRepository(Type::class);
-        $statusRepository = $this->manager->getRepository(Statut::class);
-        $freeFieldRepository = $this->manager->getRepository(FreeField::class);
-        $frequencyRepository = $this->manager->getRepository(InventoryFrequency::class);
-        $fixedFieldRepository = $this->manager->getRepository(FieldsParam::class);
-        $requestTemplateRepository = $this->manager->getRepository(RequestTemplate::class);
-        $alertTemplateRepository = $this->manager->getRepository(AlertTemplate::class);
-        $settingRepository = $this->manager->getRepository(Setting::class);
-        $userRepository = $this->manager->getRepository(Utilisateur::class);
-        $languageRepository = $this->manager->getRepository(Language::class);
+    #[ArrayShape([
+        self::CATEGORY_GLOBAL => "\Closure[]", self::CATEGORY_STOCK => "\Closure[][]",
+        self::CATEGORY_TRACING => "\Closure[][]", self::CATEGORY_TRACKING => "array",
+        self::CATEGORY_IOT => "\Closure[]", self::CATEGORY_DATA => "\Closure[]",
+        self::CATEGORY_NOTIFICATIONS => "\Closure[]", self::CATEGORY_USERS => "\Closure[]"
+
+    ])]
+    public function customValues(EntityManagerInterface $entityManager): array {
+        $mailerServerRepository = $entityManager->getRepository(MailerServer::class);
+        $temperatureRepository = $entityManager->getRepository(TemperatureRange::class);
+        $natureRepository = $entityManager->getRepository(Nature::class);
+        $locationsRepository = $entityManager->getRepository(Emplacement::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $statusRepository = $entityManager->getRepository(Statut::class);
+        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+        $frequencyRepository = $entityManager->getRepository(InventoryFrequency::class);
+        $fixedFieldRepository = $entityManager->getRepository(FieldsParam::class);
+        $requestTemplateRepository = $entityManager->getRepository(RequestTemplate::class);
+        $alertTemplateRepository = $entityManager->getRepository(AlertTemplate::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $userRepository = $entityManager->getRepository(Utilisateur::class);
+        $languageRepository = $entityManager->getRepository(Language::class);
 
         return [
             self::CATEGORY_GLOBAL => [
@@ -899,7 +910,7 @@ class SettingsController extends AbstractController {
                             ->keymap(fn(FreeField $field) => [$field->getLabel(), $field->getLabel()])
                             ->toArray(),
                     ],
-                    self::MENU_TYPES_FREE_FIELDS => function() use ($typeRepository) {
+                    self::MENU_TYPES_FREE_FIELDS => function() use ($entityManager, $typeRepository) {
                         $categoryType = CategoryType::ARTICLE;
                         $types = Stream::from($typeRepository->findByCategoryLabels([$categoryType]))
                             ->map(fn(Type $type) => [
@@ -910,7 +921,7 @@ class SettingsController extends AbstractController {
 
                         $types[0]["checked"] = true;
 
-                        $categorieCLRepository = $this->manager->getRepository(CategorieCL::class);
+                        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
                         $categories = Stream::from($categorieCLRepository->findByLabel([
                             CategorieCL::ARTICLE, CategorieCL::REFERENCE_ARTICLE,
                         ]))
@@ -1270,7 +1281,7 @@ class SettingsController extends AbstractController {
             self::CATEGORY_USERS => [
                 self::MENU_USERS => fn() => [
                     "newUser" => new Utilisateur(),
-                    "newUserLanguage" => $this->languageService->getNewUserLanguage(),
+                    "newUserLanguage" => $this->languageService->getNewUserLanguage($entityManager),
                     "languages" => Stream::from($languageRepository->findby(['hidden' => false]))
                         ->map(fn(Language $language) => [
                             "value" => $language->getId(),

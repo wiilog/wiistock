@@ -23,13 +23,15 @@ class LanguageService {
     public CacheService $cacheService;
 
     /**
-     * Language given to a new user if not selected
-     * TODO WIIS-8159 add EntityManager (impacts dans le FormatService)
+     * @param EntityManagerInterface|null $entityManager required when method is called in critical part which close the entity Manager.
      */
-    public function getNewUserLanguage(): ?Language {
-        $languageRepository = $this->entityManager->getRepository(Language::class);
+    public function getNewUserLanguage(?EntityManagerInterface $entityManager = null): ?Language {
+        if (!$entityManager) {
+            $entityManager = $this->entityManager;
+        }
+        $languageRepository = $entityManager->getRepository(Language::class);
 
-        $selectedDefaultSlug = $this->getDefaultSlug();
+        $selectedDefaultSlug = $this->getDefaultSlug($entityManager);
         $slug = Stream::from(Language::DEFAULT_LANGUAGE_TRANSLATIONS)
             ->flip()
             ->find(fn(string $defaultSlug) => $defaultSlug === $selectedDefaultSlug);
@@ -37,22 +39,27 @@ class LanguageService {
     }
 
     /**
-     * Fallback language for element not translated
-     * TODO WIIS-8159 add EntityManager (impacts dans le FormatService)
+     * @param EntityManagerInterface|null $entityManager required when method is called in critical part which close the entity Manager.
      */
-    public function getDefaultLanguage(): ?Language {
-        $languageRepository = $this->entityManager->getRepository(Language::class);
+    public function getDefaultLanguage(?EntityManagerInterface $entityManager = null): ?Language {
+        if (!$entityManager) {
+            $entityManager = $this->entityManager;
+        }
+        $languageRepository = $entityManager->getRepository(Language::class);
         return $languageRepository->findOneBy(["selected" => true])
             ?: $languageRepository->findOneBy(['slug' => Language::DEFAULT_LANGUAGE_SLUG]);
     }
 
     /**
-     * TODO WIIS-8159 add EntityManager (impacts dans le FormatService)
+     * @param EntityManagerInterface|null $entityManager required when method is called in critical part which close the entity Manager.
      */
-    public function getDefaultSlug(): string {
+    public function getDefaultSlug(?EntityManagerInterface $entityManager = null): string {
+        if (!$entityManager) {
+            $entityManager = $this->entityManager;
+        }
         return $this->cacheService->get(CacheService::LANGUAGES, "default-language-slug", fn() => (
             $this
-                ->getDefaultLanguage()
+                ->getDefaultLanguage($entityManager)
                 ->getSlug()
         ));
     }

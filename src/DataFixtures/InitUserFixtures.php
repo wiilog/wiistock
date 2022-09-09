@@ -41,8 +41,8 @@ class InitUserFixtures extends Fixture implements FixtureGroupInterface
     public function load(ObjectManager $manager)
     {
         $uniqueMobileKey = $this->userService->createUniqueMobileLoginKey($this->entityManager);
-        $roleRepository = $manager->getRepository(Role::class);
-        $userRepository = $manager->getRepository(Utilisateur::class);
+        $roleRepository = $this->entityManager->getRepository(Role::class);
+        $userRepository = $this->entityManager->getRepository(Utilisateur::class);
         $adminRole = $roleRepository->findByLabel(Role::SUPER_ADMIN);
         $adminEmail = 'admin@wiilog.fr';
 
@@ -60,8 +60,8 @@ class InitUserFixtures extends Fixture implements FixtureGroupInterface
                 ->setDateFormat(Utilisateur::DEFAULT_DATE_FORMAT)
                 ->setPassword($password)
                 ->setMobileLoginKey($uniqueMobileKey);
-            $manager->persist($user);
-            $manager->flush();
+            $this->entityManager->persist($user);
+            $this->entityManager->flush();
             $this->output->writeln('admin@wiilog.fr user created');
         }
     }

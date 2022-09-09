@@ -20,7 +20,7 @@ $(function () {
     }, 'json');
 
     Select2Old.user('Opérateurs');
-    Select2Old.location($('.ajax-autocomplete-emplacements'), {}, "Emplacement", 3);
+    Select2Old.location($('.ajax-autocomplete-emplacements'), {}, Translation.of('Traçabilité', 'Encours', 'Emplacements', false), 3);
 
 
     initNewModal($modalNewMvtTraca);

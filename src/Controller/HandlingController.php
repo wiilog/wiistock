@@ -20,6 +20,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 
 use App\Helper\FormatHelper;
+use App\Service\LanguageService;
 use App\Service\NotificationService;
 use App\Service\StatusHistoryService;
 use App\Service\StatusService;
@@ -56,7 +57,8 @@ class HandlingController extends AbstractController {
     public function index(EntityManagerInterface $entityManager,
                           Request $request,
                           StatusService $statusService,
-                          HandlingService $handlingService): Response {
+                          HandlingService $handlingService,
+                          LanguageService $languageService): Response {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
@@ -91,8 +93,12 @@ class HandlingController extends AbstractController {
             $dateChoice[0]['default'] = true;
         }
 
+        $filterDate = $request->query->get('date');
+
         return $this->render('handling/index.html.twig', [
-            'selectedDate' => DateTime::createFromFormat("Y-m-d", $request->query->get('date')),
+//            'userLanguage' => $this->getUser()->getLanguage(), TODO décommenter un fois WIIS-6569 terminée
+//            'defaultLanguage' => $languageService->getDefaultLanguage(),
+            'selectedDate' => $filterDate ? DateTime::createFromFormat("Y-m-d", $filterDate) : null,
             'dateChoices' => $dateChoice,
             'statuses' => $statutRepository->findByCategorieName(Handling::CATEGORIE, 'displayOrder'),
 			'filterStatus' => $filterStatus,

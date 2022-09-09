@@ -26,6 +26,7 @@ use App\Entity\Utilisateur;
 
 use App\Helper\FormatHelper;
 use App\Service\ArrivageService;
+use App\Service\LanguageService;
 use App\Service\NotificationService;
 use App\Service\VisibleColumnService;
 use WiiCommon\Helper\Stream;
@@ -79,7 +80,7 @@ class DispatchController extends AbstractController {
      * @Route("/", name="dispatch_index")
      * @HasPermission({Menu::DEM, Action::DISPLAY_ACHE})
      */
-    public function index(EntityManagerInterface $entityManager, DispatchService $service) {
+    public function index(EntityManagerInterface $entityManager, DispatchService $service, LanguageService $languageService) {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
@@ -94,6 +95,8 @@ class DispatchController extends AbstractController {
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
 
         return $this->render('dispatch/index.html.twig', [
+//            'userLanguage' => $this->getUser()->getLanguage(), TODO décommenter un fois WIIS-6569 terminée
+//            'defaultLanguage' => $languageService->getDefaultLanguage(),
             'statuts' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, 'displayOrder'),
             'carriers' => $carrierRepository->findAllSorted(),
             'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY),

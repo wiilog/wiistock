@@ -21,6 +21,7 @@ use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use App\Service\DisputeService;
+use App\Service\LanguageService;
 use App\Service\TranslationService;
 use App\Service\VisibleColumnService;
 use DateTime;
@@ -44,7 +45,8 @@ class DisputeController extends AbstractController
      * @HasPermission({Menu::QUALI, Action::DISPLAY_LITI})
      */
     public function index(DisputeService         $disputeService,
-                          EntityManagerInterface $entityManager)
+                          EntityManagerInterface $entityManager,
+                          LanguageService $languageService)
     {
 
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -55,6 +57,8 @@ class DisputeController extends AbstractController
         $user = $this->getUser();
 
         return $this->render('litige/index.html.twig',[
+//            'userLanguage' => $this->getUser()->getLanguage(), TODO décommenter un fois WIIS-6569 terminée
+//            'defaultLanguage' => $languageService->getDefaultLanguage(),
             'statuts' => $statutRepository->findByCategorieNames([CategorieStatut::DISPUTE_ARR, CategorieStatut::LITIGE_RECEPT]),
             'carriers' => $transporteurRepository->findAllSorted(),
             'types' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
@@ -127,7 +131,7 @@ class DisputeController extends AbstractController
             $arrivalDisputes = $disputeRepository->iterateArrivalDisputesByDates($dateTimeMin, $dateTimeMax);
             /** @var Dispute $dispute */
             foreach ($arrivalDisputes as $dispute) {
-                $disputeService->putDisputeLine($entityManager, DisputeService::PUT_LINE_ARRIVAL, $output, $dispute);
+                $disputeService->putDisputeLine($entityManager, DisputeService::PUT_LINE_ARRIVAL, $output, $dispute, $disputeRepository);
             }
 
             $entityManager->clear();
@@ -139,7 +143,7 @@ class DisputeController extends AbstractController
             /** @var Dispute $dispute */
             foreach ($receptionDisputes as $dispute) {
                 $articles = $articleRepository->getArticlesByDisputeId($dispute["id"]);
-                $disputeService->putDisputeLine($entityManager, DisputeService::PUT_LINE_RECEPTION, $output, $dispute, $associatedIdAndReferences, $associatedIdAndOrderNumbers, $articles);
+                $disputeService->putDisputeLine($entityManager, DisputeService::PUT_LINE_RECEPTION, $output, $dispute, $disputeRepository, $associatedIdAndReferences, $associatedIdAndOrderNumbers, $articles);
             }
         }, "Export-Litiges_$today.csv", $headers);
     }

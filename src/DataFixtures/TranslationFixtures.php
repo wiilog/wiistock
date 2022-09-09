@@ -73,6 +73,10 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "fr" => "Ajouter des éléments",
                             "en" => "Add elements",
                         ],
+                        [
+                            "fr" => "Unité logistique",
+                            "en" => "Logistics unit",
+                        ],
                     ],
                 ],
                 "Zone liste" => [
@@ -735,7 +739,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 "Mail arrivage" => [
                     "content" => [
                         [
-                            "fr" => "Arrivage reçu :  le {1} à {2}",
+                            "fr" => "Arrivage reçu : le {1} à {2}",
                             "en" => "Arrival received : on {1} at {2}",
                             "tooltip" => "Mail arrivage",
                         ],
@@ -924,6 +928,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "en" => "Do you really want to delete this urgency ?",
                         "tooltip" => "Modale Supprimer l'urgence",
                     ],
+                    [
+                        "fr" => "N° de commande",
+                        "en" => "Order number",
+                        "tooltip" => "Zone filtre",
+                    ],
+
                 ],
             ],
             "Unités logistiques" => [

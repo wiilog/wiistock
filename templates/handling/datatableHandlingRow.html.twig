@@ -1,5 +1,6 @@
 <div class="d-flex">
-    <div class="dropdown dropright {{ not hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) ? 'd-none' }}">
+    <div class="dropdown dropright {{ not (hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT'))
+                                        or hasRight(constant('App\\Entity\\Menu::DEM'),constant('App\\Entity\\Action::DELETE'))) ? 'd-none' }}">
         {% include 'datatable/dotsRow.html.twig' %}
         <div class="dropdown-menu dropdown-follow-gt pointer ">
             <a href="{{ path('handling_show',{ id: handling.id }) }}" class="action-on-click d-none"></a>
@@ -11,8 +12,13 @@
                 </a>
             {% endif %}
 
-            {% set canDelete = handling.status.treated != 1 and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_UNPROCESSED_HANDLING'))
-                or handling.status.treated == 1 and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_PROCESSED_HANDLING')) %}
+            {% set canDelete = hasRight(constant('App\\Entity\\Menu::DEM'),constant('App\\Entity\\Action::DELETE'))
+                and (
+                    (handling.status.treated != 1
+                        and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_UNPROCESSED_HANDLING')))
+                    or (handling.status.treated == 1
+                        and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_PROCESSED_HANDLING')))
+                ) %}
 
             {% if canDelete %}
                 <div class="dropdown-item d-flex align-items-center" data-id="{{ handling.id }}" data-target="#modalDeleteHandling" data-toggle="modal"

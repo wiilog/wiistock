@@ -12,6 +12,7 @@ use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Service\CSVExportService;
 use App\Service\EnCoursService;
+use App\Service\LanguageService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -30,7 +31,8 @@ class EnCoursController extends AbstractController
      * @HasPermission({Menu::TRACA, Action::DISPLAY_ENCO})
      */
     public function index(Request $request,
-                          EntityManagerInterface $entityManager): Response
+                          EntityManagerInterface $entityManager,
+                          LanguageService $languageService): Response
     {
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
@@ -50,6 +52,8 @@ class EnCoursController extends AbstractController
         }
 
         return $this->render('en_cours/index.html.twig', [
+            'userLanguage' => $this->getUser()->getLanguage(),
+            'defaultLanguage' => $languageService->getDefaultLanguage(),
             'emplacements' => $emplacementRepository->findWhereArticleIs(),
             'locationsFilter' => $locationsFilter,
             'natures' => $natureRepository->findAll(),

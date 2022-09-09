@@ -63,7 +63,7 @@ $(function() {
 
     initDateTimePicker('#dateMin, #dateMax', DATE_FORMATS_TO_DISPLAY[format]);
     Select2Old.init($('.filter-select2[name="natures"]'), 'Natures');
-    Select2Old.location($('.ajax-autocomplete-emplacements'), {}, "Emplacement", 3);
+    Select2Old.location($('.ajax-autocomplete-emplacements'), {}, Translation.of('Traçabilité', 'Encours', 'Emplacements', false), 3);
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');

@@ -16,10 +16,10 @@ $(function () {
     initDateTimePicker('#dateMin, #dateMax', DATE_FORMATS_TO_DISPLAY[format]);
 
     Select2Old.init($('#carriers'), 'Transporteurs');
-    Select2Old.init($('#litigeOrigin'), Translation.of(`Qualité`, `Litiges`, `Origines`));
-    Select2Old.user($('.ajax-autocomplete-user:eq(0)'), 'Acheteurs');
-    Select2Old.user($('.ajax-autocomplete-user:eq(1)'), 'Déclarant');
-    Select2Old.dispute($('.ajax-autocomplete-dispute'), Translation.of(`Qualité`, `Litiges`, `Numéro de litige`));
+    Select2Old.init($('#litigeOrigin'), Translation.of(`Qualité`, `Litiges`, `Origines`, false));
+    Select2Old.user($('.ajax-autocomplete-user:eq(0)'), Translation.of(`Qualité`, `Litiges`, `Acheteurs`, false));
+    Select2Old.user($('.ajax-autocomplete-user:eq(1)'), Translation.of(`Qualité`, `Litiges`, `Déclarant`, false));
+    Select2Old.dispute($('.ajax-autocomplete-dispute'), Translation.of(`Qualité`, `Litiges`, `Numéro de litige`, false));
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');

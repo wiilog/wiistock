@@ -1584,7 +1584,7 @@ class MobileController extends AbstractApiController
                                   UserService $userService,
                                   TrackingMovementService $trackingMovementService,
                                   Request $request,
-                                  EntityManagerInterface $entityManager)
+                                  EntityManagerInterface $entityManager): array
     {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
@@ -1726,13 +1726,6 @@ class MobileController extends AbstractApiController
             $requestFreeFields = $freeFieldRepository->findByCategoryTypeLabels([CategoryType::DEMANDE_HANDLING]);
 
             $demandeLivraisonArticles = $referenceArticleRepository->getByNeedsMobileSync();
-            $demandeLivraisonTypes = array_map(function (Type $type) {
-                return [
-                    'id' => $type->getId(),
-                    'label' => $type->getLabel(),
-                ];
-            }, $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]));
-
             $deliveryFreeFields = $freeFieldRepository->findByCategoryTypeLabels([CategoryType::DEMANDE_LIVRAISON]);
         }
 
@@ -1747,6 +1740,15 @@ class MobileController extends AbstractApiController
                 'dispatches' => $dispatches,
                 'dispatchPacks' => $dispatchPacks,
             ] = $this->mobileApiService->getDispatchesData($entityManager, $user);
+        }
+
+        if($rights['demande'] || $rights['stock']) {
+            $demandeLivraisonTypes = Stream::from($typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]))
+                ->map(fn(Type $type) => [
+                    'id' => $type->getId(),
+                    'label' => $type->getLabel(),
+                ])
+                ->toArray();
         }
 
         ['translations' => $translations] = $this->mobileApiService->getTranslationsData($entityManager);

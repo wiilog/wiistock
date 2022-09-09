@@ -10,7 +10,7 @@ let fontSizeYAxes;
 
 const MARQUEE_PADDING = `&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`;
 
-const OVERRIDE_FONT_RED = {color: `#CC0000`};
+const OVERRIDE_FONT_RED = {color: `#D73353`};
 
 const ONGOING_PACK = 'ongoing_packs';
 const DAILY_ARRIVALS = 'daily_arrivals';
@@ -554,10 +554,10 @@ function createCarrierTrackingElement(data) {
 function createIndicatorElement(data, config, redefinedNumberingConfig = null) {
     let meterKey = config.meterKey;
     let customContainerClass = config.customContainerClass;
-    const redirectToHandling = config.component?.config?.redirectToHandling;
-    const redirectToHandlingRoute = redirectToHandling && config.component?.config?.selectedDate && config.route ? Routing.generate(config.route, {
-        date: new Date().toISOString().split('T')[0],
-    }) : '';
+    const redirectToHandling = config.component && config.component.config && config.component.config.redirectToHandling;
+    const redirectToHandlingRoute = (redirectToHandling && config.component && config.component.config && config.component.config.selectedDate && config.route )
+        ? Routing.generate(config.route, {date: new Date().toISOString().split('T')[0]})
+        : '';
     let remainingConfig = Object.assign({}, config);
     delete remainingConfig.meterKey;
     delete remainingConfig.customContainerClass;
@@ -571,7 +571,7 @@ function createIndicatorElement(data, config, redefinedNumberingConfig = null) {
     const element = componentLink || redirectToHandlingRoute ? '<a/>' : '<div/>';
     const customAttributes = componentLink || redirectToHandlingRoute
         ? {
-            href: componentLink ?? redirectToHandlingRoute,
+            href: componentLink || redirectToHandlingRoute,
             target: '_blank'
         }
         : {};

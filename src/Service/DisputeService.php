@@ -5,10 +5,10 @@ namespace App\Service;
 use App\Entity\DisputeHistoryRecord;
 use App\Entity\FiltreSup;
 use App\Entity\Dispute;
-use App\Entity\Pack;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
+use App\Repository\DisputeRepository;
 use DateTime;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -224,19 +224,16 @@ class DisputeService {
     }
 
     public function putDisputeLine(EntityManagerInterface $manager,
-                                   string $mode,
-                                          $handle,
-                                   array  $dispute,
-                                   array  $associatedIdAndReferences = [],
-                                   array  $associatedIdsAndOrderNumbers = [],
-                                   array  $articles = []): void
-    {
+                                   string                 $mode,
+                                                          $handle,
+                                   array                  $dispute,
+                                   DisputeRepository      $disputeRepository,
+                                   array                  $associatedIdAndReferences = [],
+                                   array                  $associatedIdsAndOrderNumbers = [],
+                                   array                  $articles = []): void {
         if (!in_array($mode, [self::PUT_LINE_ARRIVAL, self::PUT_LINE_RECEPTION])) {
             throw new \InvalidArgumentException('Invalid mode');
         }
-
-        $userRepository = $manager->getRepository(Utilisateur::class);
-        $buyers = join(" / ", $userRepository->getBuyers($dispute["id"]));
 
         $row = [
             $dispute["number"],
@@ -254,11 +251,12 @@ class DisputeService {
             $arrivalNumber = $arrival?->getNumeroArrivage() ?? '';
             $orderNumbers = Stream::from($arrival?->getNumeroCommandeList() ?? [])->join(' / ');
             $supplier = FormatHelper::supplier($arrival?->getFournisseur());
+            $buyers = join(', ', $disputeRepository->getAcheteursArrivageByDisputeId($dispute['id'], 'username'));
 
             foreach ($packs as $pack) {
                 $packCode = $pack->getCode();
 
-                $row = array_merge($row, [
+                $mergedRows = array_merge($row, [
                     $packCode,
                     '',
                     '',
@@ -273,7 +271,7 @@ class DisputeService {
                     $dispute["lastHistoryComment"],
                 ]);
 
-                $this->CSVExportService->putLine($handle, $row);
+                $this->CSVExportService->putLine($handle, $mergedRows);
             }
         }
         else if ($mode === self::PUT_LINE_RECEPTION) {
@@ -285,9 +283,10 @@ class DisputeService {
 
             $references = $associatedIdAndReferences[$dispute["id"]];
             $orderNumbers = $associatedIdsAndOrderNumbers[$dispute["id"]];
+            $buyers = join(', ', $disputeRepository->getAcheteursReceptionByDisputeId($dispute['id'], 'username'));
 
             foreach ($articles as $article) {
-                $row = array_merge($row, [
+                $mergedRows = array_merge($row, [
                     $references,
                     $article['barcode'],
                     $article['quantity'],
@@ -302,7 +301,7 @@ class DisputeService {
                     $dispute["lastHistoryComment"],
                 ]);
 
-                $this->CSVExportService->putLine($handle, $row);
+                $this->CSVExportService->putLine($handle, $mergedRows);
             }
         }
     }

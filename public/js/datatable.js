@@ -281,11 +281,13 @@ function initDataTable($table, options) {
     const initCompleteCallback = options.initCompleteCallback;
     const hideColumnConfig = options.hideColumnConfig;
     const config = Object.assign({}, options);
-    delete options.domConfig;
-    delete options.rowConfig;
-    delete options.drawConfig;
-    delete options.initCompleteCallback;
-    delete options.hideColumnConfig;
+    delete config.domConfig;
+    delete config.rowConfig;
+    delete config.drawConfig;
+    delete config.initCompleteCallback;
+    delete config.hideColumnConfig;
+    delete config.drawCallback;
+    delete config.initComplete;
 
     let tooltips = [];
     (config.columns || []).forEach((column, id) => {
@@ -341,7 +343,34 @@ function initDataTable($table, options) {
                 realtime: false,
             }
         }
-        : {}
+        : {};
+
+    const drawCallback = options.drawCallback
+        ? options.drawCallback
+        : (response) => {
+            datatableDrawCallback(Object.assign({
+                table: datatableToReturn,
+                response,
+                $table
+            }, drawConfig || {}));
+        };
+
+    const initComplete = options.initComplete
+        ? options.initComplete
+        : () => {
+            let $searchInputContainer = $table.parents('.dataTables_wrapper').find('.dataTables_filter');
+            moveSearchInputToHeader($searchInputContainer);
+            tableCallback(hideColumnConfig || {}, datatableToReturn);
+            if (initCompleteCallback) {
+                initCompleteCallback();
+            }
+            attachDropdownToBodyOnDropdownOpening($table);
+            if (config.page && config.page !== '') {
+                getAndApplyOrder(config, datatableToReturn);
+            } else {
+                datatableToReturn.off('column-reorder');
+            }
+        };
 
     datatableToReturn = $table
         .on('error.dt', function (e, settings, techNote, message) {
@@ -379,30 +408,15 @@ function initDataTable($table, options) {
             dom: getAppropriateDom(domConfig || {}),
             rowCallback: getAppropriateRowCallback(rowConfig || {}),
             drawCallback: (response) => {
-                if (datatableToReturn) {
-                    datatableDrawCallback(Object.assign({
-                        table: datatableToReturn,
-                        response,
-                        $table
-                    }, drawConfig || {}));
-                }
+                setTimeout(() => {
+                    drawCallback(response);
+                });
             },
             initComplete: () => {
-                if (datatableToReturn) {
-                    let $searchInputContainer = $table.parents('.dataTables_wrapper').find('.dataTables_filter');
-                    moveSearchInputToHeader($searchInputContainer);
-                    tableCallback(hideColumnConfig || {}, datatableToReturn);
-                    if (initCompleteCallback) {
-                        initCompleteCallback();
-                    }
-                    attachDropdownToBodyOnDropdownOpening($table);
-                    if (config.page && config.page !== '') {
-                        getAndApplyOrder(config, datatableToReturn);
-                    } else {
-                        datatableToReturn.off('column-reorder');
-                    }
-                }
-            }
+                setTimeout(() => {
+                    initComplete();
+                });
+            },
         }, colReorderActivated, config));
 
     return datatableToReturn;

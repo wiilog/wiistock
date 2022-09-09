@@ -49,7 +49,7 @@
                                 <span class="wii-field-text">Quantité disponible <strong>{{ referenceArticle.quantiteDisponible }}</strong></span>
                             </div>
                             <div class="d-flex align-content-center">
-                                <span class="reference-status wii-field-text mr-3"
+                                <span class="reference-status wii-body-text mr-3"
                                       style="background-color: {{ statuses[referenceArticle.statut.code]['color'] }};">
                                     Référence {{ statuses[referenceArticle.statut.code]['status'] }}
                                 </span>
@@ -152,7 +152,7 @@
                                 <img src="{{ asset('svg/reference_article/stock.svg') }}" alt="Icône stock" width="20px">
                                 <div class="box-item ml-3">
                                     <span class="wii-field-name">Quantité en stock</span>
-                                    <span class="wii-field-text">{{ referenceArticle.quantiteStock ?? 0 }}</span>
+                                    <span class="wii-body-text">{{ referenceArticle.quantiteStock ?? 0 }}</span>
                                 </div>
                             </div>
                             {% if not isReferenceManagementQuantity %}
@@ -161,7 +161,7 @@
                                     <div class="box-item ml-3">
                                         <span class="wii-field-name">Gestion de stock</span>
                                         <span
-                                            class="wii-field-text">{{ referenceArticle.stockManagement != '' ? referenceArticle.stockManagement : '-' }}</span>
+                                            class="wii-body-text">{{ referenceArticle.stockManagement != '' ? referenceArticle.stockManagement : '-' }}</span>
                                     </div>
                                 </div>
                             {% endif %}
@@ -173,7 +173,7 @@
                                 <div class="box-item ml-3">
                                     {% set plural = referenceArticle.managers | length > 1 ? 's' : '' %}
                                     <span class="wii-field-name">Gestionnaire{{ plural }}</span>
-                                    <span class="wii-field-text">{{ referenceArticle.managers is not empty
+                                    <span class="wii-body-text">{{ referenceArticle.managers is not empty
                                         ? referenceArticle.managers | map(m => m.username) | join(', ')
                                         : '-' }}
                                     </span>
@@ -183,7 +183,7 @@
                                 <img src="{{ asset('svg/reference_article/manager.svg') }}" alt="Icône utilisateur" width="20px">
                                 <div class="box-item ml-3">
                                     <span class="wii-field-name">Acheteur</span>
-                                    <span class="wii-field-text">{{ referenceArticle.buyer ? referenceArticle.buyer.username : '-' }}</span>
+                                    <span class="wii-body-text">{{ referenceArticle.buyer ? referenceArticle.buyer.username : '-' }}</span>
                                 </div>
                             </div>
                         </div>

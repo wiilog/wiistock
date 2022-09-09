@@ -132,7 +132,8 @@ class DashboardSettingsService {
                                     Utilisateur $currentUser = null): array {
         $values = [];
         $meterKey = $componentType->getMeterKey();
-        Stream::from($config)
+        $styleConfig = isset($config['jsonConfig']) ? json_decode($config['jsonConfig'], true) : $config;
+        Stream::from($styleConfig)
             ->each(function($conf, $key) use (&$values) {
                 if (str_starts_with($key, 'fontSize-')
                     || str_starts_with($key, 'textColor-')
