@@ -6,10 +6,12 @@
                         name="type" {{ disabled }}
                         {% if onchange is defined %}onchange="{{ onchange }}"{% endif %}
                         id="type">
-                    <option value>Type</option>
+                    <option value>{{ placeholder is defined ? placeholder : 'Type' }}</option>
                     {% for type in types | sort((a, b) => a.label <=> b.label) %}
                         <option value="{{ type.label }}">
-                            {{ type.label }}
+                            {{ userLanguage is defined and  defaultLanguage is defined
+                                ? type.labelIn(userLanguage, defaultLanguage)
+                                : type.label }}
                         </option>
                     {% endfor %}
                 </select>

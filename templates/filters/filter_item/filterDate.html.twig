@@ -4,7 +4,7 @@
     <div class="h-100 w-450px">
         <div class="input-group">
             <div class="input-group-prepend">
-                <span class="input-group-text w-50px d-flex justify-content-center">Du</span>
+                <span class="input-group-text w-50px d-flex justify-content-center">{{ trans('Général', null, 'Zone filtre', 'Du') }}</span>
             </div>
             {% set placeholder = needsDateFormatting is defined and needsDateFormatting and app.user.displayedDateFormat
                 ? app.user.displayedDateFormat
@@ -17,7 +17,7 @@
                    {{ disabled }}
                    autocomplete="off"/>
             <div class="input-group-prepend input-group-append">
-                <span class="input-group-text w-50px d-flex justify-content-center">Au</span>
+                <span class="input-group-text w-50px d-flex justify-content-center">{{ trans('Général', null, 'Zone filtre', 'Au') }}</span>
             </div>
             <input type="text"
                    class="form-control cursor-default filter-date-max {{ databasePersisted ? 'filter-input' }} w-218px"

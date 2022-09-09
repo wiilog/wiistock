@@ -3,7 +3,7 @@
 {% block filters %}
     {% include 'filters/filter_item/filterDate.html.twig' %}
     {% include 'filters/filter_item/filterColis.html.twig' with {
-        transPack : 'colis.colis'|trans }%}
+        transPack : trans('Traçabilité', 'Général', 'Unités logistiques', false) }%}
     {% include 'filters/filter_item/filterNatureColis.html.twig' %}
     {% include 'filters/filter_item/filterLocation.html.twig' %}
     {% include 'filters/filter_item/filterNumArrivage.html.twig' %}

@@ -3,7 +3,7 @@
         <div class="btn-group" style="max-height: 35px">
             <div class="input-group">
                 <div class="input-group-prepend h-100">
-                    <span class="input-group-text w-50px">Du</span>
+                    <span class="input-group-text w-50px">{{ trans('Général', null, 'Zone filtre', 'Du') }}</span>
                 </div>
                 {% set placeholder = needsDateFormatting is defined and needsDateFormatting and app.user.displayedDateFormat ? app.user.displayedDateFormat : 'jj/mm/aaaa' %}
                 {% set format = needsDateFormatting is defined and needsDateFormatting and app.user.displayedDateFormat ? app.user.displayedDateFormat : 'd/m/Y' %}
@@ -17,7 +17,7 @@
                     {{ disabled }}
                        autocomplete="off"/>
                 <div class="input-group-prepend h-100">
-                    <span class="input-group-text w-50px border-left-0">Au</span>
+                    <span class="input-group-text w-50px border-left-0">{{ trans('Général', null, 'Zone filtre', 'Au') }}</span>
                 </div>
                 <input type="text"
                        class="form-control cursor-default filter-date-max filter-input w-218px border-radius-0 h-100"

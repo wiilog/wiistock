@@ -5,13 +5,13 @@ $(function() {
 
     const filtersContainer = $('.filters-container');
 
-    Select2Old.init(filtersContainer.find('.filter-select2[name="carriers"]'), 'Transporteurs');
-    Select2Old.init(filtersContainer.find('.filter-select2[name="emergencyMultiple"]'), 'Urgences');
-    Select2Old.dispatch(filtersContainer.find('.filter-select2[name="dispatchNumber"]'), 'Numéro de demande');
-    Select2Old.init(filtersContainer.find('.filter-select2[name="multipleTypes"]'), 'Types');
+    Select2Old.init(filtersContainer.find('.filter-select2[name="carriers"]'), Translation.of('Demande', 'Acheminements', 'Divers', 'Transporteurs', false));
+    Select2Old.init(filtersContainer.find('.filter-select2[name="emergencyMultiple"]'), Translation.of('Demande', 'Général','Urgences', false));
+    Select2Old.dispatch(filtersContainer.find('.filter-select2[name="dispatchNumber"]'), Translation.of('Demande', 'Acheminements', 'Divers', 'N° demande', false));
+    Select2Old.init(filtersContainer.find('.filter-select2[name="multipleTypes"]'), Translation.of('Demande', 'Acheminements', 'Divers', 'Types', false));
     Select2Old.initFree(filtersContainer.find('.filter-select2[name="commandList"]'), $('#translateCommandNumber').val());
-    Select2Old.user(filtersContainer.find('.ajax-autocomplete-user[name=receivers]'), 'Destinataires');
-    Select2Old.user(filtersContainer.find('.ajax-autocomplete-user[name=requesters]'), 'Demandeurs');
+    Select2Old.user(filtersContainer.find('.ajax-autocomplete-user[name=receivers]'), Translation.of('Demande', 'Général', 'Destinataire(s)', false));
+    Select2Old.user(filtersContainer.find('.ajax-autocomplete-user[name=requesters]'), Translation.of('Demande', 'Général', 'Demandeurs', false));
     const $userFormat = $('#userDateFormat');
     const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
 

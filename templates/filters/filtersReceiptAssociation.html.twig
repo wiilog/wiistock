@@ -6,5 +6,7 @@
         multiple: true
     }%}
     {% include 'filters/filter_item/filterReceptionString.html.twig' %}
-    {% include 'filters/filter_item/filterUser.html.twig' %}
+    {% include 'filters/filter_item/filterUser.html.twig' with {
+        placeholder : trans('Traçabilité', 'Association BR', 'Utilisateurs', false)
+    } %}
 {% endblock %}
