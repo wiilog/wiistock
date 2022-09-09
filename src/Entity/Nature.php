@@ -99,7 +99,7 @@ class Nature {
             default => $default,
         };
 
-        return $this->getLabelTranslation()->getTranslationIn($in, $default)?->getTranslation();
+        return $this->getLabelTranslation()->getTranslationIn($in, $default)?->getTranslation() ?? $this->getLabelTranslation()->getTranslationIn( Language::FRENCH_SLUG)?->getTranslation();
     }
 
     #[Deprecated]
