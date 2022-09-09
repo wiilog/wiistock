@@ -60,8 +60,8 @@ class InitUserFixtures extends Fixture implements FixtureGroupInterface
                 ->setDateFormat(Utilisateur::DEFAULT_DATE_FORMAT)
                 ->setPassword($password)
                 ->setMobileLoginKey($uniqueMobileKey);
-            $manager->persist($user);
-            $manager->flush();
+            $this->entityManager->persist($user);
+            $this->entityManager->flush();
             $this->output->writeln('admin@wiilog.fr user created');
         }
     }

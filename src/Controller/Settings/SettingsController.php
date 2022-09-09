@@ -799,7 +799,10 @@ class SettingsController extends AbstractController {
     /**
      * @Route("/afficher/{category}/{menu}/{submenu}", name="settings_item", options={"expose"=true})
      */
-    public function item(EntityManagerInterface $entityManager, string $category, ?string $menu = null, ?string $submenu = null): Response {
+    public function item(EntityManagerInterface $entityManager,
+                         string $category,
+                         ?string $menu = null,
+                         ?string $submenu = null): Response {
         if ($submenu) {
             $parent = self::SETTINGS[$category]["menus"][$menu] ?? null;
             $path = "settings/$category/$menu/";
@@ -874,7 +877,8 @@ class SettingsController extends AbstractController {
         self::CATEGORY_IOT => "\Closure[]", self::CATEGORY_DATA => "\Closure[]",
         self::CATEGORY_NOTIFICATIONS => "\Closure[]", self::CATEGORY_USERS => "\Closure[]"
 
-    ])] public function customValues(EntityManagerInterface $entityManager): array {
+    ])]
+    public function customValues(EntityManagerInterface $entityManager): array {
         $mailerServerRepository = $entityManager->getRepository(MailerServer::class);
         $temperatureRepository = $entityManager->getRepository(TemperatureRange::class);
         $natureRepository = $entityManager->getRepository(Nature::class);

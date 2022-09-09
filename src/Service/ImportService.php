@@ -1208,7 +1208,7 @@ class ImportService
 
         // on user creation
         if (!isset($userAlreadyExists)) {
-            $language = $this->languageService->getNewUserLanguage();
+            $language = $this->languageService->getNewUserLanguage($this->entityManager);
             $user
                 ->setLanguage($language)
                 ->setDateFormat(Utilisateur::DEFAULT_DATE_FORMAT);
