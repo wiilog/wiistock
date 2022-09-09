@@ -513,7 +513,7 @@ function processInputsForm($modal, data, isAttachmentForm) {
                 if (maxLength) {
                     const $commentStrWithoutTag = $qlEditor.text();
                     if ($commentStrWithoutTag.length > maxLength) {
-                        errorMessages.push(Translation.of('Général', '', 'Modale', 'Le commentaire excède les {1} caractères maximum.',{1: maxLength}));
+                        errorMessages.push(Translation.of('Général', '', 'Modale', 'Le commentaire excède les {1} caractères maximum.',{1: maxLength}, false));
                     }
                     else {
                         saveData($input, data, name, val, isAttachmentForm);
@@ -546,8 +546,8 @@ function processInputsForm($modal, data, isAttachmentForm) {
 
     if (missingInputNames.length > 0) {
         errorMessages.push(missingInputNames.length === 1
-            ? Translation.of('Général', '', 'Modale', 'Veuillez renseigner le champ : {1}', {1 : missingInputNames[0]})
-            : Translation.of('Général', '', 'Modale', 'Veuillez renseigner les champs : {1}', {1 : missingInputNames.join(', ')})
+            ? Translation.of('Général', '', 'Modale', 'Veuillez renseigner le champ : {1}', {1 : missingInputNames[0]}, false)
+            : Translation.of('Général', '', 'Modale', 'Veuillez renseigner les champs : {1}', {1 : missingInputNames.join(', ')}, false)
         );
     }
 
