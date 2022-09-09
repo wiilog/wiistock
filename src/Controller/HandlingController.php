@@ -20,6 +20,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 
 use App\Helper\FormatHelper;
+use App\Service\LanguageService;
 use App\Service\NotificationService;
 use App\Service\StatusHistoryService;
 use App\Service\StatusService;
@@ -56,7 +57,9 @@ class HandlingController extends AbstractController {
     public function index(EntityManagerInterface $entityManager,
                           Request $request,
                           StatusService $statusService,
-                          HandlingService $handlingService): Response {
+                          HandlingService $handlingService,
+                          TranslationService $translationService,
+                          LanguageService $languageService): Response {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
@@ -73,15 +76,15 @@ class HandlingController extends AbstractController {
         $dateChoice = [
             [
                 'name' => 'creationDate',
-                'label' => 'Date de création',
+                'label' => $translationService->translate('Demande', 'Services', 'Date de création'),
             ],
             [
                 'name' => 'expectedDate',
-                'label' => 'Date attendue',
+                'label' => $translationService->translate('Demande', 'Services', 'Date attendue'),
             ],
             [
                 'name' => 'treatmentDate',
-                'label' => 'Date de réalisation',
+                'label' => $translationService->translate('Demande', 'Services', 'Date de réalisation'),
             ],
         ];
         foreach ($dateChoice as &$choice) {
@@ -92,6 +95,8 @@ class HandlingController extends AbstractController {
         }
 
         return $this->render('handling/index.html.twig', [
+            'userLanguage' => $user->getLanguage(),
+            'defaultLanguage' => $languageService->getDefaultLanguage(),
             'selectedDate' => DateTime::createFromFormat("Y-m-d", $request->query->get('date')),
             'dateChoices' => $dateChoice,
             'statuses' => $statutRepository->findByCategorieName(Handling::CATEGORIE, 'displayOrder'),
@@ -248,9 +253,9 @@ class HandlingController extends AbstractController {
         catch (UniqueConstraintViolationException | ConnectException $e) {
 
             if ($e instanceof UniqueConstraintViolationException) {
-                $message = $translation->trans('services.Une autre demande de service est en cours de création, veuillez réessayer') . '.';
+                $message = $translation->translate('Demande', 'Services', null, 'Une autre demande de service est en cours de création, veuillez réessayer') . '.';
             } else if ($e instanceof ConnectException) {
-                $message = "Une erreur s'est produite lors de l'envoi de la notifiation de cette demande de service. Veuillez réessayer.";
+                $message = $translation->translate('Demande', 'Services', null, 'Une erreur s\'est produite lors de l`\'envoi de la notifiation de cette demande de service. Veuillez réessayer.');
             }
             if (!empty($message)) {
                 return new JsonResponse([
@@ -264,9 +269,9 @@ class HandlingController extends AbstractController {
 
         return new JsonResponse([
             'success' => true,
-            'msg' => $translation->trans("services.La demande de service {numéro} a bien été créée", [
-                    "{numéro}" => '<strong>' . $handling->getNumber() . '</strong>'
-                ]) . '.'
+            'msg' => $translation->translate('Demande', 'Services', null, 'La demande de service {1} a bien été créée.', [
+                    "1" => $handling->getNumber()
+                ]),
         ]);
     }
 
@@ -341,9 +346,9 @@ class HandlingController extends AbstractController {
 
         return new JsonResponse([
             'success' => true,
-            'msg' => $translation->trans("services.La demande de service {numéro} a bien été modifiée", [
-                    "{numéro}" => '<strong>' . $handling->getNumber() . '</strong>'
-                ]) . '.'
+            'msg' => $translation->translate('Demande', 'Services', null, 'La demande de service {1} a bien été modifiée.', [
+                    "1" => $handling->getNumber()
+                ]),
         ]);
 
     }
@@ -384,9 +389,9 @@ class HandlingController extends AbstractController {
 
             return new JsonResponse([
                 'success' => true,
-                'msg' => $translation->trans('services.La demande de service {numéro} a bien été supprimée', [
-                        "{numéro}" => '<strong>' . $handlingNumber . '</strong>'
-                    ]).'.',
+                'msg' => $translation->translate('Demande', 'Services', null, 'La demande de service {1} a bien été supprimée.', [
+                        "1" => $handlingNumber
+                    ]),
                 'redirect'=> $this->generateUrl('handling_index')
             ]);
         }
@@ -503,7 +508,8 @@ class HandlingController extends AbstractController {
     #[HasPermission([Menu::DEM, Action::DISPLAY_HAND], mode: HasPermission::IN_JSON)]
     public function saveColumnVisible(Request $request,
                                       EntityManagerInterface $entityManager,
-                                      VisibleColumnService $visibleColumnService): Response
+                                      VisibleColumnService $visibleColumnService,
+                                      TranslationService $translationService): Response
     {
         $data = json_decode($request->getContent(), true);
 
@@ -516,7 +522,7 @@ class HandlingController extends AbstractController {
 
         return $this->json([
             "success" => true,
-            "msg" => "Vos préférences de colonnes à afficher ont bien été sauvegardées"
+            "msg" => $translationService->translate('Général', null, 'Zone liste', 'Vos préférences de colonnes à afficher ont bien été sauvegardées')
         ]);
     }
 
@@ -554,19 +560,22 @@ class HandlingController extends AbstractController {
 
     #[Route("/{id}/status-history-api", name: "handling_status_history_api", options: ['expose' => true], methods: "GET")]
     public function statusHistoryApi(int $id,
-                                     EntityManagerInterface $entityManager): JsonResponse {
+                                     EntityManagerInterface $entityManager,
+                                     LanguageService $languageService): JsonResponse {
         $handlingRepository = $entityManager->getRepository(Handling::class);
         $handling = $handlingRepository->find($id);
         $user = $this->getUser();
         return $this->json([
             "success" => true,
             "template" => $this->renderView('handling/status-history.html.twig', [
+                "userLanguage" => $user->getLanguage(),
+                "defaultLanguage" => $languageService->getDefaultLanguage(),
                 "statusesHistory" => Stream::from($handling->getStatusHistory())
                     ->map(fn(StatusHistory $statusHistory) => [
-                        "status" => FormatHelper::status($statusHistory->getStatus()),
+                        "status" => $this->getFormatter()->status($statusHistory->getStatus()),
                         "date" => $user->getDateFormat() === 'd/m/Y'
-                            ? FormatHelper::longDate($statusHistory->getDate(), ["short" => true, "time" => true])
-                            : FormatHelper::datetime($statusHistory->getDate(), "", false, $user)
+                            ? $this->getFormatter()->longDate($statusHistory->getDate(), ["short" => true, "time" => true])
+                            : $this->getFormatter()->datetime($statusHistory->getDate(), "", false, $user)
                     ])
                     ->toArray(),
                 "handling" => $handling,

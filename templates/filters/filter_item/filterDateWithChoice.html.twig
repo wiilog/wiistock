@@ -45,7 +45,7 @@
                                    {% if checked %}
                                         checked
                                    {% endif %}">
-                            <label for="date-choice_{{ dateChoice.name }}" class="ml-1" style="color: #000 !important;">{{ dateChoice.label }}</label>
+                            <label for="date-choice_{{ dateChoice.name }}" class="ml-1" style="color: #000 !important;">{{ dateChoice.label|raw }}</label>
                         </div>
                     {% endfor %}
                 </div>

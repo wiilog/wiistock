@@ -1,7 +1,7 @@
 {% extends 'layout.html.twig' %}
 {% import 'form.html.twig' as form %}
 
-{% block title %}Demande | Service | Détails{% endblock %}
+{% block title %}{{ trans('Demande', 'Général', 'Demande') }} | {{ trans('Demande', 'Services', 'Service') }} | {{ trans('Général', null, 'Header', 'Détails') }}{% endblock %}
 {% block titleLink path('handling_index') %}
 
 {% block page_content %}
@@ -20,13 +20,13 @@
                                     <img alt="Actions" src="{{ asset('svg/dotsblack.svg') }}" height="20px" width="8px">
                                 </div>
                                 <div class="dropdown-menu dropdown-follow-gt pointer">
-                                    <div class="dropdown-item"
+                                    <div class="dropdown-item d-flex"
                                          data-id="{{ handling.id }}"
                                          data-target="#modalDeleteHandling"
                                          data-toggle="modal"
                                          onclick="deleteRow($(this), $('#modalDeleteHandling'), $('#submitDeleteHandling'))">
                                         <span class="wii-icon wii-icon-trash-black mr-2"></span>
-                                        Supprimer
+                                        {{ trans('Général', null, 'Modale', 'Supprimer') }}
                                     </div>
                                 </div>
                             </div>
@@ -35,7 +35,7 @@
                     <div class="d-flex py-2 w-100 justify-content-between">
                         <div class="d-flex align-items-center">
                             <div class="d-flex flex-column">
-                                <span class="wii-title" title="Acheminement">Service</span>
+                                <span class="wii-title" title="Acheminement">{{ trans('Demande', 'Services', 'Service') }}</span>
                                 <span class="wii-small-text">
                                     {{ handling.number }}
                                 </span>
@@ -60,7 +60,7 @@
                     <div class="content row ">
                         <div class="col-6 d-flex flex-column">
                             <div class="box-item mt-2">
-                                <span class="wii-field-name">Type</span>
+                                <span class="wii-field-name">{{ trans( 'Demande', 'Général', 'Type') }}</span>
                                 <span class="wii-field-text">
                                     {{ handling.type.label }}
                                 </span>
@@ -68,7 +68,7 @@
                         </div>
                         <div class="col-6 d-flex flex-column">
                             <div class="box-item mt-2">
-                                {{ form.input('subject', 'Objet', true, handling.subject, {
+                                {{ form.input('subject', trans('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Objet'), true, handling.subject, {
                                     attributes: {
                                         'data-short-label': 'Objet',
                                     },
@@ -78,16 +78,16 @@
                         {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
                             <div class="col-6 d-flex flex-column mt-2">
-                                {{ form.select('emergency', "Urgence", true, {
+                                {{ form.select('emergency', trans( 'Demande', 'Général', 'Urgence'), true, {
                                     items: emergencies,
                                     required: false,
-                                    emptyOption : { value : null , text : 'Non urgent', selected : emergency ? false : true},
+                                    emptyOption : { value : null , text : trans( 'Demande', 'Général', 'Non urgent', false), selected : emergency ? false : true},
                                 }) }}
                             </div>
                         {% elseif fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                             <div class="col-6 d-flex flex-column">
                                 <div class="box-item my-2">
-                                    <span class="wii-field-name">Urgence</span>
+                                    <span class="wii-field-name">{{ trans( 'Demande', 'Général', 'Urgence') }}</span>
                                     <span class="wii-field-text">
                                         {{ emergency == '' ? '-' : emergency }}
                                     </span>
@@ -98,7 +98,7 @@
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
                             <div class="col-6 d-flex flex-column mt-2">
-                                {{ form.select('receivers', "Destinataires", required, {
+                                {{ form.select('receivers', trans('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Destinataires'), required, {
                                     items: receivers,
                                     type: 'user',
                                     multiple :true,
@@ -108,7 +108,7 @@
                         {% elseif fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                             <div class="col-6 d-flex flex-column">
                                 <div class="box-item my-2">
-                                    <span class="wii-field-name">Destinataires</span>
+                                    <span class="wii-field-name">{{ trans('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Destinataires') }}</span>
                                     {% if handling.receivers is not empty %}
                                         {% for receiver in handling.receivers %}
                                             <span class="wii-field-text">
@@ -125,7 +125,7 @@
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
                             <div class="col-6 d-flex flex-column mt-2">
-                                {{ form.input('source', 'Chargement', required, handling.source, {
+                                {{ form.input('source', trans('Demande', 'Services', 'Modale et détails', 'Chargement'), required, handling.source, {
                                     attributes: {
                                         'data-short-label': 'Chargement',
                                     },
@@ -134,7 +134,7 @@
                         {% elseif fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                             <div class="col-6 d-flex flex-column">
                                 <div class="box-item my-2">
-                                    <span class="wii-field-name">Chargement</span>
+                                    <span class="wii-field-name">{{ trans('Demande', 'Services', 'Modale et détails', 'Chargement') }}</span>
                                     <span class="wii-field-text">
                                         {{ handling.source ? handling.source : '-' }}
                                     </span>
@@ -145,7 +145,7 @@
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
                             <div class="col-6 d-flex flex-column mt-2">
-                                {{ form.input('destination', 'Déchargement', required, handling.source, {
+                                {{ form.input('destination', trans('Demande', 'Services', 'Modale et détails', 'Déchargement'), required, handling.source, {
                                     attributes: {
                                         'data-short-label': 'Chargement',
                                     },
@@ -154,7 +154,7 @@
                         {% elseif fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                             <div class="col-6 d-flex flex-column">
                                 <div class="box-item my-2">
-                                    <span class="wii-field-name">Déchargement</span>
+                                    <span class="wii-field-name">{{ trans('Demande', 'Services', 'Modale et détails', 'Déchargement')}}</span>
                                     <span class="wii-field-text">
                                         {{ handling.destination ? handling.destination : '-'}}
                                     </span>
@@ -165,7 +165,7 @@
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
                             <div class="col-6 d-flex flex-column mt-2">
-                                {{ form.number('carriedOutOperationCount', 'Nombre d’opération(s) réalisée(s)', required, handling.carriedOutOperationCount, {
+                                {{ form.number('carriedOutOperationCount', trans('Demande', 'Services', 'Modale et détails', 'Nombre d\'opération(s) réalisée(s)'), required, handling.carriedOutOperationCount, {
                                     labelClass: 'w-100',
                                     min: 0
                                 }) }}
@@ -173,7 +173,7 @@
                         {% elseif fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                             <div class="col-6 d-flex flex-column">
                                 <div class="box-item my-2">
-                                    <span class="wii-field-name">Nombre d’opération(s) réalisée(s)</span>
+                                    <span class="wii-field-name">{{ trans('Demande', 'Services', 'Modale et détails', 'Nombre d\'opération(s) réalisée(s)')}}</span>
                                     <span class="wii-field-text">
                                     {{ handling.carriedOutOperationCount ? handling.carriedOutOperationCount : '-'}}
                                 </span>
@@ -195,7 +195,7 @@
                     </div>
                 </div>
                 <div class="content">
-                    <div class="wii-subtitle">Commentaire</div>
+                    <div class="wii-subtitle">{{ trans('Général', null, 'Modale', 'Commentaire') }}</div>
                     <div>
                         <input class="commentaire form-control data" name="comment" type="hidden" id="commentaire">
                         <div class="editor-container-new" data-wysiwyg>{{ handling.comment | striptags }}</div>
@@ -203,7 +203,7 @@
                 </div>
             </div>
             <div class="wii-box ">
-                <div class="header wii-title">Champs libres</div>
+                <div class="header wii-title">{{ trans('Général', null, 'Modale', 'Champs libres') }}</div>
                 <div class="content">
                     {% include 'free_field/freeFieldsEdit.html.twig' with {
                         freeFields: freeFields,
@@ -219,25 +219,25 @@
         <div class="col-md-6 col-12">
             <div class="wii-box ">
                 <div class="header wii-title d-flex justify-content-between">
-                    <span class="d-flex align-items-center pl-2">Statut</span>
+                    <span class="d-flex align-items-center pl-2">{{ trans('Demande', 'Services', 'Modale et détails', 'Statut') }}</span>
                 </div>
                 <div class="content p-0">
                     <div class="content status-history-container p-0">
                         <div class="d-flex align-items-center justify-content-center p-3">
                             <div class="spinner-border text-primary" role="status"></div>
-                            <span class="ml-3">Génération de l'historique en cours</span>
+                            <span class="ml-3">{{ trans('Demande', 'Services', 'Modale et détails', 'Génération de l\'historique en cours') }}</span>
                         </div>
                     </div>
                 </div>
                 <div class="sub-header">
                     <img src="{{ asset('svg/calendar.svg') }}" alt="Icône calendrier" width="15px">
-                    <span class="wii-field-name ml-2">Dates</span>
+                    <span class="wii-field-name ml-2">{{ trans('Demande', 'Services', 'Modale et détails', 'Dates') }}</span>
                 </div>
                 <div class="content row ">
                     {% if handling.withoutHistory %}
                         <div class="col-6 d-flex flex-column">
                             <div class="box-item my-2">
-                                <span class="wii-field-name">Date de création</span>
+                                <span class="wii-field-name">{{ trans('Demande', 'Services', null, 'Date de création') }}</span>
                                 <span class="wii-field-text">
                                     {{ app.user.dateFormat == 'd/m/Y'
                                         ? (handling.creationDate
@@ -253,7 +253,7 @@
                     <div class="col-6 d-flex flex-column">
                         <div class="box-item my-2">
                             {% set desiredDate = handling.desiredDate ? handling.desiredDate|date('Y-m-d\\TH:i') %}
-                            <label class="wii-field-name" for="desired-date">Date attendue*</label>
+                            <label class="wii-field-name" for="desired-date">{{ trans('Demande', 'Services', 'Modale et détails', 'Date attendue') }}*</label>
                             <input type="text"
                                    name="desired-date"
                                    title="Date attendue"
@@ -265,7 +265,7 @@
                     </div>
                     <div class="col-6 d-flex flex-column">
                         <div class="box-item my-2">
-                            <span class="wii-field-name">Date réalisation</span>
+                            <span class="wii-field-name">{{ trans('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Date de réalisation') }}</span>
                             <span class="wii-field-text">
                                 {{ app.user.dateFormat == 'd/m/Y'
                                     ? (handling.validationDate
@@ -285,11 +285,11 @@
                         type="button"
                         class="btn btn-success data mt-2"
                         data-submit="{{ submit_url }}">
-                    Enregistrer
+                    {{ trans('Général', null, 'Modale', 'Enregistrer') }}
                 </button>
                 <a href="javascript:window.location = document.referrer">
                     <button type="button" class="btn btn-outline-secondary data mt-2 mr-2">
-                        Annuler
+                        {{ trans('Général', null, 'Modale', 'Annuler') }}
                     </button>
                 </a>
 

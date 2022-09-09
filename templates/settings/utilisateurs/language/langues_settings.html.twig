@@ -53,15 +53,23 @@
                 {% endif %}
                 {% if menuData.submenus is defined %}
                     {% for subMenu, subMenuData in menuData.submenus %}
-                        <div class="wii-section-title mb-1 toggle-collapsible">
-                            {{ subMenu | capitalize }}
-                            <span class="wii-small-text ml-2">{{ subMenuData.subtitle }}</span>
-                        </div>
-                        <div class="wii-section collapsible {{ menuData.submenus | length <= 3 ? 'expanded' }}">
+                        {% if subMenu is empty %}
                             {% if subMenuData.translations is defined and subMenuData.translations is not empty %}
-                                {% include 'settings/utilisateurs/language/langues_settings_traduction_input.html.twig' with { translations : subMenuData.translations} %}
+                                <div class="p-3">
+                                    {% include 'settings/utilisateurs/language/langues_settings_traduction_input.html.twig' with { translations : subMenuData.translations} %}
+                                </div>
                             {% endif %}
-                        </div>
+                        {% else %}
+                            <div class="wii-section-title mb-1 toggle-collapsible">
+                                {{ subMenu | capitalize }}
+                                <span class="wii-small-text ml-2">{{ subMenuData.subtitle }}</span>
+                            </div>
+                            <div class="wii-section collapsible {{ menuData.submenus | length <= 3 ? 'expanded' }}">
+                                {% if subMenuData.translations is defined and subMenuData.translations is not empty %}
+                                    {% include 'settings/utilisateurs/language/langues_settings_traduction_input.html.twig' with { translations : subMenuData.translations} %}
+                                {% endif %}
+                            </div>
+                        {% endif %}
                     {% endfor %}
                 {% endif %}
             </div>
