@@ -4,13 +4,13 @@
         <label class="box-item ml-3">
             <span class="wii-field-name">Créée par</span>
             {% if not reference.createdBy and not reference.createdAt %}
-                <span class="wii-field-text">-</span>
+                <span class="wii-body-text">-</span>
             {% else %}
                 {% if reference.createdBy %}
-                    <span class="wii-field-text">{{ reference.createdBy.username }}</span>
+                    <span class="wii-body-text">{{ reference.createdBy.username }}</span>
                 {% endif %}
                 {% if reference.createdAt %}
-                    <span class="wii-field-text">le {{ reference.createdAt | format_helper('longDate', {short: true, time: true}, '') }}</span>
+                    <span class="wii-body-text">le {{ reference.createdAt | format_helper('longDate', {short: true, time: true}, '') }}</span>
                 {% endif %}
             {% endif %}
         </label>
@@ -20,13 +20,13 @@
         <label class="box-item ml-3">
             <span class="wii-field-name">Dernière modification par</span>
             {% if not reference.editedBy and not reference.editedAt %}
-                <span class="wii-field-text">-</span>
+                <span class="wii-body-text">-</span>
             {% else %}
                 {% if reference.editedBy %}
-                    <span class="wii-field-text">{{ reference.editedBy.username }}</span>
+                    <span class="wii-body-text">{{ reference.editedBy.username }}</span>
                 {% endif %}
                 {% if reference.editedAt %}
-                    <span class="wii-field-text">le {{ reference.editedAt | format_helper('longDate', {short: true, time: true}, '') }}</span>
+                    <span class="wii-body-text">le {{ reference.editedAt | format_helper('longDate', {short: true, time: true}, '') }}</span>
                 {% endif %}
             {% endif %}
         </label>
@@ -35,14 +35,14 @@
         <img src="{{ asset('svg/calendrier-entree.svg') }}" alt="Icône entrée" width="20px">
         <label class="box-item ml-3">
             <span class="wii-field-name">Dernière entrée le</span>
-            <span class="wii-field-text">{{ reference.lastStockEntry | format_helper('longDate', {short: true, time: true}) }}</span>
+            <span class="wii-body-text">{{ reference.lastStockEntry | format_helper('longDate', {short: true, time: true}) }}</span>
         </label>
     </div>
     <div class="col-12 col-md-6 mt-3 d-flex">
         <img src="{{ asset('svg/calendrier-sortie.svg') }}" alt="Icône sortie" width="20px">
         <label class="box-item ml-3">
             <span class="wii-field-name">Dernière sortie le</span>
-            <span class="wii-field-text">{{ reference.lastStockExit | format_helper('longDate', {short: true, time: true}) }}</span>
+            <span class="wii-body-text">{{ reference.lastStockExit | format_helper('longDate', {short: true, time: true}) }}</span>
         </label>
     </div>
 {% endif %}
