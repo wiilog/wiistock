@@ -6,7 +6,7 @@
     </div>
     {% if profile is defined and profile == constant('App\\Service\\IOT\\IOTService::SYMES_ACTION_MULTI') %}
         <div class="form-group col-12 col-md-6 p-0">
-            <label>Numéro de bouton</label>
+            <label class="wii-field-name">Numéro de bouton</label>
             <input type="number" class="data w-100 form-control needed" max="4" value="{{ config is not empty and config['buttonIndex'] is defined ? config['buttonIndex'] }}" name="buttonIndex" title="Numéro de bouton">
         </div>
     {% endif %}

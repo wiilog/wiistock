@@ -384,13 +384,14 @@ class ArrivageService {
 
         $config = [
             [
-                'label' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Statut'),
+                'label' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Type'),
                 'value' => $type ? $this->stringService->mbUcfirst($type->getLabel()) : '',
                 'isRaw' => true
             ],
             [
                 'label' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Statut'),
-                'value' => $status ? $this->stringService->mbUcfirst($this->formatService->status($status)) : ''
+                'value' => $status ? $this->stringService->mbUcfirst($this->formatService->status($status)) : '',
+                'isRaw' => true
             ],
             [
                 'label' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Fournisseur'),

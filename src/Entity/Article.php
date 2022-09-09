@@ -11,7 +11,6 @@ use App\Entity\IOT\SensorMessageTrait;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Repository\ArticleRepository;
-use App\Service\FormatService;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -19,7 +18,6 @@ use Doctrine\Common\Collections\Criteria;
 use Doctrine\Common\Collections\Selectable;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
-use Symfony\Contracts\Service\Attribute\Required;
 
 
 /**
@@ -138,9 +136,6 @@ class Article implements PairedEntity {
 
     #[ORM\OneToMany(targetEntity: Pairing::class, mappedBy: 'article', cascade: ['remove'])]
     private Collection $pairings;
-
-    #[Required]
-    public FormatService $formatService;
 
     public function __construct() {
         $this->deliveryRequestLines = new ArrayCollection();
@@ -549,7 +544,7 @@ class Article implements PairedEntity {
             ? self::USED_ASSOC_LITIGE
             : ((!$this->getInventoryEntries()->isEmpty())
                 ? self::USED_ASSOC_INVENTORY
-                : ($this->formatService->status($this->getStatut()) === self::STATUT_INACTIF
+                : ($this->getStatut()->getCode() === self::STATUT_INACTIF
                     ? self::USED_ASSOC_STATUT_NOT_AVAILABLE
                     : ((!$this->getPreparationOrderLines()->isEmpty())
                         ? self::USED_ASSOC_PREPA_IN_PROGRESS

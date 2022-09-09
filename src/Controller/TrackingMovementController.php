@@ -590,15 +590,11 @@ class TrackingMovementController extends AbstractController
                     );
             } else {
                 $appropriateType = $statutRepository->find($typeId);
-                if ($appropriateType && $this->getFormatter()->status($appropriateType) === TrackingMovement::TYPE_PRISE_DEPOSE) {
-                    $fileToRender = "$templateDirectory/newMassMvtTraca.html.twig";
-                }
-                else if ($appropriateType && $this->getFormatter()->status($appropriateType) === TrackingMovement::TYPE_GROUP) {
-                    $fileToRender = "$templateDirectory/newGroupMvtTraca.html.twig";
-                }
-                else {
-                    $fileToRender = "$templateDirectory/newSingleMvtTraca.html.twig";
-                }
+                $fileToRender = match($appropriateType?->getCode()) {
+                    TrackingMovement::TYPE_PRISE_DEPOSE => "$templateDirectory/newMassMvtTraca.html.twig",
+                    TrackingMovement::TYPE_GROUP => "$templateDirectory/newGroupMvtTraca.html.twig",
+                    default => "$templateDirectory/newSingleMvtTraca.html.twig"
+                };
             }
             return new JsonResponse([
                 'modalBody' => $fileToRender === 'mouvement_traca/' ? false : $this->renderView($fileToRender, []),

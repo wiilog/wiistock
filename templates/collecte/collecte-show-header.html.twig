@@ -76,13 +76,13 @@
                             Historique des données
                         </a>
                     {% endif %}
-                    {% if collecte.ordresCollecte|length > 1 %}
+                    {% if collecte.ordresCollecte.count > 1 %}
                         <a href="{{ path('ordre_collecte_index', {'demandId': collecte.id}) }}"
                            class="dropdown-item">
                             <i class="mr-2 fas fa-external-link-alt"></i>Aller vers les ordres de collecte
                         </a>
-                    {% else %}
-                        <a href="{{ path('ordre_collecte_show', {'id': collecte.ordresCollecte[0].id }) }}"
+                    {% elseif collecte.ordresCollecte.count == 1 %}
+                        <a href="{{ path('ordre_collecte_show', {'id': collecte.ordresCollecte.first.id }) }}"
                            class="dropdown-item">
                             <i class="mr-2 fas fa-external-link-alt"></i>Aller vers l'ordre de collecte
                         </a>

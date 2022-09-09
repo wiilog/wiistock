@@ -147,7 +147,7 @@ class PreparationController extends AbstractController
     public function apiLignePreparation(Preparation $preparation): Response
     {
         $demande = $preparation->getDemande();
-        $preparationStatut = $preparation->getStatut() ? $this->getFormatter()->status($preparation->getStatut()) : null;
+        $preparationStatut = $preparation->getStatut()?->getCode();
         $isPrepaEditable =
             $preparationStatut === Preparation::STATUT_A_TRAITER
             || ($preparationStatut == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparation->getUtilisateur() == $this->getUser());
@@ -231,13 +231,14 @@ class PreparationController extends AbstractController
                     ->every(fn (Pairing $pairing) => !$pairing->isActive())
             ));
 
-        $preparationStatus = $preparation->getStatut() ? $this->getFormatter()->status($preparation->getStatut()) : null;
+        $preparationStatusCode = $preparation->getStatut()?->getCode();
 
         $demande = $preparation->getDemande();
         $destination = $demande?->getDestination();
         $operator = $preparation?->getUtilisateur();
         $comment = $preparation->getCommentaire();
 
+        // TODO WIIS-8178 pas bon avec les tractions
         $status = $preparation->isPlanned()
             ? (
                 $preparation->getStatut()->getCode() === Preparation::STATUT_A_TRAITER
@@ -256,9 +257,9 @@ class PreparationController extends AbstractController
             'showTargetLocationPicking' => $entityManager->getRepository(Setting::class)->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION),
             'livraison' => $preparation->getLivraison(),
             'preparation' => $preparation,
-            'isPrepaEditable' => $preparationStatus === Preparation::STATUT_A_TRAITER
-                || $preparationStatus === Preparation::STATUT_VALIDATED
-                || ($preparationStatus == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparation->getUtilisateur() == $this->getUser()),
+            'isPrepaEditable' => $preparationStatusCode === Preparation::STATUT_A_TRAITER
+                || $preparationStatusCode === Preparation::STATUT_VALIDATED
+                || ($preparationStatusCode == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparation->getUtilisateur() == $this->getUser()),
             'headerConfig' => [
                 ['label' => 'Numéro', 'value' => $preparation->getNumero()],
                 ['label' => 'Statut', 'value' => ucfirst($status)],
@@ -785,7 +786,9 @@ class PreparationController extends AbstractController
                         Preparation::STATUT_EN_COURS_DE_PREPARATION => 'blue-card',
                         // Preparation::STATUT_INCOMPLETE, Preparation::STATUT_A_TRAITER => 'grey-card',
                         default => 'grey-card',
-                    }
+
+                    },
+                    'inPlanning' => true
                 ])
             ], true)
             ->toArray();

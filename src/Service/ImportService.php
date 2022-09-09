@@ -212,6 +212,9 @@ class ImportService
     #[Required]
     public FormatService $formatService;
 
+    #[Required]
+    public LanguageService $languageService;
+
     private Import $currentImport;
     private EntityManagerInterface $em;
 
@@ -250,7 +253,8 @@ class ImportService
 
         $importStatus = $import->getStatus();
         $statusLabel = isset($importStatus) ? $this->formatService->status($importStatus) : null;
-        $statusTitle = (!empty($statusLabel) && ($statusLabel === Import::STATUS_PLANNED))
+        $statusCode = $importStatus?->getCode();
+        $statusTitle = $statusCode === Import::STATUS_PLANNED
             ? ($import->isForced() ? 'L\'import sera réalisé dans moins de 30 min' : 'L\'import sera réalisé la nuit suivante')
             : '';
 
@@ -274,7 +278,7 @@ class ImportService
                 'url' => $url,
                 'importId' => $importId,
                 'fournisseurId' => $importId,
-                'canCancel' => ($statusLabel === Import::STATUS_PLANNED),
+                'canCancel' => ($statusCode === Import::STATUS_PLANNED),
                 'logFile' => $import->getLogFile() ? $import->getLogFile()->getFileName() : null
             ]),
         ];
@@ -1021,13 +1025,13 @@ class ImportService
         // liaison type
         $typeRepository = $this->em->getRepository(Type::class);
 
-        $type = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::ARTICLE, $data['typeLabel'] ?? Type::LABEL_STANDARD);
+        $type = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::ARTICLE, $data['type'] ?? Type::LABEL_STANDARD);
         if (empty($type)) {
             $categoryType = $this->em->getRepository(CategoryType::class)->findOneBy(['label' => CategoryType::ARTICLE]);
 
             $type = new Type();
             $type
-                ->setLabel($data['typeLabel'])
+                ->setLabel($data['type'])
                 ->setCategory($categoryType);
             $this->em->persist($type);
         }
@@ -1201,6 +1205,14 @@ class ImportService
         $visibilityGroupRepository = $this->em->getRepository(VisibilityGroup::class);
 
         $user = $userAlreadyExists ?? new Utilisateur();
+
+        // on user creation
+        if (!isset($userAlreadyExists)) {
+            $language = $this->languageService->getNewUserLanguage();
+            $user
+                ->setLanguage($language)
+                ->setDateFormat(Utilisateur::DEFAULT_DATE_FORMAT);
+        }
 
         $role = $this->em->getRepository(Role::class)->findOneBy(['label' => $data['role']]);
         if($role) {
@@ -1463,7 +1475,7 @@ class ImportService
             $this->throwError('Quantité fournie non valide.');
         }
 
-        if (!$articleReference || $this->formatService->status($articleReference->getStatut()) === ReferenceArticle::STATUT_INACTIF) {
+        if (!$articleReference || $articleReference->getStatut()?->getCode() === ReferenceArticle::STATUT_INACTIF) {
             $this->throwError('Article de référence inconnu ou inactif.');
         } else {
             if ($article && $articleReference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {

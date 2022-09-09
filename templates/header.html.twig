@@ -213,7 +213,7 @@
                              data-toggle="dropdown"
                              aria-haspopup="true"
                              aria-expanded="false">
-                            <div class="language-picture" style="background-image: url({{ app.user.language.flag }})"></div>
+                            <img class="language-picture" src="{{ app.user.language.flag }}" alt="flag image">
                             <button class="language-date-btn flex-fill ml-1">
                                 <span class="fa fa-angle-down"></span>
                             </button>
@@ -226,7 +226,7 @@
                                         }) }}
                                     </div>
                                     <div class="date dropdown-item-sub p-1">
-                                        <label class="label-date">Format de date</label>
+                                        <label class="label-date">{{ trans( 'Général', null, 'Header', 'Format de date') }}</label>
                                         {{ form.select('user_dateFormat', null, false, {
                                             items: dateFormat.dateFormat,
                                             type: null,

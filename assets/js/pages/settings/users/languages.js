@@ -107,7 +107,7 @@ function getTranslations(language) {
             // delete language
             const $modaleDeleteTranslationSubmit = $("#submitDeleteLanguage");
             const $modaleDeleteTranslation = $("#modalDeleteLanguage");
-            const urlDeleteModale =  Routing.generate("settings_language_delete_api", true);
+            const urlDeleteModale =  Routing.generate("settings_language_delete", true);
             InitModal( $modaleDeleteTranslation, $modaleDeleteTranslationSubmit, urlDeleteModale, {success: () => {window.location.reload()}});
             $("button[name='deleteLanguage']").on('click', function () {
                 $modaleDeleteTranslation.modal('show');

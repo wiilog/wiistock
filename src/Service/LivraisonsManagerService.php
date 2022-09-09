@@ -109,8 +109,8 @@ class LivraisonsManagerService
             }
         }
 
-        if (($livraison->getStatut() && $this->formatService->status($livraison->getStatut()) === Livraison::STATUT_A_TRAITER) ||
-            $livraison->getUtilisateur() && ($livraison->getUtilisateur()->getId() === $user->getId())) {
+        if ($livraison->getStatut()?->getCode() === Livraison::STATUT_A_TRAITER
+            || $livraison->getUtilisateur()?->getId() === $user->getId()) {
 
             // repositories
             $statutRepository = $this->entityManager->getRepository(Statut::class);
@@ -118,7 +118,7 @@ class LivraisonsManagerService
 
             $statutForLivraison = $statutRepository->findOneByCategorieNameAndStatutCode(
                 CategorieStatut::ORDRE_LIVRAISON,
-                $this->formatService->status($livraison->getPreparation()->getStatut()) === Preparation::STATUT_INCOMPLETE ? Livraison::STATUT_INCOMPLETE : Livraison::STATUT_LIVRE);
+                $livraison->getPreparation()->getStatut()?->getCode() === Preparation::STATUT_INCOMPLETE ? Livraison::STATUT_INCOMPLETE : Livraison::STATUT_LIVRE);
 
             $livraison
                 ->setStatut($statutForLivraison)
@@ -130,8 +130,8 @@ class LivraisonsManagerService
                 $demande
                     ->getPreparations()
                     ->filter(function (Preparation $preparation) {
-                        return $this->formatService->status($preparation->getStatut()) === Preparation::STATUT_A_TRAITER ||
-                            ($preparation->getLivraison() && $this->formatService->status($preparation->getLivraison()->getStatut()) === Livraison::STATUT_A_TRAITER);
+                        return $preparation->getStatut()?->getCode() === Preparation::STATUT_A_TRAITER ||
+                            $preparation->getLivraison()?->getStatut()?->getCode() === Livraison::STATUT_A_TRAITER;
                     })
                     ->count()
                 > 0
@@ -228,7 +228,10 @@ class LivraisonsManagerService
         $statutTransit = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT);
         $preparation = $livraison->getpreparation();
         $livraisonStatus = $livraison->getStatut();
-        $livraisonStatusName = $this->formatService->status($livraisonStatus);
+        $livraisonStatusCode = $livraisonStatus?->getCode();
+        $movementType = ($livraisonStatusCode === Livraison::STATUT_A_TRAITER)
+            ? MouvementStock::TYPE_TRANSFER
+            : MouvementStock::TYPE_ENTREE;
 
         $articleLines = $preparation->getArticleLines();
 
@@ -245,11 +248,7 @@ class LivraisonsManagerService
                     $pickedQuantity,
                     $now,
                     $entityManager,
-                    (
-                    ($livraisonStatusName === Livraison::STATUT_A_TRAITER)
-                        ? MouvementStock::TYPE_TRANSFER
-                        : MouvementStock::TYPE_ENTREE
-                    )
+                    $movementType
                 );
                 $article
                     ->setStatut($statutTransit)
@@ -282,11 +281,7 @@ class LivraisonsManagerService
                         $pickedQuantity,
                         $now,
                         $entityManager,
-                        (
-                        ($livraisonStatusName === Livraison::STATUT_A_TRAITER)
-                            ? MouvementStock::TYPE_TRANSFER
-                            : MouvementStock::TYPE_ENTREE
-                        )
+                        $movementType
                     );
                 }
             }

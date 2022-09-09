@@ -106,7 +106,7 @@ class HandlingService {
                 ? FormatHelper::datetime($handling->getDesiredDate(), "", false, $this->security->getUser())
                 : FormatHelper::date($handling->getDesiredDate(), "", false, $this->security->getUser()),
             'validationDate' => FormatHelper::datetime($handling->getValidationDate(), "", false, $this->security->getUser()),
-            'status' => $this->formatService->status($handling->getStatus()) ? $handling->getStatus()->getNom() : null,
+            'status' => $this->formatService->status($handling->getStatus()),
             'emergency' => $handling->getEmergency() ?? '',
             'treatedBy' => $handling->getTreatedByHandling() ? FormatHelper::user($handling->getTreatedByHandling()) : '',
             //'treatmentDelay' => $treatmentDelayStr,
@@ -172,7 +172,7 @@ class HandlingService {
     }
 
     public function parseRequestForCard(Handling $handling, DateService $dateService, array $averageRequestTimesByType): array {
-        $requestStatus = $handling->getStatus() ? $this->formatService->status($handling->getStatus()) : '';
+        $requestStatus = $handling->getStatus()?->getCode();
         $requestBodyTitle = !empty($handling->getSubject())
             ? $handling->getSubject() . (!empty($handling->getType())
                 ? ' - ' . $handling->getType()->getLabel()
@@ -180,7 +180,7 @@ class HandlingService {
             : '';
         $state = $handling->getStatus()?->getState();
 
-        $href = $this->router->generate('handling_edit_page', [
+        $href = $this->router->generate('handling_show', [
             "id" => $handling->getId()
         ]);
 

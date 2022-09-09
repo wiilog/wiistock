@@ -472,7 +472,7 @@ class MobileController extends AbstractApiController
 
                         $date = DateTime::createFromFormat(DateTimeInterface::ATOM, $dateArray[0]);
 
-                        $options += $trackingMovementService->treatStockMovement($entityManager, $this->getFormatter()->status($type), $mvt, $nomadUser, $location, $date);
+                        $options += $trackingMovementService->treatStockMovement($entityManager, $type?->getCode(), $mvt, $nomadUser, $location, $date);
                         if ($options['invalidLocationTo'] ?? null) {
                             $invalidLocationTo = $options['invalidLocationTo'];
                             throw new Exception(TrackingMovementService::INVALID_LOCATION_TO);
@@ -507,7 +507,7 @@ class MobileController extends AbstractApiController
                         $entityManager->persist($createdMvt);
                         $numberOfRowsInserted++;
 
-                        if ($this->getFormatter()->status($type) === TrackingMovement::TYPE_DEPOSE) {
+                        if ($type?->getCode() === TrackingMovement::TYPE_DEPOSE) {
                             $finishMouvementTraca[] = $mvt['ref_article'];
                         }
                     }
@@ -570,7 +570,7 @@ class MobileController extends AbstractApiController
         $preparation = $preparationRepository->find($id);
         $data = [];
 
-        if ($this->getFormatter()->status($preparation->getStatut()) == Preparation::STATUT_A_TRAITER ||
+        if ($preparation->getStatut()?->getCode() == Preparation::STATUT_A_TRAITER ||
             $preparation->getUtilisateur() === $nomadUser) {
             $data['success'] = true;
         } else {
@@ -763,7 +763,7 @@ class MobileController extends AbstractApiController
 
         $data = [];
 
-        if ($this->getFormatter()->status($livraison->getStatut()) == Livraison::STATUT_A_TRAITER &&
+        if ($livraison->getStatut()?->getCode() == Livraison::STATUT_A_TRAITER &&
             (empty($livraison->getUtilisateur()) || $livraison->getUtilisateur() === $nomadUser)) {
             // modif de la livraison
             $livraison->setUtilisateur($nomadUser);
@@ -797,7 +797,7 @@ class MobileController extends AbstractApiController
 
         $data = [];
 
-        if ($this->getFormatter()->status($ordreCollecte->getStatut()) == OrdreCollecte::STATUT_A_TRAITER &&
+        if ($ordreCollecte->getStatut()?->getCode() == OrdreCollecte::STATUT_A_TRAITER &&
             (empty($ordreCollecte->getUtilisateur()) || $ordreCollecte->getUtilisateur() === $nomadUser)) {
             // modif de la collecte
             $ordreCollecte->setUtilisateur($nomadUser);

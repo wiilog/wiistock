@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\Entity\Role;
 use App\Service\MailerService;
-use App\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
@@ -15,59 +14,39 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use App\Service\PasswordService;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use App\Service\UserService;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use DateTime;
 
 class SecuriteController extends AbstractController {
 
-    private $passwordService;
+    #[Required]
+    public PasswordService $passwordService;
 
-    /**
-     * @var PasswordService
-     */
-    private $passwordEncoder;
+    #[Required]
+    public UserPasswordHasherInterface $passwordEncoder;
 
-    /**
-     * @var UserService
-     */
-    private $userService;
+    #[Required]
+    public UserService $userService;
 
-    /**
-     * @var MailerService
-     */
-    private $mailerService;
+    #[Required]
+    public MailerService $mailerService;
 
-    /**
-     * @var Twig_Environment
-     */
-    private $templating;
-
-    public function __construct(PasswordService $passwordService,
-                                UserService $userService,
-                                UserPasswordHasherInterface $passwordEncoder,
-                                MailerService $mailerService,
-                                Twig_Environment $templating) {
-        $this->passwordService = $passwordService;
-        $this->userService = $userService;
-        $this->passwordEncoder = $passwordEncoder;
-        $this->mailerService = $mailerService;
-        $this->templating = $templating;
-    }
+    #[Required]
+    public Twig_Environment $templating;
 
     /**
      * @Route("/", name="default")
      */
-    public function index() {
+    public function index(): Response {
         return $this->redirectToRoute('login');
     }
 
     /**
      * @Route("/verification-connexion", name="check_login", options={"expose"=true})
      */
-    public function checkLogin() {
+    public function checkLogin(): Response {
         return $this->json([
             "success" => true,
             "loggedIn" => $this->getUser() !== null,
@@ -80,7 +59,7 @@ class SecuriteController extends AbstractController {
      */
     public function login(AuthenticationUtils $authenticationUtils,
                           EntityManagerInterface $entityManager,
-                          string $success = '') {
+                          string $success = ''): Response {
         $loggedUser = $this->getUser();
         if($loggedUser && $loggedUser instanceof Utilisateur) {
             $loggedUser->setLastLogin(new DateTime('now'));
@@ -114,7 +93,7 @@ class SecuriteController extends AbstractController {
      */
     public function register(Request $request,
                              PasswordService $passwordService,
-                             EntityManagerInterface $entityManager) {
+                             EntityManagerInterface $entityManager): Response {
         $session = $request->getSession();
         $user = new Utilisateur();
 
@@ -168,14 +147,14 @@ class SecuriteController extends AbstractController {
     /**
      * @Route("/acces-refuse", name="access_denied")
      */
-    public function access_denied() {
+    public function access_denied(): Response {
         return $this->render('securite/access_denied.html.twig');
     }
 
     /**
      * @Route("/change-password", name="change_password", options={"expose"=true}, methods="GET|POST")
      */
-    public function change_password(Request $request) {
+    public function change_password(Request $request): Response {
         $token = $request->get('token');
         return $this->render('securite/change_password.html.twig', ['token' => $token]);
     }
@@ -230,48 +209,56 @@ class SecuriteController extends AbstractController {
     /**
      * @Route("/logout", name="logout")
      */
-    public function logout() {
+    public function logout(): Response {
         return $this->redirectToRoute('login');
     }
 
     /**
      * @Route("/oubli", name="forgotten")
      */
-    public function forgot() {
+    public function forgot(): Response {
         return $this->render('securite/resetPassword.html.twig');
     }
 
     /**
-     * @Route("/verifier-email", name="check_email", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @Route("/verifier-email", name="check_email", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      */
     public function checkEmail(Request $request, EntityManagerInterface $entityManager): Response {
-        if($email = json_decode($request->getContent())) {
-            $errorCode = '';
-            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
-            if(!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                return $this->json([
-                    "success" => false,
-                    "msg" => "Adresse email invalide",
-                ]);
-            }
+        $userRepository = $entityManager->getRepository(Utilisateur::class);
+        $email = $request->query->get('email');
 
-            $user = $utilisateurRepository->findOneBy(['email' => $email]);
-            if($user) {
-                if($user->getStatus()) {
-                    $token = $this->passwordService->generateToken(80);
-                    $this->passwordService->sendToken($token, $email);
-                } else {
-                    $errorCode = 'inactiv';
-                }
-            } else {
-                $errorCode = 'mailNotFound';
-            }
-
-            return $this->json($errorCode);
+        if(!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return $this->json([
+                "success" => false,
+                "msg" => "L'adresse email renseignée est invalide.",
+            ]);
         }
 
-        throw new BadRequestHttpException();
+        $user = $userRepository->findOneBy(['email' => $email]);
+        if($user) {
+            if($user->getStatus()) {
+                $token = $this->passwordService->generateToken(80);
+                $this->passwordService->sendToken($token, $email);
+
+                $response = [
+                    'success' => true,
+                    'msg' => "Un lien pour réinitialiser le mot de passe de votre compte vient d'être envoyé sur votre adresse email."
+                ];
+            } else {
+                $response = [
+                    'success' => false,
+                    'msg' => "Votre compte est inactif, veuillez contacter l'administrateur de votre application."
+                ];
+            }
+        } else {
+            $response = [
+                'success' => false,
+                'msg' => "L'adresse email renseignée n'est liée à aucun utilisateur."
+            ];
+        }
+
+        return $this->json($response);
     }
 
 }

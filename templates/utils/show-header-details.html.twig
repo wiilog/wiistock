@@ -16,11 +16,12 @@
                     and (datum.value != '<p><br></p>')
                 )
             ) %}
+
             {% if neededDisplay %}
                 <div class="{{ datum.colClass is defined ? datum.colClass : 'col-xl-3 col-md-4 col-sm-6 col-12' }} mt-3">
                     <div class="row">
-                        <div class="col-12 text-wii-grey" {{ labelTitle | raw }}>{{ isRaw ? datum.label|raw : datum.label }}</div>
-                        <div class="col-12 text-wii-black">
+                        <div class="col-12 wii-field-name" {{ labelTitle | raw }}>{{ isRaw ? datum.label|raw : datum.label }}</div>
+                        <div class="col-12 wii-body-text">
                             {% if isAttachments %}
                                 <div class="scrollable-details bg-light">
                                     {% for attachment in datum.value %}
@@ -38,13 +39,13 @@
                                 </div>
                             {% elseif isScrollable %}
                                 <div class="scrollable-details bg-light">
-                                    {{ isRaw ? datum.value|raw : datum.value }}
+                                    {{ isRaw ? datum.value | raw : datum.value }}
                                 </div>
                             {% else %}
                                 {% if datum.value is not empty %}
                                     {{ isRaw ? datum.value | raw : datum.value }}
                                 {% else %}
-                                    &nbsp;
+                                    -
                                 {% endif %}
                             {% endif %}
                         </div>

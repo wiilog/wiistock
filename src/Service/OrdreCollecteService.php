@@ -121,7 +121,7 @@ class OrdreCollecteService
 
 		$demandeCollecte = $ordreCollecte->getDemandeCollecte();
 
-		if ($this->formatService->status($ordreCollecte->getStatut()) !== OrdreCollecte::STATUT_A_TRAITER) {
+		if ($ordreCollecte->getStatut()?->getCode() !== OrdreCollecte::STATUT_A_TRAITER) {
             throw new Exception(self::COLLECTE_ALREADY_BEGUN);
         }
 

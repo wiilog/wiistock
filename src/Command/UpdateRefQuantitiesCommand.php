@@ -79,9 +79,11 @@ class UpdateRefQuantitiesCommand extends Command
             ->getPreparationOrderReferenceLines()
             ->filter(function (PreparationOrderReferenceLine $ligneArticlePreparation) {
                 $preparation = $ligneArticlePreparation->getPreparation();
-                $statusLabel = $this->formatService->status($preparation->getStatut());
-                return $statusLabel === Preparation::STATUT_EN_COURS_DE_PREPARATION
-                    || $statusLabel === Preparation::STATUT_A_TRAITER;
+                $statusCode = $preparation->getStatut()?->getCode();
+                return in_array($statusCode, [
+                    Preparation::STATUT_EN_COURS_DE_PREPARATION,
+                    Preparation::STATUT_A_TRAITER
+                ]);
             })
             ->map(function (PreparationOrderReferenceLine $ligneArticlePreparation) {
                 $preparation = $ligneArticlePreparation->getPreparation();
@@ -103,8 +105,9 @@ class UpdateRefQuantitiesCommand extends Command
             ->filter(function (PreparationOrderReferenceLine $ligneArticlePreparation) {
                 $preparation = $ligneArticlePreparation->getPreparation();
                 $livraison = $preparation->getLivraison();
-                return isset($livraison) && $this->formatService->status($preparation->getStatut()) === Livraison::STATUT_A_TRAITER;
-            })->map(function (PreparationOrderReferenceLine $ligneArticlePreparation) {
+                return isset($livraison) && $preparation->getStatut()?->getCode() === Livraison::STATUT_A_TRAITER;
+            })
+            ->map(function (PreparationOrderReferenceLine $ligneArticlePreparation) {
                 $preparation = $ligneArticlePreparation->getPreparation();
                 $livraison = $preparation->getLivraison();
                 return $livraison->getNumero();

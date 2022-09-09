@@ -52,7 +52,7 @@
                         <strong>{{ emergency }}</strong>
                     </div>
                 {% endif %}
-                <div class="content row no-gutters bordered">
+                <div class="content row no-gutters bordered {{ not (fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') or fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') and emergency) ?  'bordered' }}">
                     <div class="col-6 d-flex flex-column">
                         <div class="box-item my-2">
                             <span class="wii-field-name">Type</span>

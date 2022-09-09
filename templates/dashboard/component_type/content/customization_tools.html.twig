@@ -147,7 +147,7 @@
     {% if componentType.meterKey == constant('App\\Entity\\Dashboard\\ComponentType::DAILY_DISPATCHES') %}
         <div class="form-group">
             {% set dispatchDate = values.date is defined ? values.date : null %}
-            <label>Date de référence*</label>
+            <label class="wii-field-name">Date de référence*</label>
             <div class="wii-switch-no-style needed mt-2" data-title="Date de référence">
                 <div>
                     <input type="radio" class="data" name="date" value="startDate" {{ dispatchDate == "startDate" ? 'checked' }}>

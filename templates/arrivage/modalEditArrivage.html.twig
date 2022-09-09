@@ -2,15 +2,15 @@
     <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
-                title: '<span title="arrivage">' ~ ('arrivage.arrivage'|trans) ~ '</span>'
+                title: trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'Arrivage')
             } %}
 
             <div class="modal-body modal-input container-fluid">
             </div>
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
-                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
-                    {id: 'submitEditArrivage', name: 'id', classes: 'btn btn-success data', text: 'Enregistrer'}
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
+                    {id: 'submitEditArrivage', name: 'id', classes: 'btn btn-success data', text: trans('Général', null, 'Modale', 'Enregistrer')}
                 ],
             } %}
         </div>

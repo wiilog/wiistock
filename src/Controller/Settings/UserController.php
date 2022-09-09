@@ -12,6 +12,7 @@ use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Service\CacheService;
 use App\Service\CSVExportService;
+use App\Service\LanguageService;
 use App\Service\PasswordService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -410,12 +411,14 @@ class UserController extends AbstractController {
                         UserPasswordHasherInterface $encoder,
                         PasswordService $passwordService,
                         UserService $userService,
+                        LanguageService $languageService,
                         EntityManagerInterface $entityManager): Response {
         if ($data = json_decode($request->getContent(), true)) {
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $visibilityGroupRepository = $entityManager->getRepository(VisibilityGroup::class);
             $typeRepository = $entityManager->getRepository(Type::class);
             $roleRepository = $entityManager->getRepository(Role::class);
+            $languageRepository = $entityManager->getRepository(Language::class);
 
             $password = $data['password'];
             $password2 = $data['password2'];
@@ -479,7 +482,11 @@ class UserController extends AbstractController {
 
             $utilisateur = new Utilisateur();
             $uniqueMobileKey = $userService->createUniqueMobileLoginKey($entityManager);
+            $language = !empty($data['language'])
+                ? $languageRepository->find($data['language'])
+                : $languageService->getNewUserLanguage();
             $role = $roleRepository->find($data['role']);
+
             $utilisateur
                 ->setUsername($data['username'])
                 ->setEmail($data['email'])
@@ -489,6 +496,8 @@ class UserController extends AbstractController {
                 ->setStatus(true)
                 ->setDropzone($dropzone)
                 ->setAddress($data['address'])
+                ->setLanguage($language)
+                ->setDateFormat($data['dateFormat'] ?? Utilisateur::DEFAULT_DATE_FORMAT)
                 ->setMobileLoginKey($uniqueMobileKey)
                 ->setDeliverer($data['deliverer'] ?? false);
 

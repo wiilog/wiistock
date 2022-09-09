@@ -72,7 +72,7 @@ class StatusService {
             ->reduce(function(array $carry, Statut $status): array {
                 $categoryId = $status->getCategorie()?->getId() ?: 0;
                 $typeId = $status->getType()?->getId() ?: 0;
-                $statusLabel = $this->formatService->status($status);
+                $statusLabel = $status?->getCode();
 
                 if (!isset($carry[$categoryId])) {
                     $carry[$categoryId] = [];

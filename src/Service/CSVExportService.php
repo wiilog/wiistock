@@ -13,8 +13,6 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class CSVExportService {
 
-    public static $SERIALIZABLE;
-
     private $entityManager;
     private $wantsUTF8;
 
@@ -128,7 +126,3 @@ class CSVExportService {
     }
 
 }
-
-CSVExportService::$SERIALIZABLE = function(Serializable $serializable) {
-    return [$serializable->serialize()];
-};

@@ -30,7 +30,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                         [
                             "fr" => "Détails",
-                            "en" => "Détails",
+                            "en" => "Details",
                         ],
                         [
                             "fr" => "Déconnexion",
@@ -240,12 +240,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "en" => "Save",
                         ],
                         [
-                            "fr" => "Veuillez renseigner le champ {1}",
-                            "en" => "Please fill in the field {1}",
+                            "fr" => "Veuillez renseigner le champ : {1}",
+                            "en" => "Please fill in the field : {1}",
                         ],
                         [
                             "fr" => "Veuillez renseigner les champs : {1}",
-                            "en" => "Please fill in the fields {1}",
+                            "en" => "Please fill in the fields : {1}",
                         ],
                         [
                             "fr" => "Veuillez saisir des dates dans le filtre en haut de page.",
@@ -1390,7 +1390,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 "content" => [
                     [
                         "fr" => "Encours",
-                        "en" => "In progress",
+                        "en" => "Current",
                         "tooltip" => "Fil d'arriane\nMenu",
                     ],
                     [
@@ -1452,7 +1452,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "Statut",
                         "en" => "Status",
-                        "tooltip" => "Zone liste - Nom de colonnes",
+                        "tooltip" => "Zone liste - Nom de colonnes\nModale modifier un litige"
                     ],
                     [
                         "fr" => "Origines",
@@ -1477,12 +1477,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "Déclarant",
                         "en" => "Declarant",
-                        "tooltip" => "Filtres\nZone liste - Nom de colonnes",
+                        "tooltip" => "Filtres\nZone liste - Nom de colonnes\nModale modifier un litige",
                     ],
                     [
                         "fr" => "Type",
                         "en" => "Type",
-                        "tooltip" => "Filtres\nZone liste - Nom de colonnes",
+                        "tooltip" => "Filtres\nZone liste - Nom de colonnes\nModale modifier un litige",
                     ],
                     [
                         "fr" => "Urgence ?",
@@ -1813,6 +1813,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "fr" => "Liste des UL",
                             "en" => "L.U. list",
                             "tooltip" => "Détails acheminements - Liste des UL",
+                        ],
+                        [
+                            "fr" => "Unité logistique",
+                            "en" => "Logistics unit",
+                            "tooltip" => "Détails acheminements - Liste des colis - Nom de colonnes\nPDF bon acheminement",
                         ],
                         [
                             "fr" => "Quantité à acheminer",
@@ -2257,22 +2262,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 ],
             ],
         ],
-        "Référentiel" => [
-            "Natures" => [
-                "content" => [
-                    ["fr" => "Natures d'UL autorisées"],
-                    ["fr" => "Natures des UL"],
-                    ["fr" => "Nature d'UL"],
-                    ["fr" => "Nature"],
-                    ["fr" => "La nature {1} a bien été créée"],
-                    ["fr" => "Création de nature"],
-                    ["fr" => "Modification de nature"],
-                    ["fr" => "cette nature"],
-                    ["fr" => "natures requises"],
-                    ["fr" => "Sélectionner une nature"],
-                ],
-            ],
-        ],
         "Ordre" => [
             "Réceptions" => [
                 "content" => [
@@ -2454,18 +2443,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     $this->console->writeln("Created default french source translation \"" . str_replace("\n", "\\n ", $translation["fr"]) . "\"");
                 }
 
-                $french = $transSource->getTranslationIn("french");
-                if (!$french) {
-                    $french = (new Translation())
-                        ->setLanguage($this->getLanguage("french"))
-                        ->setSource($transSource)
-                        ->setTranslation($translation["fr"]);
-
-                    $this->manager->persist($french);
-
-                    $this->console->writeln("Created french translation \"" . str_replace("\n", "\\n ", $translation["fr"]) . "\"");
-                }
-
                 if(isset($translation["en"])) {
                     $english = $transSource->getTranslationIn("english-default");
                     if (!$english) {
@@ -2483,17 +2460,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         $this->console->writeln("Updated default english source translation \"" . str_replace("\n", "\\n ", $translation["en"]) . "\"");
                     }
 
-                    $english = $transSource->getTranslationIn("english");
-                    if (!$english) {
-                        $english = (new Translation())
-                            ->setLanguage($this->getLanguage("english"))
-                            ->setSource($transSource)
-                            ->setTranslation($translation["en"]);
-
-                        $this->manager->persist($english);
-
-                        $this->console->writeln("Created english translation \"" . str_replace("\n", "\\n ", $translation["en"]) . "\"");
-                    }
                 } else {
                     $english = $transSource->getTranslationIn("english-default");
                     if (!$english) {
@@ -2582,8 +2548,9 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
 
         foreach ($users as $user) {
             if (!$user->getLanguage() || !$user->getDateFormat()) {
-                $user->setLanguage($french)
-                    ->setDateFormat("jj/mm/aaaa");
+                $user
+                    ->setLanguage($french)
+                    ->setDateFormat(Utilisateur::DEFAULT_DATE_FORMAT);
             }
         }
     }

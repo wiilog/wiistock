@@ -17,13 +17,11 @@ use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Repository\DeliveryRequest\DemandeRepository;
-use App\Service\FormatService;
 use DateTime;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: DemandeRepository::class)]
@@ -90,9 +88,6 @@ class Demande implements PairedEntity {
 
     #[ORM\Column(type: 'boolean', options: ['default' => false])]
     private bool $manual = false;
-
-    #[Required]
-    public FormatService $formatService;
 
     public function __construct() {
         $this->preparations = new ArrayCollection();
@@ -324,10 +319,7 @@ class Demande implements PairedEntity {
         $demandeStatus = $this->getStatut();
         return (
             $demandeStatus
-            && (
-                $this->formatService->status($demandeStatus) === Demande::STATUT_A_TRAITER
-                || $this->formatService->status($demandeStatus) === Demande::STATUT_PREPARE
-            )
+            && in_array($demandeStatus->getCode(), [Demande::STATUT_A_TRAITER, Demande::STATUT_PREPARE])
         );
     }
 

@@ -17,6 +17,10 @@ class Translation {
     static slug;
     static defaultSlug = DEFAULT_SLUG;
 
+    /**
+     * @param args Same as php method TranslationService::translate
+     * @return {string}
+     */
     static of(...args) {
         Translation.slug = $(`#language`).val();
 
@@ -29,17 +33,10 @@ class Translation {
             defaultSlug = Translation.defaultSlug;
         }
 
-        const trans = Translation.fetch(Translation.slug, defaultSlug, false, ...args);
-
-        if(trans) {
-            return trans;
-        } else if(defaultSlug === Translation.FRENCH_SLUG) {
-            return Translation.fetch(Translation.FRENCH_SLUG, defaultSlug, false, ...args)
-                || Translation.fetch(Translation.FRENCH_DEFAULT_SLUG, defaultSlug, false, ...args);
-        } else {
-            return Translation.fetch(Translation.ENGLISH_SLUG, defaultSlug, false, ...args)
-                || Translation.fetch(Translation.ENGLISH_DEFAULT_SLUG, defaultSlug, false, ...args);
-        }
+        return (
+            Translation.fetch(Translation.slug, defaultSlug, false, ...args)
+            || Translation.fetch(defaultSlug, defaultSlug, true, ...args)
+        );
     }
 
     static fetch(slug, defaultSlug, lastResort, ...args) {
@@ -77,24 +74,30 @@ class Translation {
             output = transCategory || (lastResort ? stack.translation || stack.submenu || stack.menu || stack.category : null);
         }
 
-        let transMenu = null;
-        if(output === null) {
-            transMenu = transCategory[stack.menu];
-            if (typeof transMenu !== `object`) {
-                output = transMenu || (lastResort ? stack.translation || stack.submenu || stack.menu : null);
+        if(transCategory){
+            let transMenu = null;
+            if(output === null) {
+                transMenu = transCategory[stack.menu];
+                if (typeof transMenu !== `object`) {
+                    output = transMenu || (lastResort ? stack.translation || stack.submenu || stack.menu : null);
+                }
             }
-        }
 
-        let transSubmenu = null;
-        if(output === null) {
-            transSubmenu = transMenu[stack.submenu];
-            if (typeof transSubmenu !== `object`) {
-                output = transSubmenu || (lastResort ? stack.translation || stack.submenu : null);
+            if(transMenu) {
+                let transSubmenu = null;
+                if (output === null) {
+                    transSubmenu = transMenu[stack.submenu];
+                    if (typeof transSubmenu !== `object`) {
+                        output = transSubmenu || (lastResort ? stack.translation || stack.submenu : null);
+                    }
+                }
+
+                if (transSubmenu) {
+                    if (output === null) {
+                        output = transSubmenu[stack.translation] || (lastResort ? stack.translation : null);
+                    }
+                }
             }
-        }
-
-        if(output === null) {
-            output = transSubmenu[stack.translation] || (lastResort ? stack.translation : null);
         }
 
         if(output === null) {

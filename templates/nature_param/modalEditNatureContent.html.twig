@@ -50,7 +50,7 @@
     <div class="form-group col-12">
         <div class="wii-checkbox pl-0 pointer">
             {% set checked = nature.needsMobileSync ? 'checked' %}
-            <label class="pointer d-flex align-items-center">
+            <label class="pointer d-flex align-items-center wii-field-text">
                 <input class="checkbox data ml-2" type="checkbox" name="mobileSync" {{ checked }}>
                 Synchronisation nomade ?
             </label>
@@ -60,7 +60,7 @@
     <div class="form-group col-12">
         <div class="wii-checkbox pl-0 pointer">
             {% set checked = nature.defaultForDispatch ? 'checked' %}
-            <label class="pointer d-flex align-items-center">
+            <label class="pointer d-flex align-items-center wii-field-text">
                 <input class="checkbox data ml-2" type="checkbox" name="defaultForDispatch" {{ checked }}>
                 Nature par défaut (acheminements)
             </label>
@@ -70,7 +70,7 @@
     <div class="form-group col-12 d-flex align-items-center">
         <div class="wii-checkbox pl-0 pointer">
             {% set checked = nature.displayedOnForms ? 'checked' %}
-            <label class="pointer d-flex align-items-center">
+            <label class="pointer d-flex align-items-center wii-field-text">
                 <input class="checkbox data ml-2" type="checkbox" name="displayedOnForms" {{ checked }} onchange="toggleEntitiesContainer($(this))">
                 Affichage sur les formulaires ?
             </label>
@@ -83,7 +83,7 @@
             {% set checked = index in nature.allowedForms|keys %}
             <div class="d-flex mb-1 entity-item">
                 <div class="form-group col-4 d-flex align-items-center mb-2">
-                    <label class="font-size-mini pointer">
+                    <label class="font-size-mini pointer wii-field-text">
                         <input class="checkbox data-array mr-2" {{ checked ? 'checked' }}
                                type="checkbox" name="{{ index }}" data-identifier="{{ entity }}" onclick="toggleTypes($(this));">
                         {{ entity }}

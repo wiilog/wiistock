@@ -271,7 +271,7 @@ class DemandeCollecteService
     public function serialiseExportRow(Collecte $collect,
                                        array $freeFieldsConfig,
                                        callable $getSpecificColumn) {
-        $collecteData = $collect->serialize();
+        $collecteData = $this->serializeCollect($collect);
 
         $freeFieldsData = [];
 
@@ -403,6 +403,29 @@ class DemandeCollecteService
             'libelle' => $referenceArticle->getReferenceArticle()->getLibelle(),
             'quantity' => $referenceArticle->getQuantite(),
 
+        ];
+    }
+
+    public function serializeCollect(Collecte $collect): array {
+
+        $freeFieldData = [];
+
+        foreach($collect->getFreeFields() as $freeFieldId => $freeFieldValue) {
+            $freeFieldData[$freeFieldId] = $freeFieldValue;
+        }
+
+        return [
+            'numero' => $collect->getNumero(),
+            'creationDate' => $collect->getDate() ? $collect->getDate()->format('d/m/Y h:i') : '',
+            'validationDate' => $collect->getValidationDate() ? $collect->getValidationDate()->format('d/m/Y h:i') : '',
+            'type' => $collect->getType() ? $collect->getType()->getLabel() : '',
+            'statut' => $collect->getStatut() ? $this->formatService->status($collect->getStatut()) : '',
+            'subject' => $collect->getObjet(),
+            'destination' => $collect->isStock() ? "Mise en stock" : "Destruction",
+            'requester' => FormatHelper::collectRequester($collect),
+            'gatheringPoint' => $collect->getPointCollecte() ? $collect->getPointCollecte()->getLabel() : '',
+            'comment' => $collect->getCommentaire() ? strip_tags($collect->getCommentaire()) : '',
+            'freeFields' => $freeFieldData,
         ];
     }
 }
