@@ -152,7 +152,7 @@
                     <div class="wii-subtitle">Commentaire</div>
                     <div>
                         {% if handling.comment != '<p><br></p>' %}
-                            {{ handling.comment | striptags }}
+                            {{ handling.comment | raw }}
                         {% else %}
                             -
                         {% endif %}
