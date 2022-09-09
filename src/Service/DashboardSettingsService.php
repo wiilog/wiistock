@@ -436,10 +436,10 @@ class DashboardSettingsService {
             $segments = $config['segments'] ?? [];
             if (!empty($segments)) {
                 $segmentsLabels = [
-                    $this->translationService->translate("Dashboard", "Retard"),
+                    $this->translationService->translate("Dashboard", "Retard", false),
                     $this->translationService->translate("Dashboard", "Moins d'{1}", [
                         1 => "1h"
-                    ])
+                    ], false)
                 ];
                 $lastKey = "1";
                 foreach ($segments as $segment) {

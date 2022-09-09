@@ -261,11 +261,11 @@ class DashboardService {
 
         foreach ($timeSpans as $timeBegin => $timeEnd) {
             $key = $timeBegin === -1
-                ? $this->translationService->translate("Dashboard", "Retard")
+                ? $this->translationService->translate("Dashboard", "Retard", false)
                 : ($timeEnd === 1
                     ? $this->translationService->translate("Dashboard", "Moins d'{1}", [
                         1 => "1h"
-                    ])
+                    ], false)
                     : ($timeBegin . "h-" . $timeEnd . 'h'));
             $timeSpanToObject[$key] = $getObject($timeBegin, $timeEnd);
         }

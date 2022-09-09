@@ -303,8 +303,8 @@ class DashboardSettingsController extends AbstractController {
         $values['tooltip'] = [];
         $values['title'] = [];
         foreach ($values['languages'] as $language) {
-            $values['tooltip'][$language->getSlug()] = $language->getSelected() ? $tooltip : ''; // TODO ici
-            $values['title'][$language->getSlug()] = $language->getSelected() ? $title : '';
+            $values['tooltip'][$language->getSlug()] = $language->getSlug() === 'french' ? $tooltip : '';
+            $values['title'][$language->getSlug()] = $language->getSlug() === 'french' ? $title : '';
         }
 
         Stream::from($values)
@@ -325,7 +325,6 @@ class DashboardSettingsController extends AbstractController {
 
         $values['legends'] = [];
         if(!empty($values['chartColorsLabels'])){
-            $values['legends'] = [];
             $countLegend = 1;
             foreach($values['chartColorsLabels'] as $legend){
                 $values['legends'][$legend] = [];

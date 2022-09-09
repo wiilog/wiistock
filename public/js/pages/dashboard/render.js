@@ -1288,7 +1288,7 @@ function displayLegendTranslation(data){
                             <input class="form-control cursor-default tooltip-input data"
                                    name="legend${legendCounter}_${language.slug}"
                                    type="text"
-                                   value="${legend[language.slug] ?? language.selected ? legend : '' }"/>
+                                   value="${legend[language.slug] ?? language.slug === 'french' ? legend : '' }"/>
                         </div>
                     </div>`);
                 });
