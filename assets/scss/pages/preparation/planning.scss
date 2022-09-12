@@ -1,6 +1,10 @@
 @import "../../variables";
 
 #modalLaunchPreparation {
+    .modal-dialog {
+        max-width: 1435px !important;
+    }
+
     .preparations-container {
         background-color: $light-blue;
         border-radius: 8px;
@@ -14,7 +18,8 @@
 
         .preparation-card,
         .placeholder-container {
-            max-width: 205px;
+            max-width: 210px;
+            min-width: 210px;
         }
     }
 

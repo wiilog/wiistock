@@ -208,6 +208,16 @@ function getPreparationLaunchForm($modal){
                 });
 
                 $modal.find('.check-stock-button').on('click', function () {
+                    if ($modal.find('.check-stock-button').data('launch-preparations') === "1") {
+                        $modal.find('.modal-content-wrapper .btn-primary')
+                            .removeClass('.btn-primary')
+                            .addClass('btn-secondary')
+                            .attr("disabled", true);
+                        $modal.find('.modal-content-wrapper .btn-outline-primary')
+                            .removeClass('.btn-outline-primary')
+                            .addClass('btn-outline-secondary')
+                            .attr("disabled", true);
+                    }
                     launchStockCheck($modal);
                 });
             });
