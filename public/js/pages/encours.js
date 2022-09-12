@@ -49,6 +49,12 @@ function loadPage() {
             }
         });
     }
+
+    $.post(Routing.generate('check_location_delay', {locationIds: idLocationsToDisplay}, true), (response) => {
+        if(!response.hasDelayError){
+            showBSAlert(Translation.of('Traçabilité', 'Encours', 'Veuillez paramétrer le délai maximum de vos emplacements pour visualiser leurs encours.'), 'danger')
+        }
+    });
 }
 
 function loadEncoursDatatable($table) {
