@@ -53,16 +53,19 @@ class DashboardService {
     public const DAILY_PERIOD_PREVIOUS_DAYS = 'previousDays';
 
     #[Required]
-    public EntityManagerInterface$entityManager;
+    public FormatService $formatService;
 
     #[Required]
     public EnCoursService $enCoursService;
 
     #[Required]
+    public EntityManagerInterface $entityManager;
+
+    #[Required]
     public WiilockService $wiilockService;
 
     #[Required]
-    public FormatService $formatService;
+    public TranslationService $translationService;
 
     private $cacheDaysWorked;
 
@@ -258,9 +261,11 @@ class DashboardService {
 
         foreach ($timeSpans as $timeBegin => $timeEnd) {
             $key = $timeBegin === -1
-                ? "Retard"
+                ? $this->translationService->translate("Dashboard", "Retard", false)
                 : ($timeEnd === 1
-                    ? "Moins d'1h"
+                    ? $this->translationService->translate("Dashboard", "Moins d'{1}", [
+                        1 => "1h"
+                    ], false)
                     : ($timeBegin . "h-" . $timeEnd . 'h'));
             $timeSpanToObject[$key] = $getObject($timeBegin, $timeEnd);
         }
@@ -355,11 +360,10 @@ class DashboardService {
         $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Indicator::class);
         $secondCount = '<span>'
             . ($numberOfOperations ?? '0')
-            . '</span><span class="text-wii-black"> lignes</span>';
-        $thirdCount = '<span class="text-wii-black">Dont</span>'
-            .' <span>'
-            . $numberOfEmergenciesHandlings
-            . '</span> <span class="text-wii-black"> urgences</span>';
+            . '</span><span class="text-wii-black"> '.$this->translationService->translate('Dashboard', 'lignes').'</span>';
+        $thirdCount = '<span class="text-wii-black">'.$this->translationService->translate('Dashboard', 'Dont {1} urgences', [
+                1 => '<span class="text-wii-danger">'.$numberOfEmergenciesHandlings.'</span>'
+            ]).'</span>';
 
         $meter
             ->setCount($numberOfHandlings)

@@ -19,6 +19,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
+use WiiCommon\Helper\Stream;
 
 
 /**
@@ -141,4 +142,22 @@ class EnCoursController extends AbstractController
             }, "Export_encours_" . $emplacement->getLabel() . ".csv", $headers);
     }
 
+
+    /**
+     * @Route ("/check-location-delay", name="check_location_delay",options={"expose"=true}, methods={"POST"})
+     * @param EntityManagerInterface $entityManager
+     * @param Request $request
+     * @return Response
+     */
+    public function checkLocationMaxDelay(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+        $emplacements = $emplacementRepository->findBy(['id' => $request->query->all('locationIds')]);
+
+        $delayError = Stream::from($emplacements)
+            ->every(fn(Emplacement $emplacement) => $emplacement->getDateMaxTime() !== null);
+        return new JsonResponse([
+            'hasDelayError' => $delayError
+        ]);
+    }
 }

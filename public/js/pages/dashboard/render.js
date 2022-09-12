@@ -161,6 +161,7 @@ function renderComponent(component, $container, data) {
         if(isCardExample && $modal.exists()) {
             resetColorPickersElementsToForm($modal, data);
             $modal.find(`.component-numbering`).empty();
+            displayLegendTranslation(data);
         }
 
         const {callback, arguments} = creators[component.meterKey];
@@ -243,9 +244,9 @@ function createPendingRequests(data, {rowSize}) {
     return $(`
         <div ${generateAttributes(data, 'dashboard-box dashboard-stats-container h-100')}>
             <div class="title">
-                ${applyStyle(data, numberingConfig, 1, data.title)}
+                ${applyStyle(data, numberingConfig, 1, isObject(data.title) ? data.title[USER_SLUG] : data.title)}
             </div>
-            ${createTooltip(data.tooltip)}
+            ${createTooltip(isObject(data.tooltip) ? data.tooltip[USER_SLUG] : data.tooltip)}
             <div class="d-flex row no-gutters h-100 overflow-auto overflow-x-hidden pending-request-wrapper">
                 ${content}
             </div>
@@ -287,8 +288,8 @@ function renderRequest(data, request, rowSize, redefinedNumberingConfig, firstIt
                 <div class="wii-card-header">
                     <div class="row">
                         <div class="col-10 mb-2">
-                            <p class="mb-2 small">${applyStyle(data, redefinedNumberingConfig, 2, request.estimatedFinishTimeLabel, {}, firstIteration)}</p>
-                            <strong>${applyStyle(data, redefinedNumberingConfig, 3, request.estimatedFinishTime, {}, firstIteration)}</strong>
+                            <p class="mb-2 small">${applyStyle(data, redefinedNumberingConfig, 2, Translation.of('Dashboard', request.estimatedFinishTimeLabel), {}, firstIteration)}</p>
+                            <strong>${applyStyle(data, redefinedNumberingConfig, 3, Translation.of('Dashboard', request.estimatedFinishTime), {}, firstIteration)}</strong>
                         </div>
                         <div class="col-2 d-flex justify-content-end align-items-start">
                             ${request.emergencyText} ${topRightIcon}
@@ -350,7 +351,7 @@ function createEntriesToHandleElement(data, {meterKey}) {
         class: `w-100 pb-1 flex-fill dashboard-component h-100 mx-0 mt-0`,
         html: createIndicatorElement(
             Object.assign(data || {}, {
-                title: 'Nombre de lignes à traiter',
+                title: Translation.of('Dashboard', 'Nombre de lignes à traiter'),
                 tooltip: data.linesCountTooltip,
                 count: data.count,
                 componentLink: data.componentLink,
@@ -369,7 +370,7 @@ function createEntriesToHandleElement(data, {meterKey}) {
         class: `w-100 pt-1 flex-fill dashboard-component h-100 mx-0 mb-0`,
         html: createIndicatorElement(
             Object.assign(data || {},{
-                title: 'Prochain emplacement à traiter',
+                title: Translation.of('Dashboard', 'Prochain emplacement à traiter'),
                 tooltip: data.nextLocationTooltip,
                 count: data.nextLocation,
                 componentLink: data.componentLink,
@@ -429,7 +430,7 @@ function createLatePacksElement(data) {
         console.error(`Invalid data for late packs element.`);
         return false;
     }
-    const title = data.title || "";
+    const title = typeof data.title === 'object' ? data.title[USER_SLUG] : data.title || "";
     const numberingConfig = {numbering: 0};
 
     generateEditor(data, numberingConfig, [1, 2, 3]);
@@ -457,7 +458,7 @@ function createLatePacksElement(data) {
             <div class="title">
                 ${applyStyle(data, numberingConfig, 1, title)}
             </div>
-            ${createTooltip(data.tooltip)}
+            ${createTooltip(isObject(data.tooltip) ? data.tooltip[USER_SLUG] : data.tooltip)}
             ${content}
         </div>
     `);
@@ -486,7 +487,7 @@ function createChart(data, {route, cssClass, hideRange} = {route: null, cssClass
         : 'dashboard-box-container-title-content-rangeButton w-100';
     const numberingConfig = {numbering: 0};
 
-    const title = data.title || "";
+    const title = typeof data.title === 'object' ? data.title[USER_SLUG] : data.title || "";
 
     const pagination = hasRangeButton
         ? `
@@ -505,13 +506,12 @@ function createChart(data, {route, cssClass, hideRange} = {route: null, cssClass
         `
         : '';
 
-
     return $(`
         <div ${generateAttributes(data, 'dashboard-box dashboard-stats-container ' + dashboardBoxContainerClass)}>
             <div class="title">
-                ${withStyle(data, redefinedNumberingConfig || numberingConfig, 1, title.split('(')[0])}
+                ${withStyle(data, redefinedNumberingConfig || numberingConfig, 1, title)}
             </div>
-            ${createTooltip(data.chartData.hint || data.tooltip)}
+            ${createTooltip(data.chartData.hint || isObject(data.tooltip) ? data.tooltip[USER_SLUG] : data.tooltip)}
             <div class="flex-fill content">
                 <canvas class="${cssClass || ''}"></canvas>
             </div>
@@ -531,7 +531,7 @@ function createCarrierTrackingElement(data) {
     }
 
     const carriers = Array.isArray(data.carriers) ? data.carriers.join(', ') : data.carriers;
-    const title = data.title || "";
+    const title = typeof data.title === 'object' ? data.title[USER_SLUG] : data.title || "";
     const numberingConfig = {numbering: 0};
 
     return $(`
@@ -539,7 +539,7 @@ function createCarrierTrackingElement(data) {
             <div class="title">
                 ${withStyle(data, numberingConfig, 1, title)}
             </div>
-            ${createTooltip(data.tooltip)}
+            ${createTooltip(isObject(data.tooltip) ? data.tooltip[USER_SLUG] : data.tooltip)}
             <h1 class="scroll">${withStyle(data, numberingConfig, 2, carriers)}</h1>
         </div>
     `);
@@ -587,14 +587,14 @@ function createIndicatorElement(data, config, redefinedNumberingConfig = null) {
         class: `dashboard-box dashboard-box-indicator text-center dashboard-stats-container ${customContainerClass}`,
         style: mode === MODE_EDIT ? `` : `${backgroundColor ? 'background-color:' + backgroundColor : ''}`,
         html: [
-            createTooltip(tooltip),
+            createTooltip(isObject(tooltip) ? tooltip[USER_SLUG] : tooltip),
             title
                 ? $('<div/>', {
                     class: `text-center`,
                     html: [
                         `<span class="title">
                             ${$emergencyIcon}
-                            ${withStyle(data, smartNumberingConfig, remainingConfig.titleBackendNumber || 1, title)}
+                            ${withStyle(data, smartNumberingConfig, remainingConfig.titleBackendNumber || 1, isObject(title) ? title[USER_SLUG] : title)}
                             ${$emergencyIcon}
                          </span>`,
                         `<p class="small scroll location-label">
@@ -635,7 +635,7 @@ function createIndicatorElement(data, config, redefinedNumberingConfig = null) {
                         data,
                         smartNumberingConfig,
                         4,
-                        delay < 0 ? 'Retard : ' : 'A traiter sous : ',
+                        delay < 0 ? Translation.of('Dashboard', 'Retard') + ' : ' : Translation.of('Dashboard', 'A traiter sous :') + ' : ',
                         delay < 0 ? OVERRIDE_FONT_RED : {}
                     ),
                 })
@@ -982,25 +982,25 @@ function loadLatePacks($table, data) {
             {
                 data: 'pack',
                 name: 'pack',
-                title: applyStyle(data, null, 2, 'Colis', false),
+                title: applyStyle(data, null, 2, Translation.of('Dashboard', 'Unité logistique'), false),
                 render: text => applyStyle(data, null, 3, text, false),
             },
             {
                 data: 'date',
                 name: 'date',
-                title: applyStyle(data, null, 2, 'Dépose', false),
+                title: applyStyle(data, null, 2, Translation.of('Dashboard', 'Dépose'), false),
                 render: text => applyStyle(data, null, 3, text, false),
             },
             {
                 data: 'delay',
                 name: 'delay',
-                title: applyStyle(data, null, 2, 'Délai', false),
+                title: applyStyle(data, null, 2, Translation.of('Dashboard', 'Délai'), false),
                 render: (milliseconds, type) => applyStyle(data, null, 3, renderMillisecondsToDelay(milliseconds, type), false)
             },
             {
                 data: 'location',
                 name: 'location',
-                title: applyStyle(data, null, 2, 'Emplacement', false),
+                title: applyStyle(data, null, 2, Translation.of('Dashboard', 'Emplacement'), false),
                 render: text => applyStyle(data, null, 3, text, false)
             },
         ],
@@ -1070,15 +1070,21 @@ function updateMultipleChartData(chart, data) {
     chart.data.labels = [];
     chart.data.datasets = [];
 
+
     const dataKeys = Object.keys(chartData);
     for(const key of dataKeys) {
         const dataSubKeys = Object.keys(chartData[key]);
         chart.data.labels.push(key);
         for(const subKey of dataSubKeys) {
-            let dataset = chart.data.datasets.find(({label}) => (label === subKey));
+            let dataset = chart.data.datasets.find(({label}) => (label ===
+                (data.legends[subKey][$('#language').val()] !== ''
+                ? data.legends[subKey][$('#language').val()]
+                : data.legends[subKey]['french'] || subKey)));
             if(!dataset) {
                 dataset = {
-                    label: subKey,
+                    label: data.legends[subKey][$('#language').val()] !== ''
+                        ? data.legends[subKey][$('#language').val()]
+                        : data.legends[subKey]['french'] || subKey,
                     backgroundColor: (chartColors
                             ? (
                                 (chartColors && chartColors[subKey])
@@ -1255,4 +1261,39 @@ function guidGenerator() {
         return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
     };
     return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
+}
+
+function displayLegendTranslation(data){
+    if(data.legends && Object.keys(data.legends).length > 1){
+        let legendCounter = 1;
+        const $legendTranslationContainer = $('.legend-translation');
+        const languages = JSON.parse(data.languages);
+
+        for (const legend in data.legends){
+            let $legendTranslationContainerLabels = $('.legend-translation label');
+            let addFormGroup = $legendTranslationContainerLabels.toArray().some((element) => $(element).text() === legend);
+
+            if (!addFormGroup){
+                $legendTranslationContainer.append(`<div class="form-group col-12 p-0"><label class="wii-field-name">${legend}</label></div>`);
+
+                languages.forEach((language) => {
+                    $legendTranslationContainer.find('.form-group').last().append(`
+                    <div>
+                        <div class="input-group pb-2">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">
+                                    <img class="flag" src="${language.flag}" alt="${language.slug}_flag">
+                                </span>
+                            </div>
+                            <input class="form-control cursor-default tooltip-input data"
+                                   name="legend${legendCounter}_${language.slug}"
+                                   type="text"
+                                   value="${legend[language.slug] ?? language.slug === 'french' ? legend : '' }"/>
+                        </div>
+                    </div>`);
+                });
+                legendCounter++;
+            }
+        }
+    }
 }

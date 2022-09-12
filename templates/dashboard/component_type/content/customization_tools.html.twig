@@ -1,8 +1,35 @@
 {% set logoURL = values.logoURL ?? null %}
 {% set titleComponentLogo = values.titleComponentLogo ?? '' %}
+{% set legendCounter = 1 %}
 
 <div class="customization-tools">
     <input type="hidden" name="jsonConfig" value="{{ values | json_encode }}" class="data">
+    <div class="legend-translation">
+        {% if legendsTranslations is not empty and legendsTranslations|length > 1 %}
+            {% for key, legend in legendsTranslations %}
+                <div class="form-group col-12 p-0">
+                    <label class="wii-field-name">{{ key }}</label>
+                    {% for language in languages %}
+                        <div>
+                            <div class="input-group pb-2">
+                                <div class="input-group-prepend h-100">
+                                    <span class="input-group-text">
+                                        <img class="flag" src="{{ language.flag }}" alt="{{ language.slug }}_flag">
+                                    </span>
+                                </div>
+                                <input class="form-control cursor-default tooltip-input data"
+                                       name="legend{{ legendCounter }}_{{ language.slug }}"
+                                       type="text"
+                                       value="{{ legend[language.slug] ?? ( language.selected ? key : '' ) }}"/>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    {% set legendCounter = legendCounter + 1 %}
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
     {% include 'dashboard/component_type/content/text_customization.html.twig' %}
 
     <div id="accordion" class="customization-tools-accordion">

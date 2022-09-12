@@ -10,6 +10,7 @@ use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Dispatch;
 use App\Entity\Emplacement;
 use App\Entity\Handling;
+use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\TransferRequest;
@@ -63,6 +64,9 @@ class DashboardSettingsService {
 
     #[Required]
     public FormatService $formatService;
+
+    #[Required]
+    public TranslationService $translationService;
 
     public function serialize(EntityManagerInterface $entityManager, ?Utilisateur $user, int $mode): string {
         $pageRepository = $entityManager->getRepository(Dashboard\Page::class);
@@ -144,10 +148,26 @@ class DashboardSettingsService {
                 }
             });
 
-        $values['title'] = !empty($config['title']) ? $config['title'] : $componentType->getName();
+        if (!empty($config['title'])){
+            $values['title'] = !empty($config['title']) ? $config['title'] : $componentType->getName();
+        } else {
+            Stream::from($config)
+                ->each(function($conf, $key) use (&$values) {
+                    if (str_starts_with($key, 'title_')) {
+                        $values['title'][str_replace('title_', '', $key)] = $conf;
+                    }
+                });
+        }
 
         if (!empty($config['tooltip'])) {
-            $values['tooltip'] = $config['tooltip'];
+            $values['tooltip'] = !empty($config['tooltip']) ? $config['tooltip'] : $componentType->getHint();
+        } else {
+            Stream::from($config)
+                ->each(function($conf, $key) use (&$values) {
+                    if (str_starts_with($key, 'tooltip_')) {
+                        $values['tooltip'][str_replace('tooltip_', '', $key)] = $conf;
+                    }
+                });
         }
 
         if (!empty($config['backgroundColor']) && ($componentType->getMeterKey() !== Dashboard\ComponentType::EXTERNAL_IMAGE)) {
@@ -225,9 +245,67 @@ class DashboardSettingsService {
             $values['chartColors'] = $config['chartColors'];
         }
 
+        if (isset($values['chartColors']) && !empty($config['legends'])){
+            $values['legends'] = $config['legends'];
+        } else if(isset($values['chartColorsLabels'])){
+            $values['legends'] = [];
+            $countLegend = 1;
+            foreach($values['chartColorsLabels'] as $legend){
+                $values['legends'][$legend] = [];
+                Stream::from($config)
+                    ->each(function($conf, $arrayKey) use ($legend, $countLegend, &$values) {
+                        if (str_starts_with($arrayKey, 'legend') && str_contains($arrayKey, '_') && str_contains($arrayKey, $countLegend)) {
+                            $explode = explode('_', $arrayKey);
+                            $values['legends'][$legend][$explode[1]] = $conf;
+                            unset($values[$arrayKey]);
+                        }
+                    });
+                $countLegend++;
+            }
+        } else if(isset($values['chartColors'])){
+            $values['legends'] = [];
+            $countLegend = 1;
+            foreach($values['chartColors'] as $key => $legend){
+                $values['legends'][$key] = [];
+                Stream::from($config)
+                    ->each(function($conf, $arrayKey) use ($countLegend, $key, &$values) {
+                        if (str_starts_with($arrayKey, 'legend') && str_contains($arrayKey, '_') && str_contains($arrayKey, $countLegend)) {
+                            $explode = explode('_', $arrayKey);
+                            $values['legends'][$key][$explode[1]] = $conf;
+                            unset($values[$arrayKey]);
+                        }
+                    });
+                $countLegend++;
+            }
+        }
+
         if (!isset($values['chartColorsLabels']) && !empty($config['chartColorsLabels'])) {
             $values['chartColorsLabels'] = $config['chartColorsLabels'];
         }
+
+        if (isset($config['creationDate']) && $config['creationDate'] !== false){
+            $values['creationDate'] = true;
+        }
+
+        if (isset($config['desiredDate']) && $config['desiredDate'] !== false){
+            $values['desiredDate'] = true;
+        }
+
+        if (isset($config['validationDate']) && $config['validationDate'] !== false){
+            $values['validationDate'] = true;
+        }
+
+        if(!isset($values['languages'])){
+            $languageRepository = $entityManager->getRepository(Language::class);
+            $languages = Stream::from($languageRepository->findBy(['hidden' => false]))
+                ->map(fn(Language $language) => [
+                    'selected' => $language->getSelected(),
+                    'slug' => $language->getSlug(),
+                    'flag' => $language->getFlag(),
+                ])->toArray();
+            $values['languages'] = json_encode($languages, true);
+        }
+
         return $values;
     }
 
@@ -359,8 +437,10 @@ class DashboardSettingsService {
             $segments = $config['segments'] ?? [];
             if (!empty($segments)) {
                 $segmentsLabels = [
-                    'Retard',
-                    'Moins d\'1h'
+                    $this->translationService->translate("Dashboard", "Retard", false),
+                    $this->translationService->translate("Dashboard", "Moins d'{1}", [
+                        1 => "1h"
+                    ], false)
                 ];
                 $lastKey = "1";
                 foreach ($segments as $segment) {
@@ -449,8 +529,10 @@ class DashboardSettingsService {
                 $values = [
                     'subtitle' => '-',
                     'subCounts' => [
-                        '<span class="text-wii-success">-</span> <span class="text-wii-black">lignes</span>',
-                        '<span class="text-wii-black">Dont</span> <span class="text-wii-danger">-</span> <span class="text-wii-black">urgences</span>'
+                        '<span class="text-wii-success">-</span> <span class="text-wii-black">'.$this->translationService->translate('Dashboard', 'lignes').'</span>',
+                        '<span class="text-wii-black">'.$this->translationService->translate('Dashboard', 'Dont {1} urgences', [
+                            1 => '<span class="text-wii-danger">-</span>'
+                        ]).'</span>'
                     ],
                     'count' => '-',
                 ];
