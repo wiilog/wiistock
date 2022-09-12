@@ -103,7 +103,10 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
             table.addRow(true);
         });
 
-
+    $addButton
+        .on('click', function() {
+            $canTranslate = false;
+        });
 
     $container.on('change', '[name=state]', function () {
         onStatusStateChange($(this));
@@ -217,7 +220,6 @@ function initializeStatusesByTypes($container, canEdit, mode) {
         .on('click', function() {
             $filtersContainer.addClass('d-none');
             $pageBody.prepend('<div class="header wii-title">Ajouter des statuts</div>');
-            $canTranslate = false;
         });
 }
 
