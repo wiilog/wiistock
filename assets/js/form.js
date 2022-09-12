@@ -418,7 +418,7 @@ function formatInputValue($input) {
     } else if ($input.attr(`type`) === `checkbox`) {
         value = $input.is(`:checked`) ? `1` : `0`;
     } else if ($input.attr(`type`) === `file`) {
-        value = $input[0].files[0] ?? null;
+        value = $input[0].files[0] || null;
     } else {
         value = $input.val() || null;
     }
