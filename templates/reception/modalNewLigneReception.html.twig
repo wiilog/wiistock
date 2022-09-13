@@ -5,7 +5,7 @@
     <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
-                title: '<span title="nouvelle réception">' ~ ('réception.nouvelle réception'|trans) ~ '</span>'
+                title: '<span title="nouvelle réception">' ~ trans('Ordre','Réceptions', 'nouvelle réception', false) ~ '</span>'
             } %}
             <div class="modal-body">
                 <div class="row">

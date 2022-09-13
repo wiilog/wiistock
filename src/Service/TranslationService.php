@@ -32,11 +32,6 @@ class TranslationService {
 
     private array $translations = [];
 
-    #[Deprecated]
-    public function trans(string $in): string {
-        return "BUG TICKET: $in";
-    }
-
     /**
      * Translates the given input
      * The function expects from 1 to 4 strings, then an array of
@@ -235,7 +230,7 @@ class TranslationService {
             if (!$currentTranslation) {
                 $newTranslation = new Translation();
                 $newTranslation
-                    ->setTranslation($label['label'])
+                    ->setTranslation($label['label'] ?? '')
                     ->setSource($labelTranslationSource)
                     ->setLanguage($labelLanguage);
 

@@ -7,7 +7,7 @@
 {% endblock %}
 
 {% block showTitleTooltip 'réception' %}
-{% block showTitle ('réception.réception'|trans) %}
+{% block showTitle trans('Ordre','Réceptions', 'réception', false) %}
 {% block showSubtitle (reception.number) %}
 
 {% block showActions %}
@@ -24,13 +24,13 @@
                     data-toggle='modal'
                     onclick="openModalLigneReception($(this))"
                     class="btn btn-primary split-button" title="réception">
-                {{ 'réception.réception'|trans }}
+                {{ trans('Ordre','Réceptions', 'réception', false) }}
             </button>
             <button type="button"
                     class="btn btn-primary {{ dropdownNeedsToBeDisplayed ? 'split-button' }}"
                     onclick="finishReception({{ reception.id }}, false,$(this))"
                     id="finishReceptionButton">
-                Fin <span title="réception">{{ 'réception.réception'|trans }}</span>
+                Fin <span title="réception">{{ trans('Ordre','Réceptions', 'réception', false) }}</span>
             </button>
         {% endif %}
         {% if dropdownNeedsToBeDisplayed %}
@@ -63,7 +63,7 @@
                    data-target='#modalCancelReception'
                    data-toggle='modal'
                    class="dropdown-item pointer d-flex align-items-center">
-                    <span class="wii-icon wii-icon-trash-black mr-2"></span>Annuler <span title="cette réception">{{ 'réception.cette réception'|trans }}</span></a>
+                    <span class="wii-icon wii-icon-trash-black mr-2"></span>Annuler {{ trans('Ordre','Réceptions', 'cette réception', false) }}</a>
             {% endif %}
             {% if hasDemande %}
                 <a href="{{ path('demande_index', {'reception': reception.id }) }}"
@@ -106,9 +106,9 @@
                         : '')))
             }}">
             {{
-                ((manualUrgent and urgentArticles) ? 'réception.Cette réception ainsi qu\'une ou plusieurs références liées sont urgentes'|trans
-                    : (manualUrgent ? 'réception.Cette réception est urgente'|trans
-                        : (urgentArticles ? 'réception.Une ou plusieurs références liées à cette réception sont urgentes'|trans
+                ((manualUrgent and urgentArticles) ? trans('Ordre','Réceptions', 'Cette réception ainsi qu\'une ou plusieurs références liées sont urgentes', false)
+                    : (manualUrgent ? trans('Ordre','Réceptions', 'Cette réception est urgente', false)
+                        : (urgentArticles ? trans('Ordre','Réceptions', 'Une ou plusieurs références liées à cette réception sont urgentes', false)
                             : '')))
             }}
         </span>

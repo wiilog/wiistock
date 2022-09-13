@@ -2,7 +2,7 @@
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
-                title: 'Supprimer <span title="l\'article">' ~ ("réception.l'article" | trans) ~ '</span>'
+                title: 'Supprimer <span title="l\'article">' ~ trans('Ordre', 'Réceptions', 'l\'article', false) ~ '</span>'
             } %}
 
             <div class="modal-body">

@@ -1,7 +1,7 @@
 {% import 'form.html.twig' as form %}
 {% extends 'layout.html.twig' %}
 
-{% block title %}Stock | {{ 'reference.références'|trans }} | Article de référence{% endblock %}
+{% block title %}Stock | {{ trans('Stock', 'Références', 'Références', false) }} | Article de référence{% endblock %}
 {% block title_tooltip %}Stock | Références | Article de référence{% endblock %}
 {% block titleLink path('reference_article_index') %}
 
@@ -65,7 +65,7 @@
                                                   alt="Icône information"
                                                   width="10px"
                                                   class="has-tooltip"
-                                                  title="Permet de sélectionner la {{ 'reference.référence' | trans }} lors de la création d'une demande de livraison sur l'application mobile">
+                                                  title="Permet de sélectionner la {{ trans('Stock', 'Réceptions', 'référence', false) }} lors de la création d'une demande de livraison sur l'application mobile">
                                         </sup>
                                     </span>
                                 </div>
@@ -106,7 +106,7 @@
                                 {% else %}
                                     <div class="d-flex mt-2">
                                         <span class="wii-small-text"
-                                              title="Cette référence n'a aucune pièce jointe">Cette {{ 'reference.référence' | trans }} n'a aucune pièce jointe</span>
+                                              title="Cette référence n'a aucune pièce jointe">Cette {{ trans('Stock', 'Réceptions', 'référence', false) }} n'a aucune pièce jointe</span>
                                     </div>
                                 {% endif %}
                             </div>
@@ -317,7 +317,7 @@
                             values: referenceArticle.freeFields,
                             freeFields: freeFields,
                             emptyTitle: "Cette référence n'a aucun champ libre",
-                            emptyLabel: "Cette " ~ ('reference.référence' | trans) ~ " n'a aucun champ libre",
+                            emptyLabel: "Cette " ~ trans('Stock', 'Réceptions', 'référence', false) ~ " n'a aucun champ libre",
                         } %}
                     </div>
                 </div>

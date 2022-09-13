@@ -7,6 +7,7 @@
 
             <div class="edit-status-translation modal-body modal-input container-fluid">
             </div>
+            <input type="hidden" class="defaultLanguageTranslations" value="{{ constant('App\\Entity\\Language::DEFAULT_LANGUAGE_TRANSLATIONS') | json_encode() }}">{# input hidden avec table DEFAULT_LANGUAGE_TRANSLATIONS #}
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},

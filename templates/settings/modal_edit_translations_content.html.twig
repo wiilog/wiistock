@@ -9,6 +9,7 @@
                 </div>
                 {% set value = status.getLabelTranslation.getTranslationIn(language.slug) ? status.getLabelTranslation.getTranslationIn(language.slug).getTranslation : "" %}
                 <input type="hidden" class="data" name="language-id" value="{{ language.value }}">
+                <input type="hidden" class="data" name="language-slug" value="{{ language.slug }}">
                 <input type="text" class="data form-control needed" name="label" value="{{ value }}">
             </div>
         {% endfor %}

@@ -246,7 +246,7 @@ function initializePacksTable(dispatchId, isEdit) {
         searching: false,
         scrollY: false,
         scrollX: true,
-        drawCallback: () => {
+        /*drawCallback: () => {
             $(`#packTable_wrapper`).css(`overflow-x`, `scroll`);
             $(`.dataTables_scrollBody, .dataTables_scrollHead`)
                 .css('overflow', 'visible')
@@ -280,7 +280,7 @@ function initializePacksTable(dispatchId, isEdit) {
             if(isEdit) {
                 scrollToBottom();
             }
-        },
+        },*/
         createdRow: (row, data) => {
             // we display only + td on this line
             if (data && data.createRow) {
@@ -301,8 +301,8 @@ function initializePacksTable(dispatchId, isEdit) {
         columns: [
             {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
             {data: 'code', name: 'code', title: 'Code'},
-            {data: 'quantity', name: 'quantity', title: Trans.translated('acheminement.Quantité à acheminer') + (isEdit ? '*' : ''), tooltip: 'Quantité à acheminer'},
-            {data: 'nature', name: 'nature', title: Trans.translated('natures.nature') + (isEdit ? '*' : ''), tooltip: 'nature'},
+            {data: 'quantity', name: 'quantity', title: Translation.of(`Acheminements`, `Détails acheminement - Liste des unités logistiques`, `Quantité à acheminer`) + (isEdit ? '*' : ''), tooltip: 'Quantité à acheminer'},
+            {data: 'nature', name: 'nature', title: Translation.of(`Acheminements`, `Détails acheminement - Liste des unités logistiques`, `Nature`) + (isEdit ? '*' : ''), tooltip: 'nature'},
             {data: 'weight', name: 'weight', title: 'Poids (kg)'},
             {data: 'volume', name: 'volume', title: 'Volume (m3)'},
             {data: 'comment', name: 'comment', title: 'Commentaire'},

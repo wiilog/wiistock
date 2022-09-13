@@ -2,7 +2,7 @@
     <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
-                title: '<span title="article">' ~ ('réception.articles' | trans) ~ '</span> de la référence'
+                title: '<span title="article">' ~ trans('Ordre', 'Réceptions', 'articles', false) ~ '</span> de la référence'
             } %}
 
             <div class="modal-body">

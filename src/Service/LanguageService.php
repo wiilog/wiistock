@@ -86,6 +86,15 @@ class LanguageService {
         });
     }
 
+    /**
+     * Renvoie le slug du language sélectionné par l'utilisateur
+     * @return string
+     */
+    public function getCurrentUserLanguageSlug(): string {
+        $user = $this->security->getUser();
+        return $user->getLanguage()->getSlug();
+    }
+
     public function getDateFormats() : array {
         $user = $this->security->getUser();
 

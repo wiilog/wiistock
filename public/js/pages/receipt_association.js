@@ -75,7 +75,7 @@ function initDatatable() {
             {data: `Actions`, name: `Actions`, title: ``, className: `noVis`, orderable: false},
             {data: `creationDate`, name: `creationDate`, title: `Date`},
             {data: `packCode`, name: `pack`, title: `Colis`},
-            {data: `receptionNumber`, name: `receptionNumber`, title: `réception.Réception`, translated: true},
+            {data: `receptionNumber`, name: `receptionNumber`, title: Translation.of('Ordre', 'Réceptions', 'Réception', false)},
             {data: `user`, name: `user`, title: `Utilisateur`},
         ],
     };

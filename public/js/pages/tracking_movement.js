@@ -22,7 +22,6 @@ $(function () {
     Select2Old.user('Opérateurs');
     Select2Old.location($('.ajax-autocomplete-emplacements'), {}, Translation.of('Traçabilité', 'Encours', 'Emplacements', false), 3);
 
-
     initNewModal($modalNewMvtTraca);
 
     $.post(Routing.generate('tracking_movement_api_columns'))

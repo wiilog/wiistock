@@ -1,7 +1,7 @@
 <div class="row">
     <div class="form-group col-12  w-100 mb-3">
         <label for="reference" title="référence" class="wii-field-name">
-            {{ 'reference.référence'|trans }}*
+            {{ trans('Stock', 'Références', 'référence', false) }}*
         </label>
         {% set isLigneArticleEditable = ligneArticle.quantite is empty or ligneArticle.quantite == 0 %}
         <select class="{{ isLigneArticleEditable ? 'ajax-autocomplete-edit' }} data form-control needed"
