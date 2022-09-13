@@ -19,10 +19,13 @@ use App\Entity\IOT\DeliveryRequestTemplate;
 use App\Entity\IOT\HandlingRequestTemplate;
 use App\Entity\IOT\RequestTemplate;
 use App\Entity\IOT\RequestTemplateLine;
+use App\Entity\Language;
 use App\Entity\MailerServer;
 use App\Entity\Reception;
 use App\Entity\Setting;
 use App\Entity\Statut;
+use App\Entity\Translation;
+use App\Entity\TranslationSource;
 use App\Entity\Transport\CollectTimeSlot;
 use App\Entity\Transport\TemperatureRange;
 use App\Entity\Transport\TransportRoundStartingHour;
@@ -45,6 +48,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Yaml\Yaml;
+use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
 class SettingsService {
@@ -68,6 +72,12 @@ class SettingsService {
 
     /** @Required */
     public StatusService $statusService;
+
+    #[Required]
+    public TranslationService $translationService;
+
+    #[Required]
+    public UserService $userService;
 
     private array $settingsConstants;
 
@@ -787,17 +797,36 @@ class SettingsService {
                         $persistedStatuses[] = $status;
                     }
 
-                    $status->setNom($statusData['label']);
-                    $status->setState($statusData['state']);
-                    $status->setComment($statusData['comment'] ?? null);
-                    $status->setDefaultForCategory($statusData['defaultStatut'] ?? false);
-                    $status->setSendNotifToBuyer($statusData['sendMailBuyers'] ?? false);
-                    $status->setSendNotifToDeclarant($statusData['sendMailRequesters'] ?? false);
-                    $status->setSendNotifToRecipient($statusData['sendMailDest'] ?? false);
-                    $status->setNeedsMobileSync($statusData['needsMobileSync'] ?? false);
-                    $status->setCommentNeeded($statusData['commentNeeded'] ?? false);
-                    $status->setAutomaticReceptionCreation($statusData['automaticReceptionCreation'] ?? false);
-                    $status->setDisplayOrder($statusData['order'] ?? 0);
+                    $labelTranslation = $status->getLabelTranslation() ?? new TranslationSource();
+                    $status
+                        ->setState($statusData['state'])
+                        ->setComment($statusData['comment'] ?? null)
+                        ->setDefaultForCategory($statusData['defaultStatut'] ?? false)
+                        ->setSendNotifToBuyer($statusData['sendMailBuyers'] ?? false)
+                        ->setSendNotifToDeclarant($statusData['sendMailRequesters'] ?? false)
+                        ->setSendNotifToRecipient($statusData['sendMailDest'] ?? false)
+                        ->setNeedsMobileSync($statusData['needsMobileSync'] ?? false)
+                        ->setCommentNeeded($statusData['commentNeeded'] ?? false)
+                        ->setAutomaticReceptionCreation($statusData['automaticReceptionCreation'] ?? false)
+                        ->setDisplayOrder($statusData['order'] ?? 0)
+                        ->setLabelTranslation($labelTranslation);
+
+                    if(!$status->getId()) {
+                        $newTranslation = new Translation();
+                        $newTranslation
+                            ->setTranslation($statusData['label'])
+                            ->setSource($labelTranslation)
+                            ->setLanguage($this->userService->getUser()->getLanguage());
+
+                        $labelTranslation->addTranslation($newTranslation);
+                        $this->manager->persist($newTranslation);
+                    } else {
+                        $this->translationService->setFirstTranslation($this->manager, $status->getId(), Statut::class, $statusData['label']);
+                    }
+
+                    $labelTranslationSource = $status->getLabelTranslation();
+                    $this->manager->persist($labelTranslationSource);
+                    $labelTranslationSource->setStatus($status);
 
                     $this->manager->persist($status);
                 }

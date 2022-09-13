@@ -194,6 +194,9 @@ class StatusController extends AbstractController
                 ->join(", ");
 
             if (!$constraints) {
+                $manager->remove($entity->getLabelTranslation());
+                $manager->flush();
+
                 $manager->remove($entity);
                 $manager->flush();
             } else {
