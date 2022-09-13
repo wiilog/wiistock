@@ -57,6 +57,9 @@ class HandlingService {
     #[Required]
     public FormatService $formatService;
 
+    #[Required]
+    public LanguageService $languageService;
+
     public function getDataForDatatable($params = null, $statusFilter = null, $selectedDate = null): array
     {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
@@ -97,18 +100,18 @@ class HandlingService {
             'id' => $handling->getId() ?: 'Non défini',
             'number' => $handling->getNumber() ?: '',
             'comment' => $handling->getComment() ?: '',
-            'creationDate' => FormatHelper::datetime($handling->getCreationDate(), "", false, $this->security->getUser()),
+            'creationDate' => $this->formatService->datetime($handling->getCreationDate(), "", false, $this->security->getUser()),
             'type' => $handling->getType() ? $handling->getType()->getLabel() : '',
-            'requester' => FormatHelper::handlingRequester($handling),
+            'requester' => $this->formatService->handlingRequester($handling),
             'subject' => $handling->getSubject() ?: '',
-            "receivers" => FormatHelper::users($handling->getReceivers()->toArray()),
+            "receivers" => $this->formatService->users($handling->getReceivers()->toArray()),
             'desiredDate' => $includeDesiredTime
-                ? FormatHelper::datetime($handling->getDesiredDate(), "", false, $this->security->getUser())
-                : FormatHelper::date($handling->getDesiredDate(), "", false, $this->security->getUser()),
-            'validationDate' => FormatHelper::datetime($handling->getValidationDate(), "", false, $this->security->getUser()),
+                ? $this->formatService->datetime($handling->getDesiredDate(), "", false, $this->security->getUser())
+                : $this->formatService->date($handling->getDesiredDate(), "", $this->security->getUser()),
+            'validationDate' => $this->formatService->datetime($handling->getValidationDate(), "", false, $this->security->getUser()),
             'status' => $this->formatService->status($handling->getStatus()),
             'emergency' => $handling->getEmergency() ?? '',
-            'treatedBy' => $handling->getTreatedByHandling() ? FormatHelper::user($handling->getTreatedByHandling()) : '',
+            'treatedBy' => $handling->getTreatedByHandling() ? $this->formatService->user($handling->getTreatedByHandling()) : '',
             //'treatmentDelay' => $treatmentDelayStr,
             'carriedOutOperationCount' => is_int($handling->getCarriedOutOperationCount()) ? $handling->getCarriedOutOperationCount() : '',
             'actions' => $this->templating->render('handling/datatableHandlingRow.html.twig', [
@@ -136,6 +139,8 @@ class HandlingService {
         $status = $handling->getStatus();
         $requester = $status->getSendNotifToDeclarant() ? $handling->getRequester() : null;
         $receivers = $status->getSendNotifToRecipient() ? $handling->getReceivers() : [];
+        $defaultLanguage = $this->languageService->getDefaultLanguage();
+        $defaultLanguageSlug = $defaultLanguage->getSlug();
 
         $emailReceivers = Stream::from($receivers, [$requester])
             ->unique()
@@ -144,15 +149,15 @@ class HandlingService {
         if (!empty($emailReceivers)) {
             $statusTreated = $status->isTreated();
             if ($isNewHandlingAndNotTreated) {
-                $subject = $this->translation->translate('Demande', 'Services', 'Création d\'une demande de service', false);
-                $title = $this->translation->translate('Demande', 'Services', 'Votre demande de service a été créée.', false);
+                $subject = $this->translation->translateIn($defaultLanguageSlug, $defaultLanguageSlug, true, 'Demande','Services','Mail','Création d\'une demande de service', false );
+                $title = $this->translation->translateIn($defaultLanguageSlug, $defaultLanguageSlug, true,'Demande','Services','Mail','Votre demande de service a été créée', false );
             } else {
                 $subject = $statusTreated
-                    ? $this->translation->translate('Demande', 'Services', 'Demande de service effectuée', false)
-                    : $this->translation->translate('Demande', 'Services', 'Changement de statut d\'une demande de service', false);
+                    ? $this->translation->translateIn($defaultLanguageSlug, $defaultLanguageSlug, true, 'Demande','Services','Mail','Demande de service effectuée', false )
+                    : $this->translation->translateIn($defaultLanguageSlug, $defaultLanguageSlug, true, 'Demande','Services','Mail','Changement de statut d\'une demande de service', false );
                 $title = $statusTreated
-                    ? $this->translation->translate('Demande', 'Services', 'Votre demande de service a bien été effectuée.', false)
-                    : $this->translation->translate('Demande', 'Services', 'Une demande de service vous concernant a changé de statut.', false);
+                    ? $this->translation->translateIn($defaultLanguageSlug, $defaultLanguageSlug, true, 'Demande','Services','Mail','Votre demande de service a bien été effectuée', false )
+                    : $this->translation->translateIn($defaultLanguageSlug, $defaultLanguageSlug, true, 'Demande','Services','Mail','Une demande de service vous concernant a changé de statut', false );
             }
 
             $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
@@ -161,6 +166,7 @@ class HandlingService {
             $this->mailerService->sendMail(
                 'FOLLOW GT // ' . $subject,
                 $this->templating->render('mails/contents/mailHandlingTreated.html.twig', [
+                    'defaultLanguage' => $defaultLanguage,
                     'handling' => $handling,
                     'title' => $title,
                     'fieldsParam' => $fieldsParam,
@@ -251,18 +257,18 @@ class HandlingService {
         $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::DEMANDE_HANDLING, $categorieCL);
 
         $columns = [
-            ['title' => 'Numéro de demande',  'name' => 'number'],
-            ['title' => 'Date demande', 'name' => 'creationDate'],
-            ['title' => 'Type', 'name' => 'type'],
-            ['title' => 'Demandeur', 'name' => 'requester'],
-            ['title' => $this->translation->translate('Demande', 'Services', 'Objet', false), 'name' => 'subject'],
-            ['title' => 'Date attendue', 'name' => 'desiredDate'],
-            ['title' => 'Date de réalisation', 'name' => 'validationDate'],
-            ['title' => 'Statut', 'name' => 'status'],
-            ['title' => 'Urgent', 'name' => 'emergency'],
-            ['title' => $this->translation->translate('Demande', 'Services', 'Nombre d\'opération(s) réalisée(s)', false), 'name' => 'carriedOutOperationCount'],
-            ['title' => 'Traité par', 'name' => 'treatedBy'],
-            ['title' => 'Commentaire', 'name' => 'comment'],
+            ['title' => $this->translation->translate('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Numéro de demande'),  'name' => 'number'],
+            ['title' => $this->translation->translate('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Date demande'), 'name' => 'creationDate'],
+            ['title' => $this->translation->translate( 'Demande', 'Général', 'Type'), 'name' => 'type'],
+            ['title' => $this->translation->translate( 'Demande', 'Général', 'Demandeur'), 'name' => 'requester'],
+            ['title' => $this->translation->translate('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Objet'), 'name' => 'subject'],
+            ['title' => $this->translation->translate('Demande', 'Services', 'Modale et détails', 'Date attendue'), 'name' => 'desiredDate'],
+            ['title' => $this->translation->translate('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Date de réalisation'), 'name' => 'validationDate'],
+            ['title' => $this->translation->translate('Demande', 'Services', 'Modale et détails', 'Statut'), 'name' => 'status'],
+            ['title' => $this->translation->translate( 'Demande', 'Général', 'Urgent'), 'name' => 'emergency'],
+            ['title' => $this->translation->translate('Demande', 'Services', 'Modale et détails', 'Nombre d\'opération(s) réalisée(s)'), 'name' => 'carriedOutOperationCount'],
+            ['title' => $this->translation->translate('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Traité par'), 'name' => 'treatedBy'],
+            ['title' => $this->translation->translate('Général', null, 'Modale', 'Commentaire'), 'name' => 'comment'],
         ];
 
         return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);

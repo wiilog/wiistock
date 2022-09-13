@@ -6,6 +6,7 @@ use App\Entity\Language;
 use App\Entity\Setting;
 use App\Entity\Transport\TransportHistory;
 use App\Service\FieldsParamService;
+use App\Service\FormatService;
 use App\Service\SpecificService;
 use App\Service\TranslationService;
 use App\Service\Transport\TransportHistoryService;
@@ -46,6 +47,9 @@ class AppExtension extends AbstractExtension {
 
     #[Required]
     public TranslationService $translationService;
+
+    #[Required]
+    public FormatService $formatService;
 
     private array $settingsCache = [];
 

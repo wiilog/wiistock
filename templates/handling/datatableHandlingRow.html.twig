@@ -8,7 +8,7 @@
                 <a data-id="{{ handling.id }}"
                    href="{{ path('handling_edit_page',{ id: handling.id }) }}"
                    class="dropdown-item pointer">
-                    <i class="fa fa-pen mr-2"></i>Modifier
+                    <i class="fa fa-pen mr-2"></i>{{ trans('Général', null, 'Modale', 'Modifier') }}
                 </a>
             {% endif %}
 
@@ -23,7 +23,7 @@
             {% if canDelete %}
                 <div class="dropdown-item d-flex align-items-center" data-id="{{ handling.id }}" data-target="#modalDeleteHandling" data-toggle="modal"
                      onclick="deleteRow($(this), $('#modalDeleteHandling'), $('#submitDeleteHandling'))">
-                    <span class="wii-icon wii-icon-trash-black mr-2"></span>Supprimer
+                    <span class="wii-icon wii-icon-trash-black mr-2"></span>{{ trans('Général', null, 'Modale', 'Supprimer') }}
                 </div>
             {% endif %}
         </div>

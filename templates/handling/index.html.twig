@@ -1,7 +1,7 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Demande | {{ trans('Demande', 'Services', 'Service', false) }}{% endblock %}
-{% block title_tooltip %}Demande | Service{% endblock %}
+{% block title %}{{ trans('Demande', 'Général', 'Demande') }} | {{ trans('Demande', 'Services', 'Service') }}{% endblock %}
+{% block title_tooltip %}{{ trans('Demande', 'Général', 'Demande') }} | {{ trans('Demande', 'Services', 'Service') }}{% endblock %}
 
 {% block page_filter %}
     {% include 'filters/filtersDemands.html.twig' with {
@@ -29,12 +29,12 @@
                             class="btn btn-primary ml-auto split-button"
                             data-toggle="modal" data-target="#modalColumnVisible">
                         <i class="fa fa-cog mr-2"></i>
-                        Gestion des colonnes
+                        {{ trans('Général', null, 'Zone liste', 'Gestion des colonnes') }}
                     </button>
                 {% else %}
                     <div class="btn-group">
                         <div class="btn btn-primary split-button" onclick="saveExportFile('get_handlings_csv', true, {}, false, 'Veuillez saisir des dates dans le filtre en haut de page.', true)">
-                            <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
+                            <i class="fa fa-file-csv mr-2"></i>{{ trans('Général', null, 'Zone liste', 'Exporter au format CSV') }}
                         </div>
                         <button type="button"
                                 class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
@@ -46,7 +46,7 @@
                         <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
                             <a class="dropdown-item pointer" data-toggle="modal" data-target="#modalColumnVisible">
                                 <i class="fa fa-cog mr-2"></i>
-                                Gestion des colonnes
+                                {{ trans('Général', null, 'Zone liste', 'Gestion des colonnes') }}
                             </a>
                         </div>
                     </div>

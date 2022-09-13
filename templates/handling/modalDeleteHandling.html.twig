@@ -3,16 +3,16 @@
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
-                title: '<span title="Supprimer la demande de service">' ~ trans('Demande', 'Services', 'Supprimer la demande de service', false) ~ '</span>'
+                title: trans('Demande', 'Services', null, 'Supprimer la demande de service')
             } %}
 
             <div class="modal-body">
-                {{ trans('Demande', 'Services', 'Voulez-vous réellement supprimer cette demande de service', false) }} ?
+                {{ trans('Demande', 'Services', null, 'Voulez-vous réellement supprimer cette demande de service') }} ?
             </div>
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
-                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
-                    {classes: 'btn btn-danger data', text: 'Supprimer', id: 'submitDeleteHandling', name: 'handling', dismiss: true}
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
+                    {classes: 'btn btn-danger data', text: trans('Général', null, 'Modale', 'Supprimer'), id: 'submitDeleteHandling', name: 'handling', dismiss: true}
                 ],
                 renderErrorContainer: false
             } %}

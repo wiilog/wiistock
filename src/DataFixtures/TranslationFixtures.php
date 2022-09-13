@@ -1670,6 +1670,22 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "tooltip" => "Acheminement :\nFiltre\n_____\nService :\nFiltre",
                     ],
                     [
+                        "fr" => "Urgence",
+                        "en" => "Urgencie",
+                        "tooltip" => "Acheminement :\nFiltre\n_____\nService :\nFiltre",
+                    ],
+                    [
+                        "fr" => "Urgent",
+                        "en" => "Urgent",
+                        "tooltip" => "Service :\nZone liste - Nom de colonnes",
+                    ],
+                    [
+                        "fr" => "Non urgent",
+                        "en" => "Not urgent",
+                        "tooltip" => "Modale Nouvelle demande de service - Urgence\nModifier une demande de service",
+
+                    ],
+                    [
                         "fr" => "Destinataire(s)",
                         "en" => "Addressee(s)",
                         "tooltip" => "Acheminement :\nFiltre \nModale Nouvelle demande\nModale Modifier un acheminement\nDétails acheminement - Entête\nPDF bon acheminement\n\n_____\nService :\nFiltre\nModale Nouvelle demande de service\nModale Modifier une demande de service\n",
@@ -2314,101 +2330,225 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 ],
             ],
             "Services" => [
-                "content" => [
-                    [
-                        "fr" => "Service",
-                        "en" => "Service",
-                        "tooltip" => "Menu \"+\"\nMenu\nFil d'ariane",
+                null => [
+                    "content" => [
+                        [
+                            "fr" => "Service",
+                            "en" => "Service",
+                            "tooltip" => "Menu \"+\"\nMenu\nFil d'ariane",
+                        ],
+                        [
+                            "fr" => "{1} statut sélectionné",
+                            "en" => "{1} selected status",
+                            "tooltip" => "Filtre",
+                        ],
+                        [
+                            "fr" => "{1} statuts sélectionnés",
+                            "en" => "{1} selected statuses",
+                            "tooltip" => "Filtre",
+                        ],
+                        [
+                            "fr" => "Date de création",
+                            "en" => "Creation date",
+                            "tooltip" => "Filtre date",
+                        ],
+                        [
+                            "fr" => "Tout sélectionner",
+                            "en" => "Select all",
+                            "tooltip" => "Filtre",
+                        ],
+                        [
+                            "fr" => "Nouvelle demande de service",
+                            "en" => "New service operation",
+                            "tooltip" => "Modale Nouvelle demande de service",
+                        ],
+                        [
+                            "fr" => "Une autre demande de service est en cours de création, veuillez réessayer",
+                            "en" => "Another service operation is being created, please try again",
+                            "tooltip" => "Création demande de service",
+                        ],
+                        [
+                            "fr" => "Une erreur s'est produite lors de l'envoi de la notifiation de cette demande de service. Veuillez réessayer.",
+                            "en" => "An error occurred while sending the notification of this service request. Please try again.",
+                            "tooltip" => "Création demande de service",
+                        ],
+                        [
+                            "fr" => "Voulez-vous réellement supprimer cette demande de service",
+                            "en" => "Do you really want to delete this service request",
+                            "tooltip" => "Suppression demande de service",
+                        ],
+                        [
+                            "fr" => "Supprimer la demande de service",
+                            "en" => "Delete service request",
+                            "tooltip" => "Suppression demande de service",
+                        ],
+                        [
+                            "fr" => "La demande de service {1} a bien été modifiée.",
+                            "en" => "Service request {1} has been successfully modified.",
+                            "tooltip" => "Modification demande de service",
+                        ],
+                        [
+                            "fr" => "La demande de service {1} a bien été supprimée.",
+                            "en" => "Service request {1} has been successfully deleted.",
+                            "tooltip" => "Suppression demande de service",
+                        ],
+                        [
+                            "fr" => "La demande de service {1} a bien été créée.",
+                            "en" => "Service request {1} has been successfully created.",
+                            "tooltip" => "Création demande de service",
+                        ],
                     ],
-                    [
-                        "fr" => "{1} statut sélectionné",
-                        "en" => "{1} selected status",
-                        "tooltip" => "Filtre",
+                ],
+                "Zone liste - Nom de colonnes" => [
+                    "content" => [
+                        [
+                            "fr" => "Numéro de demande",
+                            "en" => "Operation number",
+                            "tooltip" => "Zone liste - Nom de colonne",
+                        ],[
+                            "fr" => "Traité par",
+                            "en" => "Processed by",
+                            "tooltip" => "Zone liste - Nom de colonne",
+                        ],[
+                            "fr" => "Destinataires",
+                            "en" => "Addressees",
+                            "tooltip" => "Zone liste - Nom de colonne\nModale Modifier une demande de service",
+                        ],[
+                            "fr" => "Objet",
+                            "en" => "Object",
+                            "tooltip" => "Filtre\nZone liste - Nom de colonne\nModale Nouvelle demande de service\nModale Modifier une demande de service\nPage détails",
+                        ],[
+                            "fr" => "Date de réalisation",
+                            "en" => "Completion date",
+                            "tooltip" => "Zone liste - Nom de colonne\nModale Nouvelle demande de service\nModale Modifier une demande de service\nPage détails",
+                        ],[
+                            "fr" => "Date demande",
+                            "en" => "Operation date",
+                            "tooltip" => "Zone liste - Nom de colonne",
+                        ],
                     ],
-                    [
-                        "fr" => "{1} statuts sélectionnés",
-                        "en" => "{1} selected statuses",
-                        "tooltip" => "Filtre",
+                ],
+                "Modale et détails" => [
+                    "content" => [
+                        [
+                            "fr" => "Chargement",
+                            "en" => "Loading ",
+                            "tooltip" => "Modale Nouvelle demande de service Modale Modifier une demande de service\nPage détails",
+                        ],
+                        [
+                            "fr" => "Déchargement",
+                            "en" => "Unloading",
+                            "tooltip" => "Modale Nouvelle demande de service Modale Modifier une demande de service\nPage détails",
+                        ],
+                        [
+                            "fr" => "Nombre d'opération(s) réalisée(s)",
+                            "en" => "Amount of operations completed",
+                            "tooltip" => "Modale Nouvelle demande de service Modale Modifier une demande de service\nPage détails",
+                        ],
+                        [
+                            "fr" => "Modifier une demande de service",
+                            "en" => "Edit a service operation",
+                            "tooltip" => "Modale Modifier une demande de service",
+                        ],
+                        [
+                            "fr" => "Dates",
+                            "en" => "Dates",
+                            "tooltip" => "Page détails"],
+                        [
+                            "fr" => "Date attendue",
+                            "en" => "Due date",
+                            "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle demande de service Modale Modifier une demande de service\nPage détails",
+                        ],
+                        [
+                            "fr" => "Statut",
+                            "en" => "Status",
+                            "tooltip" => "Page détails\nModales modification de statut",
+                        ],
+                        [
+                            "fr" => "Choisir un statut...",
+                            "en" => "Choose a status...",
+                            "tooltip" => "Page détails\nModales modification de statut",
+                        ],
+                        [
+                            "fr" => "Changer de statut",
+                            "en" => "Edit status",
+                            "tooltip" => "Page détails",
+                        ],
+                        [
+                            "fr" => "Modifier le statut",
+                            "en" => "Edit status",
+                            "tooltip" => "Modales modification de statut",
+                        ],
+                        [
+                            "fr" => "Type à choisir",
+                            "en" => "Choose a type",
+                            "tooltip" => "Modale Nouvelle demande de service",
+                        ],
+                        [
+                            "fr" => "Ce service n'a aucune pièce jointe",
+                            "en" => "This service has no attached documents",
+                            "tooltip" => "Détails",
+                        ],
+                        [
+                            "fr" => "Génération de l'historique en cours",
+                            "en" => "Generation of the history",
+                            "tooltip" => "Détails",
+                        ],
+                        [
+                            "fr" => "Timeline à venir",
+                            "en" => "Timeline coming soon",
+                            "tooltip" => "Détails",
+                        ],
+
                     ],
-                    [
-                        "fr" => "Date de création",
-                        "en" => "Creation date",
-                        "tooltip" => "Filtre date",
-                    ],
-                    [
-                        "fr" => "Tout sélectionner",
-                        "en" => "Select all",
-                        "tooltip" => "Filtre",
-                    ],
-                    [
-                        "fr" => "Nouvelle demande de service",
-                        "en" => "New service operation",
-                        "tooltip" => "Modale Nouvelle demande de service",
-                    ],
-                    [
-                        "fr" => "Objet",
-                        "en" => "Object",
-                        "tooltip" => "Filtre\nZone liste - Nom de colonnes\nModale Nouvelle demande de service\nModale Modifier une demande de service",
-                    ],
-                    [
-                        "fr" => "Date demande",
-                        "en" => "Request date",
-                        "tooltip" => "Zone liste - Nom de colonnes",
-                    ],
-                    [
-                        "fr" => "Date de réalisation",
-                        "en" => "Completion date",
-                        "tooltip" => "Zone liste - Nom de colonnes\nModale Modifier une demande de service",
-                    ],
-                    [
-                        "fr" => "Chargement",
-                        "en" => "Loading",
-                        "tooltip" => "Modale Nouvelle demande de service Modale Modifier une demande de service",
-                    ],
-                    [
-                        "fr" => "Déchargement",
-                        "en" => "Unloading",
-                        "tooltip" => "Modale Nouvelle demande de service Modale Modifier une demande de service",
-                    ],
-                    [
-                        "fr" => "Nombre d'opération(s) réalisée(s)",
-                        "en" => "Amount of operations performed",
-                        "tooltip" => "Modale Nouvelle demande de service Modale Modifier une demande de service",
-                    ],
-                    [
-                        "fr" => "Traité par",
-                        "en" => "Processed by",
-                        "tooltip" => "Zone liste - Nom de colonnes",
-                    ],
-                    [
-                        "fr" => "Modifier une demande de service",
-                        "en" => "Edit a service request",
-                        "tooltip" => "Modale Modifier une demande de service",
-                    ],
-                    [
-                        "fr" => "Date attendue",
-                        "en" => "Due date",
-                        "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle demande de service Modale Modifier une demande de service",
-                    ],
-                    [
-                        "fr" => "Statut",
-                        "en" => "Status",
-                        "tooltip" => "Page détails\nModales modification de statut",
-                    ],
-                    [
-                        "fr" => "Changer de statut",
-                        "en" => "Edit status",
-                        "tooltip" => "Page détails",
-                    ],
-                    [
-                        "fr" => "Modifier le statut",
-                        "en" => "Edit status",
-                        "tooltip" => "Modales modification de statut",
-                    ],
-                    [
-                        "fr" => "Type à choisir",
-                        "en" => "Choose a type",
-                        "tooltip" => "Modale Nouvelle demande de service",
+                ],
+                "Mail" => [
+                    "content" => [
+                        [
+                            "fr" => "Votre demande de service a été créée",
+                            "en" => "Your service operation has been created",
+                            "tooltip" => "Mail de création",
+                        ],
+                        [
+                            "fr" => "Création d'une demande de service",
+                            "en" => "Creation of a service operation",
+                            "tooltip" => "Mail de création",
+                        ],
+                        [
+                            "fr" => "Changement de statut d'une demande de service",
+                            "en" => "Changing the status of a service operation",
+                            "tooltip" => "Mail changement de statut",
+                        ],
+                        [
+                            "fr" => "Une demande de service vous concernant a changé de statut",
+                            "en" => "A service operation concerning you changed her status",
+                            "tooltip" => "Mail changement de statut",
+                        ],
+                        [
+                            "fr" => "Demande de service effectuée",
+                            "en" => "Service operation completed",
+                            "tooltip" => "Mail traitement demande de service",
+                        ],
+                        [
+                            "fr" => "Votre demande de service a bien été effectuée",
+                            "en" => "Service operation has been completed successfully",
+                            "tooltip" => "Mail traitement demande de service",
+                        ],
+                        [
+                            "fr" => "Chargement",
+                            "en" => "Source",
+                            "tooltip" => "Mail traitement demande de service",
+                        ],
+                        [
+                            "fr" => "Déchargement",
+                            "en" => "Destination",
+                            "tooltip" => "Mail traitement demande de service",
+                        ],
+                        [
+                            "fr" => "Modifié par",
+                            "en" => "Modified by",
+                            "tooltip" => "Mail traitement demande de service",
+                        ],
                     ],
                     [
                         "fr" => "Création d'une demande de service",
