@@ -212,7 +212,6 @@ function initEditatable(datatable, onDatatableInit = null) {
 
     // Trigger edit mode when click on table
     $('#table-arrival-fixed-fields').click(function() {
-        console.log('check');
         datatable.toggleEdit(STATE_EDIT);
     });
 
@@ -223,6 +222,7 @@ function initEditatable(datatable, onDatatableInit = null) {
             url,
             data: (data) => {
                 data.edit = state !== STATE_VIEWING;
+                // If table is in edit mode on the init switch to viewer mode
                 if(data.edit){
                     datatable.toggleEdit(STATE_VIEWING);
                 }
