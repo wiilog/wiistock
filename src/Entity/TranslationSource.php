@@ -84,6 +84,9 @@ class TranslationSource {
         return $this->translations;
     }
 
+    /**
+     * @param Language|string $in Language or slug of the language
+     */
     public function getTranslationIn(Language|string $in, Language|string|null $default = null): ?Translation {
         if(!$in) {
             throw new \RuntimeException("Input language can not be null");

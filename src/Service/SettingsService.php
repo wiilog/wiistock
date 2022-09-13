@@ -753,6 +753,7 @@ class SettingsService {
                 $statusRepository = $this->manager->getRepository(Statut::class);
                 $categoryRepository = $this->manager->getRepository(CategorieStatut::class);
                 $typeRepository = $this->manager->getRepository(Type::class);
+                $languageRepository = $this->manager->getRepository(Language::class);
 
                 $categoryName = match ($statusesData[0]['mode']) {
                     StatusController::MODE_ARRIVAL_DISPUTE => CategorieStatut::DISPUTE_ARR,
@@ -797,8 +798,8 @@ class SettingsService {
                         $persistedStatuses[] = $status;
                     }
 
-                    $labelTranslation = $status->getLabelTranslation() ?? new TranslationSource();
                     $status
+                        ->setNom($statusData['label'])
                         ->setState($statusData['state'])
                         ->setComment($statusData['comment'] ?? null)
                         ->setDefaultForCategory($statusData['defaultStatut'] ?? false)
@@ -808,26 +809,29 @@ class SettingsService {
                         ->setNeedsMobileSync($statusData['needsMobileSync'] ?? false)
                         ->setCommentNeeded($statusData['commentNeeded'] ?? false)
                         ->setAutomaticReceptionCreation($statusData['automaticReceptionCreation'] ?? false)
-                        ->setDisplayOrder($statusData['order'] ?? 0)
-                        ->setLabelTranslation($labelTranslation);
+                        ->setDisplayOrder($statusData['order'] ?? 0);
 
-                    if(!$status->getId()) {
-                        $newTranslation = new Translation();
-                        $newTranslation
-                            ->setTranslation($statusData['label'])
-                            ->setSource($labelTranslation)
-                            ->setLanguage($this->userService->getUser()->getLanguage());
+                    // label given on creation or edit is the French one
+                    $labelTranslation = $status->getLabelTranslation();
+                    if(!$labelTranslation) {
+                        $labelTranslation = new TranslationSource();
+                        $this->manager->persist($labelTranslation);
 
-                        $labelTranslation->addTranslation($newTranslation);
-                        $this->manager->persist($newTranslation);
-                    } else {
-                        $this->translationService->setFirstTranslation($this->manager, $status->getId(), Statut::class, $statusData['label']);
+                        $status->setLabelTranslation($labelTranslation);
                     }
 
-                    $labelTranslationSource = $status->getLabelTranslation();
-                    $this->manager->persist($labelTranslationSource);
-                    $labelTranslationSource->setStatus($status);
+                    $translation = $labelTranslation->getTranslationIn(Language::FRENCH_SLUG);
 
+                    if (!$translation) {
+                        $language = $languageRepository->findOneBy(['slug' => Language::FRENCH_SLUG]);
+                        $translation = new Translation();
+                        $translation
+                            ->setSource($labelTranslation)
+                            ->setLanguage($language);
+                        $this->manager->persist($translation);
+                    }
+
+                    $translation->setTranslation($statusData['label']);
                     $this->manager->persist($status);
                 }
                 $validation = $this->statusService->validateStatusesData($persistedStatuses);

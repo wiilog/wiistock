@@ -248,10 +248,10 @@ class TranslationService {
     }
 
     public function setFirstTranslation(EntityManagerInterface $entityManager,
-                                        int $entityId,
-                                        string $classe,
-                                        string $firstLabel) {
-        $entityRepository = $entityManager->getRepository($classe);
+                                        int                    $entityId,
+                                        string                 $class,
+                                        string                 $firstLabel) {
+        $entityRepository = $entityManager->getRepository($class);
         $entity = $entityRepository->find($entityId);
 
         $labelTranslation = new TranslationSource();

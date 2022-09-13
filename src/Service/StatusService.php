@@ -22,8 +22,6 @@ class StatusService {
         $drafts = $this->countDuplicateStatuses($persistedStatuses, fn(Statut $status) => $status->isDraft());
         $disputes = $this->countDuplicateStatuses($persistedStatuses, fn(Statut $status) => $status->isDispute());
         $duplicateLabels = $this->countDuplicateStatusLabels($persistedStatuses);
-        dump($persistedStatuses);
-        dump($duplicateLabels);
 
         if($duplicateLabels > 0) {
             $message = "Il n'est pas possible d'avoir deux statuts identiques pour le même type";
@@ -74,9 +72,7 @@ class StatusService {
             ->reduce(function(array $carry, Statut $status): array {
                 $categoryId = $status->getCategorie()?->getId() ?: 0;
                 $typeId = $status->getType()?->getId() ?: 0;
-                $statusLabel = $status?->getCode();
-
-                dump($statusLabel);
+                $statusLabel = $status?->getNom(); // TODO adrien en fonction de la langue
 
                 if (!isset($carry[$categoryId])) {
                     $carry[$categoryId] = [];
