@@ -1,4 +1,4 @@
-import EditableDatatable, {MODE_CLICK_EDIT, MODE_NO_EDIT, SAVE_MANUALLY} from "../../editatable";
+import EditableDatatable, {MODE_CLICK_EDIT, MODE_NO_EDIT, SAVE_MANUALLY, STATE_VIEWING} from "../../editatable";
 
 const MODE_ARRIVAL_DISPUTE = 'arrival-dispute';
 const MODE_RECEPTION_DISPUTE = 'reception-dispute';
@@ -92,7 +92,11 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
 
     let submitEditTranslations = $("#submitEditTranslations");
     let urlEditTranslations = Routing.generate('settings_edit_status_translations', true)
-    InitModal($modalEditTranslations, submitEditTranslations, urlEditTranslations);
+    InitModal($modalEditTranslations, submitEditTranslations, urlEditTranslations, {
+        success: () => {
+            table.toggleEdit(STATE_VIEWING, true);
+        }
+    });
 
     $addRow.on(`click`, function() {
         const url = Routing.generate(`settings_edit_status_translations_api`);

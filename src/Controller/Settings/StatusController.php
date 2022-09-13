@@ -263,45 +263,32 @@ class StatusController extends AbstractController
      * @Route("/status/edit/translate", name="settings_edit_status_translations", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function editTranslations(Request $request,
+    public function editTranslations(Request                $request,
+                                     StatusService          $statusService,
                                      EntityManagerInterface $manager,
-                                     TranslationService $translationService): JsonResponse
-    {
+                                     TranslationService     $translationService): JsonResponse {
         if ($data = json_decode($request->getContent(), true)) {
             $statusRepository = $manager->getRepository(Statut::class);
-            $statusesId[] = json_decode($data['status'], true);
+            $statuses = json_decode($data['status'], true);
 
-            $statuses = [];
-            foreach ($statusesId[0] as $statusId) {
-                $statuses[] = $statusRepository->find((int)($statusId));
-            }
+            $persistedStatuses = [];
+            foreach ($statuses as $statusId) {
+                $status = $statusRepository->find($statusId);
+                $persistedStatuses[] = $status;
 
-            foreach ($statuses as $status) {
                 $name = 'labels-'.$status->getId();
                 $labels = $data[$name];
                 $labelTranslationSource = $status->getLabelTranslation();
 
-                foreach ($labels as $label) {
-                    if(isset($label['label'])){
-                        if (preg_match("[[,;]]", $label['label'])) {
-                            return $this->json([
-                                "success" => false,
-                                "msg" => "Le nom d'un statut ne peut pas contenir ; ou ,",
-                            ]);
-                        }
-
-                        if ($statusRepository->findDuplicates($label["label"], $label["language-id"])) {
-                            $language = $manager->find(Language::class, $label["language-id"]);
-
-                            return $this->json([
-                                "success" => false,
-                                "msg" => "Une nature existe déjà avec ce libellé dans la langue \"{$language->getLabel()}\"",
-                            ]);
-                        }
-                    }
-                }
-
                 $translationService->editEntityTranslations($manager, $labels, $labelTranslationSource);
+            }
+
+            $duplicateLabels = $statusService->countDuplicateStatusLabels($persistedStatuses);
+            if($duplicateLabels > 0) {
+                return $this->json([
+                    "success" => false,
+                    "msg" => "Il n'est pas possible d'avoir deux libellés de statut identiques pour le même type et la même langue",
+                ]);
             }
 
             $manager->flush();
