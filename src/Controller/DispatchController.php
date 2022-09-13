@@ -436,7 +436,7 @@ class DispatchController extends AbstractController {
         if($dispatch->getDispatchPacks()->isEmpty()) {
             return $this->json([
                 "success" => false,
-                "msg" => $translation->trans('acheminement.Le bon d\'acheminement n\'existe pas pour cet acheminement')
+                "msg" => $translation->translate('Demande', 'Acheminements', 'Bon d\'acheminement', 'Le bon d\'acheminement n\'existe pas pour cet acheminement', false)
             ]);
         }
 
@@ -567,7 +567,7 @@ class DispatchController extends AbstractController {
                 'showDetails' => $dispatchService->createHeaderDetailsConfig($dispatch)
             ]),
             'success' => true,
-            'msg' => $translation->trans('acheminement.L\'acheminement a bien été modifié') . '.'
+            'msg' => $translation->translate('Demande', 'Acheminements', 'Divers', 'L\'acheminement a bien été modifié', false) . '.'
         ]);
     }
 
@@ -655,7 +655,7 @@ class DispatchController extends AbstractController {
             return new JsonResponse([
                 'success' => true,
                 'redirect' => $this->generateUrl('dispatch_index'),
-                'msg' => $translation->trans("acheminement.L''acheminement a bien été supprimé") . '.'
+                'msg' => $translation->translate('Demande', 'Acheminements', 'Divers', 'L\'acheminement a bien été supprimé', false) . '.'
             ]);
         }
 
@@ -794,9 +794,8 @@ class DispatchController extends AbstractController {
         $pack->setVolume($volume ? round($volume, 3) : null);
 
         $success = true;
-        $message = $translation->trans("colis.Le colis {numéro} a bien été " . ($dispatchPack->getId() ? "modifié" : "ajouté"), [
-            "{numéro}" => "<strong>{$pack->getCode()}</strong>"
-        ]);
+        $toTranslate = 'Le colis {1} a bien été ' . ($dispatchPack->getId() ? "modifié" : "ajouté");
+        $message = $translation->translate('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', $toTranslate, [1 => '<strong>{$pack->getCode()}</strong>']);
 
         $entityManager->flush();
 
@@ -848,6 +847,7 @@ class DispatchController extends AbstractController {
             $statusId = $data['status'];
             $untreatedStatus = $statusRepository->find($statusId);
 
+
             if($untreatedStatus && $untreatedStatus->isNotTreated() && ($untreatedStatus->getType() === $dispatch->getType())) {
                 try {
                     if( $dispatch->getType() &&
@@ -876,7 +876,7 @@ class DispatchController extends AbstractController {
 
         return new JsonResponse([
             'success' => true,
-            'msg' => $translation->trans('acheminement.L\'acheminement a bien été passé en à traiter'),
+            'msg' => $translation->translate('Demande', 'Acheminements', 'Divers', 'L\'acheminement a bien été passé en à traiter', false),
             'redirect' => $this->generateUrl('dispatch_show', ['id' => $dispatch->getId()])
         ]);
     }
@@ -925,7 +925,7 @@ class DispatchController extends AbstractController {
 
         return new JsonResponse([
             'success' => true,
-            'msg' => $translation->trans('acheminement.L\'acheminement a bien été traité'),
+            'msg' => $translation->translate('Demande', 'Acheminements', 'Divers', 'L\'acheminement a bien été traité'),
             'redirect' => $this->generateUrl('dispatch_show', ['id' => $dispatch->getId()])
         ]);
     }
@@ -998,29 +998,29 @@ class DispatchController extends AbstractController {
 
             $csvHeader = array_merge(
                 [
-                    'Numéro demande',
-                    $translation->trans('acheminement.Numéro de commande'),
-                    'Date de création',
-                    'Date de validation',
-                    'Date de traitement',
-                    'Type',
-                    'Demandeur',
-                    'Destinataire',
-                    $translation->trans('acheminement.Emplacement prise'),
-                    $translation->trans('acheminement.Emplacement dépose'),
-                    $translation->trans('acheminement.Destination'),
-                    'Nb ' . $translation->trans('colis.colis'),
-                    'Statut',
-                    'Urgence',
-                    $translation->trans('natures.nature'),
-                    'Code',
-                    'Quantité ' . $translation->trans('colis.colis'),
-                    $translation->trans('acheminement.Quantité à acheminer'),
-                    'Poids',
-                    'Date dernier mouvement',
-                    'Dernier emplacement',
-                    'Opérateur',
-                    'Traité par'
+                    $translation->translate('Demande', 'Acheminements', 'Divers', 'N° demande', false),
+                    $translation->translate('Demande', 'Acheminements', 'Champs fixes', 'N° commande', false),
+                    $translation->translate('Demande', 'Acheminements', 'Zone liste - Noms de colonnes', 'Date de création', false),
+                    $translation->translate('Demande', 'Acheminements', 'Zone liste - Noms de colonnes', 'Date de validation', false),
+                    $translation->translate('Demande', 'Acheminements', 'Zone liste - Noms de colonnes', 'Date de traitement', false),
+                    $translation->translate('Demande', 'Général', 'Type', false),
+                    $translation->translate('Demande', 'Général', 'Demandeur', false),
+                    $translation->translate('Demande', 'Général', 'Destinataire(s)', false),
+                    $translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Emplacement prise', false),
+                    $translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Emplacement dépose', false),
+                    $translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Destination', false),
+                    $translation->translate('Demande', 'Acheminements', 'Zone liste - Noms de colonnes', 'Nombre d\'UL', false),
+                    $translation->translate('Demande', 'Général', 'Statut', false),
+                    $translation->translate('Demande', 'Général', 'Urgence', false),
+                    $translation->translate('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Nature', false),
+                    $translation->translate('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Unité logistique', false),
+                    $translation->translate('Demande', 'Acheminements', 'Divers','Quantité UL', false),
+                    $translation->translate('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Quantité à acheminer', false),
+                    $translation->translate('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Poids (kg)', false),
+                    $translation->translate('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Date dernier mouvement', false),
+                    $translation->translate('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Dernier emplacement', false),
+                    $translation->translate('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Opérateur', false),
+                    $translation->translate('Demande', 'Acheminements', 'Zone liste - Noms de colonnes', 'Traité par', false)
                 ],
                 $freeFieldsConfig['freeFieldsHeader']
             );
@@ -1094,7 +1094,7 @@ class DispatchController extends AbstractController {
         $maxNumberOfPacks = 10;
 
         if($dispatch->getDispatchPacks()->count() === 0) {
-            $errorMessage = $translation->trans('acheminement.Des colis sont nécessaires pour générer un bon de livraison') . '.';
+            $errorMessage = $translation->translate('Demande', 'Acheminements', 'Bon de livraison', 'Des unités logistiques sont nécessaires pour générer un bon de livraison', false) . '.';
 
             return $this->json([
                 "success" => false,
@@ -1254,7 +1254,7 @@ class DispatchController extends AbstractController {
         if(!$dispatch->getDeliveryNoteData()) {
             return $this->json([
                 "success" => false,
-                "msg" => $trans->trans('acheminement.Le bon de livraison n\'existe pas pour cet acheminement')
+                "msg" => $trans->translate('Demande', 'Acheminements', 'Bon de livraison', 'Le bon de livraison n\'existe pas pour cet acheminement')
             ]);
         }
 
@@ -1280,7 +1280,7 @@ class DispatchController extends AbstractController {
         if($dispatch->getDispatchPacks()->count() === 0) {
             return new JsonResponse([
                 'success' => false,
-                'msg' => $translation->trans('acheminement.Des colis sont nécessaires pour générer une lettre de voiture') . '.'
+                'msg' => $translation->translate('Demande', 'Acheminements', 'Lettre de voiture', 'Des colis sont nécessaires pour générer une lettre de voiture', false) . '.'
             ]);
         } else {
             return new JsonResponse([
@@ -1388,7 +1388,7 @@ class DispatchController extends AbstractController {
                                         SpecificService $specificService): JsonResponse {
 
         if($dispatch->getDispatchPacks()->count() > DispatchService::WAYBILL_MAX_PACK) {
-            $message = 'Attention : ' . $translation->trans("acheminement.L''acheminement contient plus de {nombre} colis", ["{nombre}" => DispatchService::WAYBILL_MAX_PACK]) . ', cette lettre de voiture ne peut contenir plus de ' . DispatchService::WAYBILL_MAX_PACK . ' lignes.';
+            $message = 'Attention : ' . $translation->translate('Demande', 'Acheminements', 'Lettre de voiture', 'L\'acheminement contient plus de {1} colis', [1 => DispatchService::WAYBILL_MAX_PACK], false) . ', cette lettre de voiture ne peut contenir plus de ' . DispatchService::WAYBILL_MAX_PACK . ' lignes.';
             $success = false;
         } else {
             /** @var Utilisateur $loggedUser */
@@ -1465,7 +1465,7 @@ class DispatchController extends AbstractController {
         if(!$dispatch->getWaybillData()) {
             return $this->json([
                 "success" => false,
-                "msg" => $trans->trans('acheminement.La lettre de voiture n\'existe pas pour cet acheminement'),
+                "msg" => $trans->translate('Demande', 'Acheminements', 'Lettre de voiture', 'La lettre de voiture n\'existe pas pour cet acheminement', false),
             ]);
         }
 

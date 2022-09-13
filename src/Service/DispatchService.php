@@ -238,7 +238,7 @@ class DispatchService {
             $this->security->getUser()
         );
         $receiverDetails = [
-            "label" => "Destinataire(s)",
+            "label" => $this->translation->translate('Demande', 'Général', 'Destinataire(s)', false),
             "value" => "",
             "isRaw" => true
         ];
@@ -261,80 +261,80 @@ class DispatchService {
 
         $config = [
             [
-                'label' => 'Statut',
+                'label' => $this->translation->translate('Demande', 'Général', 'Statut', false),
                 'value' => $status ? $this->formatService->status($status) : ''
             ],
             [
-                'label' => 'Type',
+                'label' => $this->translation->translate('Demande', 'Général', 'Type', false),
                 'value' => $type ? $type->getLabel() : ''
             ],
             [
-                'label' => $this->translation->trans('acheminement.Transporteur'),
+                'label' => $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Transporteur', false),
                 'title' => 'Transporteur',
                 'value' => $carrier ? $carrier->getLabel() : '',
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_CARRIER_DISPATCH]
             ],
             [
-                'label' => $this->translation->trans('acheminement.Numéro de tracking transporteur'),
+                'label' => $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Numéro de tracking transporteur', false),
                 'title' => 'Numéro de tracking transporteur',
                 'value' => $carrierTrackingNumber,
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH]
             ],
             [
-                'label' => 'Demandeur',
+                'label' => $this->translation->translate('Demande', 'Général', 'Demandeur', false),
                 'value' => $requester ? $requester->getUsername() : ''
             ],
             $receiverDetails ?? [],
             [
-                'label' => $this->translation->trans('acheminement.Numéro de projet'),
+                'label' => $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'N° projet', false),
                 'title' => 'Numéro de projet',
                 'value' => $projectNumber,
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_PROJECT_NUMBER]
             ],
             [
-                'label' => $this->translation->trans('acheminement.Business unit'),
+                'label' => $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Business unit', false),
                 'title' => 'Business unit',
                 'value' => $dispatch->getBusinessUnit() ?? '',
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_BUSINESS_UNIT]
             ],
             [
-                'label' => $this->translation->trans('acheminement.Numéro de commande'),
+                'label' => $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'N° commande', false),
                 'value' => $commandNumber,
                 'title' => 'Numéro de commande',
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_COMMAND_NUMBER_DISPATCH]
             ],
             [
-                'label' => $this->translation->trans('acheminement.Emplacement prise'),
+                'label' => $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Emplacement prise', false),
                 'value' => $locationFrom ? $locationFrom->getLabel() : '', 'title' => 'Emplacement prise',
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_LOCATION_PICK]
             ],
             [
-                'label' => $this->translation->trans('acheminement.Emplacement dépose'),
+                'label' => $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Emplacement dépose', false),
                 'value' => $locationTo ? $locationTo->getLabel() : '', 'title' => 'Emplacement dépose',
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_LOCATION_DROP]
             ],
             [
-                'label' => 'Date de création',
+                'label' => $this->translation->translate('Demande', 'Acheminements', 'Zone liste - Noms de colonnes', 'Date de création', false),
                 'value' => FormatHelper::datetime($creationDate, "", false, $this->security->getUser())
             ],
             [
-                'label' => 'Date de validation',
+                'label' => $this->translation->translate('Demande', 'Acheminements', 'Zone liste - Noms de colonnes', 'Date de validation', false),
                 'value' => FormatHelper::datetime($validationDate, "", false, $this->security->getUser())
             ],
             [
-                'label' => 'Dates d\'échéance',
+                'label' => $this->translation->translate('Demande', 'Acheminements', 'Zone liste - Noms de colonnes', 'Dates d\'échéance', false),
                 'value' => ($startDate || $endDate) ? ('Du ' . $startDateStr . ' au ' . $endDateStr) : ''
             ],
             [
-                'label' => 'Traité par',
+                'label' => $this->translation->translate('Demande', 'Acheminements', 'Zone liste - Noms de colonnes', 'Traité par', false),
                 'value' => $treatedBy
             ],
             [
-                'label' => 'Date de traitement',
+                'label' => $this->translation->translate('Demande', 'Acheminements', 'Zone liste - Noms de colonnes', 'Date de traitement', false),
                 'value' => FormatHelper::datetime($treatmentDate, "", false, $this->security->getUser())
             ],
             [
-                'label' => 'Destination',
+                'label' => $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Destination', false),
                 'value' => $dispatch->getDestination() ?: '',
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_DESTINATION]
             ],
@@ -408,20 +408,20 @@ class DispatchService {
             );
 
             $translatedTitle = $partialDispatch
-                ? 'acheminement.Acheminement {numéro} traité partiellement le {date}'
-                : 'acheminement.Acheminement {numéro} traité le {date}';
+                ? 'Acheminement {1} traité partiellement le {2}'
+                : 'Acheminement {1} traité le {2}';
 
-            $translatedCategory = $this->translation->trans('acheminement.demande d\'acheminement');
+            $translatedCategory = $this->translation->translate('Demande','Acheminements', 'Divers', 'demande d\'acheminement', false);
             $title = $status->isTreated()
-                ? $this->translation->trans($translatedTitle, [
-                    "{numéro}" => $dispatch->getNumber(),
-                    "{date}" => FormatHelper::datetime($dispatch->getTreatmentDate(), "", false, $this->security->getUser())
-                ])
+                ? $this->translation->translate('Demande', 'Acheminements', 'Mails', $translatedTitle, [
+                    1 => $dispatch->getNumber(),
+                    2 => FormatHelper::datetime($dispatch->getTreatmentDate(), "", false, $this->security->getUser())
+                ], false)
                 : (!$isUpdate
                     ? ('Un(e) ' . $translatedCategory . ' de type ' . $type . ' vous concerne :')
                     : ('Changement de statut d\'un(e) ' . $translatedCategory . ' de type ' . $type . ' vous concernant :'));
             $subject = ($status->isTreated() || $status->isPartial())
-                ? ('FOLLOW GT // Notification de traitement d\'une ' . $this->translation->trans('acheminement.demande d\'acheminement') . '.')
+                ? ('FOLLOW GT // Notification de traitement d\'une ' . $this->translation->translate('Demande','Acheminements', 'Divers', 'demande d\'acheminement', false) . '.')
                 : (!$isUpdate
                     ? ('FOLLOW GT // Création d\'un(e) ' . $translatedCategory)
                     : 'FOLLOW GT // Changement de statut d\'un(e) ' . $translatedCategory . '.');
@@ -537,24 +537,24 @@ class DispatchService {
 
         $columns = [
             ['name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
-            ['title' => 'Numéro demande', 'name' => 'number'],
-            ['title' => 'acheminement.Transporteur', 'name' => 'carrier', 'translated' => true],
-            ['title' => 'acheminement.Numéro de tracking transporteur', 'name' => 'carrierTrackingNumber', 'translated' => true],
-            ['title' => 'acheminement.Numéro de commande', 'name' => 'commandNumber', 'translated' => true],
-            ['title' => 'Date de création', 'name' => 'creationDate'],
-            ['title' => 'Date de validation', 'name' => 'validationDate'],
-            ['title' => 'Date de traitement', 'name' => 'treatmentDate'],
-            ['title' => 'Date d\'échéance', 'name' => 'endDate'],
-            ['title' => 'Type', 'name' => 'type'],
-            ['title' => 'Demandeur', 'name' => 'requester'],
-            ['title' => 'Destinataires', 'name' => 'receivers','orderable' => false],
-            ['title' => 'acheminement.Emplacement prise', 'name' => 'locationFrom', 'translated' => true],
-            ['title' => 'acheminement.Emplacement dépose', 'name' => 'locationTo', 'translated' => true],
-            ['title' => 'acheminement.Destination', 'name' => 'destination', 'translated' => true],
-            ['title' => 'acheminement.Nb colis', 'name' => 'nbPacks', 'translated' => true, 'orderable' => false],
-            ['title' => 'Statut', 'name' => 'status'],
-            ['title' => 'Urgence', 'name' => 'emergency'],
-            ['title' => 'Traité par', 'name' => 'treatedBy'],
+            ['title' => $this->translation->translate('Demande', 'Acheminements', 'Divers', 'N° demande', false), 'name' => 'number'],
+            ['title' => $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Transporteur', false), 'name' => 'carrier'],
+            ['title' => $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'N° tracking transporteur', false), 'name' => 'carrierTrackingNumber'],
+            ['title' => $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'N° commande', false), 'name' => 'commandNumber'],
+            ['title' => $this->translation->translate('Demande', 'Acheminements', 'Zone liste - Noms de colonnes', 'Date de création', false), 'name' => 'creationDate'],
+            ['title' => $this->translation->translate('Demande', 'Acheminements', 'Zone liste - Noms de colonnes', 'Date de validation', false), 'name' => 'validationDate'],
+            ['title' => $this->translation->translate('Demande', 'Acheminements', 'Zone liste - Noms de colonnes', 'Date de traitement', false), 'name' => 'treatmentDate'],
+            ['title' => $this->translation->translate('Demande', 'Acheminements', 'Zone liste - Noms de colonnes', 'Date d\'échéance', false), 'name' => 'endDate'],
+            ['title' => $this->translation->translate('Demande', 'Général', 'Type', false), 'name' => 'type'],
+            ['title' => $this->translation->translate('Demande', 'Général', 'Demandeur', false), 'name' => 'requester'],
+            ['title' => $this->translation->translate('Demande', 'Général', 'Destinataire(s)', false), 'name' => 'receivers','orderable' => false],
+            ['title' => $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Emplacement prise', false), 'name' => 'locationFrom'],
+            ['title' => $this->translation->translate('Demande', 'Acheminements', 'Champs fixes','Emplacement dépose', false), 'name' => 'locationTo'],
+            ['title' => $this->translation->translate('Demande', 'Acheminements', 'Champs fixes','Destination', false), 'name' => 'destination'],
+            ['title' => $this->translation->translate('Demande', 'Acheminements', 'Zone liste - Noms de colonnes', 'Nombre d\'UL', false), 'name' => 'nbPacks', 'orderable' => false],
+            ['title' => $this->translation->translate('Demande', 'Général', 'Statut', false), 'name' => 'status'],
+            ['title' => $this->translation->translate('Demande', 'Général', 'Urgence', false), 'name' => 'emergency'],
+            ['title' => $this->translation->translate('Demande', 'Acheminements', 'Zone liste - Noms de colonnes', 'Traité par', false), 'name' => 'treatedBy'],
         ];
 
         return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);

@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Demande | {{ 'acheminement.Acheminement'|trans }}{% endblock %}
+{% block title %}{{ trans('Demande', 'Général', 'Demande', false) }} | {{ trans('Demande', 'Acheminements', 'Divers', 'Acheminement', false) }}{% endblock %}
 {% block title_tooltip %}Demande | Acheminement{% endblock %}
 
 {% block page_filter %}
@@ -21,9 +21,9 @@
                 {% if hasRightToExport %}
                     <button type="button"
                             class="btn btn-primary split-button"
-                            onclick="saveExportFile('get_dispatches_csv', true, {}, false, 'Veuillez saisir des dates dans le filtre en haut de page.', true)">
+                            onclick="saveExportFile('get_dispatches_csv', true, {}, false, '{{ trans('Général', '', 'Modale', 'Veuillez saisir des dates dans le filtre en haut de page.', false) }}', true)">
                         <i class="fa fa-file-csv mr-2" style="padding: 0 2px"></i>
-                        Exporter au format CSV
+                        {{ trans('Général', '', 'Zone liste', 'Exporter au format CSV', false) }}
                     </button>
                     <button type="button"
                             class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
@@ -37,7 +37,7 @@
                            data-toggle="modal"
                            data-target="#modalColumnVisible">
                             <i class="fa fa-cog mr-2"></i>
-                            Gestion des colonnes
+                            {{ trans('Général', '', 'Zone liste', 'Gestion des colonnes', false) }}
                         </a>
                     </div>
                 {% else %}
@@ -45,7 +45,7 @@
                        data-toggle="modal"
                        data-target="#modalColumnVisible">
                         <i class="fa fa-cog mr-2"></i>
-                        Gestion des colonnes
+                        {{ trans('Général', '', 'Zone liste', 'Gestion des colonnes', false) }}
                     </button>
                 {% endif %}
             </div>
@@ -57,7 +57,7 @@
         </div>
     </div>
 
-    <input type="hidden" name="destination-translation" value="{{ 'acheminement.Destination'|trans }}">
+    <input type="hidden" name="destination-translation" value="{{ trans('Demande', 'Acheminements', 'Champs fixes', 'Destination', false) }}">
 
     {% include "dispatch/modalNewDispatch.html.twig" with modalNewConfig %}
     {% include "utils/visible_columns.html.twig" with {

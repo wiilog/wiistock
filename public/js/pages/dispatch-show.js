@@ -246,7 +246,7 @@ function initializePacksTable(dispatchId, isEdit) {
         searching: false,
         scrollY: false,
         scrollX: true,
-        drawCallback: () => {
+        /*drawCallback: () => {
             $(`#packTable_wrapper`).css(`overflow-x`, `scroll`);
             $(`.dataTables_scrollBody, .dataTables_scrollHead`)
                 .css('overflow', 'visible')
@@ -280,7 +280,7 @@ function initializePacksTable(dispatchId, isEdit) {
             if(isEdit) {
                 scrollToBottom();
             }
-        },
+        },*/
         createdRow: (row, data) => {
             // we display only + td on this line
             if (data && data.createRow) {

@@ -1730,7 +1730,27 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "fr" => "La date de fin d'échéance est inférieure à la date de début.",
                             "en" => "End date is inferior to the start date",
                         ],
-
+                        [
+                            "fr" => "demande d'acheminement",
+                            "en" => "transfer operation",
+                            "tooltip" => "Modale demande d'acheminement",
+                        ],
+                        [
+                            "fr" => "L'acheminement a bien été modifié",
+                            "en" => "The transfer has been successfully modified",
+                        ],
+                        [
+                            "fr" => "L'acheminement a bien été supprimé",
+                            "en" => "The transfer has been successfully deleted",
+                        ],
+                        [
+                            "fr" => "L'acheminement a bien été passé en à traiter",
+                            "en" => "Transfer has been changed successfully in to process",
+                        ],
+                        [
+                            "fr" => "L'acheminement a bien été traité",
+                            "en" => "Transfer has been processed successfully",
+                        ],
                     ],
                 ],
                 "Champs fixes" => [
@@ -1922,6 +1942,14 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "en" => "The line has been deleted",
                             "tooltip" => "Message succès Supprimer la ligne",
                         ],
+                        [
+                            "fr" => "L'unité logistique {1} a bien été modifié",
+                            "en" => "Logistic unit {1} has been modified successfully",
+                        ],
+                        [
+                            "fr" => "L'unité logistique {1} a bien été ajouté",
+                            "en" => "Logistic unit {1} has been added",
+                        ],
                     ],
                 ],
                 "Modale" => [
@@ -2020,6 +2048,18 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "en" => "Information: The L.U.s' content must be changed on the L.U.s",
                             "tooltip" => "Modale Création/Modification Lettre de voiture",
                         ],
+                        [
+                            "fr" => "Des unités logistiques sont nécessaires pour générer une lettre de voiture",
+                            "en" => "Logistics units are necessary to create a consignment note",
+                        ],
+                        [
+                            "fr" => "L'acheminement contient plus de {1} colis",
+                            "en" => "The transfer contains more than {1} LU",
+                        ],
+                        [
+                            "fr" => "La lettre de voiture n'existe pas pour cet acheminement",
+                            "en" => "The consignment note does not exist for this transfer",
+                        ],
                     ],
                 ],
                 "Bon d'acheminement" => [
@@ -2028,6 +2068,10 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "fr" => "Bon d'acheminement",
                             "en" => "Transfer note",
                             "tooltip" => "PDF bon acheminement",
+                        ],
+                        [
+                            "fr" => "Le bon d'acheminement n'existe pas pour cet acheminement",
+                            "en" => "The transfer note does not exist for this transfer",
                         ],
                     ],
                 ],
@@ -2168,6 +2212,14 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "en" => "Copy invoice tu Deliver to",
                             "tooltip" => "Modale Création modification BL",
                         ],
+                        [
+                            "fr" => "Des unités logistiques sont nécessaires pour générer un bon de livraison",
+                            "en" => "Logistics units are necessary to generate a delivery note",
+                        ],
+                        [
+                            "fr" => "Le bon de livraison n'existe pas pour cet acheminement",
+                            "en" => "The delivery note does not exist for this transfer",
+                        ],
                     ],
                 ],
                 "Mails" => [
@@ -2200,6 +2252,16 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Acheminement {1} traité le {2} à {3}",
                             "en" => "Transfer {1} finished on {2} at {3}",
+                            "tooltip" => "Mail traitement acheminement",
+                        ],
+                        [
+                            "fr" => "Acheminement {1} traité partiellement le {2}",
+                            "en" => "transfer {1} partially processed on {2}",
+                            "tooltip" => "Mail traitement acheminement",
+                        ],
+                        [
+                            "fr" => "Acheminement {1} traité le {2}",
+                            "en" => "transfer {1} processed on {2}",
                             "tooltip" => "Mail traitement acheminement",
                         ],
                         [

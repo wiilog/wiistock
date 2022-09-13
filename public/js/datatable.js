@@ -141,6 +141,7 @@ function createDatatableDomFooter({information, length, pagination}) {
 }
 
 function getAppropriateDom({needsFullDomOverride, needsPartialDomOverride, needsMinimalDomOverride, needsPaginationRemoval, removeInfo}) {
+
     const domFooter = createDatatableDomFooter({
         information: !removeInfo,
         length: true,
@@ -381,10 +382,10 @@ function initDataTable($table, options) {
                 "sProcessing": Translation.of(`Général`, ``, `Zone liste`, `Traitement en cours`, false),
                 "searchPlaceholder": "",
                 "sSearch": Translation.of(`Général`, ``, `Zone liste`, `Rechercher : `, false),
-                "sLengthMenu": Translation.of(`Général`, ``, `Zone liste`, `Afficher {1} éléments`, false, {1: '_MENU_'}),
-                "sInfo": Translation.of(`Général`, ``, `Zone liste`, `{1} à {2} sur {3}`, false, {1: '_START_', 2: '_END_', 3: '_TOTAL_'}),
+                "sLengthMenu": Translation.of(`Général`, ``, `Zone liste`, `Afficher {1} éléments`, {1: '_MENU_'}, false),
+                "sInfo": Translation.of(`Général`, ``, `Zone liste`, `{1} à {2} sur {3}`, {1: '_START_', 2: '_END_', 3: '_TOTAL_'}, false),
                 "sInfoEmpty": Translation.of(`Général`, ``, `Zone liste`, `Aucun élément à afficher`, false),
-                "sInfoFiltered": Translation.of(`Général`, ``, `Zone liste`, `(filtré de {1} éléments au total)`, false, {1: '_MAX_'}),
+                "sInfoFiltered": Translation.of(`Général`, ``, `Zone liste`, `(filtré de {1} éléments au total)`, {1: '_MAX_'}, false),
                 "sInfoPostFix": "",
                 "sLoadingRecords": Translation.of(`Général`, ``, `Zone liste`, `Chargement en cours`, false),
                 "sZeroRecords": Translation.of(`Général`, ``, `Zone liste`, `Aucun élément à afficher`, false),
