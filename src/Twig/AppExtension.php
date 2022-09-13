@@ -69,6 +69,7 @@ class AppExtension extends AbstractExtension {
             new TwigFunction('trans', [$this, "translate"], [
                 "is_safe" => ["html"]
             ]),
+            new TwigFunction('translateIn', [$this, "translateIn"])
         ];
     }
 
@@ -261,4 +262,7 @@ class AppExtension extends AbstractExtension {
         return $this->translationService->translate(...$args);
     }
 
+    public function translateIn(string $slug, string $defaultSlug, bool $lastResort, mixed ...$args): ?string {
+        return $this->translationService->translateIn($slug, $defaultSlug, $lastResort, ...$args);
+    }
 }

@@ -735,10 +735,10 @@ function processDataArrayForm($modal, data) {
             }
         }
         if (type === 'number' && $input.hasClass('needed-positiv')) {
-            if (!dataArrayNeedPositive[name]) {
-                dataArrayNeedPositive[name] = 0;
+            if (!dataArrayNeedPositive[$input.data("custom-label") || name]) {
+                dataArrayNeedPositive[$input.data("custom-label") || name] = 0;
             }
-            dataArrayNeedPositive[name] += val;
+            dataArrayNeedPositive[$input.data("custom-label") || name] += val;
         } else if ($input.hasClass('phone-number') && !$input.data('iti').isValidNumber()) {
             if (!dataPhonesInvalid[name]) {
                 dataPhonesInvalid[name] = true;
@@ -768,7 +768,7 @@ function processDataArrayForm($modal, data) {
     );
     if (dataArrayNeedPositiveNames.length > 0) {
         errorMessages.push(...dataArrayNeedPositiveNames.map((name) => Translation.of('Général', '', 'Modale', 'Veuillez renseigner au moins un {1}',{1: name})));
-        $isInvalidElements.push(...dataArrayNeedPositiveNames.map((name) => $(`.data-array.needed-positiv[name="${name}"]`)));
+        $isInvalidElements.push(...dataArrayNeedPositiveNames.map((name) => ($(`.data-array.needed-positiv[data-custom-label="${name}"]`) || $(`.data-array.needed-positiv[name="${name}"]`))));
     }
     if (dataArrayPhonesInvalid.length > 0) {
         errorMessages.push('Un ou plusieurs numéros de téléphones fournis sont invalides.');
