@@ -1,6 +1,6 @@
 {% extends "layout.html.twig" %}
 
-{% block title %}Ordre | {{ 'réception.réception'|trans }} | Détails{% endblock %}
+{% block title %}Ordre | {{ trans('Ordre','Réceptions', 'Réception', false) }} | Détails{% endblock %}
 {% block title_tooltip %}Ordre | Réception | Détails{% endblock %}
 {% block titleLink path('reception_index') %}
 
@@ -95,6 +95,7 @@
                 </div>
             {% endif %}
         </div>
+    </div>
     <button class="btn" id="cannotGenerateStock" data-target='#modalCannotGenerateStock' data-toggle='modal'
             hidden></button>
     <button class="btn" id="chooseConditionnement" data-target='#modalChoose' data-toggle='modal' hidden></button>

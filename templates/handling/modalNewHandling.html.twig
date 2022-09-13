@@ -2,7 +2,7 @@
     <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
-                title: '<span title="Nouvelle demande de service">' ~ ('services.Nouvelle demande de service' | trans) ~ '</span>'
+                title: '<span title="Nouvelle demande de service">' ~ trans('Demande', 'Services', 'Nouvelle demande de service', false) ~ '</span>'
             } %}
             <input type="hidden" id="REMOVE_HOURS_DATETIME" value="setting_value('REMOVE_HOURS_DATETIME')">
             <div class="modal-body modal-input container-fluid">
@@ -54,7 +54,7 @@
                     </div>
 
                     <div class="form-group needed col-md-6 col-12">
-                        <label class="wii-field-name" for="subject">{{ 'services.Objet'|trans }}*</label>
+                        <label class="wii-field-name" for="subject">{{ trans('Demande', 'Services', 'Objet', false) }}*</label>
                         <input class="form-control data needed" name="subject">
                     </div>
 
@@ -109,7 +109,7 @@
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIED_OUT_OPERATION_COUNT') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         <div class="form-group col-md-6 col-12">
-                            <label for="carriedOutOperationCount" class="wii-field-name">{{ 'services.Nombre d\'opération(s) réalisée(s)'|trans }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' }}</label>
+                            <label for="carriedOutOperationCount" class="wii-field-name">{{ trans('Demande', 'Services', 'Nombre d\'opération(s) réalisée(s)', false) }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' }}</label>
                             <input type="number"
                                    min="0"
                                    class="form-control data {{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? 'needed' }}"

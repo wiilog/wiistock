@@ -136,7 +136,7 @@ class DataHistoryController extends AbstractController {
     public function getBreadcrumb(TranslationService $trans, $entity) {
 
         $suffix = ' | Historique des données';
-        $title = $trans->trans("IoT.IoT") . ' | Associations';
+        $title = $trans->translate('IoT', '', 'IoT', false) . ' | Associations';
         $path = null;
         if($entity instanceof Emplacement) {
             $title = 'Référentiel | Emplacements';

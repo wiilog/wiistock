@@ -201,14 +201,14 @@
                 <div class="form-group row">
                     <label class="col-12 wii-field-name"
                            title="Types de service">
-                        {{ 'services.Types de service'|trans }}
+                        {{ trans('Paramétrage', 'Utilisateurs', 'Types de service', false) }}
                     </label>
                     <div class="col-12">
                         <select name="handlingTypes"
                                 class="form-control data w-100"
                                 multiple="multiple"
                                 data-s2="handlingType"
-                                title="{{ 'services.Types de service'|trans }}">
+                                title="{{ trans('Paramétrage', 'Utilisateurs', 'Types de service', false) }}">
                             {% for type in user.handlingTypes %}
                                 <option value="{{ type.id }}" selected>{{ type.label }}</option>
                             {% endfor %}

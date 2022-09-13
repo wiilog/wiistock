@@ -22,9 +22,9 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
+use App\Service\TranslationService;
 use Google\Service\AndroidPublisher\Track;
 use Symfony\Component\HttpFoundation\FileBag;
-use App\Service\TranslationService;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 use App\Repository\TrackingMovementRepository;
@@ -117,17 +117,17 @@ class TrackingMovementService
         if (isset($movement)) {
             if ($movement->getDispatch()) {
                 $data ['entityPath'] = 'dispatch_show';
-                $data ['fromLabel'] = 'acheminement.Acheminement';
+                $data ['fromLabel'] = $this->translation->translate('Demande', 'Acheminements', 'Divers', 'acheminement', false);
                 $data ['entityId'] = $movement->getDispatch()->getId();
                 $data ['from'] = $movement->getDispatch()->getNumber();
             } else if ($movement->getArrivage()) {
                 $data ['entityPath'] = 'arrivage_show';
-                $data ['fromLabel'] = 'arrivage.arrivage';
+                $data ['fromLabel'] = $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Divers', 'arrivage', false);
                 $data ['entityId'] = $movement->getArrivage()->getId();
                 $data ['from'] = $movement->getArrivage()->getNumeroArrivage();
             } else if ($movement->getReception()) {
                 $data ['entityPath'] = 'reception_show';
-                $data ['fromLabel'] = 'réception.réception';
+                $data ['fromLabel'] = $this->translation->translate('Ordre', 'Réception', 'réception', false);
                 $data ['entityId'] = $movement->getReception()->getId();
                 $data ['from'] = $movement->getReception()->getNumber();
             } else if ($movement->getMouvementStock() && $movement->getMouvementStock()->getTransferOrder()) {
@@ -612,7 +612,7 @@ class TrackingMovementService
             ['name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
             ['title' => 'Issu de', 'name' => 'origin', 'orderable' => false],
             ['title' => 'Date', 'name' => 'date'],
-            ['title' => 'mouvement de traçabilité.Colis', 'name' => 'code', 'translated' => true],
+            ['title' => $this->translation->translate('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Unité logistique', false), 'name' => 'code'],
             ['title' => 'Référence', 'name' => 'reference'],
             ['title' => 'Libellé',  'name' => 'label'],
             ['title' => 'Groupe',  'name' => 'group'],
@@ -919,8 +919,8 @@ class TrackingMovementService
 
         // Dans le cas d'une dépose, on vérifie si l'emplacement peut accueillir le colis
         if ($movementType?->getCode() === TrackingMovement::TYPE_DEPOSE && !$location->ableToBeDropOff($movement->getPack())) {
-            $packTranslation = $this->translation->trans('arrivage.colis');
-            $natureTranslation = $this->translation->trans('natures.natures requises');
+            $packTranslation = $this->translation->translate('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Unité logistique', false);
+            $natureTranslation = $this->translation->translate('Traçabilité', 'Mouvements', 'natures requises', false);
             $packCode = $movement->getPack()->getCode();
             $bold = '<span class="font-weight-bold"> ';
             return [

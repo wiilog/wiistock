@@ -2,7 +2,7 @@
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
-                title: 'Modifier <span title="une réception">' ~ ('réception.une réception' | trans) ~ '</span>'
+                title: 'Modifier <span title="une réception">' ~ trans('Ordre','Réceptions', 'une réception', false) ~ '</span>'
             } %}
 
             <div class="modal-body modal-input container-fluid"></div>

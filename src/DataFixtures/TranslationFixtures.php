@@ -576,6 +576,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Page Flux - Arrivages :\nFil d'ariane\nDétails arrivage - Entête\nMail arrivage",
                         ],
                         [
+                            "fr" => "arrivage",
+                            "en" => "arrival",
+                            "tooltip" => "Page Flux - Arrivages :\nFil d'ariane\nDétails arrivage - Entête\nMail arrivage",
+                        ],
+                        [
                             "fr" => "Modifier arrivage",
                             "en" => "Edit arrival",
                             "tooltip" => "Page Flux - Arrivages :\nModale Modifier arrivage",
@@ -1325,6 +1330,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "en" => "Do you really want to delete this movement ?",
                         "tooltip" => "Modale Supprimer le mouvement",
                     ],
+                    [
+                        "fr" => "natures requises",
+                        "en" => "required natures",
+                        "tooltip" => "Modale emplaçement ne peut pas contenir colis",
+                    ],
                 ],
             ],
             "Association BR" => [
@@ -1628,6 +1638,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Acheminement",
                             "en" => "Transfer",
+                            "tooltip" => "Menu\nFil d'ariane\nMenu \"+\"\nDétails",
+                        ],
+                        [
+                            "fr" => "acheminement",
+                            "en" => "transfer",
                             "tooltip" => "Menu\nFil d'ariane\nMenu \"+\"\nDétails",
                         ],
                         [
@@ -2269,6 +2284,66 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "en" => "Choose a type",
                         "tooltip" => "Modale Nouvelle demande de service",
                     ],
+                    [
+                        "fr" => "Création d'une demande de service",
+                        "en" => "Creation of a service operation",
+                        "tooltip" => "Mail de création",
+                    ],
+                    [
+                        "fr" => "Votre demande de service a été créée.",
+                        "en" => "Your service operation has been created.",
+                        "tooltip" => "Mail de création",
+                    ],
+                    [
+                        "fr" => "Changement de statut d'une demande de service",
+                        "en" => "Changing the status of a service operation",
+                        "tooltip" => "Mail changement de statut",
+                    ],
+                    [
+                        "fr" => "Une demande de service vous concernant a changé de statut.",
+                        "en" => "A service operation concerning you changed her status.",
+                        "tooltip" => "Mail changement de statut",
+                    ],
+                    [
+                        "fr" => "Demande de service effectuée",
+                        "en" => "Service operation completed",
+                        "tooltip" => "Mail traitement demande de service",
+                    ],
+                    [
+                        "fr" => "Votre demande de service a bien été effectuée.",
+                        "en" => "Service operation has been completed successfully.",
+                        "tooltip" => "Mail traitement demande de service",
+                    ],
+                    [
+                        "fr" => "Une autre demande de service est en cours de création, veuillez réessayer.",
+                        "en" => "Another service operation is being created, please try again.",
+                        "tooltip" => "Création demande de service",
+                    ],
+                    [
+                        "fr" => "La demande de service {1} a bien été créée.",
+                        "en" => "Service request {1} has been successfully created.",
+                        "tooltip" => "Création demande de service"
+                    ],
+                    [
+                        "fr" => "La demande de service {1} a bien été modifiée.",
+                        "en" => "Service request {1} has been successfully modified.",
+                        "tooltip" => "Modification demande de service",
+                    ],
+                    [
+                        "fr" => "La demande de service {1} a bien été supprimée.",
+                        "en" => "Service request {1} has been successfully deleted.",
+                        "tooltip" => "Suppression demande de service",
+                    ],
+                    [
+                        "fr" => "Supprimer la demande de service",
+                        "en" => "Delete service request",
+                        "tooltip" => "Suppression demande de service",
+                    ],
+                    [
+                        "fr" => "Voulez-vous réellement supprimer cette demande de service",
+                        "en" => "Do you really want to delete this service request",
+                        "tooltip" => "Suppression demande de service",
+                    ],
                 ],
             ],
         ],
@@ -2277,6 +2352,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 "content" => [
                     ["fr" => "réceptions"],
                     ["fr" => "Réception"],
+                    ["fr" => "Réceptions"],
+                    ["fr" => "réception"],
                     ["fr" => "de réception"],
                     ["fr" => "n° de réception"],
                     ["fr" => "cette réception"],
@@ -2292,8 +2369,15 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     ["fr" => "Cette réception est urgente"],
                     ["fr" => "Une ou plusieurs références liées à cette réception sont urgentes"],
                     ["fr" => "Cette réception ainsi qu'une ou plusieurs références liées sont urgentes"],
-                    ["fr" => "Une autre réception est en cours de création, veuillez réessayer"],
-                    ["fr" => "Un autre litige de réception est en cours de création, veuillez réessayer"],
+                    ["fr" => "Une autre réception est en cours de création, veuillez réessayer."],
+                    ["fr" => "Un autre litige de réception est en cours de création, veuillez réessayer."],
+                    ["fr" => "Êtes-vous sûr de vouloir la finir"],
+                    ["fr" => "Cette réception contient des articles à finir de réceptionner."],
+                    ["fr" => "Voulez-vous réellement supprimer cette réception"],
+                    ["fr" => "Cette réception contient des articles."],
+                    ["fr" => "Vous devez d'abord les supprimer."],
+                    ["fr" => "Supprimer la réception"],
+                    ["fr" => "Annuler la réception"],
                 ],
             ],
         ],
@@ -2301,6 +2385,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
             "Références" => [
                 "content" => [
                     "Référence" => ["fr" => "Référence"],
+                    "référence" => ["fr" => "référence"],
+                    "références" => ["fr" => "références"],
                     "Références" => ["fr" => "Références"],
                 ],
             ],
@@ -2310,6 +2396,17 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 "content" => [
                     "IoT" => ["fr" => "IoT"],
                     "Fonction/Zone" => ["fr" => "Fonction/Zone"],
+                ],
+            ],
+        ],
+        "Paramétrage" => [
+            "Utilisateurs" => [
+                "content" => [
+                    [
+                        "fr" => "Types de service",
+                        "en" => "Service types",
+                        "tooltip" => "Modale nouvel utilisateur, Modale modifier un utilisateur",
+                    ],
                 ],
             ],
         ],

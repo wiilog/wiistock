@@ -144,15 +144,15 @@ class HandlingService {
         if (!empty($emailReceivers)) {
             $statusTreated = $status->isTreated();
             if ($isNewHandlingAndNotTreated) {
-                $subject = $this->translation->trans('services.Création d\'une demande de service');
-                $title = $this->translation->trans('services.Votre demande de service a été créée') . '.';
+                $subject = $this->translation->translate('Demande', 'Services', 'Création d\'une demande de service', false);
+                $title = $this->translation->translate('Demande', 'Services', 'Votre demande de service a été créée.', false);
             } else {
                 $subject = $statusTreated
-                    ? $this->translation->trans('services.Demande de service effectuée')
-                    : $this->translation->trans('services.Changement de statut d\'une demande de service');
+                    ? $this->translation->translate('Demande', 'Services', 'Demande de service effectuée', false)
+                    : $this->translation->translate('Demande', 'Services', 'Changement de statut d\'une demande de service', false);
                 $title = $statusTreated
-                    ? $this->translation->trans('services.Votre demande de service a bien été effectuée') . '.'
-                    : $this->translation->trans('services.Une demande de service vous concernant a changé de statut') . '.';
+                    ? $this->translation->translate('Demande', 'Services', 'Votre demande de service a bien été effectuée.', false)
+                    : $this->translation->translate('Demande', 'Services', 'Une demande de service vous concernant a changé de statut.', false);
             }
 
             $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
@@ -255,12 +255,12 @@ class HandlingService {
             ['title' => 'Date demande', 'name' => 'creationDate'],
             ['title' => 'Type', 'name' => 'type'],
             ['title' => 'Demandeur', 'name' => 'requester'],
-            ['title' => 'services.Objet', 'name' => 'subject', 'translated' => true],
+            ['title' => $this->translation->translate('Demande', 'Services', 'Objet', false), 'name' => 'subject'],
             ['title' => 'Date attendue', 'name' => 'desiredDate'],
             ['title' => 'Date de réalisation', 'name' => 'validationDate'],
             ['title' => 'Statut', 'name' => 'status'],
             ['title' => 'Urgent', 'name' => 'emergency'],
-            ['title' => 'services.Nombre d\'opération(s) réalisée(s)', 'name' => 'carriedOutOperationCount', 'translated' => true],
+            ['title' => $this->translation->translate('Demande', 'Services', 'Nombre d\'opération(s) réalisée(s)', false), 'name' => 'carriedOutOperationCount'],
             ['title' => 'Traité par', 'name' => 'treatedBy'],
             ['title' => 'Commentaire', 'name' => 'comment'],
         ];

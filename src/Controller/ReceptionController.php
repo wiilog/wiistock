@@ -99,7 +99,7 @@ class ReceptionController extends AbstractController {
             catch (UniqueConstraintViolationException $e) {
                 return new JsonResponse([
                     'success' => false,
-                    'msg' => $translation->trans('réception.Une autre réception est en cours de création, veuillez réessayer').'.'
+                    'msg' => $translation->translate('Ordre', 'Réceptions', 'Une autre réception est en cours de création, veuillez réessayer.', false),
                 ]);
             }
 
@@ -1119,7 +1119,7 @@ class ReceptionController extends AbstractController {
         catch (UniqueConstraintViolationException $e) {
             return new JsonResponse([
                 'success' => false,
-                'msg' => $translation->trans('réception.Un autre litige de réception est en cours de création, veuillez réessayer').'.'
+                'msg' => $translation->translate('Ordre', 'Réception', 'Un autre litige de réception est en cours de création, veuillez réessayer.', false),
             ]);
         }
 
@@ -1471,7 +1471,7 @@ class ReceptionController extends AbstractController {
             $requesters = $deliveryRequestRepository->getRequestersForReceptionExport();
 
             $csvHeader = [
-                $translation->trans('réception.n° de réception'),
+                $translation->translate('Ordre', 'Réceptions', 'n° de réception', false),
                 'n° de commande',
                 'fournisseur',
                 'utilisateur',
@@ -1496,7 +1496,7 @@ class ReceptionController extends AbstractController {
             $addedRefs = [];
 
             return $CSVExportService->createBinaryResponseFromData(
-                "export-" . str_replace(["/", "\\"], "-", $translation->trans('réception.réception')) . "-$nowStr.csv",
+                "export-" . str_replace(["/", "\\"], "-", $translation->translate('Ordre', 'Réception', 'réception', false)) . "-$nowStr.csv",
                 $receptions,
                 $csvHeader,
                 function($reception) use (&$addedRefs, $requesters) {
@@ -1885,7 +1885,7 @@ class ReceptionController extends AbstractController {
                         'fournisseur' => $reception->getFournisseur(),
                         'isReception' => true,
                         'reception' => $reception,
-                        'title' => 'Une ' . $translation->trans('réception.réception')
+                        'title' => 'Une ' . $translation->translate('Ordre', 'Réception', 'réception', false)
                             . ' '
                             . $reception->getNumber()
                             . ' de type «'

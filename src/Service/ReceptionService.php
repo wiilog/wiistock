@@ -287,7 +287,7 @@ class ReceptionService
         $columns = [
             ['name' => "Actions", "class" => "noVis", "orderable" => false, "alwaysVisible" => true],
             ["title" => "Date création", "name" => "Date", 'searchable' => true],
-            ["title" => "réception.n° de réception", "name" => "number", 'searchable' => true, 'translated' => true],
+            ["title" => $this->translation->translate("Ordre", "Réceptions", "n° de réception", false), "name" => "number", 'searchable' => true, 'translated' => true],
             ["title" => "Date attendue", "name" => "dateAttendue", 'searchable' => true],
             ["title" => "Date fin", "name" => "DateFin", 'searchable' => true],
             ["title" => "Numéro commande", "name" => "orderNumber", 'searchable' => true],
@@ -342,7 +342,7 @@ class ReceptionService
                 'value' => $status ? $this->stringService->mbUcfirst($this->formatService->status($status)) : ''
             ],
             [
-                'label' => $this->translation->trans('réception.n° de réception'),
+                'label' => $this->translation->translate("Ordre", "Réceptions", "n° de réception", false),
                 'title' => 'n° de réception',
                 'value' => $reception->getNumber(),
                 'show' => [ 'fieldName' => 'number' ]

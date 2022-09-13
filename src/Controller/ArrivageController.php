@@ -705,7 +705,7 @@ class ArrivageController extends AbstractController {
             "date",
             "utilisateur",
             "numéro de projet",
-            $translation->trans('acheminement.Business unit'),
+            $translation->translate('Acheminements', 'Champs fixes', 'Business unit', false),
         ];
 
         if ($fieldsParamService->isFieldRequired($fieldsParam, FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'displayedCreate')

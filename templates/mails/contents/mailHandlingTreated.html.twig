@@ -25,7 +25,7 @@
             <strong>{{ handling.receivers|map(receiver => receiver.username)|join(', ') }}</strong>
         </div>
     {% endif %}
-    <div> {{ isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_COLLINS_SOA')) ?  'services.Objet'|trans  ~':' : 'Objet :'  }}
+    <div> {{ isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_COLLINS_SOA')) ?  trans('Demande', 'Services', 'Objet', false)  ~':' : 'Objet :'  }}
         <strong>{{ handling.subject }}</strong>
     </div>
 
@@ -51,7 +51,7 @@
         <strong>{{ emergency }}</strong>
     </div>
 
-    <div>{{ 'services.Nombre d\'opération(s) réalisée(s)' | trans }}
+    <div>{{ trans('Demande', 'Services', 'Nombre d\'opération(s) réalisée(s)', false) }}
         <strong>{{ handling.carriedOutOperationCount }}</strong>
     </div>
     <div>Modifié par :
