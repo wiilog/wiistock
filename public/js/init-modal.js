@@ -384,7 +384,6 @@ function processInputsForm($modal, data, isAttachmentForm) {
     $inputs.each(function () {
         const $input = $(this);
         const name = $input.attr('name');
-        const defaultTranslationsSelector = $(`.defaultLanguageTranslations`);
 
         let $formGroupLabel = $input.closest('.form-group').find('label');
         if (!$formGroupLabel.exists()) {

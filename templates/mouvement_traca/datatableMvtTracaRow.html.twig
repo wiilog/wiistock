@@ -14,7 +14,7 @@
                      data-target='#modalShowMvtTraca'
                      data-toggle='modal'
                      onclick="showRow($(this), Routing.generate('mvt_traca_show', true), $('#modalShowMvtTraca'))">
-                    <i class='fas fa-eye mr-2'></i>Voir
+                    <i class='fas fa-eye mr-2'></i>{{ trans('Général', '', 'Modale', 'Détails', false) }} <!-- voir -->
                 </div>
 
                 {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT')) %}
@@ -23,7 +23,7 @@
                          data-toggle='modal'
                          class="d-none action-on-click"
                          onclick="editRow($(this), Routing.generate('tracking_movement_api_edit', true), $('#modalEditMvtTraca'), $('#submitEditMvtTraca'), false, initDatePickers)">
-                        <i class='fas fa-pencil-alt mr-2'></i>Modifier
+                        <i class='fas fa-pencil-alt mr-2'></i>{{ trans('Général', '', 'Modale', 'Modifier', false) }}
                     </div>
                 {% endif %}
 
@@ -34,7 +34,7 @@
                              data-target='#modalDeleteMvtTraca'
                              data-toggle='modal'
                              onclick="deleteRow($(this), $('#modalDeleteMvtTraca'), $('#submitDeleteMvtTraca'))">
-                            <span class="wii-icon wii-icon-trash-black mr-2"></span>Supprimer
+                            <span class="wii-icon wii-icon-trash-black mr-2"></span>{{ trans('Général', '', 'Modale', 'Supprimer', false) }}
                         </div>
                     </div>
                 {% endif %}

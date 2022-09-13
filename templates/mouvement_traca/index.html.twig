@@ -35,13 +35,14 @@
                                     data-keyboard="false"
                                     onclick="clearModal('#modalNewMvtTraca'), resetNewModal($('#modalNewMvtTraca'))">
                                 <span class="wii-icon wii-icon-plus mr-2"></span>
-                                Nouveau mouvement
+                                {{ trans('Traçabilité', 'Mouvements', 'Nouveau mouvement', false) }}
                             </button>
                         {% elseif hasRightExport %}
                             <button type="button"
                                     class="btn btn-primary"
                                     onclick="saveExportFile('get_mouvements_traca_csv', true, {}, false, 'Veuillez saisir des dates dans le filtre en haut de page.', true)">
-                                <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
+                                <i class="fa fa-file-csv mr-2"></i>
+                                {{ trans('Général', '', 'Zone liste', 'Exporter au format CSV', false) }}
                             </button>
                         {% else %}
                             <button type="button"
@@ -49,7 +50,7 @@
                                     data-toggle="modal"
                                     data-target="#modalColumnVisible">
                                 <i class="fa fa-cog mr-2"></i>
-                                Gestion des colonnes
+                                {{ trans('Général', '', 'Zone liste', 'Gestion des colonnes', false) }}
                             </button>
                         {% endif %}
                         <button type="button"
@@ -62,16 +63,16 @@
                         <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
                             {% if hasRightToCreateMovement and hasRightExport %}
                                 <a class="dropdown-item pointer"
-                                   onclick="saveExportFile('get_mouvements_traca_csv', true, {}, false, 'Veuillez saisir des dates dans le filtre en haut de page.', true)">
+                                   onclick="saveExportFile('get_mouvements_traca_csv', true, {}, false, '{{ trans('Général', '', 'Modale', 'Veuillez saisir des dates dans le filtre en haut de page.', false) }}', true)">
                                     <i class="fa fa-file-csv mr-2" style="padding: 0 2px"></i>
-                                    Exporter au format CSV
+                                    {{ trans('Général', '', 'Zone liste', 'Exporter au format CSV', false) }}
                                 </a>
                             {% endif %}
                             <a class="dropdown-item pointer"
                                data-toggle="modal"
                                data-target="#modalColumnVisible">
                                 <i class="fa fa-cog mr-2"></i>
-                                Gestion des colonnes
+                                {{ trans('Général', '', 'Zone liste', 'Gestion des colonnes', false) }}
                             </a>
                         </div>
                     </div>
@@ -81,7 +82,7 @@
                             data-toggle="modal"
                             data-target="#modalColumnVisible">
                         <i class="fa fa-cog mr-2"></i>
-                        Gestion des colonnes
+                        {{ trans('Général', '', 'Zone liste', 'Gestion des colonnes', false) }}
                     </button>
                 {% endif %}
             </div>
