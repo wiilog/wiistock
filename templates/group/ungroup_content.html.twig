@@ -1,18 +1,20 @@
 <form>
     <div class="row">
         <div class="col-12">
-            Vous êtes sur le point de dégrouper le groupe
-            <strong>{{ group.code }}</strong>. Les colis suivant seront déposés sur l'emplacement sélectionné :
-            {% for pack in group.children %}
-                <strong>{{ pack.code }}</strong>{% if not loop.last %}, {% endif %}
-            {% endfor %}
+            {% set packs = group.children | map(pack => pack.code) | join(',') %}
+            {{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Groupes"', "Vous êtes sur le point de dégrouper le groupe {1}. Les colis suivant seront déposés sur l'emplacement sélectionné : {2}.", {
+                '1': "<strong>" ~  (group.code)  ~ "</strong>",
+                '2': "<strong>" ~  (packs)  ~ "</strong>",
+            }) }}
+
         </div>
     </div>
     <div class="row mt-2">
         <div class="form-group col-12">
-            <label class="wii-field-name">Emplacement de dépose</label>
+            <label class="wii-field-name">{{ trans('Traçabilité', "Mouvements", 'Emplacement de dépose') }}</label>
             <select class="ajax-autocomplete-location-edit data form-control w-100 needed"
                     name="location" title="Emplacement de dépose">
             </select>
         </div>
+    </div>
 </form>

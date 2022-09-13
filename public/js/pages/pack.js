@@ -16,12 +16,12 @@ const packsTableConfig = {
     columns: [
         {data: 'actions', name: 'actions', title: '', className: 'noVis', orderable: false},
         {data: 'pairing', name: 'pairing', title: '', className: 'pairing-row'},
-        {data: 'packNum', name: 'packNum', title: 'colis.Numéro colis', translated: true},
-        {data: 'packNature', name: 'packNature', title: 'natures.Nature de colis', translated: true},
-        {data: "quantity", name: 'quantity', title: 'Quantité'},
-        {data: 'packLastDate', name: 'packLastDate', title: 'Date du dernier mouvement'},
-        {data: "packOrigin", name: 'packOrigin', title: 'Issu de', className: 'noVis', orderable: false},
-        {data: "packLocation", name: 'packLocation', title: 'Emplacement'},
+        {data: 'packNum', name: 'packNum', title: Translation.of( 'Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Numéro d\'UL')},
+        {data: 'packNature', name: 'packNature', title: Translation.of( 'Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Nature d\'unité logistique')},
+        {data: "quantity", name: 'quantity', title: Translation.of( 'Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Quantité')},
+        {data: 'packLastDate', name: 'packLastDate', title: Translation.of( 'Traçabilité', 'Général', 'Date dernier mouvement')},
+        {data: "packOrigin", name: 'packOrigin', title: Translation.of( 'Traçabilité', 'Général', 'Issu de'), className: 'noVis', orderable: false},
+        {data: "packLocation", name: 'packLocation', title: Translation.of( 'Traçabilité', 'Général', 'Emplacement')},
     ]
 };
 
@@ -161,9 +161,9 @@ function initializeGroupHistoryTable(packId) {
             "type": "POST"
         },
         columns: [
-            {data: 'group', name: 'group', title: 'Groupe'},
-            {data: 'date', name: 'date', title: 'Date'},
-            {data: 'type', name: 'type', title: 'Type'},
+            {data: 'group', name: 'group', title: Translation.of('Traçabilité', 'Mouvements', 'Groupe')},
+            {data: 'date', name: 'date', title: Translation.of('Traçabilité', 'Général', 'Date')},
+            {data: 'type', name: 'type', title: Translation.of('Traçabilité', 'Mouvements', 'Type')},
         ],
         domConfig: {
             needsPartialDomOverride: true,

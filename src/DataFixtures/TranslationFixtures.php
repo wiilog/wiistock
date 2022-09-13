@@ -1113,6 +1113,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Modale Modifier une unité logistique",
                         ],
                         [
+                            "fr" => "Historique des données",
+                            "en" => "Data history",
+                            "tooltip" => "Zone liste",
+                        ],
+                        [
                             "fr" => "Projets assignés",
                             "en" => "Assigned projects",
                             "tooltip" => "Modale Modifier une unité logistique",
@@ -1245,9 +1250,24 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Onglet \"Groupes\"",
                         ],
                         [
+                            "fr" => "Dégrouper",
+                            "en" => "Ungrouped",
+                            "tooltip" => "Onglet \"Groupes\"",
+                        ],
+                        [
+                            "fr" => "Vous êtes sur le point de dégrouper le groupe {1}. Les colis suivant seront déposés sur l'emplacement sélectionné : {2}.",
+                            "en" => "You are about to ungroup the group {1}. The following packages will be dropped off at the selected location : {2}.",
+                            "tooltip" => "Modale Dégrouper",
+                        ],
+                        [
                             "fr" => "Nombre d'UL",
                             "en" => "Quantity of L.U.",
                             "tooltip" => "Onglet \"Groupes\"",
+                        ],
+                        [
+                            "fr" => "Numéro groupe",
+                            "en" => "Group number",
+                            "tooltip" => "Modale Modifier le groupe",
                         ],
                         [
                             "fr" => "Mouvementé la dernière fois le {1}",
@@ -1258,6 +1278,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "fr" => "sur l'emplacement {1} par {2}",
                             "en" => "on the location {1} by {2}",
                             "tooltip" => "Onglet \"Groupes\"",
+                        ],
+                        [
+                            "fr" => "Modifier le groupe",
+                            "en" => "Edit group",
+                            "tooltip" => "Modale Modifier le groupe",
                         ],
                     ],
                 ],
