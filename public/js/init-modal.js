@@ -543,12 +543,10 @@ function processInputsForm($modal, data, isAttachmentForm) {
     }
 
     if (missingInputNames.length > 0) {
-        console.log(missingInputNames.join(', '));
         errorMessages.push(missingInputNames.length === 1
             ? Translation.of('Général', '', 'Modale', 'Veuillez renseigner le champ {1}', {1 : missingInputNames[0]})
             : Translation.of('Général', '', 'Modale', 'Veuillez renseigner les champs : {1}', {1 : missingInputNames.join(', ')})
         );
-        console.log(errorMessages);
     }
 
     return {
