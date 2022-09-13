@@ -10,7 +10,7 @@
                        name="dateMin"
                        id="dateMin"
                        placeholder="jj/mm/aaaa"
-                       value="{{ selectedDate is defined ? selectedDate | date('d/m/Y') : '' }}"
+                       value="{{ selectedDate is defined and selectedDate ? selectedDate | date('d/m/Y') : '' }}"
                     {{ disabled }}
                        autocomplete="off"/>
                 <div class="input-group-prepend h-100">
@@ -21,7 +21,7 @@
                        name="dateMax"
                        id="dateMax"
                        placeholder="jj/mm/aaaa"
-                       value="{{ selectedDate is defined ? selectedDate | date('d/m/Y') : '' }}"
+                       value="{{ selectedDate is defined and selectedDate ? selectedDate | date('d/m/Y') : '' }}"
                     {{ disabled }}
                        autocomplete="off"/>
             </div>
