@@ -384,7 +384,7 @@ class HandlingController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    #[Route("/csv", name: "get_handlings_csv", methods: "GET")]
+    #[Route("/csv", name: "get_handlings_csv", options: ["expose" => true], methods: "GET")]
     #[HasPermission([Menu::DEM, Action::EXPORT])]
     public function getHandlingsCSV(Request $request,
                                     TranslatorInterface $translator,
