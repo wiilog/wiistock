@@ -9,6 +9,7 @@ use App\Entity\Emplacement;
 use App\Entity\FreeField;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
+use App\Entity\Language;
 use App\Entity\Pack;
 use App\Entity\Setting;
 use App\Entity\TrackingMovement;
@@ -65,6 +66,9 @@ class ArrivageService {
 
     #[Required]
     public FormatService $formatService;
+
+    #[Required]
+    public LanguageService $languageService;
 
     private ?array $freeFieldsConfig = null;
 
@@ -198,8 +202,12 @@ class ArrivageService {
                 $this->security->getUser()
             );
 
+            $defaultLanguage = $this->languageService->getDefaultSlug();
             $this->mailerService->sendMail(
-                'FOLLOW GT // Arrivage' . ($isUrgentArrival ? ' urgent' : ''),
+                ($isUrgentArrival
+                    ? $this->translation->translateIn($defaultLanguage, $defaultLanguage, true,'Traçabilité', 'Flux - Arrivages', 'Mail arrivage', 'FOLLOW GT // Arrivage urgent', false)
+                    : $this->translation->translateIn($defaultLanguage, $defaultLanguage, true,'Traçabilité', 'Flux - Arrivages', 'Mail arrivage', 'FOLLOW GT // Arrivage', false)
+                ),
                 $this->templating->render(
                     'mails/contents/mailArrivage.html.twig',
                     [
@@ -208,7 +216,8 @@ class ArrivageService {
                         'emergencies' => $emergencies,
                         'isUrgentArrival' => $isUrgentArrival,
                         'freeFields' => $freeFields,
-                        'urlSuffix' => $this->router->generate("arrivage_show", ["id" => $arrival->getId()])
+                        'urlSuffix' => $this->router->generate("arrivage_show", ["id" => $arrival->getId()]),
+                        'defaultLanguageSlug' => $defaultLanguage
                     ]
                 ),
                 $finalRecipients

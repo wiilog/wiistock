@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\DisputeHistoryRecord;
 use App\Entity\FiltreSup;
 use App\Entity\Dispute;
+use App\Entity\Pack;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
@@ -34,6 +35,9 @@ class DisputeService {
 
     #[Required]
     public FormatService $formatService;
+
+    #[Required]
+    public LanguageService $languageService;
 
     /**
      * @var Twig_Environment
@@ -176,13 +180,16 @@ class DisputeService {
         }
 
         if (!empty($recipients)) {
-            $translatedCategory = $isArrival ? $category : $this->translation->translate('Ordre', 'Réceptions', 'une réception', false);
+            $defaultLanguage = $this->languageService->getDefaultSlug();
+            $translatedCategory = $isArrival
+                ? $this->translation->translateIn($defaultLanguage, $defaultLanguage, true, "Traçabilité", "Flux - Arrivages", "Mail litige", "un arrivage", false)
+                : $this->translation->translateIn($defaultLanguage, $defaultLanguage, true, "Ordre", "Réceptions", "une réception", false);
             $title = !$isUpdate
-                ? ('Un litige a été déclaré sur ' . $translatedCategory . ' vous concernant :')
-                : ('Changement de statut d\'un litige sur ' . $translatedCategory . ' vous concernant :');
+                ? $this->translation->translateIn($defaultLanguage, $defaultLanguage, true, "Traçabilité", "Flux - Arrivages", "Mail litige", "Un litige a été déclaré sur {1} vous concernant :", false, [ '1' => $translatedCategory ])
+                : $this->translation->translateIn($defaultLanguage, $defaultLanguage, true, "Traçabilité", "Flux - Arrivages", "Mail litige", "Changement de statut d'un litige sur {1} vous concernant :", false, [ '1' => $translatedCategory ]);
             $subject = !$isUpdate
-                ? ('FOLLOW GT // Litige sur ' . $translatedCategory)
-                : 'FOLLOW GT // Changement de statut d\'un litige sur ' . $translatedCategory;
+                ? $this->translation->translateIn($defaultLanguage, $defaultLanguage, true, "Traçabilité", "Flux - Arrivages", "Mail litige", "FOLLOW GT // Litige sur {1}", false, [ '1' => $translatedCategory ])
+                : $this->translation->translateIn($defaultLanguage, $defaultLanguage, true, "Traçabilité", "Flux - Arrivages", "Mail litige", "FOLLOW GT // Changement de statut d'un litige sur {1}", false, [ '1' => $translatedCategory ]);
 
             $this->mailerService->sendMail(
                 $subject,
@@ -191,7 +198,8 @@ class DisputeService {
                     'title' => $title,
                     'urlSuffix' => $isArrival
                         ? $this->router->generate('arrivage_index')
-                        : $this->router->generate('reception_index')
+                        : $this->router->generate('reception_index'),
+                    'defaultLanguageSlug' => $defaultLanguage
                 ]),
                 $recipients
             );
@@ -204,7 +212,7 @@ class DisputeService {
         return $this->visibleColumnService->getArrayConfig(
             [
                 ["name" => 'disputeNumber', 'title' => $this->translation->translate('Qualité', 'Litiges', 'Numéro de litige')],
-                ["name" => 'type', 'title' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Type')],
+                ["name" => 'type', 'title' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Détails arrivage - Liste des litiges', 'Type')],
                 ["name" => 'arrivalNumber', 'title' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Divers', 'N° d\'arrivage')],
                 ["name" => 'receptionNumber', 'title' => $this->translation->translate('Traçabilité', 'Association BR', 'N° de réception')],
                 ["name" => 'buyers', 'title' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Acheteur(s)')],
@@ -234,6 +242,9 @@ class DisputeService {
         if (!in_array($mode, [self::PUT_LINE_ARRIVAL, self::PUT_LINE_RECEPTION])) {
             throw new \InvalidArgumentException('Invalid mode');
         }
+
+        $userRepository = $manager->getRepository(Utilisateur::class);
+        $buyers = join(" / ", $userRepository->getBuyers($dispute["id"]));
 
         $row = [
             $dispute["number"],
