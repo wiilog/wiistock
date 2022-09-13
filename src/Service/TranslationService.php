@@ -235,7 +235,7 @@ class TranslationService {
             if (!$currentTranslation) {
                 $newTranslation = new Translation();
                 $newTranslation
-                    ->setTranslation($label['label'])
+                    ->setTranslation($label['label'] ?? '')
                     ->setSource($labelTranslationSource)
                     ->setLanguage($labelLanguage);
 

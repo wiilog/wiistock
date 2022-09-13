@@ -279,20 +279,22 @@ class StatusController extends AbstractController
                 $labelTranslationSource = $status->getLabelTranslation();
 
                 foreach ($labels as $label) {
-                    if (preg_match("[[,;]]", $label['label'])) {
-                        return $this->json([
-                            "success" => false,
-                            "msg" => "Le nom d'un statut ne peut pas contenir ; ou ,",
-                        ]);
-                    }
+                    if(isset($label['label'])){
+                        if (preg_match("[[,;]]", $label['label'])) {
+                            return $this->json([
+                                "success" => false,
+                                "msg" => "Le nom d'un statut ne peut pas contenir ; ou ,",
+                            ]);
+                        }
 
-                    if ($statusRepository->findDuplicates($label["label"], $label["language-id"])) {
-                        $language = $manager->find(Language::class, $label["language-id"]);
+                        if ($statusRepository->findDuplicates($label["label"], $label["language-id"])) {
+                            $language = $manager->find(Language::class, $label["language-id"]);
 
-                        return $this->json([
-                            "success" => false,
-                            "msg" => "Une nature existe déjà avec ce libellé dans la langue \"{$language->getLabel()}\"",
-                        ]);
+                            return $this->json([
+                                "success" => false,
+                                "msg" => "Une nature existe déjà avec ce libellé dans la langue \"{$language->getLabel()}\"",
+                            ]);
+                        }
                     }
                 }
 
