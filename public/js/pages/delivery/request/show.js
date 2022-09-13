@@ -141,6 +141,9 @@ function ajaxEditArticle(select) {
             quantityToTake.removeClass('d-none');
             Select2Old.location($('.ajax-autocomplete-location-edit'));
             $('.list-multiple').select2();
+            //WIIS-8166 open and close select2 Reference for fix a scrolling bug
+            $('#reference').select2('open');
+            $('#reference').select2('close');
         }
     });
 }

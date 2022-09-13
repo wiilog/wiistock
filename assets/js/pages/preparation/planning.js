@@ -208,16 +208,6 @@ function getPreparationLaunchForm($modal){
                 });
 
                 $modal.find('.check-stock-button').on('click', function () {
-                    if ($modal.find('.check-stock-button').data('launch-preparations') === "1") {
-                        $modal.find('.modal-content-wrapper .btn-primary')
-                            .removeClass('.btn-primary')
-                            .addClass('btn-secondary')
-                            .attr("disabled", true);
-                        $modal.find('.modal-content-wrapper .btn-outline-primary')
-                            .removeClass('.btn-outline-primary')
-                            .addClass('btn-outline-secondary')
-                            .attr("disabled", true);
-                    }
                     launchStockCheck($modal);
                 });
             });
@@ -275,6 +265,9 @@ function launchStockCheck($modal) {
                                 .removeClass('orange-card');
                         });
                         $modal.find('.assigned-preparations').addClass('border border-danger');
+
+                        changeMoveAllMode($modal, true);
+
                         $submitButton.html($(`<div/>`, {
                             class: `d-inline-flex align-items-center`,
                             html: [$(`<span/>`, {
@@ -289,10 +282,12 @@ function launchStockCheck($modal) {
                         $modal.find('.quantities-information-container').removeClass('d-none');
                         $modal.find('.quantities-information').empty();
                         $modal.find('.quantities-information').append(res.template);
-                    } else if ($submitButton.data('launch-preparations') === "1") {
+                    }
+                    else if ($submitButton.data('launch-preparations') === "1") {
                         $modal.modal('hide');
                         callbackSaveFilter();
-                    } else {
+                    }
+                    else {
                         Flash.add(SUCCESS, "Le stock demandé est disponible");
                         $modal.find('.cancel-button')
                             .removeClass('btn btn-outline-primary')
@@ -302,11 +297,38 @@ function launchStockCheck($modal) {
                             .addClass('btn-success')
                             .text("Valider le lancement")
                             .data('launch-preparations', "1");
+
+                        changeMoveAllMode($modal, false);
+
                         $modal.find('.assigned-preparations').addClass('border border-success');
                     }
                 }
             });
     });
+}
+
+function changeMoveAllMode($modal, activate) {
+    const $addAll = $modal.find('.modal-content-wrapper .add-all');
+    const $removeAll = $modal.find('.modal-content-wrapper .remove-all');
+
+    if (activate) {
+        $addAll.addClass('.btn-primary')
+            .removeClass('btn-secondary')
+            .attr("disabled", false);
+        $removeAll
+            .addClass('.btn-outline-primary')
+            .removeClass('btn-outline-secondary')
+            .attr("disabled", false);
+    }
+    else {
+        $addAll.removeClass('.btn-primary')
+            .addClass('btn-secondary')
+            .attr("disabled", true);
+        $removeAll
+            .removeClass('.btn-outline-primary')
+            .addClass('btn-outline-secondary')
+            .attr("disabled", true);
+    }
 }
 
 
