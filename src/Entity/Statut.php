@@ -152,11 +152,7 @@ class Statut {
         };
 
         return $this->getLabelTranslation()->getTranslationIn($in, $default)?->getTranslation()
-            ?? $this->getLabelTranslation()->getTranslationIn( Language::FRENCH_SLUG)?->getTranslation();
-    }
-
-    public function getLabel() {
-        return $this->getFormatter()->status($this);
+            ?: $this->getLabelTranslation()->getTranslationIn( Language::FRENCH_SLUG)?->getTranslation();
     }
 
     #[Deprecated]
