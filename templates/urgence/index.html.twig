@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Traçabilité | {{ 'urgences.urgences'|trans }}{% endblock %}
+{% block title %}Traçabilité | {{ trans('Traçabilité', 'Urgences', 'Urgences') }}{% endblock %}
 {% block title_tooltip %}Traçabilité | Urgences{% endblock %}
 
 {% block page_filter %}
@@ -26,14 +26,14 @@
                                 data-target="#modalNewUrgence"
                                 class="btn btn-primary split-button d-flex align-items-center">
                             <span class="wii-icon wii-icon-plus mr-2"></span>
-                            <span title="nouvelle urgence">{{ 'urgences.nouvelle urgence'|trans }}</span>
+                            <span title="nouvelle urgence">{{ trans('Traçabilité', 'Urgences', 'Nouvelle urgence') }}</span>
                         </button>
                     {% elseif hasRightToExport %}
                         <button type="button"
                                 class="btn btn-primary"
                                 onclick="saveExportFile('get_emergencies_csv', true, {}, false, 'Veuillez saisir des dates dans le filtre en haut de page.', true)">
                             <span class="fa fa-file-csv mr-2" style="padding: 0 2px"></span>
-                            Exporter au format CSV
+                            {{ trans('Général', null, 'Zone liste', 'Exporter au format CSV') }}
                         </button>
                     {% endif %}
 
@@ -50,7 +50,7 @@
                                  title="exportCsvUrgence"
                                  onclick="saveExportFile('get_emergencies_csv', true, {}, false, 'Veuillez saisir des dates dans le filtre en haut de page.', true)">
                                 <i class="fa fa-file-csv"></i>
-                                Exporter au format CSV
+                                {{ trans('Général', null, 'Zone liste', 'Exporter au format CSV') }}
                             </div>
                         </div>
                     {% endif %}

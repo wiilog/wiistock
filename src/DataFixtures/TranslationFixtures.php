@@ -1038,8 +1038,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "tooltip" => "Modale Nouvelle urgence",
                     ],
                     [
-                        "fr" => "Modifier une urgence",
-                        "en" => "Edit an urgency",
+                        "fr" => "Modifier Urgeune urgence",
+                        "en" => "Edit an uUrgergency",
                         "tooltip" => "Modale Modifier une urgence",
                     ],
                     [
@@ -1062,7 +1062,26 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "en" => "Order number",
                         "tooltip" => "Zone filtre",
                     ],
-
+                    [
+                        "fr" => "Transporteur",
+                        "en" => "Carrier",
+                        "tooltip" => "Zone liste - Nom de colonne\nModale modifier une urgence\nModale Créer une nouvelle urgence",
+                    ],
+                    [
+                        "fr" => "Fournisseur",
+                        "en" => "Supplier",
+                        "tooltip" => "Zone liste - Nom de colonne\nModale modifier une urgence\nModale Créer une nouvelle urgence",
+                    ],
+                    [
+                        "fr" => "N° tracking transporteur",
+                        "en" => "Carrier tracking number",
+                        "tooltip" => "Modale modifier une urgence\nModale Créer une nouvelle urgence",
+                    ],
+                    [
+                        "fr" => "Numéro d'arrivage",
+                        "en" => "Arrival number",
+                        "tooltip" => "Zone liste - Nom de colonnes",
+                    ],
                 ],
             ],
             "Unités logistiques" => [
