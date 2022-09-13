@@ -15,11 +15,12 @@
         display: flex;
         align-content: flex-start;
         align-items: flex-start;
+        flex-wrap: wrap;
 
         .preparation-card,
         .placeholder-container {
-            max-width: 210px;
-            min-width: 210px;
+            max-width: 205px;
+            min-width: 205px;
         }
     }
 
