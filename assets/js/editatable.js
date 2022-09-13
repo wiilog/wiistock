@@ -210,6 +210,12 @@ function initEditatable(datatable, onDatatableInit = null) {
         url = config.route;
     }
 
+    // Trigger edit mode when click on table
+    $('#table-arrival-fixed-fields').click(function() {
+        console.log('check');
+        datatable.toggleEdit(STATE_EDIT);
+    });
+
     return initDataTable($element, {
         serverSide: false,
         ajax: {
@@ -217,6 +223,9 @@ function initEditatable(datatable, onDatatableInit = null) {
             url,
             data: (data) => {
                 data.edit = state !== STATE_VIEWING;
+                if(data.edit){
+                    datatable.toggleEdit(STATE_VIEWING);
+                }
             },
         },
         rowConfig: {
