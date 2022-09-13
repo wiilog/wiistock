@@ -73,7 +73,9 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
                     mode: mode
                 };
                 $.post(Routing.generate("settings_edit_status_translations_api", true), params)
-                    .then(response => {$modalEditTranslations.find(`.modal-body`).html(response.html)});
+                    .then(response => {
+                        $modalEditTranslations.find(`.modal-body`).html(response.html);
+                    });
             });
         },
         onEditStop: () => {

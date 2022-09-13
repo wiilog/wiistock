@@ -31,7 +31,7 @@ class Language {
     public const DEFAULT_LANGUAGE_SLUG = self::FRENCH_DEFAULT_SLUG;
 
     public const DEFAULT_LANGUAGE_TRANSLATIONS = [
-        self::FRENCH_SLUG => self::FRENCH_DEFAULT_SLUG ,
+        self::FRENCH_SLUG => self::FRENCH_DEFAULT_SLUG,
         self::ENGLISH_SLUG => self::ENGLISH_DEFAULT_SLUG
     ];
 
