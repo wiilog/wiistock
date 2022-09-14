@@ -504,6 +504,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "tooltip" => "Page Mouvements : \nZone liste - Nom de colonnes\nGestion des colonnes\n_____\nPage UL : \nZone liste - Nom de colonnes",
                     ],
                     [
+                        "fr" => "Issu de (numéro)",
+                        "en" => "From (number)",
+                        "tooltip" => "Page UL : \nZone liste - Nom de colonnes",
+                    ],
+                    [
                         "fr" => "Date de création",
                         "en" => "Creation date",
                         "tooltip" => "Page Flux - Arrivages :\nZone liste - Nom de colonnes\nGestion des colonnes\nDétails arrive - Liste des litiges \n____\nPage Urgences :\nZone liste - Nom de colonnes",

@@ -89,7 +89,7 @@ class PackController extends AbstractController
                 $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', "Nature d'unité logistique"),
                 $translation->translate( 'Traçabilité', 'Général', 'Date dernier mouvement'),
                 $translation->translate( 'Traçabilité', 'Général', 'Issu de'),
-                'Issu de (numéro)',
+                $translation->translate( 'Traçabilité', 'Général', 'Issu de (numéro)'),
                 $translation->translate( 'Traçabilité', 'Général', 'Emplacement'),
             ];
 
