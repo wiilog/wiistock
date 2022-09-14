@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\Emplacement;
 use App\Entity\FreeField;
 use App\Entity\Handling;
 use App\Entity\Nature;
@@ -57,12 +58,16 @@ class FormatService
     }
 
     public function date(?DateTimeInterface $date, $else = "", ?Utilisateur $user = null) {
-        return $date ? $date->format($this->getUser($user)?->getDateFormat() ) : $else;
+        return $date ? $date->format($this->getUser($user)?->getDateFormat()) : $else;
     }
 
     public function datetime(?DateTimeInterface $date, $else = "", $addAt = false, ?Utilisateur $user = null) {
         $prefix = $this->getUser($user)?->getDateFormat();
         return $date ? $date->format($addAt ? "$prefix à H:i" : "$prefix H:i") : $else;
+    }
+
+    public function location(?Emplacement $location, $else = "") {
+        return $location ? $location->getLabel() : $else;
     }
 
     public function handlingRequester(Handling $handling, $else = ""): string {

@@ -62,8 +62,8 @@ $(function() {
     const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
 
     initDateTimePicker('#dateMin, #dateMax', DATE_FORMATS_TO_DISPLAY[format]);
-    Select2Old.init($('.filter-select2[name="natures"]'), 'Natures');
-    Select2Old.location($('.ajax-autocomplete-emplacements'), {}, Translation.of('Traçabilité', 'Encours', 'Emplacements', false), 3);
+    Select2Old.init($('.filter-select2[name="natures"]'), Translation.of('Traçabilité', 'Général', 'Natures', false));
+    Select2Old.location($('.ajax-autocomplete-emplacements'), {}, Translation.of( 'Traçabilité', 'Général', 'Emplacement', false), 3);
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
@@ -145,9 +145,23 @@ function switchGroups() {
 
 function toExport() {
     if(selectedTab === TAB_PACKS) {
-        saveExportFile(`export_packs`, true, {}, false, 'Veuillez saisir des dates dans le filtre en haut de page.', true);
+        saveExportFile(
+            `export_packs`,
+            true,
+            {},
+            false,
+            Translation.of('Général', null, 'Modale', 'Veuillez saisir des dates dans le filtre en haut de page.'),
+            true
+        );
     } else {
-        saveExportFile(`export_groups`, true, {}, false, 'Veuillez saisir des dates dans le filtre en haut de page.', true);
+        saveExportFile(
+            `export_groups`,
+            true,
+            {},
+            false,
+            Translation.of('Général', null, 'Modale', 'Veuillez saisir des dates dans le filtre en haut de page.'),
+            true
+        );
     }
 }
 

@@ -19,8 +19,8 @@ $(function () {
         displayFiltersSup(data, true);
     }, 'json');
 
-    Select2Old.user('Opérateurs');
-    Select2Old.location($('.ajax-autocomplete-emplacements'), {}, Translation.of('Traçabilité', 'Encours', 'Emplacements', false), 3);
+    Select2Old.user(Translation.of('Traçabilité', 'Mouvements', 'Opérateurs', false));
+    Select2Old.location($('.ajax-autocomplete-emplacements'), {}, Translation.of( 'Traçabilité', 'Général', 'Emplacement', false), 3);
 
     initNewModal($modalNewMvtTraca);
 
@@ -50,7 +50,6 @@ $(function () {
 
             tableMvt = initDataTable('tableMvts', config);
             initPageModal(tableMvt);
-
         });
 });
 

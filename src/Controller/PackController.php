@@ -85,12 +85,12 @@ class PackController extends AbstractController
         if (isset($dateTimeMin) && isset($dateTimeMax)) {
 
             $csvHeader = [
-                $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', "Numéro d'UL"),
-                $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', "Nature d'unité logistique"),
-                $translation->translate( 'Traçabilité', 'Général', 'Date dernier mouvement'),
-                $translation->translate( 'Traçabilité', 'Général', 'Issu de'),
-                $translation->translate( 'Traçabilité', 'Général', 'Issu de (numéro)'),
-                $translation->translate( 'Traçabilité', 'Général', 'Emplacement'),
+                $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', "Numéro d'UL", false),
+                $translation->translate('Traçabilité', 'Unités logistiques', 'Divers', "Nature d'unité logistique", false),
+                $translation->translate( 'Traçabilité', 'Général', 'Date dernier mouvement', false),
+                $translation->translate( 'Traçabilité', 'Général', 'Issu de', false),
+                $translation->translate( 'Traçabilité', 'Général', 'Issu de (numéro)', false),
+                $translation->translate( 'Traçabilité', 'Général', 'Emplacement', false),
             ];
 
             return $CSVExportService->streamResponse(
@@ -102,7 +102,7 @@ class PackController extends AbstractController
                     foreach ($packs as $pack) {
                         $trackingMouvment = $trackingMouvementRepository->find($pack['fromTo']);
                         $mvtData = $trackingMovementService->getFromColumnData($trackingMouvment);
-                        $pack['fromLabel'] = $translation->trans($mvtData['fromLabel']);
+                        $pack['fromLabel'] = $mvtData['fromLabel'];
                         $pack['fromTo'] = $mvtData['from'];
                         $this->putPackLine($output, $CSVExportService, $pack);
                     }

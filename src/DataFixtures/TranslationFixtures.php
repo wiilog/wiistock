@@ -279,11 +279,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "fr" => "\"{1}\" : La taille du fichier ne doit pas dépasser 10 Mo.",
                             "en" => "\"{1}\": The file size must not exceed 10 MB.",
                         ],
-                        [
-                            "fr" => "Veuillez saisir des dates dans le filtre en haut de page.",
-                            "en" => "Please enter dates in the filter at the top of the page.",
-                            "tooltip" => "Erreur",
-                        ],
                     ],
                 ],
                 "Stock" => [
@@ -496,7 +491,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "Natures",
                         "en" => "Natures",
-                        "tooltip" => "Page UL : \nFiltre\n____\nPage Encours :\nFiltre",
+                        "tooltip" => "Page Unités Logistiques :\nFiltre\n____\nPage Encours :\nFiltre",
                     ],
                     [
                         "fr" => "Issu de",
@@ -571,6 +566,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Nombre d'UL",
                             "en" => "Quantity L.U.",
+                            "tooltip" => "Page Flux - Arrivages :\nZone liste - Nom de colonnes\nGestion des colonnes",
+                        ],
+                        [
+                            "fr" => "Poids total (kg)",
+                            "en" => "Total weight (kg)",
                             "tooltip" => "Page Flux - Arrivages :\nZone liste - Nom de colonnes\nGestion des colonnes",
                         ],
                         [
@@ -1074,14 +1074,24 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 "Divers" => [
                     "content" => [
                         [
-                            "fr" => "Natures",
-                            "en" => "Natures",
-                            "tooltip" => "Filtre",
-                        ],
-                        [
                             "fr" => "N° d'arrivage",
                             "en" => "Arrival number",
                             "tooltip" => "Filtre",
+                        ],
+                        [
+                            "fr" => "Nature d'unité logistique",
+                            "en" => "Logistics unit nature",
+                            "tooltip" => 'Onglet "Unité logistique"\nZone liste\nModale Modifier une unité logistique\n____\nOnglet "Groupes"\nExport',
+                        ],
+                        [
+                            "fr" => "Poids (kg)",
+                            "en" => "Weight (kg)",
+                            "tooltip" => 'Onglet "Unité logistique"\nZone liste\nModale Modifier une unité logistique\n____\nOnglet "Groupes"\nModale Modifier le groupe\nExport',
+                        ],
+                        [
+                            "fr" => "Volume (m3)",
+                            "en" => "Volume (m3)",
+                            "tooltip" => 'Onglet "Unité logistique"\nZone liste\nModale Modifier une unité logistique\n____\nOnglet "Groupes"\nModale Modifier le groupe\nExport',
                         ],
                     ],
                 ],
@@ -1093,23 +1103,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Zone liste\nModale Modifier une unité logistique",
                         ],
                         [
-                            "fr" => "Nature d'unité logistique",
-                            "en" => "Logistics unit nature",
-                            "tooltip" => "Zone liste\nModale Modifier une unité logistique",
-                        ],
-                        [
                             "fr" => "Modifier une unité logistique",
                             "en" => "Edit L.U.",
-                            "tooltip" => "Modale Modifier une unité logistique",
-                        ],
-                        [
-                            "fr" => "Poids (kg)",
-                            "en" => "Weight (kg)",
-                            "tooltip" => "Modale Modifier une unité logistique",
-                        ],
-                        [
-                            "fr" => "Volume (m3)",
-                            "en" => "Volume (m3)",
                             "tooltip" => "Modale Modifier une unité logistique",
                         ],
                         [

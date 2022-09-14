@@ -31,7 +31,7 @@
                     {% elseif hasRightToExport %}
                         <button type="button"
                                 class="btn btn-primary"
-                                onclick="saveExportFile('get_emergencies_csv', true, {}, false, 'Veuillez saisir des dates dans le filtre en haut de page.', true)">
+                                onclick="saveExportFile('get_emergencies_csv', true, {}, false, Translation.of('Général', null, 'Modale',  'Veuillez saisir des dates dans le filtre en haut de page.'), true)">
                             <span class="fa fa-file-csv mr-2" style="padding: 0 2px"></span>
                             Exporter au format CSV
                         </button>
@@ -48,7 +48,7 @@
                         <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
                             <div class="dropdown-item pointer"
                                  title="exportCsvUrgence"
-                                 onclick="saveExportFile('get_emergencies_csv', true, {}, false, 'Veuillez saisir des dates dans le filtre en haut de page.', true)">
+                                 onclick="saveExportFile('get_emergencies_csv', true, {}, false, Translation.of('Général', null, 'Modale',  'Veuillez saisir des dates dans le filtre en haut de page.'), true)">
                                 <i class="fa fa-file-csv"></i>
                                 Exporter au format CSV
                             </div>

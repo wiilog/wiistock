@@ -1027,7 +1027,7 @@ function saveExportFile(routeName,
                         needsDateFilters = true,
                         routeParam = {},
                         needsAdditionalFilters = false,
-                        errorMsgDates = 'Veuillez saisir des dates dans le filtre en haut de page.',
+                        errorMsgDates = Translation.of('Général', null, 'Modale', 'Veuillez saisir des dates dans le filtre en haut de page.'),
                         needsDateFormatting = false) {
 
     const buttonTypeTransport = $("input[name='category']:checked")
