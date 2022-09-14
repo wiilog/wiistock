@@ -1463,6 +1463,16 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "en" => "The following L.U. does not exist :",
                         "tooltip" => "Modale Supprimer l'association BR",
                     ],
+                    [
+                        "fr" => "L'association BR a bien été créée",
+                        "en" => "The Receipt and L.U. matching has been created",
+                        "tooltip" => "Modale Enregistrer une réception",
+                    ],
+                    [
+                        "fr" => "L'association BR a bien été supprimée",
+                        "en" => "The Receipt and L.U. matching has been deleted",
+                        "tooltip" => "Modale Supprimer l'association BR",
+                    ],
                 ],
             ],
             "Encours" => [
