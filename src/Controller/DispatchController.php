@@ -1014,7 +1014,7 @@ class DispatchController extends AbstractController {
                     $translation->translate('Demande', 'Général', 'Urgence', false),
                     $translation->translate('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Nature', false),
                     $translation->translate('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Unité logistique', false),
-                    $translation->translate('Demande', 'Acheminements', 'Divers','Quantité UL', false),
+                    $translation->translate('Demande', 'Acheminements', 'Divers', 'Quantité UL', false),
                     $translation->translate('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Quantité à acheminer', false),
                     $translation->translate('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Poids (kg)', false),
                     $translation->translate('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Date dernier mouvement', false),

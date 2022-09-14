@@ -40,7 +40,7 @@
                         {% elseif hasRightExport %}
                             <button type="button"
                                     class="btn btn-primary"
-                                    onclick="saveExportFile('get_mouvements_traca_csv', true, {}, false, 'Veuillez saisir des dates dans le filtre en haut de page.', true)">
+                                    onclick="saveExportFile('get_mouvements_traca_csv', true, {}, false, Translation.of('Général', null, 'Modale', 'Veuillez saisir des dates dans le filtre en haut de page.'), true)">
                                 <i class="fa fa-file-csv mr-2"></i>
                                 {{ trans('Général', '', 'Zone liste', 'Exporter au format CSV', false) }}
                             </button>

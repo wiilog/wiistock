@@ -85,12 +85,12 @@ class PackController extends AbstractController
         if (isset($dateTimeMin) && isset($dateTimeMax)) {
 
             $csvHeader = [
-                'Numéro colis',
-                $translation->trans('natures.Nature de colis'),
-                'Date du dernier mouvement',
-                'Issu de',
-                'Issu de (numéro)',
-                'Emplacement',
+                $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', "Numéro d'UL", false),
+                $translation->translate('Traçabilité', 'Unités logistiques', 'Divers', "Nature d'unité logistique", false),
+                $translation->translate( 'Traçabilité', 'Général', 'Date dernier mouvement', false),
+                $translation->translate( 'Traçabilité', 'Général', 'Issu de', false),
+                $translation->translate( 'Traçabilité', 'Général', 'Issu de (numéro)', false),
+                $translation->translate( 'Traçabilité', 'Général', 'Emplacement', false),
             ];
 
             return $CSVExportService->streamResponse(
@@ -102,7 +102,7 @@ class PackController extends AbstractController
                     foreach ($packs as $pack) {
                         $trackingMouvment = $trackingMouvementRepository->find($pack['fromTo']);
                         $mvtData = $trackingMovementService->getFromColumnData($trackingMouvment);
-                        $pack['fromLabel'] = $translation->trans($mvtData['fromLabel']);
+                        $pack['fromLabel'] = $mvtData['fromLabel'];
                         $pack['fromTo'] = $mvtData['from'];
                         $this->putPackLine($output, $CSVExportService, $pack);
                     }
@@ -195,9 +195,10 @@ class PackController extends AbstractController
             $entityManager->flush();
             $response = [
                 'success' => true,
-                'msg' => $translation->trans('colis.Le colis {numéro} a bien été modifié', [
-                        "{numéro}" => '<strong>' . $pack->getCode() . '</strong>'
-                    ]) . '.'
+                'msg' => $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', "L'unité logistique {1} a bien été modifiée", [
+                    1 => $pack->getCode()
+                ])
+
             ];
         } else if (!$packDataIsValid['success']) {
             $response = $packDataIsValid;
@@ -221,19 +222,19 @@ class PackController extends AbstractController
             $packCode = $pack->getCode();
             $arrivage = isset($data['arrivage']) ? $arrivageRepository->find($data['arrivage']) : null;
             if (!$pack->getTrackingMovements()->isEmpty()) {
-                $msg = $translation->trans("colis.Ce colis est référencé dans un ou plusieurs mouvements de traçabilité");
+                $msg = $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', "Ce colis est référencé dans un ou plusieurs mouvements de traçabilité");
             }
 
             if (!$pack->getDispatchPacks()->isEmpty()) {
-                $msg = $translation->trans("colis.Ce colis est référencé dans un ou plusieurs acheminements");
+                $msg = $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', "Ce colis est référencé dans un ou plusieurs acheminements");
             }
 
             if (!$pack->getDisputes()->isEmpty()) {
-                $msg = $translation->trans("colis.Ce colis est référencé dans un ou plusieurs litiges");
+                $msg = $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', "Ce colis est référencé dans un ou plusieurs litiges");
             }
             if ($pack->getArrivage() && $arrivage !== $pack->getArrivage()) {
-                $msg = $translation->trans('colis.Ce colis est utilisé dans l\'arrivage {arrivage}', [
-                    "{arrivage}" => $pack->getArrivage()->getNumeroArrivage()
+                $msg = $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Ce colis est utilisé dans l\'arrivage {1}', [
+                    1 => $pack->getArrivage()->getNumeroArrivage()
                 ]);
             }
 
@@ -248,10 +249,10 @@ class PackController extends AbstractController
             $entityManager->flush();
 
             return new JsonResponse([
-                'success' => true,
-                'msg' => $translation->trans('colis.Le colis {numéro} a bien été supprimé', [
-                        "{numéro}" => '<strong>' . $packCode . '</strong>'
-                    ]) . '.'
+                'success' => true,"",
+                'msg' => $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', "L'unité logistique {1} a bien été supprimée", [
+                        1 => $pack->getArrivage()->getNumeroArrivage()
+                    ])
             ]);
         }
 

@@ -33,7 +33,7 @@
                     </button>
                 {% else %}
                     <div class="btn-group">
-                        <div class="btn btn-primary split-button" onclick="saveExportFile('get_handlings_csv', true, {}, false, 'Veuillez saisir des dates dans le filtre en haut de page.', true)">
+                        <div class="btn btn-primary split-button" onclick="saveExportFile('get_handlings_csv', true, {}, false, Translation.of('Général', null, 'Modale', 'Veuillez saisir des dates dans le filtre en haut de page.'), true)">
                             <i class="fa fa-file-csv mr-2"></i>{{ trans('Général', null, 'Zone liste', 'Exporter au format CSV') }}
                         </div>
                         <button type="button"

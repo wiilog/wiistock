@@ -279,11 +279,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "fr" => "\"{1}\" : La taille du fichier ne doit pas dépasser 10 Mo.",
                             "en" => "\"{1}\": The file size must not exceed 10 MB.",
                         ],
-                        [
-                            "fr" => "Veuillez saisir des dates dans le filtre en haut de page.",
-                            "en" => "Please enter dates in the filter at the top of the page.",
-                            "tooltip" => "Erreur",
-                        ],
                     ],
                 ],
                 "Stock" => [
@@ -496,12 +491,17 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "Natures",
                         "en" => "Natures",
-                        "tooltip" => "Page UL : \nFiltre\n____\nPage Encours :\nFiltre",
+                        "tooltip" => "Page Unités Logistiques :\nFiltre\n____\nPage Encours :\nFiltre",
                     ],
                     [
                         "fr" => "Issu de",
                         "en" => "From",
                         "tooltip" => "Page Mouvements : \nZone liste - Nom de colonnes\nGestion des colonnes\n_____\nPage UL : \nZone liste - Nom de colonnes",
+                    ],
+                    [
+                        "fr" => "Issu de (numéro)",
+                        "en" => "From (number)",
+                        "tooltip" => "Page UL : \nZone liste - Nom de colonnes",
                     ],
                     [
                         "fr" => "Date de création",
@@ -566,6 +566,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Nombre d'UL",
                             "en" => "Quantity L.U.",
+                            "tooltip" => "Page Flux - Arrivages :\nZone liste - Nom de colonnes\nGestion des colonnes",
+                        ],
+                        [
+                            "fr" => "Poids total (kg)",
+                            "en" => "Total weight (kg)",
                             "tooltip" => "Page Flux - Arrivages :\nZone liste - Nom de colonnes\nGestion des colonnes",
                         ],
                         [
@@ -1069,14 +1074,24 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 "Divers" => [
                     "content" => [
                         [
-                            "fr" => "Natures",
-                            "en" => "Natures",
-                            "tooltip" => "Filtre",
-                        ],
-                        [
                             "fr" => "N° d'arrivage",
                             "en" => "Arrival number",
                             "tooltip" => "Filtre",
+                        ],
+                        [
+                            "fr" => "Nature d'unité logistique",
+                            "en" => "Logistics unit nature",
+                            "tooltip" => 'Onglet "Unité logistique"\nZone liste\nModale Modifier une unité logistique\n____\nOnglet "Groupes"\nExport',
+                        ],
+                        [
+                            "fr" => "Poids (kg)",
+                            "en" => "Weight (kg)",
+                            "tooltip" => 'Onglet "Unité logistique"\nZone liste\nModale Modifier une unité logistique\n____\nOnglet "Groupes"\nModale Modifier le groupe\nExport',
+                        ],
+                        [
+                            "fr" => "Volume (m3)",
+                            "en" => "Volume (m3)",
+                            "tooltip" => 'Onglet "Unité logistique"\nZone liste\nModale Modifier une unité logistique\n____\nOnglet "Groupes"\nModale Modifier le groupe\nExport',
                         ],
                     ],
                 ],
@@ -1088,29 +1103,19 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Zone liste\nModale Modifier une unité logistique",
                         ],
                         [
-                            "fr" => "Nature d'unité logistique",
-                            "en" => "Logistics unit nature",
-                            "tooltip" => "Zone liste\nModale Modifier une unité logistique",
-                        ],
-                        [
                             "fr" => "Modifier une unité logistique",
                             "en" => "Edit L.U.",
-                            "tooltip" => "Modale Modifier une unité logistique",
-                        ],
-                        [
-                            "fr" => "Poids (kg)",
-                            "en" => "Weight (kg)",
-                            "tooltip" => "Modale Modifier une unité logistique",
-                        ],
-                        [
-                            "fr" => "Volume (m3)",
-                            "en" => "Volume (m3)",
                             "tooltip" => "Modale Modifier une unité logistique",
                         ],
                         [
                             "fr" => "Historique de groupage",
                             "en" => "Grouping history",
                             "tooltip" => "Modale Modifier une unité logistique",
+                        ],
+                        [
+                            "fr" => "Historique des données",
+                            "en" => "Data history",
+                            "tooltip" => "Zone liste",
                         ],
                         [
                             "fr" => "Projets assignés",
@@ -1245,9 +1250,24 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Onglet \"Groupes\"",
                         ],
                         [
+                            "fr" => "Dégrouper",
+                            "en" => "Ungrouped",
+                            "tooltip" => "Onglet \"Groupes\"",
+                        ],
+                        [
+                            "fr" => "Vous êtes sur le point de dégrouper le groupe {1}. Les colis suivant seront déposés sur l'emplacement sélectionné : {2}.",
+                            "en" => "You are about to ungroup the group {1}. The following packages will be dropped off at the selected location : {2}.",
+                            "tooltip" => "Modale Dégrouper",
+                        ],
+                        [
                             "fr" => "Nombre d'UL",
                             "en" => "Quantity of L.U.",
                             "tooltip" => "Onglet \"Groupes\"",
+                        ],
+                        [
+                            "fr" => "Numéro groupe",
+                            "en" => "Group number",
+                            "tooltip" => "Modale Modifier le groupe",
                         ],
                         [
                             "fr" => "Mouvementé la dernière fois le {1}",
@@ -1258,6 +1278,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "fr" => "sur l'emplacement {1} par {2}",
                             "en" => "on the location {1} by {2}",
                             "tooltip" => "Onglet \"Groupes\"",
+                        ],
+                        [
+                            "fr" => "Modifier le groupe",
+                            "en" => "Edit group",
+                            "tooltip" => "Modale Modifier le groupe",
                         ],
                     ],
                 ],

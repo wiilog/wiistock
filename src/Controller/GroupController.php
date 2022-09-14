@@ -134,11 +134,11 @@ class GroupController extends AbstractController {
      * @Route("/csv", name="export_groups", options={"expose"=true}, methods={"GET"})
      * @HasPermission({Menu::TRACA, Action::EXPORT})
      */
-    public function exportGroups(Request $request,
-                                 CSVExportService $CSVExportService,
+    public function exportGroups(Request                 $request,
+                                 CSVExportService        $CSVExportService,
                                  TrackingMovementService $trackingMovementService,
-                                 TranslationService $translation,
-                                 EntityManagerInterface $entityManager): Response {
+                                 TranslationService      $translationService,
+                                 EntityManagerInterface  $entityManager): Response {
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
 
@@ -150,19 +150,19 @@ class GroupController extends AbstractController {
 
         if (isset($dateTimeMin) && isset($dateTimeMax)) {
             $csvHeader = [
-                'Numéro groupe',
-                $translation->trans('natures.Nature de colis'),
-                'Date du dernier mouvement',
-                'Nombre de colis',
-                'Poids',
-                'Volume',
-                'Issu de',
-                'Issu de (numéro)',
-                'Emplacement',
+                $translationService->translate( 'Traçabilité', 'Unités logistiques', 'Onglet "Groupes"', 'Numéro groupe', false),
+                $translationService->translate('Traçabilité', 'Unités logistiques', 'Divers', "Nature d'unité logistique", false),
+                $translationService->translate( 'Traçabilité', 'Général', 'Date dernier mouvement', false),
+                $translationService->translate('Traçabilité', 'Unités logistiques', 'Onglet "Groupes"', "Nombre d'UL", false),
+                $translationService->translate('Traçabilité', 'Unités logistiques', 'Divers', "Poids (kg)", false),
+                $translationService->translate('Traçabilité', 'Unités logistiques', 'Divers', "Volume (m3)", false),
+                $translationService->translate( 'Traçabilité', 'Général', 'Issu de', false),
+                $translationService->translate( 'Traçabilité', 'Général', 'Issu de (numéro)', false),
+                $translationService->translate( 'Traçabilité', 'Général', 'Emplacement', false),
             ];
 
             return $CSVExportService->streamResponse(
-                function($output) use ($CSVExportService, $translation, $entityManager, $dateTimeMin, $dateTimeMax, $trackingMovementService) {
+                function($output) use ($CSVExportService, $entityManager, $dateTimeMin, $dateTimeMax, $trackingMovementService) {
                     $packRepository = $entityManager->getRepository(Pack::class);
                     $groups = $packRepository->getGroupsByDates($dateTimeMin, $dateTimeMax);
 
@@ -180,9 +180,9 @@ class GroupController extends AbstractController {
                             $groupData['packCounter'],
                             $group->getWeight(),
                             $group->getVolume(),
-                            $translation->trans($trackingData['fromLabel']),
+                            $trackingData['fromLabel'],
                             $trackingData["from"],
-                            FormatHelper::location($trackingLocation)
+                            $this->getFormatter()->location($trackingLocation),
                         ]);
                     }
                 }, 'export_groupes.csv',

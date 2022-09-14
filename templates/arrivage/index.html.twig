@@ -43,7 +43,7 @@
                     {% elseif hasRightToExport %}
                         <button type="button"
                                 class="btn btn-primary split-button"
-                                onclick="saveExportFile('get_arrivages_csv', true, {}, false, '{{ trans('Général', null, 'Modale',  'Veuillez saisir des dates dans le filtre en haut de page.', false) }}', true)">
+                                onclick="saveExportFile('get_arrivages_csv', true, {}, false, '{{ trans('Général', null, 'Modale', 'Veuillez saisir des dates dans le filtre en haut de page.', false) }}', true)">
                             <span class="fa fa-file-csv mr-2" style="padding: 0 2px"></span>
                             {{ trans('Général', null, 'Zone liste', 'Exporter au format CSV') }}
                         </button>
@@ -58,7 +58,7 @@
                     <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
                         {% if hasRightToCreate and hasRightToExport %}
                             <a class="dropdown-item pointer"
-                               onclick="saveExportFile('get_arrivages_csv', true, {}, false, '{{ trans('Général', null, 'Modale',  'Veuillez saisir des dates dans le filtre en haut de page.', false) }}', true)">
+                               onclick="saveExportFile('get_arrivages_csv', true, {}, false, '{{ trans('Général', null, 'Modale', 'Veuillez saisir des dates dans le filtre en haut de page.', false) }}', true)">
                                 <i class="fa fa-file-csv mr-2" style="padding: 0 2px"></i>
                                 {{ trans('Général', null, 'Zone liste', 'Exporter au format CSV') }}
                             </a>
