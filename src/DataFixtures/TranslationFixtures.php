@@ -1429,8 +1429,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "tooltip" => "Menu\nFil d'Ariane\nZone liste - Bouton",
                     ],
                     [
-                        "fr" => "Réceptions",
-                        "en" => "Receipts",
+                        "fr" => "Réception",
+                        "en" => "Receipt",
                         "tooltip" => "Filtre\nZone liste - Nom de colonnes",
                     ],
                     [
