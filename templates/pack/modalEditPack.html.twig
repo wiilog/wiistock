@@ -2,14 +2,14 @@
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
-                title: '<span title="Modifier un colis">' ~ ('colis.Modifier un colis' | trans) ~ '</span>'
+                title: trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Modifier une unité logistique')
             } %}
 
             <div class="modal-body modal-input"></div>
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
-                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
-                    {classes: 'btn btn-success data', text: 'Enregistrer', name: 'id', id: 'submitEditPack'}
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
+                    {classes: 'btn btn-success data', text: trans('Général', null, 'Modale', 'Enregistrer'), name: 'id', id: 'submitEditPack'}
                 ],
             } %}
 
