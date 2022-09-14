@@ -1925,6 +1925,10 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "en" => "Finish the operation",
                             "tooltip" => "Détails acheminements - Bouton",
                         ],
+                        [
+                            "fr" => "Cet acheminement est urgent",
+                            "en" => "This transfer is urgent",
+                        ],
                     ],
                 ],
                 "Détails acheminement - Liste des unités logistiques" => [
@@ -2001,6 +2005,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "L'unité logistique {1} a bien été ajouté",
                             "en" => "Logistic unit {1} has been added",
+                        ],
+                        [
+                            "fr" => "Code",
+                            "en" => "Code",
+                            "tooltip" => "Liste des UL",
                         ],
                     ],
                 ],

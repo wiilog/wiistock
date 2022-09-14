@@ -246,7 +246,7 @@ function initializePacksTable(dispatchId, isEdit) {
         searching: false,
         scrollY: false,
         scrollX: true,
-        /*drawCallback: () => {
+        drawCallback: () => {
             $(`#packTable_wrapper`).css(`overflow-x`, `scroll`);
             $(`.dataTables_scrollBody, .dataTables_scrollHead`)
                 .css('overflow', 'visible')
@@ -280,7 +280,7 @@ function initializePacksTable(dispatchId, isEdit) {
             if(isEdit) {
                 scrollToBottom();
             }
-        },*/
+        },
         createdRow: (row, data) => {
             // we display only + td on this line
             if (data && data.createRow) {
@@ -300,12 +300,12 @@ function initializePacksTable(dispatchId, isEdit) {
         ],
         columns: [
             {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
-            {data: 'code', name: 'code', title: 'Code'},
-            {data: 'quantity', name: 'quantity', title: Translation.of(`Acheminements`, `Détails acheminement - Liste des unités logistiques`, `Quantité à acheminer`) + (isEdit ? '*' : ''), tooltip: 'Quantité à acheminer'},
-            {data: 'nature', name: 'nature', title: Translation.of(`Acheminements`, `Détails acheminement - Liste des unités logistiques`, `Nature`) + (isEdit ? '*' : ''), tooltip: 'nature'},
-            {data: 'weight', name: 'weight', title: 'Poids (kg)'},
-            {data: 'volume', name: 'volume', title: 'Volume (m3)'},
-            {data: 'comment', name: 'comment', title: 'Commentaire'},
+            {data: 'code', name: 'code', title: Translation.of('Demande', `Acheminements`, `Détails acheminement - Liste des unités logistiques`, `Code`)},
+            {data: 'quantity', name: 'quantity', title: Translation.of('Demande', `Acheminements`, `Détails acheminement - Liste des unités logistiques`, `Quantité à acheminer`) + (isEdit ? '*' : ''), tooltip: 'Quantité à acheminer'},
+            {data: 'nature', name: 'nature', title: Translation.of('Demande',`Acheminements`, `Détails acheminement - Liste des unités logistiques`, `Nature`) + (isEdit ? '*' : ''), tooltip: 'nature'},
+            {data: 'weight', name: 'weight', title: Translation.of('Demande', `Acheminements`, `Détails acheminement - Liste des unités logistiques`, `Poids (kg)`)},
+            {data: 'volume', name: 'volume', title: Translation.of('Demande', `Acheminements`, `Détails acheminement - Liste des unités logistiques`, `Volume (m3)`)},
+            {data: 'comment', name: 'comment', title: Translation.of('Général', null, `Modale`, `Commentaire`)},
             {data: 'lastMvtDate', name: 'lastMvtDate', title: 'Date dernier mouvement', render: function(data, type) {
                 if(type !== `sort`) {
                     const date = moment(data, 'YYYY/MM/DD HH:mm');

@@ -268,7 +268,7 @@ class HandlingService {
             ['title' => $this->translation->translate( 'Demande', 'Général', 'Urgent'), 'name' => 'emergency'],
             ['title' => $this->translation->translate('Demande', 'Services', 'Modale et détails', 'Nombre d\'opération(s) réalisée(s)'), 'name' => 'carriedOutOperationCount'],
             ['title' => $this->translation->translate('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Traité par'), 'name' => 'treatedBy'],
-            ['title' => $this->translation->translate('Général', null, 'Modale', 'Commentaire'), 'name' => 'comment'],
+            ['title' => $this->translation->translate('Général', null, 'Modale', 'commentaire'), 'name' => 'comment'],
         ];
 
         return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);
