@@ -7,7 +7,7 @@
         } %}
 
             <div class="modal-body">
-                Voulez-vous réellement supprimer cet article qaa?
+                Voulez-vous réellement supprimer cet article ?
             </div>
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
@@ -15,7 +15,7 @@
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
                     {classes: 'btn btn-danger data', id: 'submitDeleteArticle', dismiss: true, text: 'Supprimer'}
                 ],
-                hideErrorContainer: true
+                renderErrorContainer: false
             } %}
 
         </div>

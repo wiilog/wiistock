@@ -504,7 +504,7 @@ class ArrivageController extends AbstractController {
             $arrivageDataService->sendArrivalEmails($arrivage);
         }
 
-        $listAttachmentIdToKeep = $post->get('files') ?? [];
+        $listAttachmentIdToKeep = $post->all('files') ?? [];
 
         $attachments = $arrivage->getAttachments()->toArray();
         foreach ($attachments as $attachment) {
@@ -1047,7 +1047,7 @@ class ArrivageController extends AbstractController {
             $entityManager->flush();
         }
 
-        $listAttachmentIdToKeep = $post->get('files') ?? [];
+        $listAttachmentIdToKeep = $post->all('files') ?? [];
 
         $attachments = $dispute->getAttachments()->toArray();
         foreach ($attachments as $attachment) {

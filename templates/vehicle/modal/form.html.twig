@@ -1,11 +1,11 @@
 <div class="row">
     <div class="form-group col-12">
-        <label>Immatriculation*</label>
+        <label class="wii-field-name">Immatriculation*</label>
         <input type="text" class="form-control data needed" name="registrationNumber" value="{{ vehicle.registrationNumber }}">
     </div>
 
     <div class="form-group col-12">
-        <label>Livreur</label>
+        <label class="wii-field-name">Livreur</label>
         <select class="form-control data w-100" data-s2="user" name="deliverer"
                 data-other-params
                 data-other-params-deliverer-only="1">
@@ -16,7 +16,7 @@
     </div>
 
     <div class="form-group col-12">
-        <label>Emplacements associés</label>
+        <label class="wii-field-name">Emplacements associés</label>
         <select class="form-control data w-100" data-s2="location" name="locations" multiple>
             {% for location in (vehicle.locations ?? []) %}
                 <option value="{{ location.id }}" selected>{{ location.label }}</option>

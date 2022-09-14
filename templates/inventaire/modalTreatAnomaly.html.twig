@@ -1,41 +1,42 @@
-<form method="" class="modal fade" id="modalTreatAnomaly" role="dialog" aria-hidden="true">
+<form  class="modal fade" id="modalTreatAnomaly" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
                 title: "Traiter une anomalie"
             } %}
 
-            <div class="modal-body modal-input container-fluid row">
-                <div class="form-group col-12">
-                    <span class="ref-title">Code barre</span>&nbsp;<input class="barCode data no-disabled" name="barCode" disabled>
-                </div>
-                <div class="form-group col-12 mt-2 mb-4">
-                    Référence article&nbsp;:&nbsp;<span class="reference bold"></span>
-                </div>
-                <div class="form-group col-12">
-                    Quantité&nbsp;:&nbsp;<span class="quantity bold"></span>
-                </div>
-                <div class="form-group col-12 mt-2 mb-4">
-                    Emplacement&nbsp;:&nbsp;<span class="location"></span>
-                </div>
+            <div class="modal-body modal-input container-fluid">
+                <div class="row">
+                    <div class="form-group d-flex flex-column col-12 col-md-6">
+                        <span class="wii-field-name ref-title">Code barre</span>
+                        <span class="wii-body-text barcode"></span>
+                    </div>
+                    <div class="form-group d-flex flex-column col-12 col-md-6">
+                        <span class="wii-field-name">Référence article</span>
+                        <span class="wii-body-text reference"></span>
+                    </div>
+                    <div class="form-group d-flex flex-column col-12 col-md-6">
+                        <span class="wii-field-name">Quantité</span>
+                        <span class="wii-body-text quantity"></span>
+                    </div>
+                    <div class="form-group d-flex flex-column col-12 col-md-6">
+                        <span class="wii-field-name">Emplacement</span>
+                        <span class="wii-body-text location"></span>
+                    </div>
 
-                <div class="form-group col-12">
-                    <div class="input-group radio-btn">
-                        <div class="form-group">
-                            <label hidden>Quantité</label>
-                            <span class="btn h-100" data-toggle="choice"
-                                         data-title="confirm">Saisir la quantité
-                                <input type="number" class="form-control inline data pr-0 needed" name="newQuantity" min="0">
-                            </span>
-                        </div>
-                        <div class="form-group w-100 comment">
-                            <label for="comment">Commentaire</label>
-                            <textarea class="form-control data" name="comment" id="comment" rows="3"></textarea>
-                        </div>
+                    <div class="col-12 form-group">
+                        <label class="wii-field-name">Quantité relevée*</label>
+                        <input type="number" class="form-control data needed" name="newQuantity" min="0">
+                    </div>
+
+                    <div class="form-group col-12">
+                        <label class="wii-field-name">Commentaire</label>
+                        <textarea class="form-control data" name="comment" id="comment" rows="3"></textarea>
                     </div>
                 </div>
                 <input class="isRef data" name="isRef" hidden>
                 <input class="idEntry data" name="id" hidden>
+                <input class="data" name="barcode" hidden>
             </div>
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [

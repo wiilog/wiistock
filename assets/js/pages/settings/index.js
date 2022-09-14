@@ -1,4 +1,4 @@
-import '../../../scss/pages/settings.scss';
+import '@styles/pages/settings.scss';
 import EditableDatatable, {MODE_ADD_ONLY, MODE_CLICK_EDIT, MODE_NO_EDIT, SAVE_MANUALLY, STATE_VIEWING, MODE_EDIT, MODE_CLICK_EDIT_AND_ADD, } from "../../editatable";
 import Flash, {INFO} from '@app/flash';
 import {LOADING_CLASS} from "@app/loading";
@@ -606,6 +606,7 @@ function initializeDeliveries() {
     $('.delete-association-line').on('click', function () {
         removeAssociationLine($(this));
     });
+
     $(document).arrive('.delete-association-line', function () {
         $(this).on('click', function () {
             removeAssociationLine($(this));
@@ -615,6 +616,7 @@ function initializeDeliveries() {
     $('select[name=deliveryType]').on('change', function () {
         onTypeChange($(this));
     });
+
     $(document).arrive('select[name=deliveryType]', function() {
         $(this).on('change', function () {
             onTypeChange($(this));
@@ -650,7 +652,7 @@ function newTypeAssociation($button, type = undefined, location = undefined, fir
     if (firstLoad || allFilledSelect) {
         $button.prop(`disabled`, false);
         $settingTypeAssociation.append($typeTemplate.html());
-        if(firstLoad) {
+        if(firstLoad && location && type) {
             const $typeSelect = $settingTypeAssociation.last().find(`select[name=deliveryType]`);
             const $locationSelect = $settingTypeAssociation.last().find(`select[name=deliveryRequestLocation]`);
             appendSelectOptions($typeSelect, $locationSelect, type, location);

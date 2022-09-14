@@ -16,46 +16,48 @@
                     Valider
                 </button>
             {% endif %}
-            <button type="button"
-                    class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
-                    data-toggle="dropdown"
-                    aria-haspopup="true"
-                    aria-expanded="false">
-                <span class="fa fa-angle-down"></span>
-            </button>
-            <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
-                {% if (hasPairings is defined and hasPairings)
-                    and hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::DISPLAY_SENSOR')) %}
-                    <a class="dropdown-item"
-                       href="{{ path('show_data_history', {id: collecte.id, type: constant('App\\Entity\\IOT\\Sensor::COLLECT_REQUEST')}) }}">
-                        <span class="wii-icon wii-icon-pairing"></span>
-                        Historique des données
-                    </a>
-                {% endif %}
-                {% if hasRightEdit %}
-                    <a data-id='{{ collecte.id }}'
-                       data-target='#modalEditCollecte'
-                       data-toggle='modal'
-                       onclick="
-                           editRow(
-                               $(this),
-                               Routing.generate('collecte_api_edit', true),
-                               $('#modalEditCollecte'),
-                               $('#submitEditCollecte'),
-                               false,
-                               () => initEditModal()
-                           );"
-                       class="dropdown-item edit-button">
-                        <i class="fa fa-pen mr-2"></i>Modifier
-                    </a>
-                {% endif %}
-                {% if hasRightDelete %}
-                    <a href="" onclick="deleteRow($(this), $('#modalDeleteCollecte'), $('#submitDeleteCollecte'))"
-                       data-id='{{ collecte.id }}' data-target='#modalDeleteCollecte' data-toggle='modal'
-                       class="dropdown-item">
-                        <i class="fa fa-trash mr-2"></i>Supprimer</a>
-                {% endif %}
-            </div>
+            {% if (hasPairings is defined and hasPairings) or hasRightEdit or hasRightDelete %}
+                <button type="button"
+                        class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
+                        data-toggle="dropdown"
+                        aria-haspopup="true"
+                        aria-expanded="false">
+                    <span class="fa fa-angle-down"></span>
+                </button>
+                <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
+                    {% if (hasPairings is defined and hasPairings)
+                        and hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::DISPLAY_SENSOR')) %}
+                        <a class="dropdown-item"
+                           href="{{ path('show_data_history', {id: collecte.id, type: constant('App\\Entity\\IOT\\Sensor::COLLECT_REQUEST')}) }}">
+                            <span class="wii-icon wii-icon-pairing"></span>
+                            Historique des données
+                        </a>
+                    {% endif %}
+                    {% if hasRightEdit %}
+                        <a data-id='{{ collecte.id }}'
+                           data-target='#modalEditCollecte'
+                           data-toggle='modal'
+                           onclick="
+                               editRow(
+                                   $(this),
+                                   Routing.generate('collecte_api_edit', true),
+                                   $('#modalEditCollecte'),
+                                   $('#submitEditCollecte'),
+                                   false,
+                                   () => initEditModal()
+                               );"
+                           class="dropdown-item edit-button">
+                            <i class="fa fa-pen mr-2"></i>Modifier
+                        </a>
+                    {% endif %}
+                    {% if hasRightDelete %}
+                        <a href="" onclick="deleteRow($(this), $('#modalDeleteCollecte'), $('#submitDeleteCollecte'))"
+                           data-id='{{ collecte.id }}' data-target='#modalDeleteCollecte' data-toggle='modal'
+                           class="dropdown-item">
+                            <i class="fa fa-trash mr-2"></i>Supprimer</a>
+                    {% endif %}
+                </div>
+            {% endif %}
         {% else %}
             {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_COLL')) %}
                 <button type="button"

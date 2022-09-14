@@ -150,7 +150,6 @@ class PreparationController extends AbstractController
         $preparationStatut = $preparation->getStatut() ? $preparation->getStatut()->getNom() : null;
         $isPrepaEditable =
             $preparationStatut === Preparation::STATUT_A_TRAITER
-            || $preparationStatut === Preparation::STATUT_VALIDATED
             || ($preparationStatut == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparation->getUtilisateur() == $this->getUser());
 
         if (isset($demande)) {
@@ -786,7 +785,9 @@ class PreparationController extends AbstractController
                         Preparation::STATUT_EN_COURS_DE_PREPARATION => 'blue-card',
                         // Preparation::STATUT_INCOMPLETE, Preparation::STATUT_A_TRAITER => 'grey-card',
                         default => 'grey-card',
-                    }
+
+                    },
+                    'inPlanning' => true
                 ])
             ], true)
             ->toArray();
@@ -883,6 +884,8 @@ class PreparationController extends AbstractController
         }
 
         if (empty($quantityErrorPreparationId) && $launchPreparation === "1") {
+
+
             foreach ($preparationsToLaunch as $preparation) {
                 $preparation->setStatut($toTreatStatut);
                 $demande = $preparation->getDemande();

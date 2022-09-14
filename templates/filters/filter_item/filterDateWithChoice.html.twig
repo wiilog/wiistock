@@ -10,7 +10,7 @@
                        name="dateMin"
                        id="dateMin"
                        placeholder="jj/mm/aaaa"
-                       value="{{ selectedDate is defined ? selectedDate | date('d/m/Y') : '' }}"
+                       value="{{ selectedDate is defined and selectedDate ? selectedDate | date('d/m/Y') : '' }}"
                     {{ disabled }}
                        autocomplete="off"/>
                 <div class="input-group-prepend h-100">
@@ -21,7 +21,7 @@
                        name="dateMax"
                        id="dateMax"
                        placeholder="jj/mm/aaaa"
-                       value="{{ selectedDate is defined ? selectedDate | date('d/m/Y') : '' }}"
+                       value="{{ selectedDate is defined and selectedDate ? selectedDate | date('d/m/Y') : '' }}"
                     {{ disabled }}
                        autocomplete="off"/>
             </div>
@@ -34,7 +34,7 @@
                 <div class="wii-switch-no-style needed" data-title="Date de filtre">
                     {% for dateChoice in dateChoices %}
                         {% set checked = dateChoice.default ?? false %}
-                        <div class="dropdown-item pl-3">
+                        <div class="dropdown-item wii-radio pl-3">
                             <input data-id="{{ dateChoice.name }}" class="filter-checkbox" type="radio" id="date-choice_{{ dateChoice.name }}"
                                    data-override-name="date-choice_{{ dateChoice.name }}" value="1"
                                    name="filter-date-choice"

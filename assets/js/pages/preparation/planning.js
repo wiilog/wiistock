@@ -154,6 +154,18 @@ function getPreparationLaunchForm($modal){
                     $modalContent.removeClass('d-none');
                     $modalContent.append(response.template);
 
+                    $modal.find('.check-stock-button').html($(`<div/>`, {
+                        class: `d-inline-flex align-items-center`,
+                        html: [$(`<span/>`, {
+                            class: `wii-icon wii-icon-white-tick mr-2`
+                        }), $(`<span/>`, {
+                            text: `Vérifier le stock`,
+                        })]
+                    }))
+                        .data('launch-preparations', "0")
+                        .removeClass('btn-success')
+                        .addClass('btn-primary');
+
                     onOrdersDragAndDropDone($modal);
                     const sortables = Sortable.create(`.available-preparations, .assigned-preparations`, {
                         acceptFrom: `.preparations-container`,
@@ -182,6 +194,17 @@ function getPreparationLaunchForm($modal){
                         .appendTo($targetContainer);
                     onOrdersDragAndDropDone($modal);
                     $modal.find('.quantities-information-container').addClass('d-none');
+                    $modal.find('.check-stock-button').html($(`<div/>`, {
+                        class: `d-inline-flex align-items-center`,
+                        html: [$(`<span/>`, {
+                            class: `wii-icon wii-icon-white-tick mr-2`
+                        }), $(`<span/>`, {
+                            text: `Vérifier le stock`,
+                        })]
+                    }))
+                        .data('launch-preparations', "0")
+                        .removeClass('btn-success')
+                        .addClass('btn-primary');
                 });
 
                 $modal.find('.check-stock-button').on('click', function () {
@@ -223,15 +246,18 @@ function launchStockCheck($modal) {
     });
     $modal.find('.quantities-information-container').addClass('d-none');
     const $loadingContainers = $.merge($assignedPreparations, $modal.find('.check-stock-button'));
-    wrapLoadingOnActionButton($loadingContainers, () => (
-        AJAX
+
+    wrapLoadingOnActionButton($loadingContainers, function() {
+        $modal.find('.cancel-button').attr("disabled", true);
+        return AJAX
             .route(POST, `planning_preparation_launch_check_stock`, {
                 launchPreparations: $submitButton.data('launch-preparations')
             })
             .json(data)
             .then((res) => {
-                if(res.success) {
-                    if(res.unavailablePreparationsId.length > 0){
+                if (res.success) {
+                    $modal.find('.cancel-button').attr("disabled", false);
+                    if (res.unavailablePreparationsId.length > 0) {
                         Flash.add(ERROR, "Votre stock est insuffisant pour démarrer cette préparation");
                         res.unavailablePreparationsId.forEach((id) => {
                             $modal.find(`[data-preparation="${id}"]`)
@@ -239,18 +265,30 @@ function launchStockCheck($modal) {
                                 .removeClass('orange-card');
                         });
                         $modal.find('.assigned-preparations').addClass('border border-danger');
-                        $submitButton
-                            .text("Vérifier le stock")
-                            .data('launch-preparations', "0");
+
+                        changeMoveAllMode($modal, true);
+
+                        $submitButton.html($(`<div/>`, {
+                            class: `d-inline-flex align-items-center`,
+                            html: [$(`<span/>`, {
+                                class: `wii-icon wii-icon-white-tick mr-2`
+                            }), $(`<span/>`, {
+                                text: `Vérifier le stock`,
+                            })]
+                        }))
+                            .data('launch-preparations', "0")
+                            .removeClass('btn-success')
+                            .addClass('btn-primary');
                         $modal.find('.quantities-information-container').removeClass('d-none');
                         $modal.find('.quantities-information').empty();
                         $modal.find('.quantities-information').append(res.template);
-                    } else if($submitButton.data('launch-preparations') === "1"){
+                    }
+                    else if ($submitButton.data('launch-preparations') === "1") {
                         $modal.modal('hide');
                         callbackSaveFilter();
-                    } else {
+                    }
+                    else {
                         Flash.add(SUCCESS, "Le stock demandé est disponible");
-                        console.log($submitButton.find('.cancel-button'));
                         $modal.find('.cancel-button')
                             .removeClass('btn btn-outline-primary')
                             .addClass('btn btn-outline-secondary');
@@ -259,11 +297,38 @@ function launchStockCheck($modal) {
                             .addClass('btn-success')
                             .text("Valider le lancement")
                             .data('launch-preparations', "1");
+
+                        changeMoveAllMode($modal, false);
+
                         $modal.find('.assigned-preparations').addClass('border border-success');
                     }
                 }
-            })
-    ));
+            });
+    });
+}
+
+function changeMoveAllMode($modal, activate) {
+    const $addAll = $modal.find('.modal-content-wrapper .add-all');
+    const $removeAll = $modal.find('.modal-content-wrapper .remove-all');
+
+    if (activate) {
+        $addAll.addClass('.btn-primary')
+            .removeClass('btn-secondary')
+            .attr("disabled", false);
+        $removeAll
+            .addClass('.btn-outline-primary')
+            .removeClass('btn-outline-secondary')
+            .attr("disabled", false);
+    }
+    else {
+        $addAll.removeClass('.btn-primary')
+            .addClass('btn-secondary')
+            .attr("disabled", true);
+        $removeAll
+            .removeClass('.btn-outline-primary')
+            .addClass('btn-outline-secondary')
+            .attr("disabled", true);
+    }
 }
 
 

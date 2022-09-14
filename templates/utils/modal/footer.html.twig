@@ -1,9 +1,12 @@
 {% set elements = elements is defined and elements is not empty ? elements : [] %}
 {% set classes = classes is defined and classes ? classes %}
-{% set hideErrorContainer = hideErrorContainer is defined and hideErrorContainer %}
-{% set hideFooter = hideFooter is defined and hideFooter %}
+{% set hideErrorContainer = hideErrorContainer ?? false %}
+{% set hideFooter = hideFooter ?? false %}
+{% set renderErrorContainer = renderErrorContainer ?? true %}
 
-<div class="p-4 error-msg {{ hideErrorContainer ? 'd-none' }}"></div>
+{% if renderErrorContainer %}
+    <div class="error-msg {{ hideErrorContainer ? 'd-none' }}"></div>
+{% endif %}
 
 {% if not hideFooter and elements is not empty %}
     <div class="modal-footer {{ classes }}">

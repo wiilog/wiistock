@@ -184,16 +184,20 @@ class LivraisonsManagerService
             }
             $title = $demandeIsPartial ? 'FOLLOW GT // Livraison effectuée partiellement' : 'FOLLOW GT // Livraison effectuée';
             $bodyTitle = $demandeIsPartial ? 'Votre demande a été livrée partiellement.' : 'Votre demande a bien été livrée.';
-            $this->mailerService->sendMail(
-                $title,
-                $this->templating->render('mails/contents/mailLivraisonDone.html.twig', [
-                    'request' => $demande,
-                    'preparation' => $preparation,
-                    'title' => $bodyTitle,
-                ]),
-                $demande->getUtilisateur()
-            );
-        } else {
+
+            if ($livraison->getDemande()->getType()->getSendMail()) {
+                $this->mailerService->sendMail(
+                    $title,
+                    $this->templating->render('mails/contents/mailLivraisonDone.html.twig', [
+                        'request' => $demande,
+                        'preparation' => $preparation,
+                        'title' => $bodyTitle,
+                    ]),
+                    $demande->getUtilisateur()
+                );
+            }
+        }
+        else {
             throw new Exception(self::LIVRAISON_ALREADY_BEGAN);
         }
     }

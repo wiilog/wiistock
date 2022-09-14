@@ -32,18 +32,32 @@
                         <div class="align-self-center">
                             <i class="wii-icon wii-icon-calendar-creation-grey"></i>
                         </div>
-                        <div class="d-flex flex-fill flex-column">
-                            <div class="d-block">Date attendue</div>
-                            <div class="d-block date">{{ preparation.date | format_helper('longDate', {short: true}) }}</div>
+                        <div class="d-flex flex-fill flex-column ml-2">
+                            {% if inPlanning %}
+                                <div class="d-block">Date de création</div>
+                                <div class="d-block date">{{ preparation.demande.validatedAt | format_helper('longDate', {short: true}) }}</div>
+                            {% else %}
+                                <div class="d-block">Date attendue</div>
+                                <div class="d-block date">{{ preparation.demande.expectedAt | format_helper('longDate', {short: true}) }}</div>
+                            {% endif %}
                         </div>
                     </div>
                     <div class="d-flex expected-date mt-1">
                         <div class="align-self-center">
-                            <i class="wii-icon wii-icon-calendar-due-black"></i>
+                            {% if inPlanning %}
+                                <i class="wii-icon wii-icon-calendar-due-black"></i>
+                            {% else %}
+                                <i class="wii-icon wii-icon-calendar-preparation-black"></i>
+                            {% endif %}
                         </div>
-                        <div class="d-flex flex-fill flex-column">
-                            <div class="d-block">Date de préparation</div>
-                            <div class="d-block date">{{ preparation.demande.expectedAt | format_helper('longDate', {short: true}) }}</div>
+                        <div class="d-flex flex-fill flex-column ml-2">
+                            {% if inPlanning %}
+                                <div class="d-block">Date attendue</div>
+                                <div class="d-block date">{{ preparation.demande.expectedAt | format_helper('longDate', {short: true}) }}</div>
+                            {% else %}
+                                <div class="d-block">Date de préparation</div>
+                                <div class="d-block date">{{ preparation.expectedAt | format_helper('longDate', {short: true}) }}</div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>

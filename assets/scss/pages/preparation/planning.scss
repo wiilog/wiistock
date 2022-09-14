@@ -1,6 +1,10 @@
 @import "../../variables";
 
 #modalLaunchPreparation {
+    .modal-dialog {
+        max-width: 1435px !important;
+    }
+
     .preparations-container {
         background-color: $light-blue;
         border-radius: 8px;
@@ -11,10 +15,12 @@
         display: flex;
         align-content: flex-start;
         align-items: flex-start;
+        flex-wrap: wrap;
 
         .preparation-card,
         .placeholder-container {
             max-width: 205px;
+            min-width: 205px;
         }
     }
 

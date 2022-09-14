@@ -5,7 +5,7 @@ $(function () {
     initDateTimePicker();
     Select2Old.user('Utilisateurs');
     Select2Old.articleReference($('.ajax-autocomplete'), {
-        minQuantity: 0,
+        minQuantity: Number($('input[name=managePreparationWithPlanning]').val()) ? 0 : 1,
     });
 
     tableArticle = initPageDatatable();
@@ -25,6 +25,11 @@ $(function () {
             return true;
         }
 
+    });
+
+    $(`#modalNewArticle`).on(`shown.bs.modal`, function() {
+        clearModal('#modalNewArticle');
+        $(this).find('#reference').select2("open");
     });
 });
 
@@ -136,6 +141,9 @@ function ajaxEditArticle(select) {
             quantityToTake.removeClass('d-none');
             Select2Old.location($('.ajax-autocomplete-location-edit'));
             $('.list-multiple').select2();
+            //WIIS-8166 open and close select2 Reference for fix a scrolling bug
+            $('#reference').select2('open');
+            $('#reference').select2('close');
         }
     });
 }

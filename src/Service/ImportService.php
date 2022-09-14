@@ -1012,13 +1012,13 @@ class ImportService
         // liaison type
         $typeRepository = $this->em->getRepository(Type::class);
 
-        $type = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::ARTICLE, $data['typeLabel'] ?? Type::LABEL_STANDARD);
+        $type = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::ARTICLE, $data['type'] ?? Type::LABEL_STANDARD);
         if (empty($type)) {
             $categoryType = $this->em->getRepository(CategoryType::class)->findOneBy(['label' => CategoryType::ARTICLE]);
 
             $type = new Type();
             $type
-                ->setLabel($data['typeLabel'])
+                ->setLabel($data['type'])
                 ->setCategory($categoryType);
             $this->em->persist($type);
         }
