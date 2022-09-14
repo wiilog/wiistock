@@ -2055,6 +2055,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "en" => "Addressee(s)",
                             "tooltip" => "Modale modifier un acheminement",
                         ],
+                        [
+                            "fr" => "Modifier un acheminement",
+                            "en" => "Edit transfer",
+                            "tooltip" => "Modale modifier un acheminement",
+                        ],
                     ],
                 ],
                 "Lettre de voiture" => [
