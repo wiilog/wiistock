@@ -7,8 +7,8 @@ $(function () {
         $('#btnModalAddColis').click();
     }
 
-    let printColis = Number(Boolean($('#printColis').val()));
-    let printArrivage = Number(Boolean($('#printArrivage').val()));
+    let printColis = Number(Boolean(Number($('#printColis').val())));
+    let printArrivage = Number(Boolean(Number($('#printArrivage').val())));
 
     if (printColis || printArrivage) {
         let params = {
@@ -16,7 +16,8 @@ $(function () {
             printColis: printColis,
             printArrivage: printArrivage
         };
-
+        console.log(params);
+        SetRequestQuery({});
         Wiistock.download(Routing.generate('print_arrivage_bar_codes', params, true));
     }
 

@@ -724,20 +724,20 @@ class ArrivageController extends AbstractController {
     }
 
     /**
-     * @Route("/voir/{id}/{printColis}/{printArrivage}", name="arrivage_show", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/voir/{id}", name="arrivage_show", options={"expose"=true}, methods={"GET", "POST"})
      */
     public function show(EntityManagerInterface $entityManager,
                          ArrivageService        $arrivageDataService,
-                         Arrivage               $arrivage,
-                         bool                   $printColis = false,
-                         bool                   $printArrivage = false): Response
+                         Request                $request,
+                         Arrivage               $arrivage): Response
     {
         // HasPermission annotation impossible
         if (!$this->userService->hasRightFunction(Menu::TRACA, Action::LIST_ALL)
             && !in_array($this->getUser(), $arrivage->getAcheteurs()->toArray())) {
             return $this->render('securite/access_denied.html.twig');
         }
-
+        $printColis = $request->query->get('printColis');
+        $printArrivage = $request->query->get('printArrivage');
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
