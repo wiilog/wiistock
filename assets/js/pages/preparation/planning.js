@@ -237,6 +237,7 @@ function onOrdersDragAndDropDone($modal){
 }
 
 function launchStockCheck($modal) {
+    changeMoveAllMode($modal, false);
     const $assignedPreparations = $modal.find('.assigned-preparations');
     const $preparationCards = $assignedPreparations.find('.preparation-card');
     const $submitButton = $modal.find('.check-stock-button');
@@ -298,7 +299,7 @@ function launchStockCheck($modal) {
                             .text("Valider le lancement")
                             .data('launch-preparations', "1");
 
-                        changeMoveAllMode($modal, false);
+                        changeMoveAllMode($modal, true);
 
                         $modal.find('.assigned-preparations').addClass('border border-success');
                     }
