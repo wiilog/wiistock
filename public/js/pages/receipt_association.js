@@ -8,7 +8,6 @@ $(function () {
 
     initDateTimePicker('#dateMin, #dateMax', DATE_FORMATS_TO_DISPLAY[format]);
     initModals(tableReceiptAssociation);
-    Select2Old.user('Utilisateurs');
 
     let path = Routing.generate(`filter_get_by_page`);
     let params = JSON.stringify(PAGE_RECEIPT_ASSOCIATION);
@@ -73,10 +72,10 @@ function initDatatable() {
         },
         columns: [
             {data: `Actions`, name: `Actions`, title: ``, className: `noVis`, orderable: false},
-            {data: `creationDate`, name: `creationDate`, title: `Date`},
-            {data: `packCode`, name: `pack`, title: `Colis`},
-            {data: `receptionNumber`, name: `receptionNumber`, title: Translation.of('Ordre', 'Réceptions', 'Réception', false)},
-            {data: `user`, name: `user`, title: `Utilisateur`},
+            {data: `creationDate`, name: `creationDate`, title: Translation.of('Traçabilité', 'Général', 'Date')},
+            {data: `packCode`, name: `pack`, title: Translation.of('Traçabilité', 'Général', 'Unité logistique')},
+            {data: `receptionNumber`, name: `receptionNumber`, title: Translation.of('Traçabilité', 'Association BR', 'Réception')},
+            {data: `user`, name: `user`, title: Translation.of('Traçabilité', 'Général', 'Utilisateur')},
         ],
     };
     return initDataTable(`receiptAssociationTable`, tableReceiptAssociationConfig)
@@ -130,7 +129,7 @@ function toggleArrivage(button) {
         $firstPackCodeInput.removeClass('needed');
 
         $packCodeContainers.parent().addClass('d-none');
-        button.text('Avec arrivage');
+        button.text(Translation.of('Traçabilité', 'Association BR', 'Avec arrivage', false));
 
         $packCodeInputs.removeClass('data-array');
     } else {
@@ -138,7 +137,7 @@ function toggleArrivage(button) {
             $(this).addClass('needed');
         });
         $packCodeContainers.parent().removeClass('d-none');
-        button.text('Sans arrivage');
+        button.text(Translation.of('Traçabilité', 'Association BR', 'Sans arrivage', false));
         $packCodeInputs.addClass('data-array');
     }
     button.data('arrival', !button.data('arrival'));

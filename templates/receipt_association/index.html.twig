@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Traçabilité | Association BR{% endblock %}
+{% block title %}{{ trans('Traçabilité', 'Général', 'Traçabilité') }} | {{ trans('Traçabilité', 'Association BR', 'Association BR') }}{% endblock %}
 
 {% block page_filter %}
     {% include 'filters/filtersReceiptAssociation.html.twig' with {
@@ -24,7 +24,7 @@
                                     data-target='#modalNewReceiptAssociation'
                                     data-toggle='modal'>
                                 <span class="wii-icon wii-icon-plus mr-2"></span>
-                                Association / BR
+                                {{ trans('Traçabilité', 'Association BR', 'Association BR') }}
                             </button>
                         {% endif %}
                         {% if hasRightExport %}
@@ -38,8 +38,9 @@
 
                             <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
                                 <div class="dropdown-item pointer"
-                                     onclick="saveExportFile('get_receipt_associations_csv', true, {}, false, Translation.of('Général', null, 'Modale',  'Veuillez saisir des dates dans le filtre en haut de page.'), true)">
-                                    <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
+                                     onclick="saveExportFile('get_receipt_associations_csv', true, {}, false, Translation.of('Général', null, 'Modale', 'Veuillez saisir des dates dans le filtre en haut de page.'), true)">
+                                    <i class="fa fa-file-csv mr-2"></i>
+                                    {{ trans('Général', null, 'Zone liste', 'Exporter au format CSV') }}
                                 </div>
                             </div>
                         {% endif %}

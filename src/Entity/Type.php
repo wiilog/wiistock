@@ -162,8 +162,10 @@ class Type {
             default => $default,
         };
 
-        return $this->getLabelTranslation()->getTranslationIn($in, $default)?->getTranslation()
-            ?? $this->getLabelTranslation()->getTranslationIn( Language::FRENCH_SLUG)?->getTranslation();
+        $translation = $this->getLabelTranslation();
+        return $translation?->getTranslationIn($in, $default)?->getTranslation()
+            ?: $translation?->getTranslationIn(Language::FRENCH_SLUG)?->getTranslation()
+            ?: '';
     }
 
     #[Deprecated]

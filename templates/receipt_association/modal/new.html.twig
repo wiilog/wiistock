@@ -2,12 +2,12 @@
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
-                title: "Enregistrer une réception"
+                title: trans('Traçabilité', 'Association BR', 'Enregistrer une réception')
             } %}
 
             <div class="modal-body modal-input container-fluid text-center">
                 <div class="form-group text-center packs-wrapper">
-                    <label class="wii-field-name mr-2">Association colis</label>
+                    <label class="wii-field-name mr-2">{{ trans('Traçabilité', 'Association BR', 'Association UL') }}</label>
                     <span class="btn btn-primary" onclick="newLine($(this))">
                         <span class="wii-icon wii-icon-plus align-middle"></span>
                     </span>
@@ -17,7 +17,7 @@
                 </div>
 
                 <div class="form-group text-center receptions-wrapper">
-                    <label class="wii-field-name mr-2">Numéro de réception</label>
+                    <label class="wii-field-name mr-2">{{ trans('Traçabilité', 'Association BR', 'N° de réception') }}</label>
                     <span class="btn btn-primary" onclick="newLine($(this))">
                       <span class="wii-icon wii-icon-plus align-middle"></span>
                     </span>
@@ -26,13 +26,15 @@
                     </div>
                 </div>
                 <div class="text-center">
-                    <div class="btn btn-primary toggle-arrival" onclick="toggleArrivage($(this))" data-arrival="true">Sans arrivage</div>
+                    <div class="btn btn-primary toggle-arrival" onclick="toggleArrivage($(this))" data-arrival="true">
+                        {{ trans('Traçabilité', 'Association BR', 'Sans arrivage') }}
+                    </div>
                 </div>
             </div>
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
-                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
-                    {classes: 'btn btn-success', text: 'Enregistrer', id: 'submitNewReceiptAssociation'}
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
+                    {classes: 'btn btn-success', text: trans('Général', null, 'Modale', 'Enregistrer'), id: 'submitNewReceiptAssociation'}
                 ],
             } %}
 

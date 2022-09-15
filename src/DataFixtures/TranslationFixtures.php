@@ -1429,8 +1429,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "tooltip" => "Menu\nFil d'Ariane\nZone liste - Bouton",
                     ],
                     [
-                        "fr" => "Réceptions",
-                        "en" => "Receipts",
+                        "fr" => "Réception",
+                        "en" => "Receipt",
                         "tooltip" => "Filtre\nZone liste - Nom de colonnes",
                     ],
                     [
@@ -1486,6 +1486,16 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "Les unités logistiques suivantes n'existent pas :",
                         "en" => "The following L.U. does not exist :",
+                        "tooltip" => "Modale Supprimer l'association BR",
+                    ],
+                    [
+                        "fr" => "L'association BR a bien été créée",
+                        "en" => "The Receipt and L.U. matching has been created",
+                        "tooltip" => "Modale Enregistrer une réception",
+                    ],
+                    [
+                        "fr" => "L'association BR a bien été supprimée",
+                        "en" => "The Receipt and L.U. matching has been deleted",
                         "tooltip" => "Modale Supprimer l'association BR",
                     ],
                 ],

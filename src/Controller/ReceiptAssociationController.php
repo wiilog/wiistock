@@ -9,6 +9,7 @@ use App\Entity\Pack;
 use App\Entity\ReceiptAssociation;
 use App\Service\CSVExportService;
 use App\Service\ReceiptAssociationService;
+use App\Service\TranslationService;
 use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -60,7 +61,8 @@ class ReceiptAssociationController extends AbstractController
      * @HasPermission({Menu::TRACA, Action::DELETE})
      */
     public function delete(Request $request,
-                           EntityManagerInterface $entityManager): Response
+                           EntityManagerInterface $entityManager,
+                           TranslationService $translation): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $receiptAssociation = $entityManager->getRepository(ReceiptAssociation::class)->find($data['id']);
@@ -70,7 +72,7 @@ class ReceiptAssociationController extends AbstractController
 
             return $this->json([
                 "success" => true,
-                "msg" => "L'association BR a bien été supprimée"
+                "msg" => $translation->translate('Traçabilité', 'Association BR', "L'association BR a bien été supprimée")
             ]);
         }
 
@@ -82,7 +84,8 @@ class ReceiptAssociationController extends AbstractController
      * @HasPermission({Menu::TRACA, Action::CREATE})
      */
     public function new(Request $request,
-                        EntityManagerInterface $manager): Response
+                        EntityManagerInterface $manager,
+                        TranslationService $translation): Response
     {
         $data = json_decode($request->getContent(), true);
         $packs = $data['packCode'] ?? null;
@@ -101,14 +104,14 @@ class ReceiptAssociationController extends AbstractController
             $invalidPacksStr = implode(", ", $invalidPacks);
             return $this->json([
                 'success' => false,
-                'msg' => "Les colis suivants n'existent pas : $invalidPacksStr"
+                'msg' =>  $translation->translate('Traçabilité', 'Association BR', "Les unités logistiques suivantes n'existent pas :") . $invalidPacksStr
             ]);
         }
 
         if(empty($receptions)) {
             return $this->json([
                 'success' => false,
-                'msg' => "Un numéro de réception minimum est requis pour procéder à l'association"
+                'msg' => $translation->translate('Traçabilité', 'Association BR', "Un numéro de réception minimum est requis pour procéder à l'association")
             ]);
         }
 
@@ -121,7 +124,7 @@ class ReceiptAssociationController extends AbstractController
             if ($existingAssociationWithoutPack) {
                 return $this->json([
                     "success" => false,
-                    "msg" => "Une association sans colis avec ce numéro de réception existe déjà"
+                    "msg" => $translation->translate('Traçabilité', 'Association BR', "Une association sans unité logistique avec ce numéro de réception existe déjà")
                 ]);
             }
         }
@@ -142,7 +145,7 @@ class ReceiptAssociationController extends AbstractController
         $manager->flush();
         return $this->json([
             "success" => true,
-            "msg" => "L'association BR a bien été créée"
+            "msg" => $translation->translate('Traçabilité', 'Association BR', "L'association BR a bien été créée")
         ]);
     }
 
