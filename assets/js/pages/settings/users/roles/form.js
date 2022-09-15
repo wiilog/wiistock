@@ -6,9 +6,10 @@ global.saveSettings = saveSettings;
 
 $(function() {
     const $settingsItems = $('aside .settings-item');
+    const $settingsContent = $('main .settings-content');
     if (!$settingsItems.filter('.selected').exists()) {
         const $selectedItem = $settingsItems.first();
-        onSettingsItemSelected($selectedItem);
+        onSettingsItemSelected($selectedItem, $settingsItems, $settingsContent);
     }
 });
 
