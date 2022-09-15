@@ -163,8 +163,8 @@ class HistoryController extends AbstractController
             ? Stream::from($transportDelivery->getLines())
                 ->filter(fn(TransportRequestLine $line) => $line instanceof TransportDeliveryRequestLine)
                 ->sort(fn(TransportDeliveryRequestLine $a, TransportDeliveryRequestLine $b) => StringService::mbstrcmp(
-                    $this->getFormatter()->nature($a->getNature()),
-                    $this->getFormatter()->nature($b->getNature())
+                    $this->getFormatter()->nature($a->getNature()) ?? '',
+                    $this->getFormatter()->nature($b->getNature()) ?? ''
                 ))
                 ->toArray()
             : [];
@@ -173,8 +173,8 @@ class HistoryController extends AbstractController
             ? Stream::from($transportCollect->getLines())
                 ->filter(fn(TransportRequestLine$line) => $line instanceof TransportCollectRequestLine)
                 ->sort(fn(TransportCollectRequestLine $a, TransportCollectRequestLine $b) => StringService::mbstrcmp(
-                    $this->getFormatter()->nature($a->getNature()),
-                    $this->getFormatter()->nature($b->getNature())
+                    $this->getFormatter()->nature($a->getNature()) ?? '',
+                    $this->getFormatter()->nature($b->getNature()) ?? ''
                 ))
                 ->toArray()
             : [];

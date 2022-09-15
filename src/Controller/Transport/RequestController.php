@@ -77,8 +77,8 @@ class RequestController extends AbstractController {
         $natures = $natureRepository->findByAllowedForms([Nature::TRANSPORT_COLLECT_CODE, Nature::TRANSPORT_DELIVERY_CODE]);
         $requestLines = Stream::from($natures)
             ->sort(fn(Nature $a, Nature $b) => StringService::mbstrcmp(
-                $this->getFormatter()->nature($a),
-                $this->getFormatter()->nature($b)
+                $this->getFormatter()->nature($a) ?? '',
+                $this->getFormatter()->nature($b) ?? ''
             ))
             ->map(fn(Nature $nature) => [
                 'nature' => $nature,
@@ -710,8 +710,8 @@ class RequestController extends AbstractController {
             $collectNatures = $natureRepository->findByAllowedForms([Nature::TRANSPORT_COLLECT_CODE]);
             $requestLines = Stream::from($collectNatures)
                 ->sort(fn(Nature $a, Nature $b) => StringService::mbstrcmp(
-                    $this->getFormatter()->nature($a),
-                    $this->getFormatter()->nature($b)
+                    $this->getFormatter()->nature($a) ?? '',
+                    $this->getFormatter()->nature($b) ?? ''
                 ))
                 ->map(function(Nature $nature) use ($transportRequest) {
                     /** @var TransportCollectRequestLine $line */
@@ -728,8 +728,8 @@ class RequestController extends AbstractController {
             $deliveryNatures = $natureRepository->findByAllowedForms([Nature::TRANSPORT_DELIVERY_CODE]);
             $requestLines = Stream::from($deliveryNatures)
                 ->sort(fn(Nature $a, Nature $b) => StringService::mbstrcmp(
-                    $this->getFormatter()->nature($a),
-                    $this->getFormatter()->nature($b)
+                    $this->getFormatter()->nature($a) ?? '',
+                    $this->getFormatter()->nature($b) ?? ''
                 ))
                 ->map(function(Nature $nature) use ($transportRequest) {
                     /** @var TransportDeliveryRequestLine $line */
