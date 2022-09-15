@@ -176,11 +176,11 @@ function openTableHisto() {
         },
         order: [['date', 'asc']],
         columns: [
-            {data: 'user', name: 'Utilisateur', title: 'Utilisateur'},
-            {data: 'date', name: 'date', title: 'Date', "type": "customDate"},
-            {data: 'commentaire', name: 'commentaire', title: 'Commentaire'},
-            {data: 'status', name: 'status', title: 'Statut'},
-            {data: 'type', name: 'type', title: 'Type'},
+            {data: 'user', name: 'Utilisateur', title: Translation.of('Traçabilité', 'Général', 'Utilisateur')},
+            {data: 'date', name: 'date', title: Translation.of('Traçabilité', 'Général', 'Date')},
+            {data: 'commentaire', name: 'commentaire', title: Translation.of('Général', '', 'Modale', 'commentaire')},
+            {data: 'status', name: 'status', title: Translation.of('Qualité', 'Litiges', 'Statut')},
+            {data: 'type', name: 'type', title: Translation.of('Qualité', 'Litiges', 'Type')},
         ],
         domConfig: {
             needsPartialDomOverride: true,

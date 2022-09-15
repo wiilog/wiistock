@@ -416,9 +416,9 @@ function openTableHisto() {
         columns: [
             {data: 'user', name: 'Utilisateur', title: Translation.of('Traçabilité', 'Général', 'Utilisateur')},
             {data: 'date', name: 'date', title: Translation.of('Traçabilité', 'Général', 'Date')},
-            {data: 'commentaire', name: 'commentaire', title: Translation.of('Général', '', 'Modale', 'Commentaire')},
-            {data: 'status', name: 'status', title: Translation.of('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Statut')},
-            {data: 'type', name: 'type', title: Translation.of('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Type')},
+            {data: 'commentaire', name: 'commentaire', title: Translation.of('Général', '', 'Modale', 'commentaire')},
+            {data: 'status', name: 'status', title: Translation.of('Qualité', 'Litiges', 'Statut')},
+            {data: 'type', name: 'type', title: Translation.of('Qualité', 'Litiges', 'Type')},
         ],
         rowConfig: {
             needsRowClickAction: true,
