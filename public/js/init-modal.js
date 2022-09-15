@@ -707,6 +707,7 @@ function processDataArrayForm($modal, data) {
     const $isInvalidElements = [];
 
     const errorMessages = [];
+    const customNeededPositiveErrors = {};
 
     $inputsArray.each(function () {
         const $input = $(this);
@@ -735,16 +736,19 @@ function processDataArrayForm($modal, data) {
             }
         }
         if (type === 'number' && $input.hasClass('needed-positiv')) {
-            if (!dataArrayNeedPositive[$input.data("custom-label") || name]) {
-                dataArrayNeedPositive[$input.data("custom-label") || name] = 0;
+            const customName = $input.data("custom-label") || name
+            if (!dataArrayNeedPositive[customName]) {
+                dataArrayNeedPositive[customName] = 0;
             }
-            dataArrayNeedPositive[$input.data("custom-label") || name] += val;
+            dataArrayNeedPositive[customName] += val;
+            if ($input.data("custom-needed-positiv-error")) {
+                customNeededPositiveErrors[customName] = $input.data("custom-needed-positiv-error");
+            }
         } else if ($input.hasClass('phone-number') && !$input.data('iti').isValidNumber()) {
             if (!dataPhonesInvalid[name]) {
                 dataPhonesInvalid[name] = true;
             }
         }
-
     });
 
     const dataArrayNeedPositiveNames = Object.keys(dataArrayNeedPositive).reduce(
@@ -767,7 +771,10 @@ function processDataArrayForm($modal, data) {
         []
     );
     if (dataArrayNeedPositiveNames.length > 0) {
-        errorMessages.push(...dataArrayNeedPositiveNames.map((name) => Translation.of('Général', '', 'Modale', 'Veuillez renseigner au moins un {1}',{1: name})));
+        errorMessages.push(...dataArrayNeedPositiveNames.map((name) => (
+            customNeededPositiveErrors[name]
+            || Translation.of('Général', '', 'Modale', 'Veuillez renseigner au moins un {1}', {1: name})
+        )));
         $isInvalidElements.push(...dataArrayNeedPositiveNames.map((name) => ($(`.data-array.needed-positiv[data-custom-label="${name}"]`) || $(`.data-array.needed-positiv[name="${name}"]`))));
     }
     if (dataArrayPhonesInvalid.length > 0) {
