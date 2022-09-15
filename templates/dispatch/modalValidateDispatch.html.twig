@@ -2,13 +2,13 @@
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
-                title: "Valider la demande"
+                title: trans('Demande', 'Acheminements', 'Détails acheminement - Entête', 'Valider la demande', false)
             } %}
 
             <div class="modal-body modal-input">
                 {% if untreatedStatus is not empty %}
                     <div class="form-group row">
-                        <label class="wii-field-name col-12">Statut*</label>
+                        <label class="wii-field-name col-12">{{ trans('Demande', 'Général', 'Statut', false) }}*</label>
                         <div class="col-12">
                             <select class="form-control data needed "
                                     name="status"
@@ -42,8 +42,8 @@
             {% if untreatedStatus is not empty %}
                 {% include 'utils/modal/footer.html.twig' with {
                     elements: [
-                        {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
-                        {classes: 'btn btn-success submit-button', text: 'Enregistrer'}
+                        {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
+                        {classes: 'btn btn-success submit-button', text: trans('Général', null, 'Modale', 'Enregistrer')}
                     ],
                 } %}
 

@@ -56,7 +56,7 @@
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
         <div class="form-group col-md-4 col-12">
-            <label class="wii-field-name" for="depose" title="Emplacement de dépose">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de dépose') }}{{ required ? '*' }}</label>
+            <label class="wii-field-name" for="depose" title="Emplacement de dépose">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'Emplacement dépose') }}{{ required ? '*' }}</label>
             <select name="depose" class="form-control data {{ required ? 'needed' }} location-depose" data-s2="location"
                     id="depose">
                 {% if dispatch.locationTo %}

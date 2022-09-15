@@ -1828,6 +1828,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "fr" => "L'acheminement a bien été traité",
                             "en" => "Transfer has been processed successfully",
                         ],
+                        [
+                            "fr" => "Modifier un acheminement",
+                            "en" => "Edit transfer",
+                            "tooltip" => "Modale modifier un acheminement",
+                        ],
                     ],
                 ],
                 "Champs fixes" => [
@@ -2053,11 +2058,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Destinataire(s)",
                             "en" => "Addressee(s)",
-                            "tooltip" => "Modale modifier un acheminement",
-                        ],
-                        [
-                            "fr" => "Modifier un acheminement",
-                            "en" => "Edit transfer",
                             "tooltip" => "Modale modifier un acheminement",
                         ],
                     ],

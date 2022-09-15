@@ -18,9 +18,9 @@
 {% block page_content %}
     <div class="settings row">
         <aside class="col-xl-3 col-4 d-flex">
-            <div class="wii-box flex-fill">
+            <div class="wii-box flex-fill" id="roleIndex">
                 {% for menu in menus %}
-                    <div class="settings-item text-capitalize"
+                    <div class="settings-item text-capitalize {{ loop.first ? 'selected' }}"
                          title="{{ menu.translation ? menu.label }}"
                          onclick="onSettingsItemSelected($(this), $('aside .settings-item'), $('main .settings-content'))"
                          data-menu="{{ menu.id }}">
