@@ -180,16 +180,18 @@ class DisputeService {
         }
 
         if (!empty($recipients)) {
-            $defaultLanguage = $this->languageService->getDefaultSlug();
+            $defaultSlugLanguage = $this->languageService->getDefaultSlug();
+            $slug = $this->languageService->getReverseDefaultLanguage($defaultSlugLanguage);
+
             $translatedCategory = $isArrival
-                ? $this->translation->translateIn($defaultLanguage, $defaultLanguage, true, "Traçabilité", "Flux - Arrivages", "Mail litige", "un arrivage", false)
-                : $this->translation->translateIn($defaultLanguage, $defaultLanguage, true, "Ordre", "Réceptions", "une réception", false);
+                ? $this->translation->translateIn($slug, $defaultSlugLanguage, true, "Traçabilité", "Flux - Arrivages", "Email litige", "un arrivage", false)
+                : $this->translation->translateIn($slug, $defaultSlugLanguage, true, "Ordre", "Réceptions", "une réception", false);
             $title = !$isUpdate
-                ? $this->translation->translateIn($defaultLanguage, $defaultLanguage, true, "Traçabilité", "Flux - Arrivages", "Mail litige", "Un litige a été déclaré sur {1} vous concernant :", false, [ '1' => $translatedCategory ])
-                : $this->translation->translateIn($defaultLanguage, $defaultLanguage, true, "Traçabilité", "Flux - Arrivages", "Mail litige", "Changement de statut d'un litige sur {1} vous concernant :", false, [ '1' => $translatedCategory ]);
+                ? $this->translation->translateIn($slug, $defaultSlugLanguage, true, "Traçabilité", "Flux - Arrivages", "Email litige", "Un litige a été déclaré sur {1} vous concernant :", false, [ '1' => $translatedCategory ])
+                : $this->translation->translateIn($slug, $defaultSlugLanguage, true, "Traçabilité", "Flux - Arrivages", "Email litige", "Changement de statut d'un litige sur {1} vous concernant :", false, [ '1' => $translatedCategory ]);
             $subject = !$isUpdate
-                ? $this->translation->translateIn($defaultLanguage, $defaultLanguage, true, "Traçabilité", "Flux - Arrivages", "Mail litige", "FOLLOW GT // Litige sur {1}", false, [ '1' => $translatedCategory ])
-                : $this->translation->translateIn($defaultLanguage, $defaultLanguage, true, "Traçabilité", "Flux - Arrivages", "Mail litige", "FOLLOW GT // Changement de statut d'un litige sur {1}", false, [ '1' => $translatedCategory ]);
+                ? $this->translation->translateIn($slug, $defaultSlugLanguage, true, "Traçabilité", "Flux - Arrivages", "Email litige", "FOLLOW GT // Litige sur {1}", false, [ '1' => $translatedCategory ])
+                : $this->translation->translateIn($slug, $defaultSlugLanguage, true, "Traçabilité", "Flux - Arrivages", "Email litige", "FOLLOW GT // Changement de statut d'un litige sur {1}", false, [ '1' => $translatedCategory ]);
 
             $this->mailerService->sendMail(
                 $subject,
@@ -199,7 +201,6 @@ class DisputeService {
                     'urlSuffix' => $isArrival
                         ? $this->router->generate('arrivage_index')
                         : $this->router->generate('reception_index'),
-                    'defaultLanguageSlug' => $defaultLanguage
                 ]),
                 $recipients
             );

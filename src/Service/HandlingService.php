@@ -139,8 +139,8 @@ class HandlingService {
         $status = $handling->getStatus();
         $requester = $status->getSendNotifToDeclarant() ? $handling->getRequester() : null;
         $receivers = $status->getSendNotifToRecipient() ? $handling->getReceivers() : [];
-        $defaultLanguage = $this->languageService->getDefaultLanguage();
-        $defaultLanguageSlug = $defaultLanguage->getSlug();
+        $defaultSlugLanguage = $this->languageService->getDefaultSlug();
+        $slug = $this->languageService->getReverseDefaultLanguage($defaultSlugLanguage);
 
         $emailReceivers = Stream::from($receivers, [$requester])
             ->unique()
@@ -149,15 +149,15 @@ class HandlingService {
         if (!empty($emailReceivers)) {
             $statusTreated = $status->isTreated();
             if ($isNewHandlingAndNotTreated) {
-                $subject = $this->translation->translateIn($defaultLanguageSlug, $defaultLanguageSlug, true, 'Demande','Services','Mail','Création d\'une demande de service', false );
-                $title = $this->translation->translateIn($defaultLanguageSlug, $defaultLanguageSlug, true,'Demande','Services','Mail','Votre demande de service a été créée', false );
+                $subject = $this->translation->translateIn($slug, $defaultSlugLanguage, true, 'Demande','Services','Mail','Création d\'une demande de service', false );
+                $title = $this->translation->translateIn($slug, $defaultSlugLanguage, true,'Demande','Services','Mail','Votre demande de service a été créée', false );
             } else {
                 $subject = $statusTreated
-                    ? $this->translation->translateIn($defaultLanguageSlug, $defaultLanguageSlug, true, 'Demande','Services','Mail','Demande de service effectuée', false )
-                    : $this->translation->translateIn($defaultLanguageSlug, $defaultLanguageSlug, true, 'Demande','Services','Mail','Changement de statut d\'une demande de service', false );
+                    ? $this->translation->translateIn($slug, $defaultSlugLanguage, true, 'Demande','Services','Mail','Demande de service effectuée', false )
+                    : $this->translation->translateIn($slug, $defaultSlugLanguage, true, 'Demande','Services','Mail','Changement de statut d\'une demande de service', false );
                 $title = $statusTreated
-                    ? $this->translation->translateIn($defaultLanguageSlug, $defaultLanguageSlug, true, 'Demande','Services','Mail','Votre demande de service a bien été effectuée', false )
-                    : $this->translation->translateIn($defaultLanguageSlug, $defaultLanguageSlug, true, 'Demande','Services','Mail','Une demande de service vous concernant a changé de statut', false );
+                    ? $this->translation->translateIn($slug, $defaultSlugLanguage, true, 'Demande','Services','Mail','Votre demande de service a bien été effectuée', false )
+                    : $this->translation->translateIn($slug, $defaultSlugLanguage, true, 'Demande','Services','Mail','Une demande de service vous concernant a changé de statut', false );
             }
 
             $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
@@ -166,7 +166,6 @@ class HandlingService {
             $this->mailerService->sendMail(
                 'FOLLOW GT // ' . $subject,
                 $this->templating->render('mails/contents/mailHandlingTreated.html.twig', [
-                    'defaultLanguage' => $defaultLanguage,
                     'handling' => $handling,
                     'title' => $title,
                     'fieldsParam' => $fieldsParam,

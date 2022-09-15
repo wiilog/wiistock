@@ -7,13 +7,16 @@ namespace App\Command;
 
 use App\Entity\Dispute;
 
+use App\Service\LanguageService;
 use App\Service\MailerService;
+use App\Service\TranslationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Routing\RouterInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 
 class MailsLitigesComand extends Command
@@ -38,6 +41,12 @@ class MailsLitigesComand extends Command
     private $logger;
 
     private $entityManager;
+
+    #[Required]
+    public LanguageService $languageService;
+
+    #[Required]
+    public TranslationService $translationService;
 
     public function __construct(LoggerInterface $logger,
                                 EntityManagerInterface $entityManager,
@@ -76,12 +85,18 @@ class MailsLitigesComand extends Command
 
         $listEmails = '';
 
+        $defaultSlugLanguage = $this->languageService->getDefaultSlug();
+        $slug = $this->languageService->getReverseDefaultLanguage($defaultSlugLanguage);
+
+        $subject = $this->translationService->translateIn($slug, $defaultSlugLanguage, true, "Traçabilité", "Flux - Arrivages", "Email litige", "FOLLOW GT // Récapitulatif de vos litiges", false);
+        $title = $this->translationService->translateIn($slug, $defaultSlugLanguage, true, "Traçabilité", "Flux - Arrivages", "Email litige", "Récapitulatif de vos litiges", false);
+
         foreach ($disputesByBuyer as $email => $disputes) {
             $this->mailerService->sendMail(
-                'FOLLOW GT // Récapitulatif de vos litiges',
+                $subject,
                 $this->templating->render('mails/contents/mailLitigesArrivage.html.twig', [
                     'disputes' => $disputes,
-                    'title' => 'Récapitulatif de vos litiges',
+                    'title' => $title,
                     'urlSuffix' => $this->router->generate('arrivage_index')
                 ]),
                 $email

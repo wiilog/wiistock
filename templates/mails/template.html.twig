@@ -116,11 +116,11 @@
     </div>
     <br/>
     <div>
-        {{ translateIn(defaultLanguageSlug, defaultLanguageSlug, lastResort, 'Demande', 'Acheminements', 'Mails', 'Bonne journée,', false) }}
+        {{ translateInDefault(lastResort, 'Général', null, 'Emails', 'Bonne journée,', false) }}
     </div>
     <br>
     <div>
-        {{ translateIn(defaultLanguageSlug, defaultLanguageSlug, lastResort, 'Demande', 'Acheminements', 'Mails', 'L\'équipe GT Logistics.', false) }}
+        {{ translateInDefault(lastResort, 'Général', null, 'Emails', 'L\'équipe GT Logistics.', false) }}
     </div>
     <div>
         {% block postScriptum %}{% endblock %}
@@ -135,7 +135,7 @@
                             {% if buttonText is defined %}
                                 {{ buttonText }}
                             {% else %}
-                                {{ translateIn(defaultLanguageSlug, defaultLanguageSlug, lastResort, 'Demande', 'Acheminements', 'Mails', 'Cliquez ici pour accéder à Follow GT', false) }}
+                                {{ translateInDefault(lastResort, 'Général', null, 'Emails', 'Cliquez ici pour accéder à Follow GT', false) }}
                             {% endif %}
                         </a>
                     </td>

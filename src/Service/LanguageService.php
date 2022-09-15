@@ -109,4 +109,11 @@ class LanguageService {
         ];
     }
 
+    public function getReverseDefaultLanguage(string $defaultSlug): string {
+        $defaultToLanguage = Stream::from(Language::DEFAULT_LANGUAGE_TRANSLATIONS)
+            ->flip()
+            ->toArray();
+        return $defaultToLanguage[$defaultSlug] ?? $defaultSlug;
+    }
+
 }

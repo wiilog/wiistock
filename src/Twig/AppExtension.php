@@ -7,6 +7,7 @@ use App\Entity\Setting;
 use App\Entity\Transport\TransportHistory;
 use App\Service\FieldsParamService;
 use App\Service\FormatService;
+use App\Service\LanguageService;
 use App\Service\SpecificService;
 use App\Service\TranslationService;
 use App\Service\Transport\TransportHistoryService;
@@ -49,9 +50,13 @@ class AppExtension extends AbstractExtension {
     public TranslationService $translationService;
 
     #[Required]
+    public LanguageService $languageService;
+
+    #[Required]
     public FormatService $formatService;
 
     private array $settingsCache = [];
+    private ?string $defaultLanguageSlug = null;
 
     public function getFunctions() {
         return [
@@ -73,7 +78,7 @@ class AppExtension extends AbstractExtension {
             new TwigFunction('trans', [$this, "translate"], [
                 "is_safe" => ["html"]
             ]),
-            new TwigFunction('translateIn', [$this, "translateIn"])
+            new TwigFunction('translateInDefault', [$this, "translateInDefault"])
         ];
     }
 
@@ -266,7 +271,13 @@ class AppExtension extends AbstractExtension {
         return $this->translationService->translate(...$args);
     }
 
-    public function translateIn(string $slug, string $defaultSlug, bool $lastResort, mixed ...$args): ?string {
-        return $this->translationService->translateIn($slug, $defaultSlug, $lastResort, ...$args);
+    public function translateInDefault(bool $lastResort, mixed ...$args): ?string {
+        if (!$this->defaultLanguageSlug) {
+            $defaultLanguage = $this->languageService->getDefaultLanguage();
+            $this->defaultLanguageSlug = $defaultLanguage->getSlug();
+        }
+
+        $slug = $this->languageService->getReverseDefaultLanguage($this->defaultLanguageSlug);
+        return $this->translationService->translateIn($slug, $this->defaultLanguageSlug, $lastResort, ...$args);
     }
 }

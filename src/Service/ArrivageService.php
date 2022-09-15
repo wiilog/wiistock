@@ -202,11 +202,12 @@ class ArrivageService {
                 $this->security->getUser()
             );
 
-            $defaultLanguage = $this->languageService->getDefaultSlug();
+            $defaultSlugLanguage = $this->languageService->getDefaultSlug();
+            $slug = $this->languageService->getReverseDefaultLanguage($defaultSlugLanguage);
             $this->mailerService->sendMail(
                 ($isUrgentArrival
-                    ? $this->translation->translateIn($defaultLanguage, $defaultLanguage, true,'Traçabilité', 'Flux - Arrivages', 'Mail arrivage', 'FOLLOW GT // Arrivage urgent', false)
-                    : $this->translation->translateIn($defaultLanguage, $defaultLanguage, true,'Traçabilité', 'Flux - Arrivages', 'Mail arrivage', 'FOLLOW GT // Arrivage', false)
+                    ? $this->translation->translateIn($slug, $defaultSlugLanguage, true,'Traçabilité', 'Flux - Arrivages', 'Email arrivage', 'FOLLOW GT // Arrivage urgent', false)
+                    : $this->translation->translateIn($slug, $defaultSlugLanguage, true,'Traçabilité', 'Flux - Arrivages', 'Email arrivage', 'FOLLOW GT // Arrivage', false)
                 ),
                 $this->templating->render(
                     'mails/contents/mailArrivage.html.twig',
@@ -217,7 +218,6 @@ class ArrivageService {
                         'isUrgentArrival' => $isUrgentArrival,
                         'freeFields' => $freeFields,
                         'urlSuffix' => $this->router->generate("arrivage_show", ["id" => $arrival->getId()]),
-                        'defaultLanguageSlug' => $defaultLanguage
                     ]
                 ),
                 $finalRecipients

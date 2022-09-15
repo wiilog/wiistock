@@ -12,6 +12,7 @@ use RuntimeException;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Contracts\Service\Attribute\Required;
+use WiiCommon\Helper\Stream;
 
 class TranslationService {
 
@@ -71,7 +72,7 @@ class TranslationService {
 
         return (
             $this->translateIn($slug, $defaultSlug, false, ...$args)
-            ?? $this->translateIn($defaultSlug, $defaultSlug, true, ...$args)
+            ?: $this->translateIn($defaultSlug, $defaultSlug, true, ...$args)
         );
     }
 

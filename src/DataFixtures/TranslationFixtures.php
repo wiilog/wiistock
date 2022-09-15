@@ -289,6 +289,26 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ]
                     ],
                 ],
+                "Emails" => [
+                    "content" => [
+                        [
+                            "fr" => "Bonjour,",
+                            "en" => "Hello,",
+                        ],
+                        [
+                            "fr" => "Bonne journée,",
+                            "en" => "Have a nice day,",
+                        ],
+                        [
+                            "fr" => "L'équipe GT Logistics.",
+                            "en" => "The GT Logistics team",
+                        ],
+                        [
+                            "fr" => "Cliquez ici pour accéder à Follow GT",
+                            "en" => "Click here to access Follow GT",
+                        ],
+                    ]
+                ]
             ],
         ],
         "Dashboard" => [
@@ -451,7 +471,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "Unités logistiques",
                         "en" => "Logistics units",
-                        "tooltip" => "Page Flux - Arrivages :\nDétails arrivage - Liste des UL - Nom de colonnes\nDétails arrivage - Liste des litiges - Modale Nouveau litige\nDétails arrivage - Liste des litiges - Modifier litige\nMail litige\n______\nPage Mouvements : \nFiltre\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouveau mouvement\nModale Modifier un mouvement\n______\nPage UL :\nMenu\nFil d'ariane\nFiltre\nOnglet\nOnglet UL - Colonne\nOnglet UL - Modale Modifier une unité logistique\nOnglet Groupes - Carte UL dans Carte Groupe\n_____\nPage Association BR :\nFiltre \nZone liste - Nom de colonnes \n_____\nPage Encours :\nCarte emplacement - Zone liste - Nom de colonnes",
+                        "tooltip" => "Page Flux - Arrivages :\nDétails arrivage - Liste des UL - Nom de colonnes\nDétails arrivage - Liste des litiges - Modale Nouveau litige\nDétails arrivage - Liste des litiges - Modifier litige\nEmail litige\n______\nPage Mouvements : \nFiltre\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouveau mouvement\nModale Modifier un mouvement\n______\nPage UL :\nMenu\nFil d'ariane\nFiltre\nOnglet\nOnglet UL - Colonne\nOnglet UL - Modale Modifier une unité logistique\nOnglet Groupes - Carte UL dans Carte Groupe\n_____\nPage Association BR :\nFiltre \nZone liste - Nom de colonnes \n_____\nPage Encours :\nCarte emplacement - Zone liste - Nom de colonnes",
                     ],
                     [
                         "fr" => "Unité logistique",
@@ -596,12 +616,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Arrivage",
                             "en" => "Arrival",
-                            "tooltip" => "Page Flux - Arrivages :\nFil d'ariane\nDétails arrivage - Entête\nMail arrivage",
+                            "tooltip" => "Page Flux - Arrivages :\nFil d'ariane\nDétails arrivage - Entête\nEmail arrivage",
                         ],
                         [
                             "fr" => "arrivage",
                             "en" => "arrival",
-                            "tooltip" => "Page Flux - Arrivages :\nFil d'ariane\nDétails arrivage - Entête\nMail arrivage",
+                            "tooltip" => "Page Flux - Arrivages :\nFil d'ariane\nDétails arrivage - Entête\nEmail arrivage",
                         ],
                         [
                             "fr" => "Modifier arrivage",
@@ -678,7 +698,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "N° commande / BL",
                             "en" => "Order number",
-                            "tooltip" => "Zone liste - Nom de colonnes\nGestion des colonnes\nModale Nouvel arrivage\nModale Modifier arrivage\nDétails arrivage - Entête\nModale Nouveau litige\nMail litige",
+                            "tooltip" => "Zone liste - Nom de colonnes\nGestion des colonnes\nModale Nouvel arrivage\nModale Modifier arrivage\nDétails arrivage - Entête\nModale Nouveau litige\nEmail litige",
                         ],
                         [
                             "fr" => "Type",
@@ -839,117 +859,107 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                     ],
                 ],
-                "Mail arrivage" => [
+                "Email arrivage" => [
                     "content" => [
                         [
                             "fr" => "FOLLOW GT // Arrivage",
                             "en" => "FOLLOW GT // Arrivals",
-                            "tooltip" => "Mail arrivage : objet ",
+                            "tooltip" => "Email arrivage : objet ",
                         ],
                         [
                             "fr" => "FOLLOW GT // Arrivage urgent",
                             "en" => "FOLLOW GT // Urgent arrival",
-                            "tooltip" => "Mail arrivage : objet ",
+                            "tooltip" => "Email arrivage : objet ",
                         ],
                         [
                             "fr" => "Arrivage reçu : le {1} à {2}",
                             "en" => "Arrival received : on {1} at {2}",
-                            "tooltip" => "Mail arrivage",
-                        ],
-                        [
-                            "fr" => "Bonjour,",
-                            "en" => "Hello,",
-                            "tooltip" => "Mail arrivage",
+                            "tooltip" => "Email arrivage",
                         ],
                         [
                             "fr" => "Votre commande est arrivée :",
                             "en" => "Your order has arrived",
-                            "tooltip" => "Mail arrivage",
+                            "tooltip" => "Email arrivage",
                         ],
                         [
                             "fr" => "Votre commande urgente est arrivée :",
                             "en" => "Your urgent order has arrived:",
-                            "tooltip" => "Mail arrivage",
+                            "tooltip" => "Email arrivage",
                         ],
                         [
                             "fr" => "Unités logistiques réceptionnées :",
                             "en" => "Receipted logistics units",
-                            "tooltip" => "Mail arrivage",
+                            "tooltip" => "Email arrivage",
                         ],
                         [
                             "fr" => "Nature",
                             "en" => "Nature",
-                            "tooltip" => "Mail arrivage",
+                            "tooltip" => "Email arrivage",
                         ],
                         [
                             "fr" => "Quantité",
                             "en" => "Quantity",
-                            "tooltip" => "Mail arrivage",
-                        ],
-                        [
-                            "fr" => "Bonne journée",
-                            "en" => "Have a good day,",
-                            "tooltip" => "Mail arrivage",
-                        ],
-                        [
-                            "fr" => "L'équipe GT Logistics.",
-                            "en" => "The GT Logistics team",
-                            "tooltip" => "Mail arrivage",
-                        ],
-                        [
-                            "fr" => "Cliquez ici pour accéder à Follow GT",
-                            "en" => "Click here to access Follow GT",
-                            "tooltip" => "Mail arrivage",
+                            "tooltip" => "Email arrivage",
                         ],
                     ],
                 ],
-                "Mail litige" => [
+                "Email litige" => [
                     "content" => [
                         [
                             "fr" => "FOLLOW GT // Litige sur {1}",
                             "en" => "FOLLOW GT // Dispute on {1}",
-                            "tooltip" => "Mail litige : objet",
+                            "tooltip" => "Email litige : objet",
                         ],
                         [
                             "fr" => "FOLLOW GT // Changement de statut d'un litige sur {1}",
                             "en" => "Change of status of a dispute on {1}",
-                            "tooltip" => "Mail litige : objet",
+                            "tooltip" => "Email litige : objet",
+                        ],
+                        [
+                            "fr" => "FOLLOW GT // Récapitulatif de vos litiges",
+                            "en" => "FOLLOW GT // Summary of your disputes",
+                            "tooltip" => "Email litige : objet",
                         ],
 
                         [
                             "fr" => "Un litige a été déclaré sur {1} vous concernant :",
                             "en" => "A dispute has been declared on {1} concerning you:",
-                            "tooltip" => "Mail litige",
+                            "tooltip" => "Email litige",
                         ],
                         [
                             "fr" => "Changement de statut d'un litige sur {1} vous concernant :",
                             "en" => "Change the status of a dispute on {1} concerning you:",
-                            "tooltip" => "Mail litige",
+                            "tooltip" => "Email litige",
                         ],
                         [
                             "fr" => "un arrivage",
                             "en" => "a delivery",
-                            "tooltip" => "Mail litige",
+                            "tooltip" => "Email litige",
                         ],
                         [
                             "fr" => "1 litige vous concerne :",
                             "en" => "1 dispute concerns you:",
-                            "tooltip" => "Mail litige",
+                            "tooltip" => "Email litige",
                         ],
                         [
                             "fr" => "{1} litiges vous concernent :",
                             "en" => "{1} disputes concern you:",
-                            "tooltip" => "Mail litige",
+                            "tooltip" => "Email litige",
                         ],
                         [
                             "fr" => "Type de litige",
                             "en" => "Type of dispute",
-                            "tooltip" => "Mail litige",
+                            "tooltip" => "Email litige",
                         ],
                         [
                             "fr" => "Statut du litige",
                             "en" => "Status of dispute",
-                            "tooltip" => "Mail litige",
+                            "tooltip" => "Email litige",
+                        ],
+                        [
+                            "fr" => "Récapitulatif de vos litiges",
+                            "en" => "Summary of your disputes",
+                            "tooltip" => "Email litige",
                         ],
                     ],
                 ],
@@ -2333,57 +2343,42 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                     ],
                 ],
-                "Mails" => [
+                "Emails" => [
                     "content" => [
                         [
                             "fr" => "Changement de statut d'un(e) demande d'acheminement.",
                             "en" => "The status of the transfer operation changed",
-                            "tooltip" => "Mail changement statut acheminement",
+                            "tooltip" => "Email changement statut acheminement",
                         ],
                         [
                             "fr" => "Changement de statut d'un(e) demande d'acheminement de type {1} vous concernant :\nBonjour,\nVotre acheminement/expédition est en cours de traitement avec les informations suivantes :",
                             "en" => "Status change of a transfer operation of type {1} for you:\nHello,\nYour transfer is being processed with the following information:",
-                            "tooltip" => "Mail changement statut acheminement",
-                        ],
-                        [
-                            "fr" => "Bonne journée,",
-                            "en" => "Have a nice day,",
-                            "tooltip" => "Mail changement statut acheminement\nMail traitement acheminement",
-                        ],
-                        [
-                            "fr" => "L'équipe GT Logistics.",
-                            "en" => "The GT Logistics team",
-                            "tooltip" => "Mail changement statut acheminement\nMail traitement acheminement",
-                        ],
-                        [
-                            "fr" => "Cliquez ici pour accéder à Follow GT",
-                            "en" => "Click here to access Follow GT",
-                            "tooltip" => "Mail changement statut acheminement\nMail traitement acheminement",
+                            "tooltip" => "Email changement statut acheminement",
                         ],
                         [
                             "fr" => "Notification de traitement d'une demande d'acheminement",
                             "en" => "Notification upon transfer  operation finishing",
-                            "tooltip" => "Mail traitement acheminement",
+                            "tooltip" => "Email traitement acheminement",
                         ],
                         [
                             "fr" => "Acheminement {1} traité le {2} à {3}",
                             "en" => "Transfer {1} finished on {2} at {3}",
-                            "tooltip" => "Mail traitement acheminement",
+                            "tooltip" => "Email traitement acheminement",
                         ],
                         [
                             "fr" => "Acheminement {1} traité partiellement le {2}",
                             "en" => "transfer {1} partially processed on {2}",
-                            "tooltip" => "Mail traitement acheminement",
+                            "tooltip" => "Email traitement acheminement",
                         ],
                         [
                             "fr" => "Acheminement {1} traité le {2}",
                             "en" => "transfer {1} processed on {2}",
-                            "tooltip" => "Mail traitement acheminement",
+                            "tooltip" => "Email traitement acheminement",
                         ],
                         [
                             "fr" => "Bonjour,\nVotre acheminement/expédition est traité(e) avec les informations suivantes :",
                             "en" => "Hello,\nYour transfer / shipment is finished with the following information :",
-                            "tooltip" => "Mail traitement acheminement",
+                            "tooltip" => "Email traitement acheminement",
                         ],
                     ],
                 ],
@@ -2561,83 +2556,83 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
 
                     ],
                 ],
-                "Mail" => [
+                "Emails" => [
                     "content" => [
                         [
                             "fr" => "Votre demande de service a été créée",
                             "en" => "Your service operation has been created",
-                            "tooltip" => "Mail de création",
+                            "tooltip" => "Email de création",
                         ],
                         [
                             "fr" => "Création d'une demande de service",
                             "en" => "Creation of a service operation",
-                            "tooltip" => "Mail de création",
+                            "tooltip" => "Email de création",
                         ],
                         [
                             "fr" => "Changement de statut d'une demande de service",
                             "en" => "Changing the status of a service operation",
-                            "tooltip" => "Mail changement de statut",
+                            "tooltip" => "Email changement de statut",
                         ],
                         [
                             "fr" => "Une demande de service vous concernant a changé de statut",
                             "en" => "A service operation concerning you changed her status",
-                            "tooltip" => "Mail changement de statut",
+                            "tooltip" => "Email changement de statut",
                         ],
                         [
                             "fr" => "Demande de service effectuée",
                             "en" => "Service operation completed",
-                            "tooltip" => "Mail traitement demande de service",
+                            "tooltip" => "Email traitement demande de service",
                         ],
                         [
                             "fr" => "Votre demande de service a bien été effectuée",
                             "en" => "Service operation has been completed successfully",
-                            "tooltip" => "Mail traitement demande de service",
+                            "tooltip" => "Email traitement demande de service",
                         ],
                         [
                             "fr" => "Chargement",
                             "en" => "Source",
-                            "tooltip" => "Mail traitement demande de service",
+                            "tooltip" => "Email traitement demande de service",
                         ],
                         [
                             "fr" => "Déchargement",
                             "en" => "Destination",
-                            "tooltip" => "Mail traitement demande de service",
+                            "tooltip" => "Email traitement demande de service",
                         ],
                         [
                             "fr" => "Modifié par",
                             "en" => "Modified by",
-                            "tooltip" => "Mail traitement demande de service",
+                            "tooltip" => "Email traitement demande de service",
                         ],
                     ],
                     [
                         "fr" => "Création d'une demande de service",
                         "en" => "Creation of a service operation",
-                        "tooltip" => "Mail de création",
+                        "tooltip" => "Email de création",
                     ],
                     [
                         "fr" => "Votre demande de service a été créée.",
                         "en" => "Your service operation has been created.",
-                        "tooltip" => "Mail de création",
+                        "tooltip" => "Email de création",
                     ],
                     [
                         "fr" => "Changement de statut d'une demande de service",
                         "en" => "Changing the status of a service operation",
-                        "tooltip" => "Mail changement de statut",
+                        "tooltip" => "Email changement de statut",
                     ],
                     [
                         "fr" => "Une demande de service vous concernant a changé de statut.",
                         "en" => "A service operation concerning you changed her status.",
-                        "tooltip" => "Mail changement de statut",
+                        "tooltip" => "Email changement de statut",
                     ],
                     [
                         "fr" => "Demande de service effectuée",
                         "en" => "Service operation completed",
-                        "tooltip" => "Mail traitement demande de service",
+                        "tooltip" => "Email traitement demande de service",
                     ],
                     [
                         "fr" => "Votre demande de service a bien été effectuée.",
                         "en" => "Service operation has been completed successfully.",
-                        "tooltip" => "Mail traitement demande de service",
+                        "tooltip" => "Email traitement demande de service",
                     ],
                     [
                         "fr" => "Une autre demande de service est en cours de création, veuillez réessayer.",
