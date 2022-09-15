@@ -140,7 +140,7 @@ function treatArrivalCreation({redirectAfterAlert, printColis, printArrivage, ar
 function createArrivageShowUrl(arrivageShowUrl, printColis, printArrivage) {
     const printColisNumber = (printColis === true) ? '1' : '0';
     const printArrivageNumber = (printArrivage === true) ? '1' : '0';
-    return `${arrivageShowUrl}/${printColisNumber}/${printArrivageNumber}`;
+    return `${arrivageShowUrl}?printColis=${printColisNumber}&printArrivage=${printArrivageNumber}`;
 }
 
 function printArrival({arrivageId, printColis, printArrivage}) {

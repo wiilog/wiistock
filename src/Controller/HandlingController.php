@@ -573,7 +573,7 @@ class HandlingController extends AbstractController {
                     ->map(fn(StatusHistory $statusHistory) => [
                         "status" => $this->getFormatter()->status($statusHistory->getStatus()),
                         "date" => $user->getDateFormat() === 'd/m/Y'
-                            ? $this->getFormatter()->longDate($statusHistory->getDate(), ["short" => true, "time" => true])
+                            ? FormatHelper::longDate($statusHistory->getDate(), ["short" => true, "time" => true])
                             : $this->getFormatter()->datetime($statusHistory->getDate(), "", false, $user)
                     ])
                     ->toArray(),

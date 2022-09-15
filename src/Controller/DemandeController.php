@@ -146,7 +146,7 @@ class DemandeController extends AbstractController
             if ($requiredEdit) {
                 $utilisateur = $utilisateurRepository->find(intval($data['demandeur']));
                 $emplacement = $emplacementRepository->find(intval($data['destination']));
-                $expectedAt = FormatHelper::parseDatetime($data['expectedAt']);
+                $expectedAt = FormatHelper::parseDatetime($data['expectedAt'] ?? '');
                 $demande
                     ->setUtilisateur($utilisateur)
                     ->setDestination($emplacement)
