@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Traçabilité | Mouvements{% endblock %}
+{% block title %}{{ trans('Traçabilité', 'Général', 'Traçabilité')}} | {{ trans('Traçabilité', 'Mouvements', 'Mouvements') }}{% endblock %}
 
 {% block page_filter %}
     {% include 'filters/filtersTrackingMovements.html.twig' with {

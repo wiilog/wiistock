@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Qualité | Litiges{% endblock %}
+{% block title %}{{ trans('Qualité', 'Litiges', 'Qualité') }} | {{ trans('Qualité', 'Litiges', 'Litiges') }}{% endblock %}
 
 {% block page_filter %}
     {% include 'filters/filtersLitiges.html.twig' with {
