@@ -43,6 +43,13 @@ Class WiilockService
         return (!empty($dashboardLock) && $dashboardLock->getValue());
     }
 
+    public function dashboardNeedsFeeding(EntityManagerInterface $entityManager) {
+        $now = new DateTime('now');
+        $lastUpdate = $this->getLastDashboardFeedingTime($entityManager);
+
+        return !$this->dashboardIsBeingFed($entityManager) || $lastUpdate->diff($now)->h >= 2;
+    }
+
     /**
      * @param EntityManagerInterface $entityManager
      * @return DateTimeInterface|null
