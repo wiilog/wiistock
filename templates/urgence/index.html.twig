@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Traçabilité | {{ trans('Traçabilité', 'Urgences', 'Urgences') }}{% endblock %}
+{% block title %}{{ trans('Traçabilité', 'Général', 'Traçabilité') }} | {{ trans('Traçabilité', 'Urgences', 'Urgences') }}{% endblock %}
 {% block title_tooltip %}Traçabilité | Urgences{% endblock %}
 
 {% block page_filter %}
@@ -26,7 +26,7 @@
                                 data-target="#modalNewUrgence"
                                 class="btn btn-primary split-button d-flex align-items-center">
                             <span class="wii-icon wii-icon-plus mr-2"></span>
-                            <span title="nouvelle urgence">{{ trans('Traçabilité', 'Urgences', 'Nouvelle urgence') }}</span>
+                            {{ trans('Traçabilité', 'Urgences', 'Nouvelle urgence') }}
                         </button>
                     {% elseif hasRightToExport %}
                         <button type="button"

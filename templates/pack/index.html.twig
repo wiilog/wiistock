@@ -1,6 +1,7 @@
 {% extends 'layout.html.twig' %}
 
 {% block title %}{{ trans('Traçabilité', 'Général', 'Traçabilité') }} | {{ trans('Traçabilité', 'Général', 'Unités logistiques') }}{% endblock %}
+{% block title_tooltip %}Traçabilité | Unités logistiques{% endblock %}
 
 {% block page_filter %}
     {% include 'filters/filtersPack.html.twig' with {

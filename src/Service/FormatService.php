@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\Emplacement;
+use App\Entity\Fournisseur;
 use App\Entity\FreeField;
 use App\Entity\Handling;
 use App\Entity\Nature;
@@ -31,6 +32,10 @@ class FormatService
 
     public function user(?Utilisateur $user, $else = "") {
         return $user ? $user->getUsername() : $else;
+    }
+
+    public function supplier(?Fournisseur $supplier, $else = "") {
+        return $supplier ? $supplier->getNom() : $else;
     }
 
     public function users($users) {

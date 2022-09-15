@@ -9,6 +9,7 @@ use App\Entity\Menu;
 use App\Entity\Urgence;
 use App\Service\CSVExportService;
 use App\Service\SpecificService;
+use App\Service\TranslationService;
 use App\Service\UrgenceService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -219,18 +220,12 @@ class UrgencesController extends AbstractController
 		return new JsonResponse(['delete' => $delete, 'html' => $html]);
 	}
 
-    /**
-     * @Route("/csv", name="get_emergencies_csv", options={"expose"=true}, methods={"GET"})
-     * @param EntityManagerInterface $entityManager
-     * @param Request $request
-     * @param CSVExportService $CSVExportService
-     * @return Response
-     * @throws Exception
-     */
+    #[Route("/csv", name: "get_emergencies_csv", options: ["expose" => true], methods: ["GET"])]
     public function getEmergenciesCSV(EntityManagerInterface $entityManager,
-                                      Request $request,
-                                      CSVExportService $CSVExportService): Response
-    {
+                                      Request                $request,
+                                      UrgenceService         $emergencyService,
+                                      TranslationService     $translationService,
+                                      CSVExportService       $CSVExportService): Response {
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
 
@@ -246,25 +241,26 @@ class UrgencesController extends AbstractController
             $urgenceIterator = $urgenceRepositoty->iterateByDates($dateTimeMin, $dateTimeMax);
 
             $csvheader = [
-                'Debut delais livraison',
-                'Fin delais livraison',
-                'Numero de commande',
-                'Numero de poste',
-                'Contact PFF',
-                'Fournisseur',
-                'Transporteur',
-                'Numero tracking transporteur',
-                'Date Arrivage',
-                "Numero d'arrivage",
-                'Date de creation',
+                $translationService->translate('Traçabilité', 'Urgences', 'Date de début', false),
+                $translationService->translate('Traçabilité', 'Urgences', 'Date de fin', false),
+                $translationService->translate('Traçabilité', 'Urgences', 'N° de commande', false),
+                $translationService->translate('Traçabilité', 'Urgences', 'N° poste', false),
+                $translationService->translate('Traçabilité', 'Urgences', 'Acheteur', false),
+                $translationService->translate('Traçabilité', 'Urgences', 'Fournisseur', false),
+                $translationService->translate('Traçabilité', 'Urgences', 'Transporteur', false),
+                $translationService->translate('Traçabilité', 'Urgences', 'N° tracking transporteur', false),
+                $translationService->translate('Traçabilité', 'Urgences', 'Date arrivage', false),
+                $translationService->translate('Traçabilité', 'Urgences', 'Numéro d\'arrivage', false),
+                $translationService->translate('Traçabilité', 'Urgences', 'Date de création', false),
             ];
             $today = new DateTime();
             $user = $this->getUser();
             $today = $today->format("d-m-Y-H-i-s");
             return $CSVExportService->streamResponse(
-                function ($output) use ($urgenceIterator, $CSVExportService, $user) {
+                function ($output) use ($urgenceIterator, $CSVExportService, $user, $emergencyService) {
+                    /** @var Urgence $urgence */
                     foreach ($urgenceIterator as $urgence) {
-                        $CSVExportService->putLine($output, $urgence->serialize($user));
+                        $CSVExportService->putLine($output, $emergencyService->serializeEmergency($urgence, $user));
                     }
                 },
                 "Export-Urgence-" . $today . ".csv",

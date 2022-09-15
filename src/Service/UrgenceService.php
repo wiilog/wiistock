@@ -11,8 +11,10 @@ use App\Entity\Setting;
 use App\Entity\Transporteur;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
+use App\Helper\FormatHelper;
 use DateTime;
 use Symfony\Component\Security\Core\Security;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -23,6 +25,9 @@ class UrgenceService
     private $entityManager;
 
     private $security;
+
+    #[Required]
+    public FormatService $formatService;
 
     public function __construct(EntityManagerInterface $entityManager,
                                 Twig_Environment $templating,
@@ -132,6 +137,25 @@ class UrgenceService
             $post,
             $excludeTriggered,
         );
+    }
+
+
+
+    public function serializeEmergency(Urgence     $emergency,
+                                       Utilisateur $user): array {
+        return [
+            'dateStart' => $this->formatService->datetime($emergency->getDateStart(), "", false, $user),
+            'dateEnd' => $this->formatService->datetime($emergency->getDateEnd(), "", false, $user),
+            'commande' => $emergency->getCommande() ?: '',
+            'numposte' => $emergency->getPostNb() ?: '',
+            'buyer' => $this->formatService->user($emergency->getBuyer()),
+            'provider' => $this->formatService->supplier($emergency->getProvider()),
+            'carrier' => $emergency->getCarrier() ? $emergency->getCarrier()->getLabel() : '',
+            'trackingnum' => $emergency->getTrackingNb() ?: '',
+            'datearrival' => $emergency->getLastArrival() ? $this->formatService->datetime($emergency->getLastArrival()->getDate(), "", false, $user) : '',
+            'arrivageNumber' => $emergency->getLastArrival() ? $emergency->getLastArrival()->getNumeroArrivage() : '',
+            'creationDate' => $this->formatService->datetime($emergency->getCreatedAt(), "", false, $user),
+        ];
     }
 
 }

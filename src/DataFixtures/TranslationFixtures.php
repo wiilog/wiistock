@@ -555,12 +555,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                         [
                             "fr" => "Urgence",
-                            "en" => "Urgency",
+                            "en" => "Emergency",
                             "tooltip" => "Page Flux - Arrivages :\nFiltre\nModale Nouveau litige\nModale Modifier le litige",
                         ],
                         [
                             "fr" => "Urgent",
-                            "en" => "Urgency",
+                            "en" => "Urgent",
                             "tooltip" => "Page Flux - Arrivages :\nZone liste - Nom de colonnes\nGestion des colonnes",
                         ],
                         [
@@ -1039,27 +1039,27 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     ],
                     [
                         "fr" => "Nouvelle urgence",
-                        "en" => "New urgency",
+                        "en" => "New emergency",
                         "tooltip" => "Modale Nouvelle urgence",
                     ],
                     [
-                        "fr" => "Modifier Urgeune urgence",
-                        "en" => "Edit an uUrgergency",
+                        "fr" => "Modifier une urgence",
+                        "en" => "Edit an emergency",
                         "tooltip" => "Modale Modifier une urgence",
                     ],
                     [
                         "fr" => "Supprimer l'urgence",
-                        "en" => "Delete the urgency",
+                        "en" => "Delete the emergency",
                         "tooltip" => "Modale Supprimer l'urgence",
                     ],
                     [
                         "fr" => "Cette urgence est liée à un arrivage.\nVous ne pouvez pas la supprimer",
-                        "en" => "This urgency is linked to an arrival. You cannot delete it",
+                        "en" => "This emergency is linked to an arrival. You cannot delete it",
                         "tooltip" => "Modale Supprimer l'urgence",
                     ],
                     [
                         "fr" => "Voulez-vous réellement supprimer cette urgence ?",
-                        "en" => "Do you really want to delete this urgency ?",
+                        "en" => "Do you really want to delete this emergency ?",
                         "tooltip" => "Modale Supprimer l'urgence",
                     ],
                     [
@@ -1756,7 +1756,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     ],
                     [
                         "fr" => "Urgence",
-                        "en" => "Urgency",
+                        "en" => "Emergency",
                         "tooltip" => "Acheminement :\nZone liste - Nom de colonnes\nModale Nouvelle demande\nModale Modifier un acheminement\nDétails acheminement - Entête\n_____\nService :\nModale Nouvelle demande de service\nModale Modifier une demande de service",
                     ],
                 ],
