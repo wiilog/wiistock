@@ -8,7 +8,6 @@ const MODE_DISPATCH = 'dispatch';
 const MODE_HANDLING = 'handling';
 
 const $managementButtons = $(`.save-settings, .discard-settings`);
-const $modalEditTranslations = $("#modalEditTranslations");
 let $canTranslate = true;
 
 export function initializeArrivalDisputeStatuses($container, canEdit) {
@@ -46,6 +45,7 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
     const statusStateOptions = JSON.parse($statusStateOptions.val());
     const tableSelector = `#${mode}-statuses-table`;
     const type = $('[name=type]:checked').val();
+    const $modalEditTranslations = $container.find(".edit-translation-modal");
     const route = Routing.generate(`settings_statuses_api`, {mode, type});
 
     const table = EditableDatatable.create(tableSelector, {
@@ -64,19 +64,24 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
         onEditStart: () => {
             $managementButtons.removeClass('d-none');
             $addRow.addClass('d-none');
-            if ($canTranslate) { $translateLabels.removeClass('d-none'); }
+            if ($canTranslate) {
+                $translateLabels.removeClass('d-none');
+            }
+
             $translateButton
                 .off('click')
                 .on(`click`, function () {
-                const params = {
-                    type: $('[name=type]:checked').val(),
-                    mode: mode
-                };
-                $.post(Routing.generate("settings_edit_status_translations_api", true), params)
-                    .then(response => {
-                        $modalEditTranslations.find(`.modal-body`).html(response.html);
-                    });
-            });
+                    const params = {
+                        type: $('[name=type]:checked').val(),
+                        mode: mode
+                    };
+
+                    $.post(Routing.generate("settings_edit_status_translations_api", true), params)
+                        .then(response => {
+                            $modalEditTranslations.find(`.modal-body`).html(response.html);
+                            $modalEditTranslations.modal('show');
+                        });
+                });
         },
         onEditStop: () => {
             $managementButtons.addClass('d-none');
