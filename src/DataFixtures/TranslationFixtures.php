@@ -63,7 +63,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                         [
                             "fr" => "Recherche en cours...",
-                            "en" => "Research in progress...",
+                            "en" => "Search in progress...",
                         ],
                         [
                             "fr" => "Aucun résultat.",
