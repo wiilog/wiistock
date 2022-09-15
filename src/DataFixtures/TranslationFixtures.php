@@ -281,14 +281,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                     ],
                 ],
-                "Stock" => [
-                    "content" => [
-                        [
-                            "fr" => "Libellé",
-                            "en" => "Label",
-                        ]
-                    ],
-                ],
             ],
         ],
         "Dashboard" => [
