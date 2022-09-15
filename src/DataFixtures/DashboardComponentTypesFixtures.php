@@ -40,7 +40,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 'textColor-2' => "#D73353",
                 'textColor-3' => "#3353D7",
                 'textColor-4' => "#000000",
-                'textColor-5' => "#0000CC",
+                'textColor-5' => "#3353d7",
 
                 'textBold-2' => false,
                 'textBold-3' => false,
@@ -491,7 +491,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 'textItalic-4' => false,
                 'textUnderline-4' => false,
 
-                'textColor-5' => "#0000CC",
+                'textColor-5' => "#3353d7",
                 'textBold-5' => false,
                 'textItalic-5' => false,
                 'textUnderline-5' => false,
@@ -860,7 +860,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 'textItalic-4' => false,
                 'textUnderline-4' => false,
 
-                'textColor-5' => "#0000CC",
+                'textColor-5' => "#3353d7",
                 'textBold-5' => false,
                 'textItalic-5' => false,
                 'textUnderline-5' => false,
@@ -926,7 +926,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 'textItalic-4' => false,
                 'textUnderline-4' => false,
 
-                'textColor-5' => "#0000CC",
+                'textColor-5' => "#3353d7",
                 'textBold-5' => false,
                 'textItalic-5' => false,
                 'textUnderline-5' => false,
