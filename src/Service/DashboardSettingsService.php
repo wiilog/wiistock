@@ -1066,7 +1066,8 @@ class DashboardSettingsService {
     private function validateComponentConfig(Dashboard\ComponentType $componentType,
                                              array $config) {
         if ($componentType->getMeterKey() === Dashboard\ComponentType::ENTRIES_TO_HANDLE) {
-            $errorMessage = self::INVALID_SEGMENTS_ENTRY . '-' . $config['title'];
+            $slug = $this->userService->getUser()->getLanguage()?->getSlug() ?? 'french';
+            $errorMessage = self::INVALID_SEGMENTS_ENTRY . '-' . $config['title_' . $slug];
             if (empty($config['segments']) || count($config['segments']) < 1) {
                 throw new InvalidArgumentException($errorMessage);
             } else {
