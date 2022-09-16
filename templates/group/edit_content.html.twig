@@ -9,7 +9,7 @@
             <select class="form-control data needed"
                     name="nature"
                     title="{{ trans('Traçabilité', 'Unités logistiques', 'Divers', "Nature d'unité logistique") }}">
-                <option value>{{ trans('Référentiel', 'Natures', 'Sélectionner une nature', false) }}</option>
+                <option value>{{ trans('Traçabilité', 'Général', 'Sélectionner une nature', false) }}</option>
                 {% set packNatureId = group.nature is not null ? group.nature.id : null %}
                 {% for nature in natures %}
                     <option value="{{ nature.id }}" {{ packNatureId == nature.id ? 'selected' }}>{{ nature.label }}</option>

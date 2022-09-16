@@ -6,6 +6,7 @@
     {% include 'filters/filter_item/filterLocation.html.twig' %}
     {% include 'filters/filter_item/filterStatus.html.twig' with {
         placeholder: trans('Traçabilité', 'Mouvements', 'Types', false),
+        forTrackMov: true,
     } %}
     {% include 'filters/filter_item/filterUser.html.twig' with {
         placeholder: trans('Traçabilité', 'Mouvements', 'Opérateurs', false),

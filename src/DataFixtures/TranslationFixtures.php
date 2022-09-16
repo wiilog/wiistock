@@ -530,6 +530,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "en" => "Last location",
                         "tooltip" => "Page Flux - Arrivages :\nDétails arrivage - Liste des UL - Nom de colonnes\n_____\nPage UL :\nZone liste - Nom de colonnes",
                     ],
+                    [
+                        "fr" => "Sélectionner une nature",
+                        "en" => "Select nature",
+                        "tooltip" => "Modale modification groupe",
+                    ],
                 ],
             ],
             "Flux - Arrivages" => [
@@ -1371,33 +1376,33 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "tooltip" => "Modale Nouveau mouvement\nModale Modifier un mouvement\nModale Détail de mouvement",
                     ],
                     [
-                        "fr" => "Prise",
-                        "en" => "Pick up",
+                        "fr" => "prise",
+                        "en" => "pick up",
                         "tooltip" => "Modale Nouveau mouvement - Choix liste \"Action\"",
                     ],
                     [
-                        "fr" => "Dépose",
-                        "en" => "Drop off",
+                        "fr" => "depose",
+                        "en" => "drop off",
                         "tooltip" => "Modale Nouveau mouvement - Choix liste \"Action\"",
                     ],
                     [
-                        "fr" => "Prises et déposes",
-                        "en" => "Pick-up and Drop off",
+                        "fr" => "prises et deposes",
+                        "en" => "pick-up and drop off",
                         "tooltip" => "Modale Nouveau mouvement - Choix liste \"Action\"",
                     ],
                     [
-                        "fr" => "Groupage",
-                        "en" => "Grouping",
+                        "fr" => "groupage",
+                        "en" => "grouping",
                         "tooltip" => "Modale Nouveau mouvement - Choix liste \"Action\"",
                     ],
                     [
-                        "fr" => "Dégroupage",
-                        "en" => "Ungroup",
+                        "fr" => "dégroupage",
+                        "en" => "ungroup",
                         "tooltip" => "Modale Nouveau mouvement - Choix liste \"Action\"",
                     ],
                     [
-                        "fr" => "Passage à vide",
-                        "en" => "Empty passage",
+                        "fr" => "passage à vide",
+                        "en" => "empty passage",
                         "tooltip" => "Modale Nouveau mouvement - Choix liste \"Action\"",
                     ],
                     [
@@ -1443,6 +1448,21 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "natures requises",
                         "en" => "required natures",
+                        "tooltip" => "Modale emplaçement ne peut pas contenir colis",
+                    ],
+                    [
+                        "fr" => "Mouvements créés avec succès.",
+                        "en" => "Movements created successfully",
+                        "tooltip" => "Modale emplaçement ne peut pas contenir colis",
+                    ],
+                    [
+                        "fr" => "Mouvement créé avec succès.",
+                        "en" => "Movement created successfully",
+                        "tooltip" => "Modale emplaçement ne peut pas contenir colis",
+                    ],
+                    [
+                        "fr" => "Aucun mouvement créé.",
+                        "en" => "No movement created",
                         "tooltip" => "Modale emplaçement ne peut pas contenir colis",
                     ],
                 ],
@@ -1693,6 +1713,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "fr" => "Le litige {1} a bien été supprimé",
                         "en" => "The dispute {1} has been deleted successfully",
                         "tooltip" => "Modale Supprimer le litige",
+                    ],
+                    [
+                        "fr" => "Le litige {1} a bien été créée",
+                        "en" => "The dispute {1} has been created successfully",
+                        "tooltip" => "Modale Créer un litige",
                     ],
                 ],
             ],
@@ -2533,6 +2558,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Ce service n'a aucune pièce jointe",
                             "en" => "This service has no attached documents",
+                            "tooltip" => "Détails",
+                        ],
+                        [
+                            "fr" => "Ce service n'a aucun champ libre",
+                            "en" => "This service has no custom fields",
                             "tooltip" => "Détails",
                         ],
                         [

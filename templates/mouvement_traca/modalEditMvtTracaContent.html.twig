@@ -52,7 +52,7 @@
                     <option class="{{ statut.nom == constant('App\\Entity\\TrackingMovement::TYPE_EMPTY_ROUND') and not hasEmptyRoundRight ? 'd-none' }}"
                             value="{{ statut.id }}"
                             {{ mvt.type.id == statut.id ? 'selected' }}>
-                        {{ statut.nom }}
+                        {{ trans('Traçabilité', 'Mouvements', statut.nom) }}
                     </option>
                 {% endif %}
             {% endfor %}
@@ -88,7 +88,7 @@
 
 <div class="row">
     <div class="form-group col-12 h-fit-content">
-        <label class="wii-field-name" for="commentaire">{{ trans('Général', '', 'Modale', 'Commentaire', false) }}</label>
+        <label class="wii-field-name" for="commentaire">{{ trans('Général', '', 'Modale', 'commentaire', false) }}</label>
         <input id="commentaire" class="commentaire form-control data" name="commentaire" type="hidden">
         <div class="editor-container-edit" value="{{ mvt.commentaire }}" data-wysiwyg>{{ mvt.commentaire|raw }}</div>
 

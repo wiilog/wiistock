@@ -865,7 +865,9 @@ class ArrivageController extends AbstractController {
 
         $response = $this->getResponseReloadArrivage($entityManager, $arrivageDataService, $request->query->get('reloadArrivage')) ?? [];
         $response['success'] = true;
-        $response['msg'] = 'Le litige <strong>' . $dispute->getNumber() . '</strong> a bien été créé.';
+        $response['msg'] = $translation->translate('Qualité', 'Litiges', "Le litige {1} a bien été créée", [
+            1 => $dispute->getNumber()
+        ]);
         return new JsonResponse($response);
     }
 

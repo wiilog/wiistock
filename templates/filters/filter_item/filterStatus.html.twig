@@ -11,12 +11,24 @@
                 {% if names is defined and names %}
                     {% for status in statuts %}
                         {% set selected = (filterStatus is defined and status == filterStatus) ? 'selected' %}
-                        <option class="d-none" value="{{ status }}" {{ selected }}>{{ status }}</option>
+                        <option class="d-none" value="{{ status }}" {{ selected }}>
+                            {% if forTrackMov is defined and forTrackMov %}
+                                {{ trans('Traçabilité', 'Mouvements', status, false) }}
+                            {% else %}
+                                {{ status }}
+                            {% endif %}
+                        </option>
                     {% endfor %}
                 {% else %}
                     {% for status in statuts | sort((a, b) => a.nom <=> b.nom) %}
                         {% set selected = (filterStatus is defined and status.nom == filterStatus) ? 'selected' %}
-                        <option class="d-none" value="{{ status.id }}" {{ selected }}>{{ status.nom }}</option>
+                        <option class="d-none" value="{{ status.id }}" {{ selected }}>
+                            {% if forTrackMov is defined and forTrackMov %}
+                                {{ trans('Traçabilité', 'Mouvements', status.nom, false) }}
+                            {% else %}
+                                {{ status.nom }}
+                            {% endif %}
+                        </option>
                     {% endfor %}
                 {% endif %}
             </select>

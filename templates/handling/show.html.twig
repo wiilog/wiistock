@@ -166,15 +166,15 @@
                         wrapperClass: 'col-6 d-flex flex-column',
                         values: handling.freeFields,
                         freeFields: freeFields,
-                        emptyTitle: "Ce service n'a aucun champ libre",
-                        emptyLabel: "Ce service n'a aucun champ libre",
+                        emptyTitle: trans('Demande', 'Services', 'Modale et détails', "Ce service n'a aucun champ libre"),
+                        emptyLabel: trans('Demande', 'Services', 'Modale et détails', "Ce service n'a aucun champ libre"),
                         needsDateFormatting: true
                     } %}
                 </div>
             </div>
         </div>
         <div class="col-md-6 col-12">
-            <div class="wii-box ">
+            <div class="wii-box">
                 <div class="header wii-title d-flex justify-content-between {{ handling.status.treated != 1 ? 'p-2' }}">
                     <span class="d-flex align-items-center pl-2">{{ trans('Demande', 'Services', 'Modale et détails', 'Statut') }}</span>
                     {% if handling.status.treated != 1 %}

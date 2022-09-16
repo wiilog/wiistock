@@ -16,7 +16,6 @@ $(function () {
             printColis: printColis,
             printArrivage: printArrivage
         };
-        console.log(params);
         SetRequestQuery({});
         Wiistock.download(Routing.generate('print_arrivage_bar_codes', params, true));
     }

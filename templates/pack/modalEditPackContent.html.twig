@@ -9,11 +9,11 @@
                    disabled/>
         </div>
         <div class="form-group col-md-6 col-12">
-            <label class="wii-field-name" title="Nature de colis">{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Nature d\'unité logistique') }}*</label>
+            <label class="wii-field-name" title="Nature de colis">{{ trans('Traçabilité', 'Unités logistiques', 'Divers', "Nature d'unité logistique") }}*</label>
             <select class="form-control data needed"
                     name="nature"
-                    title="{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Nature d\'unité logistique', false) }}">
-                <option value>{{ trans('Référentiel', 'Natures', 'Sélectionner une nature', false) }}</option>
+                    title="{{ trans('Traçabilité', 'Unités logistiques', 'Divers', "Nature d'unité logistique") }}">
+                <option value>{{ trans('Traçabilité', 'Général', 'Sélectionner une nature', false) }}</option>
                 {% set packNatureId = pack.nature is not null ? pack.nature.id : null %}
                 {% for nature in natures %}
                     <option value="{{ nature.id }}" {{ packNatureId == nature.id ? 'selected' }}>{{ nature.label }}</option>

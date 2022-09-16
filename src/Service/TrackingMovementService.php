@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Controller\AbstractController;
 use App\Entity\Arrivage;
 use App\Entity\Article;
 use App\Entity\CategorieCL;
@@ -35,7 +36,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Twig\Environment as Twig_Environment;
 use DateTimeInterface;
 
-class TrackingMovementService
+class TrackingMovementService extends AbstractController
 {
     public const INVALID_LOCATION_TO = 'invalid-location-to';
 
@@ -177,7 +178,7 @@ class TrackingMovementService
                         ? $trackingPack->getLastTracking()->getMouvementStock()->getArticle()?->getLabel()
                         : '')),
             "quantity" => $movement->getQuantity() ?: '',
-            "type" => FormatHelper::status($movement->getType()),
+            "type" => $this->translation->translate('Traçabilité', 'Mouvements', $movement->getType()->getNom()) ,
             "operator" => FormatHelper::user($movement->getOperateur()),
             "actions" => $this->templating->render('mouvement_traca/datatableMvtTracaRow.html.twig', [
                 'mvt' => $movement,

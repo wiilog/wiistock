@@ -45,7 +45,7 @@
                                         {% for statut in statuts %}
                                             {% if statut.nom != constant('App\\Entity\\TrackingMovement::TYPE_UNGROUP') %}
                                                 <option class="{{ statut.nom == constant('App\\Entity\\TrackingMovement::TYPE_EMPTY_ROUND')
-                                                and not hasEmptyRoundRight ? 'd-none' }}" value="{{ statut.id }}">{{ statut.nom }}
+                                                and not hasEmptyRoundRight ? 'd-none' }}" value="{{ statut.id }}">{{ trans('Traçabilité', 'Mouvements', statut.nom) }}
                                                 </option>
                                             {% endif %}
                                         {% endfor %}
@@ -59,7 +59,7 @@
                     <div class="col-6">
                         <div class="row">
                             <div class="form-group col-12 h-fit-content">
-                                <label class="wii-field-name" for="commentaire">{{ trans('Général', '', 'Modale', 'Commentaire', false) }}</label>
+                                <label class="wii-field-name" for="commentaire">{{ trans('Général', '', 'Modale', 'commentaire', false) }}</label>
                                 <input id="commentaire" class="commentaire form-control data" name="commentaire"
                                        type="hidden">
                                 <div class="editor-container-new" data-wysiwyg></div>

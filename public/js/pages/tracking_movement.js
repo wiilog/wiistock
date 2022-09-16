@@ -222,9 +222,9 @@ function displayOnSuccessCreation(success, trackingMovementsCounter) {
             class: 'text-center',
             text: trackingMovementsCounter > 0
                 ? (trackingMovementsCounter > 1
-                    ? 'Mouvements créés avec succès.'
-                    : 'Mouvement créé avec succès.')
-                : 'Aucun mouvement créé.'
+                    ? Translation.of('Traçabilité', 'Mouvements', 'Mouvements créés avec succès.', false)
+                    : Translation.of('Traçabilité', 'Mouvements', 'Mouvement créé avec succès.', false))
+                : Translation.of('Traçabilité', 'Mouvements', 'Aucun mouvement créé.', false)
         }),
         [
             {
