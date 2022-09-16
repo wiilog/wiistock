@@ -47,7 +47,7 @@ Class WiilockService
         $now = new DateTime('now');
         $lastUpdate = $this->getLastDashboardFeedingTime($entityManager);
 
-        return !$this->dashboardIsBeingFed($entityManager) || $lastUpdate->diff($now)->m >= 15;
+        return !$this->dashboardIsBeingFed($entityManager) || $lastUpdate->diff($now)->i >= 15;
     }
 
     /**
