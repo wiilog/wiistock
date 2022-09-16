@@ -2741,17 +2741,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 ],
             ],
         ],
-        "Paramétrage" => [
-            "Utilisateurs" => [
-                "content" => [
-                    [
-                        "fr" => "Types de service",
-                        "en" => "Service types",
-                        "tooltip" => "Modale nouvel utilisateur, Modale modifier un utilisateur",
-                    ],
-                ],
-            ],
-        ],
     ];
 
     private const CHILD = [
