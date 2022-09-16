@@ -572,9 +572,7 @@ class HandlingController extends AbstractController {
                 "statusesHistory" => Stream::from($handling->getStatusHistory())
                     ->map(fn(StatusHistory $statusHistory) => [
                         "status" => $this->getFormatter()->status($statusHistory->getStatus()),
-                        "date" => $user->getDateFormat() === 'd/m/Y'
-                            ? FormatHelper::longDate($statusHistory->getDate(), ["short" => true, "time" => true])
-                            : $this->getFormatter()->datetime($statusHistory->getDate(), "", false, $user)
+                        "date" => $this->getFormatter()->datetime($statusHistory->getDate(), "", false, $user)
                     ])
                     ->toArray(),
                 "handling" => $handling,
