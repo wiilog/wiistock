@@ -153,8 +153,8 @@ class DisputeService {
 
     public function getLitigeOrigin(): array {
         return [
-            Dispute::ORIGIN_ARRIVAGE => $this->translation->translate("Traçabilité", "Flux - Arrivages", "Divers", "Arrivage"),
-            Dispute::ORIGIN_RECEPTION => "manque la traduction (dans ordre -> reception)"
+            Dispute::ORIGIN_ARRIVAGE => $this->translation->translate("Traçabilité", "Flux - Arrivages", "Divers", "Arrivage", false),
+            Dispute::ORIGIN_RECEPTION => $this->translation->translate("Ordre", "Réceptions", "Réception", false)
         ];
     }
 
