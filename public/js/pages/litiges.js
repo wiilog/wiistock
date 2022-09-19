@@ -50,7 +50,7 @@ function initDatatableLitiges() {
         },
         columns: [
             {data: 'actions', title: '', orderable: false, className: 'noVis'},
-            {data: 'type', title: 'Type'},
+            {data: 'type', title: Translation.of(`Qualité`, `Litiges`, 'Type')},
             {data: 'disputeNumber', title: Translation.of(`Qualité`, `Litiges`, `Numéro de litige`)},
             {data: "arrivalNumber", title: Translation.of(`Traçabilité`, `Flux - Arrivages`, `Divers`, `N° d'arrivage`)},
             {data: 'receptionNumber', title: Translation.of(`Traçabilité`, `Association BR`, `N° de réception`)},
@@ -63,7 +63,7 @@ function initDatatableLitiges() {
             {data: 'lastHistoryRecord', title: Translation.of(`Qualité`, `Litiges`, `Dernier historique`), orderable: false},
             {data: 'creationDate', title: Translation.of(`Qualité`, `Litiges`, `Créé le`)},
             {data: 'updateDate', title: Translation.of(`Qualité`, `Litiges`, `Modifié le`)},
-            {data: 'status', title: 'Statut'},
+            {data: 'status', title: Translation.of(`Qualité`, `Litiges`, 'Statut')},
             {data: 'urgence', title: 'urgence', visible: false, class: 'noVis'},
         ],
         domConfig: {

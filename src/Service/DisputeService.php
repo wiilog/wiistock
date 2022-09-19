@@ -218,7 +218,7 @@ class DisputeService {
                 ["name" => 'receptionNumber', 'title' => $this->translation->translate('Traçabilité', 'Association BR', 'N° de réception')],
                 ["name" => 'buyers', 'title' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Acheteur(s)')],
                 ["name" => 'numCommandeBl', 'title' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° commande / BL')],
-                ["name" => 'reporter', 'title' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Détails arrivage - Liste des litiges', 'Déclarant')],
+                ["name" => 'reporter', 'title' => $this->translation->translate('Qualité', 'Litiges', 'Déclarant')],
                 ["name" => 'command', 'title' => 'N° ligne'],
                 ["name" => 'provider', 'title' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Fournisseur')],
                 ["name" => 'references', 'title' => 'Référence'],
