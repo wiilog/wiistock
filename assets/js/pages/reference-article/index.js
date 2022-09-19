@@ -55,6 +55,9 @@ function initTableRefArticle() {
             const columns = data.columns;
             const search = data.search;
             const index = data.index;
+
+            columns.forEach(ref => ref.title = Translation.of('Stock', 'Références', ref.title));
+
             let tableRefArticleConfig = {
                 processing: true,
                 serverSide: true,

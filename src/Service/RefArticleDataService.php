@@ -126,6 +126,9 @@ class RefArticleDataService {
     #[Required]
     public FormatService $formatService;
 
+    #[Required]
+    public TranslationService $translationService;
+
     private ?array $freeFieldsConfig = null;
 
     public function __construct(TokenStorageInterface $tokenStorage,
