@@ -10,7 +10,9 @@
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
         {% include 'filters/filter_item/filterProvider.html.twig' %}
     {% endif %}
-    {% include 'filters/filter_item/filterEmergency.html.twig' %}
+    {% include 'filters/filter_item/filterEmergency.html.twig' with {
+        titleFilterStatut : 'Urgence ?'
+    } %}
     {% include 'filters/filter_item/filterExpectedDate.html.twig' %}
     {% include 'filters/filter_item/filterCommandList.html.twig' %}
 {% endblock %}
