@@ -93,7 +93,7 @@
                             {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                                 {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
                                 <div class="form-group">
-                                    <label class="wii-field-name">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Transporteur') }}{{ required ? '*' }}</label>
+                                    <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'Transporteur') }}{{ required ? '*' }}</label>
                                     <select class="form-control data w-100 {{ required ? 'needed' }}"
                                             name="carrier" data-s2="carrier">
                                     </select>
@@ -158,7 +158,7 @@
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
                             <div class="form-group">
-                                <label class="wii-field-name">{{  trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° tracking transporteur') }}{{ required ? '*' }}</label>
+                                <label class="wii-field-name">{{  trans('Demande', 'Acheminements', 'Champs fixes', 'N° tracking transporteur') }}{{ required ? '*' }}</label>
                                 <input class="form-control data {{ required ? 'needed' }}"
                                        name="carrierTrackingNumber">
                             </div>
@@ -169,7 +169,7 @@
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
                             {% set projectNumberValue = arrival ? arrival.projectNumber %}
                             <div class="form-group">
-                                <label class="wii-field-name">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Numéro de projet') }}{{ required ? '*' }}</label>
+                                <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'N° projet') }}{{ required ? '*' }}</label>
                                 <input class="project form-control data {{ required ? 'needed' }} needs-default"
                                        name="projectNumber"
                                        value="{{ projectNumberValue }}"
@@ -230,7 +230,7 @@
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
                             {% set businessUnitValue = arrival ? arrival.businessUnit %}
                             <div class="form-group">
-                                <label class="wii-field-name">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Business unit') }}{{ required ? '*' }}</label>
+                                <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'Business unit') }}{{ required ? '*' }}</label>
                                 <select name="businessUnit"
                                         class="form-control data {{ required ? 'needed' }} needs-default"
                                         data-init="{{ businessUnitValue }}">
