@@ -53,7 +53,7 @@
                     <div class="col-md-4 col-12">
                         <div class="form-group">
                             {% set uniqueType = typeChampsLibres|length == 1 %}
-                            <label class="wii-field-name" for="type">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Type') }}*</label>
+                            <label class="wii-field-name" for="type">{{ trans('Demande', 'Général', 'Type') }}*</label>
                             <select name="type"
                                     class="form-control data d-block type needed {{ uniqueType ? 'needs-default' }}"
                                     onchange="onDispatchTypeChange($(this))"
@@ -112,7 +112,7 @@
                     </div>
                     <div class="col-md-4 col-12">
                         <div class="form-group">
-                            <label class="wii-field-name">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Statut') }}*</label>
+                            <label class="wii-field-name">{{ trans('Demande', 'Général', 'Statut') }}*</label>
                             <select name="status"
                                     disabled
                                     class="form-control data w-100 needed">
@@ -195,7 +195,7 @@
                                 <div class="w-100">
                                     <select class="form-control input-sm data"
                                             name="emergency">
-                                        <option value="">{{ trans('Demande', 'Acheminements', 'Modale', 'Non urgent') }}</option>
+                                        <option value="">{{ trans('Demande', 'Général', 'Non urgent') }}</option>
                                         {% for emergency in emergencies %}
                                             <option value="{{ emergency }}">{{ emergency }}</option>
                                         {% endfor %}

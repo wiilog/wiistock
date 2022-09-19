@@ -1768,7 +1768,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "Non urgent",
                         "en" => "Not urgent",
-                        "tooltip" => "Modale Nouvelle demande de service - Urgence\nModifier une demande de service",
+                        "tooltip" => "Modale Nouvelle demande de service - Urgence\nModifier une demande de service\nModale Nouvelle demande d'acheminement - Urgence\nModale Modifier un acheminement",
 
                     ],
                     [
@@ -2092,11 +2092,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 ],
                 "Modale" => [
                     "content" => [
-                        [
-                            "fr" => "Non urgent",
-                            "en" => "Not urgent",
-                            "tooltip" => "Modale Nouvelle demande d'acheminement - Urgence\nModale Modifier un acheminement",
-                        ],
                         [
                             "fr" => "Echéance",
                             "en" => "Due",
