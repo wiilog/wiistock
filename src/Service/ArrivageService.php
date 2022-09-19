@@ -172,6 +172,7 @@ class ArrivageService {
     }
 
     public function sendArrivalEmails(Arrivage $arrival, array $emergencies = []): void {
+        /** @var Utilisateur $user */
         $user = $this->security->getUser();
 
         $isUrgentArrival = !empty($emergencies);
@@ -193,8 +194,10 @@ class ArrivageService {
         }
 
         if (!empty($finalRecipients)) {
-            $title = 'Arrivage reçu : ' . $arrival->getNumeroArrivage() . ', le ' . $arrival->getDate()->format($user->getDateFormat() ? $user->getDateFormat() . ' H:i' : 'd/m/Y à H:i');
-
+            $title = ['Traçabilité', 'Flux - Arrivages', 'Email arrivage', 'Arrivage reçu : le {1} à {2}', false, [
+                1 => $arrival->getNumeroArrivage(),
+                2 => $arrival->getDate()->format($user->getDateFormat() ? $user->getDateFormat() . ' H:i' : 'd/m/Y à H:i')
+            ]];
             $freeFields = $this->freeFieldService->getFilledFreeFieldArray(
                 $this->entityManager,
                 $arrival,
@@ -202,16 +205,14 @@ class ArrivageService {
                 $this->security->getUser()
             );
 
-            $defaultSlugLanguage = $this->languageService->getDefaultSlug();
-            $slug = $this->languageService->getReverseDefaultLanguage($defaultSlugLanguage);
             $this->mailerService->sendMail(
                 ($isUrgentArrival
-                    ? $this->translation->translateIn($slug, $defaultSlugLanguage, true,'Traçabilité', 'Flux - Arrivages', 'Email arrivage', 'FOLLOW GT // Arrivage urgent', false)
-                    : $this->translation->translateIn($slug, $defaultSlugLanguage, true,'Traçabilité', 'Flux - Arrivages', 'Email arrivage', 'FOLLOW GT // Arrivage', false)
+                    ? ['Traçabilité', 'Flux - Arrivages', 'Email arrivage', 'FOLLOW GT // Arrivage urgent', false]
+                    : ['Traçabilité', 'Flux - Arrivages', 'Email arrivage', 'FOLLOW GT // Arrivage', false]
                 ),
-                $this->templating->render(
-                    'mails/contents/mailArrivage.html.twig',
-                    [
+                [
+                    'name' => 'mails/contents/mailArrivage.html.twig',
+                    'context' => [
                         'title' => $title,
                         'arrival' => $arrival,
                         'emergencies' => $emergencies,
@@ -219,7 +220,7 @@ class ArrivageService {
                         'freeFields' => $freeFields,
                         'urlSuffix' => $this->router->generate("arrivage_show", ["id" => $arrival->getId()]),
                     ]
-                ),
+                ],
                 $finalRecipients
             );
         }

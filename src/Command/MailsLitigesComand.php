@@ -76,32 +76,46 @@ class MailsLitigesComand extends Command
 
         $disputesByBuyer = [];
         foreach ($disputes as $dispute) {
-            /** @var  $acheteursEmail */
-            $acheteursEmail = $disputeRepository->getAcheteursArrivageByDisputeId($dispute->getId());
-            foreach ($acheteursEmail as $email) {
-                $disputesByBuyer[$email][] = $dispute;
+            /** @var  $buyers */
+            $buyers = $disputeRepository->getDisputeBuyers($dispute);
+            foreach ($buyers as $buyer) {
+                $buyerId = $buyer->getId();
+                $disputeId = $dispute->getId();
+                if (!isset($disputesByBuyer[$buyerId])) {
+                    $disputesByBuyer[$buyerId] = [
+                        'disputes' => [$dispute],
+                        'disputeIds' => [$disputeId],
+                        'buyer' => $buyer
+                    ];
+                }
+                else if (!in_array($disputeId, $disputesByBuyer[$buyerId]['disputeIds'])) {
+                    $disputesByBuyer[$buyerId]['disputeIds'][] = $disputeId;
+                    $disputesByBuyer[$buyerId]['disputes'][] = $dispute;
+                }
             }
         }
 
         $listEmails = '';
 
-        $defaultSlugLanguage = $this->languageService->getDefaultSlug();
-        $slug = $this->languageService->getReverseDefaultLanguage($defaultSlugLanguage);
+        $subject = ["Traçabilité", "Flux - Arrivages", "Email litige", "FOLLOW GT // Récapitulatif de vos litiges", false];
+        $title = ["Traçabilité", "Flux - Arrivages", "Email litige", "Récapitulatif de vos litiges", false];
 
-        $subject = $this->translationService->translateIn($slug, $defaultSlugLanguage, true, "Traçabilité", "Flux - Arrivages", "Email litige", "FOLLOW GT // Récapitulatif de vos litiges", false);
-        $title = $this->translationService->translateIn($slug, $defaultSlugLanguage, true, "Traçabilité", "Flux - Arrivages", "Email litige", "Récapitulatif de vos litiges", false);
-
-        foreach ($disputesByBuyer as $email => $disputes) {
+        foreach ($disputesByBuyer as $res) {
+            $disputes = $res['disputes'];
+            $buyer = $res['buyer'];
             $this->mailerService->sendMail(
                 $subject,
-                $this->templating->render('mails/contents/mailLitigesArrivage.html.twig', [
-                    'disputes' => $disputes,
-                    'title' => $title,
-                    'urlSuffix' => $this->router->generate('arrivage_index')
-                ]),
-                $email
+                [
+                    'name' => 'mails/contents/mailLitigesArrivage.html.twig',
+                    'context' => [
+                        'disputes' => $disputes,
+                        'title' => $title,
+                        'urlSuffix' => $this->router->generate('arrivage_index')
+                    ]
+                ],
+                $buyer
             );
-            $listEmails .= $email . ', ';
+            $listEmails .= $buyer->getEmail() . ', ';
         }
 
         $nbMails = count($disputesByBuyer);

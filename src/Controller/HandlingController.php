@@ -253,9 +253,8 @@ class HandlingController extends AbstractController {
         }
         /** @noinspection PhpRedundantCatchClauseInspection */
         catch (UniqueConstraintViolationException | ConnectException $e) {
-
             if ($e instanceof UniqueConstraintViolationException) {
-                $message = $translation->translate('Demande', 'Services', 'Une autre demande de service est en cours de création, veuillez réessayer.', false);
+                $message = $translation->translate('Demande', 'Services', null, 'Une autre demande de service est en cours de création, veuillez réessayer.', false);
             } else if ($e instanceof ConnectException) {
                 $message = $translation->translate('Demande', 'Services', null, 'Une erreur s\'est produite lors de l`\'envoi de la notifiation de cette demande de service. Veuillez réessayer.');
             }
@@ -272,7 +271,7 @@ class HandlingController extends AbstractController {
         $number = '<strong>' . $handling->getNumber() . '</strong>';
         return new JsonResponse([
             'success' => true,
-            'msg' => $translation->translate('Demande', 'Services', 'La demande de service {1} a bien été créée.', [1 => $number], false),
+            'msg' => $translation->translate('Demande', 'Services', null, 'La demande de service {1} a bien été créée.', [1 => $number], false),
         ]);
     }
 
@@ -348,7 +347,7 @@ class HandlingController extends AbstractController {
         $number = '<strong>' . $handling->getNumber() . '</strong>';
         return new JsonResponse([
             'success' => true,
-            'msg' => $translation->translate('Demande', 'Services', 'La demande de service {1} a bien été modifiée.', [1 => $number], false),
+            'msg' => $translation->translate('Demande', 'Services', null, 'La demande de service {1} a bien été modifiée.', [1 => $number], false),
         ]);
 
     }
@@ -390,7 +389,7 @@ class HandlingController extends AbstractController {
             $number = '<strong>' . $handlingNumber . '</strong>';
             return new JsonResponse([
                 'success' => true,
-                'msg' => $translation->translate('Demande', 'Services', 'La demande de service {1} a bien été supprimée.', [1 => $number], false),
+                'msg' => $translation->translate('Demande', 'Services', null, 'La demande de service {1} a bien été supprimée.', [1 => $number], false),
                 'redirect'=> $this->generateUrl('handling_index')
             ]);
         }

@@ -14,44 +14,42 @@
         : arrival.commentaire|striptags
     %}
 
-    {% set lastResort = true %}
-
-    <p>{{ translateInDefault(lastResort, 'Général', null, 'Emails', 'Bonjour,', false) }}</p>
+    <p>{{ translateIn(language, 'Général', null, 'Emails', 'Bonjour,', false) }}</p>
     <p>
         {{ isUrgentArrival
-            ? translateInDefault(lastResort, 'Traçabilité', 'Flux - Arrivages', 'Email arrivage', 'Votre commande urgente est arrivée :', false)
-            : translateInDefault(lastResort, 'Traçabilité', 'Flux - Arrivages', 'Email arrivage', 'Votre commande est arrivée :', false)
+            ? translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Email arrivage', 'Votre commande urgente est arrivée :', false)
+            : translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Email arrivage', 'Votre commande est arrivée :', false)
         }}
     </p>
     <ul>
-        <li>{{ translateInDefault(lastResort, 'Traçabilité', 'Flux - Arrivages', 'Divers', 'N° d\'arrivage', false) }} : <strong>{{ arrival.numeroArrivage }}</strong></li>
+        <li>{{ translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Divers', 'N° d\'arrivage', false) }} : <strong>{{ arrival.numeroArrivage }}</strong></li>
 
         {% if numeroCommandeList|length > 0 %}
-            <li>{{ translateInDefault(lastResort, 'Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° commande / BL', false) }} : <strong>{{ numeroCommandeList|join(', ') }}</strong></li>
+            <li>{{ translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° commande / BL', false) }} : <strong>{{ numeroCommandeList|join(', ') }}</strong></li>
         {% endif %}
 
         {% if arrival.fournisseur %}
-            <li>{{ translateInDefault(lastResort, 'Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Fournisseur', false) }} : <strong>{{ arrival.fournisseur.nom }}</strong></li>
+            <li>{{ translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Fournisseur', false) }} : <strong>{{ arrival.fournisseur.nom }}</strong></li>
         {% endif %}
 
         {% if arrival.transporteur %}
-            <li>{{ translateInDefault(lastResort, 'Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Transporteur', false) }} : <strong>{{ arrival.transporteur.label }}</strong></li>
+            <li>{{ translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Transporteur', false) }} : <strong>{{ arrival.transporteur.label }}</strong></li>
         {% endif %}
 
         {% if arrival.noTracking %}
-            <li>{{ translateInDefault(lastResort, 'Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° tracking transporteur', false) }} : <strong>{{ arrival.noTracking }}</strong></li>
+            <li>{{ translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° tracking transporteur', false) }} : <strong>{{ arrival.noTracking }}</strong></li>
         {% endif %}
 
         {% if arrival.projectNumber %}
-            <li>{{ translateInDefault(lastResort, 'Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Numéro de projet', false) }} : <strong>{{ arrival.projectNumber }}</strong></li>
+            <li>{{ translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Numéro de projet', false) }} : <strong>{{ arrival.projectNumber }}</strong></li>
         {% endif %}
 
         {% if arrival.businessUnit %}
-            <li>{{ translateInDefault(lastResort, 'Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Business unit', false) }} : <strong>{{ arrival.businessUnit }}</strong></li>
+            <li>{{ translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Business unit', false) }} : <strong>{{ arrival.businessUnit }}</strong></li>
         {% endif %}
 
         <li>
-            {{ translateInDefault(lastResort, 'Général', null, 'Modale', 'Pièces jointes', false) }} :
+            {{ translateIn(language, 'Général', null, 'Modale', 'Pièces jointes', false) }} :
             <ul>
                 {% set linkBaseHref = app.request is not null ? app.request.getSchemeAndHttpHost() : app_url %}
                 {% for attachment in arrival.attachments %}
@@ -65,7 +63,7 @@
         </li>
 
         {% if arrival.commentaire %}
-            <li>{{ translateInDefault(lastResort, 'Général', null, 'Modale', 'Commentaire', false) }} : {{ comment }}</li>
+            <li>{{ translateIn(language, 'Général', null, 'Modale', 'Commentaire', false) }} : {{ comment }}</li>
         {% endif %}
 
         {% for freeField in freeFields %}

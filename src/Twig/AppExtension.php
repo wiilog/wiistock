@@ -78,7 +78,9 @@ class AppExtension extends AbstractExtension {
             new TwigFunction('trans', [$this, "translate"], [
                 "is_safe" => ["html"]
             ]),
-            new TwigFunction('translateInDefault', [$this, "translateInDefault"])
+            new TwigFunction('translateIn', [$this, "translateIn"], [
+                "is_safe" => ["html"]
+            ])
         ];
     }
 
@@ -271,13 +273,7 @@ class AppExtension extends AbstractExtension {
         return $this->translationService->translate(...$args);
     }
 
-    public function translateInDefault(bool $lastResort, mixed ...$args): ?string {
-        if (!$this->defaultLanguageSlug) {
-            $defaultLanguage = $this->languageService->getDefaultLanguage();
-            $this->defaultLanguageSlug = $defaultLanguage->getSlug();
-        }
-
-        $slug = $this->languageService->getReverseDefaultLanguage($this->defaultLanguageSlug);
-        return $this->translationService->translateIn($slug, $this->defaultLanguageSlug, $lastResort, ...$args);
+    public function translateIn(mixed... $args): string {
+        return $this->translationService->translateIn(...$args);
     }
 }
