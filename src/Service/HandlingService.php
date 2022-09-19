@@ -263,7 +263,7 @@ class HandlingService {
             ['title' => $this->translation->translate('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Objet'), 'name' => 'subject'],
             ['title' => $this->translation->translate('Demande', 'Services', 'Modale et détails', 'Date attendue'), 'name' => 'desiredDate'],
             ['title' => $this->translation->translate('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Date de réalisation'), 'name' => 'validationDate'],
-            ['title' => $this->translation->translate('Demande', 'Services', 'Modale et détails', 'Statut'), 'name' => 'status'],
+            ['title' => $this->translation->translate('Demande', 'Général', 'Statut'), 'name' => 'status'],
             ['title' => $this->translation->translate( 'Demande', 'Général', 'Urgent'), 'name' => 'emergency'],
             ['title' => $this->translation->translate('Demande', 'Services', 'Modale et détails', 'Nombre d\'opération(s) réalisée(s)'), 'name' => 'carriedOutOperationCount'],
             ['title' => $this->translation->translate('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Traité par'), 'name' => 'treatedBy'],
