@@ -1791,6 +1791,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "en" => "Emergency",
                         "tooltip" => "Acheminement :\nZone liste - Nom de colonnes\nModale Nouvelle demande\nModale Modifier un acheminement\nDétails acheminement - Entête\n_____\nService :\nModale Nouvelle demande de service\nModale Modifier une demande de service",
                     ],
+                    [
+                        "fr" => "Aller vers la création des statuts",
+                        "en" => "Go to the creation of the statuses",
+                        "tooltip" => "Acheminement :\nModale Nouvelle demande d'acheminement\n_____\nService :\nModale Nouvelle demande de service",
+                    ],
                 ],
             ],
             "Acheminements" => [
@@ -1840,7 +1845,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Modale Supprimer la demande d'acheminement",
                         ],
                         [
-                            "fr" => "Vous-vous réllement supprimer cette demande d'acheminement ?",
+                            "fr" => "Voulez-vous réellement supprimer cette demande d'acheminement ?",
                             "en" => "Do you really want to delete this transfer operation ?",
                             "tooltip" => "Modale Supprimer la demande d'acheminement",
                         ],
@@ -1888,6 +1893,21 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "L'acheminement a bien été traité",
                             "en" => "Transfer has been processed successfully",
+                        ],
+                        [
+                            "fr" => "Modifier un acheminement",
+                            "en" => "Edit transfer",
+                            "tooltip" => "Modale modifier un acheminement",
+                        ],
+                        [
+                            "fr" => "Vous n'avez pas configuré de statut {1} pour ce type d'acheminement",
+                            "en" => "You have not configured a status {1} for this transfer type",
+                            "tooltip" => "Modale Nouvelle demande d'acheminement",
+                        ],
+                        [
+                            "fr" => "Attention : L'acheminement contient plus de {1} unités logistiques, cette lettre de voiture ne peut contenir plus de {1} lignes.",
+                            "en" => "Warning: The tranfer contains more than {1} logistics units, this consignment note cannot contain more than {1} lines.",
+                            "tooltip" => "Modale Création\nModification Lettre de voiture",
                         ],
                     ],
                 ],
@@ -2011,6 +2031,10 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "en" => "Finish the operation",
                             "tooltip" => "Détails acheminements - Bouton",
                         ],
+                        [
+                            "fr" => "Cet acheminement est urgent",
+                            "en" => "This transfer is urgent",
+                        ],
                     ],
                 ],
                 "Détails acheminement - Liste des unités logistiques" => [
@@ -2087,6 +2111,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "L'unité logistique {1} a bien été ajouté",
                             "en" => "Logistic unit {1} has been added",
+                        ],
+                        [
+                            "fr" => "Code",
+                            "en" => "Code",
+                            "tooltip" => "Liste des UL",
                         ],
                     ],
                 ],
@@ -2316,8 +2345,18 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Modale Création modification BL",
                         ],
                         [
+                            "fr" => "Dernier utilisateur",
+                            "en" => "Last user",
+                            "tooltip" => "Modale Création modification BL",
+                        ],
+                        [
                             "fr" => "Livrer à",
                             "en" => "Deliver to",
+                            "tooltip" => "Modale Création modification BL",
+                        ],
+                        [
+                            "fr" => "Numéro",
+                            "en" => "Number",
                             "tooltip" => "Modale Création modification BL",
                         ],
                         [
@@ -2353,6 +2392,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "fr" => "Le bon de livraison n'existe pas pour cet acheminement",
                             "en" => "The delivery note does not exist for this transfer",
                         ],
+
                     ],
                 ],
                 "Emails" => [

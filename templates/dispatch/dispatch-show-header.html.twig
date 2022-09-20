@@ -1,7 +1,7 @@
 {% extends 'utils/show-header.html.twig' %}
 
 {% block showTitleTooltip ('Acheminement' ~ ' n°' ~ dispatch.number) %}
-{% block showTitle ('acheminement.Acheminement'|trans) %}
+{% block showTitle trans('Demande', 'Acheminements', 'Divers', 'Acheminement', false) %}
 {% block showSubtitle ('n°' ~ dispatch.number) %}
 
 {% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
@@ -40,7 +40,7 @@
                         onclick="openValidateDispatchModal()"
                         class="btn btn-primary d-flex align-items-center justify-content-center split-button mr-0">
                     <span class="wii-icon wii-icon-check-white mr-2"></span>
-                    Valider la demande
+                    {{ trans('Demande', 'Acheminements', 'Détails acheminement - Entête', 'Valider la demande', false) }}
                 </button>
             {% elseif not dispatch.statut.treated %}
                 <button type="button"
@@ -48,7 +48,7 @@
                         onclick="openTreatDispatchModal()"
                         class="btn btn-primary align-items-center justify-content-center split-button mr-0">
                     <span class="wii-icon wii-icon-check-white mr-2"></span>
-                    Terminer la demande
+                    {{ trans('Demande', 'Acheminements', 'Détails acheminement - Entête', 'Terminer la demande', false) }}
                 </button>
             {% endif %}
         {% endif %}
@@ -66,7 +66,7 @@
                     <a class="dropdown-item"
                        href="{{ path('rollback_draft', {'dispatch': dispatch.id}) }}">
                         <i class="fas fa-undo-alt mr-2"></i>
-                        Retour au statut brouillon
+                        {{ trans('Demande', 'Acheminements', 'Détails acheminement - Entête', 'Retour au statut Brouillon', false) }}
                     </a>
                 {% endif %}
             {% endif %}
@@ -78,14 +78,14 @@
                    title="Générer un bon de livraison"
                    class="dropdown-item  d-flex align-items-center">
                     <span class="wii-icon wii-icon-printer-black mr-2"></span>
-                    {{ 'acheminement.Générer un bon de livraison' | trans }}
+                    {{ trans('Demande', 'Acheminements', 'Détails acheminement - Entête', 'Générer un bon de livraison', false) }}
                 </a>
             {% endif %}
             {% if hasRightToGenerateOverconsumptionBill %}
                 <a class="dropdown-item d-flex align-items-center"
                    onclick="generateOverconsumptionBill({{ dispatch.id }})">
                     <span class="wii-icon wii-icon-printer-black mr-2"></span>
-                    Générer un bon de surconsommation
+                    {{ trans('Demande', 'Acheminements', 'Détails acheminement - Entête', 'Générer un bon de surconsommation', false) }}
                 </a>
             {% endif %}
             {% if hasRightToGenerateWayBill %}
@@ -95,7 +95,7 @@
                    title="Générer une lettre de voiture"
                    class="dropdown-item d-flex align-items-center">
                     <span class="wii-icon wii-icon-printer-black mr-2"></span>
-                    {{ 'acheminement.Générer une lettre de voiture' | trans }}
+                    {{ trans('Demande', 'Acheminements', 'Détails acheminement - Entête', 'Générer une lettre de voiture', false) }}
                 </a>
             {% endif %}
             {% if hasRightToGenerateDispatchBill %}
@@ -103,7 +103,7 @@
                    title="Générer un bon d'acheminement"
                    onclick="runDispatchPrint()">
                     <span class="wii-icon wii-icon-printer-black mr-2"></span>
-                    {{ 'acheminement.Générer un bon d\'acheminement'|trans }}
+                    {{ trans('Demande', 'Acheminements', 'Détails acheminement - Entête', "Générer un bon d'acheminement", false) }}
                 </a>
             {% endif %}
             {% if hasRightEdit %}
@@ -113,14 +113,14 @@
                    onclick="editRow($(this), Routing.generate('dispatch_edit_api', true), $('#modalEditDispatch'), $('#submitEditDispatch'), false, initDatePickers)"
                    class="dropdown-item pointer">
                     <i class="fa fa-pen mr-2"></i>
-                    Modifier
+                    {{ trans('Général', null, 'Modale', 'Modifier') }}
                 </a>
             {% endif %}
             {% if hasRightDelete %}
                 <a href="" data-id='{{ dispatch.id }}' data-target='#modalDeleteDispatch' data-toggle='modal'
                    class="dropdown-item d-flex align-items-center">
                     <span class="wii-icon wii-icon-trash-black mr-2"></span>
-                    Supprimer
+                    {{ trans('Général', null, 'Modale', 'Supprimer') }}
                 </a>
             {% endif %}
         </div>
@@ -130,6 +130,8 @@
 {% block showUrgence %}
     {% if dispatch.emergency %}
         <i class="fa fa-exclamation-triangle mr-2"></i>
-        <span title="Cet acheminement est urgent">{{ 'acheminement.Cet acheminement est urgent'|trans }} ({{ dispatch.emergency }})</span>
+        <span title="Cet acheminement est urgent">
+            {{ trans('Demande', 'Acheminements', 'Détails acheminement - Entête', "Cet acheminement est urgent", false) }} ({{ dispatch.emergency }})
+        </span>
     {% endif %}
 {% endblock %}

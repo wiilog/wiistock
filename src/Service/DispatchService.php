@@ -275,7 +275,7 @@ class DispatchService {
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_CARRIER_DISPATCH]
             ],
             [
-                'label' => $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Numéro de tracking transporteur', false),
+                'label' => $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'N° tracking transporteur', false),
                 'title' => 'Numéro de tracking transporteur',
                 'value' => $carrierTrackingNumber,
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH]
@@ -322,7 +322,7 @@ class DispatchService {
                 'value' => FormatHelper::datetime($validationDate, "", false, $this->security->getUser())
             ],
             [
-                'label' => $this->translation->translate('Demande', 'Acheminements', 'Zone liste - Noms de colonnes', 'Dates d\'échéance', false),
+                'label' => $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', "Dates d'échéances", false),
                 'value' => ($startDate || $endDate) ? ('Du ' . $startDateStr . ' au ' . $endDateStr) : ''
             ],
             [
