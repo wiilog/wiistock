@@ -121,7 +121,7 @@
                                 {% endif %}
                             {% elseif order.status.nom == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ASSIGNED') %}
                                 {% if prefix == 'DTR' %}
-                                    Estimée à : <span class="transport-value">{{ timeSlot ? timeSlot.name : roundLine.estimatedAt | date('H:i') }}</span>
+                                    Estimée à : <span class="transport-value">{{ timeSlot ? timeSlot.name : (roundLine ? (roundLine.estimatedAt | date('H:i')) : ((request.validatedDate ?? request.expectedAt) | date('H:i'))) }}</span>
                                 {% else %}
                                     Estimée à : <span class="transport-value">{{ roundLine ? (roundLine.estimatedAt | date('H:i')) : ((request.validatedDate ?? request.expectedAt) | date('H:i')) }}</span>
                                 {% endif %}

@@ -274,6 +274,9 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\ManyToOne(targetEntity: TransportRoundStartingHour::class, inversedBy: 'deliverers')]
     private ?TransportRoundStartingHour $transportRoundStartingHour = null;
 
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: KeptArrivalValues::class)]
+    private Collection $keptArrivalValues;
+
     public function __construct() {
         $this->receptions = new ArrayCollection();
         $this->demandes = new ArrayCollection();
@@ -321,6 +324,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         $this->rechercheForArticle = Utilisateur::SEARCH_DEFAULT;
         $this->roles = ['USER']; // évite bug -> champ roles ne doit pas être vide
         $this->visibleColumns = self::DEFAULT_VISIBLE_COLUMNS;
+        $this->keptArrivalValues = new ArrayCollection();
     }
 
     public function getId() {
@@ -1911,4 +1915,43 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         return $this->getEmail();
     }
 
+    public function getKeptArrivalValues(): Collection
+    {
+        return $this->keptArrivalValues;
+    }
+
+    public function setKeptArrivalValues(?iterable $keptArrivalValues): self {
+        foreach($this->getKeptArrivalValues()->toArray() as $keptArrivalValue) {
+            $this->removeKeptArrivalValue($keptArrivalValue);
+        }
+
+        $this->keptArrivalValues = new ArrayCollection();
+        foreach($keptArrivalValues ?? [] as $keptArrivalValue) {
+            $this->addKeptArrivalValue($keptArrivalValue);
+        }
+
+        return $this;
+    }
+
+    public function addKeptArrivalValue(KeptArrivalValues $keptArrivalValue): self
+    {
+        if (!$this->keptArrivalValues->contains($keptArrivalValue)) {
+            $this->keptArrivalValues[] = $keptArrivalValue;
+            $keptArrivalValue->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeKeptArrivalValue(KeptArrivalValues $keptArrivalValue): self
+    {
+        if ($this->keptArrivalValues->removeElement($keptArrivalValue)) {
+            // set the owning side to null (unless already changed)
+            if ($keptArrivalValue->getUser() === $this) {
+                $keptArrivalValue->setUser(null);
+            }
+        }
+
+        return $this;
+    }
 }

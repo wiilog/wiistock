@@ -47,7 +47,7 @@ class DashboardFeedCommand extends Command {
      */
     protected function execute(InputInterface $input, OutputInterface $output) {
         $entityManager = $this->getEntityManager();
-        if($this->wiilockService->dashboardIsBeingFed($entityManager)) {
+        if(!$this->wiilockService->dashboardNeedsFeeding($entityManager)) {
             $output->writeln("Dashboards are being fed, aborting");
             return 0;
         }
