@@ -56,7 +56,7 @@ class ExportRepository extends EntityRepository
                         ->andWhere($exprBuilder->orX(
                             "status_search.nom LIKE :value",
                             "user_search.username LIKE :value",
-                            "export.entity"
+                            "export.entity LIKE :value"
                         ))
                         ->setParameter("value", "%$search%");
                 }
