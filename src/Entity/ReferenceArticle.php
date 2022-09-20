@@ -172,13 +172,13 @@ class ReferenceArticle {
     #[ORM\OneToOne(inversedBy: 'referenceArticle', targetEntity: Attachment::class, cascade: ['persist', 'remove'])]
     private ?Attachment $image = null;
 
-    #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'createdByReferenceArticles')]
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
     private ?Utilisateur $createdBy = null;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $createdAt = null;
 
-    #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'editedByReferenceArticles')]
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
     private ?Utilisateur $editedBy = null;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
@@ -1012,13 +1012,7 @@ class ReferenceArticle {
     }
 
     public function setCreatedBy(?Utilisateur $createdBy): self {
-        if($this->createdBy && $this->createdBy !== $createdBy) {
-            $this->createdBy->removeCreatedByReferenceArticle($this);
-        }
         $this->createdBy = $createdBy;
-        if($createdBy) {
-            $createdBy->addCreatedByReferenceArticle($this);
-        }
 
         return $this;
     }
@@ -1038,13 +1032,7 @@ class ReferenceArticle {
     }
 
     public function setEditedBy(?Utilisateur $editedBy): self {
-        if($this->editedBy && $this->editedBy !== $editedBy) {
-            $this->editedBy->removeEditedByReferenceArticle($this);
-        }
         $this->editedBy = $editedBy;
-        if($editedBy) {
-            $editedBy->addEditedByReferenceArticle($this);
-        }
 
         return $this;
     }
