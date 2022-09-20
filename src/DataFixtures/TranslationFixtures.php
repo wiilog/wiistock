@@ -2396,6 +2396,40 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 ],
             ],
             "Services" => [
+                null => [
+                    "content" => [
+                        [
+                            "fr" => "Une autre demande de service est en cours de création, veuillez réessayer.",
+                            "en" => "Another service operation is being created, please try again.",
+                            "tooltip" => "Création demande de service",
+                        ],
+                        [
+                            "fr" => "La demande de service {1} a bien été créée.",
+                            "en" => "Service request {1} has been successfully created.",
+                            "tooltip" => "Création demande de service"
+                        ],
+                        [
+                            "fr" => "La demande de service {1} a bien été modifiée.",
+                            "en" => "Service request {1} has been successfully modified.",
+                            "tooltip" => "Modification demande de service",
+                        ],
+                        [
+                            "fr" => "La demande de service {1} a bien été supprimée.",
+                            "en" => "Service request {1} has been successfully deleted.",
+                            "tooltip" => "Suppression demande de service",
+                        ],
+                        [
+                            "fr" => "Supprimer la demande de service",
+                            "en" => "Delete service request",
+                            "tooltip" => "Suppression demande de service",
+                        ],
+                        [
+                            "fr" => "Voulez-vous réellement supprimer cette demande de service",
+                            "en" => "Do you really want to delete this service request",
+                            "tooltip" => "Suppression demande de service",
+                        ],
+                    ],
+                ],
                 "Zone liste - Nom de colonnes" => [
                     "content" => [
                         [
@@ -2512,8 +2546,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Email de création",
                         ],
                         [
-                            "fr" => "Création d'une demande de service",
-                            "en" => "Creation of a service operation",
+                            "fr" => "FOLLOW GT // Création d'une demande de service",
+                            "en" => "FOLLOW GT // Creation of a service operation",
                             "tooltip" => "Email de création",
                         ],
                         [
@@ -2527,8 +2561,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Email changement de statut",
                         ],
                         [
-                            "fr" => "Demande de service effectuée",
-                            "en" => "Service operation completed",
+                            "fr" => "FOLLOW GT // Demande de service effectuée",
+                            "en" => "FOLLOW GT // Service operation completed",
                             "tooltip" => "Email traitement demande de service",
                         ],
                         [
@@ -2551,66 +2585,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "en" => "Modified by",
                             "tooltip" => "Email traitement demande de service",
                         ],
-                    ],
-                    [
-                        "fr" => "Création d'une demande de service",
-                        "en" => "Creation of a service operation",
-                        "tooltip" => "Email de création",
-                    ],
-                    [
-                        "fr" => "Votre demande de service a été créée.",
-                        "en" => "Your service operation has been created.",
-                        "tooltip" => "Email de création",
-                    ],
-                    [
-                        "fr" => "Changement de statut d'une demande de service",
-                        "en" => "Changing the status of a service operation",
-                        "tooltip" => "Email changement de statut",
-                    ],
-                    [
-                        "fr" => "Une demande de service vous concernant a changé de statut.",
-                        "en" => "A service operation concerning you changed her status.",
-                        "tooltip" => "Email changement de statut",
-                    ],
-                    [
-                        "fr" => "Demande de service effectuée",
-                        "en" => "Service operation completed",
-                        "tooltip" => "Email traitement demande de service",
-                    ],
-                    [
-                        "fr" => "Votre demande de service a bien été effectuée.",
-                        "en" => "Service operation has been completed successfully.",
-                        "tooltip" => "Email traitement demande de service",
-                    ],
-                    [
-                        "fr" => "Une autre demande de service est en cours de création, veuillez réessayer.",
-                        "en" => "Another service operation is being created, please try again.",
-                        "tooltip" => "Création demande de service",
-                    ],
-                    [
-                        "fr" => "La demande de service {1} a bien été créée.",
-                        "en" => "Service request {1} has been successfully created.",
-                        "tooltip" => "Création demande de service"
-                    ],
-                    [
-                        "fr" => "La demande de service {1} a bien été modifiée.",
-                        "en" => "Service request {1} has been successfully modified.",
-                        "tooltip" => "Modification demande de service",
-                    ],
-                    [
-                        "fr" => "La demande de service {1} a bien été supprimée.",
-                        "en" => "Service request {1} has been successfully deleted.",
-                        "tooltip" => "Suppression demande de service",
-                    ],
-                    [
-                        "fr" => "Supprimer la demande de service",
-                        "en" => "Delete service request",
-                        "tooltip" => "Suppression demande de service",
-                    ],
-                    [
-                        "fr" => "Voulez-vous réellement supprimer cette demande de service",
-                        "en" => "Do you really want to delete this service request",
-                        "tooltip" => "Suppression demande de service",
                     ],
                 ],
             ],

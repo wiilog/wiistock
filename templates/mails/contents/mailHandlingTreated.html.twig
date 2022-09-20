@@ -5,16 +5,16 @@
 {% set defaultLanguageSlug = defaultLanguage.slug %}
 
 {% block content %}
-    <div>{{ translateInDefault(true, 'Demande', 'Services', 'Zone liste - Nom de colonnes', 'Numéro de demande', false) }} :
+    <div>{{ translateIn(language, 'Demande', 'Services', 'Zone liste - Nom de colonnes', 'Numéro de demande', false) }} :
         <strong>{{ handling.number }}</strong>
     </div>
-    <div>{{ translateInDefault(true, 'Demande', 'Services', 'Zone liste - Nom de colonnes', 'Date demande', false) }} :
+    <div>{{ translateIn(language, 'Demande', 'Services', 'Zone liste - Nom de colonnes', 'Date demande', false) }} :
         <strong>{{ handling.creationDate ? handling.creationDate|date('d/m/Y à H:i:s') }}</strong>
     </div>
-    <div>{{ translateInDefault(true,  'Demande', 'Général', 'Type', false) }} :
+    <div>{{ translateIn(language, 'Demande', 'Général', 'Type', false) }} :
         <strong>{{ handling.type.label }}</strong>
     </div>
-    <div>{{ translateInDefault(true, 'Demande', 'Général', 'Demandeur', false) }} :
+    <div>{{ translateIn(language, 'Demande', 'Général', 'Demandeur', false) }} :
         <strong>{{ handling.requester ? handling.requester.username }}</strong>
     </div>
     {% set fieldCodeReceiversHandling = constant('App\\Entity\\FieldsParam::FIELD_CODE_RECEIVERS_HANDLING') %}
@@ -22,51 +22,51 @@
         or fieldsParam|isFieldRequired(fieldCodeReceiversHandling, 'displayedEdit')
         or fieldsParam|isFieldRequired(fieldCodeReceiversHandling, 'displayedFilters')) %}
         <div>
-            {{ translateInDefault(true, 'Demande', 'Général', 'Destinataire(s)', false) }} :
+            {{ translateIn(language, 'Demande', 'Général', 'Destinataire(s)', false) }} :
             <strong>{{ handling.receivers|map(receiver => receiver.username)|join(', ') }}</strong>
         </div>
     {% endif %}
-    <div>{{ translateInDefault(true, 'Demande', 'Services', 'Zone liste - Nom de colonnes', 'Objet', false) }} :
+    <div>{{ translateIn(language, 'Demande', 'Services', 'Zone liste - Nom de colonnes', 'Objet', false) }} :
         <strong>{{ handling.subject }}</strong>
     </div>
 
     {% if not isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_COLLINS_SOA')) %}
-        <div>{{ translateInDefault(true, 'Demande', 'Services', 'Mail', 'Chargement', false) }} :
+        <div>{{ translateIn(language, 'Demande', 'Services', 'Email', 'Chargement', false) }} :
             <strong>{{ handling.source }}</strong>
         </div>
-        <div>{{ translateInDefault(true, 'Demande', 'Services', 'Mail', 'Déchargement', false) }} :
+        <div>{{ translateIn(language, 'Demande', 'Services', 'Email', 'Déchargement', false) }} :
             <strong>{{ handling.destination }}</strong>
         </div>
     {% endif %}
 
-    <div>{{ translateInDefault(true, 'Demande', 'Services', 'Modale et détails', 'Date attendue', false) }} :
+    <div>{{ translateIn(language, 'Demande', 'Services', 'Modale et détails', 'Date attendue', false) }} :
         <strong>{{ handling.desiredDate ? handling.desiredDate|date(viewHoursOnExpectedDate ? 'd/m/Y à H:i:s' : 'd/m/Y') }}</strong>
     </div>
-    <div>{{ translateInDefault(true, 'Demande', 'Services', 'Modale et détails', 'Date de réalisation', false) }} :
+    <div>{{ translateIn(language, 'Demande', 'Services', 'Modale et détails', 'Date de réalisation', false) }} :
         <strong>{{ handling.validationDate ? handling.validationDate|date('d/m/Y à H:i:s') }}</strong>
     </div>
-    <div>{{ translateInDefault(true, 'Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Statut', false) }} :
+    <div>{{ translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Statut', false) }} :
         <strong>{{ handling.status.labelIn(defaultLanguage, defaultLanguage) }}</strong>
     </div>
-    <div>{{ translateInDefault(true, 'Demande', 'Général', 'Urgence', false) }} :
+    <div>{{ translateIn(language, 'Demande', 'Général', 'Urgence', false) }} :
         <strong>{{ emergency }}</strong>
     </div>
 
-    <div>{{ translateInDefault(true, 'Demande', 'Services', 'Modale et détails', 'Nombre d\'opération(s) réalisée(s)', false) }} :
+    <div>{{ translateIn(language, 'Demande', 'Services', 'Modale et détails', 'Nombre d\'opération(s) réalisée(s)', false) }} :
         <strong>{{ handling.carriedOutOperationCount }}</strong>
     </div>
-    <div>{{ translateInDefault(true, 'Demande', 'Services', 'Mail', 'Modifié par', false) }} :
+    <div>{{ translateIn(language, 'Demande', 'Services', 'Email', 'Modifié par', false) }} :
         <strong>{{ treatedBy }}</strong>
     </div>
 
 
         {% if (handling.comment is not empty and handling.comment != '<p><br></p>') %}
-            <div>{{ translateInDefault(true, 'Général', null, 'Modale', 'Commentaire', false) }} : {{ handling.comment|raw }}</div>
+            <div>{{ translateIn(language, 'Général', null, 'Modale', 'Commentaire', false) }} : {{ handling.comment|raw }}</div>
         {% endif %}
 
 
     <div>
-        {{ translateInDefault(true, 'Général', null, 'Modale', 'Pièces jointes', false) }} :
+        {{ translateIn(language, 'Général', null, 'Modale', 'Pièces jointes', false) }} :
         <ul>
             {% for attachment in handling.attachments %}
                 <li>{{ attachment.originalName }}</li>

@@ -66,17 +66,41 @@ class TranslationService {
             $user = $this->tokenStorage->getToken()->getUser();
         }
 
+        $args = Stream::from($args)
+            ->filter(fn($arg) => !$arg instanceof Utilisateur)
+            ->toArray();
+
         $slug = $user?->getLanguage()?->getSlug();
 
-        $defaultSlug = Language::DEFAULT_LANGUAGE_TRANSLATIONS[$slug] ?? $this->languageService->getDefaultSlug();
-
-        return (
-            $this->translateIn($slug, $defaultSlug, false, ...$args)
-            ?: $this->translateIn($defaultSlug, $defaultSlug, true, ...$args)
-        );
+        return $this->translateIn($slug, ...$args);
     }
 
-    public function translateIn(string $slug, string $defaultSlug, bool $lastResort, mixed ...$args): ?string {
+    /**
+     * Translates the given input with the given slug (1st parameter) ; Same usage of TranslateService::translate
+     * The function expects from 1 to 4 strings, then an array of strings to replace or a user or both in any order.
+     *
+     *
+     * Example usage with more or less string inputs and with and without custom user and params array :
+     * translateIn($slug, "Traçabilité", "Unités logistiques", "Onglet \"Groupes\"", "Groupes")
+     *
+     * @param mixed ...$args Arguments
+     * @return string Translated input
+     */
+    public function translateIn(string $slug, mixed ...$args): string {
+        $defaultSlug = Language::DEFAULT_LANGUAGE_TRANSLATIONS[$slug] ?? $this->languageService->getDefaultSlug();
+
+        return $this->getTranslation($slug, $defaultSlug, false, ...$args)
+            ?: $this->getTranslation($defaultSlug, $defaultSlug, true, ...$args);
+    }
+
+    /**
+     * @param string $slug Target slug language
+     * @param string $defaultSlug Fallback slug if translation does not exist
+     * @param bool $lastResort if false and translation was not found then we return null, else if true then we return the original label to translate
+     * @param mixed ...$args
+     * @return string|null
+     */
+    private function getTranslation(string $slug, string $defaultSlug, bool $lastResort, mixed ...$args): ?string {
         $variables = ["category", "menu", "submenu", "input"];
         foreach($variables as $variable) {
             $$variable = null;
@@ -104,7 +128,7 @@ class TranslationService {
 
         $transCategory = $this->translations[$slug][$category ?: null] ?? null;
         if(!is_array($transCategory)) {
-            $output = $transCategory ?? ($lastResort ? ($input ?? $submenu ?? $menu ?? $category ): null);
+            $output = $transCategory ?? ($lastResort ? ($input ?? $submenu ?? $menu ?? $category): null);
         }
 
         if(!isset($output)) {
@@ -138,7 +162,7 @@ class TranslationService {
         if($slug === $defaultSlug) {
             $tooltip = htmlspecialchars($output);
         } else {
-            $tooltip = htmlspecialchars($this->translateIn($defaultSlug, $defaultSlug, true, false, ...$args));
+            $tooltip = htmlspecialchars($this->getTranslation($defaultSlug, $defaultSlug, true, false, ...$args));
         }
 
         return $enableTooltip ? "<span title='$tooltip'>$output</span>" : $output;

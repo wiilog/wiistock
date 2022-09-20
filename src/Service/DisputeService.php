@@ -166,42 +166,37 @@ class DisputeService {
         if ($wantSendToBuyersMailStatusChange) {
             $disputeRepository = $this->entityManager->getRepository(Dispute::class);
             $recipients = $isArrival
-                ? $disputeRepository->getAcheteursArrivageByDisputeId($dispute->getId())
-                : array_reduce($dispute->getBuyers()->toArray(), function(array $carry, Utilisateur $buyer) {
-                    return array_merge(
-                        $carry,
-                        $buyer->getMainAndSecondaryEmails()
-                    );
-                }, []);
+                ? $disputeRepository->getDisputeBuyers($dispute)
+                : $dispute->getBuyers()->toArray();
         }
 
         if ($wantSendToDeclarantMailStatusChange && $dispute->getReporter()) {
-            $recipients = array_merge($recipients, $dispute->getReporter()->getMainAndSecondaryEmails());
+            $recipients[] = $dispute->getReporter();
         }
 
         if (!empty($recipients)) {
-            $defaultSlugLanguage = $this->languageService->getDefaultSlug();
-            $slug = $this->languageService->getReverseDefaultLanguage($defaultSlugLanguage);
-
             $translatedCategory = $isArrival
-                ? $this->translation->translateIn($slug, $defaultSlugLanguage, true, "Traçabilité", "Flux - Arrivages", "Email litige", "un arrivage", false)
-                : $this->translation->translateIn($slug, $defaultSlugLanguage, true, "Ordre", "Réceptions", "une réception", false);
+                ? ["Traçabilité", "Flux - Arrivages", "Email litige", "un arrivage", false]
+                : ["Ordre", "Réceptions", "une réception", false];
             $title = !$isUpdate
-                ? $this->translation->translateIn($slug, $defaultSlugLanguage, true, "Traçabilité", "Flux - Arrivages", "Email litige", "Un litige a été déclaré sur {1} vous concernant :", false, [ '1' => $translatedCategory ])
-                : $this->translation->translateIn($slug, $defaultSlugLanguage, true, "Traçabilité", "Flux - Arrivages", "Email litige", "Changement de statut d'un litige sur {1} vous concernant :", false, [ '1' => $translatedCategory ]);
+                ? ["Traçabilité", "Flux - Arrivages", "Email litige", "Un litige a été déclaré sur {1} vous concernant :", false, ['1' => $translatedCategory]]
+                : ["Traçabilité", "Flux - Arrivages", "Email litige", "Changement de statut d'un litige sur {1} vous concernant :", false, ['1' => $translatedCategory]];
             $subject = !$isUpdate
-                ? $this->translation->translateIn($slug, $defaultSlugLanguage, true, "Traçabilité", "Flux - Arrivages", "Email litige", "FOLLOW GT // Litige sur {1}", false, [ '1' => $translatedCategory ])
-                : $this->translation->translateIn($slug, $defaultSlugLanguage, true, "Traçabilité", "Flux - Arrivages", "Email litige", "FOLLOW GT // Changement de statut d'un litige sur {1}", false, [ '1' => $translatedCategory ]);
+                ? ["Traçabilité", "Flux - Arrivages", "Email litige", "FOLLOW GT // Litige sur {1}", false, ['1' => $translatedCategory]]
+                : ["Traçabilité", "Flux - Arrivages", "Email litige", "FOLLOW GT // Changement de statut d'un litige sur {1}", false, ['1' => $translatedCategory]];
 
             $this->mailerService->sendMail(
                 $subject,
-                $this->templating->render('mails/contents/' . ($isArrival ? 'mailLitigesArrivage' : 'mailLitigesReception') . '.html.twig', [
-                    'disputes' => [$dispute],
-                    'title' => $title,
-                    'urlSuffix' => $isArrival
-                        ? $this->router->generate('arrivage_index')
-                        : $this->router->generate('reception_index'),
-                ]),
+                [
+                    "name" => 'mails/contents/' . ($isArrival ? 'mailLitigesArrivage' : 'mailLitigesReception') . '.html.twig',
+                    "context" => [
+                        'disputes' => [$dispute],
+                        'title' => $title,
+                        'urlSuffix' => $isArrival
+                            ? $this->router->generate('arrivage_index')
+                            : $this->router->generate('reception_index'),
+                    ]
+                ],
                 $recipients
             );
         }

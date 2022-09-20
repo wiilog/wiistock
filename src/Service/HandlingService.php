@@ -16,7 +16,6 @@ use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 use DateTime;
-use App\Service\TranslationService;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\RouterInterface;
@@ -139,8 +138,6 @@ class HandlingService {
         $status = $handling->getStatus();
         $requester = $status->getSendNotifToDeclarant() ? $handling->getRequester() : null;
         $receivers = $status->getSendNotifToRecipient() ? $handling->getReceivers() : [];
-        $defaultSlugLanguage = $this->languageService->getDefaultSlug();
-        $slug = $this->languageService->getReverseDefaultLanguage($defaultSlugLanguage);
 
         $emailReceivers = Stream::from($receivers, [$requester])
             ->unique()
@@ -149,28 +146,31 @@ class HandlingService {
         if (!empty($emailReceivers)) {
             $statusTreated = $status->isTreated();
             if ($isNewHandlingAndNotTreated) {
-                $subject = $this->translation->translateIn($slug, $defaultSlugLanguage, true, 'Demande','Services','Mail','Création d\'une demande de service', false );
-                $title = $this->translation->translateIn($slug, $defaultSlugLanguage, true,'Demande','Services','Mail','Votre demande de service a été créée', false );
+                $subject = ['Demande', 'Services', 'Email', 'FOLLOW GT // Création d\'une demande de service', false];
+                $title = ['Demande', 'Services', 'Email', 'Votre demande de service a été créée', false];
             } else {
                 $subject = $statusTreated
-                    ? $this->translation->translateIn($slug, $defaultSlugLanguage, true, 'Demande','Services','Mail','Demande de service effectuée', false )
-                    : $this->translation->translateIn($slug, $defaultSlugLanguage, true, 'Demande','Services','Mail','Changement de statut d\'une demande de service', false );
+                    ? ['Demande', 'Services', 'Email', 'FOLLOW GT // Demande de service effectuée', false]
+                    : ['Demande', 'Services', 'Email', 'FOLLOW GT // Changement de statut d\'une demande de service', false];
                 $title = $statusTreated
-                    ? $this->translation->translateIn($slug, $defaultSlugLanguage, true, 'Demande','Services','Mail','Votre demande de service a bien été effectuée', false )
-                    : $this->translation->translateIn($slug, $defaultSlugLanguage, true, 'Demande','Services','Mail','Une demande de service vous concernant a changé de statut', false );
+                    ? ['Demande', 'Services', 'Email', 'Votre demande de service a bien été effectuée', false]
+                    : ['Demande', 'Services', 'Email', 'Une demande de service vous concernant a changé de statut', false];
             }
 
             $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
             $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_HANDLING);
 
             $this->mailerService->sendMail(
-                'FOLLOW GT // ' . $subject,
-                $this->templating->render('mails/contents/mailHandlingTreated.html.twig', [
-                    'handling' => $handling,
-                    'title' => $title,
-                    'fieldsParam' => $fieldsParam,
-                    'viewHoursOnExpectedDate' => $viewHoursOnExpectedDate
-                ]),
+                $subject,
+                [
+                    'name' => 'mails/contents/mailHandlingTreated.html.twig',
+                    'context' => [
+                        'handling' => $handling,
+                        'title' => $title,
+                        'fieldsParam' => $fieldsParam,
+                        'viewHoursOnExpectedDate' => $viewHoursOnExpectedDate
+                    ]
+                ],
                 $emailReceivers
             );
         }
