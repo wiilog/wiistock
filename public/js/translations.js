@@ -52,7 +52,7 @@ class Translation {
         };
 
         for(const arg of args) {
-            if (typeof arg === 'object') {
+            if (typeof arg === 'object' && arg !== null) {
                 params = arg;
             } else if(typeof arg === `boolean`) {
                 enableTooltip = arg;
@@ -61,12 +61,11 @@ class Translation {
                     throw new Error(`Too many arguments, expected at most 4 strings, 1 array and 1 boolean`);
                 }
 
-                stack[variables.shift()] = arg
+                stack[variables.shift()] = arg || '';
             }
         }
 
         let output = null;
-
 
         const transCategory = TRANSLATIONS[slug][stack.category];
 

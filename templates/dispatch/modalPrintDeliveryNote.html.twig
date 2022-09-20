@@ -2,14 +2,14 @@
     <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
-                title: "Création modification BL"
+                title: trans('Demande', 'Acheminements', 'Bon de livraison', "Création modification BL")
             } %}
 
             <div class="modal-body modal-input"></div>
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
-                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
-                    {classes: 'btn btn-success submit', text: 'Enregistrer'}
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
+                    {classes: 'btn btn-success submit-button', text: trans('Général', null, 'Modale', 'Enregistrer')}
                 ],
             } %}
 

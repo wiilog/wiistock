@@ -128,13 +128,13 @@
                             <div class="error-empty-status d-none">
                                 {% include 'utils/warningSelectEmpty.html.twig' with {
                                     array: [],
-                                    warningLabel: 'Aucun statut brouillon pour ce type',
+                                    warningLabel: trans('Demande', 'Général', 'Aucun statut brouillon pour ce type'),
                                     redirectPath: path('settings_item', {
                                         'category': constant('App\\Controller\\Settings\\SettingsController::CATEGORY_TRACING'),
                                         'menu': constant('App\\Controller\\Settings\\SettingsController::MENU_DISPATCHES'),
                                         'submenu': constant('App\\Controller\\Settings\\SettingsController::MENU_STATUSES'),
                                     }),
-                                    redirectLabel: 'Aller vers la création des statuts',
+                                    redirectLabel: trans('Demande', 'Général', 'Aller vers la création des statuts'),
                                     block: true,
                                     rights: {
                                         menu: constant('App\\Entity\\Menu::PARAM'),

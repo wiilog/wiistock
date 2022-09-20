@@ -29,6 +29,7 @@ use App\Service\ArrivageService;
 use App\Service\LanguageService;
 use App\Service\NotificationService;
 use App\Service\VisibleColumnService;
+use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
@@ -80,7 +81,7 @@ class DispatchController extends AbstractController {
      * @Route("/", name="dispatch_index")
      * @HasPermission({Menu::DEM, Action::DISPLAY_ACHE})
      */
-    public function index(EntityManagerInterface $entityManager, DispatchService $service, LanguageService $languageService) {
+    public function index(EntityManagerInterface $entityManager, DispatchService $service) {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
@@ -124,9 +125,10 @@ class DispatchController extends AbstractController {
      * @Route("/colonne-visible", name="save_column_visible_for_dispatch", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::DISPLAY_ACHE}, mode=HasPermission::IN_JSON)
      */
-    public function saveColumnVisible(Request $request,
+    public function saveColumnVisible(Request                $request,
+                                      TranslationService     $translationService,
                                       EntityManagerInterface $entityManager,
-                                      VisibleColumnService $visibleColumnService): Response {
+                                      VisibleColumnService   $visibleColumnService): Response {
         $data = json_decode($request->getContent(), true);
         $fields = array_keys($data);
         $fields[] = "actions";
@@ -140,7 +142,7 @@ class DispatchController extends AbstractController {
 
         return $this->json([
             'success' => true,
-            'msg' => 'Vos préférences de colonnes à afficher ont bien été sauvegardées'
+            'msg' => $translationService->translate('Général', null, 'Zone liste', 'Vos préférences de colonnes à afficher ont bien été sauvegardées', false)
         ]);
     }
 
@@ -176,7 +178,7 @@ class DispatchController extends AbstractController {
                         DispatchService $dispatchService,
                         AttachmentService $attachmentService,
                         EntityManagerInterface $entityManager,
-                        TranslationService $translation,
+                        TranslationService $translationService,
                         UniqueNumberService $uniqueNumberService,
                         RedirectService $redirectService): Response {
         if(!$this->userService->hasRightFunction(Menu::DEM, Action::CREATE) ||
@@ -196,7 +198,7 @@ class DispatchController extends AbstractController {
             if(empty($packs)) {
                 return $this->json([
                     'success' => false,
-                    'msg' => $translation->translate('Demande', 'Acheminements', 'Divers', 'Une unité logistique minimum est nécessaire pour procéder à l\'acheminement')
+                    'msg' => $translationService->translate('Demande', 'Acheminements', 'Divers', 'Une unité logistique minimum est nécessaire pour procéder à l\'acheminement', false)
                 ]);
             }
         }
@@ -211,7 +213,7 @@ class DispatchController extends AbstractController {
             return $this->json([
                 'success' => true,
                 'redirect' => $redirectService->generateUrl("dispatch_show", ['id' => $existingDispatch->getId()]),
-                'msg' => $translation->translate('Demande', 'Acheminements', 'Divers', 'Les unités logistiques de l\'arrivage ont bien été ajoutés dans l`\'acheminement {1}', [1=>$number])
+                'msg' => $translationService->translate('Demande', 'Acheminements', 'Divers', 'Les unités logistiques de l\'arrivage ont bien été ajoutés dans l`\'acheminement {1}', [1=>$number], false)
             ]);
         }
 
@@ -256,14 +258,14 @@ class DispatchController extends AbstractController {
         if (!isset($status) || $status?->getCategorie()?->getNom() !== CategorieStatut::DISPATCH) {
             return new JsonResponse([
                 'success' => false,
-                'msg' => $translation->translate('Demande', 'Acheminements', 'Divers', 'Veuillez renseigner un statut valide.')
+                'msg' => $translationService->translate('Demande', 'Acheminements', 'Divers', 'Veuillez renseigner un statut valide.', false)
             ]);
         }
 
         if(!$locationTake || !$locationDrop) {
             return new JsonResponse([
                 'success' => false,
-                'msg' => $translation->translate('Demande', 'Acheminements', 'Divers', 'Il n\'y a aucun emplacement de prise ou de dépose paramétré pour ce type.Veuillez en paramétrer ou rendre les champs visibles à la création et/ou modification.')
+                'msg' => $translationService->translate('Demande', 'Acheminements', 'Divers', 'Il n\'y a aucun emplacement de prise ou de dépose paramétré pour ce type.Veuillez en paramétrer ou rendre les champs visibles à la création et/ou modification.', false)
             ]);
         }
 
@@ -273,7 +275,7 @@ class DispatchController extends AbstractController {
         if($startDate && $endDate && $startDate > $endDate) {
             return new JsonResponse([
                 'success' => false,
-                'msg' => $translation->translate('Demande', 'Acheminements', 'Divers', 'La date de fin d\'échéance est inférieure à la date de début.')
+                'msg' => $translationService->translate('Demande', 'Acheminements', 'Divers', 'La date de fin d\'échéance est inférieure à la date de début.', false)
             ]);
         }
 
@@ -365,10 +367,10 @@ class DispatchController extends AbstractController {
             $entityManager->persist($dispatch);
             $entityManager->flush();
         } /** @noinspection PhpRedundantCatchClauseInspection */
-        catch(UniqueConstraintViolationException $e) {
+        catch(UniqueConstraintViolationException) {
             return new JsonResponse([
                 'success' => false,
-                'msg' => $translation->translate('Demande', 'Acheminements', 'Divers', 'Une autre demande d\'acheminement est en cours de création, veuillez réessayer')
+                'msg' => $translationService->translate('Demande', 'Acheminements', 'Divers', 'Une autre demande d\'acheminement est en cours de création, veuillez réessayer', false)
             ]);
         }
 
@@ -387,7 +389,7 @@ class DispatchController extends AbstractController {
         return new JsonResponse([
             'success' => true,
             'redirect' => $redirectService->generateUrl("dispatch_show", $showArguments, self::EXTRA_OPEN_PACK_MODAL),
-            'msg' => $translation->translate('Demande', 'Acheminements', 'Divers', 'L\'acheminement a bien été créé')
+            'msg' => $translationService->translate('Demande', 'Acheminements', 'Divers', 'L\'acheminement a bien été créé', false)
         ]);
     }
 
@@ -432,11 +434,13 @@ class DispatchController extends AbstractController {
      * @Route("/{dispatch}/etat", name="print_dispatch_state_sheet", options={"expose"=true}, methods="GET|POST")
      * @HasPermission({Menu::DEM, Action::DISPLAY_ACHE})
      */
-    public function printDispatchStateSheet(PDFGeneratorService $generator, TranslationService $translation, Dispatch $dispatch): ?Response {
+    public function printDispatchStateSheet(PDFGeneratorService $generator,
+                                            TranslationService $translationService,
+                                            Dispatch $dispatch): ?Response {
         if($dispatch->getDispatchPacks()->isEmpty()) {
             return $this->json([
                 "success" => false,
-                "msg" => $translation->translate('Demande', 'Acheminements', 'Bon d\'acheminement', 'Le bon d\'acheminement n\'existe pas pour cet acheminement', false)
+                "msg" => $translationService->translate('Demande', 'Acheminements', 'Bon d\'acheminement', 'Le bon d\'acheminement n\'existe pas pour cet acheminement', false)
             ]);
         }
 
@@ -451,9 +455,9 @@ class DispatchController extends AbstractController {
      */
     public function edit(Request $request,
                          DispatchService $dispatchService,
+                         TranslationService $translationService,
                          FreeFieldService $freeFieldService,
-                         EntityManagerInterface $entityManager,
-                         TranslationService $translation): Response {
+                         EntityManagerInterface $entityManager): Response {
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $transporterRepository = $entityManager->getRepository(Transporteur::class);
@@ -487,17 +491,14 @@ class DispatchController extends AbstractController {
         if(!$locationTake || !$locationDrop) {
             return new JsonResponse([
                 'success' => false,
-                'msg' => (
-                    'Il n\'y a aucun emplacement de prise ou de dépose paramétré pour ce type.' .
-                    'Veuillez en paramétrer ou rendre les champs visibles à la création et/ou modification.'
-                )
+                'msg' => $translationService->translate('Demande', 'Acheminements', 'Divers', "Il n'y a aucun emplacement de prise ou de dépose paramétré pour ce type.Veuillez en paramétrer ou rendre les champs visibles à la création et/ou modification.", false)
             ]);
         }
 
         if($startDate && $endDate && $startDate > $endDate) {
             return new JsonResponse([
                 'success' => false,
-                'msg' => 'La date de fin d\'échéance est antérieure à la date de début.'
+                'msg' => $translationService->translate('Demande', 'Acheminements', 'Divers', "La date de fin d'échéance est inférieure à la date de début.", false)
             ]);
         }
 
@@ -567,7 +568,7 @@ class DispatchController extends AbstractController {
                 'showDetails' => $dispatchService->createHeaderDetailsConfig($dispatch)
             ]),
             'success' => true,
-            'msg' => $translation->translate('Demande', 'Acheminements', 'Divers', 'L\'acheminement a bien été modifié', false) . '.'
+            'msg' => $translationService->translate('Demande', 'Acheminements', 'Divers', 'L\'acheminement a bien été modifié', false) . '.'
         ]);
     }
 
@@ -621,9 +622,9 @@ class DispatchController extends AbstractController {
     /**
      * @Route("/supprimer", name="dispatch_delete", options={"expose"=true},methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
      */
-    public function delete(Request $request,
+    public function delete(Request                $request,
                            EntityManagerInterface $entityManager,
-                           TranslationService $translation): Response {
+                           TranslationService     $translationService): Response {
         if($data = json_decode($request->getContent(), true)) {
             $dispatchRepository = $entityManager->getRepository(Dispatch::class);
             $attachmentRepository = $entityManager->getRepository(Attachment::class);
@@ -655,7 +656,7 @@ class DispatchController extends AbstractController {
             return new JsonResponse([
                 'success' => true,
                 'redirect' => $this->generateUrl('dispatch_index'),
-                'msg' => $translation->translate('Demande', 'Acheminements', 'Divers', 'L\'acheminement a bien été supprimé', false) . '.'
+                'msg' => $translationService->translate('Demande', 'Acheminements', 'Divers', 'L\'acheminement a bien été supprimé', false) . '.'
             ]);
         }
 
@@ -725,8 +726,8 @@ class DispatchController extends AbstractController {
      * @Route("/{dispatch}/packs/new", name="dispatch_new_pack", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      */
     public function newPack(Request $request,
+                            TranslationService $translationService,
                             EntityManagerInterface $entityManager,
-                            TranslationService $translation,
                             PackService $packService,
                             Dispatch $dispatch): Response {
         $data = $request->request->all();
@@ -795,7 +796,7 @@ class DispatchController extends AbstractController {
 
         $success = true;
         $toTranslate = 'Le colis {1} a bien été ' . ($dispatchPack->getId() ? "modifié" : "ajouté");
-        $message = $translation->translate('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', $toTranslate, [1 => '<strong>{$pack->getCode()}</strong>']);
+        $message = $translationService->translate('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', $toTranslate, [1 => '<strong>{$pack->getCode()}</strong>']);
 
         $entityManager->flush();
 
@@ -810,7 +811,7 @@ class DispatchController extends AbstractController {
      * @Route("/packs/delete", name="dispatch_delete_pack", options={"expose"=true},methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
      */
     public function deletePack(Request $request,
-                               TranslationService $translation,
+                               TranslationService $translationService,
                                EntityManagerInterface $entityManager): Response {
         if($data = json_decode($request->getContent(), true)) {
             $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
@@ -822,7 +823,7 @@ class DispatchController extends AbstractController {
 
             return $this->json([
                 "success" => true,
-                "msg" => "La ligne a bien été supprimée",
+                "msg" => $translationService->translate('Demande',"Acheminements", 'Détails acheminement - Liste des unités logistiques', "La ligne a bien été supprimée")
             ]);
         }
 
@@ -834,8 +835,8 @@ class DispatchController extends AbstractController {
      */
     public function validateDispatchRequest(Request $request,
                                             EntityManagerInterface $entityManager,
-                                            TranslationService $translation,
                                             Dispatch $dispatch,
+                                            TranslationService $translationService,
                                             DispatchService $dispatchService,
                                             NotificationService $notificationService): Response {
         $status = $dispatch->getStatut();
@@ -876,7 +877,7 @@ class DispatchController extends AbstractController {
 
         return new JsonResponse([
             'success' => true,
-            'msg' => $translation->translate('Demande', 'Acheminements', 'Divers', 'L\'acheminement a bien été passé en à traiter', false),
+            'msg' => $translationService->translate('Demande', 'Acheminements', 'Divers', 'L\'acheminement a bien été passé en à traiter', false),
             'redirect' => $this->generateUrl('dispatch_show', ['id' => $dispatch->getId()])
         ]);
     }
@@ -894,8 +895,8 @@ class DispatchController extends AbstractController {
     public function treatDispatchRequest(Request $request,
                                          EntityManagerInterface $entityManager,
                                          DispatchService $dispatchService,
-                                         TranslationService $translation,
                                          Dispatch $dispatch,
+                                         TranslationService $translationService,
                                          ArrivageService $arrivalService): Response {
         $status = $dispatch->getStatut();
 
@@ -925,7 +926,7 @@ class DispatchController extends AbstractController {
 
         return new JsonResponse([
             'success' => true,
-            'msg' => $translation->translate('Demande', 'Acheminements', 'Divers', 'L\'acheminement a bien été traité'),
+            'msg' => $translationService->translate('Demande', 'Acheminements', 'Divers', 'L\'acheminement a bien été traité'),
             'redirect' => $this->generateUrl('dispatch_show', ['id' => $dispatch->getId()])
         ]);
     }
@@ -1086,15 +1087,16 @@ class DispatchController extends AbstractController {
      * @param Dispatch $dispatch
      * @return JsonResponse
      */
-    public function apiDeliveryNote(Request $request, EntityManagerInterface $manager,
-                                    TranslationService $translation,
+    public function apiDeliveryNote(Request $request,
+                                    TranslationService $translationService,
+                                    EntityManagerInterface $manager,
                                     Dispatch $dispatch): JsonResponse {
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
         $maxNumberOfPacks = 10;
 
         if($dispatch->getDispatchPacks()->count() === 0) {
-            $errorMessage = $translation->translate('Demande', 'Acheminements', 'Bon de livraison', 'Des unités logistiques sont nécessaires pour générer un bon de livraison', false) . '.';
+            $errorMessage = $translationService->translate('Demande', 'Acheminements', 'Bon de livraison', 'Des unités logistiques sont nécessaires pour générer un bon de livraison', false) . '.';
 
             return $this->json([
                 "success" => false,
@@ -1383,12 +1385,14 @@ class DispatchController extends AbstractController {
                                         Dispatch $dispatch,
                                         PDFGeneratorService $pdf,
                                         DispatchService $dispatchService,
-                                        TranslationService $translation,
                                         Request $request,
+                                        TranslationService $translationService,
                                         SpecificService $specificService): JsonResponse {
 
         if($dispatch->getDispatchPacks()->count() > DispatchService::WAYBILL_MAX_PACK) {
-            $message = 'Attention : ' . $translation->translate('Demande', 'Acheminements', 'Lettre de voiture', 'L\'acheminement contient plus de {1} colis', [1 => DispatchService::WAYBILL_MAX_PACK], false) . ', cette lettre de voiture ne peut contenir plus de ' . DispatchService::WAYBILL_MAX_PACK . ' lignes.';
+            $message = $translationService->translate('Demande', 'Acheminements', 'Divers', "Attention : L'acheminement contient plus de {1} unités logistiques, cette lettre de voiture ne peut contenir plus de {1} lignes.", [
+                1 => DispatchService::WAYBILL_MAX_PACK
+            ]);
             $success = false;
         } else {
             /** @var Utilisateur $loggedUser */
@@ -1458,14 +1462,14 @@ class DispatchController extends AbstractController {
      *     methods="GET"
      * )
      */
-    public function printWaybillNote(TranslationService $trans,
-                                     Dispatch $dispatch,
+    public function printWaybillNote(Dispatch $dispatch,
                                      Attachment $attachment,
+                                     TranslationService $translationService,
                                      KernelInterface $kernel): Response {
         if(!$dispatch->getWaybillData()) {
             return $this->json([
                 "success" => false,
-                "msg" => $trans->translate('Demande', 'Acheminements', 'Lettre de voiture', 'La lettre de voiture n\'existe pas pour cet acheminement', false),
+                "msg" => $translationService->translate('Demande', 'Acheminements', 'Lettre de voiture', 'La lettre de voiture n\'existe pas pour cet acheminement', false),
             ]);
         }
 

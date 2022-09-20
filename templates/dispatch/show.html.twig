@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Demande | {{ 'acheminement.Acheminement'|trans }} | Détails{% endblock %}
+{% block title %}{{ trans('Demande', 'Général', 'Demande', false) }} | {{ trans('Demande', 'Acheminements', 'Divers', 'Acheminement', false) }} | Détails{% endblock %}
 {% block title_tooltip %}Demande | Acheminement | Détails{% endblock %}
 {% block titleLink path('dispatch_index') %}
 
@@ -26,7 +26,7 @@
         <div class="row mt-3">
             <div class="col-12">
                 <div class="wii-box focus-shadow drop-below">
-                    <div class="header wii-title" title="Liste des colis">{{ 'colis.Liste des colis'|trans }}</div>
+                    <div class="header wii-title">{{ trans('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Liste des UL', false) }}</div>
                     <div class="p-3">
                         <table id="packTable" class="wii-table w-100"></table>
                     </div>

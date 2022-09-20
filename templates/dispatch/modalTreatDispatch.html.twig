@@ -2,13 +2,13 @@
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
-                title: "Terminer la demande"
+                title: trans('Demande', 'Acheminements', 'Détails acheminement - Entête', 'Terminer la demande', false)
             } %}
 
             <div class="modal-body modal-input">
                 {% if treatedStatus is not empty %}
                     <div class="form-group row">
-                        <label class="col-12">Statut*</label>
+                        <label class="col-12">{{ trans('Demande', 'Général', 'Statut') }}*</label>
                         <div class="col-12">
                             <select class="form-control data needed"
                                     name="status"
@@ -23,13 +23,15 @@
                 {% else %}
                     {% include 'utils/warningSelectEmpty.html.twig' with {
                         array: [],
-                        warningLabel: 'Vous n\'avez pas configuré de statut traité pour ce ' ~ ('acheminement.type d\'acheminement'|trans),
+                        warningLabel: trans('Demande', 'Acheminements', 'Divers', "Vous n'avez pas configuré de statut {1} pour ce type d'acheminement", {
+                            '1': 'traité'
+                        }),
                         redirectPath: path('settings_item', {
                             'category': constant('App\\Controller\\Settings\\SettingsController::CATEGORY_TRACING'),
                             'menu': constant('App\\Controller\\Settings\\SettingsController::MENU_DISPATCHES'),
                             'submenu': constant('App\\Controller\\Settings\\SettingsController::MENU_STATUSES'),
                         }),
-                        redirectLabel: 'Aller vers la création des statuts',
+                        redirectLabel: trans('Demande', 'Général', 'Aller vers la création des statuts'),
                         block: true,
                         rights: {
                             menu: constant('App\\Entity\\Menu::PARAM'),
@@ -42,8 +44,8 @@
             {% if treatedStatus is not empty %}
                 {% include 'utils/modal/footer.html.twig' with {
                     elements: [
-                        {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
-                        {classes: 'btn btn-success submit-button', text: 'Enregistrer'}
+                        {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
+                        {classes: 'btn btn-success submit-button', text: trans('Général', null, 'Modale', 'Enregistrer')}
                     ],
                 } %}
 
