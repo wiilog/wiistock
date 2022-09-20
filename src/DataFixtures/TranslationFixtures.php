@@ -1796,6 +1796,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "en" => "Go to the creation of the statuses",
                         "tooltip" => "Acheminement :\nModale Nouvelle demande d'acheminement\n_____\nService :\nModale Nouvelle demande de service",
                     ],
+                    [
+                        "fr" => "Aucun statut brouillon pour ce type",
+                        "en" => "No draft status for this type",
+                        "tooltip" => "Acheminement :\nModale Nouvelle demande d'acheminement\n_____\nService :\nModale Nouvelle demande de service",
+                    ],
                 ],
             ],
             "Acheminements" => [
@@ -2085,6 +2090,16 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Détails acheminements - Liste des UL - Nom de colonnes",
                         ],
                         [
+                            "fr" => "Traité",
+                            "en" => "Processed",
+                            "tooltip" => "Détails acheminements - Liste des colis - Nom de colonnes",
+                        ],
+                        [
+                            "fr" => "À traiter",
+                            "en" => "To process",
+                            "tooltip" => "Détails acheminements - Liste des colis - Nom de colonnes",
+                        ],
+                        [
                             "fr" => "Nouvelle UL",
                             "en" => "Create L.U.",
                             "tooltip" => "Détails acheminements - Liste des UL - Ajout UL",
@@ -2183,6 +2198,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Contact destinataire",
                             "en" => "Addressee contact",
+                            "tooltip" => "Modale Création/Modification Lettre de voiture",
+                        ],
+                        [
+                            "fr" => "Nom",
+                            "en" => "Name",
                             "tooltip" => "Modale Création/Modification Lettre de voiture",
                         ],
                         [
@@ -2362,6 +2382,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Ligne du BL",
                             "en" => "Order line",
+                            "tooltip" => "Modale Création modification BL",
+                        ],
+                        [
+                            "fr" => "Date",
+                            "en" => "Date",
                             "tooltip" => "Modale Création modification BL",
                         ],
                         [

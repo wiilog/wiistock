@@ -56,7 +56,6 @@ class AppExtension extends AbstractExtension {
     public FormatService $formatService;
 
     private array $settingsCache = [];
-    private ?string $defaultLanguageSlug = null;
 
     public function getFunctions() {
         return [
@@ -75,6 +74,7 @@ class AppExtension extends AbstractExtension {
             new TwigFunction('isImage', [$this, 'isImage']),
             new TwigFunction('merge', "array_merge"),
             new TwigFunction('getLanguage', [$this, "getLanguage"]),
+            new TwigFunction('getDefaultLanguage', [$this, "getDefaultLanguage"]),
             new TwigFunction('trans', [$this, "translate"], [
                 "is_safe" => ["html"]
             ]),
@@ -266,7 +266,8 @@ class AppExtension extends AbstractExtension {
     }
 
     public function getLanguage(){
-        return $this->userService->getUser()?->getLanguage() ?? $this->manager->getRepository(Language::class)->findOneBy(['selected' => true]);
+        return $this->userService->getUser()?->getLanguage()
+            ?? $this->manager->getRepository(Language::class)->findOneBy(['selected' => true]);
     }
 
     public function translate(mixed... $args): string {
@@ -275,5 +276,10 @@ class AppExtension extends AbstractExtension {
 
     public function translateIn(mixed... $args): string {
         return $this->translationService->translateIn(...$args);
+    }
+
+    public function getDefaultLanguage(): string {
+        $defaultSlugLanguage = $this->languageService->getDefaultSlug();
+        return $this->languageService->getReverseDefaultLanguage($defaultSlugLanguage);
     }
 }

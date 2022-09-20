@@ -1,5 +1,5 @@
-{% set lastResort = true %}
 {% set defaultLanguageSlug = defaultLanguageSlug ?? constant('App\\Entity\\Language::DEFAULT_LANGUAGE_SLUG') %}
+{% set language = language ?? getDefaultLanguage() %}
 <html lang="fr">
 <head>
     <style>

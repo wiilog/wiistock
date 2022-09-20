@@ -42,7 +42,7 @@
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
         <div class="form-group col-md-4 col-12">
-            <label class="wii-field-name" for="prise" title="Emplacement de prise">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'Emplacement prise') }}{{ required ? '*' }}</label>
+            <label class="wii-field-name" for="prise">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'Emplacement prise') }}{{ required ? '*' }}</label>
             <select name="prise" class="form-control data d-block {{ required ? 'needed' }} location-prise" data-s2="location"
                     id="prise">
                 {% if dispatch.locationFrom %}
@@ -56,7 +56,7 @@
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
         <div class="form-group col-md-4 col-12">
-            <label class="wii-field-name" for="depose" title="Emplacement de dépose">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'Emplacement dépose') }}{{ required ? '*' }}</label>
+            <label class="wii-field-name" for="depose">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'Emplacement dépose') }}{{ required ? '*' }}</label>
             <select name="depose" class="form-control data {{ required ? 'needed' }} location-depose" data-s2="location"
                     id="depose">
                 {% if dispatch.locationTo %}
@@ -70,7 +70,7 @@
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
         <div class="form-group col-md-4 col-12">
-            <label class="wii-field-name" for="destination" title="Destination">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'Destination') }}{{ required ? '*' }}</label>
+            <label class="wii-field-name" for="destination">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'Destination') }}{{ required ? '*' }}</label>
             <input name="destination" class="form-control data {{ required ? 'needed' }}" value="{{ dispatch.destination }}" maxlength="50"/>
         </div>
     {% endif %}
@@ -104,7 +104,7 @@
         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
             {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
             <div class="form-group col-md-4 col-12">
-                <label class="wii-field-name" title="Transporteur">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'Transporteur') }}{{ required ? '*' }}</label>
+                <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'Transporteur') }}{{ required ? '*' }}</label>
                 <select class="form-control data w-100 {{ required ? 'needed' }}" data-s2="carrier"
                         title="Transporteur"
                         name="carrier">
@@ -120,7 +120,7 @@
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
         <div class="form-group col-md-4 col-12">
-            <label class="wii-field-name" title="Numéro de tracking transporteur">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'N° tracking transporteur') }}{{ required ? '*' }}</label>
+            <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'N° tracking transporteur') }}{{ required ? '*' }}</label>
             <input class="form-control data {{ required ? 'needed' }}"
                    title="Numéro de tracking transporteur"
                    name="transporterTrackingNumber"
@@ -147,7 +147,7 @@
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
         <div class="form-group col-md-4 col-12">
-            <label class="wii-field-name" title="Numéro de commande">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'N° commande') }}{{ required ? '*' }}</label>
+            <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'N° commande') }}{{ required ? '*' }}</label>
             <input class="form-control data {{ required ? 'needed' }}"
                    title="Numéro de commande"
                    name="commandNumber"
@@ -159,7 +159,7 @@
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
         <div class="form-group col-md-4 col-12">
-            <label class="wii-field-name" for="project" title="Numéro de projet">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'N° projet') }}{{ required ? '*' }}</label>
+            <label class="wii-field-name" for="project">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'N° projet') }}{{ required ? '*' }}</label>
             <input class="form-control data {{ required ? 'needed' }}"
                    title="Numéro de projet"
                    name="projectNumber"
@@ -171,7 +171,7 @@
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
         <div class="form-group col-md-4 col-12">
-            <label class="wii-field-name" title="Business unit">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'Business unit') }}{{ required ? '*' }}</label>
+            <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'Business unit') }}{{ required ? '*' }}</label>
             <select name="businessUnit"
                     class="form-control data {{ required ? 'needed' }}"
                     title="Business Unit">
@@ -235,7 +235,7 @@
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
         <div class="form-group col">
-            <label class="wii-field-name" for="commentaire">{{ trans('Général', null, 'Modale', 'commentaire') }}{{ required ? '*' }}</label>
+            <label class="wii-field-name" for="commentaire">{{ trans('Général', null, 'Modale', 'Commentaire') }}{{ required ? '*' }}</label>
             <input id='commentaire'
                    class="commentaire form-control data {{ required ? 'needed' }}"
                    name="commentaire"

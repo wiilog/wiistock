@@ -305,7 +305,7 @@ function initializePacksTable(dispatchId, isEdit) {
             {data: 'nature', name: 'nature', title: Translation.of('Demande',`Acheminements`, `Détails acheminement - Liste des unités logistiques`, `Nature`) + (isEdit ? '*' : ''), tooltip: 'nature'},
             {data: 'weight', name: 'weight', title: Translation.of('Demande', `Acheminements`, `Détails acheminement - Liste des unités logistiques`, `Poids (kg)`)},
             {data: 'volume', name: 'volume', title: Translation.of('Demande', `Acheminements`, `Détails acheminement - Liste des unités logistiques`, `Volume (m3)`)},
-            {data: 'comment', name: 'comment', title: Translation.of('Général', null, 'Modale', 'commentaire')},
+            {data: 'comment', name: 'comment', title: Translation.of('Général', null, 'Modale', 'Commentaire')},
             {data: 'lastMvtDate', name: 'lastMvtDate', title: Translation.of('Demande', `Acheminements`, `Détails acheminement - Liste des unités logistiques`, `Date dernier mouvement`), render: function(data, type) {
                 if(type !== `sort`) {
                     const date = moment(data, 'YYYY/MM/DD HH:mm');
