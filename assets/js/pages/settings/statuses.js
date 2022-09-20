@@ -63,25 +63,27 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
         },
         onEditStart: () => {
             $managementButtons.removeClass('d-none');
-            $addRow.addClass('d-none');
-            if ($canTranslate) {
-                $translateLabels.removeClass('d-none');
+            if(tableSelector != '#reception-dispute-statuses-table') {
+                $addRow.addClass('d-none');
+                if ($canTranslate) {
+                    $translateLabels.removeClass('d-none');
+                }
+
+                $translateButton
+                    .off('click')
+                    .on(`click`, function () {
+                        const params = {
+                            type: $('[name=type]:checked').val(),
+                            mode: mode
+                        };
+
+                        $.post(Routing.generate("settings_edit_status_translations_api", true), params)
+                            .then(response => {
+                                $modalEditTranslations.find(`.modal-body`).html(response.html);
+                                $modalEditTranslations.modal('show');
+                            });
+                    });
             }
-
-            $translateButton
-                .off('click')
-                .on(`click`, function () {
-                    const params = {
-                        type: $('[name=type]:checked').val(),
-                        mode: mode
-                    };
-
-                    $.post(Routing.generate("settings_edit_status_translations_api", true), params)
-                        .then(response => {
-                            $modalEditTranslations.find(`.modal-body`).html(response.html);
-                            $modalEditTranslations.modal('show');
-                        });
-                });
         },
         onEditStop: () => {
             $managementButtons.addClass('d-none');
