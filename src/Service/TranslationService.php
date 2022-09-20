@@ -96,7 +96,7 @@ class TranslationService {
     }
 
     /**
-     * @param string $slug Targer slug language
+     * @param string $slug Target slug language
      * @param string $defaultSlug Fallback slug if translation does not exist
      * @param bool $lastResort if false and translation was not found then we return null, else if true then we return the original label to translate
      * @param mixed ...$args
