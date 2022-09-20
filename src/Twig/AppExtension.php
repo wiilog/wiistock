@@ -276,4 +276,5 @@ class AppExtension extends AbstractExtension {
     public function translateIn(mixed... $args): string {
         return $this->translationService->translateIn(...$args);
     }
+
 }

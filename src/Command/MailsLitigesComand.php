@@ -22,25 +22,17 @@ use Twig\Environment as Twig_Environment;
 class MailsLitigesComand extends Command
 {
 
-    /** @Required */
+    #[Required]
     public RouterInterface $router;
 
-    /**
-     * @var MailerService
-     */
-    private $mailerService;
+    #[Required]
+    public MailerService $mailerService;
 
-    /**
-     * @var Twig_Environment
-     */
-    private $templating;
+    #[Required]
+    public LoggerInterface $logger;
 
-    /**
-     * @var LoggerInterface
-     */
-    private $logger;
-
-    private $entityManager;
+    #[Required]
+    public EntityManagerInterface $entityManager;
 
     #[Required]
     public LanguageService $languageService;
@@ -48,23 +40,13 @@ class MailsLitigesComand extends Command
     #[Required]
     public TranslationService $translationService;
 
-    public function __construct(LoggerInterface $logger,
-                                EntityManagerInterface $entityManager,
-                                MailerService $mailerService,
-                                Twig_Environment $templating)
-    {
+    public function __construct() {
         parent::__construct();
-        $this->entityManager = $entityManager;
-        $this->mailerService = $mailerService;
-        $this->templating = $templating;
-        $this->logger = $logger;
     }
 
-    protected function configure()
-    {
-        $this->setName('app:mails-litiges');
-
-        $this->setDescription('envoi de mails aux acheteurs pour les litiges non soldés');
+    protected function configure() {
+        $this->setName("app:mails-litiges");
+        $this->setDescription("envoi de mails aux acheteurs pour les litiges non soldés");
     }
 
     public function execute(InputInterface $input, OutputInterface $output)

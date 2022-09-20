@@ -34,26 +34,6 @@ class TranslationService {
     private array $translations = [];
 
     /**
-     * Translates the given input with the given slug (1st parameter) ; Same usage of TranslateService::translate
-     * The function expects from 1 to 4 strings, then an array of strings to replace or a user or both in any order.
-     *
-     *
-     * Example usage with more or less string inputs and with and without custom user and params array :
-     * translateIn($slug, "Traçabilité", "Unités logistiques", "Onglet \"Groupes\"", "Groupes")
-     *
-     * @param mixed ...$args Arguments
-     * @return string Translated input
-     */
-    public function translateIn(string $slug, mixed ...$args): string {
-        $defaultSlug = Language::DEFAULT_LANGUAGE_TRANSLATIONS[$slug]
-            ?? $this->languageService->getDefaultSlug();
-        return (
-            $this->getTranslation($slug, $defaultSlug, false, ...$args)
-            ?: $this->getTranslation($defaultSlug, $defaultSlug, true, ...$args)
-        );
-    }
-
-    /**
      * Translates the given input
      * The function expects from 1 to 4 strings, then an array of
      * strings to replace or a user or both in any order.
@@ -93,6 +73,24 @@ class TranslationService {
         $slug = $user?->getLanguage()?->getSlug();
 
         return $this->translateIn($slug, ...$args);
+    }
+
+    /**
+     * Translates the given input with the given slug (1st parameter) ; Same usage of TranslateService::translate
+     * The function expects from 1 to 4 strings, then an array of strings to replace or a user or both in any order.
+     *
+     *
+     * Example usage with more or less string inputs and with and without custom user and params array :
+     * translateIn($slug, "Traçabilité", "Unités logistiques", "Onglet \"Groupes\"", "Groupes")
+     *
+     * @param mixed ...$args Arguments
+     * @return string Translated input
+     */
+    public function translateIn(string $slug, mixed ...$args): string {
+        $defaultSlug = Language::DEFAULT_LANGUAGE_TRANSLATIONS[$slug] ?? $this->languageService->getDefaultSlug();
+
+        return $this->getTranslation($slug, $defaultSlug, false, ...$args)
+            ?: $this->getTranslation($defaultSlug, $defaultSlug, true, ...$args);
     }
 
     /**
