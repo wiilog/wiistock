@@ -24,7 +24,7 @@ $(document).ready(() => {
             {data: `frequency`, title: `Fréquence`},
             {data: `user`, title: `Utilisateur`},
             {data: `type`, title: `Type`},
-            {data: `dataType`, title: `Type de données exportées`},
+            {data: `entity`, title: `Type de données exportées`},
         ],
         rowConfig: {
             needsRowClickAction: true

@@ -1,21 +1,20 @@
-{# {% if export.status.code == constant('App\\Entity\\Export::STATUS_PLANIFIED') %} #}
-{% if true %}
+{% if export.status.code == constant('App\\Entity\\Export::STATUS_PLANIFIED') %}
     <div class="d-flex">
         <div class="dropdown dropright">
             {% include 'datatable/dotsRow.html.twig' %}
             <div class="dropdown-menu dropdown-follow-gt pointer">
                 {% if hasRight(constant('App\\Entity\\Menu::PARAM'), constant('App\\Entity\\Action::EDIT')) %}
                     <div data-id='{{ export.id }}' data-target='#modalEditExport' data-toggle='modal'
-                         class='action-on-click d-none'
-                         onclick="editRow($(this), Routing.generate('export_edit_api', true), $('#modalEditExport'), $('#submitEditExport'))">
-                        <i class="fas fa-pencil-alt"></i> Modifier l'export
+                         onclick="editRow($(this), Routing.generate('export_edit_api', true), $('#modalEditExport'), $('#submitEditExport'))"
+                         class="dropdown-item">
+                        <i class="fas fa-pencil-alt mr-2"></i> Modifier l'export
                     </div>
                 {% endif %}
                 {% if hasRight(constant('App\\Entity\\Menu::PARAM'), constant('App\\Entity\\Action::DELETE')) %}
                     <div data-id='{{ export.id }}' data-target='#modalDeleteExport' data-toggle='modal'
                          onclick="checkAndDeleteRow($(this), '#modalDeleteExport', 'export_check_delete', '#submitDeleteExport')"
                          class="dropdown-item">
-                        <i class="wii-icon wii-icon-trash text-primary mr-2"></i> Supprimer la planification
+                        <i class="wii-icon wii-icon-trash-black mr-2"></i>Supprimer la planification
                     </div>
                 {% endif %}
 

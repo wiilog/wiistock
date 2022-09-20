@@ -35,15 +35,12 @@ class DataExportController extends AbstractController {
         /** @var Utilisateur $user */
         $user = $this->getUser();
 
-        //$exportRepository = $manager->getRepository(Export::class);
+        $exportRepository = $manager->getRepository(Export::class);
         $filtreSupRepository = $manager->getRepository(FiltreSup::class);
 
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_EXPORT, $user);
-        //$queryResult = $exportRepository->findByParamsAndFilters($request->request, $filters);
-        //$exports = $queryResult["data"];
-
-        //TODO: supprimer
-        $exports = [""];
+        $queryResult = $exportRepository->findByParamsAndFilters($request->request, $filters);
+        $exports = $queryResult["data"];
 
         $rows = [];
         foreach ($exports as $export) {
@@ -59,7 +56,7 @@ class DataExportController extends AbstractController {
                 "frequency" => null,
                 "user" => null,
                 "type" => null,
-                "dataType" => null,
+                "entity" => null,
             ];
         }
 
