@@ -31,6 +31,9 @@ class TranslationService {
     #[Required]
     public LanguageService $languageService;
 
+    #[Required]
+    public UserService $userService;
+
     private array $translations = [];
 
     /**
@@ -66,8 +69,7 @@ class TranslationService {
             $user = $this->tokenStorage->getToken()->getUser();
         }
 
-        $slug = $user?->getLanguage()?->getSlug();
-
+        $slug = $this->userService->getUser()->getLanguage()?->getSlug() ?? Translation::FRENCH_SLUG;
         $defaultSlug = Language::DEFAULT_LANGUAGE_TRANSLATIONS[$slug] ?? $this->languageService->getDefaultSlug();
 
         return (

@@ -87,8 +87,8 @@
                 elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler', event: "clearModal($(this).parents('#modalAddLigneArticle'))"},
                     {classes: 'btn btn-success', text: 'Enregistrer', id: 'addArticleLigneSubmit'},
-                    {classes: 'btn btn-success d-none', text: 'Enregistrer et ' ~ trans('Ordre', 'Réception', 'réception', false), id: 'addArticleLigneSubmitAndRedirect',
-                        event: 'openModalLigneReception($(this))', title: 'Enregistrer et réception'},
+                    {classes: 'btn btn-success d-none', text: 'Enregistrer et ' ~ trans('Ordre', 'Réceptions', 'réception', true), id: 'addArticleLigneSubmitAndRedirect',
+                        event: 'openModalLigneReception($(this))', title: 'Enregistrer et ' ~ trans('Ordre', 'Réceptions', 'réception', true)},
                 ],
             } %}
 
