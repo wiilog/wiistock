@@ -430,7 +430,7 @@ class SettingsController extends AbstractController {
                     "label" => "Exports CSV",
                     "right" => Action::SETTINGS_DISPLAY_EXPORT,
                     "save" => true,
-                    "discard" => true,
+                    "wrapped" => false,
                 ],
                 self::MENU_IMPORTS => [
                     "label" => "Imports & mises à jour",
@@ -995,6 +995,9 @@ class SettingsController extends AbstractController {
                 },
             ],
             self::CATEGORY_DATA => [
+                self::MENU_CSV_EXPORTS => fn() => [
+                    "statuts" => [],
+                ],
                 self::MENU_IMPORTS => fn() => [
                     "statuts" => $statusRepository->findByCategoryNameAndStatusCodes(
                         CategorieStatut::IMPORT,

@@ -5,6 +5,8 @@ namespace App\Controller\Settings;
 use App\Entity\Article;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
+use App\Entity\Export;
+use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
 use App\Entity\ReferenceArticle;
 use App\Entity\Transport\TransportRound;
@@ -12,25 +14,63 @@ use App\Entity\Utilisateur;
 use App\Service\ArticleDataService;
 use App\Service\CSVExportService;
 use App\Service\FreeFieldService;
+use App\Service\ImportService;
 use App\Service\RefArticleDataService;
 use App\Service\Transport\TransportRoundService;
 use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Routing\Annotation\Route;
 
-/**
- * @Route("/parametrage")
- */
+#[Route("/parametrage")]
 class DataExportController extends AbstractController {
 
-    /**
-     * @Route("/references/csv", name="export_references", options={"expose"=true}, methods="GET")
-     */
+    #[Route("/export/api", name: "export_api", options: ["expose" => true], methods: "POST")]
+    public function api(Request $request, EntityManagerInterface $manager): Response {
+        /** @var Utilisateur $user */
+        $user = $this->getUser();
+
+        //$exportRepository = $manager->getRepository(Export::class);
+        $filtreSupRepository = $manager->getRepository(FiltreSup::class);
+
+        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_EXPORT, $user);
+        //$queryResult = $exportRepository->findByParamsAndFilters($request->request, $filters);
+        //$exports = $queryResult["data"];
+
+        //TODO: supprimer
+        $exports = [""];
+
+        $rows = [];
+        foreach ($exports as $export) {
+            $rows[] = [
+                "actions" => $this->renderView("settings/donnees/export/action.html.twig", [
+                    "export" => new Export(),
+                ]),
+                "status" => null,
+                "creationDate" => null,
+                "startDate" => null,
+                "endDate" => null,
+                "nextRun" => null,
+                "frequency" => null,
+                "user" => null,
+                "type" => null,
+                "dataType" => null,
+            ];
+        }
+
+        return $this->json([
+            "data" => $rows,
+            "recordsFiltered" => $queryResult["count"] ?? 0,
+            "recordsTotal" => $queryResult["total"] ?? 0,
+        ]);
+    }
+
+    #[Route("/references/csv", name: "export_references", options: ["expose" => true], methods: "GET")]
     public function exportReferences(EntityManagerInterface $manager,
                                      CSVExportService       $csvService,
                                      UserService            $userService,
@@ -89,9 +129,7 @@ class DataExportController extends AbstractController {
         }, "export-references-$today.csv", $header);
     }
 
-    /**
-     * @Route("/articles/csv", name="export_articles", options={"expose"=true}, methods="GET")
-     */
+    #[Route("/articles/csv", name: "export_articles", options: ["expose" => true], methods: "GET")]
     public function exportArticles(EntityManagerInterface $entityManager,
                                    FreeFieldService       $freeFieldService,
                                    ArticleDataService     $articleDataService,
@@ -129,7 +167,7 @@ class DataExportController extends AbstractController {
     }
 
 
-    #[Route('/rounds/csv', name: 'export_round', options: ['expose' => true], methods: 'GET')]
+    #[Route("/rounds/csv", name: "export_round", options: ["expose" => true], methods: "GET")]
     public function exportRounds(CSVExportService       $CSVExportService,
                                  TransportRoundService  $transportRoundService,
                                  EntityManagerInterface $entityManager,

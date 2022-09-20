@@ -84,6 +84,7 @@ class FiltreSup {
     const PAGE_SUBCONTRACT_ORDERS = 'subcontractOrders';
     const PAGE_TRANSPORT_ROUNDS = 'transportRounds';
     const PAGE_IMPORT = 'import';
+    const PAGE_EXPORT = 'export';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
