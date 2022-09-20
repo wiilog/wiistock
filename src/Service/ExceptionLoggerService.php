@@ -22,7 +22,7 @@ use Throwable;
 
 class ExceptionLoggerService {
 
-    const DEFAULT_LOGGER_URL = "http://logger/api/log";
+    const DEFAULT_LOGGER_URL = "https://logger.wiilog.fr/api/log";
 
     private $security;
     private $client;
@@ -92,12 +92,7 @@ class ExceptionLoggerService {
         try {
             $url = $_SERVER["APP_URL"] ?? null;
             $instance = $_SERVER["APP_INSTANCE"] ?? $url;
-
-            if(!empty($_SERVER["APP_LOGGER"])) {
-                $logger = $_SERVER["APP_LOGGER"];
-            } else {
-                $logger = self::DEFAULT_LOGGER_URL;
-            }
+            $logger = self::DEFAULT_LOGGER_URL;
 
             if ($instance) {
                 $this->client->request("POST", $logger, [
