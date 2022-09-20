@@ -3,23 +3,24 @@
 namespace App\Entity;
 
 use App\Repository\ExportRepository;
+use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ExportRepository::class)]
-class Export
-{
-    const STATUS_FINISHED = 'terminé';
-    const STATUS_PLANIFIED = 'planifiée';
-    const STATUS_ERROR = 'erreur';
+class Export {
+
+    const STATUS_FINISHED = "terminé";
+    const STATUS_PLANIFIED = "planifiée";
+    const STATUS_ERROR = "erreur";
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(type: "integer")]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(type: "string", length: 255)]
     private ?string $entity = null;
 
     #[ORM\ManyToOne(targetEntity: Statut::class)]
@@ -30,52 +31,51 @@ class Export
     #[ORM\JoinColumn(nullable: false)]
     private ?Utilisateur $user = null;
 
-    #[ORM\Column]
+    #[ORM\Column(type: "boolean")]
     private ?bool $forced = null;
 
-    #[ORM\Column(type: 'datetime')]
-    private ?\DateTimeInterface $created_at = null;
+    #[ORM\Column(type: "datetime")]
+    private ?DateTimeInterface $createdAt = null;
 
     #[ORM\ManyToOne(targetEntity: Type::class)]
     #[ORM\JoinColumn(nullable: false)]
     private ?Type $type = null;
 
-    #[ORM\Column(nullable: true)]
+    #[ORM\Column(type: "json", nullable: true)]
     private array $columnToExport = [];
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
-    private ?\DateTimeInterface $beginAt = null;
+    #[ORM\Column(type: "datetime", nullable: true)]
+    private ?DateTimeInterface $beginAt = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(type: "string", length: 255)]
     private ?string $frequency = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(type: "string", length: 255)]
     private ?string $exportDestination = null;
 
-    #[ORM\Column(nullable: true)]
-    private array $parameters = [];
+    #[ORM\Column(type: "json", nullable: true)]
+    private array $ftpParameters = [];
+
+    #[ORM\Column(type: "json", nullable: true)]
+    private array $recipientEmails = [];
 
     #[ORM\ManyToMany(targetEntity: Utilisateur::class)]
-    private Collection $userEmails;
+    private Collection $recipientUsers;
 
-    #[ORM\Column(nullable: true)]
-    private array $freeEmails = [];
-
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(type: "string", length: 255)]
     private ?string $period = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(type: "string", length: 255)]
     private ?string $periodInterval = null;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
-    private ?\DateTimeInterface $endedAt = null;
+    #[ORM\Column(type: "datetime", nullable: true)]
+    private ?DateTimeInterface $endedAt = null;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
-    private ?\DateTimeInterface $nextExecution = null;
+    #[ORM\Column(type: "datetime", nullable: true)]
+    private ?DateTimeInterface $nextExecution = null;
 
-    public function __construct()
-    {
-        $this->userEmails = new ArrayCollection();
+    public function __construct() {
+        $this->recipientUsers = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -131,14 +131,14 @@ class Export
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeInterface
+    public function getCreatedAt(): ?DateTimeInterface
     {
-        return $this->created_at;
+        return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTimeInterface $created_at): self
+    public function setCreatedAt(DateTimeInterface $createdAt): self
     {
-        $this->created_at = $created_at;
+        $this->createdAt = $createdAt;
 
         return $this;
     }
@@ -167,12 +167,12 @@ class Export
         return $this;
     }
 
-    public function getBeginAt(): ?\DateTimeInterface
+    public function getBeginAt(): ?DateTimeInterface
     {
         return $this->beginAt;
     }
 
-    public function setBeginAt(?\DateTimeInterface $beginAt): self
+    public function setBeginAt(?DateTimeInterface $beginAt): self
     {
         $this->beginAt = $beginAt;
 
@@ -203,14 +203,26 @@ class Export
         return $this;
     }
 
-    public function getParameters(): array
+    public function getFtpParameters(): array
     {
-        return $this->parameters;
+        return $this->ftpParameters;
     }
 
-    public function setParameters(?array $parameters): self
+    public function setFtpParameters(?array $ftpParameters): self
     {
-        $this->parameters = $parameters;
+        $this->ftpParameters = $ftpParameters;
+
+        return $this;
+    }
+
+    public function getRecipientEmails(): array
+    {
+        return $this->recipientEmails;
+    }
+
+    public function setRecipientEmails(?array $recipientEmails): self
+    {
+        $this->recipientEmails = $recipientEmails;
 
         return $this;
     }
@@ -218,15 +230,15 @@ class Export
     /**
      * @return Collection<int, Utilisateur>
      */
-    public function getUserEmails(): Collection
+    public function getRecipientUsers(): Collection
     {
-        return $this->userEmails;
+        return $this->recipientUsers;
     }
 
     public function addUserEmail(Utilisateur $userEmail): self
     {
-        if (!$this->userEmails->contains($userEmail)) {
-            $this->userEmails[] = $userEmail;
+        if (!$this->recipientUsers->contains($userEmail)) {
+            $this->recipientUsers[] = $userEmail;
         }
 
         return $this;
@@ -234,19 +246,7 @@ class Export
 
     public function removeUserEmail(Utilisateur $userEmail): self
     {
-        $this->userEmails->removeElement($userEmail);
-
-        return $this;
-    }
-
-    public function getFreeEmails(): array
-    {
-        return $this->freeEmails;
-    }
-
-    public function setFreeEmails(?array $freeEmails): self
-    {
-        $this->freeEmails = $freeEmails;
+        $this->recipientUsers->removeElement($userEmail);
 
         return $this;
     }
@@ -275,24 +275,24 @@ class Export
         return $this;
     }
 
-    public function getEndedAt(): ?\DateTimeInterface
+    public function getEndedAt(): ?DateTimeInterface
     {
         return $this->endedAt;
     }
 
-    public function setEndedAt(?\DateTimeInterface $endedAt): self
+    public function setEndedAt(?DateTimeInterface $endedAt): self
     {
         $this->endedAt = $endedAt;
 
         return $this;
     }
 
-    public function getNextExecution(): ?\DateTimeInterface
+    public function getNextExecution(): ?DateTimeInterface
     {
         return $this->nextExecution;
     }
 
-    public function setNextExecution(?\DateTimeInterface $nextExecution): self
+    public function setNextExecution(?DateTimeInterface $nextExecution): self
     {
         $this->nextExecution = $nextExecution;
 
