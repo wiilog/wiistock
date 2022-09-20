@@ -5,6 +5,7 @@ namespace App\Controller\Settings;
 use App\Entity\Article;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
+use App\Entity\Export;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
 use App\Entity\ReferenceArticle;
@@ -47,7 +48,9 @@ class DataExportController extends AbstractController {
         $rows = [];
         foreach ($exports as $export) {
             $rows[] = [
-                "actions" => "à remplir",
+                "actions" => $this->renderView("settings/donnees/export/action.html.twig", [
+                    "export" => new Export(),
+                ]),
                 "status" => null,
                 "creationDate" => null,
                 "startDate" => null,
