@@ -1158,3 +1158,18 @@ label.required:after {
     width: 15px;
     height: 15px;
 }
+
+.frequencies {
+    border: $medium-grey solid 1px;
+    border-radius: 10px;
+    margin: 10px
+}
+
+.frequencies-container {
+    background-color: $light-blue;
+    border-radius: 10px;
+
+    .wii-radio {
+        margin: 5px;
+    }
+}

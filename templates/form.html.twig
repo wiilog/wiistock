@@ -26,7 +26,9 @@
 
 {% macro label(label, required, inline, options = {}) %}
     {% if label %}
-        <span class="d-inline-flex align-items-center field-label {{ inline ? 'text-nowrap' :  'wii-field-name' }}"
+        <span class="d-inline-flex align-items-center field-label
+            {{ inline ? 'text-nowrap' :  'wii-field-name' }}
+            {{ options.class ?? '' }}"
               {% if not inline %}style="margin-bottom: 5px"{% endif %}>
             {% if label is iterable %}
                 {% if label.url is defined %}
@@ -141,7 +143,7 @@
             {% set id = random(100000, 10000000) %}
 
             <div class="wii-radio mt-1">
-                <input type="radio" id="radio-{{ id }}" class="data mr-2" value="{{ item.value ?? '' }}"
+                <input type="radio" id="radio-{{ id }} {{ item.id ?? '' }}" class="data mr-2 {{ item.class ?? '' }}" value="{{ item.value ?? '' }}"
                     {{ required ? 'required' }}
                     {{ _self.common_attributes(name, options) }}
                     {{ _self.multiple_key(options) }}
@@ -162,7 +164,7 @@
         ? (value is iterable ? value : [value])
         : [] %}
 
-    <label class="w-100 {{ not options.search ?? true ? 'no-search' }}">
+    <label class="{{ options.labelClass ?? 'w-100' }} {{ not options.search ?? true ? 'no-search' }}">
         {{ _self.label(label, required, inline, options.labelOptions ?? {}) }}
         {% if label %}
             {{ _self.tooltip(options.tooltip ?? null, inline) }}
