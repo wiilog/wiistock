@@ -9,6 +9,7 @@ const PAGE_ORDRE_LIVRAISON = 'olivraison';
 const PAGE_PREPA = 'prépa';
 const PAGE_ARRIVAGE = 'arrivage';
 const PAGE_IMPORT = 'import';
+const PAGE_EXPORT = 'export';
 const PAGE_ALERTE = 'alerte';
 const PAGE_RECEPTION = 'reception';
 const PAGE_MVT_STOCK = 'mvt_stock';

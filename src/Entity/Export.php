@@ -15,6 +15,18 @@ class Export {
     const STATUS_PLANIFIED = "planifiée";
     const STATUS_ERROR = "erreur";
 
+    const ENTITY_REFERENCE = "reference";
+    const ENTITY_ARTICLE = "article";
+    const ENTITY_DELIVERY_ROUND = "tournee";
+    const ENTITY_ARRIVAL = "arrivage";
+
+    const ENTITY_LABELS = [
+        self::ENTITY_REFERENCE => "Références",
+        self::ENTITY_ARTICLE => "Articles",
+        self::ENTITY_DELIVERY_ROUND => "Tournées",
+        self::ENTITY_ARRIVAL => "Arrivages",
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: "integer")]
@@ -29,7 +41,7 @@ class Export {
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
     #[ORM\JoinColumn(nullable: false)]
-    private ?Utilisateur $user = null;
+    private ?Utilisateur $creator = null;
 
     #[ORM\Column(type: "boolean")]
     private ?bool $forced = null;
@@ -43,9 +55,6 @@ class Export {
 
     #[ORM\Column(type: "json", nullable: true)]
     private array $columnToExport = [];
-
-    #[ORM\Column(type: "datetime", nullable: true)]
-    private ?DateTimeInterface $beginAt = null;
 
     #[ORM\Column(type: "string", length: 255)]
     private ?string $frequency = null;
@@ -67,6 +76,9 @@ class Export {
 
     #[ORM\Column(type: "string", length: 255)]
     private ?string $periodInterval = null;
+
+    #[ORM\Column(type: "datetime", nullable: true)]
+    private ?DateTimeInterface $beganAt = null;
 
     #[ORM\Column(type: "datetime", nullable: true)]
     private ?DateTimeInterface $endedAt = null;
@@ -107,14 +119,14 @@ class Export {
         return $this;
     }
 
-    public function getUser(): ?Utilisateur
+    public function getCreator(): ?Utilisateur
     {
-        return $this->user;
+        return $this->creator;
     }
 
-    public function setUser(?Utilisateur $user): self
+    public function setCreator(?Utilisateur $creator): self
     {
-        $this->user = $user;
+        $this->creator = $creator;
 
         return $this;
     }
@@ -167,14 +179,14 @@ class Export {
         return $this;
     }
 
-    public function getBeginAt(): ?DateTimeInterface
+    public function getBeganAt(): ?DateTimeInterface
     {
-        return $this->beginAt;
+        return $this->beganAt;
     }
 
-    public function setBeginAt(?DateTimeInterface $beginAt): self
+    public function setBeganAt(?DateTimeInterface $beganAt): self
     {
-        $this->beginAt = $beginAt;
+        $this->beganAt = $beganAt;
 
         return $this;
     }

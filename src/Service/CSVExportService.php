@@ -2,27 +2,61 @@
 
 namespace App\Service;
 
+use App\Entity\CategorieStatut;
+use App\Entity\CategoryType;
+use App\Entity\Export;
 use App\Entity\Interfaces\Serializable;
 use App\Entity\Setting;
+use App\Entity\Statut;
+use App\Entity\Type;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\HeaderUtils;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\Security\Core\Security;
 
 class CSVExportService {
 
-    public static $SERIALIZABLE;
+    private EntityManagerInterface $entityManager;
+    private Security $security;
+    private bool $wantsUTF8;
 
-    private $entityManager;
-    private $wantsUTF8;
-
-    public function __construct(EntityManagerInterface $entityManager) {
+    public function __construct(EntityManagerInterface $entityManager, Security $security) {
         $this->entityManager = $entityManager;
+        $this->security = $security;
 
         $settingRepository = $entityManager->getRepository(Setting::class);
         $this->wantsUTF8 = $settingRepository->getOneParamByLabel(Setting::USES_UTF8) ?? true;
+    }
+
+    public function createUniqueExportLine(string $entity, DateTime $from) {
+        $type = $this->entityManager->getRepository(Type::class)->findOneByCategoryLabelAndLabel(
+            CategoryType::EXPORT,
+            Type::LABEL_UNIQUE_EXPORT,
+        );
+
+        $status = $this->entityManager->getRepository(Statut::class)->findOneByCategorieNameAndStatutCode(
+            CategorieStatut::EXPORT,
+            Export::STATUS_FINISHED,
+        );
+
+        $to = new DateTime();
+
+        $export = new Export();
+        $export->setEntity($entity);
+        $export->setType($type);
+        $export->setStatus($status);
+        $export->setCreator($this->security->getUser());
+        $export->setCreatedAt($from);
+        $export->setBeganAt($from);
+        $export->setEndedAt($to);
+
+        $this->entityManager->persist($export);
+
+        return $export;
     }
 
     /**
@@ -128,7 +162,3 @@ class CSVExportService {
     }
 
 }
-
-CSVExportService::$SERIALIZABLE = function(Serializable $serializable) {
-    return [$serializable->serialize()];
-};
