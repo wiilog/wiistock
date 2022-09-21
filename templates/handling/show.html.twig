@@ -152,7 +152,7 @@
                     <div class="wii-subtitle">{{ trans('Général', null, 'Modale', 'Commentaire') }}</div>
                     <div>
                         {% if handling.comment != '<p><br></p>' %}
-                            {{ handling.comment | raw }}
+                            {{ handling.comment | raw | nl2br }}
                         {% else %}
                             -
                         {% endif %}
