@@ -11,7 +11,7 @@ $(document).ready(() => {
         processing: true,
         serverSide: true,
         ajax: {
-            url: Routing.generate(`export_api`),
+            url: Routing.generate(`settings_export_api`),
             type: `POST`
         },
         columns: [

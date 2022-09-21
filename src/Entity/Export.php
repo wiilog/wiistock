@@ -15,6 +15,18 @@ class Export {
     const STATUS_PLANIFIED = "planifiée";
     const STATUS_ERROR = "erreur";
 
+    const ENTITY_REFERENCE = "reference";
+    const ENTITY_ARTICLE = "article";
+    const ENTITY_DELIVERY_ROUND = "tournee";
+    const ENTITY_ARRIVAL = "arrivage";
+
+    const ENTITY_LABELS = [
+        self::ENTITY_REFERENCE => "Références",
+        self::ENTITY_ARTICLE => "Articles",
+        self::ENTITY_DELIVERY_ROUND => "Tournées",
+        self::ENTITY_ARRIVAL => "Arrivages",
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: "integer")]
