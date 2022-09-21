@@ -72,7 +72,7 @@
                 <input type="radio"
                        id="{{ name }}-{{ id }}"
                        name="{{ name }}"
-                       class="data"
+                       class="data {{ switch.class }}"
                        value="{{ switch.value ?? '' }}"
                        {{ disabled ? 'disabled' }}
                        {{ required ? 'required' }}

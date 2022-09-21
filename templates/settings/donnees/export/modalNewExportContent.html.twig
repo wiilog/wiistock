@@ -1,0 +1,57 @@
+{% import 'form.html.twig' as form %}
+<div>
+    <div class="wii-switch-no-style export-type-" data-title="Export type" onchange="onExportTypeChange($(this))">
+        <div class="my-2">
+            <input type="radio" class="data" name="type" value="exportUnique" checked>
+            <label class="wii-field-name" for="exportUnique">Export CSV unique</label>
+        </div>
+        <div class="my-2">
+            <input type="radio" class="data" name="type" value="exportPlanified">
+            <label class="wii-field-name" for="exportPlanified">Export CSV planifié</label>
+        </div>
+    </div>
+    <div>
+        <div class="wii-section-title my-3">Type de données à exporter</div>
+
+        {{ form.switch('entityToExport', null, false, [
+            {label: 'Références', value: 'references', class: 'export-references' },
+            {label: 'Articles', value: 'articles', class: 'export-articles' },
+            {label: 'Tournées', value: 'transportRounds', class: 'export-transport-rounds' },
+            {label: 'Arrivages', value: 'arrivals', class: 'export-arrivals'}
+        ], {expanded: true}) }}
+
+        <div class="unique-export-container my-3">
+            <label class="ref-articles-sentence wii-small-text d-none">Les articles exportés sont seulement ceux avec le groupe de visibilité rattaché à l'utilisateur.</label>
+            <div class="date-limit d-none">
+                <label class="wii-field-name">Bornes de dates</label>
+                <div class="col-12 col-md-6 p-0">
+                    <div class="h-100">
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text w-50px d-flex justify-content-center">Du</span>
+                            </div>
+                            <input type="text"
+                                   class="form-control cursor-default filter-date-min data"
+                                   name="dateMin"
+                                   id="dateMin"
+                                   placeholder="jj/mm/aaaa"
+                                   autocomplete="off"/>
+                            <div class="input-group-prepend input-group-append">
+                                <span class="input-group-text w-50px d-flex justify-content-center">Au</span>
+                            </div>
+                            <input type="text"
+                                   class="form-control cursor-default filter-date-max data"
+                                   name="dateMax"
+                                   id="dateMax"
+                                   placeholder="jj/mm/aaaa"
+                                   autocomplete="off"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="scheduled-export-container my-3 d-none">
+            <label>Export planifié</label>
+        </div>
+    </div>
+</div>

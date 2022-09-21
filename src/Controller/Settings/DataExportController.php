@@ -193,4 +193,11 @@ class DataExportController extends AbstractController {
             }
         }, $nameFile, $csvHeader);
     }
+
+
+    #[Route("/modale-new-export", name: "new_export_modal", options: ["expose" => true], methods: "GET")]
+    public function getFirstModalContent(): JsonResponse
+    {
+        return new JsonResponse($this->renderView('settings/donnees/export/modalNewExportContent.html.twig'));
+    }
 }
