@@ -1701,6 +1701,8 @@ class SettingsController extends AbstractController {
             $label = ucfirst($field->getFieldLabel());
             $displayedCreate = $field->isDisplayedCreate() ? "checked" : "";
             $requiredCreate = $field->isRequiredCreate() ? "checked" : "";
+            $keptInMemoryDisabled = in_array($field->getFieldCode(), FieldsParam::MEMORY_UNKEEPABLE_FIELDS) ? "disabled" : "";
+            $keptInMemory = !$keptInMemoryDisabled && $field->isKeptInMemory() ? "checked" : "";
             $displayedEdit = $field->isDisplayedEdit() ? "checked" : "";
             $requiredEdit = $field->isRequiredEdit() ? "checked" : "";
             $filtersDisabled = !in_array($field->getFieldCode(), FieldsParam::FILTERED_FIELDS) ? "disabled" : "";
@@ -1713,7 +1715,7 @@ class SettingsController extends AbstractController {
                     $labelAttributes = "class='font-weight-bold btn-link pointer' data-target='#modal-fixed-field-$modal' data-toggle='modal'";
                 }
 
-                $rows[] = [
+                $row = [
                     "label" => "<span $labelAttributes>$label</span> <input type='hidden' name='id' class='$class' value='{$field->getId()}'/>",
                     "displayedCreate" => "<input type='checkbox' name='displayedCreate' class='$class' $displayedCreate/>",
                     "displayedEdit" => "<input type='checkbox' name='displayedEdit' class='$class' $displayedEdit/>",
@@ -1721,8 +1723,14 @@ class SettingsController extends AbstractController {
                     "requiredEdit" => "<input type='checkbox' name='requiredEdit' class='$class' $requiredEdit/>",
                     "displayedFilters" => "<input type='checkbox' name='displayedFilters' class='$class' $displayedFilters $filtersDisabled/>",
                 ];
+
+                if($entity === FieldsParam::ENTITY_CODE_ARRIVAGE) {
+                    $row["keptInMemory"] = "<input type='checkbox' name='keptInMemory' class='$class' $keptInMemory $keptInMemoryDisabled/>";
+                }
+
+                $rows[] = $row;
             } else {
-                $rows[] = [
+                $row = [
                     "label" => "<span class='font-weight-bold'>$label</span>",
                     "displayedCreate" => $field->isDisplayedCreate() ? "Oui" : "Non",
                     "displayedEdit" => $field->isDisplayedEdit() ? "Oui" : "Non",
@@ -1730,6 +1738,12 @@ class SettingsController extends AbstractController {
                     "requiredEdit" => $field->isRequiredEdit() ? "Oui" : "Non",
                     "displayedFilters" => (in_array($field->getFieldCode(), FieldsParam::FILTERED_FIELDS) && $field->isDisplayedFilters()) ? "Oui" : "Non",
                 ];
+
+                if($entity === "arrival") {
+                    $row["keptInMemory"] = $field->isKeptInMemory() ? "Oui" : "Non";
+                }
+
+                $rows[] = $row;
             }
         }
 
