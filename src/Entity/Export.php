@@ -12,7 +12,7 @@ use Doctrine\ORM\Mapping as ORM;
 class Export {
 
     const STATUS_FINISHED = "terminé";
-    const STATUS_PLANIFIED = "planifiée";
+    const STATUS_SCHEDULED = "planifié";
     const STATUS_ERROR = "erreur";
 
     #[ORM\Id]
@@ -44,12 +44,6 @@ class Export {
     #[ORM\Column(type: "json", nullable: true)]
     private array $columnToExport = [];
 
-    #[ORM\Column(type: "datetime", nullable: true)]
-    private ?DateTimeInterface $beginAt = null;
-
-    #[ORM\Column(type: "string", length: 255)]
-    private ?string $frequency = null;
-
     #[ORM\Column(type: "string", length: 255)]
     private ?string $exportDestination = null;
 
@@ -73,6 +67,9 @@ class Export {
 
     #[ORM\Column(type: "datetime", nullable: true)]
     private ?DateTimeInterface $nextExecution = null;
+
+    #[ORM\OneToOne(mappedBy: 'export', targetEntity: ExportScheduleRule::class)]
+    private ?ExportScheduleRule $exportScheduleRule = null;
 
     public function __construct() {
         $this->recipientUsers = new ArrayCollection();
@@ -163,30 +160,6 @@ class Export {
     public function setColumnToExport(?array $columnToExport): self
     {
         $this->columnToExport = $columnToExport;
-
-        return $this;
-    }
-
-    public function getBeginAt(): ?DateTimeInterface
-    {
-        return $this->beginAt;
-    }
-
-    public function setBeginAt(?DateTimeInterface $beginAt): self
-    {
-        $this->beginAt = $beginAt;
-
-        return $this;
-    }
-
-    public function getFrequency(): ?string
-    {
-        return $this->frequency;
-    }
-
-    public function setFrequency(string $frequency): self
-    {
-        $this->frequency = $frequency;
 
         return $this;
     }
@@ -295,6 +268,18 @@ class Export {
     public function setNextExecution(?DateTimeInterface $nextExecution): self
     {
         $this->nextExecution = $nextExecution;
+
+        return $this;
+    }
+
+    public function getExportScheduleRule(): ?ExportScheduleRule
+    {
+        return $this->exportScheduleRule;
+    }
+
+    public function setExportScheduleRule(?ExportScheduleRule $exportScheduleRule): self
+    {
+        $this->exportScheduleRule = $exportScheduleRule;
 
         return $this;
     }
