@@ -68,6 +68,9 @@ class DashboardSettingsService {
     #[Required]
     public TranslationService $translationService;
 
+    #[Required]
+    public LanguageService $languageService;
+
     public function serialize(EntityManagerInterface $entityManager, ?Utilisateur $user, int $mode): string {
         $pageRepository = $entityManager->getRepository(Dashboard\Page::class);
 
@@ -1066,7 +1069,9 @@ class DashboardSettingsService {
     private function validateComponentConfig(Dashboard\ComponentType $componentType,
                                              array $config) {
         if ($componentType->getMeterKey() === Dashboard\ComponentType::ENTRIES_TO_HANDLE) {
-            $slug = $this->userService->getUser()->getLanguage()?->getSlug() ?? 'french';
+            $defaultLanguage = $this->languageService->getDefaultLanguage();
+            $slug = $this->userService->getUser()?->getLanguage()?->getSlug()
+                ?: $this->languageService->getReverseDefaultLanguage($defaultLanguage);
             $errorMessage = self::INVALID_SEGMENTS_ENTRY . '-' . $config['title_' . $slug];
             if (empty($config['segments']) || count($config['segments']) < 1) {
                 throw new InvalidArgumentException($errorMessage);
