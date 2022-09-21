@@ -1251,19 +1251,19 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "en" => "The L.U. {1} has been edited",
                         ],
                         [
-                            "fr" => "Ce colis est utilisé dans l'arrivage {1}",
+                            "fr" => "Cette unité logistique est utilisé dans l'arrivage {1}",
                             "en" => "This logistic unit is in use in the arrival {1}",
                         ],
                         [
-                            "fr" => "Ce colis est référencé dans un ou plusieurs mouvements de traçabilité",
+                            "fr" => "Cette unité logistique est référencé dans un ou plusieurs mouvements de traçabilité",
                             "en" => "This logistic unit appears use in one or more movements",
                         ],
                         [
-                            "fr" => "Ce colis est référencé dans un ou plusieurs acheminements",
+                            "fr" => "Cette unité logistique est référencé dans un ou plusieurs acheminements",
                             "en" => "This logistic unit appears in one or more transfers",
                         ],
                         [
-                            "fr" => "Ce colis est référencé dans un ou plusieurs litiges",
+                            "fr" => "Cette unité logistique est référencé dans un ou plusieurs litiges",
                             "en" => "This logistic unit appears in one or more disputes",
                         ],
                     ],
