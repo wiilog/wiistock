@@ -2,21 +2,24 @@
 
 namespace App\Entity;
 
-use App\Repository\KeptArrivalValuesRepository;
+use App\Repository\KeptFieldValueRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: KeptArrivalValuesRepository::class)]
-class KeptArrivalValues
+#[ORM\Entity(repositoryClass: KeptFieldValueRepository::class)]
+class KeptFieldValue
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(type: "integer")]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $name = null;
+    #[ORM\Column(type: "string", length: 255)]
+    private ?string $entity = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(type: "string", length: 255)]
+    private ?string $field = null;
+
+    #[ORM\Column(type: "string", length: 255)]
     private ?string $value = null;
 
     #[ORM\ManyToOne(inversedBy: 'keptArrivalValues')]
@@ -28,14 +31,26 @@ class KeptArrivalValues
         return $this->id;
     }
 
-    public function getName(): ?string
+    public function getEntity(): ?string
     {
-        return $this->name;
+        return $this->entity;
     }
 
-    public function setName(string $name): self
+    public function setEntity(string $entity): self
     {
-        $this->name = $name;
+        $this->entity = $entity;
+
+        return $this;
+    }
+
+    public function getField(): ?string
+    {
+        return $this->field;
+    }
+
+    public function setField(string $field): self
+    {
+        $this->field = $field;
 
         return $this;
     }
@@ -60,10 +75,11 @@ class KeptArrivalValues
     public function setUser(?Utilisateur $user): self
     {
         if($this->user && $this->user !== $user) {
-        $this->user->removeEntity($this);
-    }
+            $this->user->removeKeptFieldValue($this);
+        }
+
         $this->user = $user;
-        $user?->addEntity($this);
+        $user?->addKeptFieldValue($this);
 
         return $this;
     }
