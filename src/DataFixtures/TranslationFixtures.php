@@ -2571,11 +2571,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Page détails",
                         ],
                         [
-                            "fr" => "Modifier le statut",
-                            "en" => "Edit status",
-                            "tooltip" => "Modales modification de statut",
-                        ],
-                        [
                             "fr" => "Type à choisir",
                             "en" => "Choose a type",
                             "tooltip" => "Modale Nouvelle demande de service",
