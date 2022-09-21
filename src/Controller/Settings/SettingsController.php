@@ -420,6 +420,12 @@ class SettingsController extends AbstractController {
             "label" => "Données",
             "icon" => "menu-donnees",
             "menus" => [
+                self::MENU_EXPORTS_ENCODING => [
+                    "label" => "Encodage des exports CSV",
+                    "right" => Action::SETTINGS_DISPLAY_EXPORT,
+                    "save" => true,
+                    "discard" => true,
+                ],
                 self::MENU_CSV_EXPORTS => [
                     "label" => "Exports CSV",
                     "right" => Action::SETTINGS_DISPLAY_EXPORT,
@@ -510,6 +516,7 @@ class SettingsController extends AbstractController {
     public const MENU_ROLES = "roles";
     public const MENU_USERS = "utilisateurs";
 
+    public const MENU_EXPORTS_ENCODING = "exports_encodage";
     public const MENU_CSV_EXPORTS = "exports_csv";
     public const MENU_IMPORTS = "imports";
     public const MENU_INVENTORIES_IMPORTS = "imports_inventaires";
