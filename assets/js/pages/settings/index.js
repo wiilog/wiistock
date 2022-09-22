@@ -566,6 +566,7 @@ function initializeArrivalFixedFields($container, canEdit) {
             {data: `label`, title: `Champ fixe`},
             {data: `displayedCreate`, title: `Afficher`},
             {data: `requiredCreate`, title: `Obligatoire`},
+            {data: `keptInMemory`, title: `Garder en mémoire`},
             {data: `displayedEdit`, title: `Afficher`},
             {data: `requiredEdit`, title: `Obligatoire`},
             {data: `displayedFilters`, title: `Afficher`},
