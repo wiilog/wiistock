@@ -23,7 +23,7 @@ $(document).ready(() => {
             type: `POST`
         },
         columns: [
-            {data: `actions`, title: ``, orderable: false, className: `noVis`},
+            {data: `actions`, title: ``, orderable: false, className: `noVis hideOrder`},
             {data: `status`, title: `Statut`},
             {data: `creationDate`, title: `Date de création`},
             {data: `startDate`, title: `Date début`},
