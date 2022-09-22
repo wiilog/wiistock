@@ -143,7 +143,7 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
             CategorieStatut::EXPORT => [
               Export::STATUS_ERROR,
               Export::STATUS_FINISHED,
-              Export::STATUS_PLANIFIED,
+              Export::STATUS_SCHEDULED,
             ],
             CategorieStatut::TRANSPORT_REQUEST_DELIVERY => [
                 TransportRequest::STATUS_AWAITING_VALIDATION,

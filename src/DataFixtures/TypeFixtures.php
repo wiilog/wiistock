@@ -47,7 +47,7 @@ class TypeFixtures extends Fixture implements FixtureGroupInterface
                 Type::LABEL_COLLECT
             ],
             CategoryType::EXPORT => [
-                Type::LABEL_PLANIFIED_EXPORT,
+                Type::LABEL_SCHEDULED_EXPORT,
                 Type::LABEL_UNIQUE_EXPORT
             ]
         ];
