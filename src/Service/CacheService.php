@@ -13,6 +13,7 @@ class CacheService {
 
     public const PERMISSIONS = "permissions";
     public const IMPORTS = "imports";
+    public const EXPORTS = "exports";
 
     /** @Required  */
     public KernelInterface $kernel;
