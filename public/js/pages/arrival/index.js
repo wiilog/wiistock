@@ -222,7 +222,6 @@ function createArrival() {
 
         const $submit = $modal.find(`#submitNewArrivage`);
         $submit.on(`click`, function() {
-            console.log('huh??');
             SubmitAction($modal, $submit, Routing.generate('arrivage_new', true), {
                 keepForm: true,
                 keepModal: true,
