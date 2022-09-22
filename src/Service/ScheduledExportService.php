@@ -16,7 +16,7 @@ use WiiCommon\Helper\Stream;
 class ScheduledExportService
 {
     #[Required]
-    private CacheService $cacheService;
+    public CacheService $cacheService;
 
     public function saveScheduledExportsCache(EntityManagerInterface $entityManager): void {
         $this->cacheService->set(CacheService::IMPORTS, $this->buildScheduledExportsCache($entityManager));

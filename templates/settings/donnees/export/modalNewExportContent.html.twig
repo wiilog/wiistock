@@ -2,15 +2,15 @@
 
 <div>
     {{ form.radio('exportTypeContainer', null, false, [
-        {label: 'Export CSV unique', name: 'exportUnique', checked: true},
-        {label: 'Export CSV planifié', name: 'exportScheduled'}
+        {label: 'Export CSV unique', value: 'exportUnique', checked: true},
+        {label: 'Export CSV planifié', value: 'exportScheduled'}
     ], {
         containerClass: 'export-type-container'
     }) }}
     <div>
         <div class="wii-section-title my-3">Type de données à exporter</div>
 
-        {{ form.switch('entityToExport', null, false, [
+        {{ form.switch('entityToExport', null, true, [
             {label: 'Références', value: 'references', class: 'export-references' },
             {label: 'Articles', value: 'articles', class: 'export-articles' },
             {label: 'Tournées', value: 'transportRounds', class: 'export-transport-rounds' },
@@ -30,7 +30,6 @@
                             <input type="text"
                                    class="form-control cursor-default filter-date-min data"
                                    name="dateMin"
-                                   id="dateMin"
                                    placeholder="jj/mm/aaaa"
                                    autocomplete="off"/>
                             <div class="input-group-prepend input-group-append">
@@ -39,7 +38,6 @@
                             <input type="text"
                                    class="form-control cursor-default filter-date-max data"
                                    name="dateMax"
-                                   id="dateMax"
                                    placeholder="jj/mm/aaaa"
                                    autocomplete="off"/>
                         </div>
