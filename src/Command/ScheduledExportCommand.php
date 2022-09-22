@@ -3,12 +3,7 @@
 
 namespace App\Command;
 
-use App\Entity\CategorieStatut;
 use App\Entity\Export;
-use App\Entity\Statut;
-use App\Service\CacheService;
-use App\Service\CSVExportService;
-use App\Service\ImportService;
 use App\Service\ScheduledExportService;
 use DateTime;
 use Doctrine\ORM\EntityManager;
@@ -32,7 +27,7 @@ class ScheduledExportCommand extends Command
     protected function configure()
     {
         $this->setName(self::DEFAULT_NAME)
-            ->setDescription("This command executes scheduled imports.");
+            ->setDescription("This command executes scheduled export.");
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -42,7 +37,7 @@ class ScheduledExportCommand extends Command
         $exportsCache = $this->exportService->getScheduledCache($this->getEntityManager());
         $currentKeyExport = $this->exportService->getScheduleExportKeyCache(new DateTime());
 
-        if (isset($importsCache[$currentKeyExport])) {
+        if (isset($exportsCache[$currentKeyExport])) {
             $exports = $exportRepository->findBy(["id" => $exportsCache[$currentKeyExport]]);
 
             foreach ($exports as $export) {

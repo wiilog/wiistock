@@ -217,7 +217,7 @@ class ScheduledExportService
         $finished = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::EXPORT, Export::STATUS_FINISHED);
         $now = new DateTime();
 
-        $exportToRun = $this->expandScheduledExport($export);
+        $exportToRun = $this->cloneScheduledExport($export);
         // RUN EXPORT
         $nextExecutionDate = $this->calculateNextExecutionDate($exportToRun);
 
@@ -235,7 +235,7 @@ class ScheduledExportService
 
     }
 
-    private function expandScheduledExport(Export $export) {
+    private function cloneScheduledExport(Export $export) {
         $rule = $export->getExportScheduleRule();
 
         return (clone $export)->setExportScheduleRule((clone $rule));
