@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Export;
 use App\Helper\QueryCounter;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -71,16 +72,24 @@ class ExportRepository extends EntityRepository
                             break;
                         case "status":
                             $qb
-                                ->leftJoin("i.status", "status_order")
+                                ->leftJoin("export.status", "status_order")
                                 ->orderBy("status_order.nom", $order);
                             break;
                         case "user":
                             $qb
-                                ->leftJoin("i.user", "user_order")
-                                ->orderBy("user_order.username", $order);
+                                ->leftJoin("export.creator", "creator_order")
+                                ->orderBy("creator_order.username", $order);
+                            break;
+                        case "type":
+                            $qb
+                                ->leftJoin("export.type", "type_order")
+                                ->orderBy("type_order.label", $order);
                             break;
                         default:
-                            $qb->orderBy('i.' . $column, $order);
+                            if (property_exists(Export::class, $column)) {
+                                $qb->orderBy('export.' . $column, $order);
+                            }
+                            break;
                     }
                 }
             }
