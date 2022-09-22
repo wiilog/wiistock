@@ -143,7 +143,7 @@
             {% set id = random(100000, 10000000) %}
 
             <div class="wii-radio mt-1">
-                <input type="radio" id="radio-{{ id }} {{ item.id ?? '' }}" class="data mr-2 {{ item.class ?? '' }}" value="{{ item.value ?? '' }}"
+                <input type="radio" id="radio-{{ id }}" class="data mr-2 {{ item.class ?? '' }}" value="{{ item.value ?? '' }}"
                     {{ required ? 'required' }}
                     {{ _self.common_attributes(name, options) }}
                     {{ _self.multiple_key(options) }}

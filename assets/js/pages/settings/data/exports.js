@@ -43,10 +43,8 @@ $(document).ready(() => {
 
     Form.create($modalNewExport).onSubmit(data => {
         wrapLoadingOnActionButton($submitNewExport, () => {
-            console.log('xxx');
             data = data.asObject();
             if(data.exportTypeContainer === EXPORT_UNIQUE) {
-console.log('huh');
                 if (data.entityToExport === ENTITY_REFERENCE) {
                     console.log('hwwwuh');
                     window.open(Routing.generate(`settings_export_references`));
@@ -88,14 +86,6 @@ const ENTITY_REFERENCE = "references";
 const ENTITY_ARTICLE = "articles";
 const ENTITY_TRANSPORT_ROUNDS = "transportRounds";
 const ENTITY_ARRIVALS = "arrivals";
-
-function getExportType() {
-    return $(`input[name="exportTypeContainer"]:checked`).val();
-}
-
-function getExportedEntity() {
-    return $(`input[name="entityToExport"]:checked`).val();
-}
 
 function displayNewExportModal(){
     $modalNewExport.modal(`show`);

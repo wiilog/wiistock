@@ -11,14 +11,14 @@
         <div class="wii-section-title my-3">Type de données à exporter</div>
 
         {{ form.switch('entityToExport', null, true, [
-            {label: 'Références', value: 'references', class: 'export-references' },
+            {label: 'Références', value: 'references', class: 'export-references', checked: true},
             {label: 'Articles', value: 'articles', class: 'export-articles' },
             {label: 'Tournées', value: 'transportRounds', class: 'export-transport-rounds' },
             {label: 'Arrivages', value: 'arrivals', class: 'export-arrivals'}
         ], {expanded: true}) }}
 
         <div class="unique-export-container my-3">
-            <label class="ref-articles-sentence wii-small-text d-none">Les articles exportés sont seulement ceux avec le groupe de visibilité rattaché à l'utilisateur.</label>
+            <label class="ref-articles-sentence wii-small-text">Les articles exportés sont seulement ceux avec le groupe de visibilité rattaché à l'utilisateur.</label>
             <div class="date-limit d-none">
                 <label class="wii-field-name">Bornes de dates</label>
                 <div class="col-12 col-md-6 p-0">
@@ -118,22 +118,17 @@
                     onChange: 'destinationExportChange()'
                 }) }}
                 <div class="export-email-destination my-3">
-                    <div>
-                        <label class="wii-field-name">Utilisateur(s) Follow GT</label>
-                        <select class="form-control data ajax-autocomplete-user filter-select2 recipient-users"
-                                name="recipient-users"
-                                data-s2="user"
-                                multiple="multiple">
-                        </select>
-                    </div>
-                    <div>
-                        <label class="wii-field-name">Email(s) libre(s)</label>
-                        <select class="form-control data select2-free recipient-emails"
-                                name="recipient-emails"
-                                multiple="multiple">
-                        </select>
-                    </div>
+                    {{ form.select('recipient-users', 'Utilisateur(s) Follow GT', false, {
+                        type: 'user',
+                        multiple: true,
+                    }) }}
 
+                    {{ form.select('recipient-emails', 'Email(s) libre(s)', false, {
+                        type: null,
+                        multiple: true,
+                        editable: true,
+                        labelClass: 'mt-2 w-100'
+                    }) }}
                 </div>
                 <div class="export-sftp-destination d-none">
                     <label class="wii-section-title my-3">Paramétrer le serveur</label>
