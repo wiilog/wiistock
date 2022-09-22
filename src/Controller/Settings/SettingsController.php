@@ -429,7 +429,7 @@ class SettingsController extends AbstractController {
                 self::MENU_CSV_EXPORTS => [
                     "label" => "Exports CSV",
                     "right" => Action::SETTINGS_DISPLAY_EXPORT,
-                    "save" => true,
+                    "save" => false,
                     "wrapped" => false,
                 ],
                 self::MENU_IMPORTS => [

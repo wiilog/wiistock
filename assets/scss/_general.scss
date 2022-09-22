@@ -844,14 +844,14 @@ label.required:after {
 }
 
 .wii-icon-trash {
-    display: block;
+    display: inline-block;
     background-color: $primary;
     width: 18px;
     height: 18px;
 }
 
 .wii-icon-trash-black {
-    display: block;
+    display: inline-block;
     background-color: $black;
     width: 18px;
     height: 18px;

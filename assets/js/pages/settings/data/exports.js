@@ -6,6 +6,8 @@ global.destinationExportChange = destinationExportChange;
 let $modalNewExport = $("#modalNewExport");
 let $submitNewExport = $("#submitNewExport");
 
+let tableExport = null;
+
 $(document).ready(() => {
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate(`filter_get_by_page`);
@@ -15,15 +17,15 @@ $(document).ready(() => {
         displayFiltersSup(data);
     }, `json`);
 
-    const tableExport = initDataTable(`tableExport`, {
+    tableExport = initDataTable(`tableExport`, {
         processing: true,
         serverSide: true,
         ajax: {
-            url: Routing.generate(`export_api`),
+            url: Routing.generate(`settings_export_api`),
             type: `POST`
         },
         columns: [
-            {data: `actions`, title: ``, orderable: false, className: `noVis`},
+            {data: `actions`, title: ``, orderable: false, className: `noVis hideOrder`},
             {data: `status`, title: `Statut`},
             {data: `creationDate`, title: `Date de création`},
             {data: `startDate`, title: `Date début`},
@@ -32,20 +34,76 @@ $(document).ready(() => {
             {data: `frequency`, title: `Fréquence`},
             {data: `user`, title: `Utilisateur`},
             {data: `type`, title: `Type`},
-            {data: `dataType`, title: `Type de données exportées`},
+            {data: `entity`, title: `Type de données exportées`},
         ],
         rowConfig: {
             needsRowClickAction: true
         },
     });
+
+    Form.create($modalNewExport).onSubmit(data => {
+        wrapLoadingOnActionButton($submitNewExport, () => {
+            console.log('xxx');
+            data = data.asObject();
+            if(data.exportTypeContainer === EXPORT_UNIQUE) {
+console.log('huh');
+                if (data.entityToExport === ENTITY_REFERENCE) {
+                    console.log('hwwwuh');
+                    window.open(Routing.generate(`settings_export_references`));
+                } else if (data.entityToExport === ENTITY_ARTICLE) {
+                    window.open(Routing.generate(`settings_export_articles`));
+                } else if (data.entityToExport === ENTITY_TRANSPORT_ROUNDS) {
+                    const dateMin = $modalNewExport.find(`[name=dateMin]`).val();
+                    const dateMax = $modalNewExport.find(`[name=dateMax]`).val();
+
+                    if(!dateMin || !dateMax || dateMin === `` || dateMax === ``) {
+                        Flash.add(`danger`, `Les bornes de dates sont requise pour les exports de tournées`);
+                        return Promise.resolve();
+                    }
+
+                    window.open(Routing.generate(`settings_export_round`, {
+                        dateMin,
+                        dateMax,
+                    }));
+                } else if (data.entityToExport === ENTITY_ARRIVALS) {
+
+                }
+
+                tableExport.ajax.reload();
+                $modalNewExport.modal(`hide`);
+            } else {
+                const params = JSON.stringify(data.asObject());
+                //TODO: enregistrer
+            }
+
+            return Promise.resolve();
+        });
+    });
 });
 
+const EXPORT_UNIQUE = `exportUnique`;
+const EXPORT_SCHEDULED = `exportScheduled`;
+
+const ENTITY_REFERENCE = "references";
+const ENTITY_ARTICLE = "articles";
+const ENTITY_TRANSPORT_ROUNDS = "transportRounds";
+const ENTITY_ARRIVALS = "arrivals";
+
+function getExportType() {
+    return $(`input[name="exportTypeContainer"]:checked`).val();
+}
+
+function getExportedEntity() {
+    return $(`input[name="entityToExport"]:checked`).val();
+}
+
 function displayNewExportModal(){
-    clearModal($modalNewExport);
-    InitModal($modalNewExport, $submitNewExport, ''); //TODO faire la route de validation de la modale
+    $modalNewExport.modal(`show`);
 
     $.get(Routing.generate('new_export_modal', true), function(resp){
         $modalNewExport.find('.modal-body').html(resp);
+
+        initDateTimePicker('[name=dateMin], [name=dateMax]');
 
         $('.export-type-container').on('change', function(){
             $('.unique-export-container').toggleClass('d-none');
@@ -125,6 +183,10 @@ function displayNewExportModal(){
     $('.select-all-options').on('click', onSelectAll);
 
     $modalNewExport.modal('show');
+
+   // $submitNewExport.on(`click`, function() {
+
+    //     });
 }
 
 function onSelectAll() {
