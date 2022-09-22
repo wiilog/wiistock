@@ -128,10 +128,11 @@ class MailerService
                         if (!is_string($template)) {
                             $context = $template['context'];
                             $context['language'] = $slug;
-                            if (isset($context['title']) && is_array($context['title'])) {
+                            if (isset($context['title'])
+                                && (is_array($context['title']) || is_callable($context['title']))) {
                                 $context['title'] = is_callable($context['title'])
                                     ? $this->translationService->translateIn($slug, ...($context['title']($slug)))
-                                    : $context['title'];
+                                    : $this->translationService->translateIn($slug, ...$context['title']);
                             }
                             $content = $this->templating->render($template['name'], $context);
                         }

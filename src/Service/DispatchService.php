@@ -428,17 +428,17 @@ class DispatchService {
 
             $title = fn(string $slug) => (
                 $status->isTreated()
-                    ? $this->translationService->translate('Demande', 'Acheminements', 'Emails', $translatedTitle, [
+                    ? ['Demande', 'Acheminements', 'Emails', $translatedTitle, [
                         1 => $dispatch->getNumber(),
                         2 => $this->formatService->datetime($dispatch->getTreatmentDate(), "", false, $this->security->getUser())
-                    ], false)
+                    ], false]
                     : (!$isUpdate
-                        ? $this->translationService->translate("Demande", "Acheminements", "Emails", "Une demande d'acheminement de type {1} vous concerne :", [
+                        ? ["Demande", "Acheminements", "Emails", "Une demande d'acheminement de type {1} vous concerne :", [
                             1 => $dispatch->getType()?->getLabelIn($slug, $defaultLanguage) ?: ''
-                        ], false)
-                        : $this->translationService->translate("Demande", "Acheminements", "Emails", "Changement de statut d'une demande d'acheminement de type {1} vous concernant :", [
+                        ], false]
+                        : ["Demande", "Acheminements", "Emails", "Changement de statut d'une demande d'acheminement de type {1} vous concernant :", [
                             1 => $dispatch->getType()?->getLabelIn($slug, $defaultLanguage) ?: ''
-                        ], false))
+                        ], false])
             );
 
             $subject = ($status->isTreated() || $status->isPartial())
@@ -459,15 +459,18 @@ class DispatchService {
             if (!empty($receiverEmailUses)) {
                 $this->mailerService->sendMail(
                     $subject,
-                    $this->templating->render('mails/contents/mailDispatch.html.twig', [
-                        'dispatch' => $dispatch,
-                        'title' => $title,
-                        'urlSuffix' => $this->router->generate("dispatch_show", ["id" => $dispatch->getId()]),
-                        'hideNumber' => $isTreatedStatus,
-                        'hideTreatmentDate' => $isTreatedStatus,
-                        'hideTreatedBy' => $isTreatedByOperator,
-                        'totalCost' => $freeFieldArray
-                    ]),
+                    [
+                        "name" => 'mails/contents/mailDispatch.html.twig',
+                        "context" => [
+                            'dispatch' => $dispatch,
+                            'title' => $title,
+                            'urlSuffix' => $this->router->generate("dispatch_show", ["id" => $dispatch->getId()]),
+                            'hideNumber' => $isTreatedStatus,
+                            'hideTreatmentDate' => $isTreatedStatus,
+                            'hideTreatedBy' => $isTreatedByOperator,
+                            'totalCost' => $freeFieldArray
+                        ]
+                    ],
                     $receiverEmailUses
                 );
             }
