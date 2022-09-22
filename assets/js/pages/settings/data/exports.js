@@ -67,28 +67,74 @@ function displayNewExportModal(){
         $('.export-references').on('click', function(){
             $('.ref-articles-sentence').removeClass('d-none');
             $('.date-limit').addClass('d-none');
+            $('.column-to-export').addClass('d-none');
+            $('.period-interval').addClass('d-none');
         });
 
         $('.export-articles').on('click', function(){
             $('.ref-articles-sentence').removeClass('d-none');
             $('.date-limit').addClass('d-none');
+            $('.column-to-export').addClass('d-none');
+            $('.period-interval').addClass('d-none');
         });
 
         $('.export-transport-rounds').on('click', function(){
             $('.ref-articles-sentence').addClass('d-none');
             $('.date-limit').removeClass('d-none');
+            $('.column-to-export').addClass('d-none');
+            $('.period-interval').removeClass('d-none');
         });
 
         $('.export-arrivals').on('click', function(){
             $('.ref-articles-sentence').addClass('d-none');
             $('.date-limit').removeClass('d-none');
+            $('.column-to-export').removeClass('d-none');
+            $('.period-interval').removeClass('d-none');
         });
 
         Select2Old.user($('.select2-user'));
         Select2Old.initFree($('.select2-free'));
+        $('select[name=columnToExport]').select2();
+        $('select[name=monthly-frequency-months]').select2();
+        $('select[name=monthly-frequency-days-month]').select2();
+        $('select[name=weekly-frequency-days-week]').select2();
+
+        $('.period-select').on('change', function (){
+            let $periodInterval = $('.period-interval-select');
+            $periodInterval.find('option').remove().end();
+            switch ($(this).val()) {
+                case 'today':
+                    $periodInterval.append('<option value="present-day" selected>en cours (jour J)</option><option value="past-day">dernier (jour J-1)</option>');
+                    break;
+                case 'week':
+                    $periodInterval.append('<option value="present-week" selected>en cours (semaine S)</option><option value="past-week">dernière (semaine S-1)</option>');
+                    break;
+                case 'month':
+                    $periodInterval.append('<option value="present-month" selected>en cours (mois M)</option><option value="past-month">dernier (mois M-1)</option>');
+                    break;
+                case 'year':
+                    $periodInterval.append('<option value="present-year" selected>en cours (année A)</option><option value="past-year">dernière (année A-1)</option>');
+                    break;
+                default:
+                    break;
+            }
+
+        });
     });
 
+    $('.select-all-options').on('click', onSelectAll);
+
     $modalNewExport.modal('show');
+}
+
+function onSelectAll() {
+    const $select = $(this).closest(`.input-group`).find(`select`);
+
+    $select.find(`option:not([disabled])`).each(function () {
+        $(this).prop(`selected`, true);
+    });
+
+    $select.trigger(`change`);
 }
 
 function toggleFrequencyInput($input) {
@@ -138,7 +184,7 @@ function selectHourlyFrequencyIntervalType($select) {
     }
 }
 
-function destinationExportChange(element){
+function destinationExportChange(){
     $('.export-email-destination').toggleClass('d-none');
     $('.export-sftp-destination').toggleClass('d-none');
 }

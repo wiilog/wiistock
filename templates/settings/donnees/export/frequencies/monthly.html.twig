@@ -1,3 +1,5 @@
+{% import 'form.html.twig' as form %}
+
 <div class="frequency every-month-frequency">
     <div class="col-12 p-3 form-inline form-group">
         <label class="wii-field-name">Démarrer le*</label>
@@ -12,35 +14,29 @@
 
     <div class="form-inline">
         <div class="col-12 p-3">
-            Mois* :
-            <div class="input-group flex-nowrap no-gutters">
-                <div class="flex-fill">
-                    <select name="monthly-frequency-months"
-                            class="form-control select2 w-100 frequency-data"
-                            multiple
-                            data-label="Mois">
-                        {% for month in 1..12 %}
-                            {% set date = month ~ "/1/2022" %}
-                            <option value="{{ month }}">
-                                {{ date | format_date('none', 'MMMM', null, 'gregorian', 'fr') | capitalize }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
+            <div class="input-group flex-nowrap no-gutters mb-3">
+                {% set date = [] %}
+                {% for month in 1..12 %}
+                    {% set label = month ~ "/1/2022" %}
+                    {% set date = date|merge([{label: label | format_date('none', 'MMMM', null, 'gregorian', 'fr') | capitalize, value: month}]) %}
+                {% endfor %}
+                {{ form.select('monthly-frequency-months', 'Mois', false, {
+                    items: date,
+                    multiple: true
+                }) }}
                 <div class="input-group-append col-4">
                     <button class="btn btn-primary select-all-options w-100" type="button">Tous les mois</button>
                 </div>
             </div>
-            Jours* :
-            <select name="monthly-frequency-days-month"
-                    class="form-control select2 w-100 mt-2 frequency-data"
-                    multiple
-                    data-label="Jours du mois">
-                {% for i in 1..31 %}
-                    <option value="{{ i }}">{{ i }}</option>
-                {% endfor %}
-                <option value="">Dernier</option>
-            </select>
+            {% set days = [] %}
+            {% for i in 1..31 %}
+                {% set days = days|merge([{label: i , value: i}]) %}
+            {% endfor %}
+            {% set days = days|merge([{label: 'Dernier' , value: 'Dernier'}]) %}
+            {{ form.select('monthly-frequency-days-month', 'Jours', false, {
+                items: days,
+                multiple: true
+            }) }}
             <div class="pt-3">
                 Heure d'exécution :
                 <input type="time"

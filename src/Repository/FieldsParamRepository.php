@@ -33,6 +33,14 @@ class FieldsParamRepository extends EntityRepository
             ->toArray();
     }
 
+    function getByEntityForExport(string $entity): array {
+        return $this->createQueryBuilder("fieldsParam")
+            ->andWhere("fieldsParam.entityCode = :entity")
+            ->setParameter("entity", $entity)
+            ->getQuery()
+            ->getResult();
+    }
+
     /**
      * @param string $entity
      * @return array

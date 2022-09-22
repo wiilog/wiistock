@@ -6,6 +6,7 @@ use App\Entity\Article;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\Export;
+use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
 use App\Entity\ReferenceArticle;
@@ -26,6 +27,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Routing\Annotation\Route;
+use WiiCommon\Helper\Stream;
 
 #[Route("/parametrage")]
 class DataExportController extends AbstractController {
@@ -196,8 +198,16 @@ class DataExportController extends AbstractController {
 
 
     #[Route("/modale-new-export", name: "new_export_modal", options: ["expose" => true], methods: "GET")]
-    public function getFirstModalContent(): JsonResponse
+    public function getFirstModalContent(EntityManagerInterface $entityManager): JsonResponse
     {
-        return new JsonResponse($this->renderView('settings/donnees/export/modalNewExportContent.html.twig'));
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $arrivalFields = $fieldsParamRepository->getByEntityForExport(FieldsParam::ENTITY_CODE_ARRIVAGE);
+        $arrivalFields = Stream::from($arrivalFields)
+            ->keymap(fn(FieldsParam $field) => [$field->getFieldCode(), $field->getFieldLabel()])
+            ->toArray();
+
+        return new JsonResponse($this->renderView('settings/donnees/export/modalNewExportContent.html.twig', [
+            "arrivalFields" => $arrivalFields
+        ]));
     }
 }
