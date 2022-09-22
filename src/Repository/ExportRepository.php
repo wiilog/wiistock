@@ -53,10 +53,10 @@ class ExportRepository extends EntityRepository
                     $exprBuilder = $qb->expr();
                     $qb
                         ->leftJoin("export.status", "status_search")
-                        ->leftJoin("export.user", "user_search")
+                        ->leftJoin("export.creator", "creator_search")
                         ->andWhere($exprBuilder->orX(
                             "status_search.nom LIKE :value",
-                            "user_search.username LIKE :value",
+                            "creator_search.username LIKE :value",
                             "export.entity LIKE :value"
                         ))
                         ->setParameter("value", "%$search%");
