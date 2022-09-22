@@ -266,7 +266,7 @@ class HandlingService {
             ['title' => $this->translation->translate('Demande', 'Général', 'Statut'), 'name' => 'status'],
             ['title' => $this->translation->translate( 'Demande', 'Général', 'Urgent'), 'name' => 'emergency'],
             ['title' => $this->translation->translate('Demande', 'Services', 'Modale et détails', 'Nombre d\'opération(s) réalisée(s)'), 'name' => 'carriedOutOperationCount'],
-            ['title' => $this->translation->translate('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Traité par'), 'name' => 'treatedBy'],
+            ['title' => $this->translation->translate('Général', null, 'Zone liste', 'Traité par'), 'name' => 'treatedBy'],
             ['title' => $this->translation->translate('Général', null, 'Modale', 'Commentaire'), 'name' => 'comment'],
         ];
 

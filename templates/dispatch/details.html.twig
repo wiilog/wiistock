@@ -15,7 +15,7 @@
 
 {% if selectedDispatch.startDate or selectedDispatch.endDate %}
     <div class="col-4 d-flex flex-column mt-3">
-        <span class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Champs fixes', "Dates d'échéances") }}</span>
+        <span class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Général', "Dates d'échéance") }}</span>
         <span class="wii-field-text">
             Du {{ selectedDispatch.startDate ? (selectedDispatch.startDate | format_helper('datetime', "", false, app.user)) : '-' }} au {{ selectedDispatch.endDate ? (selectedDispatch.endDate | format_helper('datetime')) : '-' }}
         </span>

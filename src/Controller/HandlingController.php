@@ -76,7 +76,7 @@ class HandlingController extends AbstractController {
         $dateChoice = [
             [
                 'name' => 'creationDate',
-                'label' => $translationService->translate('Demande', 'Services', 'Date de création'),
+                'label' => $translationService->translate('Général', null, 'Zone liste', 'Date de création'),
             ],
             [
                 'name' => 'expectedDate',

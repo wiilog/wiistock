@@ -96,8 +96,6 @@ class DispatchController extends AbstractController {
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
 
         return $this->render('dispatch/index.html.twig', [
-//            'userLanguage' => $this->getUser()->getLanguage(), TODO décommenter un fois WIIS-6569 terminée
-//            'defaultLanguage' => $languageService->getDefaultLanguage(),
             'statuts' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, 'displayOrder'),
             'carriers' => $carrierRepository->findAllSorted(),
             'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY),
@@ -198,7 +196,7 @@ class DispatchController extends AbstractController {
             if(empty($packs)) {
                 return $this->json([
                     'success' => false,
-                    'msg' => $translationService->translate('Demande', 'Acheminements', 'Divers', 'Une unité logistique minimum est nécessaire pour procéder à l\'acheminement', false)
+                    'msg' => $translationService->translate('Demande', 'Acheminements', 'Général', 'Une unité logistique minimum est nécessaire pour procéder à l\'acheminement', false)
                 ]);
             }
         }
@@ -213,7 +211,7 @@ class DispatchController extends AbstractController {
             return $this->json([
                 'success' => true,
                 'redirect' => $redirectService->generateUrl("dispatch_show", ['id' => $existingDispatch->getId()]),
-                'msg' => $translationService->translate('Demande', 'Acheminements', 'Divers', 'Les unités logistiques de l\'arrivage ont bien été ajoutés dans l`\'acheminement {1}', [1=>$number], false)
+                'msg' => $translationService->translate('Demande', 'Acheminements', 'Général', 'Les unités logistiques de l\'arrivage ont bien été ajoutés dans l`\'acheminement {1}', [1=>$number], false)
             ]);
         }
 
@@ -258,14 +256,14 @@ class DispatchController extends AbstractController {
         if (!isset($status) || $status?->getCategorie()?->getNom() !== CategorieStatut::DISPATCH) {
             return new JsonResponse([
                 'success' => false,
-                'msg' => $translationService->translate('Demande', 'Acheminements', 'Divers', 'Veuillez renseigner un statut valide.', false)
+                'msg' => $translationService->translate('Demande', 'Acheminements', 'Général', 'Veuillez renseigner un statut valide.', false)
             ]);
         }
 
         if(!$locationTake || !$locationDrop) {
             return new JsonResponse([
                 'success' => false,
-                'msg' => $translationService->translate('Demande', 'Acheminements', 'Divers', 'Il n\'y a aucun emplacement de prise ou de dépose paramétré pour ce type.Veuillez en paramétrer ou rendre les champs visibles à la création et/ou modification.', false)
+                'msg' => $translationService->translate('Demande', 'Acheminements', 'Général', 'Il n\'y a aucun emplacement de prise ou de dépose paramétré pour ce type.Veuillez en paramétrer ou rendre les champs visibles à la création et/ou modification.', false)
             ]);
         }
 
@@ -275,7 +273,7 @@ class DispatchController extends AbstractController {
         if($startDate && $endDate && $startDate > $endDate) {
             return new JsonResponse([
                 'success' => false,
-                'msg' => $translationService->translate('Demande', 'Acheminements', 'Divers', 'La date de fin d\'échéance est inférieure à la date de début.', false)
+                'msg' => $translationService->translate('Demande', 'Acheminements', 'Général', 'La date de fin d\'échéance est inférieure à la date de début.', false)
             ]);
         }
 
@@ -370,7 +368,7 @@ class DispatchController extends AbstractController {
         catch(UniqueConstraintViolationException) {
             return new JsonResponse([
                 'success' => false,
-                'msg' => $translationService->translate('Demande', 'Acheminements', 'Divers', 'Une autre demande d\'acheminement est en cours de création, veuillez réessayer', false)
+                'msg' => $translationService->translate('Demande', 'Acheminements', 'Général', 'Une autre demande d\'acheminement est en cours de création, veuillez réessayer', false)
             ]);
         }
 
@@ -389,7 +387,7 @@ class DispatchController extends AbstractController {
         return new JsonResponse([
             'success' => true,
             'redirect' => $redirectService->generateUrl("dispatch_show", $showArguments, self::EXTRA_OPEN_PACK_MODAL),
-            'msg' => $translationService->translate('Demande', 'Acheminements', 'Divers', 'L\'acheminement a bien été créé', false)
+            'msg' => $translationService->translate('Demande', 'Acheminements', 'Général', 'L\'acheminement a bien été créé', false)
         ]);
     }
 
@@ -491,14 +489,14 @@ class DispatchController extends AbstractController {
         if(!$locationTake || !$locationDrop) {
             return new JsonResponse([
                 'success' => false,
-                'msg' => $translationService->translate('Demande', 'Acheminements', 'Divers', "Il n'y a aucun emplacement de prise ou de dépose paramétré pour ce type.Veuillez en paramétrer ou rendre les champs visibles à la création et/ou modification.", false)
+                'msg' => $translationService->translate('Demande', 'Acheminements', 'Général', "Il n'y a aucun emplacement de prise ou de dépose paramétré pour ce type.Veuillez en paramétrer ou rendre les champs visibles à la création et/ou modification.", false)
             ]);
         }
 
         if($startDate && $endDate && $startDate > $endDate) {
             return new JsonResponse([
                 'success' => false,
-                'msg' => $translationService->translate('Demande', 'Acheminements', 'Divers', "La date de fin d'échéance est inférieure à la date de début.", false)
+                'msg' => $translationService->translate('Demande', 'Acheminements', 'Général', "La date de fin d'échéance est inférieure à la date de début.", false)
             ]);
         }
 
@@ -568,7 +566,7 @@ class DispatchController extends AbstractController {
                 'showDetails' => $dispatchService->createHeaderDetailsConfig($dispatch)
             ]),
             'success' => true,
-            'msg' => $translationService->translate('Demande', 'Acheminements', 'Divers', 'L\'acheminement a bien été modifié', false) . '.'
+            'msg' => $translationService->translate('Demande', 'Acheminements', 'Général', 'L\'acheminement a bien été modifié', false) . '.'
         ]);
     }
 
@@ -656,7 +654,7 @@ class DispatchController extends AbstractController {
             return new JsonResponse([
                 'success' => true,
                 'redirect' => $this->generateUrl('dispatch_index'),
-                'msg' => $translationService->translate('Demande', 'Acheminements', 'Divers', 'L\'acheminement a bien été supprimé', false) . '.'
+                'msg' => $translationService->translate('Demande', 'Acheminements', 'Général', 'L\'acheminement a bien été supprimé', false) . '.'
             ]);
         }
 
@@ -877,7 +875,7 @@ class DispatchController extends AbstractController {
 
         return new JsonResponse([
             'success' => true,
-            'msg' => $translationService->translate('Demande', 'Acheminements', 'Divers', 'L\'acheminement a bien été passé en à traiter', false),
+            'msg' => $translationService->translate('Demande', 'Acheminements', 'Général', 'L\'acheminement a bien été passé en à traiter', false),
             'redirect' => $this->generateUrl('dispatch_show', ['id' => $dispatch->getId()])
         ]);
     }
@@ -926,7 +924,7 @@ class DispatchController extends AbstractController {
 
         return new JsonResponse([
             'success' => true,
-            'msg' => $translationService->translate('Demande', 'Acheminements', 'Divers', 'L\'acheminement a bien été traité'),
+            'msg' => $translationService->translate('Demande', 'Acheminements', 'Général', 'L\'acheminement a bien été traité'),
             'redirect' => $this->generateUrl('dispatch_show', ['id' => $dispatch->getId()])
         ]);
     }
@@ -999,11 +997,11 @@ class DispatchController extends AbstractController {
 
             $csvHeader = array_merge(
                 [
-                    $translation->translate('Demande', 'Acheminements', 'Divers', 'N° demande', false),
+                    $translation->translate('Demande', 'Acheminements', 'Général', 'N° demande', false),
                     $translation->translate('Demande', 'Acheminements', 'Champs fixes', 'N° commande', false),
-                    $translation->translate('Demande', 'Acheminements', 'Zone liste - Noms de colonnes', 'Date de création', false),
-                    $translation->translate('Demande', 'Acheminements', 'Zone liste - Noms de colonnes', 'Date de validation', false),
-                    $translation->translate('Demande', 'Acheminements', 'Zone liste - Noms de colonnes', 'Date de traitement', false),
+                    $translation->translate('Général', null, 'Zone liste', 'Date de création', false),
+                    $translation->translate('Demande', 'Acheminements', 'Général', 'Date de validation', false),
+                    $translation->translate('Demande', 'Acheminements', 'Général', 'Date de traitement', false),
                     $translation->translate('Demande', 'Général', 'Type', false),
                     $translation->translate('Demande', 'Général', 'Demandeur', false),
                     $translation->translate('Demande', 'Général', 'Destinataire(s)', false),
@@ -1013,15 +1011,15 @@ class DispatchController extends AbstractController {
                     $translation->translate('Demande', 'Acheminements', 'Zone liste - Noms de colonnes', 'Nombre d\'UL', false),
                     $translation->translate('Demande', 'Général', 'Statut', false),
                     $translation->translate('Demande', 'Général', 'Urgence', false),
-                    $translation->translate('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Nature', false),
+                    $translation->translate('Demande', 'Acheminements', 'Général', 'Nature', false),
                     $translation->translate('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Unité logistique', false),
-                    $translation->translate('Demande', 'Acheminements', 'Divers', 'Quantité UL', false),
-                    $translation->translate('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Quantité à acheminer', false),
-                    $translation->translate('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Poids (kg)', false),
-                    $translation->translate('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Date dernier mouvement', false),
-                    $translation->translate('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Dernier emplacement', false),
-                    $translation->translate('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Opérateur', false),
-                    $translation->translate('Demande', 'Acheminements', 'Zone liste - Noms de colonnes', 'Traité par', false)
+                    $translation->translate('Demande', 'Acheminements', 'Général', 'Quantité UL', false),
+                    $translation->translate('Demande', 'Acheminements', 'Général', 'Quantité à acheminer', false),
+                    $translation->translate('Demande', 'Acheminements', 'Général', 'Poids (kg)', false),
+                    $translation->translate('Demande', 'Acheminements', 'Général', 'Date dernier mouvement', false),
+                    $translation->translate('Demande', 'Acheminements', 'Général', 'Dernier emplacement', false),
+                    $translation->translate('Demande', 'Acheminements', 'Général', 'Opérateur', false),
+                    $translation->translate('Général', null, 'Zone liste', 'Traité par', false)
                 ],
                 $freeFieldsConfig['freeFieldsHeader']
             );
@@ -1390,7 +1388,7 @@ class DispatchController extends AbstractController {
                                         SpecificService $specificService): JsonResponse {
 
         if($dispatch->getDispatchPacks()->count() > DispatchService::WAYBILL_MAX_PACK) {
-            $message = $translationService->translate('Demande', 'Acheminements', 'Divers', "Attention : L'acheminement contient plus de {1} unités logistiques, cette lettre de voiture ne peut contenir plus de {1} lignes.", [
+            $message = $translationService->translate('Demande', 'Acheminements', 'Général', "Attention : L'acheminement contient plus de {1} unités logistiques, cette lettre de voiture ne peut contenir plus de {1} lignes.", [
                 1 => DispatchService::WAYBILL_MAX_PACK
             ]);
             $success = false;

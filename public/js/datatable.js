@@ -389,7 +389,7 @@ function initDataTable($table, options) {
                 "sInfoPostFix": "",
                 "sLoadingRecords": Translation.of(`Général`, ``, `Zone liste`, `Chargement en cours`, false),
                 "sZeroRecords": Translation.of(`Général`, ``, `Zone liste`, `Aucun élément à afficher`, false),
-                "sEmptyTable": Translation.of(`Général`, ``, `Zone liste`, `Aucune donnée disponible dans le tableau`, false),
+                "sEmptyTable": Translation.of(`Général`, ``, `Zone liste`, `Aucune donnée disponible`, false),
                 "oPaginate": {
                     "sFirst": "Premier",
                     "sPrevious": Translation.of(`Général`, ``, `Zone liste`, `Précédent`, false),

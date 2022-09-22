@@ -118,7 +118,7 @@ class TrackingMovementService extends AbstractController
         if (isset($movement)) {
             if ($movement->getDispatch()) {
                 $data ['entityPath'] = 'dispatch_show';
-                $data ['fromLabel'] = $this->translation->translate('Demande', 'Acheminements', 'Divers', 'Acheminement', false);
+                $data ['fromLabel'] = $this->translation->translate('Demande', 'Acheminements', 'Général', 'Acheminement', false);
                 $data ['entityId'] = $movement->getDispatch()->getId();
                 $data ['from'] = $movement->getDispatch()->getNumber();
             } else if ($movement->getArrivage()) {
