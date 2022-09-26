@@ -80,7 +80,24 @@ $(document).ready(() => {
                         dateMax,
                     }));
                 } else if (content.entityToExport === ENTITY_ARRIVALS) {
+                    const dateMin = $modalNewExport.find(`[name=dateMin]`).val();
+                    const dateMax = $modalNewExport.find(`[name=dateMax]`).val();
+                    const columnToExport = $modalNewExport.find(`[name=columnToExport]`).val();
 
+
+                    if(!dateMin || !dateMax || dateMin === `` || dateMax === ``) {
+                        Flash.add(`danger`, `Les bornes de dates sont requise pour les exports de tournées`);
+                        return Promise.resolve();
+                    } else if(columnToExport.length === 0){
+                        Flash.add(`danger`, `Veuillez choisir des colonnes à exporter`);
+                        return Promise.resolve();
+                    }
+
+                    window.open(Routing.generate(`settings_export_arrival`, {
+                        dateMin,
+                        dateMax,
+                        columnToExport
+                    }));
                 }
 
                 return new Promise((resolve) => {
@@ -205,7 +222,7 @@ function onSelectAll() {
     $select.find(`option:not([disabled])`).each(function () {
         $(this).prop(`selected`, true);
     });
-console.error('huh??', $select);
+
     $select.trigger(`change`);
 }
 

@@ -267,7 +267,6 @@ class ScheduledExportService
         }
 
         $meta_data = stream_get_meta_data($output);
-        dump($meta_data["uri"]);
 
         $nextExecutionDate = $this->calculateNextExecutionDate($exportToRun);
 

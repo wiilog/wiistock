@@ -20,6 +20,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment;
 
@@ -63,6 +64,9 @@ class ArrivageService {
     public VisibleColumnService $visibleColumnService;
 
     private ?array $freeFieldsConfig = null;
+
+    #[Required]
+    public CSVExportService $CSVExportService;
 
     public function getDataForDatatable(Request $request, ?int $userIdArrivalFilter)
     {
@@ -641,5 +645,82 @@ class ArrivageService {
                 );
             }
         }
+    }
+
+    public function getHeaderForExport(array $columnToExport): array
+    {
+        $csvHeader = ["type", "statut"];
+        foreach ($columnToExport as $column){
+            $csvHeader[] = $column;
+        }
+        return $csvHeader;
+    }
+
+    public function putLineArrival($output,
+                                   Arrivage $arrival,
+                                   array $columnToExport): void {
+
+        $arrivalInformations = [
+            $arrival->getType()->getLabel(),
+            $arrival->getStatut()->getNom()
+        ];
+
+        if(in_array('acheteurs', $columnToExport)){
+            $arrivalInformations[] = $arrival->getAcheteurs()->count() > 0 ?
+                implode(', ',
+                    $arrival->getAcheteurs()->map(function (Utilisateur $buyer) {
+                        return $buyer->getUsername();
+                    })->toArray()) : '';
+        }
+
+        if(in_array('chauffeur', $columnToExport)){
+            $arrivalInformations[] = $arrival->getChauffeur()->getNom() ?? '';
+        }
+
+        if(in_array('commentaire', $columnToExport)){
+            $arrivalInformations[] = $arrival->getCommentaire() ?? '';
+        }
+
+        if(in_array('transporteur', $columnToExport)){
+            $arrivalInformations[] = $arrival->getTransporteur()->getLabel() ?? '';
+        }
+
+        if(in_array('fournisseur', $columnToExport)){
+            $arrivalInformations[] = $arrival->getFournisseur() ? $arrival->getFournisseur()->getNom() : '';
+        }
+
+        if(in_array('destinataire', $columnToExport)){
+            $arrivalInformations[] = $arrival->getDestinataire() ? $arrival->getDestinataire()->getUsername() : '';
+        }
+
+        if(in_array('numeroCommandeList', $columnToExport)){
+            $arrivalInformations[] = $arrival->getNumeroCommandeList() ? implode(",", $arrival->getNumeroCommandeList()) : '';
+        }
+
+        if(in_array('noTracking', $columnToExport)){
+            $arrivalInformations[] = $arrival->getNoTracking() ?? '';
+        }
+
+        if(in_array('frozen', $columnToExport)){
+            $arrivalInformations[] = $arrival->getFrozen() ? 'Oui' : 'Non';
+        }
+
+        if(in_array('projectNumber', $columnToExport)){
+            $arrivalInformations[] = $arrival->getProjectNumber() ?? '';
+        }
+
+        if(in_array('businessUnit', $columnToExport)){
+            $arrivalInformations[] = $arrival->getBusinessUnit() ?? '';
+        }
+
+        if(in_array('customs', $columnToExport)){
+            $arrivalInformations[] = $arrival->getCustoms() ? 'Oui' : 'Non';
+        }
+
+        if(in_array('dropLocationArrival', $columnToExport)){
+            $arrivalInformations[] = $arrival->getDropLocation() ? $arrival->getDropLocation()->getLabel() : '';
+        }
+
+        $this->CSVExportService->putLine($output, $arrivalInformations);
     }
 }

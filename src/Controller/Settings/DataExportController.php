@@ -2,6 +2,7 @@
 
 namespace App\Controller\Settings;
 
+use App\Entity\Arrivage;
 use App\Entity\Article;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
@@ -17,6 +18,7 @@ use App\Entity\Transport\TransportRound;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
+use App\Service\ArrivageService;
 use App\Service\ArticleDataService;
 use App\Service\CSVExportService;
 use App\Service\DataExportService;
@@ -241,6 +243,7 @@ dump($request->getContent(), $request->request);
     #[Route("/export/unique/rounds", name: "settings_export_round", options: ["expose" => true], methods: "GET")]
     public function exportRounds(CSVExportService       $csvService,
                                  TransportRoundService  $transportRoundService,
+                                 DataExportService      $dataExportService,
                                  EntityManagerInterface $entityManager,
                                  Request                $request): Response {
 
@@ -257,8 +260,34 @@ dump($request->getContent(), $request->request);
         $csvHeader = $transportRoundService->getHeaderRoundAndRequestExport();
 
         $transportRoundsIterator = $transportRoundRepository->iterateFinishedTransportRounds($dateTimeMin, $dateTimeMax);
-        return $csvService->streamResponse(function ($output) use ($csvService, $transportRoundService, $transportRoundsIterator) {
-            $csvService->exportTransportRounds($transportRoundService, $transportRoundsIterator, $output);
+        return $csvService->streamResponse(function ($output) use ($dataExportService, $csvService, $transportRoundService, $transportRoundsIterator) {
+            $dataExportService->exportTransportRounds($transportRoundService, $transportRoundsIterator, $output);
+        }, $nameFile, $csvHeader);
+    }
+
+    #[Route("/export/unique/arrivals", name: "settings_export_arrival", options: ["expose" => true], methods: "GET")]
+    public function exportArrivals(CSVExportService       $csvService,
+                                 ArrivageService  $arrivageService,
+                                 DataExportService $dataExportService,
+                                 EntityManagerInterface $entityManager,
+                                 Request                $request): Response {
+
+        $dateMin = $request->query->get("dateMin");
+        $dateMax = $request->query->get("dateMax");
+        $columnToExport = $request->query->all("columnToExport");
+
+        $dateTimeMin = DateTime::createFromFormat("d/m/Y H:i:s", "$dateMin 00:00:00");
+        $dateTimeMax = DateTime::createFromFormat("d/m/Y H:i:s", "$dateMax 23:59:59");
+
+        $arrivageRepository = $entityManager->getRepository(Arrivage::class);
+        $today = new DateTime();
+        $today = $today->format("d-m-Y H:i:s");
+        $nameFile = "export-arrivages-$today.csv";
+        $csvHeader = $arrivageService->getHeaderForExport($columnToExport);
+
+        $arrivalsIterator = $arrivageRepository->iterateArrivals($dateTimeMin, $dateTimeMax);
+        return $csvService->streamResponse(function ($output) use ($dataExportService, $columnToExport, $entityManager, $csvService, $arrivageService, $arrivalsIterator) {
+            $dataExportService->exportArrivages($arrivageService, $arrivalsIterator, $output, $columnToExport);
         }, $nameFile, $csvHeader);
     }
 
@@ -271,6 +300,9 @@ dump($request->getContent(), $request->request);
         $arrivalFields = Stream::from($arrivalFields)
             ->keymap(fn(FieldsParam $field) => [$field->getFieldCode(), $field->getFieldLabel()])
             ->toArray();
+
+        unset($arrivalFields['pj']);
+        unset($arrivalFields['imprimerArrivage']);
 
         return new JsonResponse($this->renderView('settings/donnees/export/modalNewExportContent.html.twig', [
             "arrivalFields" => $arrivalFields

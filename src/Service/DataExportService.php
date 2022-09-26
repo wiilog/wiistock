@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Export;
@@ -143,4 +144,15 @@ class DataExportService
         return $export;
     }
 
+    public function exportArrivages(ArrivageService $arrivageService, iterable $data, mixed $output, array $columnToExport)
+    {
+        $start = new DateTime();
+
+        /** @var Arrivage $arrival */
+        foreach ($data as $arrival) {
+            $arrivageService->putLineArrival($output, $arrival, $columnToExport);
+        }
+
+        $this->createUniqueExportLine(Export::ENTITY_ARRIVAL, $start);
+    }
 }

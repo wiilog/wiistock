@@ -458,4 +458,14 @@ class ArrivageRepository extends EntityRepository
             ->getQuery()
             ->getSingleScalarResult();
     }
+
+    public function iterateArrivals(DateTime $dateMin, DateTime $dateMax): iterable {
+        $qb = $this->createQueryBuilder('arrivage')
+            ->andWhere('arrivage.date BETWEEN :dateMin AND :dateMax')
+            ->setParameter('dateMin', $dateMin)
+            ->setParameter('dateMax', $dateMax);
+        return $qb
+            ->getQuery()
+            ->toIterable();
+    }
 }
