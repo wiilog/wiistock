@@ -1,8 +1,8 @@
-<form method="" class="modal fade" id="modalEditFields" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
+<div class="modal fade" id="modalNewExport" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
-                title: "Modifier le paramétrage d'un champ fixe"
+                title: "Nouvel export CSV"
             } %}
 
             <div class="modal-body modal-input container-fluid"></div>
@@ -10,9 +10,9 @@
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
-                    {classes: 'btn btn-success data', text: 'Enregistrer', id: 'submitEditFields', name: 'id'}
+                    {id: 'submitNewExport' , type: 'submit', classes: 'btn btn-success', text: 'Enregistrer'}
                 ],
             } %}
         </div>
     </div>
-</form>
+</div>

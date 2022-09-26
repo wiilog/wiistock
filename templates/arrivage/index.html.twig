@@ -30,13 +30,9 @@
                     {% if hasRightToCreate %}
                         <button type="button"
                                 class="btn btn-primary split-button d-flex align-items-center"
-                                data-toggle="modal"
                                 name="new-arrival"
-                                data-target="#modalNewArrivage"
-                                data-backdrop="static"
-                                data-keyboard="false"
                                 disabled
-                                onclick="initNewArrivageEditor('#modalNewArrivage')">
+                                onclick="createArrival()">
                             <span class="wii-icon wii-icon-plus mr-2"></span>
                             {{ trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'Nouvel arrivage') }}
                         </button>
@@ -101,7 +97,6 @@
     <input id="redirect" value="{{ redirect }}" hidden>
     <input id="pageLengthForArrivage" value="{{ pageLengthForArrivage }}" hidden>
 
-    {% include "arrivage/modalNewArrivage.html.twig" with modalNewConfig %}
     {% include "arrivage/modalListColis.html.twig" %}
     {% include "utils/visible_columns.html.twig" with {
         'fields': fields,

@@ -703,6 +703,7 @@ class SettingsService {
                 if ($fieldsParam) {
                     $fieldsParam->setDisplayedCreate($item["displayedCreate"])
                         ->setRequiredCreate($item["requiredCreate"])
+                        ->setKeptInMemory($item["keptInMemory"] ?? null)
                         ->setDisplayedEdit($item["displayedEdit"])
                         ->setRequiredEdit($item["requiredEdit"])
                         ->setDisplayedFilters($item["displayedFilters"] ?? null);

@@ -849,14 +849,14 @@ label.required:after {
 }
 
 .wii-icon-trash {
-    display: block;
+    display: inline-block;
     background-color: $primary;
     width: 18px;
     height: 18px;
 }
 
 .wii-icon-trash-black {
-    display: block;
+    display: inline-block;
     background-color: $black;
     width: 17px;
     height: 17px;
@@ -1295,4 +1295,19 @@ label.required:after {
 
 .w-max-50{
     max-width: 50%;
+}
+
+.frequencies {
+    border: $medium-grey solid 1px;
+    border-radius: 10px;
+    margin: 10px
+}
+
+.frequencies-container {
+    background-color: $light-blue;
+    border-radius: 10px;
+
+    .wii-radio {
+        margin: 5px;
+    }
 }

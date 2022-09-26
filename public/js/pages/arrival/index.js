@@ -17,46 +17,6 @@ $(function () {
 
     initTableArrival().then((returnedArrivalsTable) => {
         arrivalsTable = returnedArrivalsTable;
-
-        let $modalNewArrivage = $("#modalNewArrivage");
-        let $submitNewArrivage = $("#submitNewArrivage");
-        let urlNewArrivage = Routing.generate('arrivage_new', true);
-        InitModal(
-            $modalNewArrivage,
-            $submitNewArrivage,
-            urlNewArrivage,
-            {
-                keepForm: true,
-                keepModal: true,
-                keepLoading: true,
-                waitForUserAction: () => {
-                    return checkPossibleCustoms($modalNewArrivage);
-                },
-                success: (res) => {
-                    res = res || {};
-                    arrivalCallback(
-                        true,
-                        {
-                            ...(res || {}),
-                            success: () => {
-                                let isPrintColisChecked = $modalNewArrivage.find('#printColisChecked').val();
-                                $modalNewArrivage.find('#printColis').prop('checked', isPrintColisChecked);
-
-                                $submitNewArrivage.popLoader();
-
-                                clearModal($modalNewArrivage);
-                            }
-                        },
-                        arrivalsTable
-                    )
-                }
-            });
-
-        onTypeChange($modalNewArrivage.find('[name="type"]'));
-        const $userFormat = $('#userDateFormat');
-        const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
-        initDateTimePicker('.free-field-date', DATE_FORMATS_TO_DISPLAY[format]);
-        initDateTimePicker('.free-field-datetime', DATE_FORMATS_TO_DISPLAY[format] + ' HH:mm');
     });
 
     let path = Routing.generate('filter_get_by_page');
@@ -229,23 +189,74 @@ function listColis(elem) {
     }, 'json');
 }
 
-function initNewArrivageEditor(modal) {
-    let $modal = $(modal);
-    clearModal($modal);
-    onFlyFormOpened = {};
-    onFlyFormToggle('fournisseurDisplay', 'addFournisseur', true);
-    onFlyFormToggle('transporteurDisplay', 'addTransporteur', true);
-    onFlyFormToggle('chauffeurDisplay', 'addChauffeur', true);
+function createArrival() {
+    return $.get(Routing.generate('arrivage_new_api', true), function (data) {
+        const $existingModal = $(`#modalNewArrivage`);
+        let $modal;
 
-    Select2Old.provider($modal.find('.ajax-autocomplete-fournisseur'));
-    Select2Old.init($modal.find('.ajax-autocomplete-transporteur'));
-    Select2Old.init($modal.find('.ajax-autocomplete-chauffeur'));
-    Select2Old.location($modal.find('.ajax-autocomplete-location'));
-    Select2Old.init($modal.find('.ajax-autocomplete-user'), '', 1);
-    Select2Old.initFree($('.select2-free'));
+        if($existingModal.exists()) {
+            const style = $existingModal.attr(`style`);
+            $existingModal.replaceWith(data.html);
 
-    fillDatePickers('.free-field-date');
-    fillDatePickers('.free-field-datetime', 'YYYY-MM-DD', true);
+            $modal = $(`#modalNewArrivage`);
+            $modal.attr(`style`, style);
+            $modal.addClass(`show`);
+        } else {
+            $(`body`).append(data.html);
+
+            $modal = $(`#modalNewArrivage`);
+            $modal.modal(`show`);
+        }
+
+        setTimeout(() => {
+            onTypeChange($modal.find('[name="type"]'));
+        initDateTimePicker('.date-cl');
+
+        onFlyFormOpened = {};
+        onFlyFormToggle('fournisseurDisplay', 'addFournisseur', true);
+        onFlyFormToggle('transporteurDisplay', 'addTransporteur', true);
+        onFlyFormToggle('chauffeurDisplay', 'addChauffeur', true);
+
+        Select2Old.provider($modal.find('.ajax-autocomplete-fournisseur'));
+        Select2Old.init($modal.find('.ajax-autocomplete-transporteur'));
+        Select2Old.init($modal.find('.ajax-autocomplete-chauffeur'));
+        Select2Old.location($modal.find('.ajax-autocomplete-location'));
+        Select2Old.init($modal.find('.ajax-autocomplete-user'), '', 1);
+        Select2Old.initFree($('.select2-free'));
+
+        const $userFormat = $('#userDateFormat');
+        const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
+        initDateTimePicker('.free-field-date', DATE_FORMATS_TO_DISPLAY[format]);
+        initDateTimePicker('.free-field-datetime', DATE_FORMATS_TO_DISPLAY[format] + ' HH:mm');
+
+        fillDatePickers('.free-field-date');
+        fillDatePickers('.free-field-datetime', 'YYYY-MM-DD', true);
+
+        const $submit = $modal.find(`#submitNewArrivage`);
+        $submit.on(`click`, function() {
+            SubmitAction($modal, $submit, Routing.generate('arrivage_new', true), {
+                keepForm: true,
+                keepModal: true,
+                keepLoading: true,
+                waitForUserAction: () => {
+                    return checkPossibleCustoms($modal);
+                },
+                success: (res) => {
+                    res = res || {};
+                    createArrival();
+                    arrivalCallback(
+                        true,
+                        {
+                            ...(res || {}),
+                            success: () => {}
+                        },
+                        arrivalsTable
+                    )
+                },
+            }).catch(() => {});
+        })
+        }, 1);
+    }, `json`);
 }
 
 function updateArrivalPageLength() {

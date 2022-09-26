@@ -82,7 +82,7 @@
                                 <img src="{{ asset('svg/visibility-group.svg') }}" alt="Icône groupe de visibilité" width="20px">
                                 <label class="box-item ml-3">
                                     <span class="wii-field-name">Groupe de visibilité</span>
-                                    <span class="wii-field-text">{{ referenceArticle.visibilityGroup ? referenceArticle.visibilityGroup.label : '-' }}</span>
+                                    <span class="wii-body-text">{{ referenceArticle.visibilityGroup ? referenceArticle.visibilityGroup.label : '-' }}</span>
                                 </label>
                             </div>
                         </div>
@@ -115,7 +115,7 @@
                     <div class="content comment-container">
                         <div class="ml-3">
                             <span class="wii-subtitle">Commentaire</span>
-                            <div class="mt-2 text-break">{{ referenceArticle.commentaire and referenceArticle.commentaire != '<p><br></p>'
+                            <div class="mt-2 wii-body-text text-break">{{ referenceArticle.commentaire and referenceArticle.commentaire != '<p><br></p>'
                                 ? referenceArticle.commentaire | raw
                                 : '-' }}
                             </div>
@@ -144,7 +144,7 @@
                                     <div class="box-item ml-3">
                                         <span class="wii-field-name">Emplacement</span>
                                         <span
-                                            class="wii-field-text">{{ referenceArticle.emplacement ? referenceArticle.emplacement.label : '-' }}</span>
+                                            class="wii-body-text">{{ referenceArticle.emplacement ? referenceArticle.emplacement.label : '-' }}</span>
                                     </div>
                                 </div>
                             {% endif %}
@@ -193,7 +193,7 @@
                                     <img src="{{ asset('svg/reference_article/price.svg') }}" alt="Icône prix" width="15px">
                                     <div class="box-item ml-3">
                                         <span class="wii-field-name">Prix unitaire (€)</span>
-                                        <span class="wii-field-text">{{ referenceArticle.prixUnitaire ?? '-' }}</span>
+                                        <span class="wii-body-text">{{ referenceArticle.prixUnitaire ?? '-' }}</span>
                                     </div>
                                 </div>
                             {% endif %}
@@ -201,14 +201,14 @@
                                 <img src="{{ asset('svg/reference_article/alert-threshold.svg') }}" alt="Icône seuil d'alerte" width="25px">
                                 <div class="box-item ml-3">
                                     <span class="wii-field-name">Seuil d'alerte</span>
-                                    <span class="wii-field-text">{{ referenceArticle.limitWarning ?? '-' }}</span>
+                                    <span class="wii-body-text">{{ referenceArticle.limitWarning ?? '-' }}</span>
                                 </div>
                             </div>
                             <div class="col-{{ isReferenceManagementQuantity ? '4' : '6' }} d-flex">
                                 <img src="{{ asset('svg/reference_article/security-threshold.svg') }}" alt="Icône seuil de sécurité" width="25px">
                                 <div class="box-item ml-3">
                                     <span class="wii-field-name">Seuil de sécurité</span>
-                                    <span class="wii-field-text">{{ referenceArticle.limitSecurity ?? '-' }}</span>
+                                    <span class="wii-body-text">{{ referenceArticle.limitSecurity ?? '-' }}</span>
                                 </div>
                             </div>
                         </div>
@@ -218,7 +218,7 @@
                             <img src="{{ asset('svg/reference_article/urgent.svg') }}" alt="Icône référence urgente" width="25px">
                             <div class="d-flex flex-column ml-3">
                                 <span class="wii-field-name">Référence urgente</span>
-                                <div class="wii-field-text">{{ referenceArticle.emergencyComment | raw }}</div>
+                                <div class="wii-body-text">{{ referenceArticle.emergencyComment | raw }}</div>
                             </div>
                         </div>
                     {% endif %}
@@ -233,21 +233,21 @@
                                 <li class="mb-3">
                                     <div class="provider-label">
                                         <span class="wii-field-name ml-3">{{ providerArticle['providerName'] ?? '-' }}</span>&nbsp;-&nbsp;
-                                        <span class="wii-field-text">{{ providerArticle['providerCode'] ?? '-' }}</span>
+                                        <span class="wii-body-text">{{ providerArticle['providerCode'] ?? '-' }}</span>
                                     </div>
                                     <div class="d-flex mt-3">
                                         <div class="col-{{ not isReferenceManagementQuantity ? '4' : '6' }} d-flex flex-column">
                                             <span class="wii-field-name">Ref article fournisseur</span>
-                                            <span class="wii-field-text">{{ providerArticle['reference'] ?? '-' }}</span>
+                                            <span class="wii-body-text">{{ providerArticle['reference'] ?? '-' }}</span>
                                         </div>
                                         <div class="col-{{ not isReferenceManagementQuantity ? '4' : '6' }} d-flex flex-column">
                                             <span class="wii-field-name">Label</span>
-                                            <span class="wii-field-text">{{ providerArticle['label'] ?? '-' }}</span>
+                                            <span class="wii-body-text">{{ providerArticle['label'] ?? '-' }}</span>
                                         </div>
                                         {% if not isReferenceManagementQuantity %}
                                             <div class="col-4 d-flex flex-column">
                                                 <span class="wii-field-name">Quantité article</span>
-                                                <span class="wii-field-text">{{ providerArticle['quantity'] ?? '-' }}</span>
+                                                <span class="wii-body-text">{{ providerArticle['quantity'] ?? '-' }}</span>
                                             </div>
                                         {% endif %}
                                     </div>
@@ -280,7 +280,7 @@
                                 <img src="{{ asset('svg/reference_article/warehouse.svg') }}" alt="Icône catégorie d'inventaire" width="20px">
                                 <div class="box-item ml-3">
                                     <span class="wii-field-name">Catégorie d'inventaire</span>
-                                    <span class="wii-field-text">{{ referenceArticle.category ? referenceArticle.category.label : '-' }}</span>
+                                    <span class="wii-body-text">{{ referenceArticle.category ? referenceArticle.category.label : '-' }}</span>
                                 </div>
                             </div>
 
@@ -289,7 +289,7 @@
                                     <img src="{{ asset('svg/calendar.svg') }}" alt="Icône calendrier" width="20px">
                                     <div class="box-item ml-3">
                                         <span class="wii-field-name">Date de dernier inventaire</span>
-                                        <span class="wii-field-text">
+                                        <span class="wii-body-text">
                                             {{ referenceArticle.dateLastInventory ? (referenceArticle.dateLastInventory | format_helper('datetime', '', true)) : '-' }}
                                         </span>
                                     </div>
@@ -299,7 +299,7 @@
                                     <img src="{{ asset('svg/calendar-due-blue.svg') }}" alt="" width="20px">
                                     <div class="box-item ml-3">
                                         <span class="wii-field-name">Inventaire à jour</span>
-                                        <span class="wii-field-text">
+                                        <span class="wii-body-text">
                                             {{ referenceArticle.upToDateInventory ? 'Oui' : 'Non' }}
                                         </span>
                                     </div>

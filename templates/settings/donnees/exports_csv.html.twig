@@ -1,55 +1,25 @@
-{% import 'form.html.twig' as form %}
-
-<div class="wii-section">
-    <div class="row">
-        <div class="col-12 mb-3 wii-small-text">
-            Pour gérer le bon encodage des caractères spéciaux sur les fichiers exportés.
-        </div>
-        <div class="col-4">
-            {{ form.select(setting('USES_UTF8'), "Encodage des exports CSV", false, {
-                items: setting('ENCODING_VALUES'),
-                value: setting_value('USES_UTF8'),
-            }) }}
-        </div>
-    </div>
-</div>
-
-<div class="wii-section-title">Export Stock</div>
-
-<div class="wii-section">
-    <p>
-        Les <span class="do-not-click-me-several-times user-select-none">références</span> et articles exportés sont
-        seulement ceux avec le groupe de visibilité rattaché à l'utilisateur.
-    </p>
-
-    <div class="row">
-        <p class="mt-4 bold col-1 px-0">Références</p>
-        <div class="btn btn-primary mt-3 col-2"
-             onclick="saveExportFile('export_references', false)">
-            <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
-        </div>
-    </div>
-
-    <div class="row">
-        <p class="mt-4 bold col-1 px-0">Articles</p>
-        <div class="btn btn-primary mt-3 col-2"
-             onclick="saveExportFile('export_articles', false)">
-            <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
-        </div>
-    </div>
-    <div class="row">
-        <p class="mt-4 bold col-1 px-0">Tournées</p>
-        <div class="btn btn-primary mt-3 col-2"
-             onclick="saveExportFile('export_round' ,true ,{} ,false, 'Veuillez renseigner un intervalle de dates')">
-            <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
-        </div>
-        <div class="col-auto d-flex align-items-end dateFilters no-margin-bottom mb-1">
-            <div class="input-group align-items-baseline">
-                <div class="input-group-prepend">
-                {% include 'filters/filter_item/filterDate.html.twig' %}
+<div class="w-100">
+    {% include 'filters/filtersImport.html.twig' with {
+        'page': 'PAGE_EXPORT',
+        'tableSelector': '#tableExport',
+        marginClass: 'mt-15px',
+    } %}
+    <div class="wii-page-card">
+        <div class="row wii-page-card-header">
+            <div class="col-auto ml-auto">
+                <div class="btn btn-primary" onclick="displayNewExportModal()">
+                    <span class="fa fa-plus mr-2"></span>
+                    Ajouter un export
                 </div>
             </div>
         </div>
+        <div class="row">
+            <div class="col-12">
+                <table id="tableExport" class="table w-100">
+                </table>
+            </div>
+        </div>
     </div>
+
+    {% include 'settings/donnees/export/modalNewExport.html.twig' %}
 </div>
-{% include 'utils/easterEgg.html.twig' %}

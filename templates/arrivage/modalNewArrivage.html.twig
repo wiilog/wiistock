@@ -2,7 +2,7 @@
     isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED'))
     or isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_NS'))
 %}
-<form method="" class="modal fade" id="modalNewArrivage" role="dialog" aria-hidden="true">
+<div class="modal fade" id="modalNewArrivage" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
         <div class="modal-content">
                 {% include 'utils/modal/header.html.twig' with {
@@ -23,7 +23,8 @@
                                 <option selected disabled>&nbsp;</option>
                                 {% for fournisseur in fournisseurs %}
                                     <option value="{{ fournisseur.id }}"
-                                            data-possible-customs="{{ fournisseur.possibleCustoms ? 1 : 0 }}">
+                                            data-possible-customs="{{ fournisseur.possibleCustoms ? 1 : 0 }}"
+                                        {{ (keptFields[constant('App\\Entity\\FieldsParam::FIELD_CODE_FOURNISSEUR')] ?? null) == fournisseur.id ? 'selected' }}>
                                         {{ fournisseur.nom }}
                                     </option>
                                 {% endfor %}
@@ -49,7 +50,10 @@
                                 name="transporteur" id="transporteur">
                                 <option selected disabled>&nbsp;</option>
                                 {% for carrier in carriers %}
-                                    <option value="{{ carrier.id }}">{{ carrier.label }}</option>
+                                    <option value="{{ carrier.id }}"
+                                        {{ (keptFields[constant('App\\Entity\\FieldsParam::FIELD_CODE_TRANSPORTEUR')] ?? null) == carrier.id ? 'selected' }}>
+                                        {{ carrier.label }}
+                                    </option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -73,8 +77,11 @@
                                 name="chauffeur"
                                 id="chauffeur">
                                 <option selected disabled>&nbsp;</option>
-                                {% for chauffeurs in chauffeurs %}
-                                    <option value="{{ chauffeurs.id }}">{{ chauffeurs.nom }}</option>
+                                {% for chauffeur in chauffeurs %}
+                                    <option value="{{ chauffeur.id }}"
+                                        {{ (keptFields[constant('App\\Entity\\FieldsParam::FIELD_CODE_CHAUFFEUR_ARRIVAGE')] ?? null) == chauffeur.id ? 'selected' }}>
+                                        {{ chauffeur.nom }}
+                                    </option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -175,6 +182,7 @@
                             </label>
                             <input type="text" id="noTracking"
                                    class="form-control input-sm data {{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? 'needed' : '' }}"
+                                   value="{{ keptFields[constant('App\\Entity\\FieldsParam::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE')] ?? null }}"
                                    name="noTracking" maxlength="64">
                         </div>
                     {% endif %}
@@ -187,6 +195,10 @@
                             <select id="numeroCommandeList"
                                     class="form-control input-sm data select2-free w-100 {{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? 'needed' : '' }}"
                                     name="numeroCommandeList" multiple="multiple">
+                                {% set savedOrderNumber = keptFields[constant('App\\Entity\\FieldsParam::FIELD_CODE_NUM_COMMANDE_ARRIVAGE')] ?? null %}
+                                {% if savedOrderNumber %}
+                                    <option value="{{ savedOrderNumber }}" selected>{{ savedOrderNumber }}</option>
+                                {% endif %}
                             </select>
                         </div>
                     {% endif %}
@@ -255,7 +267,10 @@
                             </label>
                             <select name="dropLocation"
                                     class="form-control data ajax-autocomplete-location no-clear d-block {{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? 'needed' : '' }}">
-                                {% if defaultLocation is defined and defaultLocation != null %}
+                                {% set keptDropLocation = keptFields[constant('App\\Entity\\FieldsParam::FIELD_CODE_LOCATION_DROP')] ?? null %}
+                                {% if keptDropLocation %}
+                                    <option value="{{ keptDropLocation.id }}" selected>{{ keptDropLocation.label }}</option>
+                                {% elseif defaultLocation is defined and defaultLocation != null %}
                                     <option value="{{ defaultLocation.id }}" selected>{{ defaultLocation.label }}</option>
                                 {% endif %}
                             </select>
@@ -279,7 +294,7 @@
                                             id="destinataire">
                                             <option selected disabled>&nbsp;</option>
                                             {% for user in users %}
-                                                <option value="{{ user.id }}">{{ user.username }}</option>
+                                                <option value="{{ user.id }}" {{ keptFields[constant('App\\Entity\\FieldsParam::FIELD_CODE_TARGET_ARRIVAGE')] ?? null == user.id ? 'selected' }}>{{ user.username }}</option>
                                             {% endfor %}
                                         </select>
                                     </div>
@@ -294,11 +309,15 @@
                             <label class="wii-field-name" for="acheteurs">
                                 {{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Acheteur(s)') }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' : '' }}
                             </label>
+
+                            {% set keptBuyers = keptFields[constant('App\\Entity\\FieldsParam::FIELD_CODE_BUYERS_ARRIVAGE')] ?? [] %}
                             <select name="acheteurs" id="acheteurs" multiple="multiple"
                                     class="form-control input-sm ajax-autocomplete-user data {{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? 'needed' : '' }} ajax-autocomplete">
-                                <option selected disabled>&nbsp;</option>
+                                {% if keptBuyers is empty %}
+                                    <option selected disabled>&nbsp;</option>
+                                {% endif %}
                                 {% for user in users %}
-                                    <option value="{{ user.id }}">{{ user.username }}</option>
+                                    <option value="{{ user.id }}" {{ user.id in keptBuyers ? 'selected' }}>{{ user.username }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -310,7 +329,7 @@
                         <div class="form-group col-2">
                             <label class="wii-field-text">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Imprimer arrivage') }}</label>
                             <label class="switch d-block-switch mt-2">
-                                <input class="checkbox no-clear" type="checkbox" name="printArrivage" {{ checked }}>
+                                <input class="checkbox data no-clear" type="checkbox" name="printArrivage" {{ keptFields[constant('App\\Entity\\FieldsParam::FIELD_CODE_PRINT_ARRIVAGE')] ?? true ? 'checked' }}>
                                 <span class="slider round"></span>
                             </label>
                         </div>
@@ -377,6 +396,7 @@
                             <label class="wii-field-name" for="noProject">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Numéro de projet') }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' : '' }}</label>
                             <input type="text"
                                    class="form-control input-sm data {{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? 'needed' : '' }}"
+                                   value="{{ keptFields[constant('App\\Entity\\FieldsParam::FIELD_CODE_PROJECT_NUMBER')] ?? null }}"
                                    name="noProject" maxlength="64">
                         </div>
                     {% endif %}
@@ -390,7 +410,7 @@
                                 name="businessUnit">
                                 <option value=""></option>
                                 {% for business in businessUnits %}
-                                    <option value="{{ business }}">{{ business }}</option>
+                                    <option value="{{ business }}" {{ (keptFields[constant('App\\Entity\\FieldsParam::FIELD_CODE_BUSINESS_UNIT')] ?? null) == business ? 'selected' }}>{{ business }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -402,7 +422,8 @@
                         <div class="form-group col-2">
                             <label class="wii-field-text">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Douane') }}</label>
                             <label class="switch d-block-switch mt-2">
-                                <input class="checkbox {{ not isClientSafranED ? 'no-clear' }}" type="checkbox" name="customs">
+                                <input class="checkbox {{ not isClientSafranED ? 'no-clear' }}" type="checkbox" name="customs"
+                                    {{ keptFields[constant('App\\Entity\\FieldsParam::FIELD_CODE_CUSTOMS_ARRIVAGE')] ?? false ? 'checked' }}>
                                 <span class="slider round"></span>
                             </label>
                         </div>
@@ -412,7 +433,8 @@
                         <div class="form-group col-2">
                             <label class="wii-field-text">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Congelé') }}</label>
                             <label class="switch d-block-switch mt-2">
-                                <input class="checkbox no-clear" type="checkbox" name="frozen">
+                                <input class="checkbox no-clear" type="checkbox" name="frozen"
+                                    {{ keptFields[constant('App\\Entity\\FieldsParam::FIELD_CODE_FROZEN_ARRIVAGE')] ?? false ? 'checked' }}>
                                 <span class="slider round"></span>
                             </label>
                         </div>
@@ -447,7 +469,9 @@
                             <input id="commentaire"
                                    class="commentaire form-control input-sm data {{ commentNeeded ? 'needed' }}"
                                    name="commentaire" type="hidden">
-                            <div class="editor-container-new" data-wysiwyg></div>
+                            <div class="editor-container-new" data-wysiwyg>
+                                {{ (keptFields[constant('App\\Entity\\FieldsParam::FIELD_CODE_COMMENTAIRE_ARRIVAGE')] ?? null) | raw }}
+                            </div>
                         </div>
                     {% endif %}
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PJ_ARRIVAGE') %}
@@ -473,4 +497,4 @@
             } %}
         </div>
     </div>
-</form>
+</div>
