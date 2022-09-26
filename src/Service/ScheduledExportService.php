@@ -215,9 +215,9 @@ class ScheduledExportService
         $statusRepository = $entityManager->getRepository(Statut::class);
 
         $finished = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::EXPORT, Export::STATUS_FINISHED);
-        $now = new DateTime();
 
         $exportToRun = $this->cloneScheduledExport($export);
+        $exportToRun->setBeganAt(new DateTime());
         // RUN EXPORT
         $nextExecutionDate = $this->calculateNextExecutionDate($exportToRun);
 
@@ -227,7 +227,7 @@ class ScheduledExportService
 
         $exportToRun
             ->setStatus($finished)
-            ->setEndedAt($now)
+            ->setEndedAt(new DateTime())
             ->setForced(false);
 
         $entityManager->persist($exportToRun);

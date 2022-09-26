@@ -139,11 +139,12 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
 				Import::STATUS_IN_PROGRESS => Statut::NOT_TREATED,
 				Import::STATUS_CANCELLED => Statut::NOT_TREATED,
 				Import::STATUS_DRAFT => Statut::DRAFT
-			],
+            ],
             CategorieStatut::EXPORT => [
-              Export::STATUS_ERROR,
-              Export::STATUS_FINISHED,
-              Export::STATUS_SCHEDULED,
+                Export::STATUS_ERROR,
+                Export::STATUS_FINISHED,
+                Export::STATUS_SCHEDULED,
+                Export::STATUS_CANCELLED,
             ],
             CategorieStatut::TRANSPORT_REQUEST_DELIVERY => [
                 TransportRequest::STATUS_AWAITING_VALIDATION,

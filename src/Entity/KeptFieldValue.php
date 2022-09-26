@@ -22,7 +22,7 @@ class KeptFieldValue
     #[ORM\Column(type: "string", length: 255)]
     private ?string $value = null;
 
-    #[ORM\ManyToOne(inversedBy: 'keptArrivalValues')]
+    #[ORM\ManyToOne(inversedBy: 'keptFieldValues')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Utilisateur $user = null;
 
