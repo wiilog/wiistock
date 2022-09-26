@@ -40,7 +40,7 @@
                                 data-backdrop="static"
                                 data-keyboard="false"
                                 disabled
-                                onclick="initNewArrivageEditor('#modalNewArrivage')">
+                                onclick="createArrival()">
                             <i class="fa fa-plus mr-2"></i>
                             <span title="nouvel arrivage">{{ 'arrivage.nouvel arrivage'|trans }}</span>
                         </button>
@@ -105,7 +105,6 @@
     <input id="redirect" value="{{ redirect }}" hidden>
     <input id="pageLengthForArrivage" value="{{ pageLengthForArrivage }}" hidden>
 
-    {% include "arrivage/modalNewArrivage.html.twig" with modalNewConfig %}
     {% include "arrivage/modalDeleteArrivage.html.twig" %}
     {% include "arrivage/modalListColis.html.twig" %}
     {% include "utils/visible_columns.html.twig" with {

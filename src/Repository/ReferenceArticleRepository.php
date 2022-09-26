@@ -137,6 +137,8 @@ class ReferenceArticleRepository extends EntityRepository {
             ->leftJoin('referenceArticle.editedBy', 'join_editedBy')
             ->groupBy('referenceArticle.id')
             ->orderBy('referenceArticle.id', 'ASC')
+            ->where('statutRef.code = :active')
+            ->setParameter('active', ReferenceArticle::STATUT_ACTIF)
             ->getQuery()
             ->toIterable();
     }

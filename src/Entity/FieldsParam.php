@@ -106,6 +106,9 @@ class FieldsParam {
     const FIELD_CODE_EXPECTED_AT = 'expectedAt';
     const FIELD_LABEL_EXPECTED_AT = 'date attendue';
 
+    public const MEMORY_UNKEEPABLE_FIELDS = [
+        FieldsParam::FIELD_CODE_PJ_ARRIVAGE,
+    ];
 
     public const FILTERED_FIELDS = [
         // Arrivages
@@ -130,37 +133,40 @@ class FieldsParam {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    private $id;
+    private ?int $id;
 
     #[ORM\Column(type: 'string', length: 255)]
-    private $entityCode;
+    private ?string $entityCode;
 
     #[ORM\Column(type: 'string', length: 255)]
-    private $fieldCode;
+    private ?string $fieldCode;
 
     #[ORM\Column(type: 'string', length: 255)]
-    private $fieldLabel;
+    private ?string $fieldLabel;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
-    private $requiredCreate;
+    private ?bool $requiredCreate;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
-    private $requiredEdit;
+    private ?bool $requiredEdit;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
-    private $displayedCreate;
+    private ?bool $keptInMemory;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
-    private $displayedEdit;
+    private ?bool $displayedCreate;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
-    private $displayedFilters;
+    private ?bool $displayedEdit;
+
+    #[ORM\Column(type: 'boolean', nullable: true)]
+    private ?bool $displayedFilters;
 
     #[ORM\Column(type: 'json', nullable: true)]
-    private $elements = [];
+    private ?array $elements = [];
 
     #[ORM\Column(type: 'boolean', nullable: true, options: ['default' => false])]
-    private $fieldRequiredHidden;
+    private ?bool $fieldRequiredHidden;
 
     public function getId(): ?int {
         return $this->id;
@@ -202,6 +208,16 @@ class FieldsParam {
 
     public function setRequiredEdit(?bool $requiredEdit): self {
         $this->requiredEdit = $requiredEdit;
+
+        return $this;
+    }
+
+    public function isKeptInMemory(): ?bool {
+        return $this->keptInMemory;
+    }
+
+    public function setKeptInMemory(?bool $keptInMemory): self {
+        $this->keptInMemory = $keptInMemory;
 
         return $this;
     }

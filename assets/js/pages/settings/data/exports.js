@@ -1,4 +1,15 @@
+import Routing from '../../../../../vendor/friendsofsymfony/jsrouting-bundle/Resources/public/js/router.min.js';
+import Form from '@app/form';
+import Flash from '@app/flash';
 import AJAX from "@app/ajax";
+
+const EXPORT_UNIQUE = `exportUnique`;
+const EXPORT_SCHEDULED = `exportScheduled`;
+
+const ENTITY_REFERENCE = "references";
+const ENTITY_ARTICLE = "articles";
+const ENTITY_TRANSPORT_ROUNDS = "transportRounds";
+const ENTITY_ARRIVALS = "arrivals";
 
 global.displayNewExportModal = displayNewExportModal;
 global.toggleFrequencyInput = toggleFrequencyInput;
@@ -52,7 +63,6 @@ $(document).ready(() => {
             const content = data.asObject();
             if(content.exportTypeContainer === EXPORT_UNIQUE) {
                 if (content.entityToExport === ENTITY_REFERENCE) {
-                    console.log('hwwwuh');
                     window.open(Routing.generate(`settings_export_references`));
                 } else if (content.entityToExport === ENTITY_ARTICLE) {
                     window.open(Routing.generate(`settings_export_articles`));
@@ -73,24 +83,25 @@ $(document).ready(() => {
 
                 }
 
-                tableExport.ajax.reload();
-                $modalNewExport.modal(`hide`);
+                return new Promise((resolve) => {
+                    $(window).on('focus.focusAfterExport', function() {
+                        $modalNewExport.modal(`hide`);
+                        tableExport.ajax.reload();
+                        $(window).off('focus.focusAfterExport');
+                        resolve();
+                    });
+                })
             } else {
                 AJAX.route(`POST`, `settings_submit_export`).json(data);
             }
 
-            return Promise.resolve();
+                // TODO remove  ?
+                return Promise.resolve();
+            }
+
         });
     });
 });
-
-const EXPORT_UNIQUE = `exportUnique`;
-const EXPORT_SCHEDULED = `exportScheduled`;
-
-const ENTITY_REFERENCE = "references";
-const ENTITY_ARTICLE = "articles";
-const ENTITY_TRANSPORT_ROUNDS = "transportRounds";
-const ENTITY_ARRIVALS = "arrivals";
 
 function displayNewExportModal(){
     $modalNewExport.modal(`show`);
