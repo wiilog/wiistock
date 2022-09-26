@@ -70,8 +70,8 @@ class DataExportController extends AbstractController {
                 ]),
                 "status" => $export->getStatus()->getNom(),
                 "creationDate" => $export->getCreatedAt()->format("d/m/Y"),
-                "startDate" => $export->getBeganAt()->format("d/m/Y"),
-                "endDate" => $export->getEndedAt()->format("d/m/Y"),
+                "startDate" => $export->getBeganAt()?->format("d/m/Y"),
+                "endDate" => $export->getEndedAt()?->format("d/m/Y"),
                 "nextRun" => $export->getNextExecution()?->format("d/m/Y"),
                 "frequency" => "", //TODO: formatter : pas mon problème
                 "user" => FormatHelper::user($export->getCreator()),

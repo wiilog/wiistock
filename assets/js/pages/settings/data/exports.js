@@ -6,10 +6,10 @@ import AJAX from "@app/ajax";
 const EXPORT_UNIQUE = `exportUnique`;
 const EXPORT_SCHEDULED = `exportScheduled`;
 
-const ENTITY_REFERENCE = "references";
-const ENTITY_ARTICLE = "articles";
-const ENTITY_TRANSPORT_ROUNDS = "transportRounds";
-const ENTITY_ARRIVALS = "arrivals";
+const ENTITY_REFERENCE = "reference";
+const ENTITY_ARTICLE = "article";
+const ENTITY_TRANSPORT_ROUNDS = "tournee";
+const ENTITY_ARRIVALS = "arrivage";
 
 global.displayNewExportModal = displayNewExportModal;
 global.toggleFrequencyInput = toggleFrequencyInput;
@@ -94,8 +94,6 @@ $(document).ready(() => {
             } else {
                 return AJAX.route(`POST`, `settings_submit_export`).json(data);
             }
-
-            return Promise.resolve();
         });
     });
 });
