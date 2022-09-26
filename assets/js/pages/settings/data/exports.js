@@ -92,13 +92,10 @@ $(document).ready(() => {
                     });
                 })
             } else {
-                AJAX.route(`POST`, `settings_submit_export`).json(data);
+                return AJAX.route(`POST`, `settings_submit_export`).json(data);
             }
 
-                // TODO remove  ?
-                return Promise.resolve();
-            }
-
+            return Promise.resolve();
         });
     });
 });
