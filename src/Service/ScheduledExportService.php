@@ -2,14 +2,20 @@
 
 namespace App\Service;
 
+use App\Controller\Settings\DataExportController;
+use App\Entity\Article;
+use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
+use App\Entity\CategoryType;
 use App\Entity\Export;
 use App\Entity\ExportScheduleRule;
-use App\Entity\Import;
-use App\Entity\ImportScheduleRule;
+use App\Entity\FreeField;
+use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
+use App\Service\Transport\TransportRoundService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use RuntimeException;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
@@ -18,12 +24,30 @@ class ScheduledExportService
     #[Required]
     public CacheService $cacheService;
 
+    #[Required]
+    public CSVExportService $csvExportService;
+
+    #[Required]
+    public DataExportService $dataExportService;
+
+    #[Required]
+    public RefArticleDataService $refArticleDataService;
+
+    #[Required]
+    public ArticleDataService $articleDataService;
+
+    #[Required]
+    public TransportRoundService $transportRoundService;
+
+    #[Required]
+    public FreeFieldService $freeFieldService;
+
     public function saveScheduledExportsCache(EntityManagerInterface $entityManager): void {
-        $this->cacheService->set(CacheService::IMPORTS, $this->buildScheduledExportsCache($entityManager));
+        $this->cacheService->set(CacheService::EXPORTS, $this->buildScheduledExportsCache($entityManager));
     }
 
     public function getScheduledCache(EntityManagerInterface $entityManager): array {
-        return $this->cacheService->get(CacheService::IMPORTS, fn() => $this->buildScheduledExportsCache($entityManager));
+        return $this->cacheService->get(CacheService::EXPORTS, fn() => $this->buildScheduledExportsCache($entityManager));
     }
 
     private function buildScheduledExportsCache(EntityManagerInterface $entityManager): array {
@@ -54,7 +78,7 @@ class ScheduledExportService
             ExportScheduleRule::WEEKLY => $this->calculateFromWeeklyRule($rule, $now),
             ExportScheduleRule::HOURLY => $this->calculateFromHourlyRule($rule, $now),
             ExportScheduleRule::MONTHLY => $this->calculateFromMonthlyRule($rule, $now),
-            default => throw new \RuntimeException('Invalid schedule rule frequency'),
+            default => throw new RuntimeException('Invalid schedule rule frequency'),
         };
         if ($export->isForced()) {
             $now->setTime($now->format('H'), ((int)$now->format('i')) + 2, 0, 0);
@@ -217,8 +241,34 @@ class ScheduledExportService
         $finished = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::EXPORT, Export::STATUS_FINISHED);
         $now = new DateTime();
 
+        $output = tmpfile();
+
         $exportToRun = $this->expandScheduledExport($export);
-        // RUN EXPORT
+        if($export->getEntity() === DataExportController::ENTITY_REFERENCE) {
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+            $references = $referenceArticleRepository->iterateAll($export->getCreator());
+            $freeFieldsConfig = $this->freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::REFERENCE_ARTICLE], [CategoryType::ARTICLE]);
+
+            $this->csvExportService->putLine($output, $this->dataExportService->createReferencesHeader($freeFieldsConfig));
+            $this->dataExportService->exportReferences($this->refArticleDataService, $freeFieldsConfig, $references, $output);
+        } else if($export->getEntity() === DataExportController::ENTITY_ARTICLE) {
+            $referenceArticleRepository = $entityManager->getRepository(Article::class);
+            $articles = $referenceArticleRepository->iterateAll($export->getCreator());
+            $freeFieldsConfig = $this->freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::ARTICLE], [CategoryType::ARTICLE]);
+
+            $this->csvExportService->putLine($output, $this->dataExportService->createArticlesHeader($freeFieldsConfig));
+            $this->dataExportService->exportArticles($this->articleDataService, $freeFieldsConfig, $articles, $output);
+        } else if($export->getEntity() === DataExportController::ENTITY_TRANSPORT_ROUNDS) {
+
+        } else if($export->getEntity() === DataExportController::ENTITY_ARRIVALS) {
+            //TODO: exporter les arrivages
+        } else {
+            throw new RuntimeException("Unknown entity type");
+        }
+
+        $meta_data = stream_get_meta_data($output);
+        dump($meta_data["uri"]);
+
         $nextExecutionDate = $this->calculateNextExecutionDate($exportToRun);
 
         $export

@@ -4,17 +4,22 @@ namespace App\Controller\Settings;
 
 use App\Entity\Article;
 use App\Entity\CategorieCL;
+use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Export;
+use App\Entity\ExportScheduleRule;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
 use App\Entity\ReferenceArticle;
+use App\Entity\Statut;
 use App\Entity\Transport\TransportRound;
+use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use App\Service\ArticleDataService;
 use App\Service\CSVExportService;
+use App\Service\DataExportService;
 use App\Service\FreeFieldService;
 use App\Service\ImportService;
 use App\Service\RefArticleDataService;
@@ -22,6 +27,7 @@ use App\Service\Transport\TransportRoundService;
 use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use DoctrineExtensions\Query\Mysql\Exp;
 use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -29,6 +35,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\Security;
 use WiiCommon\Helper\Stream;
 
 #[Route("/parametrage")]
@@ -66,7 +73,7 @@ class DataExportController extends AbstractController {
                 "startDate" => $export->getBeganAt()->format("d/m/Y"),
                 "endDate" => $export->getEndedAt()->format("d/m/Y"),
                 "nextRun" => $export->getNextExecution()?->format("d/m/Y"),
-                "frequency" => "", //TODO: formatter = pas mon problème
+                "frequency" => "", //TODO: formatter : pas mon problème
                 "user" => FormatHelper::user($export->getCreator()),
                 "type" => FormatHelper::type($export->getType()),
                 "entity" => Export::ENTITY_LABELS[$export->getEntity()],
@@ -81,9 +88,11 @@ class DataExportController extends AbstractController {
     }
 
     #[Route("/export/submit", name: "settings_submit_export", options: ["expose" => true], methods: "POST")]
-    public function submitExport(Request $request, EntityManagerInterface $manager): Response {
-        $data = json_decode($request->getContent(), true);
+    public function submitExport(Request $request, EntityManagerInterface $manager, Security $security): Response {
+        $userRepository = $manager->getRepository(Utilisateur::class);
 
+        $data = $request->request->all();
+dump($request->getContent(), $request->request);
         if(!isset($data["entityToExport"])) {
             return $this->json([
                 "success" => false,
@@ -97,7 +106,86 @@ class DataExportController extends AbstractController {
         if($type === self::EXPORT_UNIQUE) {
             //do nothing the export has been done in JS
         } else {
+            $type = $manager->getRepository(Type::class)->findOneByCategoryLabelAndLabel(
+                CategoryType::EXPORT,
+                Type::LABEL_SCHEDULED_EXPORT,
+            );
 
+            $status = $manager->getRepository(Statut::class)->findOneByCategorieNameAndStatutCode(
+                CategorieStatut::EXPORT,
+                Export::STATUS_SCHEDULED,
+            );
+
+            $export = new Export();
+            $export->setEntity($entity);
+            $export->setType($type);
+            $export->setStatus($status);
+            $export->setCreator($security->getUser());
+            $export->setCreatedAt(new DateTime());
+            $export->setForced(false);
+
+            $export->setDestinationType($data["destinationType"]);
+            if($export->getDestinationType() == Export::DESTINATION_EMAIL) {
+                $export->setFtpParameters(null);
+
+                $emails = explode(",", $data["recipientEmails"]);
+                $counter = 0;
+                foreach ($emails as $email) {
+                    if(!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                        $counter++;
+                    }
+                }
+
+                if($counter !== 0) {
+                    return $this->json([
+                        "success" => false,
+                        "msg" => $counter === 1
+                            ? "Une adresse email n'est pas valide dans votre saisie"
+                            : "Plusieurs adresses email ne sont pas valides dans votre saisie"
+                    ]);
+                }
+
+                $export->setRecipientUsers($userRepository->findBy(["id" => explode(",", $data["recipientUsers"])]));
+                $export->setRecipientEmails($emails);
+            } else {
+                $export->setRecipientUsers([]);
+                $export->setRecipientEmails([]);
+
+                $export->setFtpParameters([
+                    "host" => $data["host"],
+                    "port" => $data["port"],
+                    "user" => $data["user"],
+                    "password" => $data["password"],
+                    "targetDirectory" => $data["targetDirectory"],
+                ]);
+            }
+            if($entity === Export::ENTITY_ARRIVAL) {
+                $export->setColumnToExport(explode(",", $data["columnToExport"]));
+            }
+
+            if($entity === Export::ENTITY_ARRIVAL || $entity === Export::ENTITY_DELIVERY_ROUND) {
+                $export->setPeriod($data["period"]);
+                $export->setPeriodInterval($data["periodInterval"]);
+            }
+
+            $export->setExportScheduleRule((new ExportScheduleRule())
+                ->setBegin(DateTime::createFromFormat("Y-m-d\TH:i", $data["startDate"]))
+                ->setFrequency($data["frequency"] ?? null)
+                ->setPeriod($data["period"] ?? null)
+                ->setIntervalTime($data["intervalTime"] ?? null)
+                ->setIntervalPeriod($data["intervalPeriod"] ?? null)
+                ->setIntervalType($data["intervalType"] ?? null)
+                ->setMonths(isset($data["months"]) ? explode(",", $data["months"]) : null)
+                ->setWeekDays(isset($data["weekDays"]) ? explode(",", $data["weekDays"]) : null)
+                ->setMonthDays(isset($data["monthDays"]) ? explode(",", $data["monthDays"]) : null));
+
+            $manager->persist($export);
+            $manager->flush();
+
+            return $this->json([
+                "success" => true,
+                "msg" => "L'export planifié a été enregistré",
+            ]);
         }
 
         return $this->json([
@@ -108,106 +196,44 @@ class DataExportController extends AbstractController {
     #[Route("/export/unique/reference", name: "settings_export_references", options: ["expose" => true], methods: "GET")]
     public function exportReferences(EntityManagerInterface $manager,
                                      CSVExportService       $csvService,
+                                     DataExportService      $dataExportService,
                                      UserService            $userService,
                                      RefArticleDataService  $refArticleDataService,
                                      FreeFieldService       $freeFieldService): StreamedResponse {
         $freeFieldsConfig = $freeFieldService->createExportArrayConfig($manager, [CategorieCL::REFERENCE_ARTICLE], [CategoryType::ARTICLE]);
-
-        $header = array_merge([
-            'reference',
-            'libellé',
-            'quantité',
-            'type',
-            'acheteur',
-            'type quantité',
-            'statut',
-            'commentaire',
-            'emplacement',
-            'seuil sécurite',
-            'seuil alerte',
-            'prix unitaire',
-            'code barre',
-            'catégorie inventaire',
-            'date dernier inventaire',
-            'synchronisation nomade',
-            'gestion de stock',
-            'gestionnaire(s)',
-            'Labels Fournisseurs',
-            'Codes Fournisseurs',
-            'Groupe de visibilité',
-            'date de création',
-            'crée par',
-            'date de dérniere modification',
-            'modifié par',
-            "date dernier mouvement d'entrée",
-            "date dernier mouvement de sortie",
-        ], $freeFieldsConfig['freeFieldsHeader']);
+        $header = $dataExportService->createReferencesHeader($freeFieldsConfig);
 
         $today = new DateTime();
         $today = $today->format("d-m-Y H:i:s");
         $user = $userService->getUser();
 
-        return $csvService->streamResponse(function($output) use ($manager, $csvService, $user, $freeFieldsConfig, $refArticleDataService) {
+        return $csvService->streamResponse(function($output) use ($manager, $dataExportService, $user, $freeFieldsConfig, $refArticleDataService) {
             $referenceArticleRepository = $manager->getRepository(ReferenceArticle::class);
-            $start = new DateTime();
-
-            $managersByReference = $manager
-                ->getRepository(Utilisateur::class)
-                ->getUsernameManagersGroupByReference();
-
-            $suppliersByReference = $manager
-                ->getRepository(Fournisseur::class)
-                ->getCodesAndLabelsGroupedByReference();
-            dump("a!");
-
             $references = $referenceArticleRepository->iterateAll($user);
-            foreach($references as $reference) {
-                $refArticleDataService->putReferenceLine($output, $managersByReference, $reference, $suppliersByReference, $freeFieldsConfig);
-            }
-dump("ok?");
-            $csvService->createUniqueExportLine(Export::ENTITY_REFERENCE, $start);
-            dump("no");
+
+            $dataExportService->exportReferences($refArticleDataService, $freeFieldsConfig, $references, $output);
         }, "export-references-$today.csv", $header);
     }
 
     #[Route("/export/unique/articles", name: "settings_export_articles", options: ["expose" => true], methods: "GET")]
     public function exportArticles(EntityManagerInterface $entityManager,
                                    FreeFieldService       $freeFieldService,
+                                   DataExportService      $dataExportService,
                                    ArticleDataService     $articleDataService,
                                    UserService            $userService,
                                    CSVExportService       $csvService): StreamedResponse {
         $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::ARTICLE], [CategoryType::ARTICLE]);
-        $header = array_merge([
-            'reference',
-            'libelle',
-            'quantité',
-            'type',
-            'statut',
-            'commentaire',
-            'emplacement',
-            'code barre',
-            'date dernier inventaire',
-            'lot',
-            'date d\'entrée en stock',
-            'date de péremption',
-            'groupe de visibilité'
-        ], $freeFieldsConfig['freeFieldsHeader']);
+        $header = $dataExportService->createArticlesHeader($freeFieldsConfig);
 
         $today = new DateTime();
         $today = $today->format("d-m-Y H:i:s");
         $user = $userService->getUser();
 
-        return $csvService->streamResponse(function($output) use ($freeFieldsConfig, $entityManager, $csvService, $freeFieldService, $user, $articleDataService) {
+        return $csvService->streamResponse(function($output) use ($freeFieldsConfig, $entityManager, $dataExportService, $user, $articleDataService) {
             $articleRepository = $entityManager->getRepository(Article::class);
-            $start = new DateTime();
-
             $articles = $articleRepository->iterateAll($user);
-            foreach($articles as $article) {
-                $articleDataService->putArticleLine($output, $article, $freeFieldsConfig);
-            }
 
-            $csvService->createUniqueExportLine(Export::ENTITY_ARTICLE, $start);
-            $entityManager->flush();
+            $dataExportService->exportArticles($articleDataService, $freeFieldsConfig, $articles, $output);
         }, "export-articles-$today.csv", $header);
     }
 
@@ -231,16 +257,8 @@ dump("ok?");
         $csvHeader = $transportRoundService->getHeaderRoundAndRequestExport();
 
         $transportRoundsIterator = $transportRoundRepository->iterateFinishedTransportRounds($dateTimeMin, $dateTimeMax);
-        return $csvService->streamResponse(function ($output) use ($entityManager, $csvService, $transportRoundService, $transportRoundsIterator) {
-            $start = new DateTime();
-
-            /** @var TransportRound $round */
-            foreach ($transportRoundsIterator as $round) {
-                $transportRoundService->putLineRoundAndRequest($output, $round);
-            }
-
-            $csvService->createUniqueExportLine(Export::ENTITY_DELIVERY_ROUND, $start);
-            $entityManager->flush();
+        return $csvService->streamResponse(function ($output) use ($csvService, $transportRoundService, $transportRoundsIterator) {
+            $csvService->exportTransportRounds($transportRoundService, $transportRoundsIterator, $output);
         }, $nameFile, $csvHeader);
     }
 

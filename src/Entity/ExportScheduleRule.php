@@ -16,7 +16,6 @@ class ExportScheduleRule {
     public const WEEKLY = 'every-week-frequency';
     public const MONTHLY = 'every-month-frequency';
 
-
     public const PERIOD_TYPE_MINUTES = 'minutes';
     public const PERIOD_TYPE_HOURS = 'hours';
 
@@ -32,31 +31,39 @@ class ExportScheduleRule {
     #[ORM\JoinColumn(nullable: false)]
     private ?Export $export = null;
 
-    #[ORM\Column(type: "datetime", nullable: true)]
+    #[ORM\Column(type: "datetime")]
     private ?DateTime $begin = null;
 
-    #[ORM\Column(type: "string", length: 255)]
+    #[ORM\Column(type: "string", length: 255, nullable: true)]
+    //For the "daily" and "weekly" scheduled imports
     private ?string $frequency = null;
 
-    #[ORM\Column(type: "integer", length: 255)]
+    #[ORM\Column(type: "integer", length: 255, nullable: true)]
+    //For the "daily" and "weekly" scheduled imports
     private ?int $period = null;
 
-    #[ORM\Column(type: "string", length: 255)]
+    #[ORM\Column(type: "string", length: 255, nullable: true)]
+    //For the "hourly" frequency when the hours or minutes were chosen
     private ?string $intervalTime = null;
 
-    #[ORM\Column(type: "integer", length: 255)]
+    #[ORM\Column(type: "integer", length: 255, nullable: true)]
+    //For the "hourly" frequency when the hours or minutes were chosen
     private ?int $intervalPeriod = null;
 
-    #[ORM\Column(type: "string", length: 255)]
+    #[ORM\Column(type: "string", length: 255, nullable: true)]
+    //For the "hourly" frequency when the hours or minutes were chosen
     private ?string $intervalType = null;
 
-    #[ORM\Column(type: "json", length: 255)]
+    #[ORM\Column(type: "json", length: 255, nullable: true)]
+    //Only for the "weekly" scheduled import
     private ?array $weekDays = null;
 
-    #[ORM\Column(type: "json", length: 255)]
+    #[ORM\Column(type: "json", length: 255, nullable: true)]
+    //Only for the "month" scheduled import
     private ?array $monthDays = null;
 
-    #[ORM\Column(type: "json", length: 255)]
+    #[ORM\Column(type: "json", length: 255, nullable: true)]
+    //Only for the "month" scheduled import
     private ?array $months = null;
 
     public function getId(): ?int {
