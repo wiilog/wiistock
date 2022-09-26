@@ -56,21 +56,21 @@
                 <label class="wii-field-name">Période de données</label>
                 <div class="d-flex align-items-center mt-2">
                     <label class="mr-3">Sur</label>
-                    {{ form.select('period', null, false, {
+                    {{ form.select('periodInterval', null, false, {
                         items: [
-                            {label: 'le jour', value: 'today'},
+                            {label: 'le jour', value: 'day'},
                             {label: 'la semaine', value: 'week'},
                             {label: 'le mois', value: 'month'},
                             {label: "l'année", value: 'year'}
                         ],
                         inputClass: 'data period-select',
-                        labelClass: 'mr-3'
+                        labelClass: 'mr-3 w-100'
                     }) }}
 
-                    {{ form.select('period-interval', null, false, {
+                    {{ form.select('period', null, false, {
                         items: [
-                            {label: 'en cours (jour J)', value: 'present-day'},
-                            {label: 'dernier (jour J-1)', value: 'past-day'},
+                            {label: 'en cours (jour J)', value: 'current'},
+                            {label: 'dernier (jour J-1)', value: 'previous'},
                         ],
                         inputClass: 'data period-interval-select',
                     }) }}
@@ -83,27 +83,22 @@
                 }) }}
             </div>
             <div>
-                <input type="hidden"
-                       class="data"
-                       name="frequency"
-                       data-label="Fréquence"
-                       data-target="frequencies">
                 <div class="wii-section-title my-3">Fréquence</div>
                 <div class="row frequencies mt-3">
-                    {{ form.radio('frequencies-container', null, false, [
-                        {label: 'Une fois', value: 'once-frequency', id: 'input-radio-frequency-once-frequency'},
-                        {label: 'Chaque heure', value: 'hourly-frequency', id: 'input-radio-frequency-hourly-frequency'},
-                        {label: 'Chaque jour', value: 'every-day-frequency', id: 'input-radio-frequency-every-day-frequency'},
-                        {label: 'Chaque semaine', value: 'every-week-frequency', id: 'input-radio-frequency-every-week-frequency'},
-                        {label: 'Chaque mois', value: 'every-month-frequency', id: 'input-radio-frequency-every-month-frequency'}
+                    {{ form.radio('frequency', null, false, [
+                        {label: 'Une fois', value: constant('App\\Entity\\ExportScheduleRule::ONCE'), id: 'input-radio-frequency-once-frequency', checked: true},
+                        {label: 'Chaque heure', value: constant('App\\Entity\\ExportScheduleRule::HOURLY'), id: 'input-radio-frequency-hourly-frequency'},
+                        {label: 'Chaque jour', value: constant('App\\Entity\\ExportScheduleRule::DAILY'), id: 'input-radio-frequency-every-day-frequency'},
+                        {label: 'Chaque semaine', value: constant('App\\Entity\\ExportScheduleRule::WEEKLY'), id: 'input-radio-frequency-every-week-frequency'},
+                        {label: 'Chaque mois', value: constant('App\\Entity\\ExportScheduleRule::MONTHLY'), id: 'input-radio-frequency-every-month-frequency'}
                     ], {
                         containerClass: 'col-4 frequencies-container',
                         onChange: 'toggleFrequencyInput($(this))'
                     }) }}
                     <div class="col-8 frequency-content d-none">
                         {% include 'settings/donnees/export/frequencies/once.html.twig' %}
-                        {% include 'settings/donnees/export/frequencies/daily.html.twig' %}
                         {% include 'settings/donnees/export/frequencies/hourly.html.twig' %}
+                        {% include 'settings/donnees/export/frequencies/daily.html.twig' %}
                         {% include 'settings/donnees/export/frequencies/weekly.html.twig' %}
                         {% include 'settings/donnees/export/frequencies/monthly.html.twig' %}
                     </div>
@@ -111,19 +106,19 @@
             </div>
             <div>
                 <div class="wii-section-title my-3">Destination d'export</div>
-                {{ form.radio('exportDestination', null, false, [
-                    {label: 'Envoi email', value: 'exportByEmail', class: 'export-by-email', checked: true },
-                    {label: 'Envoi vers serveur SFTP', value: 'exportBySFTP', class: 'export-by-sftp'}
+                {{ form.radio('destinationType', null, false, [
+                    {label: 'Envoi email', value: constant('App\\Entity\\Export::DESTINATION_EMAIL'), class: 'export-by-email', checked: true },
+                    {label: 'Envoi vers serveur SFTP', value: constant('App\\Entity\\Export::DESTINATION_SFTP'), class: 'export-by-sftp'}
                 ], {
                     onChange: 'destinationExportChange()'
                 }) }}
                 <div class="export-email-destination my-3">
-                    {{ form.select('recipient-users', 'Utilisateur(s) Follow GT', false, {
+                    {{ form.select('recipientUsers', 'Utilisateur(s) Follow GT', false, {
                         type: 'user',
                         multiple: true,
                     }) }}
 
-                    {{ form.select('recipient-emails', 'Email(s) libre(s)', false, {
+                    {{ form.select('recipientEmails', 'Email(s) libre(s)', false, {
                         type: null,
                         multiple: true,
                         editable: true,
@@ -148,7 +143,7 @@
                         type: 'text',
                         labelClass: 'col-5 pr-0 my-2'
                     }) }}
-                    {{ form.input('target-directory', "Répertoire cible de l'export", false, null, {
+                    {{ form.input('targetDirectory', "Répertoire cible de l'export", false, null, {
                         type: 'text',
                         labelClass: 'col-5 my-2'
                     }) }}

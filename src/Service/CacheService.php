@@ -44,7 +44,7 @@ class CacheService {
         if($value === null) {
             $value = $key;
             $key = "";
-        } else {
+        } else if($key) {
             $key = ".$key";
         }
 
@@ -53,7 +53,7 @@ class CacheService {
             mkdir($cache);
         }
 
-        $handle = fopen("$cache/$namespace$key", 'w+');
+        $handle = fopen("$cache/$namespace$key", "w+");
         fwrite($handle, serialize($value));
         fclose($handle);
     }

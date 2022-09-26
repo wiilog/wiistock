@@ -1,3 +1,16 @@
+import Routing from '../../../../../vendor/friendsofsymfony/jsrouting-bundle/Resources/public/js/router.min.js';
+import Form from '@app/form';
+import Flash from '@app/flash';
+import AJAX from "@app/ajax";
+
+const EXPORT_UNIQUE = `exportUnique`;
+const EXPORT_SCHEDULED = `exportScheduled`;
+
+const ENTITY_REFERENCE = "references";
+const ENTITY_ARTICLE = "articles";
+const ENTITY_TRANSPORT_ROUNDS = "transportRounds";
+const ENTITY_ARRIVALS = "arrivals";
+
 global.displayNewExportModal = displayNewExportModal;
 global.toggleFrequencyInput = toggleFrequencyInput;
 global.selectHourlyFrequencyIntervalType = selectHourlyFrequencyIntervalType;
@@ -43,14 +56,17 @@ $(document).ready(() => {
 
     Form.create($modalNewExport).onSubmit(data => {
         wrapLoadingOnActionButton($submitNewExport, () => {
-            data = data.asObject();
-            if(data.exportTypeContainer === EXPORT_UNIQUE) {
-                if (data.entityToExport === ENTITY_REFERENCE) {
-                    console.log('hwwwuh');
+            if(!data) {
+                return;
+            }
+
+            const content = data.asObject();
+            if(content.exportTypeContainer === EXPORT_UNIQUE) {
+                if (content.entityToExport === ENTITY_REFERENCE) {
                     window.open(Routing.generate(`settings_export_references`));
-                } else if (data.entityToExport === ENTITY_ARTICLE) {
+                } else if (content.entityToExport === ENTITY_ARTICLE) {
                     window.open(Routing.generate(`settings_export_articles`));
-                } else if (data.entityToExport === ENTITY_TRANSPORT_ROUNDS) {
+                } else if (content.entityToExport === ENTITY_TRANSPORT_ROUNDS) {
                     const dateMin = $modalNewExport.find(`[name=dateMin]`).val();
                     const dateMax = $modalNewExport.find(`[name=dateMax]`).val();
 
@@ -63,29 +79,26 @@ $(document).ready(() => {
                         dateMin,
                         dateMax,
                     }));
-                } else if (data.entityToExport === ENTITY_ARRIVALS) {
+                } else if (content.entityToExport === ENTITY_ARRIVALS) {
 
                 }
 
-                tableExport.ajax.reload();
-                $modalNewExport.modal(`hide`);
+                return new Promise((resolve) => {
+                    $(window).on('focus.focusAfterExport', function() {
+                        $modalNewExport.modal(`hide`);
+                        tableExport.ajax.reload();
+                        $(window).off('focus.focusAfterExport');
+                        resolve();
+                    });
+                })
             } else {
-                const params = JSON.stringify(data.asObject());
-                //TODO: enregistrer
+                return AJAX.route(`POST`, `settings_submit_export`).json(data);
             }
 
             return Promise.resolve();
         });
     });
 });
-
-const EXPORT_UNIQUE = `exportUnique`;
-const EXPORT_SCHEDULED = `exportScheduled`;
-
-const ENTITY_REFERENCE = "references";
-const ENTITY_ARTICLE = "articles";
-const ENTITY_TRANSPORT_ROUNDS = "transportRounds";
-const ENTITY_ARRIVALS = "arrivals";
 
 function displayNewExportModal(){
     $modalNewExport.modal(`show`);
@@ -143,25 +156,34 @@ function displayNewExportModal(){
         Select2Old.user($('.select2-user'));
         Select2Old.initFree($('.select2-free'));
         $('select[name=columnToExport]').select2();
-        $('select[name=monthly-frequency-months]').select2();
-        $('select[name=monthly-frequency-days-month]').select2();
-        $('select[name=weekly-frequency-days-week]').select2();
 
         $('.period-select').on('change', function (){
             let $periodInterval = $('.period-interval-select');
             $periodInterval.find('option').remove().end();
             switch ($(this).val()) {
                 case 'today':
-                    $periodInterval.append('<option value="present-day" selected>en cours (jour J)</option><option value="past-day">dernier (jour J-1)</option>');
+                    $periodInterval.append(
+                        '<option value="current" selected>en cours (jour J)</option>' +
+                        '<option value="previous">dernier (jour J-1)</option>'
+                    );
                     break;
                 case 'week':
-                    $periodInterval.append('<option value="present-week" selected>en cours (semaine S)</option><option value="past-week">dernière (semaine S-1)</option>');
+                    $periodInterval.append(
+                        '<option value="current" selected>en cours (semaine S)</option>' +
+                        '<option value="previous">dernière (semaine S-1)</option>'
+                    );
                     break;
                 case 'month':
-                    $periodInterval.append('<option value="present-month" selected>en cours (mois M)</option><option value="past-month">dernier (mois M-1)</option>');
+                    $periodInterval.append(
+                        '<option value="current" selected>en cours (mois M)</option>' +
+                        '<option value="previous">dernier (mois M-1)</option>'
+                    );
                     break;
                 case 'year':
-                    $periodInterval.append('<option value="present-year" selected>en cours (année A)</option><option value="past-year">dernière (année A-1)</option>');
+                    $periodInterval.append(
+                        '<option value="current" selected>en cours (année A)</option>' +
+                        '<option value="previous">dernière (année A-1)</option>'
+                    );
                     break;
                 default:
                     break;
@@ -185,7 +207,7 @@ function onSelectAll() {
     $select.find(`option:not([disabled])`).each(function () {
         $(this).prop(`selected`, true);
     });
-
+console.error('huh??', $select);
     $select.trigger(`change`);
 }
 
