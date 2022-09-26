@@ -233,11 +233,11 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
             $statut
                 ->setNom($statusLabel)
                 ->setCode($statusLabel)
+                ->setState($state)
                 ->setCategorie($this->getReference('statut-' . $categoryName));
             $manager->persist($statut);
             $output->writeln("Création du statut \"" . $statusLabel . "\" dans la catégorie \"" . $statut->getCategorie()->getNom() . "\"");
         }
 
-        $statut->setState($state);
     }
 }
