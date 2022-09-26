@@ -1,3 +1,15 @@
+import Routing from '../../../../../vendor/friendsofsymfony/jsrouting-bundle/Resources/public/js/router.min.js';
+import Form from '@app/form';
+import Flash from '@app/flash';
+
+const EXPORT_UNIQUE = `exportUnique`;
+const EXPORT_SCHEDULED = `exportScheduled`;
+
+const ENTITY_REFERENCE = "references";
+const ENTITY_ARTICLE = "articles";
+const ENTITY_TRANSPORT_ROUNDS = "transportRounds";
+const ENTITY_ARRIVALS = "arrivals";
+
 global.displayNewExportModal = displayNewExportModal;
 global.toggleFrequencyInput = toggleFrequencyInput;
 global.selectHourlyFrequencyIntervalType = selectHourlyFrequencyIntervalType;
@@ -43,12 +55,9 @@ $(document).ready(() => {
 
     Form.create($modalNewExport).onSubmit(data => {
         wrapLoadingOnActionButton($submitNewExport, () => {
-            console.log('xxx');
             data = data.asObject();
             if(data.exportTypeContainer === EXPORT_UNIQUE) {
-console.log('huh');
                 if (data.entityToExport === ENTITY_REFERENCE) {
-                    console.log('hwwwuh');
                     window.open(Routing.generate(`settings_export_references`));
                 } else if (data.entityToExport === ENTITY_ARTICLE) {
                     window.open(Routing.generate(`settings_export_articles`));
@@ -69,25 +78,25 @@ console.log('huh');
 
                 }
 
-                tableExport.ajax.reload();
-                $modalNewExport.modal(`hide`);
+                return new Promise((resolve) => {
+                    $(window).on('focus.focusAfterExport', function() {
+                        $modalNewExport.modal(`hide`);
+                        tableExport.ajax.reload();
+                        $(window).off('focus.focusAfterExport');
+                        resolve();
+                    });
+                })
             } else {
                 const params = JSON.stringify(data.asObject());
                 //TODO: enregistrer
+
+                // TODO remove  ?
+                return Promise.resolve();
             }
 
-            return Promise.resolve();
         });
     });
 });
-
-const EXPORT_UNIQUE = `exportUnique`;
-const EXPORT_SCHEDULED = `exportScheduled`;
-
-const ENTITY_REFERENCE = "references";
-const ENTITY_ARTICLE = "articles";
-const ENTITY_TRANSPORT_ROUNDS = "transportRounds";
-const ENTITY_ARRIVALS = "arrivals";
 
 function getExportType() {
     return $(`input[name="exportTypeContainer"]:checked`).val();
