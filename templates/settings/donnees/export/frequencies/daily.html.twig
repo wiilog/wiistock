@@ -1,0 +1,29 @@
+<div class="frequency every-day-frequency">
+    <div class="col-12 p-3 form-inline form-group">
+        <label class="wii-field-name">Démarrer le*</label>
+        <input type="datetime-local"
+               class="form-control form-control-sm ml-2 frequency-data"
+               name="daily-start-on"
+               title="Démarrer le"
+               placeholder="jj/mm/aaaa"
+               min='now'
+               value=""/>
+    </div>
+
+    <div class="form-inline">
+        <div class="col-12 p-3">
+            Répéter tous les
+            <input type="number"
+                   name="daily-frequency-interval"
+                   class="form-control form-control-sm mx-2 w-px-100 frequency-data"
+                   data-label="Intervalle de jours"
+                   min="1"
+                   value="">
+            jours à <input type="time"
+                           name="daily-frequency-time"
+                           class="form-control form-control-sm mx-2 w-px-100 frequency-data"
+                           data-label="Heures et minutes"
+                           value="">
+        </div>
+    </div>
+</div>

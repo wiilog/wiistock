@@ -1,0 +1,54 @@
+<div class="frequency every-month-frequency">
+    <div class="col-12 p-3 form-inline form-group">
+        <label class="wii-field-name">Démarrer le*</label>
+        <input type="datetime-local"
+               class="form-control form-control-sm ml-2 frequency-data"
+               name="monthly-start-on"
+               title="Démarrer le"
+               placeholder="jj/mm/aaaa"
+               min="now"
+               value=""/>
+    </div>
+
+    <div class="form-inline">
+        <div class="col-12 p-3">
+            Mois* :
+            <div class="input-group flex-nowrap no-gutters">
+                <div class="flex-fill">
+                    <select name="monthly-frequency-months"
+                            class="form-control select2 w-100 frequency-data"
+                            multiple
+                            data-label="Mois">
+                        {% for month in 1..12 %}
+                            {% set date = month ~ "/1/2022" %}
+                            <option value="{{ month }}">
+                                {{ date | format_date('none', 'MMMM', null, 'gregorian', 'fr') | capitalize }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="input-group-append col-4">
+                    <button class="btn btn-primary select-all-options w-100" type="button">Tous les mois</button>
+                </div>
+            </div>
+            Jours* :
+            <select name="monthly-frequency-days-month"
+                    class="form-control select2 w-100 mt-2 frequency-data"
+                    multiple
+                    data-label="Jours du mois">
+                {% for i in 1..31 %}
+                    <option value="{{ i }}">{{ i }}</option>
+                {% endfor %}
+                <option value="">Dernier</option>
+            </select>
+            <div class="pt-3">
+                Heure d'exécution :
+                <input type="time"
+                       name="monthly-frequency-time"
+                       class="form-control form-control-sm mx-2 w-px-100 mb-2 frequency-data"
+                       data-label="Heures et minutes"
+                       value="">
+            </div>
+        </div>
+    </div>
+</div>

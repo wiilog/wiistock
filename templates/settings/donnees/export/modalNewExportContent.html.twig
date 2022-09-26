@@ -1,0 +1,155 @@
+{% import 'form.html.twig' as form %}
+
+<div>
+    {{ form.radio('exportTypeContainer', null, false, [
+        {label: 'Export CSV unique', value: 'exportUnique', checked: true},
+        {label: 'Export CSV planifié', value: 'exportScheduled'}
+    ], {
+        containerClass: 'export-type-container'
+    }) }}
+    <div>
+        <div class="wii-section-title my-3">Type de données à exporter</div>
+
+        {{ form.switch('entityToExport', null, true, [
+            {label: 'Références', value: 'references', class: 'export-references' },
+            {label: 'Articles', value: 'articles', class: 'export-articles' },
+            {label: 'Tournées', value: 'transportRounds', class: 'export-transport-rounds' },
+            {label: 'Arrivages', value: 'arrivals', class: 'export-arrivals'}
+        ], {expanded: true}) }}
+
+        <div class="unique-export-container my-3">
+            <label class="ref-articles-sentence wii-small-text d-none">Les articles exportés sont seulement ceux avec le groupe de visibilité rattaché à l'utilisateur.</label>
+            <div class="date-limit d-none">
+                <label class="wii-field-name">Bornes de dates</label>
+                <div class="col-12 col-md-6 p-0">
+                    <div class="h-100">
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text w-50px d-flex justify-content-center">Du</span>
+                            </div>
+                            <input type="text"
+                                   class="form-control cursor-default filter-date-min data"
+                                   name="dateMin"
+                                   placeholder="jj/mm/aaaa"
+                                   autocomplete="off"/>
+                            <div class="input-group-prepend input-group-append">
+                                <span class="input-group-text w-50px d-flex justify-content-center">Au</span>
+                            </div>
+                            <input type="text"
+                                   class="form-control cursor-default filter-date-max data"
+                                   name="dateMax"
+                                   placeholder="jj/mm/aaaa"
+                                   autocomplete="off"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="scheduled-export-container my-3 d-none">
+            <div class="period-interval mb-3">
+                <label class="wii-field-name">Période de données</label>
+                <div class="d-flex align-items-center mt-2">
+                    <label class="mr-3">Sur</label>
+                    {{ form.select('period', null, false, {
+                        items: [
+                            {label: 'le jour', value: 'today'},
+                            {label: 'la semaine', value: 'week'},
+                            {label: 'le mois', value: 'month'},
+                            {label: "l'année", value: 'year'}
+                        ],
+                        inputClass: 'data period-select',
+                        labelClass: 'mr-3'
+                    }) }}
+
+                    <select name="period-interval">
+                        <option>Mais c'est fou</option>
+                        <option>Matteo la merde</option>
+                    </select>
+                </div>
+            </div>
+            <div class="column-to-export">
+                <label class="wii-field-name">Colonnes à exporter</label>
+                <select>
+                    <option>Transporteur(s)</option>
+                </select>
+            </div>
+            <div>
+                <input type="hidden"
+                       class="data"
+                       name="frequency"
+                       data-label="Fréquence"
+                       data-target="frequencies">
+                <div class="wii-section-title my-3">Fréquence</div>
+                <div class="row frequencies mt-3">
+                    {{ form.radio('frequencies-container', null, false, [
+                        {label: 'Une fois', value: 'once-frequency', id: 'input-radio-frequency-once-frequency'},
+                        {label: 'Chaque heure', value: 'hourly-frequency', id: 'input-radio-frequency-hourly-frequency'},
+                        {label: 'Chaque jour', value: 'every-day-frequency', id: 'input-radio-frequency-every-day-frequency'},
+                        {label: 'Chaque semaine', value: 'every-week-frequency', id: 'input-radio-frequency-every-week-frequency'},
+                        {label: 'Chaque mois', value: 'every-month-frequency', id: 'input-radio-frequency-every-month-frequency'}
+                    ], {
+                        containerClass: 'col-4 frequencies-container',
+                        onChange: 'toggleFrequencyInput($(this))'
+                    }) }}
+                    <div class="col-8 frequency-content d-none">
+                        {% include 'settings/donnees/export/frequencies/once.html.twig' %}
+                        {% include 'settings/donnees/export/frequencies/daily.html.twig' %}
+                        {% include 'settings/donnees/export/frequencies/hourly.html.twig' %}
+                        {% include 'settings/donnees/export/frequencies/weekly.html.twig' %}
+                        {% include 'settings/donnees/export/frequencies/monthly.html.twig' %}
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div class="wii-section-title my-3">Destination d'export</div>
+                {{ form.radio('exportDestination', null, false, [
+                    {label: 'Envoi email', value: 'exportByEmail', class: 'export-by-email', checked: true },
+                    {label: 'Envoi vers serveur SFTP', value: 'exportBySFTP', class: 'export-by-sftp'}
+                ], {
+                    onChange: 'destinationExportChange($(this))'
+                }) }}
+                <div class="export-email-destination my-3">
+                    <div>
+                        <label class="wii-field-name">Utilisateur(s) Follow GT</label>
+                        <select class="form-control data ajax-autocomplete-user filter-select2 recipient-users"
+                                name="recipient-users"
+                                data-s2="user"
+                                multiple="multiple">
+                        </select>
+                    </div>
+                    <div>
+                        <label class="wii-field-name">Email(s) libre(s)</label>
+                        <select class="form-control data select2-free recipient-emails"
+                                name="recipient-emails"
+                                multiple="multiple">
+                        </select>
+                    </div>
+
+                </div>
+                <div class="export-sftp-destination d-none">
+                    <label class="wii-section-title my-3">Paramétrer le serveur</label>
+                    {{ form.input('host', 'Serveur Hôte', false, null, {
+                        type: 'text',
+                        labelClass: 'col-5 my-2'
+                    }) }}
+                    {{ form.input('port', 'Port', false, null, {
+                        type: 'text',
+                        labelClass: 'col-5 pr-0 my-2'
+                    }) }}
+                    {{ form.input('user', 'Utilisateur', false, null, {
+                        type: 'text',
+                        labelClass: 'col-5 my-2'
+                    }) }}
+                    {{ form.input('password', 'Mot de passe', false, null, {
+                        type: 'text',
+                        labelClass: 'col-5 pr-0 my-2'
+                    }) }}
+                    {{ form.input('target-directory', "Répertoire cible de l'export", false, null, {
+                        type: 'text',
+                        labelClass: 'col-5 my-2'
+                    }) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

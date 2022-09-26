@@ -7,8 +7,7 @@
     <div class="wii-page-card">
         <div class="row wii-page-card-header">
             <div class="col-auto ml-auto">
-                <div class="btn btn-primary"
-                     onclick="displayFirstModal()">
+                <div class="btn btn-primary" onclick="displayNewExportModal()">
                     <span class="fa fa-plus mr-2"></span>
                     Ajouter un export
                 </div>
@@ -21,4 +20,6 @@
             </div>
         </div>
     </div>
+
+    {% include 'settings/donnees/export/modalNewExport.html.twig' %}
 </div>

@@ -32,6 +32,14 @@ use Symfony\Component\Routing\Annotation\Route;
 #[Route("/parametrage")]
 class DataExportController extends AbstractController {
 
+    public const EXPORT_UNIQUE = "exportUnique";
+    public const EXPORT_SCHEDULED = "exportScheduled";
+
+    public const ENTITY_REFERENCE = "references";
+    public const ENTITY_ARTICLE = "articles";
+    public const ENTITY_TRANSPORT_ROUNDS = "transportRounds";
+    public const ENTITY_ARRIVALS = "arrivals";
+
     #[Route("/export/api", name: "settings_export_api", options: ["expose" => true], methods: "POST")]
     public function api(Request $request, EntityManagerInterface $manager): Response {
         /** @var Utilisateur $user */
@@ -55,8 +63,8 @@ class DataExportController extends AbstractController {
                 "creationDate" => $export->getCreatedAt()->format("d/m/Y"),
                 "startDate" => $export->getBeganAt()->format("d/m/Y"),
                 "endDate" => $export->getEndedAt()->format("d/m/Y"),
-                "nextRun" => $export->getNextExecution()->format("d/m/Y"),
-                "frequency" => $export->getFrequency(), //TODO: formatter = pas mon problème
+                "nextRun" => $export->getNextExecution()?->format("d/m/Y"),
+                "frequency" => "", //TODO: formatter = pas mon problème
                 "user" => FormatHelper::user($export->getCreator()),
                 "type" => FormatHelper::type($export->getType()),
                 "entity" => Export::ENTITY_LABELS[$export->getEntity()],
@@ -67,6 +75,31 @@ class DataExportController extends AbstractController {
             "data" => $rows,
             "recordsFiltered" => $queryResult["count"] ?? 0,
             "recordsTotal" => $queryResult["total"] ?? 0,
+        ]);
+    }
+
+    #[Route("/export/submit", name: "settings_submit_export", options: ["expose" => true], methods: "POST")]
+    public function submitExport(Request $request, EntityManagerInterface $manager): Response {
+        $data = json_decode($request->getContent(), true);
+
+        if(!isset($data["entityToExport"])) {
+            return $this->json([
+                "success" => false,
+                "msg" => "Veuillez sélectionner un type de données à exporter",
+            ]);
+        }
+
+        $type = $data["exportTypeContainer"];
+        $entity = $data["entityToExport"];
+
+        if($type === self::EXPORT_UNIQUE) {
+            //do nothing the export has been done in JS
+        } else {
+
+        }
+
+        return $this->json([
+            "success" => true,
         ]);
     }
 
@@ -123,13 +156,15 @@ class DataExportController extends AbstractController {
             $suppliersByReference = $manager
                 ->getRepository(Fournisseur::class)
                 ->getCodesAndLabelsGroupedByReference();
+            dump("a!");
 
             $references = $referenceArticleRepository->iterateAll($user);
             foreach($references as $reference) {
                 $refArticleDataService->putReferenceLine($output, $managersByReference, $reference, $suppliersByReference, $freeFieldsConfig);
             }
-
+dump("ok?");
             $csvService->createUniqueExportLine(Export::ENTITY_REFERENCE, $start);
+            dump("no");
         }, "export-references-$today.csv", $header);
     }
 
@@ -170,6 +205,7 @@ class DataExportController extends AbstractController {
             }
 
             $csvService->createUniqueExportLine(Export::ENTITY_ARTICLE, $start);
+            $entityManager->flush();
         }, "export-articles-$today.csv", $header);
     }
 
@@ -183,8 +219,8 @@ class DataExportController extends AbstractController {
         $dateMin = $request->query->get("dateMin");
         $dateMax = $request->query->get("dateMax");
 
-        $dateTimeMin = DateTime::createFromFormat("Y-m-d H:i:s", "$dateMin 00:00:00");
-        $dateTimeMax = DateTime::createFromFormat("Y-m-d H:i:s", "$dateMax 23:59:59");
+        $dateTimeMin = DateTime::createFromFormat("d/m/Y H:i:s", "$dateMin 00:00:00");
+        $dateTimeMax = DateTime::createFromFormat("d/m/Y H:i:s", "$dateMax 23:59:59");
 
         $transportRoundRepository = $entityManager->getRepository(TransportRound::class);
         $today = new DateTime();
@@ -193,7 +229,7 @@ class DataExportController extends AbstractController {
         $csvHeader = $transportRoundService->getHeaderRoundAndRequestExport();
 
         $transportRoundsIterator = $transportRoundRepository->iterateFinishedTransportRounds($dateTimeMin, $dateTimeMax);
-        return $csvService->streamResponse(function ($output) use ($csvService, $transportRoundService, $transportRoundsIterator) {
+        return $csvService->streamResponse(function ($output) use ($entityManager, $csvService, $transportRoundService, $transportRoundsIterator) {
             $start = new DateTime();
 
             /** @var TransportRound $round */
@@ -202,6 +238,14 @@ class DataExportController extends AbstractController {
             }
 
             $csvService->createUniqueExportLine(Export::ENTITY_DELIVERY_ROUND, $start);
+            $entityManager->flush();
         }, $nameFile, $csvHeader);
+    }
+
+
+    #[Route("/modale-new-export", name: "new_export_modal", options: ["expose" => true], methods: "GET")]
+    public function getFirstModalContent(): JsonResponse
+    {
+        return new JsonResponse($this->renderView('settings/donnees/export/modalNewExportContent.html.twig'));
     }
 }

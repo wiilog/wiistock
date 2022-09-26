@@ -1,4 +1,4 @@
-{% if export.status.code == constant('App\\Entity\\Export::STATUS_PLANIFIED') %}
+{% if export.status.code == constant('App\\Entity\\Export::STATUS_SCHEDULED') %}
     <div class="d-flex">
         <div class="dropdown dropright">
             {% include 'datatable/dotsRow.html.twig' %}

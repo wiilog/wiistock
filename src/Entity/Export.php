@@ -56,7 +56,7 @@ class Export {
     #[ORM\Column(type: "json", nullable: true)]
     private array $columnToExport = [];
 
-    #[ORM\Column(type: "string", length: 255)]
+    #[ORM\Column(type: "string", length: 255, nullable: true)]
     private ?string $exportDestination = null;
 
     #[ORM\Column(type: "json", nullable: true)]
@@ -68,10 +68,10 @@ class Export {
     #[ORM\ManyToMany(targetEntity: Utilisateur::class)]
     private Collection $recipientUsers;
 
-    #[ORM\Column(type: "string", length: 255)]
+    #[ORM\Column(type: "string", length: 255, nullable: true)]
     private ?string $period = null;
 
-    #[ORM\Column(type: "string", length: 255)]
+    #[ORM\Column(type: "string", length: 255, nullable: true)]
     private ?string $periodInterval = null;
 
     #[ORM\Column(type: "datetime", nullable: true)]
@@ -175,6 +175,18 @@ class Export {
     public function setColumnToExport(?array $columnToExport): self
     {
         $this->columnToExport = $columnToExport;
+
+        return $this;
+    }
+
+    public function getBeganAt(): ?DateTimeInterface
+    {
+        return $this->beganAt;
+    }
+
+    public function setBeganAt(?DateTimeInterface $beganAt): self
+    {
+        $this->beganAt = $beganAt;
 
         return $this;
     }
