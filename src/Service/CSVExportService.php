@@ -53,8 +53,10 @@ class CSVExportService {
         $export->setCreatedAt($from);
         $export->setBeganAt($from);
         $export->setEndedAt($to);
+        $export->setForced(false);
 
         $this->entityManager->persist($export);
+        $this->entityManager->flush();
 
         return $export;
     }
