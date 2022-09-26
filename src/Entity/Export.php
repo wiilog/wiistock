@@ -27,6 +27,9 @@ class Export {
         self::ENTITY_ARRIVAL => "Arrivages",
     ];
 
+    const DESTINATION_EMAIL = 1;
+    const DESTINATION_SFTP = 2;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: "integer")]
@@ -56,22 +59,22 @@ class Export {
     #[ORM\Column(type: "json", nullable: true)]
     private array $columnToExport = [];
 
-    #[ORM\Column(type: "string", length: 255)]
-    private ?string $exportDestination = null;
+    #[ORM\Column(type: "integer", nullable: true)]
+    private ?string $destinationType = null;
 
     #[ORM\Column(type: "json", nullable: true)]
-    private array $ftpParameters = [];
+    private ?array $ftpParameters = [];
 
     #[ORM\Column(type: "json", nullable: true)]
-    private array $recipientEmails = [];
+    private ?array $recipientEmails = [];
 
     #[ORM\ManyToMany(targetEntity: Utilisateur::class)]
     private Collection $recipientUsers;
 
-    #[ORM\Column(type: "string", length: 255)]
+    #[ORM\Column(type: "string", length: 255, nullable: true)]
     private ?string $period = null;
 
-    #[ORM\Column(type: "string", length: 255)]
+    #[ORM\Column(type: "string", length: 255, nullable: true)]
     private ?string $periodInterval = null;
 
     #[ORM\Column(type: "datetime", nullable: true)]
@@ -83,7 +86,7 @@ class Export {
     #[ORM\Column(type: "datetime", nullable: true)]
     private ?DateTimeInterface $nextExecution = null;
 
-    #[ORM\OneToOne(mappedBy: 'export', targetEntity: ExportScheduleRule::class)]
+    #[ORM\OneToOne(mappedBy: 'export', targetEntity: ExportScheduleRule::class, cascade: ["persist"])]
     private ?ExportScheduleRule $exportScheduleRule = null;
 
     public function __construct() {
@@ -179,14 +182,26 @@ class Export {
         return $this;
     }
 
-    public function getExportDestination(): ?string
+    public function getBeganAt(): ?DateTimeInterface
     {
-        return $this->exportDestination;
+        return $this->beganAt;
     }
 
-    public function setExportDestination(string $exportDestination): self
+    public function setBeganAt(?DateTimeInterface $beganAt): self
     {
-        $this->exportDestination = $exportDestination;
+        $this->beganAt = $beganAt;
+
+        return $this;
+    }
+
+    public function getDestinationType(): ?string
+    {
+        return $this->destinationType;
+    }
+
+    public function setDestinationType(string $destinationType): self
+    {
+        $this->destinationType = $destinationType;
 
         return $this;
     }
@@ -223,7 +238,17 @@ class Export {
         return $this->recipientUsers;
     }
 
-    public function addUserEmail(Utilisateur $userEmail): self
+    public function setRecipientUsers($users) {
+        foreach($this->getRecipientUsers() as $user) {
+            $this->removeRecipientUser($user);
+        }
+
+        foreach($users as $user) {
+            $this->addRecipientUser($user);
+        }
+    }
+
+    public function addRecipientUser(Utilisateur $userEmail): self
     {
         if (!$this->recipientUsers->contains($userEmail)) {
             $this->recipientUsers[] = $userEmail;
@@ -232,7 +257,7 @@ class Export {
         return $this;
     }
 
-    public function removeUserEmail(Utilisateur $userEmail): self
+    public function removeRecipientUser(Utilisateur $userEmail): self
     {
         $this->recipientUsers->removeElement($userEmail);
 
@@ -292,10 +317,18 @@ class Export {
         return $this->exportScheduleRule;
     }
 
-    public function setExportScheduleRule(?ExportScheduleRule $exportScheduleRule): self
-    {
+    public function setExportScheduleRule(?ExportScheduleRule $exportScheduleRule): self {
+        if($this->exportScheduleRule && $this->exportScheduleRule->getExport() !== $this) {
+            $oldExportScheduleRule = $this->exportScheduleRule;
+            $this->exportScheduleRule = null;
+            $oldExportScheduleRule->setExport(null);
+        }
         $this->exportScheduleRule = $exportScheduleRule;
+        if($this->exportScheduleRule && $this->exportScheduleRule->getExport() !== $this) {
+            $this->exportScheduleRule->setExport($this);
+        }
 
         return $this;
     }
+
 }
