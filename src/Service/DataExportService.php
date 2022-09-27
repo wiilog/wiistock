@@ -76,7 +76,7 @@ class DataExportService
         ], $freeFieldsConfig['freeFieldsHeader']);
     }
 
-    public function exportReferences(RefArticleDataService $refArticleDataService, array $freeFieldsConfig, iterable $data, mixed $output) {
+    public function exportReferences(RefArticleDataService $refArticleDataService, array $freeFieldsConfig, iterable $data, mixed $output, bool $unique = true) {
         $start = new DateTime();
 
         $managersByReference = $this->entityManager
@@ -91,20 +91,24 @@ class DataExportService
             $refArticleDataService->putReferenceLine($output, $managersByReference, $reference, $suppliersByReference, $freeFieldsConfig);
         }
 
-        $this->createUniqueExportLine(Export::ENTITY_REFERENCE, $start);
+        if($unique) {
+            $this->createUniqueExportLine(Export::ENTITY_REFERENCE, $start);
+        }
     }
 
-    public function exportArticles(ArticleDataService $articleDataService, array $freeFieldsConfig, iterable $data, mixed $output) {
+    public function exportArticles(ArticleDataService $articleDataService, array $freeFieldsConfig, iterable $data, mixed $output, bool $unique = true) {
         $start = new DateTime();
 
         foreach($data as $article) {
             $articleDataService->putArticleLine($output, $article, $freeFieldsConfig);
         }
 
-        $this->createUniqueExportLine(Export::ENTITY_ARTICLE, $start);
+        if($unique) {
+            $this->createUniqueExportLine(Export::ENTITY_ARTICLE, $start);
+        }
     }
 
-    public function exportTransportRounds(TransportRoundService $transportRoundService, iterable $data, mixed $output) {
+    public function exportTransportRounds(TransportRoundService $transportRoundService, iterable $data, mixed $output, bool $unique = true) {
         $start = new DateTime();
 
         /** @var TransportRound $round */
@@ -112,7 +116,9 @@ class DataExportService
             $transportRoundService->putLineRoundAndRequest($output, $round);
         }
 
-        $this->createUniqueExportLine(Export::ENTITY_DELIVERY_ROUND, $start);
+        if($unique) {
+            $this->createUniqueExportLine(Export::ENTITY_DELIVERY_ROUND, $start);
+        }
     }
 
     private function createUniqueExportLine(string $entity, DateTime $from) {
