@@ -1,4 +1,6 @@
-{% if export.status.code == constant('App\\Entity\\Export::STATUS_SCHEDULED') %}
+{% if export.error %}
+    <i class="wii-icon wii-icon-info wii-icon-15px bg-black mr-1 has-tooltip" title="{{ export.error }}"></i>
+{% elseif export.status.code == constant('App\\Entity\\Export::STATUS_SCHEDULED') %}
     <div class="d-flex">
         <div class="dropdown dropright">
             {% include 'datatable/dotsRow.html.twig' %}

@@ -87,7 +87,10 @@ class Export {
     #[ORM\Column(type: "datetime", nullable: true)]
     private ?DateTimeInterface $nextExecution = null;
 
-    #[ORM\OneToOne(mappedBy: 'export', targetEntity: ExportScheduleRule::class, cascade: ["persist"])]
+    #[ORM\Column(type: "string", length: 255, nullable: true)]
+    private ?string $error = null;
+
+    #[ORM\OneToOne(inversedBy: 'export', targetEntity: ExportScheduleRule::class, cascade: ["persist"])]
     private ?ExportScheduleRule $exportScheduleRule = null;
 
     public function __construct() {
@@ -104,7 +107,7 @@ class Export {
         return $this->entity;
     }
 
-    public function setEntity(string $entity): self
+    public function setEntity(?string $entity): self
     {
         $this->entity = $entity;
 
@@ -140,7 +143,7 @@ class Export {
         return $this->forced;
     }
 
-    public function setForced(bool $forced): self
+    public function setForced(?bool $forced): self
     {
         $this->forced = $forced;
 
@@ -152,7 +155,7 @@ class Export {
         return $this->createdAt;
     }
 
-    public function setCreatedAt(DateTimeInterface $createdAt): self
+    public function setCreatedAt(?DateTimeInterface $createdAt): self
     {
         $this->createdAt = $createdAt;
 
@@ -200,14 +203,14 @@ class Export {
         return $this->destinationType;
     }
 
-    public function setDestinationType(string $destinationType): self
+    public function setDestinationType(?string $destinationType): self
     {
         $this->destinationType = $destinationType;
 
         return $this;
     }
 
-    public function getFtpParameters(): array
+    public function getFtpParameters(): ?array
     {
         return $this->ftpParameters;
     }
@@ -239,7 +242,7 @@ class Export {
         return $this->recipientUsers;
     }
 
-    public function setRecipientUsers($users) {
+    public function setRecipientUsers($users): self {
         foreach($this->getRecipientUsers() as $user) {
             $this->removeRecipientUser($user);
         }
@@ -247,6 +250,8 @@ class Export {
         foreach($users as $user) {
             $this->addRecipientUser($user);
         }
+
+        return $this;
     }
 
     public function addRecipientUser(Utilisateur $userEmail): self
@@ -270,7 +275,7 @@ class Export {
         return $this->period;
     }
 
-    public function setPeriod(string $period): self
+    public function setPeriod(?string $period): self
     {
         $this->period = $period;
 
@@ -282,7 +287,7 @@ class Export {
         return $this->periodInterval;
     }
 
-    public function setPeriodInterval(string $periodInterval): self
+    public function setPeriodInterval(?string $periodInterval): self
     {
         $this->periodInterval = $periodInterval;
 
@@ -310,6 +315,17 @@ class Export {
     {
         $this->nextExecution = $nextExecution;
 
+        return $this;
+    }
+
+    public function getError(): ?string
+    {
+        return $this->error;
+    }
+
+    public function setError(?string $error): self
+    {
+        $this->error = $error;
         return $this;
     }
 

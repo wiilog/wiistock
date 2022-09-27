@@ -3,6 +3,8 @@
 namespace App\Controller\Settings;
 
 use App\Entity\Arrivage;
+use App\Annotation\HasPermission;
+use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
@@ -12,6 +14,7 @@ use App\Entity\ExportScheduleRule;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
+use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Transport\TransportRound;
@@ -47,12 +50,13 @@ class DataExportController extends AbstractController {
     public const EXPORT_UNIQUE = "exportUnique";
     public const EXPORT_SCHEDULED = "exportScheduled";
 
-    public const ENTITY_REFERENCE = "references";
-    public const ENTITY_ARTICLE = "articles";
-    public const ENTITY_TRANSPORT_ROUNDS = "transportRounds";
-    public const ENTITY_ARRIVALS = "arrivals";
+    public const ENTITY_REFERENCE = "reference";
+    public const ENTITY_ARTICLE = "article";
+    public const ENTITY_TRANSPORT_ROUNDS = "tournee";
+    public const ENTITY_ARRIVALS = "arrivage";
 
     #[Route("/export/api", name: "settings_export_api", options: ["expose" => true], methods: "POST")]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
     public function api(Request $request, EntityManagerInterface $manager): Response {
         /** @var Utilisateur $user */
         $user = $this->getUser();
@@ -76,7 +80,14 @@ class DataExportController extends AbstractController {
                 "startDate" => $export->getBeganAt()?->format("d/m/Y"),
                 "endDate" => $export->getEndedAt()?->format("d/m/Y"),
                 "nextRun" => $export->getNextExecution()?->format("d/m/Y"),
-                "frequency" => $export->getExportScheduleRule()?->getFrequency(), //TODO: formatter = probleme de marwane
+                "frequency" => match($export->getExportScheduleRule()?->getFrequency()) {
+                    ExportScheduleRule::ONCE => "Une fois",
+                    ExportScheduleRule::HOURLY => "Chaque heure",
+                    ExportScheduleRule::DAILY => "Chaque jour",
+                    ExportScheduleRule::WEEKLY => "Chaque semaine",
+                    ExportScheduleRule::MONTHLY => "Chaque mois",
+                    default => null,
+                },
                 "user" => FormatHelper::user($export->getCreator()),
                 "type" => FormatHelper::type($export->getType()),
                 "entity" => Export::ENTITY_LABELS[$export->getEntity()],
@@ -90,7 +101,8 @@ class DataExportController extends AbstractController {
         ]);
     }
 
-    #[Route("/export/submit", name: "settings_submit_export", options: ["expose" => true], methods: "POST")]
+    #[Route("/export/submit", name: "settings_submit_export", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
     public function submitExport(Request $request, EntityManagerInterface $manager, Security $security): Response {
         $userRepository = $manager->getRepository(Utilisateur::class);
 
@@ -131,7 +143,8 @@ class DataExportController extends AbstractController {
             if($export->getDestinationType() == Export::DESTINATION_EMAIL) {
                 $export->setFtpParameters(null);
 
-                $emails = explode(",", $data["recipientEmails"]);
+                $emails = isset($data["recipientEmails"]) && $data["recipientEmails"] ? explode(",", $data["recipientEmails"]) : [];
+                dump($emails);
                 $counter = 0;
                 foreach ($emails as $email) {
                     if(!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -158,8 +171,8 @@ class DataExportController extends AbstractController {
                     "host" => $data["host"],
                     "port" => $data["port"],
                     "user" => $data["user"],
-                    "password" => $data["password"],
-                    "targetDirectory" => $data["targetDirectory"],
+                    "pass" => $data["password"],
+                    "path" => $data["targetDirectory"],
                 ]);
             }
             if($entity === Export::ENTITY_ARRIVAL) {
@@ -197,6 +210,7 @@ class DataExportController extends AbstractController {
     }
 
     #[Route("/export/unique/reference", name: "settings_export_references", options: ["expose" => true], methods: "GET")]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
     public function exportReferences(EntityManagerInterface $manager,
                                      CSVExportService       $csvService,
                                      DataExportService      $dataExportService,
@@ -219,6 +233,7 @@ class DataExportController extends AbstractController {
     }
 
     #[Route("/export/unique/articles", name: "settings_export_articles", options: ["expose" => true], methods: "GET")]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
     public function exportArticles(EntityManagerInterface $entityManager,
                                    FreeFieldService       $freeFieldService,
                                    DataExportService      $dataExportService,
@@ -242,6 +257,7 @@ class DataExportController extends AbstractController {
 
 
     #[Route("/export/unique/rounds", name: "settings_export_round", options: ["expose" => true], methods: "GET")]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
     public function exportRounds(CSVExportService       $csvService,
                                  TransportRoundService  $transportRoundService,
                                  DataExportService      $dataExportService,
@@ -295,6 +311,7 @@ class DataExportController extends AbstractController {
     }
 
     #[Route("/modale-new-export", name: "new_export_modal", options: ["expose" => true], methods: "GET")]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
     public function getFirstModalContent(EntityManagerInterface $entityManager,
                                          ArrivageService        $arrivalService): JsonResponse {
         $columns = $arrivalService->getArrivalExportableColumns($entityManager);

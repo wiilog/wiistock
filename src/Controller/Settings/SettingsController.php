@@ -422,7 +422,7 @@ class SettingsController extends AbstractController {
             "menus" => [
                 self::MENU_EXPORTS_ENCODING => [
                     "label" => "Encodage des exports CSV",
-                    "right" => Action::SETTINGS_DISPLAY_EXPORT,
+                    "right" => Action::SETTINGS_DISPLAY_EXPORT_ENCODING,
                     "save" => true,
                     "discard" => true,
                 ],

@@ -157,6 +157,7 @@ class Action {
     const SETTINGS_DISPLAY_ROLES = 'afficher rôles';
     const SETTINGS_DISPLAY_USERS = 'afficher utilisateurs';
 
+    const SETTINGS_DISPLAY_EXPORT_ENCODING = 'afficher encodage des exports CSV';
     const SETTINGS_DISPLAY_EXPORT = 'afficher export CSV';
     const SETTINGS_DISPLAY_IMPORTS_MAJS = 'afficher imports & mises à jour';
     const SETTINGS_DISPLAY_INVENTORIES_IMPORT = "afficher imports d'inventaires";
