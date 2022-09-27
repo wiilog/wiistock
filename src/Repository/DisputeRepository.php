@@ -299,9 +299,7 @@ class DisputeRepository extends EntityRepository
 
                     $condition = $visibleColumnService->getSearchableColumns($conditions, 'dispute', $qb, $user, $search);
 
-					$qb
-						->andWhere($condition)
-						->setParameter('search_value', '%' . $search . '%');
+					$qb->andWhere($condition);
 				}
 			}
 

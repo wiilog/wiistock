@@ -246,8 +246,7 @@ class ReceptionRepository extends EntityRepository
 						->leftJoin('reception.fournisseur', 'search_provider')
                         ->leftJoin('reception.demandes', 'search_request')
                         ->leftJoin('search_request.utilisateur', 'search_request_user')
-                        ->leftJoin('reception.storageLocation', 'search_storage_location')
-                        ->setParameter('search_value', '%' . $search . '%');
+                        ->leftJoin('reception.storageLocation', 'search_storage_location');
                 }
             }
 

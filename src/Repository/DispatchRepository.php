@@ -133,8 +133,7 @@ class DispatchRepository extends EntityRepository
                         ->leftJoin('dispatch.statut', 'search_statut')
                         ->leftJoin('dispatch.type', 'search_type')
                         ->leftJoin('dispatch.requester','search_requester')
-                        ->leftJoin('dispatch.receivers', 'search_receivers')
-                        ->setParameter('search_value', '%' . $search . '%');
+                        ->leftJoin('dispatch.receivers', 'search_receivers');
                 }
             }
             if (!empty($params->all('order'))) {

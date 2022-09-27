@@ -116,6 +116,12 @@ class VisibleColumnService {
             }
         }
 
+        if(empty($condition->getParts())) {
+            $condition->add("0 != 0");
+        } else {
+            $qb->setParameter('search_value', "%$search%");
+        }
+
         return $condition;
     }
 }

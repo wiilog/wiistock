@@ -295,7 +295,7 @@ class ArrivageRepository extends EntityRepository
                         "orderNumber" => "arrival.numeroCommandeList LIKE :search_value",
                         "type" => "search_type.label LIKE :search_value",
                         "provider" => "search_provider.nom LIKE :search_value",
-                        "receivers" => "search_receivers.username LIKE :search_value",
+                        "receiver" => "search_receivers.username LIKE :search_value",
                         "buyers" => "search_buyers.username LIKE :search_value",
                         "nbUm" => null,
                         "customs" => null,
@@ -320,8 +320,7 @@ class ArrivageRepository extends EntityRepository
                         ->leftJoin('arrival.utilisateur', 'search_user')
                         ->leftJoin('arrival.type', 'search_type')
                         ->leftJoin('arrival.statut', 'search_status')
-                        ->leftJoin('arrival.dropLocation', 'search_dropLocation')
-                        ->setParameter('search_value', '%' . $search . '%');
+                        ->leftJoin('arrival.dropLocation', 'search_dropLocation');
                 }
             }
 
