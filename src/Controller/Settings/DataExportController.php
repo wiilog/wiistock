@@ -144,7 +144,7 @@ class DataExportController extends AbstractController {
                 $export->setFtpParameters(null);
 
                 $emails = isset($data["recipientEmails"]) && $data["recipientEmails"] ? explode(",", $data["recipientEmails"]) : [];
-                dump($emails);
+
                 $counter = 0;
                 foreach ($emails as $email) {
                     if(!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -228,7 +228,9 @@ class DataExportController extends AbstractController {
             $referenceArticleRepository = $manager->getRepository(ReferenceArticle::class);
             $references = $referenceArticleRepository->iterateAll($user);
 
+            $start = new DateTime();
             $dataExportService->exportReferences($refArticleDataService, $freeFieldsConfig, $references, $output);
+            $dataExportService->createUniqueExportLine(Export::ENTITY_REFERENCE, $start);
         }, "export-references-$today.csv", $header);
     }
 
@@ -251,7 +253,9 @@ class DataExportController extends AbstractController {
             $articleRepository = $entityManager->getRepository(Article::class);
             $articles = $articleRepository->iterateAll($user);
 
+            $start = new DateTime();
             $dataExportService->exportArticles($articleDataService, $freeFieldsConfig, $articles, $output);
+            $dataExportService->createUniqueExportLine(Export::ENTITY_ARTICLE, $start);
         }, "export-articles-$today.csv", $header);
     }
 
@@ -278,7 +282,9 @@ class DataExportController extends AbstractController {
 
         $transportRoundsIterator = $transportRoundRepository->iterateFinishedTransportRounds($dateTimeMin, $dateTimeMax);
         return $csvService->streamResponse(function ($output) use ($dataExportService, $csvService, $transportRoundService, $transportRoundsIterator) {
+            $start = new DateTime();
             $dataExportService->exportTransportRounds($transportRoundService, $transportRoundsIterator, $output);
+            $dataExportService->createUniqueExportLine(Export::ENTITY_DELIVERY_ROUND, $start);
         }, $nameFile, $csvHeader);
     }
 
@@ -306,7 +312,9 @@ class DataExportController extends AbstractController {
 
         $arrivalsIterator = $arrivageRepository->iterateArrivals($dateTimeMin, $dateTimeMax);
         return $csvService->streamResponse(function ($output) use ($dataExportService, $columnToExport, $arrivalsIterator) {
+            $start = new DateTime();
             $dataExportService->exportArrivages($arrivalsIterator, $output, $columnToExport);
+            $dataExportService->createUniqueExportLine(Export::ENTITY_ARRIVAL, $start);
         }, $nameFile, $csvHeader);
     }
 

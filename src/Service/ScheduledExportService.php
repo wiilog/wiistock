@@ -63,14 +63,8 @@ class ScheduledExportService
     }
 
     private function buildScheduledExportsCache(EntityManagerInterface $entityManager): array {
-        $ex = $entityManager->getRepository(Export::class)->findScheduledExports();
-        /** @var Export $e */
-        foreach($ex as $e) {
-            if(!$e->getExportScheduleRule()) {
-                dump($e->getId());
-            }
-        }
-        return Stream::from($ex)
+        $exportRepository = $entityManager->getRepository(Export::class);
+        return Stream::from($exportRepository->findScheduledExports())
             ->keymap(fn(Export $export) => [$export->getId(), $this->calculateNextExecutionDate($export)])
             ->filter(fn(?DateTime $nextExecutionDate) => isset($nextExecutionDate))
             ->map(fn(DateTime $date) => $this->getScheduleExportKeyCache($date))
@@ -275,14 +269,14 @@ class ScheduledExportService
 
             $this->csvExportService->putLine($output, $this->dataExportService->createReferencesHeader($freeFieldsConfig));
 
-            $this->dataExportService->exportReferences($this->refArticleDataService, $freeFieldsConfig, $references, $output, false);
+            $this->dataExportService->exportReferences($this->refArticleDataService, $freeFieldsConfig, $references, $output);
         } else if($export->getEntity() === DataExportController::ENTITY_ARTICLE) {
             $referenceArticleRepository = $entityManager->getRepository(Article::class);
             $articles = $referenceArticleRepository->iterateAll($export->getCreator());
             $freeFieldsConfig = $this->freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::ARTICLE], [CategoryType::ARTICLE]);
 
             $this->csvExportService->putLine($output, $this->dataExportService->createArticlesHeader($freeFieldsConfig));
-            $this->dataExportService->exportArticles($this->articleDataService, $freeFieldsConfig, $articles, $output, false);
+            $this->dataExportService->exportArticles($this->articleDataService, $freeFieldsConfig, $articles, $output);
         } else if($export->getEntity() === DataExportController::ENTITY_TRANSPORT_ROUNDS) {
 
         } else if($export->getEntity() === DataExportController::ENTITY_ARRIVALS) {
@@ -293,6 +287,8 @@ class ScheduledExportService
 
         if($export->getDestinationType() == Export::DESTINATION_EMAIL) {
             $entity = strtolower(Export::ENTITY_LABELS[$export->getEntity()]);
+
+            @fclose($output);
 
             $this->mailerService->sendMail(
                 "FOLLOW GT // Export des $entity",
@@ -314,11 +310,13 @@ class ScheduledExportService
                     ->toArray(),
                 [$path],
             );
-        } else {
+        } else { // ftp export
             try {
                 $this->ftpService->send($export->getFtpParameters(), $output);
             } catch(FTPException $exception) {
                 $export->setError($exception->getMessage());
+            } finally {
+                @fclose($output);
             }
         }
 
@@ -336,6 +334,7 @@ class ScheduledExportService
         $entityManager->persist($exportToRun);
         $entityManager->flush();
 
+        @unlink($path);
     }
 
     private function cloneScheduledExport(Export $export) {

@@ -79,9 +79,10 @@ class DataExportService
         ], $freeFieldsConfig['freeFieldsHeader']);
     }
 
-    public function exportReferences(RefArticleDataService $refArticleDataService, array $freeFieldsConfig, iterable $data, mixed $output, bool $unique = true) {
-        $start = new DateTime();
-
+    public function exportReferences(RefArticleDataService $refArticleDataService,
+                                     array $freeFieldsConfig,
+                                     iterable $data,
+                                     mixed $output) {
         $managersByReference = $this->entityManager
             ->getRepository(Utilisateur::class)
             ->getUsernameManagersGroupByReference();
@@ -93,38 +94,22 @@ class DataExportService
         foreach($data as $reference) {
             $refArticleDataService->putReferenceLine($output, $managersByReference, $reference, $suppliersByReference, $freeFieldsConfig);
         }
-
-        if($unique) {
-            $this->createUniqueExportLine(Export::ENTITY_REFERENCE, $start);
-        }
     }
 
-    public function exportArticles(ArticleDataService $articleDataService, array $freeFieldsConfig, iterable $data, mixed $output, bool $unique = true) {
-        $start = new DateTime();
-
+    public function exportArticles(ArticleDataService $articleDataService, array $freeFieldsConfig, iterable $data, mixed $output) {
         foreach($data as $article) {
             $articleDataService->putArticleLine($output, $article, $freeFieldsConfig);
         }
-
-        if($unique) {
-            $this->createUniqueExportLine(Export::ENTITY_ARTICLE, $start);
-        }
     }
 
-    public function exportTransportRounds(TransportRoundService $transportRoundService, iterable $data, mixed $output, bool $unique = true) {
-        $start = new DateTime();
-
+    public function exportTransportRounds(TransportRoundService $transportRoundService, iterable $data, mixed $output) {
         /** @var TransportRound $round */
         foreach ($data as $round) {
             $transportRoundService->putLineRoundAndRequest($output, $round);
         }
-
-        if($unique) {
-            $this->createUniqueExportLine(Export::ENTITY_DELIVERY_ROUND, $start);
-        }
     }
 
-    private function createUniqueExportLine(string $entity, DateTime $from) {
+    public function createUniqueExportLine(string $entity, DateTime $from) {
         $type = $this->entityManager->getRepository(Type::class)->findOneByCategoryLabelAndLabel(
             CategoryType::EXPORT,
             Type::LABEL_UNIQUE_EXPORT,
@@ -157,13 +142,9 @@ class DataExportService
                                     mixed $output,
                                     array $columnToExport)
     {
-        $start = new DateTime();
-
         /** @var Arrivage $arrival */
         foreach ($data as $arrival) {
             $this->arrivalService->putArrivalLineInUniqueExport($output, $arrival, $columnToExport);
         }
-
-        $this->createUniqueExportLine(Export::ENTITY_ARRIVAL, $start);
     }
 }
