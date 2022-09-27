@@ -104,7 +104,7 @@ $(document).ready(() => {
 
                 return new Promise((resolve) => {
                     $(window).on('focus.focusAfterExport', function() {
-                        // $modalNewExport.modal(`hide`);
+                        $modalNewExport.modal(`hide`);
                         tableExport.ajax.reload();
                         $(window).off('focus.focusAfterExport');
                         resolve();
