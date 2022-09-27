@@ -239,11 +239,12 @@ class ScheduledExportService
         $statusRepository = $entityManager->getRepository(Statut::class);
 
         $finished = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::EXPORT, Export::STATUS_FINISHED);
-        $now = new DateTime();
 
         $output = tmpfile();
 
         $exportToRun = $this->cloneScheduledExport($export);
+        $exportToRun->setBeganAt(new DateTime());
+
         if($export->getEntity() === DataExportController::ENTITY_REFERENCE) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $references = $referenceArticleRepository->iterateAll($export->getCreator());
@@ -276,7 +277,7 @@ class ScheduledExportService
 
         $exportToRun
             ->setStatus($finished)
-            ->setEndedAt($now)
+            ->setEndedAt(new DateTime())
             ->setForced(false);
 
         $entityManager->persist($exportToRun);

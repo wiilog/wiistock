@@ -25,6 +25,7 @@ use App\Service\DataExportService;
 use App\Service\FreeFieldService;
 use App\Service\ImportService;
 use App\Service\RefArticleDataService;
+use App\Service\ScheduledExportService;
 use App\Service\Transport\TransportRoundService;
 use App\Service\UserService;
 use DateTime;
@@ -75,7 +76,7 @@ class DataExportController extends AbstractController {
                 "startDate" => $export->getBeganAt()?->format("d/m/Y"),
                 "endDate" => $export->getEndedAt()?->format("d/m/Y"),
                 "nextRun" => $export->getNextExecution()?->format("d/m/Y"),
-                "frequency" => "", //TODO: formatter : pas mon problème
+                "frequency" => $export->getExportScheduleRule()?->getFrequency(), //TODO: formatter = probleme de marwane
                 "user" => FormatHelper::user($export->getCreator()),
                 "type" => FormatHelper::type($export->getType()),
                 "entity" => Export::ENTITY_LABELS[$export->getEntity()],
@@ -307,5 +308,22 @@ dump($request->getContent(), $request->request);
         return new JsonResponse($this->renderView('settings/donnees/export/modalNewExportContent.html.twig', [
             "arrivalFields" => $arrivalFields
         ]));
+    }
+
+    #[Route("/annuler-export/{export}", name: "export_cancel", options: ["expose" => true], methods: "GET|POST", condition: "request.isXmlHttpRequest()")]
+    public function cancel(Export $export, Request $request,
+                           EntityManagerInterface $manager,
+                           ScheduledExportService $scheduledExportService): JsonResponse {
+        $statusRepository = $manager->getRepository(Statut::class);
+
+        $exportType = $export->getType();
+        $exportStatus = $export->getStatus();
+        if ($exportStatus && $exportType && $exportType->getLabel() == Type::LABEL_SCHEDULED_EXPORT && $exportStatus->getNom() == Export::STATUS_SCHEDULED) {
+            $export->setStatus($statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::EXPORT, Export::STATUS_CANCELLED));
+            $manager->flush();
+            $scheduledExportService->saveScheduledExportsCache($manager);
+        }
+
+        return new JsonResponse();
     }
 }
