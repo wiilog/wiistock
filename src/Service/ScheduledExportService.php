@@ -12,6 +12,7 @@ use App\Entity\ExportScheduleRule;
 use App\Entity\FreeField;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
+use App\Exceptions\FTPException;
 use App\Service\Transport\TransportRoundService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -257,7 +258,7 @@ class ScheduledExportService
         $statusRepository = $entityManager->getRepository(Statut::class);
 
         $finished = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::EXPORT, Export::STATUS_FINISHED);
-        $now = new DateTime();
+        $start = new DateTime();
 
         $today = new DateTime();
         $today = $today->format("d-m-Y-H-i-s");
@@ -289,13 +290,9 @@ class ScheduledExportService
             throw new RuntimeException("Unknown entity type");
         }
 
-dump($export->getDestinationType());
         if($export->getDestinationType() == Export::DESTINATION_EMAIL) {
             $entity = strtolower(Export::ENTITY_LABELS[$export->getEntity()]);
-dump(Stream::empty()
-    ->concat($export->getRecipientEmails())
-    ->concat($export->getRecipientUsers())
-    ->toArray(),$entity);
+
             $this->mailerService->sendMail(
                 "FOLLOW GT // Export des $entity",
                 $this->templating->render("mails/contents/mailExportDone.twig", [
@@ -317,7 +314,11 @@ dump(Stream::empty()
                 [$path],
             );
         } else {
-            $this->ftpService->send($export->getFtpParameters(), $output);
+            try {
+                $this->ftpService->send($export->getFtpParameters(), $output);
+            } catch(FTPException $exception) {
+                $export->setError($exception->getMessage());
+            }
         }
 
         $nextExecutionDate = $this->calculateNextExecutionDate($exportToRun);
@@ -328,7 +329,8 @@ dump(Stream::empty()
 
         $exportToRun
             ->setStatus($finished)
-            ->setEndedAt($now)
+            ->setBeganAt($start)
+            ->setEndedAt(new DateTime())
             ->setForced(false);
 
         $entityManager->persist($exportToRun);

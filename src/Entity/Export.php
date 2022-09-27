@@ -86,6 +86,9 @@ class Export {
     #[ORM\Column(type: "datetime", nullable: true)]
     private ?DateTimeInterface $nextExecution = null;
 
+    #[ORM\Column(type: "string", length: 255, nullable: true)]
+    private ?string $error = null;
+
     #[ORM\OneToOne(inversedBy: 'export', targetEntity: ExportScheduleRule::class, cascade: ["persist"])]
     private ?ExportScheduleRule $exportScheduleRule = null;
 
@@ -311,6 +314,17 @@ class Export {
     {
         $this->nextExecution = $nextExecution;
 
+        return $this;
+    }
+
+    public function getError(): ?string
+    {
+        return $this->error;
+    }
+
+    public function setError(?string $error): self
+    {
+        $this->error = $error;
         return $this;
     }
 
