@@ -257,6 +257,7 @@ dump($request->getContent(), $request->request);
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
     public function exportRounds(CSVExportService       $csvService,
                                  TransportRoundService  $transportRoundService,
+                                 DataExportService      $dataExportService,
                                  EntityManagerInterface $entityManager,
                                  Request                $request): Response {
 
@@ -269,13 +270,12 @@ dump($request->getContent(), $request->request);
         $transportRoundRepository = $entityManager->getRepository(TransportRound::class);
         $today = new DateTime();
         $today = $today->format("d-m-Y H:i:s");
-        $nameFile = "export-tournees-$today.csv";
-        $csvHeader = $transportRoundService->getHeaderRoundAndRequestExport();
+        $header = $dataExportService->createDeliveryRoundHeader();
 
         $transportRoundsIterator = $transportRoundRepository->iterateFinishedTransportRounds($dateTimeMin, $dateTimeMax);
-        return $csvService->streamResponse(function ($output) use ($csvService, $transportRoundService, $transportRoundsIterator) {
-            $csvService->exportTransportRounds($transportRoundService, $transportRoundsIterator, $output);
-        }, $nameFile, $csvHeader);
+        return $csvService->streamResponse(function ($output) use ($csvService, $dataExportService, $dateTimeMin, $dateTimeMax, $transportRoundService, $transportRoundsIterator) {
+            $dataExportService->exportTransportRounds($transportRoundService, $transportRoundsIterator, $dateTimeMin, $dateTimeMax, $output);
+        }, "export-tournees-$today.csv", $header);
     }
 
 
