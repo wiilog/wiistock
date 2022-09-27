@@ -165,10 +165,9 @@ class TrackingMovementRepository extends EntityRepository
                         "operator" => "search_operator.username LIKE :search_value",
                     ];
 
-                    $condition = $visibleColumnService->getSearchableColumns($conditions, 'trackingMovement', $qb, $user, $search);
+                    $visibleColumnService->bindSearchableColumns($conditions, 'trackingMovement', $qb, $user, $search);
 
                     $qb
-                        ->andWhere($condition)
                         ->innerJoin('tracking_movement.pack', 'search_pack')
                         ->leftJoin('tracking_movement.emplacement', 'search_location')
                         ->leftJoin('tracking_movement.packParent', 'search_pack_group')

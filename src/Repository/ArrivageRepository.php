@@ -308,10 +308,9 @@ class ArrivageRepository extends EntityRepository
                         "dropLocation" => "search_dropLocation.label LIKE :search_value",
                     ];
 
-                    $condition = $visibleColumnService->getSearchableColumns($conditions, 'arrival', $qb, $options['user'], $search);
+                    $visibleColumnService->bindSearchableColumns($conditions, 'arrival', $qb, $options['user'], $search);
 
                     $qb
-                        ->andWhere($condition)
                         ->leftJoin('arrival.transporteur', 'search_carrier')
                         ->leftJoin('arrival.chauffeur', 'search_driver')
                         ->leftJoin('arrival.fournisseur', 'search_provider')

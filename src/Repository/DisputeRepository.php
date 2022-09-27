@@ -297,9 +297,7 @@ class DisputeRepository extends EntityRepository
                         'status' => "s.nom LIKE :search_value"
                     ];
 
-                    $condition = $visibleColumnService->getSearchableColumns($conditions, 'dispute', $qb, $user, $search);
-
-					$qb->andWhere($condition);
+                    $visibleColumnService->bindSearchableColumns($conditions, 'dispute', $qb, $user, $search);
 				}
 			}
 
