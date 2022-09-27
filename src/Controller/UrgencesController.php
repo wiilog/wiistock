@@ -251,7 +251,7 @@ class UrgencesController extends AbstractController
                 $translationService->translate('Traçabilité', 'Urgences', 'N° tracking transporteur', false),
                 $translationService->translate('Traçabilité', 'Urgences', 'Date arrivage', false),
                 $translationService->translate('Traçabilité', 'Urgences', 'Numéro d\'arrivage', false),
-                $translationService->translate('Traçabilité', 'Urgences', 'Date de création', false),
+                $translationService->translate('Général', null, 'Zone liste', 'Date de création', false),
             ];
             $today = new DateTime();
             $user = $this->getUser();

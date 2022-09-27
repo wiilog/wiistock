@@ -3,18 +3,14 @@
 namespace App\DataFixtures;
 
 use App\Entity\Language;
-use App\Entity\Nature;
-use App\Entity\Statut;
 use App\Entity\Translation;
 use App\Entity\TranslationCategory;
 use App\Entity\TranslationSource;
 use App\Entity\Utilisateur;
-use App\Service\SpecificService;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Console\Output\ConsoleOutput;
-use WiiCommon\Helper\Stream;
 
 class TranslationFixtures extends Fixture implements FixtureGroupInterface
 {
@@ -84,7 +80,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     "content" => [
                         [
                             "fr" => "Rechercher : ",
-                            "en" => "Search : ",
+                            "en" => "Search: ",
                         ],
                         [
                             "fr" => "Entrée pour valider",
@@ -101,6 +97,17 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Date de création",
                             "en" => "Creation date",
+                            "tooltip" => "Page Flux - Arrivages :\nZone liste - Nom de colonnes\nGestion des colonnes\nDétails arrivage - Liste des litiges\n_____\nPage Urgences :\nZone liste - Nom de colonnes\n_____\nPage acheminements :\nZone liste - Nom de colonnes\nDétails acheminements - Entête\nPDF bon acheminement\nEmail de traitement\nEmail de changement de statut",
+                        ],
+                        [
+                            "fr" => "Traité par",
+                            "en" => "Finished by",
+                            "tooltip" => "Page acheminements :\nZone liste - Nom de colonnes\nDétails\nEmails\n_____\nPage service:\nZone liste - Nom de colonnes\nDétails",
+                        ],
+                        [
+                            "fr" => "Du {1} au {2}",
+                            "en" => "From {1} to {2}",
+                            "tooltip" => "Page acheminements :\nEmails",
                         ],
                         [
                             "fr" => "Afficher {1} éléments",
@@ -163,8 +170,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "en" => "No elements to display",
                         ],
                         [
-                            "fr" => "Aucune donnée disponible dans le tableau",
-                            "en" => "No data available in the board",
+                            "fr" => "Aucune donnée disponible",
+                            "en" => "No data available",
                         ],
                         [
                             "fr" => "(filtré de {1} éléments au total)",
@@ -463,7 +470,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "Unités logistiques",
                         "en" => "Logistics units",
-                        "tooltip" => "Page Flux - Arrivages :\nDétails arrivage - Liste des UL - Nom de colonnes\nDétails arrivage - Liste des litiges - Modale Nouveau litige\nDétails arrivage - Liste des litiges - Modifier litige\nEmail litige\n______\nPage Mouvements : \nFiltre\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouveau mouvement\nModale Modifier un mouvement\n______\nPage UL :\nMenu\nFil d'ariane\nFiltre\nOnglet\nOnglet UL - Colonne\nOnglet UL - Modale Modifier une unité logistique\nOnglet Groupes - Carte UL dans Carte Groupe\n_____\nPage Association BR :\nFiltre \nZone liste - Nom de colonnes \n_____\nPage Encours :\nCarte emplacement - Zone liste - Nom de colonnes",
+                        "tooltip" => "Page Flux - Arrivages :\nDétails arrivage - Liste des UL - Nom de colonnes\nDétails arrivage - Liste des litiges - Modale Nouveau litige\nDétails arrivage - Liste des litiges - Modifier litige\nEmail litige\n_____\nPage Mouvements : \nFiltre\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouveau mouvement\nModale Modifier un mouvement\n_____\nPage UL :\nMenu\nFil d'ariane\nFiltre\nOnglet\nOnglet UL - Colonne\nOnglet UL - Modale Modifier une unité logistique\nOnglet Groupes - Carte UL dans Carte Groupe\n_____\nPage Association BR :\nFiltre \nZone liste - Nom de colonnes \n_____\nPage Encours :\nCarte emplacement - Zone liste - Nom de colonnes",
                     ],
                     [
                         "fr" => "Unité logistique",
@@ -478,22 +485,22 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "Date",
                         "en" => "Date",
-                        "tooltip" => "Page Mouvements :\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouveau mouvement\nModale Modifier un mouvement\n____\nPage UL : \nModale Modifier une unité logistique\n_____\nPage Association BR :\nZone liste - Nom de colonnes",
+                        "tooltip" => "Page Mouvements :\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouveau mouvement\nModale Modifier un mouvement\n_____\nPage UL : \nModale Modifier une unité logistique\n_____\nPage Association BR :\nZone liste - Nom de colonnes",
                     ],
                     [
                         "fr" => "Utilisateur",
                         "en" => "User",
-                        "tooltip" => "Page Flux - Arrivages :\nZone liste - Nom de colonnes\nModifier litige - Tableau Historique\n____\nPage Association BR :\nZone liste - Nom de colonnes",
+                        "tooltip" => "Page Flux - Arrivages :\nZone liste - Nom de colonnes\nModifier litige - Tableau Historique\n_____\nPage Association BR :\nZone liste - Nom de colonnes",
                     ],
                     [
                         "fr" => "Opérateur",
                         "en" => "Worker",
-                        "tooltip" => "Page Flux - Arrivages :\nDétails arrivage - Liste UL - Colonne\n_______\nPage Mouvements :\nModale Nouveau mouvement\nModale Modifier un mouvement\nModale Détail de mouvement",
+                        "tooltip" => "Page Flux - Arrivages :\nDétails arrivage - Liste UL - Colonne\n_____\nPage Mouvements :\nModale Nouveau mouvement\nModale Modifier un mouvement\nModale Détail de mouvement",
                     ],
                     [
                         "fr" => "Quantité",
                         "en" => "Quantity",
-                        "tooltip" => "Page Mouvements :\nZone liste - Nom de colonnes\nModale Modifier une unité logistique\nModale Nouvelle UL\n______\nPage UL :\nOnglet UL - Zone liste - Nom de colonnes\nOnglet UL - Modale Modifier une unité logistique",
+                        "tooltip" => "Page Mouvements :\nZone liste - Nom de colonnes\nModale Modifier une unité logistique\nModale Nouvelle UL\n_____\nPage UL :\nOnglet UL - Zone liste - Nom de colonnes\nOnglet UL - Modale Modifier une unité logistique",
                     ],
                     [
                         "fr" => "Nature",
@@ -503,7 +510,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "Natures",
                         "en" => "Natures",
-                        "tooltip" => "Page Unités Logistiques :\nFiltre\n____\nPage Encours :\nFiltre",
+                        "tooltip" => "Page Unités Logistiques :\nFiltre\n_____\nPage Encours :\nFiltre",
                     ],
                     [
                         "fr" => "Issu de",
@@ -514,11 +521,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "fr" => "Issu de (numéro)",
                         "en" => "From (number)",
                         "tooltip" => "Page UL : \nZone liste - Nom de colonnes",
-                    ],
-                    [
-                        "fr" => "Date de création",
-                        "en" => "Creation date",
-                        "tooltip" => "Page Flux - Arrivages :\nZone liste - Nom de colonnes\nGestion des colonnes\nDétails arrive - Liste des litiges \n____\nPage Urgences :\nZone liste - Nom de colonnes",
                     ],
                     [
                         "fr" => "Date dernier mouvement",
@@ -1045,11 +1047,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "tooltip" => "Zone liste - Nom de colonnes",
                     ],
                     [
-                        "fr" => "Date de création",
-                        "en" => "Creation date",
-                        "tooltip" => "Zone liste - Nom de colonnes",
-                    ],
-                    [
                         "fr" => "Nouvelle urgence",
                         "en" => "New emergency",
                         "tooltip" => "Modale Nouvelle urgence",
@@ -1112,17 +1109,17 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Nature d'unité logistique",
                             "en" => "Logistics unit nature",
-                            "tooltip" => 'Onglet "Unité logistique"\nZone liste\nModale Modifier une unité logistique\n____\nOnglet "Groupes"\nExport',
+                            "tooltip" => 'Onglet "Unité logistique"\nZone liste\nModale Modifier une unité logistique\n_____\nOnglet "Groupes"\nExport',
                         ],
                         [
                             "fr" => "Poids (kg)",
                             "en" => "Weight (kg)",
-                            "tooltip" => 'Onglet "Unité logistique"\nZone liste\nModale Modifier une unité logistique\n____\nOnglet "Groupes"\nModale Modifier le groupe\nExport',
+                            "tooltip" => 'Onglet "Unité logistique"\nZone liste\nModale Modifier une unité logistique\n_____\nOnglet "Groupes"\nModale Modifier le groupe\nExport',
                         ],
                         [
                             "fr" => "Volume (m3)",
                             "en" => "Volume (m3)",
-                            "tooltip" => 'Onglet "Unité logistique"\nZone liste\nModale Modifier une unité logistique\n____\nOnglet "Groupes"\nModale Modifier le groupe\nExport',
+                            "tooltip" => 'Onglet "Unité logistique"\nZone liste\nModale Modifier une unité logistique\n_____\nOnglet "Groupes"\nModale Modifier le groupe\nExport',
                         ],
                     ],
                 ],
@@ -1353,12 +1350,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "Groupe",
                         "en" => "Group",
-                        "tooltip" => "Zone liste - Nom de colonnes\nGestion des colonnes\n____\nUL : \nModale Modifier une unité logistique",
+                        "tooltip" => "Zone liste - Nom de colonnes\nGestion des colonnes\n_____\nUL : \nModale Modifier une unité logistique",
                     ],
                     [
                         "fr" => "Type",
                         "en" => "Type",
-                        "tooltip" => "Zone liste - Nom de colonnes\nGestion des colonnes\n____\nUL : \nModale Modifier une unité logistique",
+                        "tooltip" => "Zone liste - Nom de colonnes\nGestion des colonnes\n_____\nUL : \nModale Modifier une unité logistique",
                     ],
                     [
                         "fr" => "Prise dans UL",
@@ -1738,7 +1735,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "Statuts",
                         "en" => "Statuses",
-                        "tooltip" => "Acheminement :\nFiltre\n_____\nService :\nFiltre",
+                        "tooltip" => "Acheminement :\nFiltre\nEmails\n_____\nService :\nFiltre",
                     ],
                     [
                         "fr" => "Demandeurs",
@@ -1774,17 +1771,17 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "Destinataire(s)",
                         "en" => "Addressee(s)",
-                        "tooltip" => "Acheminement :\nFiltre \nModale Nouvelle demande\nModale Modifier un acheminement\nDétails acheminement - Entête\nPDF bon acheminement\n\n_____\nService :\nFiltre\nModale Nouvelle demande de service\nModale Modifier une demande de service\n",
+                        "tooltip" => "Acheminement :\nFiltre \nModale Nouvelle demande\nModale Modifier un acheminement\nDétails acheminement - Entête\nPDF bon acheminement\nEmails\n\n_____\nService :\nFiltre\nModale Nouvelle demande de service\nModale Modifier une demande de service\n",
                     ],
                     [
                         "fr" => "Type",
                         "en" => "Type",
-                        "tooltip" => "Acheminement :\nZone liste - Nom de colonnes\nModale Nouvelle demande\nModale Modifier un acheminement\nDétails acheminement - Entête\n_____\nService :\nFiltre\nZone liste - Nom de colonnes\nModale Nouvelle demande de service\nModale Modifier une demande de service",
+                        "tooltip" => "Acheminement :\nZone liste - Nom de colonnes\nModale Nouvelle demande\nModale Modifier un acheminement\nDétails acheminement - Entête\nEmails\n_____\nService :\nFiltre\nZone liste - Nom de colonnes\nModale Nouvelle demande de service\nModale Modifier une demande de service",
                     ],
                     [
                         "fr" => "Statut",
                         "en" => "Status",
-                        "tooltip" => "Acheminement :\nZone liste - Nom de colonnes\nModale Nouvelle demande\nModale Modifier un acheminement\nDétails acheminement - Entête\nDétails acheminements - Liste des UL - Colonne\n_____\nService :\nZone liste - Nom de colonnes\nModale Nouvelle demande de service\nModale Modifier une demande de service",
+                        "tooltip" => "Acheminement :\nZone liste - Nom de colonnes\nModale Nouvelle demande\nModale Modifier un acheminement\nDétails acheminement - Entête\nDétails acheminements - Liste des UL - Colonne\nEmails\n_____\nService :\nZone liste - Nom de colonnes\nModale Nouvelle demande de service\nModale Modifier une demande de service",
                     ],
                     [
                         "fr" => "Urgence",
@@ -1804,7 +1801,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 ],
             ],
             "Acheminements" => [
-                "Divers" => [
+                "Général" => [
                     "content" => [
                         [
                             "fr" => "Acheminement",
@@ -1839,6 +1836,96 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Quantité UL",
                             "en" => "LU quantity",
+                        ],
+                        [
+                            "fr" => "Date de validation",
+                            "en" => "Validation date",
+                            "tooltip" => "Zone liste - Nom de colonnes\nDétails acheminements - Entête\nPDF bon acheminement\nEmails",
+                        ],
+                        [
+                            "fr" => "Date de traitement",
+                            "en" => "Finish date",
+                            "tooltip" => "Zone liste - Nom de colonnes\nDétails acheminements - Entête\nPDF bon acheminement\nEmails",
+                        ],
+                        [
+                            "fr" => "Dates d'échéance",
+                            "en" => "Due dates",
+                            "tooltip" => "Détails\nModale Nouvelle demande\nEmails",
+                        ],
+                        [
+                            "fr" => "Date d'échéance",
+                            "en" => "Due date",
+                            "tooltip" => "Zone liste - Nom de colonnes",
+                        ],
+                        [
+                            "fr" => "Transporteur",
+                            "en" => "Carrier",
+                            "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle demande\nModale Modifier un acheminement \nDétails acheminement - Entête\nEmails",
+                        ],
+                        [
+                            "fr" => "N° tracking transporteur",
+                            "en" => "Carrier tracking ID",
+                            "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle demande\nModale Modifier un acheminement \nDétails acheminement - Entête\nEmails",
+                        ],
+                        [
+                            "fr" => "N° projet",
+                            "en" => "Project ID",
+                            "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle demande\nModale Modifier un acheminement \nDétails acheminement - Entête\nEmails",
+                        ],
+                        [
+                            "fr" => "Business unit",
+                            "en" => "Business unit",
+                            "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle demande\nModale Modifier un acheminement \nDétails acheminement - Entête\nEmails",
+                        ],
+                        [
+                            "fr" => "Nature",
+                            "en" => "Nature",
+                            "tooltip" => "Détails acheminements - Liste des UL - Nom de colonnes\nPDF bon acheminement\nEmails",
+                        ],
+                        [
+                            "fr" => "Code",
+                            "en" => "Code",
+                            "tooltip" => "Liste des UL\nEmails",
+                        ],
+                        [
+                            "fr" => "Quantité à acheminer",
+                            "en" => "Quantity to transfer",
+                            "tooltip" => "Détails acheminements - Liste des UL - Nom de colonnes\nPDF bon acheminement\Emails",
+                        ],
+                        [
+                            "fr" => "Date dernier mouvement",
+                            "en" => "Last movement date",
+                            "tooltip" => "Détails acheminements - Liste des UL - Nom de colonnes\nEmails",
+                        ],
+                        [
+                            "fr" => "Dernier emplacement",
+                            "en" => "Last location",
+                            "tooltip" => "Détails acheminements - Liste des UL - Nom de colonnes\nEmails",
+                        ],
+                        [
+                            "fr" => "Opérateur",
+                            "en" => "Worker",
+                            "tooltip" => "Détails acheminements - Liste des UL - Nom de colonnes\nEmails",
+                        ],
+                        [
+                            "fr" => "Poids (kg)",
+                            "en" => "Weight (kg)",
+                            "tooltip" => "Détails acheminements - Liste des UL - Nom de colonnes\nPDF bon acheminement\nEmails",
+                        ],
+                        [
+                            "fr" => "Volume (m3)",
+                            "en" => "Volume (m3)",
+                            "tooltip" => "Détails acheminements - Liste des UL - Nom de colonnes\nPDF bon acheminement\nEmails",
+                        ],
+                        [
+                            "fr" => "Traité",
+                            "en" => "Processed",
+                            "tooltip" => "Détails acheminements - Liste des colis - Nom de colonnes\nEmails",
+                        ],
+                        [
+                            "fr" => "À traiter",
+                            "en" => "To process",
+                            "tooltip" => "Détails acheminements - Liste des colis - Nom de colonnes\nEmails",
                         ],
                         [
                             "fr" => "L'acheminement a bien été créé",
@@ -1929,11 +2016,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Filtre \nZone liste - Nom de colonnes\nModale Nouvelle demande\nModale Modifier un acheminement \nDétails acheminement - Entête \nPDF bon acheminement",
                         ],
                         [
-                            "fr" => "Transporteur",
-                            "en" => "Carrier",
-                            "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle demande\nModale Modifier un acheminement \nDétails acheminement - Entête",
-                        ],
-                        [
                             "fr" => "Emplacement prise",
                             "en" => "Picking location",
                             "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle demande\nModale Modifier un acheminement \nDétails acheminement - Entête \nNomade\nPDF bon acheminement",
@@ -1943,59 +2025,14 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "en" => "Drop location",
                             "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle demande\nModale Modifier un acheminement \nDétails acheminement - Entête \nNomade\nPDF bon acheminement",
                         ],
-                        [
-                            "fr" => "N° tracking transporteur",
-                            "en" => "Carrier tracking ID",
-                            "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle demande\nModale Modifier un acheminement \nDétails acheminement - Entête \n",
-                        ],
-                        [
-                            "fr" => "N° projet",
-                            "en" => "Project ID",
-                            "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle demande\nModale Modifier un acheminement \nDétails acheminement - Entête \n",
-                        ],
-                        [
-                            "fr" => "Business unit",
-                            "en" => "Business unit",
-                            "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle demande\nModale Modifier un acheminement \nDétails acheminement - Entête",
-                        ],
-                        [
-                            "fr" => "Dates d'échéances",
-                            "en" => "Due dates",
-                            "tooltip" => "Détails\nModale Nouvelle demande",
-                        ],
                     ],
                 ],
                 "Zone liste - Noms de colonnes" => [
                     "content" => [
                         [
-                            "fr" => "Date de création",
-                            "en" => "Creation date",
-                            "tooltip" => "Zone liste - Nom de colonnes\nDétails acheminements - Entête\nPDF bon acheminement",
-                        ],
-                        [
-                            "fr" => "Date de validation",
-                            "en" => "Validation date",
-                            "tooltip" => "Zone liste - Nom de colonnes\nDétails acheminements - Entête\nPDF bon acheminement",
-                        ],
-                        [
-                            "fr" => "Date de traitement",
-                            "en" => "Finish date",
-                            "tooltip" => "Zone liste - Nom de colonnes\nDétails acheminements - Entête\nPDF bon acheminement",
-                        ],
-                        [
-                            "fr" => "Date d'échéance",
-                            "en" => "Due date",
-                            "tooltip" => "Zone liste - Nom de colonnes",
-                        ],
-                        [
                             "fr" => "Nombre d'UL",
                             "en" => "L.U. quantity",
                             "tooltip" => "Zone liste - Nom de colonnes",
-                        ],
-                        [
-                            "fr" => "Traité par",
-                            "en" => "Finished by",
-                            "tooltip" => "Zone liste - Nom de colonnes\nDétails",
                         ],
                     ],
                 ],
@@ -2055,51 +2092,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Détails acheminements - Liste des colis - Nom de colonnes\nPDF bon acheminement",
                         ],
                         [
-                            "fr" => "Quantité à acheminer",
-                            "en" => "Quantity to transfer",
-                            "tooltip" => "Détails acheminements - Liste des UL - Nom de colonnes\nPDF bon acheminement",
-                        ],
-                        [
-                            "fr" => "Nature",
-                            "en" => "Nature",
-                            "tooltip" => "Détails acheminements - Liste des UL - Nom de colonnes\nPDF bon acheminement",
-                        ],
-                        [
-                            "fr" => "Poids (kg)",
-                            "en" => "Weight (kg)",
-                            "tooltip" => "Détails acheminements - Liste des UL - Nom de colonnes\nPDF bon acheminement",
-                        ],
-                        [
-                            "fr" => "Volume (m3)",
-                            "en" => "Volume (m3)",
-                            "tooltip" => "Détails acheminements - Liste des UL - Nom de colonnes\nPDF bon acheminement",
-                        ],
-                        [
-                            "fr" => "Date dernier mouvement",
-                            "en" => "Last movement date",
-                            "tooltip" => "Détails acheminements - Liste des UL - Nom de colonnes",
-                        ],
-                        [
-                            "fr" => "Dernier emplacement",
-                            "en" => "Last location",
-                            "tooltip" => "Détails acheminements - Liste des UL - Nom de colonnes",
-                        ],
-                        [
-                            "fr" => "Opérateur",
-                            "en" => "Worker",
-                            "tooltip" => "Détails acheminements - Liste des UL - Nom de colonnes",
-                        ],
-                        [
-                            "fr" => "Traité",
-                            "en" => "Processed",
-                            "tooltip" => "Détails acheminements - Liste des colis - Nom de colonnes",
-                        ],
-                        [
-                            "fr" => "À traiter",
-                            "en" => "To process",
-                            "tooltip" => "Détails acheminements - Liste des colis - Nom de colonnes",
-                        ],
-                        [
                             "fr" => "Nouvelle UL",
                             "en" => "Create L.U.",
                             "tooltip" => "Détails acheminements - Liste des UL - Ajout UL",
@@ -2126,11 +2118,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "L'unité logistique {1} a bien été ajouté",
                             "en" => "Logistic unit {1} has been added",
-                        ],
-                        [
-                            "fr" => "Code",
-                            "en" => "Code",
-                            "tooltip" => "Liste des UL",
                         ],
                     ],
                 ],
@@ -2428,19 +2415,44 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Email changement statut acheminement",
                         ],
                         [
-                            "fr" => "Changement de statut d'un(e) demande d'acheminement de type {1} vous concernant :\nBonjour,\nVotre acheminement/expédition est en cours de traitement avec les informations suivantes :",
-                            "en" => "Status change of a transfer operation of type {1} for you:\nHello,\nYour transfer is being processed with the following information:",
+                            "fr" => "Votre acheminement/expédition est traité(e) avec les informations suivantes :",
+                            "en" => "Your transfer operation is finished with the following information:",
+                            "tooltip" => "Email traitement acheminement",
+                        ],
+                        [
+                            "fr" => "Votre acheminement/expédition est en cours de traitement avec les informations suivantes :",
+                            "en" => "Your transfer is being processed with the following information:",
                             "tooltip" => "Email changement statut acheminement",
                         ],
                         [
-                            "fr" => "Notification de traitement d'une demande d'acheminement",
-                            "en" => "Notification upon transfer  operation finishing",
+                            "fr" => "Follow GT // Notification de traitement d'une demande d'acheminement",
+                            "en" => "Follow GT // Notification upon transfer operation finishing",
                             "tooltip" => "Email traitement acheminement",
+                        ],
+                        [
+                            "fr" => "FOLLOW GT // Création d'une demande d'acheminement",
+                            "en" => "FOLLOW GT // Transfer operation has been updated",
+                            "tooltip" => "Email traitement acheminement",
+                        ],
+                        [
+                            "fr" => "FOLLOW GT // Changement de statut d'une demande d'acheminement",
+                            "en" => "FOLLOW GT // Status change for a transfer operation",
+                            "tooltip" => "Email changement statut acheminement",
                         ],
                         [
                             "fr" => "Acheminement {1} traité le {2} à {3}",
                             "en" => "Transfer {1} finished on {2} at {3}",
                             "tooltip" => "Email traitement acheminement",
+                        ],
+                        [
+                            "fr" => "Une demande d'acheminement de type {1} vous concerne :",
+                            "en" => "A transfer operation of type {1} concerns you:",
+                            "tooltip" => "Email de création d'acheminement",
+                        ],
+                        [
+                            "fr" => "Changement de statut d'une demande d'acheminement de type {1} vous concernant :",
+                            "en" => "Status change for a transfer operation of type {1} concerning you:",
+                            "tooltip" => "Email changement statut acheminement",
                         ],
                         [
                             "fr" => "Acheminement {1} traité partiellement le {2}",
@@ -2450,11 +2462,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Acheminement {1} traité le {2}",
                             "en" => "transfer {1} processed on {2}",
-                            "tooltip" => "Email traitement acheminement",
-                        ],
-                        [
-                            "fr" => "Bonjour,\nVotre acheminement/expédition est traité(e) avec les informations suivantes :",
-                            "en" => "Hello,\nYour transfer / shipment is finished with the following information :",
                             "tooltip" => "Email traitement acheminement",
                         ],
                     ],
@@ -2500,10 +2507,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Numéro de demande",
                             "en" => "Operation number",
-                            "tooltip" => "Zone liste - Nom de colonne",
-                        ],[
-                            "fr" => "Traité par",
-                            "en" => "Processed by",
                             "tooltip" => "Zone liste - Nom de colonne",
                         ],[
                             "fr" => "Destinataires",

@@ -519,7 +519,7 @@ class ArrivageService {
 
         $columns = [
             ['name' => 'packsInDispatch', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
-            ['title' => $this->translation->translate('Traçabilité', 'Général', 'Date de création'), 'name' => 'creationDate', 'type' => ($dispatchMode ? 'customDate' : '')],
+            ['title' => $this->translation->translate('Général', null, 'Zone liste', 'Date de création'), 'name' => 'creationDate', 'type' => ($dispatchMode ? 'customDate' : '')],
             ['title' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Divers', 'N° d\'arrivage'), 'name' => 'arrivalNumber'],
             ['title' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Divers', 'Poids total (kg)'), 'name' => 'totalWeight'],
             ['title' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Transporteur'), 'name' => 'carrier'],
