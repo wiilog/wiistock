@@ -13,13 +13,7 @@ class MailerService
     /** @Required */
     public ?EntityManagerInterface $entityManager = null;
 
-    /**
-     * @param $subject
-     * @param $content
-     * @param Utilisateur[]|string[]|Utilisateur|string $to
-     * @return bool
-     */
-    public function sendMail($subject, $content, $to): bool {
+    public function sendMail(string $subject, string $content, array|Utilisateur|string $to, array $attachments = []): bool {
         if (isset($_SERVER['APP_NO_MAIL']) && $_SERVER['APP_NO_MAIL'] == 1) {
             return true;
         }
@@ -84,6 +78,10 @@ class MailerService
             ->setSubject($subject)
             ->setBody($content)
             ->setContentType('text/html');
+
+        foreach ($attachments as $attachment) {
+            $message->attach(\Swift_Attachment::fromPath($attachment));
+        }
 
         $mailer = (new \Swift_Mailer($transport));
         $mailer->send($message);

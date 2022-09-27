@@ -21,7 +21,6 @@ class ExportScheduleRule {
 
     public const LAST_DAY_OF_WEEK = 'last';
 
-
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: "integer")]
@@ -81,7 +80,7 @@ class ExportScheduleRule {
 
         $this->export = $export;
 
-        if($export->getExportScheduleRule() !== $this) {
+        if($export && $export->getExportScheduleRule() !== $this) {
             $export->setExportScheduleRule($this);
         }
 

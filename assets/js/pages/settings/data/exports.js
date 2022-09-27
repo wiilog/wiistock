@@ -215,9 +215,6 @@ function toggleFrequencyInput($input) {
     const inputName = $input.attr('name');
     const $inputChecked = $modal.find(`[name="${inputName}"]:checked`);
     const inputCheckedVal = $inputChecked.val();
-    const $frequencyInput = $modal.find('[name="frequency"]');
-
-    $frequencyInput.val(inputCheckedVal);
 
     $globalFrequencyContainer.addClass('d-none');
     $globalFrequencyContainer.find('.frequency').addClass('d-none');

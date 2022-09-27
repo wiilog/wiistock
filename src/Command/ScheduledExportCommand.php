@@ -4,6 +4,8 @@
 namespace App\Command;
 
 use App\Entity\Export;
+use App\Exceptions\FTPException;
+use App\Service\FTPService;
 use App\Service\ScheduledExportService;
 use DateTime;
 use Doctrine\ORM\EntityManager;
@@ -24,6 +26,9 @@ class ScheduledExportCommand extends Command
     #[Required]
     public ScheduledExportService $exportService;
 
+    #[Required]
+    public FTPService $ftpService;
+
     protected function configure()
     {
         $this->setName(self::DEFAULT_NAME)
@@ -32,11 +37,26 @@ class ScheduledExportCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $config = [
+            "host" => "51.38.34.237",
+            "port" => "2222",
+            "user" => "admin",
+            "pass" => "lemdpdeladmin123",
+            "path" => "/exports",
+        ];
+        $file = fopen("C:\Program Files\Android\Android Studio\lib\util.jar", "r");
+        try {
+            $this->ftpService->send($config, $file);
+        } catch(FTPException $exception) {
+            dump($exception->getCode(), $exception->getMessage());
+        } catch(\Throwable $exception) {
+            dump($exception);
+        }
         $exportRepository = $this->getEntityManager()->getRepository(Export::class);
 
         $exportsCache = $this->exportService->getScheduledCache($this->getEntityManager());
         $currentKeyExport = $this->exportService->getScheduleExportKeyCache(new DateTime());
-
+dump("intermediaire");
         if (isset($exportsCache[$currentKeyExport])) {
             $exports = $exportRepository->findBy(["id" => $exportsCache[$currentKeyExport]]);
 
