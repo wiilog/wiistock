@@ -155,7 +155,7 @@ class DataExportService
 
         /** @var Arrivage $arrival */
         foreach ($data as $arrival) {
-            $this->arrivalService->putLineArrival($output, $arrival, $columnToExport);
+            $this->arrivalService->putArrivalLineInUniqueExport($output, $arrival, $columnToExport);
         }
 
         $this->createUniqueExportLine(Export::ENTITY_ARRIVAL, $start);

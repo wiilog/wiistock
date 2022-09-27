@@ -681,9 +681,9 @@ class ArrivageService {
         ];
     }
 
-    public function putLineArrival($output,
-                                   Arrivage $arrival,
-                                   array $columnToExport): void {
+    public function putArrivalLineInUniqueExport($output,
+                                                 Arrivage $arrival,
+                                                 array $columnToExport): void {
 
         if (!isset($this->exportCache)) {
             throw new \Exception('Export cache unloaded, call ArrivageService::launchExportCache brefore');
