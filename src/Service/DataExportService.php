@@ -26,6 +26,9 @@ class DataExportService
     #[Required]
     public Security $security;
 
+    #[Required]
+    public ArrivageService $arrivalService;
+
     public function createReferencesHeader(array $freeFieldsConfig) {
         return array_merge([
             'reference',
@@ -144,13 +147,15 @@ class DataExportService
         return $export;
     }
 
-    public function exportArrivages(ArrivageService $arrivageService, iterable $data, mixed $output, array $columnToExport)
+    public function exportArrivages(iterable $data,
+                                    mixed $output,
+                                    array $columnToExport)
     {
         $start = new DateTime();
 
         /** @var Arrivage $arrival */
         foreach ($data as $arrival) {
-            $arrivageService->putLineArrival($output, $arrival, $columnToExport);
+            $this->arrivalService->putLineArrival($output, $arrival, $columnToExport);
         }
 
         $this->createUniqueExportLine(Export::ENTITY_ARRIVAL, $start);

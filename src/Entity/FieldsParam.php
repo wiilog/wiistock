@@ -51,6 +51,13 @@ class FieldsParam {
     const FIELD_CODE_FROZEN_ARRIVAGE = 'frozen';
     const FIELD_CODE_PROJECT_NUMBER = 'projectNumber';
     const FIELD_CODE_BUSINESS_UNIT = 'businessUnit';
+    const FIELD_CODE_ARRIVAL_NUMBER = 'arrivalNumber'; // not in settings table
+    const FIELD_CODE_ARRIVAL_TOTAL_WEIGHT = 'arrivalTotalWeight'; // not in settings table
+    const FIELD_CODE_ARRIVAL_TYPE = 'arrivalType'; // not in settings table
+    const FIELD_CODE_ARRIVAL_STATUS = 'arrivalStatus'; // not in settings table
+    const FIELD_CODE_ARRIVAL_DATE = 'arrivalDate'; // not in settings table
+    const FIELD_CODE_ARRIVAL_CREATOR = 'arrivalCreator'; // not in settings table
+
     const FIELD_LABEL_PROVIDER_ARRIVAGE = 'fournisseur';
     const FIELD_LABEL_CARRIER_ARRIVAGE = 'transporteur';
     const FIELD_LABEL_CHAUFFEUR_ARRIVAGE = 'chauffeur';
@@ -66,6 +73,12 @@ class FieldsParam {
     const FIELD_LABEL_PROJECT_NUMBER = 'numéro projet';
     const FIELD_LABEL_BUSINESS_UNIT = 'business unit';
     const FIELD_LABEL_DROP_LOCATION_ARRIVAGE = 'emplacement de dépose';
+    const FIELD_LABEL_ARRIVAL_NUMBER = 'N° arrivage'; // not in settings table
+    const FIELD_LABEL_ARRIVAL_TOTAL_WEIGHT = 'Poids total'; // not in settings table
+    const FIELD_LABEL_ARRIVAL_TYPE = 'Type'; // not in settings table
+    const FIELD_LABEL_ARRIVAL_STATUS = 'Statut'; // not in settings table
+    const FIELD_LABEL_ARRIVAL_DATE = 'Date'; // not in settings table
+    const FIELD_LABEL_ARRIVAL_CREATOR = 'Utilisateur'; // not in settings table
 
     const ENTITY_CODE_DISPATCH = 'acheminements';
     const FIELD_CODE_CARRIER_DISPATCH = 'carrier';
