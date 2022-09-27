@@ -195,8 +195,7 @@ class DemandeRepository extends EntityRepository
                         ->leftJoin('delivery_request.statut', 'search_status')
                         ->leftJoin('delivery_request.type', 'search_type')
                         ->leftJoin('delivery_request.utilisateur', 'search_user')
-                        ->leftJoin('delivery_request.destination', 'search_location_destination')
-                        ->setParameter('search_value', '%' . $search . '%');
+                        ->leftJoin('delivery_request.destination', 'search_location_destination');
                 }
             }
 

@@ -177,8 +177,7 @@ class TrackingMovementRepository extends EntityRepository
                         ->leftJoin('search_pack.referenceArticle', 'search_pack_referenceArticle')
                         ->leftJoin('search_pack.article', 'search_pack_article')
                         ->leftJoin('search_pack_article.articleFournisseur', 'search_pack_article_supplierItem')
-                        ->leftJoin('search_pack_article_supplierItem.referenceArticle', 'search_pack_supplierItem_referenceArticle')
-                        ->setParameter('search_value', '%' . $search . '%');
+                        ->leftJoin('search_pack_article_supplierItem.referenceArticle', 'search_pack_supplierItem_referenceArticle');
                 }
             }
 
