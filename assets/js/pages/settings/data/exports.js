@@ -109,7 +109,12 @@ $(document).ready(() => {
                     });
                 })
             } else {
-                return AJAX.route(`POST`, `settings_submit_export`).json(data);
+                return AJAX.route(`POST`, `settings_submit_export`).json(data).then((response) => {
+                    if (response.success){
+                        $modalNewExport.modal(`hide`);
+                        tableExport.ajax.reload();
+                    }
+                });
             }
         });
     });
@@ -144,6 +149,7 @@ function displayNewExportModal(){
             $('.ref-articles-sentence').removeClass('d-none');
             $('.date-limit').addClass('d-none');
             $('.column-to-export').addClass('d-none');
+            $('select[name=columnToExport]').removeClass('needed');
             $('.period-interval').addClass('d-none');
         });
 
@@ -151,6 +157,7 @@ function displayNewExportModal(){
             $('.ref-articles-sentence').removeClass('d-none');
             $('.date-limit').addClass('d-none');
             $('.column-to-export').addClass('d-none');
+            $('select[name=columnToExport]').removeClass('needed');
             $('.period-interval').addClass('d-none');
         });
 
@@ -158,6 +165,7 @@ function displayNewExportModal(){
             $('.ref-articles-sentence').addClass('d-none');
             $('.date-limit').removeClass('d-none');
             $('.column-to-export').addClass('d-none');
+            $('select[name=columnToExport]').removeClass('needed');
             $('.period-interval').removeClass('d-none');
         });
 
@@ -165,6 +173,7 @@ function displayNewExportModal(){
             $('.ref-articles-sentence').addClass('d-none');
             $('.date-limit').removeClass('d-none');
             $('.column-to-export').removeClass('d-none');
+            $('select[name=columnToExport]').addClass('needed');
             $('.period-interval').removeClass('d-none');
         });
 
@@ -206,8 +215,6 @@ function displayNewExportModal(){
 
         });
     });
-
-    $('.select-all-options').on('click', onSelectAll);
 
     $modalNewExport.modal('show');
 
@@ -256,6 +263,7 @@ function toggleFrequencyInput($input) {
             initDateTimePicker({dateInputs: $input, minDate: true, value: $input.val()});
         });
     }
+    $('.select-all-options').on('click', onSelectAll);
 }
 
 function selectHourlyFrequencyIntervalType($select) {

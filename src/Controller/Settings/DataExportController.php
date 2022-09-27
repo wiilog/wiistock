@@ -104,13 +104,19 @@ class DataExportController extends AbstractController {
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
     public function submitExport(Request $request, EntityManagerInterface $manager, Security $security): Response {
         $userRepository = $manager->getRepository(Utilisateur::class);
-
         $data = $request->request->all();
-dump($request->getContent(), $request->request);
+
         if(!isset($data["entityToExport"])) {
             return $this->json([
                 "success" => false,
                 "msg" => "Veuillez sélectionner un type de données à exporter",
+            ]);
+        }
+
+        if(!isset($data["startDate"])){
+            return $this->json([
+                "success" => false,
+                "msg" => "Veuillez choisir une fréquence pour votre export planifié.",
             ]);
         }
 
@@ -140,10 +146,15 @@ dump($request->getContent(), $request->request);
 
             $export->setDestinationType($data["destinationType"]);
             if($export->getDestinationType() == Export::DESTINATION_EMAIL) {
+                if(isset($data["recipientEmails"]) && isset($data["recipientUsers"]) && ($data["recipientEmails"] === "" && $data["recipientUsers"] === "")){
+                    return $this->json([
+                        "success" => false,
+                        "msg" => "Veuillez renseigner au moins une adresse mail."
+                    ]);
+                }
                 $export->setFtpParameters(null);
 
                 $emails = isset($data["recipientEmails"]) && $data["recipientEmails"] ? explode(",", $data["recipientEmails"]) : [];
-                dump($emails);
                 $counter = 0;
                 foreach ($emails as $email) {
                     if(!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -163,6 +174,13 @@ dump($request->getContent(), $request->request);
                 $export->setRecipientUsers($userRepository->findBy(["id" => explode(",", $data["recipientUsers"])]));
                 $export->setRecipientEmails($emails);
             } else {
+                if(!isset($data["host"]) || !isset($data["port"]) || !isset($data["user"]) || !isset($data["password"]) || !isset($data["targetDirectory"])) {
+                    return $this->json([
+                        "success" => false,
+                        "msg" => "Veuillez renseigner tout les champs nécessaires au paramétrage du serveur SFTP.",
+                    ]);
+                }
+
                 $export->setRecipientUsers([]);
                 $export->setRecipientEmails([]);
 
@@ -186,7 +204,7 @@ dump($request->getContent(), $request->request);
             $export->setExportScheduleRule((new ExportScheduleRule())
                 ->setBegin(DateTime::createFromFormat("Y-m-d\TH:i", $data["startDate"]))
                 ->setFrequency($data["frequency"] ?? null)
-                ->setPeriod($data["period"] ?? null)
+                ->setPeriod($data["repeatPeriod"] ?? null)
                 ->setIntervalTime($data["intervalTime"] ?? null)
                 ->setIntervalPeriod($data["intervalPeriod"] ?? null)
                 ->setIntervalType($data["intervalType"] ?? null)
