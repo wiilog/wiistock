@@ -70,7 +70,7 @@
                 {% if reference.id %}
                     <div class="d-flex justify-content-center align-items-center type-container wii-type"
                          style="background-color: {{ reference.type.color }};">
-                        {{ reference.type.label }}
+                        <span>{{ reference.type.label }}</span>
                     </div>
                 {% endif %}
                 <div class="content row mx-0" style="border: {{ reference.id ? '1px solid ' ~ reference.type.color }}">
@@ -664,12 +664,14 @@
             </div>
 
             <div class="save-buttons">
-                <button class="btn btn-outline-secondary" onclick="history.back()">Annuler</button>
+                <button class="btn btn-outline-secondary" onclick="history.back()">
+                    <span>Annuler</span>
+                </button>
                 <button class="btn btn-success ml-2 save data"
                         data-submit="{{ submit_url }}"
                         value="{{ reference.id }}"
                         name="idRefArticle">
-                    Enregistrer
+                    <span>Enregistrer</span>
                 </button>
             </div>
         </div>
