@@ -9,6 +9,7 @@ use App\Entity\Export;
 use App\Entity\Fournisseur;
 use App\Entity\Statut;
 use App\Entity\Transport\TransportRound;
+use App\Entity\Transport\TransportRoundLine;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Service\Transport\TransportRoundService;
@@ -79,6 +80,35 @@ class DataExportService
         ], $freeFieldsConfig['freeFieldsHeader']);
     }
 
+    public function createDeliveryRoundHeader() {
+        return [
+            'N° Tournée',
+            'Date tournée',
+            'Transport',
+            'Livreur',
+            'Immatriculation',
+            'Kilomètres',
+            'N° dossier patient',
+            'N° Demande',
+            'Adresse transport',
+            'Métropole',
+            'Numéro dans la tournée',
+            'Urgence',
+            'Date de création',
+            'Demandeur',
+            'Date demandée',
+            'Date demande terminée',
+            'Objets',
+            'Anomalie température',
+        ];
+    }
+
+    public function createArrivalHeader(array $freeFieldsConfig) {
+        return [
+            //TODO: compléter
+        ];
+    }
+
     public function exportReferences(RefArticleDataService $refArticleDataService, array $freeFieldsConfig, iterable $data, mixed $output, bool $unique = true) {
         $start = new DateTime();
 
@@ -111,12 +141,20 @@ class DataExportService
         }
     }
 
-    public function exportTransportRounds(TransportRoundService $transportRoundService, iterable $data, mixed $output, bool $unique = true) {
+    public function exportTransportRounds(TransportRoundService $transportRoundService, iterable $data, mixed $output, DateTime $begin, DateTime $end, bool $unique = true) {
         $start = new DateTime();
 
         /** @var TransportRound $round */
         foreach ($data as $round) {
-            $transportRoundService->putLineRoundAndRequest($output, $round);
+            $transportRoundService->putLineRoundAndRequest($output, $round, function(TransportRoundLine $line) use ($begin, $end) {
+                $order = $line->getOrder();
+                $treatedAt = $order?->getTreatedAt() ?: null;
+
+                return (
+                    $treatedAt >= $begin
+                    && $treatedAt <= $end
+                );
+            });
         }
 
         if($unique) {

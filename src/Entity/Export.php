@@ -31,6 +31,14 @@ class Export {
     const DESTINATION_EMAIL = 1;
     const DESTINATION_SFTP = 2;
 
+    const PERIOD_INTERVAL_DAY = "day";
+    const PERIOD_INTERVAL_WEEK = "week";
+    const PERIOD_INTERVAL_MONTH = "month";
+    const PERIOD_INTERVAL_YEAR = "year";
+
+    const PERIOD_CURRENT = "current";
+    const PERIOD_PREVIOUS = "previous";
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: "integer")]

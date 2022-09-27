@@ -58,10 +58,10 @@
                     <label class="mr-3">Sur</label>
                     {{ form.select('periodInterval', null, false, {
                         items: [
-                            {label: 'le jour', value: 'day'},
-                            {label: 'la semaine', value: 'week'},
-                            {label: 'le mois', value: 'month'},
-                            {label: "l'année", value: 'year'}
+                            {label: 'le jour', value: current('App\\Entity\\Export::PERIOD_INTERVAL_DAY')},
+                            {label: 'la semaine', value: current('App\\Entity\\Export::PERIOD_INTERVAL_WEEK')},
+                            {label: 'le mois', value: current('App\\Entity\\Export::PERIOD_INTERVAL_MONTH')},
+                            {label: "l'année", value: current('App\\Entity\\Export::PERIOD_INTERVAL_YEAR')}
                         ],
                         inputClass: 'data period-select',
                         labelClass: 'mr-3 w-100'
@@ -69,8 +69,8 @@
 
                     {{ form.select('period', null, false, {
                         items: [
-                            {label: 'en cours (jour J)', value: 'current'},
-                            {label: 'dernier (jour J-1)', value: 'previous'},
+                            {label: 'en cours (jour J)', value: current('App\\Entity\\Export::PERIOD_CURRENT')},
+                            {label: 'dernier (jour J-1)', value: current('App\\Entity\\Export::PERIOD_PREVIOUS')},
                         ],
                         inputClass: 'data period-interval-select',
                     }) }}
