@@ -5,7 +5,7 @@ namespace App\Service;
 use App\Exceptions\FTPException;
 use phpseclib3\Exception\UnableToConnectException;
 use phpseclib3\Net\SFTP;
-use Throwable;
+use RuntimeException;
 
 class FTPService {
 
@@ -17,20 +17,24 @@ class FTPService {
             $sftp = new SFTP($config["host"], intval($config["port"]));
             $login = $sftp->login($config["user"], $config["pass"]);
             if ($login) {
+                $localPath = stream_get_meta_data($file)["uri"];
                 $path = rtrim($config["path"], "/");
-                $filename = basename(stream_get_meta_data($file)["uri"]);
-                dump("$path/$filename");
-                $sftp->put("$path/$filename", $file, SFTP::SOURCE_LOCAL_FILE);
-                dump("ok??");
+                $filename = basename($localPath);
+                $remotePath = "$path/$filename";
+
+                $sftp->put($remotePath, $file, SFTP::SOURCE_LOCAL_FILE);
+                if($sftp->filesize($remotePath) != filesize($localPath)) {
+                    throw new FTPException(FTPException::UPLOAD_FAILED);
+                }
             } else {
                 throw new FTPException(FTPException::INVALID_LOGINS);
             }
         } catch(FTPException $rethrow) {
             throw $rethrow;
-        } catch(UnableToConnectException $_) {
+        } catch(UnableToConnectException) {
             throw new FTPException(FTPException::UNABLE_TO_CONNECT);
-        }  catch(Throwable $e) {
-                dump($e);
+        } catch(RuntimeException) {
+            throw new FTPException(FTPException::UNKNOWN_ERROR);
         } finally {
             fclose($file);
         }
