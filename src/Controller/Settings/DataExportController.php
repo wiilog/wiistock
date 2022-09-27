@@ -28,6 +28,7 @@ use App\Service\DataExportService;
 use App\Service\FreeFieldService;
 use App\Service\ImportService;
 use App\Service\RefArticleDataService;
+use App\Service\ScheduledExportService;
 use App\Service\Transport\TransportRoundService;
 use App\Service\UserService;
 use DateTime;
@@ -300,9 +301,9 @@ class DataExportController extends AbstractController {
     }
 
     #[Route("/export/unique/arrivals", name: "settings_export_arrival", options: ["expose" => true], methods: "GET")]
-    public function exportArrivals(CSVExportService       $csvService,
-                                 ArrivageService  $arrivageService,
-                                 DataExportService $dataExportService,
+    public function exportArrivals(CSVExportService     $csvService,
+                                 ArrivageService        $arrivalService,
+                                 DataExportService      $dataExportService,
                                  EntityManagerInterface $entityManager,
                                  Request                $request): Response {
 
@@ -317,30 +318,43 @@ class DataExportController extends AbstractController {
         $today = new DateTime();
         $today = $today->format("d-m-Y H:i:s");
         $nameFile = "export-arrivages-$today.csv";
-        $csvHeader = $arrivageService->getHeaderForExport($columnToExport);
+        $arrivalService->launchExportCache($entityManager, $dateTimeMin, $dateTimeMax);
+
+        $csvHeader = $arrivalService->getHeaderForExport($entityManager, $columnToExport);
 
         $arrivalsIterator = $arrivageRepository->iterateArrivals($dateTimeMin, $dateTimeMax);
-        return $csvService->streamResponse(function ($output) use ($dataExportService, $columnToExport, $entityManager, $csvService, $arrivageService, $arrivalsIterator) {
-            $dataExportService->exportArrivages($arrivageService, $arrivalsIterator, $output, $columnToExport);
+        return $csvService->streamResponse(function ($output) use ($dataExportService, $columnToExport, $arrivalsIterator) {
+            $dataExportService->exportArrivages($arrivalsIterator, $output, $columnToExport);
         }, $nameFile, $csvHeader);
     }
 
-
     #[Route("/modale-new-export", name: "new_export_modal", options: ["expose" => true], methods: "GET")]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
-    public function getFirstModalContent(EntityManagerInterface $entityManager): JsonResponse
-    {
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
-        $arrivalFields = $fieldsParamRepository->getByEntityForExport(FieldsParam::ENTITY_CODE_ARRIVAGE);
-        $arrivalFields = Stream::from($arrivalFields)
-            ->keymap(fn(FieldsParam $field) => [$field->getFieldCode(), $field->getFieldLabel()])
-            ->toArray();
-
-        unset($arrivalFields['pj']);
-        unset($arrivalFields['imprimerArrivage']);
+    public function getFirstModalContent(EntityManagerInterface $entityManager,
+                                         ArrivageService        $arrivalService): JsonResponse {
+        $columns = $arrivalService->getArrivalExportableColumns($entityManager);
 
         return new JsonResponse($this->renderView('settings/donnees/export/modalNewExportContent.html.twig', [
-            "arrivalFields" => $arrivalFields
+            "arrivalFields" => Stream::from($columns)
+                ->keymap(fn(array $config) => [$config['code'], $config['label']])
+                ->toArray()
         ]));
+    }
+
+    #[Route("/annuler-export/{export}", name: "export_cancel", options: ["expose" => true], methods: "GET|POST", condition: "request.isXmlHttpRequest()")]
+    public function cancel(Export $export,
+                           EntityManagerInterface $manager,
+                           ScheduledExportService $scheduledExportService): JsonResponse {
+        $statusRepository = $manager->getRepository(Statut::class);
+
+        $exportType = $export->getType();
+        $exportStatus = $export->getStatus();
+        if ($exportStatus && $exportType && $exportType->getLabel() == Type::LABEL_SCHEDULED_EXPORT && $exportStatus->getNom() == Export::STATUS_SCHEDULED) {
+            $export->setStatus($statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::EXPORT, Export::STATUS_CANCELLED));
+            $manager->flush();
+            $scheduledExportService->saveScheduledExportsCache($manager);
+        }
+
+        return new JsonResponse();
     }
 }

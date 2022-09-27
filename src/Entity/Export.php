@@ -12,6 +12,7 @@ use Doctrine\ORM\Mapping as ORM;
 class Export {
 
     const STATUS_FINISHED = "terminé";
+    const STATUS_CANCELLED = "annulé";
     const STATUS_SCHEDULED = "planifié";
     const STATUS_ERROR = "erreur";
 

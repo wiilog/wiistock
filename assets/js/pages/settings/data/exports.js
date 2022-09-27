@@ -1,4 +1,6 @@
 import Routing from '../../../../../vendor/friendsofsymfony/jsrouting-bundle/Resources/public/js/router.min.js';
+import Modal from "@app/modal";
+
 import Form from '@app/form';
 import Flash from '@app/flash';
 import AJAX from "@app/ajax";
@@ -115,6 +117,27 @@ $(document).ready(() => {
                         tableExport.ajax.reload();
                     }
                 });
+            }
+        });
+    });
+
+    $('.cancel-export').on('click', function () {
+        Modal.confirm({
+            ajax: {
+                method: 'POST',
+                route: 'export_cancel',
+                params: {
+                    'export': $(this).data('request-id')
+                },
+            },
+            message: 'Voulez-vous réellement annuler la planification de cet export ?',
+            title: 'Annuler la demande de transport',
+            validateButton: {
+                color: 'danger',
+                label: 'Annuler',
+            },
+            cancelButton: {
+                label: 'Fermer',
             }
         });
     });

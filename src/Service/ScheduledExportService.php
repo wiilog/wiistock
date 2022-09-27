@@ -267,6 +267,8 @@ class ScheduledExportService
         $output = fopen($path, "x+");
 
         $exportToRun = $this->cloneScheduledExport($export);
+        $exportToRun->setBeganAt(new DateTime());
+
         if($export->getEntity() === DataExportController::ENTITY_REFERENCE) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $references = $referenceArticleRepository->iterateAll($export->getCreator());
