@@ -686,7 +686,7 @@ class ArrivageService {
                                                  array $columnToExport): void {
 
         if (!isset($this->exportCache)) {
-            throw new \Exception('Export cache unloaded, call ArrivageService::launchExportCache brefore');
+            throw new \Exception('Export cache unloaded, call ArrivageService::launchExportCache before');
         }
 
         $packsTotalWeight = $this->exportCache['packsTotalWeight'];
@@ -752,7 +752,7 @@ class ArrivageService {
                 ["code" => FieldsParam::FIELD_CODE_ARRIVAL_CREATOR, "label" => FieldsParam::FIELD_LABEL_ARRIVAL_CREATOR],
             ],
             Stream::from($arrivalFields)
-                ->filter(fn(FieldsParam $field) => !in_array($field->getEntityCode(), [FieldsParam::FIELD_CODE_PJ_ARRIVAGE, FieldsParam::FIELD_CODE_PRINT_ARRIVAGE]))
+                ->filter(fn(FieldsParam $field) => !in_array($field->getFieldCode(), [FieldsParam::FIELD_CODE_PJ_ARRIVAGE, FieldsParam::FIELD_CODE_PRINT_ARRIVAGE]))
                 ->map(fn(FieldsParam $field) => [
                     "code" => $field->getFieldCode(),
                     "label" => $field->getFieldLabel()
