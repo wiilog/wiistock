@@ -12,6 +12,7 @@ use Doctrine\ORM\Mapping as ORM;
 class Export {
 
     const STATUS_FINISHED = "terminé";
+    const STATUS_CANCELLED = "annulé";
     const STATUS_SCHEDULED = "planifié";
     const STATUS_ERROR = "erreur";
 
@@ -26,6 +27,17 @@ class Export {
         self::ENTITY_DELIVERY_ROUND => "Tournées",
         self::ENTITY_ARRIVAL => "Arrivages",
     ];
+
+    const DESTINATION_EMAIL = 1;
+    const DESTINATION_SFTP = 2;
+
+    const PERIOD_INTERVAL_DAY = "day";
+    const PERIOD_INTERVAL_WEEK = "week";
+    const PERIOD_INTERVAL_MONTH = "month";
+    const PERIOD_INTERVAL_YEAR = "year";
+
+    const PERIOD_CURRENT = "current";
+    const PERIOD_PREVIOUS = "previous";
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -56,14 +68,14 @@ class Export {
     #[ORM\Column(type: "json", nullable: true)]
     private array $columnToExport = [];
 
-    #[ORM\Column(type: "string", length: 255, nullable: true)]
-    private ?string $exportDestination = null;
+    #[ORM\Column(type: "integer", nullable: true)]
+    private ?string $destinationType = null;
 
     #[ORM\Column(type: "json", nullable: true)]
-    private array $ftpParameters = [];
+    private ?array $ftpParameters = [];
 
     #[ORM\Column(type: "json", nullable: true)]
-    private array $recipientEmails = [];
+    private ?array $recipientEmails = [];
 
     #[ORM\ManyToMany(targetEntity: Utilisateur::class)]
     private Collection $recipientUsers;
@@ -83,7 +95,10 @@ class Export {
     #[ORM\Column(type: "datetime", nullable: true)]
     private ?DateTimeInterface $nextExecution = null;
 
-    #[ORM\OneToOne(mappedBy: 'export', targetEntity: ExportScheduleRule::class)]
+    #[ORM\Column(type: "string", length: 255, nullable: true)]
+    private ?string $error = null;
+
+    #[ORM\OneToOne(inversedBy: 'export', targetEntity: ExportScheduleRule::class, cascade: ["persist"])]
     private ?ExportScheduleRule $exportScheduleRule = null;
 
     public function __construct() {
@@ -100,7 +115,7 @@ class Export {
         return $this->entity;
     }
 
-    public function setEntity(string $entity): self
+    public function setEntity(?string $entity): self
     {
         $this->entity = $entity;
 
@@ -136,7 +151,7 @@ class Export {
         return $this->forced;
     }
 
-    public function setForced(bool $forced): self
+    public function setForced(?bool $forced): self
     {
         $this->forced = $forced;
 
@@ -148,7 +163,7 @@ class Export {
         return $this->createdAt;
     }
 
-    public function setCreatedAt(DateTimeInterface $createdAt): self
+    public function setCreatedAt(?DateTimeInterface $createdAt): self
     {
         $this->createdAt = $createdAt;
 
@@ -191,19 +206,19 @@ class Export {
         return $this;
     }
 
-    public function getExportDestination(): ?string
+    public function getDestinationType(): ?string
     {
-        return $this->exportDestination;
+        return $this->destinationType;
     }
 
-    public function setExportDestination(string $exportDestination): self
+    public function setDestinationType(?string $destinationType): self
     {
-        $this->exportDestination = $exportDestination;
+        $this->destinationType = $destinationType;
 
         return $this;
     }
 
-    public function getFtpParameters(): array
+    public function getFtpParameters(): ?array
     {
         return $this->ftpParameters;
     }
@@ -235,7 +250,19 @@ class Export {
         return $this->recipientUsers;
     }
 
-    public function addUserEmail(Utilisateur $userEmail): self
+    public function setRecipientUsers($users): self {
+        foreach($this->getRecipientUsers() as $user) {
+            $this->removeRecipientUser($user);
+        }
+
+        foreach($users as $user) {
+            $this->addRecipientUser($user);
+        }
+
+        return $this;
+    }
+
+    public function addRecipientUser(Utilisateur $userEmail): self
     {
         if (!$this->recipientUsers->contains($userEmail)) {
             $this->recipientUsers[] = $userEmail;
@@ -244,7 +271,7 @@ class Export {
         return $this;
     }
 
-    public function removeUserEmail(Utilisateur $userEmail): self
+    public function removeRecipientUser(Utilisateur $userEmail): self
     {
         $this->recipientUsers->removeElement($userEmail);
 
@@ -256,7 +283,7 @@ class Export {
         return $this->period;
     }
 
-    public function setPeriod(string $period): self
+    public function setPeriod(?string $period): self
     {
         $this->period = $period;
 
@@ -268,7 +295,7 @@ class Export {
         return $this->periodInterval;
     }
 
-    public function setPeriodInterval(string $periodInterval): self
+    public function setPeriodInterval(?string $periodInterval): self
     {
         $this->periodInterval = $periodInterval;
 
@@ -299,15 +326,34 @@ class Export {
         return $this;
     }
 
+    public function getError(): ?string
+    {
+        return $this->error;
+    }
+
+    public function setError(?string $error): self
+    {
+        $this->error = $error;
+        return $this;
+    }
+
     public function getExportScheduleRule(): ?ExportScheduleRule
     {
         return $this->exportScheduleRule;
     }
 
-    public function setExportScheduleRule(?ExportScheduleRule $exportScheduleRule): self
-    {
+    public function setExportScheduleRule(?ExportScheduleRule $exportScheduleRule): self {
+        if($this->exportScheduleRule && $this->exportScheduleRule->getExport() !== $this) {
+            $oldExportScheduleRule = $this->exportScheduleRule;
+            $this->exportScheduleRule = null;
+            $oldExportScheduleRule->setExport(null);
+        }
         $this->exportScheduleRule = $exportScheduleRule;
+        if($this->exportScheduleRule && $this->exportScheduleRule->getExport() !== $this) {
+            $this->exportScheduleRule->setExport($this);
+        }
 
         return $this;
     }
+
 }

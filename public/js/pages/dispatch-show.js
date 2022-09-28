@@ -280,6 +280,15 @@ function initializePacksTable(dispatchId, isEdit) {
             if(isEdit) {
                 scrollToBottom();
             }
+            if (!$table.data('initialized')) {
+                $table.data('initialized', true);
+                // Resize table to avoid bug related to WIIS-8276,
+                // timeout is necessary because drawCallback doesnt seem to be called when everything is fully loaded,
+                // because we have some custom rendering actions which may take more time than native datatable rendering
+                setTimeout(() => {
+                    $table.DataTable().columns.adjust().draw();
+                }, 500);
+            }
         },
         createdRow: (row, data) => {
             // we display only + td on this line

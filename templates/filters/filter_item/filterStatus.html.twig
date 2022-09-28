@@ -26,7 +26,7 @@
                             {% if forTrackMov is defined and forTrackMov %}
                                 {{ trans('Traçabilité', 'Mouvements', status.nom, false) }}
                             {% else %}
-                                {{ status.nom }}
+                                {{ (capitalize ?? false) ? status.nom | capitalize : status.nom }}
                             {% endif %}
                         </option>
                     {% endfor %}

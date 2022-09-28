@@ -1,38 +1,24 @@
 <div class="frequency hourly-frequency">
     <div class="form-inline">
-        <div class="col-12 p-3 form-inline form-group">
+        <div class="col-12 p-2 mt-1 form-inline form-group">
             <label class="wii-field-name">Démarrer le*</label>
             <input type="datetime-local"
                    class="form-control form-control-sm ml-2 frequency-data"
-                   name="hourly-start-on"
+                   name="startDate"
                    title="Démarrer le"
                    placeholder="jj/mm/aaaa"
                    min="now"
                    value=""/>
         </div>
-        <div class="col-12 p-3 form-inline form-group">
+        <div class="col-12 p-2 form-inline form-group">
             Toutes les
             <input type="number"
-                   name="hourly-frequency-interval-period"
-                   class="form-control form-control-sm mx-2 w-px-50 frequency-data"
+                   name="intervalPeriod"
+                   class="form-control form-control-sm mx-2 w-px-100 frequency-data"
                    data-label="Intervalle d'heures/minutes"
                    min="1"
-                   max="30"
                    value="">
-            <select
-                    name="hourly-frequency-interval-type"
-                    class="form-control form-control-sm mx-2 w-px-100 frequency-data"
-                    onchange="selectHourlyFrequencyIntervalType($(this))"
-                    data-label="Heures et minutes">
-                <option value=""></option>
-                <option
-                    value="">
-                    heures
-                </option>
-                <option
-                    value="">
-                    minutes
-                </option>
+            heures
             </select>
         </div>
     </div>

@@ -433,7 +433,7 @@ class SettingsController extends AbstractController {
             "menus" => [
                 self::MENU_EXPORTS_ENCODING => [
                     "label" => "Encodage des exports CSV",
-                    "right" => Action::SETTINGS_DISPLAY_EXPORT,
+                    "right" => Action::SETTINGS_DISPLAY_EXPORT_ENCODING,
                     "save" => true,
                     "discard" => true,
                 ],
@@ -1284,7 +1284,7 @@ class SettingsController extends AbstractController {
             ],
             self::CATEGORY_DATA => [
                 self::MENU_CSV_EXPORTS => fn() => [
-                    "statuts" => [],
+                    "statuts" => $statusRepository->findByCategorieName(CategorieStatut::EXPORT),
                 ],
                 self::MENU_IMPORTS => fn() => [
                     "statuts" => $statusRepository->findByCategoryNameAndStatusCodes(

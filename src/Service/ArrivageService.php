@@ -10,6 +10,7 @@ use App\Entity\FreeField;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\Language;
+use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\Setting;
 use App\Entity\TrackingMovement;
@@ -17,13 +18,16 @@ use App\Entity\Urgence;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use DateTime;
+use Doctrine\Common\Collections\Criteria;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Service\TranslationService;
 use Symfony\Contracts\Service\Attribute\Required;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment;
+use WiiCommon\Helper\Stream;
 
 
 class ArrivageService {
@@ -71,6 +75,11 @@ class ArrivageService {
     public LanguageService $languageService;
 
     private ?array $freeFieldsConfig = null;
+
+    #[Required]
+    public CSVExportService $CSVExportService;
+
+    private ?array $exportCache = null;
 
     public function getDataForDatatable(Request $request, ?int $userIdArrivalFilter)
     {
@@ -669,5 +678,124 @@ class ArrivageService {
                 );
             }
         }
+    }
+
+    public function getHeaderForExport(EntityManagerInterface $entityManager,
+                                       array $columnToExport): array
+    {
+        $exportableColumns = $this->getArrivalExportableColumns($entityManager);
+        return Stream::from($columnToExport)
+            ->filterMap(function(string $code) use ($exportableColumns) {
+                $column = Stream::from($exportableColumns)
+                    ->find(fn(array $config) => $config['code'] === $code);
+                return $column['label'] ?? null;
+            })
+            ->toArray();
+    }
+
+    public function launchExportCache(EntityManagerInterface $entityManager,
+                                      DateTime $from,
+                                      DateTime $to): void {
+
+        $natureRepository = $entityManager->getRepository(Nature::class);
+        $packRepository = $entityManager->getRepository(Pack::class);
+        $arrivalRepository = $entityManager->getRepository(Arrivage::class);
+        $freeFieldsConfig = $this->freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::ARRIVAGE]);
+        $this->exportCache = [
+            "natures" => $natureRepository->findBy([], ['id' => Criteria::ASC]),
+            "packs" => $packRepository->countPacksByArrival($from, $to),
+            "packsTotalWeight" => $arrivalRepository->getTotalWeightByArrivals($from, $to),
+            "freeFields" => $freeFieldsConfig['freeFields']
+        ];
+    }
+
+    public function putArrivalLineInUniqueExport($output,
+                                                 Arrivage $arrival,
+                                                 array $columnToExport): void {
+
+        if (!isset($this->exportCache)) {
+            throw new \Exception('Export cache unloaded, call ArrivageService::launchExportCache before');
+        }
+
+        $packsTotalWeight = $this->exportCache['packsTotalWeight'];
+        $packs = $this->exportCache['packs'];
+
+        $line = [];
+        foreach ($columnToExport as $column) {
+            if (preg_match('/nature_(\d+)/', $column, $matches)) {
+                $natureId = $matches[1];
+                $line[] = $packs[$arrival->getId()][$natureId] ?? 0 ?: '';
+            }
+            else if (preg_match('/free_field_(\d+)/', $column, $matches)) {
+                $freeFieldId = $matches[1];
+                $freeField = $this->exportCache['freeFields'][$freeFieldId] ?? null;
+                $value = $arrival->getFreeFieldValue($freeFieldId) ?: '';
+                $line[] = $freeField
+                    ? FormatHelper::freeField($value, $freeField)
+                    : $value;
+            }
+            else {
+                $line[] = match ($column) {
+                    FieldsParam::FIELD_CODE_ARRIVAL_NUMBER           => $arrival->getNumeroArrivage(),
+                    FieldsParam::FIELD_CODE_ARRIVAL_TOTAL_WEIGHT     => $packsTotalWeight[$arrival->getId()] ?? '',
+                    FieldsParam::FIELD_CODE_ARRIVAL_TYPE             => FormatHelper::type($arrival->getType()),
+                    FieldsParam::FIELD_CODE_ARRIVAL_STATUS           => FormatHelper::status($arrival->getStatut()),
+                    FieldsParam::FIELD_CODE_ARRIVAL_DATE             => FormatHelper::datetime($arrival->getDate()),
+                    FieldsParam::FIELD_CODE_ARRIVAL_CREATOR          => FormatHelper::user($arrival->getUtilisateur()),
+                    FieldsParam::FIELD_CODE_BUYERS_ARRIVAGE          => FormatHelper::users($arrival->getAcheteurs()),
+                    FieldsParam::FIELD_CODE_BUSINESS_UNIT            => $arrival->getBusinessUnit() ?? '',
+                    FieldsParam::FIELD_CODE_CHAUFFEUR_ARRIVAGE       => $arrival->getChauffeur()->getNom() ?? '',
+                    FieldsParam::FIELD_CODE_COMMENTAIRE_ARRIVAGE     => $arrival->getCommentaire() ?? '',
+                    FieldsParam::FIELD_CODE_FROZEN_ARRIVAGE          => FormatHelper::bool($arrival->getFrozen()),
+                    FieldsParam::FIELD_CODE_TARGET_ARRIVAGE          => FormatHelper::user($arrival->getDestinataire()),
+                    FieldsParam::FIELD_CODE_CUSTOMS_ARRIVAGE         => FormatHelper::bool($arrival->getCustoms()),
+                    FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE   => FormatHelper::location($arrival->getDropLocation()),
+                    FieldsParam::FIELD_CODE_PROVIDER_ARRIVAGE        => FormatHelper::supplier($arrival->getFournisseur()),
+                    FieldsParam::FIELD_CODE_NUM_COMMANDE_ARRIVAGE    => $arrival->getNumeroCommandeList() ? implode(",", $arrival->getNumeroCommandeList()) : '',
+                    FieldsParam::FIELD_CODE_PROJECT_NUMBER           => $arrival->getProjectNumber() ?? '',
+                    FieldsParam::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE => $arrival->getNoTracking() ?? '',
+                    FieldsParam::FIELD_CODE_CARRIER_ARRIVAGE         => $arrival->getTransporteur()->getLabel() ?? '',
+                    default                                          => throw new \Exception("Invalid column name $column")
+                };
+            }
+        }
+        $this->CSVExportService->putLine($output, $line);
+    }
+
+    public function getArrivalExportableColumns(EntityManagerInterface $entityManager): array {
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
+        $natureRepository = $entityManager->getRepository(Nature::class);
+        $arrivalFields = $fieldsParamRepository->getByEntityForExport(FieldsParam::ENTITY_CODE_ARRIVAGE);
+        $freeFields = $freeFieldsRepository->findByFreeFieldCategoryLabels([CategorieCL::ARRIVAGE]);
+        $natures = $natureRepository->findBy([], ['id' => Criteria::ASC]);
+
+        return Stream::from(
+            [
+                ["code" => FieldsParam::FIELD_CODE_ARRIVAL_NUMBER, "label" => FieldsParam::FIELD_LABEL_ARRIVAL_NUMBER],
+                ["code" => FieldsParam::FIELD_CODE_ARRIVAL_TOTAL_WEIGHT, "label" => FieldsParam::FIELD_LABEL_ARRIVAL_TOTAL_WEIGHT],
+                ["code" => FieldsParam::FIELD_CODE_ARRIVAL_TYPE, "label" => FieldsParam::FIELD_LABEL_ARRIVAL_TYPE],
+                ["code" => FieldsParam::FIELD_CODE_ARRIVAL_STATUS, "label" => FieldsParam::FIELD_LABEL_ARRIVAL_STATUS],
+                ["code" => FieldsParam::FIELD_CODE_ARRIVAL_DATE, "label" => FieldsParam::FIELD_LABEL_ARRIVAL_DATE],
+                ["code" => FieldsParam::FIELD_CODE_ARRIVAL_CREATOR, "label" => FieldsParam::FIELD_LABEL_ARRIVAL_CREATOR],
+            ],
+            Stream::from($arrivalFields)
+                ->filter(fn(FieldsParam $field) => !in_array($field->getFieldCode(), [FieldsParam::FIELD_CODE_PJ_ARRIVAGE, FieldsParam::FIELD_CODE_PRINT_ARRIVAGE]))
+                ->map(fn(FieldsParam $field) => [
+                    "code" => $field->getFieldCode(),
+                    "label" => $field->getFieldLabel()
+                ]),
+            Stream::from($natures)
+                ->map(fn(Nature $nature) => [
+                    'code' => "nature_{$nature->getId()}",
+                    'label' => $nature->getLabel()
+                ]),
+            Stream::from($freeFields)
+                ->map(fn(FreeField $field) => [
+                    "code" => "free_field_{$field->getId()}",
+                    "label" => $field->getLabel(),
+                ])
+        )
+            ->toArray();
     }
 }

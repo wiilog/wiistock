@@ -61,27 +61,27 @@
         {{ _self.label(label, required, inline, options.labelOptions ?? {}) }}
         {{ _self.tooltip(options.tooltip ?? null, inline) }}
         <div class="{{ options.expanded ?? false ? 'wii-expanded-switch' : 'wii-switch' }} text-truncate"
-             {{ (options.error ?? 'local') == 'global' ? 'data-global-error' }}
-             {% for attribute in options.additionalAttributes ?? [] %}
-                 {{ attribute.name }}="{{ attribute.value ?? '' }}"
-             {% endfor %}
-             data-name="{{ name }}"
-             data-title="{{ label | striptags }}{{ required ? '*' }}">
-            {% for switch in switches %}
-                {% set id = random(100000, 10000000) %}
-                {% set disabled = switch.disabled ?? false %}
+        {{ (options.error ?? 'local') == 'global' ? 'data-global-error' }}
+        {% for attribute in options.additionalAttributes ?? [] %}
+            {{ attribute.name }}="{{ attribute.value ?? '' }}"
+        {% endfor %}
+        data-name="{{ name }}"
+        data-title="{{ label | striptags }}{{ required ? '*' }}">
+        {% for switch in switches %}
+            {% set id = random(100000, 10000000) %}
+            {% set disabled = switch.disabled ?? false %}
 
-                <input type="radio"
-                       id="{{ name }}-{{ id }}"
-                       name="{{ name }}"
-                       class="data {{ switch.class ?? null }}"
-                       value="{{ switch.value ?? '' }}"
-                       {{ disabled ? 'disabled' }}
-                       {{ required ? 'required' }}
-                       {{ switch.checked ?? false ? 'data-init="checked" checked' }}/>
+            <input type="radio"
+                   id="{{ name }}-{{ id }}"
+                   name="{{ name }}"
+                   class="data {{ switch.class ?? null }}"
+                   value="{{ switch.value ?? '' }}"
+                {{ disabled ? 'disabled' }}
+                {{ required ? 'required' }}
+                {{ switch.checked ?? false ? 'data-init="checked" checked' }}/>
 
-                <label for="{{ name }}-{{ id }}"
-                       {{ _self.custom_attributes(switch.attributes ?? []) }}>
+            <label for="{{ name }}-{{ id }}"
+                {{ _self.custom_attributes(switch.attributes ?? []) }}>
                     <span class="d-inline-flex align-items-center">
                         {% if switch.wiiIcon ?? false %}
                             <span class="mr-2 wii-icon wii-icon-{{ switch.wiiIcon }}"></span>
@@ -94,8 +94,8 @@
                             {{ switch.label }}
                         {% endif %}
                     </span>
-                </label>
-            {% endfor %}
+            </label>
+        {% endfor %}
         </div>
     </label>
 {% endmacro %}
@@ -106,25 +106,25 @@
     {% set checkboxClass = isSlider ? 'switch' : 'wii-checkbox' %}
     {% set containerTag = isSlider ? 'label' : 'div' %}
     <{{ containerTag }} class="{{ checkboxClass }}
-                        data-name="{{ name }}"
-                        {{ options.containerClass ?? '' }}">
-        <input type="checkbox"
-               id="{{ id }}"
-               class="checkbox data {{ options.inputClass ?? '' }}"
-              {{ required ? 'required' }}
-              {{ _self.common_attributes(name, options) }}
-              {{ _self.multiple_key(options) }}
-              {{ {on: 1, off: 0}[value] ?? value ? 'checked' }}>
-        {% if isSlider %}
-            <span class="slider round"></span>
-        {% else %}
-            <label class="user-select-none pointer {{ options.labelClass ?? '' }}" for="{{ id }}">
+    data-name="{{ name }}"
+    {{ options.containerClass ?? '' }}">
+    <input type="checkbox"
+           id="{{ id }}"
+           class="checkbox data {{ options.inputClass ?? '' }}"
+        {{ required ? 'required' }}
+        {{ _self.common_attributes(name, options) }}
+        {{ _self.multiple_key(options) }}
+        {{ {on: 1, off: 0}[value] ?? value ? 'checked' }}>
+    {% if isSlider %}
+        <span class="slider round"></span>
+    {% else %}
+        <label class="user-select-none pointer {{ options.labelClass ?? '' }}" for="{{ id }}">
                 <span class="d-inline-flex align-items-center">
                     {{ label | raw }}
                 </span>
-            </label>
-            {{ _self.tooltip(options.tooltip ?? null, options.inline ?? false) }}
-        {% endif %}
+        </label>
+        {{ _self.tooltip(options.tooltip ?? null, options.inline ?? false) }}
+    {% endif %}
     </{{ containerTag }}>
     {% if isSlider %}
         <label class="user-select-none pointer {{ options.labelClass ?? '' }}" for="{{ id }}">
@@ -143,13 +143,13 @@
             {% set id = random(100000, 10000000) %}
 
             <div class="wii-radio mt-1 {{ options.inputClass ?? '' }}">
-                <input type="radio" id="radio-{{ id }} {{ item.id ?? '' }}" class="data mr-2 {{ item.class ?? '' }}" value="{{ item.value ?? '' }}"
+                <input type="radio" id="radio-{{ id }}-{{ item.id ?? '' }}" class="data mr-2 {{ item.class ?? '' }}" value="{{ item.value ?? '' }}"
                     {{ required ? 'required' }}
                     {{ _self.common_attributes(name, options) }}
                     {{ _self.multiple_key(options) }}
                     {{ (item.checked ?? false) ? 'checked' }} />
 
-                <label class="{{ options.labelClass ?? '' }} pointer d-inline-flex align-items-center" for="radio-{{ id }}">
+                <label class="{{ options.labelClass ?? '' }} pointer d-inline-flex align-items-center" for="radio-{{ id }}-{{ item.id ?? '' }}">
                     {% if item.iconUrl ?? false %}
                         <img src="{{ item.iconUrl }}" alt="" width="20px" class="mr-2 {{ options.iconClass }}">
                     {% endif %}
@@ -173,38 +173,43 @@
         {% if label %}
             {{ _self.tooltip(options.tooltip ?? null, inline) }}
         {% endif %}
-        <select class="form-control data {{ options.inputClass ?? 'w-100' }} {{ required ? 'needed' }}"
-            {{ required ? 'required' }}
-            {{ options.multiple ?? false ? 'multiple' }}
-            {% if options.type is defined %}
-                data-s2="{{ options.type }}"
-                {% if options.hiddenDropdown ?? false %}data-hidden-dropdown{% endif %}
-                {% if options.disabledDropdownOptions ?? false %}data-disabled-dropdown-options{% endif %}
-                {% if options.editable ?? false %}data-editable{% endif %}
-                {% if options.label ?? false %}data-label="{{ options.label }}"{% endif %}
-                {% if options.noEmptyOption ?? false %}data-no-empty-option{% endif %}
-                {% if options.placeholder is defined %}data-placeholder="{{ options.placeholder }}"{% endif %}
-                {% if options.includeParams is defined %}data-include-params="{{ options.includeParams }}"{% endif %}
-                {% if options.minLength is defined %}data-min-length="{{ options.minLength }}"{% endif %}
-            {% endif %}
-            {% for attribute in options.additionalAttributes ?? [] %}
-                {{ attribute.name }}="{{ attribute.value ?? '' }}"
-            {% endfor %}
-            {{ _self.common_attributes(name, options) }}
-            {{ _self.multiple_key(options) }}>
-            {% if options.emptyOption is defined and options.emptyOption is not empty %}
-                <option {{ options.emptyOption.selected ? "selected" }}
-                    value="{{ options.emptyOption.value }}">{{ options.emptyOption.text }}</option>
-            {% elseif options.type is not defined and options.placeholder ?? false %}
-                <option disabled selected>{{ options.placeholder }}</option>
-            {% endif %}
 
-            {% set definedItems = options.items ?? [] %}
-            {% set items = (definedItems is iterable) ? definedItems : [definedItems] %}
+        {% if options.selectAll ?? false %}
+            <div class="input-group with-select-all-options flex-nowrap no-gutters mb-3">
+                <div class="flex-fill">
+        {% endif %}
+                    <select class="form-control data {{ options.inputClass ?? 'w-100' }}"
+                            {{ required ? 'required' }}
+                            {{ options.multiple ?? false ? 'multiple' }}
+                            {% if options.type is defined %}
+                                data-s2="{{ options.type }}"
+                            {% if options.hiddenDropdown ?? false %}data-hidden-dropdown{% endif %}
+                            {% if options.disabledDropdownOptions ?? false %}data-disabled-dropdown-options{% endif %}
+                            {% if options.editable ?? false %}data-editable{% endif %}
+                        {% if options.label ?? false %}data-label="{{ options.label }}"{% endif %}
+                        {% if options.noEmptyOption ?? false %}data-no-empty-option{% endif %}
+                            {% if options.placeholder is defined %}data-placeholder="{{ options.placeholder }}"{% endif %}
+                            {% if options.includeParams is defined %}data-include-params="{{ options.includeParams }}"{% endif %}
+                                {% if options.minLength is defined %}data-min-length="{{ options.minLength }}"{% endif %}
+                        {% endif %}
+                        {% for attribute in options.additionalAttributes ?? [] %}
+                        {{ attribute.name }}="{{ attribute.value ?? '' }}"
+                        {% endfor %}
+                        {{ _self.common_attributes(name, options) }}
+                        {{ _self.multiple_key(options) }}>
+                        {% if options.emptyOption is defined and options.emptyOption is not empty %}
+                        <option {{ options.emptyOption.selected ? "selected" }}
+                            value="{{ options.emptyOption.value }}">{{ options.emptyOption.text }}</option>
+                        {% elseif options.type is not defined and options.placeholder ?? false %}
+                        <option disabled selected>{{ options.placeholder }}</option>
+                        {% endif %}
 
-            {% for value, text in items %}
-                {% if text.value is defined and text.label is defined %}
-                    <option value="{{ text.value }}"
+                        {% set definedItems = options.items ?? [] %}
+                        {% set items = (definedItems is iterable) ? definedItems : [definedItems] %}
+
+                        {% for value, text in items %}
+                        {% if text.value is defined and text.label is defined %}
+                        <option value="{{ text.value }}"
                             {{ (text.selected ?? false) or text.value in values ? 'selected' }}
                             {{ text.disabled ?? false ? 'disabled' }}
                             {% if text.class is defined and text.class %}class="{{ text.class }}"{% endif %}
@@ -212,15 +217,22 @@
                             data-icon="{{ text.icon }}"
                         {% endif %}
                             {% for dataKey, dataValue in text %}
-                                data-{{ dataKey }}="{{ dataValue }}"
+                            data-{{ dataKey }}="{{ dataValue }}"
                             {% endfor %}>
-                        {{ text.label }}
-                    </option>
-                {% else %}
-                    <option value="{{ value }}" {{ value in values ? 'selected' }}>{{ text }}</option>
-                {% endif %}
-            {% endfor %}
-        </select>
+                            {{ text.label }}
+                        </option>
+                        {% else %}
+                        <option value="{{ value }}" {{ value in values ? 'selected' }}>{{ text }}</option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
+            {% if options.selectAll ?? false %}
+                </div>
+                <div class="input-group-append col-4">
+                    <button class="btn btn-primary select-all-options w-100" type="button">Tous les mois</button>
+                </div>
+            </div>
+            {% endif %}
     </label>
 {% endmacro %}
 
@@ -234,11 +246,11 @@
                class="form-control w-100 data {{ options.noClear is defined and options.noClear ? 'no-clear' }} {{ required ? 'needed' }}"
                value="{{ value }}"
                placeholder="{{ options.placeholder ?? '' }}"
-               {% for attribute in options.additionalAttributes ?? [] %}
-                   {{ attribute.name }}="{{ attribute.value ?? '' }}"
-               {% endfor %}
-               {{ _self.common_attributes(name, options) }}
-               {{ _self.multiple_key(options) }}>
+        {% for attribute in options.additionalAttributes ?? [] %}
+            {{ attribute.name }}="{{ attribute.value ?? '' }}"
+        {% endfor %}
+        {{ _self.common_attributes(name, options) }}
+        {{ _self.multiple_key(options) }}>
     </label>
 {% endmacro %}
 
@@ -285,13 +297,13 @@
                    placeholder="{{ options.placeholder ?? '' }}"
                    value="{{ value }}"
                    {{ required and not disabled ? 'required' }}
-                   {{ disabled }}
-                   {{ _self.common_attributes(name, options) }}
-                   {{ _self.multiple_key(options) }}>
+                {{ disabled }}
+                {{ _self.common_attributes(name, options) }}
+                {{ _self.multiple_key(options) }}>
                {% if options.buttons ?? true %}
                    <button type="button" class="increase" {{ disabled }}></button>
                {% endif %}
-        {% if options.buttons ?? true %}</span>{% endif %}
+            {% if options.buttons ?? true %}</span>{% endif %}
     </label>
 {% endmacro %}
 
@@ -308,7 +320,7 @@
                   rows="{{ options.rows ?? 3 }}"
                   style="{{ resizeVertical ? 'resize: vertical;' : 'resize: none;' }} {{ options.style ?? '' }}"
                   {% if options.placeholder is defined %}placeholder="{{ options.placeholder }}"{% endif %}
-                  {{ required ? 'required' }}>
+            {{ required ? 'required' }}>
             {{- value | raw -}}
         </textarea>
     </label>
@@ -361,7 +373,7 @@
                    class="data force-data"
                    onchange="updateImagePreview('#preview-{{ name }}', '#upload-{{ name }}')"
                    hidden
-                   {{ required ? 'required' }}>
+                {{ required ? 'required' }}>
 
             <input type="hidden"
                    class="keep-image data"

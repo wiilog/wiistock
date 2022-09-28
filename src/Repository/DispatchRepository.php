@@ -124,17 +124,15 @@ class DispatchRepository extends EntityRepository
                         "destination" => "dispatch.destination LIKE :search_value",
                     ];
 
-                    $condition = $visibleColumnService->getSearchableColumns($conditions, 'dispatch', $qb, $user, $search);
+                    $visibleColumnService->bindSearchableColumns($conditions, 'dispatch', $qb, $user, $search);
 
                     $qb
-                        ->andWhere($condition)
                         ->leftJoin('dispatch.locationFrom', 'search_locationFrom')
                         ->leftJoin('dispatch.locationTo', 'search_locationTo')
                         ->leftJoin('dispatch.statut', 'search_statut')
                         ->leftJoin('dispatch.type', 'search_type')
                         ->leftJoin('dispatch.requester','search_requester')
-                        ->leftJoin('dispatch.receivers', 'search_receivers')
-                        ->setParameter('search_value', '%' . $search . '%');
+                        ->leftJoin('dispatch.receivers', 'search_receivers');
                 }
             }
             if (!empty($params->all('order'))) {

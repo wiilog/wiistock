@@ -238,16 +238,14 @@ class ReceptionRepository extends EntityRepository
                         "deliveries" => null,
                     ];
 
-                    $condition = $visibleColumnService->getSearchableColumns($conditions, 'reception', $qb, $user, $search);
+                    $visibleColumnService->bindSearchableColumns($conditions, 'reception', $qb, $user, $search);
 
                     $qb
-                        ->andWhere($condition)
 						->leftJoin('reception.statut', 'search_status')
 						->leftJoin('reception.fournisseur', 'search_provider')
                         ->leftJoin('reception.demandes', 'search_request')
                         ->leftJoin('search_request.utilisateur', 'search_request_user')
-                        ->leftJoin('reception.storageLocation', 'search_storage_location')
-                        ->setParameter('search_value', '%' . $search . '%');
+                        ->leftJoin('reception.storageLocation', 'search_storage_location');
                 }
             }
 

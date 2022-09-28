@@ -28,6 +28,7 @@
         "nelmio/cors-bundle": "^2.2",
         "ovh/ovh": "^3.0",
         "phpdocumentor/reflection-docblock": "^5.3",
+        "phpseclib/phpseclib": "^3.0",
         "scienta/doctrine-json-functions": "^5.0",
         "sensio/framework-extra-bundle": "^6.2",
         "swiftmailer/swiftmailer": "^6.2",
@@ -64,7 +65,8 @@
         "twig/string-extra": "^3.3",
         "twig/twig": "^3.3",
         "wiilog/barcode-bundle": "dev-master",
-        "wiilog/common": "dev-master"
+        "wiilog/common": "dev-master",
+        "ext-ssh2": "*"
     },
     "require-dev": {
         "phpunit/phpunit": "^9.5",

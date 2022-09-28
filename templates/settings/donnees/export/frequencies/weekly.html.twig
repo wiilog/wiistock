@@ -1,9 +1,11 @@
+{% import 'form.html.twig' as form %}
+
 <div class="frequency every-week-frequency">
-    <div class="col-12 p-3 form-inline form-group">
+    <div class="col-12 p-2 mt-1 mb-0 form-inline form-group">
         <label class="wii-field-name">Démarrer le*</label>
         <input type="datetime-local"
                class="form-control form-control-sm ml-2 frequency-data"
-               name="weekly-start-on"
+               name="startDate"
                title="Démarrer le"
                placeholder="jj/mm/aaaa"
                min="now"
@@ -11,34 +13,37 @@
     </div>
 
     <div class="form-inline">
-        <div class="col-12 p-3">
+        <div class="col-12 p-2">
+            <div class="d-flex align-items-center">
             Répéter toutes les
             <input type="number"
-                   name="weekly-frequency-interval"
-                   class="form-control form-control-sm mx-2 w-px-50 mb-2 frequency-data"
+                   name="frequency"
+                   class="form-control form-control-sm mx-2 w-px-100 mb-2 frequency-data"
                    data-label="Intervalle de jours"
                    value=""
                    min="1">
             semaines à
             <input type="time"
-                   name="weekly-frequency-time"
+                   name="intervalTime"
                    class="form-control form-control-sm mx-2 w-px-100 mb-2 frequency-data"
                    data-label="Heures et minutes"
                    value="">
-            le :
-            <select name="weekly-frequency-days-week"
-                    class="form-control select2 w-100 mt-2 frequency-data"
-                    multiple
-                    data-label="Jours de la semaine">
-                {% set day = date('monday this week') %}
-                {% for dayIndex in 1..7 %}
-                    {% set dayLabel = day %}
-                    <option value="{{ dayIndex }}">
-                        {{ dayLabel | format_date('none', 'EEEE', null, 'gregorian', 'fr') | capitalize }}
-                    </option>
-                    {% set day = day | date_modify('+1 day') %}
-                {% endfor %}
-            </select>
+
+            {% set date = [] %}
+            {% set day = date('monday this week') %}
+            {% for dayIndex in 1..7 %}
+                {% set dayLabel = day %}
+                {% set date = date|merge([{label: dayLabel | format_date('none', 'EEEE', null, 'gregorian', 'fr') | capitalize, value: dayIndex}]) %}
+                {% set day = day | date_modify('+1 day') %}
+            {% endfor %}
+            </div>
+            <div class="d-flex align-items-center">
+                <span class="mr-2">le</span> {{ form.select('weekDays', null, false, {
+                    type: null,
+                    items: date,
+                    multiple: true
+                }) }}
+            </div>
         </div>
     </div>
 </div>

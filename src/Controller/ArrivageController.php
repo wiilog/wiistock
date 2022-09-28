@@ -726,7 +726,7 @@ class ArrivageController extends AbstractController {
         try {
             $from = DateTime::createFromFormat($FORMAT, $request->query->get("dateMin") . " 00:00:00");
             $to = DateTime::createFromFormat($FORMAT, $request->query->get("dateMax") . " 23:59:59");
-        } catch (Throwable $throwable) {
+        } catch (Throwable) {
             return $this->json([
                 "success" => false,
                 "msg" => "Dates invalides"

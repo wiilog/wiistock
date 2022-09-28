@@ -393,6 +393,40 @@ class PackRepository extends EntityRepository
         );
     }
 
+    public function countPacksByArrival(DateTime $from, DateTime $to) {
+        $queryBuilder = $this->createQueryBuilder('colis');
+        $queryBuilderExpr = $queryBuilder->expr();
+        $queryBuilder
+            ->select('count(colis.id) as nbColis')
+            ->addSelect('nature.id AS natureId')
+            ->addSelect('arrivage.id AS arrivageId')
+            ->join('colis.nature', 'nature')
+            ->join('colis.arrivage', 'arrivage')
+            ->where($queryBuilderExpr->between('arrivage.date', ':dateFrom', ':dateTo'))
+            ->andWhere('colis.groupIteration IS NULL')
+            ->groupBy('nature.id')
+            ->addGroupBy('arrivage.id')
+            ->setParameter('dateFrom', $from)
+            ->setParameter('dateTo', $to);
+
+        $result = $queryBuilder->getQuery()->execute();
+
+        return array_reduce(
+            $result,
+            function (array $carry, $counter) {
+                $arrivageId = $counter['arrivageId'];
+                $natureId = $counter['natureId'];
+                $nbColis = $counter['nbColis'];
+                if (!isset($carry[$arrivageId])) {
+                    $carry[$arrivageId] = [];
+                }
+                $carry[$arrivageId][$natureId] = intval($nbColis);
+                return $carry;
+            },
+            []
+        );
+    }
+
     public function getPacksById(array $packIds): array {
         $queryBuilder = $this->createQueryBuilder('pack');
         $exprBuilder = $queryBuilder->expr();

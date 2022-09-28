@@ -32,7 +32,8 @@ class MailerService
      */
     public function sendMail(string|array $subject,
                              string|array $template,
-                             array|string|Utilisateur $to): bool {
+                             array|string|Utilisateur $to,
+                             array $attachments = []): bool {
         if (isset($_SERVER['APP_NO_MAIL']) && $_SERVER['APP_NO_MAIL'] == 1) {
             return true;
         }
@@ -85,6 +86,10 @@ class MailerService
                 ->setSubject($content['subject'])
                 ->setBody($body)
                 ->setContentType('text/html');
+
+            foreach ($attachments as $attachment) {
+                $message->attach(\Swift_Attachment::fromPath($attachment));
+            }
 
             $mailer = (new \Swift_Mailer($transport));
             $mailer->send($message);

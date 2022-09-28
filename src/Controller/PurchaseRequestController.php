@@ -399,11 +399,11 @@ class PurchaseRequestController extends AbstractController
                 $supplier = $supplierRepository->find($data['supplier']);
             }
 
-            if(isset($data['orderDate']) && $data['expectedDate']){
+            if(isset($data['orderDate']) && $data['orderDate']) {
                 $orderDate = DateTime::createFromFormat('d/m/Y H:i', $data['orderDate']) ?: null;
             }
 
-            if(isset($data['expectedDate']) && $data['expectedDate']){
+            if(isset($data['expectedDate']) && $data['expectedDate']) {
                 $expectedDate = DateTime::createFromFormat('d/m/Y', $data['expectedDate']) ?: null;
             }
 
