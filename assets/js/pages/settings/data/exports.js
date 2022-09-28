@@ -17,6 +17,7 @@ global.displayNewExportModal = displayNewExportModal;
 global.toggleFrequencyInput = toggleFrequencyInput;
 global.selectHourlyFrequencyIntervalType = selectHourlyFrequencyIntervalType;
 global.destinationExportChange = destinationExportChange;
+global.forceStartExport = forceStartExport;
 
 let $modalNewExport = $("#modalNewExport");
 let $submitNewExport = $("#submitNewExport");
@@ -296,4 +297,15 @@ function selectHourlyFrequencyIntervalType($select) {
 function destinationExportChange(){
     $('.export-email-destination').toggleClass('d-none');
     $('.export-sftp-destination').toggleClass('d-none');
+}
+
+function forceStartExport(exportId){
+    $.post(Routing.generate('settings_export_forced', {exportId:exportId}, true), function(data){
+        if(data['success']){
+            Flash.add(`success`, data['msg']);
+        }else{
+            Flash.add(`danger`, data['msg']);
+        }
+        tableExport.ajax.reload();
+    });
 }
