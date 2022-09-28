@@ -207,8 +207,7 @@ function destinationExportChange(){
 function forceExport(exportId) {
     AJAX.route(POST, 'settings_export_force', {export: exportId})
         .json()
-        .then((data) => {
-            Flash.add(data.success ? `success` : `danger`, data.msg);
+        .then(() => {
             tableExport.ajax.reload();
         });
 }
@@ -352,7 +351,6 @@ function onFormTypeChange(resetFrequency = true) {
 }
 
 function cancelExport(exportId) {
-
     Modal.confirm({
         ajax: {
             method: POST,
@@ -369,6 +367,7 @@ function cancelExport(exportId) {
         },
         cancelButton: {
             label: 'Fermer',
-        }
+        },
+        table: tableExport,
     });
 }

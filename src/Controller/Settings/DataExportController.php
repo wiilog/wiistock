@@ -332,7 +332,9 @@ class DataExportController extends AbstractController {
             $cacheService->delete(CacheService::EXPORTS);
         }
 
-        return new JsonResponse();
+        return $this->json([
+            'success' => true,
+        ]);
     }
 
     #[Route("/export/plannifie/{export}/force", name: "settings_export_force", options: ["expose" => true], methods: "GET|POST", condition:"request.isXmlHttpRequest()")]
