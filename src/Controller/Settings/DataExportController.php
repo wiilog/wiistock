@@ -2,6 +2,7 @@
 
 namespace App\Controller\Settings;
 
+use App\Entity\Arrivage;
 use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Article;
@@ -20,12 +21,14 @@ use App\Entity\Transport\TransportRound;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
+use App\Service\ArrivageService;
 use App\Service\ArticleDataService;
 use App\Service\CSVExportService;
 use App\Service\DataExportService;
 use App\Service\FreeFieldService;
 use App\Service\ImportService;
 use App\Service\RefArticleDataService;
+use App\Service\ScheduledExportService;
 use App\Service\Transport\TransportRoundService;
 use App\Service\UserService;
 use DateTime;
@@ -230,7 +233,9 @@ class DataExportController extends AbstractController {
             $referenceArticleRepository = $manager->getRepository(ReferenceArticle::class);
             $references = $referenceArticleRepository->iterateAll($user);
 
+            $start = new DateTime();
             $dataExportService->exportReferences($refArticleDataService, $freeFieldsConfig, $references, $output);
+            $dataExportService->createUniqueExportLine(Export::ENTITY_REFERENCE, $start);
         }, "export-references-$today.csv", $header);
     }
 
@@ -253,7 +258,9 @@ class DataExportController extends AbstractController {
             $articleRepository = $entityManager->getRepository(Article::class);
             $articles = $articleRepository->iterateAll($user);
 
+            $start = new DateTime();
             $dataExportService->exportArticles($articleDataService, $freeFieldsConfig, $articles, $output);
+            $dataExportService->createUniqueExportLine(Export::ENTITY_ARTICLE, $start);
         }, "export-articles-$today.csv", $header);
     }
 
@@ -279,23 +286,69 @@ class DataExportController extends AbstractController {
 
         $transportRoundsIterator = $transportRoundRepository->iterateFinishedTransportRounds($dateTimeMin, $dateTimeMax);
         return $csvService->streamResponse(function ($output) use ($csvService, $dataExportService, $dateTimeMin, $dateTimeMax, $transportRoundService, $transportRoundsIterator) {
+            $start = new DateTime();
             $dataExportService->exportTransportRounds($transportRoundService, $transportRoundsIterator, $dateTimeMin, $dateTimeMax, $output);
+            $dataExportService->createUniqueExportLine(Export::ENTITY_DELIVERY_ROUND, $start);
         }, "export-tournees-$today.csv", $header);
     }
 
+    #[Route("/export/unique/arrivals", name: "settings_export_arrival", options: ["expose" => true], methods: "GET")]
+    public function exportArrivals(CSVExportService     $csvService,
+                                 ArrivageService        $arrivalService,
+                                 DataExportService      $dataExportService,
+                                 EntityManagerInterface $entityManager,
+                                 Request                $request): Response {
+
+        $dateMin = $request->query->get("dateMin");
+        $dateMax = $request->query->get("dateMax");
+        $columnToExport = $request->query->all("columnToExport");
+
+        $dateTimeMin = DateTime::createFromFormat("d/m/Y H:i:s", "$dateMin 00:00:00");
+        $dateTimeMax = DateTime::createFromFormat("d/m/Y H:i:s", "$dateMax 23:59:59");
+
+        $arrivageRepository = $entityManager->getRepository(Arrivage::class);
+        $today = new DateTime();
+        $today = $today->format("d-m-Y H:i:s");
+        $nameFile = "export-arrivages-$today.csv";
+        $arrivalService->launchExportCache($entityManager, $dateTimeMin, $dateTimeMax);
+
+        $csvHeader = $arrivalService->getHeaderForExport($entityManager, $columnToExport);
+
+        $arrivalsIterator = $arrivageRepository->iterateArrivals($dateTimeMin, $dateTimeMax);
+        return $csvService->streamResponse(function ($output) use ($dataExportService, $columnToExport, $arrivalsIterator) {
+            $start = new DateTime();
+            $dataExportService->exportArrivages($arrivalsIterator, $output, $columnToExport);
+            $dataExportService->createUniqueExportLine(Export::ENTITY_ARRIVAL, $start);
+        }, $nameFile, $csvHeader);
+    }
 
     #[Route("/modale-new-export", name: "new_export_modal", options: ["expose" => true], methods: "GET")]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
-    public function getFirstModalContent(EntityManagerInterface $entityManager): JsonResponse
-    {
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
-        $arrivalFields = $fieldsParamRepository->getByEntityForExport(FieldsParam::ENTITY_CODE_ARRIVAGE);
-        $arrivalFields = Stream::from($arrivalFields)
-            ->keymap(fn(FieldsParam $field) => [$field->getFieldCode(), $field->getFieldLabel()])
-            ->toArray();
+    public function getFirstModalContent(EntityManagerInterface $entityManager,
+                                         ArrivageService        $arrivalService): JsonResponse {
+        $columns = $arrivalService->getArrivalExportableColumns($entityManager);
 
         return new JsonResponse($this->renderView('settings/donnees/export/modalNewExportContent.html.twig', [
-            "arrivalFields" => $arrivalFields
+            "arrivalFields" => Stream::from($columns)
+                ->keymap(fn(array $config) => [$config['code'], $config['label']])
+                ->toArray()
         ]));
+    }
+
+    #[Route("/annuler-export/{export}", name: "export_cancel", options: ["expose" => true], methods: "GET|POST", condition: "request.isXmlHttpRequest()")]
+    public function cancel(Export $export,
+                           EntityManagerInterface $manager,
+                           ScheduledExportService $scheduledExportService): JsonResponse {
+        $statusRepository = $manager->getRepository(Statut::class);
+
+        $exportType = $export->getType();
+        $exportStatus = $export->getStatus();
+        if ($exportStatus && $exportType && $exportType->getLabel() == Type::LABEL_SCHEDULED_EXPORT && $exportStatus->getNom() == Export::STATUS_SCHEDULED) {
+            $export->setStatus($statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::EXPORT, Export::STATUS_CANCELLED));
+            $manager->flush();
+            $scheduledExportService->saveScheduledExportsCache($manager);
+        }
+
+        return new JsonResponse();
     }
 }

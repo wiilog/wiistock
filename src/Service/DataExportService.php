@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Export;
@@ -25,6 +26,9 @@ class DataExportService
 
     #[Required]
     public Security $security;
+
+    #[Required]
+    public ArrivageService $arrivalService;
 
     public function createReferencesHeader(array $freeFieldsConfig) {
         return array_merge([
@@ -99,15 +103,10 @@ class DataExportService
         ];
     }
 
-    public function createArrivalHeader(array $freeFieldsConfig) {
-        return [
-            //TODO: compléter
-        ];
-    }
-
-    public function exportReferences(RefArticleDataService $refArticleDataService, array $freeFieldsConfig, iterable $data, mixed $output, bool $unique = true) {
-        $start = new DateTime();
-
+    public function exportReferences(RefArticleDataService $refArticleDataService,
+                                     array $freeFieldsConfig,
+                                     iterable $data,
+                                     mixed $output) {
         $managersByReference = $this->entityManager
             ->getRepository(Utilisateur::class)
             ->getUsernameManagersGroupByReference();
@@ -119,27 +118,15 @@ class DataExportService
         foreach($data as $reference) {
             $refArticleDataService->putReferenceLine($output, $managersByReference, $reference, $suppliersByReference, $freeFieldsConfig);
         }
-
-        if($unique) {
-            $this->createUniqueExportLine(Export::ENTITY_REFERENCE, $start);
-        }
     }
 
-    public function exportArticles(ArticleDataService $articleDataService, array $freeFieldsConfig, iterable $data, mixed $output, bool $unique = true) {
-        $start = new DateTime();
-
+    public function exportArticles(ArticleDataService $articleDataService, array $freeFieldsConfig, iterable $data, mixed $output) {
         foreach($data as $article) {
             $articleDataService->putArticleLine($output, $article, $freeFieldsConfig);
         }
-
-        if($unique) {
-            $this->createUniqueExportLine(Export::ENTITY_ARTICLE, $start);
-        }
     }
 
-    public function exportTransportRounds(TransportRoundService $transportRoundService, iterable $data, mixed $output, DateTime $begin, DateTime $end, bool $unique = true) {
-        $start = new DateTime();
-
+    public function exportTransportRounds(TransportRoundService $transportRoundService, iterable $data, mixed $output, DateTime $begin, DateTime $end) {
         /** @var TransportRound $round */
         foreach ($data as $round) {
             $transportRoundService->putLineRoundAndRequest($output, $round, function(TransportRoundLine $line) use ($begin, $end) {
@@ -152,13 +139,9 @@ class DataExportService
                 );
             });
         }
-
-        if($unique) {
-            $this->createUniqueExportLine(Export::ENTITY_DELIVERY_ROUND, $start);
-        }
     }
 
-    private function createUniqueExportLine(string $entity, DateTime $from) {
+    public function createUniqueExportLine(string $entity, DateTime $from) {
         $type = $this->entityManager->getRepository(Type::class)->findOneByCategoryLabelAndLabel(
             CategoryType::EXPORT,
             Type::LABEL_UNIQUE_EXPORT,
@@ -187,4 +170,13 @@ class DataExportService
         return $export;
     }
 
+    public function exportArrivages(iterable $data,
+                                    mixed $output,
+                                    array $columnToExport)
+    {
+        /** @var Arrivage $arrival */
+        foreach ($data as $arrival) {
+            $this->arrivalService->putArrivalLineInUniqueExport($output, $arrival, $columnToExport);
+        }
+    }
 }

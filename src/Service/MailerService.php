@@ -13,7 +13,10 @@ class MailerService
     /** @Required */
     public ?EntityManagerInterface $entityManager = null;
 
-    public function sendMail(string $subject, string $content, array|Utilisateur|string $to, array $attachments = []): bool {
+    public function sendMail(string $subject,
+                             string $content,
+                             array|Utilisateur|string $to,
+                             array $attachments = []): bool {
         if (isset($_SERVER['APP_NO_MAIL']) && $_SERVER['APP_NO_MAIL'] == 1) {
             return true;
         }

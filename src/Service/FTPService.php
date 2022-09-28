@@ -9,7 +9,7 @@ use RuntimeException;
 
 class FTPService {
 
-    public function send(array $config, mixed $file) {
+    public function send(array $config, mixed $file): void {
         // go back to the start of the file
         fseek($file, 0);
 
@@ -35,8 +35,6 @@ class FTPService {
             throw new FTPException(FTPException::UNABLE_TO_CONNECT);
         } catch(RuntimeException) {
             throw new FTPException(FTPException::UNKNOWN_ERROR);
-        } finally {
-            fclose($file);
         }
     }
 

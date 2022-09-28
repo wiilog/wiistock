@@ -40,7 +40,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 'textColor-2' => "#D73353",
                 'textColor-3' => "#3353D7",
                 'textColor-4' => "#000000",
-                'textColor-5' => "#0000CC",
+                'textColor-5' => "#3353d7",
 
                 'textBold-2' => false,
                 'textBold-3' => false,
@@ -491,7 +491,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 'textItalic-4' => false,
                 'textUnderline-4' => false,
 
-                'textColor-5' => "#0000CC",
+                'textColor-5' => "#3353d7",
                 'textBold-5' => false,
                 'textItalic-5' => false,
                 'textUnderline-5' => false,
@@ -860,7 +860,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 'textItalic-4' => false,
                 'textUnderline-4' => false,
 
-                'textColor-5' => "#0000CC",
+                'textColor-5' => "#3353d7",
                 'textBold-5' => false,
                 'textItalic-5' => false,
                 'textUnderline-5' => false,
@@ -886,12 +886,12 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 'textItalic-3' => false,
                 'textUnderline-3' => false,
 
-                'textColor-9' => "#D73353",
+                'textColor-9' => "#3353D7",
                 'textBold-9' => false,
                 'textItalic-9' => false,
                 'textUnderline-9' => false,
 
-                'textColor-10' => "#FF0000",
+                'textColor-10' => "#D73353",
                 'textBold-10' => false,
                 'textItalic-10' => false,
                 'textUnderline-10' => false,
@@ -926,7 +926,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 'textItalic-4' => false,
                 'textUnderline-4' => false,
 
-                'textColor-5' => "#0000CC",
+                'textColor-5' => "#3353d7",
                 'textBold-5' => false,
                 'textItalic-5' => false,
                 'textUnderline-5' => false,
