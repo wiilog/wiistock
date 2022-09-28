@@ -1,3 +1,5 @@
+import AJAX from "@app/ajax";
+
 const confirmationModalId = 'confirmation-modal'
 
 //fixes the backdrop when multiple modals are open

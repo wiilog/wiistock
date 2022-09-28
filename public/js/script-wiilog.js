@@ -708,8 +708,9 @@ function initDateTimePicker(dateInput = '#dateMin, #dateMax, #expectedDate', for
         config.defaultDate = moment().hours(options.defaultHours).minutes(options.defaultMinutes);
     }
 
-    $(dateInput).data("dtp-initialized", "true");
-    $(dateInput).datetimepicker(config);
+    const $dateInput = typeof dateInput === 'string' ? $(dateInput) : dateInput;
+    $dateInput.data("dtp-initialized", "true");
+    $dateInput.datetimepicker(config);
 }
 
 

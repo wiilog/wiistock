@@ -20,6 +20,7 @@ use App\Entity\Statut;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
 use App\Service\ArrivageService;
 use App\Service\ArticleDataService;
@@ -41,6 +42,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Security;
 use WiiCommon\Helper\Stream;
@@ -48,8 +50,8 @@ use WiiCommon\Helper\Stream;
 #[Route("/parametrage")]
 class DataExportController extends AbstractController {
 
-    public const EXPORT_UNIQUE = "exportUnique";
-    public const EXPORT_SCHEDULED = "exportScheduled";
+    public const EXPORT_UNIQUE = "unique";
+    public const EXPORT_SCHEDULED = "scheduled";
 
     #[Route("/export/api", name: "settings_export_api", options: ["expose" => true], methods: "POST")]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
@@ -99,8 +101,11 @@ class DataExportController extends AbstractController {
 
     #[Route("/export/submit", name: "settings_submit_export", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
-    public function submitExport(Request $request, EntityManagerInterface $manager, Security $security, ScheduledExportService $scheduledExportService, CacheService $cacheService): Response {
-        $userRepository = $manager->getRepository(Utilisateur::class);
+    public function submitExport(Request                $request,
+                                 EntityManagerInterface $entityManager,
+                                 Security               $security,
+                                 CacheService           $cacheService,
+                                 DataExportService      $dataExportService): Response {
 
         $data = $request->request->all();
 
@@ -111,96 +116,38 @@ class DataExportController extends AbstractController {
             ]);
         }
 
-        $type = $data["exportTypeContainer"];
+        $type = $data["type"];
         $entity = $data["entityToExport"];
 
         if($type === self::EXPORT_UNIQUE) {
             //do nothing the export has been done in JS
         } else {
-            $type = $manager->getRepository(Type::class)->findOneByCategoryLabelAndLabel(
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $statusRepository = $entityManager->getRepository(Statut::class);
+            $type = $typeRepository->findOneByCategoryLabelAndLabel(
                 CategoryType::EXPORT,
                 Type::LABEL_SCHEDULED_EXPORT,
             );
 
-            $status = $manager->getRepository(Statut::class)->findOneByCategorieNameAndStatutCode(
+            $status = $statusRepository->findOneByCategorieNameAndStatutCode(
                 CategorieStatut::EXPORT,
                 Export::STATUS_SCHEDULED,
             );
 
             $export = new Export();
-            $export->setEntity($entity);
-            $export->setType($type);
-            $export->setStatus($status);
-            $export->setCreator($security->getUser());
-            $export->setCreatedAt(new DateTime());
-            $export->setForced(false);
+            $export
+                ->setEntity($entity)
+                ->setType($type)
+                ->setStatus($status)
+                ->setCreator($security->getUser())
+                ->setCreatedAt(new DateTime())
+                ->setForced(false);
 
-            $export->setDestinationType($data["destinationType"]);
-            if($export->getDestinationType() == Export::DESTINATION_EMAIL) {
-                $export->setFtpParameters(null);
-
-                $emails = isset($data["recipientEmails"]) && $data["recipientEmails"] ? explode(",", $data["recipientEmails"]) : [];
-                $counter = 0;
-                foreach ($emails as $email) {
-                    if(!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                        $counter++;
-                    }
-                }
-
-                if($counter !== 0) {
-                    return $this->json([
-                        "success" => false,
-                        "msg" => $counter === 1
-                            ? "Une adresse email n'est pas valide dans votre saisie"
-                            : "Plusieurs adresses email ne sont pas valides dans votre saisie"
-                    ]);
-                }
-
-                $export->setRecipientUsers($userRepository->findBy(["id" => explode(",", $data["recipientUsers"])]));
-                $export->setRecipientEmails($emails);
-
-                if($export->getRecipientUsers()->isEmpty() && count($emails) === 0) {
-                    return $this->json([
-                        "success" => false,
-                        "msg" => "Vous devez renseigner au moins un utilisateur ou une adresse mail destinataire"
-                    ]);
-                }
-            } else {
-                $export->setRecipientUsers([]);
-                $export->setRecipientEmails([]);
-
-                $export->setFtpParameters([
-                    "host" => $data["host"],
-                    "port" => $data["port"],
-                    "user" => $data["user"],
-                    "pass" => $data["password"],
-                    "path" => $data["targetDirectory"],
-                ]);
-            }
-            if($entity === Export::ENTITY_ARRIVAL) {
-                $export->setColumnToExport(explode(",", $data["columnToExport"]));
-            }
-
-            if($entity === Export::ENTITY_ARRIVAL || $entity === Export::ENTITY_DELIVERY_ROUND) {
-                $export->setPeriod($data["period"]);
-                $export->setPeriodInterval($data["periodInterval"]);
-            }
-
-            $export->setExportScheduleRule((new ExportScheduleRule())
-                ->setBegin(DateTime::createFromFormat("Y-m-d\TH:i", $data["startDate"]))
-                ->setFrequency($data["frequency"] ?? null)
-                ->setPeriod($data["repeatPeriod"] ?? null)
-                ->setIntervalTime($data["intervalTime"] ?? null)
-                ->setIntervalPeriod($data["intervalPeriod"] ?? null)
-                ->setMonths(isset($data["months"]) ? explode(",", $data["months"]) : null)
-                ->setWeekDays(isset($data["weekDays"]) ? explode(",", $data["weekDays"]) : null)
-                ->setMonthDays(isset($data["monthDays"]) ? explode(",", $data["monthDays"]) : null));
-
-            $export->setNextExecution($scheduledExportService->calculateNextExecutionDate($export));
+            $dataExportService->updateExport($entityManager, $export, $data);
             $cacheService->delete(CacheService::EXPORTS);
 
-            $manager->persist($export);
-            $manager->flush();
+            $entityManager->persist($export);
+            $entityManager->flush();
 
             return $this->json([
                 "success" => true,
@@ -210,6 +157,31 @@ class DataExportController extends AbstractController {
 
         return $this->json([
             "success" => true,
+        ]);
+    }
+
+    #[Route("/export/{export}/edit", name: "settings_edit_export", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
+    public function editExport(Request                $request,
+                               EntityManagerInterface $entityManager,
+                               DataExportService      $dataExportService,
+                               CacheService           $cacheService,
+                               Export                 $export): Response {
+
+        $data = $request->request->all();
+
+        if ($export->getType()?->getLabel() !== Type::LABEL_SCHEDULED_EXPORT) {
+            throw new NotFoundHttpException('Page non trouvée');
+        }
+
+        $dataExportService->updateExport($entityManager, $export, $data);
+        $cacheService->delete(CacheService::EXPORTS);
+
+        $entityManager->flush();
+
+        return $this->json([
+            "success" => true,
+            "msg" => "L'export planifié a été modifié",
         ]);
     }
 
@@ -321,13 +293,23 @@ class DataExportController extends AbstractController {
         }, $nameFile, $csvHeader);
     }
 
-    #[Route("/modale-new-export", name: "new_export_modal", options: ["expose" => true], methods: "GET")]
+    #[Route("/export-template", name: "export_template", options: ["expose" => true], methods: "GET")]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
-    public function getFirstModalContent(EntityManagerInterface $entityManager,
-                                         ArrivageService        $arrivalService): JsonResponse {
+    public function exportTemplate(EntityManagerInterface $entityManager,
+                                   Request                $request,
+                                   ArrivageService        $arrivalService): JsonResponse {
+
+        $exportRepository = $entityManager->getRepository(Export::class);
+
+        $exportId = $request->query->get('export');
+        $export = $exportId
+            ? $exportRepository->find($exportId)
+            : new Export();
+
         $columns = $arrivalService->getArrivalExportableColumns($entityManager);
 
-        return new JsonResponse($this->renderView('settings/donnees/export/modalNewExportContent.html.twig', [
+        return new JsonResponse($this->renderView('settings/donnees/export/form.html.twig', [
+            "export" => $export,
             "arrivalFields" => Stream::from($columns)
                 ->keymap(fn(array $config) => [$config['code'], $config['label']])
                 ->toArray()
