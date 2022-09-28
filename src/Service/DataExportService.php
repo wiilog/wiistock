@@ -6,6 +6,7 @@ use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Export;
+use App\Entity\FieldsParam;
 use App\Entity\Fournisseur;
 use App\Entity\Statut;
 use App\Entity\Transport\TransportRound;
@@ -103,10 +104,8 @@ class DataExportService
         ];
     }
 
-    public function createArrivalHeader(array $freeFieldsConfig) {
-        return [
-            //TODO: compléter
-        ];
+    public function createArrivalsHeader(array $columnToExport, array $freeFieldsConfig) {
+        return array_merge($columnToExport,  $freeFieldsConfig['freeFieldsHeader']);
     }
 
     public function exportReferences(RefArticleDataService $refArticleDataService, array $freeFieldsConfig, iterable $data, mixed $output, bool $unique = true) {
@@ -193,7 +192,8 @@ class DataExportService
 
     public function exportArrivages(iterable $data,
                                     mixed $output,
-                                    array $columnToExport)
+                                    array $columnToExport,
+                                    bool $unique = true)
     {
         $start = new DateTime();
 
@@ -202,6 +202,8 @@ class DataExportService
             $this->arrivalService->putArrivalLineInUniqueExport($output, $arrival, $columnToExport);
         }
 
-        $this->createUniqueExportLine(Export::ENTITY_ARRIVAL, $start);
+        if($unique){
+            $this->createUniqueExportLine(Export::ENTITY_ARRIVAL, $start);
+        }
     }
 }

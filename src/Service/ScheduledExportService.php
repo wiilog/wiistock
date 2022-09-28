@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Controller\Settings\DataExportController;
+use App\Entity\Arrivage;
 use App\Entity\Article;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
@@ -39,6 +40,9 @@ class ScheduledExportService
 
     #[Required]
     public ArticleDataService $articleDataService;
+
+    #[Required]
+    public ArrivageService $arrivageService;
 
     #[Required]
     public TransportRoundService $transportRoundService;
@@ -294,7 +298,15 @@ class ScheduledExportService
             $this->csvExportService->putLine($output, $this->dataExportService->createDeliveryRoundHeader());
             $this->dataExportService->exportTransportRounds($this->transportRoundService, $transportRounds, $output, $startDate, $endDate, false);
         } else if($exportToRun->getEntity() === DataExportController::ENTITY_ARRIVALS) {
-            //TODO: exporter les arrivages
+            $arrivalRepository = $entityManager->getRepository(Arrivage::class);
+            [$startDate, $endDate] = $this->getExportBoundaries($exportToRun);
+            $arrivals = $arrivalRepository->iterateArrivals($startDate, $endDate);
+            $freeFieldsConfig = $this->freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::ARRIVAGE], [CategoryType::ARRIVAGE]);
+
+            $this->arrivageService->launchExportCache($entityManager, $startDate, $endDate);
+
+            $this->csvExportService->putLine($output, $this->dataExportService->createArrivalsHeader($exportToRun->getColumnToExport(), $freeFieldsConfig));
+            $this->dataExportService->exportArrivages($arrivals, $output, $exportToRun->getColumnToExport(), false);
         } else {
             throw new RuntimeException("Unknown entity type");
         }
@@ -306,6 +318,7 @@ class ScheduledExportService
                 "FOLLOW GT // Export des $entity",
                 $this->templating->render("mails/contents/mailExportDone.twig", [
                     "entity" => $entity,
+                    "export" => $exportToRun,
                     "frequency" => match($exportToRun->getExportScheduleRule()?->getFrequency()) {
                         ExportScheduleRule::ONCE => "une fois",
                         ExportScheduleRule::HOURLY => "chaque heure",

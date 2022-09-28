@@ -3,7 +3,7 @@
 {% block content %}
     Bonjour,<br><br>
 
-    Vous trouverez ci-joint l'export de vos {{ entity }} {% if showMore %}du {{ date('d/m/Y') }}{% endif %}<br><br>
+    Vous trouverez ci-joint l'export de vos {{ entity }} {% if showMore %}du {{ 'now' | date('d/m/Y') }}{% endif %}<br><br>
 
     Pour rappel, l'export se fait {fréquence}, {paramétrage}.<br>
     {% if showMore %}

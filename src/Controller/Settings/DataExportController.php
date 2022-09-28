@@ -23,6 +23,7 @@ use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use App\Service\ArrivageService;
 use App\Service\ArticleDataService;
+use App\Service\CacheService;
 use App\Service\CSVExportService;
 use App\Service\DataExportService;
 use App\Service\FreeFieldService;
@@ -103,7 +104,7 @@ class DataExportController extends AbstractController {
 
     #[Route("/export/submit", name: "settings_submit_export", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
-    public function submitExport(Request $request, EntityManagerInterface $manager, Security $security): Response {
+    public function submitExport(Request $request, EntityManagerInterface $manager, Security $security, CacheService $cacheService): Response {
         $userRepository = $manager->getRepository(Utilisateur::class);
         $data = $request->request->all();
 
@@ -215,6 +216,8 @@ class DataExportController extends AbstractController {
 
             $manager->persist($export);
             $manager->flush();
+
+            $cacheService->delete(CacheService::EXPORTS);
 
             return $this->json([
                 "success" => true,
