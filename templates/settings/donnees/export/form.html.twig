@@ -1,25 +1,25 @@
 {% import 'form.html.twig' as form %}
 
 <div>
-    {{ form.radio('exportTypeContainer', null, false, [
-        {label: 'Export CSV unique', value: 'exportUnique', checked: true},
-        {label: 'Export CSV planifié', value: 'exportScheduled'}
-    ], {
-        containerClass: 'export-type-container'
-    }) }}
+    {% if export.id %}
+        <input type="hidden" name="exportId" value="{{ export.id }}"/>
+    {% endif %}
+    {{ form.radio('type', null, false, [
+        {label: 'Export CSV unique', value: constant('App\\Controller\\Settings\\DataExportController::EXPORT_UNIQUE'), checked: not export.type or export.type.label == constant('App\\Entity\\Type::LABEL_UNIQUE_EXPORT'), disabled: export.id is not null},
+        {label: 'Export CSV planifié', value: constant('App\\Controller\\Settings\\DataExportController::EXPORT_SCHEDULED'), checked: export.type and export.type.label == constant('App\\Entity\\Type::LABEL_SCHEDULED_EXPORT'), disabled: export.id is not null}
+    ]) }}
     <div>
         <div class="wii-section-title my-3">Type de données à exporter</div>
-
         {{ form.switch('entityToExport', null, true, [
-            {label: 'Références', value: 'reference', class: 'export-references', checked: true},
-            {label: 'Articles', value: 'article', class: 'export-articles' },
-            {label: 'Tournées', value: 'tournee', class: 'export-transport-rounds' },
-            {label: 'Arrivages', value: 'arrivage', class: 'export-arrivals'}
+            {label: 'Références', value: constant('App\\Entity\\Export::ENTITY_REFERENCE'), checked: export.entity == constant('App\\Entity\\Export::ENTITY_REFERENCE'), disabled: export.id is not null},
+            {label: 'Articles', value: constant('App\\Entity\\Export::ENTITY_ARTICLE'), checked: export.entity == constant('App\\Entity\\Export::ENTITY_ARTICLE'), disabled: export.id is not null},
+            {label: 'Tournées', value: constant('App\\Entity\\Export::ENTITY_DELIVERY_ROUND'), checked: export.entity == constant('App\\Entity\\Export::ENTITY_DELIVERY_ROUND'), disabled: export.id is not null},
+            {label: 'Arrivages', value: constant('App\\Entity\\Export::ENTITY_ARRIVAL'), checked: export.entity == constant('App\\Entity\\Export::ENTITY_ARRIVAL'), disabled: export.id is not null}
         ], {expanded: true}) }}
 
-        <div class="unique-export-container my-3">
-            <label class="ref-articles-sentence wii-small-text">Les articles exportés sont seulement ceux avec le groupe de visibilité rattaché à l'utilisateur.</label>
-            <div class="date-limit d-none">
+        <div class="unique-export-container">
+            <label class="ref-articles-sentence wii-small-text my-3">Les articles exportés sont seulement ceux avec le groupe de visibilité rattaché à l'utilisateur.</label>
+            <div class="date-limit form-group d-none">
                 <label class="wii-field-name">Bornes de dates</label>
                 <div class="col-12 col-md-6 p-0">
                     <div class="h-100">
@@ -48,6 +48,7 @@
                 {{ form.select('columnToExport', 'Colonnes à exporter', false, {
                     items: arrivalFields,
                     multiple: true,
+                    value: export.columnToExport
                 }) }}
             </div>
         </div>
@@ -57,22 +58,21 @@
                 <div class="d-flex align-items-center mt-2">
                     <label class="mr-3">Sur</label>
                     {{ form.select('periodInterval', null, false, {
+                        value: export.periodInterval,
                         items: [
                             {label: 'le jour', value: constant('App\\Entity\\Export::PERIOD_INTERVAL_DAY')},
                             {label: 'la semaine', value: constant('App\\Entity\\Export::PERIOD_INTERVAL_WEEK')},
                             {label: 'le mois', value: constant('App\\Entity\\Export::PERIOD_INTERVAL_MONTH')},
                             {label: "l'année", value: constant('App\\Entity\\Export::PERIOD_INTERVAL_YEAR')}
                         ],
-                        inputClass: 'data period-select',
                         labelClass: 'mr-3 w-100'
                     }) }}
-
                     {{ form.select('period', null, false, {
+                        value: export.period,
                         items: [
                             {label: 'en cours (jour J)', value: constant('App\\Entity\\Export::PERIOD_CURRENT')},
                             {label: 'dernier (jour J-1)', value: constant('App\\Entity\\Export::PERIOD_PREVIOUS')},
-                        ],
-                        inputClass: 'data period-interval-select',
+                        ]
                     }) }}
                 </div>
             </div>
@@ -86,21 +86,21 @@
                 <div class="wii-section-title my-3">Fréquence</div>
                 <div class="row frequencies mt-3">
                     {{ form.radio('frequency', null, false, [
-                        {label: 'Une fois', value: constant('App\\Entity\\ExportScheduleRule::ONCE'), id: 'input-radio-frequency-once-frequency', checked: true},
-                        {label: 'Chaque heure', value: constant('App\\Entity\\ExportScheduleRule::HOURLY'), id: 'input-radio-frequency-hourly-frequency'},
-                        {label: 'Chaque jour', value: constant('App\\Entity\\ExportScheduleRule::DAILY'), id: 'input-radio-frequency-every-day-frequency'},
-                        {label: 'Chaque semaine', value: constant('App\\Entity\\ExportScheduleRule::WEEKLY'), id: 'input-radio-frequency-every-week-frequency'},
-                        {label: 'Chaque mois', value: constant('App\\Entity\\ExportScheduleRule::MONTHLY'), id: 'input-radio-frequency-every-month-frequency'}
+                        {label: 'Une fois', value: constant('App\\Entity\\ExportScheduleRule::ONCE'), checked: export.exportScheduleRule and export.exportScheduleRule.frequency == constant('App\\Entity\\ExportScheduleRule::ONCE')},
+                        {label: 'Chaque heure', value: constant('App\\Entity\\ExportScheduleRule::HOURLY'), checked: export.exportScheduleRule and export.exportScheduleRule.frequency == constant('App\\Entity\\ExportScheduleRule::HOURLY')},
+                        {label: 'Chaque jour', value: constant('App\\Entity\\ExportScheduleRule::DAILY'), checked: export.exportScheduleRule and export.exportScheduleRule.frequency == constant('App\\Entity\\ExportScheduleRule::DAILY')},
+                        {label: 'Chaque semaine', value: constant('App\\Entity\\ExportScheduleRule::WEEKLY'), checked: export.exportScheduleRule and export.exportScheduleRule.frequency == constant('App\\Entity\\ExportScheduleRule::WEEKLY')},
+                        {label: 'Chaque mois', value: constant('App\\Entity\\ExportScheduleRule::MONTHLY'), checked: export.exportScheduleRule and export.exportScheduleRule.frequency == constant('App\\Entity\\ExportScheduleRule::MONTHLY')}
                     ], {
                         containerClass: 'col-4 frequencies-container',
                         onChange: 'toggleFrequencyInput($(this))'
                     }) }}
                     <div class="col-8 frequency-content d-none">
-                        {% include 'settings/donnees/export/frequencies/once.html.twig' %}
-                        {% include 'settings/donnees/export/frequencies/hourly.html.twig' %}
-                        {% include 'settings/donnees/export/frequencies/daily.html.twig' %}
-                        {% include 'settings/donnees/export/frequencies/weekly.html.twig' %}
-                        {% include 'settings/donnees/export/frequencies/monthly.html.twig' %}
+                        {% include 'settings/donnees/export/frequencies/once.html.twig' with {export: export} %}
+                        {% include 'settings/donnees/export/frequencies/hourly.html.twig' with {export: export} %}
+                        {% include 'settings/donnees/export/frequencies/daily.html.twig' with {export: export} %}
+                        {% include 'settings/donnees/export/frequencies/weekly.html.twig' with {export: export} %}
+                        {% include 'settings/donnees/export/frequencies/monthly.html.twig' with {export: export} %}
                     </div>
                 </div>
             </div>
@@ -115,6 +115,11 @@
                 <div class="export-email-destination my-3">
                     {{ form.select('recipientUsers', 'Utilisateur(s) Follow GT', false, {
                         type: 'user',
+                        items: export.recipientUsers|map((user) => {
+                            label: user.username,
+                            value: user.id,
+                            selected: true
+                        }),
                         multiple: true,
                     }) }}
 
@@ -122,6 +127,7 @@
                         type: null,
                         multiple: true,
                         editable: true,
+                        value: export.recipientEmails,
                         labelClass: 'mt-2 w-100'
                     }) }}
                 </div>

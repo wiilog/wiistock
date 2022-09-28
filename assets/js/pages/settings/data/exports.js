@@ -3,23 +3,22 @@ import Modal from "@app/modal";
 
 import Form from '@app/form';
 import Flash from '@app/flash';
-import AJAX from "@app/ajax";
+import AJAX, {POST} from "@app/ajax";
 
-const EXPORT_UNIQUE = `exportUnique`;
-const EXPORT_SCHEDULED = `exportScheduled`;
+const EXPORT_UNIQUE = `unique`;
+const EXPORT_SCHEDULED = `scheduled`;
 
 const ENTITY_REFERENCE = "reference";
 const ENTITY_ARTICLE = "article";
 const ENTITY_TRANSPORT_ROUNDS = "tournee";
 const ENTITY_ARRIVALS = "arrivage";
 
-global.displayNewExportModal = displayNewExportModal;
+global.displayExportModal = displayExportModal;
 global.toggleFrequencyInput = toggleFrequencyInput;
 global.selectHourlyFrequencyIntervalType = selectHourlyFrequencyIntervalType;
 global.destinationExportChange = destinationExportChange;
-
-let $modalNewExport = $("#modalNewExport");
-let $submitNewExport = $("#submitNewExport");
+global.forceExport = forceExport;
+global.cancelExport = cancelExport;
 
 let tableExport = null;
 
@@ -31,6 +30,9 @@ $(document).ready(() => {
     $.post(path, params, function (data) {
         displayFiltersSup(data);
     }, `json`);
+
+    let $modalNewExport = $("#modalExport");
+    createForm($modalNewExport);
 
     tableExport = initDataTable(`tableExport`, {
         processing: true,
@@ -56,169 +58,73 @@ $(document).ready(() => {
         },
     });
 
-    Form.create($modalNewExport).onSubmit(data => {
-        wrapLoadingOnActionButton($submitNewExport, () => {
-            if(!data) {
-                return;
-            }
-
-            const content = data.asObject();
-            if(content.exportTypeContainer === EXPORT_UNIQUE) {
-                if (content.entityToExport === ENTITY_REFERENCE) {
-                    window.open(Routing.generate(`settings_export_references`));
-                } else if (content.entityToExport === ENTITY_ARTICLE) {
-                    window.open(Routing.generate(`settings_export_articles`));
-                } else if (content.entityToExport === ENTITY_TRANSPORT_ROUNDS) {
-                    const dateMin = $modalNewExport.find(`[name=dateMin]`).val();
-                    const dateMax = $modalNewExport.find(`[name=dateMax]`).val();
-
-                    if(!dateMin || !dateMax || dateMin === `` || dateMax === ``) {
-                        Flash.add(`danger`, `Les bornes de dates sont requise pour les exports de tournées`);
-                        return Promise.resolve();
-                    }
-
-                    window.open(Routing.generate(`settings_export_round`, {
-                        dateMin,
-                        dateMax,
-                    }));
-                } else if (content.entityToExport === ENTITY_ARRIVALS) {
-                    const dateMin = $modalNewExport.find(`[name=dateMin]`).val();
-                    const dateMax = $modalNewExport.find(`[name=dateMax]`).val();
-                    const columnToExport = $modalNewExport.find(`[name=columnToExport]`).val();
-
-
-                    if(!dateMin || !dateMax || dateMin === `` || dateMax === ``) {
-                        Flash.add(`danger`, `Les bornes de dates sont requise pour les exports de tournées`);
-                        return Promise.resolve();
-                    } else if(columnToExport.length === 0){
-                        Flash.add(`danger`, `Veuillez choisir des colonnes à exporter`);
-                        return Promise.resolve();
-                    }
-
-                    window.open(Routing.generate(`settings_export_arrival`, {
-                        dateMin,
-                        dateMax,
-                        columnToExport
-                    }));
-                }
-
-                return new Promise((resolve) => {
-                    $(window).on('focus.focusAfterExport', function() {
-                        $modalNewExport.modal(`hide`);
-                        tableExport.ajax.reload();
-                        $(window).off('focus.focusAfterExport');
-                        resolve();
-                    });
-                })
-            } else {
-                return AJAX.route(`POST`, `settings_submit_export`).json(data);
-            }
-        });
-    });
-
-    $('.cancel-export').on('click', function () {
-        Modal.confirm({
-            ajax: {
-                method: 'POST',
-                route: 'export_cancel',
-                params: {
-                    'export': $(this).data('request-id')
-                },
-            },
-            message: 'Voulez-vous réellement annuler la planification de cet export ?',
-            title: 'Annuler la demande de transport',
-            validateButton: {
-                color: 'danger',
-                label: 'Annuler',
-            },
-            cancelButton: {
-                label: 'Fermer',
-            }
-        });
-    });
 });
 
-function displayNewExportModal(){
-    $modalNewExport.modal(`show`);
+function displayExportModal(exportId) {
+    let $modal = $("#modalExport");
 
-    $.get(Routing.generate('new_export_modal', true), function(resp){
-        $modalNewExport.find('.modal-body').html(resp);
+    $modal.modal(`show`);
+    const params = exportId
+        ? {export: exportId}
+        : {};
+    const title = exportId
+        ? "Modifier la planification d'un export"
+        : "Nouvel export";
 
-        initDateTimePicker('[name=dateMin], [name=dateMax]');
+    $modal.find('.modal-title')
+        .text(title);
 
-        $('.export-type-container').on('change', function(){
-            $('.unique-export-container').toggleClass('d-none');
-            $('.scheduled-export-container').toggleClass('d-none');
+    $modal.find('.modal-body')
+        .html(`
+            <div class="row justify-content-center">
+                <div class="col-auto">
+                    <div class="spinner-border">
+                        <span class="sr-only">Chargement...</span>
+                    </div>
+                </div>
+            </div>
+        `);
 
-            $('.frequencies').find('input[type=radio]').each(function(){
-                $(this).prop('checked', false);
-            });
+    $.get(Routing.generate('export_template', params, true), function(resp){
+        $modal.find('.modal-body').html(resp);
+        onFormEntityChange();
+        onFormTypeChange(false);
 
-            const $globalFrequencyContainer = $('.frequency-content');
-            $globalFrequencyContainer.addClass('d-none');
+        const $checkedFrequency = $modal.find('[name=frequency]:checked');
+        if ($checkedFrequency.exists()) {
+            toggleFrequencyInput($checkedFrequency);
+        }
 
-            $globalFrequencyContainer
-                .find('input.frequency-data, select.frequency-data')
-                .removeClass('data')
-                .removeClass('needed');
-        });
+        const $dateInput = $modal.find('[name=dateMin], [name=dateMax]');
+        initDateTimePicker($dateInput);
 
-        $('.export-references').on('click', function(){
-            $('.ref-articles-sentence').removeClass('d-none');
-            $('.date-limit').addClass('d-none');
-            $('.column-to-export').addClass('d-none');
-            $('.period-interval').addClass('d-none');
-        });
+        Select2Old.user($modal.find('.select2-user'));
+        Select2Old.initFree($modal.find('.select2-free'));
+        $modal.find('select[name=columnToExport]').select2();
 
-        $('.export-articles').on('click', function(){
-            $('.ref-articles-sentence').removeClass('d-none');
-            $('.date-limit').addClass('d-none');
-            $('.column-to-export').addClass('d-none');
-            $('.period-interval').addClass('d-none');
-        });
-
-        $('.export-transport-rounds').on('click', function(){
-            $('.ref-articles-sentence').addClass('d-none');
-            $('.date-limit').removeClass('d-none');
-            $('.column-to-export').addClass('d-none');
-            $('.period-interval').removeClass('d-none');
-        });
-
-        $('.export-arrivals').on('click', function(){
-            $('.ref-articles-sentence').addClass('d-none');
-            $('.date-limit').removeClass('d-none');
-            $('.column-to-export').removeClass('d-none');
-            $('.period-interval').removeClass('d-none');
-        });
-
-        Select2Old.user($('.select2-user'));
-        Select2Old.initFree($('.select2-free'));
-        $('select[name=columnToExport]').select2();
-
-        $('.period-select').on('change', function (){
-            let $periodInterval = $('.period-interval-select');
-            $periodInterval.find('option').remove().end();
+        $modal.find('.period-select').on('change', function (){
+            let $periodInterval = $modal.find('[name=period]');
             switch ($(this).val()) {
                 case 'today':
-                    $periodInterval.append(
+                    $periodInterval.html(
                         '<option value="current" selected>en cours (jour J)</option>' +
                         '<option value="previous">dernier (jour J-1)</option>'
                     );
                     break;
                 case 'week':
-                    $periodInterval.append(
+                    $periodInterval.html(
                         '<option value="current" selected>en cours (semaine S)</option>' +
                         '<option value="previous">dernière (semaine S-1)</option>'
                     );
                     break;
                 case 'month':
-                    $periodInterval.append(
+                    $periodInterval.html(
                         '<option value="current" selected>en cours (mois M)</option>' +
                         '<option value="previous">dernier (mois M-1)</option>'
                     );
                     break;
                 case 'year':
-                    $periodInterval.append(
+                    $periodInterval.html(
                         '<option value="current" selected>en cours (année A)</option>' +
                         '<option value="previous">dernière (année A-1)</option>'
                     );
@@ -232,7 +138,7 @@ function displayNewExportModal(){
 
     $('.select-all-options').on('click', onSelectAll);
 
-    $modalNewExport.modal('show');
+    $modal.modal('show');
 
    // $submitNewExport.on(`click`, function() {
 
@@ -296,4 +202,172 @@ function selectHourlyFrequencyIntervalType($select) {
 function destinationExportChange(){
     $('.export-email-destination').toggleClass('d-none');
     $('.export-sftp-destination').toggleClass('d-none');
+}
+
+function forceExport(exportId) {
+    AJAX.route(POST, 'settings_export_force', {export: exportId})
+        .json()
+        .then(() => {
+            tableExport.ajax.reload();
+        });
+}
+
+function handleExportSaving($modal, table) {
+    $modal.modal(`hide`);
+    table.ajax.reload();
+}
+
+function createForm() {
+    const $modal = $("#modalExport");
+    const exportId = $modal.find('[name=exportId]');
+    Form.create($modal)
+        .on('change', '[name=entityToExport]', function() {
+            onFormEntityChange();
+        })
+        .on('change', '[name=type]', function() {
+            onFormTypeChange();
+        })
+        .onSubmit((data) => {
+            wrapLoadingOnActionButton($modal, () => {
+                if(!data) {
+                    return;
+                }
+
+                const content = data.asObject();
+                if(content.type === EXPORT_UNIQUE && !exportId) {
+                    if (content.entityToExport === ENTITY_REFERENCE) {
+                        window.open(Routing.generate(`settings_export_references`));
+                    } else if (content.entityToExport === ENTITY_ARTICLE) {
+                        window.open(Routing.generate(`settings_export_articles`));
+                    } else if (content.entityToExport === ENTITY_TRANSPORT_ROUNDS) {
+                        const dateMin = $modal.find(`[name=dateMin]`).val();
+                        const dateMax = $modal.find(`[name=dateMax]`).val();
+
+                        if(!dateMin || !dateMax || dateMin === `` || dateMax === ``) {
+                            Flash.add(`danger`, `Les bornes de dates sont requise pour les exports de tournées`);
+                            return Promise.resolve();
+                        }
+
+                        window.open(Routing.generate(`settings_export_round`, {
+                            dateMin,
+                            dateMax,
+                        }));
+                    } else if (content.entityToExport === ENTITY_ARRIVALS) {
+                        const dateMin = $modal.find(`[name=dateMin]`).val();
+                        const dateMax = $modal.find(`[name=dateMax]`).val();
+                        const columnToExport = $modal.find(`[name=columnToExport]`).val();
+
+                        if(!dateMin || !dateMax || dateMin === `` || dateMax === ``) {
+                            Flash.add(`danger`, `Les bornes de dates sont requise pour les exports de tournées`);
+                            return Promise.resolve();
+                        } else if(columnToExport.length === 0){
+                            Flash.add(`danger`, `Veuillez choisir des colonnes à exporter`);
+                            return Promise.resolve();
+                        }
+
+                        window.open(Routing.generate(`settings_export_arrival`, {
+                            dateMin,
+                            dateMax,
+                            columnToExport
+                        }));
+                    }
+
+                    return new Promise((resolve) => {
+                        $(window).on('focus.focusAfterExport', function() {
+                            handleExportSaving($modal, tableExport);
+                            $(window).off('focus.focusAfterExport');
+                            resolve();
+                        });
+                    })
+                }
+                else {
+                    const exportId = $modal.find('[name=exportId]').val();
+                    const route = exportId ? 'settings_edit_export' : 'settings_submit_export';
+                    const params = exportId ? {export: exportId} : {};
+
+                    return AJAX.route(`POST`, route, params)
+                        .json(data)
+                        .then(() => {
+                            handleExportSaving($modal, tableExport);
+                        });
+                }
+            });
+        });
+}
+
+function onFormEntityChange() {
+    let $modal = $("#modalExport");
+    const selectedEntity = $modal.find('[name=entityToExport]:checked').val();
+    const $refArticlesSentence = $modal.find('.ref-articles-sentence');
+    const $dateLimit = $modal.find('.date-limit');
+    const $columnToExport = $modal.find('.column-to-export');
+    const $periodInterval = $modal.find('.period-interval');
+
+    $refArticlesSentence.addClass('d-none');
+    $dateLimit.addClass('d-none');
+    $columnToExport.addClass('d-none');
+    $periodInterval.addClass('d-none');
+
+    switch (selectedEntity) {
+        case ENTITY_REFERENCE:
+            $refArticlesSentence.removeClass('d-none');
+            break;
+        case ENTITY_ARTICLE:
+            $refArticlesSentence.removeClass('d-none');
+            break;
+        case ENTITY_TRANSPORT_ROUNDS:
+            $dateLimit.removeClass('d-none');
+            $periodInterval.removeClass('d-none');
+            break;
+        case ENTITY_ARRIVALS:
+            $dateLimit.removeClass('d-none');
+            $columnToExport.removeClass('d-none');
+            $periodInterval.removeClass('d-none');
+            break;
+        default:
+            break;
+    }
+}
+
+function onFormTypeChange(resetFrequency = true) {
+    const $modal = $('#modalExport');
+    const exportType = $modal.find('[name=type]:checked').val()
+    $modal.find('.unique-export-container').toggleClass('d-none', exportType !== EXPORT_UNIQUE);
+    $modal.find('.scheduled-export-container').toggleClass('d-none', exportType !== EXPORT_SCHEDULED);
+
+    if (resetFrequency) {
+        $modal.find('.frequencies').find('input[type=radio]').each(function () {
+            $(this).prop('checked', false);
+        });
+    }
+
+    const $globalFrequencyContainer = $modal.find('.frequency-content');
+    $globalFrequencyContainer.addClass('d-none');
+
+    $globalFrequencyContainer
+        .find('input.frequency-data, select.frequency-data')
+        .removeClass('data')
+        .removeClass('needed');
+}
+
+function cancelExport(exportId) {
+    Modal.confirm({
+        ajax: {
+            method: POST,
+            route: 'settings_export_cancel',
+            params: {
+                export: exportId
+            },
+        },
+        message: 'Voulez-vous réellement supprimer la planification de cet export ?',
+        title: 'Supprimer la planification de cet export',
+        validateButton: {
+            color: 'danger',
+            label: 'Supprimer',
+        },
+        cancelButton: {
+            label: 'Fermer',
+        },
+        table: tableExport,
+    });
 }

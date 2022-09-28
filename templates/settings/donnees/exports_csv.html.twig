@@ -8,10 +8,10 @@
     <div class="wii-page-card">
         <div class="row wii-page-card-header">
             <div class="col-auto ml-auto">
-                <div class="btn btn-primary" onclick="displayNewExportModal()">
+                <button class="btn btn-primary" onclick="displayExportModal()">
                     <span class="fa fa-plus mr-2"></span>
                     Ajouter un export
-                </div>
+                </button>
             </div>
         </div>
         <div class="row">
@@ -22,5 +22,5 @@
         </div>
     </div>
 
-    {% include 'settings/donnees/export/modalNewExport.html.twig' %}
+    {% include 'settings/donnees/export/modal.html.twig' %}
 </div>

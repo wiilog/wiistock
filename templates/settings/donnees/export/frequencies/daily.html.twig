@@ -7,7 +7,7 @@
                title="Démarrer le"
                placeholder="jj/mm/aaaa"
                min='now'
-               value=""/>
+               value="{{ export.exportScheduleRule ? export.exportScheduleRule.begin|date('Y-m-d\\TH:i') }}"/>
     </div>
 
     <div class="form-inline">
@@ -18,13 +18,13 @@
                    class="form-control form-control-sm mx-2 w-px-100 frequency-data"
                    data-label="Intervalle de jours"
                    min="1"
-                   value="">
+                   value="{{ export.exportScheduleRule ? export.exportScheduleRule.period }}">
             jours à
             <input type="time"
                    name="intervalTime"
                    class="form-control form-control-sm mx-2 w-px-100 frequency-data"
                    data-label="Heures et minutes"
-                   value="">
+                   value="{{ export.exportScheduleRule ? export.exportScheduleRule.intervalTime }}">
         </div>
     </div>
 </div>
