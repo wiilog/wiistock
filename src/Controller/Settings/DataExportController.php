@@ -334,7 +334,7 @@ class DataExportController extends AbstractController {
         ]));
     }
 
-    #[Route("/annuler-export/{export}", name: "export_cancel", options: ["expose" => true], methods: "GET|POST", condition: "request.isXmlHttpRequest()")]
+    #[Route("/export/plannifie/{export}/annuler", name: "settings_export_cancel", options: ["expose" => true], methods: "GET|POST", condition: "request.isXmlHttpRequest()")]
     public function cancel(Export $export,
                            EntityManagerInterface $manager,
                            CacheService $cacheService): JsonResponse {
@@ -351,26 +351,16 @@ class DataExportController extends AbstractController {
         return new JsonResponse();
     }
 
-    #[Route("/export/planed/forced", name: "settings_export_forced", options: ["expose" => true], methods: "GET|POST", condition:"request.isXmlHttpRequest()")]
-    public function exportForced(Request $request, EntityManagerInterface $manager, CacheService $cacheService): JsonResponse {
-
-        $exportId = $request->get('exportId');
-        $export = $manager->getRepository(Export::class)->find($exportId);
-        if (!$export) {
-            return new JsonResponse([
-                "success" => false,
-                "msg" => "Une erreur est survenue lors du forçage de l'export planifié N°".$exportId." : export introuvable"
-            ]);
-        }
-
-        $manager->persist($export);
-        $export->setForced(!$export->isForced());
-        $cacheService->delete(CacheService::EXPORTS);
+    #[Route("/export/plannifie/{export}/force", name: "settings_export_force", options: ["expose" => true], methods: "GET|POST", condition:"request.isXmlHttpRequest()")]
+    public function force(EntityManagerInterface $manager, CacheService $cacheService, Export $export): JsonResponse {
+        $export->setForced(true);
         $manager->flush();
 
-        return new JsonResponse([
-            'success' => true,
-            "msg" => "Le forçage de l'export planifié N°".$exportId." a été modifié"
+        $cacheService->delete(CacheService::EXPORTS);
+
+        return $this->json([
+            "success" => true,
+            "msg" => "L'export a bien été forcé",
         ]);
     }
 }

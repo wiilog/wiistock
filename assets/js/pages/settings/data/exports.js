@@ -121,7 +121,7 @@ $(document).ready(() => {
         Modal.confirm({
             ajax: {
                 method: 'POST',
-                route: 'export_cancel',
+                route: 'settings_export_cancel',
                 params: {
                     'export': $(this).data('request-id')
                 },
@@ -299,13 +299,9 @@ function destinationExportChange(){
     $('.export-sftp-destination').toggleClass('d-none');
 }
 
-function forceStartExport(exportId){
-    $.post(Routing.generate('settings_export_forced', {exportId:exportId}, true), function(data){
-        if(data['success']){
-            Flash.add(`success`, data['msg']);
-        }else{
-            Flash.add(`danger`, data['msg']);
-        }
+function forceStartExport(exportId) {
+    $.post(Routing.generate('settings_export_force', {export: exportId}, true), function(data){
+        Flash.add(data.success ? `success` : `danger`, data.msg);
         tableExport.ajax.reload();
     });
 }
