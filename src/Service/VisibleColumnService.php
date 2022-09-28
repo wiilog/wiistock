@@ -91,7 +91,7 @@ class VisibleColumnService {
         $user->setVisibleColumns($visibleColumns);
     }
 
-    public function getSearchableColumns(array $conditions, string $entity, QueryBuilder $qb, Utilisateur $user, ?string $search): Orx
+    public function bindSearchableColumns(array $conditions, string $entity, QueryBuilder $qb, Utilisateur $user, ?string $search): Orx
     {
         $condition = $qb->expr()->orX();
         $queryBuilderAlias = $qb->getRootAliases()[0];
@@ -116,6 +116,14 @@ class VisibleColumnService {
             }
         }
 
+        if(empty($condition->getParts())) {
+            $condition->add("0 != 0");
+        } else {
+            $qb->setParameter('search_value', "%$search%");
+        }
+
+        $qb
+            ->andWhere($condition);
         return $condition;
     }
 }

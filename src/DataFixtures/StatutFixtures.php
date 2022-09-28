@@ -6,6 +6,7 @@ use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\Demande;
+use App\Entity\Export;
 use App\Entity\Import;
 use App\Entity\Livraison;
 use App\Entity\MouvementStock;
@@ -138,7 +139,13 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
 				Import::STATUS_IN_PROGRESS => Statut::NOT_TREATED,
 				Import::STATUS_CANCELLED => Statut::NOT_TREATED,
 				Import::STATUS_DRAFT => Statut::DRAFT
-			],
+            ],
+            CategorieStatut::EXPORT => [
+                Export::STATUS_ERROR,
+                Export::STATUS_FINISHED,
+                Export::STATUS_SCHEDULED,
+                Export::STATUS_CANCELLED,
+            ],
             CategorieStatut::TRANSPORT_REQUEST_DELIVERY => [
                 TransportRequest::STATUS_AWAITING_VALIDATION,
                 TransportRequest::STATUS_TO_PREPARE,
@@ -233,11 +240,11 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
             $statut
                 ->setNom($statusLabel)
                 ->setCode($statusLabel)
+                ->setState($state)
                 ->setCategorie($this->getReference('statut-' . $categoryName));
             $manager->persist($statut);
             $output->writeln("Création du statut \"" . $statusLabel . "\" dans la catégorie \"" . $statut->getCategorie()->getNom() . "\"");
         }
 
-        $statut->setState($state);
     }
 }

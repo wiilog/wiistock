@@ -1,0 +1,64 @@
+{% import 'form.html.twig' as form %}
+
+<div class="frequency every-month-frequency">
+    <div class="col-12 px-2 pt-2 mt-1 form-inline form-group">
+        <label class="wii-field-name">Démarrer le*</label>
+        <input type="datetime-local"
+               class="form-control form-control-sm ml-2 frequency-data"
+               name="startDate"
+               title="Démarrer le"
+               placeholder="jj/mm/aaaa"
+               min="now"
+               value="{{ export.exportScheduleRule ? export.exportScheduleRule.begin|date('d/m/Y') }}"/>
+    </div>
+    <div class="row p-2">
+        <div class="col-12 px-3">
+            {% set date = [] %}
+            {% for month in 1..12 %}
+                {% set label = month ~ "/1/2022" %}
+                {% set date = date | merge([
+                    {
+                        label: label | format_date('none', 'MMMM', null, 'gregorian', 'fr') | capitalize,
+                        value: month,
+                        selected: export.exportScheduleRule and (month in export.exportScheduleRule.months)
+                    }
+                ]) %}
+            {% endfor %}
+            {{ form.select('months', 'Mois', false, {
+                type: null,
+                items: date,
+                multiple: true,
+                selectAllLabel: 'Tous les mois',
+            }) }}
+
+            {% set days = [] %}
+            {% for i in 1..31 %}
+                {% set days = days|merge([
+                    {
+                        label: i,
+                        value: i,
+                        selected: export.exportScheduleRule and (i in export.exportScheduleRule.monthDays)
+                    }
+                ]) %}
+            {% endfor %}
+            {% set days = days|merge([{
+                label: 'Dernier',
+                value: 'Dernier',
+                selected: export.exportScheduleRule and ('Dernier' in export.exportScheduleRule.monthDays)
+            }]) %}
+            {{ form.select('monthDays', 'Jours', false, {
+                type: null,
+                items: days,
+                multiple: true
+            }) }}
+            <div class="pt-3">
+                Heure d'exécution :
+                <input type="time"
+                       name="intervalTime"
+                       class="form-control form-control-sm mx-2 w-px-100 mb-2 frequency-data d-inline-block"
+                       data-label="Heures et minutes"
+                       value="{{ export.exportScheduleRule ? export.exportScheduleRule.intervalTime }}">
+            </div>
+        </div>
+    </div>
+</div>

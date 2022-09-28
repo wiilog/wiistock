@@ -188,15 +188,13 @@ class DemandeRepository extends EntityRepository
                         "type" => "search_type.label LIKE :search_value",
                     ];
 
-                    $condition = $visibleColumnService->getSearchableColumns($conditions, 'deliveryRequest', $qb, $user, $search);
+                    $visibleColumnService->bindSearchableColumns($conditions, 'deliveryRequest', $qb, $user, $search);
 
                     $qb
-                        ->andWhere($condition)
                         ->leftJoin('delivery_request.statut', 'search_status')
                         ->leftJoin('delivery_request.type', 'search_type')
                         ->leftJoin('delivery_request.utilisateur', 'search_user')
-                        ->leftJoin('delivery_request.destination', 'search_location_destination')
-                        ->setParameter('search_value', '%' . $search . '%');
+                        ->leftJoin('delivery_request.destination', 'search_location_destination');
                 }
             }
 

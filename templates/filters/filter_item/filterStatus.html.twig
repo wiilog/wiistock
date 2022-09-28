@@ -16,7 +16,7 @@
                 {% else %}
                     {% for status in statuts | sort((a, b) => a.nom <=> b.nom) %}
                         {% set selected = (filterStatus is defined and status.nom == filterStatus) ? 'selected' %}
-                        <option class="d-none" value="{{ status.id }}" {{ selected }}>{{ status.nom }}</option>
+                        <option class="d-none" value="{{ status.id }}" {{ selected }}>{{ (capitalize ?? false) ? status.nom | capitalize : status.nom }}</option>
                     {% endfor %}
                 {% endif %}
             </select>

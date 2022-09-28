@@ -250,12 +250,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\Column(type: 'json', nullable: true)]
     private ?array $visibleColumns;
 
-    #[ORM\OneToMany(mappedBy: 'editedBy', targetEntity: ReferenceArticle::class)]
-    private Collection $editedByReferenceArticles;
-
-    #[ORM\OneToMany(mappedBy: 'createdBy', targetEntity: ReferenceArticle::class)]
-    private Collection $createdByReferenceArticles;
-
     #[ORM\OneToOne(mappedBy: 'deliverer', targetEntity: Vehicle::class)]
     private ?Vehicle $vehicle = null;
 
@@ -273,6 +267,9 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
 
     #[ORM\ManyToOne(targetEntity: TransportRoundStartingHour::class, inversedBy: 'deliverers')]
     private ?TransportRoundStartingHour $transportRoundStartingHour = null;
+
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: KeptFieldValue::class)]
+    private Collection $keptFieldValues;
 
     public function __construct() {
         $this->receptions = new ArrayCollection();
@@ -310,8 +307,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         $this->sensorWrappers = new ArrayCollection();
         $this->unreadNotifications = new ArrayCollection();
         $this->visibilityGroups = new ArrayCollection();
-        $this->editedByReferenceArticles = new ArrayCollection();
-        $this->createdByReferenceArticles = new ArrayCollection();
         $this->transportRequests = new ArrayCollection();
         $this->transportRounds = new ArrayCollection();
         $this->transportDeliveryOrderRejectedPacks = new ArrayCollection();
@@ -321,6 +316,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         $this->rechercheForArticle = Utilisateur::SEARCH_DEFAULT;
         $this->roles = ['USER']; // évite bug -> champ roles ne doit pas être vide
         $this->visibleColumns = self::DEFAULT_VISIBLE_COLUMNS;
+        $this->keptFieldValues = new ArrayCollection();
     }
 
     public function getId() {
@@ -1715,78 +1711,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         return $this;
     }
 
-    public function getEditedByReferenceArticles(): Collection {
-        return $this->editedByReferenceArticles;
-    }
-
-    public function addEditedByReferenceArticle(ReferenceArticle $referenceArticle): self {
-        if(!$this->editedByReferenceArticles->contains($referenceArticle)) {
-            $this->editedByReferenceArticles[] = $referenceArticle;
-            $referenceArticle->setEditedBy($this);
-        }
-
-        return $this;
-    }
-
-    public function removeEditedByReferenceArticle(ReferenceArticle $referenceArticle): self {
-        if($this->editedByReferenceArticles->removeElement($referenceArticle)) {
-            if($referenceArticle->getEditedBy() === $this) {
-                $referenceArticle->setEditedBy(null);
-            }
-        }
-
-        return $this;
-    }
-
-    public function setEditedByReferenceArticles(?array $referenceArticles): self {
-        foreach($this->getEditedByReferenceArticles()->toArray() as $referenceArticle) {
-            $this->removeEditedByReferenceArticle($referenceArticle);
-        }
-
-        $this->editedByReferenceArticles = new ArrayCollection();
-        foreach($referenceArticles as $referenceArticle) {
-            $this->addEditedByReferenceArticle($referenceArticle);
-        }
-
-        return $this;
-    }
-
-    public function getCreatedByReferenceArticles(): Collection {
-        return $this->createdByReferenceArticles;
-    }
-
-    public function addCreatedByReferenceArticle(ReferenceArticle $referenceArticle): self {
-        if(!$this->createdByReferenceArticles->contains($referenceArticle)) {
-            $this->createdByReferenceArticles[] = $referenceArticle;
-            $referenceArticle->setCreatedBy($this);
-        }
-
-        return $this;
-    }
-
-    public function removeCreatedByReferenceArticle(ReferenceArticle $referenceArticle): self {
-        if($this->createdByReferenceArticles->removeElement($referenceArticle)) {
-            if($referenceArticle->getCreatedBy() === $this) {
-                $referenceArticle->setCreatedBy(null);
-            }
-        }
-
-        return $this;
-    }
-
-    public function setCreatedByReferenceArticles(?array $referenceArticles): self {
-        foreach($this->getCreatedByReferenceArticles()->toArray() as $referenceArticle) {
-            $this->removeCreatedByReferenceArticle($referenceArticle);
-        }
-
-        $this->editedByReferenceArticles = new ArrayCollection();
-        foreach($referenceArticles as $referenceArticle) {
-            $this->addCreatedByReferenceArticle($referenceArticle);
-        }
-
-        return $this;
-    }
-
     public function getVehicle(): ?Vehicle {
         return $this->vehicle;
     }
@@ -1911,4 +1835,43 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         return $this->getEmail();
     }
 
+    public function getKeptFieldValues(): Collection
+    {
+        return $this->keptFieldValues;
+    }
+
+    public function setKeptFieldValues(?iterable $keptFieldValues): self {
+        foreach($this->getKeptFieldValues()->toArray() as $keptArrivalValue) {
+            $this->removeKeptFieldValue($keptArrivalValue);
+        }
+
+        $this->keptFieldValues = new ArrayCollection();
+        foreach($keptFieldValues ?? [] as $keptArrivalValue) {
+            $this->addKeptFieldValue($keptArrivalValue);
+        }
+
+        return $this;
+    }
+
+    public function addKeptFieldValue(KeptFieldValue $keptFieldValue): self
+    {
+        if (!$this->keptFieldValues->contains($keptFieldValue)) {
+            $this->keptFieldValues[] = $keptFieldValue;
+            $keptFieldValue->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeKeptFieldValue(KeptFieldValue $keptFieldValue): self
+    {
+        if ($this->keptFieldValues->removeElement($keptFieldValue)) {
+            // set the owning side to null (unless already changed)
+            if ($keptFieldValue->getUser() === $this) {
+                $keptFieldValue->setUser(null);
+            }
+        }
+
+        return $this;
+    }
 }

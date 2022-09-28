@@ -295,7 +295,7 @@ class ArrivageRepository extends EntityRepository
                         "orderNumber" => "arrival.numeroCommandeList LIKE :search_value",
                         "type" => "search_type.label LIKE :search_value",
                         "provider" => "search_provider.nom LIKE :search_value",
-                        "receivers" => "search_receivers.username LIKE :search_value",
+                        "receiver" => "search_receivers.username LIKE :search_value",
                         "buyers" => "search_buyers.username LIKE :search_value",
                         "nbUm" => null,
                         "customs" => null,
@@ -308,10 +308,9 @@ class ArrivageRepository extends EntityRepository
                         "dropLocation" => "search_dropLocation.label LIKE :search_value",
                     ];
 
-                    $condition = $visibleColumnService->getSearchableColumns($conditions, 'arrival', $qb, $options['user'], $search);
+                    $visibleColumnService->bindSearchableColumns($conditions, 'arrival', $qb, $options['user'], $search);
 
                     $qb
-                        ->andWhere($condition)
                         ->leftJoin('arrival.transporteur', 'search_carrier')
                         ->leftJoin('arrival.chauffeur', 'search_driver')
                         ->leftJoin('arrival.fournisseur', 'search_provider')
@@ -320,8 +319,7 @@ class ArrivageRepository extends EntityRepository
                         ->leftJoin('arrival.utilisateur', 'search_user')
                         ->leftJoin('arrival.type', 'search_type')
                         ->leftJoin('arrival.statut', 'search_status')
-                        ->leftJoin('arrival.dropLocation', 'search_dropLocation')
-                        ->setParameter('search_value', '%' . $search . '%');
+                        ->leftJoin('arrival.dropLocation', 'search_dropLocation');
                 }
             }
 
@@ -457,5 +455,15 @@ class ArrivageRepository extends EntityRepository
             ->setMaxResults(1)
             ->getQuery()
             ->getSingleScalarResult();
+    }
+
+    public function iterateArrivals(DateTime $dateMin, DateTime $dateMax): iterable {
+        $qb = $this->createQueryBuilder('arrivage')
+            ->andWhere('arrivage.date BETWEEN :dateMin AND :dateMax')
+            ->setParameter('dateMin', $dateMin)
+            ->setParameter('dateMax', $dateMax);
+        return $qb
+            ->getQuery()
+            ->toIterable();
     }
 }

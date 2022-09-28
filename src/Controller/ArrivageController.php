@@ -23,6 +23,7 @@ use App\Entity\Statut;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Service\KeptFieldService;
 use App\Service\VisibleColumnService;
 use WiiCommon\Helper\Stream;
 use App\Service\ArrivageService;
@@ -72,14 +73,9 @@ class ArrivageController extends AbstractController {
     {
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
-        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-        $typeRepository = $entityManager->getRepository(Type::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
-        $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
-        $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
         $transporteurRepository = $entityManager->getRepository(Transporteur::class);
-        $natureRepository = $entityManager->getRepository(Nature::class);
-        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
 
         /** @var Utilisateur $user */
@@ -87,34 +83,20 @@ class ArrivageController extends AbstractController {
 
         $fields = $arrivageDataService->getColumnVisibleConfig($entityManager, $user);
 
-        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
         $paramGlobalRedirectAfterNewArrivage = $settingRepository->findOneBy(['label' => Setting::REDIRECT_AFTER_NEW_ARRIVAL]);
-
         $statuses = $statutRepository->findStatusByType(CategorieStatut::ARRIVAGE);
-        $defaultLocation = $settingRepository->getOneParamByLabel(Setting::MVT_DEPOSE_DESTINATION);
-        $defaultLocation = $defaultLocation ? $emplacementRepository->find($defaultLocation) : null;
+
+        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
+
         return $this->render('arrivage/index.html.twig', [
-            'carriers' => $transporteurRepository->findAllSorted(),
-            'chauffeurs' => $chauffeurRepository->findAllSorted(),
-            'users' => $utilisateurRepository->findBy(['status' => true], ['username'=> 'ASC']),
-            'fournisseurs' => $fournisseurRepository->findBy([], ['nom' => 'ASC']),
             'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
-            'natures' => $natureRepository->findByAllowedForms([Nature::ARRIVAL_CODE]),
             'statuts' => $statuses,
-            'typesArrival' => $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]),
-            'fieldsParam' => $fieldsParam,
+            "fieldsParam" => $fieldsParam,
+            "carriers" => $transporteurRepository->findAllSorted(),
             'redirect' => $paramGlobalRedirectAfterNewArrivage ? $paramGlobalRedirectAfterNewArrivage->getValue() : true,
             'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]),
             'pageLengthForArrivage' => $user->getPageLengthForArrivage() ?: 10,
-            'autoPrint' => $settingRepository->getOneParamByLabel(Setting::AUTO_PRINT_COLIS),
             'fields' => $fields,
-            'defaultLocation' => $defaultLocation,
-            'businessUnits' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_BUSINESS_UNIT),
-            'defaultStatuses' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::ARRIVAGE),
-            'modalNewConfig' => [
-                'defaultStatuses' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::ARRIVAGE),
-                'statuses' => $statuses,
-            ],
         ]);
     }
 
@@ -135,6 +117,60 @@ class ArrivageController extends AbstractController {
     }
 
     /**
+     * @Route("/api-creer", name="arrivage_new_api", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::TRACA, Action::CREATE}, mode=HasPermission::IN_JSON)
+     */
+    public function createApi(EntityManagerInterface $entityManager, KeptFieldService $keptFieldService): Response
+    {
+        if ($this->userService->hasRightFunction(Menu::TRACA, Action::CREATE)) {
+            $settingRepository = $entityManager->getRepository(Setting::class);
+            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+            $natureRepository = $entityManager->getRepository(Nature::class);
+            $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+            $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
+            $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $statutRepository = $entityManager->getRepository(Statut::class);
+            $transporteurRepository = $entityManager->getRepository(Transporteur::class);
+            $locationRepository = $entityManager->getRepository(Emplacement::class);
+
+            $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
+
+            $statuses = $statutRepository->findStatusByType(CategorieStatut::ARRIVAGE);
+
+            $defaultLocation = $settingRepository->getOneParamByLabel(Setting::MVT_DEPOSE_DESTINATION);
+            $defaultLocation = $defaultLocation ? $emplacementRepository->find($defaultLocation) : null;
+
+            $keptFields = $keptFieldService->getAll(FieldsParam::ENTITY_CODE_ARRIVAGE);
+            if(isset($keptFields[FieldsParam::FIELD_CODE_LOCATION_DROP])) {
+                $keptFields[FieldsParam::FIELD_CODE_LOCATION_DROP] = $locationRepository->find($keptFields[FieldsParam::FIELD_CODE_LOCATION_DROP]);
+            }
+
+            $html = $this->renderView("arrivage/modalNewArrivage.html.twig", [
+                "keptFields" => $keptFields,
+                "typesArrival" => $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]),
+                "statuses" => $statuses,
+                "users" => $utilisateurRepository->findBy(['status' => true], ['username' => 'ASC']),
+                "fournisseurs" => $fournisseurRepository->findBy([], ['nom' => 'ASC']),
+                "natures" => $natureRepository->findByAllowedForms([Nature::ARRIVAL_CODE]),
+                "carriers" => $transporteurRepository->findAllSorted(),
+                "chauffeurs" => $chauffeurRepository->findAllSorted(),
+                "fieldsParam" => $fieldsParam,
+                "businessUnits" => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_BUSINESS_UNIT),
+                "defaultLocation" => $defaultLocation,
+                "defaultStatuses" => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::ARRIVAGE),
+                "autoPrint" => $settingRepository->getOneParamByLabel(Setting::AUTO_PRINT_COLIS),
+            ]);
+        }
+
+        return new JsonResponse([
+            'html' => $html ?? "",
+            'acheteurs' => $acheteursUsernames ?? []
+        ]);
+    }
+
+    /**
      * @Route("/creer", name="arrivage_new", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::TRACA, Action::CREATE}, mode=HasPermission::IN_JSON)
      */
@@ -144,6 +180,7 @@ class ArrivageController extends AbstractController {
                         ArrivageService        $arrivageDataService,
                         FreeFieldService       $champLibreService,
                         PackService            $colisService,
+                        KeptFieldService       $keptFieldService,
                         TranslatorInterface    $translator): Response
     {
         $data = $request->request->all();
@@ -166,6 +203,21 @@ class ArrivageController extends AbstractController {
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
         $dropLocation = !empty($data['dropLocation']) ? $emplacementRepository->find($data['dropLocation']) : null;
+
+        $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_BUYERS_ARRIVAGE, isset($data["acheteurs"]) ? explode(',', $data["acheteurs"]) : []);
+        $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_BUSINESS_UNIT, $data["businessUnit"] ?? null);
+        $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_CHAUFFEUR_ARRIVAGE, $data["chauffeur"] ?? null);
+        $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_COMMENTAIRE, $data["commentaire"] ?? null);
+        $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_FROZEN_ARRIVAGE, filter_var($data["frozen"] ?? false, FILTER_VALIDATE_BOOLEAN));
+        $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_TARGET_ARRIVAGE, $data["destinataire"] ?? null);
+        $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_CUSTOMS_ARRIVAGE, filter_var($data["customs"] ?? false, FILTER_VALIDATE_BOOLEAN));
+        $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_LOCATION_DROP, $data["dropLocation"] ?? null);
+        $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_FOURNISSEUR, $data["fournisseur"] ?? null);
+        $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_PRINT_ARRIVAGE, filter_var($data["printArrivage"] ?? false, FILTER_VALIDATE_BOOLEAN));
+        $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_NUM_COMMANDE_ARRIVAGE, $data["numeroCommandeList"] ?? null);
+        $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_PROJECT_NUMBER, $data["noProject"] ?? null);
+        $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE, $data["noTracking"] ?? null);
+        $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_TRANSPORTEUR, $data["transporteur"] ?? null);
 
         $arrivage = new Arrivage();
         $arrivage
@@ -646,7 +698,7 @@ class ArrivageController extends AbstractController {
         try {
             $from = DateTime::createFromFormat($FORMAT, $request->query->get("dateMin") . " 00:00:00");
             $to = DateTime::createFromFormat($FORMAT, $request->query->get("dateMax") . " 23:59:59");
-        } catch (Throwable $throwable) {
+        } catch (Throwable) {
             return $this->json([
                 "success" => false,
                 "msg" => "Dates invalides"

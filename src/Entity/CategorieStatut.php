@@ -34,6 +34,7 @@ class CategorieStatut {
     const TRANSPORT_ORDER_COLLECT = 'ordre de transport collecte';
     const TRANSPORT_ROUND = 'tournée';
     const IMPORT = 'import';
+    const EXPORT = 'export';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

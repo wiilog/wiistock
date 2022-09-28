@@ -9,6 +9,7 @@ const PAGE_ORDRE_LIVRAISON = 'olivraison';
 const PAGE_PREPA = 'prépa';
 const PAGE_ARRIVAGE = 'arrivage';
 const PAGE_IMPORT = 'import';
+const PAGE_EXPORT = 'export';
 const PAGE_ALERTE = 'alerte';
 const PAGE_RECEPTION = 'reception';
 const PAGE_MVT_STOCK = 'mvt_stock';
@@ -433,8 +434,9 @@ function clearCheckboxes($modal) {
     });
 }
 
-function saveFilters(page, tableSelector, callback) {
-    let path = Routing.generate('filter_sup_new');
+function saveFilters(page, tableSelector, callback, needsDateFormatting = false) {
+    const $table = $(tableSelector);
+    const path = Routing.generate('filter_sup_new');
 
     const $filterDateMin = $('.filter-date-min');
     const $filterDateMax = $('.filter-date-max');
@@ -465,7 +467,13 @@ function saveFilters(page, tableSelector, callback) {
     let params = {
         page,
         ...(Object.keys(valFunction).reduce((acc, key) => {
-            const $fields = $('.filters-container').find(`.${key}`);
+            let $fields;
+            if($table.closest(`.settings`).exists()) {
+                $fields = $table.closest(`.settings-content`).find(`.filters-container .${key}`);
+            } else {
+                $fields = $(`.filters-container .${key}`);
+            }
+
             const values = {};
             $fields.each(function () {
                 const $elem = $(this);
@@ -700,8 +708,9 @@ function initDateTimePicker(dateInput = '#dateMin, #dateMax, #expectedDate', for
         config.defaultDate = moment().hours(options.defaultHours).minutes(options.defaultMinutes);
     }
 
-    $(dateInput).data("dtp-initialized", "true");
-    $(dateInput).datetimepicker(config);
+    const $dateInput = typeof dateInput === 'string' ? $(dateInput) : dateInput;
+    $dateInput.data("dtp-initialized", "true");
+    $dateInput.datetimepicker(config);
 }
 
 

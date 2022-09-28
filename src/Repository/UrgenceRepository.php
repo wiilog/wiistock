@@ -33,8 +33,10 @@ class UrgenceRepository extends EntityRepository {
     /**
      * @return Urgence[]
      */
-    public function findUrgencesMatching(array $fields, Arrivage $arrival,
-                                         ?string $numeroCommande, ?string $postNb,
+    public function findUrgencesMatching(array $fields,
+                                         Arrivage $arrival,
+                                         ?string $numeroCommande,
+                                         ?string $postNb,
                                          $excludeTriggered = false): array {
         $queryBuilder = $this->createQueryBuilder('u')
             ->where(':date BETWEEN u.dateStart AND u.dateEnd')

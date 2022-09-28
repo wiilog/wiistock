@@ -51,6 +51,13 @@ class FieldsParam {
     const FIELD_CODE_FROZEN_ARRIVAGE = 'frozen';
     const FIELD_CODE_PROJECT_NUMBER = 'projectNumber';
     const FIELD_CODE_BUSINESS_UNIT = 'businessUnit';
+    const FIELD_CODE_ARRIVAL_NUMBER = 'arrivalNumber'; // not in settings table
+    const FIELD_CODE_ARRIVAL_TOTAL_WEIGHT = 'arrivalTotalWeight'; // not in settings table
+    const FIELD_CODE_ARRIVAL_TYPE = 'arrivalType'; // not in settings table
+    const FIELD_CODE_ARRIVAL_STATUS = 'arrivalStatus'; // not in settings table
+    const FIELD_CODE_ARRIVAL_DATE = 'arrivalDate'; // not in settings table
+    const FIELD_CODE_ARRIVAL_CREATOR = 'arrivalCreator'; // not in settings table
+
     const FIELD_LABEL_PROVIDER_ARRIVAGE = 'fournisseur';
     const FIELD_LABEL_CARRIER_ARRIVAGE = 'transporteur';
     const FIELD_LABEL_CHAUFFEUR_ARRIVAGE = 'chauffeur';
@@ -66,6 +73,12 @@ class FieldsParam {
     const FIELD_LABEL_PROJECT_NUMBER = 'numéro projet';
     const FIELD_LABEL_BUSINESS_UNIT = 'business unit';
     const FIELD_LABEL_DROP_LOCATION_ARRIVAGE = 'emplacement de dépose';
+    const FIELD_LABEL_ARRIVAL_NUMBER = 'N° arrivage'; // not in settings table
+    const FIELD_LABEL_ARRIVAL_TOTAL_WEIGHT = 'Poids total'; // not in settings table
+    const FIELD_LABEL_ARRIVAL_TYPE = 'Type'; // not in settings table
+    const FIELD_LABEL_ARRIVAL_STATUS = 'Statut'; // not in settings table
+    const FIELD_LABEL_ARRIVAL_DATE = 'Date'; // not in settings table
+    const FIELD_LABEL_ARRIVAL_CREATOR = 'Utilisateur'; // not in settings table
 
     const ENTITY_CODE_DISPATCH = 'acheminements';
     const FIELD_CODE_CARRIER_DISPATCH = 'carrier';
@@ -106,6 +119,9 @@ class FieldsParam {
     const FIELD_CODE_EXPECTED_AT = 'expectedAt';
     const FIELD_LABEL_EXPECTED_AT = 'date attendue';
 
+    public const MEMORY_UNKEEPABLE_FIELDS = [
+        FieldsParam::FIELD_CODE_PJ_ARRIVAGE,
+    ];
 
     public const FILTERED_FIELDS = [
         // Arrivages
@@ -130,37 +146,40 @@ class FieldsParam {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    private $id;
+    private ?int $id;
 
     #[ORM\Column(type: 'string', length: 255)]
-    private $entityCode;
+    private ?string $entityCode;
 
     #[ORM\Column(type: 'string', length: 255)]
-    private $fieldCode;
+    private ?string $fieldCode;
 
     #[ORM\Column(type: 'string', length: 255)]
-    private $fieldLabel;
+    private ?string $fieldLabel;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
-    private $requiredCreate;
+    private ?bool $requiredCreate;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
-    private $requiredEdit;
+    private ?bool $requiredEdit;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
-    private $displayedCreate;
+    private ?bool $keptInMemory;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
-    private $displayedEdit;
+    private ?bool $displayedCreate;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
-    private $displayedFilters;
+    private ?bool $displayedEdit;
+
+    #[ORM\Column(type: 'boolean', nullable: true)]
+    private ?bool $displayedFilters;
 
     #[ORM\Column(type: 'json', nullable: true)]
-    private $elements = [];
+    private ?array $elements = [];
 
     #[ORM\Column(type: 'boolean', nullable: true, options: ['default' => false])]
-    private $fieldRequiredHidden;
+    private ?bool $fieldRequiredHidden;
 
     public function getId(): ?int {
         return $this->id;
@@ -202,6 +221,16 @@ class FieldsParam {
 
     public function setRequiredEdit(?bool $requiredEdit): self {
         $this->requiredEdit = $requiredEdit;
+
+        return $this;
+    }
+
+    public function isKeptInMemory(): ?bool {
+        return $this->keptInMemory;
+    }
+
+    public function setKeptInMemory(?bool $keptInMemory): self {
+        $this->keptInMemory = $keptInMemory;
 
         return $this;
     }

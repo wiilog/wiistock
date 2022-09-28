@@ -2,7 +2,6 @@
 
 namespace App\Service;
 
-use App\Entity\Interfaces\Serializable;
 use App\Entity\Setting;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -13,14 +12,9 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class CSVExportService {
 
-    public static $SERIALIZABLE;
-
-    private $entityManager;
-    private $wantsUTF8;
+    private bool $wantsUTF8;
 
     public function __construct(EntityManagerInterface $entityManager) {
-        $this->entityManager = $entityManager;
-
         $settingRepository = $entityManager->getRepository(Setting::class);
         $this->wantsUTF8 = $settingRepository->getOneParamByLabel(Setting::USES_UTF8) ?? true;
     }
@@ -128,7 +122,3 @@ class CSVExportService {
     }
 
 }
-
-CSVExportService::$SERIALIZABLE = function(Serializable $serializable) {
-    return [$serializable->serialize()];
-};

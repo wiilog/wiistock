@@ -63,34 +63,3 @@
         </div>
     </div>
 </div>
-<div class="wii-section-title">
-    Serveur FTP d'export des demandes
-</div>
-<div class="wii-section row">
-    <div class="row">
-        <div class="col-5 pb-3">
-            {{ form.input(setting('FTP_ROUND_SERVER_NAME'), 'Serveur Hôte', true, setting_value('FTP_ROUND_SERVER_NAME')) }}
-        </div>
-        <div class="col-5 pb-3">
-            {{ form.input(setting('FTP_ROUND_SERVER_PORT'), 'Port', true, setting_value('FTP_ROUND_SERVER_PORT')) }}
-        </div>
-
-        <div class="col-5 pb-3">
-            {{ form.input(setting('FTP_ROUND_SERVER_USER'), 'Utilisateur', true, setting_value('FTP_ROUND_SERVER_USER')) }}
-        </div>
-        <div class="col-5 pb-3">
-            {{ form.input(setting('FTP_ROUND_SERVER_PASSWORD'), 'Mot de passe', true, setting_value('FTP_ROUND_SERVER_PASSWORD'), {
-                type: 'password'
-            }) }}
-        </div>
-        <div class="col-5">
-            {{ form.input(setting('FTP_ROUND_SERVER_PATH'), "Répertoire cible de l'export", true, setting_value('FTP_ROUND_SERVER_PATH')) }}
-        </div>
-        <div class="col-5 align-self-end">
-            <button class="btn btn-primary button-launch-import">
-                Lancer l'export du jour sur le serveur
-            </button>
-        </div>
-    </div>
-</div>
-

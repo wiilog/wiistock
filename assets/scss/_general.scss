@@ -844,14 +844,14 @@ label.required:after {
 }
 
 .wii-icon-trash {
-    display: block;
+    display: inline-block;
     background-color: $primary;
     width: 18px;
     height: 18px;
 }
 
 .wii-icon-trash-black {
-    display: block;
+    display: inline-block;
     background-color: $black;
     width: 18px;
     height: 18px;
@@ -1157,4 +1157,30 @@ label.required:after {
     display: block;
     width: 15px;
     height: 15px;
+}
+
+.frequencies {
+    border: $medium-grey solid 1px;
+    border-radius: 5px;
+    margin: 5px 0;
+}
+
+.frequencies-container {
+    background-color: $light-blue;
+    border-radius: 5px 0 0 5px;
+    padding: 5px 10px;
+
+    .wii-radio {
+        margin: 7px;
+    }
+}
+
+.with-select-all-options {
+    span.select2-container span.select2-selection, select, input {
+        border-radius: 0.25rem 0 0 0.25rem !important;
+    }
+
+    .select-all-options {
+        height: 36px;
+    }
 }

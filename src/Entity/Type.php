@@ -32,6 +32,8 @@ class Type {
     const LABEL_SENSOR = 'capteur';
     const LABEL_DELIVERY = 'livraison';
     const LABEL_COLLECT = 'collecte';
+    const LABEL_SCHEDULED_EXPORT = 'Export planifié';
+    const LABEL_UNIQUE_EXPORT = 'Export unique';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

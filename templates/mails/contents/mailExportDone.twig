@@ -1,0 +1,41 @@
+{% extends 'mails/template.html.twig' %}
+
+{% block content %}
+    Bonjour,<br><br>
+
+    Vous trouverez ci-joint l'export de vos {{ entity }} {% if showMore %}du {{ 'now' | date('d/m/Y') }}{% endif %}<br><br>
+
+    Pour rappel, l'export se fait {{ frequency }}, {{setting}}.<br>
+    {% if showMore %}
+        Les données exportées sont celles
+        {% if export.periodInterval == 'day' %}
+            du jour
+            {% if export.period == 'current' %}
+                en cours (jour J).
+            {% else %}
+                dernier (jour J-1).
+            {% endif %}
+        {% elseif export.periodInterval == 'week' %}
+            de la semaine
+            {% if export.period == 'current' %}
+                en cours (semaine S)
+            {% else %}
+                dernière (semaine S-1)
+            {% endif %}
+        {% elseif export.periodInterval == 'month' %}
+            du mois
+            {% if export.period == 'current' %}
+                en cours (mois M)
+            {% else %}
+                dernier (mois M-1)
+            {% endif %}
+        {% elseif export.periodInterval == 'year' %}
+            de l'année
+            {% if export.period == 'current' %}
+                en cours (année A)
+            {% else %}
+                dernière (année A-1)
+            {% endif %}
+        {% endif %}
+    {% endif %}
+{% endblock %}
