@@ -335,6 +335,7 @@ class DataExportController extends AbstractController {
     }
 
     #[Route("/export/plannifie/{export}/annuler", name: "settings_export_cancel", options: ["expose" => true], methods: "GET|POST", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
     public function cancel(Export $export,
                            EntityManagerInterface $manager,
                            CacheService $cacheService): JsonResponse {
@@ -352,6 +353,7 @@ class DataExportController extends AbstractController {
     }
 
     #[Route("/export/plannifie/{export}/force", name: "settings_export_force", options: ["expose" => true], methods: "GET|POST", condition:"request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
     public function force(EntityManagerInterface $manager, CacheService $cacheService, Export $export): JsonResponse {
         $export->setForced(true);
         $manager->flush();
