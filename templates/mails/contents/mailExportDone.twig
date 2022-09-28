@@ -5,7 +5,7 @@
 
     Vous trouverez ci-joint l'export de vos {{ entity }} {% if showMore %}du {{ 'now' | date('d/m/Y') }}{% endif %}<br><br>
 
-    Pour rappel, l'export se fait {{ frequency }}, {paramétrage}.<br>
+    Pour rappel, l'export se fait {{ frequency }}, {{setting}}.<br>
     {% if showMore %}
         Les données exportées sont celles
         {% if export.periodInterval == 'day' %}

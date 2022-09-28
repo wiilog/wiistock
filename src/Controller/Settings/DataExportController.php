@@ -71,10 +71,10 @@ class DataExportController extends AbstractController {
                     "export" => $export,
                 ]),
                 "status" => $export->getStatus()->getNom(),
-                "creationDate" => $export->getCreatedAt()->format("d/m/Y"),
-                "startDate" => $export->getBeganAt()?->format("d/m/Y"),
-                "endDate" => $export->getEndedAt()?->format("d/m/Y"),
-                "nextRun" => $export->getNextExecution()?->format("d/m/Y"),
+                "creationDate" => $export->getCreatedAt()->format("d/m/Y H:i"),
+                "startDate" => $export->getBeganAt()?->format("d/m/Y H:i"),
+                "endDate" => $export->getEndedAt()?->format("d/m/Y H:i"),
+                "nextRun" => $export->getNextExecution()?->format("d/m/Y H:i"),
                 "frequency" => match($export->getExportScheduleRule()?->getFrequency()) {
                     ExportScheduleRule::ONCE => "Une fois",
                     ExportScheduleRule::HOURLY => "Chaque heure",
@@ -98,7 +98,7 @@ class DataExportController extends AbstractController {
 
     #[Route("/export/submit", name: "settings_submit_export", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
-    public function submitExport(Request $request, EntityManagerInterface $manager, Security $security): Response {
+    public function submitExport(Request $request, EntityManagerInterface $manager, Security $security, ScheduledExportService $scheduledExportService): Response {
         $userRepository = $manager->getRepository(Utilisateur::class);
 
         $data = $request->request->all();
@@ -194,6 +194,9 @@ class DataExportController extends AbstractController {
                 ->setMonths(isset($data["months"]) ? explode(",", $data["months"]) : null)
                 ->setWeekDays(isset($data["weekDays"]) ? explode(",", $data["weekDays"]) : null)
                 ->setMonthDays(isset($data["monthDays"]) ? explode(",", $data["monthDays"]) : null));
+
+            $export
+                ->setNextExecution($scheduledExportService->calculateNextExecutionDate($export));
 
             $manager->persist($export);
             $manager->flush();
