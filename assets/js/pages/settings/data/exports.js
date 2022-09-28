@@ -17,6 +17,7 @@ global.displayNewExportModal = displayNewExportModal;
 global.toggleFrequencyInput = toggleFrequencyInput;
 global.selectHourlyFrequencyIntervalType = selectHourlyFrequencyIntervalType;
 global.destinationExportChange = destinationExportChange;
+global.forceStartExport = forceStartExport;
 
 let $modalNewExport = $("#modalNewExport");
 let $submitNewExport = $("#submitNewExport");
@@ -120,7 +121,7 @@ $(document).ready(() => {
         Modal.confirm({
             ajax: {
                 method: 'POST',
-                route: 'export_cancel',
+                route: 'settings_export_cancel',
                 params: {
                     'export': $(this).data('request-id')
                 },
@@ -296,4 +297,11 @@ function selectHourlyFrequencyIntervalType($select) {
 function destinationExportChange(){
     $('.export-email-destination').toggleClass('d-none');
     $('.export-sftp-destination').toggleClass('d-none');
+}
+
+function forceStartExport(exportId) {
+    $.post(Routing.generate('settings_export_force', {export: exportId}, true), function(data){
+        Flash.add(data.success ? `success` : `danger`, data.msg);
+        tableExport.ajax.reload();
+    });
 }

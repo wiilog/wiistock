@@ -23,6 +23,7 @@ use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use App\Service\ArrivageService;
 use App\Service\ArticleDataService;
+use App\Service\CacheService;
 use App\Service\CSVExportService;
 use App\Service\DataExportService;
 use App\Service\FreeFieldService;
@@ -98,7 +99,7 @@ class DataExportController extends AbstractController {
 
     #[Route("/export/submit", name: "settings_submit_export", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
-    public function submitExport(Request $request, EntityManagerInterface $manager, Security $security, ScheduledExportService $scheduledExportService): Response {
+    public function submitExport(Request $request, EntityManagerInterface $manager, Security $security, CacheService $cacheService): Response {
         $userRepository = $manager->getRepository(Utilisateur::class);
 
         $data = $request->request->all();
@@ -196,7 +197,7 @@ class DataExportController extends AbstractController {
                 ->setMonthDays(isset($data["monthDays"]) ? explode(",", $data["monthDays"]) : null));
 
             $export
-                ->setNextExecution($scheduledExportService->calculateNextExecutionDate($export));
+                ->setNextExecution($cacheService->delete(CacheService::EXPORTS));
 
             $manager->persist($export);
             $manager->flush();
@@ -333,10 +334,11 @@ class DataExportController extends AbstractController {
         ]));
     }
 
-    #[Route("/annuler-export/{export}", name: "export_cancel", options: ["expose" => true], methods: "GET|POST", condition: "request.isXmlHttpRequest()")]
+    #[Route("/export/plannifie/{export}/annuler", name: "settings_export_cancel", options: ["expose" => true], methods: "GET|POST", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
     public function cancel(Export $export,
                            EntityManagerInterface $manager,
-                           ScheduledExportService $scheduledExportService): JsonResponse {
+                           CacheService $cacheService): JsonResponse {
         $statusRepository = $manager->getRepository(Statut::class);
 
         $exportType = $export->getType();
@@ -344,9 +346,24 @@ class DataExportController extends AbstractController {
         if ($exportStatus && $exportType && $exportType->getLabel() == Type::LABEL_SCHEDULED_EXPORT && $exportStatus->getNom() == Export::STATUS_SCHEDULED) {
             $export->setStatus($statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::EXPORT, Export::STATUS_CANCELLED));
             $manager->flush();
-            $scheduledExportService->saveScheduledExportsCache($manager);
+            $cacheService->delete(CacheService::EXPORTS);
         }
 
         return new JsonResponse();
     }
+
+    #[Route("/export/plannifie/{export}/force", name: "settings_export_force", options: ["expose" => true], methods: "GET|POST", condition:"request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
+    public function force(EntityManagerInterface $manager, CacheService $cacheService, Export $export): JsonResponse {
+        $export->setForced(true);
+        $manager->flush();
+
+        $cacheService->delete(CacheService::EXPORTS);
+
+        return $this->json([
+            "success" => true,
+            "msg" => "L'export a bien été forcé",
+        ]);
+    }
 }
+
