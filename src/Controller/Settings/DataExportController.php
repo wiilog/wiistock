@@ -104,7 +104,7 @@ class DataExportController extends AbstractController {
         $userRepository = $manager->getRepository(Utilisateur::class);
 
         $data = $request->request->all();
-dump($request->getContent(), $request->request);
+
         if(!isset($data["entityToExport"])) {
             return $this->json([
                 "success" => false,
@@ -141,7 +141,6 @@ dump($request->getContent(), $request->request);
                 $export->setFtpParameters(null);
 
                 $emails = isset($data["recipientEmails"]) && $data["recipientEmails"] ? explode(",", $data["recipientEmails"]) : [];
-                dump($emails);
                 $counter = 0;
                 foreach ($emails as $email) {
                     if(!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -160,6 +159,13 @@ dump($request->getContent(), $request->request);
 
                 $export->setRecipientUsers($userRepository->findBy(["id" => explode(",", $data["recipientUsers"])]));
                 $export->setRecipientEmails($emails);
+
+                if($export->getRecipientUsers()->isEmpty() && count($emails) === 0) {
+                    return $this->json([
+                        "success" => false,
+                        "msg" => "Vous devez renseigner au moins un utilisateur ou une adresse mail destinataire"
+                    ]);
+                }
             } else {
                 $export->setRecipientUsers([]);
                 $export->setRecipientEmails([]);
@@ -184,10 +190,9 @@ dump($request->getContent(), $request->request);
             $export->setExportScheduleRule((new ExportScheduleRule())
                 ->setBegin(DateTime::createFromFormat("Y-m-d\TH:i", $data["startDate"]))
                 ->setFrequency($data["frequency"] ?? null)
-                ->setPeriod($data["period"] ?? null)
+                ->setPeriod($data["repeatPeriod"] ?? null)
                 ->setIntervalTime($data["intervalTime"] ?? null)
                 ->setIntervalPeriod($data["intervalPeriod"] ?? null)
-                ->setIntervalType($data["intervalType"] ?? null)
                 ->setMonths(isset($data["months"]) ? explode(",", $data["months"]) : null)
                 ->setWeekDays(isset($data["weekDays"]) ? explode(",", $data["weekDays"]) : null)
                 ->setMonthDays(isset($data["monthDays"]) ? explode(",", $data["monthDays"]) : null));

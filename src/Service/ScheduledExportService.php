@@ -14,6 +14,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Transport\TransportRound;
 use App\Exceptions\FTPException;
+use App\Helper\FormatHelper;
 use App\Service\Transport\TransportRoundService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -219,21 +220,14 @@ class ScheduledExportService
     public function calculateFromHourlyRule(ExportScheduleRule $rule, DateTime $now): ?DateTime {
         $start = clone $rule->getBegin();
         $start->setTime(0, 0, 0, 0);
-        $intervalType = $rule->getIntervalType();
         $intervalPeriod = $rule->getIntervalPeriod();
 
-        if ($intervalPeriod
-            && $intervalType) {
+        if ($intervalPeriod) {
             if ($now >= $start) {
                 $nextOccurrence = clone $now;
                 $hours = (int)$now->format('H');
-                $minutes = (int)$now->format('i');
-                if ($intervalType === ExportScheduleRule::PERIOD_TYPE_HOURS) {
-                    $minutes = 0;
-                    $hours = $hours + ($intervalPeriod - ($hours % $intervalPeriod));
-                } else {
-                    $minutes = $minutes + ($intervalPeriod - ($minutes % $intervalPeriod));
-                }
+                $minutes = 0;
+                $hours = $hours + ($intervalPeriod - ($hours % $intervalPeriod));
                 $nextOccurrence->setTime($hours, $minutes);
             } else {
                 $nextOccurrence = $this->calculateOnce($rule, $now);
@@ -304,6 +298,7 @@ class ScheduledExportService
                 "FOLLOW GT // Export des $entity",
                 $this->templating->render("mails/contents/mailExportDone.twig", [
                     "entity" => $entity,
+                    "export" => $exportToRun,
                     "frequency" => match($exportToRun->getExportScheduleRule()?->getFrequency()) {
                         ExportScheduleRule::ONCE => "une fois",
                         ExportScheduleRule::HOURLY => "chaque heure",
@@ -312,6 +307,7 @@ class ScheduledExportService
                         ExportScheduleRule::MONTHLY => "chaque mois",
                         default => null,
                     },
+                    "setting" => $this->getFrequencyDescription($exportToRun),
                     "showMore" => in_array($exportToRun->getEntity(), [Export::ENTITY_ARRIVAL, Export::ENTITY_DELIVERY_ROUND]),
                 ]),
                 Stream::empty()
@@ -342,6 +338,29 @@ class ScheduledExportService
 
         $entityManager->persist($exportToRun);
         $entityManager->flush();
+    }
+
+    private function getFrequencyDescription(Export $export): string {
+        $rule = $export->getExportScheduleRule();
+        if($rule->getFrequency() === ExportScheduleRule::WEEKLY) {
+            $days = Stream::from($rule->getWeekDays())
+                ->map(fn(int $weekDay) => FormatHelper::WEEK_DAYS[$weekDay])
+                ->join(", ");
+        } else if($rule->getFrequency() === ExportScheduleRule::MONTHLY) {
+            $days = join(", ", $rule->getMonthDays());
+            $months = Stream::from($rule->getMonths())
+                ->map(fn(int $month) => FormatHelper::MONTHS[$month])
+                ->join(", ");
+        }
+
+        return match($rule->getFrequency()) {
+            ExportScheduleRule::ONCE => "le {$rule->getBegin()->format("d/m/Y H:i")}",
+            ExportScheduleRule::HOURLY => "toutes les {$rule->getIntervalPeriod()} heures",
+            ExportScheduleRule::DAILY => "tous les {$rule->getPeriod()} à {$rule->getIntervalTime()}",
+            ExportScheduleRule::WEEKLY => "toutes les {$rule->getFrequency()} semaines à {$rule->getIntervalTime()} les {$days}",
+            ExportScheduleRule::MONTHLY => "les mois de {$months} le {$days}",
+            default => null,
+        };
     }
 
     private function getExportBoundaries(Export $export): array {
@@ -396,7 +415,6 @@ class ScheduledExportService
                 ->setPeriod($rule->getPeriod())
                 ->setIntervalTime($rule->getIntervalTime())
                 ->setIntervalPeriod($rule->getIntervalPeriod())
-                ->setIntervalType($rule->getIntervalType())
                 ->setBegin($rule->getBegin())
                 ->setMonths($rule->getMonths())
                 ->setMonthDays($rule->getMonthDays())

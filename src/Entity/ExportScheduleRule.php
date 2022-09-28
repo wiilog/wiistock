@@ -49,10 +49,6 @@ class ExportScheduleRule {
     //For the "hourly" frequency when the hours or minutes were chosen
     private ?int $intervalPeriod = null;
 
-    #[ORM\Column(type: "string", length: 255, nullable: true)]
-    //For the "hourly" frequency when the hours or minutes were chosen
-    private ?string $intervalType = null;
-
     #[ORM\Column(type: "json", length: 255, nullable: true)]
     //Only for the "weekly" scheduled import
     private ?array $weekDays = null;
@@ -129,15 +125,6 @@ class ExportScheduleRule {
 
     public function setIntervalPeriod(?int $intervalPeriod): self {
         $this->intervalPeriod = $intervalPeriod;
-        return $this;
-    }
-
-    public function getIntervalType(): ?string {
-        return $this->intervalType;
-    }
-
-    public function setIntervalType(?string $intervalType): self {
-        $this->intervalType = $intervalType;
         return $this;
     }
 

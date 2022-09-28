@@ -18,18 +18,7 @@
                    data-label="Intervalle d'heures/minutes"
                    min="1"
                    value="">
-            <select
-                    name="intervalType"
-                    class="form-control form-control-sm mx-2 w-px-100 frequency-data"
-                    onchange="selectHourlyFrequencyIntervalType($(this))"
-                    data-label="Heures et minutes">
-                <option value=""></option>
-                <option value="{{ constant('App\\Entity\\ExportScheduleRule::PERIOD_TYPE_HOURS') }}">
-                    heures
-                </option>
-                <option value="{{ constant('App\\Entity\\ExportScheduleRule::PERIOD_TYPE_MINUTES') }}">
-                    minutes
-                </option>
+            heures
             </select>
         </div>
     </div>

@@ -27,9 +27,6 @@ class ScheduledExportCommand extends Command
     #[Required]
     public ScheduledExportService $exportService;
 
-    #[Required]
-    public FTPService $ftpService;
-
     protected function configure()
     {
         $this->setName(self::DEFAULT_NAME)
