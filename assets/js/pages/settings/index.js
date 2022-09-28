@@ -7,7 +7,6 @@ import {initializeExports, initializeImports} from "./data/imports.js";
 import {initializeRolesPage} from "./users/roles";
 import {initializeRequestTemplates} from "./request-template";
 import {initializeTransportRound} from "./transport-round";
-import {initializeTransportRequest} from "./transport_request";
 import {
     initializeStockArticlesTypesFreeFields,
     createFreeFieldsPage,
