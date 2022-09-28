@@ -290,7 +290,7 @@ class ScheduledExportService
 
             @fclose($output);
 
-            if(filesize($path) >= 20_0) {
+            if(filesize($path) >= 20_000_000) {
                 $exportToRun->setError("L'export est trop volumineux pour être envoyé par mail (maximum 20MO)");
             } else {
                 $this->mailerService->sendMail(
