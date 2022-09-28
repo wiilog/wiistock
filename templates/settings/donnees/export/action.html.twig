@@ -1,5 +1,5 @@
 {% if export.error %}
-    <i class="wii-icon wii-icon-info wii-icon-15px bg-black mr-1 has-tooltip" title="{{ export.error }}"></i>
+    <span class="wii-icon wii-icon-info wii-icon-17px bg-black has-tooltip" title="{{ export.error }}" style="margin-bottom: -4px"></span>
 {% elseif export.status.code == constant('App\\Entity\\Export::STATUS_SCHEDULED') %}
     <div class="d-flex">
         <div class="dropdown dropright">

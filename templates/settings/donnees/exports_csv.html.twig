@@ -1,9 +1,10 @@
 <div class="w-100">
-    {% include 'filters/filtersImport.html.twig' with {
-        'page': 'PAGE_EXPORT',
-        'tableSelector': '#tableExport',
+    {% include 'filters/filtersExport.html.twig' with {
+        page: 'PAGE_EXPORT',
+        tableSelector: '#tableExport',
         marginClass: 'mt-15px',
     } %}
+
     <div class="wii-page-card">
         <div class="row wii-page-card-header">
             <div class="col-auto ml-auto">

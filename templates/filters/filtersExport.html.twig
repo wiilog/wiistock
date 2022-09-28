@@ -2,6 +2,8 @@
 
 {% block filters %}
     {% include 'filters/filter_item/filterDate.html.twig' %}
-    {% include 'filters/filter_item/filterStatus.html.twig' %}
+    {% include 'filters/filter_item/filterStatus.html.twig' with {
+        capitalize: true,
+    } %}
     {% include 'filters/filter_item/filterUser.html.twig' %}
 {% endblock %}

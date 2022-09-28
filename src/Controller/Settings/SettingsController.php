@@ -996,7 +996,7 @@ class SettingsController extends AbstractController {
             ],
             self::CATEGORY_DATA => [
                 self::MENU_CSV_EXPORTS => fn() => [
-                    "statuts" => [],
+                    "statuts" => $statusRepository->findByCategorieName(CategorieStatut::EXPORT),
                 ],
                 self::MENU_IMPORTS => fn() => [
                     "statuts" => $statusRepository->findByCategoryNameAndStatusCodes(

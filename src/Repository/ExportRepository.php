@@ -48,11 +48,11 @@ class ExportRepository extends EntityRepository
                     break;
                 case "dateMin":
                     $qb->andWhere("export.beganAt >= :dateMin OR export.endedAt >= :dateMin")
-                        ->setParameter("dateMin", "${$filter['value']} 00:00:00");
+                        ->setParameter("dateMin", "{$filter['value']} 00:00:00");
                     break;
                 case "dateMax":
                     $qb->andWhere("export.beganAt <= :dateMax OR export.endedAt <= :dateMax")
-                        ->setParameter("dateMax", "${$filter['value']} 23:59:59");
+                        ->setParameter("dateMax", "{$filter['value']} 23:59:59");
                     break;
             }
         }
@@ -64,12 +64,18 @@ class ExportRepository extends EntityRepository
                 if (!empty($search)) {
                     $exprBuilder = $qb->expr();
                     $qb
+                        ->leftJoin("export.type", "type_search")
                         ->leftJoin("export.status", "status_search")
                         ->leftJoin("export.creator", "creator_search")
                         ->andWhere($exprBuilder->orX(
+                            "type_search.label LIKE :value",
                             "status_search.nom LIKE :value",
                             "creator_search.username LIKE :value",
-                            "export.entity LIKE :value"
+                            "CONCAT(export.entity, 's') LIKE :value",
+                            "DATE_FORMAT(export.createdAt, '%d/%m/%Y') LIKE :value",
+                            "DATE_FORMAT(export.beganAt, '%d/%m/%Y') LIKE :value",
+                            "DATE_FORMAT(export.endedAt, '%d/%m/%Y') LIKE :value",
+                            "DATE_FORMAT(export.nextExecution, '%d/%m/%Y') LIKE :value",
                         ))
                         ->setParameter("value", "%$search%");
                 }

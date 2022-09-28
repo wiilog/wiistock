@@ -50,11 +50,6 @@ class DataExportController extends AbstractController {
     public const EXPORT_UNIQUE = "exportUnique";
     public const EXPORT_SCHEDULED = "exportScheduled";
 
-    public const ENTITY_REFERENCE = "reference";
-    public const ENTITY_ARTICLE = "article";
-    public const ENTITY_TRANSPORT_ROUNDS = "tournee";
-    public const ENTITY_ARRIVALS = "arrivage";
-
     #[Route("/export/api", name: "settings_export_api", options: ["expose" => true], methods: "POST")]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
     public function api(Request $request, EntityManagerInterface $manager): Response {

@@ -66,6 +66,7 @@ class ScheduledExportService
 
     private function buildScheduledExportsCache(EntityManagerInterface $entityManager): array {
         $exportRepository = $entityManager->getRepository(Export::class);
+
         return Stream::from($exportRepository->findScheduledExports())
             ->keymap(fn(Export $export) => [$export->getId(), $this->calculateNextExecutionDate($export)])
             ->filter(fn(?DateTime $nextExecutionDate) => isset($nextExecutionDate))
@@ -246,7 +247,7 @@ class ScheduledExportService
     public function export(EntityManagerInterface $entityManager, Export $export) {
         $statusRepository = $entityManager->getRepository(Statut::class);
 
-        $finished = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::EXPORT, Export::STATUS_FINISHED);
+        $start = new DateTime();
 
         $today = new DateTime();
         $today = $today->format("d-m-Y-H-i-s");
@@ -255,7 +256,7 @@ class ScheduledExportService
         $output = fopen($path, "x+");
 
         $exportToRun = $this->cloneScheduledExport($export);
-        if($exportToRun->getEntity() === DataExportController::ENTITY_REFERENCE) {
+        if($exportToRun->getEntity() === Export::ENTITY_REFERENCE) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $references = $referenceArticleRepository->iterateAll($exportToRun->getCreator());
             $freeFieldsConfig = $this->freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::REFERENCE_ARTICLE], [CategoryType::ARTICLE]);
@@ -263,22 +264,22 @@ class ScheduledExportService
             $this->csvExportService->putLine($output, $this->dataExportService->createReferencesHeader($freeFieldsConfig));
 
             $this->dataExportService->exportReferences($this->refArticleDataService, $freeFieldsConfig, $references, $output);
-        } else if($exportToRun->getEntity() === DataExportController::ENTITY_ARTICLE) {
+        } else if($exportToRun->getEntity() === Export::ENTITY_ARTICLE) {
             $referenceArticleRepository = $entityManager->getRepository(Article::class);
             $articles = $referenceArticleRepository->iterateAll($exportToRun->getCreator());
             $freeFieldsConfig = $this->freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::ARTICLE], [CategoryType::ARTICLE]);
 
             $this->csvExportService->putLine($output, $this->dataExportService->createArticlesHeader($freeFieldsConfig));
             $this->dataExportService->exportArticles($this->articleDataService, $freeFieldsConfig, $articles, $output);
-        } else if($exportToRun->getEntity() === DataExportController::ENTITY_TRANSPORT_ROUNDS) {
+        } else if($exportToRun->getEntity() === Export::ENTITY_DELIVERY_ROUND) {
             $transportRoundRepository = $entityManager->getRepository(TransportRound::class);
 
             [$startDate, $endDate] = $this->getExportBoundaries($exportToRun);
             $transportRounds = $transportRoundRepository->iterateFinishedTransportRounds($startDate, $endDate);
 
             $this->csvExportService->putLine($output, $this->dataExportService->createDeliveryRoundHeader());
-            $this->dataExportService->exportTransportRounds($this->transportRoundService, $transportRounds, $output, $startDate, $endDate, false);
-        } else if($exportToRun->getEntity() === DataExportController::ENTITY_ARRIVALS) {
+            $this->dataExportService->exportTransportRounds($this->transportRoundService, $transportRounds, $output, $startDate, $endDate);
+        } else if($exportToRun->getEntity() === Export::ENTITY_ARRIVAL) {
             //TODO: exporter les arrivages
         } else {
             throw new RuntimeException("Unknown entity type");
@@ -289,28 +290,32 @@ class ScheduledExportService
 
             @fclose($output);
 
-            $this->mailerService->sendMail(
-                "FOLLOW GT // Export des $entity",
-                $this->templating->render("mails/contents/mailExportDone.twig", [
-                    "entity" => $entity,
-                    "export" => $exportToRun,
-                    "frequency" => match($exportToRun->getExportScheduleRule()?->getFrequency()) {
-                        ExportScheduleRule::ONCE => "une fois",
-                        ExportScheduleRule::HOURLY => "chaque heure",
-                        ExportScheduleRule::DAILY => "chaque jour",
-                        ExportScheduleRule::WEEKLY => "chaque semaine",
-                        ExportScheduleRule::MONTHLY => "chaque mois",
-                        default => null,
-                    },
-                    "setting" => $this->getFrequencyDescription($exportToRun),
-                    "showMore" => in_array($exportToRun->getEntity(), [Export::ENTITY_ARRIVAL, Export::ENTITY_DELIVERY_ROUND]),
-                ]),
-                Stream::empty()
-                    ->concat($exportToRun->getRecipientEmails())
-                    ->concat($exportToRun->getRecipientUsers())
-                    ->toArray(),
-                [$path],
-            );
+            if(filesize($path) >= 20_0) {
+                $exportToRun->setError("L'export est trop volumineux pour être envoyé par mail (maximum 20MO)");
+            } else {
+                $this->mailerService->sendMail(
+                    "FOLLOW GT // Export des $entity",
+                    $this->templating->render("mails/contents/mailExportDone.twig", [
+                        "entity" => $entity,
+                        "export" => $exportToRun,
+                        "frequency" => match ($exportToRun->getExportScheduleRule()?->getFrequency()) {
+                            ExportScheduleRule::ONCE => "une fois",
+                            ExportScheduleRule::HOURLY => "chaque heure",
+                            ExportScheduleRule::DAILY => "chaque jour",
+                            ExportScheduleRule::WEEKLY => "chaque semaine",
+                            ExportScheduleRule::MONTHLY => "chaque mois",
+                            default => null,
+                        },
+                        "setting" => $this->getFrequencyDescription($exportToRun),
+                        "showMore" => in_array($exportToRun->getEntity(), [Export::ENTITY_ARRIVAL, Export::ENTITY_DELIVERY_ROUND]),
+                    ]),
+                    Stream::empty()
+                        ->concat($exportToRun->getRecipientEmails())
+                        ->concat($exportToRun->getRecipientUsers())
+                        ->toArray(),
+                    [$path],
+                );
+            }
         } else { // ftp export
             try {
                 $this->ftpService->send($exportToRun->getFtpParameters(), $output);
@@ -321,14 +326,20 @@ class ScheduledExportService
             }
         }
 
+        if($exportToRun->getError()) {
+            $errorStatus = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::EXPORT, Export::STATUS_ERROR);
+            $exportToRun->setStatus($errorStatus);
+        } else {
+            $finished = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::EXPORT, Export::STATUS_FINISHED);
+            $exportToRun->setStatus($finished);
+        }
+
         $nextExecutionDate = $this->calculateNextExecutionDate($exportToRun);
 
         $exportToRun
             ->setForced(false)
-            ->setNextExecution($nextExecutionDate);
-
-        $exportToRun
-            ->setStatus($finished)
+            ->setNextExecution($nextExecutionDate)
+            ->setBeganAt($start)
             ->setEndedAt(new DateTime())
             ->setForced(false);
 
