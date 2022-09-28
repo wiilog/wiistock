@@ -434,8 +434,9 @@ function clearCheckboxes($modal) {
     });
 }
 
-function saveFilters(page, tableSelector, callback) {
-    let path = Routing.generate('filter_sup_new');
+function saveFilters(page, tableSelector, callback, needsDateFormatting = false) {
+    const $table = $(tableSelector);
+    const path = Routing.generate('filter_sup_new');
 
     const $filterDateMin = $('.filter-date-min');
     const $filterDateMax = $('.filter-date-max');
@@ -466,7 +467,13 @@ function saveFilters(page, tableSelector, callback) {
     let params = {
         page,
         ...(Object.keys(valFunction).reduce((acc, key) => {
-            const $fields = $('.filters-container').find(`.${key}`);
+            let $fields;
+            if($table.closest(`.settings`).exists()) {
+                $fields = $table.closest(`.settings-content`).find(`.filters-container .${key}`);
+            } else {
+                $fields = $(`.filters-container .${key}`);
+            }
+
             const values = {};
             $fields.each(function () {
                 const $elem = $(this);
