@@ -189,10 +189,9 @@ function createArrival() {
     return $.get(Routing.generate('arrivage_new_api', true), function (data) {
         const $existingModal = $(`#modalNewArrivage`);
         let $modal;
-
         if($existingModal.exists()) {
             const style = $existingModal.attr(`style`);
-            $existingModal.replaceWith(data.html);
+            $existingModal.find('.modal-body').html($(data.html).find('.modal-body').html());
 
             $modal = $(`#modalNewArrivage`);
             $modal.attr(`style`, style);
@@ -206,43 +205,45 @@ function createArrival() {
 
         setTimeout(() => {
             onTypeChange($modal.find('[name="type"]'));
-        initDateTimePicker('.date-cl');
+            initDateTimePicker('.date-cl');
 
-        onFlyFormOpened = {};
-        onFlyFormToggle('fournisseurDisplay', 'addFournisseur', true);
-        onFlyFormToggle('transporteurDisplay', 'addTransporteur', true);
-        onFlyFormToggle('chauffeurDisplay', 'addChauffeur', true);
+            onFlyFormOpened = {};
+            onFlyFormToggle('fournisseurDisplay', 'addFournisseur', true);
+            onFlyFormToggle('transporteurDisplay', 'addTransporteur', true);
+            onFlyFormToggle('chauffeurDisplay', 'addChauffeur', true);
 
-        Select2Old.provider($modal.find('.ajax-autocomplete-fournisseur'));
-        Select2Old.init($modal.find('.ajax-autocomplete-transporteur'));
-        Select2Old.init($modal.find('.ajax-autocomplete-chauffeur'));
-        Select2Old.location($modal.find('.ajax-autocomplete-location'));
-        Select2Old.init($modal.find('.ajax-autocomplete-user'), '', 1);
-        Select2Old.initFree($('.select2-free'));
+            Select2Old.provider($modal.find('.ajax-autocomplete-fournisseur'));
+            Select2Old.init($modal.find('.ajax-autocomplete-transporteur'));
+            Select2Old.init($modal.find('.ajax-autocomplete-chauffeur'));
+            Select2Old.location($modal.find('.ajax-autocomplete-location'));
+            Select2Old.init($modal.find('.ajax-autocomplete-user'), '', 1);
+            Select2Old.initFree($('.select2-free'));
 
-        const $submit = $modal.find(`#submitNewArrivage`);
-        $submit.on(`click`, function() {
-            SubmitAction($modal, $submit, Routing.generate('arrivage_new', true), {
-                keepForm: true,
-                keepModal: true,
-                keepLoading: true,
-                waitForUserAction: () => {
-                    return checkPossibleCustoms($modal);
-                },
-                success: (res) => {
-                    res = res || {};
-                    createArrival();
-                    arrivalCallback(
-                        true,
-                        {
-                            ...(res || {}),
-                            success: () => {}
-                        },
-                        arrivalsTable
-                    )
-                },
-            }).catch(() => {});
-        })
+            const $submit = $modal.find(`#submitNewArrivage`);
+            $submit.on(`click`, function () {
+                SubmitAction($modal, $submit, Routing.generate('arrivage_new', true), {
+                    keepForm: true,
+                    keepModal: true,
+                    keepLoading: true,
+                    waitForUserAction: () => {
+                        return checkPossibleCustoms($modal);
+                    },
+                    success: (res) => {
+                        res = res || {};
+                        $('#submitNewArrivage').popLoader();
+                        arrivalCallback(
+                            true,
+                            {
+                                ...(res || {}),
+                                success: () => {
+                                }
+                            },
+                            arrivalsTable
+                        )
+                    },
+                }).catch(() => {
+                });
+            })
         }, 1);
     }, `json`);
 }
