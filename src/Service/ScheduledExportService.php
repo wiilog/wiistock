@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Controller\Settings\DataExportController;
+use App\Entity\Arrivage;
 use App\Entity\Article;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
@@ -40,6 +41,9 @@ class ScheduledExportService
 
     #[Required]
     public ArticleDataService $articleDataService;
+
+    #[Required]
+    public ArrivageService $arrivageService;
 
     #[Required]
     public TransportRoundService $transportRoundService;
@@ -256,6 +260,7 @@ class ScheduledExportService
         $output = fopen($path, "x+");
 
         $exportToRun = $this->cloneScheduledExport($export);
+
         if($exportToRun->getEntity() === Export::ENTITY_REFERENCE) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $references = $referenceArticleRepository->iterateAll($exportToRun->getCreator());
@@ -278,9 +283,17 @@ class ScheduledExportService
             $transportRounds = $transportRoundRepository->iterateFinishedTransportRounds($startDate, $endDate);
 
             $this->csvExportService->putLine($output, $this->dataExportService->createDeliveryRoundHeader());
-            $this->dataExportService->exportTransportRounds($this->transportRoundService, $transportRounds, $output, $startDate, $endDate);
-        } else if($exportToRun->getEntity() === Export::ENTITY_ARRIVAL) {
-            //TODO: exporter les arrivages
+            $this->dataExportService->exportTransportRounds($this->transportRoundService, $transportRounds, $output, $startDate, $endDate, false);
+        } else if($exportToRun->getEntity() === Export::ENTITY_ARRIVALS) {
+            $arrivalRepository = $entityManager->getRepository(Arrivage::class);
+            [$startDate, $endDate] = $this->getExportBoundaries($exportToRun);
+            $arrivals = $arrivalRepository->iterateArrivals($startDate, $endDate);
+            $freeFieldsConfig = $this->freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::ARRIVAGE], [CategoryType::ARRIVAGE]);
+
+            $this->arrivageService->launchExportCache($entityManager, $startDate, $endDate);
+
+            $this->csvExportService->putLine($output, $this->dataExportService->createArrivalsHeader($exportToRun->getColumnToExport(), $freeFieldsConfig));
+            $this->dataExportService->exportArrivages($arrivals, $output, $exportToRun->getColumnToExport(), false);
         } else {
             throw new RuntimeException("Unknown entity type");
         }

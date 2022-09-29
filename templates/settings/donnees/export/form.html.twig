@@ -17,11 +17,12 @@
             {label: 'Arrivages', value: constant('App\\Entity\\Export::ENTITY_ARRIVAL'), checked: export.entity == constant('App\\Entity\\Export::ENTITY_ARRIVAL'), disabled: export.id is not null}
         ], {expanded: true}) }}
 
+        <label class="ref-articles-sentence wii-small-text my-3">Les articles exportés sont seulement ceux avec le groupe de visibilité rattaché à l'utilisateur.</label>
+
         <div class="unique-export-container">
-            <label class="ref-articles-sentence wii-small-text my-3">Les articles exportés sont seulement ceux avec le groupe de visibilité rattaché à l'utilisateur.</label>
             <div class="date-limit form-group d-none">
                 <label class="wii-field-name">Bornes de dates</label>
-                <div class="col-12 col-md-6 p-0">
+                <div class="col-12 col-md-6 p-0 mb-3">
                     <div class="h-100">
                         <div class="input-group">
                             <div class="input-group-prepend">

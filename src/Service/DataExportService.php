@@ -6,6 +6,7 @@ use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Export;
+use App\Entity\FieldsParam;
 use App\Entity\ExportScheduleRule;
 use App\Entity\Fournisseur;
 use App\Entity\Statut;
@@ -109,10 +110,16 @@ class DataExportService
         ];
     }
 
+    public function createArrivalsHeader(array $columnToExport, array $freeFieldsConfig) {
+        return array_merge($columnToExport,  $freeFieldsConfig['freeFieldsHeader']);
+    }
+
     public function exportReferences(RefArticleDataService $refArticleDataService,
                                      array $freeFieldsConfig,
                                      iterable $data,
                                      mixed $output) {
+        $start = new DateTime();
+
         $managersByReference = $this->entityManager
             ->getRepository(Utilisateur::class)
             ->getUsernameManagersGroupByReference();
@@ -190,7 +197,7 @@ class DataExportService
                                  Export                 $export,
                                  array                  $data): void {
         $userRepository = $entityManager->getRepository(Utilisateur::class);
-        
+
         $entity = $export->getEntity();
 
         $export->setDestinationType($data["destinationType"]);

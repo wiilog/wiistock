@@ -136,6 +136,7 @@ function displayExportModal(exportId) {
         });
     });
 
+    // TODO adrien virer toggleFrequencyInput
     $('.select-all-options').on('click', onSelectAll);
 
     $modal.modal('show');
@@ -185,6 +186,7 @@ function toggleFrequencyInput($input) {
             initDateTimePicker({dateInputs: $input, minDate: true, value: $input.val()});
         });
     }
+    $('.select-all-options').on('click', onSelectAll);
 }
 
 function selectHourlyFrequencyIntervalType($select) {
