@@ -116,6 +116,14 @@ class DataExportController extends AbstractController {
             ]);
         }
 
+        // TODO adrien mettre dans le service
+        if(!isset($data["startDate"])){
+            return $this->json([
+                "success" => false,
+                "msg" => "Veuillez choisir une fréquence pour votre export planifié.",
+            ]);
+        }
+
         $type = $data["type"];
         $entity = $data["entityToExport"];
 
