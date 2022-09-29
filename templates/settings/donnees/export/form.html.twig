@@ -11,10 +11,30 @@
     <div>
         <div class="wii-section-title my-3">Type de données à exporter</div>
         {{ form.switch('entityToExport', null, true, [
-            {label: 'Références', value: constant('App\\Entity\\Export::ENTITY_REFERENCE'), checked: export.entity == constant('App\\Entity\\Export::ENTITY_REFERENCE'), disabled: export.id is not null},
-            {label: 'Articles', value: constant('App\\Entity\\Export::ENTITY_ARTICLE'), checked: export.entity == constant('App\\Entity\\Export::ENTITY_ARTICLE'), disabled: export.id is not null},
-            {label: 'Tournées', value: constant('App\\Entity\\Export::ENTITY_DELIVERY_ROUND'), checked: export.entity == constant('App\\Entity\\Export::ENTITY_DELIVERY_ROUND'), disabled: export.id is not null},
-            {label: 'Arrivages', value: constant('App\\Entity\\Export::ENTITY_ARRIVAL'), checked: export.entity == constant('App\\Entity\\Export::ENTITY_ARRIVAL'), disabled: export.id is not null}
+            {
+                label: 'Références',
+                value: constant('App\\Entity\\Export::ENTITY_REFERENCE'),
+                checked: export.id is null or export.entity == constant('App\\Entity\\Export::ENTITY_REFERENCE'),
+                disabled: export.id is not null
+            },
+            {
+                label: 'Articles',
+                value: constant('App\\Entity\\Export::ENTITY_ARTICLE'),
+                checked: export.entity == constant('App\\Entity\\Export::ENTITY_ARTICLE'),
+                disabled: export.id is not null
+            },
+            {
+                label: 'Tournées',
+                value: constant('App\\Entity\\Export::ENTITY_DELIVERY_ROUND'),
+                checked: export.entity == constant('App\\Entity\\Export::ENTITY_DELIVERY_ROUND'),
+                disabled: export.id is not null
+            },
+            {
+                label: 'Arrivages',
+                value: constant('App\\Entity\\Export::ENTITY_ARRIVAL'),
+                checked: export.entity == constant('App\\Entity\\Export::ENTITY_ARRIVAL'),
+                disabled: export.id is not null
+            }
         ], {expanded: true}) }}
 
         <label class="ref-articles-sentence wii-small-text my-3">Les articles exportés sont seulement ceux avec le groupe de visibilité rattaché à l'utilisateur.</label>
