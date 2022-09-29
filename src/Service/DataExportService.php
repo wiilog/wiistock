@@ -6,6 +6,7 @@ use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Export;
+use App\Entity\FieldsParam;
 use App\Entity\ExportScheduleRule;
 use App\Entity\Fournisseur;
 use App\Entity\Statut;
@@ -109,10 +110,25 @@ class DataExportService
         ];
     }
 
+    public function createArrivalsHeader(EntityManagerInterface $entityManager,
+                                         array $columnToExport): array
+    {
+        $exportableColumns = $this->arrivalService->getArrivalExportableColumns($entityManager);
+        return Stream::from($columnToExport)
+            ->filterMap(function(string $code) use ($exportableColumns) {
+                $column = Stream::from($exportableColumns)
+                    ->find(fn(array $config) => $config['code'] === $code);
+                return $column['label'] ?? null;
+            })
+            ->toArray();
+    }
+
     public function exportReferences(RefArticleDataService $refArticleDataService,
                                      array $freeFieldsConfig,
                                      iterable $data,
                                      mixed $output) {
+        $start = new DateTime();
+
         $managersByReference = $this->entityManager
             ->getRepository(Utilisateur::class)
             ->getUsernameManagersGroupByReference();
@@ -190,14 +206,22 @@ class DataExportService
                                  Export                 $export,
                                  array                  $data): void {
         $userRepository = $entityManager->getRepository(Utilisateur::class);
-        
+
         $entity = $export->getEntity();
+
+        if(!isset($data["startDate"])){
+            throw new FormException("Veuillez choisir une fréquence pour votre export planifié.");
+        }
 
         $export->setDestinationType($data["destinationType"]);
         if($export->getDestinationType() == Export::DESTINATION_EMAIL) {
             $export->setFtpParameters(null);
 
-            $emails = isset($data["recipientEmails"]) && $data["recipientEmails"] ? explode(",", $data["recipientEmails"]) : [];
+            $emails = isset($data["recipientEmails"]) && $data["recipientEmails"]
+                ? Stream::explode(",", $data["recipientEmails"])
+                    ->filter()
+                    ->toArray()
+                : [];
             if (!empty($emails)) {
                 $invalidEmails = Stream::from($emails)
                     ->filter(fn(string $email) => !filter_var($email, FILTER_VALIDATE_EMAIL))
@@ -217,9 +241,17 @@ class DataExportService
             $export->setRecipientEmails($emails);
 
             if($export->getRecipientUsers()->isEmpty() && empty($emails)) {
-                throw new FormException("Vous devez renseigner au moins un utilisateur ou une adresse mail destinataire");
+                throw new FormException("Vous devez renseigner au moins un utilisateur ou une adresse email destinataire");
             }
         } else {
+            if (!isset($data["host"])
+                || !isset($data["port"])
+                || !isset($data["user"])
+                || !isset($data["password"])
+                || !isset($data["targetDirectory"])) {
+                throw new FormException("Veuillez renseigner tous les champs nécessaires au paramétrage du serveur SFTP.");
+            }
+
             $export->setRecipientUsers([]);
             $export->setRecipientEmails([]);
 
