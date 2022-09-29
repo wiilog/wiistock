@@ -135,9 +135,9 @@ class ReferenceArticleRepository extends EntityRepository {
             ->leftJoin('referenceArticle.visibilityGroup', 'join_visibilityGroup')
             ->leftJoin('referenceArticle.createdBy', 'join_createdBy')
             ->leftJoin('referenceArticle.editedBy', 'join_editedBy')
+            ->andWhere('statutRef.code = :active')
             ->groupBy('referenceArticle.id')
             ->orderBy('referenceArticle.id', 'ASC')
-            ->where('statutRef.code = :active')
             ->setParameter('active', ReferenceArticle::STATUT_ACTIF)
             ->getQuery()
             ->toIterable();

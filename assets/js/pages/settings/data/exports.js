@@ -140,10 +140,6 @@ function displayExportModal(exportId) {
     $('.select-all-options').on('click', onSelectAll);
 
     $modal.modal('show');
-
-   // $submitNewExport.on(`click`, function() {
-
-    //     });
 }
 
 function onSelectAll() {

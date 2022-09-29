@@ -258,7 +258,7 @@ class DataExportController extends AbstractController {
         $transportRoundsIterator = $transportRoundRepository->iterateFinishedTransportRounds($dateTimeMin, $dateTimeMax);
         return $csvService->streamResponse(function ($output) use ($csvService, $dataExportService, $dateTimeMin, $dateTimeMax, $transportRoundService, $transportRoundsIterator) {
             $start = new DateTime();
-            $dataExportService->exportTransportRounds($transportRoundService, $transportRoundsIterator, $dateTimeMin, $dateTimeMax, $output);
+            $dataExportService->exportTransportRounds($transportRoundService, $transportRoundsIterator, $output, $dateTimeMin, $dateTimeMax);
             $dataExportService->createUniqueExportLine(Export::ENTITY_DELIVERY_ROUND, $start);
         }, "export-tournees-$today.csv", $header);
     }
