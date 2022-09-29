@@ -128,9 +128,13 @@
             </div>
             <div>
                 <div class="wii-section-title my-3">Destination d'export</div>
+                {% set emailDestination = export.ftpParameters is empty %}
+                {% set ftpDestination = export.recipientEmails is empty and export.recipientUsers is empty %}
+                {% set createExport = emailDestination and ftpDestination %}
+
                 {{ form.radio('destinationType', null, false, [
-                    {label: 'Envoi email', value: constant('App\\Entity\\Export::DESTINATION_EMAIL'), class: 'export-by-email', checked: true },
-                    {label: 'Envoi vers serveur SFTP', value: constant('App\\Entity\\Export::DESTINATION_SFTP'), class: 'export-by-sftp'}
+                    {label: 'Envoi email', value: constant('App\\Entity\\Export::DESTINATION_EMAIL'), class: 'export-by-email', checked: createExport ?? emailDestination },
+                    {label: 'Envoi vers serveur SFTP', value: constant('App\\Entity\\Export::DESTINATION_SFTP'), class: 'export-by-sftp', checked: not createExport ?? ftpDestination }
                 ], {
                     onChange: 'destinationExportChange()'
                 }) }}
@@ -155,23 +159,23 @@
                 </div>
                 <div class="export-sftp-destination d-none">
                     <label class="wii-section-title my-3">Paramétrer le serveur</label>
-                    {{ form.input('host', 'Serveur Hôte', false, null, {
+                    {{ form.input('host', 'Serveur Hôte', false, export.ftpParameters['host'] ?? null, {
                         type: 'text',
                         labelClass: 'col-5 my-2'
                     }) }}
-                    {{ form.input('port', 'Port', false, null, {
+                    {{ form.input('port', 'Port', false, export.ftpParameters['port'] ?? null, {
                         type: 'text',
                         labelClass: 'col-5 pr-0 my-2'
                     }) }}
-                    {{ form.input('user', 'Utilisateur', false, null, {
+                    {{ form.input('user', 'Utilisateur', false, export.ftpParameters['user'] ?? null, {
                         type: 'text',
                         labelClass: 'col-5 my-2'
                     }) }}
-                    {{ form.input('password', 'Mot de passe', false, null, {
+                    {{ form.input('password', 'Mot de passe', false, export.ftpParameters['pass'] ?? null, {
                         type: 'text',
                         labelClass: 'col-5 pr-0 my-2'
                     }) }}
-                    {{ form.input('targetDirectory', "Répertoire cible de l'export", false, null, {
+                    {{ form.input('targetDirectory', "Répertoire cible de l'export", false, export.ftpParameters['path'] ?? null, {
                         type: 'text',
                         labelClass: 'col-5 my-2'
                     }) }}
