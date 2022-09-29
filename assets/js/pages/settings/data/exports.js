@@ -44,10 +44,10 @@ $(document).ready(() => {
         columns: [
             {data: `actions`, title: ``, orderable: false, className: `noVis hideOrder`},
             {data: `status`, title: `Statut`},
-            {data: `creationDate`, title: `Date de création`},
-            {data: `startDate`, title: `Date début`},
-            {data: `endDate`, title: `Date fin`},
-            {data: `nextRun`, title: `Prochaine exécution`},
+            {data: `createdAt`, title: `Date de création`},
+            {data: `beganAt`, title: `Date début`},
+            {data: `endedAt`, title: `Date fin`},
+            {data: `nextExecution`, title: `Prochaine exécution`},
             {data: `frequency`, title: `Fréquence`},
             {data: `user`, title: `Utilisateur`},
             {data: `type`, title: `Type`},
@@ -100,49 +100,11 @@ function displayExportModal(exportId) {
 
         Select2Old.user($modal.find('.select2-user'));
         Select2Old.initFree($modal.find('.select2-free'));
-        $modal.find('select[name=columnToExport]').select2();
-
-        $modal.find('.period-select').on('change', function (){
-            let $periodInterval = $modal.find('[name=period]');
-            switch ($(this).val()) {
-                case 'today':
-                    $periodInterval.html(
-                        '<option value="current" selected>en cours (jour J)</option>' +
-                        '<option value="previous">dernier (jour J-1)</option>'
-                    );
-                    break;
-                case 'week':
-                    $periodInterval.html(
-                        '<option value="current" selected>en cours (semaine S)</option>' +
-                        '<option value="previous">dernière (semaine S-1)</option>'
-                    );
-                    break;
-                case 'month':
-                    $periodInterval.html(
-                        '<option value="current" selected>en cours (mois M)</option>' +
-                        '<option value="previous">dernier (mois M-1)</option>'
-                    );
-                    break;
-                case 'year':
-                    $periodInterval.html(
-                        '<option value="current" selected>en cours (année A)</option>' +
-                        '<option value="previous">dernière (année A-1)</option>'
-                    );
-                    break;
-                default:
-                    break;
-            }
-
-        });
+        $modal.find('select[name=columnToExport]').select2({closeOnSelect: false});
+        $modal.find('.select-all-options').on('click', onSelectAll);
     });
 
-    $('.select-all-options').on('click', onSelectAll);
-
     $modal.modal('show');
-
-   // $submitNewExport.on(`click`, function() {
-
-    //     });
 }
 
 function onSelectAll() {
@@ -185,6 +147,8 @@ function toggleFrequencyInput($input) {
             initDateTimePicker({dateInputs: $input, minDate: true, value: $input.val()});
         });
     }
+
+    $('.select-all-options').on('click', onSelectAll);
 }
 
 function selectHourlyFrequencyIntervalType($select) {
@@ -219,7 +183,6 @@ function handleExportSaving($modal, table) {
 
 function createForm() {
     const $modal = $("#modalExport");
-    const exportId = $modal.find('[name=exportId]');
     Form.create($modal)
         .on('change', '[name=entityToExport]', function() {
             onFormEntityChange();
@@ -227,14 +190,18 @@ function createForm() {
         .on('change', '[name=type]', function() {
             onFormTypeChange();
         })
+        .on('change', '[name=periodInterval]', function() {
+            onPeriodIntervalChange($modal);
+        })
         .onSubmit((data) => {
-            wrapLoadingOnActionButton($modal, () => {
+            wrapLoadingOnActionButton($modal.find('[type=submit]'), () => {
                 if(!data) {
                     return;
                 }
 
                 const content = data.asObject();
-                if(content.type === EXPORT_UNIQUE && !exportId) {
+
+                if(content.type === EXPORT_UNIQUE) {
                     if (content.entityToExport === ENTITY_REFERENCE) {
                         window.open(Routing.generate(`settings_export_references`));
                     } else if (content.entityToExport === ENTITY_ARTICLE) {
@@ -282,10 +249,9 @@ function createForm() {
                 }
                 else {
                     const exportId = $modal.find('[name=exportId]').val();
-                    const route = exportId ? 'settings_edit_export' : 'settings_submit_export';
+                    const route = exportId ? 'settings_edit_export' : 'settings_new_export';
                     const params = exportId ? {export: exportId} : {};
-
-                    return AJAX.route(`POST`, route, params)
+                    return AJAX.route(POST, route, params)
                         .json(data)
                         .then(() => {
                             handleExportSaving($modal, tableExport);
@@ -300,12 +266,15 @@ function onFormEntityChange() {
     const selectedEntity = $modal.find('[name=entityToExport]:checked').val();
     const $refArticlesSentence = $modal.find('.ref-articles-sentence');
     const $dateLimit = $modal.find('.date-limit');
-    const $columnToExport = $modal.find('.column-to-export');
+    const $columnToExportContainer = $modal.find('.column-to-export');
+    const $columnToExport = $columnToExportContainer.find('select');
     const $periodInterval = $modal.find('.period-interval');
 
     $refArticlesSentence.addClass('d-none');
     $dateLimit.addClass('d-none');
-    $columnToExport.addClass('d-none');
+    $columnToExportContainer.addClass('d-none');
+    $columnToExport
+        .removeClass('needed');
     $periodInterval.addClass('d-none');
 
     switch (selectedEntity) {
@@ -321,7 +290,8 @@ function onFormEntityChange() {
             break;
         case ENTITY_ARRIVALS:
             $dateLimit.removeClass('d-none');
-            $columnToExport.removeClass('d-none');
+            $columnToExportContainer.removeClass('d-none');
+            $columnToExport.addClass('needed');
             $periodInterval.removeClass('d-none');
             break;
         default:
@@ -370,4 +340,38 @@ function cancelExport(exportId) {
         },
         table: tableExport,
     });
+}
+
+function onPeriodIntervalChange($modal) {
+    let $period = $modal.find('[name=period]');
+    let $periodInterval = $modal.find('[name=periodInterval]');
+    switch ($periodInterval.val()) {
+        case 'day':
+            $period.html(
+                '<option value="current" selected>en cours (jour J)</option>' +
+                '<option value="previous">dernier (jour J-1)</option>'
+            );
+            break;
+        case 'week':
+            $period.html(
+                '<option value="current" selected>en cours (semaine S)</option>' +
+                '<option value="previous">dernière (semaine S-1)</option>'
+            );
+            break;
+        case 'month':
+            $period.html(
+                '<option value="current" selected>en cours (mois M)</option>' +
+                '<option value="previous">dernier (mois M-1)</option>'
+            );
+            break;
+        case 'year':
+            $period.html(
+                '<option value="current" selected>en cours (année A)</option>' +
+                '<option value="previous">dernière (année A-1)</option>'
+            );
+            break;
+        default:
+            break;
+    }
+
 }

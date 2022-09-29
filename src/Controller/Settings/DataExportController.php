@@ -11,16 +11,13 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Export;
 use App\Entity\ExportScheduleRule;
-use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
-use App\Entity\Fournisseur;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
 use App\Service\ArrivageService;
 use App\Service\ArticleDataService;
@@ -28,7 +25,6 @@ use App\Service\CacheService;
 use App\Service\CSVExportService;
 use App\Service\DataExportService;
 use App\Service\FreeFieldService;
-use App\Service\ImportService;
 use App\Service\RefArticleDataService;
 use App\Service\ScheduledExportService;
 use App\Service\Transport\TransportRoundService;
@@ -46,6 +42,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Security;
 use WiiCommon\Helper\Stream;
+
 
 #[Route("/parametrage")]
 class DataExportController extends AbstractController {
@@ -74,10 +71,10 @@ class DataExportController extends AbstractController {
                     "export" => $export,
                 ]),
                 "status" => $export->getStatus()->getNom(),
-                "creationDate" => $export->getCreatedAt()->format("d/m/Y H:i"),
-                "startDate" => $export->getBeganAt()?->format("d/m/Y H:i"),
-                "endDate" => $export->getEndedAt()?->format("d/m/Y H:i"),
-                "nextRun" => $export->getNextExecution()?->format("d/m/Y H:i"),
+                "createdAt" => $export->getCreatedAt()->format("d/m/Y H:i"),
+                "beganAt" => $export->getBeganAt()?->format("d/m/Y H:i"),
+                "endedAt" => $export->getEndedAt()?->format("d/m/Y H:i"),
+                "nextExecution" => $export->getNextExecution()?->format("d/m/Y H:i"),
                 "frequency" => match($export->getExportScheduleRule()?->getFrequency()) {
                     ExportScheduleRule::ONCE => "Une fois",
                     ExportScheduleRule::HOURLY => "Chaque heure",
@@ -99,13 +96,13 @@ class DataExportController extends AbstractController {
         ]);
     }
 
-    #[Route("/export/submit", name: "settings_submit_export", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[Route("/export/new", name: "settings_new_export", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
-    public function submitExport(Request                $request,
-                                 EntityManagerInterface $entityManager,
-                                 Security               $security,
-                                 CacheService           $cacheService,
-                                 DataExportService      $dataExportService): Response {
+    public function new(Request                $request,
+                        EntityManagerInterface $entityManager,
+                        Security               $security,
+                        CacheService           $cacheService,
+                        DataExportService      $dataExportService): Response {
 
         $data = $request->request->all();
 
@@ -256,7 +253,7 @@ class DataExportController extends AbstractController {
         $transportRoundsIterator = $transportRoundRepository->iterateFinishedTransportRounds($dateTimeMin, $dateTimeMax);
         return $csvService->streamResponse(function ($output) use ($csvService, $dataExportService, $dateTimeMin, $dateTimeMax, $transportRoundService, $transportRoundsIterator) {
             $start = new DateTime();
-            $dataExportService->exportTransportRounds($transportRoundService, $transportRoundsIterator, $dateTimeMin, $dateTimeMax, $output);
+            $dataExportService->exportTransportRounds($transportRoundService, $transportRoundsIterator, $output, $dateTimeMin, $dateTimeMax);
             $dataExportService->createUniqueExportLine(Export::ENTITY_DELIVERY_ROUND, $start);
         }, "export-tournees-$today.csv", $header);
     }
@@ -281,7 +278,7 @@ class DataExportController extends AbstractController {
         $nameFile = "export-arrivages-$today.csv";
         $arrivalService->launchExportCache($entityManager, $dateTimeMin, $dateTimeMax);
 
-        $csvHeader = $arrivalService->getHeaderForExport($entityManager, $columnToExport);
+        $csvHeader = $dataExportService->createArrivalsHeader($entityManager, $columnToExport);
 
         $arrivalsIterator = $arrivageRepository->iterateArrivals($dateTimeMin, $dateTimeMax);
         return $csvService->streamResponse(function ($output) use ($dataExportService, $columnToExport, $arrivalsIterator) {

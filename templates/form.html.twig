@@ -193,6 +193,7 @@
                                 {% if options.includeParams is defined %}data-include-params="{{ options.includeParams }}"{% endif %}
                                 {% if options.minLength is defined %}data-min-length="{{ options.minLength }}"{% endif %}
                             {% endif %}
+                            {% if options.keepOpen is defined %}data-keep-open{% endif %}
                             {% for attribute in options.additionalAttributes ?? [] %}
                                 {{ attribute.name }}="{{ attribute.value ?? '' }}"
                             {% endfor %}

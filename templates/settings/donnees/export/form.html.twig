@@ -11,17 +11,38 @@
     <div>
         <div class="wii-section-title my-3">Type de données à exporter</div>
         {{ form.switch('entityToExport', null, true, [
-            {label: 'Références', value: constant('App\\Entity\\Export::ENTITY_REFERENCE'), checked: export.entity == constant('App\\Entity\\Export::ENTITY_REFERENCE'), disabled: export.id is not null},
-            {label: 'Articles', value: constant('App\\Entity\\Export::ENTITY_ARTICLE'), checked: export.entity == constant('App\\Entity\\Export::ENTITY_ARTICLE'), disabled: export.id is not null},
-            {label: 'Tournées', value: constant('App\\Entity\\Export::ENTITY_DELIVERY_ROUND'), checked: export.entity == constant('App\\Entity\\Export::ENTITY_DELIVERY_ROUND'), disabled: export.id is not null},
-            {label: 'Arrivages', value: constant('App\\Entity\\Export::ENTITY_ARRIVAL'), checked: export.entity == constant('App\\Entity\\Export::ENTITY_ARRIVAL'), disabled: export.id is not null}
+            {
+                label: 'Références',
+                value: constant('App\\Entity\\Export::ENTITY_REFERENCE'),
+                checked: export.id is null or export.entity == constant('App\\Entity\\Export::ENTITY_REFERENCE'),
+                disabled: export.id is not null
+            },
+            {
+                label: 'Articles',
+                value: constant('App\\Entity\\Export::ENTITY_ARTICLE'),
+                checked: export.entity == constant('App\\Entity\\Export::ENTITY_ARTICLE'),
+                disabled: export.id is not null
+            },
+            {
+                label: 'Tournées',
+                value: constant('App\\Entity\\Export::ENTITY_DELIVERY_ROUND'),
+                checked: export.entity == constant('App\\Entity\\Export::ENTITY_DELIVERY_ROUND'),
+                disabled: export.id is not null
+            },
+            {
+                label: 'Arrivages',
+                value: constant('App\\Entity\\Export::ENTITY_ARRIVAL'),
+                checked: export.entity == constant('App\\Entity\\Export::ENTITY_ARRIVAL'),
+                disabled: export.id is not null
+            }
         ], {expanded: true}) }}
 
+        <label class="ref-articles-sentence wii-small-text my-3">Les articles exportés sont seulement ceux avec le groupe de visibilité rattaché à l'utilisateur.</label>
+
         <div class="unique-export-container">
-            <label class="ref-articles-sentence wii-small-text my-3">Les articles exportés sont seulement ceux avec le groupe de visibilité rattaché à l'utilisateur.</label>
             <div class="date-limit form-group d-none">
                 <label class="wii-field-name">Bornes de dates</label>
-                <div class="col-12 col-md-6 p-0">
+                <div class="col-12 col-md-6 p-0 mb-3">
                     <div class="h-100">
                         <div class="input-group">
                             <div class="input-group-prepend">
@@ -48,7 +69,7 @@
                 {{ form.select('columnToExport', 'Colonnes à exporter', false, {
                     items: arrivalFields,
                     multiple: true,
-                    value: export.columnToExport
+                    value: export.columnToExport,
                 }) }}
             </div>
         </div>
@@ -80,6 +101,7 @@
                 {{ form.select('columnToExport', 'Colonnes à exporter', false, {
                     items: arrivalFields,
                     multiple: true,
+                    value: export.columnToExport
                 }) }}
             </div>
             <div>
