@@ -100,13 +100,13 @@ function displayExportModal(exportId) {
 
         Select2Old.user($modal.find('.select2-user'));
         Select2Old.initFree($modal.find('.select2-free'));
-        $modal.find('select[name=columnToExport]').select2();
+        $modal.find('select[name=columnToExport]').select2({closeOnSelect: false});
         $modal.find('.select-all-options').on('click', onSelectAll);
 
-        $modal.find('.period-select').on('change', function (){
+        $modal.find('[name=periodInterval]').on('change', function (){
             let $periodInterval = $modal.find('[name=period]');
             switch ($(this).val()) {
-                case 'today':
+                case 'day':
                     $periodInterval.html(
                         '<option value="current" selected>en cours (jour J)</option>' +
                         '<option value="previous">dernier (jour J-1)</option>'
@@ -136,8 +136,6 @@ function displayExportModal(exportId) {
 
         });
     });
-
-    $('.select-all-options').on('click', onSelectAll);
 
     $modal.modal('show');
 }
@@ -182,6 +180,8 @@ function toggleFrequencyInput($input) {
             initDateTimePicker({dateInputs: $input, minDate: true, value: $input.val()});
         });
     }
+
+    $('.select-all-options').on('click', onSelectAll);
 }
 
 function selectHourlyFrequencyIntervalType($select) {
