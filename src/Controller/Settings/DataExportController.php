@@ -155,15 +155,12 @@ class DataExportController extends AbstractController {
             $suppliersByReference = $manager
                 ->getRepository(Fournisseur::class)
                 ->getCodesAndLabelsGroupedByReference();
-            dump("a!");
 
             $references = $referenceArticleRepository->iterateAll($user);
             foreach($references as $reference) {
                 $refArticleDataService->putReferenceLine($output, $managersByReference, $reference, $suppliersByReference, $freeFieldsConfig);
             }
-dump("ok?");
             $csvService->createUniqueExportLine(Export::ENTITY_REFERENCE, $start);
-            dump("no");
         }, "export-references-$today.csv", $header);
     }
 

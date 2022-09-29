@@ -1880,17 +1880,17 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Nature",
                             "en" => "Nature",
-                            "tooltip" => "Détails acheminements - Liste des UL - Nom de colonnes\nPDF bon acheminement\nEmails",
+                            "tooltip" => "Détails acheminements - Liste des UL - Nom de colonnes\nPDF bon acheminement\nPDF lettre de voiture\nPDF bon de surconsommation\nEmails",
                         ],
                         [
                             "fr" => "Code",
                             "en" => "Code",
-                            "tooltip" => "Liste des UL\nEmails",
+                            "tooltip" => "Liste des UL\nEmails\nPDF bon de livraison",
                         ],
                         [
                             "fr" => "Quantité à acheminer",
                             "en" => "Quantity to transfer",
-                            "tooltip" => "Détails acheminements - Liste des UL - Nom de colonnes\nPDF bon acheminement\Emails",
+                            "tooltip" => "Détails acheminements - Liste des UL - Nom de colonnes\nPDF bon acheminement\nPDF lettre de voiture\nEmails",
                         ],
                         [
                             "fr" => "Date dernier mouvement",
@@ -1910,12 +1910,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Poids (kg)",
                             "en" => "Weight (kg)",
-                            "tooltip" => "Détails acheminements - Liste des UL - Nom de colonnes\nPDF bon acheminement\nEmails",
+                            "tooltip" => "Détails acheminements - Liste des UL - Nom de colonnes\nPDF bon acheminement\nPDF lettre de voiture\nEmails",
                         ],
                         [
                             "fr" => "Volume (m3)",
                             "en" => "Volume (m3)",
-                            "tooltip" => "Détails acheminements - Liste des UL - Nom de colonnes\nPDF bon acheminement\nEmails",
+                            "tooltip" => "Détails acheminements - Liste des UL - Nom de colonnes\nPDF bon acheminement\nPDF lettre de voiture\nEmails",
                         ],
                         [
                             "fr" => "Traité",
@@ -2089,7 +2089,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Unité logistique",
                             "en" => "Logistics unit",
-                            "tooltip" => "Détails acheminements - Liste des colis - Nom de colonnes\nPDF bon acheminement",
+                            "tooltip" => "Détails acheminements - Liste des colis - Nom de colonnes\nPDF bon acheminement\nPDF lettre de voiture",
                         ],
                         [
                             "fr" => "Nouvelle UL",
@@ -2229,6 +2229,26 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "fr" => "La lettre de voiture n'existe pas pour cet acheminement",
                             "en" => "The consignment note does not exist for this transfer",
                         ],
+                        [
+                            "fr" => "Lettre de voiture N°{1}",
+                            "en" => "Road consignment note N°{1}",
+                            "tooltip" => "PDF lettre de voiture"
+                        ],
+                        [
+                            "fr" => "Marchandise",
+                            "en" => "Merchandise",
+                            "tooltip" => "PDF lettre de voiture"
+                        ],
+                        [
+                            "fr" => "Autres informations",
+                            "en" => "Other information",
+                            "tooltip" => "PDF lettre de voiture"
+                        ],
+                        [
+                            "fr" => "Total",
+                            "en" => "Total",
+                            "tooltip" => "PDF lettre de voiture"
+                        ]
                     ],
                 ],
                 "Bon d'acheminement" => [
@@ -2242,6 +2262,35 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "fr" => "Le bon d'acheminement n'existe pas pour cet acheminement",
                             "en" => "The transfer note does not exist for this transfer",
                         ],
+                        [
+                            "fr" => "Date de création",
+                            "en" => "Creation date",
+                        ],
+                        [
+                            "fr" => "Date de validation",
+                            "en" => "Validation date",
+                        ],
+                        [
+                            "fr" => "Date de traitement",
+                            "en" => "Treatment date",
+                        ],
+                        [
+                            "fr" => "Emplacement de dépose",
+                            "en" => "Drop location",
+                        ],
+                        [
+                            "fr" => "Emplacement de prise",
+                            "en" => "Picking location",
+                        ],
+                        [
+                            "fr" => "Commentaire",
+                            "en" => "comment",
+                        ],
+                        [
+                            "fr" => "Destinataires",
+                            "en" => "Addressees",
+                            "tooltip" => "PDF bon de livraison"
+                        ],
                     ],
                 ],
                 "Bon de livraison" => [
@@ -2254,52 +2303,52 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Expéditeur",
                             "en" => "Consigner",
-                            "tooltip" => "Modale Création modification BL",
+                            "tooltip" => "Modale Création modification BL\nPDF bon de livraison",
                         ],
                         [
                             "fr" => "Adresse de livraison",
                             "en" => "Delivery address",
-                            "tooltip" => "Modale Création modification BL",
+                            "tooltip" => "Modale Création modification BL\nPDF bon de livraison",
                         ],
                         [
                             "fr" => "Numéro de livraison",
                             "en" => "Delivery number",
-                            "tooltip" => "Modale Création modification BL",
+                            "tooltip" => "Modale Création modification BL\nPDF bon de livraison",
                         ],
                         [
                             "fr" => "Date de livraison",
                             "en" => "Delivery date",
-                            "tooltip" => "Modale Création modification BL",
+                            "tooltip" => "Modale Création modification BL\nPDF bon de livraison",
                         ],
                         [
                             "fr" => "Numéro de commande de vente",
                             "en" => "Sales order number",
-                            "tooltip" => "Modale Création modification BL",
+                            "tooltip" => "Modale Création modification BL\nPDF bon de livraison",
                         ],
                         [
                             "fr" => "Lettre de voiture",
                             "en" => "Road consignment note",
-                            "tooltip" => "Modale Création modification BL",
+                            "tooltip" => "Modale Création modification BL\nPDF bon de livraison",
                         ],
                         [
                             "fr" => "Bon de commande client",
                             "en" => "Customer PO Number",
-                            "tooltip" => "Modale Création modification BL",
+                            "tooltip" => "Modale Création modification BL\nPDF bon de livraison",
                         ],
                         [
                             "fr" => "Date commande client",
                             "en" => "Customer PO Date",
-                            "tooltip" => "Modale Création modification BL",
+                            "tooltip" => "Modale Création modification BL\nPDF bon de livraison",
                         ],
                         [
                             "fr" => "Réponse numéro commande",
                             "en" => "Response order number",
-                            "tooltip" => "Modale Création modification BL",
+                            "tooltip" => "Modale Création modification BL\nPDF bon de livraison",
                         ],
                         [
                             "fr" => "Numéro de projet",
                             "en" => "Project number",
-                            "tooltip" => "Modale Création modification BL",
+                            "tooltip" => "Modale Création modification BL\nPDF bon de livraison",
                         ],
                         [
                             "fr" => "Urgence",
@@ -2309,27 +2358,27 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Contact",
                             "en" => "Handled by",
-                            "tooltip" => "Modale Création modification BL",
+                            "tooltip" => "Modale Création modification BL\nPDF bon de livraison",
                         ],
                         [
                             "fr" => "Téléphone",
                             "en" => "Phone number",
-                            "tooltip" => "Modale Création modification BL",
+                            "tooltip" => "Modale Création modification BL\nPDF bon de livraison",
                         ],
                         [
                             "fr" => "Fax",
                             "en" => "Fax",
-                            "tooltip" => "Modale Création modification BL",
+                            "tooltip" => "Modale Création modification BL\nPDF bon de livraison",
                         ],
                         [
                             "fr" => "Client acheteur",
                             "en" => "Buying customer",
-                            "tooltip" => "Modale Création modification BL",
+                            "tooltip" => "Modale Création modification BL\nPDF bon de livraison",
                         ],
                         [
                             "fr" => "Numéro facture",
                             "en" => "Invoice number",
-                            "tooltip" => "Modale Création modification BL",
+                            "tooltip" => "Modale Création modification BL\nPDF bon de livraison",
                         ],
                         [
                             "fr" => "Numéro vente",
@@ -2339,12 +2388,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Facturé à",
                             "en" => "Invoiced to",
-                            "tooltip" => "Modale Création modification BL",
+                            "tooltip" => "Modale Création modification BL\nPDF bon de livraison",
                         ],
                         [
                             "fr" => "Vendu à",
                             "en" => "Sold to",
-                            "tooltip" => "Modale Création modification BL",
+                            "tooltip" => "Modale Création modification BL\nPDF bon de livraison",
                         ],
                         [
                             "fr" => "Nom dernier utilisateur",
@@ -2354,12 +2403,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Dernier utilisateur",
                             "en" => "Last user",
-                            "tooltip" => "Modale Création modification BL",
+                            "tooltip" => "Modale Création modification BL\nPDF bon de livraison",
                         ],
                         [
                             "fr" => "Livrer à",
                             "en" => "Deliver to",
-                            "tooltip" => "Modale Création modification BL",
+                            "tooltip" => "Modale Création modification BL\nPDF bon de livraison",
                         ],
                         [
                             "fr" => "Numéro",
@@ -2374,12 +2423,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Date",
                             "en" => "Date",
-                            "tooltip" => "Modale Création modification BL",
+                            "tooltip" => "Modale Création modification BL\nPDF bon de livraison",
                         ],
                         [
                             "fr" => "Note(s)",
                             "en" => "Note(s)",
-                            "tooltip" => "Modale Création modification BL",
+                            "tooltip" => "Modale Création modification BL\nPDF bon de livraison",
                         ],
                         [
                             "fr" => "Copier vers Numéro vente",
@@ -2404,7 +2453,130 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "fr" => "Le bon de livraison n'existe pas pour cet acheminement",
                             "en" => "The delivery note does not exist for this transfer",
                         ],
-
+                        [
+                            "fr" => "Description",
+                            "en" => "Description",
+                            "tooltip" => "PDF bon de livraison"
+                        ],
+                        [
+                            "fr" => "Quantité",
+                            "en" => "Quantity",
+                            "tooltip" => "PDF bon de livraison"
+                        ],
+                        [
+                            "fr" => "Bon de livraison - Original",
+                            "en" => "Delivery note - Original",
+                            "tooltip" => "PDF bon de livraison"
+                        ],
+                        [
+                            "fr" => "Destinataire",
+                            "en" => "Addressee",
+                            "tooltip" => "PDF bon de livraison"
+                        ],
+                        [
+                            "fr" => "Cachet et signature de l'entreprise",
+                            "en" => "Company stamp & signature",
+                            "tooltip" => "PDF bon de livraison"
+                        ],
+                        [
+                            "fr" => "Signataire autorisé",
+                            "en" => "Authorized signatory",
+                            "tooltip" => "PDF bon de livraison"
+                        ],
+                        [
+                            "fr" => "Page",
+                            "en" => "Page",
+                            "tooltip" => "PDF bon de livraison"
+                        ],
+                    ],
+                ],
+                "Bon de surconsommation" => [
+                    "content" => [
+                        [
+                            "fr" => "Bon de surconsommation",
+                            "en" => "Overconsumption note",
+                            "tooltip" => "PDF bon de surconsommation",
+                        ],
+                        [
+                            "fr" => "Caractéristiques de la demande",
+                            "en" => "Operation characteristics",
+                            "tooltip" => "PDF bon de surconsommation",
+                        ],
+                        [
+                            "fr" => "N° de demande",
+                            "en" => "Operation N°",
+                            "tooltip" => "PDF bon de surconsommation",
+                        ],
+                        [
+                            "fr" => "Ligne de dépose",
+                            "en" => "Drop line",
+                            "tooltip" => "PDF bon de surconsommation",
+                        ],
+                        [
+                            "fr" => "Date de validation",
+                            "en" => "Validation date",
+                            "tooltip" => "PDF bon de surconsommation",
+                        ],
+                        [
+                            "fr" => "Faite par",
+                            "en" => "Done by",
+                            "tooltip" => "PDF bon de surconsommation",
+                        ],
+                        [
+                            "fr" => "PN",
+                            "en" => "PN",
+                            "tooltip" => "PDF bon de surconsommation",
+                        ],
+                        [
+                            "fr" => "Code barre",
+                            "en" => "Bar code",
+                            "tooltip" => "PDF bon de surconsommation",
+                        ],
+                        [
+                            "fr" => "Qté livrée",
+                            "en" => "Delivered qty",
+                            "tooltip" => "PDF bon de surconsommation",
+                        ],
+                        [
+                            "fr" => "Emplacement",
+                            "en" => "Location",
+                            "tooltip" => "PDF bon de surconsommation",
+                        ],
+                        [
+                            "fr" => "N° lot / Cure date / N°EASA si besoin / Commentaire",
+                            "en" => "Batch number / Cure date / EASA number if needed / Comment",
+                            "tooltip" => "PDF bon de surconsommation",
+                        ],
+                        [
+                            "fr" => "Document à ne pas dissocier de l'OF",
+                            "en" => "Document not to be dissociated from the OF",
+                            "tooltip" => "PDF bon de surconsommation"
+                        ],
+                        [
+                            "fr" => "Rappel",
+                            "en" => "Reminder",
+                            "tooltip" => "PDF bon de surconsommation"
+                        ],
+                        [
+                            "fr" => "1 à 5 lignes : service sous 15 minutes après demande aux équipes GT<br/>6 lignes et + : demande sous OF, service dans l'heure (fonction du nb de ligne)",
+                            "en" => "1 to 5 lines: service within 15 minutes after request to the GT teams<br/>6 lines and more: request under OF, service within the hour (depending on the number of lines)",
+                            "tooltip" => "PDF bon de surconsommation"
+                        ],
+                        [
+                            "fr" => "Visa et nom opérateur magasin",
+                            "en" => "Visa and store operator name",
+                            "tooltip" => "PDF bon de surconsommation"
+                        ],
+                        [
+                            "fr" => "Date",
+                            "en" => "Date",
+                            "tooltip" => "PDF bon de surconsommation"
+                        ],
+                        [
+                            "fr" => "Demande de surconsommation OF / complément",
+                            "en" => "Added parts request OF",
+                            "tooltip" => "PDF bon de surconsommation"
+                        ],
                     ],
                 ],
                 "Emails" => [

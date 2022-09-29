@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr">
     <head>
-        <title>Bon de surconsommation pied de page</title>
+        <title>{{ trans('Demande', 'Acheminements', "Bon de surconsommation", "Bon de surconsommation") }}</title>
         <meta charset="UTF-8"/>
         <style>
 
@@ -62,15 +62,14 @@
     <body onload="subst()">
         <div class="footer">
             <div class="left-footer">
-                <span class="warning">Document à ne pas dissocier de l'OF</span><br/><br/>
+                <span class="warning">{{ trans('Demande', 'Acheminements', "Bon de surconsommation", "Document à ne pas dissocier de l'OF") }}</span><br/><br/>
 
-                <b>Rappel :</b><br/>
-                1 à 5 lignes : service sous 15 minutes après demande aux équipes GT<br/>
-                6 lignes et + : demande sous OF, service dans l'heure (fonction du nb de ligne)
+                <b>{{ trans('Demande', 'Acheminements', "Bon de surconsommation", "Rappel") }} :</b><br/>
+                {{ trans('Demande', 'Acheminements', "Bon de surconsommation", "1 à 5 lignes : service sous 15 minutes après demande aux équipes GT<br/>6 lignes et + : demande sous OF, service dans l'heure (fonction du nb de ligne)") }}
             </div>
             <div class="right-footer bigger">
-                Visa et nom opérateur magasin :<br/>
-                Date :
+                {{ trans('Demande', 'Acheminements', "Bon de surconsommation", "Visa et nom opérateur magasin") }} :<br/>
+                {{ trans('Demande', 'Acheminements', "Bon de surconsommation", "Date") }} :
             </div>
         </div>
     </body>
