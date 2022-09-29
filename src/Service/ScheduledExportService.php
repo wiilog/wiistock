@@ -334,14 +334,16 @@ class ScheduledExportService
             $exportToRun->setStatus($finished);
         }
 
-        $nextExecutionDate = $this->calculateNextExecutionDate($exportToRun);
 
         $exportToRun
             ->setForced(false)
-            ->setNextExecution($nextExecutionDate)
             ->setBeganAt($start)
-            ->setEndedAt(new DateTime())
-            ->setForced(false);
+            ->setEndedAt(new DateTime());
+
+        $export
+            ->setForced(false)
+            ->setNextExecution($this->calculateNextExecutionDate($exportToRun));
+
 
         $entityManager->persist($exportToRun);
         $entityManager->flush();
