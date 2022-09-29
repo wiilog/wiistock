@@ -421,7 +421,6 @@ class ScheduledExportService
             ->setStatus($export->getStatus())
             ->setCreatedAt($export->getCreatedAt())
             ->setExportScheduleRule((new ExportScheduleRule())
-                ->setExport($export)
                 ->setFrequency($rule->getFrequency())
                 ->setPeriod($rule->getPeriod())
                 ->setIntervalTime($rule->getIntervalTime())
