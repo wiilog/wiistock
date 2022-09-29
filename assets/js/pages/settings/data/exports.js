@@ -102,6 +102,10 @@ function displayExportModal(exportId) {
         Select2Old.initFree($modal.find('.select2-free'));
         $modal.find('select[name=columnToExport]').select2({closeOnSelect: false});
         $modal.find('.select-all-options').on('click', onSelectAll);
+
+        if($modal.find('input[name=destinationType]:checked').hasClass('export-by-sftp')){
+            destinationExportChange();
+        }
     });
 
     $modal.modal('show');

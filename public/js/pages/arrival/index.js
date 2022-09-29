@@ -243,6 +243,7 @@ function createArrival() {
                     success: (res) => {
                         res = res || {};
                         $('#submitNewArrivage').popLoader();
+                        createArrival();
                         arrivalCallback(
                             true,
                             {
