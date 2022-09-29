@@ -108,10 +108,12 @@
         <div>
             <div class="dispatch-main-details">
                 <div class="header">
-                    Lettre de voiture N°{{ dispatch.number }}<br>
+                    {{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Lettre de voiture N°{1}", {
+                        '1': dispatch.number
+                    }) }}<br>
                 </div>
 
-                Date d'acheminement {{ dispatch.waybillData.dispatchDate }}
+                {{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Date d'acheminement") }} {{ dispatch.waybillData.dispatchDate }}
             </div>
             <div class="qr">
                 {{ printBarcode({
@@ -127,7 +129,7 @@
 
     <div class="split">
         <div>
-            <label>Transporteur</label><br>
+            <label>{{ trans('Demande', 'Acheminements', 'Lettre de voiture', 'Transporteur') }}</label><br>
             {{ dispatch.waybillData.carrier | nl2br }}
         </div>
         <div></div>
@@ -135,50 +137,50 @@
 
     <div class="split">
         <div>
-            <label>Expéditeur</label><br>
+            <label>{{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Expéditeur") }}</label><br>
             {{ dispatch.waybillData.consignor | nl2br }}
         </div>
         <div>
-            <label>Destinataire</label><br>
+            <label>{{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Destinataire") }}</label><br>
             {{ dispatch.waybillData.receiver | nl2br }}
         </div>
     </div>
 
     <div class="split">
         <div>
-            <label>Contact expéditeur</label><br>
-            Nom : {{ dispatch.waybillData.consignorUsername }}<br>
-            Téléphone / email : {{ dispatch.waybillData.consignorEmail }}
+            <label>{{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Contact expéditeur") }}</label><br>
+            {{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Nom") }} : {{ dispatch.waybillData.consignorUsername }}<br>
+            {{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Téléphone - Email") }} : {{ dispatch.waybillData.consignorEmail }}
         </div>
         <div>
-            <label>Contact destinataire</label><br>
-            Nom : {{ dispatch.waybillData.receiverUsername }}<br>
-            Téléphone / email : {{ dispatch.waybillData.receiverEmail }}
+            <label>{{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Contact destinataire") }}</label><br>
+            {{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Nom") }} : {{ dispatch.waybillData.receiverUsername }}<br>
+            {{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Téléphone - Email") }} : {{ dispatch.waybillData.receiverEmail }}
         </div>
     </div>
 
     <table class="invisible">
         <tr>
-            <td class="no-padding"><label>Lieu de chargement&nbsp;:</label></td>
+            <td class="no-padding"><label>{{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Lieu de chargement") }}&nbsp;:</label></td>
             <td>{{ dispatch.waybillData.locationFrom }}</td>
         </tr>
         <tr>
-            <td class="no-padding"><label>Lieu de déchargement&nbsp;:</label></td>
+            <td class="no-padding"><label>{{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Lieu de déchargement") }}&nbsp;:</label></td>
             <td>{{ dispatch.waybillData.locationTo }}</td>
         </tr>
     </table>
 
     <table class="full-width">
         <tr>
-            <td class="invisible">Marchandise :</td>
+            <td class="invisible">{{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Marchandise") }} :</td>
         </tr>
         <tr>
-            <th>Unité de tracking</th>
-            <th>Nature</th>
-            <th>Quantité</th>
-            <th>Poids</th>
-            <th>Volume</th>
-            <th>Autre information</th>
+            <th>{{ trans('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', "Unité logistique") }}</th>
+            <th>{{ trans('Demande', 'Acheminements', 'Général', "Nature") }}</th>
+            <th>{{ trans('Demande', 'Acheminements', 'Général', "Quantité à acheminer") }}</th>
+            <th>{{ trans('Demande', 'Acheminements', 'Général', "Poids (kg)") }}</th>
+            <th>{{ trans('Demande', 'Acheminements', 'Général', "Volume (m3)") }}</th>
+            <th>{{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Autres informations") }}</th>
         </tr>
 
         {% set total_quantity = 0 %}
@@ -202,7 +204,7 @@
 
         <tr>
             <td class="invisible"></td>
-            <th>Total</th>
+            <th>{{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Total") }}</th>
             <th class="left">{{ total_quantity }}</th>
             <th class="left">{{ total_weight }} kg</th>
             <th class="left">{{ total_volume }} m3</th>
@@ -211,7 +213,7 @@
     </table>
 
     <footer>
-        <label>Note</label><br>
+        <label>{{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Note de bas de page") }}</label><br>
         {{ dispatch.waybillData.notes | nl2br }}
     </footer>
 </div>
