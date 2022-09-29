@@ -101,6 +101,7 @@ function displayExportModal(exportId) {
         Select2Old.user($modal.find('.select2-user'));
         Select2Old.initFree($modal.find('.select2-free'));
         $modal.find('select[name=columnToExport]').select2();
+        $modal.find('.select-all-options').on('click', onSelectAll);
 
         $modal.find('.period-select').on('change', function (){
             let $periodInterval = $modal.find('[name=period]');
@@ -228,13 +229,14 @@ function createForm() {
             onFormTypeChange();
         })
         .onSubmit((data) => {
-            wrapLoadingOnActionButton($modal, () => {
+            wrapLoadingOnActionButton($modal.find('[type=submit]'), () => {
                 if(!data) {
                     return;
                 }
 
                 const content = data.asObject();
-                if(content.type === EXPORT_UNIQUE && !exportId) {
+
+                if(content.type === EXPORT_UNIQUE) {
                     if (content.entityToExport === ENTITY_REFERENCE) {
                         window.open(Routing.generate(`settings_export_references`));
                     } else if (content.entityToExport === ENTITY_ARTICLE) {
@@ -284,8 +286,7 @@ function createForm() {
                     const exportId = $modal.find('[name=exportId]').val();
                     const route = exportId ? 'settings_edit_export' : 'settings_submit_export';
                     const params = exportId ? {export: exportId} : {};
-
-                    return AJAX.route(`POST`, route, params)
+                    return AJAX.route(POST, route, params)
                         .json(data)
                         .then(() => {
                             handleExportSaving($modal, tableExport);
