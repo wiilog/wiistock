@@ -116,6 +116,10 @@ export default class Select2 {
                 const allowClear = !($element.is(`[multiple]`) || $element.is(`[data-no-empty-option]`));
                 const editable = $element.is('[data-editable]');
 
+                if($element.is(`[data-keep-open]`)){
+                    config.closeOnSelect = false;
+                }
+
                 $element.select2({
                     placeholder: $element.data(`placeholder`) || '',
                     tags: editable,
