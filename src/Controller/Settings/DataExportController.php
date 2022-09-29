@@ -11,16 +11,13 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Export;
 use App\Entity\ExportScheduleRule;
-use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
-use App\Entity\Fournisseur;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
 use App\Service\ArrivageService;
 use App\Service\ArticleDataService;
@@ -28,15 +25,12 @@ use App\Service\CacheService;
 use App\Service\CSVExportService;
 use App\Service\DataExportService;
 use App\Service\FreeFieldService;
-use App\Service\ImportService;
 use App\Service\RefArticleDataService;
 use App\Service\ScheduledExportService;
 use App\Service\Transport\TransportRoundService;
 use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use DoctrineExtensions\Query\Mysql\Exp;
-use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -46,6 +40,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Security;
 use WiiCommon\Helper\Stream;
+
 
 #[Route("/parametrage")]
 class DataExportController extends AbstractController {
@@ -99,13 +94,13 @@ class DataExportController extends AbstractController {
         ]);
     }
 
-    #[Route("/export/submit", name: "settings_submit_export", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[Route("/export/new", name: "settings_new_export", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
-    public function submitExport(Request                $request,
-                                 EntityManagerInterface $entityManager,
-                                 Security               $security,
-                                 CacheService           $cacheService,
-                                 DataExportService      $dataExportService): Response {
+    public function new(Request                $request,
+                        EntityManagerInterface $entityManager,
+                        Security               $security,
+                        CacheService           $cacheService,
+                        DataExportService      $dataExportService): Response {
 
         $data = $request->request->all();
 
@@ -113,14 +108,6 @@ class DataExportController extends AbstractController {
             return $this->json([
                 "success" => false,
                 "msg" => "Veuillez sélectionner un type de données à exporter",
-            ]);
-        }
-
-        // TODO adrien mettre dans le service
-        if(!isset($data["startDate"])){
-            return $this->json([
-                "success" => false,
-                "msg" => "Veuillez choisir une fréquence pour votre export planifié.",
             ]);
         }
 
@@ -291,7 +278,7 @@ class DataExportController extends AbstractController {
         $nameFile = "export-arrivages-$today.csv";
         $arrivalService->launchExportCache($entityManager, $dateTimeMin, $dateTimeMax);
 
-        $csvHeader = $arrivalService->getHeaderForExport($entityManager, $columnToExport);
+        $csvHeader = $dataExportService->createArrivalsHeader($entityManager, $columnToExport);
 
         $arrivalsIterator = $arrivageRepository->iterateArrivals($dateTimeMin, $dateTimeMax);
         return $csvService->streamResponse(function ($output) use ($dataExportService, $columnToExport, $arrivalsIterator) {

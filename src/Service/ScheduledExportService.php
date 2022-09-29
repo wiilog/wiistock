@@ -283,17 +283,17 @@ class ScheduledExportService
             $transportRounds = $transportRoundRepository->iterateFinishedTransportRounds($startDate, $endDate);
 
             $this->csvExportService->putLine($output, $this->dataExportService->createDeliveryRoundHeader());
-            $this->dataExportService->exportTransportRounds($this->transportRoundService, $transportRounds, $output, $startDate, $endDate, false);
-        } else if($exportToRun->getEntity() === Export::ENTITY_ARRIVALS) {
+            $this->dataExportService->exportTransportRounds($this->transportRoundService, $transportRounds, $output, $startDate, $endDate);
+        } else if($exportToRun->getEntity() === Export::ENTITY_ARRIVAL) {
             $arrivalRepository = $entityManager->getRepository(Arrivage::class);
             [$startDate, $endDate] = $this->getExportBoundaries($exportToRun);
             $arrivals = $arrivalRepository->iterateArrivals($startDate, $endDate);
-            $freeFieldsConfig = $this->freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::ARRIVAGE], [CategoryType::ARRIVAGE]);
 
             $this->arrivageService->launchExportCache($entityManager, $startDate, $endDate);
 
-            $this->csvExportService->putLine($output, $this->dataExportService->createArrivalsHeader($exportToRun->getColumnToExport(), $freeFieldsConfig));
-            $this->dataExportService->exportArrivages($arrivals, $output, $exportToRun->getColumnToExport(), false);
+            $csvHeader = $this->dataExportService->createArrivalsHeader($entityManager, $exportToRun->getColumnToExport());
+            $this->csvExportService->putLine($output, $csvHeader);
+            $this->dataExportService->exportArrivages($arrivals, $output, $exportToRun->getColumnToExport());
         } else {
             throw new RuntimeException("Unknown entity type");
         }
