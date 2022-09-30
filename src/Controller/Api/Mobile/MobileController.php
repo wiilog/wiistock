@@ -1735,7 +1735,7 @@ class MobileController extends AbstractApiController
             $allowedNatureInLocations = $natureRepository->getAllowedNaturesIdByLocation();
             $trackingFreeFields = $freeFieldRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]);
 
-            ['natures' => $natures] = $this->mobileApiService->getNaturesData($entityManager);
+            ['natures' => $natures] = $this->mobileApiService->getNaturesData($entityManager, $this->getUser());
             [
                 'dispatches' => $dispatches,
                 'dispatchPacks' => $dispatchPacks,
@@ -1751,7 +1751,7 @@ class MobileController extends AbstractApiController
                 ->toArray();
         }
 
-        ['translations' => $translations] = $this->mobileApiService->getTranslationsData($entityManager);
+        ['translations' => $translations] = $this->mobileApiService->getTranslationsData($entityManager, $this->getUser());
         return [
             'locations' => $emplacementRepository->getLocationsArray(),
             'allowedNatureInLocations' => $allowedNatureInLocations ?? [],

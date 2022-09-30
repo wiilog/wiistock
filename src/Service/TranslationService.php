@@ -7,7 +7,6 @@ use App\Entity\Translation;
 use App\Entity\TranslationSource;
 use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
-use JetBrains\PhpStorm\Deprecated;
 use RuntimeException;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;

@@ -7,6 +7,7 @@ use App\Entity\Language;
 use App\Entity\Nature;
 use App\Entity\Transport\TemperatureRange;
 use App\Entity\Type;
+use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -88,11 +89,11 @@ class NatureService
         ];
     }
 
-    public function serializeNature(Nature $nature): array
+    public function serializeNature(Nature $nature, Utilisateur $user): array
     {
         return [
             'id' => $nature->getId(),
-            'label' => $this->formatService->nature($nature),
+            'label' => $this->formatService->nature($nature, "", $user),
             'color' => $nature->getColor(),
             'hide' => !$nature->getNeedsMobileSync()
         ];

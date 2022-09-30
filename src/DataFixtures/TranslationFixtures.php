@@ -1809,11 +1809,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Menu\nFil d'ariane\nMenu \"+\"\nDétails",
                         ],
                         [
-                            "fr" => "acheminement",
-                            "en" => "transfer",
-                            "tooltip" => "Menu\nFil d'ariane\nMenu \"+\"\nDétails",
-                        ],
-                        [
                             "fr" => "Nouvelle demande d'acheminement",
                             "en" => "New transfer operation",
                             "tooltip" => "Modale Nouvelle demande d'acheminement",
@@ -2822,7 +2817,10 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
             $category->setSubtitle($content["subtitle"] ?? null);
 
             foreach ($content["content"] as $translation) {
+                var_dump('test1');
+                var_dump($translation["fr"]);
                 $transSource = $category->getId() ? $translationSourceRepository->findByDefaultFrenchTranslation($category, $translation["fr"]) : null;
+                var_dump('test2');
                 if (!$transSource) {
                     $transSource = new TranslationSource();
                     $transSource->setCategory($category);
