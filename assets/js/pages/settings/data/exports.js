@@ -39,6 +39,7 @@ $(document).ready(() => {
             url: Routing.generate(`settings_export_api`),
             type: `POST`
         },
+        order: [['startDate', "desc"]],
         columns: [
             {data: `actions`, title: ``, orderable: false, className: `noVis hideOrder`},
             {data: `status`, title: `Statut`},
