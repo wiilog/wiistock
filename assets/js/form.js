@@ -27,7 +27,10 @@ export default class Form {
 
             WysiwygManager.initializeWYSIWYG(form.element);
             form.element
-                .on(`click`, '[type=submit]', function (event) {
+                .off('click.submit-form')
+                .off('shown.bs.modal')
+                .off('hidden.bs.modal')
+                .on(`click.submit-form`, '[type=submit]', function (event) {
                     const result = Form.process(form, {
                         button: $(this),
                     });
@@ -107,7 +110,7 @@ export default class Form {
 
     clear() {
         clearFormError(this);
-        clearModal(this.element)
+        clearModal(this.element);
     }
 
     on(event, selector, callback) {

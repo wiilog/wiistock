@@ -247,6 +247,10 @@ parameters:
             icon: 'parametre'
             path: 'settings_index'
 
+        -   label: 'Documentation'
+            icon: 'documentation'
+            url: 'https://wiilog.gitbook.io/docs/'
+
         -   label: 'Déconnexion'
             icon: 'deco'
             path: 'logout'

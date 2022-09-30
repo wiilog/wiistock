@@ -28,11 +28,9 @@ use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Console\Output\ConsoleOutput;
 
-class StatutFixtures extends Fixture implements FixtureGroupInterface
-{
+class StatutFixtures extends Fixture implements FixtureGroupInterface {
 
-    public function load(ObjectManager $manager)
-    {
+    public function load(ObjectManager $manager) {
         $output = new ConsoleOutput();
 
         $statutRepository = $manager->getRepository(Statut::class);
@@ -53,69 +51,69 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
         ];
 
         $categoriesStatus = [
-    		CategorieStatut::REFERENCE_ARTICLE => [
-    			ReferenceArticle::STATUT_ACTIF => null,
-				ReferenceArticle::STATUT_INACTIF => null,
+            CategorieStatut::REFERENCE_ARTICLE => [
+                ReferenceArticle::STATUT_ACTIF => null,
+                ReferenceArticle::STATUT_INACTIF => null,
                 ReferenceArticle::DRAFT_STATUS => Statut::DRAFT,
-			],
-			CategorieStatut::ARTICLE => [
-				Article::STATUT_ACTIF,
-				Article::STATUT_INACTIF,
-				Article::STATUT_EN_TRANSIT,
-				Article::STATUT_EN_LITIGE
-			],
-			CategorieStatut::DEM_COLLECTE => [
-				Collecte::STATUT_BROUILLON => Statut::DRAFT,
-				Collecte::STATUT_A_TRAITER => Statut::NOT_TREATED,
-				Collecte::STATUT_COLLECTE => Statut::TREATED,
-				Collecte::STATUT_INCOMPLETE => Statut::PARTIAL
-			],
-			CategorieStatut::ORDRE_COLLECTE => [
-				OrdreCollecte::STATUT_A_TRAITER => Statut::NOT_TREATED,
-				OrdreCollecte::STATUT_TRAITE => Statut::TREATED
-			],
-			CategorieStatut::DEM_LIVRAISON => [
-				Demande::STATUT_BROUILLON => Statut::DRAFT,
-				Demande::STATUT_A_TRAITER => Statut::NOT_TREATED,
-				Demande::STATUT_PREPARE => Statut::PARTIAL,
+            ],
+            CategorieStatut::ARTICLE => [
+                Article::STATUT_ACTIF,
+                Article::STATUT_INACTIF,
+                Article::STATUT_EN_TRANSIT,
+                Article::STATUT_EN_LITIGE,
+            ],
+            CategorieStatut::DEM_COLLECTE => [
+                Collecte::STATUT_BROUILLON => Statut::DRAFT,
+                Collecte::STATUT_A_TRAITER => Statut::NOT_TREATED,
+                Collecte::STATUT_COLLECTE => Statut::TREATED,
+                Collecte::STATUT_INCOMPLETE => Statut::PARTIAL,
+            ],
+            CategorieStatut::ORDRE_COLLECTE => [
+                OrdreCollecte::STATUT_A_TRAITER => Statut::NOT_TREATED,
+                OrdreCollecte::STATUT_TRAITE => Statut::TREATED,
+            ],
+            CategorieStatut::DEM_LIVRAISON => [
+                Demande::STATUT_BROUILLON => Statut::DRAFT,
+                Demande::STATUT_A_TRAITER => Statut::NOT_TREATED,
+                Demande::STATUT_PREPARE => Statut::PARTIAL,
                 Demande::STATUT_INCOMPLETE => Statut::PARTIAL,
                 Demande::STATUT_LIVRE_INCOMPLETE => Statut::PARTIAL,
-                Demande::STATUT_LIVRE => Statut::TREATED
-			],
-			CategorieStatut::ORDRE_LIVRAISON => [
-				Livraison::STATUT_A_TRAITER => Statut::NOT_TREATED,
-				Livraison::STATUT_LIVRE => Statut::TREATED,
-                Livraison::STATUT_INCOMPLETE => Statut::TREATED
+                Demande::STATUT_LIVRE => Statut::TREATED,
             ],
-			CategorieStatut::PREPARATION => [
-				Preparation::STATUT_A_TRAITER => Statut::NOT_TREATED,
-				Preparation::STATUT_EN_COURS_DE_PREPARATION => Statut::NOT_TREATED,
-				Preparation::STATUT_PREPARE => Statut::TREATED,
+            CategorieStatut::ORDRE_LIVRAISON => [
+                Livraison::STATUT_A_TRAITER => Statut::NOT_TREATED,
+                Livraison::STATUT_LIVRE => Statut::TREATED,
+                Livraison::STATUT_INCOMPLETE => Statut::TREATED,
+            ],
+            CategorieStatut::PREPARATION => [
+                Preparation::STATUT_A_TRAITER => Statut::NOT_TREATED,
+                Preparation::STATUT_EN_COURS_DE_PREPARATION => Statut::NOT_TREATED,
+                Preparation::STATUT_PREPARE => Statut::TREATED,
                 Preparation::STATUT_INCOMPLETE => Statut::TREATED,
                 Preparation::STATUT_VALIDATED => Statut::NOT_TREATED,
-			],
-			CategorieStatut::RECEPTION => [
-				Reception::STATUT_EN_ATTENTE => Statut::NOT_TREATED,
-				Reception::STATUT_RECEPTION_PARTIELLE => Statut::TREATED,
-				Reception::STATUT_RECEPTION_TOTALE => Statut::TREATED,
-				Reception::STATUT_ANOMALIE => Statut::DISPUTE
-			],
-			CategorieStatut::MVT_TRACA => [
-				TrackingMovement::TYPE_PRISE,
+            ],
+            CategorieStatut::RECEPTION => [
+                Reception::STATUT_EN_ATTENTE => Statut::NOT_TREATED,
+                Reception::STATUT_RECEPTION_PARTIELLE => Statut::TREATED,
+                Reception::STATUT_RECEPTION_TOTALE => Statut::TREATED,
+                Reception::STATUT_ANOMALIE => Statut::DISPUTE,
+            ],
+            CategorieStatut::MVT_TRACA => [
+                TrackingMovement::TYPE_PRISE,
                 TrackingMovement::TYPE_DEPOSE,
                 TrackingMovement::TYPE_PRISE_DEPOSE,
                 TrackingMovement::TYPE_GROUP,
                 TrackingMovement::TYPE_UNGROUP,
                 TrackingMovement::TYPE_EMPTY_ROUND,
-			],
-			CategorieStatut::MVT_STOCK => [
-				MouvementStock::TYPE_ENTREE,
-				MouvementStock::TYPE_SORTIE,
-				MouvementStock::TYPE_TRANSFER,
-				MouvementStock::TYPE_INVENTAIRE_ENTREE,
-				MouvementStock::TYPE_INVENTAIRE_SORTIE,
-			],
-			CategorieStatut::ARRIVAGE => [],
+            ],
+            CategorieStatut::MVT_STOCK => [
+                MouvementStock::TYPE_ENTREE,
+                MouvementStock::TYPE_SORTIE,
+                MouvementStock::TYPE_TRANSFER,
+                MouvementStock::TYPE_INVENTAIRE_ENTREE,
+                MouvementStock::TYPE_INVENTAIRE_SORTIE,
+            ],
+            CategorieStatut::ARRIVAGE => [],
             CategorieStatut::DISPUTE_ARR => [],
             CategorieStatut::LITIGE_RECEPT => [],
             CategorieStatut::DISPATCH => [],
@@ -133,12 +131,12 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
                 PurchaseRequest::DRAFT => Statut::DRAFT,
                 PurchaseRequest::NOT_TREATED => Statut::NOT_TREATED,
             ],
-			CategorieStatut::IMPORT => [
-				Import::STATUS_PLANNED => Statut::NOT_TREATED,
-				Import::STATUS_FINISHED => Statut::TREATED,
-				Import::STATUS_IN_PROGRESS => Statut::NOT_TREATED,
-				Import::STATUS_CANCELLED => Statut::NOT_TREATED,
-				Import::STATUS_DRAFT => Statut::DRAFT
+            CategorieStatut::IMPORT => [
+                Import::STATUS_PLANNED => Statut::NOT_TREATED,
+                Import::STATUS_FINISHED => Statut::TREATED,
+                Import::STATUS_IN_PROGRESS => Statut::NOT_TREATED,
+                Import::STATUS_CANCELLED => Statut::NOT_TREATED,
+                Import::STATUS_DRAFT => Statut::DRAFT,
             ],
             CategorieStatut::EXPORT => [
                 Export::STATUS_ERROR,
@@ -194,44 +192,43 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
             ],
         ];
 
-    	foreach ($categoriesStatus as $categoryName => $statuses) {
+        foreach ($categoriesStatus as $categoryName => $statuses) {
 
-    		// création des catégories de statuts
-			$categorie = $categorieStatutRepository->findOneBy(['nom' => $categoryName]);
+            // création des catégories de statuts
+            $categorie = $categorieStatutRepository->findOneBy(['nom' => $categoryName]);
 
-			if (empty($categorie)) {
-				$categorie = new CategorieStatut();
-				$categorie->setNom($categoryName);
-				$manager->persist($categorie);
-				$output->writeln("Création de la catégorie \"" . $categoryName . "\"");
-			}
-			$this->addReference('statut-' . $categoryName, $categorie);
+            if (empty($categorie)) {
+                $categorie = new CategorieStatut();
+                $categorie->setNom($categoryName);
+                $manager->persist($categorie);
+                $output->writeln("Création de la catégorie \"" . $categoryName . "\"");
+            }
+            $this->addReference('statut-' . $categoryName, $categorie);
 
-			if (in_array($categoryName, $statefulCategories)) {
+            if (in_array($categoryName, $statefulCategories)) {
                 foreach ($statuses as $statusLabel => $state) {
                     $this->treatStatus($statutRepository, $manager, $categoryName, $statusLabel, $output, $state);
-			    }
+                }
             }
-			else {
+            else {
                 foreach ($statuses as $statusLabel) {
                     $this->treatStatus($statutRepository, $manager, $categoryName, $statusLabel, $output);
-			    }
+                }
             }
-		}
+        }
         $manager->flush();
     }
 
-    public static function getGroups(): array
-    {
+    public static function getGroups(): array {
         return ['status', 'fixtures'];
     }
 
     private function treatStatus(StatutRepository $statutRepository,
-                                 ObjectManager $manager,
-                                 string $categoryName,
-                                 string $statusLabel,
-                                 ConsoleOutput $output,
-                                 $state = null) {
+                                 ObjectManager    $manager,
+                                 string           $categoryName,
+                                 string           $statusLabel,
+                                 ConsoleOutput    $output,
+                                                  $state = null) {
 
         $statut = $statutRepository->findOneByCategorieNameAndStatutCode($categoryName, $statusLabel);
 
@@ -247,4 +244,5 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
         }
 
     }
+
 }

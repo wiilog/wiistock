@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Controller\Settings\DataExportController;
+use App\Entity\Arrivage;
 use App\Entity\Article;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
@@ -40,6 +41,9 @@ class ScheduledExportService
 
     #[Required]
     public ArticleDataService $articleDataService;
+
+    #[Required]
+    public ArrivageService $arrivageService;
 
     #[Required]
     public TransportRoundService $transportRoundService;
@@ -256,6 +260,7 @@ class ScheduledExportService
         $output = fopen($path, "x+");
 
         $exportToRun = $this->cloneScheduledExport($export);
+
         if($exportToRun->getEntity() === Export::ENTITY_REFERENCE) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $references = $referenceArticleRepository->iterateAll($exportToRun->getCreator());
@@ -280,7 +285,15 @@ class ScheduledExportService
             $this->csvExportService->putLine($output, $this->dataExportService->createDeliveryRoundHeader());
             $this->dataExportService->exportTransportRounds($this->transportRoundService, $transportRounds, $output, $startDate, $endDate);
         } else if($exportToRun->getEntity() === Export::ENTITY_ARRIVAL) {
-            //TODO: exporter les arrivages
+            $arrivalRepository = $entityManager->getRepository(Arrivage::class);
+            [$startDate, $endDate] = $this->getExportBoundaries($exportToRun);
+            $arrivals = $arrivalRepository->iterateArrivals($startDate, $endDate);
+
+            $this->arrivageService->launchExportCache($entityManager, $startDate, $endDate);
+
+            $csvHeader = $this->dataExportService->createArrivalsHeader($entityManager, $exportToRun->getColumnToExport());
+            $this->csvExportService->putLine($output, $csvHeader);
+            $this->dataExportService->exportArrivages($arrivals, $output, $exportToRun->getColumnToExport());
         } else {
             throw new RuntimeException("Unknown entity type");
         }
@@ -334,14 +347,16 @@ class ScheduledExportService
             $exportToRun->setStatus($finished);
         }
 
-        $nextExecutionDate = $this->calculateNextExecutionDate($exportToRun);
 
         $exportToRun
             ->setForced(false)
-            ->setNextExecution($nextExecutionDate)
             ->setBeganAt($start)
-            ->setEndedAt(new DateTime())
-            ->setForced(false);
+            ->setEndedAt(new DateTime());
+
+        $export
+            ->setForced(false)
+            ->setNextExecution($this->calculateNextExecutionDate($exportToRun));
+
 
         $entityManager->persist($exportToRun);
         $entityManager->flush();
@@ -419,7 +434,6 @@ class ScheduledExportService
             ->setStatus($export->getStatus())
             ->setCreatedAt($export->getCreatedAt())
             ->setExportScheduleRule((new ExportScheduleRule())
-                ->setExport($export)
                 ->setFrequency($rule->getFrequency())
                 ->setPeriod($rule->getPeriod())
                 ->setIntervalTime($rule->getIntervalTime())

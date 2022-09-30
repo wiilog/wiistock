@@ -2,14 +2,14 @@
 
 <div class="frequency every-week-frequency">
     <div class="col-12 p-2 mt-1 mb-0 form-inline form-group">
-        <label class="wii-field-name">Démarrer le*</label>
+        <label class="wii-field-name">Démarrer le</label>
         <input type="datetime-local"
                class="form-control form-control-sm ml-2 frequency-data"
                name="startDate"
                title="Démarrer le"
                placeholder="jj/mm/aaaa"
                min="now"
-               value=""/>
+               value="{{ export.exportScheduleRule ? export.exportScheduleRule.begin|date('Y-m-d\\TH:i') }}"/>
     </div>
 
     <div class="form-inline">
@@ -17,28 +17,33 @@
             <div class="d-flex align-items-center">
             Répéter toutes les
             <input type="number"
-                   name="frequency"
+                   name="repeatPeriod"
                    class="form-control form-control-sm mx-2 w-px-100 mb-2 frequency-data"
-                   data-label="Intervalle de jours"
-                   value=""
+                   data-label="Interval de jours"
+                   value="{{ export.exportScheduleRule ? export.exportScheduleRule.period }}"
                    min="1">
             semaines à
             <input type="time"
                    name="intervalTime"
                    class="form-control form-control-sm mx-2 w-px-100 mb-2 frequency-data"
                    data-label="Heures et minutes"
-                   value="">
+                   value="{{ export.exportScheduleRule ? export.exportScheduleRule.intervalTime }}">
 
             {% set date = [] %}
             {% set day = date('monday this week') %}
             {% for dayIndex in 1..7 %}
                 {% set dayLabel = day %}
-                {% set date = date|merge([{label: dayLabel | format_date('none', 'EEEE', null, 'gregorian', 'fr') | capitalize, value: dayIndex}]) %}
+                {% set date = date|merge([{
+                    label: dayLabel | format_date('none', 'EEEE', null, 'gregorian', 'fr') | capitalize,
+                    value: dayIndex,
+                    selected: export.exportScheduleRule and export.exportScheduleRule.weekDays and (dayIndex in export.exportScheduleRule.weekDays)
+                }]) %}
                 {% set day = day | date_modify('+1 day') %}
             {% endfor %}
             </div>
             <div class="d-flex align-items-center">
-                <span class="mr-2">le</span> {{ form.select('weekDays', null, false, {
+                <span class="mr-2">le</span>
+                {{ form.select('weekDays', null, false, {
                     type: null,
                     items: date,
                     multiple: true

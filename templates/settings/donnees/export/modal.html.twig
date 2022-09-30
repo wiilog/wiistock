@@ -1,4 +1,4 @@
-<div class="modal fade" id="modalNewExport" aria-hidden="true">
+<div class="modal fade" id="modalExport" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
@@ -10,7 +10,7 @@
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
-                    {id: 'submitNewExport' , type: 'submit', classes: 'btn btn-success', text: 'Enregistrer'}
+                    {type: 'submit', classes: 'btn btn-success', text: 'Enregistrer'}
                 ],
             } %}
         </div>

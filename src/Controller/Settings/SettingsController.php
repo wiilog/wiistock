@@ -10,6 +10,7 @@ use App\Entity\CategoryType;
 use App\Entity\DaysWorked;
 use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
+use App\Entity\FiltreRef;
 use App\Entity\FreeField;
 use App\Entity\Import;
 use App\Entity\Inventory\InventoryCategory;
@@ -1678,7 +1679,12 @@ class SettingsController extends AbstractController {
      * @Route("/champ-libre/supprimer/{entity}", name="settings_free_field_delete", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::DELETE})
      */
-    public function deleteFreeField(EntityManagerInterface $manager, FreeField $entity) {
+    public function deleteFreeField(EntityManagerInterface $manager, FreeField $entity): Response {
+        if(!$entity->getFilters()->isEmpty()) {
+            $filter = $manager->getRepository(FiltreRef::class)->findOneBy(['champLibre' => $entity]);
+            $manager->remove($filter);
+        }
+
         $manager->remove($entity);
         $manager->flush();
 

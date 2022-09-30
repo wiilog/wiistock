@@ -147,6 +147,7 @@
                     {{ required ? 'required' }}
                     {{ _self.common_attributes(name, options) }}
                     {{ _self.multiple_key(options) }}
+                    {{ (item.disabled ?? false) ? 'disabled' }}
                     {{ (item.checked ?? false) ? 'checked' }} />
                 <label class="{{ options.labelClass ?? '' }} pointer d-inline-flex align-items-center" for="radio-{{ id }}">
                     {{ item.label }}
@@ -170,7 +171,7 @@
             {{ _self.tooltip(options.tooltip ?? null, inline) }}
         {% endif %}
 
-        {% if options.selectAll ?? false %}
+        {% if options.selectAllLabel ?? false %}
             <div class="input-group with-select-all-options flex-nowrap no-gutters mb-3">
                 <div class="flex-fill">
         {% endif %}
@@ -179,52 +180,55 @@
                             {{ options.multiple ?? false ? 'multiple' }}
                             {% if options.type is defined %}
                                 data-s2="{{ options.type }}"
-                            {% if options.hiddenDropdown ?? false %}data-hidden-dropdown{% endif %}
-                            {% if options.disabledDropdownOptions ?? false %}data-disabled-dropdown-options{% endif %}
-                            {% if options.editable ?? false %}data-editable{% endif %}
-                            {% if options.noEmptyOption ?? false %}data-no-empty-option{% endif %}
-                            {% if options.placeholder is defined %}data-placeholder="{{ options.placeholder }}"{% endif %}
-                            {% if options.includeParams is defined %}data-include-params="{{ options.includeParams }}"{% endif %}
+                                {% if options.hiddenDropdown ?? false %}data-hidden-dropdown{% endif %}
+                                {% if options.disabledDropdownOptions ?? false %}data-disabled-dropdown-options{% endif %}
+                                {% if options.editable ?? false %}data-editable{% endif %}
+                                {% if options.noEmptyOption ?? false %}data-no-empty-option{% endif %}
+                                {% if options.placeholder is defined %}data-placeholder="{{ options.placeholder }}"{% endif %}
+                                {% if options.includeParams is defined %}data-include-params="{{ options.includeParams }}"{% endif %}
                                 {% if options.minLength is defined %}data-min-length="{{ options.minLength }}"{% endif %}
-                        {% endif %}
-                        {% for attribute in options.additionalAttributes ?? [] %}
-                        {{ attribute.name }}="{{ attribute.value ?? '' }}"
-                        {% endfor %}
-                        {{ _self.common_attributes(name, options) }}
-                        {{ _self.multiple_key(options) }}>
+                            {% endif %}
+                            {% if options.keepOpen is defined %}data-keep-open{% endif %}
+                            {% for attribute in options.additionalAttributes ?? [] %}
+                                {{ attribute.name }}="{{ attribute.value ?? '' }}"
+                            {% endfor %}
+                            {{ _self.common_attributes(name, options) }}
+                            {{ _self.multiple_key(options) }}>
                         {% if options.emptyOption is defined and options.emptyOption is not empty %}
-                        <option {{ options.emptyOption.selected ? "selected" }}
-                            value="{{ options.emptyOption.value }}">{{ options.emptyOption.text }}</option>
+                            <option {{ options.emptyOption.selected ? "selected" }}
+                                     value="{{ options.emptyOption.value }}">
+                                {{ options.emptyOption.text }}
+                            </option>
                         {% elseif options.type is not defined and options.placeholder ?? false %}
-                        <option disabled selected>{{ options.placeholder }}</option>
+                            <option disabled selected>{{ options.placeholder }}</option>
                         {% endif %}
 
                         {% set definedItems = options.items ?? [] %}
                         {% set items = (definedItems is iterable) ? definedItems : [definedItems] %}
 
                         {% for value, text in items %}
-                        {% if text.value is defined and text.label is defined %}
-                        <option value="{{ text.value }}"
-                            {{ (text.selected ?? false) or text.value in values ? 'selected' }}
-                            {{ text.disabled ?? false ? 'disabled' }}
-                            {% if text.class is defined and text.class %}class="{{ text.class }}"{% endif %}
-                            {% for dataKey, dataValue in text %}
-                            data-{{ dataKey }}="{{ dataValue }}"
-                            {% endfor %}>
-                            {{ text.label }}
-                        </option>
-                        {% else %}
-                        <option value="{{ value }}" {{ value in values ? 'selected' }}>{{ text }}</option>
-                        {% endif %}
+                            {% if text.value is defined and text.label is defined %}
+                                <option value="{{ text.value }}"
+                                        {{ (text.selected ?? false) or text.value in values ? 'selected' }}
+                                        {{ text.disabled ?? false ? 'disabled' }}
+                                        {% if text.class is defined and text.class %}class="{{ text.class }}"{% endif %}
+                                        {% for dataKey, dataValue in text %}
+                                            data-{{ dataKey }}="{{ dataValue }}"
+                                        {% endfor %}>
+                                    {{ text.label }}
+                                </option>
+                            {% else %}
+                                <option value="{{ value }}" {{ value in values ? 'selected' }}>{{ text }}</option>
+                            {% endif %}
                         {% endfor %}
                     </select>
-            {% if options.selectAll ?? false %}
+        {% if options.selectAllLabel ?? false %}
                 </div>
                 <div class="input-group-append col-4">
-                    <button class="btn btn-primary select-all-options w-100" type="button">Tous les mois</button>
+                    <button class="btn btn-primary select-all-options w-100" type="button">{{ options.selectAllLabel }}</button>
                 </div>
             </div>
-            {% endif %}
+        {% endif %}
     </label>
 {% endmacro %}
 

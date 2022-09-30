@@ -1,0 +1,191 @@
+{% import 'form.html.twig' as form %}
+
+<div>
+    {% if export.id %}
+        <input type="hidden" name="exportId" value="{{ export.id }}"/>
+    {% endif %}
+    {{ form.radio('type', null, false, [
+        {label: 'Export CSV unique', value: constant('App\\Controller\\Settings\\DataExportController::EXPORT_UNIQUE'), checked: not export.type or export.type.label == constant('App\\Entity\\Type::LABEL_UNIQUE_EXPORT'), disabled: export.id is not null},
+        {label: 'Export CSV planifié', value: constant('App\\Controller\\Settings\\DataExportController::EXPORT_SCHEDULED'), checked: export.type and export.type.label == constant('App\\Entity\\Type::LABEL_SCHEDULED_EXPORT'), disabled: export.id is not null}
+    ]) }}
+    <div>
+        <div class="wii-section-title my-3">Type de données à exporter</div>
+        {{ form.switch('entityToExport', null, true, [
+            {
+                label: 'Références',
+                value: constant('App\\Entity\\Export::ENTITY_REFERENCE'),
+                checked: export.id is null or export.entity == constant('App\\Entity\\Export::ENTITY_REFERENCE'),
+                disabled: export.id is not null
+            },
+            {
+                label: 'Articles',
+                value: constant('App\\Entity\\Export::ENTITY_ARTICLE'),
+                checked: export.entity == constant('App\\Entity\\Export::ENTITY_ARTICLE'),
+                disabled: export.id is not null
+            },
+            {
+                label: 'Tournées',
+                value: constant('App\\Entity\\Export::ENTITY_DELIVERY_ROUND'),
+                checked: export.entity == constant('App\\Entity\\Export::ENTITY_DELIVERY_ROUND'),
+                disabled: export.id is not null
+            },
+            {
+                label: 'Arrivages',
+                value: constant('App\\Entity\\Export::ENTITY_ARRIVAL'),
+                checked: export.entity == constant('App\\Entity\\Export::ENTITY_ARRIVAL'),
+                disabled: export.id is not null
+            }
+        ], {expanded: true}) }}
+
+        <label class="references-sentence wii-small-text my-3">Les références exportées sont seulement ceux avec le groupe de visibilité rattaché à l'utilisateur.</label>
+        <label class="articles-sentence wii-small-text my-3">Les articles exportées sont seulement ceux avec le groupe de visibilité rattaché à l'utilisateur.</label>
+
+        <div class="unique-export-container">
+            <div class="date-limit form-group d-none">
+                <label class="wii-field-name">Bornes de dates</label>
+                <div class="col-12 col-md-6 p-0 mb-3">
+                    <div class="h-100">
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text w-50px d-flex justify-content-center">Du</span>
+                            </div>
+                            <input type="text"
+                                   class="form-control cursor-default filter-date-min data"
+                                   name="dateMin"
+                                   placeholder="jj/mm/aaaa"
+                                   autocomplete="off"/>
+                            <div class="input-group-prepend input-group-append">
+                                <span class="input-group-text w-50px d-flex justify-content-center">Au</span>
+                            </div>
+                            <input type="text"
+                                   class="form-control cursor-default filter-date-max data"
+                                   name="dateMax"
+                                   placeholder="jj/mm/aaaa"
+                                   autocomplete="off"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="column-to-export d-none">
+                {{ form.select('columnToExport', 'Colonnes à exporter', false, {
+                    items: arrivalFields,
+                    multiple: true,
+                    value: export.columnToExport,
+                }) }}
+            </div>
+        </div>
+        <div class="scheduled-export-container my-3 d-none">
+            <div class="period-interval mb-3 d-none">
+                <label class="wii-field-name">Période de données</label>
+                <div class="d-flex align-items-center mt-2">
+                    <label class="mr-3">Sur</label>
+                    {{ form.select('periodInterval', null, false, {
+                        value: export.periodInterval,
+                        items: [
+                            {label: 'le jour', value: constant('App\\Entity\\Export::PERIOD_INTERVAL_DAY')},
+                            {label: 'la semaine', value: constant('App\\Entity\\Export::PERIOD_INTERVAL_WEEK')},
+                            {label: 'le mois', value: constant('App\\Entity\\Export::PERIOD_INTERVAL_MONTH')},
+                            {label: "l'année", value: constant('App\\Entity\\Export::PERIOD_INTERVAL_YEAR')}
+                        ],
+                        labelClass: 'mr-3 w-100'
+                    }) }}
+                    {{ form.select('period', null, false, {
+                        value: export.period,
+                        items: [
+                            {label: 'en cours (jour J)', value: constant('App\\Entity\\Export::PERIOD_CURRENT')},
+                            {label: 'dernier (jour J-1)', value: constant('App\\Entity\\Export::PERIOD_PREVIOUS')},
+                        ]
+                    }) }}
+                </div>
+            </div>
+            <div class="column-to-export d-none">
+                {{ form.select('columnToExport', 'Colonnes à exporter', false, {
+                    items: arrivalFields,
+                    multiple: true,
+                    value: export.columnToExport
+                }) }}
+            </div>
+            <div>
+                <div class="wii-section-title my-3">Fréquence</div>
+                <div class="row frequencies mt-3">
+                    {{ form.radio('frequency', null, false, [
+                        {label: 'Une fois', value: constant('App\\Entity\\ExportScheduleRule::ONCE'), checked: export.exportScheduleRule and export.exportScheduleRule.frequency == constant('App\\Entity\\ExportScheduleRule::ONCE')},
+                        {label: 'Chaque heure', value: constant('App\\Entity\\ExportScheduleRule::HOURLY'), checked: export.exportScheduleRule and export.exportScheduleRule.frequency == constant('App\\Entity\\ExportScheduleRule::HOURLY')},
+                        {label: 'Chaque jour', value: constant('App\\Entity\\ExportScheduleRule::DAILY'), checked: export.exportScheduleRule and export.exportScheduleRule.frequency == constant('App\\Entity\\ExportScheduleRule::DAILY')},
+                        {label: 'Chaque semaine', value: constant('App\\Entity\\ExportScheduleRule::WEEKLY'), checked: export.exportScheduleRule and export.exportScheduleRule.frequency == constant('App\\Entity\\ExportScheduleRule::WEEKLY')},
+                        {label: 'Chaque mois', value: constant('App\\Entity\\ExportScheduleRule::MONTHLY'), checked: export.exportScheduleRule and export.exportScheduleRule.frequency == constant('App\\Entity\\ExportScheduleRule::MONTHLY')}
+                    ], {
+                        containerClass: 'col-4 frequencies-container',
+                        onChange: 'toggleFrequencyInput($(this))'
+                    }) }}
+                    <div class="col-8 frequency-content d-none">
+                        {% include 'settings/donnees/export/frequencies/once.html.twig' with {export: export} %}
+                        {% include 'settings/donnees/export/frequencies/hourly.html.twig' with {export: export} %}
+                        {% include 'settings/donnees/export/frequencies/daily.html.twig' with {export: export} %}
+                        {% include 'settings/donnees/export/frequencies/weekly.html.twig' with {export: export} %}
+                        {% include 'settings/donnees/export/frequencies/monthly.html.twig' with {export: export} %}
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div class="wii-section-title my-3">Destination d'export</div>
+                {% set ftpDestination = export.ftpParameters is not empty %}
+                {% set emailDestination = export.recipientEmails is not empty or export.recipientUsers is not empty %}
+                {% set createExport = not emailDestination and not ftpDestination %}
+
+                {{ form.radio('destinationType', null, false, [
+                    {label: 'Envoi email', value: constant('App\\Entity\\Export::DESTINATION_EMAIL'), class: 'export-by-email', checked: createExport ?: emailDestination },
+                    {label: 'Envoi vers serveur SFTP', value: constant('App\\Entity\\Export::DESTINATION_SFTP'), class: 'export-by-sftp', checked: ftpDestination }
+                ], {
+                    onChange: 'destinationExportChange()'
+                }) }}
+                <div class="export-email-destination my-3">
+                    {{ form.select('recipientUsers', 'Utilisateur(s) Follow GT', false, {
+                        type: 'user',
+                        items: export.recipientUsers|map((user) => {
+                            label: user.username,
+                            value: user.id,
+                            selected: true
+                        }),
+                        multiple: true,
+                    }) }}
+
+                    {{ form.select('recipientEmails', 'Email(s) libre(s)', false, {
+                        type: null,
+                        multiple: true,
+                        editable: true,
+                        items: export.recipientEmails|map((mail) => {
+                            label: mail,
+                            value: mail,
+                            selected: true
+                        }),
+                        labelClass: 'mt-2 w-100'
+                    }) }}
+                </div>
+                <div class="export-sftp-destination d-none">
+                    <label class="wii-section-title my-3">Paramétrer le serveur</label>
+                    {{ form.input('host', 'Serveur Hôte', false, export.ftpParameters['host'] ?? null, {
+                        type: 'text',
+                        labelClass: 'col-5 my-2'
+                    }) }}
+                    {{ form.input('port', 'Port', false, export.ftpParameters['port'] ?? null, {
+                        type: 'text',
+                        labelClass: 'col-5 pr-0 my-2'
+                    }) }}
+                    {{ form.input('user', 'Utilisateur', false, export.ftpParameters['user'] ?? null, {
+                        type: 'text',
+                        labelClass: 'col-5 my-2'
+                    }) }}
+                    {{ form.input('password', 'Mot de passe', false, export.ftpParameters['pass'] ?? null, {
+                        type: 'text',
+                        labelClass: 'col-5 pr-0 my-2'
+                    }) }}
+                    {{ form.input('targetDirectory', "Répertoire cible de l'export", false, export.ftpParameters['path'] ?? null, {
+                        type: 'text',
+                        labelClass: 'col-5 my-2'
+                    }) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
