@@ -154,7 +154,11 @@
                         type: null,
                         multiple: true,
                         editable: true,
-                        value: export.recipientEmails,
+                        items: export.recipientEmails|map((mail) => {
+                            label: mail,
+                            value: mail,
+                            selected: true
+                        }),
                         labelClass: 'mt-2 w-100'
                     }) }}
                 </div>
