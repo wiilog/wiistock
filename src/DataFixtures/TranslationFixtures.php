@@ -1809,11 +1809,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Menu\nFil d'ariane\nMenu \"+\"\nDétails",
                         ],
                         [
-                            "fr" => "acheminement",
-                            "en" => "transfer",
-                            "tooltip" => "Menu\nFil d'ariane\nMenu \"+\"\nDétails",
-                        ],
-                        [
                             "fr" => "Nouvelle demande d'acheminement",
                             "en" => "New transfer operation",
                             "tooltip" => "Modale Nouvelle demande d'acheminement",

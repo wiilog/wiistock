@@ -2,9 +2,16 @@
 
 <div class="wii-section">
     <div class="row">
-        <div class="col-12 mb-3 wii-small-text">
+        <div class="col mb-3 wii-small-text">
             Le système de champs libres est un fort outil de personnalisation, ce dernier permet aux administrateurs de
             l'application d'enrichir les mouvements. Vous pouvez modifier et ajouter des champs libres.
+        </div>
+        <div class="col-auto">
+            <div class="translate-labels d-none">
+                <button class="translate-labels-button btn btn-primary d-flex align-items-center">
+                    <span class="wii-icon wii-icon-translate-white mr-2 wh-18px"></span>Traduction des libellés
+                </button>
+            </div>
         </div>
     </div>
     <table id="table-movement-free-fields" data-table-processing="freeFields" data-type="{{ type.id }}" data-category="{{ constant('App\\Entity\\CategoryType::MOUVEMENT_TRACA') }}"></table>
@@ -15,3 +22,9 @@
         {label: 'Aucune', value: null, checked: true},
     ]) | json_encode }}">
 </div>
+
+{% block footer %}
+    {% include 'settings/modal_edit_translations.html.twig' with {
+        large: true,
+    } %}
+{% endblock %}

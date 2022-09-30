@@ -246,35 +246,43 @@ class TranslationService {
     }
 
     public function editEntityTranslations(EntityManagerInterface $entityManager,
-                                           array $labels,
-                                           TranslationSource $labelTranslationSource) {
+                                           TranslationSource      $source,
+                                           array                  $labels,
+                                           string                 $key = "label") {
         foreach ($labels as $label) {
             $labelLanguage = $entityManager->find(Language::class, $label["language-id"]);
-            $currentTranslation = $labelTranslationSource->getTranslationIn($labelLanguage);
+            $currentTranslation = $source->getTranslationIn($labelLanguage);
+
+            if(!($label[$key] ?? null)) {
+                if($currentTranslation) {
+                    $source->removeTranslation($currentTranslation);
+                    $entityManager->remove($currentTranslation);
+                }
+
+                continue;
+            }
 
             if (!$currentTranslation) {
                 $newTranslation = new Translation();
                 $newTranslation
-                    ->setTranslation($label['label'] ?? '')
-                    ->setSource($labelTranslationSource)
+                    ->setTranslation($label[$key] ?? '')
+                    ->setSource($source)
                     ->setLanguage($labelLanguage);
 
-                $labelTranslationSource->addTranslation($newTranslation);
+                $source->addTranslation($newTranslation);
                 $entityManager->persist($newTranslation);
             } else {
-                $currentTranslation->setTranslation($label['label']);
+                $currentTranslation->setTranslation($label[$key]);
             }
         }
     }
 
     public function setFirstTranslation(EntityManagerInterface $entityManager,
-                                        int                    $entityId,
-                                        string                 $class,
-                                        string                 $firstLabel) {
+                                        mixed                  $entity,
+                                        string                 $firstLabel,
+                                        string                 $setter = null) {
         $languageRepository = $entityManager->getRepository(Language::class);
-        $entityRepository = $entityManager->getRepository($class);
-        $entity = $entityRepository->find($entityId);
-        $language = $languageRepository->findOneBy(['slug' => Language::FRENCH_SLUG]);
+        $language = $languageRepository->findOneBy(["slug" => Language::FRENCH_SLUG]);
 
         $labelTranslation = new TranslationSource();
         $entityManager->persist($labelTranslation);
@@ -286,7 +294,7 @@ class TranslationService {
             ->setSource($labelTranslation)
             ->setTranslation($firstLabel);
 
-        $entity->setLabelTranslation($labelTranslation);
+        $entity->{$setter ?? "setLabelTranslation"}($labelTranslation);
     }
 
 }

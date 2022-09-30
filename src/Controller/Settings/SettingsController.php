@@ -1319,10 +1319,6 @@ class SettingsController extends AbstractController {
                         ])
                         ->toArray(),
                 ],
-                self::MENU_LANGUAGES => fn() => [
-                    'translations' => $translationRepository->findAll(),
-                    'menusTranslations' => array_column([], '1'),
-                ],
             ],
         ];
     }
@@ -1824,32 +1820,20 @@ class SettingsController extends AbstractController {
         foreach ($freeFields as $freeField) {
             if ($freeField->getTypage() === FreeField::TYPE_BOOL) {
                 $typageCLFr = "Oui/Non";
+            } else if ($freeField->getTypage() === FreeField::TYPE_NUMBER) {
+                $typageCLFr = "Nombre";
+            } else if ($freeField->getTypage() === FreeField::TYPE_TEXT) {
+                $typageCLFr = "Texte";
+            } else if ($freeField->getTypage() === FreeField::TYPE_LIST) {
+                $typageCLFr = "Liste";
+            } else if ($freeField->getTypage() === FreeField::TYPE_DATE) {
+                $typageCLFr = "Date";
+            } else if ($freeField->getTypage() === FreeField::TYPE_DATETIME) {
+                $typageCLFr = "Date et heure";
+            } else if ($freeField->getTypage() === FreeField::TYPE_LIST_MULTIPLE) {
+                $typageCLFr = "Liste multiple";
             } else {
-                if ($freeField->getTypage() === FreeField::TYPE_NUMBER) {
-                    $typageCLFr = "Nombre";
-                } else {
-                    if ($freeField->getTypage() === FreeField::TYPE_TEXT) {
-                        $typageCLFr = "Texte";
-                    } else {
-                        if ($freeField->getTypage() === FreeField::TYPE_LIST) {
-                            $typageCLFr = "Liste";
-                        } else {
-                            if ($freeField->getTypage() === FreeField::TYPE_DATE) {
-                                $typageCLFr = "Date";
-                            } else {
-                                if ($freeField->getTypage() === FreeField::TYPE_DATETIME) {
-                                    $typageCLFr = "Date et heure";
-                                } else {
-                                    if ($freeField->getTypage() === FreeField::TYPE_LIST_MULTIPLE) {
-                                        $typageCLFr = "Liste multiple";
-                                    } else {
-                                        $typageCLFr = "";
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                $typageCLFr = "";
             }
 
             $defaultValue = null;

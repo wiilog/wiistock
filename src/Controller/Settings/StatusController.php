@@ -243,7 +243,7 @@ class StatusController extends AbstractController
 
         foreach ($statuses as $status) {
             if ($status->getLabelTranslation() === null) {
-                $translationService->setFirstTranslation($manager, $status->getId(), Statut::class, $this->getFormatter()->status($status));
+                $translationService->setFirstTranslation($manager, $status, $this->getFormatter()->status($status));
             }
         }
         $manager->flush();
@@ -280,7 +280,7 @@ class StatusController extends AbstractController
                 $labels = $data[$name];
                 $labelTranslationSource = $status->getLabelTranslation();
 
-                $translationService->editEntityTranslations($manager, $labels, $labelTranslationSource);
+                $translationService->editEntityTranslations($manager, $labelTranslationSource, $labels);
             }
 
             $duplicateLabels = $statusService->countDuplicateStatusLabels($persistedStatuses);
