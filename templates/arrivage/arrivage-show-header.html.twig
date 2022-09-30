@@ -37,7 +37,7 @@
                href="{{ path('print_arrivage_bar_codes', {arrivage: arrivage.id, printArrivage: 1}) }}">
                 <span class="wii-icon wii-icon-printer-black mr-2"></span>
                 {{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Imprimer arrivage') }}
-            </a>z
+            </a>
             {% if not allPacksAlreadyInDispatch and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE_ACHE')) %}
                 <button class="dropdown-item dispatch-button" data-id="{{ arrivage.id }}">
                     <i class="fas fa-exchange-alt mr-2"></i>
