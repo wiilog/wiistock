@@ -268,13 +268,15 @@ function createForm() {
 function onFormEntityChange() {
     let $modal = $("#modalExport");
     const selectedEntity = $modal.find('[name=entityToExport]:checked').val();
-    const $refArticlesSentence = $modal.find('.ref-articles-sentence');
+    const $articlesSentence = $modal.find('.articles-sentence');
+    const $referencesSentence = $modal.find('.references-sentence');
     const $dateLimit = $modal.find('.date-limit');
     const $columnToExportContainer = $modal.find('.column-to-export');
     const $columnToExport = $columnToExportContainer.find('select');
     const $periodInterval = $modal.find('.period-interval');
 
-    $refArticlesSentence.addClass('d-none');
+    $articlesSentence.addClass('d-none');
+    $referencesSentence.addClass('d-none');
     $dateLimit.addClass('d-none');
     $columnToExportContainer.addClass('d-none');
     $columnToExport
@@ -283,10 +285,10 @@ function onFormEntityChange() {
 
     switch (selectedEntity) {
         case ENTITY_REFERENCE:
-            $refArticlesSentence.removeClass('d-none');
+            $referencesSentence.removeClass('d-none');
             break;
         case ENTITY_ARTICLE:
-            $refArticlesSentence.removeClass('d-none');
+            $articlesSentence.removeClass('d-none');
             break;
         case ENTITY_TRANSPORT_ROUNDS:
             $dateLimit.removeClass('d-none');
