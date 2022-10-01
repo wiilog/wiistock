@@ -1753,11 +1753,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "tooltip" => "Acheminement :\nFiltre\n_____\nService :\nFiltre",
                     ],
                     [
-                        "fr" => "Urgence",
-                        "en" => "Urgencie",
-                        "tooltip" => "Acheminement :\nFiltre\n_____\nService :\nFiltre",
-                    ],
-                    [
                         "fr" => "Urgent",
                         "en" => "Urgent",
                         "tooltip" => "Service :\nZone liste - Nom de colonnes",
@@ -1786,7 +1781,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "Urgence",
                         "en" => "Emergency",
-                        "tooltip" => "Acheminement :\nZone liste - Nom de colonnes\nModale Nouvelle demande\nModale Modifier un acheminement\nDétails acheminement - Entête\n_____\nService :\nModale Nouvelle demande de service\nModale Modifier une demande de service",
+                        "tooltip" => "Acheminement :\nFiltre\nZone liste - Nom de colonnes\nModale Nouvelle demande\nModale Modifier un acheminement\nDétails acheminement - Entête\n_____\nService :\nFiltre\nModale Nouvelle demande de service\nModale Modifier une demande de service",
                     ],
                     [
                         "fr" => "Aller vers la création des statuts",
@@ -1806,11 +1801,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Acheminement",
                             "en" => "Transfer",
-                            "tooltip" => "Menu\nFil d'ariane\nMenu \"+\"\nDétails",
-                        ],
-                        [
-                            "fr" => "acheminement",
-                            "en" => "transfer",
                             "tooltip" => "Menu\nFil d'ariane\nMenu \"+\"\nDétails",
                         ],
                         [
@@ -1840,7 +1830,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Date de validation",
                             "en" => "Validation date",
-                            "tooltip" => "Zone liste - Nom de colonnes\nDétails acheminements - Entête\nPDF bon acheminement\nEmails",
+                            "tooltip" => "Zone liste - Nom de colonnes\nDétails acheminements - Entête\nPDF bon acheminement\nPDF bon de surconsommation\nEmails",
                         ],
                         [
                             "fr" => "Date de traitement",
@@ -2016,12 +2006,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Filtre \nZone liste - Nom de colonnes\nModale Nouvelle demande\nModale Modifier un acheminement \nDétails acheminement - Entête \nPDF bon acheminement",
                         ],
                         [
-                            "fr" => "Emplacement prise",
+                            "fr" => "Emplacement de prise",
                             "en" => "Picking location",
                             "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle demande\nModale Modifier un acheminement \nDétails acheminement - Entête \nNomade\nPDF bon acheminement",
                         ],
                         [
-                            "fr" => "Emplacement dépose",
+                            "fr" => "Emplacement de dépose",
                             "en" => "Drop location",
                             "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle demande\nModale Modifier un acheminement \nDétails acheminement - Entête \nNomade\nPDF bon acheminement",
                         ],
@@ -2127,11 +2117,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "fr" => "Echéance",
                             "en" => "Due",
                             "tooltip" => "Modale Nouvelle demande d'acheminement\nModale Modifier un acheminement ",
-                        ],
-                        [
-                            "fr" => "Destinataire(s)",
-                            "en" => "Addressee(s)",
-                            "tooltip" => "Modale modifier un acheminement",
                         ],
                     ],
                 ],
@@ -2261,30 +2246,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Le bon d'acheminement n'existe pas pour cet acheminement",
                             "en" => "The transfer note does not exist for this transfer",
-                        ],
-                        [
-                            "fr" => "Date de création",
-                            "en" => "Creation date",
-                        ],
-                        [
-                            "fr" => "Date de validation",
-                            "en" => "Validation date",
-                        ],
-                        [
-                            "fr" => "Date de traitement",
-                            "en" => "Treatment date",
-                        ],
-                        [
-                            "fr" => "Emplacement de dépose",
-                            "en" => "Drop location",
-                        ],
-                        [
-                            "fr" => "Emplacement de prise",
-                            "en" => "Picking location",
-                        ],
-                        [
-                            "fr" => "Commentaire",
-                            "en" => "comment",
                         ],
                         [
                             "fr" => "Destinataires",
@@ -2513,11 +2474,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "PDF bon de surconsommation",
                         ],
                         [
-                            "fr" => "Date de validation",
-                            "en" => "Validation date",
-                            "tooltip" => "PDF bon de surconsommation",
-                        ],
-                        [
                             "fr" => "Faite par",
                             "en" => "Done by",
                             "tooltip" => "PDF bon de surconsommation",
@@ -2535,6 +2491,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Qté livrée",
                             "en" => "Delivered qty",
+                            "tooltip" => "PDF bon de surconsommation",
+                        ],
+                        [
+                            "fr" => "Qte demandée",
+                            "en" => "Requested qty",
                             "tooltip" => "PDF bon de surconsommation",
                         ],
                         [
@@ -2994,7 +2955,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
             $category->setSubtitle($content["subtitle"] ?? null);
 
             foreach ($content["content"] as $translation) {
-                $transSource = $category->getId() ? $translationSourceRepository->findByDefaultFrenchTranslation($category, $translation["fr"]) : null;
+                $transSource = $category->getId() ? $translationSourceRepository->findOneByDefaultFrenchTranslation($category, $translation["fr"]) : null;
                 if (!$transSource) {
                     $transSource = new TranslationSource();
                     $transSource->setCategory($category);

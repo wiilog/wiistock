@@ -38,7 +38,7 @@ function initPage() {
             { "data": 'trackingNb', 'name' : 'trackingNb', 'title' : Translation.of('Traçabilité', 'Urgences', 'N° tracking transporteur', false) },
             { "data": 'arrivalDate', 'name' : 'arrivalDate', 'title' : Translation.of('Traçabilité', 'Urgences', 'Date arrivage', false) },
             {"data": 'arrivalNb', 'name' : 'arrivalNb', 'title' : Translation.of('Traçabilité', 'Urgences', 'Numéro d\'arrivage', false)},
-            {"data": 'createdAt', 'name': 'createdAt', 'title': Translation.of('Traçabilité', 'Urgences', 'Date de création', false)},
+            {"data": 'createdAt', 'name': 'createdAt', 'title': Translation.of('Général', null, 'Zone liste', 'Date de création', false)},
         ],
         drawConfig: {
             needsSearchOverride: true,

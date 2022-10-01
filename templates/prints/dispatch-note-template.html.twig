@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <title>{{ trans('Demande', 'Acheminements', "Bon d'acheminement", "Bon d'acheminement") }}</title>
+    <title>{{ trans('Demande', 'Acheminements', "Bon d'acheminement", "Bon d'acheminement", false) }}</title>
     <meta charset="UTF-8"/>
     <style>
         * {
@@ -113,19 +113,19 @@
         <div class="content clear">
             <table class="table">
                 <tr>
-                    <th>{{ trans('Demande', 'Acheminements', "Bon d'acheminement", "Date de création") }}</th>
+                    <th>{{ trans('Général', null, 'Zone liste', 'Date de création') }}</th>
                     <td>{{ dispatch.creationDate ? (dispatch.creationDate | date('d/m/Y H:i')) }}</td>
-                    <th>{{ trans('Demande', 'Acheminements', "Champs fixes", "Emplacement prise") }}</th>
+                    <th>{{ trans('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de prise') }}</th>
                     <td>{{ dispatch.locationFrom | format_helper('location') }}</td>
                 </tr>
                 <tr>
-                    <th>{{ trans('Demande', 'Acheminements', "Bon d'acheminement", "Date de validation") }}</th>
+                    <th>{{ trans('Demande', 'Acheminements', 'Général', 'Date de validation') }}</th>
                     <td>{{ dispatch.validationDate ? (dispatch.validationDate | date('d/m/Y H:i')) }}</td>
-                    <th>{{ trans('Demande', 'Acheminements', "Champs fixes", "Emplacement dépose") }}</th>
+                    <th>{{ trans('Demande', 'Acheminements', "Champs fixes", "Emplacement de dépose") }}</th>
                     <td>{{ dispatch.locationTo | format_helper('location') }}</td>
                 </tr>
                 <tr>
-                    <th>{{ trans('Demande', 'Acheminements', "Bon d'acheminement", "Date de traitement") }}</th>
+                    <th>{{ trans('Demande', 'Acheminements', 'Général', 'Date de traitement') }}</th>
                     <td>{{ dispatch.treatmentDate ? (dispatch.treatmentDate | date('d/m/Y H:i')) }}</td>
                     <th>{{ trans('Demande', 'Acheminements', "Champs fixes", "Destination") }}</th>
                     <td>{{ dispatch.destination }}</td>
@@ -137,20 +137,20 @@
                     <td></td>
                 </tr>
                 <tr>
-                    <th>{{ trans('Demande', 'Acheminements', "Bon d'acheminement", "Destinataires") }}</th>
+                    <th>{{ trans('Demande', 'Général', 'Destinataire(s)') }}</th>
                     <td>{{ dispatch.receivers | format_helper('users') }}</td>
                     <th></th>
                     <td></td>
                 </tr>
                 <tr>
-                    <th>{{ trans('Demande', 'Acheminements', "Bon d'acheminement", "Commentaire") }}</th>
+                    <th>{{ trans('Général', null, 'Modale', 'Commentaire') }}</th>
                     <td colspan="3" class="always-break">{{ dispatch.commentaire | striptags | u.truncate(150) }}</td>
                 </tr>
             </table>
         </div>
 
         <h2 class="mt-4">
-            {{ 'mouvement de traçabilité.Colis' | trans }} - {{ loop.index }}/{{ dispatch.dispatchPacks | length }}
+            {{ trans('Général', null, 'Zone filtre', 'Unité logistique') }} - {{ loop.index }}/{{ dispatch.dispatchPacks | length }}
         </h2>
         <table class="table">
             <tr>
@@ -164,19 +164,19 @@
                     }) | raw }}
                     <strong class="no-break">{{ pack.pack.code }}</strong>
                 </td>
-                <th>{{ trans('Demande', 'Acheminements', "Bon d'acheminement", "Nature") }}</th>
-                <td>{{ pack.pack.nature.label }}</td>
-                <th>{{ trans('Demande', 'Acheminements', "Bon d'acheminement", "Poids (kg)") }}</th>
+                <th>{{ trans('Demande', 'Acheminements', "Général", "Nature") }}</th>
+                <td>{{ pack.pack.nature.labelIn(app.user.language.slug, language_service.defaultSlug) }}</td>
+                <th>{{ trans('Demande', 'Acheminements', "Général", "Poids (kg)") }}</th>
                 <td>{{ pack.pack.weight }}</td>
             </tr>
             <tr>
-                <th>{{ trans('Demande', 'Acheminements', "Bon d'acheminement", "Quantité à acheminer") }}</th>
+                <th>{{ trans('Demande', 'Acheminements', "Général", "Quantité à acheminer") }}</th>
                 <td>{{ pack.quantity }}</td>
-                <th>{{ trans('Demande', 'Acheminements', "Bon d'acheminement", "Volume (m3)") }}</th>
+                <th>{{ trans('Demande', 'Acheminements', "Général", "Volume (m3)") }}</th>
                 <td>{{ pack.pack.volume }}</td>
             </tr>
             <tr>
-                <th colspan="4">{{ trans('Demande', 'Acheminements', "Bon d'acheminement", "Commentaire") }}</th>
+                <th colspan="4">{{ trans('Général', null, 'Modale', 'Commentaire') }}</th>
             </tr>
             <tr>
                 <td colspan="4" class="always-break">{{ pack.pack.comment | striptags | u.truncate(100) }}</td>

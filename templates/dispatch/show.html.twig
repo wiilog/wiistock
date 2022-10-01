@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}{{ trans('Demande', 'Général', 'Demande', false) }} | {{ trans('Demande', 'Acheminements', 'Divers', 'Acheminement', false) }} | Détails{% endblock %}
+{% block title %}{{ trans('Demande', 'Général', 'Demande', false) }} | {{ trans('Demande', 'Acheminements', 'Général', 'Acheminement', false) }} | {{ trans('Général', null, 'Header', 'Détails') }}{% endblock %}
 {% block title_tooltip %}Demande | Acheminement | Détails{% endblock %}
 {% block titleLink path('dispatch_index') %}
 

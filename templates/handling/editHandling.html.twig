@@ -195,7 +195,7 @@
                     </div>
                 </div>
                 <div class="content">
-                    <div class="wii-subtitle">{{ trans('Général', null, 'Modale', 'commentaire') }}</div>
+                    <div class="wii-subtitle">{{ trans('Général', null, 'Modale', 'Commentaire') }}</div>
                     <div>
                         <input class="commentaire form-control data" name="comment" type="hidden" id="commentaire">
                         <div class="editor-container-new" data-wysiwyg>{{ handling.comment | striptags }}</div>
@@ -237,7 +237,7 @@
                     {% if handling.withoutHistory %}
                         <div class="col-6 d-flex flex-column">
                             <div class="box-item my-2">
-                                <span class="wii-field-name">{{ trans('Demande', 'Services', null, 'Date de création') }}</span>
+                                <span class="wii-field-name">{{ trans('Général', null, 'Zone liste', 'Date de création') }}</span>
                                 <span class="wii-field-text">
                                     {{ app.user.dateFormat == 'd/m/Y'
                                         ? (handling.creationDate

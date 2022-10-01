@@ -94,11 +94,11 @@ $(function () {
         },
         columns: [
             {data: 'Actions', name: 'actions', title: '', orderable: false, className: 'noVis'},
-            {data: 'firstDate', name: 'firstDate', title: Translation.of('Général', '', 'Zone liste', 'Date de création')},
+            {data: 'firstDate', name: 'firstDate', title: Translation.of('Général', null, 'Zone liste', 'Date de création')},
             {data: 'status', name: 'status', title: Translation.of('Traçabilité','Flux - Arrivages', 'Champs fixes', 'Statut')},
             {data: 'type', name: 'type', title: Translation.of('Traçabilité', 'Flux - Arrivages', 'Détails arrivage - Liste des litiges', 'Type')},
-            {data: 'updateDate', name: 'updateDate', title: Translation.of('Traçabilité','Flux - Arrivages', 'Détails arrivage - Liste des litiges', 'Date de modification')},
-            {data: 'urgence', name: 'urgence', title: 'urgence', visible: false},
+            {data: 'updateDate', name: 'updateDate', title: Translation.of('Traçabilité', 'Flux - Arrivages', 'Détails arrivage - Liste des litiges', 'Date de modification')},
+            {data: 'urgence', name: 'urgence', title: Translation.of('Traçabilité', 'Flux - Arrivages', 'Divers', 'Urgence'), visible: false},
         ],
         rowConfig: {
             needsColor: true,

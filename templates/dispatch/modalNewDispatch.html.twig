@@ -80,7 +80,7 @@
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
                             <div class="form-group">
-                                <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'Emplacement prise') }}{{ required ? '*' }}</label>
+                                <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de prise') }}{{ required ? '*' }}</label>
                                 <select name="prise"
                                         class="form-control data d-block {{ required ? 'needed' }} location-prise w-100" data-s2="location">
                                 </select>
@@ -147,7 +147,7 @@
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
                             <div class="form-group w-100">
-                                <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'Emplacement dépose') }}{{ required ? '*' }}</label>
+                                <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de dépose') }}{{ required ? '*' }}</label>
                                 <select name="depose"
                                         class="form-control data d-block {{ required ? 'needed' }} location-depose" data-s2="location">
                                 </select>

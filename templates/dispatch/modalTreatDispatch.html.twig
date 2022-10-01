@@ -23,7 +23,7 @@
                 {% else %}
                     {% include 'utils/warningSelectEmpty.html.twig' with {
                         array: [],
-                        warningLabel: trans('Demande', 'Acheminements', 'Divers', "Vous n'avez pas configuré de statut {1} pour ce type d'acheminement", {
+                        warningLabel: trans('Demande', 'Acheminements', 'Général', "Vous n'avez pas configuré de statut {1} pour ce type d'acheminement", {
                             '1': 'traité'
                         }),
                         redirectPath: path('settings_item', {

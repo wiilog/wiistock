@@ -194,7 +194,7 @@
 
             <tr>
                 <td>{{ dp.pack.code }}</td>
-                <td>{{ dp.pack.nature ? dp.pack.nature.label : '' }}</td>
+                <td>{{ dp.pack.nature ? dp.pack.nature.labelIn(app.user.language.slug, language_service.defaultSlug) : '' }}</td>
                 <td>{{ dp.quantity }}</td>
                 <td>{% if dp.pack.weight %}{{ dp.pack.weight }} kg{% endif %}</td>
                 <td>{% if dp.pack.volume %}{{ dp.pack.volume }} m3{% endif %}</td>

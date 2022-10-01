@@ -201,7 +201,7 @@
                     {% if handling.withoutHistory %}
                         <div class="col-6 d-flex flex-column">
                             <div class="box-item my-2">
-                                <span class="wii-field-name">{{ trans('Demande', 'Services', null, 'Date de création') }}</span>
+                                <span class="wii-field-name">{{ trans('Général', null, 'Zone liste', 'Date de création') }}</span>
                                 <span class="wii-field-text">
                                     {{ handling.creationDate | format_helper(setting_value('REMOVE_HOURS_DATETIME') ? 'date' : 'datetime', "", false, app.user) }}
                                 </span>

@@ -213,7 +213,12 @@ class TranslationService {
                 }
 
                 if($translation) {
-                    $zoomedTranslations[$original->getTranslation()] = $translation?->getTranslation();
+                    try {
+                        $zoomedTranslations[$original->getTranslation()] = $translation?->getTranslation();
+                    }
+                    catch (\Throwable $e) {
+                        throw $e;
+                    }
                 }
             }
 
