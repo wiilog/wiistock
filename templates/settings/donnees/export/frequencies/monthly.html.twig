@@ -9,7 +9,7 @@
                title="Démarrer le"
                placeholder="jj/mm/aaaa"
                min="now"
-               value="{{ export.exportScheduleRule ? export.exportScheduleRule.begin|date('d/m/Y') }}"/>
+               value="{{ export.exportScheduleRule ? export.exportScheduleRule.begin|date('Y-m-d\\TH:i') }}"/>
     </div>
     <div class="row p-2">
         <div class="col-12 px-3">

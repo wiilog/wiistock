@@ -366,10 +366,19 @@ class ScheduledExportService
 
     private function getFrequencyDescription(Export $export): string {
         $rule = $export->getExportScheduleRule();
-        if($rule->getFrequency() === ExportScheduleRule::WEEKLY) {
+        if($rule->getFrequency() === ExportScheduleRule::DAILY) {
+            $period = $rule->getPeriod();
+            $periodStr = $period && $period > 1
+                ? "$period jours"
+                : "jours";
+        } else if($rule->getFrequency() === ExportScheduleRule::WEEKLY) {
             $days = Stream::from($rule->getWeekDays())
                 ->map(fn(int $weekDay) => FormatHelper::WEEK_DAYS[$weekDay])
                 ->join(", ");
+            $period = $rule->getPeriod();
+            $periodStr = $period && $period > 1
+                ? "$period semaines"
+                : "semaines";
         } else if($rule->getFrequency() === ExportScheduleRule::MONTHLY) {
             $days = join(", ", $rule->getMonthDays());
             $months = Stream::from($rule->getMonths())
@@ -378,11 +387,11 @@ class ScheduledExportService
         }
 
         return match($rule->getFrequency()) {
-            ExportScheduleRule::ONCE => "le {$rule->getBegin()->format("d/m/Y H:i")}",
+            ExportScheduleRule::ONCE => "le {$rule->getBegin()?->format("d/m/Y H:i")}",
             ExportScheduleRule::HOURLY => "toutes les {$rule->getIntervalPeriod()} heures",
-            ExportScheduleRule::DAILY => "tous les {$rule->getPeriod()} à {$rule->getIntervalTime()}",
-            ExportScheduleRule::WEEKLY => "toutes les {$rule->getFrequency()} semaines à {$rule->getIntervalTime()} les {$days}",
-            ExportScheduleRule::MONTHLY => "les mois de {$months} le {$days}",
+            ExportScheduleRule::DAILY => "tous les $periodStr à {$rule->getIntervalTime()}",
+            ExportScheduleRule::WEEKLY => "toutes les $periodStr à {$rule->getIntervalTime()} les $days",
+            ExportScheduleRule::MONTHLY => "les mois de $months le $days",
             default => null,
         };
     }
