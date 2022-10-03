@@ -225,7 +225,7 @@ class ScheduledExportService
             if ($now >= $start) {
                 $nextOccurrence = clone $now;
                 $hours = (int)$now->format('H');
-                $minutes = 0;
+                $minutes = (int)$now->format('i');
                 $hours = $hours + ($intervalPeriod - ($hours % $intervalPeriod));
                 $nextOccurrence->setTime($hours, $minutes);
             } else {
