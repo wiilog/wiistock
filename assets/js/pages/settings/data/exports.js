@@ -41,6 +41,7 @@ $(document).ready(() => {
             url: Routing.generate(`settings_export_api`),
             type: `POST`
         },
+        order: [['beganAt', "desc"]],
         columns: [
             {data: `actions`, title: ``, orderable: false, className: `noVis hideOrder`},
             {data: `status`, title: `Statut`},
@@ -89,6 +90,7 @@ function displayExportModal(exportId) {
         $modal.find('.modal-body').html(resp);
         onFormEntityChange();
         onFormTypeChange(false);
+        onPeriodIntervalChange($modal);
 
         const $checkedFrequency = $modal.find('[name=frequency]:checked');
         if ($checkedFrequency.exists()) {
@@ -144,12 +146,6 @@ function toggleFrequencyInput($input) {
             .find('input.frequency-data, select.frequency-data')
             .addClass('needed')
             .addClass('data');
-
-        $frequencyContainer.find('input[type="date"]').each(function() {
-            const $input = $(this);
-            $input.attr('type', 'text');
-            initDateTimePicker({dateInputs: $input, minDate: true, value: $input.val()});
-        });
     }
 
     $('.select-all-options').on('click', onSelectAll);

@@ -6,7 +6,6 @@ use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Export;
-use App\Entity\FieldsParam;
 use App\Entity\ExportScheduleRule;
 use App\Entity\Fournisseur;
 use App\Entity\Statut;
@@ -15,6 +14,7 @@ use App\Entity\Transport\TransportRoundLine;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
+use App\Helper\FormatHelper;
 use App\Service\Transport\TransportRoundService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -287,8 +287,14 @@ class DataExportService
             $export->setExportScheduleRule(new ExportScheduleRule());
         }
 
+        $begin = FormatHelper::parseDatetime($data["startDate"]);
+
+        if (in_array($data["frequency"], [ExportScheduleRule::DAILY, ExportScheduleRule::WEEKLY, ExportScheduleRule::MONTHLY])) {
+            $begin->setTime(0, 0);
+        }
+
         $export->getExportScheduleRule()
-            ->setBegin(DateTime::createFromFormat("Y-m-d\TH:i", $data["startDate"]))
+            ->setBegin($begin)
             ->setFrequency($data["frequency"] ?? null)
             ->setPeriod($data["repeatPeriod"] ?? null)
             ->setIntervalTime($data["intervalTime"] ?? null)
