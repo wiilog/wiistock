@@ -89,6 +89,7 @@ function displayExportModal(exportId) {
         $modal.find('.modal-body').html(resp);
         onFormEntityChange();
         onFormTypeChange(false);
+        onPeriodIntervalChange($modal);
 
         const $checkedFrequency = $modal.find('[name=frequency]:checked');
         if ($checkedFrequency.exists()) {
