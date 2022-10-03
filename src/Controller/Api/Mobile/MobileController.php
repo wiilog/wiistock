@@ -850,7 +850,10 @@ class MobileController extends AbstractApiController
             $commentaire = $request->request->get('comment');
             $treatmentDelay = $request->request->get('treatmentDelay');
             if (!empty($commentaire)) {
-                $handling->setComment($handling->getComment() . "\n" . date('d/m/y H:i:s') . " - " . $nomadUser->getUsername() . " :\n" . $commentaire);
+                $previousComments = $handling->getComment() !== '<p><br></p>' ? "{$handling->getComment()}\n" : "";
+                $dateStr = (new DateTime())->format('d/m/y H:i:s');
+                $dateAndUser = "<strong>$dateStr - {$nomadUser->getUsername()} :</strong>";
+                $handling->setComment("$previousComments $dateAndUser $commentaire");
             }
 
             if (!empty($treatmentDelay)) {
@@ -1735,7 +1738,7 @@ class MobileController extends AbstractApiController
             $allowedNatureInLocations = $natureRepository->getAllowedNaturesIdByLocation();
             $trackingFreeFields = $freeFieldRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]);
 
-            ['natures' => $natures] = $this->mobileApiService->getNaturesData($entityManager);
+            ['natures' => $natures] = $this->mobileApiService->getNaturesData($entityManager, $this->getUser());
             [
                 'dispatches' => $dispatches,
                 'dispatchPacks' => $dispatchPacks,

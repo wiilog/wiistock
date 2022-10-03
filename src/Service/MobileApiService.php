@@ -53,11 +53,11 @@ class MobileApiService {
         ];
     }
 
-    public function getNaturesData(EntityManagerInterface $entityManager): array {
+    public function getNaturesData(EntityManagerInterface $entityManager, Utilisateur $user): array {
         $natureRepository = $entityManager->getRepository(Nature::class);
         return [
             'natures' => Stream::from($natureRepository->findAll())
-                ->map(fn (Nature $nature) => $this->natureService->serializeNature($nature))
+                ->map(fn (Nature $nature) => $this->natureService->serializeNature($nature, $user))
                 ->toArray()
         ];
     }
