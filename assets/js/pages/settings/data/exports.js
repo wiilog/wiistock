@@ -146,12 +146,6 @@ function toggleFrequencyInput($input) {
             .find('input.frequency-data, select.frequency-data')
             .addClass('needed')
             .addClass('data');
-
-        $frequencyContainer.find('input[type="date"]').each(function() {
-            const $input = $(this);
-            $input.attr('type', 'text');
-            initDateTimePicker({dateInputs: $input, minDate: true, value: $input.val()});
-        });
     }
 
     $('.select-all-options').on('click', onSelectAll);
