@@ -49,8 +49,6 @@
                     and statut.nom != constant('App\\Entity\\TrackingMovement::TYPE_PRISE_DEPOSE')
                     and statut.nom != constant('App\\Entity\\TrackingMovement::TYPE_GROUP')
                     and statut.nom != constant('App\\Entity\\TrackingMovement::TYPE_EMPTY_ROUND') %}
-                    {% dump statut.nom %}
-                    {% dump trans('Traçabilité', 'Mouvements', statut.nom) %}
                     <option class="{{ statut.nom == constant('App\\Entity\\TrackingMovement::TYPE_EMPTY_ROUND') and not hasEmptyRoundRight ? 'd-none' }}"
                             value="{{ statut.id }}"
                             {{ mvt.type.id == statut.id ? 'selected' }}>
