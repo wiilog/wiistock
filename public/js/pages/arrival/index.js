@@ -220,33 +220,35 @@ function createArrival() {
             Select2Old.initFree($('.select2-free'));
 
             const $submit = $modal.find(`#submitNewArrivage`);
-            $submit.on(`click`, function () {
-                SubmitAction($modal, $submit, Routing.generate('arrivage_new', true), {
-                    keepForm: true,
-                    keepModal: true,
-                    keepLoading: true,
-                    waitForUserAction: () => {
-                        return checkPossibleCustoms($modal);
-                    },
-                    success: (res) => {
-                        res = res || {};
-                        $('#submitNewArrivage').popLoader();
-                        createArrival();
-                        arrivalCallback(
-                            true,
-                            {
-                                ...(res || {}),
-                                success: () => {
-                                }
-                            },
-                            arrivalsTable
-                        )
-                    },
-                }).catch(() => {
-                });
-            })
-        }, 1);
-    }, `json`);
+            $submit
+                .off('click.new-arrival')
+                .on('click.new-arrival', function () {
+                    SubmitAction($modal, $submit, Routing.generate('arrivage_new', true), {
+                        keepForm: true,
+                        keepModal: true,
+                        keepLoading: true,
+                        waitForUserAction: () => {
+                            return checkPossibleCustoms($modal);
+                        },
+                        success: (res) => {
+                            res = res || {};
+                            $('#submitNewArrivage').popLoader();
+                            createArrival();
+                            arrivalCallback(
+                                true,
+                                {
+                                    ...(res || {}),
+                                    success: () => {
+                                    }
+                                },
+                                arrivalsTable
+                            )
+                        },
+                    }).catch(() => {
+                    });
+                })
+            }, 1);
+        }, `json`);
 }
 
 function updateArrivalPageLength() {
