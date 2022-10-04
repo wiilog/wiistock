@@ -15,9 +15,9 @@ class TrackingMovement {
     use FreeFieldsManagerTrait;
 
     const TYPE_PRISE = 'prise';
-    const TYPE_DEPOSE = 'depose';
+    const TYPE_DEPOSE = 'dépose';
     const TYPE_GROUP = 'groupage';
-    const TYPE_PRISE_DEPOSE = 'prises et deposes';
+    const TYPE_PRISE_DEPOSE = 'prises et déposes';
     const TYPE_UNGROUP = 'dégroupage';
     const TYPE_EMPTY_ROUND = 'passage à vide';
 

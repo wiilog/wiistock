@@ -1378,12 +1378,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "tooltip" => "Modale Nouveau mouvement - Choix liste \"Action\"",
                     ],
                     [
-                        "fr" => "depose",
+                        "fr" => "dépose",
                         "en" => "drop off",
                         "tooltip" => "Modale Nouveau mouvement - Choix liste \"Action\"",
                     ],
                     [
-                        "fr" => "prises et deposes",
+                        "fr" => "prises et déposes",
                         "en" => "pick-up and drop off",
                         "tooltip" => "Modale Nouveau mouvement - Choix liste \"Action\"",
                     ],
