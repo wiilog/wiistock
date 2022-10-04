@@ -42,7 +42,7 @@ class FormatService
         return self::entity($users, "username");
     }
 
-    private function defaultLanguage(): ?string {
+    public function defaultLanguage(): ?string {
         if(!$this->defaultLanguage) {
             $this->defaultLanguage = $this->languageService->getDefaultSlug();
         }
@@ -51,15 +51,15 @@ class FormatService
     }
 
     public function type(?Type $type, $else = "", ?Utilisateur $user = null): ?string {
-        return $type ? $type->getLabelIn($this->getUser($user)->getLanguage(), $this->defaultLanguage()) : $else;
+        return $type ? $type->getLabelIn($this->getUser($user)?->getLanguage() ?: $this->defaultLanguage(), $this->defaultLanguage()) : $else;
     }
 
     public function status(?Statut $status, $else = "", ?Utilisateur $user = null): ?string {
-        return $status ? $status->getLabelIn($this->getUser($user)->getLanguage(), $this->defaultLanguage()) : $else;
+        return $status ? $status->getLabelIn($this->getUser($user)?->getLanguage() ?: $this->defaultLanguage(), $this->defaultLanguage()) : $else;
     }
 
     public function nature(?Nature $nature, $else = "", ?Utilisateur $user = null): ?string {
-        return $nature ? $nature->getLabelIn($this->getUser($user)->getLanguage(), $this->defaultLanguage()) : $else;
+        return $nature ? $nature->getLabelIn($this->getUser($user)?->getLanguage() ?: $this->defaultLanguage(), $this->defaultLanguage()) : $else;
     }
 
     public function date(?DateTimeInterface $date, $else = "", ?Utilisateur $user = null) {
