@@ -109,7 +109,8 @@ class ReferenceArticleRepository extends EntityRepository {
             ->addSelect('join_buyer.username as buyer')
             ->addSelect('referenceArticle.typeQuantite')
             ->addSelect('statutRef.nom as statut')
-            ->addSelect('referenceArticle.commentaire')
+            // if there are large images in the comment then we ignore it
+            ->addSelect('IF(LENGTH(referenceArticle.commentaire) > 512, referenceArticle.commentaire, NULL) AS commentaire')
             ->addSelect('emplacementRef.label as emplacement')
             ->addSelect('referenceArticle.limitSecurity')
             ->addSelect('referenceArticle.limitWarning')
