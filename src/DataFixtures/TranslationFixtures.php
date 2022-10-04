@@ -208,7 +208,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                         [
                             "fr" => "Détails",
-                            "en" => "Détails",
+                            "en" => "Details",
                         ],
                         [
                             "fr" => "Modifier",
