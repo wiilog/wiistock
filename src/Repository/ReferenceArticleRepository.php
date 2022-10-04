@@ -127,6 +127,9 @@ class ReferenceArticleRepository extends EntityRepository {
             ->addSelect('referenceArticle.freeFields')
             ->addSelect('referenceArticle.stockManagement')
             ->addSelect('join_visibilityGroup.label AS visibilityGroup')
+            ->addSelect("GROUP_CONCAT(DISTINCT join_manager.username SEPARATOR ',') AS managers")
+            ->addSelect("GROUP_CONCAT(DISTINCT join_supplier.codeReference SEPARATOR ',') AS supplierCodes")
+            ->addSelect("GROUP_CONCAT(DISTINCT join_supplier.nom SEPARATOR ',') AS supplierLabels")
             ->leftJoin('referenceArticle.statut', 'statutRef')
             ->leftJoin('referenceArticle.emplacement', 'emplacementRef')
             ->leftJoin('referenceArticle.type', 'typeRef')
@@ -135,10 +138,11 @@ class ReferenceArticleRepository extends EntityRepository {
             ->leftJoin('referenceArticle.visibilityGroup', 'join_visibilityGroup')
             ->leftJoin('referenceArticle.createdBy', 'join_createdBy')
             ->leftJoin('referenceArticle.editedBy', 'join_editedBy')
-            ->andWhere('statutRef.code = :active')
+            ->leftJoin('referenceArticle.managers', 'join_manager')
+            ->leftJoin('referenceArticle.articlesFournisseur', 'join_supplierArticle')
+            ->leftJoin('join_supplierArticle.fournisseur', 'join_supplier')
             ->groupBy('referenceArticle.id')
             ->orderBy('referenceArticle.id', 'ASC')
-            ->setParameter('active', ReferenceArticle::STATUT_ACTIF)
             ->getQuery()
             ->toIterable();
     }

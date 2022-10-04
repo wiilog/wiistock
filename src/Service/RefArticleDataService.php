@@ -1089,11 +1089,8 @@ class RefArticleDataService {
     }
 
     public function putReferenceLine($handle,
-                                     array $managersByReference,
                                      array $reference,
-                                     array $suppliersByReference,
-                                     array $freeFieldsConfig) {
-        $id = (int)$reference["id"];
+                                     array $freeFieldsConfig): void {
         $line = [
             $reference["reference"],
             $reference["libelle"],
@@ -1112,9 +1109,9 @@ class RefArticleDataService {
             $reference["dateLastInventory"] ? $reference["dateLastInventory"]->format("d/m/Y H:i:s") : "",
             $reference["needsMobileSync"],
             $reference["stockManagement"],
-            $managersByReference[$id] ?? "",
-            $suppliersByReference[$id]["supplierLabels"] ?? "",
-            $suppliersByReference[$id]["supplierCodes"] ?? "",
+            $reference["managers"] ?? "",
+            $reference["supplierLabels"] ?? "",
+            $reference["supplierCodes"] ?? "",
             $reference["visibilityGroup"],
             $reference["createdAt"] ? $reference["createdAt"]->format("d/m/Y H:i:s") : "",
             $reference["createdBy"] ?? "-",
