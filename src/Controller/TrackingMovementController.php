@@ -373,11 +373,9 @@ class TrackingMovementController extends AbstractController
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
-        $statutRepository = $entityManager->getRepository(Statut::class);
 
         $operator = $utilisateurRepository->find($post->get('operator'));
         $location = $locationRepository->find($post->get('location'));
-        $action = $statutRepository->find($post->get('type'));
 
         $quantity = $post->getInt('quantity') ?: 1;
 
@@ -395,7 +393,6 @@ class TrackingMovementController extends AbstractController
         $date = DateTime::createFromFormat($format, $post->get('datetime') ?: 'now');
 
         $hasChanged = ($mvt->getEmplacement()->getLabel() !== $location->getLabel()) ||
-                                ($mvt->getType()->getCode() !== $action->getCode()) ||
                                 ($mvt->getDatetime() !== $date) ||
                                 ($post->get('pack') !== $pack->getCode());
         if ($userService->hasRightFunction(Menu::TRACA, Action::FULLY_EDIT_TRACKING_MOVEMENTS) && $hasChanged) {
@@ -408,7 +405,7 @@ class TrackingMovementController extends AbstractController
                 $operator,
                 $date,
                 true,
-                $action,
+                $mvt->getType(),
                 false,
             );
             if ($response['success']) {
