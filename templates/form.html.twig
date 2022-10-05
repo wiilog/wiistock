@@ -211,7 +211,7 @@
                         {% set definedItems = options.items ?? [] %}
                         {% set items = (definedItems is iterable) ? definedItems : [definedItems] %}
 
-                        {% for value, text in items %}
+                        {% for value, text in items|filter((item) => item) %}
                             {% if text.value is defined and text.label is defined %}
                                 <option value="{{ text.value }}"
                                         {{ (text.selected ?? false) or text.value in values ? 'selected' }}
