@@ -17,9 +17,9 @@ use App\Entity\Setting;
 use App\Entity\Attachment;
 
 use App\Entity\Statut;
-use App\Entity\Type;
 use App\Entity\Utilisateur;
 
+use App\Helper\FormatHelper;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
 use App\Service\FilterSupService;
@@ -375,7 +375,7 @@ class TrackingMovementController extends AbstractController
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
 
         $operator = $utilisateurRepository->find($post->get('operator'));
-        $location = $locationRepository->find($post->get('location'));
+        $newLocation = $locationRepository->find($post->get('location'));
 
         $quantity = $post->getInt('quantity') ?: 1;
 
@@ -388,22 +388,24 @@ class TrackingMovementController extends AbstractController
         $mvt = $trackingMovementRepository->find($post->get('id'));
         $pack = $mvt->getPack();
 
-        $user = $this->getUser();
-        $format = $user && $user->getDateFormat() ? ($user->getDateFormat() . ' H:i') : 'd/m/Y H:i';
-        $date = DateTime::createFromFormat($format, $post->get('datetime') ?: 'now');
+        $newDate = $this->formatService->parseDatetime($post->get('date'));
+        $newCode = $post->get('pack');
 
-        $hasChanged = ($mvt->getEmplacement()->getLabel() !== $location->getLabel()) ||
-                                ($mvt->getDatetime() !== $date) ||
-                                ($post->get('pack') !== $pack->getCode());
+        $hasChanged = (
+            $mvt->getEmplacement()->getLabel() !== $newLocation->getLabel()
+            || $mvt->getDatetime() != $newDate // required != comparison
+            || $pack->getCode() !== $newCode
+        );
+
         if ($userService->hasRightFunction(Menu::TRACA, Action::FULLY_EDIT_TRACKING_MOVEMENTS) && $hasChanged) {
             /** @var TrackingMovement $new */
 
             $response = $trackingMovementService->persistTrackingMovement(
                 $entityManager,
                 $post->get('pack'),
-                $location,
+                $newLocation,
                 $operator,
-                $date,
+                $newDate,
                 true,
                 $mvt->getType(),
                 false,
