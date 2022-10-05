@@ -34,13 +34,9 @@
                     {% if hasRightToCreate %}
                         <button type="button"
                                 class="btn btn-primary split-button"
-                                data-toggle="modal"
                                 name="new-arrival"
-                                data-target="#modalNewArrivage"
-                                data-backdrop="static"
-                                data-keyboard="false"
                                 disabled
-                                onclick="createArrival()">
+                                onclick="openArrivalCreationModal($(this))">
                             <i class="fa fa-plus mr-2"></i>
                             <span title="nouvel arrivage">{{ 'arrivage.nouvel arrivage'|trans }}</span>
                         </button>
