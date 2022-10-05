@@ -17,9 +17,9 @@ use App\Entity\Setting;
 use App\Entity\Attachment;
 
 use App\Entity\Statut;
-use App\Entity\Type;
 use App\Entity\Utilisateur;
 
+use App\Helper\FormatHelper;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
 use App\Service\FilterSupService;
@@ -373,7 +373,7 @@ class TrackingMovementController extends AbstractController
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
 
         $operator = $utilisateurRepository->find($post->get('operator'));
-        $location = $locationRepository->find($post->get('location'));
+        $newLocation = $locationRepository->find($post->get('location'));
 
         $quantity = $post->getInt('quantity') ?: 1;
 
@@ -385,16 +385,25 @@ class TrackingMovementController extends AbstractController
         }
         $mvt = $trackingMovementRepository->find($post->get('id'));
         $pack = $mvt->getPack();
-        $hasChanged = ($mvt->getEmplacement()->getLabel() !== $location->getLabel()) || ($post->get('pack') !== $pack->getCode());
+
+        $newDate = FormatHelper::parseDatetime($post->get('date'));
+        $newCode = $post->get('pack');
+
+        $hasChanged = (
+            $mvt->getEmplacement()->getLabel() !== $newLocation->getLabel()
+            || $mvt->getDatetime() != $newDate // required != comparison
+            || $pack->getCode() !== $newCode
+        );
+
         if ($userService->hasRightFunction(Menu::TRACA, Action::FULLY_EDIT_TRACKING_MOVEMENTS) && $hasChanged) {
             /** @var TrackingMovement $new */
 
             $response = $trackingMovementService->persistTrackingMovement(
                 $entityManager,
                 $post->get('pack'),
-                $location,
+                $newLocation,
                 $operator,
-                new DateTime($post->get('date')),
+                $newDate,
                 true,
                 $mvt->getType(),
                 false,
