@@ -38,29 +38,11 @@
     <div class="form-group col-md-6 col-12">
         {% set hasEmptyRoundRight = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EMPTY_ROUND')) %}
         <label class="wii-field-name" for="type">{{ trans('Traçabilité', 'Mouvement', 'Action', false) }}*</label>
-        <select class="form-control data needed w-100"
-                id="type"
-                name="type"
-                {{ not canEditFully ? 'disabled' }}
-                onchange="switchMvtCreationType($(this))">
-            <option disabled selected></option>
-            {% for statut in statuts %}
-                {% if statut.nom != constant('App\\Entity\\TrackingMovement::TYPE_UNGROUP')
-                    and statut.nom != constant('App\\Entity\\TrackingMovement::TYPE_PRISE_DEPOSE')
-                    and statut.nom != constant('App\\Entity\\TrackingMovement::TYPE_GROUP')
-                    and statut.nom != constant('App\\Entity\\TrackingMovement::TYPE_EMPTY_ROUND') %}
-                    <option class="{{ statut.nom == constant('App\\Entity\\TrackingMovement::TYPE_EMPTY_ROUND') and not hasEmptyRoundRight ? 'd-none' }}"
-                            value="{{ statut.id }}"
-                            {{ mvt.type.id == statut.id ? 'selected' }}>
-                        {{ trans('Traçabilité', 'Mouvements', statut.nom, false) }}
-                    </option>
-                {% endif %}
-            {% endfor %}
-        </select>
+        <input class="form-control w-100" name="type" value="{{ mvt.type ? trans('Traçabilité', 'Mouvements', mvt.type.nom, false) }}" disabled>
     </div>
 
     <div class="form-group col-md-6 col-12">
-        <label class="wii-field-name" class="my-auto mr-2">{{ trans('Traçabilité', 'Général', 'Emplacement', false) }}*</label>
+        <label class="wii-field-name my-auto mr-2">{{ trans('Traçabilité', 'Général', 'Emplacement', false) }}*</label>
         <select name='location' data-s2='location' class='data form-control w-100' {{ not canEditFully ? 'disabled' }} required>
             {% if mvt.emplacement is not null %}
                 <option value="{{ mvt.emplacement.id }}" selected>{{ mvt.emplacement.label }}</option>

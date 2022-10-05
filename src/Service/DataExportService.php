@@ -127,18 +127,9 @@ class DataExportService
                                      array $freeFieldsConfig,
                                      iterable $data,
                                      mixed $output) {
-        $start = new DateTime();
-
-        $managersByReference = $this->entityManager
-            ->getRepository(Utilisateur::class)
-            ->getUsernameManagersGroupByReference();
-
-        $suppliersByReference = $this->entityManager
-            ->getRepository(Fournisseur::class)
-            ->getCodesAndLabelsGroupedByReference();
 
         foreach($data as $reference) {
-            $refArticleDataService->putReferenceLine($output, $managersByReference, $reference, $suppliersByReference, $freeFieldsConfig);
+            $refArticleDataService->putReferenceLine($output, $reference, $freeFieldsConfig);
         }
     }
 

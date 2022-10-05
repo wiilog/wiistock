@@ -232,29 +232,31 @@ function createArrival() {
             fillDatePickers('.free-field-datetime', 'YYYY-MM-DD', true);
 
             const $submit = $modal.find(`#submitNewArrivage`);
-            $submit.on(`click`, function() {
-                SubmitAction($modal, $submit, Routing.generate('arrivage_new', true), {
-                    keepForm: true,
-                    keepModal: true,
-                    keepLoading: true,
-                    waitForUserAction: () => {
-                        return checkPossibleCustoms($modal);
-                    },
-                    success: (res) => {
-                        res = res || {};
-                        $('#submitNewArrivage').popLoader();
-                        createArrival();
-                        arrivalCallback(
-                            true,
-                            {
-                                ...(res || {}),
-                                success: () => {}
-                            },
-                            arrivalsTable
-                        )
-                    },
-                }).catch(() => {});
-            })
+            $submit
+                .off('click.new-arrival')
+                .on(`click`, function() {
+                    SubmitAction($modal, $submit, Routing.generate('arrivage_new', true), {
+                        keepForm: true,
+                        keepModal: true,
+                        keepLoading: true,
+                        waitForUserAction: () => {
+                            return checkPossibleCustoms($modal);
+                        },
+                        success: (res) => {
+                            res = res || {};
+                            $('#submitNewArrivage').popLoader();
+                            createArrival();
+                            arrivalCallback(
+                                true,
+                                {
+                                    ...(res || {}),
+                                    success: () => {}
+                                },
+                                arrivalsTable
+                            )
+                        },
+                    }).catch(() => {});
+                });
         }, 1);
     }, `json`);
 }
