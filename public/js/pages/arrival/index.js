@@ -189,6 +189,21 @@ function listColis(elem) {
     }, 'json');
 }
 
+function openArrivalCreationModal($button) {
+    wrapLoadingOnActionButton($button, () => {
+        return createArrival()
+            .then(() => {
+                const $modal = $(`#modalNewArrivage`);
+                console.log($modal)
+                $modal.modal({
+                    backdrop: 'static',
+                    keyboard: false,
+                });
+                $modal.modal(`show`);
+            })
+    });
+}
+
 function createArrival() {
     return $.get(Routing.generate('arrivage_new_api', true), function (data) {
         const $existingModal = $(`#modalNewArrivage`);
@@ -200,11 +215,11 @@ function createArrival() {
             $modal = $(`#modalNewArrivage`);
             $modal.attr(`style`, style);
             $modal.addClass(`show`);
+
+            $modal.find('[type=submit]').popLoader();
         } else {
             $(`body`).append(data.html);
-
             $modal = $(`#modalNewArrivage`);
-            $modal.modal(`show`);
         }
 
         setTimeout(() => {
@@ -221,7 +236,7 @@ function createArrival() {
             Select2Old.init($modal.find('.ajax-autocomplete-chauffeur'));
             Select2Old.location($modal.find('.ajax-autocomplete-location'));
             Select2Old.init($modal.find('.ajax-autocomplete-user'), '', 1);
-            Select2Old.initFree($('.select2-free'));
+            Select2Old.initFree($modal.find('.select2-free'));
 
             const $userFormat = $('#userDateFormat');
             const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
@@ -231,7 +246,7 @@ function createArrival() {
             fillDatePickers('.free-field-date');
             fillDatePickers('.free-field-datetime', 'YYYY-MM-DD', true);
 
-            const $submit = $modal.find(`#submitNewArrivage`);
+            const $submit = $modal.find(`[type=submit]`);
             $submit
                 .off('click.new-arrival')
                 .on(`click`, function() {
@@ -244,7 +259,6 @@ function createArrival() {
                         },
                         success: (res) => {
                             res = res || {};
-                            $('#submitNewArrivage').popLoader();
                             createArrival();
                             arrivalCallback(
                                 true,
