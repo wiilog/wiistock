@@ -63,8 +63,8 @@ class DisputeRepository extends EntityRepository
     }
 
 	public function getDisputeBuyers(Dispute $dispute): array {
-        return $this->createQueryBuilder('dispute')
-            ->select('buyer')
+        $result =  $this->createQueryBuilder('dispute')
+            ->select('buyer.id')
             ->distinct()
             ->join('dispute.packs', 'pack')
             ->join('pack.arrivage', 'arrival')
@@ -73,6 +73,8 @@ class DisputeRepository extends EntityRepository
             ->setParameter('dispute', $dispute)
             ->getQuery()
             ->getResult();
+
+        return $this->getEntityManager()->getRepository(Utilisateur::class)->findBy($result[0]);
     }
 
     public function getAcheteursReceptionByDisputeId(int $disputeId, string $field = 'email') {
