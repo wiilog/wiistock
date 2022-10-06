@@ -44,8 +44,9 @@
                                         <option disabled selected></option>
                                         {% for statut in statuts %}
                                             {% if statut.nom != constant('App\\Entity\\TrackingMovement::TYPE_UNGROUP') %}
-                                                <option class="{{ statut.nom == constant('App\\Entity\\TrackingMovement::TYPE_EMPTY_ROUND')
-                                                and not hasEmptyRoundRight ? 'd-none' }}" value="{{ statut.id }}">{{ trans('Traçabilité', 'Mouvements', statut.nom) }}
+                                                <option class="{{ statut.nom == constant('App\\Entity\\TrackingMovement::TYPE_EMPTY_ROUND') and not hasEmptyRoundRight ? 'd-none' }}"
+                                                        value="{{ statut.id }}">
+                                                    {{ trans('Traçabilité', 'Mouvements', statut.nom) }}
                                                 </option>
                                             {% endif %}
                                         {% endfor %}

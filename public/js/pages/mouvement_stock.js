@@ -22,7 +22,7 @@ $(function() {
             {"data": 'from', 'name': 'from', 'title': 'Issu de', className: 'noVis', orderable: false},
             {"data": "barCode", 'name': 'barCode', 'title': 'Code barre'},
             {"data": "refArticle", 'name': 'refArticle', 'title': 'Référence article'},
-            {"data": "quantite", 'name': 'quantite', 'title': Translation.of('Général', 'Mouvements', 'Quantité')},
+            {"data": "quantite", 'name': 'quantite', 'title': 'Quantité'},
             {"data": 'origine', 'name': 'origine', 'title': 'Origine'},
             {"data": 'destination', 'name': 'destination', 'title': 'Destination'},
             {"data": 'type', 'name': 'type', 'title': 'Type'},

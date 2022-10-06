@@ -16,12 +16,12 @@ const packsTableConfig = {
     columns: [
         {data: 'actions', name: 'actions', title: '', className: 'noVis', orderable: false},
         {data: 'pairing', name: 'pairing', title: '', className: 'pairing-row'},
-        {data: 'packNum', name: 'packNum', title: Translation.of( 'Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Numéro d\'UL')},
-        {data: 'packNature', name: 'packNature', title: Translation.of( 'Traçabilité', 'Unités logistiques', 'Divers', 'Nature d\'unité logistique')},
-        {data: "quantity", name: 'quantity',  'title': Translation.of( 'Traçabilité', 'Général', 'Quantité')},
-        {data: 'packLastDate', name: 'packLastDate', title: Translation.of( 'Traçabilité', 'Général', 'Date dernier mouvement')},
-        {data: "packOrigin", name: 'packOrigin', title: Translation.of( 'Traçabilité', 'Général', 'Issu de'), className: 'noVis', orderable: false},
-        {data: "packLocation", name: 'packLocation', title: Translation.of( 'Traçabilité', 'Général', 'Emplacement')},
+        {data: 'packNum', name: 'packNum', title: Translation.of('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Numéro d\'UL')},
+        {data: 'packNature', name: 'packNature', title: Translation.of('Traçabilité', 'Général', 'Nature')},
+        {data: "quantity", name: 'quantity',  'title': Translation.of('Traçabilité', 'Général', 'Quantité')},
+        {data: 'packLastDate', name: 'packLastDate', title: Translation.of('Traçabilité', 'Général', 'Date dernier mouvement')},
+        {data: "packOrigin", name: 'packOrigin', title: Translation.of('Traçabilité', 'Général', 'Issu de'), className: 'noVis', orderable: false},
+        {data: "packLocation", name: 'packLocation', title: Translation.of('Traçabilité', 'Général', 'Emplacement')},
     ]
 };
 

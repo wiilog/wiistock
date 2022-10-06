@@ -197,7 +197,7 @@ parameters:
                     rights:
                         menu: App\Entity\Menu::REFERENTIEL
                         action: App\Entity\Action::DISPLAY_TRAN
-                -   label: [ 'Référentiel', 'Natures', 'Nature d''UL' ]
+                -   label: 'Nature'
                     path: 'nature_param_index'
                     rights:
                         menu: App\Entity\Menu::REFERENTIEL

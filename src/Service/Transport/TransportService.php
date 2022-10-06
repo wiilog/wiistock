@@ -304,7 +304,7 @@ class TransportService {
         $linesResult = $this->updateTransportRequestLines($entityManager, $transportRequest, $data);
 
         if ($transportRequest->getLines()->isEmpty()) {
-            throw new FormException('Vous devez sélectionner au moins une nature de colis dans vote demande');
+            throw new FormException('Vous devez sélectionner au moins une nature dans vote demande');
         }
 
         $oldAddress = $oldAddress ?? null;

@@ -86,7 +86,7 @@ class PackController extends AbstractController
 
             $csvHeader = [
                 $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', "Numéro d'UL", false),
-                $translation->translate('Traçabilité', 'Unités logistiques', 'Général', "Nature d'unité logistique", false),
+                $translation->translate('Traçabilité', 'Général', 'Nature', false),
                 $translation->translate( 'Traçabilité', 'Général', 'Date dernier mouvement', false),
                 $translation->translate( 'Traçabilité', 'Général', 'Issu de', false),
                 $translation->translate( 'Traçabilité', 'Général', 'Issu de (numéro)', false),

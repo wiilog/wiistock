@@ -192,7 +192,7 @@ function validateNatureForm($form, errors) {
     if (!$natureChecks.filter(':checked').exists()) {
         errors.push({
             elements: [$natureChecks],
-            message: `Vous devez sélectionner au moins une nature de colis dans vote demande`,
+            message: `Vous devez sélectionner au moins une nature dans vote demande`,
         });
     }
 }

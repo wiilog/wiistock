@@ -2,14 +2,7 @@
 
 {% block filters %}
     {% include 'filters/filter_item/filterDate.html.twig' %}
-    {% include 'filters/filter_item/filterColis.html.twig' with {
-        multiple: true,
-        transPack : trans('Général', null, 'Zone filtre', 'Unité logistique', false)
-    }%}
-    {% include 'filters/filter_item/filterReceptionString.html.twig' with {
-        placeholder : trans('Traçabilité', 'Association BR', 'Réception')
-    }%}
-    {% include 'filters/filter_item/filterUser.html.twig' with {
-        placeholder : trans('Traçabilité', 'Mouvements', 'Opérateurs', false)
-    }%}
+    {% include 'filters/filter_item/filterColis.html.twig' %}
+    {% include 'filters/filter_item/filterReceptionString.html.twig' %}
+    {% include 'filters/filter_item/filterUser.html.twig' %}
 {% endblock %}

@@ -50,6 +50,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "en" => "To",
                         ],
                         [
+                            "fr" => "Utilisateurs",
+                            "en" => "Users",
+                            "tooltip" => "Filtre Association BR",
+                        ],
+                        [
                             "fr" => "Filtrer",
                             "en" => "Filter",
                         ],
@@ -475,7 +480,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "Unité logistique",
                         "en" => "Logistics unit",
-                        "tooltip" => "Page Mouvements : \"Filtre\"\nZone liste - Nom de colonnes \"Gestion des colonnes\"\nModale Nouveau mouvement \"Modale Modifier un mouvement\n____\nPage Association BR :\nFiltre\nZone liste - Nom de colonnes",
+                        "tooltip" => "Page Mouvements :\nFiltre\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouveau mouvement\nModale Modifier un mouvement\n_____\nPage Association BR :\nFiltre\nZone liste - Nom de colonnes",
                     ],
                     [
                         "fr" => "Emplacement",
@@ -515,12 +520,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "Issu de",
                         "en" => "From",
-                        "tooltip" => "Page Mouvements : \nZone liste - Nom de colonnes\nGestion des colonnes\n_____\nPage UL : \nZone liste - Nom de colonnes",
+                        "tooltip" => "Page Mouvements : \nZone liste - Nom de colonnes\nGestion des colonnes\n_____\nPage UL : \nZone liste - Nom de colonnes\nExport UL\nExport groupes",
                     ],
                     [
-                        "fr" => "Date de création",
-                        "en" => "Creation date",
-                        "tooltip" => "Page Flux - Arrivages :\nZone liste - Nom de colonnes\nGestion des colonnes\nDétails arrive - Liste des litiges \n____\nPage Urgences :\nZone liste - Nom de colonnes",
+                        "fr" => "Issu de (numéro)",
+                        "en" => "From (number)",
+                        "tooltip" => "Page UL : \nExport UL\nExport groupes",
                     ],
                     [
                         "fr" => "Date dernier mouvement",
@@ -1465,11 +1470,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "fr" => "Réception",
                         "en" => "Receipt",
                         "tooltip" => "Filtre\nZone liste - Nom de colonnes",
-                    ],
-                    [
-                        "fr" => "Utilisateurs",
-                        "en" => "Users",
-                        "tooltip" => "Filtre",
                     ],
                     [
                         "fr" => "Enregistrer une réception",
