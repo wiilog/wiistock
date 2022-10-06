@@ -151,7 +151,7 @@ class GroupController extends AbstractController {
         if (isset($dateTimeMin) && isset($dateTimeMax)) {
             $csvHeader = [
                 $translationService->translate( 'Traçabilité', 'Unités logistiques', 'Onglet "Groupes"', 'Numéro groupe', false),
-                $translationService->translate('Traçabilité', 'Unités logistiques', 'Général', "Nature d'unité logistique", false),
+                $translationService->translate('Traçabilité', 'Général', 'Nature', false),
                 $translationService->translate( 'Traçabilité', 'Général', 'Date dernier mouvement', false),
                 $translationService->translate('Traçabilité', 'Unités logistiques', 'Onglet "Groupes"', "Nombre d'UL", false),
                 $translationService->translate('Traçabilité', 'Unités logistiques', 'Général', "Poids (kg)", false),

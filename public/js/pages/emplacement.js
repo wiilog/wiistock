@@ -31,7 +31,7 @@ const locationsTableConfig = {
         {data: 'ongoingVisibleOnMobile', title: 'Encours visible'},
         {data: 'maxDelay', title: 'Délai maximum'},
         {data: 'active', title: 'Actif / Inactif'},
-        {data: 'allowedNatures', title: Translation.of(`Référentiel`, `Natures`, `Natures d'UL autorisées`), orderable: false},
+        {data: 'allowedNatures', title: `Natures autorisées`, orderable: false},
         {data: 'allowedTemperatures', title: 'Températures autorisées', orderable: false},
     ]
 };

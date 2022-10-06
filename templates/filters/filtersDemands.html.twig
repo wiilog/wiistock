@@ -24,7 +24,9 @@
     {% endif %}
 
     {% include 'filters/filter_item/filterUser.html.twig' with {
-        'placeholder': (page == 'PAGE_HAND' ? trans('Demande', 'Général', 'Demandeurs', false) : 'Utilisateurs')
+        placeholder: (page == 'PAGE_HAND'
+            ? trans('Demande', 'Général', 'Demandeurs', false)
+            : trans('Général', null, 'Zone filtre', 'Utilisateurs', false))
     } %}
 
     {% if page == 'PAGE_HAND' %}

@@ -5,14 +5,16 @@
             <input type="text" class="form-control" value="{{ group.code }}" readonly/>
         </div>
         <div class="form-group col-md-6 col-12">
-            <label class="wii-field-name" title="Nature de colis">{{ trans('Traçabilité', 'Unités logistiques', 'Divers', "Nature d'unité logistique") }}*</label>
+            <label class="wii-field-name">{{ trans('Traçabilité', 'Général', 'Nature') }}*</label>
             <select class="form-control data needed"
                     name="nature"
-                    title="{{ trans('Traçabilité', 'Unités logistiques', 'Divers', "Nature d'unité logistique") }}">
+                    title="{{ trans('Traçabilité', 'Général', 'Nature') }}">
                 <option value>{{ trans('Traçabilité', 'Général', 'Sélectionner une nature', false) }}</option>
                 {% set packNatureId = group.nature is not null ? group.nature.id : null %}
                 {% for nature in natures %}
-                    <option value="{{ nature.id }}" {{ packNatureId == nature.id ? 'selected' }}>{{ nature.label }}</option>
+                    <option value="{{ nature.id }}" {{ packNatureId == nature.id ? 'selected' }}>
+                        {{ nature.getLabelIn(language_service.getCurrentUserLanguageSlug, language_service.defaultSlug) }}
+                    </option>
                 {% endfor %}
             </select>
         </div>
