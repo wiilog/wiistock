@@ -168,9 +168,7 @@ class NatureController extends AbstractController
 
             return $this->json([
                 "success" => true,
-                "msg" => $translation->translate("Référentiel", "Natures", "La nature {1} a bien été créée", [
-                    1 => $data["label"],
-                ])
+                "msg" => "La nature {$data["label"]} a bien été créée"
             ]);
         }
         throw new BadRequestHttpException();
@@ -314,7 +312,7 @@ class NatureController extends AbstractController
 
             return new JsonResponse([
                 'success' => true,
-                'msg' => $translationService->translate("Référentiel", "Natures", "La nature ".$natureLabel." a bien été modifiée")
+                'msg' => "La nature $natureLabel a bien été modifiée"
             ]);
         }
         throw new BadRequestHttpException();

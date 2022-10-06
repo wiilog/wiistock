@@ -50,6 +50,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "en" => "To",
                         ],
                         [
+                            "fr" => "Utilisateurs",
+                            "en" => "Users",
+                            "tooltip" => "Filtre Association BR",
+                        ],
+                        [
                             "fr" => "Filtrer",
                             "en" => "Filter",
                         ],
@@ -475,7 +480,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "Unité logistique",
                         "en" => "Logistics unit",
-                        "tooltip" => "Composant \"UL en retard\"\nComposant \"Nombre d'arrivages et d'UL quotidiens\"\nComposant \"Nombres d'arrivages et d'UL hebdomadaires\"",
+                        "tooltip" => "Page Mouvements :\nFiltre\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouveau mouvement\nModale Modifier un mouvement\n_____\nPage Association BR :\nFiltre\nZone liste - Nom de colonnes",
                     ],
                     [
                         "fr" => "Emplacement",
@@ -500,12 +505,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "Quantité",
                         "en" => "Quantity",
-                        "tooltip" => "Page Mouvements :\nZone liste - Nom de colonnes\nModale Modifier une unité logistique\nModale Nouvelle UL\n_____\nPage UL :\nOnglet UL - Zone liste - Nom de colonnes\nOnglet UL - Modale Modifier une unité logistique",
+                        "tooltip" => "Page Mouvements :\nZone liste - Nom de colonnes\n Modale Modifier un mouvement\nModale Nouveau mouvement\n______\nPage UL :\nOnglet UL - Zone liste - Nom de colonnes\nOnglet UL - Modale Modifier une unité logistique\nOnglet UL - contenu UL",
                     ],
                     [
                         "fr" => "Nature",
                         "en" => "Nature",
-                        "tooltip" => "Page Flux - Arrivages :\nDétails arrivage - Liste des UL - Colonne\n_____\nPage UL :\nOnglet UL - Colonne\nOnglet UL - Modale Modifier une unité logistique\nOnglet Groupes - Carte groupe\nOnglet Groupes - Carte UL dans Carte groupe",
+                        "tooltip" => "Page Flux - Arrivages :\nDétails arrivage - Liste des UL - Colonne\n_____\nPage UL :\nOnglet UL - Colonne\nOnglet UL - Modale Modifier une unité logistique\nOnglet Groupes - Carte groupe\nOnglet Groupes - Carte UL dans Carte groupe\nOnglet Groupes - Exports",
                     ],
                     [
                         "fr" => "Natures",
@@ -515,12 +520,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "Issu de",
                         "en" => "From",
-                        "tooltip" => "Page Mouvements : \nZone liste - Nom de colonnes\nGestion des colonnes\n_____\nPage UL : \nZone liste - Nom de colonnes",
+                        "tooltip" => "Page Mouvements : \nZone liste - Nom de colonnes\nGestion des colonnes\n_____\nPage UL : \nZone liste - Nom de colonnes\nExport UL\nExport groupes",
                     ],
                     [
                         "fr" => "Issu de (numéro)",
                         "en" => "From (number)",
-                        "tooltip" => "Page UL : \nZone liste - Nom de colonnes",
+                        "tooltip" => "Page UL : \nExport UL\nExport groupes",
                     ],
                     [
                         "fr" => "Date dernier mouvement",
@@ -530,7 +535,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "Dernier emplacement",
                         "en" => "Last location",
-                        "tooltip" => "Page Flux - Arrivages :\nDétails arrivage - Liste des UL - Nom de colonnes\n_____\nPage UL :\nZone liste - Nom de colonnes",
+                        "tooltip" => "Page Flux - Arrivages :\nDétails arrivage - Liste des UL - Nom de colonnes",
                     ],
                     [
                         "fr" => "Sélectionner une nature",
@@ -1107,19 +1112,14 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Filtre",
                         ],
                         [
-                            "fr" => "Nature d'unité logistique",
-                            "en" => "Logistics unit nature",
-                            "tooltip" => 'Onglet "Unité logistique"\nZone liste\nModale Modifier une unité logistique\n_____\nOnglet "Groupes"\nExport',
-                        ],
-                        [
                             "fr" => "Poids (kg)",
                             "en" => "Weight (kg)",
-                            "tooltip" => 'Onglet "Unité logistique"\nZone liste\nModale Modifier une unité logistique\n_____\nOnglet "Groupes"\nModale Modifier le groupe\nExport',
+                            "tooltip" => "Onglet \"Unité logistique\"\nZone liste\nModale Modifier une unité logistique\n____\nOnglet \"Groupes\"\nModale Modifier le groupe\nExport",
                         ],
                         [
                             "fr" => "Volume (m3)",
                             "en" => "Volume (m3)",
-                            "tooltip" => 'Onglet "Unité logistique"\nZone liste\nModale Modifier une unité logistique\n_____\nOnglet "Groupes"\nModale Modifier le groupe\nExport',
+                            "tooltip" => "Onglet \nUnité logistique\nZone liste\nModale Modifier une unité logistique\n____\nOnglet Groupes\nModale Modifier le groupe\nExport",
                         ],
                     ],
                 ],
@@ -1198,11 +1198,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Ref",
                             "en" => "Ref",
-                            "tooltip" => "Zone liste - contenu UL",
-                        ],
-                        [
-                            "fr" => "Quantité",
-                            "en" => "Quantity",
                             "tooltip" => "Zone liste - contenu UL",
                         ],
                         [
@@ -1475,11 +1470,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "fr" => "Réception",
                         "en" => "Receipt",
                         "tooltip" => "Filtre\nZone liste - Nom de colonnes",
-                    ],
-                    [
-                        "fr" => "Utilisateurs",
-                        "en" => "Users",
-                        "tooltip" => "Filtre",
                     ],
                     [
                         "fr" => "Enregistrer une réception",

@@ -160,7 +160,7 @@ class Import {
         'name' => 'Nom',
         'description' => 'Description',
         'dateMaxTime' => 'Délais traça HH:MM',
-        'allowedPackNatures' => ["Référentiel", "Natures", "Natures d'UL autorisées"],
+        'allowedPackNatures' => "Natures autorisées",
         'allowedDeliveryTypes' => 'Types de livraisons autorisés',
         'allowedCollectTypes' => 'Types de collectes autorisés',
         'isDeliveryPoint' => 'Point de livraison',
