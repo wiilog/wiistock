@@ -794,6 +794,7 @@ function updateSimpleChartData(chart, data, label, stack = false,
 }
 
 function createAndUpdateSimpleChart($canvas, chart, data, forceCreation = false, disableAnimation = false) {
+    applyChartTranslations(data);
     if(forceCreation || !chart) {
         chart = newChart($canvas, data, false, disableAnimation);
     }
@@ -1048,6 +1049,7 @@ function createAndUpdateMultipleCharts($canvas,
                                        forceCreation = false,
                                        redForLastData = true,
                                        disableAnimation = false) {
+    applyChartTranslations(data);
     if(forceCreation || !chart) {
         if(data.chartData) {
             delete data.chartData.hint;
@@ -1296,4 +1298,20 @@ function displayLegendTranslation(data){
             }
         }
     }
+}
+
+function applyChartTranslations(data){
+    if(data.__meterKey === PACK_TO_TREAT_FROM.toLowerCase()){
+        for(const [key, value] of Object.entries(data.chartColors)){
+            Object.defineProperty(data.chartColors, data.legends[key][Translation.slug], {value});
+            delete data.chartColors[key];
+        }
+    }
+    if(data.label){
+        data.label = Translation.of('Dashboard', data.label, false);
+    }
+    if(data.chartData && data.chartData.stack && data.chartData.stack[0].label){
+        data.chartData.stack[0].label = Translation.of('Dashboard', data.chartData.stack[0].label, false);
+    }
+    return data;
 }

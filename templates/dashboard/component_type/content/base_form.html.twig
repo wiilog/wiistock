@@ -52,7 +52,7 @@
         {% block content_right %}{% endblock %}
 
         {% include 'dashboard/component_type/content/customization_tools.html.twig' with {
-            legendsTranslations: values.legends,
+            legendsTranslations: values.legends ?? [],
             languages: values.languages
         } %}
     </div>
