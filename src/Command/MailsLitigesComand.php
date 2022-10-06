@@ -7,6 +7,7 @@ namespace App\Command;
 
 use App\Entity\Dispute;
 
+use App\Entity\Utilisateur;
 use App\Service\LanguageService;
 use App\Service\MailerService;
 use App\Service\TranslationService;
@@ -52,6 +53,7 @@ class MailsLitigesComand extends Command
     public function execute(InputInterface $input, OutputInterface $output)
     {
         $disputeRepository = $this->entityManager->getRepository(Dispute::class);
+        $userRepository = $this->entityManager->getRepository(Utilisateur::class);
 
         /** @var Dispute[] $disputes */
         $disputes = $disputeRepository->findByStatutSendNotifToBuyer();
@@ -59,7 +61,7 @@ class MailsLitigesComand extends Command
         $disputesByBuyer = [];
         foreach ($disputes as $dispute) {
             /** @var  $buyers */
-            $buyers = $disputeRepository->getDisputeBuyers($dispute);
+            $buyers = $userRepository->getDisputeBuyers($dispute);
             foreach ($buyers as $buyer) {
                 $buyerId = $buyer->getId();
                 $disputeId = $dispute->getId();

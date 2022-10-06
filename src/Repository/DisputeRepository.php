@@ -62,21 +62,6 @@ class DisputeRepository extends EntityRepository
         }, $query->execute());
     }
 
-	public function getDisputeBuyers(Dispute $dispute): array {
-        $result =  $this->createQueryBuilder('dispute')
-            ->select('buyer.id')
-            ->distinct()
-            ->join('dispute.packs', 'pack')
-            ->join('pack.arrivage', 'arrival')
-            ->join('arrival.acheteurs', 'buyer')
-            ->andWhere('dispute = :dispute')
-            ->setParameter('dispute', $dispute)
-            ->getQuery()
-            ->getResult();
-
-        return $this->getEntityManager()->getRepository(Utilisateur::class)->findBy($result[0]);
-    }
-
     public function getAcheteursReceptionByDisputeId(int $disputeId, string $field = 'email') {
         $em = $this->getEntityManager();
 

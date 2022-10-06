@@ -164,9 +164,9 @@ class DisputeService {
         $recipients = [];
         $isArrival = ($category === self::CATEGORY_ARRIVAGE);
         if ($wantSendToBuyersMailStatusChange) {
-            $disputeRepository = $this->entityManager->getRepository(Dispute::class);
+            $userRepository = $this->entityManager->getRepository(Utilisateur::class);
             $recipients = $isArrival
-                ? $disputeRepository->getDisputeBuyers($dispute)
+                ? $userRepository->getDisputeBuyers($dispute)
                 : $dispute->getBuyers()->toArray();
         }
 
