@@ -2,7 +2,7 @@
 
 <div class="col-2">
     <div class="d-flex flex-column justify-content-center dark-background quantity-to-receive">
-        {{ form.input('quantityToReceive', trans('Ordre','Réceptions', 'article', false)~'(s)', true, 1, {
+        {{ form.input('quantityToReceive', 'Article(s)', true, 1, {
             type: 'number',
             min: 1
         }) }}
@@ -40,7 +40,7 @@
 <div class="col-12 d-flex justify-content-end mt-3">
     <button type="submit" class="btn btn-primary d-flex align-items-center add-articles">
         <span class='wii-icon wii-icon-plus mr-2'></span>
-        Ajouter des {{ trans('Ordre','Réceptions', 'articles', false) }}
+        Ajouter des articles
     </button>
 </div>
 
