@@ -42,6 +42,9 @@ class TranslationSource {
     #[OneToOne(inversedBy: "labelTranslation", targetEntity: FreeField::class)]
     private ?FreeField $freeField = null;
 
+    #[OneToOne(inversedBy: "defaultValueTranslation", targetEntity: FreeField::class)]
+    private ?FreeField $freeFieldDefaultValue = null;
+
     #[ManyToOne(targetEntity: FreeField::class, inversedBy: "elementsTranslations")]
     private ?FreeField $elementOfFreeField = null;
 
@@ -206,6 +209,24 @@ class TranslationSource {
         $this->freeField = $freeField;
         if($this->freeField && $this->freeField->getLabelTranslation() !== $this) {
             $this->freeField->setLabelTranslation($this);
+        }
+
+        return $this;
+    }
+
+    public function getFreeFieldDefaultValue(): ?FreeField {
+        return $this->freeFieldDefaultValue;
+    }
+
+    public function setFreeFieldDefaultValue(?FreeField $freeFieldDefaultValue): self {
+        if($this->freeFieldDefaultValue && $this->freeFieldDefaultValue->getDefaultValueTranslation() !== $this) {
+            $oldFreeFieldDefaultValue = $this->freeFieldDefaultValue;
+            $this->freeFieldDefaultValue = null;
+            $oldFreeFieldDefaultValue->setDefaultValueTranslation(null);
+        }
+        $this->freeFieldDefaultValue = $freeFieldDefaultValue;
+        if($this->freeFieldDefaultValue && $this->freeFieldDefaultValue->getDefaultValueTranslation() !== $this) {
+            $this->freeFieldDefaultValue->setDefaultValueTranslation($this);
         }
 
         return $this;

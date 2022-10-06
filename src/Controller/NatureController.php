@@ -188,7 +188,7 @@ class NatureController extends AbstractController
             $nature = $natureRepository->find($data['id']);
 
             if ($nature->getLabelTranslation() === null) {
-                $translationService->setFirstTranslation($manager, $nature->getId(), Nature::class, $this->getFormatter()->nature($nature));;
+                $translationService->setFirstTranslation($manager, $nature, $this->getFormatter()->nature($nature));
             }
 
             $temperatures = $manager->getRepository(TemperatureRange::class)->findBy([]);
@@ -247,7 +247,7 @@ class NatureController extends AbstractController
                 $frenchLabel = $label['language-id'] == "1" ? $label['label'] : $frenchLabel;
             }
 
-            $translationService->editEntityTranslations($entityManager, $labels, $labelTranslationSource);
+            $translationService->editEntityTranslations($entityManager, $labelTranslationSource, $labels);
 
             $currentNature
                 ->setPrefix($data['prefix'] ?? null)

@@ -12,7 +12,7 @@ import {
     createFreeFieldsPage,
     initializeTraceMovementsFreeFields,
     initializeIotFreeFields,
-    initializeReceptionsFreeFields,
+    initializeReceptionsFreeFields, createArrivalsFreeFieldsPage, createDispatchFreeFieldsPage, createHandlingFreeFieldsPage,
 } from "./free-fields";
 import {
     initializeArrivalDisputeStatuses,
@@ -51,9 +51,9 @@ const initializers = {
     stock_demandes_types_champs_libres_collectes: createFreeFieldsPage,
     track_demande_transport_types_champs_libres_livraisons: createFreeFieldsPage,
     track_demande_transport_types_champs_libres_collectes: createFreeFieldsPage,
-    trace_acheminements_types_champs_libres: createFreeFieldsPage,
-    trace_arrivages_types_champs_libres: createFreeFieldsPage,
-    trace_services_types_champs_libres: createFreeFieldsPage,
+    trace_acheminements_types_champs_libres: createDispatchFreeFieldsPage,
+    trace_arrivages_types_champs_libres: createArrivalsFreeFieldsPage,
+    trace_services_types_champs_libres: createHandlingFreeFieldsPage,
     trace_mouvements_champs_libres: initializeTraceMovementsFreeFields,
     stock_receptions_champs_libres: initializeReceptionsFreeFields,
     trace_services_modeles_demande: initializeRequestTemplates,

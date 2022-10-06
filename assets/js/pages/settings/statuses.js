@@ -13,7 +13,7 @@ const DISABLED_LABELS_TRANSLATION_PAGES = [
 ];
 
 const $managementButtons = $(`.save-settings, .discard-settings`);
-let $canTranslate = true;
+let canTranslate = true;
 
 export function initializeArrivalDisputeStatuses($container, canEdit) {
     initializeStatuses($container, canEdit, MODE_ARRIVAL_DISPUTE);
@@ -70,7 +70,7 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
             $managementButtons.removeClass('d-none');
             if(!DISABLED_LABELS_TRANSLATION_PAGES.includes(tableSelector)) {
                 $addRow.addClass('d-none');
-                if ($canTranslate) {
+                if (canTranslate) {
                     $translateLabels.removeClass('d-none');
                 }
 
@@ -94,8 +94,8 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
             $managementButtons.addClass('d-none');
             $addRow.removeClass('d-none');
             $filtersContainer.removeClass('d-none');
-            if ($canTranslate) { $translateLabels.addClass('d-none'); }
-            $canTranslate = true;
+            if (canTranslate) { $translateLabels.addClass('d-none'); }
+            canTranslate = true;
             $pageBody.find('.wii-title').remove();
         },
         columns: getStatusesColumn(mode),
@@ -123,7 +123,7 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
 
     $addButton
         .on('click', function() {
-            $canTranslate = false;
+            canTranslate = false;
         });
 
     $container.on('change', '[name=state]', function () {

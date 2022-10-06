@@ -103,6 +103,9 @@ class FreeField implements Serializable {
     #[ORM\OneToOne(mappedBy: "freeField", targetEntity: TranslationSource::class)]
     private ?TranslationSource $labelTranslation = null;
 
+    #[ORM\OneToOne(mappedBy: "freeFieldDefaultValue", targetEntity: TranslationSource::class)]
+    private ?TranslationSource $defaultValueTranslation = null;
+
     #[ORM\OneToMany(mappedBy: "elementOfFreeField", targetEntity: TranslationSource::class)]
     private Collection $elementsTranslations;
 
@@ -119,7 +122,7 @@ class FreeField implements Serializable {
         return $this->id;
     }
 
-    public function getLabelIn(Language|string $in, Language|string $default): ?string {
+    public function getLabelIn(Language|string $in, Language|string $default = null): ?string {
         if($default instanceof Language) {
             $default = $default->getSlug();
         }
@@ -165,6 +168,20 @@ class FreeField implements Serializable {
         return $this;
     }
 
+    public function getDefaultValueIn(Language|string $in, Language|string $default = null): ?string {
+        if($default instanceof Language) {
+            $default = $default->getSlug();
+        }
+
+        $default = match($default) {
+            Language::FRENCH_DEFAULT_SLUG => Language::FRENCH_SLUG,
+            Language::ENGLISH_DEFAULT_SLUG => Language::ENGLISH_SLUG,
+            default => $default,
+        };
+
+        return $this->getDefaultValueTranslation()->getTranslationIn($in, $default)?->getTranslation();
+    }
+
     public function getDefaultValue(): ?string {
         return $this->defaultValue;
     }
@@ -203,7 +220,7 @@ class FreeField implements Serializable {
         return $this;
     }
 
-    public function getElementsIn(Language|string $in, Language|string $default): array {
+    public function getElementsIn(Language|string $in, Language|string $default = null): array {
         if($default instanceof Language) {
             $default = $default->getSlug();
         }
@@ -288,11 +305,35 @@ class FreeField implements Serializable {
         return $this;
     }
 
+    public function getDefaultValueTranslation(): ?TranslationSource {
+        return $this->defaultValueTranslation;
+    }
+
+    public function setDefaultValueTranslation(?TranslationSource $defaultValueTranslation): self {
+        if($this->defaultValueTranslation && $this->defaultValueTranslation->getFreeFieldDefaultValue() !== $this) {
+            $oldDefaultValueTranslation = $this->defaultValueTranslation;
+            $this->defaultValueTranslation = null;
+            $oldDefaultValueTranslation->setFreeFieldDefaultValue(null);
+        }
+        $this->defaultValueTranslation = $defaultValueTranslation;
+        if($this->defaultValueTranslation && $this->defaultValueTranslation->getFreeFieldDefaultValue() !== $this) {
+            $this->defaultValueTranslation->setFreeFieldDefaultValue($this);
+        }
+
+        return $this;
+    }
+
     /**
      * @return Collection<int, TranslationSource>
      */
     public function getElementsTranslations(): Collection {
         return $this->elementsTranslations;
+    }
+
+    public function getElementTranslation(string $element): ?TranslationSource {
+        return $this->getElementsTranslations()
+                ->filter(fn(TranslationSource $source) => $source->getTranslationIn(Language::FRENCH_SLUG)->getTranslation() === $element)
+                ->first() ?: null;
     }
 
     public function addElementTranslation(TranslationSource $elementTranslation): self {

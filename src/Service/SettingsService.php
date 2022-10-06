@@ -685,6 +685,36 @@ class SettingsService {
                     ->setRequiredCreate($item["requiredCreate"])
                     ->setRequiredEdit($item["requiredEdit"]);
 
+                if(!$freeField->getLabelTranslation()) {
+                    $this->translationService->setFirstTranslation($this->manager, $freeField, $freeField->getLabel());
+                } else {
+                    $freeField->getLabelTranslation()
+                        ->getTranslationIn(Language::FRENCH_SLUG)
+                        ->setTranslation($freeField->getLabel());
+                }
+
+                if($freeField->getDefaultValue() && !$freeField->getDefaultValueTranslation()) {
+                    $this->translationService->setFirstTranslation($this->manager, $freeField, $freeField->getDefaultValue(), "setDefaultValueTranslation");
+                } else if($freeField->getDefaultValueTranslation()) {
+                    $freeField->getDefaultValueTranslation()
+                        ->getTranslationIn(Language::FRENCH_SLUG)
+                        ->setTranslation($freeField->getDefaultValue());
+                }
+
+                foreach($freeField->getElementsTranslations() as $source) {
+                    if(!in_array($source->getTranslationIn(Language::FRENCH_SLUG)->getTranslation(), $freeField->getElements())) {
+                        $freeField->removeElementTranslation($source);
+                        $this->manager->remove($source);
+                    }
+                }
+
+                foreach($freeField->getElements() as $element) {
+                    $source = $freeField->getElementTranslation($element);
+                    if(!$source) {
+                        $this->translationService->setFirstTranslation($this->manager, $freeField, $element, "addElementTranslation");
+                    }
+                }
+
                 $this->manager->persist($freeField);
             }
         }
