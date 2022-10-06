@@ -16,7 +16,7 @@ final class Version20220817144425 extends AbstractMigration
     public function up(Schema $schema): void
     {
         if($schema->getTable("translation")->hasColumn("menu")) {
-            $this->addSql("ALTER TABLE translation RENAME TO previous_translation;");
+            $this->addSql("DROP TABLE translation;");
         }
     }
 }
