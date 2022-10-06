@@ -6,7 +6,7 @@
     <input id="receptionId" value="{{ reception.id }}" type="hidden"/>
 {% endblock %}
 
-{% block showTitleTooltip 'réception' %}
+{% block showTitleTooltip trans('Ordre','Réceptions', 'Réception', false)  %}
 {% block showTitle trans('Ordre','Réceptions', 'réception', false) %}
 {% block showSubtitle (reception.number) %}
 

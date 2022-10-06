@@ -34,6 +34,9 @@ class TranslationService {
     #[Required]
     public FormatService $formatService;
 
+    #[Required]
+    public UserService $userService;
+
     private array $translations = [];
 
     /**
