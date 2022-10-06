@@ -194,7 +194,6 @@ function openArrivalCreationModal($button) {
         return createArrival()
             .then(() => {
                 const $modal = $(`#modalNewArrivage`);
-                console.log($modal)
                 $modal.modal({
                     backdrop: 'static',
                     keyboard: false,

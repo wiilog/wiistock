@@ -16,6 +16,7 @@ use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Service\DashboardSettingsService;
+use App\Service\TranslationService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
@@ -32,6 +33,9 @@ class DashboardSettingsController extends AbstractController {
 
     /** @Required */
     public UserService $userService;
+
+    /** @Required */
+    public TranslationService $translationService;
 
     /**
      * @Route("/", name="dashboard_settings", methods={"GET"})
@@ -323,16 +327,17 @@ class DashboardSettingsController extends AbstractController {
                 }
             });
 
+        $displayLegend = $componentType->getMeterKey() === Dashboard\ComponentType::HANDLING_TRACKING || $componentType->getMeterKey() === Dashboard\ComponentType::PACK_TO_TREAT_FROM;
         $values['legends'] = [];
         if(!empty($values['chartColorsLabels'])){
             $countLegend = 1;
             foreach($values['chartColorsLabels'] as $legend){
                 $values['legends'][$legend] = [];
                 Stream::from($values)
-                    ->each(function($conf, $arrayKey) use ($legend, $countLegend, &$values) {
+                    ->each(function ($conf, $arrayKey) use ($displayLegend, $legend, $countLegend, &$values) {
                         if (str_starts_with($arrayKey, 'legend') && str_contains($arrayKey, '_') && str_contains($arrayKey, $countLegend)) {
                             $explode = explode('_', $arrayKey);
-                            $values['legends'][$legend][$explode[1]] = $conf;
+                            $values['legends'][$legend][$explode[1]] = $displayLegend ? $conf : $this->translationService->translate('Dashboard', $conf);
                             unset($values[$arrayKey]);
                         }
                     });
@@ -344,10 +349,10 @@ class DashboardSettingsController extends AbstractController {
                 $values['legends'][$key] = [];
 
                 Stream::from($values)
-                    ->each(function($conf, $arrayKey) use ($countLegend, $key, &$values) {
+                    ->each(function ($conf, $arrayKey) use ($displayLegend, $countLegend, $key, &$values) {
                         if (str_starts_with($arrayKey, 'legend') && str_contains($arrayKey, '_') && str_contains($arrayKey, $countLegend)) {
                             $explode = explode('_', $arrayKey);
-                            $values['legends'][$key][$explode[1]] = $conf;
+                            $values['legends'][$key][$explode[1]] = $displayLegend ? $conf : $this->translationService->translate('Dashboard', $conf);
                             unset($values[$arrayKey]);
                         }
                     });
