@@ -30,10 +30,10 @@ class MailerService
     /**
      * @param string|array $template string|['path' => string, 'options' => array]
      */
-    public function sendMail(string|array $subject,
-                             string|array $template,
+    public function sendMail(callable|string|array    $subject,
+                             string|array             $template,
                              array|string|Utilisateur $to,
-                             array $attachments = []): bool {
+                             array                    $attachments = []): bool {
         if (isset($_SERVER['APP_NO_MAIL']) && $_SERVER['APP_NO_MAIL'] == 1) {
             return true;
         }
@@ -109,9 +109,9 @@ class MailerService
             ]
      *  ]
      */
-    private function createContents(Stream       $recipients,
-                                    string|array $subject,
-                                    string|array $template): array {
+    private function createContents(Stream                $recipients,
+                                    callable|string|array $subject,
+                                    string|array          $template): array {
         $defaultSlugLanguage = $this->languageService->getDefaultSlug();
         $contents = [];
 
@@ -144,10 +144,17 @@ class MailerService
                         else {
                             $content = $template;
                         }
+
+                        $subject = is_callable($subject)
+                            ? $this->translationService->translateIn($slug, ...($subject($slug)))
+                            : (is_array($subject)
+                                ? $this->translationService->translateIn($slug, ...$subject)
+                                : $subject);
+
                         $contents[$slug] = [
                             'to' => [$email],
                             'content' => $content,
-                            'subject' => is_array($subject) ? $this->translationService->translateIn($slug, ...$subject) : $subject
+                            'subject' => $subject
                         ];
                     }
                     else if (!in_array($email, $contents[$slug]['to'])) {

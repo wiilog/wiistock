@@ -233,12 +233,11 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
     }
 
     public function getDisputeBuyers(Dispute $dispute): array {
-        return $this->createQueryBuilder('utilisateur')
-            ->select('utilisateur')
+        return $this->createQueryBuilder('buyer')
             ->distinct()
-            ->join('utilisateur.arrivagesAcheteur', 'arrival')
-            ->join('arrival.packs', 'packs')
-            ->join('packs.disputes', 'dispute')
+            ->join('buyer.arrivagesAcheteur', 'arrival')
+            ->join('arrival.packs', 'pack')
+            ->join('pack.disputes', 'dispute')
             ->andWhere('dispute = :dispute')
             ->setParameter('dispute', $dispute)
             ->getQuery()
