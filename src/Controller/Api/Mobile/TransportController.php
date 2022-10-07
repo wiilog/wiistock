@@ -175,6 +175,12 @@ class TransportController extends AbstractFOSRestController
             ->map(fn(TransportRequestLine $line) => $line->getCollectedQuantity())
             ->sum();
 
+        $doneCollects = Stream::from($lines)
+            ->filter(fn(TransportRoundLine $line) => ($line->getOrder()->getRequest() instanceof TransportCollectRequest
+                    || $line->getOrder()->getRequest()->getCollect())
+                && $line->getOrder()->getRequest()->getCollect()->getStatus()->getCode() !== TransportRequest::STATUS_NOT_COLLECTED)
+            ->count();
+
         return [
             'id' => $round->getId(),
             'number' => $round->getNumber(),
@@ -210,7 +216,7 @@ class TransportController extends AbstractFOSRestController
             "not_delivered" => $notDeliveredOrders->count(),
             "returned_packs" => $returned,
             "packs_to_return" => $toReturn,
-            "done_collects" => $collectedOrders->count(),
+            "done_collects" => $doneCollects,
             "deposited_packs" => $depositedPacks,
             "packs_to_deposit" => $toDeposit,
             "deposited_delivery_packs" => $round->hasNoDeliveryToReturn(),
@@ -1104,11 +1110,15 @@ class TransportController extends AbstractFOSRestController
                 $requestFinished = $manager->getRepository(Statut::class)
                     ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_REQUEST_DELIVERY, TransportRequest::STATUS_FINISHED);
 
+                $requestNotCollected = $manager->getRepository(Statut::class)
+                    ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_REQUEST_COLLECT, TransportRequest::STATUS_NOT_COLLECTED);
+
                 $orderFinished = $manager->getRepository(Statut::class)
                     ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_DELIVERY, TransportOrder::STATUS_FINISHED);
 
                 $statusHistoryService->updateStatus($manager, $deliveryRequest, $requestFinished);
                 $statusHistoryService->updateStatus($manager, $deliveryOrder, $orderFinished);
+                $statusHistoryService->updateStatus($manager, $request, $requestNotCollected);
             }
         }
 
