@@ -17,7 +17,9 @@
                 <div class="{{ colType is defined ? colType }} {% if showLabels ?? true %}my-2{% endif %}">
                     <div class="row form-group free-field mb-0 ">
                         <div class="col-12 d-flex">
-                            {% set label = (showLabels ?? true) ? freeField.label : '' %}
+                            {% set label = freeField.labelIn(language_service.getCurrentUserLanguageSlug, language_service.defaultSlug)
+                                ?: freeField.label %}
+                            {% set displayedLabel = (showLabels ?? true) ? label : '' %}
                             {% if freeField.typage == constant('App\\Entity\\FreeField::TYPE_BOOL') %}
                                 {% if freeFieldValues[freeField.id] is defined %}
                                     {% set entityValue = freeFieldValues[freeField.id] %}
@@ -26,17 +28,17 @@
                                 {% else %}
                                     {% set entityValue = 0 %}
                                 {% endif %}
-                                {{ form.switch(freeField.id, label, needed, [
-                                    {label: 'Oui', value: '1', checked: entityValue == 1},
-                                    {label: 'Non', value: '0', checked: entityValue is not null and entityValue == 0}
+                                {{ form.switch(freeField.id, displayedLabel, needed, [
+                                    {label: trans('Général', null, 'Modale', 'Oui', false), value: '1', checked: entityValue == 1},
+                                    {label: trans('Général', null, 'Modale', 'Non', false), value: '0', checked: entityValue is not null and entityValue == 0}
                                 ], {
                                     additionalAttributes: [{
                                         name: 'data-title',
-                                        value: freeField.label
+                                        value: label
                                     }]
                                 }) }}
                             {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_NUMBER') %}
-                                {{ form.input(freeField.id, label, needed, entityValue, {
+                                {{ form.input(freeField.id, displayedLabel, needed, entityValue, {
                                     type: 'number',
                                     additionalAttributes: [{
                                         name: 'data-init',
@@ -46,19 +48,25 @@
                                     }]
                                 }) }}
                             {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_LIST') %}
-                                {{ form.select(freeField.id, label, needed, {
-                                    items: freeField.elements|map((elem) => {value: elem, label: elem}),
-                                    value: entityValue,
+                                {% set elements = freeField.elementsIn(language_service.getCurrentUserLanguageSlug, language_service.defaultSlug) %}
+                                {% set selectedValue = entityValue|transFreeFieldElements(freeField) %}
+                                {{ form.select(freeField.id, displayedLabel, needed, {
+                                    items: elements|map((elem) => {value: elem, label: elem}),
+                                    value: selectedValue,
                                     inputClass: 'needs-default w-100',
+                                    emptyOption: {text: '', value: ''},
                                     additionalAttributes: [{
                                         name: 'data-init',
-                                        value: entityValue
+                                        value: selectedValue
                                     }],
                                 }) }}
                             {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_LIST_MULTIPLE') %}
-                                {% set entityValuesArray = freeFieldValues[freeField.id] is defined ? freeFieldValues[freeField.id]|split(';') : [] %}
-                                {{ form.select(freeField.id, label, needed, {
-                                    items: freeField.elements|map((elem) => {value: elem, label: elem}),
+                                {% set elements = freeField.elementsIn(language_service.getCurrentUserLanguageSlug, language_service.defaultSlug) %}
+                                {% set entityValuesArray = freeFieldValues[freeField.id] is defined
+                                    ? freeFieldValues[freeField.id]|split(';')|transFreeFieldElements(freeField)
+                                    : [] %}
+                                {{ form.select(freeField.id, displayedLabel, needed, {
+                                    items: elements|map((elem) => {value: elem, label: elem}),
                                     multiple: true,
                                     value: entityValuesArray,
                                     type: null,
@@ -78,7 +86,7 @@
                                 {% if needsDateFormatting is defined and needsDateFormatting %}
                                     {% set value = entityValue ? entityValue : '' %}
                                     <label class="w-100">
-                                        {{ form.label(label, needed, false, {}) }}
+                                        {{ form.label(displayedLabel, needed, false, {}) }}
                                         <input type="text"
                                                value="{{ value }}"
                                                data-init="{{ value }}"
@@ -89,7 +97,7 @@
                                     </label>
                                 {% else %}
                                     {% set value = entityValue ? ((entityValue | replace({'/': '-'}) ) | date('Y-m-d\\TH:i')) : '' %}
-                                    {{ form.input(freeField.id, label, needed, value, {
+                                    {{ form.input(freeField.id, displayedLabel, needed, value, {
                                         type: 'datetime-local',
                                         additionalAttributes: [{
                                             name: 'data-init',
@@ -101,7 +109,7 @@
                                 {% if needsDateFormatting is defined and needsDateFormatting %}
                                     {% set value = entityValue ? entityValue : '' %}
                                     <label class="w-100">
-                                        {{ form.label(label, needed, false, {}) }}
+                                        {{ form.label(displayedLabel, needed, false, {}) }}
                                         <input type="text"
                                                value="{{ value }}"
                                                data-init="{{ value }}"
@@ -113,13 +121,12 @@
                                 {% else %}
                                     {% if entityValue is defined and entityValue matches '{^\\d{2}/\\d{2}/\\d{4}$}' %}
                                         {% set entityValue = entityValue[6:4] ~ '-' ~ entityValue[3:2] ~ '-' ~ entityValue[:2] %}
-                                    {% endif %}
-                                    {% if entityValue is defined and entityValue matches '{^\\d{4}-\\d{2}-\\d{2}$}' %}
+                                    {% elseif entityValue is defined and entityValue matches '{^\\d{4}-\\d{2}-\\d{2}$}' %}
                                         {% set entityValue = entityValue | date('Y-m-d') %}
                                     {% else %}
                                         {% set entityValue = '' %}
                                     {% endif %}
-                                    {{ form.input(freeField.id, label, needed, entityValue, {
+                                    {{ form.input(freeField.id, displayedLabel, needed, entityValue, {
                                         type: 'date',
                                         additionalAttributes: [{
                                             name: 'data-init',

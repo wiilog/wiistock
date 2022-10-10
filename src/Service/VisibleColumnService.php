@@ -9,7 +9,7 @@ use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query\Expr\Orx;
 use Doctrine\ORM\QueryBuilder;
-use App\Service\TranslationService;
+use Symfony\Contracts\Service\Attribute\Required;
 
 class VisibleColumnService {
     public const FREE_FIELD_NAME_PREFIX = 'free_field';
@@ -20,10 +20,25 @@ class VisibleColumnService {
     /** @Required  */
     public EntityManagerInterface $entityManager;
 
+    #[Required]
+    public UserService $userService;
+
+    #[Required]
+    public LanguageService $languageService;
+
+    /**
+     * @param array $fields
+     * @param FreeField[] $freeFields
+     * @param string[] $columnsVisible
+     * @return array
+     */
     public function getArrayConfig(array $fields,
                                    array $freeFields = [],
                                    array $columnsVisible = []): array
     {
+        $user = $this->userService->getUser();
+        $userLanguage = $user->getLanguage();
+        $defaultLanguage = $this->languageService->getDefaultLanguage();
         return array_merge(
             array_map(
                 function (array $column) use ($columnsVisible) {
@@ -49,11 +64,12 @@ class VisibleColumnService {
                 $fields
             ),
             array_map(
-                function (array $freeField) use ($columnsVisible) {
-                    $freeFieldName = $this->getFreeFieldName($freeField['id']);
+                function (FreeField $freeField) use ($columnsVisible, $userLanguage, $defaultLanguage) {
+                    $freeFieldName = $this->getFreeFieldName($freeField->getId());
                     $alwaysVisible = $column['alwaysVisible'] ?? null;
                     $visible = $alwaysVisible || in_array($freeFieldName, $columnsVisible);
-                    $title = ucfirst(mb_strtolower($freeField['label']));
+                    $dirtyLabel = $freeField->getLabelIn($userLanguage, $defaultLanguage) ?: $freeField->getLabel();
+                    $title = ucfirst(mb_strtolower($dirtyLabel));
                     return [
                         "title" => $title,
                         'displayedTitle' => $title,
@@ -61,7 +77,7 @@ class VisibleColumnService {
                         "name" => $freeFieldName,
                         "isColumnVisible" => $visible,
                         "searchable" => true,
-                        "type" => $freeField['typage'],
+                        "type" => $freeField->getTypage(),
                     ];
                 },
                 $freeFields

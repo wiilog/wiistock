@@ -37,7 +37,7 @@ export default class Form {
 
                     if (result) {
                         form.submitListeners.forEach((submitListener) => {
-                            submitListener(result);
+                            submitListener(result, form);
                         });
                     }
 
@@ -116,6 +116,16 @@ export default class Form {
     on(event, selector, callback) {
         this.element.on(event, selector, callback);
         return this;
+    }
+
+    /**
+     * Launch loading on submit button of the form and wait for the given promise
+     * @param {function} action Function returning a promise to wait
+     * @param {boolean} endLoading default to true
+     */
+    loading(action, endLoading = true) {
+        const $submit = this.element.find('[type=submit]');
+        wrapLoadingOnActionButton($submit, action, endLoading);
     }
 
     static getFieldNames(form, config = {}) {

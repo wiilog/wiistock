@@ -195,25 +195,32 @@ function editRowArrivage($button) {
     let id = $button.data('id');
     let params = {id: id};
 
-    $.post(path, JSON.stringify(params), function (data) {
-        modal.find('.error-msg').html('');
-        modal.find('.modal-body').html(data.html);
+    wrapLoadingOnActionButton(
+        $button,
+        () => {
+            return $.post(path, JSON.stringify(params), function (data) {
+                modal.find('.error-msg').html('');
+                modal.find('.modal-body').html(data.html);
 
-        modal.find('#acheteursEdit').val(data.acheteurs).select2();
-        modal.find('.select2').select2();
-        initDateTimePicker('.date-cl');
-        Select2Old.initFree($('.select2-free'));
-        Select2Old.location(modal.find('.ajax-autocomplete-location'));
-        Select2Old.user(modal.find('.ajax-autocomplete-user'));
-        const $userFormat = $('#userDateFormat');
-        const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
+                modal.find('#acheteursEdit').val(data.acheteurs).select2();
+                modal.find('.select2').select2();
+                initDateTimePicker('.date-cl');
+                Select2Old.initFree($('.select2-free'));
+                Select2Old.location(modal.find('.ajax-autocomplete-location'));
+                Select2Old.user(modal.find('.ajax-autocomplete-user'));
+                const $userFormat = $('#userDateFormat');
+                const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
 
-        initDateTimePicker('.free-field-date', DATE_FORMATS_TO_DISPLAY[format]);
-        initDateTimePicker('.free-field-datetime', DATE_FORMATS_TO_DISPLAY[format] + ' HH:mm');
+                initDateTimePicker('.free-field-date', DATE_FORMATS_TO_DISPLAY[format]);
+                initDateTimePicker('.free-field-datetime', DATE_FORMATS_TO_DISPLAY[format] + ' HH:mm');
 
-        fillDatePickers('.free-field-date');
-        fillDatePickers('.free-field-datetime', 'YYYY-MM-DD', true);
-    }, 'json');
+                fillDatePickers('.free-field-date');
+                fillDatePickers('.free-field-datetime', 'YYYY-MM-DD', true);
+
+                modal.modal('show');
+            }, 'json');
+        }
+    );
 
     modal.find(submit).attr('value', id);
 }

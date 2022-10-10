@@ -1,5 +1,8 @@
 import {createManagementPage} from './utils';
-import EditableDatatable, {MODE_CLICK_EDIT, MODE_CLICK_EDIT_AND_ADD, MODE_NO_EDIT, SAVE_MANUALLY, STATE_VIEWING} from "../../editatable";
+import EditableDatatable, {MODE_CLICK_EDIT_AND_ADD, MODE_NO_EDIT, SAVE_MANUALLY} from "@app/editatable";
+
+import Form from '@app/form';
+import AJAX, {POST} from "@app/ajax";
 
 const MODE_ARRIVAL = `arrival`;
 const MODE_TRACKING = `tracking`;
@@ -159,16 +162,19 @@ export function createFreeFieldsPage($container, canEdit, mode) {
 }
 
 function setupTranslationsModal($container, table) {
-    Form.create($container.find(".edit-translation-modal")).onSubmit(data => {
-        AJAX.route(`POST`, `settings_edit_type_translations`)
-            .json(data)
-            .then(response => {
-                if(response.success) {
-                    $(`.edit-translation-modal`).modal(`hide`);
-                    table.table.ajax.reload();
-                }
-            });
-    })
+    Form.create($container.find(".edit-translation-modal"))
+        .onSubmit((data, form) => {
+            form.loading(
+                () => AJAX.route(POST, `settings_edit_type_translations`)
+                    .json(data)
+                    .then(response => {
+                        if(response.success) {
+                            $container.find(`.edit-translation-modal`).modal(`hide`);
+                            table.table.ajax.reload();
+                        }
+                    })
+            )
+        });
 }
 
 function createFreeFieldsListeners($container, canEdit, mode) {

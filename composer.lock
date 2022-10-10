@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "2e0533f5ebd6617653951818607a209b",
+    "content-hash": "95db633dcb341f58f8381bf0628218ae",
     "packages": [
         {
             "name": "beberlei/doctrineextensions",
@@ -9741,7 +9741,7 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/wiilog/common-php.git",
-                "reference": "4d6024e23b6cb5c927e5951b9086d392f4d477f6"
+                "reference": "d027b2f15e075eaeb4ae190991c35036ab9f966d"
             },
             "require-dev": {
                 "dama/doctrine-test-bundle": "^6.6",
@@ -9755,7 +9755,7 @@
                     "WiiCommon\\": "src/"
                 }
             },
-            "time": "2022-09-09T12:53:50+00:00"
+            "time": "2022-10-07T13:56:06+00:00"
         },
         {
             "name": "willdurand/jsonp-callback-validator",
@@ -11936,7 +11936,8 @@
         "ext-ctype": "*",
         "ext-iconv": "*",
         "ext-json": "*",
-        "ext-mysqli": "*"
+        "ext-mysqli": "*",
+        "ext-ssh2": "*"
     },
     "platform-dev": [],
     "plugin-api-version": "2.3.0"

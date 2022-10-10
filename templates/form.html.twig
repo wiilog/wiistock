@@ -200,9 +200,9 @@
                             {{ _self.common_attributes(name, options) }}
                             {{ _self.multiple_key(options) }}>
                         {% if options.emptyOption is defined and options.emptyOption is not empty %}
-                            <option {{ options.emptyOption.selected ? "selected" }}
-                                     value="{{ options.emptyOption.value }}">
-                                {{ options.emptyOption.text }}
+                            <option {{ options.emptyOption.selected ?? false ? "selected" }}
+                                     value="{{ options.emptyOption.value ?? null }}">
+                                {{ options.emptyOption.text ?? null }}
                             </option>
                         {% elseif options.type is not defined and options.placeholder ?? false %}
                             <option disabled selected>{{ options.placeholder }}</option>

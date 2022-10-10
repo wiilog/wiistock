@@ -74,10 +74,13 @@ class ArrivageService {
     #[Required]
     public LanguageService $languageService;
 
-    private ?array $freeFieldsConfig = null;
-
     #[Required]
     public CSVExportService $CSVExportService;
+
+    #[Required]
+    public UserService $userService;
+
+    private ?array $freeFieldsConfig = null;
 
     private ?array $exportCache = null;
 
@@ -102,11 +105,17 @@ class ArrivageService {
             ]
         );
 
+
+        $userLanguage = $this->userService->getUser()->getLanguage();
+        $defaultLanguage = $this->languageService->getDefaultLanguage();
+
         $arrivals = $queryResult['data'];
 
         $rows = [];
         foreach ($arrivals as $arrival) {
             $rows[] = $this->dataRowArrivage($arrival[0], [
+                'userLanguage' => $userLanguage,
+                'defaultLanguage' => $defaultLanguage,
                 'totalWeight' => $arrival['totalWeight'],
                 'packsCount' => $arrival['packsCount'],
                 'dispatchMode' => $dispatchMode,
@@ -138,6 +147,9 @@ class ArrivageService {
             $acheteursUsernames[] = $acheteur->getUsername();
         }
 
+        $userLanguage = $options['userLanguage'];
+        $defaultLanguage = $options['defaultLanguage'];
+
         $row = [
             'id' => $arrivalId,
             'packsInDispatch' => $options['packsInDispatchCount'] > 0 ? "<td><i class='fas fa-exchange-alt mr-2' title='Colis acheminé(s)'></i></td>" : '',
@@ -147,20 +159,20 @@ class ArrivageService {
             'driver' => $arrival->getChauffeur() ? $arrival->getChauffeur()->getPrenomNom() : '',
             'trackingCarrierNumber' => $arrival->getNoTracking() ?? '',
             'orderNumber' => implode(',', $arrival->getNumeroCommandeList()),
-            'type' => $arrival->getType() ? $arrival->getType()->getLabel() : '',
+            'type' => $arrival->getType() ? $arrival->getType()->getLabelIn($userLanguage, $defaultLanguage) : '',
             'nbUm' => $options['packsCount'] ?? '',
-            'customs' => $arrival->getCustoms() ? 'oui' : 'non',
-            'frozen' => $arrival->getFrozen() ? 'oui' : 'non',
+            'customs' => $this->formatService->bool($arrival->getCustoms()),
+            'frozen' => $this->formatService->bool($arrival->getFrozen()),
             'provider' => $arrival->getFournisseur() ? $arrival->getFournisseur()->getNom() : '',
             'receiver' => $arrival->getDestinataire() ? $arrival->getDestinataire()->getUsername() : '',
             'buyers' => implode(', ', $acheteursUsernames),
             'status' => $arrival->getStatut() ? $this->formatService->status($arrival->getStatut()) : '',
             'creationDate' => $arrival->getDate() ? $arrival->getDate()->format($user->getDateFormat() ? $user->getDateFormat() . ' H:i:s' : 'd/m/Y H:i:s') : '',
             'user' => $arrival->getUtilisateur() ? $arrival->getUtilisateur()->getUsername() : '',
-            'emergency' => $arrival->getIsUrgent() ? 'oui' : 'non',
+            'emergency' => $this->formatService->bool($arrival->getIsUrgent()),
             'projectNumber' => $arrival->getProjectNumber() ?? '',
             'businessUnit' => $arrival->getBusinessUnit() ?? '',
-            'dropLocation' => FormatHelper::location($arrival->getDropLocation()),
+            'dropLocation' => $this->formatService->location($arrival->getDropLocation()),
             'url' => $url,
         ];
 
@@ -174,7 +186,7 @@ class ArrivageService {
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
             $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
             $freeFieldValue = $arrival->getFreeFieldValue($freeFieldId);
-            $row[$freeFieldName] = FormatHelper::freeField($freeFieldValue, $freeField, $this->security->getUser());
+            $row[$freeFieldName] = $this->formatService->freeField($freeFieldValue, $freeField, $this->security->getUser());
         }
 
         return $row;
@@ -491,10 +503,10 @@ class ArrivageService {
         return array_merge(
             $configFiltered,
             $freeFieldArray,
-            $this->fieldsParamService->isFieldRequired($fieldsParam, 'commentaire', 'displayedCreate')
-            || $this->fieldsParamService->isFieldRequired($fieldsParam, 'commentaire', 'displayedEdit')
+            $this->fieldsParamService->isFieldRequired($fieldsParam, FieldsParam::FIELD_CODE_COMMENTAIRE_ARRIVAGE, 'displayedCreate')
+            || $this->fieldsParamService->isFieldRequired($fieldsParam, FieldsParam::FIELD_CODE_COMMENTAIRE_ARRIVAGE, 'displayedEdit')
                 ? [[
-                'label' => 'Commentaire',
+                'label' => $this->translation->translate('Général', null, 'Modale', 'Commentaire'),
                 'value' => $comment ?: '',
                 'isRaw' => true,
                 'colClass' => 'col-sm-6 col-12',
@@ -502,10 +514,10 @@ class ArrivageService {
                 'isNeededNotEmpty' => true
             ]]
                 : [],
-                $this->fieldsParamService->isFieldRequired($fieldsParam, 'pj', 'displayedCreate')
-                || $this->fieldsParamService->isFieldRequired($fieldsParam, 'pj', 'displayedEdit')
+                $this->fieldsParamService->isFieldRequired($fieldsParam, FieldsParam::FIELD_CODE_PJ_ARRIVAGE, 'displayedCreate')
+                || $this->fieldsParamService->isFieldRequired($fieldsParam, FieldsParam::FIELD_CODE_PJ_ARRIVAGE, 'displayedEdit')
                 ? [[
-                    'label' => 'Pièces jointes',
+                    'label' => $this->translation->translate('Général', null, 'Modale', 'Pièces jointes', false),
                     'value' => $attachments->toArray(),
                     'isAttachments' => true,
                     'isNeededNotEmpty' => true
@@ -519,12 +531,10 @@ class ArrivageService {
                                            bool $dispatchMode = false): array {
 
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
-        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
         $columnsVisible = $currentUser->getVisibleColumns()['arrival'];
-        $categorieCL = $categorieCLRepository->findOneBy(['label' => CategorieCL::ARRIVAGE]);
-        $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::ARRIVAGE, $categorieCL);
+        $freeFields = $champLibreRepository->findByCategoryTypeAndCategoryCL(CategoryType::ARRIVAGE, CategorieCL::ARRIVAGE);
 
         $columns = [
             ['name' => 'packsInDispatch', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
@@ -550,7 +560,13 @@ class ArrivageService {
         ];
 
         if($dispatchMode) {
-            $dispatchCheckboxLine = ['title' => "<input type='checkbox' class='checkbox check-all'>", 'name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'];
+            $dispatchCheckboxLine = [
+                'title' => "<input type='checkbox' class='checkbox check-all'>",
+                'name' => 'actions',
+                'alwaysVisible' => true,
+                'orderable' => false,
+                'class' => 'noVis'
+            ];
             array_unshift($columns, $dispatchCheckboxLine);
         } else {
             array_unshift($columns, ['name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis actions']);
@@ -678,19 +694,6 @@ class ArrivageService {
                 );
             }
         }
-    }
-
-    public function getHeaderForExport(EntityManagerInterface $entityManager,
-                                       array $columnToExport): array
-    {
-        $exportableColumns = $this->getArrivalExportableColumns($entityManager);
-        return Stream::from($columnToExport)
-            ->filterMap(function(string $code) use ($exportableColumns) {
-                $column = Stream::from($exportableColumns)
-                    ->find(fn(array $config) => $config['code'] === $code);
-                return $column['label'] ?? null;
-            })
-            ->toArray();
     }
 
     public function launchExportCache(EntityManagerInterface $entityManager,

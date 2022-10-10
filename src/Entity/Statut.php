@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\IOT\HandlingRequestTemplate;
 use App\Entity\PreparationOrder\Preparation;
+use App\Helper\LanguageHelper;
 use App\Repository\StatutRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -140,16 +141,9 @@ class Statut {
         return $this->id;
     }
 
-    public function getLabelIn(Language|string $in, Language|string $default): ?string {
-        if($default instanceof Language) {
-            $default = $default->getSlug();
-        }
-
-        $default = match($default) {
-            Language::FRENCH_DEFAULT_SLUG => Language::FRENCH_SLUG,
-            Language::ENGLISH_DEFAULT_SLUG => Language::ENGLISH_SLUG,
-            default => $default,
-        };
+    public function getLabelIn(Language|string $in, Language|string|null $default = null): ?string {
+        $in = LanguageHelper::clearLanguage($in);
+        $default = LanguageHelper::clearLanguage($default);
 
         $translation = $this->getLabelTranslation();
 

@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Entity\Interfaces\Serializable;
+use App\Helper\LanguageHelper;
 use App\Repository\FreeFieldRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -122,18 +123,14 @@ class FreeField implements Serializable {
         return $this->id;
     }
 
-    public function getLabelIn(Language|string $in, Language|string $default = null): ?string {
-        if($default instanceof Language) {
-            $default = $default->getSlug();
-        }
+    public function getLabelIn(Language|string $in, Language|string|null $default = null): ?string {
+        $in = LanguageHelper::clearLanguage($in);
+        $default = LanguageHelper::clearLanguage($default);
 
-        $default = match($default) {
-            Language::FRENCH_DEFAULT_SLUG => Language::FRENCH_SLUG,
-            Language::ENGLISH_DEFAULT_SLUG => Language::ENGLISH_SLUG,
-            default => $default,
-        };
-
-        return $this->getLabelTranslation()->getTranslationIn($in, $default)?->getTranslation();
+        return $this->getLabelTranslation()
+            ?->getTranslationIn($in, $default)
+            ?->getTranslation()
+            ?: $this->getLabel();
     }
 
     #[Deprecated]
@@ -168,18 +165,12 @@ class FreeField implements Serializable {
         return $this;
     }
 
-    public function getDefaultValueIn(Language|string $in, Language|string $default = null): ?string {
-        if($default instanceof Language) {
-            $default = $default->getSlug();
-        }
-
-        $default = match($default) {
-            Language::FRENCH_DEFAULT_SLUG => Language::FRENCH_SLUG,
-            Language::ENGLISH_DEFAULT_SLUG => Language::ENGLISH_SLUG,
-            default => $default,
-        };
-
-        return $this->getDefaultValueTranslation()->getTranslationIn($in, $default)?->getTranslation();
+    public function getDefaultValueIn(Language|string $in, Language|string|null $default = null): ?string {
+        $in = LanguageHelper::clearLanguage($in);
+        $default = LanguageHelper::clearLanguage($default);
+        return $this->getDefaultValueTranslation()
+            ?->getTranslationIn($in, $default)
+            ?->getTranslation();
     }
 
     public function getDefaultValue(): ?string {
@@ -220,16 +211,9 @@ class FreeField implements Serializable {
         return $this;
     }
 
-    public function getElementsIn(Language|string $in, Language|string $default = null): array {
-        if($default instanceof Language) {
-            $default = $default->getSlug();
-        }
-
-        $default = match($default) {
-            Language::FRENCH_DEFAULT_SLUG => Language::FRENCH_SLUG,
-            Language::ENGLISH_DEFAULT_SLUG => Language::ENGLISH_SLUG,
-            default => $default,
-        };
+    public function getElementsIn(Language|string $in, Language|string|null $default = null): array {
+        $in = LanguageHelper::clearLanguage($in);
+        $default = LanguageHelper::clearLanguage($default);
 
         return Stream::from($this->getElementsTranslations())
             ->map(fn(TranslationSource $source) => $source->getTranslationIn($in, $default)?->getTranslation())

@@ -893,10 +893,9 @@ class RefArticleDataService {
                                            Utilisateur $currentUser): array {
 
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
-        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
 
-        $categorieCL = $categorieCLRepository->findOneBy(['label' => CategorieCL::REFERENCE_ARTICLE]);
-        $freeFields = $freeFieldRepository->getByCategoryTypeAndCategoryCL(CategoryType::ARTICLE, $categorieCL);
+        $columnVisible = $currentUser->getVisibleColumns()['reference'];
+        $freeFields = $freeFieldRepository->findByCategoryTypeAndCategoryCL(CategoryType::ARTICLE, CategorieCL::REFERENCE_ARTICLE);
 
         $fields = self::REF_ARTICLE_FIELDS;
         if(!$currentUser->getVisibilityGroups()->isEmpty()) {
@@ -912,7 +911,7 @@ class RefArticleDataService {
                 array_splice($fields, $visibilityGroupsIndex, 1);
             }
         }
-        return $this->visibleColumnService->getArrayConfig($fields, $freeFields, $currentUser->getVisibleColumns()['reference']);
+        return $this->visibleColumnService->getArrayConfig($fields, $freeFields, $columnVisible);
     }
 
     public function getFieldTitle(string $fieldName): ?string {

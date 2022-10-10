@@ -627,8 +627,8 @@ class DemandeLivraisonService
 
     public function getVisibleColumnsConfig(EntityManagerInterface $manager, Utilisateur $currentUser): array {
         $columnsVisible = $currentUser->getVisibleColumns()['deliveryRequest'];
-        $FFCategory = $manager->getRepository(CategorieCL::class)->findOneBy(['label' => CategorieCL::DEMANDE_LIVRAISON]);
-        $freeFields = $manager->getRepository(FreeField::class)->getByCategoryTypeAndCategoryCL(CategoryType::DEMANDE_LIVRAISON, $FFCategory);
+        $freeFieldRepository = $manager->getRepository(FreeField::class);
+        $freeFields = $freeFieldRepository->findByCategoryTypeAndCategoryCL(CategoryType::DEMANDE_LIVRAISON, CategorieCL::DEMANDE_LIVRAISON);
 
         $columns = [
             ['name' => 'actions', 'orderable' => false, 'alwaysVisible' => true, 'class' => 'noVis', 'width' => '10px'],

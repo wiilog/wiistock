@@ -30,16 +30,23 @@ final class Version20220930120407 extends AbstractMigration
         ];
 
         $french = $this->connection->executeQuery("SELECT id FROM language WHERE slug = 'french'")->fetchNumeric()[0] ?? null;
+        $this->skipIf(!$french, "Invalid database: missing `french` language");
+
+
+
         //TODO: corriger cette requête visiblement elle ne retourne rien ?
-        $freeFields = $this->connection->executeQuery("
-            SELECT free_field.id, free_field.label, free_field.default_value, free_field.elements
-            FROM free_field
-                INNER JOIN categorie_cl ON free_field.categorie_cl_id = categorie_cl.id
-            WHERE categorie_cl.label IN (:categories)
-        ", $params, $types)->fetchAll();
+        $freeFields = $this->connection
+            ->executeQuery("
+                SELECT free_field.id, free_field.label, free_field.default_value, free_field.elements
+                FROM free_field
+                    INNER JOIN categorie_cl ON free_field.categorie_cl_id = categorie_cl.id
+                WHERE categorie_cl.label IN (:categories)
+            ", $params, $types)
+            ->fetchAll();
 
-        $this->skipIf(!$french, "Invalid database : missing `french` language");
-
+        if (!$schema->getTable('translation_source')->hasColumn('free_field_default_value_id')) {
+            $this->addSql('ALTER TABLE translation_source ADD free_field_default_value_id INT DEFAULT NULL;');
+        }
         foreach($freeFields as $freeField) {
             $this->addSql("INSERT INTO translation_source(category_id, free_field_id) VALUES (null, {$freeField["id"]})");
             $this->addSql("INSERT INTO translation(language_id, source_id, translation) VALUES ($french, (SELECT LAST_INSERT_ID()), :label)", [

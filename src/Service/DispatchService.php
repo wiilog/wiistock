@@ -353,10 +353,7 @@ class DispatchService {
             ($this->fieldsParamService->isFieldRequired($fieldsParam, 'comment', 'displayedCreate')
                 || $this->fieldsParamService->isFieldRequired($fieldsParam, 'comment', 'displayedEdit'))
                 ? [[
-                    'label' => $this->translationService->translate('Général', null, 'Modale', "Commentaire", [
-                        1 => $startDateStr,
-                        2 => $endDateStr
-                    ]),
+                    'label' => $this->translationService->translate('Général', null, 'Modale', "Commentaire"),
                     'value' => $comment ?: '',
                     'isRaw' => true,
                     'colClass' => 'col-sm-6 col-12',
@@ -546,11 +543,9 @@ class DispatchService {
 
     public function getVisibleColumnsConfig(EntityManagerInterface $entityManager, Utilisateur $currentUser): array {
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
-        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
 
         $columnsVisible = $currentUser->getVisibleColumns()['dispatch'];
-        $categorieCL = $categorieCLRepository->findOneBy(['label' => CategorieCL::DEMANDE_DISPATCH]);
-        $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::DEMANDE_DISPATCH, $categorieCL);
+        $freeFields = $champLibreRepository->findByCategoryTypeAndCategoryCL(CategoryType::DEMANDE_DISPATCH, CategorieCL::DEMANDE_DISPATCH);
 
         $columns = [
             ['name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],

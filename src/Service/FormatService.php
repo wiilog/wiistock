@@ -6,10 +6,12 @@ use App\Entity\Emplacement;
 use App\Entity\Fournisseur;
 use App\Entity\FreeField;
 use App\Entity\Handling;
+use App\Entity\Language;
 use App\Entity\Nature;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use DateTime;
 use DateTimeInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -23,6 +25,9 @@ class FormatService
 
     #[Required]
     public Security $security;
+
+    #[Required]
+    public TranslationService $translationService;
 
     private ?string $defaultLanguage = null;
 
@@ -39,7 +44,7 @@ class FormatService
     }
 
     public function users($users) {
-        return self::entity($users, "username");
+        return $this->entity($users, "username");
     }
 
     public function defaultLanguage(): ?string {
@@ -118,13 +123,16 @@ class FormatService
         return new DateTime($date) ?: null;
     }
 
-    public function freeField(?string $value, FreeField $freeField, Utilisateur $user = null): ?string
-    {
+    public function freeField(?string     $value,
+                              FreeField   $freeField,
+                              Utilisateur $user = null): ?string {
+        $userLanguage = $user->getLanguage();
+
         $value = ($value ?? $freeField->getDefaultValue()) ?? '';
         switch ($freeField->getTypage()) {
             case FreeField::TYPE_DATE:
             case FreeField::TYPE_DATETIME:
-                $valueDate = self::parseDatetime($value, [
+                $valueDate = $this->parseDatetime($value, [
                     "Y-m-dTH:i",
                     "Y-m-d",
                     "d/m/Y H:i",
@@ -140,21 +148,27 @@ class FormatService
                 break;
             case FreeField::TYPE_BOOL:
                 $formatted = ($value !== '' && $value !== null)
-                    ? self::bool($value == 1)
+                    ? $this->bool($value == 1)
                     : '';
                 break;
             case FreeField::TYPE_LIST_MULTIPLE:
-                $formatted = Stream::explode(';', $value)
-                    ->filter(fn(string $val) => in_array(trim($val),
-                        Stream::from($freeField->getElements())
-                            ->map(fn(string $element) => trim($element))
-                            ->toArray() ?: []))
-                    ->join(', ');
+                $values = Stream::explode(';', $value)->toArray();
+                $translatedValues = $this->translationService->translateFreeFieldListValues(Language::FRENCH_SLUG, $userLanguage, $freeField, $values, true);
+                $formatted = Stream::from($translatedValues ?: [])->join(', ');
+                break;
+            case FreeField::TYPE_LIST:
+                $formatted = $this->translationService->translateFreeFieldListValues(Language::FRENCH_SLUG, $userLanguage, $freeField, $value, true);
                 break;
             default:
                 $formatted = $value;
                 break;
         }
         return $formatted;
+    }
+
+    public function bool(?bool $bool, $else = "") {
+        $yes = $this->translationService->translate('Général', null, 'Modale', 'Oui');
+        $no = $this->translationService->translate('Général', null, 'Modale', 'Non');
+        return isset($bool) ? ($bool ? $yes : $no) : $else;
     }
 }

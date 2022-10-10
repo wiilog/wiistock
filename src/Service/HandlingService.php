@@ -249,11 +249,9 @@ class HandlingService {
 
     public function getColumnVisibleConfig(EntityManagerInterface $entityManager, Utilisateur $currentUser): array {
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
-        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
 
         $columnsVisible = $currentUser->getVisibleColumns()['handling'];
-        $categorieCL = $categorieCLRepository->findOneBy(['label' => CategorieCL::DEMANDE_HANDLING]);
-        $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::DEMANDE_HANDLING, $categorieCL);
+        $freeFields = $champLibreRepository->findByCategoryTypeAndCategoryCL(CategoryType::DEMANDE_HANDLING, CategorieCL::DEMANDE_HANDLING);
 
         $columns = [
             ['title' => $this->translation->translate('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Numéro de demande'),  'name' => 'number'],

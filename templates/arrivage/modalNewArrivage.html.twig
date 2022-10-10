@@ -216,7 +216,9 @@
                             {% else %}
                                 <option value="">{{ trans('Traçabilité', 'Flux - Arrivages', 'Modale création nouvel arrivage', 'Type à choisir...') }}</option>
                                 {% for type in typesArrival %}
-                                    <option value="{{ type.id }}">{{ type.label }}</option>
+                                    <option value="{{ type.id }}">
+                                        {{ type.labelIn(language_service.getCurrentUserLanguageSlug, language_service.defaultSlug) ?: type.label }}
+                                    </option>
                                 {% endfor %}
                             {% endif %}
                         </select>
@@ -327,7 +329,7 @@
                     {% set printArrivalFieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PRINT_ARRIVAGE') %}
                     {% if fieldsParam|isFieldRequired(printArrivalFieldCode, 'displayedCreate') %}
                         <div class="form-group col-2">
-                            <label class="wii-field-text">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Imprimer arrivage') }}</label>
+                            <label class="wii-field-name">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Imprimer arrivage') }}</label>
                             <label class="switch d-block-switch mt-2">
                                 <input class="checkbox data no-clear"
                                        type="checkbox"
@@ -340,7 +342,7 @@
 
                     {% if natures != null %}
                         <div class="form-group col-2">
-                            <label class="wii-field-text">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Imprimer UL') }}</label>
+                            <label class="wii-field-name">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Imprimer UL') }}</label>
                             <label class="switch d-block-switch mt-2">
                                 <input class="checkbox no-clear" type="checkbox" name="printColis"
                                        id="printColis" {{ checked }}>
@@ -429,7 +431,7 @@
                     {% set customsFieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CUSTOMS_ARRIVAGE') %}
                     {% if fieldsParam|isFieldRequired(customsFieldCode, 'displayedCreate') %}
                         <div class="form-group col-2">
-                            <label class="wii-field-text">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Douane') }}</label>
+                            <label class="wii-field-name">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Douane') }}</label>
                             <label class="switch d-block-switch mt-2">
                                 <input class="checkbox {{ not isClientSafranED ? 'no-clear' }}"
                                        type="checkbox"
@@ -442,7 +444,7 @@
                     {% set frozenFieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_FROZEN_ARRIVAGE') %}
                     {% if fieldsParam|isFieldRequired(frozenFieldCode, 'displayedCreate') %}
                         <div class="form-group col-2">
-                            <label class="wii-field-text">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Congelé') }}</label>
+                            <label class="wii-field-name">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Congelé') }}</label>
                             <label class="switch d-block-switch mt-2">
                                 <input class="checkbox no-clear"
                                        type="checkbox"
@@ -482,7 +484,8 @@
                                 {{ trans('Général', null, 'Modale', 'Commentaire') }}{{ commentRequired ? '*' }}
                             </label>
                             <input class="commentaire form-control input-sm data {{ commentRequired ? 'needed' }}"
-                                   name="commentaire" type="hidden">
+                                   name="commentaire"
+                                   type="hidden">
                             <div class="editor-container-new" data-wysiwyg>
                                 {{ (keptFields[commentFieldCode] ?? null) | raw }}
                             </div>

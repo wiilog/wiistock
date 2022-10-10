@@ -23,8 +23,11 @@ use App\Entity\Statut;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Service\DataExportService;
 use App\Service\KeptFieldService;
+use App\Service\LanguageService;
 use App\Service\VisibleColumnService;
+use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 use App\Service\ArrivageService;
 use App\Service\AttachmentService;
@@ -58,11 +61,16 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Entity;
  */
 class ArrivageController extends AbstractController {
 
-    /** @Required */
+    #[Required]
     public UserService $userService;
 
-    /** @Required */
+    #[Required]
     public AttachmentService $attachmentService;
+
+    #[Required]
+    public LanguageService $languageService;
+
+    private ?string $defaultLanguageSlug = null;
 
     /**
      * @Route("/", name="arrivage_index")
@@ -1379,8 +1387,10 @@ class ArrivageController extends AbstractController {
             ? $arrival->getBusinessUnit()
             : '';
 
+        $userLanguage = $this->getUser()?->getLanguage() ?: $this->getDefaultLanguageSlug();
+
         $arrivalType = $typeArrivalParamIsDefined
-            ? $arrival->getType()->getLabel()
+            ? $arrival->getType()->getLabelIn($userLanguage, $this->getDefaultLanguageSlug())
             : '';
 
         $recipientUsername = ($usernameParamIsDefined && $destinataire)
@@ -1562,5 +1572,12 @@ class ArrivageController extends AbstractController {
                 'fieldsParam' => $fixedFields
             ])
         ]);
+    }
+
+    private function getDefaultLanguageSlug(): ?string {
+        if (!isset($this->defaultLanguageSlug)) {
+            $this->defaultLanguageSlug = $this->languageService->getDefaultSlug();
+        }
+        return $this->defaultLanguageSlug;
     }
 }

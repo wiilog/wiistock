@@ -51,7 +51,7 @@ jQuery.fn.popLoader = function() {
 /**
  * Set status of button to 'loading' and prevent other click until first finished.
  * @param {jQuery|Array<jQuery>} $loaderContainers jQuery button element
- * @param {function} action Function retuning a promise
+ * @param {function} action Function returning a promise
  * @param {boolean} endLoading default to true
  */
 export function wrapLoadingOnActionButton($loaderContainers, action = null, endLoading = true) {
@@ -71,7 +71,7 @@ export function wrapLoadingOnActionButton($loaderContainers, action = null, endL
             Flash.add(INFO, 'L\'opération est en cours de traitement');
             throw new Error('Operation in progress...');
         }
-    })
+    });
 
     if (action) {
         action()

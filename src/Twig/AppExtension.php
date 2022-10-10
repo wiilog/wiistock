@@ -2,9 +2,11 @@
 
 namespace App\Twig;
 
+use App\Entity\FreeField;
 use App\Entity\Language;
 use App\Entity\Setting;
 use App\Entity\Transport\TransportHistory;
+use App\Entity\Utilisateur;
 use App\Service\FieldsParamService;
 use App\Service\FormatService;
 use App\Service\LanguageService;
@@ -94,6 +96,7 @@ class AppExtension extends AbstractExtension {
             new TwigFilter("json_decode", "json_decode"),
             new TwigFilter("flip", [$this, "flip"]),
             new TwigFilter("some", [$this, "some"]),
+            new TwigFilter("transFreeFieldElements", [$this, "transFreeFieldElements"]),
         ];
     }
 
@@ -281,5 +284,24 @@ class AppExtension extends AbstractExtension {
     public function getDefaultLanguage(): string {
         $defaultSlugLanguage = $this->languageService->getDefaultSlug();
         return $this->languageService->getReverseDefaultLanguage($defaultSlugLanguage);
+    }
+
+    /**
+     * Get values of a free field list (multiple or not) (in French) and translate it in user language
+     */
+    public function transFreeFieldElements($values, FreeField $freeField, ?Utilisateur $user = null): string|array|null {
+        if ($values) {
+            $user = $user ?: $this->userService->getUser();
+            $userLanguage = $user?->getLanguage();
+            $defaultLanguage = $this->languageService->getDefaultSlug();
+            $isFill = !empty($values);
+            $translation = $this->translationService->translateFreeFieldListValues(Language::FRENCH_SLUG, $userLanguage, $freeField, $values);
+            return $translation
+                // if free field is not translated in userLanguage ?
+                ?: ($isFill && $userLanguage !== $defaultLanguage
+                    ? $this->translationService->translateFreeFieldListValues(Language::FRENCH_SLUG, $defaultLanguage, $freeField, $values)
+                    : null);
+        }
+        return null;
     }
 }

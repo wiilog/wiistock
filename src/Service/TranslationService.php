@@ -2,12 +2,13 @@
 
 namespace App\Service;
 
+use App\Entity\FreeField;
 use App\Entity\Language;
 use App\Entity\Translation;
 use App\Entity\TranslationSource;
 use App\Entity\Utilisateur;
+use App\Helper\LanguageHelper;
 use Doctrine\ORM\EntityManagerInterface;
-use JetBrains\PhpStorm\Deprecated;
 use RuntimeException;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -306,6 +307,66 @@ class TranslationService {
             ->setTranslation($firstLabel);
 
         $entity->{$setter ?? "setLabelTranslation"}($labelTranslation);
+    }
+
+    /**
+     * @param Language|string|(Language|string)[] $sources
+     * @param bool $clearSources Clear given sources array to remove duplicates, only for an internal use for now
+     */
+    public function translateFreeFieldListValues(Language|string|array $sources,
+                                                 Language|string       $target,
+                                                 FreeField             $freeField,
+                                                 array|string          $values,
+                                                 bool                  $keepDefault = false,
+                                                 bool                  $clearSources = true): array|string|null {
+
+        $sources = !is_array($sources) ? [$sources] : $sources;
+        if ($clearSources) {
+            $sources = Stream::from($sources)
+                ->map(fn(Language|string $lang) => LanguageHelper::clearLanguage($lang))
+                ->unique()
+                ->toArray();
+        }
+
+        $multipleTryMode = count($sources) > 1;
+        $source = $sources[0];
+
+        if (empty($values)) {
+            $res = null;
+        }
+        else {
+            $sourceElements = $freeField->getElementsIn($source);
+            $targetElements = $freeField->getElementsIn($target, $this->languageService->getDefaultSlug());
+            if (empty($sourceElements) || empty($targetElements)) {
+                $res = null;
+            }
+            else {
+                $sourceElementsStream = Stream::from($sourceElements);
+
+                $getValue = function(Stream $sourceElementsStream, array $targetElements, string $value) use ($keepDefault) {
+                    $fallbackValue = $keepDefault ? $value : null;
+                    $key = $sourceElementsStream->findKey(fn($v) => trim($v) === trim($value));
+                    return isset($key)
+                        ? ($targetElements[$key] ?? $fallbackValue) // value is known in source language
+                        : null;
+                };
+
+                // multiple list values
+                if (is_array($values)) {
+                    $res = Stream::from($values)
+                        ->filterMap(fn(string $value) => $getValue($sourceElementsStream, $targetElements, $value))
+                        ->toArray();
+                }
+                else {
+                    // list values
+                    $res = $getValue($sourceElementsStream, $targetElements, $values);
+                }
+            }
+        }
+
+        return empty($res) && $multipleTryMode
+            ? $this->translateFreeFieldListValues(array_slice($sources, 1), $target, $freeField, $values, $keepDefault, false)
+            : $res;
     }
 
 }
