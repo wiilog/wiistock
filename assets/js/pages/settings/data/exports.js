@@ -41,6 +41,7 @@ $(document).ready(() => {
             url: Routing.generate(`settings_export_api`),
             type: `POST`
         },
+        order: [['beganAt', "desc"]],
         columns: [
             {data: `actions`, title: ``, orderable: false, className: `noVis hideOrder`},
             {data: `status`, title: `Statut`},
@@ -89,6 +90,7 @@ function displayExportModal(exportId) {
         $modal.find('.modal-body').html(resp);
         onFormEntityChange();
         onFormTypeChange(false);
+        onPeriodIntervalChange($modal);
 
         const $checkedFrequency = $modal.find('[name=frequency]:checked');
         if ($checkedFrequency.exists()) {
@@ -102,6 +104,10 @@ function displayExportModal(exportId) {
         Select2Old.initFree($modal.find('.select2-free'));
         $modal.find('select[name=columnToExport]').select2({closeOnSelect: false});
         $modal.find('.select-all-options').on('click', onSelectAll);
+
+        if($modal.find('input[name=destinationType]:checked').hasClass('export-by-sftp')){
+            destinationExportChange();
+        }
     });
 
     $modal.modal('show');
@@ -140,12 +146,6 @@ function toggleFrequencyInput($input) {
             .find('input.frequency-data, select.frequency-data')
             .addClass('needed')
             .addClass('data');
-
-        $frequencyContainer.find('input[type="date"]').each(function() {
-            const $input = $(this);
-            $input.attr('type', 'text');
-            initDateTimePicker({dateInputs: $input, minDate: true, value: $input.val()});
-        });
     }
 
     $('.select-all-options').on('click', onSelectAll);
@@ -264,13 +264,15 @@ function createForm() {
 function onFormEntityChange() {
     let $modal = $("#modalExport");
     const selectedEntity = $modal.find('[name=entityToExport]:checked').val();
-    const $refArticlesSentence = $modal.find('.ref-articles-sentence');
+    const $articlesSentence = $modal.find('.articles-sentence');
+    const $referencesSentence = $modal.find('.references-sentence');
     const $dateLimit = $modal.find('.date-limit');
     const $columnToExportContainer = $modal.find('.column-to-export');
     const $columnToExport = $columnToExportContainer.find('select');
     const $periodInterval = $modal.find('.period-interval');
 
-    $refArticlesSentence.addClass('d-none');
+    $articlesSentence.addClass('d-none');
+    $referencesSentence.addClass('d-none');
     $dateLimit.addClass('d-none');
     $columnToExportContainer.addClass('d-none');
     $columnToExport
@@ -279,10 +281,10 @@ function onFormEntityChange() {
 
     switch (selectedEntity) {
         case ENTITY_REFERENCE:
-            $refArticlesSentence.removeClass('d-none');
+            $referencesSentence.removeClass('d-none');
             break;
         case ENTITY_ARTICLE:
-            $refArticlesSentence.removeClass('d-none');
+            $articlesSentence.removeClass('d-none');
             break;
         case ENTITY_TRANSPORT_ROUNDS:
             $dateLimit.removeClass('d-none');

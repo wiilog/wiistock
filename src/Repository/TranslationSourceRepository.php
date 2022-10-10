@@ -15,18 +15,33 @@ use Doctrine\ORM\EntityRepository;
  */
 class TranslationSourceRepository extends EntityRepository {
 
-    public function findByDefaultFrenchTranslation(TranslationCategory $category, string $translation) {
-        return $this->createQueryBuilder("source")
+    public function findOneByDefaultFrenchTranslation(TranslationCategory $category, string $translation) {
+        $res = $this->createQueryBuilder("source")
             ->join("source.translations", "translation")
             ->leftJoin("translation.language", "language")
             ->andWhere("language.slug = :slug")
             ->andWhere("source.category = :category")
-            ->andWhere("translation.translation LIKE :translation")
+            ->andWhere("translation.translation = :translation")
             ->setParameter("slug", Language::FRENCH_DEFAULT_SLUG)
             ->setParameter("category", $category)
             ->setParameter("translation", $translation)
             ->getQuery()
-            ->getOneOrNullResult();
+            ->getResult();
+        $resCount = count($res);
+        if ($resCount === 0 || $resCount === 1) {
+            return $res[0] ?? null;
+        }
+        else { // for case-sensitive comparison
+            /** @var TranslationSource $source */
+            foreach ($res as $source) {
+                $t = $source->getTranslationIn(Language::FRENCH_DEFAULT_SLUG)
+                    ?->getTranslation();
+                if ($translation === $t) {
+                    return $source;
+                }
+            }
+            return $res[0] ?? null;
+        }
     }
 
     public function findUnusedTranslations(TranslationCategory $category, array $activeTranslations) {

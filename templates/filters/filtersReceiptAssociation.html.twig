@@ -2,11 +2,7 @@
 
 {% block filters %}
     {% include 'filters/filter_item/filterDate.html.twig' %}
-    {% include 'filters/filter_item/filterColis.html.twig' with {
-        multiple: true
-    }%}
+    {% include 'filters/filter_item/filterColis.html.twig' %}
     {% include 'filters/filter_item/filterReceptionString.html.twig' %}
-    {% include 'filters/filter_item/filterUser.html.twig' with {
-        placeholder : trans('Traçabilité', 'Association BR', 'Utilisateurs', false)
-    } %}
+    {% include 'filters/filter_item/filterUser.html.twig' %}
 {% endblock %}

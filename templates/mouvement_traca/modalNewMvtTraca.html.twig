@@ -36,7 +36,7 @@
                                 </div>
                                 <div class="form-group col-12">
                                     {% set hasEmptyRoundRight = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EMPTY_ROUND')) %}
-                                    <label class="wii-field-name" for="type">{{ trans('Traçabilité', 'Mouvement', 'Action', false) }}*</label>
+                                    <label class="wii-field-name" for="type">{{ trans('Traçabilité', 'Mouvements', 'Action', false) }}*</label>
                                     <select class="form-control data needed w-100"
                                             id="type"
                                             name="type"
@@ -44,8 +44,9 @@
                                         <option disabled selected></option>
                                         {% for statut in statuts %}
                                             {% if statut.nom != constant('App\\Entity\\TrackingMovement::TYPE_UNGROUP') %}
-                                                <option class="{{ statut.nom == constant('App\\Entity\\TrackingMovement::TYPE_EMPTY_ROUND')
-                                                and not hasEmptyRoundRight ? 'd-none' }}" value="{{ statut.id }}">{{ trans('Traçabilité', 'Mouvements', statut.nom) }}
+                                                <option class="{{ statut.nom == constant('App\\Entity\\TrackingMovement::TYPE_EMPTY_ROUND') and not hasEmptyRoundRight ? 'd-none' }}"
+                                                        value="{{ statut.id }}">
+                                                    {{ trans('Traçabilité', 'Mouvements', statut.nom) }}
                                                 </option>
                                             {% endif %}
                                         {% endfor %}

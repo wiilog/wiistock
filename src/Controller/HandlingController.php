@@ -10,6 +10,7 @@ use App\Entity\CategoryType;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField;
 use App\Entity\FieldsParam;
+use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\Handling;
 use App\Entity\Attachment;
@@ -571,7 +572,9 @@ class HandlingController extends AbstractController {
                 "statusesHistory" => Stream::from($handling->getStatusHistory())
                     ->map(fn(StatusHistory $statusHistory) => [
                         "status" => $this->getFormatter()->status($statusHistory->getStatus()),
-                        "date" => $this->getFormatter()->datetime($statusHistory->getDate(), "", false, $user)
+                        "date" => $languageService->getCurrentUserLanguageSlug() === Language::FRENCH_SLUG
+                                    ? FormatHelper::longDate($statusHistory->getDate(), ["short" => true, "time" => true])
+                                    : $this->getFormatter()->datetime($statusHistory->getDate(), "", false, $user),
                     ])
                     ->toArray(),
                 "handling" => $handling,

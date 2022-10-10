@@ -166,8 +166,8 @@
                         wrapperClass: 'col-6 d-flex flex-column',
                         values: handling.freeFields,
                         freeFields: freeFields,
-                        emptyTitle: trans('Demande', 'Services', 'Modale et détails', "Ce service n'a aucun champ libre"),
-                        emptyLabel: trans('Demande', 'Services', 'Modale et détails', "Ce service n'a aucun champ libre"),
+                        emptyTitle: trans('Demande', 'Services', 'Modale et détails', "Ce service n'a aucun champ libre", false),
+                        emptyLabel: trans('Demande', 'Services', 'Modale et détails', "Ce service n'a aucun champ libre", false),
                         needsDateFormatting: true
                     } %}
                 </div>
@@ -201,7 +201,7 @@
                     {% if handling.withoutHistory %}
                         <div class="col-6 d-flex flex-column">
                             <div class="box-item my-2">
-                                <span class="wii-field-name">{{ trans('Demande', 'Services', null, 'Date de création') }}</span>
+                                <span class="wii-field-name">{{ trans('Général', null, 'Zone liste', 'Date de création') }}</span>
                                 <span class="wii-field-text">
                                     {{ handling.creationDate | format_helper(setting_value('REMOVE_HOURS_DATETIME') ? 'date' : 'datetime', "", false, app.user) }}
                                 </span>
@@ -212,7 +212,9 @@
                         <div class="box-item my-2">
                             <span class="wii-field-name">{{ trans('Demande', 'Services', 'Modale et détails', 'Date attendue') }}</span>
                             <span class="wii-field-text">
-                                {{ handling.desiredDate | format_helper(setting_value('REMOVE_HOURS_DATETIME') ? 'date' : 'datetime', "", false, app.user) }}
+                                {{ language_service.currentUserLanguageSlug == constant('App\\Entity\\Language::FRENCH_SLUG')
+                                    ? handling.creationDate | format_helper('longDate', {short: true, time: not setting_value('REMOVE_HOURS_DATETIME')})
+                                    : handling.desiredDate | format_helper(setting_value('REMOVE_HOURS_DATETIME') ? 'date' : 'datetime', "", false, app.user) }}
                             </span>
                         </div>
                     </div>
@@ -220,7 +222,9 @@
                         <div class="box-item my-2">
                             <span class="wii-field-name">{{ trans('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Date de réalisation') }}</span>
                             <span class="wii-field-text">
-                                {{ handling.validationDate | format_helper(setting_value('REMOVE_HOURS_DATETIME') ? 'date' : 'datetime', "", false, app.user) }}
+                                {{ language_service.currentUserLanguageSlug == constant('App\\Entity\\Language::FRENCH_SLUG')
+                                ? handling.validationDate | format_helper('longDate', {short: true, time: not setting_value('REMOVE_HOURS_DATETIME')})
+                                : handling.validationDate | format_helper(setting_value('REMOVE_HOURS_DATETIME') ? 'date' : 'datetime', "", false, app.user) }}
                             </span>
                         </div>
                     </div>

@@ -276,14 +276,12 @@ class DispatchService {
                 'value' => $type ? $type->getLabelIn($user->getLanguage(), $this->languageService->getDefaultLanguage()) : ''
             ],
             [
-                'label' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'Transporteur', false),
-                'title' => 'Transporteur',
+                'label' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Transporteur', false),
                 'value' => $carrier ? $carrier->getLabel() : '',
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_CARRIER_DISPATCH]
             ],
             [
                 'label' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'N° tracking transporteur', false),
-                'title' => 'Numéro de tracking transporteur',
                 'value' => $carrierTrackingNumber,
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH]
             ],
@@ -294,36 +292,31 @@ class DispatchService {
             $receiverDetails ?? [],
             [
                 'label' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'N° projet', false),
-                'title' => 'Numéro de projet',
                 'value' => $projectNumber,
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_PROJECT_NUMBER]
             ],
             [
                 'label' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Business unit', false),
-                'title' => 'Business unit',
                 'value' => $dispatch->getBusinessUnit() ?? '',
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_BUSINESS_UNIT]
             ],
             [
                 'label' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'N° commande', false),
                 'value' => $commandNumber,
-                'title' => 'Numéro de commande',
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_COMMAND_NUMBER_DISPATCH]
             ],
             [
-                'label' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'Emplacement prise', false),
+                'label' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de prise', false),
                 'value' => $locationFrom ? $locationFrom->getLabel() : '',
-                'title' => 'Emplacement prise',
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_LOCATION_PICK]
             ],
             [
-                'label' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'Emplacement dépose', false),
+                'label' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de dépose', false),
                 'value' => $locationTo ? $locationTo->getLabel() : '',
-                'title' => 'Emplacement dépose',
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_LOCATION_DROP]
             ],
             [
-                'label' => $this->translationService->translate('Demande', 'Acheminements', 'Zone liste - Noms de colonnes', 'Date de création', false),
+                'label' => $this->translationService->translate('Général', null, 'Zone liste', 'Date de création', false),
                 'value' => $this->formatService->datetime($creationDate, "", $user)
             ],
             [
@@ -336,7 +329,7 @@ class DispatchService {
                     ? $this->translationService->translate('Général', null, 'Zone liste', "Du {1} au {2}", [
                         1 => $startDateStr,
                         2 => $endDateStr
-                    ])
+                    ], false)
                     : ''
             ],
             [
@@ -572,8 +565,8 @@ class DispatchService {
             ['title' => $this->translationService->translate('Demande', 'Général', 'Type', false), 'name' => 'type'],
             ['title' => $this->translationService->translate('Demande', 'Général', 'Demandeur', false), 'name' => 'requester'],
             ['title' => $this->translationService->translate('Demande', 'Général', 'Destinataire(s)', false), 'name' => 'receivers', 'orderable' => false],
-            ['title' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'Emplacement prise', false), 'name' => 'locationFrom'],
-            ['title' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes','Emplacement dépose', false), 'name' => 'locationTo'],
+            ['title' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de prise', false), 'name' => 'locationFrom'],
+            ['title' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes','Emplacement de dépose', false), 'name' => 'locationTo'],
             ['title' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes','Destination', false), 'name' => 'destination'],
             ['title' => $this->translationService->translate('Demande', 'Acheminements', 'Zone liste - Noms de colonnes', 'Nombre d\'UL', false), 'name' => 'nbPacks', 'orderable' => false],
             ['title' => $this->translationService->translate('Demande', 'Général', 'Statut', false), 'name' => 'status'],

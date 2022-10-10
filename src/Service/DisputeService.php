@@ -164,9 +164,9 @@ class DisputeService {
         $recipients = [];
         $isArrival = ($category === self::CATEGORY_ARRIVAGE);
         if ($wantSendToBuyersMailStatusChange) {
-            $disputeRepository = $this->entityManager->getRepository(Dispute::class);
+            $userRepository = $this->entityManager->getRepository(Utilisateur::class);
             $recipients = $isArrival
-                ? $disputeRepository->getDisputeBuyers($dispute)
+                ? $userRepository->getDisputeBuyers($dispute)
                 : $dispute->getBuyers()->toArray();
         }
 
@@ -178,12 +178,24 @@ class DisputeService {
             $translatedCategory = $isArrival
                 ? ["Traçabilité", "Flux - Arrivages", "Email litige", "un arrivage", false]
                 : ["Ordre", "Réceptions", "une réception", false];
-            $title = !$isUpdate
-                ? ["Traçabilité", "Flux - Arrivages", "Email litige", "Un litige a été déclaré sur {1} vous concernant :", false, ['1' => $translatedCategory]]
-                : ["Traçabilité", "Flux - Arrivages", "Email litige", "Changement de statut d'un litige sur {1} vous concernant :", false, ['1' => $translatedCategory]];
-            $subject = !$isUpdate
-                ? ["Traçabilité", "Flux - Arrivages", "Email litige", "FOLLOW GT // Litige sur {1}", false, ['1' => $translatedCategory]]
-                : ["Traçabilité", "Flux - Arrivages", "Email litige", "FOLLOW GT // Changement de statut d'un litige sur {1}", false, ['1' => $translatedCategory]];
+            $title = fn(string $slug) => (
+                !$isUpdate
+                    ? ["Traçabilité", "Flux - Arrivages", "Email litige", "Un litige a été déclaré sur {1} vous concernant :", false, [
+                        1 => $this->translation->translateIn($slug, ...$translatedCategory)
+                    ]]
+                    : ["Traçabilité", "Flux - Arrivages", "Email litige", "Changement de statut d'un litige sur {1} vous concernant :", false, [
+                        1 => $this->translation->translateIn($slug, ...$translatedCategory)
+                    ]]
+            );
+            $subject = fn(string $slug) => (
+                !$isUpdate
+                    ? ["Traçabilité", "Flux - Arrivages", "Email litige", "FOLLOW GT // Litige sur {1}", false, [
+                        1 => $this->translation->translateIn($slug, ...$translatedCategory)
+                    ]]
+                    : ["Traçabilité", "Flux - Arrivages", "Email litige", "FOLLOW GT // Changement de statut d'un litige sur {1}", false, [
+                        1 => $this->translation->translateIn($slug, ...$translatedCategory)
+                    ]]
+            );
 
             $this->mailerService->sendMail(
                 $subject,

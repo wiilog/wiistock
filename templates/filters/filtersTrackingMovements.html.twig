@@ -3,7 +3,9 @@
 {% block filters %}
     {% include 'filters/filter_item/filterDate.html.twig' %}
     {% include 'filters/filter_item/filterColis.html.twig' %}
-    {% include 'filters/filter_item/filterLocation.html.twig' %}
+    {% include 'filters/filter_item/filterLocation.html.twig' with {
+        placeholder: trans('Traçabilité', 'Général', 'Emplacement', false),
+    }%}
     {% include 'filters/filter_item/filterStatus.html.twig' with {
         placeholder: trans('Traçabilité', 'Mouvements', 'Types', false),
         forTrackMov: true,

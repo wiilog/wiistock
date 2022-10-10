@@ -30,6 +30,12 @@ class TranslationService {
     #[Required]
     public LanguageService $languageService;
 
+    #[Required]
+    public FormatService $formatService;
+
+    #[Required]
+    public UserService $userService;
+
     private array $translations = [];
 
     /**
@@ -62,14 +68,14 @@ class TranslationService {
         }
 
         if(!isset($user)) {
-            $user = $this->tokenStorage->getToken()->getUser();
+            $user = $this->tokenStorage->getToken()?->getUser();
         }
 
         $args = Stream::from($args)
             ->filter(fn($arg) => !$arg instanceof Utilisateur)
             ->toArray();
 
-        $slug = $user?->getLanguage()?->getSlug();
+        $slug = $user?->getLanguage()?->getSlug() ?: $this->formatService->defaultLanguage();
 
         return $this->translateIn($slug, ...$args);
     }
@@ -212,7 +218,12 @@ class TranslationService {
                 }
 
                 if($translation) {
-                    $zoomedTranslations[$original->getTranslation()] = $translation?->getTranslation();
+                    try {
+                        $zoomedTranslations[$original->getTranslation()] = $translation?->getTranslation();
+                    }
+                    catch (\Throwable $e) {
+                        throw $e;
+                    }
                 }
             }
 

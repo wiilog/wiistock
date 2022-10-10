@@ -1695,12 +1695,14 @@ class ImportService
                 || strtolower($data['isOngoingVisibleOnMobile']) === "oui"
             );
         }
-
-        if (!empty($data['isActive'])) {
-            $location->setIsActive(
-                filter_var($data['isActive'], FILTER_VALIDATE_BOOLEAN)
-                || strtolower($data['isActive']) === "oui"
-            );
+        if (isset($data['isActive'])) {
+            $value = strtolower($data['isActive']);
+            if ($value !== 'oui' && $value !== 'non') {
+                $this->throwError('La valeur saisie pour Actif est invalide (autorisé : "oui" ou "non")');
+            }
+            else {
+                $location->setIsActive($value === 'oui');
+            }
         }
 
         $this->entityManager->persist($location);

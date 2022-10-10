@@ -9,10 +9,10 @@
                    disabled/>
         </div>
         <div class="form-group col-md-6 col-12">
-            <label class="wii-field-name" title="Nature de colis">{{ trans('Traçabilité', 'Unités logistiques', 'Divers', "Nature d'unité logistique") }}*</label>
+            <label class="wii-field-name">{{ trans('Traçabilité', 'Général', "Nature") }}*</label>
             <select class="form-control data needed"
                     name="nature"
-                    title="{{ trans('Traçabilité', 'Unités logistiques', 'Divers', "Nature d'unité logistique") }}">
+                    title="{{ trans('Traçabilité', 'Général', "Nature", false) }}">
                 <option value>{{ trans('Traçabilité', 'Général', 'Sélectionner une nature', false) }}</option>
                 {% set packNatureId = pack.nature is not null ? pack.nature.id : null %}
                 {% for nature in natures %}
@@ -21,14 +21,14 @@
             </select>
         </div>
         <div class="form-group col-md-6 col-12">
-            <label class="wii-field-name">{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Quantité') }}</label>
+            <label class="wii-field-name">{{ trans('Traçabilité', 'Général', 'Quantité') }}</label>
             <input type="number"
                    class="form-control data needed"
                    value="{{ pack.quantity }}"
                    name="quantity"
                    min="1"
                    step="1"
-                   title="{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Quantité', false) }}"/>
+                   title="{{ trans('Traçabilité', 'Général', 'Quantité', false) }}"/>
         </div>
         <div class="form-group col-md-6 col-12">
             <label class="wii-field-name">{{ trans('Traçabilité', 'Unités logistiques', 'Divers', 'Poids (kg)') }}</label>

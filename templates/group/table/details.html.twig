@@ -7,7 +7,8 @@
                         {{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Groupes"', 'Groupe') }} <strong>{{ group.code }}</strong>
                     </div>
                     <div class="col-4">
-                        {{ trans('Traçabilité', 'Général', 'Nature', false) }} <strong>{{ group.nature ? formatter.nature(group.nature) : 'Non défini' }}</strong>
+                        {{ trans('Traçabilité', 'Général', 'Nature', false) }}
+                        <strong>{{ group.nature ? formatter.nature(group.nature) : 'Non défini' }}</strong>
                     </div>
                     <div class="col-4">
                         {{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Groupes"', "Nombre d'UL") }} <strong>{{ group.children | length }}</strong>
@@ -34,7 +35,7 @@
                         <div class="col-auto mr-auto">
                             {{ trans('Traçabilité', 'Général', 'Unité logistique', false) }} <strong>{{ pack.code }}</strong><br>
                             {{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Quantité') }} <strong>{{ pack.quantity }}</strong><br>
-                            {{ trans('Traçabilité', 'Unités logistiques', 'Divers', "Nature d'unité logistique") }} <strong>{{ pack.nature ? formatter.nature(pack.nature) : 'Non défini' }}</strong>
+                            {{ trans('Traçabilité', 'Général', 'Nature') }} <strong>{{ pack.nature ? formatter.nature(pack.nature) : 'Non défini' }}</strong>
                         </div>
                     </div>
                 </div>

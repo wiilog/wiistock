@@ -102,8 +102,8 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
         form: getFormColumn(mode, statusStateOptions, categoryType),
     });
 
-    let submitEditTranslations = $("#submitEditTranslations");
-    let urlEditTranslations = Routing.generate('settings_edit_status_translations', true)
+    let submitEditTranslations = $modalEditTranslations.find("#submitEditTranslations");
+    let urlEditTranslations = Routing.generate('settings_edit_status_translations', true);
     InitModal($modalEditTranslations, submitEditTranslations, urlEditTranslations, {
         success: () => {
             table.toggleEdit(STATE_VIEWING, true);

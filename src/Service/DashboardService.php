@@ -67,6 +67,9 @@ class DashboardService {
     #[Required]
     public TranslationService $translationService;
 
+    #[Required]
+    public LanguageService $languageService;
+
     private $cacheDaysWorked;
 
     public function refreshDate(EntityManagerInterface $entityManager): string {
@@ -485,8 +488,23 @@ class DashboardService {
         $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
 
         $config = $component->getConfig();
-        $legend1 = $config['originCaption'] ?: 'Legende1';
-        $legend2 = $config['destinationCaption'] ?: 'Legende2';
+        $config['legends'] = [];
+        $countLegend = 1;
+        foreach($config['chartColors'] as $key => $legend){
+            $config['legends'][$key] = [];
+            Stream::from($config)
+                ->each(function($conf, $arrayKey) use ($countLegend, $key, &$config) {
+                    if (str_starts_with($arrayKey, 'legend') && str_contains($arrayKey, '_') && str_contains($arrayKey, $countLegend)) {
+                        $explode = explode('_', $arrayKey);
+                        $config['legends'][$key][$explode[1]] = $conf;
+                        unset($config[$arrayKey]);
+                    }
+                });
+            $countLegend++;
+        }
+
+        $legend1 = 'Legende1';
+        $legend2 = 'Legende2';
         $clusterKeys = ['firstOriginLocation', 'secondOriginLocation', 'firstDestinationLocation', 'secondDestinationLocation'];
         foreach ($clusterKeys as $key) {
             $this->updateComponentLocationCluster($entityManager, $component, $key);
@@ -1164,7 +1182,7 @@ class DashboardService {
             $dates[] = 'validationDate';
         }
 
-        $hint = $config['tooltip'];
+        $hint = $config['tooltip'] ?? '';
 
         $handlingRepository = $entityManager->getRepository(Handling::class);
 
@@ -1314,7 +1332,7 @@ class DashboardService {
             }
         } else {
             $naturesStack[] = [
-                'label' => 'Colis',
+                'label' => 'Unité logistique',
                 'backgroundColor' => '#E5E1E1',
                 'stack' => 'stack',
                 'data' => []

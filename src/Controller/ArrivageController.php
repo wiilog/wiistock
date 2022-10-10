@@ -162,8 +162,9 @@ class ArrivageController extends AbstractController {
                 ->toArray();
 
             $keptFields = $keptFieldService->getAll(FieldsParam::ENTITY_CODE_ARRIVAGE);
-            if(isset($keptFields[FieldsParam::FIELD_CODE_LOCATION_DROP])) {
-                $keptFields[FieldsParam::FIELD_CODE_LOCATION_DROP] = $locationRepository->find($keptFields[FieldsParam::FIELD_CODE_LOCATION_DROP]);
+
+            if(isset($keptFields[FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE])) {
+                $keptFields[FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE] = $locationRepository->find($keptFields[FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE]);
             }
 
             $html = $this->renderView("arrivage/modalNewArrivage.html.twig", [
@@ -221,7 +222,9 @@ class ArrivageController extends AbstractController {
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
-        $dropLocation = !empty($data['dropLocation']) ? $emplacementRepository->find($data['dropLocation']) : null;
+        $dropLocation = !empty($data['dropLocation'])
+            ? $emplacementRepository->find($data['dropLocation'])
+            : null;
 
         $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_BUYERS_ARRIVAGE, isset($data["acheteurs"]) ? explode(',', $data["acheteurs"]) : []);
         $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_BUSINESS_UNIT, $data["businessUnit"] ?? null);
@@ -230,13 +233,13 @@ class ArrivageController extends AbstractController {
         $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_FROZEN_ARRIVAGE, filter_var($data["frozen"] ?? false, FILTER_VALIDATE_BOOLEAN));
         $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_TARGET_ARRIVAGE, $data["destinataire"] ?? null);
         $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_CUSTOMS_ARRIVAGE, filter_var($data["customs"] ?? false, FILTER_VALIDATE_BOOLEAN));
-        $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_LOCATION_DROP, $data["dropLocation"] ?? null);
+        $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, $data["dropLocation"] ?? null);
         $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_FOURNISSEUR, $data["fournisseur"] ?? null);
         $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_PRINT_ARRIVAGE, filter_var($data["printArrivage"] ?? false, FILTER_VALIDATE_BOOLEAN));
         $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_NUM_COMMANDE_ARRIVAGE, $data["numeroCommandeList"] ?? null);
         $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_PROJECT_NUMBER, $data["noProject"] ?? null);
         $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE, $data["noTracking"] ?? null);
-        $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_TRANSPORTEUR, $data["transporteur"] ?? null);
+        $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_CARRIER_ARRIVAGE, $data["transporteur"] ?? null);
 
         $arrivage = new Arrivage();
         $arrivage
@@ -245,8 +248,8 @@ class ArrivageController extends AbstractController {
             ->setUtilisateur($currentUser)
             ->setDropLocation($dropLocation)
             ->setNumeroArrivage($numeroArrivage)
-            ->setCustoms(isset($data['customs']) ? $data['customs'] == 'true' : false)
-            ->setFrozen(isset($data['frozen']) ? $data['frozen'] == 'true' : false)
+            ->setCustoms(isset($data['customs']) && $data['customs'] == 'true')
+            ->setFrozen(isset($data['frozen']) && $data['frozen'] == 'true')
             ->setCommentaire($data['commentaire'] ?? null)
             ->setType($typeRepository->find($data['type']));
 
@@ -307,7 +310,7 @@ class ArrivageController extends AbstractController {
             $entityManager->flush();
         }
         /** @noinspection PhpRedundantCatchClauseInspection */
-        catch (UniqueConstraintViolationException $e) {
+        catch (UniqueConstraintViolationException) {
             return new JsonResponse([
                 'success' => false,
                 'msg' => $translation->translate('Traçabilité', 'Flux - Arrivages', 'Divers', 'Un autre arrivage est en cours de création, veuillez réessayer')

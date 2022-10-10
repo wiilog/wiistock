@@ -309,6 +309,12 @@ class DashboardSettingsService {
             $values['languages'] = json_encode($languages, true);
         }
 
+        if(isset($values['chartColorsLabels'])){
+            $values['chartColorsLabels'] = Stream::from($values['chartColorsLabels'])
+                                            ->map(fn($trad) => $this->translationService->translate('Dashboard', $trad, false))
+                                            ->toArray();
+        }
+
         return $values;
     }
 
@@ -705,7 +711,7 @@ class DashboardSettingsService {
                     if (!$displayPackNatures) {
                         $chartData['stack'] = array_slice($chartData['stack'], 0, 1);
                         $chartData['stack'][0] = [
-                            'label' => 'Colis',
+                            'label' => 'Unité logistique',
                             'backgroundColor' => '#E5E1E1',
                             'stack' => 'stack',
                             'data' => $chartData['stack'][0]['data']

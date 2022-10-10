@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Action;
+use App\Entity\Dispute;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
 use Doctrine\ORM\EntityRepository;
@@ -221,27 +222,6 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
         }, $result);
     }
 
-    public function getUsernameManagersGroupByReference() {
-        $result = $this->createQueryBuilder('utilisateur')
-            ->select('referencesArticle.id AS referencesArticleId')
-            ->addSelect('utilisateur.username')
-            ->join('utilisateur.referencesArticle', 'referencesArticle')
-            ->getQuery()
-            ->getResult();
-
-        return array_reduce($result, function ($acc, $attachment) {
-            $referenceArticleId = (int)$attachment['referencesArticleId'];
-            if (empty($acc[$referenceArticleId])) {
-                $acc[$referenceArticleId] = '';
-            } else {
-                $acc[$referenceArticleId] .= ', ';
-            }
-
-            $acc[$referenceArticleId] .= $attachment['username'];
-            return $acc;
-        }, []);
-    }
-
     public function iterateAll(): iterable {
         return $this->createQueryBuilder('user')
             ->getQuery()
@@ -250,5 +230,17 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
 
     public function loadUserByIdentifier(string $identifier): ?UserInterface {
         return $this->findOneBy(["email" => $identifier]);
+    }
+
+    public function getDisputeBuyers(Dispute $dispute): array {
+        return $this->createQueryBuilder('buyer')
+            ->distinct()
+            ->join('buyer.arrivagesAcheteur', 'arrival')
+            ->join('arrival.packs', 'pack')
+            ->join('pack.disputes', 'dispute')
+            ->andWhere('dispute = :dispute')
+            ->setParameter('dispute', $dispute)
+            ->getQuery()
+            ->getResult();
     }
 }

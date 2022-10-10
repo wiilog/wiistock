@@ -50,6 +50,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "en" => "To",
                         ],
                         [
+                            "fr" => "Utilisateurs",
+                            "en" => "Users",
+                            "tooltip" => "Filtre Association BR",
+                        ],
+                        [
                             "fr" => "Filtrer",
                             "en" => "Filter",
                         ],
@@ -208,7 +213,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                         [
                             "fr" => "Détails",
-                            "en" => "Détails",
+                            "en" => "Details",
                         ],
                         [
                             "fr" => "Modifier",
@@ -475,7 +480,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "Unité logistique",
                         "en" => "Logistics unit",
-                        "tooltip" => "Composant \"UL en retard\"\nComposant \"Nombre d'arrivages et d'UL quotidiens\"\nComposant \"Nombres d'arrivages et d'UL hebdomadaires\"",
+                        "tooltip" => "Page Mouvements :\nFiltre\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouveau mouvement\nModale Modifier un mouvement\n_____\nPage Association BR :\nFiltre\nZone liste - Nom de colonnes",
                     ],
                     [
                         "fr" => "Emplacement",
@@ -500,12 +505,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "Quantité",
                         "en" => "Quantity",
-                        "tooltip" => "Page Mouvements :\nZone liste - Nom de colonnes\nModale Modifier une unité logistique\nModale Nouvelle UL\n_____\nPage UL :\nOnglet UL - Zone liste - Nom de colonnes\nOnglet UL - Modale Modifier une unité logistique",
+                        "tooltip" => "Page Mouvements :\nZone liste - Nom de colonnes\n Modale Modifier un mouvement\nModale Nouveau mouvement\n______\nPage UL :\nOnglet UL - Zone liste - Nom de colonnes\nOnglet UL - Modale Modifier une unité logistique\nOnglet UL - contenu UL",
                     ],
                     [
                         "fr" => "Nature",
                         "en" => "Nature",
-                        "tooltip" => "Page Flux - Arrivages :\nDétails arrivage - Liste des UL - Colonne\n_____\nPage UL :\nOnglet UL - Colonne\nOnglet UL - Modale Modifier une unité logistique\nOnglet Groupes - Carte groupe\nOnglet Groupes - Carte UL dans Carte groupe",
+                        "tooltip" => "Page Flux - Arrivages :\nDétails arrivage - Liste des UL - Colonne\n_____\nPage UL :\nOnglet UL - Colonne\nOnglet UL - Modale Modifier une unité logistique\nOnglet Groupes - Carte groupe\nOnglet Groupes - Carte UL dans Carte groupe\nOnglet Groupes - Exports",
                     ],
                     [
                         "fr" => "Natures",
@@ -515,12 +520,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "Issu de",
                         "en" => "From",
-                        "tooltip" => "Page Mouvements : \nZone liste - Nom de colonnes\nGestion des colonnes\n_____\nPage UL : \nZone liste - Nom de colonnes",
+                        "tooltip" => "Page Mouvements : \nZone liste - Nom de colonnes\nGestion des colonnes\n_____\nPage UL : \nZone liste - Nom de colonnes\nExport UL\nExport groupes",
                     ],
                     [
                         "fr" => "Issu de (numéro)",
                         "en" => "From (number)",
-                        "tooltip" => "Page UL : \nZone liste - Nom de colonnes",
+                        "tooltip" => "Page UL : \nExport UL\nExport groupes",
                     ],
                     [
                         "fr" => "Date dernier mouvement",
@@ -530,7 +535,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "Dernier emplacement",
                         "en" => "Last location",
-                        "tooltip" => "Page Flux - Arrivages :\nDétails arrivage - Liste des UL - Nom de colonnes\n_____\nPage UL :\nZone liste - Nom de colonnes",
+                        "tooltip" => "Page Flux - Arrivages :\nDétails arrivage - Liste des UL - Nom de colonnes",
                     ],
                     [
                         "fr" => "Sélectionner une nature",
@@ -1107,19 +1112,14 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Filtre",
                         ],
                         [
-                            "fr" => "Nature d'unité logistique",
-                            "en" => "Logistics unit nature",
-                            "tooltip" => 'Onglet "Unité logistique"\nZone liste\nModale Modifier une unité logistique\n_____\nOnglet "Groupes"\nExport',
-                        ],
-                        [
                             "fr" => "Poids (kg)",
                             "en" => "Weight (kg)",
-                            "tooltip" => 'Onglet "Unité logistique"\nZone liste\nModale Modifier une unité logistique\n_____\nOnglet "Groupes"\nModale Modifier le groupe\nExport',
+                            "tooltip" => "Onglet \"Unité logistique\"\nZone liste\nModale Modifier une unité logistique\n____\nOnglet \"Groupes\"\nModale Modifier le groupe\nExport",
                         ],
                         [
                             "fr" => "Volume (m3)",
                             "en" => "Volume (m3)",
-                            "tooltip" => 'Onglet "Unité logistique"\nZone liste\nModale Modifier une unité logistique\n_____\nOnglet "Groupes"\nModale Modifier le groupe\nExport',
+                            "tooltip" => "Onglet \nUnité logistique\nZone liste\nModale Modifier une unité logistique\n____\nOnglet Groupes\nModale Modifier le groupe\nExport",
                         ],
                     ],
                 ],
@@ -1198,11 +1198,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Ref",
                             "en" => "Ref",
-                            "tooltip" => "Zone liste - contenu UL",
-                        ],
-                        [
-                            "fr" => "Quantité",
-                            "en" => "Quantity",
                             "tooltip" => "Zone liste - contenu UL",
                         ],
                         [
@@ -1477,11 +1472,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "tooltip" => "Filtre\nZone liste - Nom de colonnes",
                     ],
                     [
-                        "fr" => "Utilisateurs",
-                        "en" => "Users",
-                        "tooltip" => "Filtre",
-                    ],
-                    [
                         "fr" => "Enregistrer une réception",
                         "en" => "Save a receipt",
                         "tooltip" => "Modale Enregistrer une réception",
@@ -1753,11 +1743,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "tooltip" => "Acheminement :\nFiltre\n_____\nService :\nFiltre",
                     ],
                     [
-                        "fr" => "Urgence",
-                        "en" => "Urgencie",
-                        "tooltip" => "Acheminement :\nFiltre\n_____\nService :\nFiltre",
-                    ],
-                    [
                         "fr" => "Urgent",
                         "en" => "Urgent",
                         "tooltip" => "Service :\nZone liste - Nom de colonnes",
@@ -1786,7 +1771,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "Urgence",
                         "en" => "Emergency",
-                        "tooltip" => "Acheminement :\nZone liste - Nom de colonnes\nModale Nouvelle demande\nModale Modifier un acheminement\nDétails acheminement - Entête\n_____\nService :\nModale Nouvelle demande de service\nModale Modifier une demande de service",
+                        "tooltip" => "Acheminement :\nFiltre\nZone liste - Nom de colonnes\nModale Nouvelle demande\nModale Modifier un acheminement\nDétails acheminement - Entête\n_____\nService :\nFiltre\nModale Nouvelle demande de service\nModale Modifier une demande de service",
                     ],
                     [
                         "fr" => "Aller vers la création des statuts",
@@ -1835,7 +1820,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Date de validation",
                             "en" => "Validation date",
-                            "tooltip" => "Zone liste - Nom de colonnes\nDétails acheminements - Entête\nPDF bon acheminement\nEmails",
+                            "tooltip" => "Zone liste - Nom de colonnes\nDétails acheminements - Entête\nPDF bon acheminement\nPDF bon de surconsommation\nEmails",
                         ],
                         [
                             "fr" => "Date de traitement",
@@ -1875,17 +1860,17 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Nature",
                             "en" => "Nature",
-                            "tooltip" => "Détails acheminements - Liste des UL - Nom de colonnes\nPDF bon acheminement\nEmails",
+                            "tooltip" => "Détails acheminements - Liste des UL - Nom de colonnes\nPDF bon acheminement\nPDF lettre de voiture\nPDF bon de surconsommation\nEmails",
                         ],
                         [
                             "fr" => "Code",
                             "en" => "Code",
-                            "tooltip" => "Liste des UL\nEmails",
+                            "tooltip" => "Liste des UL\nEmails\nPDF bon de livraison",
                         ],
                         [
                             "fr" => "Quantité à acheminer",
                             "en" => "Quantity to transfer",
-                            "tooltip" => "Détails acheminements - Liste des UL - Nom de colonnes\nPDF bon acheminement\Emails",
+                            "tooltip" => "Détails acheminements - Liste des UL - Nom de colonnes\nPDF bon acheminement\nPDF lettre de voiture\nEmails",
                         ],
                         [
                             "fr" => "Date dernier mouvement",
@@ -1905,12 +1890,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Poids (kg)",
                             "en" => "Weight (kg)",
-                            "tooltip" => "Détails acheminements - Liste des UL - Nom de colonnes\nPDF bon acheminement\nEmails",
+                            "tooltip" => "Détails acheminements - Liste des UL - Nom de colonnes\nPDF bon acheminement\nPDF lettre de voiture\nEmails",
                         ],
                         [
                             "fr" => "Volume (m3)",
                             "en" => "Volume (m3)",
-                            "tooltip" => "Détails acheminements - Liste des UL - Nom de colonnes\nPDF bon acheminement\nEmails",
+                            "tooltip" => "Détails acheminements - Liste des UL - Nom de colonnes\nPDF bon acheminement\nPDF lettre de voiture\nEmails",
                         ],
                         [
                             "fr" => "Traité",
@@ -2011,12 +1996,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Filtre \nZone liste - Nom de colonnes\nModale Nouvelle demande\nModale Modifier un acheminement \nDétails acheminement - Entête \nPDF bon acheminement",
                         ],
                         [
-                            "fr" => "Emplacement prise",
+                            "fr" => "Emplacement de prise",
                             "en" => "Picking location",
                             "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle demande\nModale Modifier un acheminement \nDétails acheminement - Entête \nNomade\nPDF bon acheminement",
                         ],
                         [
-                            "fr" => "Emplacement dépose",
+                            "fr" => "Emplacement de dépose",
                             "en" => "Drop location",
                             "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle demande\nModale Modifier un acheminement \nDétails acheminement - Entête \nNomade\nPDF bon acheminement",
                         ],
@@ -2084,7 +2069,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Unité logistique",
                             "en" => "Logistics unit",
-                            "tooltip" => "Détails acheminements - Liste des colis - Nom de colonnes\nPDF bon acheminement",
+                            "tooltip" => "Détails acheminements - Liste des colis - Nom de colonnes\nPDF bon acheminement\nPDF lettre de voiture",
                         ],
                         [
                             "fr" => "Nouvelle UL",
@@ -2122,11 +2107,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "fr" => "Echéance",
                             "en" => "Due",
                             "tooltip" => "Modale Nouvelle demande d'acheminement\nModale Modifier un acheminement ",
-                        ],
-                        [
-                            "fr" => "Destinataire(s)",
-                            "en" => "Addressee(s)",
-                            "tooltip" => "Modale modifier un acheminement",
                         ],
                     ],
                 ],
@@ -2224,6 +2204,26 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "fr" => "La lettre de voiture n'existe pas pour cet acheminement",
                             "en" => "The consignment note does not exist for this transfer",
                         ],
+                        [
+                            "fr" => "Lettre de voiture N°{1}",
+                            "en" => "Road consignment note N°{1}",
+                            "tooltip" => "PDF lettre de voiture"
+                        ],
+                        [
+                            "fr" => "Marchandise",
+                            "en" => "Merchandise",
+                            "tooltip" => "PDF lettre de voiture"
+                        ],
+                        [
+                            "fr" => "Autres informations",
+                            "en" => "Other information",
+                            "tooltip" => "PDF lettre de voiture"
+                        ],
+                        [
+                            "fr" => "Total",
+                            "en" => "Total",
+                            "tooltip" => "PDF lettre de voiture"
+                        ]
                     ],
                 ],
                 "Bon d'acheminement" => [
@@ -2237,6 +2237,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "fr" => "Le bon d'acheminement n'existe pas pour cet acheminement",
                             "en" => "The transfer note does not exist for this transfer",
                         ],
+                        [
+                            "fr" => "Destinataires",
+                            "en" => "Addressees",
+                            "tooltip" => "PDF bon de livraison"
+                        ],
                     ],
                 ],
                 "Bon de livraison" => [
@@ -2249,52 +2254,52 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Expéditeur",
                             "en" => "Consigner",
-                            "tooltip" => "Modale Création modification BL",
+                            "tooltip" => "Modale Création modification BL\nPDF bon de livraison",
                         ],
                         [
                             "fr" => "Adresse de livraison",
                             "en" => "Delivery address",
-                            "tooltip" => "Modale Création modification BL",
+                            "tooltip" => "Modale Création modification BL\nPDF bon de livraison",
                         ],
                         [
                             "fr" => "Numéro de livraison",
                             "en" => "Delivery number",
-                            "tooltip" => "Modale Création modification BL",
+                            "tooltip" => "Modale Création modification BL\nPDF bon de livraison",
                         ],
                         [
                             "fr" => "Date de livraison",
                             "en" => "Delivery date",
-                            "tooltip" => "Modale Création modification BL",
+                            "tooltip" => "Modale Création modification BL\nPDF bon de livraison",
                         ],
                         [
                             "fr" => "Numéro de commande de vente",
                             "en" => "Sales order number",
-                            "tooltip" => "Modale Création modification BL",
+                            "tooltip" => "Modale Création modification BL\nPDF bon de livraison",
                         ],
                         [
                             "fr" => "Lettre de voiture",
                             "en" => "Road consignment note",
-                            "tooltip" => "Modale Création modification BL",
+                            "tooltip" => "Modale Création modification BL\nPDF bon de livraison",
                         ],
                         [
                             "fr" => "Bon de commande client",
                             "en" => "Customer PO Number",
-                            "tooltip" => "Modale Création modification BL",
+                            "tooltip" => "Modale Création modification BL\nPDF bon de livraison",
                         ],
                         [
                             "fr" => "Date commande client",
                             "en" => "Customer PO Date",
-                            "tooltip" => "Modale Création modification BL",
+                            "tooltip" => "Modale Création modification BL\nPDF bon de livraison",
                         ],
                         [
                             "fr" => "Réponse numéro commande",
                             "en" => "Response order number",
-                            "tooltip" => "Modale Création modification BL",
+                            "tooltip" => "Modale Création modification BL\nPDF bon de livraison",
                         ],
                         [
                             "fr" => "Numéro de projet",
                             "en" => "Project number",
-                            "tooltip" => "Modale Création modification BL",
+                            "tooltip" => "Modale Création modification BL\nPDF bon de livraison",
                         ],
                         [
                             "fr" => "Urgence",
@@ -2304,27 +2309,27 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Contact",
                             "en" => "Handled by",
-                            "tooltip" => "Modale Création modification BL",
+                            "tooltip" => "Modale Création modification BL\nPDF bon de livraison",
                         ],
                         [
                             "fr" => "Téléphone",
                             "en" => "Phone number",
-                            "tooltip" => "Modale Création modification BL",
+                            "tooltip" => "Modale Création modification BL\nPDF bon de livraison",
                         ],
                         [
                             "fr" => "Fax",
                             "en" => "Fax",
-                            "tooltip" => "Modale Création modification BL",
+                            "tooltip" => "Modale Création modification BL\nPDF bon de livraison",
                         ],
                         [
                             "fr" => "Client acheteur",
                             "en" => "Buying customer",
-                            "tooltip" => "Modale Création modification BL",
+                            "tooltip" => "Modale Création modification BL\nPDF bon de livraison",
                         ],
                         [
                             "fr" => "Numéro facture",
                             "en" => "Invoice number",
-                            "tooltip" => "Modale Création modification BL",
+                            "tooltip" => "Modale Création modification BL\nPDF bon de livraison",
                         ],
                         [
                             "fr" => "Numéro vente",
@@ -2334,12 +2339,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Facturé à",
                             "en" => "Invoiced to",
-                            "tooltip" => "Modale Création modification BL",
+                            "tooltip" => "Modale Création modification BL\nPDF bon de livraison",
                         ],
                         [
                             "fr" => "Vendu à",
                             "en" => "Sold to",
-                            "tooltip" => "Modale Création modification BL",
+                            "tooltip" => "Modale Création modification BL\nPDF bon de livraison",
                         ],
                         [
                             "fr" => "Nom dernier utilisateur",
@@ -2349,12 +2354,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Dernier utilisateur",
                             "en" => "Last user",
-                            "tooltip" => "Modale Création modification BL",
+                            "tooltip" => "Modale Création modification BL\nPDF bon de livraison",
                         ],
                         [
                             "fr" => "Livrer à",
                             "en" => "Deliver to",
-                            "tooltip" => "Modale Création modification BL",
+                            "tooltip" => "Modale Création modification BL\nPDF bon de livraison",
                         ],
                         [
                             "fr" => "Numéro",
@@ -2369,12 +2374,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Date",
                             "en" => "Date",
-                            "tooltip" => "Modale Création modification BL",
+                            "tooltip" => "Modale Création modification BL\nPDF bon de livraison",
                         ],
                         [
                             "fr" => "Note(s)",
                             "en" => "Note(s)",
-                            "tooltip" => "Modale Création modification BL",
+                            "tooltip" => "Modale Création modification BL\nPDF bon de livraison",
                         ],
                         [
                             "fr" => "Copier vers Numéro vente",
@@ -2399,7 +2404,130 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "fr" => "Le bon de livraison n'existe pas pour cet acheminement",
                             "en" => "The delivery note does not exist for this transfer",
                         ],
-
+                        [
+                            "fr" => "Description",
+                            "en" => "Description",
+                            "tooltip" => "PDF bon de livraison"
+                        ],
+                        [
+                            "fr" => "Quantité",
+                            "en" => "Quantity",
+                            "tooltip" => "PDF bon de livraison"
+                        ],
+                        [
+                            "fr" => "Bon de livraison - Original",
+                            "en" => "Delivery note - Original",
+                            "tooltip" => "PDF bon de livraison"
+                        ],
+                        [
+                            "fr" => "Destinataire",
+                            "en" => "Addressee",
+                            "tooltip" => "PDF bon de livraison"
+                        ],
+                        [
+                            "fr" => "Cachet et signature de l'entreprise",
+                            "en" => "Company stamp & signature",
+                            "tooltip" => "PDF bon de livraison"
+                        ],
+                        [
+                            "fr" => "Signataire autorisé",
+                            "en" => "Authorized signatory",
+                            "tooltip" => "PDF bon de livraison"
+                        ],
+                        [
+                            "fr" => "Page",
+                            "en" => "Page",
+                            "tooltip" => "PDF bon de livraison"
+                        ],
+                    ],
+                ],
+                "Bon de surconsommation" => [
+                    "content" => [
+                        [
+                            "fr" => "Bon de surconsommation",
+                            "en" => "Overconsumption note",
+                            "tooltip" => "PDF bon de surconsommation",
+                        ],
+                        [
+                            "fr" => "Caractéristiques de la demande",
+                            "en" => "Operation characteristics",
+                            "tooltip" => "PDF bon de surconsommation",
+                        ],
+                        [
+                            "fr" => "N° de demande",
+                            "en" => "Operation N°",
+                            "tooltip" => "PDF bon de surconsommation",
+                        ],
+                        [
+                            "fr" => "Ligne de dépose",
+                            "en" => "Drop line",
+                            "tooltip" => "PDF bon de surconsommation",
+                        ],
+                        [
+                            "fr" => "Faite par",
+                            "en" => "Done by",
+                            "tooltip" => "PDF bon de surconsommation",
+                        ],
+                        [
+                            "fr" => "PN",
+                            "en" => "PN",
+                            "tooltip" => "PDF bon de surconsommation",
+                        ],
+                        [
+                            "fr" => "Code barre",
+                            "en" => "Bar code",
+                            "tooltip" => "PDF bon de surconsommation",
+                        ],
+                        [
+                            "fr" => "Qté livrée",
+                            "en" => "Delivered qty",
+                            "tooltip" => "PDF bon de surconsommation",
+                        ],
+                        [
+                            "fr" => "Qte demandée",
+                            "en" => "Requested qty",
+                            "tooltip" => "PDF bon de surconsommation",
+                        ],
+                        [
+                            "fr" => "Emplacement",
+                            "en" => "Location",
+                            "tooltip" => "PDF bon de surconsommation",
+                        ],
+                        [
+                            "fr" => "N° lot / Cure date / N°EASA si besoin / Commentaire",
+                            "en" => "Batch number / Cure date / EASA number if needed / Comment",
+                            "tooltip" => "PDF bon de surconsommation",
+                        ],
+                        [
+                            "fr" => "Document à ne pas dissocier de l'OF",
+                            "en" => "Document not to be dissociated from the OF",
+                            "tooltip" => "PDF bon de surconsommation"
+                        ],
+                        [
+                            "fr" => "Rappel",
+                            "en" => "Reminder",
+                            "tooltip" => "PDF bon de surconsommation"
+                        ],
+                        [
+                            "fr" => "1 à 5 lignes : service sous 15 minutes après demande aux équipes GT<br/>6 lignes et + : demande sous OF, service dans l'heure (fonction du nb de ligne)",
+                            "en" => "1 to 5 lines: service within 15 minutes after request to the GT teams<br/>6 lines and more: request under OF, service within the hour (depending on the number of lines)",
+                            "tooltip" => "PDF bon de surconsommation"
+                        ],
+                        [
+                            "fr" => "Visa et nom opérateur magasin",
+                            "en" => "Visa and store operator name",
+                            "tooltip" => "PDF bon de surconsommation"
+                        ],
+                        [
+                            "fr" => "Date",
+                            "en" => "Date",
+                            "tooltip" => "PDF bon de surconsommation"
+                        ],
+                        [
+                            "fr" => "Demande de surconsommation OF / complément",
+                            "en" => "Added parts request OF",
+                            "tooltip" => "PDF bon de surconsommation"
+                        ],
                     ],
                 ],
                 "Emails" => [
@@ -2817,10 +2945,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
             $category->setSubtitle($content["subtitle"] ?? null);
 
             foreach ($content["content"] as $translation) {
-                var_dump('test1');
-                var_dump($translation["fr"]);
-                $transSource = $category->getId() ? $translationSourceRepository->findByDefaultFrenchTranslation($category, $translation["fr"]) : null;
-                var_dump('test2');
+                $transSource = $category->getId() ? $translationSourceRepository->findOneByDefaultFrenchTranslation($category, $translation["fr"]) : null;
                 if (!$transSource) {
                     $transSource = new TranslationSource();
                     $transSource->setCategory($category);

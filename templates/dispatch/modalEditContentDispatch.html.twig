@@ -42,7 +42,7 @@
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
         <div class="form-group col-md-4 col-12">
-            <label class="wii-field-name" for="prise">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'Emplacement prise') }}{{ required ? '*' }}</label>
+            <label class="wii-field-name" for="prise">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de prise') }}{{ required ? '*' }}</label>
             <select name="prise" class="form-control data d-block {{ required ? 'needed' }} location-prise" data-s2="location"
                     id="prise">
                 {% if dispatch.locationFrom %}
@@ -56,7 +56,7 @@
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
         <div class="form-group col-md-4 col-12">
-            <label class="wii-field-name" for="depose">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'Emplacement dépose') }}{{ required ? '*' }}</label>
+            <label class="wii-field-name" for="depose">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de dépose') }}{{ required ? '*' }}</label>
             <select name="depose" class="form-control data {{ required ? 'needed' }} location-depose" data-s2="location"
                     id="depose">
                 {% if dispatch.locationTo %}
@@ -132,7 +132,7 @@
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
         <div class="form-group col-md-4 col-12">
-            <label class="wii-field-name" for="destinataire">{{ trans('Demande', 'Acheminements', 'Modale', 'Destinataire(s)') }}{{ required ? '*' }}</label>
+            <label class="wii-field-name" for="destinataire">{{ trans('Demande', 'Général', 'Destinataire(s)') }}{{ required ? '*' }}</label>
             <select class="destinataire form-control data w-100 {{ required ? 'needed' }}" data-s2="user"
                     name="receivers"
                     multiple>

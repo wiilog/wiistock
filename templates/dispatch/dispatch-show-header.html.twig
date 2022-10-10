@@ -1,7 +1,7 @@
 {% extends 'utils/show-header.html.twig' %}
 
 {% block showTitleTooltip ('Acheminement' ~ ' n°' ~ dispatch.number) %}
-{% block showTitle trans('Demande', 'Acheminements', 'Divers', 'Acheminement', false) %}
+{% block showTitle trans('Demande', 'Acheminements', 'Général', 'Acheminement', false) %}
 {% block showSubtitle ('n°' ~ dispatch.number) %}
 
 {% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}

@@ -309,13 +309,13 @@ function initializePacksTable(dispatchId, isEdit) {
         ],
         columns: [
             {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
-            {data: 'code', name: 'code', title: Translation.of('Demande', `Acheminements`, `Détails acheminement - Liste des unités logistiques`, `Code`)},
-            {data: 'quantity', name: 'quantity', title: Translation.of('Demande', `Acheminements`, `Détails acheminement - Liste des unités logistiques`, `Quantité à acheminer`) + (isEdit ? '*' : ''), tooltip: 'Quantité à acheminer'},
-            {data: 'nature', name: 'nature', title: Translation.of('Demande',`Acheminements`, `Détails acheminement - Liste des unités logistiques`, `Nature`) + (isEdit ? '*' : ''), tooltip: 'nature'},
-            {data: 'weight', name: 'weight', title: Translation.of('Demande', `Acheminements`, `Détails acheminement - Liste des unités logistiques`, `Poids (kg)`)},
-            {data: 'volume', name: 'volume', title: Translation.of('Demande', `Acheminements`, `Détails acheminement - Liste des unités logistiques`, `Volume (m3)`)},
+            {data: 'code', name: 'code', title: Translation.of('Demande', 'Acheminements', 'Général', 'Code')},
+            {data: 'quantity', name: 'quantity', title: Translation.of('Demande', 'Acheminements', 'Général', 'Quantité à acheminer') + (isEdit ? '*' : '')},
+            {data: 'nature', name: 'nature', title: Translation.of('Demande','Acheminements', 'Général', 'Nature') + (isEdit ? '*' : '')},
+            {data: 'weight', name: 'weight', title: Translation.of('Demande', 'Acheminements', 'Général', 'Poids (kg)')},
+            {data: 'volume', name: 'volume', title: Translation.of('Demande', `Acheminements`, `Général`, 'Volume (m3)')},
             {data: 'comment', name: 'comment', title: Translation.of('Général', null, 'Modale', 'Commentaire')},
-            {data: 'lastMvtDate', name: 'lastMvtDate', title: Translation.of('Demande', `Acheminements`, `Détails acheminement - Liste des unités logistiques`, `Date dernier mouvement`), render: function(data, type) {
+            {data: 'lastMvtDate', name: 'lastMvtDate', title: Translation.of('Demande', 'Acheminements', 'Général', 'Date dernier mouvement'), render: function(data, type) {
                 if(type !== `sort`) {
                     const date = moment(data, 'YYYY/MM/DD HH:mm');
                     if(date.isValid()) {
@@ -327,8 +327,8 @@ function initializePacksTable(dispatchId, isEdit) {
 
                 return data;
             }},
-            {data: 'lastLocation', name: 'lastLocation', title: Translation.of('Demande', `Acheminements`, `Détails acheminement - Liste des unités logistiques`, `Dernier emplacement`)},
-            {data: 'operator', name: 'operator', title: Translation.of('Demande', `Acheminements`, `Détails acheminement - Liste des unités logistiques`, `Opérateur`)},
+            {data: 'lastLocation', name: 'lastLocation', title: Translation.of('Demande', `Acheminements`, `Général`, `Dernier emplacement`)},
+            {data: 'operator', name: 'operator', title: Translation.of('Demande', `Acheminements`, `Général`, `Opérateur`)},
             {data: 'status', name: 'status', title: Translation.of('Demande', `Général`, `Statut`)},
         ],
     });
