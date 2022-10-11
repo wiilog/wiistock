@@ -155,3 +155,7 @@ $select-height: 36px;
         background-color: transparent !important;
     }
 }
+
+.select2-container--default .select2-results__option[aria-disabled=true] {
+    display: none !important;
+}

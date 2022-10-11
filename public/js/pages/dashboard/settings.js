@@ -1450,8 +1450,8 @@ function onEntityChange($select, onInit = false) {
     $selectStatus.prop('disabled', disabledSelect);
     $selectAllAvailableTypes.prop('disabled', disabledSelect);
     $selectAllAvailableStatuses.prop('disabled', disabledSelect);
-    $otherTypes.prop('disabled');
-    $otherStatuses.prop('disabled');
+    $otherTypes.prop('disabled', true);
+    $otherStatuses.prop('disabled', true);
 
     if (!onInit) {
         $selectType.val(null);
