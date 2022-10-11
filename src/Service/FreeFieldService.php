@@ -76,7 +76,7 @@ class FreeFieldService {
     public function manageJSONFreeField(FreeField   $freeField,
                                                     $value,
                                         Utilisateur $user = null): string {
-        $userLanguage = $user->getLanguage();
+        $userLanguage = $user?->getLanguage() ?: $this->languageService->getDefaultSlug();
 
         switch ($freeField->getTypage()) {
             case FreeField::TYPE_BOOL:
@@ -142,9 +142,10 @@ class FreeFieldService {
 
     public function getFilledFreeFieldArray(EntityManagerInterface $entityManager,
                                                                    $entity,
-                                            array                  $displayedOptions, Utilisateur $user = null) {
+                                            array                  $displayedOptions,
+                                            Utilisateur            $user = null) {
         $defaultLanguage = $this->languageService->getDefaultSlug();
-        $userLanguage = $user->getLanguage();
+        $userLanguage = $user?->getLanguage() ?: $this->languageService->getDefaultSlug();
 
         $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
         $freeFieldCategoryRepository = $entityManager->getRepository(CategorieCL::class);
