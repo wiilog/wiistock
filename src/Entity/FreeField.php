@@ -69,7 +69,9 @@ class FreeField implements Serializable {
     #[ORM\Column(type: 'integer')]
     private $id;
 
-    #[Deprecated]
+    /**
+     * Attribute used for data warehouse, do not delete it
+     */
     #[ORM\Column(type: 'string', length: 255, nullable: true, unique: true)]
     private $label;
 
@@ -85,7 +87,9 @@ class FreeField implements Serializable {
     #[ORM\OneToMany(targetEntity: FiltreRef::class, mappedBy: 'champLibre')]
     private $filters;
 
-    #[Deprecated]
+    /**
+     * Attribute used for data warehouse, do not delete it
+     */
     #[ORM\Column(type: 'json', nullable: true)]
     private $elements = [];
 
@@ -133,12 +137,10 @@ class FreeField implements Serializable {
             ?: $this->getLabel();
     }
 
-    #[Deprecated]
     public function getLabel(): ?string {
         return $this->label;
     }
 
-    #[Deprecated]
     public function setLabel(?string $label): self {
         $this->label = $label;
 
@@ -220,12 +222,10 @@ class FreeField implements Serializable {
             ->toArray();
     }
 
-    #[Deprecated]
     public function getElements(): array {
         return $this->elements ?: [];
     }
 
-    #[Deprecated]
     public function setElements(?array $elements): self {
         $this->elements = $elements;
 
