@@ -7,7 +7,6 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Export;
 use App\Entity\ExportScheduleRule;
-use App\Entity\Fournisseur;
 use App\Entity\Statut;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\TransportRoundLine;
@@ -113,10 +112,10 @@ class DataExportService
     public function createArrivalsHeader(EntityManagerInterface $entityManager,
                                          array $columnToExport): array
     {
-        $exportableColumns = $this->arrivalService->getArrivalExportableColumns($entityManager);
+        $exportableColumns = Stream::from($this->arrivalService->getArrivalExportableColumns($entityManager));
         return Stream::from($columnToExport)
             ->filterMap(function(string $code) use ($exportableColumns) {
-                $column = Stream::from($exportableColumns)
+                $column = $exportableColumns
                     ->find(fn(array $config) => $config['code'] === $code);
                 return $column['label'] ?? null;
             })
@@ -189,7 +188,7 @@ class DataExportService
     {
         /** @var Arrivage $arrival */
         foreach ($data as $arrival) {
-            $this->arrivalService->putArrivalLineInUniqueExport($output, $arrival, $columnToExport);
+            $this->arrivalService->putArrivalLine($output, $arrival, $columnToExport);
         }
     }
 

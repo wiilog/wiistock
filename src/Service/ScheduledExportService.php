@@ -61,11 +61,11 @@ class ScheduledExportService
     public FTPService $ftpService;
 
     public function saveScheduledExportsCache(EntityManagerInterface $entityManager): void {
-        $this->cacheService->set(CacheService::EXPORTS, $this->buildScheduledExportsCache($entityManager));
+        $this->cacheService->set(CacheService::EXPORTS, "scheduled", $this->buildScheduledExportsCache($entityManager));
     }
 
     public function getScheduledCache(EntityManagerInterface $entityManager): array {
-        return $this->cacheService->get(CacheService::EXPORTS, fn() => $this->buildScheduledExportsCache($entityManager));
+        return $this->cacheService->get(CacheService::EXPORTS, "scheduled", fn() => $this->buildScheduledExportsCache($entityManager));
     }
 
     private function buildScheduledExportsCache(EntityManagerInterface $entityManager): array {

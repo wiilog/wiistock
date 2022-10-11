@@ -72,7 +72,7 @@ class FormatService
     }
 
     public function datetime(?DateTimeInterface $date, $else = "", $addAt = false, ?Utilisateur $user = null) {
-        $prefix = $this->getUser($user)?->getDateFormat();
+        $prefix = $this->getUser($user)?->getDateFormat() ?: Utilisateur::DEFAULT_DATE_FORMAT;
         return $date ? $date->format($addAt ? "$prefix à H:i" : "$prefix H:i") : $else;
     }
 
@@ -126,25 +126,31 @@ class FormatService
     public function freeField(?string     $value,
                               FreeField   $freeField,
                               Utilisateur $user = null): ?string {
-        $userLanguage = $user->getLanguage();
+        $userLanguage = (
+            $user?->getLanguage()?->getSlug()
+            ?: $this->defaultLanguage()
+        );
 
         $value = ($value ?? $freeField->getDefaultValue()) ?? '';
         switch ($freeField->getTypage()) {
             case FreeField::TYPE_DATE:
             case FreeField::TYPE_DATETIME:
-                $valueDate = $this->parseDatetime($value, [
+                $formats = [
                     "Y-m-dTH:i",
                     "Y-m-d",
                     "d/m/Y H:i",
                     "Y-m-d H:i",
                     "m-d-Y H:i",
                     "m-d-Y",
-                    "d/m/Y",
-                    $user && $user->getDateFormat() ? $user->getDateFormat() . ' H:i' : '',
-                    $user && $user->getDateFormat() ? $user->getDateFormat() : '',
-                ]);
+                    "d/m/Y"
+                ];
+                if ($user && $user->getDateFormat()) {
+                    $formats[] = $user->getDateFormat() . ' H:i';
+                    $formats[] = $user->getDateFormat();
+                }
+                $valueDate = $this->parseDatetime($value, $formats);
                 $hourFormat = ($freeField->getTypage() === FreeField::TYPE_DATETIME ? ' H:i' : '');
-                $formatted = $valueDate ? $valueDate->format(($user && $user->getDateFormat() ? $user->getDateFormat() : 'd/m/Y') . $hourFormat) : $value;
+                $formatted = $valueDate ? $valueDate->format(($user && $user->getDateFormat() ? $user->getDateFormat() : Utilisateur::DEFAULT_DATE_FORMAT) . $hourFormat) : $value;
                 break;
             case FreeField::TYPE_BOOL:
                 $formatted = ($value !== '' && $value !== null)
@@ -167,8 +173,8 @@ class FormatService
     }
 
     public function bool(?bool $bool, $else = "") {
-        $yes = $this->translationService->translate('Général', null, 'Modale', 'Oui');
-        $no = $this->translationService->translate('Général', null, 'Modale', 'Non');
+        $yes = $this->translationService->translate('Général', null, 'Modale', 'Oui', false);
+        $no = $this->translationService->translate('Général', null, 'Modale', 'Non', false);
         return isset($bool) ? ($bool ? $yes : $no) : $else;
     }
 }

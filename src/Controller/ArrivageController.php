@@ -5,7 +5,6 @@ namespace App\Controller;
 use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Arrivage;
-use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Emplacement;
@@ -721,19 +720,13 @@ class ArrivageController extends AbstractController {
      * @Route("/csv", name="get_arrivages_csv", options={"expose"=true}, methods={"GET"})
      */
     public function exportArrivals(Request                $request,
-                                   TranslationService    $translation,
                                    EntityManagerInterface $entityManager,
                                    CSVExportService       $csvService,
-                                   FieldsParamService     $fieldsParamService,
-                                   ArrivageService        $arrivageDataService,
-                                   FreeFieldService       $freeFieldService) {
+                                   DataExportService      $dataExportService,
+                                   ArrivageService        $arrivalService) {
         $FORMAT = "Y-m-d H:i:s";
 
         $arrivageRepository = $entityManager->getRepository(Arrivage::class);
-        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-        $natureRepository = $entityManager->getRepository(Nature::class);
-        $packRepository = $entityManager->getRepository(Pack::class);
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         try {
             $from = DateTime::createFromFormat($FORMAT, $request->query->get("dateMin") . " 00:00:00");
             $to = DateTime::createFromFormat($FORMAT, $request->query->get("dateMax") . " 23:59:59");
@@ -744,49 +737,24 @@ class ArrivageController extends AbstractController {
             ]);
         }
 
-        $arrivals = $arrivageRepository->iterateBetween($from, $to);
-        $packsTotalWeight = $arrivageRepository->getTotalWeightByArrivals($from, $to);
-
-        $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::ARRIVAGE]);
-
-        $packs = $packRepository->countColisByArrivageAndNature($from->format($FORMAT), $to->format($FORMAT));
-        $buyersByArrival = $utilisateurRepository->getUsernameBuyersGroupByArrival();
-        $natureLabels = $natureRepository->findAllLabels();
-        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
-
-        $baseHeader = [
-            "n° arrivage",
-            "poids total",
-            "destinataire",
-            "fournisseur",
-            "transporteur",
-            "chauffeur",
-            "n° tracking transporteur",
-            "n° commande/BL",
-            "type",
-            "acheteurs",
-            "douane",
-            "congelé",
-            "statut",
-            "commentaire",
-            "date",
-            "utilisateur",
-            "numéro de projet",
-            $translation->translate('Acheminements', 'Général', 'Business unit', false),
-        ];
-
-        if ($fieldsParamService->isFieldRequired($fieldsParam, FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'displayedCreate')
-            || $fieldsParamService->isFieldRequired($fieldsParam, FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'displayedEdit')) {
-            $baseHeader[] = 'Emplacement de dépose';
-        }
-
-        $header = array_merge($baseHeader, $natureLabels, $freeFieldsConfig["freeFieldsHeader"]);
         $today = new DateTime();
         $today = $today->format("d-m-Y-H-i-s");
-        return $csvService->streamResponse(function($output) use ($arrivageDataService, $csvService, $fieldsParam, $freeFieldService, $freeFieldsConfig, $arrivals, $buyersByArrival, $natureLabels, $packs, $packsTotalWeight) {
-            foreach($arrivals as $arrival) {
-                $arrivageDataService->putArrivalLine($this->getUser(), $output, $csvService, $freeFieldsConfig, $arrival, $buyersByArrival, $natureLabels, $packs, $fieldsParam, $packsTotalWeight);
-            }
+
+        $arrivalService->launchExportCache($entityManager, $from, $to);
+
+        $exportableColumns = $arrivalService->getArrivalExportableColumns($entityManager);
+        $header = Stream::from($exportableColumns)
+            ->map(fn(array $column) => $column['label'] ?? '')
+            ->toArray();
+
+        // same order than header column
+        $exportableColumns = Stream::from($exportableColumns)
+            ->map(fn(array $column) => $column['code'] ?? '')
+            ->toArray();
+
+        $arrivalsIterator = $arrivageRepository->iterateArrivals($from, $to);
+        return $csvService->streamResponse(function ($output) use ($dataExportService, $arrivalsIterator, $exportableColumns) {
+            $dataExportService->exportArrivages($arrivalsIterator, $output, $exportableColumns);
         }, "export-arrivages_$today.csv", $header);
     }
 

@@ -413,10 +413,15 @@ class ArrivageService {
             $this->security->getUser()
         );
 
+        $userLanguage = $this->userService->getUser();
+        $defaultLanguage = $this->languageService->getDefaultSlug();
+
         $config = [
             [
                 'label' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Type'),
-                'value' => $type ? $this->stringService->mbUcfirst($type->getLabel()) : '',
+                'value' => $type?->getLabelIn($userLanguage, $defaultLanguage)
+                    ?: $type?->getLabel()
+                    ?: '-',
                 'isRaw' => true
             ],
             [
@@ -468,7 +473,7 @@ class ArrivageService {
             ],
             [
                 'label' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Acheteur(s)'),
-                'value' => $buyers->count() > 0 ? implode(', ', $buyers->map(function (Utilisateur $buyer) {return $buyer->getUsername();})->toArray()) : '',
+                'value' => $buyers->count() > 0 ? implode(', ', $buyers->map(fn (Utilisateur $buyer) => $buyer->getUsername())->toArray()) : '',
                 'show' => ['fieldName' => 'acheteurs'],
                 'isRaw' => true
             ],
@@ -486,13 +491,13 @@ class ArrivageService {
             ],
             [
                 'label' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Douane'),
-                'value' => $arrivage->getCustoms() ? 'oui' : 'non',
+                'value' => $this->formatService->bool($arrivage->getCustoms()),
                 'show' => ['fieldName' => 'customs'],
                 'isRaw' => true
             ],
             [
                 'label' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Congelé'),
-                'value' => $arrivage->getFrozen() ? 'oui' : 'non',
+                'value' => $this->formatService->bool($arrivage->getFrozen()),
                 'show' => ['fieldName' => 'frozen'],
                 'isRaw' => true
             ],
@@ -612,56 +617,6 @@ class ArrivageService {
         return $location;
     }
 
-    public function putArrivalLine(Utilisateur $user,
-                                   $handle,
-                                   CSVExportService $csvService,
-                                   array $freeFieldsConfig,
-                                   array $arrival,
-                                   array $buyersByArrival,
-                                   array $natureLabels,
-                                   array $packs,
-                                   array $fieldsParam,
-                                   array $packsTotalWeight)
-    {
-        $id = (int)$arrival['id'];
-        $line = [
-            $arrival['numeroArrivage'] ?: '',
-            $packsTotalWeight[$id] ?? '',
-            $arrival['recipientUsername'] ?: '',
-            $arrival['fournisseurName'] ?: '',
-            $arrival['transporteurLabel'] ?: '',
-            (!empty($arrival['chauffeurFirstname']) && !empty($arrival['chauffeurSurname']))
-                ? $arrival['chauffeurFirstname'] . ' ' . $arrival['chauffeurSurname']
-                : ($arrival['chauffeurFirstname'] ?: $arrival['chauffeurSurname'] ?: ''),
-            $arrival['noTracking'] ?: '',
-            !empty($arrival['numeroCommandeList']) ? implode(' / ', $arrival['numeroCommandeList']) : '',
-            $arrival['type'] ?: '',
-            $buyersByArrival[$id] ?? '',
-            $arrival['customs'] ? 'oui' : 'non',
-            $arrival['frozen'] ? 'oui' : 'non',
-            $arrival['statusName'] ?: '',
-            $arrival['commentaire'] ? strip_tags($arrival['commentaire']) : '',
-            $arrival['date'] ? $arrival['date']->format($user->getDateFormat() ? $user->getDateFormat() . ' H:i:s' : 'd/m/Y H:i:s') : '',
-            $arrival['userUsername'] ?: '',
-            $arrival['projectNumber'] ?: '',
-            $arrival['businessUnit'] ?: '',
-        ];
-        if ($this->fieldsParamService->isFieldRequired($fieldsParam, FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'displayedCreate')
-            || $this->fieldsParamService->isFieldRequired($fieldsParam, FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'displayedEdit')) {
-            $line[] = $arrival['dropLocation'] ?: '';
-        }
-
-        foreach($natureLabels as $natureLabel) {
-            $line[] = $packs[$id][$natureLabel] ?? 0;
-        }
-
-        foreach($freeFieldsConfig["freeFields"] as $freeFieldId => $freeField) {
-            $line[] = FormatHelper::freeField($arrival["freeFields"][$freeFieldId] ?? '', $freeField, $this->security->getUser());
-        }
-
-        $csvService->putLine($handle, $line);
-    }
-
     public function sendMailForDeliveredPack(Emplacement            $location,
                                              Pack                   $pack,
                                              Utilisateur            $user,
@@ -712,9 +667,9 @@ class ArrivageService {
         ];
     }
 
-    public function putArrivalLineInUniqueExport($output,
-                                                 Arrivage $arrival,
-                                                 array $columnToExport): void {
+    public function putArrivalLine($output,
+                                   Arrivage $arrival,
+                                   array $columnToExport): void {
 
         if (!isset($this->exportCache)) {
             throw new \Exception('Export cache unloaded, call ArrivageService::launchExportCache before');
@@ -734,30 +689,30 @@ class ArrivageService {
                 $freeField = $this->exportCache['freeFields'][$freeFieldId] ?? null;
                 $value = $arrival->getFreeFieldValue($freeFieldId) ?: '';
                 $line[] = $freeField
-                    ? FormatHelper::freeField($value, $freeField)
+                    ? $this->formatService->freeField($value, $freeField, $this->userService->getUser())
                     : $value;
             }
             else {
                 $line[] = match ($column) {
                     FieldsParam::FIELD_CODE_ARRIVAL_NUMBER           => $arrival->getNumeroArrivage(),
                     FieldsParam::FIELD_CODE_ARRIVAL_TOTAL_WEIGHT     => $packsTotalWeight[$arrival->getId()] ?? '',
-                    FieldsParam::FIELD_CODE_ARRIVAL_TYPE             => FormatHelper::type($arrival->getType()),
-                    FieldsParam::FIELD_CODE_ARRIVAL_STATUS           => FormatHelper::status($arrival->getStatut()),
-                    FieldsParam::FIELD_CODE_ARRIVAL_DATE             => FormatHelper::datetime($arrival->getDate()),
-                    FieldsParam::FIELD_CODE_ARRIVAL_CREATOR          => FormatHelper::user($arrival->getUtilisateur()),
-                    FieldsParam::FIELD_CODE_BUYERS_ARRIVAGE          => FormatHelper::users($arrival->getAcheteurs()),
+                    FieldsParam::FIELD_CODE_ARRIVAL_TYPE             => $this->formatService->type($arrival->getType()),
+                    FieldsParam::FIELD_CODE_ARRIVAL_STATUS           => $this->formatService->status($arrival->getStatut()),
+                    FieldsParam::FIELD_CODE_ARRIVAL_DATE             => $this->formatService->datetime($arrival->getDate(), "", false, $this->userService->getUser()),
+                    FieldsParam::FIELD_CODE_ARRIVAL_CREATOR          => $this->formatService->user($arrival->getUtilisateur()),
+                    FieldsParam::FIELD_CODE_BUYERS_ARRIVAGE          => $this->formatService->users($arrival->getAcheteurs()),
                     FieldsParam::FIELD_CODE_BUSINESS_UNIT            => $arrival->getBusinessUnit() ?? '',
-                    FieldsParam::FIELD_CODE_CHAUFFEUR_ARRIVAGE       => $arrival->getChauffeur()->getNom() ?? '',
-                    FieldsParam::FIELD_CODE_COMMENTAIRE_ARRIVAGE     => $arrival->getCommentaire() ?? '',
-                    FieldsParam::FIELD_CODE_FROZEN_ARRIVAGE          => FormatHelper::bool($arrival->getFrozen()),
-                    FieldsParam::FIELD_CODE_TARGET_ARRIVAGE          => FormatHelper::user($arrival->getDestinataire()),
-                    FieldsParam::FIELD_CODE_CUSTOMS_ARRIVAGE         => FormatHelper::bool($arrival->getCustoms()),
-                    FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE   => FormatHelper::location($arrival->getDropLocation()),
-                    FieldsParam::FIELD_CODE_PROVIDER_ARRIVAGE        => FormatHelper::supplier($arrival->getFournisseur()),
+                    FieldsParam::FIELD_CODE_CHAUFFEUR_ARRIVAGE       => $arrival->getChauffeur()?->getPrenomNom() ?: '',
+                    FieldsParam::FIELD_CODE_COMMENTAIRE_ARRIVAGE     => strip_tags($arrival->getCommentaire() ?? ''),
+                    FieldsParam::FIELD_CODE_FROZEN_ARRIVAGE          => $this->formatService->bool($arrival->getFrozen()),
+                    FieldsParam::FIELD_CODE_TARGET_ARRIVAGE          => $this->formatService->user($arrival->getDestinataire()),
+                    FieldsParam::FIELD_CODE_CUSTOMS_ARRIVAGE         => $this->formatService->bool($arrival->getCustoms()),
+                    FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE   => $this->formatService->location($arrival->getDropLocation()),
+                    FieldsParam::FIELD_CODE_PROVIDER_ARRIVAGE        => $this->formatService->supplier($arrival->getFournisseur()),
                     FieldsParam::FIELD_CODE_NUM_COMMANDE_ARRIVAGE    => $arrival->getNumeroCommandeList() ? implode(",", $arrival->getNumeroCommandeList()) : '',
-                    FieldsParam::FIELD_CODE_PROJECT_NUMBER           => $arrival->getProjectNumber() ?? '',
-                    FieldsParam::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE => $arrival->getNoTracking() ?? '',
-                    FieldsParam::FIELD_CODE_CARRIER_ARRIVAGE         => $arrival->getTransporteur()->getLabel() ?? '',
+                    FieldsParam::FIELD_CODE_PROJECT_NUMBER           => $arrival->getProjectNumber() ?: '',
+                    FieldsParam::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE => $arrival->getNoTracking() ?: '',
+                    FieldsParam::FIELD_CODE_CARRIER_ARRIVAGE         => $arrival->getTransporteur()?->getLabel() ?: '',
                     default                                          => throw new \Exception("Invalid column name $column")
                 };
             }
@@ -773,30 +728,50 @@ class ArrivageService {
         $freeFields = $freeFieldsRepository->findByFreeFieldCategoryLabels([CategorieCL::ARRIVAGE]);
         $natures = $natureRepository->findBy([], ['id' => Criteria::ASC]);
 
+        $userLanguage = $this->userService->getUser()?->getLanguage() ?: $this->languageService->getDefaultSlug();
+        $defaultLanguage = $this->languageService->getDefaultSlug();
+
         return Stream::from(
             [
-                ["code" => FieldsParam::FIELD_CODE_ARRIVAL_NUMBER, "label" => FieldsParam::FIELD_LABEL_ARRIVAL_NUMBER],
-                ["code" => FieldsParam::FIELD_CODE_ARRIVAL_TOTAL_WEIGHT, "label" => FieldsParam::FIELD_LABEL_ARRIVAL_TOTAL_WEIGHT],
-                ["code" => FieldsParam::FIELD_CODE_ARRIVAL_TYPE, "label" => FieldsParam::FIELD_LABEL_ARRIVAL_TYPE],
-                ["code" => FieldsParam::FIELD_CODE_ARRIVAL_STATUS, "label" => FieldsParam::FIELD_LABEL_ARRIVAL_STATUS],
-                ["code" => FieldsParam::FIELD_CODE_ARRIVAL_DATE, "label" => FieldsParam::FIELD_LABEL_ARRIVAL_DATE],
-                ["code" => FieldsParam::FIELD_CODE_ARRIVAL_CREATOR, "label" => FieldsParam::FIELD_LABEL_ARRIVAL_CREATOR],
+                ["code" => FieldsParam::FIELD_CODE_ARRIVAL_NUMBER, "label" => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Divers', 'N° d\'arrivage', false)],
+                ["code" => FieldsParam::FIELD_CODE_ARRIVAL_TOTAL_WEIGHT, "label" => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Divers', 'Poids total (kg)', false)],
+                ["code" => FieldsParam::FIELD_CODE_ARRIVAL_TYPE, "label" => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Type', false)],
+                ["code" => FieldsParam::FIELD_CODE_ARRIVAL_STATUS, "label" => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Statut', false)],
+                ["code" => FieldsParam::FIELD_CODE_ARRIVAL_DATE, "label" => $this->translation->translate('Général', null, 'Zone liste', 'Date de création', false)],
+                ["code" => FieldsParam::FIELD_CODE_ARRIVAL_CREATOR, "label" => $this->translation->translate('Traçabilité', 'Général', 'Utilisateur', false)],
             ],
             Stream::from($arrivalFields)
                 ->filter(fn(FieldsParam $field) => !in_array($field->getFieldCode(), [FieldsParam::FIELD_CODE_PJ_ARRIVAGE, FieldsParam::FIELD_CODE_PRINT_ARRIVAGE]))
                 ->map(fn(FieldsParam $field) => [
                     "code" => $field->getFieldCode(),
-                    "label" => $field->getFieldLabel()
+                    "label" => match($field->getFieldCode()) {
+                        FieldsParam::FIELD_CODE_BUYERS_ARRIVAGE => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Acheteur(s)', false),
+                        FieldsParam::FIELD_CODE_CHAUFFEUR_ARRIVAGE => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Chauffeur', false),
+                        FieldsParam::FIELD_CODE_COMMENTAIRE_ARRIVAGE => $this->translation->translate('Général', null, 'Modale', 'Commentaire', false),
+                        FieldsParam::FIELD_CODE_CARRIER_ARRIVAGE => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Transporteur', false),
+                        FieldsParam::FIELD_CODE_PROVIDER_ARRIVAGE => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Fournisseur', false),
+                        FieldsParam::FIELD_CODE_TARGET_ARRIVAGE => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Destinataire', false),
+                        FieldsParam::FIELD_CODE_NUM_COMMANDE_ARRIVAGE => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° commande / BL', false),
+                        FieldsParam::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° tracking transporteur', false),
+                        FieldsParam::FIELD_CODE_CUSTOMS_ARRIVAGE => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Douane', false),
+                        FieldsParam::FIELD_CODE_FROZEN_ARRIVAGE => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Congelé', false),
+                        FieldsParam::FIELD_CODE_PROJECT_NUMBER => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Numéro de projet', false),
+                        FieldsParam::FIELD_CODE_BUSINESS_UNIT => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Business unit', false),
+                        FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Emplacement de dépose', false),
+                        default => $field->getFieldLabel()
+                    }
                 ]),
             Stream::from($natures)
                 ->map(fn(Nature $nature) => [
                     'code' => "nature_{$nature->getId()}",
-                    'label' => $nature->getLabel()
+                    'label' => $nature->getLabelIn($userLanguage, $defaultLanguage)
+                        ?: $nature->getLabel()
                 ]),
             Stream::from($freeFields)
                 ->map(fn(FreeField $field) => [
                     "code" => "free_field_{$field->getId()}",
-                    "label" => $field->getLabel(),
+                    "label" => $field->getLabelIn($userLanguage, $defaultLanguage)
+                        ?: $field->getLabel(),
                 ])
         )
             ->toArray();

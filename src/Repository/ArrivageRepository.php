@@ -88,40 +88,6 @@ class ArrivageRepository extends EntityRepository
             ->execute();
     }
 
-    public function iterateBetween($from, $to) {
-        return $this->createQueryBuilderByDates($from, $to)
-            ->select('arrivage.id')
-            ->addSelect('arrivage.numeroArrivage')
-            ->addSelect('recipient.username AS recipientUsername')
-            ->addSelect('user.username AS userUsername')
-            ->addSelect('fournisseur.nom AS fournisseurName')
-            ->addSelect('transporteur.label AS transporteurLabel')
-            ->addSelect('chauffeur.nom AS chauffeurSurname')
-            ->addSelect('chauffeur.prenom AS chauffeurFirstname')
-            ->addSelect('arrivalType.label AS type')
-            ->addSelect('arrivage.noTracking')
-            ->addSelect('arrivage.numeroCommandeList')
-            ->addSelect('arrivage.customs')
-            ->addSelect('arrivage.frozen')
-            ->addSelect('status.nom AS statusName')
-            ->addSelect('arrivage.commentaire')
-            ->addSelect('arrivage.date')
-            ->addSelect('arrivage.projectNumber AS projectNumber')
-            ->addSelect('arrivage.businessUnit AS businessUnit')
-            ->addSelect('arrivage.freeFields AS freeFields')
-            ->addSelect('join_dropLocation.label AS dropLocation')
-            ->leftJoin('arrivage.destinataire', 'recipient')
-            ->leftJoin('arrivage.fournisseur', 'fournisseur')
-            ->leftJoin('arrivage.transporteur', 'transporteur')
-            ->leftJoin('arrivage.chauffeur', 'chauffeur')
-            ->leftJoin('arrivage.statut', 'status')
-            ->leftJoin('arrivage.utilisateur', 'user')
-            ->leftJoin('arrivage.type', 'arrivalType')
-            ->leftJoin('arrivage.dropLocation', 'join_dropLocation')
-            ->getQuery()
-            ->toIterable();
-    }
-
     public function createQueryBuilderByDates(DateTime $dateMin, DateTime $dateMax): QueryBuilder
     {
         return $this->createQueryBuilder('arrivage')

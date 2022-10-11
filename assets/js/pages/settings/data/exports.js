@@ -193,8 +193,20 @@ function createForm() {
         .on('change', '[name=periodInterval]', function() {
             onPeriodIntervalChange($modal);
         })
-        .onSubmit((data) => {
-            wrapLoadingOnActionButton($modal.find('[type=submit]'), () => {
+        .addProcessor((data, errors, $form) => {
+            const destinationType = Number(data.get('destinationType'));
+            const recipientUsers = data.get('recipientUsers');
+            const recipientEmails = data.get('recipientEmails');
+            const isEmailExport = destinationType === 1;
+            if (isEmailExport && !recipientUsers && !recipientEmails) {
+                errors.push({
+                    elements: [$form.find('[name=recipientUsers]'), $form.find('[name=recipientEmails]')],
+                    message: `Vous devez renseigner au moins un utilisateur ou une adresse email destinataire`,
+                });
+            }
+        })
+        .onSubmit((data, form) => {
+            form.loading(() => {
                 if(!data) {
                     return;
                 }
@@ -253,8 +265,10 @@ function createForm() {
                     const params = exportId ? {export: exportId} : {};
                     return AJAX.route(POST, route, params)
                         .json(data)
-                        .then(() => {
-                            handleExportSaving($modal, tableExport);
+                        .then(({success}) => {
+                            if (success) {
+                                handleExportSaving($modal, tableExport);
+                            }
                         });
                 }
             });

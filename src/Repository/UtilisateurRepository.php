@@ -154,30 +154,6 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
         ];
     }
 
-    public function getUsernameBuyersGroupByArrival()
-    {
-        $queryBuilder = $this->createQueryBuilder('utilisateur')
-            ->select('arrival.id AS arrivalId')
-            ->addSelect('utilisateur.username')
-            ->join('utilisateur.arrivagesAcheteur', 'arrival');
-
-        $result = $queryBuilder
-            ->getQuery()
-            ->getResult();
-
-        return array_reduce($result, function ($acc, $attachment) {
-            $arrivalId = (int)$attachment['arrivalId'];
-            if (empty($acc[$arrivalId])) {
-                $acc[$arrivalId] = '';
-            } else {
-                $acc[$arrivalId] .= ' / ';
-            }
-
-            $acc[$arrivalId] .= $attachment['username'];
-            return $acc;
-        }, []);
-    }
-
     public function findByUsernames(array $usernames) {
         if (!empty($usernames)) {
             $result = $this->createQueryBuilder("u")
