@@ -1794,6 +1794,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Menu\nFil d'ariane\nMenu \"+\"\nDétails",
                         ],
                         [
+                            "fr" => "Acheminements",
+                            "en" => "Transfers",
+                            "tooltip" => "Menu nomade",
+                        ],
+                        [
                             "fr" => "Nouvelle demande d'acheminement",
                             "en" => "New transfer operation",
                             "tooltip" => "Modale Nouvelle demande d'acheminement",
@@ -3000,20 +3005,19 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
             }
 
             $this->deleteUnusedTranslations($category, $content["content"]);
+            $this->deleteUnusedCategories(null, self::TRANSLATIONS);
         }
     }
 
-    private function deleteUnusedCategories(TranslationCategory $parent, array $categories)
+    private function deleteUnusedCategories(TranslationCategory|null $parent, array $categories)
     {
         $categoryRepository = $this->manager->getRepository(TranslationCategory::class);
 
-        if ($parent->getId()) {
-            $fixtureCategories = array_keys($categories);
-            $unusedCategories = $categoryRepository->findUnusedCategories($parent, $fixtureCategories);
-            foreach ($unusedCategories as $category) {
-                $this->deleteCategory($category, true);
-                $this->manager->remove($category);
-            }
+        $fixtureCategories = array_keys($categories);
+        $unusedCategories = $categoryRepository->findUnusedCategories($parent, $fixtureCategories);
+        foreach ($unusedCategories as $category) {
+            $this->deleteCategory($category, true);
+            $this->manager->remove($category);
         }
     }
 

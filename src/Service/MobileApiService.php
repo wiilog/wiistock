@@ -69,13 +69,14 @@ class MobileApiService {
         $userLanguage = $user->getLanguage();
         $translations = Stream::from($translationsRepository->findBy(['language' => $userLanguage]))
             ->map(fn(Translation $translation) => [
-                'menu' => $translation->getSource()->getCategory()?->getLabel(),
-                'translation' => $translation->getTranslation(),
-                'label' => $translation->getSource()->getTranslationIn(Language::FRENCH_DEFAULT_SLUG)?->getTranslation()
+                'topMenu' => $translation->getSource()->getCategory()?->getParent()?->getParent()?->getLabel(),
+                'menu' => $translation->getSource()->getCategory()?->getParent()?->getLabel(),
+                'subMenu' => $translation->getSource()->getCategory()?->getLabel(),
+                'translation' => $translation->getSource()->getTranslationIn($userLanguage, Language::FRENCH_DEFAULT_SLUG)?->getTranslation(),
+                'label' => $translation->getSource()->getTranslationIn(Language::DEFAULT_LANGUAGE_SLUG)?->getTranslation()
             ])
             ->toArray();
 
-        dump($translations);
         //TODO: récupérer tout en français
         return [
             'translations' => $translations,
