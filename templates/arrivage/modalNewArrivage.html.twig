@@ -314,10 +314,9 @@
                             {% set keptBuyers = keptFields[buyersFieldCode] ?? [] %}
                             <select name="acheteurs"
                                     multiple="multiple"
-                                    class="form-control input-sm ajax-autocomplete-user data {{ buyersRequired ? 'needed' }} ajax-autocomplete">
-                                {% if keptBuyers is empty %}
-                                    <option selected disabled>&nbsp;</option>
-                                {% endif %}
+                                    class="form-control input-sm  data {{ buyersRequired ? 'needed' }} "
+                                    data-s2
+                                    data-no-empty-option>
                                 {% for user in users %}
                                     <option value="{{ user.id }}" {{ user.id in keptBuyers ? 'selected' }}>{{ user.username }}</option>
                                 {% endfor %}
