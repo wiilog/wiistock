@@ -18,7 +18,7 @@ class MenusFixtures extends Fixture implements FixtureGroupInterface {
         Menu::ORDRE => null,
         Menu::STOCK => null,
         Menu::REFERENTIEL => null,
-        Menu::IOT => "IoT.IoT",
+        Menu::IOT => null,
         Menu::PARAM => null,
         Menu::NOMADE => null,
     ];
