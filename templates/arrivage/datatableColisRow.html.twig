@@ -1,28 +1,28 @@
+{% set canEditPack = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT_PACK')) %}
 <div class="d-flex">
     <div class="dropdown dropright">
         {{ include('datatable/dotsRow.html.twig') }}
-        <div class="dropdown-menu dropdown-follow-gt pointer">
+        <div class="dropdown-menu dropdown-follow-gt {{ canEditPack ? 'pointer' : '' }}>
+            {% if canEditPack %}
+                <div class="action-on-click d-none"
+                     data-toggle='modal'
+                     data-target='#modalEditPack'
+                     data-id="{{ colisId }}"
+                     onclick="editRow($(this), Routing.generate('pack_edit_api', true), $('#modalEditPack'), $('#submitEditPack'))">
+                </div>
+            {% endif %}
             <a class="dropdown-item d-flex align-items-center"
                href="{{ path('print_arrivage_single_colis_bar_codes', {arrivage: arrivageId, colis: colisId}) }}">
                 <span class="wii-icon wii-icon-printer-black mr-2"></span>{{ trans('Général', null, 'Zone liste', 'Imprimer') }}
             </a>
-            {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT_PACK')) %}
-            <div class="dropdown-item"
-               data-toggle='modal'
-               data-target='#modalEditPack'
-               data-id="{{ colisId }}"
-               onclick="editRow($(this), Routing.generate('pack_edit_api', true), $('#modalEditPack'), $('#submitEditPack'))">
-                <i class='fas fa-edit mr-2'></i>{{ trans('Général', null, 'Modale', 'Modifier') }}
-            </div>
-            {% endif %}
             {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::DELETE_PACK')) %}
-            <div class="dropdown-item d-flex align-items-center"
-                 data-target="#modalDeletePack"
-                 data-toggle="modal"
-                 data-id="{{ colisId }}"
-                 onclick="deleteRow($(this), $('#modalDeletePack'), $('#submitDeletePack'))">
-                <span class="wii-icon wii-icon-trash-black mr-2"></span>{{ trans('Général', null, 'Modale', 'Supprimer') }}
-            </div>
+                <div class="dropdown-item d-flex align-items-center"
+                     data-target="#modalDeletePack"
+                     data-toggle="modal"
+                     data-id="{{ colisId }}"
+                     onclick="deleteRow($(this), $('#modalDeletePack'), $('#submitDeletePack'))">
+                    <span class="wii-icon wii-icon-trash-black mr-2"></span>{{ trans('Général', null, 'Modale', 'Supprimer') }}
+                </div>
             {% endif %}
         </div>
     </div>
