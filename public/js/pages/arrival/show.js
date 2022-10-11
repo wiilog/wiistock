@@ -95,8 +95,8 @@ $(function () {
         columns: [
             {data: 'Actions', name: 'actions', title: '', orderable: false, className: 'noVis'},
             {data: 'firstDate', name: 'firstDate', title: Translation.of('Général', null, 'Zone liste', 'Date de création')},
-            {data: 'status', name: 'status', title: Translation.of('Traçabilité','Flux - Arrivages', 'Champs fixes', 'Statut')},
-            {data: 'type', name: 'type', title: Translation.of('Traçabilité', 'Flux - Arrivages', 'Détails arrivage - Liste des litiges', 'Type')},
+            {data: 'status', name: 'status', title: Translation.of('Qualité', 'Litiges', 'Statut')},
+            {data: 'type', name: 'type', title: Translation.of('Qualité', 'Litiges', 'Type')},
             {data: 'updateDate', name: 'updateDate', title: Translation.of('Traçabilité', 'Flux - Arrivages', 'Détails arrivage - Liste des litiges', 'Date de modification')},
             {data: 'urgence', name: 'urgence', title: Translation.of('Traçabilité', 'Flux - Arrivages', 'Divers', 'Urgence'), visible: false},
         ],
@@ -229,6 +229,7 @@ function editRowLitigeArrivage(button, afterLoadingEditModal = () => {}, arrivag
     let path = Routing.generate('litige_api_edit', true);
     let modal = $('#modalEditLitige');
     let submit = $('#submitEditLitige');
+    console.log('passe par editRowLitigeArrivage');
 
     let params = {
         disputeId,
@@ -238,6 +239,7 @@ function editRowLitigeArrivage(button, afterLoadingEditModal = () => {}, arrivag
     $.post(path, JSON.stringify(params), function (data) {
         modal.find('.error-msg').html('');
         modal.find('.modal-body').html(data.html);
+        console.log(data.html);
         modal.find('#colisEditLitige').val(data.colis).select2();
         fillDemandeurField(modal);
         afterLoadingEditModal()
