@@ -18,7 +18,7 @@
                                     {% for nature in natures %}
                                         <div class="form-group col-6">
                                             <label class="wii-field-name">
-                                                {{nature.label | capitalize}}
+                                                {{nature|format_helper('nature', '', app.user) | capitalize}}
                                             </label>
                                             <input type="number"
                                                    class="form-control data-array needed-positiv needs-default"

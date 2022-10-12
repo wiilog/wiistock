@@ -39,7 +39,7 @@
                         multiple
                         title="Natures">
                     {% for nature in natures %}
-                        <option value="{{ nature.id }}" {{ nature in values.natures ? 'selected' }}>{{ nature.label }}</option>
+                        <option value="{{ nature.id }}" {{ nature in values.natures ? 'selected' }}>{{ nature|format_helper('nature', '', app.user) }}</option>
                     {% endfor %}
                 </select>
             </div>

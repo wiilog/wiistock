@@ -11,6 +11,7 @@ use App\Entity\Inventory\InventoryCategory;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorWrapper;
+use App\Entity\Language;
 use App\Entity\LocationGroup;
 use App\Entity\Nature;
 use App\Entity\Pack;
@@ -26,6 +27,8 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Helper\FormatHelper;
+use App\Helper\LanguageHelper;
+use App\Service\LanguageService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Controller\AbstractController;
@@ -176,16 +179,18 @@ class SelectController extends AbstractController {
     /**
      * @Route("/select/types", name="ajax_select_types", options={"expose": true})
      */
-    public function types(Request                $request,
-                          EntityManagerInterface $entityManager): Response {
+    public function types(Request $request, EntityManagerInterface $entityManager, LanguageService $languageService): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
 
         $categoryType = $request->query->get('categoryType');
+        $defaultSlug = LanguageHelper::clearLanguage($languageService->getDefaultSlug());
+        $defaultLanguage = $entityManager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
+        $language = $this->getUser()->getLanguage() ?: $defaultLanguage;
 
-        $results = $typeRepository->getForSelect(
-            $categoryType,
-            $request->query->get("term")
-        );
+        $results = $typeRepository->getForSelect($categoryType, $request->query->get("term"), [
+            'language' => $language,
+            'defaultLanguage' => $defaultLanguage
+        ]);
 
         return $this->json([
             "results" => $results,
@@ -195,12 +200,13 @@ class SelectController extends AbstractController {
     /**
      * @Route("/select/statuts", name="ajax_select_status", options={"expose": true})
      */
-    public function status(Request $request, EntityManagerInterface $manager): Response {
+    public function status(Request $request, EntityManagerInterface $manager, LanguageService $languageService): Response {
         $type = $request->query->get("type") ?? $request->query->get("handlingType") ?? null;
-        $results = $manager->getRepository(Statut::class)->getForSelect(
-            $request->query->get("term"),
-            $type
-        );
+        $defaultSlug = LanguageHelper::clearLanguage($languageService->getDefaultSlug());
+        $defaultLanguage = $manager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
+        $language = $this->getUser()->getLanguage() ?: $defaultLanguage;
+
+        $results = $manager->getRepository(Statut::class)->getForSelect($request->query->get("term"), $type, $language, $defaultLanguage);
 
         return $this->json([
             "results" => $results,
@@ -236,8 +242,12 @@ class SelectController extends AbstractController {
     /**
      * @Route("/select/nature", name="ajax_select_natures", options={"expose": true})
      */
-    public function natures(Request $request, EntityManagerInterface $manager): Response {
-        $results = $manager->getRepository(Nature::class)->getForSelect($request->query->get("term"));
+    public function natures(Request $request, EntityManagerInterface $manager, LanguageService $languageService): Response {
+        $defaultSlug = LanguageHelper::clearLanguage($languageService->getDefaultSlug());
+        $defaultLanguage = $manager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
+        $language = $this->getUser()->getLanguage() ?: $defaultLanguage;
+
+        $results = $manager->getRepository(Nature::class)->getForSelect($request->query->get("term"), $language, $defaultLanguage);
         return $this->json([
             "results" => $results,
         ]);

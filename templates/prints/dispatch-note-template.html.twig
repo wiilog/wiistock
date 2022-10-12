@@ -165,7 +165,7 @@
                     <strong class="no-break">{{ pack.pack.code }}</strong>
                 </td>
                 <th>{{ trans('Demande', 'Acheminements', "Général", "Nature") }}</th>
-                <td>{{ pack.pack.nature.labelIn(app.user.language.slug, language_service.defaultSlug) }}</td>
+                <td>{{ pack.pack.nature|format_helper('nature', '', app.user) }}</td>
                 <th>{{ trans('Demande', 'Acheminements', "Général", "Poids (kg)") }}</th>
                 <td>{{ pack.pack.weight }}</td>
             </tr>

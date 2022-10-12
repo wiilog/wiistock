@@ -109,7 +109,6 @@
             values: packRejectMotives,
             items: packRejectMotives,
             placeholder: 'Ajoutez des éléments',
-            labelClass: 'wii-field-name w-100',
         }) }}
     </div>
 </div>
@@ -128,7 +127,6 @@
             values: deliveryRejectMotives,
             items: deliveryRejectMotives,
             placeholder: 'Ajoutez des éléments',
-            labelClass: 'wii-field-name w-100',
         }) }}
     </div>
     <div class="col-8">
@@ -140,7 +138,6 @@
             values: collectRejectMotives,
             items: collectRejectMotives,
             placeholder: 'Ajoutez des éléments',
-            labelClass: 'wii-field-name w-100',
         }) }}
     </div>
     <div class="col-4">
@@ -151,7 +148,6 @@
             values: collectWorkflowEndingMotives,
             items: collectWorkflowEndingMotives,
             placeholder: 'Ajoutez des éléments',
-            labelClass: 'wii-field-name w-100',
         }) }}
     </div>
 </div>
@@ -163,7 +159,6 @@
 <div class="wii-section row">
     <div class="col-8 mb-3">
         {{ form.select(setting('TRANSPORT_ROUND_END_ROUND_LOCATIONS'), 'Emplacements de fin de tournée', false, {
-            labelClass: 'wii-field-name w-100',
             items: transportRoundEndLocations,
             values: transportRoundEndLocations,
             type: 'location',
@@ -172,7 +167,6 @@
     </div>
     <div class="col-8 mb-3">
         {{ form.select(setting('TRANSPORT_ROUND_NEEDED_NATURES_TO_DROP'), 'Natures d\'UL obligatoires à déposer', false, {
-            labelClass: 'wii-field-name w-100',
             items: transportRoundNeededNaturesToDrop,
             values: transportRoundNeededNaturesToDrop,
             type: 'nature',
@@ -188,7 +182,6 @@
 <div class="wii-section row">
     <div class="col-8">
         {{ form.select(setting('TRANSPORT_ROUND_COLLECTED_PACKS_LOCATIONS'), 'Emplacements de dépose des objets collectés', false, {
-            labelClass: 'wii-field-name w-100',
             items: transportRoundCollectedPacksLocations,
             values: transportRoundCollectedPacksLocations,
             type: 'location',
@@ -204,7 +197,6 @@
 <div class="wii-section row">
     <div class="col-8">
         {{ form.select(setting('TRANSPORT_ROUND_REJECTED_PACKS_LOCATIONS'), 'Emplacements de retour des colis non livrés', false, {
-            labelClass: 'wii-field-name w-100',
             items: transportRoundRejectedPacksLocations,
             values: transportRoundRejectedPacksLocations,
             type: 'location',

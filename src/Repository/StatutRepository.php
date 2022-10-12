@@ -3,10 +3,12 @@
 namespace App\Repository;
 
 use App\Entity\CategorieStatut;
+use App\Entity\Language;
 use App\Entity\Statut;
 use App\Entity\Type;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Query\Expr\Join;
 
 /**
  * @method Statut|null find($id, $lockMode = null, $lockVersion = null)
@@ -16,7 +18,7 @@ use Doctrine\ORM\EntityRepository;
  */
 class StatutRepository extends EntityRepository {
 
-    public function getForSelect(?string $term, ?string $type = null) {
+    public function getForSelect(?string $term, ?string $type, Language $language, Language $default) {
         $query = $this->createQueryBuilder("status");
 
         if($type) {
@@ -24,9 +26,15 @@ class StatutRepository extends EntityRepository {
                 ->setParameter("type", $type);
         }
 
-        return $query->select("status.id AS id, status.nom AS text")
-            ->andWhere("status.nom LIKE :term")
+        return $query->select("status.id AS id")
+            ->addSelect("IFNULL(join_translation.translation, IFNULL(join_translation_default.translation, status.nom)) AS text")
+            ->leftJoin("status.labelTranslation", "join_labelTranslation")
+            ->leftJoin("join_labelTranslation.translations", "join_translation", Join::WITH, "join_translation.language = :language")
+            ->leftJoin("join_labelTranslation.translations", "join_translation_default", Join::WITH, "join_translation_default.language = :default")
+            ->andWhere("IFNULL(join_translation.translation, IFNULL(join_translation_default.translation, status.nom)) LIKE :term")
             ->setParameter("term", "%$term%")
+            ->setParameter("language", $language)
+            ->setParameter("default", $default)
             ->getQuery()
             ->getArrayResult();
     }

@@ -16,7 +16,7 @@
                 <option value>{{ trans('Traçabilité', 'Général', 'Sélectionner une nature', false) }}</option>
                 {% set packNatureId = pack.nature is not null ? pack.nature.id : null %}
                 {% for nature in natures %}
-                    <option value="{{ nature.id }}" {{ packNatureId == nature.id ? 'selected' }}>{{ nature.label }}</option>
+                    <option value="{{ nature.id }}" {{ packNatureId == nature.id ? 'selected' }}>{{ nature|format_helper('nature', '', app.user) }}</option>
                 {% endfor %}
             </select>
         </div>

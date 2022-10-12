@@ -113,7 +113,7 @@
             </tr>
         {% endif %}
         {% for dispatchPack in dispatch.dispatchPacks %}
-            {% set natureLabel = dispatchPack.pack.nature ? dispatchPack.pack.nature.labelIn(language, getDefaultLanguage()) : '' %}
+            {% set natureLabel = dispatchPack.pack.nature ? dispatchPack.pack.nature|format_helper('nature', '', app.user) : '' %}
             {% set packLastTracking = dispatchPack.pack.lastTracking ?? '' %}
             {% set packLocationLastTracking = packLastTracking.emplacement ?? '' %}
             <tr>

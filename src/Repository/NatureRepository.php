@@ -2,9 +2,13 @@
 
 namespace App\Repository;
 
+use App\Entity\Language;
 use App\Entity\Nature;
+use App\Entity\Utilisateur;
+use App\Helper\LanguageHelper;
 use App\Helper\QueryCounter;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Query\Expr\Join;
 use Symfony\Component\HttpFoundation\InputBag;
 
 /**
@@ -72,12 +76,17 @@ class NatureRepository extends EntityRepository
             ->getResult();
     }
 
-    public function getForSelect(?string $term): array {
-        return $this->createQueryBuilder('nature')
+    public function getForSelect(?string $term, Language $language, Language $default): array {
+       return $this->createQueryBuilder('nature')
             ->select("nature.id AS id")
-            ->addSelect("nature.label AS text")
-            ->andWhere('nature.label LIKE :term')
+            ->addSelect("IFNULL(join_translation.translation, IFNULL(join_translation_default.translation, nature.label)) AS text")
+            ->leftJoin("nature.labelTranslation", "join_labelTranslation")
+            ->leftJoin("join_labelTranslation.translations", "join_translation", Join::WITH, "join_translation.language = :language")
+            ->leftJoin("join_labelTranslation.translations", "join_translation_default", Join::WITH, "join_translation_default.language = :default")
+            ->andWhere("IFNULL(join_translation.translation, IFNULL(join_translation_default.translation, nature.label)) LIKE :term")
             ->setParameter("term", "%$term%")
+            ->setParameter("language", $language)
+            ->setParameter("default", $default)
             ->getQuery()
             ->getResult();
     }

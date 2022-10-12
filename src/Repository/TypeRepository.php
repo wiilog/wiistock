@@ -16,6 +16,7 @@ use App\Entity\Transport\TransportRequest;
 use App\Entity\Type;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
 
 /**
@@ -76,9 +77,20 @@ class TypeRepository extends EntityRepository {
 
         $qb = $this->createQueryBuilder("type");
 
-        $qb->select("type.id AS id, type.label AS text")
+        $qb->select("type.id AS id")
             ->join("type.category", "category")
             ->andWhere("category.label = '$category'");
+
+        if(isset($options['language']) && isset($options['defaultLanguage'])) {
+            $qb->addSelect("IFNULL(join_translation.translation, IFNULL(join_translation_default.translation, type.label)) AS text")
+                ->leftJoin("type.labelTranslation", "join_labelTranslation")
+                ->leftJoin("join_labelTranslation.translations", "join_translation", Join::WITH, "join_translation.language = :language")
+                ->leftJoin("join_labelTranslation.translations", "join_translation_default", Join::WITH, "join_translation_default.language = :default")
+                ->setParameter("language", $options['language'])
+                ->setParameter("default", $options['defaultLanguage']);
+        } else {
+            $qb->addSelect("type.label AS text");
+        }
 
         if (!empty($alreadyDefinedTypes)) {
             $qb->andWhere("type.id NOT IN (:alreadyDefinedTypes)")
@@ -90,7 +102,7 @@ class TypeRepository extends EntityRepository {
 
     public function getForSelect(?string $category, ?string $term, array $options = []): array {
         return $this->createSelectBuilder($category, $options)
-            ->andWhere("type.label LIKE :term")
+            ->andWhere("IFNULL(join_translation.translation, IFNULL(join_translation_default.translation, type.label)) LIKE :term")
             ->setParameter("term", "%$term%")
             ->getQuery()
             ->getArrayResult();

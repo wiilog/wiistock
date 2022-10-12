@@ -361,7 +361,7 @@
                                 {% for nature in natures %}
                                     <div class="form-group col-2 d-flex flex-column">
                                         <label class="wii-field-name ellipsis">
-                                            {{ nature.label | capitalize }}
+                                            {{ nature|format_helper('nature', '', app.user) | capitalize }}
                                         </label>
                                         <input type="number"
                                                class="form-control input-sm data-array needed-positiv needs-default {{ isClientSafranED ? "no-clear" }}"
