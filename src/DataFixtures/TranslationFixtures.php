@@ -2594,6 +2594,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 null => [
                     "content" => [
                         [
+                            "fr" => "Service",
+                            "en" => "Service",
+                            "tooltip" => "Menu \"+\"\nMenu\nFil d'ariane",
+                        ],
+                        [
                             "fr" => "Une autre demande de service est en cours de création, veuillez réessayer.",
                             "en" => "Another service operation is being created, please try again.",
                             "tooltip" => "Création demande de service",

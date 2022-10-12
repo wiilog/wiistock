@@ -97,10 +97,13 @@ class HandlingController extends AbstractController {
 
         $filterDate = $request->query->get('date');
 
+        $userLanguage = $user?->getLanguage();
+        $defaultLanguage = $languageService->getDefaultSlug();
+
         return $this->render('handling/index.html.twig', [
             'userLanguage' => $user->getLanguage(),
             'defaultLanguage' => $languageService->getDefaultLanguage(),
-            'selectedDate' => DateTime::createFromFormat("Y-m-d", $request->query->get('date')),
+            'selectedDate' => $filterDate ? DateTime::createFromFormat("Y-m-d", $filterDate) : null,
             'dateChoices' => $dateChoice,
             'statuses' => $statutRepository->findByCategorieName(Handling::CATEGORIE, 'displayOrder'),
 			'filterStatus' => $filterStatus,
@@ -115,10 +118,10 @@ class HandlingController extends AbstractController {
             'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_EMERGENCY),
             'modalNewConfig' => [
                 'defaultStatuses' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::HANDLING),
-                'freeFieldsTypes' => array_map(function (Type $type) use ($freeFieldsRepository) {
+                'freeFieldsTypes' => array_map(function (Type $type) use ($freeFieldsRepository, $userLanguage, $defaultLanguage) {
                     $freeFields = $freeFieldsRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_HANDLING);
                     return [
-                        'typeLabel' => $type->getLabel(),
+                        'typeLabel' => $type->getLabelIn($userLanguage, $defaultLanguage) ?: $type->getLabel(),
                         'typeId' => $type->getId(),
                         'freeFields' => $freeFields,
                     ];
@@ -226,7 +229,7 @@ class HandlingController extends AbstractController {
             }
         }
 
-        $freeFieldService->manageFreeFields($handling, $post->all(), $entityManager);
+        $freeFieldService->manageFreeFields($handling, $post->all(), $entityManager, $user);
 
         if (isset($fileBag)) {
             $fileNames = [];
@@ -329,7 +332,7 @@ class HandlingController extends AbstractController {
             ));
 
 
-        $freeFieldService->manageFreeFields($handling, $post->all(), $entityManager);
+        $freeFieldService->manageFreeFields($handling, $post->all(), $entityManager, $user);
 
         $listAttachmentIdToKeep = $post->all('files') ?? [];
 

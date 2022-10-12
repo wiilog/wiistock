@@ -1,7 +1,7 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}{{ trans('Demande', 'Général', 'Demande') }} | {{ trans('Demande', 'Services', 'Service') }}{% endblock %}
-{% block title_tooltip %}{{ trans('Demande', 'Général', 'Demande') }} | {{ trans('Demande', 'Services', 'Service') }}{% endblock %}
+{% block title %}{{ trans('Demande', 'Général', 'Demande') }} | {{ trans('Demande', 'Services', null, 'Service') }}{% endblock %}
+{% block title_tooltip %}Demande | Service{% endblock %}
 
 {% block page_filter %}
     {% include 'filters/filtersDemands.html.twig' with {

@@ -8,6 +8,7 @@ use App\Entity\CategorieCL;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
+use WiiCommon\Helper\Stream;
 
 final class Version20220930120407 extends AbstractMigration
 {
@@ -61,7 +62,13 @@ final class Version20220930120407 extends AbstractMigration
             }
 
             if($freeField["elements"]) {
-                foreach (explode(";", $freeField["elements"]) as $element) {
+                $elements = Stream::from(json_decode($freeField["elements"])
+                    ?: explode(";", $freeField["elements"])
+                    ?: [])
+                    ->filter()
+                    ->map(fn($e) => trim($e))
+                    ->toArray();
+                foreach ($elements as $element) {
                     if(!$element) {
                         continue;
                     }

@@ -193,8 +193,8 @@ class AppExtension extends AbstractExtension {
         }
     }
 
-    public function formatHelper($input, string $formatter, ...$options): string {
-        return FormatHelper::{$formatter}($input, ...$options);
+    public function formatHelper($input, string $formatter, ...$options): ?string {
+        return $this->formatService->{$formatter}($input, ...$options);
     }
 
     public function call($function) {

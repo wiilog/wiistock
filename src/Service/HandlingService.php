@@ -67,6 +67,8 @@ class HandlingService {
 
         $includeDesiredTime = !$settingRepository->getOneParamByLabel(Setting::REMOVE_HOURS_DATETIME);
 
+        $user = $this->userService->getUser();
+
         if ($statusFilter) {
             $filters = [
                 [
@@ -75,7 +77,7 @@ class HandlingService {
                 ]
             ];
         } else {
-            $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_HAND, $this->tokenStorage->getToken()->getUser());
+            $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_HAND, $user);
         }
 
         $queryResult = $handlingRepository->findByParamAndFilters($params, $filters, $selectedDate);
@@ -84,7 +86,7 @@ class HandlingService {
 
         $rows = [];
         foreach ($handlingArray as $handling) {
-            $rows[] = $this->dataRowHandling($handling, $includeDesiredTime);
+            $rows[] = $this->dataRowHandling($handling, $includeDesiredTime, $user);
         }
 
         return [
@@ -94,20 +96,26 @@ class HandlingService {
         ];
     }
 
-    public function dataRowHandling(Handling $handling, bool $includeDesiredTime = true): array {
+    public function dataRowHandling(Handling $handling,
+                                    bool $includeDesiredTime,
+                                    Utilisateur $user): array {
+
+        $userLanguage = $user->getLanguage();
+        $defaultSlug = $this->languageService->getDefaultSlug();
+
         $row = [
             'id' => $handling->getId() ?: 'Non défini',
             'number' => $handling->getNumber() ?: '',
             'comment' => $handling->getComment() ?: '',
             'creationDate' => $this->formatService->datetime($handling->getCreationDate(), "", false, $this->security->getUser()),
-            'type' => $handling->getType() ? $handling->getType()->getLabel() : '',
+            'type' => $this->formatService->type($handling->getType()),
             'requester' => $this->formatService->handlingRequester($handling),
             'subject' => $handling->getSubject() ?: '',
             "receivers" => $this->formatService->users($handling->getReceivers()->toArray()),
             'desiredDate' => $includeDesiredTime
-                ? $this->formatService->datetime($handling->getDesiredDate(), "", false, $this->security->getUser())
-                : $this->formatService->date($handling->getDesiredDate(), "", $this->security->getUser()),
-            'validationDate' => $this->formatService->datetime($handling->getValidationDate(), "", false, $this->security->getUser()),
+                ? $this->formatService->datetime($handling->getDesiredDate(), "", false, $user)
+                : $this->formatService->date($handling->getDesiredDate(), "", $user),
+            'validationDate' => $this->formatService->datetime($handling->getValidationDate(), "", false, $user),
             'status' => $this->formatService->status($handling->getStatus()),
             'emergency' => $handling->getEmergency() ?? '',
             'treatedBy' => $handling->getTreatedByHandling() ? $this->formatService->user($handling->getTreatedByHandling()) : '',
@@ -125,7 +133,7 @@ class HandlingService {
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
             $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
             $freeFieldValue = $handling->getFreeFieldValue($freeFieldId);
-            $row[$freeFieldName] = FormatHelper::freeField($freeFieldValue, $freeField, $this->security->getUser());
+            $row[$freeFieldName] = $this->formatService->freeField($freeFieldValue, $freeField, $user);
         }
 
         return $row;

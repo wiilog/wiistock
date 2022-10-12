@@ -1,7 +1,7 @@
 {% extends 'layout.html.twig' %}
 {% import 'form.html.twig' as form %}
 
-{% block title %}{{ trans('Demande', 'Général', 'Demande') }} | {{ trans('Demande', 'Services', 'Service') }} | {{ trans('Général', null, 'Header', 'Détails') }}{% endblock %}
+{% block title %}{{ trans('Demande', 'Général', 'Demande') }} | {{ trans('Demande', 'Services', null, 'Service') }} | {{ trans('Général', null, 'Header', 'Détails') }}{% endblock %}
 {% block titleLink path('handling_index') %}
 
 {% block page_content %}
@@ -35,7 +35,7 @@
                     <div class="d-flex py-2 w-100 justify-content-between">
                         <div class="d-flex align-items-center">
                             <div class="d-flex flex-column">
-                                <span class="wii-title" title="Acheminement">{{ trans('Demande', 'Services', 'Service') }}</span>
+                                <span class="wii-title">{{ trans('Demande', 'Services', null, 'Service') }}</span>
                                 <span class="wii-small-text">
                                     {{ handling.number }}
                                 </span>

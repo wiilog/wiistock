@@ -125,11 +125,11 @@ class FreeFieldService {
                 //save the date in d/m/Y H:i
                 if(preg_match("/(\d{2})\/(\d{2})\/(\d{4})T(\d{2}):(\d{2})/", $value)) {
                     $date = DateTime::createFromFormat("d/m/Y H:i", $value);
-                    $value = $date->format("Y-m-dTH:i");
+                    $value = $value ? $date->format("Y-m-dTH:i") : null;
                 } else if ($user && $user->getDateFormat()) {
                     $format = $user->getDateFormat() . ' H:i';
                     $date = DateTime::createFromFormat($format, $value);
-                    $value = $date->format($format);
+                    $value = $value ? $date->format($format) : null;
                 }
                 break;
 
