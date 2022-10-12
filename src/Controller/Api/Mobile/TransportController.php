@@ -163,6 +163,14 @@ class TransportController extends AbstractApiController
             ->map(fn(TransportRequestLine $line) => $line->getCollectedQuantity())
             ->sum();
 
+        $doneCollects = Stream::from($lines)
+            ->filterMap(fn(TransportRoundLine $line) => $line->getOrder()?->getRequest())
+            ->filter(fn(TransportRequest $request) => (
+                ($request instanceof TransportCollectRequest && $request->getStatus()->getCode() !== TransportRequest::STATUS_NOT_COLLECTED)
+                || ($request instanceof TransportDeliveryRequest && $request->getCollect()?->getStatus()->getCode() !== TransportRequest::STATUS_NOT_COLLECTED)
+            ))
+            ->count();
+
         return [
             'id' => $round->getId(),
             'number' => $round->getNumber(),
@@ -198,7 +206,7 @@ class TransportController extends AbstractApiController
             "not_delivered" => $notDeliveredOrders->count(),
             "returned_packs" => $returned,
             "packs_to_return" => $toReturn,
-            "done_collects" => $collectedOrders->count(),
+            "done_collects" => $doneCollects,
             "deposited_packs" => $depositedPacks,
             "packs_to_deposit" => $toDeposit,
             "deposited_delivery_packs" => $round->hasNoDeliveryToReturn(),
@@ -745,6 +753,7 @@ class TransportController extends AbstractApiController
         $data = $request->request;
         $files = $request->files;
         $request = $manager->find(TransportRequest::class, $data->get('id'));
+        $originalRequest = $request;
         $order = $request->getOrder();
         $now = new DateTime('now');
 
@@ -838,9 +847,9 @@ class TransportController extends AbstractApiController
             if ($request instanceof TransportCollectRequest || $request->getCollect() === null) {
                 $statusRepository = $manager->getRepository(Statut::class);
 
-                //si on termine la collecte d'une livraison collecte, alors il faut
-                //mettre a jour les données de la livraison car celles de la collecte
-                //ne sont pas utilisées
+                // si on termine la collecte d'une livraison collecte, alors il faut
+                // mettre a jour les données de la livraison car celles de la collecte
+                // ne sont pas utilisées
                 if ($request instanceof TransportCollectRequest && $request->getDelivery()) {
                     $request->setStatus($statusRepository->findOneByCategorieNameAndStatutCode(
                         CategorieStatut::TRANSPORT_REQUEST_COLLECT,
@@ -868,15 +877,28 @@ class TransportController extends AbstractApiController
                 $statusHistoryOrder = $statusHistoryService->updateStatus($manager, $order, $orderStatus);
             }
 
-            $historyService->persistTransportHistory($manager, $order->getRequest(), TransportHistoryService::TYPE_FINISHED, [
-                "user" => $this->getUser(),
-                "history" => $statusHistoryRequest ?? null,
-            ]);
+            if($originalRequest instanceof TransportCollectRequest && $originalRequest->getDelivery()) {
+                $lastFinishedTransportOrderHistory = $order->getLastTransportHistory(TransportHistoryService::TYPE_FINISHED);
+                $lastFinishedTransportRequestHistory = $request->getLastTransportHistory(TransportHistoryService::TYPE_FINISHED);
 
-            $historyService->persistTransportHistory($manager, $order, TransportHistoryService::TYPE_FINISHED, [
-                "user" => $this->getUser(),
-                "history" => $statusHistoryOrder ?? null,
-            ]);
+                foreach ([$lastFinishedTransportOrderHistory, $lastFinishedTransportRequestHistory] as $history) {
+                    if ($history) {
+                        $history
+                            ->setDate($now)
+                            ->setType(TransportHistoryService::TYPE_FINISHED_BOTH);
+                    }
+                }
+            } else {
+                $historyService->persistTransportHistory($manager, $order->getRequest(), TransportHistoryService::TYPE_FINISHED, [
+                    "user" => $this->getUser(),
+                    "history" => $statusHistoryRequest ?? null,
+                ]);
+
+                $historyService->persistTransportHistory($manager, $order, TransportHistoryService::TYPE_FINISHED, [
+                    "user" => $this->getUser(),
+                    "history" => $statusHistoryOrder ?? null,
+                ]);
+            }
         }
 
         $manager->flush();
@@ -1092,11 +1114,15 @@ class TransportController extends AbstractApiController
                 $requestFinished = $manager->getRepository(Statut::class)
                     ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_REQUEST_DELIVERY, TransportRequest::STATUS_FINISHED);
 
+                $requestNotCollected = $manager->getRepository(Statut::class)
+                    ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_REQUEST_COLLECT, TransportRequest::STATUS_NOT_COLLECTED);
+
                 $orderFinished = $manager->getRepository(Statut::class)
                     ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_DELIVERY, TransportOrder::STATUS_FINISHED);
 
                 $statusHistoryService->updateStatus($manager, $deliveryRequest, $requestFinished);
                 $statusHistoryService->updateStatus($manager, $deliveryOrder, $orderFinished);
+                $statusHistoryService->updateStatus($manager, $request, $requestNotCollected);
             }
         }
 
