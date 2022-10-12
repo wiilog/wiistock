@@ -176,9 +176,11 @@ class TransportController extends AbstractFOSRestController
             ->sum();
 
         $doneCollects = Stream::from($lines)
-            ->filter(fn(TransportRoundLine $line) => ($line->getOrder()->getRequest() instanceof TransportCollectRequest
-                    || $line->getOrder()->getRequest()->getCollect())
-                && $line->getOrder()->getRequest()->getCollect()->getStatus()->getCode() !== TransportRequest::STATUS_NOT_COLLECTED)
+            ->filterMap(fn(TransportRoundLine $line) => $line->getOrder()?->getRequest())
+            ->filter(fn(TransportRequest $request) => (
+                ($request instanceof TransportCollectRequest && $request->getStatus()->getCode() !== TransportRequest::STATUS_NOT_COLLECTED)
+                || ($request instanceof TransportDeliveryRequest && $request->getCollect()?->getStatus()->getCode() !== TransportRequest::STATUS_NOT_COLLECTED)
+            ))
             ->count();
 
         return [
