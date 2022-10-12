@@ -6,7 +6,7 @@
                     class="form-control d-block type needed"
                     disabled
                     title="Type">
-                <option selected value={{ dispatch.type.id }}>{{ dispatch.type.label }}</option>
+                <option selected value={{ dispatch.type.id }}>{{ dispatch.type|format_helper('type') }}</option>
             </select>
         </div>
     </div>
@@ -18,11 +18,11 @@
                     class="form-control data d-block needed"
                     title="Statut">
                 {# outside the for if status is treated #}
-                <option value="{{ dispatch.statut.id }}" selected>{{ dispatch.statut.nom }}</option>
+                <option value="{{ dispatch.statut.id }}" selected>{{ dispatch.statut|format_helper('status')  }}</option>
 
                 {% for status in statuses %}
                     {% if not dispatch.statut or dispatch.statut.id != status.id %}
-                        <option value="{{ status.id }}">{{ status.nom }}</option>
+                        <option value="{{ status.id }}">{{ status|format_helper('status') }}</option>
                     {% endif %}
                 {% endfor %}
             </select>

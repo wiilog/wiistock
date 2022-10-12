@@ -2,7 +2,6 @@
 
 {% set emergency = handling.emergency ? 'Oui' : 'Non' %}
 {% set treatedBy = handling.treatedByHandling ? handling.treatedByHandling.username : '' %}
-{% set defaultLanguageSlug = defaultLanguage.slug %}
 
 {% block content %}
     <div>{{ translateIn(language, 'Demande', 'Services', 'Zone liste - Nom de colonnes', 'Numéro de demande', false) }} :
@@ -46,7 +45,7 @@
         <strong>{{ handling.validationDate ? handling.validationDate|date('d/m/Y à H:i:s') }}</strong>
     </div>
     <div>{{ translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Statut', false) }} :
-        <strong>{{ handling.status.labelIn(defaultLanguage, defaultLanguage) }}</strong>
+        <strong>{{ handling.status.labelIn(language, language_service.defaultSlug) }}</strong>
     </div>
     <div>{{ translateIn(language, 'Demande', 'Général', 'Urgence', false) }} :
         <strong>{{ emergency }}</strong>
