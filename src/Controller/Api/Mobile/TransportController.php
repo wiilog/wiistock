@@ -765,6 +765,7 @@ class TransportController extends AbstractFOSRestController
         $data = $request->request;
         $files = $request->files;
         $request = $manager->find(TransportRequest::class, $data->get('id'));
+        $originalRequest = $request;
         $order = $request->getOrder();
         $now = new DateTime('now');
 
@@ -888,15 +889,26 @@ class TransportController extends AbstractFOSRestController
                 $statusHistoryOrder = $statusHistoryService->updateStatus($manager, $order, $orderStatus);
             }
 
-            $historyService->persistTransportHistory($manager, $order->getRequest(), TransportHistoryService::TYPE_FINISHED, [
-                "user" => $this->getUser(),
-                "history" => $statusHistoryRequest ?? null,
-            ]);
+            if($originalRequest instanceof TransportCollectRequest && $originalRequest->getDelivery()) {
+                $lastFinishedTransportOrderHistory = $order->getLastTransportHistory(TransportHistoryService::TYPE_FINISHED);
+                $lastFinishedTransportRequestHistory = $request->getLastTransportHistory(TransportHistoryService::TYPE_FINISHED);
 
-            $historyService->persistTransportHistory($manager, $order, TransportHistoryService::TYPE_FINISHED, [
-                "user" => $this->getUser(),
-                "history" => $statusHistoryOrder ?? null,
-            ]);
+                foreach ([$lastFinishedTransportOrderHistory, $lastFinishedTransportRequestHistory] as $history) {
+                    $history
+                        ->setDate($now)
+                        ->setType(TransportHistoryService::TYPE_FINISHED_BOTH);
+                }
+            } else {
+                $historyService->persistTransportHistory($manager, $order->getRequest(), TransportHistoryService::TYPE_FINISHED, [
+                    "user" => $this->getUser(),
+                    "history" => $statusHistoryRequest ?? null,
+                ]);
+
+                $historyService->persistTransportHistory($manager, $order, TransportHistoryService::TYPE_FINISHED, [
+                    "user" => $this->getUser(),
+                    "history" => $statusHistoryOrder ?? null,
+                ]);
+            }
         }
 
         $manager->flush();
