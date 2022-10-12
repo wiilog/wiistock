@@ -156,13 +156,13 @@ class TrackingMovementService extends AbstractController
 
         $row = [
             'id' => $movement->getId(),
-            'date' => FormatHelper::datetime($movement->getDatetime(), "", false, $this->security->getUser()),
-            'code' => FormatHelper::pack($trackingPack),
+            'date' => $this->formatService->datetime($movement->getDatetime()),
+            'code' => $this->formatService->pack($trackingPack),
             'origin' => $this->templating->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
             'group' => $movement->getPackParent()
                 ? ($movement->getPackParent()->getCode() . '-' . ($movement->getGroupIteration() ?: '?'))
                 : '',
-            'location' => FormatHelper::location($movement->getEmplacement()),
+            'location' => $this->formatService->location($movement->getEmplacement()),
             'reference' => $movement->getReferenceArticle()
                 ? $movement->getReferenceArticle()->getReference()
                 : ($movement->getArticle()
@@ -179,7 +179,7 @@ class TrackingMovementService extends AbstractController
                         : '')),
             "quantity" => $movement->getQuantity() ?: '',
             "type" => $this->translation->translate('Traçabilité', 'Mouvements', $movement->getType()->getNom()) ,
-            "operator" => FormatHelper::user($movement->getOperateur()),
+            "operator" => $this->formatService->user($movement->getOperateur()),
             "actions" => $this->templating->render('mouvement_traca/datatableMvtTracaRow.html.twig', [
                 'mvt' => $movement,
                 'attachmentsLength' => $movement->getAttachments()->count(),
@@ -189,7 +189,7 @@ class TrackingMovementService extends AbstractController
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
             $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
             $freeFieldValue = $movement->getFreeFieldValue($freeFieldId);
-            $row[$freeFieldName] = FormatHelper::freeField($freeFieldValue, $freeField, $this->security->getUser());
+            $row[$freeFieldName] = $this->formatService->freeField($freeFieldValue, $freeField);
         }
 
         return $row;

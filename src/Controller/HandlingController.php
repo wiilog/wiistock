@@ -115,7 +115,7 @@ class HandlingController extends AbstractController {
             'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_EMERGENCY),
             'modalNewConfig' => [
                 'defaultStatuses' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::HANDLING),
-                'freeFieldsTypes' => array_map(function (Type $type) use ($freeFieldsRepository, $userLanguage, $defaultLanguage) {
+                'freeFieldsTypes' => array_map(function (Type $type) use ($freeFieldsRepository) {
                     $freeFields = $freeFieldsRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_HANDLING);
                     return [
                         'typeLabel' => $this->getFormatter()->type($type),
