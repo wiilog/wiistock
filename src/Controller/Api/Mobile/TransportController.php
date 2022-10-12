@@ -859,9 +859,9 @@ class TransportController extends AbstractFOSRestController
             if ($request instanceof TransportCollectRequest || $request->getCollect() === null) {
                 $statusRepository = $manager->getRepository(Statut::class);
 
-                //si on termine la collecte d'une livraison collecte, alors il faut
-                //mettre a jour les données de la livraison car celles de la collecte
-                //ne sont pas utilisées
+                // si on termine la collecte d'une livraison collecte, alors il faut
+                // mettre a jour les données de la livraison car celles de la collecte
+                // ne sont pas utilisées
                 if ($request instanceof TransportCollectRequest && $request->getDelivery()) {
                     $request->setStatus($statusRepository->findOneByCategorieNameAndStatutCode(
                         CategorieStatut::TRANSPORT_REQUEST_COLLECT,
@@ -894,9 +894,11 @@ class TransportController extends AbstractFOSRestController
                 $lastFinishedTransportRequestHistory = $request->getLastTransportHistory(TransportHistoryService::TYPE_FINISHED);
 
                 foreach ([$lastFinishedTransportOrderHistory, $lastFinishedTransportRequestHistory] as $history) {
-                    $history
-                        ->setDate($now)
-                        ->setType(TransportHistoryService::TYPE_FINISHED_BOTH);
+                    if ($history) {
+                        $history
+                            ->setDate($now)
+                            ->setType(TransportHistoryService::TYPE_FINISHED_BOTH);
+                    }
                 }
             } else {
                 $historyService->persistTransportHistory($manager, $order->getRequest(), TransportHistoryService::TYPE_FINISHED, [
