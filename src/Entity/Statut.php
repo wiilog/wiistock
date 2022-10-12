@@ -30,7 +30,9 @@ class Statut {
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $code = null;
 
-    #[Deprecated]
+    /**
+     * Attribute used for data warehouse, do not delete it
+     */
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $nom = null;
 
@@ -152,12 +154,10 @@ class Statut {
             ?: '';
     }
 
-    #[Deprecated]
     public function getNom(): ?string {
         return $this->nom;
     }
 
-    #[Deprecated]
     public function setNom(?string $nom): self {
         $this->nom = $nom;
 
