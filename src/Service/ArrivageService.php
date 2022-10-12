@@ -624,11 +624,11 @@ class ArrivageService {
             $pack->setIsDeliveryDone(true);
             if ($receiver) {
                 $this->mailerService->sendMail(
-                    'FOLLOW GT // Dépose effectuée',
+                    ['Demande','Acheminements', 'Emails', 'Follow GT // Notification de traitement d\'une demande d\'acheminement', false],
                     $this->templating->render(
                         'mails/contents/mail-pack-delivery-done.html.twig',
                         [
-                            'title' => 'Votre colis a été livré.',
+                            'title' => $this->translation->translate('Demande','Acheminements', 'Emails', 'Votre unité logistique a été livré', false),
                             'orderNumber' => implode(', ', $arrivage->getNumeroCommandeList()),
                             'colis' => FormatHelper::pack($pack),
                             'emplacement' => $location,
