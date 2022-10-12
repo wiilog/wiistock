@@ -2,7 +2,6 @@
 
 namespace App\Repository;
 
-use App\Entity\Language;
 use App\Entity\Translation;
 use Doctrine\ORM\EntityRepository;
 

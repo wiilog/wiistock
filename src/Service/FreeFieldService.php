@@ -24,6 +24,9 @@ class FreeFieldService {
     #[Required]
     public FormatService $formatService;
 
+    #[Required]
+    public UserService $userService;
+
     public function createExportArrayConfig(EntityManagerInterface $entityManager,
                                             array $freeFieldCategoryLabels,
                                             ?array $typeCategories = []): array
@@ -31,13 +34,19 @@ class FreeFieldService {
         $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
         $freeFields = $freeFieldsRepository->findByFreeFieldCategoryLabels($freeFieldCategoryLabels, $typeCategories);
 
+        $user = $this->userService->getUser();
+
+        $defaultLanguage = $this->languageService->getDefaultSlug();
+        $userLanguage = $user?->getLanguage() ?: $this->languageService->getDefaultSlug();
+
         $config = [
             'freeFields' => [],
             'freeFieldsHeader' => []
         ];
 
         foreach ($freeFields as $freeField) {
-            $config['freeFieldsHeader'][] = $freeField->getLabel();
+            $config['freeFieldsHeader'][] = $freeField->getLabelIn($userLanguage, $defaultLanguage)
+                ?: $freeField->getLabel();
             $config['freeFields'][$freeField->getId()] = $freeField;
         }
 
@@ -76,7 +85,8 @@ class FreeFieldService {
     public function manageJSONFreeField(FreeField   $freeField,
                                                     $value,
                                         Utilisateur $user = null): string {
-        $userLanguage = $user?->getLanguage() ?: $this->languageService->getDefaultSlug();
+        $userLanguage = $this->getUser($user)?->getLanguage()
+            ?: $this->languageService->getDefaultSlug();
 
         switch ($freeField->getTypage()) {
             case FreeField::TYPE_BOOL:
@@ -182,5 +192,9 @@ class FreeFieldService {
                 'value' => $this->formatService->freeField($freeFieldValues[$freeField->getId()] ?? null, $freeField, $user)
             ])
             ->toArray();
+    }
+
+    private function getUser(?Utilisateur $user = null): ?Utilisateur {
+        return $user ?? $this->userService->getUser();
     }
 }

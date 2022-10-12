@@ -79,7 +79,7 @@ class FormatService
     public LanguageService $languageService;
 
     #[Required]
-    public Security $security;
+    public UserService $userService;
 
     #[Required]
     public TranslationService $translationService;
@@ -87,7 +87,7 @@ class FormatService
     private ?string $defaultLanguage = null;
 
     private function getUser(?Utilisateur $user = null): ?Utilisateur {
-        return $user ?? $this->security->getUser();
+        return $user ?? $this->userService->getUser();
     }
 
     public function user(?Utilisateur $user, $else = "") {

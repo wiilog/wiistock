@@ -979,6 +979,7 @@ class DispatchController extends AbstractController {
      * @return Response
      */
     public function getDispatchesCSV(Request $request,
+                                     DispatchService $dispatchService,
                                      FreeFieldService $freeFieldService,
                                      CSVExportService $CSVExportService,
                                      EntityManagerInterface $entityManager,
@@ -989,18 +990,19 @@ class DispatchController extends AbstractController {
         try {
             $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
             $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
-        } catch(Throwable $throwable) {
+        } catch(Throwable) {
         }
 
         if(isset($dateTimeMin) && isset($dateTimeMax)) {
             $dispatchRepository = $entityManager->getRepository(Dispatch::class);
-            $dispatches = $dispatchRepository->getByDates($dateTimeMin, $dateTimeMax);
+            $dispatches = $dispatchRepository->iterateByDates($dateTimeMin, $dateTimeMax);
 
             $nbPacksByDispatch = $dispatchRepository->getNbPacksByDates($dateTimeMin, $dateTimeMax);
+            $receivers = $dispatchRepository->getReceiversByDates($dateTimeMin, $dateTimeMax);
 
             $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DEMANDE_DISPATCH]);
 
-            $csvHeader = array_merge(
+            $headers = array_merge(
                 [
                     $translation->translate('Demande', 'Acheminements', 'Général', 'N° demande', false),
                     $translation->translate('Demande', 'Acheminements', 'Champs fixes', 'N° commande', false),
@@ -1028,49 +1030,15 @@ class DispatchController extends AbstractController {
                 ],
                 $freeFieldsConfig['freeFieldsHeader']
             );
-            $receivers = $dispatchRepository->getReceiversByDates($dateTimeMin, $dateTimeMax);
 
-            return $CSVExportService->createBinaryResponseFromData(
-                'export_acheminements.csv',
-                $dispatches,
-                $csvHeader,
-                function($dispatch) use ($freeFieldsConfig, $nbPacksByDispatch, $receivers, $dispatchRepository) {
-                    $id = $dispatch['id'];
-                    $receiversStr = Stream::from($receivers[$id] ?? [])
-                        ->join(", ");
-                    $number = $dispatch['number'] ?? '';
-
-                    $row = [];
-                    $row[] = $number;
-                    $row[] = $dispatch['commandNumber'] ?: '';
-                    $row[] = FormatHelper::datetime($dispatch['creationDate'], "", false, $this->getUser());
-                    $row[] = FormatHelper::datetime($dispatch['validationDate'], "", false, $this->getUser());
-                    $row[] = FormatHelper::datetime($dispatch['treatmentDate'], "", false, $this->getUser());
-                    $row[] = $dispatch['type'] ?? '';
-                    $row[] = $dispatch['requester'] ?? '';
-                    $row[] = $receiversStr;
-                    $row[] = $dispatch['locationFrom'] ?? '';
-                    $row[] = $dispatch['locationTo'] ?? '';
-                    $row[] = $dispatch['destination'] ?? '';
-                    $row[] = $nbPacksByDispatch[$number] ?? '';
-                    $row[] = $dispatch['status'] ?? '';
-                    $row[] = $dispatch['emergency'] ?? '';
-                    $row[] = $dispatch['packNatureLabel'] ?? '';
-                    $row[] = $dispatch['packCode'] ?? '';
-                    $row[] = $dispatch['packQuantity'] ?? '';
-                    $row[] = $dispatch['dispatchQuantity'] ?? '';
-                    $row[] = $dispatch['weight'] ?? '';
-                    $row[] = FormatHelper::datetime($dispatch['lastMovement'], "", false, $this->getUser());
-                    $row[] = $dispatch['lastLocation'] ?? '';
-                    $row[] = $dispatch['operator'] ?? '';
-                    $row[] = $dispatch['treatedBy'] ?? '';
-
-                    foreach($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
-                        $row[] = FormatHelper::freeField($dispatch['freeFields'][$freeFieldId] ?? '', $freeField, $this->getUser());
+            return $CSVExportService->streamResponse(
+                function ($output) use ($dispatches, $CSVExportService, $dispatchService, $receivers, $nbPacksByDispatch, $freeFieldsConfig) {
+                    foreach ($dispatches as $dispatch) {
+                        $dispatchService->putDispatchLine($output, $dispatch, $receivers, $nbPacksByDispatch, $freeFieldsConfig);
                     }
-
-                    return [$row];
-                }
+                },
+                'export_acheminements.csv',
+                $headers
             );
         } else {
             throw new BadRequestHttpException();

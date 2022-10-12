@@ -68,16 +68,4 @@ class TranslationSourceRepository extends EntityRepository {
             ->getResult();
     }
 
-    public function getTranslationsByLanguage(Language $language): array {
-        return $this->createQueryBuilder("translation_source")
-            ->select("translation.translation AS translation")
-            ->addSelect("category.label AS menu")
-            ->leftJoin("translation_source.translation", "translation")
-            ->leftJoin("translation_source.category", "category")
-            ->where("translation.languade = :language")
-            ->setParameter("language", $language)
-            ->getQuery()
-            ->getResult();
-    }
-
 }

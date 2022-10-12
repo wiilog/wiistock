@@ -75,6 +75,9 @@ class DispatchService {
     #[Required]
     public Security $security;
 
+    #[Required]
+    public CSVExportService $CSVExportService;
+
     private ?array $freeFieldsConfig = null;
 
     public function getDataForDatatable(InputBag $params) {
@@ -773,5 +776,66 @@ class DispatchService {
         }
     }
 
+
+    public function putDispatchLine($handle,
+                                    Dispatch $dispatch,
+                                    array $receivers,
+                                    array $nbPacksByDispatch,
+                                    array $freeFieldsConfig): void {
+
+        $id = $dispatch->getId();
+        $number = $dispatch->getNumber();
+
+        $dispatchDataBefore = [
+            $number,
+            $dispatch->getCommandNumber(),
+            $this->formatService->datetime($dispatch->getCreationDate()),
+            $this->formatService->datetime($dispatch->getValidationDate()),
+            $this->formatService->datetime($dispatch->getTreatmentDate()),
+            $this->formatService->type($dispatch->getType()),
+            $this->formatService->user($dispatch->getRequester()),
+            Stream::from($receivers[$id] ?? [])->join(", "),
+            $this->formatService->location($dispatch->getLocationFrom()),
+            $this->formatService->location($dispatch->getLocationTo()),
+            $dispatch->getDestination(),
+            $nbPacksByDispatch[$number] ?? '',
+            $this->formatService->status($dispatch->getStatut()),
+            $dispatch->getEmergency(),
+        ];
+
+        $freeFieldValues = $dispatch->getFreeFields();
+        $dispatchDataAfter = array_merge(
+            [$this->formatService->user($dispatch->getTreatedBy())],
+            Stream::from($freeFieldsConfig['freeFields'])
+                ->map(function(FreeField $freeField, $freeFieldId) use ($freeFieldValues) {
+                    $value = $freeFieldValues[$freeFieldId] ?? null;
+                    return $value
+                        ? $this->formatService->freeField($freeFieldValues[$freeFieldId] ?? '', $freeField)
+                        : $value;
+                })
+                ->toArray()
+        );
+
+        foreach ($dispatch->getDispatchPacks() as $dispatchPack) {
+            $pack = $dispatchPack->getPack();
+            $lastTracking = $pack?->getLastTracking();
+            $row = array_merge(
+                $dispatchDataBefore,
+                [
+                    $this->formatService->nature($dispatchPack->getPack()?->getNature()),
+                    $pack?->getCode(),
+                    $pack?->getQuantity(),
+                    $dispatchPack->getQuantity(),
+                    $pack?->getWeight(),
+                    $this->formatService->datetime($lastTracking?->getDatetime()),
+                    $this->formatService->location($lastTracking?->getEmplacement()),
+                    $this->formatService->user($lastTracking?->getOperateur()),
+                ],
+                $dispatchDataAfter
+            );
+            $this->CSVExportService->putLine($handle, $row);
+        }
+
+    }
 
 }
