@@ -1355,10 +1355,8 @@ class ArrivageController extends AbstractController {
             ? $arrival->getBusinessUnit()
             : '';
 
-        $userLanguage = $this->getUser()?->getLanguage() ?: $this->getDefaultLanguageSlug();
-
         $arrivalType = $typeArrivalParamIsDefined
-            ? $arrival->getType()->getLabelIn($userLanguage, $this->getDefaultLanguageSlug())
+            ? $this->getFormatter()->type($arrival->getType())
             : '';
 
         $recipientUsername = ($usernameParamIsDefined && $destinataire)

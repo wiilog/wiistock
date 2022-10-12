@@ -234,7 +234,7 @@ class FormatService
                               FreeField   $freeField,
                               Utilisateur $user = null): ?string {
         $userLanguage = (
-            $user?->getLanguage()?->getSlug()
+            $this->getUser($user)?->getLanguage()?->getSlug()
             ?: $this->defaultLanguage()
         );
 

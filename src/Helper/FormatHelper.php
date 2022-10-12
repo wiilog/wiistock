@@ -217,8 +217,8 @@ class FormatHelper {
     }
 
     #[Deprecated]
-    public static function date(?DateTimeInterface $date, $else = "", $switchEnFormat = false, Utilisateur $user = null) {
-        $prefix = $user && $user->getDateFormat() ? $user->getDateFormat() : ($switchEnFormat ? "d-m-Y" : 'd/m/Y');
+    public static function date(?DateTimeInterface $date, $else = "", Utilisateur $user = null) {
+        $prefix = $user && $user->getDateFormat() ? $user->getDateFormat() : 'd/m/Y';
         return $date ? $date->format($prefix) : $else;
     }
 

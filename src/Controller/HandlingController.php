@@ -97,9 +97,6 @@ class HandlingController extends AbstractController {
 
         $filterDate = $request->query->get('date');
 
-        $userLanguage = $user?->getLanguage();
-        $defaultLanguage = $languageService->getDefaultSlug();
-
         return $this->render('handling/index.html.twig', [
             'userLanguage' => $user->getLanguage(),
             'defaultLanguage' => $languageService->getDefaultLanguage(),
@@ -121,7 +118,7 @@ class HandlingController extends AbstractController {
                 'freeFieldsTypes' => array_map(function (Type $type) use ($freeFieldsRepository, $userLanguage, $defaultLanguage) {
                     $freeFields = $freeFieldsRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_HANDLING);
                     return [
-                        'typeLabel' => $type->getLabelIn($userLanguage, $defaultLanguage) ?: $type->getLabel(),
+                        'typeLabel' => $this->getFormatter()->type($type),
                         'typeId' => $type->getId(),
                         'freeFields' => $freeFields,
                     ];
@@ -485,7 +482,7 @@ class HandlingController extends AbstractController {
                     $row[] = $handling['unloadingZone'] ?? '';
                     $row[] = $includeDesiredTime
                         ? FormatHelper::datetime($handling['desiredDate'], "", false, $user)
-                        : FormatHelper::date($handling['desiredDate'], "", false, $user);
+                        : FormatHelper::date($handling['desiredDate'], "", $user);
                     $row[] = FormatHelper::datetime($handling['validationDate'], "", false, $user);
                     $row[] = $handling['status'] ?? '';
                     $row[] = strip_tags($handling['comment']) ?? '';
