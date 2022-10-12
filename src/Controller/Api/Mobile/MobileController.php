@@ -1754,7 +1754,7 @@ class MobileController extends AbstractApiController
                 ->toArray();
         }
 
-        ['translations' => $translations] = $this->mobileApiService->getTranslationsData($entityManager);
+        ['translations' => $translations] = $this->mobileApiService->getTranslationsData($entityManager, $this->getUser());
         return [
             'locations' => $emplacementRepository->getLocationsArray(),
             'allowedNatureInLocations' => $allowedNatureInLocations ?? [],
