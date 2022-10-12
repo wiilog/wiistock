@@ -21,11 +21,7 @@ $outlineButtonConfig: (
     )
 );
 
-@mixin setColorLoader($color) {
-    border-top-color: $color !important;
-    border-bottom-color: $color !important;
-    border-left-color: $color !important;
-}
+$button-box-shadow: 0 2px 6px -3px $black;
 
 @mixin button-disabled($border-color, $bg-color, $color) {
     cursor: not-allowed;
@@ -52,7 +48,7 @@ $outlineButtonConfig: (
     &:focus {
         background-color: $color;
         border-color: $color;
-        box-shadow: $dark-grey;
+        box-shadow: $button-box-shadow !important;
     }
 
     &:active {
@@ -85,7 +81,7 @@ $outlineButtonConfig: (
     &:focus {
         background-color: $bg-color !important;
         border-color: $color !important;
-        box-shadow: $dark-grey !important;
+        box-shadow: $button-box-shadow !important;
         color: $color !important;
     }
 
@@ -172,7 +168,16 @@ $outlineButtonConfig: (
 }
 
 .btn {
-    font-weight: 600 !important;
+    span:not([title]) {
+        font-size: 14px;
+        font-weight: 600 !important;
+        padding-right: 5px;
+        padding-left: 5px;
+    }
+
+    &:focus {
+        box-shadow: none !important;
+    }
 }
 
 .btn-silent {

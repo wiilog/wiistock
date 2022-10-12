@@ -37,6 +37,10 @@ body {
     }
 
     .specifications {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+
         font-size: 16px;
         margin: 10px 10px 10px 0;
 
@@ -130,6 +134,11 @@ span.icon {
         padding: 15px 5px;
         border-radius: 5px;
     }
+}
+
+.supplier-container {
+    margin-left: -16px;
+    margin-right: -16px;
 }
 
 .supplier-container:last-of-type {
