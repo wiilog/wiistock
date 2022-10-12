@@ -2923,6 +2923,9 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
 
         $this->manager->flush();
 
+        $this->deleteUnusedCategories(null, self::TRANSLATIONS);
+        $this->manager->flush();
+
         $this->updateUsers();
         $this->manager->flush();
     }
@@ -3010,7 +3013,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
             }
 
             $this->deleteUnusedTranslations($category, $content["content"]);
-            $this->deleteUnusedCategories(null, self::TRANSLATIONS);
         }
     }
 
@@ -3018,11 +3020,13 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
     {
         $categoryRepository = $this->manager->getRepository(TranslationCategory::class);
 
-        $fixtureCategories = array_keys($categories);
-        $unusedCategories = $categoryRepository->findUnusedCategories($parent, $fixtureCategories);
-        foreach ($unusedCategories as $category) {
-            $this->deleteCategory($category, true);
-            $this->manager->remove($category);
+         if (!$parent || $parent->getId()) {
+            $fixtureCategories = array_keys($categories);
+            $unusedCategories = $categoryRepository->findUnusedCategories($parent, $fixtureCategories);
+            foreach ($unusedCategories as $category) {
+                $this->deleteCategory($category, true);
+                $this->manager->remove($category);
+            }
         }
     }
 
