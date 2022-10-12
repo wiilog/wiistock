@@ -99,7 +99,12 @@ class DispatchController extends AbstractController {
             'statuts' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, 'displayOrder'),
             'carriers' => $carrierRepository->findAllSorted(),
             'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY),
-            'types' => $types,
+            'types' => Stream::from($types)
+                ->map(fn(Type $type) => [
+                    'id' => $type->getId(),
+                    'label' => $this->getFormatter()->type($type)
+                ])
+                ->toArray(),
             'fieldsParam' => $fieldsParam,
             'fields' => $fields,
             'modalNewConfig' => $service->getNewDispatchConfig($entityManager, $types)

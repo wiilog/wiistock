@@ -7,7 +7,7 @@
         name: 'statut',
         placeholder: trans('Demande', 'Général', 'Statut', false)
     } %}
-    {% include 'filters/filter_item/filterTypeMultiple.html.twig' %}
+    {% include 'filters/filter_item/filterTypeMultiple.html.twig' with {types: types} %}
     {% include 'filters/filter_item/filterUser.html.twig' with {
         name: 'requesters',
         placeholder: trans('Demande', 'Général', 'Demandeurs', false)

@@ -5,13 +5,14 @@
         <div class="{{ not block ? 'col-auto' : 'text-center' }}">
             <span title="{{ title is defined ? title }}">
                 <i class="fas fa-exclamation-triangle"></i>
-                {{ warningLabel }}
+                {{ warningLabel|raw }}
             </span>
         </div>
         {% if rights is empty or hasRight(rights['menu'], rights['action']) %}
             <div class="{{ not block ? 'col-auto' : 'text-center' }}">
                 <a href="{{ redirectPath }}" class="btn btn-sm btn-primary" target="_blank">
-                    <i class='fa fa-directions mr-2'></i> {{ redirectLabel }}
+                    <i class='fa fa-directions mr-2'></i>
+                    {{ redirectLabel|raw }}
                 </a>
             </div>
         {% endif %}

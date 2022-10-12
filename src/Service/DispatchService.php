@@ -181,7 +181,7 @@ class DispatchService {
             'typeChampsLibres' => array_map(function(Type $type) use ($freeFieldRepository) {
                 $champsLibres = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_DISPATCH);
                 return [
-                    'typeLabel' => $type->getLabel(),
+                    'typeLabel' => $this->formatService->type($type),
                     'typeId' => $type->getId(),
                     'champsLibres' => $champsLibres,
                     'pickLocation' => [
@@ -202,8 +202,8 @@ class DispatchService {
                 ->map(fn(Dispatch $dispatch) => [
                     'id' => $dispatch->getId(),
                     'number' => $dispatch->getNumber(),
-                    'locationTo' => FormatHelper::location($dispatch->getLocationTo()),
-                    'type' => FormatHelper::type($dispatch->getType())
+                    'locationTo' => $this->formatService->location($dispatch->getLocationTo()),
+                    'type' => $this->formatService->type($dispatch->getType())
                 ])
                 ->toArray()
         ];
