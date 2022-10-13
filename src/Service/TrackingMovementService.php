@@ -95,14 +95,8 @@ class TrackingMovementService extends AbstractController
         /** @var Utilisateur $user */
         $user = $this->security->getUser();
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_MVT_TRACA, $user);
-        $defaultSlug = LanguageHelper::clearLanguage($this->languageService->getDefaultSlug());
-        $defaultLanguage = $this->entityManager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
-        $language = $this->security->getUser()->getLanguage() ?: $defaultLanguage;
-        $queryResult = $trackingMovementRepository->findByParamsAndFilters($params, $filters, $user, $this->visibleColumnService,
-            [
-                'defaultLanguage' => $defaultLanguage,
-                'language' => $language
-            ]);
+
+        $queryResult = $trackingMovementRepository->findByParamsAndFilters($params, $filters, $user, $this->visibleColumnService);
 
         $mouvements = $queryResult['data'];
 

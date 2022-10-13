@@ -99,7 +99,7 @@ class TrackingMovementRepository extends EntityRepository
             ->toIterable();
     }
 
-    public function findByParamsAndFilters(InputBag $params, ?array $filters, Utilisateur $user, VisibleColumnService $visibleColumnService, array $options = []): array
+    public function findByParamsAndFilters(InputBag $params, ?array $filters, Utilisateur $user, VisibleColumnService $visibleColumnService): array
     {
         $qb = $this->createQueryBuilder('tracking_movement');
 
@@ -195,7 +195,9 @@ class TrackingMovementRepository extends EntityRepository
                             ->orderBy('order_pack_group.code', $order)
                             ->addOrderBy('tracking_movement.groupIteration', $order);
                     } else if ($column === 'status') {
-                        $qb = QueryBuilderHelper::joinTranslations($qb, $options['language'], $options['defaultLanguage'], 'type', $order);
+                        $qb
+                            ->leftJoin('tracking_movement.type', 'order_type')
+                            ->orderBy('order_type.nom', $order);
                     } else if ($column === 'reference') {
                         $qb
                             ->innerJoin('tracking_movement.pack', 'order_pack')

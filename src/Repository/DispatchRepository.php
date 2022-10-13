@@ -8,6 +8,7 @@ use App\Entity\FiltreSup;
 use App\Entity\FreeField;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
+use App\Helper\QueryBuilderHelper;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
 use App\Service\VisibleColumnService;
@@ -25,7 +26,7 @@ use Doctrine\ORM\Query\Expr\Join;
  */
 class DispatchRepository extends EntityRepository
 {
-    public function findByParamAndFilters(InputBag $params, $filters, Utilisateur $user, VisibleColumnService $visibleColumnService) {
+    public function findByParamAndFilters(InputBag $params, $filters, Utilisateur $user, VisibleColumnService $visibleColumnService, array $options = []) {
         $qb = $this->createQueryBuilder('dispatch');
 
         $countTotal = $qb
@@ -140,17 +141,13 @@ class DispatchRepository extends EntityRepository
                 if (!empty($order)) {
                     $column = $params->all('columns')[$params->all('order')[0]['column']]['data'];
                     if ($column === 'status') {
-                        $qb
-                            ->leftJoin('dispatch.statut', 'sort_status')
-                            ->orderBy('sort_status.nom', $order);
+                        $qb = QueryBuilderHelper::joinTranslations($qb, $options['language'], $options['defaultLanguage'], 'statut', $order);
                     } else if ($column === 'requester') {
                         $qb
                             ->leftJoin('dispatch.requester', 'sort_requester')
                             ->orderBy('sort_requester.username', $order);
                     } else if ($column === 'type') {
-                        $qb
-                            ->leftJoin('dispatch.type', 'sort_type')
-                            ->orderBy('sort_type.label', $order);
+                        $qb = QueryBuilderHelper::joinTranslations($qb, $options['language'], $options['defaultLanguage'], 'type', $order);
                     } else if ($column === 'locationFrom') {
                         $qb
                             ->leftJoin('dispatch.locationFrom', 'sort_locationFrom')

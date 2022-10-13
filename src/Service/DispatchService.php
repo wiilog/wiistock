@@ -11,6 +11,7 @@ use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
+use App\Entity\Language;
 use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\Setting;
@@ -19,6 +20,7 @@ use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
+use App\Helper\LanguageHelper;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -87,7 +89,13 @@ class DispatchService {
 
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DISPATCH, $this->userService->getUser());
 
-        $queryResult = $dispatchRepository->findByParamAndFilters($params, $filters, $this->userService->getUser(), $this->visibleColumnService);
+        $defaultSlug = LanguageHelper::clearLanguage($this->languageService->getDefaultSlug());
+        $defaultLanguage = $this->entityManager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
+        $language = $this->security->getUser()->getLanguage() ?: $defaultLanguage;
+        $queryResult = $dispatchRepository->findByParamAndFilters($params, $filters, $this->userService->getUser(), $this->visibleColumnService,  [
+            'defaultLanguage' => $defaultLanguage,
+            'language' => $language
+        ]);
 
         $dispatchesArray = $queryResult['data'];
 
