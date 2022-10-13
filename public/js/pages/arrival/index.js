@@ -129,7 +129,7 @@ function initTableArrival(dispatchMode = false) {
                     needsColor: true,
                     color: 'danger',
                     needsRowClickAction: true,
-                    dataToCheck: 'emergency'
+                    dataToCheck: 'checkEmergency'
                 },
                 buttons: [
                     {

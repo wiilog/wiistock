@@ -167,6 +167,7 @@ class ArrivageService {
             'creationDate' => $arrival->getDate() ? $arrival->getDate()->format($user->getDateFormat() ? $user->getDateFormat() . ' H:i:s' : 'd/m/Y H:i:s') : '',
             'user' => $arrival->getUtilisateur() ? $arrival->getUtilisateur()->getUsername() : '',
             'emergency' => $this->formatService->bool($arrival->getIsUrgent()),
+            'checkEmergency' => $arrival->getIsUrgent(),
             'projectNumber' => $arrival->getProjectNumber() ?? '',
             'businessUnit' => $arrival->getBusinessUnit() ?? '',
             'dropLocation' => $this->formatService->location($arrival->getDropLocation()),
