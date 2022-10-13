@@ -3,7 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Nature;
-use App\Helper\QueryCounter;
+use App\Helper\QueryBuilderHelper;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;
 
@@ -17,7 +17,7 @@ class NatureRepository extends EntityRepository
 {
     public function findByParams(InputBag $params): array {
         $qb = $this->createQueryBuilder('nature');
-        $total = QueryCounter::count($qb, 'nature');
+        $total = QueryBuilderHelper::count($qb, 'nature');
 
         if (!empty($params)) {
             if (!empty($params->all('search'))) {
@@ -47,7 +47,7 @@ class NatureRepository extends EntityRepository
             }
         }
 
-        $countFiltered = QueryCounter::count($qb, 'nature');
+        $countFiltered = QueryBuilderHelper::count($qb, 'nature');
 
         if ($params->getInt('start')) {
             $qb->setFirstResult($params->getInt('start'));

@@ -2,10 +2,12 @@
 
 namespace App\Helper;
 
+use App\Entity\Language;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
 
-class QueryCounter
+class QueryBuilderHelper
 {
 
     public static function count(QueryBuilder $query, string $alias): int
@@ -48,5 +50,25 @@ class QueryCounter
         else {
             return [];
         }
+    }
+
+    public static function joinTranslations(QueryBuilder $qb, Language $language, Language $defaultLanguage, string $entity, string $order = null): QueryBuilder {
+        $alias = $qb->getRootAliases()[0];
+        $entityToString = $entity === 'statut' || $entity === 'status' ? 'nom' : 'label';
+        $qb
+            ->leftJoin("$alias.$entity", "join_$entity")
+            ->leftJoin("join_$entity.labelTranslation", "join_labelTranslation")
+            ->leftJoin("join_labelTranslation.translations", "join_translation", Join::WITH, "join_translation.language = :language")
+            ->leftJoin("join_labelTranslation.translations", "join_translation_default", Join::WITH, "join_translation_default.language = :default");
+
+        if($order){
+            $qb->orderBy("IFNULL(join_translation.translation, IFNULL(join_translation_default.translation, join_$entity.$entityToString))", $order);
+        } else {
+            $qb->andWhere("IFNULL(join_translation.translation, IFNULL(join_translation_default.translation, join_$entity.$entityToString)) LIKE :term");
+        }
+
+        return $qb
+            ->setParameter("language", $language)
+            ->setParameter("default", $defaultLanguage);
     }
 }

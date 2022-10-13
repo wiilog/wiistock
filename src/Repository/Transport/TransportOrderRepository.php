@@ -7,7 +7,7 @@ use App\Entity\FiltreSup;
 use App\Entity\Transport\TransportCollectRequest;
 use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\Transport\TransportOrder;
-use App\Helper\QueryCounter;
+use App\Helper\QueryBuilderHelper;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
@@ -34,7 +34,7 @@ class TransportOrderRepository extends EntityRepository {
             ->andWhere("status.code != :status_code")
             ->setParameter("status_code", TransportOrder::STATUS_AWAITING_VALIDATION);
 
-        $total = QueryCounter::count($qb, "transport_order");
+        $total = QueryBuilderHelper::count($qb, "transport_order");
 
         if($params->get("dateMin")) {
             $date = \DateTime::createFromFormat("d/m/Y", $params->get("dateMin"));
@@ -98,7 +98,7 @@ class TransportOrderRepository extends EntityRepository {
         }
 
         // compte éléments filtrés
-        $countFiltered = QueryCounter::count($qb, "transport_order");
+        $countFiltered = QueryBuilderHelper::count($qb, "transport_order");
 
         if ($params->getInt('start')) {
             $qb->setFirstResult($params->getInt('start'));

@@ -5,7 +5,7 @@ namespace App\Repository;
 use App\Entity\FreeField;
 use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
-use App\Helper\QueryCounter;
+use App\Helper\QueryBuilderHelper;
 use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\DBAL\Connection;
@@ -99,7 +99,7 @@ class TrackingMovementRepository extends EntityRepository
             ->toIterable();
     }
 
-    public function findByParamsAndFilters(InputBag $params, ?array $filters, Utilisateur $user, VisibleColumnService $visibleColumnService): array
+    public function findByParamsAndFilters(InputBag $params, ?array $filters, Utilisateur $user, VisibleColumnService $visibleColumnService, array $options = []): array
     {
         $qb = $this->createQueryBuilder('tracking_movement');
 
@@ -195,9 +195,7 @@ class TrackingMovementRepository extends EntityRepository
                             ->orderBy('order_pack_group.code', $order)
                             ->addOrderBy('tracking_movement.groupIteration', $order);
                     } else if ($column === 'status') {
-                        $qb
-                            ->leftJoin('tracking_movement.type', 'order_type')
-                            ->orderBy('order_type.nom', $order);
+                        $qb = QueryBuilderHelper::joinTranslations($qb, $options['language'], $options['defaultLanguage'], 'type', $order);
                     } else if ($column === 'reference') {
                         $qb
                             ->innerJoin('tracking_movement.pack', 'order_pack')
@@ -402,7 +400,7 @@ class TrackingMovementRepository extends EntityRepository
                 'ungroupType' => TrackingMovement::TYPE_UNGROUP
             ]);
 
-        $countTotal = QueryCounter::count($qb, "tracking_movement");
+        $countTotal = QueryBuilderHelper::count($qb, "tracking_movement");
 
         //Filter search
         if (!empty($params)) {
@@ -427,7 +425,7 @@ class TrackingMovementRepository extends EntityRepository
             }
         }
 
-        $countFiltered = QueryCounter::count($qb, "tracking_movement");
+        $countFiltered = QueryBuilderHelper::count($qb, "tracking_movement");
 
         return [
             'data' => $qb->getQuery()->getResult(),

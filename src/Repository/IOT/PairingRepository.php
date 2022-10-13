@@ -5,7 +5,7 @@ namespace App\Repository\IOT;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorWrapper;
-use App\Helper\QueryCounter;
+use App\Helper\QueryBuilderHelper;
 use DateTime;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
@@ -29,7 +29,7 @@ class PairingRepository extends EntityRepository {
             ->setParameter('sensor_wrapper', $wrapper)
             ->setParameter("now", new DateTime("now"));
 
-        $total = QueryCounter::count($qb, "sensors_pairing");
+        $total = QueryBuilderHelper::count($qb, "sensors_pairing");
 
         if(!empty($params)) {
             if(!empty($params->all('search'))) {
@@ -92,7 +92,7 @@ class PairingRepository extends EntityRepository {
             }
         }
 
-        $countFiltered = QueryCounter::count($qb, 'sensors_pairing');
+        $countFiltered = QueryBuilderHelper::count($qb, 'sensors_pairing');
 
         if($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
         if($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));

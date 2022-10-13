@@ -17,6 +17,7 @@ use App\Entity\TrackingMovement;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
+use App\Helper\LanguageHelper;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Symfony\Component\HttpFoundation\Request;
@@ -94,6 +95,9 @@ class ArrivageService {
         $dispatchMode = $request->query->getBoolean('dispatchMode');
 
         $filters = $supFilterRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ARRIVAGE, $currentUser);
+        $defaultSlug = LanguageHelper::clearLanguage($this->languageService->getDefaultSlug());
+        $defaultLanguage = $this->entityManager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
+        $language = $this->security->getUser()->getLanguage() ?: $defaultLanguage;
         $queryResult = $arrivalRepository->findByParamsAndFilters(
             $request->request,
             $filters,
@@ -101,7 +105,9 @@ class ArrivageService {
             [
                 'userIdArrivalFilter' => $userIdArrivalFilter,
                 'user' => $this->security->getUser(),
-                'dispatchMode' => $dispatchMode
+                'dispatchMode' => $dispatchMode,
+                'defaultLanguage' => $defaultLanguage,
+                'language' => $language
             ]
         );
 

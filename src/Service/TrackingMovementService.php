@@ -10,6 +10,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\FreeField;
 use App\Entity\Dispatch;
+use App\Entity\Language;
 use App\Entity\LocationCluster;
 use App\Entity\LocationClusterRecord;
 use App\Entity\MouvementStock;
@@ -23,6 +24,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
+use App\Helper\LanguageHelper;
 use App\Service\TranslationService;
 use Google\Service\AndroidPublisher\Track;
 use Symfony\Component\HttpFoundation\FileBag;
@@ -59,6 +61,9 @@ class TrackingMovementService extends AbstractController
     public TranslationService $translation;
 
     #[Required]
+    public LanguageService $languageService;
+
+    #[Required]
     public FormatService $formatService;
 
     public array $stockStatuses = [];
@@ -90,7 +95,14 @@ class TrackingMovementService extends AbstractController
         /** @var Utilisateur $user */
         $user = $this->security->getUser();
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_MVT_TRACA, $user);
-        $queryResult = $trackingMovementRepository->findByParamsAndFilters($params, $filters, $user, $this->visibleColumnService);
+        $defaultSlug = LanguageHelper::clearLanguage($this->languageService->getDefaultSlug());
+        $defaultLanguage = $this->entityManager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
+        $language = $this->security->getUser()->getLanguage() ?: $defaultLanguage;
+        $queryResult = $trackingMovementRepository->findByParamsAndFilters($params, $filters, $user, $this->visibleColumnService,
+            [
+                'defaultLanguage' => $defaultLanguage,
+                'language' => $language
+            ]);
 
         $mouvements = $queryResult['data'];
 
@@ -613,7 +625,7 @@ class TrackingMovementService extends AbstractController
             ['title' => $this->translation->translate('Traçabilité', 'Général', 'Date', false), 'name' => 'date'],
             ['title' => $this->translation->translate('Traçabilité', 'Général', 'Unité logistique', false), 'name' => 'code'],
             ['title' => $this->translation->translate('Traçabilité', 'Mouvements', 'Référence', false), 'name' => 'reference'],
-            ['title' => $this->translation->translate('Général', '', 'Stock', 'Libellé', false),  'name' => 'label'],
+            ['title' => $this->translation->translate('Traçabilité', 'Mouvements', 'Libellé', false),  'name' => 'label'],
             ['title' => $this->translation->translate('Traçabilité', 'Mouvements', 'Groupe', false),  'name' => 'group'],
             ['title' => $this->translation->translate('Traçabilité', 'Général', 'Quantité', false), 'name' => 'quantity'],
             ['title' => $this->translation->translate('Traçabilité', 'Général', 'Emplacement', false), 'name' => 'location'],

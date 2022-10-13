@@ -778,5 +778,4 @@ class Statut {
 
         return $this;
     }
-
 }

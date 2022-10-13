@@ -1333,6 +1333,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "tooltip" => "Zone liste - Nom de colonnes\nGestion des colonnes",
                     ],
                     [
+                        "fr" => "Libellé",
+                        "en" => "Label",
+                        "tooltip" => "Zone liste - Nom de colonnes\nGestion des colonnes",
+                    ],
+                    [
                         "fr" => "Article",
                         "en" => "Article",
                         "tooltip" => "Zone liste - Nom de colonnes\nGestion des colonnes",

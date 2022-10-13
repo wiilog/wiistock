@@ -3,7 +3,7 @@
 namespace App\Repository\IOT;
 
 use App\Entity\IOT\TriggerAction;
-use App\Helper\QueryCounter;
+use App\Helper\QueryBuilderHelper;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;
 
@@ -19,7 +19,7 @@ class TriggerActionRepository extends EntityRepository
     public function findByParamsAndFilters(InputBag $params)
     {
         $qb = $this->createQueryBuilder("trigger_action");
-        $total = QueryCounter::count($qb, "trigger_action");
+        $total = QueryBuilderHelper::count($qb, "trigger_action");
 
         //Filter search
         if (!empty($params)) {
@@ -59,7 +59,7 @@ class TriggerActionRepository extends EntityRepository
         }
 
         // compte éléments filtrés
-        $countFiltered = QueryCounter::count($qb, 'trigger_action');
+        $countFiltered = QueryBuilderHelper::count($qb, 'trigger_action');
 
         if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
         if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
