@@ -92,13 +92,7 @@ class ArrivageController extends AbstractController {
 
         $paramGlobalRedirectAfterNewArrivage = $settingRepository->findOneBy(['label' => Setting::REDIRECT_AFTER_NEW_ARRIVAL]);
 
-        $statuses = Stream::from($statutRepository->findStatusByType(CategorieStatut::ARRIVAGE))
-            ->map(fn(Statut $statut) => [
-                'id' => $statut->getId(),
-                'type' => $statut->getType(),
-                'nom' => $this->getFormatter()->status($statut),
-            ])
-            ->toArray();
+        $statuses = $statutRepository->findStatusByType(CategorieStatut::ARRIVAGE);
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
 
         return $this->render('arrivage/index.html.twig', [
