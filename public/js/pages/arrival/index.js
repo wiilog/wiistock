@@ -92,11 +92,9 @@ $(function () {
             toggleValidateDispatchButton($arrivalsTable, $dispatchModeContainer);
         });
 
-        $(this).closest(`tr`).on(`click`, (event) => {
+        $(this).closest(`tr`).on(`click`, () => {
             if(!$(this).is(`:disabled`)) {
-                if (!$(event.target).is('input')) {
-                    $(this).prop(`checked`, !$(this).is(`:checked`));
-                }
+                $(this).prop(`checked`, !$(this).is(`:checked`));
                 toggleValidateDispatchButton($arrivalsTable, $dispatchModeContainer);
             }
         });
