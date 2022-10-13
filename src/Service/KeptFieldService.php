@@ -17,6 +17,8 @@ class KeptFieldService {
     #[Required]
     public Security $security;
 
+    public array $cache;
+
     public function getAll(string $entity): array {
         $fieldsParamRepository = $this->manager->getRepository(FieldsParam::class);
         $repository = $this->manager->getRepository(KeptFieldValue::class);
@@ -33,22 +35,32 @@ class KeptFieldService {
             ->toArray();
     }
 
-    public function save(string $entity, string $field, mixed $value) {
+    public function save(string $entity, string $field, mixed $value): void {
         //TODO: sauvegarder uniquement si le paramétrage l'autorise
-        $repository = $this->manager->getRepository(KeptFieldValue::class);
-        $user = $this->security->getUser();
-
-        $keptField = $repository->findOneBy(["entity" => $entity, "field" => $field, "user" => $user]);
-        if(!$keptField) {
-            $keptField = new KeptFieldValue();
-            $keptField->setEntity($entity)
-                ->setField($field)
-                ->setUser($user);
-
-            $this->manager->persist($keptField);
+        if(!isset($this->cache[$entity])) {
+            $this->loadKeptFieldsCache($entity);
         }
 
-        $keptField->setValue(json_encode($value));
+        if($this->cache[$entity][$field]['keptInMemory'] ?? false) {
+            $keptFieldValueRepository = $this->manager->getRepository(KeptFieldValue::class);
+            $user = $this->security->getUser();
+            $keptField = $keptFieldValueRepository->findOneBy(["entity" => $entity, "field" => $field, "user" => $user]);
+            if(!$keptField) {
+                $keptField = new KeptFieldValue();
+                $keptField->setEntity($entity)
+                    ->setField($field)
+                    ->setUser($user);
+
+                $this->manager->persist($keptField);
+            }
+
+            $keptField->setValue(json_encode($value));
+        }
+    }
+
+    private function loadKeptFieldsCache(string $entity): void {
+        $fixedFieldRepository = $this->manager->getRepository(FieldsParam::class);
+        $this->cache[$entity] = $fixedFieldRepository->getByEntity($entity);
     }
 
 }
