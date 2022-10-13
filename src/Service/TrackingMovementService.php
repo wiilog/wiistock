@@ -655,24 +655,24 @@ class TrackingMovementService extends AbstractController
         $attachementName = $attachement[$movement['id']] ?? ' ' ;
 
         if(!empty($movement['numeroArrivage'])) {
-           $origine =  'Arrivage-' . $movement['numeroArrivage'];
+           $origine =  $this->translation->translate("Traçabilité", "Flux - Arrivages", "Divers", "Arrivage", false) . '-' . $movement['numeroArrivage'];
         }
         if(!empty($movement['receptionNumber'])) {
-            $origine = 'Reception-' . $movement['receptionNumber'];
+            $origine = $this->translation->translate("Ordre", "Réceptions", "Reception", false) . '-' . $movement['receptionNumber'];
         }
         if(!empty($movement['dispatchNumber'])) {
-            $origine = 'Acheminement-' . $movement['dispatchNumber'];
+            $origine = $this->translation->translate("Demande", "Acheminements", "Général", "Acheminement", false) . '-' . $movement['dispatchNumber'];
         }
         if(!empty($movement['transferNumber'])) {
             $origine = 'transfert-' . $movement['transferNumber'];
         }
 
         $data = [
-            FormatHelper::datetime($movement['datetime'], "", false, $this->security->getUser()),
+            $this->formatService->datetime($movement['datetime'], "", false, $this->security->getUser()),
             $movement['code'],
             $movement['locationLabel'],
             $movement['quantity'],
-            $movement['typeName'],
+            $this->translation->translate("Traçabilité", "Mouvements", $movement['typeName'], false),
             $movement['operatorUsername'],
             strip_tags($movement['commentaire']),
             $attachementName,
@@ -680,12 +680,12 @@ class TrackingMovementService extends AbstractController
             $movement['numeroCommandeListArrivage'] && !empty($movement['numeroCommandeListArrivage'])
                         ? implode(', ', $movement['numeroCommandeListArrivage'])
                         : ($movement['orderNumber'] ?: ''),
-            $movement['isUrgent'] ? 'oui' : 'non',
+            $this->formatService->bool($movement['isUrgent']),
             $movement['packParent'],
         ];
 
         foreach ($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
-            $data[] = FormatHelper::freeField($movement['freeFields'][$freeFieldId] ?? '', $freeField, $this->security->getUser());
+            $data[] = $this->formatService->freeField($movement['freeFields'][$freeFieldId] ?? '', $freeField);
         }
         $CSVExportService->putLine($handle, $data);
     }
