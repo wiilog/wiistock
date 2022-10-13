@@ -73,10 +73,11 @@ class HandlingService {
             $filters = [
                 [
                     'field' => 'statut',
-                    'value' => $statusFilter
-                ]
+                    'value' => $statusFilter,
+                ],
             ];
-        } else {
+        }
+        else {
             $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_HAND, $user);
         }
 
@@ -176,8 +177,8 @@ class HandlingService {
                         'handling' => $handling,
                         'title' => $title,
                         'fieldsParam' => $fieldsParam,
-                        'viewHoursOnExpectedDate' => $viewHoursOnExpectedDate
-                    ]
+                        'viewHoursOnExpectedDate' => $viewHoursOnExpectedDate,
+                    ],
                 ],
                 $emailReceivers
             );
@@ -194,7 +195,7 @@ class HandlingService {
         $state = $handling->getStatus()?->getState();
 
         $href = $this->router->generate('handling_show', [
-            "id" => $handling->getId()
+            "id" => $handling->getId(),
         ]);
 
         $typeId = $handling->getType()?->getId();
@@ -231,7 +232,7 @@ class HandlingService {
         $statusesToProgress = [
             Statut::DRAFT => 0,
             Statut::NOT_TREATED => 50,
-            Statut::TREATED => 100
+            Statut::TREATED => 100,
         ];
 
         return [
@@ -249,7 +250,7 @@ class HandlingService {
             'bodyColor' => 'light-grey',
             'topRightIcon' => $handling->getEmergency() ? '' : 'livreur.svg',
             'emergencyText' => $handling->getEmergency() ?? '',
-            'progress' =>  $statusesToProgress[$state] ?? 0,
+            'progress' => $statusesToProgress[$state] ?? 0,
             'progressBarColor' => '#2ec2ab',
             'progressBarBGColor' => 'light-grey',
         ];
@@ -259,24 +260,99 @@ class HandlingService {
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
 
         $columnsVisible = $currentUser->getVisibleColumns()['handling'];
-        $freeFields = $champLibreRepository->findByCategoryTypeAndCategoryCL(CategoryType::DEMANDE_HANDLING, CategorieCL::DEMANDE_HANDLING);
+        $freeFields = $champLibreRepository->findByCategoryTypeAndCategoryCL(CategoryType::DEMANDE_HANDLING,
+            CategorieCL::DEMANDE_HANDLING);
 
         $columns = [
-            ['title' => $this->translation->translate('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Numéro de demande'),  'name' => 'number'],
-            ['title' => $this->translation->translate('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Date demande'), 'name' => 'creationDate'],
-            ['title' => $this->translation->translate( 'Demande', 'Général', 'Type'), 'name' => 'type'],
-            ['title' => $this->translation->translate( 'Demande', 'Général', 'Demandeur'), 'name' => 'requester'],
-            ['title' => $this->translation->translate('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Objet'), 'name' => 'subject'],
-            ['title' => $this->translation->translate('Demande', 'Services', 'Modale et détails', 'Date attendue'), 'name' => 'desiredDate'],
-            ['title' => $this->translation->translate('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Date de réalisation'), 'name' => 'validationDate'],
+            [
+                'title' => $this->translation->translate('Demande',
+                    'Services',
+                    'Zone liste - Nom de colonnes',
+                    'Numéro de demande'), 'name' => 'number',
+            ],
+            [
+                'title' => $this->translation->translate('Demande',
+                    'Services',
+                    'Zone liste - Nom de colonnes',
+                    'Date demande'), 'name' => 'creationDate',
+            ],
+            ['title' => $this->translation->translate('Demande', 'Général', 'Type'), 'name' => 'type'],
+            ['title' => $this->translation->translate('Demande', 'Général', 'Demandeur'), 'name' => 'requester'],
+            [
+                'title' => $this->translation->translate('Demande',
+                    'Services',
+                    'Zone liste - Nom de colonnes',
+                    'Objet'), 'name' => 'subject',
+            ],
+            [
+                'title' => $this->translation->translate('Demande', 'Services', 'Modale et détails', 'Date attendue'),
+                'name' => 'desiredDate',
+            ],
+            [
+                'title' => $this->translation->translate('Demande',
+                    'Services',
+                    'Zone liste - Nom de colonnes',
+                    'Date de réalisation'), 'name' => 'validationDate',
+            ],
             ['title' => $this->translation->translate('Demande', 'Général', 'Statut'), 'name' => 'status'],
-            ['title' => $this->translation->translate( 'Demande', 'Général', 'Urgent'), 'name' => 'emergency'],
-            ['title' => $this->translation->translate('Demande', 'Services', 'Modale et détails', 'Nombre d\'opération(s) réalisée(s)'), 'name' => 'carriedOutOperationCount'],
-            ['title' => $this->translation->translate('Général', null, 'Zone liste', 'Traité par'), 'name' => 'treatedBy'],
+            ['title' => $this->translation->translate('Demande', 'Général', 'Urgent'), 'name' => 'emergency'],
+            [
+                'title' => $this->translation->translate('Demande',
+                    'Services',
+                    'Modale et détails',
+                    'Nombre d\'opération(s) réalisée(s)'), 'name' => 'carriedOutOperationCount',
+            ],
+            [
+                'title' => $this->translation->translate('Général', null, 'Zone liste', 'Traité par'),
+                'name' => 'treatedBy',
+            ],
             ['title' => $this->translation->translate('Général', null, 'Modale', 'Commentaire'), 'name' => 'comment'],
         ];
 
         return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);
+    }
+
+    public function putHandlingLine(EntityManagerInterface $entityManager,
+                                    CSVExportService       $CSVExportService,
+                                                           $output,
+                                    Handling               $handling,
+                                    FormatService          $formatService) {
+        $statusR =
+            //                    $treatmentDelay = $handling['treatmentDelay'];
+            //                    $treatmentDelayInterval = $treatmentDelay ? $dateService->secondsToDateInterval($treatmentDelay) : null;
+            //                    $treatmentDelayStr = $treatmentDelayInterval ? $dateService->intervalToStr($treatmentDelayInterval) : '';
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+        $includeDesiredTime = !$settingRepository->getOneParamByLabel(Setting::REMOVE_HOURS_DATETIME);
+        $user = $this->userService->getUser();
+        $receiversStr = Stream::from($handling->getReceivers())
+            ->map(fn(Utilisateur $receiver) => $formatService->user($receiver))
+            ->join(", ");
+        $row = [];
+        $row[] = $handling->getNumber() ?? "";
+        $row[] = $handling->getCreationDate() ? $formatService->datetime($handling->getCreationDate()) : "";
+        $row[] = $formatService->handlingRequester($handling);
+        $row[] = $formatService->type($handling->getType());
+        $row[] = $handling->getSubject() ??"";
+        $row[] = $handling->getSource() ?? "";
+        $row[] = $handling->getDestination() ?? "";
+        $row[] = $includeDesiredTime
+            ? $formatService->datetime($handling->getDesiredDate())
+            : $formatService->date($handling->getDesiredDate());
+        $row[] = $handling->getValidationDate() ? $formatService->datetime($handling->getValidationDate()) : "";
+        $row[] = $handling->getStatus() ? $formatService->status($handling->getStatus()) : "";
+        $row[] = $handling->getComment() ? $formatService->html($handling->getComment()) : "";
+        $row[] = $handling->getEmergency() ?? "";
+        $row[] = $handling->getCarriedOutOperationCount() ?? "";
+        $row[] = $handling->getTreatedByHandling() ? $formatService->user($handling->getTreatedByHandling()) : "";
+        $row[] = $receiversStr ?? "";
+        //                    $row[] = $treatmentDelayStr;
+
+        foreach ($handling->getFreeFields() as $freeFieldId => $value) {
+            $field = $freeFieldRepository->find($freeFieldId);
+            $row[] = $formatService->freeField($handling->getFreeFields()[$freeFieldId] ?? "", $field, $user);
+        }
+        $CSVExportService->putLine($output, $row);
     }
 
 }
