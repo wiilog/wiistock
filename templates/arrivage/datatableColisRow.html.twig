@@ -2,7 +2,7 @@
 <div class="d-flex">
     <div class="dropdown dropright">
         {{ include('datatable/dotsRow.html.twig') }}
-        <div class="dropdown-menu dropdown-follow-gt {{ canEditPack ? 'pointer' : '' }}>
+        <div class="dropdown-menu dropdown-follow-gt {{ canEditPack ? 'pointer' : '' }}">
             {% if canEditPack %}
                 <div class="action-on-click d-none"
                      data-toggle='modal'
