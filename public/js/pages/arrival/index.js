@@ -248,7 +248,7 @@ function createArrival() {
             const $submit = $modal.find(`[type=submit]`);
             $submit
                 .off('click.new-arrival')
-                .on(`click`, function() {
+                .on('click.new-arrival', function() {
                     SubmitAction($modal, $submit, Routing.generate('arrivage_new', true), {
                         keepForm: true,
                         keepModal: true,
